@@ -446,6 +446,10 @@
   },
   "logViewer": {
     "title": "Visualizador de Logs",
+    "aria": {
+      "logIcon": "Icone do visualizador de logs",
+      "entriesCount": "{{count}} entradas de log exibidas"
+    },
     "fileInfo": {
       "custom": "Personalizado",
       "entries": "{{count}} entradas",
@@ -495,7 +499,8 @@
         "main": "Processo Principal",
         "renderer": "Renderizador",
         "webview": "Webview",
-        "videocall": "Video Chamada"
+        "videocall": "Video Chamada",
+        "outlook": "Calendario Outlook"
       },
       "exchangeDebug": {
         "all": "Todos os Logs",

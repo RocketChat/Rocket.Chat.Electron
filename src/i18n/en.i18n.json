@@ -478,6 +478,10 @@
   },
   "logViewer": {
     "title": "Log Viewer",
+    "aria": {
+      "logIcon": "Log viewer icon",
+      "entriesCount": "{{count}} log entries displayed"
+    },
     "fileInfo": {
       "custom": "Custom",
       "entries": "{{count}} entries",
@@ -527,7 +531,8 @@
         "main": "Main Process",
         "renderer": "Renderer",
         "webview": "Webview",
-        "videocall": "Video Call"
+        "videocall": "Video Call",
+        "outlook": "Outlook Calendar"
       },
       "exchangeDebug": {
         "all": "All Logs",

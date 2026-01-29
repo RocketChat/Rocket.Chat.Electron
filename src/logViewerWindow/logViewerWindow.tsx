@@ -262,10 +262,10 @@ function LogViewerWindow() {
         if (oldestDate && newestDate) {
           if (oldestDate.toDateString() === newestDate.toDateString()) {
             // Same day - show time range
-            dateRange = `${oldestDate.toLocaleTimeString('en-GB')} - ${newestDate.toLocaleTimeString('en-GB')}`;
+            dateRange = `${oldestDate.toLocaleTimeString()} - ${newestDate.toLocaleTimeString()}`;
           } else {
             // Multiple days - show date and time range
-            dateRange = `${oldestDate.toLocaleDateString()} ${oldestDate.toLocaleTimeString('en-GB')} - ${newestDate.toLocaleDateString()} ${newestDate.toLocaleTimeString('en-GB')}`;
+            dateRange = `${oldestDate.toLocaleString()} - ${newestDate.toLocaleString()}`;
           }
         }
 
@@ -524,6 +524,28 @@ function LogViewerWindow() {
     }
   }, [filteredLogs]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.querySelector(
+          'input[type="search"]'
+        ) as HTMLInputElement;
+        searchInput?.focus();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveLogs();
+      }
+      if (e.key === 'Escape' && searchFilter) {
+        setSearchFilter('');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchFilter, setSearchFilter, handleSaveLogs]);
+
   const handleClose = useCallback(() => {
     ipcRenderer.invoke('log-viewer-window/close-requested');
   }, []);
@@ -552,7 +574,12 @@ function LogViewerWindow() {
           alignItems='center'
           flexGrow={1}
         >
-          <Icon name='list-alt' size='x20' color='default' />
+          <Icon
+            name='list-alt'
+            size='x20'
+            color='default'
+            aria-label={t('logViewer.aria.logIcon')}
+          />
           <Box fontScale='h4' marginInlineStart='x8' color='default'>
             {t('logViewer.title')}
           </Box>
@@ -615,7 +642,11 @@ function LogViewerWindow() {
             </Button>
           )}
           <Button onClick={handleRefresh} disabled={isLoading}>
-            <Icon name='refresh' size='x16' />
+            <Icon
+              name='refresh'
+              size='x16'
+              aria-label={t('logViewer.buttons.refresh')}
+            />
             {t('logViewer.buttons.refresh')}
           </Button>
           <Button

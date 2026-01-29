@@ -44,6 +44,41 @@ const validateLogFilePath = (
   return { valid: true };
 };
 
+// Regex to match log entry start: [timestamp] [level] ...
+const LOG_ENTRY_REGEX = /^\[([^\]]+)\] \[([^\]]+)\]/;
+
+/**
+ * Extracts the last N log entries from file content.
+ * A log entry starts with [timestamp] [level] and may span multiple lines (stack traces).
+ */
+const getLastNEntries = (
+  content: string,
+  limit: number
+): { content: string; totalEntries: number } => {
+  const lines = content.split('\n');
+  const entryStartIndices: number[] = [];
+
+  lines.forEach((line, index) => {
+    if (LOG_ENTRY_REGEX.test(line)) {
+      entryStartIndices.push(index);
+    }
+  });
+
+  const totalEntries = entryStartIndices.length;
+
+  if (totalEntries === 0) {
+    return { content: lines.slice(-limit).join('\n'), totalEntries: 0 };
+  }
+
+  const startEntryIndex = Math.max(0, totalEntries - limit);
+  const startLineIndex = entryStartIndices[startEntryIndex];
+
+  return {
+    content: lines.slice(startLineIndex).join('\n'),
+    totalEntries,
+  };
+};
+
 export const openLogViewerWindow = async (): Promise<void> => {
   if (logViewerWindow && !logViewerWindow.isDestroyed()) {
     logViewerWindow.focus();
@@ -217,21 +252,17 @@ export const startLogViewerWindowHandler = (): void => {
         }
 
         let logContent: string;
+        let totalEntries: number | undefined;
+        const fileContent = await readFile(logPath, 'utf-8');
 
         if (limit === 'all' || !limit) {
-          // Read entire file
-          logContent = await readFile(logPath, 'utf-8');
+          logContent = fileContent;
         } else {
-          // Read only the last N lines efficiently
-          const fileContent = await readFile(logPath, 'utf-8');
-          const lines = fileContent.split('\n');
-
-          // Take the last 'limit' lines, but keep empty lines for proper parsing
-          const limitedLines = lines.slice(-limit);
-          logContent = limitedLines.join('\n');
+          const result = getLastNEntries(fileContent, limit);
+          logContent = result.content;
+          totalEntries = result.totalEntries;
         }
 
-        // Get file modification time for smart refresh
         const stats = fs.statSync(logPath);
         const lastModifiedTime = stats.mtime.getTime();
 
@@ -242,6 +273,7 @@ export const startLogViewerWindowHandler = (): void => {
           fileName: path.basename(logPath),
           isDefaultLog: !options?.filePath,
           lastModifiedTime,
+          totalEntries,
         };
       } catch (error) {
         console.error('Failed to read log file:', error);

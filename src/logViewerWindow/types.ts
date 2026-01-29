@@ -20,6 +20,7 @@ export interface IReadLogsResponse {
   fileName?: string;
   isDefaultLog?: boolean;
   lastModifiedTime?: number;
+  totalEntries?: number;
   error?: string;
 }
 

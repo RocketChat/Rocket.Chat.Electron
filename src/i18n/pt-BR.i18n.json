@@ -453,6 +453,7 @@
     "fileInfo": {
       "custom": "Personalizado",
       "entries": "{{count}} entradas",
+      "entriesOfTotal": "{{count}} de {{total}} entradas",
       "noEntries": "Nenhuma entrada"
     },
     "buttons": {

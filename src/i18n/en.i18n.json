@@ -485,6 +485,7 @@
     "fileInfo": {
       "custom": "Custom",
       "entries": "{{count}} entries",
+      "entriesOfTotal": "{{count}} of {{total}} entries",
       "noEntries": "No entries"
     },
     "buttons": {

@@ -47,17 +47,17 @@ const getLevelTextColor = (level: LogLevel): string => {
 
   switch (level) {
     case 'error':
-      return 'font-danger'; // Red text (#ec0d2a) matching red danger badge
+      return 'danger';
     case 'warn':
-      return 'font-default'; // Default text color for warnings
+      return 'default';
     case 'info':
-      return 'font-info'; // Blue text (#095ad2) matching blue primary badge
+      return 'info';
     case 'debug':
-      return 'font-default'; // Default text matching gray secondary badge
+      return 'default';
     case 'verbose':
-      return 'font-default'; // Default text matching gray secondary badge
+      return 'default';
     default:
-      return 'font-default';
+      return 'default';
   }
 };
 

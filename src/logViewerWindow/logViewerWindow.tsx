@@ -4,7 +4,7 @@ import {
   Icon,
   Button,
   ButtonGroup,
-  SelectLegacy,
+  Select,
   Tile,
   Throbber,
   CheckBox,
@@ -14,7 +14,7 @@ import {
   useDebouncedValue,
 } from '@rocket.chat/fuselage-hooks';
 import { ipcRenderer } from 'electron';
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, Key } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { VirtuosoHandle } from 'react-virtuoso';
@@ -67,9 +67,10 @@ function LogViewerWindow() {
   const [fileInfo, setFileInfo] = useState<{
     size: string;
     totalEntries: number;
+    totalEntriesInFile?: number;
     lastModified: string;
     dateRange: string;
-    lastModifiedTime?: number; // Track actual file modification time for smart refresh
+    lastModifiedTime?: number;
   } | null>(null);
   const [currentLogFile, setCurrentLogFile] = useState<{
     filePath?: string;
@@ -118,8 +119,8 @@ function LogViewerWindow() {
   >('log-level', 'all');
 
   const handleLevelFilterChange = useCallback(
-    (value: string) => {
-      setLevelFilter(value as LogLevel | 'all');
+    (value: Key) => {
+      setLevelFilter(String(value) as LogLevel | 'all');
     },
     [setLevelFilter]
   );
@@ -131,7 +132,7 @@ function LogViewerWindow() {
       ['renderer', t('logViewer.filters.context.renderer')],
       ['webview', t('logViewer.filters.context.webview')],
       ['videocall', t('logViewer.filters.context.videocall')],
-      ['outlook', '📅 Outlook Calendar'],
+      ['outlook', t('logViewer.filters.context.outlook')],
       ['auth', t('logViewer.filters.context.auth')],
       ['updates', t('logViewer.filters.context.updates')],
       ['notifications', t('logViewer.filters.context.notifications')],
@@ -146,15 +147,15 @@ function LogViewerWindow() {
   >('log-context', 'all');
 
   const handleContextFilterChange = useCallback(
-    (value: string) => {
-      setContextFilter(value);
+    (value: Key) => {
+      setContextFilter(String(value));
     },
     [setContextFilter]
   );
 
   const handleEntryLimitChange = useCallback(
-    (value: string) => {
-      setEntryLimit(value);
+    (value: Key) => {
+      setEntryLimit(String(value));
     },
     [setEntryLimit]
   );
@@ -277,6 +278,7 @@ function LogViewerWindow() {
         setFileInfo({
           size: sizeFormatted,
           totalEntries: parsedLogs.length,
+          totalEntriesInFile: response.totalEntries,
           lastModified: new Date().toLocaleString(),
           dateRange,
           lastModifiedTime: response.lastModifiedTime,
@@ -618,9 +620,15 @@ function LogViewerWindow() {
                 <Box marginInlineEnd='x8' display='flex' alignItems='center'>
                   <Icon name='hash' size='x12' />
                   <Box marginInlineStart='x4'>
-                    {t('logViewer.fileInfo.entries', {
-                      count: fileInfo.totalEntries,
-                    })}
+                    {fileInfo.totalEntriesInFile &&
+                    fileInfo.totalEntriesInFile !== fileInfo.totalEntries
+                      ? t('logViewer.fileInfo.entriesOfTotal', {
+                          count: fileInfo.totalEntries,
+                          total: fileInfo.totalEntriesInFile,
+                        })
+                      : t('logViewer.fileInfo.entries', {
+                          count: fileInfo.totalEntries,
+                        })}
                   </Box>
                 </Box>
                 <Box marginInlineEnd='x8' display='flex' alignItems='center'>
@@ -702,6 +710,7 @@ function LogViewerWindow() {
         <Box display='flex' alignItems='center' flexWrap='wrap'>
           <Box display='flex' alignItems='center' marginInlineEnd='x16'>
             <CheckBox
+              aria-label={t('logViewer.controls.showContext')}
               checked={showContext}
               onChange={() => setShowContext(!showContext)}
             />
@@ -711,12 +720,12 @@ function LogViewerWindow() {
           </Box>
           <Box display='flex' alignItems='center'>
             <CheckBox
+              aria-label={t('logViewer.controls.autoScrollToTop')}
               checked={autoScroll}
               onChange={() => {
                 const newAutoScroll = !autoScroll;
                 setAutoScroll(newAutoScroll);
                 if (newAutoScroll) {
-                  // When re-enabling auto-scroll, immediately scroll to top if there are logs
                   setUserHasScrolled(false);
                   if (filteredLogs.length > 0 && virtuosoRef.current) {
                     setTimeout(() => {
@@ -735,12 +744,13 @@ function LogViewerWindow() {
           </Box>
         </Box>
         <Box display='flex' alignItems='center' flexWrap='wrap'>
-          <Box minWidth='x160' marginInlineEnd='x12'>
-            <SelectLegacy
+          <Box marginInlineEnd='x12'>
+            <Select
               placeholder={t('logViewer.placeholders.loadAmount')}
               value={entryLimit}
               options={entryLimitOptions}
               onChange={handleEntryLimitChange}
+              width={160}
             />
           </Box>
           <Box minWidth='x200' marginInlineEnd='x12'>
@@ -750,20 +760,22 @@ function LogViewerWindow() {
               onChange={handleSearchFilterChange}
             />
           </Box>
-          <Box minWidth='x120' marginInlineEnd='x12'>
-            <SelectLegacy
+          <Box marginInlineEnd='x12'>
+            <Select
               placeholder={t('logViewer.placeholders.level')}
               value={levelFilter}
               options={levelFilterOptions}
               onChange={handleLevelFilterChange}
+              width={120}
             />
           </Box>
-          <Box minWidth='x120' marginInlineEnd='x12'>
-            <SelectLegacy
+          <Box marginInlineEnd='x12'>
+            <Select
               placeholder={t('logViewer.placeholders.context')}
               value={contextFilter}
               options={contextFilterOptions}
               onChange={handleContextFilterChange}
+              width={200}
             />
           </Box>
           <Button onClick={handleClearAll}>

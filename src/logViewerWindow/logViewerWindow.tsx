@@ -714,7 +714,7 @@ function LogViewerWindow() {
               checked={showContext}
               onChange={() => setShowContext(!showContext)}
             />
-            <Box marginInlineStart='x4' display='inline'>
+            <Box marginInlineStart='x4' display='inline' color='default'>
               {t('logViewer.controls.showContext')}
             </Box>
           </Box>
@@ -738,7 +738,7 @@ function LogViewerWindow() {
                 }
               }}
             />
-            <Box marginInlineStart='x4' display='inline'>
+            <Box marginInlineStart='x4' display='inline' color='default'>
               {t('logViewer.controls.autoScrollToTop')}
             </Box>
           </Box>
@@ -750,7 +750,7 @@ function LogViewerWindow() {
               value={entryLimit}
               options={entryLimitOptions}
               onChange={handleEntryLimitChange}
-              width={160}
+              width={180}
             />
           </Box>
           <Box minWidth='x200' marginInlineEnd='x12'>

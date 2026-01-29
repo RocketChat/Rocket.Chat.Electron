@@ -9,6 +9,8 @@ import {
   formatLogContext,
   cleanupServerContext,
 } from './context';
+import { logLoggingFailure } from './fallback';
+import { createPrivacyHook } from './privacy';
 
 // Enhanced console override with context
 const overrideConsole = () => {
@@ -115,6 +117,9 @@ const configureLogging = () => {
       log.transports.console.format =
         '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
 
+      // Add privacy hook to filter sensitive data
+      log.hooks.push(createPrivacyHook());
+
       // Initialize for renderer processes if we're in main process
       if (process.type === 'browser') {
         log.initialize();
@@ -124,8 +129,7 @@ const configureLogging = () => {
     // Override console.log to use electron-log
     overrideConsole();
   } catch (error) {
-    // Fallback to console if electron-log fails
-    console.warn('Failed to configure electron-log:', error);
+    logLoggingFailure(error, 'configureLogging');
   }
 
   return log;
@@ -169,7 +173,10 @@ export const setupWebContentsLogging = () => {
               );
               serverUrl = server?.url || 'unknown';
             } catch (storeError) {
-              // Silently continue if store access fails
+              logLoggingFailure(
+                storeError,
+                'setupWebContentsLogging - store access'
+              );
             }
           }
 
@@ -220,15 +227,18 @@ export const setupWebContentsLogging = () => {
 
                 // Add marker to know console override is active
                 console.original = originalConsole;
-              } catch (error) {
-                // Silently fail if electron-log isn't available
-              }
+               } catch (error) {
+                 logLoggingFailure(error, 'setupWebContentsLogging - console override injection');
+               }
             })();
           `;
 
           webContents.executeJavaScript(consoleOverrideScript);
         } catch (error) {
-          // Silently fail if injection fails
+          logLoggingFailure(
+            error,
+            'setupWebContentsLogging - webContents injection'
+          );
         }
       });
 
@@ -300,8 +310,7 @@ export const setupWebContentsLogging = () => {
               break;
           }
         } catch (error) {
-          // Fallback to original console if electron-log fails
-          console.warn('Failed to log from renderer:', error);
+          logLoggingFailure(error, 'console-log IPC handler');
         }
       }
     );

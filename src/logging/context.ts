@@ -5,7 +5,13 @@ const serverContextMap = new Map<
   number,
   { serverUrl: string; serverName: string }
 >();
-let serverCounter = 0;
+
+const MAX_SERVER_ID = 100;
+const availableServerIds: number[] = Array.from(
+  { length: MAX_SERVER_ID },
+  (_, i) => i + 1
+);
+const usedServerIds = new Map<number, number>();
 
 // Define the log context interface
 export interface ILogContext {
@@ -77,10 +83,11 @@ export const getServerContext = (webContents?: WebContents): string => {
     return 'local';
   }
 
-  // For webviews, assign anonymous server ID
+  // For webviews, assign anonymous server ID from pool
   if (webContents.getType() === 'webview') {
-    serverCounter++;
-    const serverName = `server-${serverCounter}`;
+    const serverId = availableServerIds.shift() || MAX_SERVER_ID;
+    usedServerIds.set(webContentsId, serverId);
+    const serverName = `server-${serverId}`;
     serverContextMap.set(webContentsId, {
       serverUrl: 'unknown',
       serverName,
@@ -232,6 +239,11 @@ export const formatLogContext = (context: ILogContext): string => {
  */
 export const cleanupServerContext = (webContentsId: number): void => {
   serverContextMap.delete(webContentsId);
+  const serverId = usedServerIds.get(webContentsId);
+  if (serverId !== undefined) {
+    availableServerIds.push(serverId);
+    usedServerIds.delete(webContentsId);
+  }
 };
 
 /**
@@ -243,3 +255,5 @@ export const getServerMappings = (): Map<
 > => {
   return new Map(serverContextMap);
 };
+
+export { MAX_SERVER_ID };

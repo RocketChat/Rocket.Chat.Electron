@@ -9,6 +9,7 @@ import { app, BrowserWindow, screen, dialog } from 'electron';
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { WINDOW_SIZE_MULTIPLIER } from './constants';
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -61,8 +62,12 @@ export const openLogViewerWindow = async (): Promise<void> => {
     y: centeredWindowPosition.y,
   });
 
-  const width = Math.round(actualScreen.workAreaSize.width * 0.8);
-  const height = Math.round(actualScreen.workAreaSize.height * 0.8);
+  const width = Math.round(
+    actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER
+  );
+  const height = Math.round(
+    actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER
+  );
   const x = Math.round(
     (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
   );

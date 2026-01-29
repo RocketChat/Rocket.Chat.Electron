@@ -9,7 +9,10 @@ import {
   Throbber,
   CheckBox,
 } from '@rocket.chat/fuselage';
-import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
+import {
+  useLocalStorage,
+  useDebouncedValue,
+} from '@rocket.chat/fuselage-hooks';
 import { ipcRenderer } from 'electron';
 import type { ChangeEvent } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
@@ -19,6 +22,12 @@ import { Virtuoso } from 'react-virtuoso';
 
 import { LogEntry } from './LogEntry';
 import {
+  AUTO_REFRESH_INTERVAL_MS,
+  SCROLL_DELAY_MS,
+  SEARCH_DEBOUNCE_MS,
+  VIRTUOSO_OVERSCAN,
+} from './constants';
+import {
   type LogLevel,
   type LogEntryType,
   type ReadLogsResponse,
@@ -27,6 +36,9 @@ import {
   type ClearLogsResponse,
   parseLogLevel,
 } from './types';
+
+const LOG_LINE_REGEX = /^\[([^\]]+)\] \[([^\]]+)\]\s*(.*)$/;
+const CONTEXT_REGEX = /^(\[[^\]]+\](?:\s*\[[^\]]+\])*)\s*(.*)$/;
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -40,10 +52,15 @@ const formatFileSize = (bytes: number): string => {
 function LogViewerWindow() {
   const { t } = useTranslation();
   const [searchFilter, setSearchFilter] = useLocalStorage('log-search', '');
+  const debouncedSearchFilter = useDebouncedValue(
+    searchFilter,
+    SEARCH_DEBOUNCE_MS
+  );
   const [logEntries, setLogEntries] = useState<LogEntryType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const lastModifiedTimeRef = useRef<number | undefined>(undefined);
   const [autoScroll, setAutoScroll] = useState(true);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showContext, setShowContext] = useState(true);
@@ -159,18 +176,14 @@ function LogViewerWindow() {
     let currentEntry: LogEntryType | null = null;
 
     lines.forEach((line, _index) => {
-      // Match the actual electron-log format: [timestamp] [level] message
-      const logRegex = /^\[([^\]]+)\] \[([^\]]+)\]\s*(.*)$/;
-      const match = line.match(logRegex);
+      const match = line.match(LOG_LINE_REGEX);
 
       if (match) {
         // This is a new log entry
         const [, timestamp, level, rest] = match;
 
         // Check if the message contains context information in brackets
-        const contextMatch = rest.match(
-          /^(\[[^\]]+\](?:\s*\[[^\]]+\])*)\s*(.*)$/
-        );
+        const contextMatch = rest.match(CONTEXT_REGEX);
         const context = contextMatch?.[1] || '';
         const message = contextMatch?.[2] || rest;
 
@@ -285,9 +298,13 @@ function LogViewerWindow() {
   const filteredLogs = useMemo(() => {
     return logEntries.filter((entry) => {
       const matchesSearch =
-        !searchFilter ||
-        entry.message.toLowerCase().includes(searchFilter.toLowerCase()) ||
-        entry.context.toLowerCase().includes(searchFilter.toLowerCase());
+        !debouncedSearchFilter ||
+        entry.message
+          .toLowerCase()
+          .includes(debouncedSearchFilter.toLowerCase()) ||
+        entry.context
+          .toLowerCase()
+          .includes(debouncedSearchFilter.toLowerCase());
 
       const matchesLevel = levelFilter === 'all' || entry.level === levelFilter;
 
@@ -315,7 +332,11 @@ function LogViewerWindow() {
 
       return matchesSearch && matchesLevel && matchesContext;
     });
-  }, [logEntries, searchFilter, levelFilter, contextFilter]);
+  }, [logEntries, debouncedSearchFilter, levelFilter, contextFilter]);
+
+  useEffect(() => {
+    lastModifiedTimeRef.current = fileInfo?.lastModifiedTime;
+  }, [fileInfo?.lastModifiedTime]);
 
   // Load logs on component mount and when file or limit changes
   useEffect(() => {
@@ -342,7 +363,7 @@ function LogViewerWindow() {
       )) as ReadLogsResponse;
 
       if (response?.success && response.lastModifiedTime) {
-        const currentModTime = fileInfo?.lastModifiedTime;
+        const currentModTime = lastModifiedTimeRef.current;
         if (currentModTime && response.lastModifiedTime > currentModTime) {
           // File has been modified, reload logs
           loadLogs();
@@ -351,18 +372,13 @@ function LogViewerWindow() {
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
-  }, [
-    isStreaming,
-    currentLogFile.isDefaultLog,
-    fileInfo?.lastModifiedTime,
-    loadLogs,
-  ]);
+  }, [isStreaming, currentLogFile.isDefaultLog, loadLogs]);
 
-  // Auto-refresh: check for file modifications every 2 seconds when streaming is enabled
+  // Auto-refresh: check for file modifications when streaming is enabled
   useEffect(() => {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
 
-    const interval = setInterval(checkForUpdates, 2000);
+    const interval = setInterval(checkForUpdates, AUTO_REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [isStreaming, currentLogFile.isDefaultLog, checkForUpdates]);
 
@@ -381,7 +397,6 @@ function LogViewerWindow() {
       logEntries.length > 0 &&
       virtuosoRef.current
     ) {
-      // Use a small delay to ensure Virtuoso is ready
       const timeoutId = setTimeout(() => {
         if (virtuosoRef.current && autoScroll && !userHasScrolled) {
           virtuosoRef.current.scrollToIndex({
@@ -389,7 +404,7 @@ function LogViewerWindow() {
             behavior: 'auto',
           });
         }
-      }, 100);
+      }, SCROLL_DELAY_MS);
 
       return () => clearTimeout(timeoutId);
     }
@@ -774,7 +789,7 @@ function LogViewerWindow() {
                 ref={virtuosoRef}
                 data={filteredLogs}
                 itemContent={renderLogEntry}
-                overscan={50}
+                overscan={VIRTUOSO_OVERSCAN}
                 style={{ height: '100%', width: '100%' }}
                 onScroll={handleScroll}
               />

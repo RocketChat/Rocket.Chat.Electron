@@ -449,11 +449,8 @@ export async function syncEventsWithRocketChatServer(
 
   try {
     await performSync(serverUrl, credentials, token);
-  } finally {
-    // Release lock
-    isSyncInProgress = false;
 
-    // Process next sync in queue if any
+    // Process queued sync while still holding the lock to prevent race condition
     if (syncQueue.length > 0) {
       console.log(
         `[OutlookCalendar] Processing ${syncQueue.length} queued sync requests`
@@ -461,11 +458,15 @@ export async function syncEventsWithRocketChatServer(
       // Only process the last sync request (most recent state)
       const lastSync = syncQueue[syncQueue.length - 1];
       syncQueue = [];
-      // Execute the queued sync but don't await it to avoid blocking
-      lastSync().catch((error) => {
+      try {
+        await lastSync();
+      } catch (error) {
         console.error('[OutlookCalendar] Queued sync failed:', error);
-      });
+      }
     }
+  } finally {
+    // Release lock after all syncs complete
+    isSyncInProgress = false;
   }
 }
 

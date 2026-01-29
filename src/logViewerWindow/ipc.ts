@@ -327,6 +327,10 @@ export const startLogViewerWindowHandler = (): void => {
             resolve();
           });
 
+          output.on('error', (err) => {
+            reject(err);
+          });
+
           archive.on('error', (err) => {
             reject(err);
           });

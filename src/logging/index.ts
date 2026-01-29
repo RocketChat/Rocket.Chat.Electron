@@ -219,7 +219,7 @@ export const setupWebContentsLogging = () => {
 
                 // Get webContents ID and server URL for context
                 const webContentsId = ${webContents.id};
-                const serverUrl = '${serverUrl.replace(/'/g, "\\'")}';
+                const serverUrl = '${serverUrl.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}';
 
                 // Override console methods to send to main process with context
                 console.log = (...args) => {

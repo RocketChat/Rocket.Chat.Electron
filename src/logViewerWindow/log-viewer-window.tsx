@@ -4,7 +4,6 @@ import { initReactI18next, I18nextProvider } from 'react-i18next';
 
 import { fallbackLng, interpolation } from '../i18n/common';
 import resources from '../i18n/resources';
-import { ErrorCatcher } from '../ui/components/utils/ErrorCatcher';
 import LogViewerWindow from './logViewerWindow';
 
 // Import and apply console override for the log viewer window renderer
@@ -41,9 +40,7 @@ const start = async () => {
   const root = createRoot(rootElement);
   root.render(
     <I18nextProvider i18n={i18next}>
-      <ErrorCatcher>
-        <LogViewerWindow />
-      </ErrorCatcher>
+      <LogViewerWindow />
     </I18nextProvider>
   );
 };

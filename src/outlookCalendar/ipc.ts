@@ -5,6 +5,7 @@ import { safeStorage, webContents } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
+import { loggers } from '../logging/scopes';
 import type { Server } from '../servers/common';
 import { dispatch, request, select } from '../store';
 import * as urls from '../urls';
@@ -49,10 +50,7 @@ function checkIfCredentialsAreNotEmpty(
 function encryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  console.log(
-    '[OutlookCalendar] Encrypting credentials for user:',
-    credentials.userId
-  );
+  loggers.outlook.info('Encrypting credentials for user:', credentials.userId);
   try {
     if (!safeStorage.isEncryptionAvailable()) {
       console.warn(
@@ -68,7 +66,7 @@ function encryptedCredentials(
       .encryptString(credentials.password)
       .toString('base64');
 
-    console.log('[OutlookCalendar] Successfully encrypted credentials');
+    loggers.outlook.info('Successfully encrypted credentials');
     return {
       ...credentials,
       login: encryptedLogin,
@@ -89,10 +87,7 @@ function encryptedCredentials(
 function decryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  console.log(
-    '[OutlookCalendar] Decrypting credentials for user:',
-    credentials.userId
-  );
+  loggers.outlook.info('Decrypting credentials for user:', credentials.userId);
   try {
     if (!safeStorage.isEncryptionAvailable()) {
       console.warn(
@@ -108,7 +103,7 @@ function decryptedCredentials(
       .decryptString(Buffer.from(credentials.password, 'base64'))
       .toString();
 
-    console.log('[OutlookCalendar] Successfully decrypted credentials');
+    loggers.outlook.info('Successfully decrypted credentials');
     return {
       ...credentials,
       login: decryptedLogin,
@@ -132,7 +127,7 @@ async function listEventsFromRocketChatServer(
   token: string
 ) {
   const url = urls.server(serverUrl).calendarEvents.list;
-  console.log('[OutlookCalendar] Fetching events from Rocket.Chat server:', {
+  loggers.outlook.info('Fetching events from Rocket.Chat server:', {
     url,
     userId,
     hasToken: !!token,

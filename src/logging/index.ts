@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import type { WebContents } from 'electron';
 import { app, webContents, ipcMain } from 'electron';
 import log from 'electron-log';
@@ -116,6 +119,25 @@ const configureLogging = () => {
       // Configure console transport with enhanced format
       log.transports.console.format =
         '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
+
+      // Add structured JSON logging for errors (useful for error reporting)
+      const errorJsonPath = path.join(app.getPath('logs'), 'errors.json');
+      log.hooks.push((message: any) => {
+        if (message.level === 'error') {
+          try {
+            const jsonEntry = `${JSON.stringify({
+              timestamp: new Date().toISOString(),
+              level: message.level,
+              text: message.data?.join(' ') || '',
+              version: app.getVersion(),
+            })}\n`;
+            fs.appendFileSync(errorJsonPath, jsonEntry);
+          } catch {
+            // Ignore JSON logging failures
+          }
+        }
+        return message;
+      });
 
       // Add privacy hook to filter sensitive data
       log.hooks.push(createPrivacyHook());
@@ -328,3 +350,4 @@ export default log;
 // Export utility functions
 export * from './utils';
 export * from './context';
+export * from './scopes';

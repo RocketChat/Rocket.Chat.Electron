@@ -17,7 +17,16 @@ import { useTranslation } from 'react-i18next';
 import type { VirtuosoHandle } from 'react-virtuoso';
 import { Virtuoso } from 'react-virtuoso';
 
-import { LogEntry, type LogLevel, type LogEntryType } from './LogEntry';
+import { LogEntry } from './LogEntry';
+import {
+  type LogLevel,
+  type LogEntryType,
+  type ReadLogsResponse,
+  type SaveLogsResponse,
+  type SelectFileResponse,
+  type ClearLogsResponse,
+  parseLogLevel,
+} from './types';
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -135,7 +144,12 @@ function LogViewerWindow() {
     setEntryLimit('100');
   }, [setSearchFilter, setLevelFilter, setContextFilter, setEntryLimit]);
 
-  // Parse log lines into structured format, grouping multi-line entries
+  /**
+   * Parses raw log text into structured log entries
+   * Groups multi-line entries (like stack traces) together
+   * @param logText - Raw log file content
+   * @returns Array of parsed log entries in reverse chronological order (newest first)
+   */
   const parseLogLines = useCallback((logText: string): LogEntryType[] => {
     if (!logText || logText.trim() === '') {
       return [];
@@ -169,7 +183,7 @@ function LogViewerWindow() {
         currentEntry = {
           id: `log-${entries.length}`,
           timestamp,
-          level: level.trim() as LogLevel,
+          level: parseLogLevel(level),
           context: context.replace(/[\[\]]/g, ' ').trim(),
           message: message.trim(),
           raw: line,
@@ -194,12 +208,15 @@ function LogViewerWindow() {
   const loadLogs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await ipcRenderer.invoke('log-viewer-window/read-logs', {
-        limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
-        filePath: currentLogFile.isDefaultLog
-          ? undefined
-          : currentLogFile.filePath,
-      });
+      const response = (await ipcRenderer.invoke(
+        'log-viewer-window/read-logs',
+        {
+          limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
+          filePath: currentLogFile.isDefaultLog
+            ? undefined
+            : currentLogFile.filePath,
+        }
+      )) as ReadLogsResponse;
       if (response?.success && response.logs !== undefined) {
         const parsedLogs = parseLogLines(response.logs);
         setLogEntries(parsedLogs);
@@ -316,10 +333,13 @@ function LogViewerWindow() {
 
     try {
       // Just get file info without loading full content
-      const response = await ipcRenderer.invoke('log-viewer-window/read-logs', {
-        limit: 1, // Just get minimal content to check modification time
-        filePath: undefined, // Always undefined for default log
-      });
+      const response = (await ipcRenderer.invoke(
+        'log-viewer-window/read-logs',
+        {
+          limit: 1, // Just get minimal content to check modification time
+          filePath: undefined, // Always undefined for default log
+        }
+      )) as ReadLogsResponse;
 
       if (response?.success && response.lastModifiedTime) {
         const currentModTime = fileInfo?.lastModifiedTime;
@@ -395,9 +415,9 @@ function LogViewerWindow() {
 
   const handleOpenLogFile = useCallback(async () => {
     try {
-      const response = await ipcRenderer.invoke(
+      const response = (await ipcRenderer.invoke(
         'log-viewer-window/select-log-file'
-      );
+      )) as SelectFileResponse;
       if (response?.success && response.filePath) {
         // Clear current entries immediately to show loading state
         setLogEntries([]);
@@ -408,7 +428,7 @@ function LogViewerWindow() {
 
         setCurrentLogFile({
           filePath: response.filePath,
-          fileName: response.fileName,
+          fileName: response.fileName || 'custom.log',
           isDefaultLog: false,
         });
         // loadLogs will be triggered by the useEffect watching currentLogFile
@@ -441,7 +461,9 @@ function LogViewerWindow() {
       return;
     }
     try {
-      const response = await ipcRenderer.invoke('log-viewer-window/clear-logs');
+      const response = (await ipcRenderer.invoke(
+        'log-viewer-window/clear-logs'
+      )) as ClearLogsResponse;
       if (response?.success) {
         // Reload logs to properly update UI and file info after clearing
         loadLogs();
@@ -468,10 +490,13 @@ function LogViewerWindow() {
         .toISOString()
         .slice(0, 19)
         .replace(/:/g, '-');
-      const response = await ipcRenderer.invoke('log-viewer-window/save-logs', {
-        content: logText,
-        defaultFileName: `rocketchat_${timestamp}.zip`,
-      });
+      const response = (await ipcRenderer.invoke(
+        'log-viewer-window/save-logs',
+        {
+          content: logText,
+          defaultFileName: `rocketchat_${timestamp}.zip`,
+        }
+      )) as SaveLogsResponse;
 
       if (response?.success) {
         // Could show a success message here if needed

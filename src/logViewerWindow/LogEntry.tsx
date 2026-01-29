@@ -1,15 +1,6 @@
 import { Box, Badge, Chip } from '@rocket.chat/fuselage';
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'verbose';
-
-type LogEntryType = {
-  id: string;
-  timestamp: string;
-  level: LogLevel;
-  context: string;
-  message: string;
-  raw: string;
-};
+import { type LogLevel, type LogEntryType } from './types';
 
 const getLevelColor = (
   level: LogLevel
@@ -139,5 +130,3 @@ export const LogEntry = ({
     </Box>
   );
 };
-
-export type { LogLevel, LogEntryType };

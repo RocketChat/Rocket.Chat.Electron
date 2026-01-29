@@ -402,7 +402,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
 
   handle(
     'outlook-calendar/has-credentials',
-    async (event): Promise<Promise<boolean>> => {
+    async (event): Promise<boolean> => {
       const server = getServerInformationByWebContentsId(event.id);
       if (!server) return false;
       const { outlookCredentials } = server;

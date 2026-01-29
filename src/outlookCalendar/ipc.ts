@@ -470,6 +470,7 @@ export async function syncEventsWithRocketChatServer(
   }
 }
 
+// eslint-disable-next-line complexity
 async function performSync(
   serverUrl: string,
   credentials: OutlookCredentials,

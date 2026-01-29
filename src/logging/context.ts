@@ -101,6 +101,7 @@ export const getServerContext = (webContents?: WebContents): string => {
 /**
  * Get component context based on the calling code location
  */
+// eslint-disable-next-line complexity
 export const getComponentContext = (error?: Error): string => {
   if (!error) {
     // Create error to get stack trace

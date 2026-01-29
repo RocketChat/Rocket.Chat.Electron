@@ -5,7 +5,6 @@ import { safeStorage, webContents } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
-import { loggers } from '../logging/scopes';
 import type { Server } from '../servers/common';
 import { dispatch, request, select } from '../store';
 import * as urls from '../urls';
@@ -50,7 +49,10 @@ function checkIfCredentialsAreNotEmpty(
 function encryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  loggers.outlook.info('Encrypting credentials for user:', credentials.userId);
+  console.log(
+    '[OutlookCalendar] Encrypting credentials for user:',
+    credentials.userId
+  );
   try {
     if (!safeStorage.isEncryptionAvailable()) {
       console.warn(
@@ -66,7 +68,7 @@ function encryptedCredentials(
       .encryptString(credentials.password)
       .toString('base64');
 
-    loggers.outlook.info('Successfully encrypted credentials');
+    console.log('[OutlookCalendar] Successfully encrypted credentials');
     return {
       ...credentials,
       login: encryptedLogin,
@@ -92,12 +94,10 @@ const isLikelyBase64 = (str: string): boolean => {
 function decryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  loggers.outlook.info('Decrypting credentials for user:', credentials.userId);
+  console.log('Decrypting credentials for user:', credentials.userId);
 
   if (!safeStorage.isEncryptionAvailable()) {
-    loggers.outlook.warn(
-      'Encryption not available, using credentials as plaintext'
-    );
+    console.warn('Encryption not available, using credentials as plaintext');
     return credentials;
   }
 
@@ -105,7 +105,7 @@ function decryptedCredentials(
   const passwordLooksEncrypted = isLikelyBase64(credentials.password);
 
   if (!loginLooksEncrypted || !passwordLooksEncrypted) {
-    loggers.outlook.warn(
+    console.warn(
       'Credentials do not appear to be encrypted (legacy/plaintext), using as-is',
       { userId: credentials.userId }
     );
@@ -120,7 +120,7 @@ function decryptedCredentials(
       .decryptString(Buffer.from(credentials.password, 'base64'))
       .toString();
 
-    loggers.outlook.info('Successfully decrypted credentials');
+    console.log('Successfully decrypted credentials');
     return {
       ...credentials,
       login: decryptedLogin,
@@ -128,7 +128,7 @@ function decryptedCredentials(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    loggers.outlook.warn(
+    console.warn(
       'Failed to decrypt credentials, falling back to plaintext (legacy credentials)',
       { userId: credentials.userId, error: errorMessage }
     );
@@ -142,7 +142,7 @@ async function listEventsFromRocketChatServer(
   token: string
 ) {
   const url = urls.server(serverUrl).calendarEvents.list;
-  loggers.outlook.info('Fetching events from Rocket.Chat server:', {
+  console.log('Fetching events from Rocket.Chat server:', {
     url,
     userId,
     hasToken: !!token,

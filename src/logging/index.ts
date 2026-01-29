@@ -255,7 +255,12 @@ export const setupWebContentsLogging = () => {
             })();
           `;
 
-          webContents.executeJavaScript(consoleOverrideScript);
+          webContents.executeJavaScript(consoleOverrideScript).catch((err) => {
+            log.warn(
+              `[logging] Failed to inject console override into webContents ${webContents.id}:`,
+              err
+            );
+          });
         } catch (error) {
           logLoggingFailure(
             error,

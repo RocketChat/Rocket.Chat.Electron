@@ -427,7 +427,7 @@
         "auth": "Autenticação",
         "connection": "Conexão",
         "notification": "Notificação",
-        "outlook": "Calendário Outlook",
+        "outlook": "Outlook Calendar",
         "videoCall": "Video Chamada",
         "download": "Download",
         "spellCheck": "Verificação Ortográfica",
@@ -447,7 +447,7 @@
   "logViewer": {
     "title": "Visualizador de Logs",
     "aria": {
-      "logIcon": "Icone do visualizador de logs",
+      "logIcon": "Ícone do visualizador de logs",
       "entriesCount": "{{count}} entradas de log exibidas"
     },
     "fileInfo": {
@@ -500,8 +500,8 @@
         "main": "Processo Principal",
         "renderer": "Renderizador",
         "webview": "Webview",
-        "videocall": "Video Chamada",
-        "outlook": "Calendario Outlook",
+        "videocall": "Vídeo Chamada",
+        "outlook": "Outlook Calendar",
         "auth": "Autenticação",
         "updates": "Atualizações",
         "notifications": "Notificações",

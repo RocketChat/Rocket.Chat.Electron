@@ -755,6 +755,7 @@ function LogViewerWindow() {
           </Box>
           <Box minWidth='x200' marginInlineEnd='x12'>
             <SearchInput
+              aria-label={t('logViewer.placeholders.searchLogs')}
               placeholder={t('logViewer.placeholders.searchLogs')}
               value={searchFilter}
               onChange={handleSearchFilterChange}
@@ -831,7 +832,9 @@ function LogViewerWindow() {
                   borderRadius: '4px',
                 }}
               >
-                {filteredLogs.length} entries
+                {t('logViewer.fileInfo.entries', {
+                  count: filteredLogs.length,
+                })}
               </div>
               <Virtuoso
                 ref={virtuosoRef}

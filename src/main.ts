@@ -15,7 +15,7 @@ import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
-import { logger, setupWebContentsLogging } from './logging';
+import { logger, setupWebContentsLogging, cleanupOldLogs } from './logging';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
 import { createNotification } from './notifications/preload';
@@ -95,6 +95,8 @@ const start = async (): Promise<void> => {
   performElectronStartup();
 
   await app.whenReady();
+
+  cleanupOldLogs();
 
   createMainReduxStore();
 

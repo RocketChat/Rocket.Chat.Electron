@@ -341,6 +341,28 @@ export const setupWebContentsLogging = () => {
   }
 };
 
+/**
+ * Set log level at runtime (useful for debugging without restart)
+ */
+export const setLogLevel = (
+  level: 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly'
+): void => {
+  if (log.transports?.console) {
+    log.transports.console.level = level;
+  }
+  if (log.transports?.file) {
+    log.transports.file.level = level;
+  }
+  console.info(`[logging] Log level changed to: ${level}`);
+};
+
+/**
+ * Get current log level
+ */
+export const getLogLevel = (): string => {
+  return (log.transports?.file?.level as string) || 'info';
+};
+
 // Export the configured logger
 export const logger = configureLogging();
 
@@ -351,3 +373,4 @@ export default log;
 export * from './utils';
 export * from './context';
 export * from './scopes';
+export * from './cleanup';

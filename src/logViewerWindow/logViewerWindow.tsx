@@ -132,6 +132,11 @@ function LogViewerWindow() {
       ['webview', t('logViewer.filters.context.webview')],
       ['videocall', t('logViewer.filters.context.videocall')],
       ['outlook', '📅 Outlook Calendar'],
+      ['auth', t('logViewer.filters.context.auth')],
+      ['updates', t('logViewer.filters.context.updates')],
+      ['notifications', t('logViewer.filters.context.notifications')],
+      ['servers', t('logViewer.filters.context.servers')],
+      ['ipc', t('logViewer.filters.context.ipc')],
     ],
     [t]
   );

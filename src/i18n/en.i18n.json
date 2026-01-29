@@ -532,7 +532,12 @@
         "renderer": "Renderer",
         "webview": "Webview",
         "videocall": "Video Call",
-        "outlook": "Outlook Calendar"
+        "outlook": "Outlook Calendar",
+        "auth": "Authentication",
+        "updates": "Updates",
+        "notifications": "Notifications",
+        "servers": "Servers",
+        "ipc": "IPC Communication"
       },
       "exchangeDebug": {
         "all": "All Logs",

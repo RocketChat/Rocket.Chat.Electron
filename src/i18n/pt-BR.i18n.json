@@ -500,7 +500,12 @@
         "renderer": "Renderizador",
         "webview": "Webview",
         "videocall": "Video Chamada",
-        "outlook": "Calendario Outlook"
+        "outlook": "Calendario Outlook",
+        "auth": "Autenticação",
+        "updates": "Atualizações",
+        "notifications": "Notificações",
+        "servers": "Servidores",
+        "ipc": "Comunicação IPC"
       },
       "exchangeDebug": {
         "all": "Todos os Logs",

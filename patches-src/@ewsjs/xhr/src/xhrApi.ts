@@ -182,19 +182,20 @@ export class XhrApi implements IXHRApi {
       //resolveWithFullResponse: true
     };
 
-    if (this.allowUntrustedCertificate) {
-      options.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-      console.log(
-        '🔧 [SUCCESS FACTOR] XhrApi - Using custom HTTPS agent with rejectUnauthorized: false'
-      );
-      console.log(
-        '📋 [SUCCESS FACTOR] This setting allows self-signed/invalid certificates - CRITICAL for many Exchange servers!'
-      );
-    } else {
-      console.log(
-        '🔒 [POTENTIAL ISSUE] XhrApi - Using default certificate validation - may fail with self-signed certs'
-      );
-    }
+    // TODO: Re-enable for Exchange 2016 self-signed certificate support
+    // if (this.allowUntrustedCertificate) {
+    //   options.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    //   console.log(
+    //     '🔧 [SUCCESS FACTOR] XhrApi - Using custom HTTPS agent with rejectUnauthorized: false'
+    //   );
+    //   console.log(
+    //     '📋 [SUCCESS FACTOR] This setting allows self-signed/invalid certificates - CRITICAL for many Exchange servers!'
+    //   );
+    // } else {
+    //   console.log(
+    //     '🔒 [POTENTIAL ISSUE] XhrApi - Using default certificate validation - may fail with self-signed certs'
+    //   );
+    // }
 
     let proxyConfig = this.getProxyOption();
     if (proxyConfig) {
@@ -234,7 +235,8 @@ export class XhrApi implements IXHRApi {
         console.log('[DEBUG] XhrApi - Calling auth provider preCall method');
         _promise = this.authProvider.preCall({
           ...options,
-          rejectUnauthorized: !this.allowUntrustedCertificate,
+          // TODO: Re-enable for Exchange 2016 self-signed certificate support
+          // rejectUnauthorized: !this.allowUntrustedCertificate,
         });
         client = this.authProvider.client || client;
         console.log(
@@ -295,11 +297,12 @@ export class XhrApi implements IXHRApi {
         console.log(
           '🏆 [SOLUTION SUMMARY] The following factors enabled success:'
         );
-        if (this.allowUntrustedCertificate) {
-          console.log(
-            '  ✅ SSL Certificate validation disabled (allowUntrustedCertificate: true)'
-          );
-        }
+        // TODO: Re-enable for Exchange 2016 self-signed certificate support
+        // if (this.allowUntrustedCertificate) {
+        //   console.log(
+        //     '  ✅ SSL Certificate validation disabled (allowUntrustedCertificate: true)'
+        //   );
+        // }
         if (this.getProxyOption()) {
           console.log('  ✅ Proxy configuration was used');
         }
@@ -378,9 +381,10 @@ export class XhrApi implements IXHRApi {
       responseType: 'stream',
     };
 
-    if (this.allowUntrustedCertificate) {
-      options.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-    }
+    // TODO: Re-enable for Exchange 2016 self-signed certificate support
+    // if (this.allowUntrustedCertificate) {
+    //   options.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    // }
 
     let proxyConfig = this.getProxyOption();
     if (proxyConfig) {
@@ -394,7 +398,8 @@ export class XhrApi implements IXHRApi {
       if (this.authProvider) {
         _promise = this.authProvider.preCall({
           ...options,
-          rejectUnauthorized: !this.allowUntrustedCertificate,
+          // TODO: Re-enable for Exchange 2016 self-signed certificate support
+          // rejectUnauthorized: !this.allowUntrustedCertificate,
         });
         client = this.authProvider.client || client;
       }

@@ -21,6 +21,27 @@ const getLogFilePath = (): string => {
   return path.join(logsPath, 'main.log');
 };
 
+const validateLogFilePath = (
+  filePath: string
+): { valid: boolean; error?: string } => {
+  const normalizedPath = path.normalize(filePath);
+
+  if (filePath.includes('..') || normalizedPath.includes('..')) {
+    return { valid: false, error: 'Path traversal not allowed' };
+  }
+
+  if (!path.isAbsolute(normalizedPath)) {
+    return { valid: false, error: 'Only absolute paths are allowed' };
+  }
+
+  const ext = path.extname(normalizedPath).toLowerCase();
+  if (ext !== '.log' && ext !== '.txt') {
+    return { valid: false, error: 'Only .log and .txt files are allowed' };
+  }
+
+  return { valid: true };
+};
+
 export const openLogViewerWindow = async (): Promise<void> => {
   if (logViewerWindow && !logViewerWindow.isDestroyed()) {
     logViewerWindow.focus();
@@ -56,9 +77,9 @@ export const openLogViewerWindow = async (): Promise<void> => {
     y,
     title: 'Log Viewer - Rocket.Chat',
     webPreferences: {
-      nodeIntegration: true,
-      nodeIntegrationInSubFrames: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(app.getAppPath(), 'app/preload/log-viewer-preload.js'),
     },
     show: false,
   });
@@ -140,7 +161,16 @@ export const startLogViewerWindowHandler = (): void => {
     'log-viewer-window/read-logs',
     async (_, options?: { filePath?: string; limit?: number | 'all' }) => {
       try {
-        const logPath = options?.filePath || getLogFilePath();
+        let logPath: string;
+        if (options?.filePath) {
+          const validation = validateLogFilePath(options.filePath);
+          if (!validation.valid) {
+            return { success: false, error: validation.error };
+          }
+          logPath = options.filePath;
+        } else {
+          logPath = getLogFilePath();
+        }
         const limit = options?.limit;
 
         // Check if file exists, if not create it (only for default log)

@@ -3,6 +3,7 @@ import path from 'path';
 
 import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
 import { autoUpdater } from 'electron-updater';
+import { gt as semverGt } from 'semver';
 
 import { listen, dispatch, select } from '../store';
 import type { RootState } from '../store/rootReducer';
@@ -132,6 +133,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
     }: RootState) => ({
       isUpdatingAllowed:
@@ -146,6 +148,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
     })
   );
@@ -185,6 +188,7 @@ export const setupUpdates = async (): Promise<void> => {
     isFlashFrameEnabled,
     isHardwareAccelerationEnabled,
     isInternalVideoChatWindowEnabled,
+    isVideoCallScreenCaptureFallbackEnabled,
     updateChannel,
   } = await loadConfiguration();
 
@@ -200,6 +204,7 @@ export const setupUpdates = async (): Promise<void> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
     },
   });
@@ -242,6 +247,19 @@ export const setupUpdates = async (): Promise<void> => {
     if (skippedUpdateVersion === version) {
       dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
       return;
+    }
+
+    // Prevent showing "updates" that are actually downgrades
+    // This can happen when generateUpdatesFilesForAllChannels is enabled
+    // and the user is running a newer dev/PR build than the published release
+    const currentVersion = app.getVersion();
+    try {
+      if (!semverGt(version as string, currentVersion)) {
+        dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+        return;
+      }
+    } catch {
+      // If version comparison fails, proceed with the update
     }
 
     dispatch({

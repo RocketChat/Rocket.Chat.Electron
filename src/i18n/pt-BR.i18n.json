@@ -523,5 +523,31 @@
       "noLogsFound": "Nenhum log encontrado",
       "adjustFilters": "Tente ajustar seus filtros ou atualizar os logs"
     }
+  },
+  "serverInfo": {
+    "title": "Informações do Servidor",
+    "urlLabel": "URL:",
+    "versionLabel": "Versão:",
+    "unknown": "Desconhecido",
+    "exchangeUrlLabel": "URL do Outlook Exchange:",
+    "supportedVersionsTitle": "Versões Suportadas",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Carregando...",
+      "error": "Falha ao carregar",
+      "loaded": "Carregado",
+      "idle": "Ocioso",
+      "from": "de {{source}}"
+    },
+    "supported": {
+      "unknown": "Desconhecido",
+      "expiring": "Expirando",
+      "yes": "Sim",
+      "no": "Não"
+    },
+    "expiration": {
+      "label": "Expiração:",
+      "expiresOn": "Expira em {{date}}"
+    }
   }
 }

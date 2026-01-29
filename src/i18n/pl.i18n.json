@@ -101,6 +101,18 @@
       "microphone": "Mikrofon",
       "camera": "Kamera",
       "both": "Mikrofon i Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Wymagany dostęp do mikrofonu",
+      "message": "Do {{- actionType}} wymagany jest dostęp do mikrofonu. Sprawdź ustawienia systemowe.",
+      "detail": "Możesz włączyć dostęp do mikrofonu w ustawieniach prywatności systemu.",
+      "openSettings": "Otwórz ustawienia",
+      "cancel": "Anuluj",
+      "actionTypes": {
+        "initiateCall": "wykonywania połączeń",
+        "answerCall": "odbierania połączeń",
+        "recordMessage": "nagrywania wiadomości"
+      }
     }
   },
   "settings": {
@@ -117,6 +129,17 @@
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
+      },
+      "transparentWindow": {
+        "title": "Efekt przezroczystego okna",
+        "description": "Włącz natywny efekt wibracji/przezroczystości dla okna. Wymaga ponownego uruchomienia, aby zastosować."
+      },
+      "themeAppearance": {
+        "title": "Motyw",
+        "description": "Wybierz motyw kolorystyczny aplikacji.",
+        "auto": "Zgodnie z systemem",
+        "light": "Jasny",
+        "dark": "Ciemny"
       }
     }
   },
@@ -246,5 +269,31 @@
     "noWindowsFound": "Nie znaleziono okien",
     "cancel": "Anuluj",
     "share": "Udostępnij"
+  },
+  "serverInfo": {
+    "title": "Informacje o serwerze",
+    "urlLabel": "URL:",
+    "versionLabel": "Wersja:",
+    "unknown": "Nieznana",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Obsługiwane wersje",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Ładowanie...",
+      "error": "Nie udało się załadować",
+      "loaded": "Załadowano",
+      "idle": "Bezczynny",
+      "from": "z {{source}}"
+    },
+    "supported": {
+      "unknown": "Nieznana",
+      "expiring": "Wygasa",
+      "yes": "Tak",
+      "no": "Nie"
+    },
+    "expiration": {
+      "label": "Wygaśnięcie:",
+      "expiresOn": "Wygasa {{date}}"
+    }
   }
 }

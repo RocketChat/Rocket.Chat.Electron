@@ -2,59 +2,98 @@ import * as path from 'path';
 import * as core from '@actions/core';
 import { runElectronBuilder } from '../shell';
 import { setupCertificates } from './certificates';
-import { setupGoogleCloudAuth, installGoogleCloudCLI, authenticateGcloud } from './google-cloud';
+import {
+  setupGoogleCloudAuth,
+  installGoogleCloudCLI,
+  authenticateGcloud,
+} from './google-cloud';
 import { installKmsCngProvider } from './kms-provider';
 import { findSigntool, installJsign } from './signing-tools';
 import { signBuiltPackages } from './sign-packages';
+import { updateYamlChecksums } from './update-yaml-checksums';
+import {
+  verifyExecutableSignature,
+  verifyInstallerSignatures,
+} from './verify-signature';
 
 export const packOnWindows = async (): Promise<void> => {
   try {
-    const hasKmsKey = !!core.getInput('win_kms_key_resource') || !!process.env.WIN_KMS_KEY_RESOURCE;
-    const hasGcpSa = !!core.getInput('gcp_sa_json') || !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
-    const hasCert = !!core.getInput('win_user_crt') || !!core.getInput('win_kms_cert_sha1') || !!process.env.WIN_CERT_FILE;
-    const shouldSign = hasKmsKey && hasGcpSa && hasCert;
-
-    // Always build first. If we don't have signing secrets (typical in PRs),
-    // we only build unsigned and stop there.
-
-    // Ensure signtool (required by electron-builder on Windows toolchain)
+    // Find and setup signtool
     await findSigntool();
 
-    if (!shouldSign) {
-      core.info('No signing credentials detected. Performing unsigned Windows build (PR-safe).');
-      await runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi appx`);
-      core.info('✅ Windows packages built (unsigned).');
-      return;
+    // Setup Google Cloud authentication
+    const credentialsPath = await setupGoogleCloudAuth();
+
+    // Setup certificates and get the user certificate path
+    const userCertPath = await setupCertificates();
+
+    // Get KMS key resource
+    const kmsKeyResource = core.getInput('win_kms_key_resource');
+    if (!kmsKeyResource) {
+      throw new Error('win_kms_key_resource input is required');
     }
 
-    // Secrets are available: prepare environment and perform post-build signing
-    const credentialsPath = await setupGoogleCloudAuth();
-    const userCertPath = await setupCertificates();
-    const kmsKeyResource = core.getInput('win_kms_key_resource') || process.env.WIN_KMS_KEY_RESOURCE!;
+    // Install signing tools BEFORE building so electron-builder can sign
+    core.info('Setting up signing environment before build...');
 
-    const buildEnv = {
-      // Intentionally blank to force electron-builder to skip inline signing
-      WIN_KMS_KEY_RESOURCE: '',
-      WIN_CERT_FILE: '',
-    } as Record<string, string>;
-
-    core.info('Building Windows packages WITHOUT signing (will sign after build)...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi appx`, buildEnv);
-    core.info('✅ Windows packages built (unsigned). Proceeding with signing...');
-
-    await installKmsCngProvider();
+    // Install jsign for Java-based signing (doesn't require KMS CNG provider)
     await installJsign();
+
+    // Install and configure Google Cloud CLI
     const gcloudPath = await installGoogleCloudCLI();
+
+    // Authenticate gcloud with service account
     await authenticateGcloud(credentialsPath, gcloudPath);
 
+    // Setup environment variables for electron-builder's signing via winSignKms.js
+    // Build flow: afterPack (apply fuses) -> sign via winSignKms.js -> package
+    const buildEnv = {
+      WIN_KMS_KEY_RESOURCE: kmsKeyResource,
+      WIN_CERT_FILE: userCertPath,
+      GOOGLE_APPLICATION_CREDENTIALS: credentialsPath,
+      GCLOUD_PATH: gcloudPath,
+    };
+
+    // Set process.env so electron-builder's signing can access credentials
     process.env.WIN_KMS_KEY_RESOURCE = kmsKeyResource;
     process.env.WIN_CERT_FILE = userCertPath;
-    process.env.GCLOUD_PATH = gcloudPath;
     process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
+    process.env.GCLOUD_PATH = gcloudPath;
+
+    core.info('Building Windows packages...');
+    core.info(
+      'Executables will be signed by electron-builder via winSignKms.js'
+    );
+
+    core.info('Building NSIS installer...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
+
+    core.info('Building MSI installer...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
+
+    core.info('Building AppX package...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
+
+    core.info('✅ All Windows packages built successfully');
 
     const distPath = path.resolve(process.cwd(), 'dist');
+
+    core.info('Verifying executable signatures...');
+    await verifyExecutableSignature(distPath);
+
+    core.info('Installing KMS CNG provider for installer signing...');
+    await installKmsCngProvider();
+
+    core.info('Signing installer packages...');
     await signBuiltPackages(distPath);
-    core.info('✅ Windows packages built and signed successfully');
+
+    core.info('Verifying installer signatures...');
+    await verifyInstallerSignatures(distPath);
+
+    core.info('Updating latest.yml with correct checksums...');
+    await updateYamlChecksums(distPath);
+
+    core.info('✅ Windows packages built, signed, and verified successfully');
   } catch (error) {
     core.error(`Failed to build Windows packages: ${error}`);
     throw error;

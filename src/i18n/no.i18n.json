@@ -141,6 +141,18 @@
       "camera": "Kamera",
       "both": "Mikrofon og Kamera"
     },
+    "microphonePermissionDenied": {
+      "title": "Mikrofontilgang påkrevd",
+      "message": "Mikrofontilgang kreves for å {{- actionType}}. Vennligst sjekk systeminnstillingene dine.",
+      "detail": "Du kan aktivere mikrofontilgang i systemets personverninnstillinger.",
+      "openSettings": "Åpne innstillinger",
+      "cancel": "Avbryt",
+      "actionTypes": {
+        "initiateCall": "foreta samtaler",
+        "answerCall": "ta imot samtaler",
+        "recordMessage": "spille inn meldinger"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook-kalender",
       "encryptionUnavailableTitle": "Kryptering utilgjengelig",
@@ -227,6 +239,11 @@
         "title": "Maskinvareakselerasjon",
         "description": "Muliggjør maskinvareakselerasjon når tilgjengelig. Applikasjonen vil lastes inn på nytt ved endring."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Reserveopptak for videosamtaler",
+        "description": "Deaktiverer Windows Graphics Capture slik at deling virker i RDP-økter. Appen starter på nytt når du endrer dette valget.",
+        "forcedDescription": "Allerede aktivert fordi appen oppdaget en RDP-økt. Bytt til for å bestemme oppførsel ved fremtidige lokale oppstarter."
+      },
       "internalVideoChatWindow": {
         "title": "Åpne videochat ved hjelp av applikasjonsvinduet",
         "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> og <strong>Jitsi</strong> skjermopptak støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke anropsadferd, som åpnes i nettleseren.",
@@ -273,6 +290,17 @@
       "videoCallWindowPersistence": {
         "title": "Husk posisjonen til videosamtalevinduet",
         "description": "Lagre og gjenopprett posisjonen og størrelsen på videosamtalevinduer mellom økter"
+      },
+      "transparentWindow": {
+        "title": "Gjennomsiktig vinduseffekt",
+        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet. Krever omstart for å brukes."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Velg fargtemaet for applikasjonen.",
+        "auto": "Følg system",
+        "light": "Lys",
+        "dark": "Mørk"
       }
     }
   },
@@ -432,5 +460,31 @@
     "noWindowsFound": "Ingen vinduer funnet",
     "cancel": "Kansellere",
     "share": "Dele"
+  },
+  "serverInfo": {
+    "title": "Serverinformasjon",
+    "urlLabel": "URL:",
+    "versionLabel": "Versjon:",
+    "unknown": "Ukjent",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Støttede versjoner",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Laster...",
+      "error": "Kunne ikke laste",
+      "loaded": "Lastet",
+      "idle": "Inaktiv",
+      "from": "fra {{source}}"
+    },
+    "supported": {
+      "unknown": "Ukjent",
+      "expiring": "Utløper snart",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "expiration": {
+      "label": "Utløpsdato:",
+      "expiresOn": "Utløper {{date}}"
+    }
   }
 }

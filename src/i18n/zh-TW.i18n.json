@@ -96,6 +96,17 @@
         "systemDefault": "系統預設",
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
+      },
+      "transparentWindow": {
+        "title": "透明視窗效果",
+        "description": "啟用視窗的原生模糊/透明效果。需要重新啟動才能套用。"
+      },
+      "themeAppearance": {
+        "title": "主題",
+        "description": "選擇應用程式的顏色主題。",
+        "auto": "跟隨系統",
+        "light": "淺色",
+        "dark": "深色"
       }
     }
   },
@@ -195,5 +206,31 @@
     "noWindowsFound": "未找到視窗",
     "cancel": "取消",
     "share": "共享"
+  },
+  "serverInfo": {
+    "title": "伺服器資訊",
+    "urlLabel": "URL:",
+    "versionLabel": "版本:",
+    "unknown": "未知",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "支援的版本",
+    "statusLabel": "狀態:",
+    "status": {
+      "loading": "載入中...",
+      "error": "載入失敗",
+      "loaded": "已載入",
+      "idle": "閒置",
+      "from": "來自 {{source}}"
+    },
+    "supported": {
+      "unknown": "未知",
+      "expiring": "即將過期",
+      "yes": "是",
+      "no": "否"
+    },
+    "expiration": {
+      "label": "過期時間:",
+      "expiresOn": "將於 {{date}} 過期"
+    }
   }
 }

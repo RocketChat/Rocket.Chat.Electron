@@ -176,9 +176,9 @@ const start = async () => {
   const payload = github.context.payload as PushEvent;
   const ref = core.getInput('ref') || payload.ref;
 
-  if (ref === 'refs/heads/develop') {
+  if (ref === 'refs/heads/dev') {
     core.info(
-      `push event on develop branch detected, performing development release`
+      `push event on dev branch detected, performing development release`
     );
     await releaseDevelopment(payload.after);
     return;

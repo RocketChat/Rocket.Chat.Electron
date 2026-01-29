@@ -82,8 +82,6 @@ export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
-export const WEBVIEW_USER_THEME_APPEARANCE_CHANGED =
-  'webview/user-theme-appearance-changed';
 export const WEBVIEW_ALLOWED_REDIRECTS_CHANGED =
   'webview/allowed-redirects-changed';
 export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
@@ -104,10 +102,14 @@ export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
   'settings/set-is-menu-bar-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED =
   'settings/set-is-video-call-window-persistence-enabled-changed';
+export const SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED =
+  'settings/set-is-transparent-window-enabled-changed';
 export const SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED =
   'settings/set-is-developer-mode-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED =
   'settings/set-is-video-call-devtools-auto-open-enabled-changed';
+export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED =
+  'settings/set-is-video-call-screen-capture-fallback-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
@@ -116,6 +118,8 @@ export const SETTINGS_AVAILABLE_BROWSERS_UPDATED =
   'settings/available-browsers-updated';
 export const SETTINGS_SELECTED_BROWSER_CHANGED =
   'settings/selected-browser-changed';
+export const SETTINGS_USER_THEME_PREFERENCE_CHANGED =
+  'settings/user-theme-preference-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -126,6 +130,10 @@ export const WEBVIEW_SERVER_UNIQUE_ID_UPDATED =
   'webview/server-workspace-uid-updated';
 export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
   'webview/server-is-supported-version';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING =
+  'webview/server-supported-versions-loading';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR =
+  'webview/server-supported-versions-error';
 export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
@@ -138,6 +146,8 @@ export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
+export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
+export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -214,10 +224,6 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     userLoggedIn: Server['userLoggedIn'];
   };
-  [WEBVIEW_USER_THEME_APPEARANCE_CHANGED]: {
-    url: Server['url'];
-    themeAppearance: Server['themeAppearance'];
-  };
   [WEBVIEW_GIT_COMMIT_HASH_CHECK]: {
     url: Server['url'];
     gitCommitHash: Server['gitCommitHash'];
@@ -239,12 +245,15 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];
   [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;
+  [SETTINGS_USER_THEME_PREFERENCE_CHANGED]: 'auto' | 'light' | 'dark';
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;
@@ -261,6 +270,12 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     isSupportedVersion: Server['isSupportedVersion'];
   };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING]: {
+    url: Server['url'];
+  };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR]: {
+    url: Server['url'];
+  };
   [WEBVIEW_SERVER_VERSION_UPDATED]: {
     url: Server['url'];
     version: Server['version'];
@@ -270,4 +285,14 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
   };
   [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
+  [OPEN_SERVER_INFO_MODAL]: {
+    url: string;
+    version?: string;
+    exchangeUrl?: string;
+    isSupportedVersion?: boolean;
+    supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+    supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
+    supportedVersions?: Server['supportedVersions'];
+  };
+  [CLOSE_SERVER_INFO_MODAL]: void;
 };

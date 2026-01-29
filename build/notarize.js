@@ -1,7 +1,13 @@
 const { notarize } = require('electron-notarize');
 
-exports.default = function notarizing(context) {
+exports.default = async function afterSign(context) {
   const { electronPlatformName, appOutDir } = context;
+
+  if (electronPlatformName === 'win32') {
+    console.log('AfterSign: Windows - fuses already applied in afterPack');
+    return;
+  }
+
   if (
     electronPlatformName !== 'darwin' ||
     process.env.FORCE_NOTARIZE !== 'true'
@@ -27,12 +33,12 @@ exports.default = function notarizing(context) {
       teamId: 'S6UPZG7ZR3',
     })
       .then(() => {
-        clearTimeout(timer);
+        clearInterval(timer);
         console.log();
         resolve();
       })
       .catch((error) => {
-        clearTimeout(timer);
+        clearInterval(timer);
         console.log();
         reject(error);
       });

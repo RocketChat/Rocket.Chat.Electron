@@ -132,6 +132,18 @@
       "camera": "Kamera",
       "both": "Mikrofon és Kamera"
     },
+    "microphonePermissionDenied": {
+      "title": "A mikrofonhoz való hozzáférés szükséges",
+      "message": "A mikrofonhoz való hozzáférés szükséges a(z) {{- actionType}} elvégzéséhez. Kérjük, ellenőrizze a rendszerbeállításokat.",
+      "detail": "A mikrofonhozzáférést engedélyezheti a rendszer adatvédelmi beállításaiban.",
+      "openSettings": "Beállítások megnyitása",
+      "cancel": "Mégse",
+      "actionTypes": {
+        "initiateCall": "hívás indításához",
+        "answerCall": "hívás fogadásához",
+        "recordMessage": "üzenet rögzítéséhez"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook naptár",
       "encryptionUnavailableTitle": "A titkosítás nem érhető el",
@@ -218,6 +230,11 @@
         "title": "Hardveres gyorsítás",
         "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Videohívások képernyőfelvételi tartalék módja",
+        "description": "Letiltja a Windows Graphics Capture funkciót, hogy a megosztás működjön RDP-munkamenetekben. Az alkalmazás újraindul, amikor ezt a beállítást módosítja.",
+        "forcedDescription": "Jelenleg érvényben van, mert az alkalmazás RDP-munkamenetet észlelt. A kapcsoló a következő helyi indítások viselkedését határozza meg."
+      },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása alkalmazásablak használatával",
         "description": "Ha engedélyezve van, a videocsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyőrögzítés nem támogatott az Electron alkalmazásokban, így ezek mindig a böngészőben fognak megnyílni, függetlenül ettől a beállítástól.",
@@ -264,6 +281,17 @@
       "videoCallWindowPersistence": {
         "title": "Videohívás ablak pozíciójának megjegyzése",
         "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
+      },
+      "transparentWindow": {
+        "title": "Áttetsző ablak effektus",
+        "description": "Natív vibráció/áttetszőség effektus engedélyezése az ablakhoz. Újraindítás szükséges az alkalmazáshoz."
+      },
+      "themeAppearance": {
+        "title": "Téma",
+        "description": "Válassza ki az alkalmazás színsémáját.",
+        "auto": "Rendszer követése",
+        "light": "Világos",
+        "dark": "Sötét"
       }
     }
   },
@@ -407,5 +435,31 @@
     "noWindowsFound": "Nem található ablak",
     "cancel": "Mégse",
     "share": "Megosztás"
+  },
+  "serverInfo": {
+    "title": "Kiszolgáló információ",
+    "urlLabel": "URL:",
+    "versionLabel": "Verzió:",
+    "unknown": "Ismeretlen",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Támogatott verziók",
+    "statusLabel": "Állapot:",
+    "status": {
+      "loading": "Betöltés...",
+      "error": "Betöltés sikertelen",
+      "loaded": "Betöltve",
+      "idle": "Tétlen",
+      "from": "forrás: {{source}}"
+    },
+    "supported": {
+      "unknown": "Ismeretlen",
+      "expiring": "Lejáró",
+      "yes": "Igen",
+      "no": "Nem"
+    },
+    "expiration": {
+      "label": "Lejárat:",
+      "expiresOn": "Lejár: {{date}}"
+    }
   }
 }

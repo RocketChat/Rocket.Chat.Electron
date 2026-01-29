@@ -58,12 +58,14 @@ describe('download notifications', () => {
         title: 'Downloads',
         body: mockFile.filename,
         subtitle: tMock('downloads.notifications.downloadFinished'),
+        category: 'DOWNLOADS',
       });
 
       expect(createNotificationMock).toHaveBeenCalledWith({
         title: 'Downloads',
         body: 'completed-file.pdf',
         subtitle: 'Download finished',
+        category: 'DOWNLOADS',
       });
 
       expect(tMock).toHaveBeenCalledWith(
@@ -91,12 +93,14 @@ describe('download notifications', () => {
           title: 'Downloads',
           body: filename,
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
         });
 
         expect(createNotificationMock).toHaveBeenCalledWith({
           title: 'Downloads',
           body: expected,
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
         });
       });
     });
@@ -118,12 +122,14 @@ describe('download notifications', () => {
           title: 'Downloads',
           body: filename,
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
         });
 
         expect(createNotificationMock).toHaveBeenCalledWith({
           title: 'Downloads',
           body: filename,
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
         });
       });
     });
@@ -151,6 +157,7 @@ describe('download notifications', () => {
             state === 'completed'
               ? tMock('downloads.notifications.downloadFinished')
               : tMock('downloads.notifications.downloadCancelled'),
+          category: 'DOWNLOADS',
         });
       });
 
@@ -161,6 +168,7 @@ describe('download notifications', () => {
         title: 'Downloads',
         body: 'test-file.pdf',
         subtitle: 'Download finished',
+        category: 'DOWNLOADS',
       });
     });
 
@@ -183,6 +191,7 @@ describe('download notifications', () => {
             state === 'completed'
               ? tMock('downloads.notifications.downloadFinished')
               : tMock('downloads.notifications.downloadCancelled'),
+          category: 'DOWNLOADS',
         });
       });
 
@@ -193,6 +202,7 @@ describe('download notifications', () => {
         title: 'Downloads',
         body: 'test-file.pdf',
         subtitle: 'Download cancelled',
+        category: 'DOWNLOADS',
       });
     });
 
@@ -215,6 +225,7 @@ describe('download notifications', () => {
             state === 'completed'
               ? tMock('downloads.notifications.downloadFinished')
               : tMock('downloads.notifications.downloadCancelled'),
+          category: 'DOWNLOADS',
         });
       });
 
@@ -246,12 +257,14 @@ describe('download notifications', () => {
         title: 'Downloads',
         body: '',
         subtitle: 'Download finished',
+        category: 'DOWNLOADS',
       });
 
       expect(createNotificationMock).toHaveBeenCalledWith({
         title: 'Downloads',
         body: '',
         subtitle: 'Download finished',
+        category: 'DOWNLOADS',
       });
     });
 
@@ -262,12 +275,14 @@ describe('download notifications', () => {
         title: 'Downloads',
         body: 'test-file.pdf',
         subtitle: tMock('missing.translation.key'),
+        category: 'DOWNLOADS',
       });
 
       expect(createNotificationMock).toHaveBeenCalledWith({
         title: 'Downloads',
         body: 'test-file.pdf',
         subtitle: 'missing.translation.key',
+        category: 'DOWNLOADS',
       });
     });
 
@@ -282,11 +297,13 @@ describe('download notifications', () => {
           title: 'Downloads',
           body: filename,
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
         });
 
         expect(createNotificationMock).toHaveBeenCalledWith(
           expect.objectContaining({
             title: 'Downloads',
+            category: 'DOWNLOADS',
           })
         );
       });
@@ -312,12 +329,14 @@ describe('download notifications', () => {
           title: 'Downloads',
           body: 'test-file.pdf',
           subtitle: tMock('downloads.notifications.downloadFinished'),
+          category: 'DOWNLOADS',
         });
 
         expect(createNotificationMock).toHaveBeenCalledWith({
           title: 'Downloads',
           body: 'test-file.pdf',
           subtitle: translation,
+          category: 'DOWNLOADS',
         });
       });
     });
@@ -359,6 +378,7 @@ describe('download notifications', () => {
         title: 'Downloads',
         body: mockFile.filename,
         subtitle: 'Download finished',
+        category: 'DOWNLOADS',
       });
 
       expect(createNotificationMock).toHaveBeenCalledTimes(1);
@@ -376,6 +396,7 @@ describe('download notifications', () => {
           title: 'Downloads',
           body: file.filename,
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
         });
       });
 

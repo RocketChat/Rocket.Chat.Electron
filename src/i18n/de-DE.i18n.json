@@ -124,6 +124,18 @@
       "microphone": "Mikrofon",
       "camera": "Kamera",
       "both": "Mikrofon und Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofonzugriff erforderlich",
+      "message": "Mikrofonzugriff ist erforderlich, um {{- actionType}}. Bitte überprüfen Sie Ihre Systemeinstellungen.",
+      "detail": "Sie können den Mikrofonzugriff in den Datenschutzeinstellungen Ihres Systems aktivieren.",
+      "openSettings": "Einstellungen öffnen",
+      "cancel": "Abbrechen",
+      "actionTypes": {
+        "initiateCall": "Anrufe tätigen",
+        "answerCall": "Anrufe entgegennehmen",
+        "recordMessage": "Nachrichten aufnehmen"
+      }
     }
   },
   "downloads": {
@@ -199,6 +211,11 @@
         "title": "Hardware-Beschleunigung",
         "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Alternative Bildschirmaufnahme für Videoanrufe",
+        "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
+        "forcedDescription": "Bereits aktiv, weil die Anwendung eine RDP-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
+      },
       "internalVideoChatWindow": {
         "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
         "description": "Wenn diese Option aktiviert ist, wird der Video-Chat im Anwendungsfenster anstelle des Standardbrowsers geöffnet. Allerdings wird für <strong>Google Meet</strong> und <strong>Jitsi</strong> die Bildschirmaufzeichnung in Electron-Anwendungen nicht unterstützt, daher werden sie unabhängig von dieser Einstellung immer im Browser geöffnet.",
@@ -241,6 +258,17 @@
       "videoCallWindowPersistence": {
         "title": "Videoanruf-Fensterposition speichern",
         "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
+      },
+      "transparentWindow": {
+        "title": "Transparentes Fenstereffekt",
+        "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
+      },
+      "themeAppearance": {
+        "title": "Design",
+        "description": "Wählen Sie das Farbschema für die Anwendung.",
+        "auto": "System folgen",
+        "light": "Hell",
+        "dark": "Dunkel"
       }
     }
   },
@@ -260,7 +288,7 @@
   "menus": {
     "about": "Über {{- appName}}",
     "addNewServer": "&Neuen server hinzufügen",
-    "back": "&Der Rücken",
+    "back": "&Zurück",
     "clearTrustedCertificates": "Vertraute zertifikate löschen",
     "close": "Schließen",
     "copy": "&Kopieren",
@@ -323,7 +351,7 @@
   },
   "selfxss": {
     "title": "Halt!",
-    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren, oder \"hack\" das Konto einer anderen Person, ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
+    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren oder um das Konto einer anderen Person zu \"hacken\" , ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
     "moreInfo": "Weitere Informationen finden Sie unter https://go.rocket.chat/i/xss."
   },
   "sidebar": {
@@ -351,7 +379,7 @@
     "tooltip": {
       "noUnreadMessage": "{{- appName}}: keine ungelesene Nachricht",
       "unreadMention": "{{- appName}}: Sie haben eine ungelesene Erwähnung/Direktnachricht",
-      "unreadMention_plural": "{{- appName}}: you have {{- count}} ungelesene Erwähnungen/Direktnachrichten",
+      "unreadMention_plural": "{{- appName}}: Sie haben {{- count}} ungelesene Erwähnungen/Direktnachrichten",
       "unreadMessage": "{{- appName}}: Sie haben ungelesene Nachrichten"
     },
     "balloon": {
@@ -377,5 +405,31 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
+  },
+  "serverInfo": {
+    "title": "Serverinformationen",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Unbekannt",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Unterstützte Versionen",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Lädt...",
+      "error": "Laden fehlgeschlagen",
+      "loaded": "Geladen",
+      "idle": "Inaktiv",
+      "from": "von {{source}}"
+    },
+    "supported": {
+      "unknown": "Unbekannt",
+      "expiring": "Läuft ab",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "expiration": {
+      "label": "Ablauf:",
+      "expiresOn": "Läuft ab am {{date}}"
+    }
   }
 }

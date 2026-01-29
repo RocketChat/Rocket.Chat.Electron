@@ -65,5 +65,12 @@ export const selectPersistableValues = createStructuredSelector({
   isVideoCallDevtoolsAutoOpenEnabled: ({
     isVideoCallDevtoolsAutoOpenEnabled,
   }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
+  isTransparentWindowEnabled: ({ isTransparentWindowEnabled }: RootState) =>
+    isTransparentWindowEnabled,
+  isVideoCallScreenCaptureFallbackEnabled: ({
+    isVideoCallScreenCaptureFallbackEnabled,
+  }: RootState) => isVideoCallScreenCaptureFallbackEnabled,
   updateChannel: ({ updateChannel }: RootState) => updateChannel,
+  userThemePreference: ({ userThemePreference }: RootState) =>
+    userThemePreference,
 });

@@ -33,6 +33,11 @@ export const SideBar = () => {
   const isAddNewServersEnabled = useSelector(
     ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
   );
+
+  const isTransparentWindowEnabled = useSelector(
+    ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  );
+
   const isVisible = servers.length > 0 && isSideBarEnabled;
 
   const isEachShortcutVisible = useKeyboardShortcuts();
@@ -68,8 +73,13 @@ export const SideBar = () => {
 
   const { t } = useTranslation();
 
+  const sidebarBg =
+    process.platform === 'darwin' && isTransparentWindowEnabled
+      ? undefined
+      : 'tint';
+
   return (
-    <Box className='rcx-sidebar--main' bg='tint'>
+    <Box className='rcx-sidebar--main' bg={sidebarBg}>
       <Box
         width='x44'
         display={isVisible ? 'flex' : 'none'}
@@ -108,6 +118,7 @@ export const SideBar = () => {
                 version={server.version}
                 isSupportedVersion={server.isSupportedVersion}
                 supportedVersionsSource={server.supportedVersionsSource}
+                supportedVersionsFetchState={server.supportedVersionsFetchState}
                 supportedVersions={server.supportedVersions}
                 exchangeUrl={server.outlookCredentials?.serverUrl}
                 isShortcutVisible={isEachShortcutVisible}

@@ -15,9 +15,9 @@ export const ServersView = () => {
           isSelected={server.selected}
           isFailed={server.failed ?? false}
           isSupported={server.isSupportedVersion}
+          supportedVersionsFetchState={server.supportedVersionsFetchState}
           title={server.title}
           documentViewerOpenUrl={server.documentViewerOpenUrl}
-          themeAppearance={server.themeAppearance}
           userLoggedIn={server.userLoggedIn}
         />
       ))}

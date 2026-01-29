@@ -21,9 +21,9 @@ type ServerPaneProps = {
   isSelected: boolean;
   isFailed: boolean;
   isSupported: boolean | undefined;
+  supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   title: string | undefined;
   documentViewerOpenUrl: string | undefined;
-  themeAppearance: string | undefined;
   userLoggedIn?: boolean;
 };
 
@@ -33,8 +33,8 @@ export const ServerPane = ({
   isSelected,
   isFailed,
   isSupported,
+  supportedVersionsFetchState,
   documentViewerOpenUrl,
-  themeAppearance,
   userLoggedIn,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
@@ -214,11 +214,11 @@ export const ServerPane = ({
           url={documentViewerOpenUrl || ''}
           partition={`persist:${serverUrl}`}
           closeDocumentViewer={closeDocumentViewer}
-          themeAppearance={themeAppearance}
         />
       </DocumentViewerWrapper>
       <UnsupportedServer
         isSupported={isSupported}
+        fetchState={supportedVersionsFetchState}
         instanceDomain={new URL(serverUrl).hostname}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />

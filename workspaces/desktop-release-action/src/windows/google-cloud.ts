@@ -21,48 +21,22 @@ export const setupGoogleCloudAuth = async (): Promise<string> => {
 };
 
 export const installGoogleCloudCLI = async (): Promise<string> => {
-  core.info('Installing Google Cloud CLI...');
-  await exec.exec('choco', ['install', 'gcloudsdk', '-y']);
-  
-  // Refresh environment variables to pick up PATH changes
-  await exec.exec('refreshenv');
-  
-  // Also manually add gcloud to PATH for this session
-  const gcloudPath = 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin';
-  core.addPath(gcloudPath);
-  process.env.PATH = `${gcloudPath};${process.env.PATH}`;
-  
-  // Find Python installation for gcloud
-  core.info('Locating Python installation...');
-  const pythonPaths = [
-    'C:\\hostedtoolcache\\windows\\Python\\*\\x64\\python.exe',
-    'C:\\Python*\\python.exe',
-    'C:\\Program Files\\Python*\\python.exe',
-    `${process.env.LOCALAPPDATA}\\Programs\\Python\\Python*\\python.exe`
-  ];
-  
-  let pythonExe: string | null = null;
-  for (const pythonPath of pythonPaths) {
-    const findCmd = `powershell -Command "Get-ChildItem '${pythonPath}' -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName"`;
-    const found = await runAndBuffer(findCmd).catch(() => '');
-    if (found && found.trim()) {
-      pythonExe = found.trim();
-      break;
+  core.info('Checking for preinstalled gcloud (via setup-gcloud)...');
+  try {
+    await exec.exec('gcloud', ['--version']);
+    const whereOut = await runAndBuffer('where gcloud').catch(() => '');
+    const bin = whereOut?.split(/\r?\n/).find(Boolean)?.trim();
+    if (bin) {
+      const dir = path.dirname(bin);
+      core.addPath(dir);
+      process.env.PATH = `${dir};${process.env.PATH}`;
+      return dir;
     }
+  } catch {
+    // not present; rely on workflow to set up gcloud
   }
-  
-  if (!pythonExe) {
-    throw new Error('Python not found in expected locations');
-  }
-  
-  core.info(`Found Python at: ${pythonExe}`);
-  core.exportVariable('CLOUDSDK_PYTHON', pythonExe);
-  
-  // Verify gcloud is accessible
-  core.info('Verifying gcloud installation...');
-  await exec.exec(`${gcloudPath}\\gcloud.cmd`, ['version']);
-  
-  return gcloudPath;
+
+  throw new Error('gcloud not found. Use google-github-actions/setup-gcloud before invoking this action.');
 };
 
 export const authenticateGcloud = async (credentialsPath: string, gcloudPath: string): Promise<void> => {

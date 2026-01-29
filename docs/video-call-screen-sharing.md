@@ -4,80 +4,121 @@
 
 This document shows how screen sharing works within an active video call in Rocket.Chat Electron.
 
+## Cache Architecture
+
+The screen sharing system uses a **stale-while-revalidate** caching pattern for optimal performance:
+
+```
+Desktop Capturer Cache
+├── Always returns cached data immediately (instant UX)
+├── If data older than 3s, triggers background refresh
+├── Next request gets fresh data
+└── Cache persists indefinitely (never expires)
+```
+
 ## Screen Sharing Flow
 
 ```mermaid
 flowchart TD
+    %% Pre-warming Phase (on Video Call Load)
+    START[Video Call Window Loaded] --> PW1[did-finish-load Event]
+    PW1 --> PW2[Trigger prewarm-capturer-cache IPC]
+    PW2 --> PW3[Call refreshDesktopCapturerCache]
+    PW3 --> PW4[Fetch Sources in Background]
+    PW4 --> PW5[Populate Cache with Timestamp]
+    PW5 --> PW6[Cache Ready for Instant Access]
+    
     %% Screen Sharing Initiation
     A[Video Call Active] --> B[User Requests Screen Share]
     B --> C[Webview Calls requestScreenSharing API]
     C --> D[Preload Script Receives Request]
     
-    %% IPC Communication to Main Process
+    %% IPC to Renderer
     D --> E[Send video-call-window/open-screen-picker IPC]
-    E --> F[Main Process Receives Request]
-    F --> G[Create Screen Picker Window]
-    G --> H[Load ScreenSharePicker Component]
+    E --> F[Renderer Receives Request]
+    F --> G{ScreenSharePicker Mounted?}
+    G -->|No| G1[Lazy Import React Module]
+    G1 --> G2[Mount ScreenSharePicker Hidden]
+    G -->|Yes| H[Show ScreenSharePicker]
+    G2 --> H
     
-    %% Desktop Capturer Cache Check
-    H --> I{Desktop Capturer Cache Valid?}
-    I -->|Yes - Within 3s TTL| J[Return Cached Sources]
-    I -->|No - Cache Expired/Empty| K[Fetch Available Sources]
+    %% Stale-While-Revalidate Cache
+    H --> I[Request Desktop Capturer Sources]
+    I --> J{Cache Exists?}
+    J -->|No| K[First Fetch - Wait for Sources]
+    J -->|Yes| L[Return Cached Sources Immediately]
     
-    %% System Source Fetching
-    K --> L[Call desktopCapturer.getSources]
-    L --> M[System Returns Available Sources]
-    M --> N[Filter & Process Sources]
-    N --> O[Cache Sources with 3s TTL]
-    O --> J[Return Sources to UI]
+    %% Staleness Check
+    L --> M{Cache Age > 3 seconds?}
+    M -->|No| N[Use Fresh Cache]
+    M -->|Yes| O[Trigger Background Refresh]
+    O --> P[refreshDesktopCapturerCache Async]
+    P --> Q[Fetch New Sources]
+    Q --> R[Update Cache with New Data]
+    R --> S[Next Request Gets Fresh Data]
+    N --> T[Display Sources in UI]
+    L --> T
+    
+    %% First Fetch Path
+    K --> K1[Call desktopCapturer.getSources]
+    K1 --> K2[System Returns Sources]
+    K2 --> K3[Filter Invalid Sources]
+    K3 --> K4[Cache Sources with Timestamp]
+    K4 --> T
     
     %% Source Selection UI
-    J --> P[Display Sources in Tabs]
-    P --> Q[Windows Tab - Application Windows]
-    P --> R[Screens Tab - Desktop Displays]
-    Q --> S[User Selects Window]
-    R --> T[User Selects Screen]
-    S --> U[Validate Selected Source]
-    T --> U
+    T --> U[Display Sources in Tabs]
+    U --> V[Windows Tab - Application Windows]
+    U --> W[Screens Tab - Desktop Displays]
+    V --> X[User Selects Window]
+    W --> Y[User Selects Screen]
+    X --> Z[Validate Selected Source]
+    Y --> Z
     
     %% Source Validation with Caching
-    U --> V{Source in Validation Cache?}
-    V -->|Yes - Within 30s TTL| W[Return Cached Validation]
-    V -->|No - Not Cached/Expired| X[Validate Source Availability]
-    X --> Y[Check Source Still Exists]
-    Y --> Z{Source Valid?}
-    Z -->|Yes| AA[Cache Validation with 30s TTL]
-    Z -->|No| BB[Show Source Unavailable Error]
-    AA --> W
-    W --> CC[Return Source ID to Main Process]
+    Z --> AA{Source in Validation Cache?}
+    AA -->|Yes - Within 30s| AB[Return Cached Validation]
+    AA -->|No| AC[Validate Source Availability]
+    AC --> AD[Check Source Still Exists]
+    AD --> AE{Source Valid?}
+    AE -->|Yes| AF[Cache Validation 30s]
+    AE -->|No| AG[Show Source Unavailable Error]
+    AF --> AB
+    AB --> AH[Return Source ID]
     
     %% IPC Response to Webview
-    CC --> DD[Send Source ID via IPC Response]
-    DD --> EE[Preload Script Receives Source ID]
-    EE --> FF[Return Source to Webview]
-    FF --> GG[Webview Gets Stream Access]
-    GG --> HH[User Sees Screen Share Active]
+    AH --> AI[Send Source ID via IPC Response]
+    AI --> AJ[Preload Script Receives Source ID]
+    AJ --> AK[Return Source to Webview]
+    AK --> AL[Webview Gets Stream Access]
+    AL --> AM[Screen Share Active]
     
-    %% Error Handling
-    BB --> II[User Selects Different Source]
-    II --> U
+    %% Error Recovery
+    AG --> AN[User Selects Different Source]
+    AN --> Z
     
-    %% Cache Cleanup on Window Close
-    HH --> JJ[Video Call Window Closes]
-    JJ --> KK[Schedule Cache Cleanup - 60s Delay]
-    KK --> LL{Other Video Call Windows?}
-    LL -->|Yes| MM[Keep Cache Active]
-    LL -->|No| NN[Clear Desktop Capturer Cache]
-    NN --> OO[Clear Source Validation Cache]
-    OO --> PP[Cache Cleanup Complete]
+    %% User Closes Picker Without Selecting
+    H --> AO[User Closes Picker]
+    AO --> AP[Hide ScreenSharePicker]
+    AP --> AQ[Component Stays Mounted]
+    AQ --> A
     
-    %% Cache Miss Performance Path
-    K --> QQ[Background Promise Deduplication]
-    QQ --> RR{Existing Fetch in Progress?}
-    RR -->|Yes| SS[Wait for Existing Fetch]
-    RR -->|No| TT[Start New Fetch Operation]
-    SS --> J
-    TT --> L
+    %% Cache Persistence
+    AM --> AR[Video Call Continues]
+    AR --> AS{User Requests Screen Share Again?}
+    AS -->|Yes| B
+    AS -->|No| AT[Video Call Ends]
+    AT --> AU[Window Closes]
+    AU --> AV[Cache Persists in Memory]
+    AV --> AW{App Quit or Error?}
+    AW -->|Yes| AX[Clear All Caches]
+    AW -->|No| AY[Cache Available for Next Call]
+    
+    %% Background Refresh Details
+    P --> BA{Fetch Already in Progress?}
+    BA -->|Yes| BB[Skip - Deduplication]
+    BA -->|No| BC[Start Async Fetch]
+    BC --> Q
     
     %% Styling
     classDef mainProcess fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
@@ -88,185 +129,318 @@ flowchart TD
     classDef validation fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px
     classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
     classDef success fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef prewarm fill:#fff8e1,stroke:#ffa000,stroke-width:2px
     
-    class F,G,L,M,N,CC,DD,KK,LL,NN,OO mainProcess
-    class D,E,EE,FF renderer
-    class A,C,GG,HH webview
-    class I,J,O,V,W,AA,QQ,RR,SS,TT cache
-    class H,P,Q,R,S,T ui
-    class U,X,Y,Z,BB validation
-    class BB,II error
-    class CC,GG,HH,PP success
+    class PW2,PW3,K1,K2,K3,AI mainProcess
+    class D,E,F,G,G1,G2,AJ,AK renderer
+    class A,C,AL,AM,AR webview
+    class I,J,K4,L,M,N,O,P,Q,R,S,BA,BB,BC,AV,AW,AX,AY cache
+    class H,T,U,V,W,X,Y,AO,AP,AQ ui
+    class Z,AA,AB,AC,AD,AE,AF validation
+    class AG,AN error
+    class AH,AL,AM success
+    class START,PW1,PW2,PW3,PW4,PW5,PW6 prewarm
 ```
 
 ## Explanation
 
 **What this diagram shows:**
-- How screen sharing works inside an active video call
-- The caching system that makes it fast and smooth
-- How users select what to share from their computer
-- Error handling when something goes wrong
+- Cache pre-warming when video call loads
+- Stale-while-revalidate pattern for instant display
+- Background refresh keeping thumbnails current
+- Deferred React loading for the picker component
 
 **Key parts:**
-1. **User Request** - User clicks screen share button in video call
-2. **Source Discovery** - App finds all windows and screens available
-3. **Caching System** - Remembers recent results to avoid slow lookups
-4. **User Selection** - Shows windows and screens in easy-to-use tabs
-5. **Validation** - Checks that selected window/screen still exists
-6. **Stream Access** - Gives video call access to share the screen
-7. **Cache Cleanup** - Cleans up memory when no longer needed
+1. **Pre-warming** - Cache populated when video call loads
+2. **Instant Display** - Always returns cached data immediately
+3. **Background Refresh** - Updates stale cache without blocking UI
+4. **Source Selection** - Tabbed interface for windows and screens
+5. **Validation** - Ensures selected source still exists
+6. **Persistence** - Cache survives window close for next call
 
-**Performance Features:**
-- **3-second cache** for source lists (faster when user reopens picker)
-- **30-second validation cache** (remembers which sources work)
-- **60-second cleanup delay** (keeps cache active for quick re-use)
-- **Promise deduplication** (prevents multiple slow system calls)
+**Cache Behavior:**
+- **Stale threshold**: 3 seconds
+- **Validation cache**: 30 seconds
+- **Expiration**: Never (persists until app quit or error)
+- **Memory**: Varies based on number of sources and thumbnail sizes
 
 **Color Guide:**
-- **Blue** - Main process & Cache operations
+- **Blue** - Main process operations
 - **Purple** - Renderer process & Validation
 - **Green** - Webview & Success states
+- **Light Blue** - Cache operations
 - **Orange** - User interface elements
+- **Yellow** - Pre-warming phase
 - **Red** - Error states
-
-**Starting Point:**
-This flow starts from the "Video Call Active" state that you get after completing the window management flow.
 
 ## Detailed Step-by-Step Explanation
 
-### 1. Starting Screen Sharing
-When you're in an active video call and want to share your screen, you click the screen share button in the video call interface.
+### 1. Cache Pre-warming
+When the video call webview finishes loading, the app proactively populates the cache.
 
 **What happens:**
-- The video call website detects your click on the screen share button
-- It calls a special function that Rocket.Chat provides for screen sharing
-- This request goes through a secure bridge between the video call and the main app
-- The main app receives the screen sharing request
+- `did-finish-load` event triggers pre-warming
+- `video-call-window/prewarm-capturer-cache` IPC called
+- `refreshDesktopCapturerCache()` fetches sources in background
+- Cache populated before user ever clicks screen share
+- First screen picker open shows sources instantly
 
-### 2. Opening the Source Picker
-The app needs to show you what you can share (windows and screens).
-
-**What happens:**
-- Creates a new small window specifically for choosing what to share
-- This picker window is separate from your video call window
-- Loads a user interface that will show you all available options
-- Prepares to fetch information about what's available on your computer
-
-### 3. Checking the Cache First
-Before asking your computer for available windows and screens, the app checks if it already knows.
+### 2. Starting Screen Sharing
+When you click the screen share button during a video call.
 
 **What happens:**
-- Looks in its memory for a recent list of windows and screens
-- If it found a list less than 3 seconds ago, it uses that (much faster!)
-- If the information is older than 3 seconds, it needs to get fresh data
-- This caching makes screen sharing feel instant when you use it multiple times
+- Video call website detects your click
+- Calls the screen sharing API provided by the preload script
+- IPC message sent to renderer process
+- ScreenSharePicker component shown (or mounted if first time)
 
-### 4. Getting Available Sources
-When the cache is empty or old, the app asks your operating system what you can share.
-
-**What happens:**
-- Asks your computer for a list of all open windows
-- Asks for a list of all monitors/screens you have
-- Your operating system provides thumbnails and names for each option
-- The app filters and organizes this information for display
-
-### 5. Caching for Performance
-To make future requests faster, the app remembers what it just learned.
+### 3. Deferred React Loading
+The ScreenSharePicker React component is loaded lazily.
 
 **What happens:**
-- Stores the list of windows and screens in memory
-- Sets a 3-second expiration time on this information
-- If multiple screen share requests come in quickly, they all use the same cached data
-- This prevents overwhelming your computer with repeated requests
+- First screen share request triggers dynamic import
+- `screenSharePickerMount.tsx` loaded asynchronously
+- React component mounted and kept in DOM
+- Subsequent opens just toggle visibility (instant)
 
-### 6. Showing Your Options
-Now you see a nice interface with everything you can share.
-
-**What happens:**
-- Creates tabs to organize your options: "Windows" and "Screens"
-- **Windows tab**: Shows all your open applications with preview thumbnails
-- **Screens tab**: Shows each monitor/display you have connected
-- Each option shows a preview image and the name of the window or screen
-- You can click on any option to select it
-
-### 7. Validating Your Choice
-When you click on something to share, the app double-checks it's still available.
+### 4. Stale-While-Revalidate Cache
+The core caching strategy that makes screen sharing feel instant.
 
 **What happens:**
-- Checks if the window or screen you selected still exists
-- Sometimes windows get closed between when the list was made and when you click
-- If it checked the same source recently (within 30 seconds), it uses that cached result
-- If not, it quickly verifies the source is still available
+- Request comes in for desktop capturer sources
+- **If cache exists**: Return immediately (no waiting)
+- **If cache older than 3s**: Trigger background refresh
+- **Background refresh**: Fetches new sources asynchronously
+- **Next request**: Gets the fresh data
+- **Cache never expires**: Only cleared on error or app quit
 
-### 8. Handling Unavailable Sources
-If what you selected is no longer available, the app helps you choose something else.
+**Example flow (illustrative timings):**
+```
+T=0s: User opens picker → Cache returns instantly (2s old)
+T=0s: Background refresh starts (async)
+T=1s: Background refresh completes, cache updated
+T=5s: User opens picker again → Gets fresh data instantly
+```
 
-**What happens:**
-- Shows an error message explaining the window or screen is no longer available
-- The source picker stays open so you can choose a different option
-- Your previous selection is cleared
-- You can try selecting a different window or screen
+### 5. Source Filtering and Validation
+Sources are filtered and validated before display.
 
-### 9. Returning the Source
-When you've successfully selected something that's available, the app provides it to your video call.
+**Filtering (during fetch):**
+- Removes sources with empty names
+- Removes sources with empty thumbnails
+- Only valid sources cached
 
-**What happens:**
-- Caches the validation result for 30 seconds (in case you want to share the same thing again soon)
-- Sends the source information back to the main app
-- The main app passes this information to your video call
-- The source picker window closes since you've made your choice
+**Validation (on selection):**
+- Checks if selected source still exists
+- Cached for 30 seconds to avoid repeated checks
+- Shows error if source no longer available
 
-### 10. Activating Screen Sharing
-Your video call now has permission to share your selected screen or window.
-
-**What happens:**
-- The video call website receives the source information
-- It can now access the stream from your selected window or screen
-- Other people in the call start seeing what you're sharing
-- The screen sharing is now active and working
-
-### 11. Cache Cleanup
-When you close your video call, the app cleans up the memory it was using.
+### 6. Source Selection UI
+Clean tabbed interface for choosing what to share.
 
 **What happens:**
-- Waits 60 seconds after the video call window closes (in case you open another call quickly)
-- Checks if any other video call windows are still open
-- If no other video calls are running, it clears all cached screen sharing data
-- This prevents the app from using memory unnecessarily
+- **Windows tab**: Shows application windows with thumbnails
+- **Screens tab**: Shows connected displays
+- Preview thumbnails help identify correct source
+- Click to select, picker closes automatically
 
-### 12. Performance Optimization
-The app has special features to make screen sharing as fast as possible.
+### 7. Cache Persistence
+Cache survives beyond the video call window lifecycle.
 
 **What happens:**
-- **Promise deduplication**: If multiple requests come in at the same time, it only asks the system once
-- **Background processing**: Fetching source information happens in the background
-- **Smart caching**: Keeps frequently used information readily available
-- **Efficient cleanup**: Only clears memory when it's actually not needed
+- Video call window closes
+- Cache remains in memory
+- Next video call benefits from existing cache
+- Only cleared on:
+  - Application quit
+  - Explicit cleanup call
+  - Fetch error (keeps last good data on error)
 
-## Why This System Works Well
+### 8. Promise Deduplication
+Prevents multiple simultaneous fetches.
 
-### Speed and Responsiveness
-- **3-second source cache**: Makes the picker open almost instantly on repeat use
-- **30-second validation cache**: Avoids re-checking the same sources repeatedly
-- **Immediate response**: You see your options as quickly as your computer can provide them
-- **Background optimization**: Multiple requests don't slow each other down
+**What happens:**
+- If fetch already in progress, new requests wait for it
+- Single system call even with rapid requests
+- Reduces CPU and memory pressure
 
-### Reliability
-- **Real-time validation**: Ensures what you select actually works
-- **Error recovery**: Helps you choose something else if your first choice isn't available
-- **Source verification**: Double-checks everything before committing
-- **Graceful degradation**: Still works even if some features are slow
+## Why Stale-While-Revalidate?
 
-### Resource Management
-- **Smart caching**: Only keeps information as long as it's useful
-- **Memory cleanup**: Automatically frees up memory when not needed
-- **Efficient requests**: Doesn't overwhelm your computer with repeated system calls
-- **Multi-window support**: Handles multiple video calls without conflicts
+### Previous Approach (TTL-based)
+```
+Cache hit within 3s → Return cached data
+Cache expired → Fetch new data (blocking)
+Window close → Schedule 60s cleanup timer
+```
 
-### User Experience
-- **Visual previews**: See exactly what you'll be sharing before you choose
-- **Organized tabs**: Easy to find windows vs. screens
-- **Clear feedback**: Know immediately if something isn't available
-- **Fast response**: Screen sharing starts quickly once you make a choice
+**Problems:**
+- Empty state possible if cache expired
+- Blocking fetch when cache expired
+- Complex cleanup logic
 
-This system ensures that screen sharing is fast, reliable, and doesn't slow down your computer, even when you have many windows open or multiple monitors connected. 
+### Current Approach (Stale-While-Revalidate)
+```
+Cache exists → Return immediately (always instant)
+Cache stale → Background refresh (non-blocking)
+Window close → Keep cache (no cleanup timer)
+```
+
+**Benefits:**
+- Never shows empty/loading state
+- Thumbnails stay current through background refresh
+- Simpler code, better UX
+
+## Performance Characteristics
+
+### Response Times
+| Scenario | Behavior |
+|----------|----------|
+| Pre-warmed cache | Instant (no delay) |
+| Cache hit (fresh) | Instant (no delay) |
+| Cache hit (stale) | Instant return with background refresh |
+| Cold start (no cache) | Requires initial system call to fetch sources |
+
+### Memory Usage
+| Component | Behavior |
+|-----------|----------|
+| Source metadata | Minimal overhead per source |
+| Thumbnails | Varies with number of sources and thumbnail resolution |
+| Validation cache | Negligible overhead |
+
+### Cache Lifecycle
+```
+App Start
+    │
+    ▼
+Video Call Opens
+    │
+    ├─► did-finish-load → Pre-warm cache
+    │
+    ▼
+Screen Share Request
+    │
+    ├─► Return cached (instant)
+    ├─► Background refresh if stale
+    │
+    ▼
+Video Call Closes
+    │
+    ├─► Cache persists
+    │
+    ▼
+Next Video Call
+    │
+    ├─► Cache still available
+    │
+    ▼
+App Quit
+    │
+    └─► Cache cleared
+```
+
+## Technical Implementation
+
+### Stale-While-Revalidate Logic
+```typescript
+const DESKTOP_CAPTURER_STALE_THRESHOLD = 3000;
+
+handle('desktop-capturer-get-sources', async (_webContents, opts) => {
+  const options = Array.isArray(opts) ? opts[0] : opts;
+
+  if (desktopCapturerCache) {
+    const isStale =
+      Date.now() - desktopCapturerCache.timestamp >
+      DESKTOP_CAPTURER_STALE_THRESHOLD;
+    if (isStale && !desktopCapturerPromise) {
+      refreshDesktopCapturerCache(options); // Fire and forget
+    }
+    return desktopCapturerCache.sources; // Always return immediately
+  }
+
+  // No cache - wait for initial fetch
+  refreshDesktopCapturerCache(options);
+  if (desktopCapturerPromise) {
+    return await desktopCapturerPromise;
+  }
+  return [];
+});
+```
+
+### Background Refresh Function
+```typescript
+const refreshDesktopCapturerCache = (options: Electron.SourcesOptions): void => {
+  if (desktopCapturerPromise) return; // Deduplication
+
+  desktopCapturerPromise = (async () => {
+    try {
+      const sources = await desktopCapturer.getSources(options);
+      const validSources = sources.filter(/* validation logic */);
+      
+      desktopCapturerCache = {
+        sources: validSources,
+        timestamp: Date.now(),
+      };
+      return validSources;
+    } catch (error) {
+      console.error('Background cache refresh failed:', error);
+      return desktopCapturerCache?.sources || []; // Keep last good data
+    } finally {
+      desktopCapturerPromise = null;
+    }
+  })();
+};
+```
+
+### Pre-warming Handler
+```typescript
+handle('video-call-window/prewarm-capturer-cache', async () => {
+  refreshDesktopCapturerCache({ types: ['window', 'screen'] });
+  return { success: true };
+});
+```
+
+### Source Validation Cache
+```typescript
+const SOURCE_VALIDATION_CACHE_TTL = 30000;
+
+// Validates selected source still exists
+// Cached for 30 seconds to avoid repeated system calls
+const sourceValidationCache: Set<string> = new Set();
+let sourceValidationCacheTimestamp = 0;
+
+const cacheExpired = 
+  now - sourceValidationCacheTimestamp > SOURCE_VALIDATION_CACHE_TTL;
+
+if (!cacheExpired && sourceValidationCache.has(source.id)) {
+  return { isValid: true }; // Use cached validation
+}
+
+// Re-validate and update cache
+sourceValidationCache.clear();
+sourceValidationCache.add(source.id);
+sourceValidationCacheTimestamp = now;
+```
+
+## User Experience Benefits
+
+### Instant Screen Picker
+- Cache pre-warmed when video call loads
+- First open shows sources immediately
+- No loading spinner or empty state
+
+### Current Thumbnails
+- Background refresh keeps previews up-to-date
+- User always sees accurate window previews
+- Changes detected within 3 seconds
+
+### Seamless Repeat Use
+- Second screen share opens instantly
+- Cache persists between calls
+- No degradation over session length
+
+### Reliable Selection
+- 30-second validation cache prevents repeated checks
+- Clear error message if source unavailable
+- Easy recovery with different selection
+
+This caching architecture ensures screen sharing is fast, reliable, and provides an excellent user experience throughout the video call session.

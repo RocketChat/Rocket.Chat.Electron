@@ -3,9 +3,10 @@ import {
   Field,
   FieldLabel,
   FieldHint,
-  SelectLegacy,
+  Select,
 } from '@rocket.chat/fuselage';
 import { useEffect, useCallback, useMemo, useState } from 'react';
+import type { Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -46,10 +47,11 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
   }, [availableBrowsers]);
 
   const handleChangeBrowser = useCallback(
-    (value: string) => {
+    (value: Key) => {
+      const stringValue = String(value);
       dispatch({
         type: SETTINGS_SELECTED_BROWSER_CHANGED,
-        payload: value === 'system' ? null : value,
+        payload: stringValue === 'system' ? null : stringValue,
       });
     },
     [dispatch]
@@ -83,13 +85,13 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
           </FieldHint>
         </Box>
         <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
-          <SelectLegacy
+          <Select
             options={options}
             value={selectedBrowser ?? 'system'}
             onChange={handleChangeBrowser}
             placeholder={t('settings.options.availableBrowsers.loading')}
             disabled={isLoading || availableBrowsers.length === 0}
-            width={200}
+            width={220}
           />
         </Box>
       </Box>

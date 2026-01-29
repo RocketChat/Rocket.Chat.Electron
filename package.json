@@ -6,9 +6,9 @@
   "productName": "Rocket.Chat",
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "4.9.0",
+  "version": "4.12.0-alpha.2",
   "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2016-2025, Rocket.Chat",
+  "copyright": "© 2016-2026, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
   "goUrlShortener": "go.rocket.chat",
@@ -48,7 +48,8 @@
     ".:lint:tsc": "tsc --noEmit",
     "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
     ".:lint-fix:eslint": "eslint --fix .",
-    "workspaces:build": "yarn workspaces foreach -At run build"
+    "workspaces:build": "yarn workspaces foreach -At run build",
+    "release:tag": "ts-node -O '{\"module\":\"commonjs\"}' scripts/release-tag.ts"
   },
   "dependencies": {
     "@bugsnag/js": "~7.22.3",
@@ -57,19 +58,18 @@
     "@emotion/styled": "~11.11.0",
     "@ewsjs/xhr": "~2.0.2",
     "@rocket.chat/css-in-js": "~0.31.25",
-    "@rocket.chat/emitter": "~0.31.25",
-    "@rocket.chat/fuselage": "~0.64.0",
-    "@rocket.chat/fuselage-hooks": "~0.36.0",
+    "@rocket.chat/desktop-api": "~1.1.0",
+    "@rocket.chat/fuselage": "0.58.0",
+    "@rocket.chat/fuselage-hooks": "~0.33.1",
     "@rocket.chat/fuselage-polyfills": "~0.31.25",
-    "@rocket.chat/fuselage-tokens": "~0.33.2",
-    "@rocket.chat/icons": "~0.43.0",
+    "@rocket.chat/icons": "0.37.0",
     "archiver": "~7.0.1",
-    "axios": "~1.6.4",
+    "axios": "~1.13.2",
     "detect-browsers": "~6.1.0",
     "electron-dl": "4.0.0",
     "electron-log": "~5.4.1",
     "electron-store": "~8.1.0",
-    "electron-updater": "^5.3.0",
+    "electron-updater": "^6.3.9",
     "ews-javascript-api": "~0.13.2",
     "i18next": "~23.7.16",
     "jsonwebtoken": "~9.0.2",
@@ -109,7 +109,7 @@
     "@types/electron-devtools-installer": "~2.2.5",
     "@types/jest": "~29.5.11",
     "@types/jsonwebtoken": "~9.0.5",
-    "@types/node": "~16.18.69",
+    "@types/node": "~25.0.10",
     "@types/react": "~18.3.18",
     "@types/react-dom": "~18.3.5",
     "@typescript-eslint/eslint-plugin": "~6.17.0",
@@ -118,8 +118,7 @@
     "chokidar": "~3.5.3",
     "conventional-changelog-cli": "~4.1.0",
     "convert-svg-to-png": "~0.6.4",
-    "cross-env": "~7.0.3",
-    "electron": "37.2.4",
+    "electron": "40.0.0",
     "electron-builder": "26.0.3",
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.2.2",
@@ -137,7 +136,7 @@
     "patch-package": "~8.0.0",
     "prettier": "~3.2.5",
     "puppeteer": "23.1.1",
-    "rollup": "~4.9.6",
+    "rollup": "~4.32.0",
     "rollup-plugin-copy": "~3.5.0",
     "ts-jest": "~29.1.4",
     "ts-node": "~10.9.2",
@@ -148,20 +147,25 @@
     "fsevents": "2.3.3"
   },
   "engines": {
-    "node": ">=22.17.1"
+    "node": ">=24.11.1"
   },
   "devEngines": {
-    "node": ">=22.17.1",
+    "node": ">=24.11.1",
     "yarn": ">=4.0.2"
   },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
     "@fiahfy/ico-convert/sharp": "0.29.3",
-    "@rocket.chat/fuselage/react-virtuoso": "4.6.2",
-    "@rocket.chat/prettier-config/prettier": "3.2.5"
+    "cross-spawn": "7.0.6",
+    "braces": "3.0.3",
+    "ws": "8.18.0",
+    "follow-redirects": "1.15.9",
+    "form-data": "4.0.5",
+    "tar-fs": "3.0.8",
+    "undici": "5.28.5"
   },
   "volta": {
-    "node": "22.17.1",
+    "node": "24.11.1",
     "yarn": "4.0.2"
   },
   "packageManager": "yarn@4.6.0"

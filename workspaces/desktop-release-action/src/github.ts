@@ -122,6 +122,7 @@ export const getSnapshotRelease = async (commitSha: string) => {
 
 export const getTaggedRelease = async (version: SemVer, commitSha: string) => {
   const body = await getChangelog();
+  const isPrerelease = version.prerelease.length > 0;
 
   const release = await findRelease(
     (release: Release) => release.tag_name === version.version
@@ -135,6 +136,7 @@ export const getTaggedRelease = async (version: SemVer, commitSha: string) => {
           ...getRepoParams(),
           release_id: release.id,
           draft: true,
+          prerelease: isPrerelease,
           body,
           tag_name: version.version,
           target_commitish: commitSha,
@@ -147,6 +149,7 @@ export const getTaggedRelease = async (version: SemVer, commitSha: string) => {
     await getOctokit().request('POST /repos/{owner}/{repo}/releases', {
       ...getRepoParams(),
       draft: true,
+      prerelease: isPrerelease,
       name: version.version,
       body,
       tag_name: version.version,

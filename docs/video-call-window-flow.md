@@ -2,64 +2,194 @@
 
 ## Overview
 
-The video call window system in Rocket.Chat Electron has two main parts:
+The video call window system in Rocket.Chat Electron provides a dedicated, high-performance environment for video conferencing with any provider (Jitsi, PEXIP, self-hosted, and others). The core system is provider-agnostic and works with any HTTP/HTTPS video call URL.
 
-1. **Window Management** - How the video call window is created and managed
-2. **Screen Sharing** - How screen sharing works within the video call
+## Architecture
+
+The system uses a **vanilla JavaScript bootstrap** with **deferred React loading**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Video Call Window                         │
+├─────────────────────────────────────────────────────────────┤
+│  video-call-window.ts (Vanilla JS)                          │
+│  ├── i18n initialization                                    │
+│  ├── Webview lifecycle management                           │
+│  ├── Loading/error overlays (DOM)                           │
+│  └── IPC communication                                      │
+├─────────────────────────────────────────────────────────────┤
+│  screenSharePickerMount.tsx (React - Lazy Loaded)           │
+│  └── ScreenSharePicker component                            │
+├─────────────────────────────────────────────────────────────┤
+│  Desktop Capturer Cache (Stale-While-Revalidate)            │
+│  ├── Pre-warmed on webview load                             │
+│  ├── Instant response, background refresh                   │
+│  └── Persists across calls                                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key design decisions:**
+- Vanilla JS for critical path (faster load, simpler recovery)
+- React only for ScreenSharePicker (complex UI component)
+- Stale-while-revalidate caching (instant UX, fresh data)
+- Cache pre-warming (no loading state on first screen share)
 
 ## Documentation Files
 
-### 📊 [Window Management Flow](./video-call-window-management.md)
-**What it covers:** How Rocket.Chat opens a video call window when you click a video call button.
+### [Window Management Flow](./video-call-window-management.md)
 
-This document explains the complete process from when you click "Join Call" to when you see a working video call interface. It shows how the app creates a separate window for your video call, sets it up safely, handles any problems that might occur, and makes sure everything works reliably even on slower computers.
+**What it covers:** Complete lifecycle from click to active video call.
 
-**You'll learn about:**
-- How the app validates video call URLs for security
-- Why video calls open in separate windows  
-- How the app handles errors and tries to fix them automatically
-- The retry system that makes video calls work reliably
-- How multiple attempts ensure success even with slow internet
-- What happens when you close a video call window
-- ✨ **New**: Smart loading system that prevents flicker and loading interruptions
-
-**Perfect for understanding:** Why video calls sometimes take a moment to open, how the app recovers from problems, and what's happening behind the scenes when you start a video call.
-
-### 🖥️ [Screen Sharing Flow](./video-call-screen-sharing.md) 
-**What it covers:** How screen sharing works when you're already in a video call.
-
-This document explains what happens when you click the screen share button during a video call. It shows how the app finds all your windows and screens, how it makes the selection process fast with smart caching, and how it ensures what you choose actually works before sharing it with others.
+This document explains the vanilla JS architecture that manages the video call window. It shows how the app creates a separate window, initializes without React overhead, handles loading states through direct DOM manipulation, and provides automatic error recovery.
 
 **You'll learn about:**
-- How the app discovers all your open windows and screens
-- Why screen sharing feels instant the second time you use it
-- How the app organizes your options into easy-to-use tabs
-- The smart caching system that makes everything fast
-- How the app handles closed windows and disconnected screens
-- What happens to memory and cache when you end calls
+- Vanilla JS bootstrap architecture
+- Why React is deferred (performance benefits)
+- Webview creation and attribute ordering
+- Loading and error overlay management
+- Smart loading system (no flicker, no interruption)
+- Progressive error recovery strategies
+- Window cleanup and resource management
 
-**Perfect for understanding:** Why screen sharing opens quickly, how the preview thumbnails are generated, what the app does when windows disappear, and how it manages computer resources efficiently.
+**Architecture highlights:**
+- No React in critical path
+- Direct DOM manipulation for overlays
+- Deferred React import for screen sharing
+- Cache pre-warming on load completion
+
+### [Screen Sharing Flow](./video-call-screen-sharing.md)
+
+**What it covers:** Screen sharing with stale-while-revalidate caching.
+
+This document explains the caching architecture that makes screen sharing feel instant. It shows how the cache is pre-warmed when the video call loads, how stale data is returned immediately while fresh data is fetched in the background, and why the cache persists indefinitely.
+
+**You'll learn about:**
+- Stale-while-revalidate pattern
+- Cache pre-warming strategy
+- Why cache never expires
+- Background refresh mechanics
+- Deferred React loading for picker
+- Source validation and filtering
+- Memory usage characteristics
+
+**Cache characteristics:**
+- Always returns data immediately
+- Background refresh when stale (>3s)
+- Persists until app quit or error
+
+### [WGC Limitations](./video-call-window-wgc-limitations.md)
+
+**What it covers:** Windows Graphics Capture limitations and workarounds.
+
+This document explains why screen sharing fails in Remote Desktop (RDP) sessions and how the app handles this through automatic detection and fallback mechanisms.
 
 ## How They Work Together
 
 ### The Complete User Journey
 
-1. **📊 Window Management** → You click a video call button, and the app creates a working video call window
-2. **🖥️ Screen Sharing** → While in the call, you click screen share and select what to share
+```
+1. User clicks video call button
+   └─► Window Management Flow
+       ├── Create BrowserWindow
+       ├── Vanilla JS bootstrap
+       ├── Load webview with provider URL
+       └── Pre-warm desktop capturer cache
+
+2. Video call active
+   └─► User clicks screen share
+       └─► Screen Sharing Flow
+           ├── Show ScreenSharePicker (React, lazy loaded)
+           ├── Return cached sources instantly
+           ├── Background refresh if stale
+           └── Stream selected source
+```
 
 ### Real-World Example
 
 **Starting a call:**
-- You click "Join Video Call" in a Rocket.Chat message
-- Window Management Flow takes over
-- A new window opens and loads the video call interface
-- You see other participants and can talk/video chat
+1. Click "Join Video Call" in Rocket.Chat
+2. Window Management Flow creates dedicated window
+3. Vanilla JS shows loading overlay with localized text
+4. Webview loads video call provider interface (Jitsi, PEXIP, or any provider)
+5. Cache pre-warmed in background
+6. Loading overlay hidden, video call visible
+7. If Jitsi: jitsiBridge auto-detects and initializes (required for screen sharing)
 
 **Sharing your screen:**
-- You click the screen share button in the video call
-- Screen Sharing Flow takes over  
-- A small window shows all your options with preview images
-- You click on a window or screen to share it
-- Others in the call immediately see what you're sharing
+1. Click screen share button in video call
+2. ScreenSharePicker React component loaded (first time) or shown
+3. Cached sources displayed instantly (no loading spinner)
+4. Background refresh updates thumbnails if stale
+5. Select window or screen
+6. Stream starts immediately
 
-Both systems work together seamlessly to give you a complete video calling experience that's fast, reliable, and easy to use. 
+## Key Innovations
+
+### Vanilla JS Bootstrap
+Traditional Electron apps render everything with React. This video call window uses vanilla JavaScript for the critical path:
+- **Faster startup**: No React bundle to parse/execute initially
+- **Simpler recovery**: Direct DOM manipulation, no state management
+- **Lower memory**: React only loaded when needed
+
+### Stale-While-Revalidate Cache
+Traditional caching uses TTL (time-to-live) expiration. This system uses stale-while-revalidate:
+- **Always instant**: Returns cached data immediately
+- **Always fresh**: Background refresh keeps data current
+- **Never empty**: Cache persists, no expiration
+- **Error resilient**: Keeps last good data on fetch failure
+
+### Cache Pre-warming
+Traditional apps fetch data on demand. This system pre-warms:
+- **Proactive fetch**: Cache populated when webview loads
+- **Zero wait**: First screen share shows sources instantly
+- **Background operation**: No impact on video call startup
+
+## Provider Support
+
+The video call window is designed to work with any video conferencing provider. The core system is generic and provider-agnostic:
+
+### Generic Support (All Providers)
+- **URL validation**: Only checks HTTP/HTTPS protocol (no provider-specific patterns)
+- **Webview lifecycle**: Standard Electron webview handling
+- **Screen sharing**: Uses generic Electron desktop capturer API
+- **Partition**: Uses generic `persist:video-call-session` partition
+
+### Jitsi-Specific Requirements
+For Jitsi servers, a required bridge module (`jitsiBridge.ts`) is essential for screen sharing:
+- **Auto-detection**: Automatically detects Jitsi meetings and initializes integration
+- **Screen sharing coordination**: Required for screen sharing to work with Jitsi's External API
+- **Event handling**: Listens for Jitsi-specific events and messages
+
+**Important**: The jitsiBridge is **required** for Jitsi calls - screen sharing will not work without it. Other providers (like PEXIP) work with the standard generic events and do not need a bridge.
+
+### PEXIP and Other Providers
+PEXIP and other providers work seamlessly with the generic event system:
+- No special bridge code required
+- Uses standard webview events and IPC communication
+- Screen sharing works through the generic desktop capturer API
+- Easier to integrate than Jitsi (no bridge needed)
+
+## File Structure
+
+```
+src/videoCallWindow/
+├── video-call-window.ts       # Vanilla JS bootstrap (generic)
+├── screenSharePicker.tsx      # React screen picker UI (generic)
+├── screenSharePickerMount.tsx # React mounting utilities (generic)
+├── ipc.ts                     # Main process handlers (generic)
+└── preload/
+    ├── index.ts               # Webview preload script (generic)
+    └── jitsiBridge.ts         # Jitsi-specific bridge (required for Jitsi screen sharing)
+
+src/public/
+├── video-call-window.html     # Window HTML with overlay containers
+├── loading.css                # Loading overlay styles
+└── error.css                  # Error overlay styles
+```
+
+## Related Documentation
+
+- [Supported Versions Flow](./supported-versions-flow.md) - Server version compatibility
+- [Testing Documentation](./testing/) - Test procedures and guidelines
+
+Both window management and screen sharing systems work together seamlessly to provide a fast, reliable, and user-friendly video calling experience.

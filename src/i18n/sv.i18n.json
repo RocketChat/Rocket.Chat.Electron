@@ -141,6 +141,18 @@
       "camera": "Kamera",
       "both": "Mikrofon och kamera"
     },
+    "microphonePermissionDenied": {
+      "title": "Mikrofonåtkomst krävs",
+      "message": "Mikrofonåtkomst krävs för att {{- actionType}}. Kontrollera dina systeminställningar.",
+      "detail": "Du kan aktivera mikrofonåtkomst i datorns integritetsinställningar.",
+      "openSettings": "Öppna inställningar",
+      "cancel": "Avbryt",
+      "actionTypes": {
+        "initiateCall": "ringa samtal",
+        "answerCall": "svara på samtal",
+        "recordMessage": "spela in meddelanden"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook-kalender",
       "encryptionUnavailableTitle": "Kryptering är inte tillgänglig",
@@ -227,6 +239,11 @@
         "title": "Hårdvaruacceleration",
         "description": "Aktiverar användning av hårdvaruacceleration när sådan finns tillgänglig. Programmet laddas om vid ändring."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Reservläge för videosamtal",
+        "description": "Stänger av Windows Graphics Capture så att delning fungerar i RDP-sessioner. Appen startas om när du ändrar valet.",
+        "forcedDescription": "Redan aktiverat eftersom appen upptäckte en RDP-session. Vippbrytaren anger beteendet vid kommande lokala starter."
+      },
       "internalVideoChatWindow": {
         "title": "Öppna videochatt i programfönstret",
         "description": "Om den är aktiverad öppnas videochatten i programmets fönster i stället för i standardwebbläsaren. För <strong>Google Meet</strong> och <strong>Jitsi</strong> stöds dock inte skärminspelning i Electron-applikationer, så de kommer alltid att öppnas i webbläsaren oavsett denna inställning.",
@@ -263,16 +280,27 @@
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Tillåt skärmdump under videosamtal",
-        "description": "Tillåt skärmdump vid videosamtal. Detta kommer att be om tillstånd vid varje videosamtal."
+        "description": "Tillåt skärmdump vid videosamtal. Förfrågan om tillstånd kommer vid varje videosamtal."
       },
       "ntlmCredentials": {
         "title": "NTLM-autentiseringsuppgifter",
         "description": "Tillåt att NTLM-autentiseringsuppgifter används vid anslutning till en server.",
-        "domains": "Domäner som ska använda autentiseringsuppgifterna. Separerade med kommatecken. Använd * för att matcha alla domäner."
+        "domains": "Domäner som kommer använda autentiseringsuppgifterna. Separerade med kommatecken. Använd * för att matcha alla domäner."
       },
       "videoCallWindowPersistence": {
         "title": "Kom ihåg fönstrets position för videosamtal",
         "description": "Spara och återställ position och storlek för videosamtalsfönster mellan sessioner"
+      },
+      "transparentWindow": {
+        "title": "Transparent fönstereffekt",
+        "description": "Aktivera inbyggd vibrans/transparenseffekt för fönstret. Kräver omstart för att tillämpas."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Välj färgtemat för applikationen.",
+        "auto": "Följ system",
+        "light": "Ljus",
+        "dark": "Mörk"
       }
     }
   },
@@ -432,5 +460,31 @@
     "noWindowsFound": "Inga fönster hittades",
     "cancel": "Avbryt",
     "share": "Dela"
+  },
+  "serverInfo": {
+    "title": "Serverinformation",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Okänd",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Versioner som stöds",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Laddar...",
+      "error": "Laddning misslyckades",
+      "loaded": "Laddad",
+      "idle": "Viloläge",
+      "from": "från {{source}}"
+    },
+    "supported": {
+      "unknown": "Okänd",
+      "expiring": "Upphör snart",
+      "yes": "Ja",
+      "no": "Nej"
+    },
+    "expiration": {
+      "label": "Utgångsdatum:",
+      "expiresOn": "Upphör {{date}}"
+    }
   }
 }

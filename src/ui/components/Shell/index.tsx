@@ -3,7 +3,6 @@ import type { Themes } from '@rocket.chat/fuselage/dist/components/PaletteStyleT
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { select } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
@@ -12,6 +11,7 @@ import DownloadsManagerView from '../DownloadsManagerView';
 import { OutlookCredentialsDialog } from '../OutlookCredentialsDialog';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
+import { ServerInfoModal } from '../ServerInfoModal';
 import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
@@ -26,40 +26,24 @@ export const Shell = () => {
   const machineTheme = useSelector(
     ({ machineTheme }: RootState) => machineTheme
   );
-  const currentView = useSelector(({ currentView }: RootState) => currentView);
-
-  const currentServerUrl = select(({ currentView }) =>
-    typeof currentView === 'object' ? currentView.url : null
+  const userThemePreference = useSelector(
+    ({ userThemePreference }: RootState) => userThemePreference
   );
-
-  const selectedServer = useSelector(({ servers }) => {
-    if (!currentServerUrl) return null;
-
-    try {
-      return servers.find(
-        (s: { url: string | URL }) =>
-          new URL(s.url).origin === new URL(currentServerUrl).origin
-      );
-    } catch (e) {
-      return null;
-    }
-  });
+  const isTransparentWindowEnabled = useSelector(
+    ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  );
 
   const [currentTheme, setCurrentTheme] = useState<Themes | undefined>(
     machineTheme as Themes
   );
 
   useEffect(() => {
-    if (selectedServer) {
-      if (selectedServer.themeAppearance === 'auto') {
-        setCurrentTheme(machineTheme as Themes);
-      } else {
-        setCurrentTheme(selectedServer.themeAppearance as Themes);
-      }
-    } else {
+    if (userThemePreference === 'auto') {
       setCurrentTheme(machineTheme as Themes);
+    } else {
+      setCurrentTheme(userThemePreference as Themes);
     }
-  }, [selectedServer, machineTheme, currentView]);
+  }, [machineTheme, userThemePreference]);
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -83,10 +67,10 @@ export const Shell = () => {
         selector=':root'
         // tagId='sidebar-palette'
       />
-      <GlobalStyles />
+      <GlobalStyles isTransparentWindowEnabled={isTransparentWindowEnabled} />
       {process.platform === 'darwin' && <WindowDragBar />}
       <Box
-        bg='light'
+        bg={process.platform === 'darwin' ? undefined : 'light'}
         display='flex'
         flexWrap='wrap'
         height='100vh'
@@ -109,6 +93,7 @@ export const Shell = () => {
         </Box>
       </Box>
       <AboutDialog />
+      <ServerInfoModal />
       <SupportedVersionDialog />
       <ScreenSharingDialog />
       <SelectClientCertificateDialog />

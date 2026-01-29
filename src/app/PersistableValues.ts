@@ -87,9 +87,18 @@ type PersistableValues_4_7_2 = PersistableValues_4_5_0 & {
   isVideoCallDevtoolsAutoOpenEnabled: boolean;
 };
 
+type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
+  isTransparentWindowEnabled: boolean;
+  isVideoCallScreenCaptureFallbackEnabled: boolean;
+};
+
+type PersistableValues_4_10_0 = PersistableValues_4_9_0 & {
+  userThemePreference: 'auto' | 'light' | 'dark';
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_7_2,
-  keyof PersistableValues_4_7_2
+  PersistableValues_4_10_0,
+  keyof PersistableValues_4_10_0
 >;
 
 export const migrations = {
@@ -158,5 +167,18 @@ export const migrations = {
   '>=4.5.0': (before: PersistableValues_4_4_0): PersistableValues_4_5_0 => ({
     ...before,
     updateChannel: 'latest',
+  }),
+  '>=4.7.2': (before: PersistableValues_4_5_0): PersistableValues_4_7_2 => ({
+    ...before,
+    isVideoCallDevtoolsAutoOpenEnabled: false,
+  }),
+  '>=4.9.0': (before: PersistableValues_4_7_2): PersistableValues_4_9_0 => ({
+    ...before,
+    isTransparentWindowEnabled: false,
+    isVideoCallScreenCaptureFallbackEnabled: false,
+  }),
+  '>=4.10.0': (before: PersistableValues_4_9_0): PersistableValues_4_10_0 => ({
+    ...before,
+    userThemePreference: 'auto',
   }),
 };

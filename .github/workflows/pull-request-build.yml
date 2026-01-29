@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-      - develop
+      - dev
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
@@ -67,7 +67,23 @@ jobs:
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
+      - name: Setup Google Cloud authentication (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          $tempDir = $env:RUNNER_TEMP
+          '${{ secrets.GCP_SA_JSON }}' | Out-File -FilePath "$tempDir\gcp-sa.json" -NoNewline
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$tempDir\gcp-sa.json" >> $env:GITHUB_ENV
 
+      - name: Cache Google Cloud KMS CNG provider (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/cache@v4
+        id: cache-kms-cng
+        with:
+          path: build/installers/google-cloud-kms-cng-provider.msi
+          key: kms-cng-provider-${{ hashFiles('build/installers/.gitkeep') }}-v1.2
+          restore-keys: |
+            kms-cng-provider-
 
       - name: Install Google Cloud KMS CNG provider (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
@@ -201,78 +217,54 @@ jobs:
             exit 1
           }
 
-      # Set up Java for jsign (use GitHub Actions)
-      - name: Setup Java for Windows signing
+      # Set up jsign and Google Cloud CLI for Windows builds
+      - name: Setup jsign (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '11'
+        shell: pwsh
+        run: |
+          Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
+          choco install openjdk11 -y
+          refreshenv
+          $javaHome = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
+          if ($javaHome -and (Test-Path "$javaHome\bin\java.exe")) {
+            Write-Host "Java found at: $javaHome" -ForegroundColor Green
+            $env:JAVA_HOME = $javaHome
+            $javaBinPath = "$javaHome\bin"
+            $env:PATH = "$javaBinPath;$env:PATH"
+            echo "$javaBinPath" >> $env:GITHUB_PATH
+          } else { Write-Error "Java installation not found or JAVA_HOME not set"; exit 1 }
+          Write-Host "Installing jsign..." -ForegroundColor Cyan
+          choco install jsign -y
+          refreshenv
+          # Add jsign to GITHUB_PATH for subsequent steps
+          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
+          if (Test-Path "$jsignPath\jsign.cmd") {
+            Write-Host "jsign found at $jsignPath" -ForegroundColor Green
+            echo "$jsignPath" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "jsign not found at expected path: $jsignPath"
+            exit 1
+          }
 
-      # Set up Google Cloud CLI for Windows (use GitHub Actions)
-      - name: Setup Google Cloud CLI (Windows)
+      - name: Setup gcloud (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>=536.0.0'
 
-      # Authenticate with Google Cloud (Windows)
-      - name: Authenticate Google Cloud (Windows)
+      - name: Authenticate to Google Cloud (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_JSON }}
 
-      # Set up jsign for Windows builds
-      - name: Setup jsign (Windows)
+      - name: Verify tools (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
-          # Verify Java is available
-          Write-Host "Verifying Java installation..." -ForegroundColor Cyan
           java -version
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Java not found"
-            exit 1
-          }
-          Write-Host "✅ Java is available" -ForegroundColor Green
-          
-          Write-Host "Installing jsign..." -ForegroundColor Cyan
-          choco install jsign -y
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Failed to install jsign"
-            exit 1
-          }
-          
-          # Manually add jsign to PATH (more reliable than refreshenv)
-          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
-          if (Test-Path $jsignPath) {
-            Write-Host "Adding jsign to PATH: $jsignPath" -ForegroundColor Yellow
-            $env:PATH = "$jsignPath;$env:PATH"
-            echo "$jsignPath" >> $env:GITHUB_PATH
-            
-            # Verify jsign is accessible
-            if (Test-Path "$jsignPath\jsign.cmd") {
-              Write-Host "✅ jsign.cmd found at $jsignPath\jsign.cmd" -ForegroundColor Green
-              
-              # Test jsign command
-              Write-Host "Testing jsign command..." -ForegroundColor Cyan
-              & "$jsignPath\jsign.cmd" --help | Select-Object -First 2
-              
-              if ($LASTEXITCODE -eq 0) {
-                Write-Host "✅ jsign is working correctly" -ForegroundColor Green
-              } else {
-                Write-Error "jsign command failed"
-                exit 1
-              }
-            } else {
-              Write-Error "jsign.cmd not found at expected location: $jsignPath\jsign.cmd"
-              exit 1
-            }
-          } else {
-            Write-Error "jsign installation directory not found: $jsignPath"
-            exit 1
-          }
-          
-          Write-Host "✅ All tools ready for signing" -ForegroundColor Green
+          jsign --help | Select-Object -First 2
+          gcloud --version
 
       # Set up Google Cloud authentication for Linux builds
       - name: Setup Google Cloud authentication (Linux)
@@ -433,22 +425,95 @@ jobs:
           SIGNTOOL_PATH: ${{ env.SIGNTOOL_PATH }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
 
-      # Use desktop-release-action for Windows builds (like the working release workflow)
-      - uses: ./workspaces/desktop-release-action
+      - name: Build Windows Package (Windows native)
         if: ${{ matrix.build-target == 'windows' }}
-        with:
-          gcp_sa_json: ${{ secrets.GCP_SA_JSON }}
-          win_kms_key_resource: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
-          win_user_crt: ${{ secrets.WIN_USER_CRT }}
-          win_intermediate_crt: ${{ secrets.WIN_INTERMEDIATE_CRT }}
-          win_root_crt: ${{ secrets.WIN_ROOT_CRT }}
-          mac_csc_link: ${{ secrets.MAC_CSC_LINK }}
-          mac_csc_key_password: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-          mac_apple_id: ${{ secrets.APPLEID }}
-          mac_apple_id_password: ${{ secrets.APPLEIDPASS }}
-          mac_asc_provider: 'S6UPZG7ZR3'
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          snapcraft_token: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        shell: pwsh
+        run: |
+          Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
+          
+          # Ensure jsign is accessible
+          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
+          if (Test-Path "$jsignPath\jsign.cmd") {
+            Write-Host "✅ jsign.cmd found at $jsignPath\jsign.cmd" -ForegroundColor Green
+            $env:PATH = "$jsignPath;$env:PATH"
+            echo "$jsignPath" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
+          }
+          
+          # Resolve gcloud from PATH (setup-gcloud added it)
+          $gcloudCmd = (Get-Command gcloud -ErrorAction SilentlyContinue)?.Source
+          if ($gcloudCmd) {
+            Write-Host "✅ gcloud resolved to: $gcloudCmd" -ForegroundColor Green
+          } else {
+            Write-Error "❌ gcloud not found on PATH. Ensure setup-gcloud@v2 ran successfully."
+            exit 1
+          }
+          
+          Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
+          
+          # Find Python installation for gcloud
+          Write-Host "Locating Python installation..." -ForegroundColor Yellow
+          $pythonPaths = @(
+            "C:\hostedtoolcache\windows\Python\*\x64\python.exe",
+            "C:\Python*\python.exe", 
+            "C:\Program Files\Python*\python.exe",
+            "$env:LOCALAPPDATA\Programs\Python\Python*\python.exe"
+          )
+          
+          $pythonExe = $null
+          foreach ($path in $pythonPaths) {
+            $found = Get-ChildItem $path -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              $pythonExe = $found.FullName
+              break
+            }
+          }
+          
+          if (-not $pythonExe) {
+            Write-Error "Python not found in expected locations"
+            exit 1
+          }
+          
+          Write-Host "Found Python at: $pythonExe" -ForegroundColor Green
+          $env:CLOUDSDK_PYTHON = $pythonExe
+          
+          # Authenticate gcloud with service account
+          Write-Host "Authenticating gcloud with service account..." -ForegroundColor Yellow
+          $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
+          Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
+          
+          & $gcloudCmd auth activate-service-account --key-file="$gcpCredentials"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to activate service account"
+            exit 1
+          }
+          
+          # Set project from service account file
+          $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
+          $projectId = $projectData.project_id
+          Write-Host "Setting project to: $projectId" -ForegroundColor Cyan
+          & $gcloudCmd config set project $projectId
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to set project"
+            exit 1
+          }
+          
+          # Verify authentication is working
+          Write-Host "Verifying gcloud authentication..." -ForegroundColor Yellow
+          $tokenOutput = & $gcloudCmd auth print-access-token 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ Google Cloud authentication successful" -ForegroundColor Green
+          } else {
+            Write-Host "❌ Google Cloud authentication failed: $tokenOutput" -ForegroundColor Red
+            exit 1
+          }
+          
+          yarn electron-builder --publish never --x64 --win nsis
+        env:
+          WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
 
       - name: Build MacOS Package
         if: ${{ matrix.build-target == 'mac' }}
@@ -466,7 +531,7 @@ jobs:
 
       - name: Build Ubuntu Package
         if: ${{ matrix.build-target == 'linux' }}
-        run: yarn electron-builder --publish never --linux snap deb
+        run: yarn electron-builder --publish never --linux snap deb appimage
 
       - name: Find Snap File
         id: find_snap
@@ -530,6 +595,7 @@ jobs:
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
             --include "rocketchat-*.snap" \
+            --include "rocketchat-*.AppImage" \
             --include "rocketchat-*.deb"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
@@ -545,7 +611,7 @@ jobs:
             const path = require('path');
             const distDir = path.join(process.cwd(), 'dist');
             const files = fs.readdirSync(distDir);
-            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/];
+            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/, /rocketchat-.*\.appimage$/i];
             let artifactUrls = '';
             for (const file of files) {
               if (patterns.some(pattern => pattern.test(file))) {
@@ -560,9 +626,7 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: ${{ runner.os }}-installer
           message: |
             ### ${{ runner.os }} installer download
             ${{ steps.get-artifact-urls.outputs.artifact_urls }}
-          header: '### ${{ runner.os }} installer download'
-          recreate: true
-          append: false

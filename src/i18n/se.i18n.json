@@ -1,1 +1,43 @@
-{ }
+{
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "Genomskinlig fönstereffekt",
+        "description": "Aktivera inbyggd vibrans/genomskinlighetseffekt för fönstret. Kräver omstart för att tillämpa."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Välj färgtemat för applikationen.",
+        "auto": "Följ system",
+        "light": "Ljus",
+        "dark": "Mörk"
+      }
+    }
+  },
+  "serverInfo": {
+    "title": "Serverinformation",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Okänd",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Versioner som stöds",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Laddar...",
+      "error": "Laddning misslyckades",
+      "loaded": "Laddad",
+      "idle": "Viloläge",
+      "from": "från {{source}}"
+    },
+    "supported": {
+      "unknown": "Okänd",
+      "expiring": "Upphör snart",
+      "yes": "Ja",
+      "no": "Nej"
+    },
+    "expiration": {
+      "label": "Utgångsdatum:",
+      "expiresOn": "Upphör {{date}}"
+    }
+  }
+}

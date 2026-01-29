@@ -84,18 +84,35 @@ function encryptedCredentials(
   }
 }
 
+const isLikelyBase64 = (str: string): boolean => {
+  if (!str || str.length < 4) return false;
+  return /^[A-Za-z0-9+/]+=*$/.test(str) && str.length % 4 === 0;
+};
+
 function decryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
   loggers.outlook.info('Decrypting credentials for user:', credentials.userId);
-  try {
-    if (!safeStorage.isEncryptionAvailable()) {
-      console.warn(
-        '[OutlookCalendar] Encryption not available, credentials may be in plain text'
-      );
-      return credentials;
-    }
 
+  if (!safeStorage.isEncryptionAvailable()) {
+    loggers.outlook.warn(
+      'Encryption not available, using credentials as plaintext'
+    );
+    return credentials;
+  }
+
+  const loginLooksEncrypted = isLikelyBase64(credentials.login);
+  const passwordLooksEncrypted = isLikelyBase64(credentials.password);
+
+  if (!loginLooksEncrypted || !passwordLooksEncrypted) {
+    loggers.outlook.warn(
+      'Credentials do not appear to be encrypted (legacy/plaintext), using as-is',
+      { userId: credentials.userId }
+    );
+    return credentials;
+  }
+
+  try {
     const decryptedLogin = safeStorage
       .decryptString(Buffer.from(credentials.login, 'base64'))
       .toString();
@@ -111,13 +128,11 @@ function decryptedCredentials(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] Failed to decrypt credentials:', {
-      error: errorMessage,
-      userId: credentials.userId,
-      loginLength: credentials.login?.length || 0,
-      passwordLength: credentials.password?.length || 0,
-    });
-    throw new Error(`Failed to decrypt credentials: ${errorMessage}`);
+    loggers.outlook.warn(
+      'Failed to decrypt credentials, falling back to plaintext (legacy credentials)',
+      { userId: credentials.userId, error: errorMessage }
+    );
+    return credentials;
   }
 }
 

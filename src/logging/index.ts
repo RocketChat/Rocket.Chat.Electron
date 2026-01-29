@@ -13,7 +13,7 @@ import {
   cleanupServerContext,
 } from './context';
 import { logLoggingFailure } from './fallback';
-import { createPrivacyHook } from './privacy';
+import { createPrivacyHook, redactSensitiveData } from './privacy';
 
 // Enhanced console override with context
 const overrideConsole = () => {
@@ -125,10 +125,11 @@ const configureLogging = () => {
       log.hooks.push((message: any) => {
         if (message.level === 'error') {
           try {
+            const rawText = message.data?.join(' ') || '';
             const jsonEntry = `${JSON.stringify({
               timestamp: new Date().toISOString(),
               level: message.level,
-              text: message.data?.join(' ') || '',
+              text: redactSensitiveData(rawText),
               version: app.getVersion(),
             })}\n`;
             fs.appendFileSync(errorJsonPath, jsonEntry);

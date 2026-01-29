@@ -502,7 +502,9 @@ function LogViewerWindow() {
 
   const handleCopyLogs = useCallback(() => {
     const logText = filteredLogs.map((entry) => entry.raw).join('\n');
-    navigator.clipboard.writeText(logText);
+    navigator.clipboard.writeText(logText).catch((error) => {
+      console.error('Failed to copy logs to clipboard:', error);
+    });
   }, [filteredLogs]);
 
   const handleSaveLogs = useCallback(async () => {

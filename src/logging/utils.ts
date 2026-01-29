@@ -31,6 +31,11 @@ export const logDebug = (message: string, ...args: any[]): void => {
 /**
  * Log function execution time
  */
+const isThenable = <T>(value: unknown): value is Promise<T> =>
+  value !== null &&
+  typeof value === 'object' &&
+  typeof (value as Promise<T>).then === 'function';
+
 export const logExecutionTime = <T>(
   functionName: string,
   fn: () => T | Promise<T>
@@ -38,25 +43,32 @@ export const logExecutionTime = <T>(
   const start = Date.now();
   log.debug(`Starting execution of ${functionName}`);
 
-  const result = fn();
+  try {
+    const result = fn();
 
-  if (result instanceof Promise) {
-    return result
-      .then((value) => {
-        const duration = Date.now() - start;
-        log.debug(`Completed execution of ${functionName} in ${duration}ms`);
-        return value;
-      })
-      .catch((error) => {
-        const duration = Date.now() - start;
-        log.error(
-          `Failed execution of ${functionName} in ${duration}ms`,
-          error
-        );
-        throw error;
-      });
+    if (isThenable<T>(result)) {
+      return result
+        .then((value) => {
+          const duration = Date.now() - start;
+          log.debug(`Completed execution of ${functionName} in ${duration}ms`);
+          return value;
+        })
+        .catch((error) => {
+          const duration = Date.now() - start;
+          log.error(
+            `Failed execution of ${functionName} in ${duration}ms`,
+            error
+          );
+          throw error;
+        });
+    }
+
+    const duration = Date.now() - start;
+    log.debug(`Completed execution of ${functionName} in ${duration}ms`);
+    return result;
+  } catch (error) {
+    const duration = Date.now() - start;
+    log.error(`Failed execution of ${functionName} in ${duration}ms`, error);
+    throw error;
   }
-  const duration = Date.now() - start;
-  log.debug(`Completed execution of ${functionName} in ${duration}ms`);
-  return result;
 };

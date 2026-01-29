@@ -13,6 +13,11 @@ export const cleanupOldLogs = (
   retentionDays = DEFAULT_RETENTION_DAYS
 ): void => {
   try {
+    if (!Number.isFinite(retentionDays) || retentionDays <= 0) {
+      console.warn('[logging] Invalid retentionDays; skipping log cleanup');
+      return;
+    }
+
     const logsPath = app.getPath('logs');
     const cutoffTime = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
 

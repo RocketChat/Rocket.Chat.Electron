@@ -54,7 +54,8 @@ export type ClearLogsResponse = IClearLogsResponse;
 /**
  * Type guard for validating LogLevel
  */
-export const isLogLevel = (value: string): value is LogLevel => {
+export const isLogLevel = (value: unknown): value is LogLevel => {
+  if (typeof value !== 'string') return false;
   return ['debug', 'info', 'warn', 'error', 'verbose'].includes(
     value.toLowerCase()
   );
@@ -63,7 +64,8 @@ export const isLogLevel = (value: string): value is LogLevel => {
 /**
  * Safely parse a log level string, defaulting to 'info' if invalid
  */
-export const parseLogLevel = (value: string): LogLevel => {
+export const parseLogLevel = (value: unknown): LogLevel => {
+  if (typeof value !== 'string') return 'info';
   const trimmed = value.trim().toLowerCase();
   return isLogLevel(trimmed) ? trimmed : 'info';
 };

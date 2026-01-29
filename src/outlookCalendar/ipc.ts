@@ -1072,14 +1072,19 @@ export const startOutlookCalendarUrlHandler = (): void => {
       try {
         // Check if user is logged in before attempting sync
         if (!userAPIToken) {
-          console.warn('[OutlookCalendar] Manual sync attempted but token not available', {
-            serverUrl: server.url,
-            userId: outlookCredentials.userId,
-            hint: 'Token is set by injected script when: 1) User is logged in, 2) Outlook is enabled in settings, 3) Exchange URL is configured'
-          });
-          
+          console.warn(
+            '[OutlookCalendar] Manual sync attempted but token not available',
+            {
+              serverUrl: server.url,
+              userId: outlookCredentials.userId,
+              hint: 'Token is set by injected script when: 1) User is logged in, 2) Outlook is enabled in settings, 3) Exchange URL is configured',
+            }
+          );
+
           // Try to get the token from the webContents
-          console.log('[OutlookCalendar] Attempting to fetch token from webContents...');
+          console.log(
+            '[OutlookCalendar] Attempting to fetch token from webContents...'
+          );
           const contents = webContents.fromId(event.id);
           if (contents) {
             try {
@@ -1087,7 +1092,9 @@ export const startOutlookCalendarUrlHandler = (): void => {
                 `Meteor._localStorage?.getItem('Meteor.loginToken')`
               );
               if (token) {
-                console.log('[OutlookCalendar] Successfully retrieved token from webContents');
+                console.log(
+                  '[OutlookCalendar] Successfully retrieved token from webContents'
+                );
                 userAPIToken = token; // Store it for future use
                 // Continue with sync using the retrieved token
                 await syncEventsWithRocketChatServer(
@@ -1098,10 +1105,13 @@ export const startOutlookCalendarUrlHandler = (): void => {
                 return { status: 'success' };
               }
             } catch (error) {
-              console.error('[OutlookCalendar] Failed to get token from webContents:', error);
+              console.error(
+                '[OutlookCalendar] Failed to get token from webContents:',
+                error
+              );
             }
           }
-          
+
           return Promise.reject(
             new Error(
               'Authentication token not yet available. Please ensure: 1) You are logged into Rocket.Chat, 2) Outlook Calendar is enabled in settings, 3) Exchange URL is configured.'

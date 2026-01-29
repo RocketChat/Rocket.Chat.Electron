@@ -524,7 +524,10 @@ const start = async () => {
           return;
         }
 
-        console.log('[Rocket.Chat Desktop] Setting Outlook token for user:', userId);
+        console.log(
+          '[Rocket.Chat Desktop] Setting Outlook token for user:',
+          userId
+        );
         window.RocketChatDesktop.setUserToken(userToken, userId);
         window.RocketChatDesktop.setOutlookExchangeUrl(
           outlookExchangeUrl,

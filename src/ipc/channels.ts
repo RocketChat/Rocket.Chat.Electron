@@ -89,6 +89,12 @@ type ChannelToArgsMap = {
     lastModifiedTime?: number;
     error?: string;
   };
+  'log-viewer-window/stat-log': (options?: { filePath?: string }) => {
+    success: boolean;
+    lastModifiedTime?: number;
+    size?: number;
+    error?: string;
+  };
   'log-viewer-window/clear-logs': () => { success: boolean; error?: string };
   'log-viewer-window/save-logs': (options: {
     content: string;

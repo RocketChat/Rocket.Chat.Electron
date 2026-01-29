@@ -282,6 +282,51 @@ export const startLogViewerWindowHandler = (): void => {
     }
   );
 
+  // Handle lightweight file stat (for auto-refresh polling without full reads)
+  handle(
+    'log-viewer-window/stat-log',
+    async (_, options?: { filePath?: string }) => {
+      try {
+        let logPath: string;
+        if (options?.filePath) {
+          const validation = validateLogFilePath(options.filePath);
+          if (!validation.valid) {
+            return { success: false, error: validation.error };
+          }
+          const normalizedPath = path.normalize(options.filePath);
+          const defaultLogPath = path.normalize(getLogFilePath());
+          if (
+            normalizedPath !== defaultLogPath &&
+            !allowedLogPaths.has(normalizedPath)
+          ) {
+            return {
+              success: false,
+              error:
+                'Log file not authorized. Please select it via the file dialog first.',
+            };
+          }
+          logPath = normalizedPath;
+        } else {
+          logPath = getLogFilePath();
+        }
+
+        if (!fs.existsSync(logPath)) {
+          return { success: false, error: 'Log file does not exist' };
+        }
+
+        const stats = fs.statSync(logPath);
+        return {
+          success: true,
+          lastModifiedTime: stats.mtime.getTime(),
+          size: stats.size,
+        };
+      } catch (error) {
+        console.error('Failed to stat log file:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    }
+  );
+
   // Handle log file clearing (only for default log)
   handle('log-viewer-window/clear-logs', async () => {
     try {

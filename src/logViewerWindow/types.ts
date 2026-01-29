@@ -44,6 +44,13 @@ export interface IClearLogsResponse {
   error?: string;
 }
 
+export interface IStatLogResponse {
+  success: boolean;
+  lastModifiedTime?: number;
+  size?: number;
+  error?: string;
+}
+
 // Type aliases for backward compatibility
 export type LogEntryType = ILogEntryType;
 export type ReadLogsResponse = IReadLogsResponse;

@@ -355,24 +355,17 @@ function LogViewerWindow() {
     entryLimit,
   ]);
 
-  // Smart auto-refresh: only refresh if file has been modified
   const checkForUpdates = useCallback(async () => {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
 
     try {
-      // Just get file info without loading full content
-      const response = (await ipcRenderer.invoke(
-        'log-viewer-window/read-logs',
-        {
-          limit: 1, // Just get minimal content to check modification time
-          filePath: undefined, // Always undefined for default log
-        }
-      )) as ReadLogsResponse;
+      const response = (await ipcRenderer.invoke('log-viewer-window/stat-log', {
+        filePath: undefined,
+      })) as { success: boolean; lastModifiedTime?: number; size?: number };
 
       if (response?.success && response.lastModifiedTime) {
         const currentModTime = lastModifiedTimeRef.current;
         if (currentModTime && response.lastModifiedTime > currentModTime) {
-          // File has been modified, reload logs
           loadLogs();
         }
       }

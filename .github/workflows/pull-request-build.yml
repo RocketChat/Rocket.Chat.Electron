@@ -236,6 +236,15 @@ jobs:
           Write-Host "Installing jsign..." -ForegroundColor Cyan
           choco install jsign -y
           refreshenv
+          # Add jsign to GITHUB_PATH for subsequent steps
+          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
+          if (Test-Path "$jsignPath\jsign.cmd") {
+            Write-Host "jsign found at $jsignPath" -ForegroundColor Green
+            echo "$jsignPath" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "jsign not found at expected path: $jsignPath"
+            exit 1
+          }
 
       - name: Setup gcloud (Windows)
         if: ${{ matrix.os == 'windows-latest' }}

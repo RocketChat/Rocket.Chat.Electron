@@ -11,10 +11,21 @@ const getRepoParams = () =>
     repo: core.getInput('repository_name') || github.context.repo.repo,
   }) as const;
 
-const octokit = github.getOctokit(core.getInput('github_token'));
+// Lazy client to avoid requiring github_token on PR builds (where secrets may be unavailable)
+let octokit: ReturnType<typeof github.getOctokit> | null = null;
+const getOctokit = () => {
+  if (!octokit) {
+    const token = core.getInput('github_token');
+    if (!token) {
+      throw new Error('github_token is required for release publishing');
+    }
+    octokit = github.getOctokit(token);
+  }
+  return octokit;
+};
 
 const findRelease = async (filter: (release: any) => boolean) => {
-  const releasesPages = octokit.paginate.iterator(
+  const releasesPages = getOctokit().paginate.iterator(
     'GET /repos/{owner}/{repo}/releases',
     {
       ...getRepoParams(),
@@ -48,7 +59,7 @@ export const getDevelopmentRelease = async (commitSha: string) => {
 
   if (release) {
     return (
-      await octokit.request(
+      await getOctokit().request(
         'PATCH /repos/{owner}/{repo}/releases/{release_id}',
         {
           ...getRepoParams(),
@@ -63,7 +74,7 @@ export const getDevelopmentRelease = async (commitSha: string) => {
   }
 
   return (
-    await octokit.request('POST /repos/{owner}/{repo}/releases', {
+    await getOctokit().request('POST /repos/{owner}/{repo}/releases', {
       ...getRepoParams(),
       draft: true,
       name: 'Development',
@@ -83,7 +94,7 @@ export const getSnapshotRelease = async (commitSha: string) => {
 
   if (release) {
     return (
-      await octokit.request(
+      await getOctokit().request(
         'PATCH /repos/{owner}/{repo}/releases/{release_id}',
         {
           ...getRepoParams(),
@@ -98,7 +109,7 @@ export const getSnapshotRelease = async (commitSha: string) => {
   }
 
   return (
-    await octokit.request('POST /repos/{owner}/{repo}/releases', {
+    await getOctokit().request('POST /repos/{owner}/{repo}/releases', {
       ...getRepoParams(),
       draft: true,
       name: 'Snapshot',
@@ -119,7 +130,7 @@ export const getTaggedRelease = async (version: SemVer, commitSha: string) => {
 
   if (release) {
     return (
-      await octokit.request(
+      await getOctokit().request(
         'PATCH /repos/{owner}/{repo}/releases/{release_id}',
         {
           ...getRepoParams(),
@@ -135,7 +146,7 @@ export const getTaggedRelease = async (version: SemVer, commitSha: string) => {
   }
 
   return (
-    await octokit.request('POST /repos/{owner}/{repo}/releases', {
+    await getOctokit().request('POST /repos/{owner}/{repo}/releases', {
       ...getRepoParams(),
       draft: true,
       prerelease: isPrerelease,
@@ -148,7 +159,7 @@ export const getTaggedRelease = async (version: SemVer, commitSha: string) => {
 };
 
 export const getReleaseAssets = async (releaseId: number) =>
-  octokit.paginate('GET /repos/{owner}/{repo}/releases/{release_id}/assets', {
+  getOctokit().paginate('GET /repos/{owner}/{repo}/releases/{release_id}/assets', {
     ...getRepoParams(),
     release_id: releaseId,
   });
@@ -160,7 +171,7 @@ export const clearStaleAssets = async (releaseId: number, expectedAssetNames: st
   for (const asset of assets) {
     if (!expectedAssetNames.includes(asset.name)) {
       core.info(`deleting stale asset ${asset.name}`);
-      await octokit.request(
+      await getOctokit().request(
         'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}',
         {
           ...getRepoParams(),
@@ -190,7 +201,7 @@ export const forceCleanOldAssets = async (releaseId: number, keepLatest: number 
   
   for (const asset of assetsToDelete) {
     core.info(`deleting old asset ${asset.name} (created: ${asset.created_at})`);
-    await octokit.request(
+    await getOctokit().request(
       'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}',
       {
         ...getRepoParams(),
@@ -211,7 +222,7 @@ export const overrideAsset = async (
 
   if (asset) {
     core.info(`deleting existing asset ${name}`);
-    await octokit.request(
+    await getOctokit().request(
       'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}',
       {
         ...getRepoParams(),
@@ -221,7 +232,7 @@ export const overrideAsset = async (
   }
 
   core.info(`uploading asset ${name}`);
-  await octokit.request({
+  await getOctokit().request({
     method: 'POST',
     url: release.upload_url,
     headers: {

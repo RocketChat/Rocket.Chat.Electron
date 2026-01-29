@@ -49,7 +49,7 @@ export const SettingsView = () => {
         flexDirection='row'
         flexWrap='nowrap'
         fontScale='h1'
-        color='font-default'
+        color='default'
       >
         {!isSideBarEnabled && (
           <IconButton icon='arrow-back' onClick={handleBackButton} />

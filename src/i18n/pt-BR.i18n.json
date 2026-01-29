@@ -141,18 +141,6 @@
       "camera": "Câmera",
       "both": "Microfone e Câmera"
     },
-    "microphonePermissionDenied": {
-      "title": "Acesso ao microfone necessário",
-      "message": "O acesso ao microfone é necessário para {{- actionType }}. Verifique as configurações do sistema.",
-      "detail": "Você pode ativar o acesso ao microfone nas configurações de privacidade do sistema.",
-      "openSettings": "Abrir configurações",
-      "cancel": "Cancelar",
-      "actionTypes": {
-        "initiateCall": "fazer chamadas",
-        "answerCall": "atender chamadas",
-        "recordMessage": "gravar mensagens"
-      }
-    },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
     }
@@ -225,11 +213,6 @@
         "title": "Aceleração de hardware",
         "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
       },
-      "videoCallScreenCaptureFallback": {
-        "title": "Fallback de captura para videochamadas",
-        "description": "Desativa o Windows Graphics Capture para que o compartilhamento funcione em sessões RDP. O aplicativo reinicia ao mudar esta opção.",
-        "forcedDescription": "Atualmente aplicado porque o aplicativo detectou uma sessão RDP. O alternador define o comportamento das próximas execuções locais."
-      },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
         "description": "Se ativado, o Chat de Vídeo será aberto na janela do aplicativo em vez do navegador padrão. No entanto, para <strong>Google Meet</strong> e <strong>Jitsi</strong>, a gravação de tela não é suportada em aplicativos Electron, então eles sempre serão abertos no navegador independentemente desta configuração.",
@@ -276,10 +259,6 @@
       "videoCallWindowPersistence": {
         "title": "Lembrar posição da janela de videochamada",
         "description": "Salvar e restaurar a posição e o tamanho das janelas de videochamada entre as sessões"
-      },
-      "transparentWindow": {
-        "title": "Efeito de janela transparente",
-        "description": "Ativar efeito nativo de vibração/transparência para a janela. Requer reinicialização para aplicar."
       }
     }
   },
@@ -434,6 +413,118 @@
     "cancel": "Cancelar",
     "share": "Compartilhar"
   },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Processo Principal",
+        "renderer": "Processo Renderizador",
+        "preload": "Processo de Pré-carregamento",
+        "rendererRoot": "Janela Principal",
+        "webview": "Webview do Servidor",
+        "videoCall": "Janela de Video Chamada"
+      },
+      "components": {
+        "auth": "Autenticação",
+        "connection": "Conexão",
+        "notification": "Notificação",
+        "outlook": "Outlook Calendar",
+        "videoCall": "Video Chamada",
+        "download": "Download",
+        "spellCheck": "Verificação Ortográfica",
+        "general": "Geral"
+      },
+      "serverInfo": {
+        "anonymous": "Servidor Anônimo",
+        "local": "Processo Local",
+        "unknown": "Servidor Desconhecido"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "Módulo de store não disponível para mapeamento de contexto do servidor",
+      "importFailed": "Falha na importação do store"
+    }
+  },
+  "logViewer": {
+    "title": "Visualizador de Logs",
+    "aria": {
+      "logIcon": "Ícone do visualizador de logs",
+      "entriesCount": "{{count}} entradas de log exibidas"
+    },
+    "fileInfo": {
+      "custom": "Personalizado",
+      "entries": "{{count}} entradas",
+      "entriesOfTotal": "{{count}} de {{total}} entradas",
+      "noEntries": "Nenhuma entrada"
+    },
+    "buttons": {
+      "openLogFile": "Abrir Arquivo de Log",
+      "defaultLog": "Log Padrão",
+      "refresh": "Atualizar",
+      "autoRefresh": "Atualização Automática",
+      "stopAutoRefresh": "Parar Atualização Automática",
+      "copy": "Copiar",
+      "save": "Salvar",
+      "clear": "Limpar",
+      "close": "Fechar",
+      "clearFilters": "Limpar Filtros"
+    },
+    "controls": {
+      "showContext": "Mostrar Contexto",
+      "autoScrollToTop": "Rolagem Automática para o Topo"
+    },
+    "placeholders": {
+      "loadAmount": "Quantidade a carregar",
+      "searchLogs": "Pesquisar logs...",
+      "level": "Nível",
+      "context": "Contexto",
+      "exchangeDebug": "Filtro Debug Exchange"
+    },
+    "filters": {
+      "entryLimit": {
+        "last100": "Últimas 100 entradas",
+        "last500": "Últimas 500 entradas",
+        "last1000": "Últimas 1000 entradas",
+        "last5000": "Últimas 5000 entradas",
+        "all": "Todas as entradas"
+      },
+      "level": {
+        "all": "Todos os Níveis",
+        "debug": "Debug",
+        "info": "Info",
+        "warn": "Aviso",
+        "error": "Erro",
+        "verbose": "Verboso"
+      },
+      "context": {
+        "all": "Todos os Contextos",
+        "main": "Processo Principal",
+        "renderer": "Renderizador",
+        "webview": "Webview",
+        "videocall": "Vídeo Chamada",
+        "outlook": "Outlook Calendar",
+        "auth": "Autenticação",
+        "updates": "Atualizações",
+        "notifications": "Notificações",
+        "servers": "Servidores",
+        "ipc": "Comunicação IPC"
+      },
+      "exchangeDebug": {
+        "all": "Todos os Logs",
+        "success": "🎉 Apenas Sucessos",
+        "failure": "❌ Apenas Falhas",
+        "ntlmFlow": "🔐 Autenticação NTLM",
+        "exchangeComm": "📧 Comunicação Exchange",
+        "sslCerts": "🔒 Problemas SSL/Certificado",
+        "networkErrors": "🌐 Problemas de Rede",
+        "successFactors": "✅ Fatores de Sucesso",
+        "outlookCalendar": "📅 Calendário Outlook"
+      }
+    },
+    "messages": {
+      "noLogsFound": "Nenhum log encontrado",
+      "adjustFilters": "Tente ajustar seus filtros ou atualizar os logs"
+    }
+  },
   "serverInfo": {
     "title": "Informações do Servidor",
     "urlLabel": "URL:",
@@ -446,7 +537,7 @@
       "loading": "Carregando...",
       "error": "Falha ao carregar",
       "loaded": "Carregado",
-      "idle": "Inativo",
+      "idle": "Ocioso",
       "from": "de {{source}}"
     },
     "supported": {

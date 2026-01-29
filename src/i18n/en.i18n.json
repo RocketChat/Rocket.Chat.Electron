@@ -141,18 +141,6 @@
       "camera": "Camera",
       "both": "Microphone and Camera"
     },
-    "microphonePermissionDenied": {
-      "title": "Microphone Access Required",
-      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
-      "detail": "You can enable microphone access in your system's privacy settings.",
-      "openSettings": "Open Settings",
-      "cancel": "Cancel",
-      "actionTypes": {
-        "initiateCall": "make calls",
-        "answerCall": "answer calls",
-        "recordMessage": "record messages"
-      }
-    },
     "outlookCalendar": {
       "title": "Outlook Calendar",
       "encryptionUnavailableTitle": "Encryption unavailable",
@@ -239,11 +227,6 @@
         "title": "Hardware Acceleration",
         "description": "Enables the use of hardware acceleration when available. The application will reload on change."
       },
-      "videoCallScreenCaptureFallback": {
-        "title": "Fallback Screen Capture for Video Calls",
-        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option.",
-        "forcedDescription": "Currently enforced because the app detected a Remote Desktop session. Toggle now controls future launches when running locally."
-      },
       "internalVideoChatWindow": {
         "title": "Open Video Chat in Application Window",
         "description": "If enabled, the Video Chat will open in the application's window instead of the default browser. However, for <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen recording is not supported in Electron applications, so they will always open in the browser regardless of this setting.",
@@ -290,10 +273,6 @@
       "videoCallWindowPersistence": {
         "title": "Remember video call window position",
         "description": "Save and restore the position and size of video call windows between sessions"
-      },
-      "transparentWindow": {
-        "title": "Transparent window effect",
-        "description": "Enable native vibrancy/transparency effect for the window. Requires restart to apply."
       }
     }
   },
@@ -350,6 +329,7 @@
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
     "openConfigFolder": "Open &Configuration Folder",
+    "openLogViewer": "Open &Log Viewer",
     "videoCallDevTools": "Open Video Call &DevTools",
     "videoCallTools": "Video Call Tools",
     "videoCallDevToolsAutoOpen": "Auto-open DevTools",
@@ -453,6 +433,129 @@
     "noWindowsFound": "No windows found",
     "cancel": "Cancel",
     "share": "Share"
+  },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Main Process",
+        "renderer": "Renderer Process",
+        "preload": "Preload Process",
+        "rendererRoot": "Main Window",
+        "webview": "Server Webview",
+        "videoCall": "Video Call Window"
+      },
+      "components": {
+        "auth": "Authentication",
+        "connection": "Connection",
+        "notification": "Notification",
+        "outlook": "Outlook Calendar",
+        "videoCall": "Video Call",
+        "download": "Download",
+        "spellCheck": "Spell Check",
+        "general": "General"
+      },
+      "serverInfo": {
+        "anonymous": "Anonymous Server",
+        "local": "Local Process",
+        "unknown": "Unknown Server"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "Store module not available for server context mapping",
+      "importFailed": "Store import failed"
+    },
+    "errors": {
+      "configurationFailed": "Failed to configure electron-log",
+      "storeUnavailable": "Store module not available for server context mapping",
+      "webContentsLoggingFailed": "Failed to setup webContents logging",
+      "rendererLogFailed": "Failed to log from renderer",
+      "consoleOverrideFailed": "Failed to override console methods"
+    },
+    "messages": {
+      "serverContext": "Server {{- serverNumber}}",
+      "logContext": "Log Context: {{- context}}"
+    }
+  },
+  "logViewer": {
+    "title": "Log Viewer",
+    "aria": {
+      "logIcon": "Log viewer icon",
+      "entriesCount": "{{count}} log entries displayed"
+    },
+    "fileInfo": {
+      "custom": "Custom",
+      "entries": "{{count}} entries",
+      "entriesOfTotal": "{{count}} of {{total}} entries",
+      "noEntries": "No entries"
+    },
+    "buttons": {
+      "openLogFile": "Open Log File",
+      "defaultLog": "Default Log",
+      "refresh": "Refresh",
+      "autoRefresh": "Auto Refresh",
+      "stopAutoRefresh": "Stop Auto Refresh",
+      "copy": "Copy",
+      "save": "Save",
+      "clear": "Clear",
+      "close": "Close",
+      "clearFilters": "Clear Filters"
+    },
+    "controls": {
+      "showContext": "Show Context",
+      "autoScrollToTop": "Auto Scroll to Top"
+    },
+    "placeholders": {
+      "loadAmount": "Load amount",
+      "searchLogs": "Search logs...",
+      "level": "Level",
+      "context": "Context",
+      "exchangeDebug": "Exchange Debug Filter"
+    },
+    "filters": {
+      "entryLimit": {
+        "last100": "Last 100 entries",
+        "last500": "Last 500 entries",
+        "last1000": "Last 1000 entries",
+        "last5000": "Last 5000 entries",
+        "all": "All entries"
+      },
+      "level": {
+        "all": "All Levels",
+        "debug": "Debug",
+        "info": "Info",
+        "warn": "Warning",
+        "error": "Error",
+        "verbose": "Verbose"
+      },
+      "context": {
+        "all": "All Contexts",
+        "main": "Main Process",
+        "renderer": "Renderer",
+        "webview": "Webview",
+        "videocall": "Video Call",
+        "outlook": "Outlook Calendar",
+        "auth": "Authentication",
+        "updates": "Updates",
+        "notifications": "Notifications",
+        "servers": "Servers",
+        "ipc": "IPC Communication"
+      },
+      "exchangeDebug": {
+        "all": "All Logs",
+        "success": "🎉 Success Only",
+        "failure": "❌ Failures Only",
+        "ntlmFlow": "🔐 NTLM Authentication",
+        "exchangeComm": "📧 Exchange Communication",
+        "sslCerts": "🔒 SSL/Certificate Issues",
+        "networkErrors": "🌐 Network Issues",
+        "successFactors": "✅ Success Factors",
+        "outlookCalendar": "📅 Outlook Calendar"
+      }
+    },
+    "messages": {
+      "noLogsFound": "No logs found",
+      "adjustFilters": "Try adjusting your filters or refresh the logs"
+    }
   },
   "serverInfo": {
     "title": "Server Information",

@@ -260,6 +260,13 @@
       "transparentWindow": {
         "title": "Effet de fenêtre transparente",
         "description": "Activer l'effet natif de vibrance/transparence pour la fenêtre. Nécessite un redémarrage pour s'appliquer."
+      },
+      "themeAppearance": {
+        "title": "Thème",
+        "description": "Choisissez le thème de couleur pour l'application.",
+        "auto": "Suivre le système",
+        "light": "Clair",
+        "dark": "Sombre"
       }
     }
   },

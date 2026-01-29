@@ -41,6 +41,7 @@ import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
+import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
   doCheckForUpdatesOnStartup,
@@ -83,6 +84,7 @@ export const rootReducer = combineReducers({
   rootWindowState,
   selectedBrowser,
   servers,
+  userThemePreference,
   skippedUpdateVersion,
   trustedCertificates,
   notTrustedCertificates,

@@ -179,9 +179,7 @@ const ServerInfoContent = ({
                 <Box
                   fontSize='x12'
                   color={
-                    supportedVersionsFetchState === 'error'
-                      ? 'status-font-on-danger'
-                      : 'hint'
+                    supportedVersionsFetchState === 'error' ? 'danger' : 'hint'
                   }
                   style={textWrapStyle}
                 >

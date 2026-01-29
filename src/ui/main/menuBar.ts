@@ -615,6 +615,25 @@ const createHelpMenu = createSelector(
         },
       },
       {
+        id: 'openLogViewer',
+        label: t('menus.openLogViewer'),
+        accelerator: 'CommandOrControl+Shift+L',
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+
+          // Open log viewer window directly
+          const { openLogViewerWindow } = await import(
+            '../../logViewerWindow/ipc'
+          );
+          await openLogViewerWindow();
+        },
+      },
+      {
         id: 'developerMode',
         type: 'checkbox',
         label: t('menus.developerMode'),

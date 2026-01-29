@@ -499,6 +499,13 @@ const start = async () => {
           outlookExchangeUrl,
         } = getOutlookSettings();
 
+        console.log('[Rocket.Chat Desktop] Outlook integration check:', {
+          hasToken: !!userToken,
+          hasUserId: !!userId,
+          calendarEnabled: outlookCalendarEnabled,
+          hasExchangeUrl: !!outlookExchangeUrl,
+        });
+
         if (
           !userToken ||
           !userId ||
@@ -508,6 +515,10 @@ const start = async () => {
           return;
         }
 
+        console.log(
+          '[Rocket.Chat Desktop] Setting Outlook token for user:',
+          userId
+        );
         window.RocketChatDesktop.setUserToken(userToken, userId);
         window.RocketChatDesktop.setOutlookExchangeUrl(
           outlookExchangeUrl,
@@ -540,27 +551,6 @@ const start = async () => {
         window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
       });
       setupFlags.gitCommitHash = true;
-    }
-
-    if (Tracker && Meteor && getUserPreference && !setupFlags.themeAppearance) {
-      Tracker.autorun(() => {
-        const uid = Meteor.userId();
-        if (!uid) return;
-        const themeAppearance: string = getUserPreference(
-          uid,
-          'themeAppearence'
-        );
-        if (
-          ['dark', 'light', 'auto', 'high-contrast'].includes(
-            themeAppearance as any
-          )
-        ) {
-          window.RocketChatDesktop.setUserThemeAppearance(
-            themeAppearance as 'auto' | 'dark' | 'light' | 'high-contrast'
-          );
-        }
-      });
-      setupFlags.themeAppearance = true;
     }
 
     if (Tracker && Meteor && getUserPreference && !setupFlags.userPresence) {

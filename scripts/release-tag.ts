@@ -147,7 +147,7 @@ const main = async (): Promise<void> => {
 
   console.log(`  Pushing tag to origin...`);
   try {
-    execSync(`git push origin refs/tags/${version.version}`, { stdio: 'inherit' });
+    execSync(`git push origin tag -- ${version.version}`, { stdio: 'inherit' });
   } catch {
     console.error(`  Error: Failed to push tag`);
     console.error(`  The local tag was created. You may need to push it manually.`);

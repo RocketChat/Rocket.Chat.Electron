@@ -100,6 +100,13 @@
       "transparentWindow": {
         "title": "透明視窗效果",
         "description": "啟用視窗的原生模糊/透明效果。需要重新啟動才能套用。"
+      },
+      "themeAppearance": {
+        "title": "主題",
+        "description": "選擇應用程式的顏色主題。",
+        "auto": "跟隨系統",
+        "light": "淺色",
+        "dark": "深色"
       }
     }
   },

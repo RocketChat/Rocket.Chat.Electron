@@ -52,11 +52,11 @@ inputs:
     required: false
   github_token:
     description: 'The GitHub token to publish releases'
-    required: true
+    required: false
   snapcraft_token:
     description: 'The Snapcraft token to publish releases'
-    required: true
+    required: false
 
 runs:
-  using: 'node12'
+  using: 'node20'
   main: 'dist/index.js'

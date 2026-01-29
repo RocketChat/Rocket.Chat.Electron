@@ -30,8 +30,13 @@ contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 let retryCount = 0;
+let startInProgress = false;
 
 const start = async (): Promise<void> => {
+  if (startInProgress) {
+    return;
+  }
+  startInProgress = true;
   console.log('[Rocket.Chat Desktop] Preload.ts start fired');
   const serverUrl = await invoke('server-view/get-url');
 
@@ -40,6 +45,7 @@ const start = async (): Promise<void> => {
   if (!serverUrl) {
     console.log('[Rocket.Chat Desktop] serverUrl is not defined');
     console.log('[Rocket.Chat Desktop] Preload start - retrying in 1 seconds');
+    startInProgress = false;
     setTimeout(start, 1000);
     retryCount += 1;
     return;

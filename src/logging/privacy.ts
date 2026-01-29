@@ -57,7 +57,9 @@ export const createPrivacyHook = () => {
   return (message: any, _transport: any, transportName?: string) => {
     if (transportName !== 'file') return message;
     try {
-      const sanitizedData = message.data.map((item: any) => {
+      // Guard against non-array data
+      const data = Array.isArray(message.data) ? message.data : [message.data];
+      const sanitizedData = data.map((item: any) => {
         if (typeof item === 'string') return redactSensitiveData(item);
         if (typeof item === 'object' && item !== null)
           return redactObject(item);
@@ -65,9 +67,10 @@ export const createPrivacyHook = () => {
       });
       return { ...message, data: sanitizedData };
     } catch {
+      // Don't emit raw data on failure - only safe placeholder
       return {
         ...message,
-        data: ['[Privacy redaction failed]', ...message.data],
+        data: ['[Privacy redaction failed]'],
       };
     }
   };

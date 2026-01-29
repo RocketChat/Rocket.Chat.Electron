@@ -1,8 +1,6 @@
 {
-  "active_plan": "/Users/jean/Github/Rocket.Chat.Electron/.sisyphus/plans/log-viewer-professional-review.md",
+  "active_plan": ".sisyphus/plans/log-viewer-professional-review.md",
   "started_at": "2026-01-29T14:31:04.420Z",
-  "session_ids": [
-    "ses_3f5e67dc9ffeRCoFXMk5DAQmSe"
-  ],
+  "session_ids": ["ses_3f5e67dc9ffeRCoFXMk5DAQmSe"],
   "plan_name": "log-viewer-professional-review"
 }

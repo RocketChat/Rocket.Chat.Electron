@@ -17,7 +17,7 @@ apply_patch() {
         echo "📦 Processing $package_name..."
         
         # Copy all files from patches-src to node_modules
-        find "$src_dir" -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | while read -r file; do
+        find "$src_dir" -type f \( -name "*.ts" -o -name "*.js" -o -name "*.json" \) | while read -r file; do
             # Get relative path from src_dir
             rel_path="${file#$src_dir/}"
             dest_file="$dest_dir/$rel_path"

@@ -43,7 +43,7 @@ export class NtlmProvider implements IProvider {
     console.log('[DEBUG] NTLM Provider - Starting NTLM authentication');
     console.log('[DEBUG] NTLM Provider - Target URL:', options.url);
     console.log('[DEBUG] NTLM Provider - Domain:', this.domain);
-    console.log('[DEBUG] NTLM Provider - Username:', this.username);
+    console.log('[DEBUG] NTLM Provider - Username:', '[REDACTED]');
     console.log('[DEBUG] NTLM Provider - Workstation:', ntlmOptions.workstation);
     console.log('[DEBUG] NTLM Provider - Reject Unauthorized:', options.rejectUnauthorized);
 

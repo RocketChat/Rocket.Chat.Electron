@@ -165,7 +165,6 @@ export class XhrApi implements IXHRApi {
     } else {
       console.log('🚫 [INFO] XhrApi - No proxy configuration - direct connection will be attempted');
     }
-    }
     options = this.getOptions(options)
 
     console.log('[DEBUG] XhrApi - Final options before auth:', JSON.stringify({

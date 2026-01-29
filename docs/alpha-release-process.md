@@ -12,7 +12,7 @@ The Rocket.Chat Desktop app supports three release channels:
 ## How Channels Work
 
 | Channel | Version Format | Who Gets It | Update File |
-|---------|---------------|-------------|-------------|
+| ------- | ------------- | ----------- | ----------- |
 | Stable | `4.12.0` | All users (default) | `latest.yml` |
 | Beta | `4.12.0-beta.1` | Beta opt-in users | `beta.yml` |
 | Alpha | `4.12.0-alpha.1` | Alpha opt-in users | `alpha.yml` |
@@ -85,7 +85,7 @@ The setting persists - users don't need to select it again.
 Create `update.json` in the user data directory:
 
 | Platform | Location |
-|----------|----------|
+| -------- | -------- |
 | Windows | `%APPDATA%\Rocket.Chat\update.json` |
 | macOS | `~/Library/Application Support/Rocket.Chat/update.json` |
 | Linux | `~/.config/Rocket.Chat/update.json` |

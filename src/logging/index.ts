@@ -219,7 +219,7 @@ export const setupWebContentsLogging = () => {
 
                 // Get webContents ID and server URL for context
                 const webContentsId = ${webContents.id};
-                const serverUrl = '${serverUrl}';
+                const serverUrl = '${serverUrl.replace(/'/g, "\\'")}';
 
                 // Override console methods to send to main process with context
                 console.log = (...args) => {
@@ -250,7 +250,7 @@ export const setupWebContentsLogging = () => {
                 // Add marker to know console override is active
                 console.original = originalConsole;
                } catch (error) {
-                 logLoggingFailure(error, 'setupWebContentsLogging - console override injection');
+                 console.error('[logging] Failed to override console in webContents:', error);
                }
             })();
           `;

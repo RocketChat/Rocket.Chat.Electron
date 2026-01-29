@@ -15,6 +15,7 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 let logViewerWindow: BrowserWindow | null = null;
+const allowedLogPaths = new Set<string>();
 
 const getLogFilePath = (): string => {
   // Use electron-log's default path: ~/Library/Logs/{app name}/main.log
@@ -150,10 +151,17 @@ export const startLogViewerWindowHandler = (): void => {
         return { success: false, canceled: true };
       }
 
+      const selectedPath = result.filePaths[0];
+      const validation = validateLogFilePath(selectedPath);
+      if (!validation.valid) {
+        return { success: false, error: validation.error };
+      }
+      const normalizedPath = path.normalize(selectedPath);
+      allowedLogPaths.add(normalizedPath);
       return {
         success: true,
-        filePath: result.filePaths[0],
-        fileName: path.basename(result.filePaths[0]),
+        filePath: normalizedPath,
+        fileName: path.basename(normalizedPath),
       };
     } catch (error) {
       console.error('Failed to select log file:', error);
@@ -172,7 +180,20 @@ export const startLogViewerWindowHandler = (): void => {
           if (!validation.valid) {
             return { success: false, error: validation.error };
           }
-          logPath = options.filePath;
+          const normalizedPath = path.normalize(options.filePath);
+          const defaultLogPath = path.normalize(getLogFilePath());
+          // Only allow default log path or paths explicitly selected via dialog
+          if (
+            normalizedPath !== defaultLogPath &&
+            !allowedLogPaths.has(normalizedPath)
+          ) {
+            return {
+              success: false,
+              error:
+                'Log file not authorized. Please select it via the file dialog first.',
+            };
+          }
+          logPath = normalizedPath;
         } else {
           logPath = getLogFilePath();
         }

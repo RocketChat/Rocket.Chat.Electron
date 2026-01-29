@@ -127,11 +127,11 @@ export const getComponentContext = (error?: Error): string => {
   }
 
   if (stack.includes('notification') || stack.includes('Notification')) {
-    return 'notification';
+    return 'notifications';
   }
 
   if (stack.includes('update') || stack.includes('Update')) {
-    return 'update';
+    return 'updates';
   }
 
   if (
@@ -142,6 +142,14 @@ export const getComponentContext = (error?: Error): string => {
     stack.includes('syncEventsWithRocketChatServer')
   ) {
     return 'outlook';
+  }
+
+  if (
+    stack.includes('server') ||
+    stack.includes('Server') ||
+    stack.includes('servers')
+  ) {
+    return 'servers';
   }
 
   if (

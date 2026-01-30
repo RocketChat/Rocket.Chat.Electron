@@ -262,13 +262,15 @@ async function createEventOnRocketChatServer(
       outlookError('Axios error creating event:', {
         url,
         eventId: event.id,
-        subject: event.subject,
         status: error.response?.status,
         statusText: error.response?.statusText,
         message: error.message,
         code: error.code,
-        responseData: error.response?.data,
         userId,
+      });
+      outlookLog('Verbose error details (create):', {
+        subject: event.subject,
+        responseData: error.response?.data,
       });
     } else {
       const errorMessage =
@@ -348,13 +350,15 @@ async function updateEventOnRocketChatServer(
         url,
         rocketChatEventId,
         eventId: event.id,
-        subject: event.subject,
         status: error.response?.status,
         statusText: error.response?.statusText,
         message: error.message,
         code: error.code,
-        responseData: error.response?.data,
         userId,
+      });
+      outlookLog('Verbose error details (update):', {
+        subject: event.subject,
+        responseData: error.response?.data,
       });
     } else {
       const errorMessage =
@@ -418,8 +422,10 @@ async function deleteEventOnRocketChatServer(
         statusText: error.response?.statusText,
         message: error.message,
         code: error.code,
-        responseData: error.response?.data,
         userId,
+      });
+      outlookLog('Verbose error details (delete):', {
+        responseData: error.response?.data,
       });
     } else {
       const errorMessage =
@@ -572,10 +578,11 @@ async function performSync(
       token
     );
 
-    // If we can't fetch events from the server, skip the sync
+    // If we can't fetch events from the server, propagate the failure
     if (!eventsOnRocketChatServer) {
-      outlookLog('Skipping sync due to server connection issues');
-      return;
+      throw new Error(
+        'Failed to fetch events from Rocket.Chat server - sync cannot proceed'
+      );
     }
 
     outlookLog(
@@ -737,8 +744,10 @@ async function performSync(
         error instanceof Error ? error.message : String(error);
       outlookError('Error syncing individual event:', {
         appointmentId: appointment.id,
-        subject: appointment.subject,
         error: errorMessage,
+      });
+      outlookLog('Verbose error details (sync event):', {
+        subject: appointment.subject,
       });
       // Continue with other events even if one fails
     }
@@ -781,8 +790,10 @@ async function performSync(
       outlookError('Error deleting individual event:', {
         eventId: event._id,
         externalId: event.externalId,
-        subject: event.subject,
         error: errorMessage,
+      });
+      outlookLog('Verbose error details (delete sync):', {
+        subject: event.subject,
       });
       // Continue with other deletions even if one fails
     }

@@ -13,6 +13,9 @@ const availableServerIds: number[] = Array.from(
 );
 const usedServerIds = new Map<number, number>();
 
+// Fallback counter for pool exhaustion - starts after MAX_SERVER_ID
+let overflowServerIdCounter = MAX_SERVER_ID;
+
 // Define the log context interface
 export interface ILogContext {
   processType: string;
@@ -85,7 +88,18 @@ export const getServerContext = (webContents?: WebContents): string => {
 
   // For webviews, assign anonymous server ID from pool
   if (webContents.getType() === 'webview') {
-    const serverId = availableServerIds.shift() || MAX_SERVER_ID;
+    let serverId = availableServerIds.shift();
+
+    if (serverId === undefined) {
+      overflowServerIdCounter += 1;
+      serverId = overflowServerIdCounter;
+      console.warn(
+        `[Logging] Server ID pool exhausted (max: ${MAX_SERVER_ID}). ` +
+          `Allocated overflow ID: ${serverId}. ` +
+          `Active webviews: ${usedServerIds.size}, Available IDs: ${availableServerIds.length}`
+      );
+    }
+
     usedServerIds.set(webContentsId, serverId);
     const serverName = `server-${serverId}`;
     serverContextMap.set(webContentsId, {

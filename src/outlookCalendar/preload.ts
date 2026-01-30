@@ -36,17 +36,20 @@ export const setOutlookExchangeUrl = (url: string, userId: string): void => {
     userId,
   });
 
-  try {
-    ipcRenderer.invoke('outlook-calendar/set-exchange-url', url, userId);
-    console.log('[OutlookCalendar] Preload: Successfully set Exchange URL');
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] Preload: Failed to set Exchange URL:', {
-      url,
-      userId,
-      error: errorMessage,
+  ipcRenderer
+    .invoke('outlook-calendar/set-exchange-url', url, userId)
+    .then(() => {
+      console.log('[OutlookCalendar] Preload: Successfully set Exchange URL');
+    })
+    .catch((error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Preload: Failed to set Exchange URL:', {
+        url,
+        userId,
+        error: errorMessage,
+      });
     });
-  }
 };
 
 export const hasOutlookCredentials = async (): Promise<boolean> => {
@@ -71,16 +74,21 @@ export const hasOutlookCredentials = async (): Promise<boolean> => {
 export const clearOutlookCredentials = (): void => {
   console.log('[OutlookCalendar] Preload: Clearing Outlook credentials');
 
-  try {
-    ipcRenderer.invoke('outlook-calendar/clear-credentials');
-    console.log('[OutlookCalendar] Preload: Successfully cleared credentials');
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      '[OutlookCalendar] Preload: Failed to clear credentials:',
-      errorMessage
-    );
-  }
+  ipcRenderer
+    .invoke('outlook-calendar/clear-credentials')
+    .then(() => {
+      console.log(
+        '[OutlookCalendar] Preload: Successfully cleared credentials'
+      );
+    })
+    .catch((error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(
+        '[OutlookCalendar] Preload: Failed to clear credentials:',
+        errorMessage
+      );
+    });
 };
 
 export const setUserToken = (token: string, userId: string): void => {
@@ -89,14 +97,17 @@ export const setUserToken = (token: string, userId: string): void => {
     userId
   );
 
-  try {
-    ipcRenderer.invoke('outlook-calendar/set-user-token', token, userId);
-    console.log('[OutlookCalendar] Preload: Successfully set user token');
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] Preload: Failed to set user token:', {
-      userId,
-      error: errorMessage,
+  ipcRenderer
+    .invoke('outlook-calendar/set-user-token', token, userId)
+    .then(() => {
+      console.log('[OutlookCalendar] Preload: Successfully set user token');
+    })
+    .catch((error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Preload: Failed to set user token:', {
+        userId,
+        error: errorMessage,
+      });
     });
-  }
 };

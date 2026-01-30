@@ -67,7 +67,9 @@ const redactObject = (obj: any): any => {
     }
     // Also check for nested state (e.g., { state: { appPath: ... } })
     if (obj.state && isStateDump(obj.state)) {
-      return { ...redactObject(obj), state: '[Redux State Redacted]' };
+      // Use destructuring to avoid infinite recursion - process all keys except 'state'
+      const { state: _state, ...rest } = obj;
+      return { ...redactObject(rest), state: '[Redux State Redacted]' };
     }
 
     const result: any = {};

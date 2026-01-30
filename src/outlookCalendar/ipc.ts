@@ -442,19 +442,17 @@ export async function syncEventsWithRocketChatServer(
 
     // Queue this sync request to run after current sync completes
     return new Promise<void>((resolve, reject) => {
-      syncQueue.push(async () => {
-        try {
-          // Re-validate token when the queued sync actually runs
+      syncQueue.push({
+        run: async () => {
           if (!token || typeof token !== 'string') {
             throw new Error(
               'Authentication required - please log in to Rocket.Chat first'
             );
           }
           await performSync(serverUrl, credentials, token);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
+        },
+        resolve,
+        reject,
       });
     });
   }
@@ -472,11 +470,20 @@ export async function syncEventsWithRocketChatServer(
       );
       // Only process the last sync request (most recent state)
       const lastSync = syncQueue[syncQueue.length - 1];
+      // Resolve all other queued syncs since the last one will cover them
+      const skippedSyncs = syncQueue.slice(0, -1);
       syncQueue = [];
+
+      for (const skipped of skippedSyncs) {
+        skipped.resolve();
+      }
+
       try {
-        await lastSync();
+        await lastSync.run();
+        lastSync.resolve();
       } catch (error) {
         console.error('[OutlookCalendar] Queued sync failed:', error);
+        lastSync.reject(error);
       }
     }
   } finally {
@@ -778,7 +785,13 @@ let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
 let initialSyncTimeoutId: NodeJS.Timeout;
 let isSyncInProgress = false;
-let syncQueue: Array<() => Promise<void>> = [];
+
+type QueuedSync = {
+  run: () => Promise<void>;
+  resolve: () => void;
+  reject: (error: unknown) => void;
+};
+let syncQueue: QueuedSync[] = [];
 
 async function maybeSyncEvents(serverToSync: Server) {
   console.log(

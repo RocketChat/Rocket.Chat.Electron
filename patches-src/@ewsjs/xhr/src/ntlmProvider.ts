@@ -176,10 +176,6 @@ export class NtlmProvider implements IProvider {
         ntlmOptions.workstation,
         ntlmOptions.domain
       );
-      console.log(
-        '[DEBUG] NTLM Provider - Type 3 message generated:',
-        type3msg
-      );
 
       delete options.headers['authorization']; // 'fetch' has this wired addition with lower case, with lower case ntlm on server side fails
       delete options.headers['connection']; // 'fetch' has this wired addition with lower case, with lower case ntlm on server side fails

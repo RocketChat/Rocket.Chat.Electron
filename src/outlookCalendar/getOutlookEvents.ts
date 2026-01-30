@@ -156,8 +156,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
       pathname: url.pathname,
     });
 
-    // Quick validation of the result
-    if (!sanitizedUrl.endsWith('/ews/exchange.asmx')) {
+    if (!url.pathname.endsWith('/ews/exchange.asmx')) {
       throw new Error('Failed to construct proper EWS endpoint URL');
     }
 

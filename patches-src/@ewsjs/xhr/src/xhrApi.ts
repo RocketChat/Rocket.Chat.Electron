@@ -289,8 +289,10 @@ export class XhrApi implements IXHRApi {
         responseType: '',
         statusText: response.statusText,
       };
-      if (xhrResponse.status === 200) {
-        console.log('🎉 [COMPLETE SUCCESS] XhrApi - HTTP 200 OK received!');
+      if (xhrResponse.status >= 200 && xhrResponse.status < 300) {
+        console.log(
+          `🎉 [COMPLETE SUCCESS] XhrApi - HTTP ${xhrResponse.status} received!`
+        );
         console.log(
           '📋 [COMPLETE SUCCESS] NTLM authentication + Exchange communication FULLY WORKING!'
         );

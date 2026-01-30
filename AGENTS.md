@@ -68,8 +68,6 @@ This project uses **TWO different patching mechanisms** - do NOT confuse them:
 
 **NEVER add `@ewsjs/xhr` patches to `patches/`** - it's already patched by Yarn. Adding a patch-package patch causes CI failures due to conflicts.
 
-The `patches-src/` folder contains reference TypeScript sources but is NOT automatically applied.
-
 ---
 
 ## Architecture Overview
@@ -280,7 +278,6 @@ Each worktree has its own working directory, branch, build outputs, and node_mod
 ```text
 AGENTS.md (root)           → Project-wide guidelines
 ├── src/module/AGENTS.md   → Module-specific knowledge
-├── patches-src/AGENTS.md  → Patch-specific knowledge
 └── docs/                  → Feature documentation
 ```
 

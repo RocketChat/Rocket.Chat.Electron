@@ -7,6 +7,14 @@ import { IProvider } from './IProvider';
 import { NtlmProvider } from './ntlmProvider';
 import { CookieProvider } from './cookieProvider';
 
+declare const global: { isVerboseOutlookLoggingEnabled?: boolean };
+
+const verboseLog = (...args: unknown[]) => {
+  if (global.isVerboseOutlookLoggingEnabled) {
+    console.log('[OutlookCalendar]', ...args);
+  }
+};
+
 /**
  * this is alternate XHR Api for ews-javascript-api/ewsjs
  *
@@ -148,25 +156,25 @@ export class XhrApi implements IXHRApi {
     xhroptions: IXHROptions,
     progressDelegate?: (progressData: IXHRProgress) => void
   ): Promise<XMLHttpRequest> {
-    console.log('[DEBUG] XhrApi - Starting XHR request');
-    console.log('[DEBUG] XhrApi - Request URL:', xhroptions.url);
-    console.log('[DEBUG] XhrApi - Request method:', xhroptions.type);
-    console.log(
+    verboseLog('[DEBUG] XhrApi - Starting XHR request');
+    verboseLog('[DEBUG] XhrApi - Request URL:', xhroptions.url);
+    verboseLog('[DEBUG] XhrApi - Request method:', xhroptions.type);
+    verboseLog(
       '[DEBUG] XhrApi - Request headers:',
       JSON.stringify(xhroptions.headers, null, 2)
     );
-    console.log(
+    verboseLog(
       '[DEBUG] XhrApi - Request data:',
       xhroptions.data
         ? `${xhroptions.data.toString().substring(0, 200)}...`
         : 'No data'
     );
-    console.log('[DEBUG] XhrApi - Allow redirect:', xhroptions.allowRedirect);
-    console.log(
+    verboseLog('[DEBUG] XhrApi - Allow redirect:', xhroptions.allowRedirect);
+    verboseLog(
       '[DEBUG] XhrApi - Auth provider:',
       this.authProvider ? this.authProvider.providerName : 'None'
     );
-    console.log(
+    verboseLog(
       '[DEBUG] XhrApi - Allow untrusted certificate:',
       this.allowUntrustedCertificate
     );
@@ -185,14 +193,14 @@ export class XhrApi implements IXHRApi {
     // TODO: Re-enable for Exchange 2016 self-signed certificate support
     // if (this.allowUntrustedCertificate) {
     //   options.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-    //   console.log(
+    //   verboseLog(
     //     '🔧 [SUCCESS FACTOR] XhrApi - Using custom HTTPS agent with rejectUnauthorized: false'
     //   );
-    //   console.log(
+    //   verboseLog(
     //     '📋 [SUCCESS FACTOR] This setting allows self-signed/invalid certificates - CRITICAL for many Exchange servers!'
     //   );
     // } else {
-    //   console.log(
+    //   verboseLog(
     //     '🔒 [POTENTIAL ISSUE] XhrApi - Using default certificate validation - may fail with self-signed certs'
     //   );
     // }
@@ -200,21 +208,21 @@ export class XhrApi implements IXHRApi {
     let proxyConfig = this.getProxyOption();
     if (proxyConfig) {
       options['proxy'] = proxyConfig;
-      console.log(
+      verboseLog(
         '🌐 [SUCCESS FACTOR] XhrApi - Using proxy configuration:',
         JSON.stringify(proxyConfig, null, 2)
       );
-      console.log(
+      verboseLog(
         '📋 [SUCCESS FACTOR] Proxy is configured - CRITICAL for corporate environments behind firewalls!'
       );
     } else {
-      console.log(
+      verboseLog(
         '🚫 [INFO] XhrApi - No proxy configuration - direct connection will be attempted'
       );
     }
     options = this.getOptions(options);
 
-    console.log(
+    verboseLog(
       '[DEBUG] XhrApi - Final options before auth:',
       JSON.stringify(
         {
@@ -232,21 +240,21 @@ export class XhrApi implements IXHRApi {
 
     try {
       if (this.authProvider) {
-        console.log('[DEBUG] XhrApi - Calling auth provider preCall method');
+        verboseLog('[DEBUG] XhrApi - Calling auth provider preCall method');
         _promise = this.authProvider.preCall({
           ...options,
           // TODO: Re-enable for Exchange 2016 self-signed certificate support
           // rejectUnauthorized: !this.allowUntrustedCertificate,
         });
         client = this.authProvider.client || client;
-        console.log(
+        verboseLog(
           '[DEBUG] XhrApi - Auth provider client:',
           client ? 'Custom client' : 'Default client'
         );
       }
 
       const opt = await _promise;
-      console.log(
+      verboseLog(
         '[DEBUG] XhrApi - Options after auth preCall:',
         JSON.stringify(
           {
@@ -259,21 +267,21 @@ export class XhrApi implements IXHRApi {
         )
       );
 
-      console.log('[DEBUG] XhrApi - Executing final HTTP request');
+      verboseLog('[DEBUG] XhrApi - Executing final HTTP request');
       const response = await client(opt || (options as any));
 
-      console.log('[DEBUG] XhrApi - HTTP request completed successfully');
-      console.log('[DEBUG] XhrApi - Response status:', response.status);
-      console.log('[DEBUG] XhrApi - Response statusText:', response.statusText);
-      console.log(
+      verboseLog('[DEBUG] XhrApi - HTTP request completed successfully');
+      verboseLog('[DEBUG] XhrApi - Response status:', response.status);
+      verboseLog('[DEBUG] XhrApi - Response statusText:', response.statusText);
+      verboseLog(
         '[DEBUG] XhrApi - Response headers:',
         JSON.stringify(response.headers, null, 2)
       );
-      console.log(
+      verboseLog(
         '[DEBUG] XhrApi - Response data length:',
         response.data ? response.data.toString().length : 0
       );
-      console.log(
+      verboseLog(
         '[DEBUG] XhrApi - Response data preview:',
         response.data
           ? response.data.toString().substring(0, 300) + '...'
@@ -290,63 +298,63 @@ export class XhrApi implements IXHRApi {
         statusText: response.statusText,
       };
       if (xhrResponse.status >= 200 && xhrResponse.status < 300) {
-        console.log(
+        verboseLog(
           `🎉 [COMPLETE SUCCESS] XhrApi - HTTP ${xhrResponse.status} received!`
         );
-        console.log(
+        verboseLog(
           '📋 [COMPLETE SUCCESS] NTLM authentication + Exchange communication FULLY WORKING!'
         );
-        console.log(
+        verboseLog(
           '🏆 [SOLUTION SUMMARY] The following factors enabled success:'
         );
         // TODO: Re-enable for Exchange 2016 self-signed certificate support
         // if (this.allowUntrustedCertificate) {
-        //   console.log(
+        //   verboseLog(
         //     '  ✅ SSL Certificate validation disabled (allowUntrustedCertificate: true)'
         //   );
         // }
         if (this.getProxyOption()) {
-          console.log('  ✅ Proxy configuration was used');
+          verboseLog('  ✅ Proxy configuration was used');
         }
-        console.log('  ✅ NTLM 3-step handshake completed successfully');
-        console.log('  ✅ Exchange server accepted authentication');
+        verboseLog('  ✅ NTLM 3-step handshake completed successfully');
+        verboseLog('  ✅ Exchange server accepted authentication');
         return setupXhrResponse(xhrResponse);
       } else {
-        console.log(
+        verboseLog(
           '❌ [FINAL FAILURE] XhrApi - Request failed with status:',
           xhrResponse.status
         );
-        console.log(
+        verboseLog(
           '📋 [FINAL FAILURE] Even after successful NTLM auth, Exchange rejected the request'
         );
         throw setupXhrResponse(xhrResponse);
       }
     } catch (error) {
-      console.log('[DEBUG] XhrApi - Request failed with exception:');
-      console.log('[DEBUG] XhrApi - Error type:', typeof error);
-      console.log('[DEBUG] XhrApi - Error message:', error.message);
-      console.log('[DEBUG] XhrApi - Error code:', error.code);
-      console.log('[DEBUG] XhrApi - Error stack:', error.stack);
+      verboseLog('[DEBUG] XhrApi - Request failed with exception:');
+      verboseLog('[DEBUG] XhrApi - Error type:', typeof error);
+      verboseLog('[DEBUG] XhrApi - Error message:', error.message);
+      verboseLog('[DEBUG] XhrApi - Error code:', error.code);
+      verboseLog('[DEBUG] XhrApi - Error stack:', error.stack);
 
       if (error.response) {
-        console.log(
+        verboseLog(
           '[DEBUG] XhrApi - Error response status:',
           error.response.status
         );
-        console.log(
+        verboseLog(
           '[DEBUG] XhrApi - Error response statusText:',
           error.response.statusText
         );
-        console.log(
+        verboseLog(
           '[DEBUG] XhrApi - Error response headers:',
           JSON.stringify(error.response.headers, null, 2)
         );
-        console.log(
+        verboseLog(
           '[DEBUG] XhrApi - Error response data:',
           error.response.data
         );
       } else if (error.request) {
-        console.log(
+        verboseLog(
           '[DEBUG] XhrApi - Error request config:',
           JSON.stringify(
             {
@@ -360,7 +368,7 @@ export class XhrApi implements IXHRApi {
         );
       }
 
-      console.log(
+      verboseLog(
         '[DEBUG] XhrApi - Full error object:',
         JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
       );
@@ -417,8 +425,8 @@ export class XhrApi implements IXHRApi {
           });
           this.stream.on('data', (chunk) => {
             // decompressed data as it is received
-            // console.log('decoded chunk: ' + chunk)
-            // console.log(chunk.toString());
+            // verboseLog('decoded chunk: ' + chunk)
+            // verboseLog(chunk.toString());
             progressDelegate({ type: 'data', data: chunk.toString() });
           });
 

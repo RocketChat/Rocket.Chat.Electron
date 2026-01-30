@@ -21,6 +21,7 @@ import {
   generateUserFriendlyMessage,
 } from './errorClassification';
 import { getOutlookEvents } from './getOutlookEvents';
+import { outlookLog, outlookError, outlookWarn } from './logger';
 import type {
   OutlookCredentials,
   AppointmentData,
@@ -49,14 +50,11 @@ function checkIfCredentialsAreNotEmpty(
 function encryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  console.log(
-    '[OutlookCalendar] Encrypting credentials for user:',
-    credentials.userId
-  );
+  outlookLog('Encrypting credentials for user:', credentials.userId);
   try {
     if (!safeStorage.isEncryptionAvailable()) {
-      console.warn(
-        '[OutlookCalendar] Encryption not available, storing credentials in plain text'
+      outlookWarn(
+        'Encryption not available, storing credentials in plain text'
       );
       return credentials;
     }
@@ -68,7 +66,7 @@ function encryptedCredentials(
       .encryptString(credentials.password)
       .toString('base64');
 
-    console.log('[OutlookCalendar] Successfully encrypted credentials');
+    outlookLog('Successfully encrypted credentials');
     return {
       ...credentials,
       login: encryptedLogin,
@@ -76,7 +74,7 @@ function encryptedCredentials(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] Failed to encrypt credentials:', {
+    outlookError('Failed to encrypt credentials:', {
       error: errorMessage,
       userId: credentials.userId,
       hasLogin: !!credentials.login,
@@ -164,7 +162,7 @@ async function listEventsFromRocketChatServer(
       }),
     });
 
-    console.log('[OutlookCalendar] Successfully fetched events from server:', {
+    outlookLog('Successfully fetched events from server:', {
       statusCode: response.status,
       eventCount: response.data?.data?.length || 0,
     });
@@ -202,7 +200,7 @@ async function createEventOnRocketChatServer(
   event: AppointmentData
 ) {
   const url = urls.server(serverUrl).calendarEvents.import;
-  console.log('[OutlookCalendar] Creating event on Rocket.Chat server:', {
+  outlookLog('Creating event on Rocket.Chat server:', {
     url,
     eventId: event.id,
     subject: event.subject,
@@ -227,9 +225,7 @@ async function createEventOnRocketChatServer(
     if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
       payload.endTime = event.endTime;
       payload.busy = event.busy;
-      console.log(
-        '[OutlookCalendar] Including endTime and busy status (server version >= 7.5.0)'
-      );
+      outlookLog('Including endTime and busy status (server version >= 7.5.0)');
     }
 
     const response = await axios.post(url, payload, {
@@ -244,14 +240,14 @@ async function createEventOnRocketChatServer(
       }),
     });
 
-    console.log('[OutlookCalendar] Successfully created event:', {
+    outlookLog('Successfully created event:', {
       eventId: event.id,
       statusCode: response.status,
       responseData: response.data,
     });
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('[OutlookCalendar] Axios error creating event:', {
+      outlookError('Axios error creating event:', {
         url,
         eventId: event.id,
         subject: event.subject,
@@ -265,7 +261,7 @@ async function createEventOnRocketChatServer(
     } else {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Non-axios error creating event:', {
+      outlookError('Non-axios error creating event:', {
         url,
         eventId: event.id,
         error: errorMessage,
@@ -283,7 +279,7 @@ async function updateEventOnRocketChatServer(
   event: AppointmentData
 ) {
   const url = urls.server(serverUrl).calendarEvents.update;
-  console.log('[OutlookCalendar] Updating event on Rocket.Chat server:', {
+  outlookLog('Updating event on Rocket.Chat server:', {
     url,
     rocketChatEventId,
     eventId: event.id,
@@ -309,8 +305,8 @@ async function updateEventOnRocketChatServer(
     if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
       payload.endTime = event.endTime;
       payload.busy = event.busy;
-      console.log(
-        '[OutlookCalendar] Including endTime and busy status for update (server version >= 7.5.0)'
+      outlookLog(
+        'Including endTime and busy status for update (server version >= 7.5.0)'
       );
     }
 
@@ -326,7 +322,7 @@ async function updateEventOnRocketChatServer(
       }),
     });
 
-    console.log('[OutlookCalendar] Successfully updated event:', {
+    outlookLog('Successfully updated event:', {
       rocketChatEventId,
       eventId: event.id,
       statusCode: response.status,
@@ -334,7 +330,7 @@ async function updateEventOnRocketChatServer(
     });
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('[OutlookCalendar] Axios error updating event:', {
+      outlookError('Axios error updating event:', {
         url,
         rocketChatEventId,
         eventId: event.id,
@@ -349,7 +345,7 @@ async function updateEventOnRocketChatServer(
     } else {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Non-axios error updating event:', {
+      outlookError('Non-axios error updating event:', {
         url,
         rocketChatEventId,
         eventId: event.id,
@@ -367,7 +363,7 @@ async function deleteEventOnRocketChatServer(
   rocketChatEventId: string
 ) {
   const url = urls.server(serverUrl).calendarEvents.delete;
-  console.log('[OutlookCalendar] Deleting event from Rocket.Chat server:', {
+  outlookLog('Deleting event from Rocket.Chat server:', {
     url,
     rocketChatEventId,
     userId,
@@ -392,14 +388,14 @@ async function deleteEventOnRocketChatServer(
       }
     );
 
-    console.log('[OutlookCalendar] Successfully deleted event:', {
+    outlookLog('Successfully deleted event:', {
       rocketChatEventId,
       statusCode: response.status,
       responseData: response.data,
     });
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('[OutlookCalendar] Axios error deleting event:', {
+      outlookError('Axios error deleting event:', {
         url,
         rocketChatEventId,
         status: error.response?.status,
@@ -412,7 +408,7 @@ async function deleteEventOnRocketChatServer(
     } else {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Non-axios error deleting event:', {
+      outlookError('Non-axios error deleting event:', {
         url,
         rocketChatEventId,
         error: errorMessage,
@@ -436,9 +432,7 @@ export async function syncEventsWithRocketChatServer(
 
   // Check if sync is already in progress
   if (isSyncInProgress) {
-    console.log(
-      '[OutlookCalendar] Sync already in progress, queueing this request'
-    );
+    outlookLog('Sync already in progress, queueing this request');
 
     // Queue this sync request to run after current sync completes
     return new Promise<void>((resolve, reject) => {
@@ -465,9 +459,7 @@ export async function syncEventsWithRocketChatServer(
 
     // Process queued sync while still holding the lock to prevent race condition
     if (syncQueue.length > 0) {
-      console.log(
-        `[OutlookCalendar] Processing ${syncQueue.length} queued sync requests`
-      );
+      outlookLog(`Processing ${syncQueue.length} queued sync requests`);
       // Only process the last sync request (most recent state)
       const lastSync = syncQueue[syncQueue.length - 1];
       // Resolve all other queued syncs since the last one will cover them
@@ -482,7 +474,7 @@ export async function syncEventsWithRocketChatServer(
         await lastSync.run();
         lastSync.resolve();
       } catch (error) {
-        console.error('[OutlookCalendar] Queued sync failed:', error);
+        outlookError('Queued sync failed:', error);
         lastSync.reject(error);
       }
     }
@@ -505,7 +497,7 @@ async function performSync(
 
   if (!checkIfCredentialsAreNotEmpty(credentials)) return;
 
-  console.log('[OutlookCalendar] Starting sync with Rocket.Chat server:', {
+  outlookLog('Starting sync with Rocket.Chat server:', {
     serverUrl,
     userId: credentials.userId,
     hasToken: !!token,
@@ -526,18 +518,18 @@ async function performSync(
   let eventsOnRocketChatServer: any;
 
   try {
-    console.log('[OutlookCalendar] Fetching events from Outlook server...');
+    outlookLog('Fetching events from Outlook server...');
     eventsOnOutlookServer = await getOutlookEvents(
       credentials,
       new Date(Date.now())
     );
-    console.log(
-      '[OutlookCalendar] Found',
+    outlookLog(
+      'Found',
       eventsOnOutlookServer.length,
       'events on Outlook server'
     );
 
-    console.log('[OutlookCalendar] Fetching events from Rocket.Chat server...');
+    outlookLog('Fetching events from Rocket.Chat server...');
     eventsOnRocketChatServer = await listEventsFromRocketChatServer(
       serverUrl,
       credentials.userId,
@@ -546,14 +538,12 @@ async function performSync(
 
     // If we can't fetch events from the server, skip the sync
     if (!eventsOnRocketChatServer) {
-      console.log(
-        '[OutlookCalendar] Skipping sync due to server connection issues'
-      );
+      outlookLog('Skipping sync due to server connection issues');
       return;
     }
 
-    console.log(
-      '[OutlookCalendar] Found',
+    outlookLog(
+      'Found',
       eventsOnRocketChatServer?.data?.length || 0,
       'events on Rocket.Chat server'
     );
@@ -602,14 +592,14 @@ async function performSync(
   // Remove duplicates - keep only the first occurrence
   for (const [externalId, events] of eventsByExternalId) {
     if (events.length > 1) {
-      console.log(
-        `[OutlookCalendar] Found ${events.length} duplicate events for externalId: ${externalId}`
+      outlookLog(
+        `Found ${events.length} duplicate events for externalId: ${externalId}`
       );
-      console.log('[OutlookCalendar] Keeping first event, deleting duplicates');
+      outlookLog('Keeping first event, deleting duplicates');
 
       // Delete all duplicates except the first one
       const deletionPromises = events.slice(1).map(async (duplicateEvent) => {
-        console.log('[OutlookCalendar] Deleting duplicate event:', {
+        outlookLog('Deleting duplicate event:', {
           rocketChatId: duplicateEvent._id,
           externalId: duplicateEvent.externalId,
           subject: duplicateEvent.subject,
@@ -623,7 +613,7 @@ async function performSync(
             duplicateEvent._id
           );
         } catch (error) {
-          console.error('[OutlookCalendar] Failed to delete duplicate event:', {
+          outlookError('Failed to delete duplicate event:', {
             eventId: duplicateEvent._id,
             error: error instanceof Error ? error.message : String(error),
           });
@@ -636,22 +626,20 @@ async function performSync(
 
   // Wait for all duplicate deletions to complete
   if (allDeletionPromises.length > 0) {
-    console.log(
-      '[OutlookCalendar] Waiting for duplicate deletion to complete...'
-    );
+    outlookLog('Waiting for duplicate deletion to complete...');
     await Promise.all(allDeletionPromises);
-    console.log('[OutlookCalendar] Duplicate deletion completed');
+    outlookLog('Duplicate deletion completed');
   }
 
-  console.log(
-    '[OutlookCalendar] Starting sync loop for',
+  outlookLog(
+    'Starting sync loop for',
     eventsOnOutlookServer.length,
     'Outlook events'
   );
 
   for await (const appointment of eventsOnOutlookServer) {
     try {
-      console.log('[OutlookCalendar] Processing appointment:', {
+      outlookLog('Processing appointment:', {
         id: appointment.id,
         subject: appointment.subject,
         startTime: appointment.startTime,
@@ -667,10 +655,7 @@ async function performSync(
 
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {
-        console.log(
-          '[OutlookCalendar] Creating new event in Rocket.Chat:',
-          appointment.id
-        );
+        outlookLog('Creating new event in Rocket.Chat:', appointment.id);
         await createEventOnRocketChatServer(
           serverUrl,
           credentials.userId,
@@ -694,15 +679,12 @@ async function performSync(
       );
 
       if (!hasChanges) {
-        console.log(
-          '[OutlookCalendar] No changes detected for event:',
-          appointment.id
-        );
+        outlookLog('No changes detected for event:', appointment.id);
         continue;
       }
 
       // If the appointment is in the rocket.chat calendar for today, but something has changed, update it.
-      console.log('[OutlookCalendar] Updating existing event in Rocket.Chat:', {
+      outlookLog('Updating existing event in Rocket.Chat:', {
         rocketChatId: alreadyOnRocketChatServer._id,
         outlookId: appointment.id,
       });
@@ -717,7 +699,7 @@ async function performSync(
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Error syncing individual event:', {
+      outlookError('Error syncing individual event:', {
         appointmentId: appointment.id,
         subject: appointment.subject,
         error: errorMessage,
@@ -727,33 +709,25 @@ async function performSync(
   }
 
   if (!eventsOnRocketChatServer?.data?.length) {
-    console.log(
-      '[OutlookCalendar] No events on Rocket.Chat server to check for deletion'
-    );
+    outlookLog('No events on Rocket.Chat server to check for deletion');
     return;
   }
 
-  console.log(
-    '[OutlookCalendar] Checking for events to delete from Rocket.Chat server'
-  );
+  outlookLog('Checking for events to delete from Rocket.Chat server');
   const eventsToDelete = eventsOnRocketChatServer.data.filter(
     (event: any) =>
       event.externalId && !appointmentsFound.includes(event.externalId)
   );
 
   if (eventsToDelete.length === 0) {
-    console.log('[OutlookCalendar] No events need to be deleted');
+    outlookLog('No events need to be deleted');
   } else {
-    console.log(
-      '[OutlookCalendar] Found',
-      eventsToDelete.length,
-      'events to delete'
-    );
+    outlookLog('Found', eventsToDelete.length, 'events to delete');
   }
 
   for await (const event of eventsToDelete) {
     try {
-      console.log('[OutlookCalendar] Deleting event from Rocket.Chat:', {
+      outlookLog('Deleting event from Rocket.Chat:', {
         rocketChatId: event._id,
         externalId: event.externalId,
         subject: event.subject,
@@ -768,7 +742,7 @@ async function performSync(
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Error deleting individual event:', {
+      outlookError('Error deleting individual event:', {
         eventId: event._id,
         externalId: event.externalId,
         subject: event.subject,
@@ -778,7 +752,7 @@ async function performSync(
     }
   }
 
-  console.log('[OutlookCalendar] Sync completed successfully');
+  outlookLog('Sync completed successfully');
 }
 
 let recurringSyncTaskId: NodeJS.Timeout;
@@ -794,10 +768,7 @@ type QueuedSync = {
 let syncQueue: QueuedSync[] = [];
 
 async function maybeSyncEvents(serverToSync: Server) {
-  console.log(
-    '[OutlookCalendar] Starting maybeSyncEvents for server:',
-    serverToSync.url
-  );
+  outlookLog('Starting maybeSyncEvents for server:', serverToSync.url);
 
   try {
     if (!userAPIToken) {
@@ -819,7 +790,7 @@ async function maybeSyncEvents(serverToSync: Server) {
       throw new Error('No Outlook credentials configured for server');
     }
 
-    console.log('[OutlookCalendar] Decrypting credentials...');
+    outlookLog('Decrypting credentials...');
     const credentials = safeStorage.isEncryptionAvailable()
       ? decryptedCredentials(server.outlookCredentials)
       : server.outlookCredentials;
@@ -828,9 +799,9 @@ async function maybeSyncEvents(serverToSync: Server) {
       throw new Error('Outlook credentials are empty or invalid');
     }
 
-    console.log('[OutlookCalendar] Starting sync with server:', server.url);
+    outlookLog('Starting sync with server:', server.url);
     await syncEventsWithRocketChatServer(server.url, credentials, userAPIToken);
-    console.log('[OutlookCalendar] Sync task completed successfully');
+    outlookLog('Sync task completed successfully');
   } catch (error) {
     const classifiedError = createClassifiedError(error as Error, {
       operation: 'maybe_sync_events',
@@ -846,12 +817,9 @@ async function maybeSyncEvents(serverToSync: Server) {
 
 async function recurringSyncTask(serverToSync: Server) {
   try {
-    console.log(
-      '[OutlookCalendar] Executing recurring sync task for server:',
-      serverToSync.url
-    );
+    outlookLog('Executing recurring sync task for server:', serverToSync.url);
     await maybeSyncEvents(serverToSync);
-    console.log('[OutlookCalendar] Recurring sync task completed successfully');
+    outlookLog('Recurring sync task completed successfully');
   } catch (error) {
     const classifiedError = createClassifiedError(error as Error, {
       operation: 'recurring_sync_task',
@@ -862,14 +830,10 @@ async function recurringSyncTask(serverToSync: Server) {
       formatErrorForLogging(classifiedError, 'Recurring sync task')
     );
 
-    console.log(
-      '[OutlookCalendar] User-friendly error message for recurring sync:'
-    );
+    outlookLog('User-friendly error message for recurring sync:');
     console.log(generateUserFriendlyMessage(classifiedError));
 
-    console.log(
-      '[OutlookCalendar] Stopping recurring sync due to persistent errors'
-    );
+    outlookLog('Stopping recurring sync due to persistent errors');
     clearInterval(recurringSyncTaskId);
   }
 }
@@ -879,7 +843,7 @@ function startRecurringSyncTask(server: Server) {
 
   // Clear any existing recurring sync task to prevent duplicates
   if (recurringSyncTaskId) {
-    console.log('[OutlookCalendar] Clearing existing recurring sync task');
+    outlookLog('Clearing existing recurring sync task');
     clearInterval(recurringSyncTaskId);
   }
 
@@ -891,98 +855,79 @@ function startRecurringSyncTask(server: Server) {
 
 export const startOutlookCalendarUrlHandler = (): void => {
   handle('outlook-calendar/set-user-token', async (event, token, userId) => {
-    console.log(
-      '[OutlookCalendar] Setting user token for webContents:',
-      event.id
-    );
+    outlookLog('Setting user token for webContents:', event.id);
 
     try {
       if (!token || typeof token !== 'string') {
-        console.error('[OutlookCalendar] Invalid token provided');
+        outlookError('Invalid token provided');
         return;
       }
 
       if (!userId || typeof userId !== 'string') {
-        console.error('[OutlookCalendar] Invalid userId provided');
+        outlookError('Invalid userId provided');
         return;
       }
 
       userAPIToken = token;
-      console.log('[OutlookCalendar] User API token set successfully');
+      outlookLog('User API token set successfully');
 
       const server = getServerInformationByWebContentsId(event.id);
       if (!server) {
-        console.error(
-          '[OutlookCalendar] Server not found for webContents:',
-          event.id
-        );
+        outlookError('Server not found for webContents:', event.id);
         return;
       }
 
       const { outlookCredentials } = server;
       if (!outlookCredentials) {
-        console.log(
-          '[OutlookCalendar] No Outlook credentials configured for server:',
-          server.url
-        );
+        outlookLog('No Outlook credentials configured for server:', server.url);
         return;
       }
 
       if (outlookCredentials.userId !== userId) {
-        console.log(
-          '[OutlookCalendar] User ID mismatch - credentials are for different user'
-        );
+        outlookLog('User ID mismatch - credentials are for different user');
         return;
       }
 
       if (!userAPIToken) {
-        console.error('[OutlookCalendar] User API token is empty');
+        outlookError('User API token is empty');
         return;
       }
 
       if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) {
-        console.log('[OutlookCalendar] Outlook credentials are empty');
+        outlookLog('Outlook credentials are empty');
         return;
       }
 
-      console.log(
-        '[OutlookCalendar] Starting recurring sync task for server:',
-        server.url
-      );
+      outlookLog('Starting recurring sync task for server:', server.url);
       startRecurringSyncTask(server);
 
       // Cancel any pending initial sync to prevent duplicates
       if (initialSyncTimeoutId) {
-        console.log('[OutlookCalendar] Cancelling pending initial sync');
+        outlookLog('Cancelling pending initial sync');
         clearTimeout(initialSyncTimeoutId);
       }
 
       // Perform initial sync with debounce to prevent duplicate calls
       initialSyncTimeoutId = setTimeout(() => {
-        console.log('[OutlookCalendar] Executing initial sync');
+        outlookLog('Executing initial sync');
         if (isSyncInProgress) {
-          console.log(
-            '[OutlookCalendar] Sync already in progress, skipping initial sync'
-          );
+          outlookLog('Sync already in progress, skipping initial sync');
           return;
         }
         maybeSyncEvents(server).catch((error) => {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          console.error(
-            '[OutlookCalendar] Failed to sync outlook events on startup:',
-            {
-              serverUrl: server.url,
-              userId,
-              error: errorMessage,
-            }
-          );
+          outlookError('Failed to sync outlook events on startup:', {
+            serverUrl: server.url,
+            userId,
+            error: errorMessage,
+          });
         });
       }, 100); // Small delay to debounce multiple rapid calls
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Error in set-user-token handler:', {
+      outlookError('Error in set-user-token handler:', {
         webContentsId: event.id,
         userId,
         error: errorMessage,
@@ -1097,19 +1042,14 @@ export const startOutlookCalendarUrlHandler = (): void => {
       try {
         // Check if user is logged in before attempting sync
         if (!userAPIToken) {
-          console.warn(
-            '[OutlookCalendar] Manual sync attempted but token not available',
-            {
-              serverUrl: server.url,
-              userId: outlookCredentials.userId,
-              hint: 'Token is set by injected script when: 1) User is logged in, 2) Outlook is enabled in settings, 3) Exchange URL is configured',
-            }
-          );
+          outlookWarn('Manual sync attempted but token not available', {
+            serverUrl: server.url,
+            userId: outlookCredentials.userId,
+            hint: 'Token is set by injected script when: 1) User is logged in, 2) Outlook is enabled in settings, 3) Exchange URL is configured',
+          });
 
           // Try to get the token from the webContents
-          console.log(
-            '[OutlookCalendar] Attempting to fetch token from webContents...'
-          );
+          outlookLog('Attempting to fetch token from webContents...');
           const contents = webContents.fromId(event.id);
           if (contents) {
             try {
@@ -1117,9 +1057,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
                 `Meteor._localStorage?.getItem('Meteor.loginToken')`
               );
               if (token) {
-                console.log(
-                  '[OutlookCalendar] Successfully retrieved token from webContents'
-                );
+                outlookLog('Successfully retrieved token from webContents');
                 userAPIToken = token; // Store it for future use
                 // Continue with sync using the retrieved token
                 await syncEventsWithRocketChatServer(
@@ -1130,10 +1068,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
                 return { status: 'success' };
               }
             } catch (error) {
-              console.error(
-                '[OutlookCalendar] Failed to get token from webContents:',
-                error
-              );
+              outlookError('Failed to get token from webContents:', error);
             }
           }
 
@@ -1165,7 +1100,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
         );
 
         // Also log a user-friendly message that could be shown in UI
-        console.log('[OutlookCalendar] User-friendly error message:');
+        outlookLog('User-friendly error message:');
         console.log(generateUserFriendlyMessage(classifiedError));
 
         return Promise.reject(e);

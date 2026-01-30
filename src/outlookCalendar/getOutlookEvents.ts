@@ -20,6 +20,7 @@ import {
   createClassifiedError,
   formatErrorForLogging,
 } from './errorClassification';
+import { outlookLog, outlookError, outlookWarn } from './logger';
 import type { OutlookCredentials, AppointmentData } from './type';
 
 /**
@@ -31,10 +32,7 @@ const testExchangeConnectivity = async (
   timeoutMs: number = 5000
 ): Promise<boolean> => {
   try {
-    console.log(
-      '[OutlookCalendar] Testing connectivity to Exchange server:',
-      exchangeUrl
-    );
+    outlookLog('Testing connectivity to Exchange server:', exchangeUrl);
 
     // Extract base URL for connectivity test
     const url = new URL(exchangeUrl);
@@ -53,7 +51,7 @@ const testExchangeConnectivity = async (
     clearTimeout(timeoutId);
 
     // Any response (including errors) indicates the server is reachable
-    console.log('[OutlookCalendar] Connectivity test result:', {
+    outlookLog('Connectivity test result:', {
       url: baseUrl,
       status: response.status,
       reachable: true,
@@ -62,7 +60,7 @@ const testExchangeConnectivity = async (
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn('[OutlookCalendar] Connectivity test failed:', {
+    outlookWarn('Connectivity test failed:', {
       url: exchangeUrl,
       error: errorMessage,
       note: 'This may be normal if the server requires authentication or has CORS restrictions',
@@ -113,7 +111,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     throw new Error('Invalid server URL: must be a non-empty string');
   }
 
-  console.log('[OutlookCalendar] Starting URL sanitization for:', serverUrl);
+  outlookLog('Starting URL sanitization for:', serverUrl);
 
   try {
     // Use URL constructor for parsing and validation
@@ -148,7 +146,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
 
     const sanitizedUrl = url.toString();
 
-    console.log('[OutlookCalendar] URL sanitization completed:', {
+    outlookLog('URL sanitization completed:', {
       input: serverUrl,
       output: sanitizedUrl,
       protocol: url.protocol,
@@ -161,12 +159,10 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     }
 
     // Connectivity test for debugging
-    console.log(
-      '[OutlookCalendar] Running connectivity test to check server reachability...'
-    );
+    outlookLog('Running connectivity test to check server reachability...');
     // Run connectivity test in background without blocking
     testExchangeConnectivity(sanitizedUrl).catch((error) => {
-      console.warn('[OutlookCalendar] Background connectivity test failed:', {
+      outlookWarn('Background connectivity test failed:', {
         url: sanitizedUrl,
         error: error instanceof Error ? error.message : String(error),
         note: 'This does not affect the URL validation result',
@@ -176,13 +172,10 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     return sanitizedUrl;
   } catch (error) {
     // Enhanced fallback using URL constructor more intelligently
-    console.warn(
-      '[OutlookCalendar] URL parsing failed, attempting fallback method:',
-      {
-        originalUrl: serverUrl,
-        error: error instanceof Error ? error.message : String(error),
-      }
-    );
+    outlookWarn('URL parsing failed, attempting fallback method:', {
+      originalUrl: serverUrl,
+      error: error instanceof Error ? error.message : String(error),
+    });
 
     // Try to fix common URL issues
     let fallbackUrl = serverUrl.trim();
@@ -190,7 +183,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     // Add protocol if missing
     if (!fallbackUrl.match(/^https?:\/\//)) {
       fallbackUrl = `https://${fallbackUrl}`;
-      console.log('[OutlookCalendar] Added default HTTPS protocol');
+      outlookLog('Added default HTTPS protocol');
     }
 
     // Remove multiple slashes (except after protocol)
@@ -221,7 +214,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
 
       const finalUrl = url.toString();
 
-      console.log('[OutlookCalendar] Fallback URL construction successful:', {
+      outlookLog('Fallback URL construction successful:', {
         input: serverUrl,
         fallback: fallbackUrl,
         output: finalUrl,
@@ -231,17 +224,12 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
       });
 
       // Connectivity test for fallback URL too
-      console.log(
-        '[OutlookCalendar] Running connectivity test on fallback URL...'
-      );
+      outlookLog('Running connectivity test on fallback URL...');
       testExchangeConnectivity(finalUrl).catch((error) => {
-        console.warn(
-          '[OutlookCalendar] Fallback URL connectivity test failed:',
-          {
-            url: finalUrl,
-            error: error instanceof Error ? error.message : String(error),
-          }
-        );
+        outlookWarn('Fallback URL connectivity test failed:', {
+          url: finalUrl,
+          error: error instanceof Error ? error.message : String(error),
+        });
       });
 
       return finalUrl;
@@ -251,7 +239,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
         Fallback error: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}. 
         Please ensure the URL includes a valid protocol (http:// or https://) and hostname.`;
 
-      console.error('[OutlookCalendar] URL sanitization failed completely:', {
+      outlookError('URL sanitization failed completely:', {
         input: serverUrl,
         originalError: error instanceof Error ? error.message : String(error),
         fallbackError:
@@ -269,7 +257,7 @@ export const getOutlookEvents = async (
   credentials: OutlookCredentials,
   date: Date
 ): Promise<AppointmentData[]> => {
-  console.log('[OutlookCalendar] Starting getOutlookEvents', {
+  outlookLog('Starting getOutlookEvents', {
     userId: credentials.userId,
     serverUrl: credentials.serverUrl,
     date: date.toISOString(),
@@ -297,7 +285,7 @@ export const getOutlookEvents = async (
       throw error;
     }
 
-    console.log('[OutlookCalendar] Initializing Exchange connection');
+    outlookLog('Initializing Exchange connection');
     // Exchange 2016 compatibility: Allow self-signed certificates
     // This is commonly needed for on-premises Exchange servers
     // NOTE: rejectUnauthorized disabled for production - uncomment for testing with self-signed certs
@@ -316,7 +304,7 @@ export const getOutlookEvents = async (
     try {
       const exchangeUrl = sanitizeExchangeUrl(serverUrl);
       exchange.Url = new Uri(exchangeUrl);
-      console.log('[OutlookCalendar] Exchange URL set:', exchangeUrl);
+      outlookLog('Exchange URL set:', exchangeUrl);
     } catch (error) {
       const classifiedError = createClassifiedError(error as Error, {
         operation: 'exchange_url_configuration',
@@ -334,10 +322,7 @@ export const getOutlookEvents = async (
     }
 
     const validatedDate = new Date(date);
-    console.log(
-      '[OutlookCalendar] Searching for appointments on:',
-      validatedDate.toDateString()
-    );
+    outlookLog('Searching for appointments on:', validatedDate.toDateString());
 
     const folderId = new FolderId(WellKnownFolderName.Calendar);
     const minTime = new DateTime(
@@ -358,16 +343,10 @@ export const getOutlookEvents = async (
     let appointments: Appointment[] = [];
 
     try {
-      console.log(
-        '[OutlookCalendar] Fetching appointments from Exchange server...'
-      );
+      outlookLog('Fetching appointments from Exchange server...');
       const findResult = await exchange.FindAppointments(folderId, view);
       appointments = findResult.Items as Appointment[];
-      console.log(
-        '[OutlookCalendar] Found',
-        appointments.length,
-        'appointments'
-      );
+      outlookLog('Found', appointments.length, 'appointments');
     } catch (error) {
       const classifiedError = createClassifiedError(error as Error, {
         operation: 'fetch_appointments',
@@ -400,15 +379,9 @@ export const getOutlookEvents = async (
 
     const propertySet = new PropertySet(BasePropertySet.FirstClassProperties);
     try {
-      console.log(
-        '[OutlookCalendar] Loading properties for',
-        filtered.length,
-        'appointments'
-      );
+      outlookLog('Loading properties for', filtered.length, 'appointments');
       await exchange.LoadPropertiesForItems(filtered, propertySet);
-      console.log(
-        '[OutlookCalendar] Successfully loaded appointment properties'
-      );
+      outlookLog('Successfully loaded appointment properties');
     } catch (error) {
       const classifiedError = createClassifiedError(error as Error, {
         operation: 'load_appointment_properties',
@@ -428,11 +401,7 @@ export const getOutlookEvents = async (
       );
     }
 
-    console.log(
-      '[OutlookCalendar] Processing',
-      filtered.length,
-      'appointments'
-    );
+    outlookLog('Processing', filtered.length, 'appointments');
     return filtered.map<AppointmentData>((appointment, index) => {
       let description = '';
       try {
@@ -440,8 +409,8 @@ export const getOutlookEvents = async (
           description = appointment.Body.Text;
         }
       } catch (error) {
-        console.warn(
-          `[OutlookCalendar] Failed to get description for appointment ${index}:`,
+        outlookWarn(
+          `Failed to get description for appointment ${index}:`,
           error
         );
         // Ignore errors when the appointment body is missing.
@@ -467,28 +436,22 @@ export const getOutlookEvents = async (
           busy: isBusy,
         };
 
-        console.log(
-          `[OutlookCalendar] Processed appointment ${index + 1}/${filtered.length}:`,
-          {
-            id: appointmentData.id,
-            subject: appointmentData.subject,
-            startTime: appointmentData.startTime,
-            busy: appointmentData.busy,
-          }
-        );
+        outlookLog(`Processed appointment ${index + 1}/${filtered.length}:`, {
+          id: appointmentData.id,
+          subject: appointmentData.subject,
+          startTime: appointmentData.startTime,
+          busy: appointmentData.busy,
+        });
 
         return appointmentData;
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        console.error(
-          `[OutlookCalendar] Failed to process appointment ${index}:`,
-          {
-            error: errorMessage,
-            appointmentId: appointment.Id?.UniqueId,
-            subject: appointment.Subject,
-          }
-        );
+        outlookError(`Failed to process appointment ${index}:`, {
+          error: errorMessage,
+          appointmentId: appointment.Id?.UniqueId,
+          subject: appointment.Subject,
+        });
         throw new Error(`Failed to process appointment: ${errorMessage}`);
       }
     });

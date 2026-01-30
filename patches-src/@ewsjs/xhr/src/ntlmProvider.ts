@@ -8,6 +8,14 @@ import { Agent as httpsAgent } from 'https';
 
 import { IProvider, PreCallConfig } from './IProvider';
 
+declare const global: { isVerboseOutlookLoggingEnabled?: boolean };
+
+const verboseLog = (...args: unknown[]) => {
+  if (global.isVerboseOutlookLoggingEnabled) {
+    console.log('[OutlookCalendar]', ...args);
+  }
+};
+
 export class NtlmProvider implements IProvider {
   private _client: AxiosInstance = null;
 
@@ -42,15 +50,12 @@ export class NtlmProvider implements IProvider {
       domain: this.domain,
     };
 
-    console.log('[DEBUG] NTLM Provider - Starting NTLM authentication');
-    console.log('[DEBUG] NTLM Provider - Target URL:', options.url);
-    console.log('[DEBUG] NTLM Provider - Domain:', this.domain);
-    console.log('[DEBUG] NTLM Provider - Username:', '[REDACTED]');
-    console.log(
-      '[DEBUG] NTLM Provider - Workstation:',
-      ntlmOptions.workstation
-    );
-    console.log(
+    verboseLog('[DEBUG] NTLM Provider - Starting NTLM authentication');
+    verboseLog('[DEBUG] NTLM Provider - Target URL:', options.url);
+    verboseLog('[DEBUG] NTLM Provider - Domain:', this.domain);
+    verboseLog('[DEBUG] NTLM Provider - Username:', '[REDACTED]');
+    verboseLog('[DEBUG] NTLM Provider - Workstation:', ntlmOptions.workstation);
+    verboseLog(
       '[DEBUG] NTLM Provider - Reject Unauthorized:',
       options.rejectUnauthorized
     );
@@ -66,7 +71,7 @@ export class NtlmProvider implements IProvider {
       ntlmOptions.domain
     ); // alternate client - ntlm-client
 
-    console.log('[DEBUG] NTLM Provider - Type 1 Message generated:', type1msg);
+    verboseLog('[DEBUG] NTLM Provider - Type 1 Message generated:', type1msg);
 
     let opt: AxiosRequestConfig = (<any>Object).assign({}, options);
     opt['method'] = 'GET';
@@ -74,48 +79,48 @@ export class NtlmProvider implements IProvider {
     delete opt['data'];
     delete opt['responseType'];
 
-    console.log('[DEBUG] NTLM Provider - Sending Type 1 request');
-    console.log(
+    verboseLog('[DEBUG] NTLM Provider - Sending Type 1 request');
+    verboseLog(
       '[DEBUG] NTLM Provider - Request headers:',
       JSON.stringify(opt.headers, null, 2)
     );
 
     try {
       const response = await axios(opt).catch((err) => {
-        console.log(
+        verboseLog(
           '[DEBUG] NTLM Provider - axios error caught during Type 1 request:',
           err
         );
-        console.log('[DEBUG] NTLM Provider - Error code:', err.code);
-        console.log('[DEBUG] NTLM Provider - Error message:', err.message);
-        console.log('[DEBUG] NTLM Provider - Error stack:', err.stack);
+        verboseLog('[DEBUG] NTLM Provider - Error code:', err.code);
+        verboseLog('[DEBUG] NTLM Provider - Error message:', err.message);
+        verboseLog('[DEBUG] NTLM Provider - Error stack:', err.stack);
 
         if (err.response) {
-          console.log(
+          verboseLog(
             '[DEBUG] NTLM Provider - Error response status:',
             err.response.status
           );
-          console.log(
+          verboseLog(
             '[DEBUG] NTLM Provider - Error response statusText:',
             err.response.statusText
           );
-          console.log(
+          verboseLog(
             '[DEBUG] NTLM Provider - Error response headers:',
             JSON.stringify(err.response.headers, null, 2)
           );
-          console.log(
+          verboseLog(
             '[DEBUG] NTLM Provider - Error response data:',
             err.response.data
           );
         } else {
-          console.log(
+          verboseLog(
             '[DEBUG] NTLM Provider - No response in error, network or connection issue'
           );
-          console.log(
+          verboseLog(
             '[DEBUG] NTLM Provider - Error config URL:',
             err.config?.url
           );
-          console.log(
+          verboseLog(
             '[DEBUG] NTLM Provider - Error config timeout:',
             err.config?.timeout
           );
@@ -124,47 +129,45 @@ export class NtlmProvider implements IProvider {
         return err.response;
       });
 
-      console.log('[DEBUG] NTLM Provider - Type 1 response received');
-      console.log('[DEBUG] NTLM Provider - Response status:', response.status);
-      console.log(
+      verboseLog('[DEBUG] NTLM Provider - Type 1 response received');
+      verboseLog('[DEBUG] NTLM Provider - Response status:', response.status);
+      verboseLog(
         '[DEBUG] NTLM Provider - Response statusText:',
         response.statusText
       );
-      console.log(
+      verboseLog(
         '[DEBUG] NTLM Provider - Response headers:',
         JSON.stringify(response.headers, null, 2)
       );
 
       if (!response.headers['www-authenticate']) {
-        console.log(
+        verboseLog(
           '❌ [FAILURE] NTLM Provider - CRITICAL: www-authenticate header missing!'
         );
-        console.log(
+        verboseLog(
           '📋 [FAILURE] Exchange server is NOT accepting NTLM authentication!'
         );
-        console.log(
+        verboseLog(
           '[DEBUG] NTLM Provider - Available headers:',
           Object.keys(response.headers)
         );
         throw new Error('www-authenticate header not found in Type 1 response');
       }
 
-      console.log(
+      verboseLog(
         '✅ [SUCCESS FACTOR] NTLM Provider - www-authenticate header found!'
       );
-      console.log(
+      verboseLog(
         '📋 [SUCCESS FACTOR] Exchange server IS accepting NTLM authentication!'
       );
-      console.log(
+      verboseLog(
         '[DEBUG] NTLM Provider - www-authenticate content:',
         response.headers['www-authenticate']
       );
 
       let type2msg = decodeType2Message(response.headers['www-authenticate']);
-      console.log(
-        '[DEBUG] NTLM Provider - Type 2 message decoded successfully'
-      );
-      console.log(
+      verboseLog('[DEBUG] NTLM Provider - Type 2 message decoded successfully');
+      verboseLog(
         '[DEBUG] NTLM Provider - Type 2 message details:',
         JSON.stringify(type2msg, null, 2)
       );
@@ -183,28 +186,28 @@ export class NtlmProvider implements IProvider {
       options.headers['Authorization'] = type3msg;
       options.headers['Connection'] = 'Close';
 
-      console.log(
+      verboseLog(
         '🎉 [SUCCESS] NTLM Provider - Type 3 authentication completed!'
       );
-      console.log(
+      verboseLog(
         '📋 [SUCCESS] All 3 NTLM handshake steps successful - authentication should work!'
       );
-      console.log(
+      verboseLog(
         '[DEBUG] NTLM Provider - Final request headers prepared:',
         JSON.stringify(options.headers, null, 2)
       );
 
       return options;
     } catch (err) {
-      console.log('[DEBUG] NTLM Provider - FATAL ERROR in preCall:');
-      console.log('[DEBUG] NTLM Provider - Error type:', typeof err);
-      console.log(
+      verboseLog('[DEBUG] NTLM Provider - FATAL ERROR in preCall:');
+      verboseLog('[DEBUG] NTLM Provider - Error type:', typeof err);
+      verboseLog(
         '[DEBUG] NTLM Provider - Error instanceof Error:',
         err instanceof Error
       );
-      console.log('[DEBUG] NTLM Provider - Error message:', err.message);
-      console.log('[DEBUG] NTLM Provider - Error stack:', err.stack);
-      console.log(
+      verboseLog('[DEBUG] NTLM Provider - Error message:', err.message);
+      verboseLog('[DEBUG] NTLM Provider - Error stack:', err.stack);
+      verboseLog(
         '[DEBUG] NTLM Provider - Error details:',
         JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
       );

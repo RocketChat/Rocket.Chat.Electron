@@ -279,7 +279,7 @@ export const getOutlookEvents = async (
         userId: credentials.userId,
       });
 
-      console.error(
+      outlookError(
         formatErrorForLogging(classifiedError, 'Credential validation')
       );
       throw error;
@@ -312,7 +312,7 @@ export const getOutlookEvents = async (
         userId: credentials.userId,
       });
 
-      console.error(
+      outlookError(
         formatErrorForLogging(classifiedError, 'Exchange URL configuration')
       );
 
@@ -355,17 +355,15 @@ export const getOutlookEvents = async (
         exchangeUrl: exchange.Url?.ToString(),
       });
 
-      console.error(
+      outlookError(
         formatErrorForLogging(
           classifiedError,
           'Fetch appointments from Exchange'
         )
       );
 
-      return Promise.reject(
-        new Error(
-          `Failed to fetch appointments: ${classifiedError.technicalMessage}`
-        )
+      throw new Error(
+        `Failed to fetch appointments: ${classifiedError.technicalMessage}`
       );
     }
     // Filter out appointments that end exactly at midnight
@@ -390,14 +388,12 @@ export const getOutlookEvents = async (
         userId: credentials.userId,
       });
 
-      console.error(
+      outlookError(
         formatErrorForLogging(classifiedError, 'Load appointment properties')
       );
 
-      return Promise.reject(
-        new Error(
-          `Failed to load appointment properties: ${classifiedError.technicalMessage}`
-        )
+      throw new Error(
+        `Failed to load appointment properties: ${classifiedError.technicalMessage}`
       );
     }
 
@@ -463,12 +459,10 @@ export const getOutlookEvents = async (
       date: date.toISOString(),
     });
 
-    console.error(formatErrorForLogging(classifiedError, 'Get Outlook Events'));
+    outlookError(formatErrorForLogging(classifiedError, 'Get Outlook Events'));
 
-    return Promise.reject(
-      new Error(
-        `Outlook calendar sync failed: ${classifiedError.technicalMessage}`
-      )
+    throw new Error(
+      `Outlook calendar sync failed: ${classifiedError.technicalMessage}`
     );
   }
 };

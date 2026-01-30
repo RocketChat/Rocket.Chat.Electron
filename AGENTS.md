@@ -86,11 +86,11 @@ Electron desktop application built with TypeScript and React.
 
 ### Core Technologies
 
-- **Electron 37.2.4** - Desktop framework
+- **Electron 40.0.0** - Desktop framework
 - **TypeScript 5.7.3** - Type-safe JavaScript
 - **React 18.3.1** - UI components
 - **Redux 5.0.1** - State management
-- **Rollup** - Build bundler
+- **Rollup 4.32.0** - Build bundler
 - **Jest** - Testing (with Electron runner)
 
 ### Key Directories
@@ -141,12 +141,12 @@ Redux with modular reducers. State syncs between main and renderer via IPC chann
 
 **MANDATORY: Use Fuselage components** for all UI work.
 
-- Storybook: https://rocketchat.github.io/fuselage
-- Repository: https://github.com/RocketChat/fuselage
+- Storybook: [Rocket.Chat Fuselage Storybook](https://rocketchat.github.io/fuselage)
+- Repository: [Rocket.Chat Fuselage](https://github.com/RocketChat/fuselage)
 - Only create custom components when Fuselage doesn't provide what's needed
 - Check `Theme.d.ts` for valid color tokens
 - Import from `@rocket.chat/fuselage`
-- Reference https://github.com/RocketChat/Rocket.Chat for usage patterns
+- Reference: [Rocket.Chat main repo](https://github.com/RocketChat/Rocket.Chat) for usage patterns
 
 ---
 
@@ -163,7 +163,7 @@ Uses `@kayahr/jest-electron-runner` for Electron environment simulation.
 
 Tests run on Windows, macOS, AND Linux CI.
 
-**Primary Pattern: Defensive Coding**
+#### Primary Pattern: Defensive Coding
 
 Use optional chaining with fallbacks for Linux-only APIs:
 
@@ -277,7 +277,7 @@ Each worktree has its own working directory, branch, build outputs, and node_mod
 
 **Hierarchy:**
 
-```
+```text
 AGENTS.md (root)           → Project-wide guidelines
 ├── src/module/AGENTS.md   → Module-specific knowledge
 ├── patches-src/AGENTS.md  → Patch-specific knowledge

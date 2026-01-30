@@ -16,6 +16,9 @@ const COLORS = {
 } as const;
 
 const prefix = `${COLORS.cyan}[OutlookCalendar]${COLORS.reset}`;
+const debugPrefix = `${COLORS.blue}[OutlookCalendar]${COLORS.reset}`;
+const warnPrefix = `${COLORS.yellow}[OutlookCalendar]${COLORS.reset}`;
+const errorPrefix = `${COLORS.red}[OutlookCalendar]${COLORS.reset}`;
 
 export const setupOutlookLogger = (): void => {
   global.isVerboseOutlookLoggingEnabled = select(
@@ -38,7 +41,7 @@ export const outlookLog = (...args: unknown[]): void => {
 
 export const outlookDebug = (...args: unknown[]): void => {
   if (global.isVerboseOutlookLoggingEnabled) {
-    console.debug(`${COLORS.blue}[OutlookCalendar]${COLORS.reset}`, ...args);
+    console.debug(debugPrefix, ...args);
   }
 };
 
@@ -50,10 +53,10 @@ export const outlookInfo = (...args: unknown[]): void => {
 
 export const outlookWarn = (...args: unknown[]): void => {
   if (global.isVerboseOutlookLoggingEnabled) {
-    console.warn(`${COLORS.yellow}[OutlookCalendar]${COLORS.reset}`, ...args);
+    console.warn(warnPrefix, ...args);
   }
 };
 
 export const outlookError = (...args: unknown[]): void => {
-  console.error(`${COLORS.red}[OutlookCalendar]${COLORS.reset}`, ...args);
+  console.error(errorPrefix, ...args);
 };

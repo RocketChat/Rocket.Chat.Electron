@@ -92,10 +92,10 @@ const isLikelyBase64 = (str: string): boolean => {
 function decryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  console.log('Decrypting credentials for user:', credentials.userId);
+  outlookLog('Decrypting credentials for user:', credentials.userId);
 
   if (!safeStorage.isEncryptionAvailable()) {
-    console.warn('Encryption not available, using credentials as plaintext');
+    outlookWarn('Encryption not available, using credentials as plaintext');
     return credentials;
   }
 
@@ -103,7 +103,7 @@ function decryptedCredentials(
   const passwordLooksEncrypted = isLikelyBase64(credentials.password);
 
   if (!loginLooksEncrypted || !passwordLooksEncrypted) {
-    console.warn(
+    outlookWarn(
       'Credentials do not appear to be encrypted (legacy/plaintext), using as-is',
       { userId: credentials.userId }
     );
@@ -118,7 +118,7 @@ function decryptedCredentials(
       .decryptString(Buffer.from(credentials.password, 'base64'))
       .toString();
 
-    console.log('Successfully decrypted credentials');
+    outlookLog('Successfully decrypted credentials');
     return {
       ...credentials,
       login: decryptedLogin,
@@ -126,7 +126,7 @@ function decryptedCredentials(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn(
+    outlookWarn(
       'Failed to decrypt credentials, falling back to plaintext (legacy credentials)',
       { userId: credentials.userId, error: errorMessage }
     );
@@ -140,7 +140,7 @@ async function listEventsFromRocketChatServer(
   token: string
 ) {
   const url = urls.server(serverUrl).calendarEvents.list;
-  console.log('Fetching events from Rocket.Chat server:', {
+  outlookLog('Fetching events from Rocket.Chat server:', {
     url,
     userId,
     hasToken: !!token,
@@ -183,7 +183,7 @@ async function listEventsFromRocketChatServer(
         : undefined,
     });
 
-    console.error(
+    outlookError(
       formatErrorForLogging(
         classifiedError,
         'Fetch events from Rocket.Chat server'
@@ -490,7 +490,7 @@ async function performSync(
   credentials: OutlookCredentials,
   token: string
 ) {
-  console.info(
+  outlookLog(
     'Starting Outlook calendar synchronization for server:',
     serverUrl
   );
@@ -555,7 +555,7 @@ async function performSync(
       outlookServerUrl: credentials.serverUrl,
     });
 
-    console.error(
+    outlookError(
       formatErrorForLogging(classifiedError, 'Fetch events during sync')
     );
 
@@ -810,8 +810,8 @@ async function maybeSyncEvents(serverToSync: Server) {
       webContentsId: serverToSync.webContentsId,
     });
 
-    console.error(formatErrorForLogging(classifiedError, 'Maybe sync events'));
-    throw error; // Re-throw to let calling function handle it
+    outlookError(formatErrorForLogging(classifiedError, 'Maybe sync events'));
+    throw error;
   }
 }
 
@@ -826,12 +826,10 @@ async function recurringSyncTask(serverToSync: Server) {
       serverUrl: serverToSync.url,
     });
 
-    console.error(
-      formatErrorForLogging(classifiedError, 'Recurring sync task')
-    );
+    outlookError(formatErrorForLogging(classifiedError, 'Recurring sync task'));
 
     outlookLog('User-friendly error message for recurring sync:');
-    console.log(generateUserFriendlyMessage(classifiedError));
+    outlookLog(generateUserFriendlyMessage(classifiedError));
 
     outlookLog('Stopping recurring sync due to persistent errors');
     clearInterval(recurringSyncTaskId);
@@ -1092,18 +1090,17 @@ export const startOutlookCalendarUrlHandler = (): void => {
           hasToken: !!userAPIToken,
         });
 
-        console.error(
+        outlookError(
           formatErrorForLogging(
             classifiedError,
             'Sync events with Rocket.Chat server'
           )
         );
 
-        // Also log a user-friendly message that could be shown in UI
         outlookLog('User-friendly error message:');
-        console.log(generateUserFriendlyMessage(classifiedError));
+        outlookLog(generateUserFriendlyMessage(classifiedError));
 
-        return Promise.reject(e);
+        throw e;
       }
 
       if (saveCredentials) {

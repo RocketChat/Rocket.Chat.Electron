@@ -491,8 +491,9 @@ export async function syncEventsWithRocketChatServer(
   try {
     await performSync(serverUrl, credentials, token);
 
-    // Process queued sync while still holding the lock to prevent race condition
-    if (state.syncQueue.length > 0) {
+    // Process queued syncs - loop until queue is truly empty
+    // (new syncs can be queued while lastSync.run() executes)
+    while (state.syncQueue.length > 0) {
       outlookLog(`Processing ${state.syncQueue.length} queued sync requests`);
       // Only process the last sync request (most recent state)
       const lastSync = state.syncQueue[state.syncQueue.length - 1];
@@ -505,6 +506,7 @@ export async function syncEventsWithRocketChatServer(
       }
 
       try {
+        // eslint-disable-next-line no-await-in-loop -- Must drain queue sequentially
         await lastSync.run();
         lastSync.resolve();
       } catch (error) {

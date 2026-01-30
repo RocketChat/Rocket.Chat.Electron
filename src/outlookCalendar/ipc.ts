@@ -418,6 +418,21 @@ async function deleteEventOnRocketChatServer(
   }
 }
 
+/**
+ * Synchronizes Outlook calendar events with the Rocket.Chat server.
+ *
+ * This function implements sync coalescing: when a sync is already in progress,
+ * subsequent sync requests are queued. Only the LAST queued sync actually runs,
+ * as it contains the most recent state. Earlier queued syncs resolve immediately
+ * since their changes would be superseded by the final sync.
+ *
+ * This prevents redundant API calls when multiple sync triggers fire in quick
+ * succession (e.g., during app startup or rapid credential updates).
+ *
+ * @param serverUrl - The Rocket.Chat server URL
+ * @param credentials - Outlook Exchange credentials
+ * @param token - Rocket.Chat authentication token
+ */
 export async function syncEventsWithRocketChatServer(
   serverUrl: string,
   credentials: OutlookCredentials,
@@ -908,10 +923,6 @@ export const startOutlookCalendarUrlHandler = (): void => {
       // Perform initial sync with debounce to prevent duplicate calls
       initialSyncTimeoutId = setTimeout(() => {
         outlookLog('Executing initial sync');
-        if (isSyncInProgress) {
-          outlookLog('Sync already in progress, skipping initial sync');
-          return;
-        }
         maybeSyncEvents(server).catch((error) => {
           const errorMessage =
             error instanceof Error ? error.message : String(error);

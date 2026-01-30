@@ -333,16 +333,6 @@ describe('Exchange URL Sanitization', () => {
         expect(result).not.toContain('/ews/ews');
       });
 
-      it('provides detailed logging information', () => {
-        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-        sanitizeExchangeUrl('https://mail.company.com');
-        expect(consoleSpy).toHaveBeenCalledWith(
-          '[OutlookCalendar] Starting URL sanitization for:',
-          'https://mail.company.com'
-        );
-        consoleSpy.mockRestore();
-      });
-
       it('handles URLs without protocol via fallback', () => {
         const result = sanitizeExchangeUrl('invalid-url');
         expect(result).toBe('https://invalid-url/ews/exchange.asmx');

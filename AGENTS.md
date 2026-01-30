@@ -57,6 +57,19 @@ Windows packages use Google Cloud KMS. Build happens in two phases:
 
 This prevents MSI build failures from KMS CNG provider conflicts.
 
+### Patching npm Packages (CRITICAL)
+
+This project uses **TWO different patching mechanisms** - do NOT confuse them:
+
+| Mechanism               | Location         | Used For                                  |
+| ----------------------- | ---------------- | ----------------------------------------- |
+| **Yarn patch protocol** | `.yarn/patches/` | `@ewsjs/xhr` (configured in package.json) |
+| **patch-package**       | `patches/`       | `@kayahr/jest-electron-runner`            |
+
+**NEVER add `@ewsjs/xhr` patches to `patches/`** - it's already patched by Yarn. Adding a patch-package patch causes CI failures due to conflicts.
+
+The `patches-src/` folder contains reference TypeScript sources but is NOT automatically applied.
+
 ---
 
 ## Architecture Overview

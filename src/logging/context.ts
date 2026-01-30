@@ -213,12 +213,14 @@ export const getComponentContext = (captureStack = false): string => {
 /**
  * Get complete log context
  */
-export const getLogContext = (webContents?: WebContents): ILogContext => {
+export const getLogContext = (
+  webContents?: WebContents,
+  captureComponentStack = false
+): ILogContext => {
   const context: ILogContext = {
     processType: getProcessContext(),
   };
 
-  // Add server context if webContents is provided
   if (webContents) {
     context.webContentsType = webContents.getType();
     context.webContentsId = webContents.id;
@@ -229,8 +231,7 @@ export const getLogContext = (webContents?: WebContents): ILogContext => {
     };
   }
 
-  // Add component context
-  context.component = getComponentContext();
+  context.component = getComponentContext(captureComponentStack);
 
   return context;
 };

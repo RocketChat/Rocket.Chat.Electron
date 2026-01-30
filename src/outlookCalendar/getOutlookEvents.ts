@@ -74,8 +74,19 @@ const testExchangeConnectivity = async (
 export const testExchangeServerConnectivity = testExchangeConnectivity;
 
 /**
- * Connectivity testing is always enabled on this debugging branch
+ * Builds the EWS endpoint pathname on a URL object
+ * Normalizes path segments and ensures proper /ews/exchange.asmx suffix
  */
+const buildEwsPathname = (url: URL): void => {
+  const pathSegments = url.pathname
+    .split('/')
+    .filter((segment) => segment.length > 0)
+    .map((segment) => segment.toLowerCase())
+    .filter((segment) => segment !== 'ews' && segment !== 'exchange.asmx');
+
+  pathSegments.push('ews', 'exchange.asmx');
+  url.pathname = `/${pathSegments.join('/')}`;
+};
 
 /**
  * Sanitizes and constructs a proper Exchange Web Services (EWS) URL
@@ -130,19 +141,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     }
 
     // Normalize and construct EWS path using URL properties
-    let pathSegments = url.pathname
-      .split('/')
-      .filter((segment) => segment.length > 0) // Remove empty segments
-      .map((segment) => segment.toLowerCase()); // Normalize case
-
-    // Remove existing ews and exchange.asmx segments to avoid duplication
-    pathSegments = pathSegments.filter(
-      (segment) => segment !== 'ews' && segment !== 'exchange.asmx'
-    );
-
-    // Construct clean EWS path
-    pathSegments.push('ews', 'exchange.asmx');
-    url.pathname = `/${pathSegments.join('/')}`;
+    buildEwsPathname(url);
 
     const sanitizedUrl = url.toString();
 
@@ -157,17 +156,6 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     if (!url.pathname.endsWith('/ews/exchange.asmx')) {
       throw new Error('Failed to construct proper EWS endpoint URL');
     }
-
-    // Connectivity test for debugging
-    outlookLog('Running connectivity test to check server reachability...');
-    // Run connectivity test in background without blocking
-    testExchangeConnectivity(sanitizedUrl).catch((error) => {
-      outlookWarn('Background connectivity test failed:', {
-        url: sanitizedUrl,
-        error: error instanceof Error ? error.message : String(error),
-        note: 'This does not affect the URL validation result',
-      });
-    });
 
     return sanitizedUrl;
   } catch (error) {
@@ -198,19 +186,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
       }
 
       // Use the same clean path construction as main logic
-      let pathSegments = url.pathname
-        .split('/')
-        .filter((segment) => segment.length > 0)
-        .map((segment) => segment.toLowerCase());
-
-      // Remove existing ews and exchange.asmx segments
-      pathSegments = pathSegments.filter(
-        (segment) => segment !== 'ews' && segment !== 'exchange.asmx'
-      );
-
-      // Construct clean EWS path
-      pathSegments.push('ews', 'exchange.asmx');
-      url.pathname = `/${pathSegments.join('/')}`;
+      buildEwsPathname(url);
 
       const finalUrl = url.toString();
 
@@ -221,15 +197,6 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
         protocol: url.protocol,
         hostname: url.hostname,
         pathname: url.pathname,
-      });
-
-      // Connectivity test for fallback URL too
-      outlookLog('Running connectivity test on fallback URL...');
-      testExchangeConnectivity(finalUrl).catch((error) => {
-        outlookWarn('Fallback URL connectivity test failed:', {
-          url: finalUrl,
-          error: error instanceof Error ? error.message : String(error),
-        });
       });
 
       return finalUrl;

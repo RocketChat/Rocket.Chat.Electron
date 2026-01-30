@@ -180,7 +180,7 @@ const ERROR_PATTERNS: Array<{
 
 export function classifyError(
   error: Error | string,
-  _context: Record<string, any> = {}
+  _context: Record<string, unknown> = {}
 ): ErrorClassification {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const stack = error instanceof Error ? error.stack : '';
@@ -214,16 +214,17 @@ export function createClassifiedError(
   const classification = classifyError(error, context);
   const technicalMessage =
     error instanceof Error ? error.message : String(error);
+  const timestamp = new Date().toISOString();
 
   return {
     ...classification,
     technicalMessage,
     context: {
       ...context,
-      timestamp: new Date().toISOString(),
+      timestamp,
       stack: error instanceof Error ? error.stack : undefined,
     },
-    timestamp: new Date().toISOString(),
+    timestamp,
   };
 }
 

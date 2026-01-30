@@ -15,7 +15,7 @@ const SENSITIVE_PATTERNS: RegExp[] = [
   /bearer\s+[a-zA-Z0-9._-]+/gi,
   /authorization["'\s:=]+["']?[^"'\s,}\]]+/gi,
   /x-auth-token["'\s:=]+["']?[^"'\s,}\]]+/gi,
-  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
 ];
 
 // Keys that together indicate a Redux state dump (need 3+ to trigger)
@@ -94,8 +94,7 @@ const redactObject = (obj: any): any => {
 };
 
 export const createPrivacyHook = () => {
-  return (message: any, _transport: any, transportName?: string) => {
-    if (transportName !== 'file') return message;
+  return (message: any, _transport: any, _transportName?: string) => {
     try {
       // Guard against non-array data
       const data = Array.isArray(message.data) ? message.data : [message.data];

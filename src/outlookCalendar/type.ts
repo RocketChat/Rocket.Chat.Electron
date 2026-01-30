@@ -51,3 +51,34 @@ export type ErrorClassification = {
   userMessage: string;
   suggestedActions?: string[];
 };
+
+/**
+ * Calendar event as stored in Rocket.Chat server
+ */
+export type RocketChatCalendarEvent = {
+  _id: string;
+  externalId?: string;
+  subject: string;
+  startTime: string;
+  endTime?: string;
+  description?: string;
+  reminderMinutesBeforeStart?: number;
+  meetingUrl?: string;
+  busy?: boolean;
+};
+
+/**
+ * Response from Rocket.Chat calendar events list endpoint
+ */
+export type RocketChatEventsResponse = {
+  success: boolean;
+  data: RocketChatCalendarEvent[];
+};
+
+/**
+ * Response from Rocket.Chat calendar event create/update endpoint
+ */
+export type RocketChatEventResponse = {
+  success: boolean;
+  event?: RocketChatCalendarEvent;
+};

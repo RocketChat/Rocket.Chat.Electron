@@ -136,7 +136,9 @@ const configureLogging = () => {
               text: redactSensitiveData(rawText),
               version: app.getVersion(),
             })}\n`;
-            fs.appendFileSync(errorJsonPath, jsonEntry);
+            fs.promises.appendFile(errorJsonPath, jsonEntry).catch((err) => {
+              originalConsole.error('Failed to write error log:', err);
+            });
           } catch {
             // Ignore JSON logging failures
           }
@@ -222,9 +224,10 @@ export const setupWebContentsLogging = () => {
                   debug: console.debug,
                 };
 
-                // Get webContents ID and server URL for context
-                const webContentsId = ${webContents.id};
-                const serverUrl = '${serverUrl.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}';
+                 // Get webContents ID and server URL for context
+                 const webContentsId = ${webContents.id};
+                 const serverUrl = ${JSON.stringify(serverUrl)};
+
 
                 // Override console methods to send to main process with context
                 console.log = (...args) => {

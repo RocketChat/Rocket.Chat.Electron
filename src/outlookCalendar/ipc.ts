@@ -41,9 +41,7 @@ const INITIAL_SYNC_DEBOUNCE_MS = 100;
 
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   const { servers } = select(selectPersistableValues);
-  const server = servers.find(
-    (server) => server.webContentsId === webContentsId
-  );
+  const server = servers.find((s: Server) => s.webContentsId === webContentsId);
   return server || ({} as Server);
 };
 
@@ -221,7 +219,7 @@ async function createEventOnRocketChatServer(
   try {
     // Get server object to check version
     const { servers } = select(selectPersistableValues);
-    const server = servers.find((server) => server.url === serverUrl);
+    const server = servers.find((s: Server) => s.url === serverUrl);
 
     // Base payload
     const payload: Record<string, any> = {
@@ -305,7 +303,7 @@ async function updateEventOnRocketChatServer(
   try {
     // Get server object to check version
     const { servers } = select(selectPersistableValues);
-    const server = servers.find((server) => server.url === serverUrl);
+    const server = servers.find((s: Server) => s.url === serverUrl);
 
     // Base payload
     const payload: Record<string, any> = {
@@ -618,7 +616,7 @@ async function performSync(
 
   // Get server object to check version
   const { servers } = select(selectPersistableValues);
-  const server = servers.find((server) => server.url === serverUrl);
+  const server = servers.find((s: Server) => s.url === serverUrl);
 
   // Check for and clean up duplicate events
   const eventsByExternalId = new Map<string, RocketChatCalendarEvent[]>();

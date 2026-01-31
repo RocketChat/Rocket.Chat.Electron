@@ -5,6 +5,7 @@ import { app } from 'electron';
 
 import { select, dispatch, watch } from '../../store';
 import { normalizeNumber } from '../../ui/main/rootWindow';
+import type { PersistableValues } from '../PersistableValues';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
@@ -167,7 +168,7 @@ export const mergePersistableValues = async (
 };
 
 export const watchAndPersistChanges = (): void => {
-  watch(selectPersistableValues, (values) => {
+  watch(selectPersistableValues as any, (values: PersistableValues) => {
     persistValues(values);
   });
 };

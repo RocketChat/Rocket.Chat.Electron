@@ -100,9 +100,22 @@ type PersistableValues_4_11_0 = PersistableValues_4_10_0 & {
   isVerboseOutlookLoggingEnabled: boolean;
 };
 
+type PersistableValues_4_12_0 = PersistableValues_4_11_0 & {
+  isVerboseMainLoggingEnabled: boolean;
+  isVerboseAppLoggingEnabled: boolean;
+  isVerboseAuthLoggingEnabled: boolean;
+  isVerboseIpcLoggingEnabled: boolean;
+  isVerboseUiLoggingEnabled: boolean;
+  isVerboseUpdatesLoggingEnabled: boolean;
+  isVerboseNotificationsLoggingEnabled: boolean;
+  isVerboseVideoCallLoggingEnabled: boolean;
+  isVerboseServersLoggingEnabled: boolean;
+  isVerboseLogViewerLoggingEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_11_0,
-  keyof PersistableValues_4_11_0
+  PersistableValues_4_12_0,
+  keyof PersistableValues_4_12_0
 >;
 
 export const migrations = {
@@ -185,8 +198,35 @@ export const migrations = {
     ...before,
     userThemePreference: 'auto',
   }),
-  '>=4.11.0': (before: PersistableValues_4_10_0): PersistableValues_4_11_0 => ({
+  '>=4.11.0-0': (
+    before: PersistableValues_4_10_0
+  ): PersistableValues_4_11_0 => ({
     ...before,
     isVerboseOutlookLoggingEnabled: false,
+  }),
+  '>=4.12.0-0': (
+    before: PersistableValues_4_11_0
+  ): PersistableValues_4_12_0 => ({
+    ...before,
+    isVerboseMainLoggingEnabled:
+      (before as any).isVerboseMainLoggingEnabled ?? false,
+    isVerboseAppLoggingEnabled:
+      (before as any).isVerboseAppLoggingEnabled ?? false,
+    isVerboseAuthLoggingEnabled:
+      (before as any).isVerboseAuthLoggingEnabled ?? false,
+    isVerboseIpcLoggingEnabled:
+      (before as any).isVerboseIpcLoggingEnabled ?? false,
+    isVerboseUiLoggingEnabled:
+      (before as any).isVerboseUiLoggingEnabled ?? false,
+    isVerboseUpdatesLoggingEnabled:
+      (before as any).isVerboseUpdatesLoggingEnabled ?? false,
+    isVerboseNotificationsLoggingEnabled:
+      (before as any).isVerboseNotificationsLoggingEnabled ?? false,
+    isVerboseVideoCallLoggingEnabled:
+      (before as any).isVerboseVideoCallLoggingEnabled ?? false,
+    isVerboseServersLoggingEnabled:
+      (before as any).isVerboseServersLoggingEnabled ?? false,
+    isVerboseLogViewerLoggingEnabled:
+      (before as any).isVerboseLogViewerLoggingEnabled ?? false,
   }),
 };

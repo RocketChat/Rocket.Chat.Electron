@@ -2,7 +2,8 @@ import { createStructuredSelector } from 'reselect';
 
 import type { RootState } from '../store/rootReducer';
 
-export const selectPersistableValues = createStructuredSelector({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const selectPersistableValues = createStructuredSelector<any>({
   currentView: ({ currentView }: RootState) => currentView,
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }: RootState) =>
     doCheckForUpdatesOnStartup,
@@ -76,4 +77,29 @@ export const selectPersistableValues = createStructuredSelector({
   isVerboseOutlookLoggingEnabled: ({
     isVerboseOutlookLoggingEnabled,
   }: RootState) => isVerboseOutlookLoggingEnabled,
+  isVerboseMainLoggingEnabled: ({ isVerboseMainLoggingEnabled }: RootState) =>
+    isVerboseMainLoggingEnabled,
+  isVerboseAppLoggingEnabled: ({ isVerboseAppLoggingEnabled }: RootState) =>
+    isVerboseAppLoggingEnabled,
+  isVerboseAuthLoggingEnabled: ({ isVerboseAuthLoggingEnabled }: RootState) =>
+    isVerboseAuthLoggingEnabled,
+  isVerboseIpcLoggingEnabled: ({ isVerboseIpcLoggingEnabled }: RootState) =>
+    isVerboseIpcLoggingEnabled,
+  isVerboseUiLoggingEnabled: ({ isVerboseUiLoggingEnabled }: RootState) =>
+    isVerboseUiLoggingEnabled,
+  isVerboseUpdatesLoggingEnabled: ({
+    isVerboseUpdatesLoggingEnabled,
+  }: RootState) => isVerboseUpdatesLoggingEnabled,
+  isVerboseNotificationsLoggingEnabled: ({
+    isVerboseNotificationsLoggingEnabled,
+  }: RootState) => isVerboseNotificationsLoggingEnabled,
+  isVerboseVideoCallLoggingEnabled: ({
+    isVerboseVideoCallLoggingEnabled,
+  }: RootState) => isVerboseVideoCallLoggingEnabled,
+  isVerboseServersLoggingEnabled: ({
+    isVerboseServersLoggingEnabled,
+  }: RootState) => isVerboseServersLoggingEnabled,
+  isVerboseLogViewerLoggingEnabled: ({
+    isVerboseLogViewerLoggingEnabled,
+  }: RootState) => isVerboseLogViewerLoggingEnabled,
 });

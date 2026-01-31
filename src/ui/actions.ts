@@ -122,6 +122,26 @@ export const SETTINGS_USER_THEME_PREFERENCE_CHANGED =
   'settings/user-theme-preference-changed';
 export const SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED =
   'settings/set-verbose-outlook-logging-changed';
+export const SETTINGS_SET_VERBOSE_MAIN_LOGGING_CHANGED =
+  'settings/set-verbose-main-logging-changed';
+export const SETTINGS_SET_VERBOSE_APP_LOGGING_CHANGED =
+  'settings/set-verbose-app-logging-changed';
+export const SETTINGS_SET_VERBOSE_AUTH_LOGGING_CHANGED =
+  'settings/set-verbose-auth-logging-changed';
+export const SETTINGS_SET_VERBOSE_IPC_LOGGING_CHANGED =
+  'settings/set-verbose-ipc-logging-changed';
+export const SETTINGS_SET_VERBOSE_UI_LOGGING_CHANGED =
+  'settings/set-verbose-ui-logging-changed';
+export const SETTINGS_SET_VERBOSE_UPDATES_LOGGING_CHANGED =
+  'settings/set-verbose-updates-logging-changed';
+export const SETTINGS_SET_VERBOSE_NOTIFICATIONS_LOGGING_CHANGED =
+  'settings/set-verbose-notifications-logging-changed';
+export const SETTINGS_SET_VERBOSE_VIDEOCALL_LOGGING_CHANGED =
+  'settings/set-verbose-videocall-logging-changed';
+export const SETTINGS_SET_VERBOSE_SERVERS_LOGGING_CHANGED =
+  'settings/set-verbose-servers-logging-changed';
+export const SETTINGS_SET_VERBOSE_LOGVIEWER_LOGGING_CHANGED =
+  'settings/set-verbose-logviewer-logging-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -257,6 +277,16 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;
   [SETTINGS_USER_THEME_PREFERENCE_CHANGED]: 'auto' | 'light' | 'dark';
   [SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_MAIN_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_APP_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_AUTH_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_IPC_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_UI_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_UPDATES_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_NOTIFICATIONS_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_VIDEOCALL_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_SERVERS_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_VERBOSE_LOGVIEWER_LOGGING_CHANGED]: boolean;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;

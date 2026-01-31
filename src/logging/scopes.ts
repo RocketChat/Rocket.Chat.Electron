@@ -7,6 +7,20 @@ export interface IScopedLogger {
   error: (...args: any[]) => void;
 }
 
+const scopeToFlagName: Record<string, string> = {
+  main: 'isVerboseMainLoggingEnabled',
+  app: 'isVerboseAppLoggingEnabled',
+  outlook: 'isVerboseOutlookLoggingEnabled',
+  auth: 'isVerboseAuthLoggingEnabled',
+  ipc: 'isVerboseIpcLoggingEnabled',
+  ui: 'isVerboseUiLoggingEnabled',
+  updates: 'isVerboseUpdatesLoggingEnabled',
+  notifications: 'isVerboseNotificationsLoggingEnabled',
+  videoCall: 'isVerboseVideoCallLoggingEnabled',
+  servers: 'isVerboseServersLoggingEnabled',
+  logViewer: 'isVerboseLogViewerLoggingEnabled',
+};
+
 /**
  * Create a scoped logger with a consistent prefix
  * @example
@@ -15,10 +29,23 @@ export interface IScopedLogger {
  */
 export const createScopedLogger = (scope: string): IScopedLogger => {
   const scopeStr = `[${scope}]`;
+  const flagName = scopeToFlagName[scope];
+
+  const isVerboseEnabled = (): boolean => {
+    if (!flagName) return true; // Unknown scopes always log
+    return (global as any)[flagName] === true;
+  };
+
   return {
-    debug: (...args: any[]) => log.debug(scopeStr, ...args),
-    info: (...args: any[]) => log.info(scopeStr, ...args),
-    warn: (...args: any[]) => log.warn(scopeStr, ...args),
+    debug: (...args: any[]) => {
+      if (isVerboseEnabled()) log.debug(scopeStr, ...args);
+    },
+    info: (...args: any[]) => {
+      if (isVerboseEnabled()) log.info(scopeStr, ...args);
+    },
+    warn: (...args: any[]) => {
+      if (isVerboseEnabled()) log.warn(scopeStr, ...args);
+    },
     error: (...args: any[]) => log.error(scopeStr, ...args),
   };
 };
@@ -33,7 +60,7 @@ export const loggers = {
   ui: createScopedLogger('ui'),
   updates: createScopedLogger('updates'),
   notifications: createScopedLogger('notifications'),
-  videoCall: createScopedLogger('videocall'),
+  videoCall: createScopedLogger('videoCall'),
   servers: createScopedLogger('servers'),
-  logViewer: createScopedLogger('logviewer'),
+  logViewer: createScopedLogger('logViewer'),
 };

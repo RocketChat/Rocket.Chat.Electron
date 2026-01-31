@@ -33,7 +33,17 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isVerboseAppLoggingEnabled } from '../ui/reducers/isVerboseAppLoggingEnabled';
+import { isVerboseAuthLoggingEnabled } from '../ui/reducers/isVerboseAuthLoggingEnabled';
+import { isVerboseIpcLoggingEnabled } from '../ui/reducers/isVerboseIpcLoggingEnabled';
+import { isVerboseLogViewerLoggingEnabled } from '../ui/reducers/isVerboseLogViewerLoggingEnabled';
+import { isVerboseMainLoggingEnabled } from '../ui/reducers/isVerboseMainLoggingEnabled';
+import { isVerboseNotificationsLoggingEnabled } from '../ui/reducers/isVerboseNotificationsLoggingEnabled';
 import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
+import { isVerboseServersLoggingEnabled } from '../ui/reducers/isVerboseServersLoggingEnabled';
+import { isVerboseUiLoggingEnabled } from '../ui/reducers/isVerboseUiLoggingEnabled';
+import { isVerboseUpdatesLoggingEnabled } from '../ui/reducers/isVerboseUpdatesLoggingEnabled';
+import { isVerboseVideoCallLoggingEnabled } from '../ui/reducers/isVerboseVideoCallLoggingEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
@@ -103,6 +113,16 @@ export const rootReducer = combineReducers({
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
   isVerboseOutlookLoggingEnabled,
+  isVerboseMainLoggingEnabled,
+  isVerboseAppLoggingEnabled,
+  isVerboseAuthLoggingEnabled,
+  isVerboseIpcLoggingEnabled,
+  isVerboseUiLoggingEnabled,
+  isVerboseUpdatesLoggingEnabled,
+  isVerboseNotificationsLoggingEnabled,
+  isVerboseVideoCallLoggingEnabled,
+  isVerboseServersLoggingEnabled,
+  isVerboseLogViewerLoggingEnabled,
   updateChannel,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,

@@ -309,6 +309,46 @@
       "verboseOutlookLogging": {
         "title": "Verbose Outlook Calendar Logging",
         "description": "Enable detailed Exchange/NTLM debug logs for troubleshooting Outlook Calendar integration issues."
+      },
+      "verboseMainLogging": {
+        "title": "Verbose Main Process Logging",
+        "description": "Enable detailed logging for core application processes."
+      },
+      "verboseAppLogging": {
+        "title": "Verbose App Logging",
+        "description": "Enable detailed logging for app lifecycle events."
+      },
+      "verboseAuthLogging": {
+        "title": "Verbose Authentication Logging",
+        "description": "Enable detailed logging for authentication and login processes."
+      },
+      "verboseIpcLogging": {
+        "title": "Verbose IPC Logging",
+        "description": "Enable detailed logging for inter-process communication."
+      },
+      "verboseUiLogging": {
+        "title": "Verbose UI Logging",
+        "description": "Enable detailed logging for user interface events."
+      },
+      "verboseUpdatesLogging": {
+        "title": "Verbose Updates Logging",
+        "description": "Enable detailed logging for auto-update processes."
+      },
+      "verboseNotificationsLogging": {
+        "title": "Verbose Notifications Logging",
+        "description": "Enable detailed logging for desktop notifications."
+      },
+      "verboseVideoCallLogging": {
+        "title": "Verbose Video Call Logging",
+        "description": "Enable detailed logging for video call window processes."
+      },
+      "verboseServersLogging": {
+        "title": "Verbose Servers Logging",
+        "description": "Enable detailed logging for server connection management."
+      },
+      "verboseLogViewerLogging": {
+        "title": "Verbose Log Viewer Logging",
+        "description": "Enable detailed logging for the log viewer component."
       }
     }
   },

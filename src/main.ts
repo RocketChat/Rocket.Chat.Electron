@@ -21,6 +21,7 @@ import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
 import { logger, setupWebContentsLogging, cleanupOldLogs } from './logging';
+import { setupVerboseLogging } from './logging/verboseLogging';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
@@ -80,6 +81,9 @@ const start = async (): Promise<void> => {
 
   const localStorage = await exportLocalStorage();
   await mergePersistableValues(localStorage);
+
+  setupVerboseLogging();
+
   await setupServers(localStorage);
 
   i18n.setUp();

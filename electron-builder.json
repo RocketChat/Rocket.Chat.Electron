@@ -131,13 +131,8 @@
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "deb": {
-    "fpm": [
-      "--after-install=build/linux/postinst.sh"
-    ],
-    "recommends": [
-      "xdg-desktop-portal",
-      "xdg-desktop-portal-gtk"
-    ]
+    "fpm": ["--after-install=build/linux/postinst.sh"],
+    "recommends": ["xdg-desktop-portal", "xdg-desktop-portal-gtk"]
   },
   "rpm": {
     "fpm": [

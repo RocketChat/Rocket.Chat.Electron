@@ -351,7 +351,7 @@
   },
   "selfxss": {
     "title": "Halt!",
-    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren oder um das Konto einer anderen Person zu \"hacken\" , ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
+    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren oder um das Konto einer anderen Person zu \"hacken\", ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
     "moreInfo": "Weitere Informationen finden Sie unter https://go.rocket.chat/i/xss."
   },
   "sidebar": {

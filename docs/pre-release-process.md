@@ -5,17 +5,18 @@ This document describes how to create alpha and beta releases for QA testing and
 ## Overview
 
 The Rocket.Chat Desktop app supports three release channels:
+
 - **Stable** (`latest`) - Production releases for all users
 - **Beta** - Pre-release testing with broader audience
 - **Alpha** - Early testing for QA and select customers
 
 ## How Channels Work
 
-| Channel | Version Format | Who Gets It | Update File |
-|---------|---------------|-------------|-------------|
-| Stable | `4.12.0` | All users (default) | `latest.yml` |
-| Beta | `4.12.0-beta.1` | Beta opt-in users | `beta.yml` |
-| Alpha | `4.12.0-alpha.1` | Alpha opt-in users | `alpha.yml` |
+| Channel | Version Format   | Who Gets It         | Update File  |
+| ------- | ---------------- | ------------------- | ------------ |
+| Stable  | `4.12.0`         | All users (default) | `latest.yml` |
+| Beta    | `4.12.0-beta.1`  | Beta opt-in users   | `beta.yml`   |
+| Alpha   | `4.12.0-alpha.1` | Alpha opt-in users  | `alpha.yml`  |
 
 **Channel hierarchy**: Alpha users receive alpha, beta, AND stable updates. Beta users receive beta AND stable. Stable users only receive stable.
 
@@ -29,6 +30,7 @@ git pull origin dev
 ```
 
 Edit `package.json`:
+
 ```json
 {
   "version": "4.12.0-alpha.1"
@@ -53,6 +55,7 @@ git push origin 4.12.0-alpha.1
 ```
 
 Or use the release-tag script:
+
 ```bash
 npx ts-node scripts/release-tag.ts
 ```
@@ -60,6 +63,7 @@ npx ts-node scripts/release-tag.ts
 ### 4. CI Builds Automatically
 
 The GitHub Actions workflow triggers on tag push and:
+
 - Builds for all platforms (Windows, macOS, Linux)
 - Generates `alpha.yml`, `alpha-mac.yml`, `alpha-linux.yml` metadata
 - Creates a draft GitHub release marked as **Pre-release**
@@ -105,13 +109,14 @@ The setting is persisted automatically and survives app restarts.
 
 Create `update.json` in the user data directory:
 
-| Platform | Location |
-|----------|----------|
-| Windows | `%APPDATA%\Rocket.Chat\update.json` |
-| macOS | `~/Library/Application Support/Rocket.Chat/update.json` |
-| Linux | `~/.config/Rocket.Chat/update.json` |
+| Platform | Location                                                |
+| -------- | ------------------------------------------------------- |
+| Windows  | `%APPDATA%\Rocket.Chat\update.json`                     |
+| macOS    | `~/Library/Application Support/Rocket.Chat/update.json` |
+| Linux    | `~/.config/Rocket.Chat/update.json`                     |
 
 Content for alpha channel:
+
 ```json
 {
   "channel": "alpha"
@@ -119,6 +124,7 @@ Content for alpha channel:
 ```
 
 Content for beta channel:
+
 ```json
 {
   "channel": "beta"
@@ -126,6 +132,7 @@ Content for beta channel:
 ```
 
 For enterprise deployments where you want to force the setting (users cannot change it):
+
 ```json
 {
   "channel": "beta",
@@ -135,13 +142,13 @@ For enterprise deployments where you want to force the setting (users cannot cha
 
 ## Switching Channels
 
-### Switching to a prerelease channel (stable → alpha/beta)
+### Switching to a pre-release channel (stable → alpha/beta)
 
 1. Open Settings > Enable Developer Mode
 2. Open About dialog
 3. Select the desired channel from dropdown
 4. Click "Check for Updates"
-5. The next prerelease version will be offered
+5. The next pre-release version will be offered
 
 ### Switching back to stable (alpha/beta → stable)
 
@@ -152,6 +159,7 @@ For enterprise deployments where you want to force the setting (users cannot cha
 **Important**: Switching to stable does NOT automatically downgrade the app. What happens:
 
 - If you're on `4.12.0-alpha.2` and switch to stable channel:
+
   - You will receive the next **stable** release (e.g., `4.12.0`)
   - Semver considers `4.12.0` greater than `4.12.0-alpha.2`, so the stable release will be offered as an update
   - You won't receive further alpha/beta releases until you switch back
@@ -167,12 +175,18 @@ For enterprise deployments where you want to force the setting (users cannot cha
 - **Stable**: `4.12.0`
 
 When promoting:
+
 - Alpha `4.12.0-alpha.5` → Beta `4.12.0-beta.1`
 - Beta `4.12.0-beta.3` → Stable `4.12.0`
 
 Typical release progression:
-```
+
+```text
 4.12.0-alpha.1 → 4.12.0-alpha.2 → 4.12.0-beta.1 → 4.12.0-beta.2 → 4.12.0
+```
+
+4.12.0-alpha.1 → 4.12.0-alpha.2 → 4.12.0-beta.1 → 4.12.0-beta.2 → 4.12.0
+
 ```
 
 ## Safety Guarantees
@@ -207,8 +221,10 @@ With Developer Mode enabled, open the About dialog - the current channel is show
 ### Where settings are stored
 
 The channel preference is stored in the app's config file:
+
 - **Windows**: `%APPDATA%\Rocket.Chat\config.json`
 - **macOS**: `~/Library/Application Support/Rocket.Chat/config.json`
 - **Linux**: `~/.config/Rocket.Chat/config.json`
 
 Look for the `updateChannel` key (values: `latest`, `beta`, or `alpha`).
+```

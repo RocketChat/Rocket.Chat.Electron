@@ -14,21 +14,23 @@ using [Electron][].
 
 ## Supported Platforms
 
-| Platform | Minimum Version | Architectures | Formats |
-|----------|-----------------|---------------|---------|
-| Windows | 10 | x64, ia32, arm64 | NSIS, MSI |
-| macOS | 12 (Monterey) | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP |
-| Linux | Ubuntu 22.04+ or equivalent | x64 | AppImage, deb, rpm, snap, tar.gz |
+| Platform | Minimum Version             | Architectures                   | Formats                          |
+| -------- | --------------------------- | ------------------------------- | -------------------------------- |
+| Windows  | 10                          | x64, ia32, arm64                | NSIS, MSI                        |
+| macOS    | 12 (Monterey)               | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP                    |
+| Linux    | Ubuntu 22.04+ or equivalent | x64                             | AppImage, deb, rpm, snap, tar.gz |
 
 ---
 
 ## Engage with us
 
 ### Share your story
+
 We'd love to hear about [your experience][] and potentially feature it on our
 [Blog][].
 
 ### Subscribe for Updates
+
 Once a month our marketing team releases an email update with news about product
 releases, company related topics, events and use cases. [Sign Up!][]
 
@@ -97,7 +99,7 @@ for your code:
 - `src/main.ts`, the script running at the main Electron process, orchestrating
   the whole application;
 
-- `src/rootWindow.ts`, the script that renders the UI of the *root window*, the
+- `src/rootWindow.ts`, the script that renders the UI of the _root window_, the
   app's main window;
 
 - and `src/preload.ts`, which runs in a privileged mode to connect the app and
@@ -214,17 +216,17 @@ a single server mode.
 
 #### The settings that can be overridden are:
 
-| Setting | Description |
-|---------|-------------|
-| `"isReportEnabled": true` | Sets if the bugs will be reported to developers. |
-| `"isInternalVideoChatWindowEnabled": true` | Sets if video calls will be opened in an internal window. |
-| `"isFlashFrameEnabled": true` | Sets if the flash frame will be enabled. |
-| `"isMinimizeOnCloseEnabled": false` | Sets if the app will be minimized on close. |
-| `"doCheckForUpdatesOnStartup": true` | Sets if the app will check for updates on startup. |
-| `"isMenuBarEnabled": true` | Sets if the menu bar will be enabled. |
-| `"isTrayIconEnabled": true` | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"` |
-| `"isUpdatingEnabled": true` | Sets if the app can be updated by the user. |
-| `"isAddNewServersEnabled": true` | Sets if the user can add new servers. |
+| Setting                                    | Description                                                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `"isReportEnabled": true`                  | Sets if the bugs will be reported to developers.                                                       |
+| `"isInternalVideoChatWindowEnabled": true` | Sets if video calls will be opened in an internal window.                                              |
+| `"isFlashFrameEnabled": true`              | Sets if the flash frame will be enabled.                                                               |
+| `"isMinimizeOnCloseEnabled": false`        | Sets if the app will be minimized on close.                                                            |
+| `"doCheckForUpdatesOnStartup": true`       | Sets if the app will check for updates on startup.                                                     |
+| `"isMenuBarEnabled": true`                 | Sets if the menu bar will be enabled.                                                                  |
+| `"isTrayIconEnabled": true`                | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"` |
+| `"isUpdatingEnabled": true`                | Sets if the app can be updated by the user.                                                            |
+| `"isAddNewServersEnabled": true`           | Sets if the user can add new servers.                                                                  |
 
 ##### Single server mode
 
@@ -243,9 +245,9 @@ With this, you can create a single server mode or just don't let the user add ne
 }
 ```
 
-When `isTrayIconEnabled` is enabled, the app will be hidden on close.
-When `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
-When both are disabled, the app will quit on close.
+If `isTrayIconEnabled` is enabled, the app will be hidden on close.
+If `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
+With both disabled, the app will quit on close.
 
 ## License
 

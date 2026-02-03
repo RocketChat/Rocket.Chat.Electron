@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import { createInterface } from 'readline';
 import { parse, gt, prerelease, SemVer } from 'semver';
 import { readFileSync } from 'fs';
@@ -24,7 +24,10 @@ const getChannel = (version: SemVer): string => {
 
 const exec = (cmd: string): string | null => {
   try {
-    return execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    return execSync(cmd, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
   } catch {
     return null;
   }
@@ -51,7 +54,10 @@ const getExistingTags = (): string[] => {
   return output.split('\n').filter(Boolean).map(normalizeTag);
 };
 
-const getLatestTagForChannel = (tags: string[], channel: string): SemVer | null => {
+const getLatestTagForChannel = (
+  tags: string[],
+  channel: string
+): SemVer | null => {
   const channelTags = tags
     .map((tag) => parse(tag))
     .filter((v): v is SemVer => v !== null)
@@ -115,7 +121,9 @@ const main = async (): Promise<void> => {
 
   if (latestInChannel && !gt(version, latestInChannel)) {
     console.warn(`\n  Warning: Version ${version.version} is not greater than`);
-    console.warn(`  the latest ${channel} release (${latestInChannel.version}).`);
+    console.warn(
+      `  the latest ${channel} release (${latestInChannel.version}).`
+    );
     console.warn(`  This may be intentional, but please verify.\n`);
   } else if (latestInChannel) {
     console.log(`  Latest ${channel}: ${latestInChannel.version}`);
@@ -139,7 +147,7 @@ const main = async (): Promise<void> => {
   // 7. Create and push tag
   console.log(`\n  Creating tag ${version.version}...`);
   try {
-    execSync(`git tag -- ${version.version}`, { stdio: 'inherit' });
+    execFileSync('git', ['tag', '--', version.version], { stdio: 'inherit' });
   } catch {
     console.error(`  Error: Failed to create tag`);
     process.exit(1);
@@ -147,10 +155,27 @@ const main = async (): Promise<void> => {
 
   console.log(`  Pushing tag to origin...`);
   try {
-    execSync(`git push origin refs/tags/${version.version}`, { stdio: 'inherit' });
+    execFileSync('git', ['push', 'origin', `refs/tags/${version.version}`], {
+      stdio: 'inherit',
+    });
   } catch {
     console.error(`  Error: Failed to push tag`);
-    console.error(`  The local tag was created. You may need to push it manually.`);
+    console.error(
+      `  The local tag was created. You may need to push it manually.`
+    );
+    process.exit(1);
+  }
+
+  console.log(`  Pushing tag to origin...`);
+  try {
+    execSync(`git push origin refs/tags/${version.version}`, {
+      stdio: 'inherit',
+    });
+  } catch {
+    console.error(`  Error: Failed to push tag`);
+    console.error(
+      `  The local tag was created. You may need to push it manually.`
+    );
     process.exit(1);
   }
 

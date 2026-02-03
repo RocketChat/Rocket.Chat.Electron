@@ -48,7 +48,8 @@
     "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
     ".:lint-fix:eslint": "eslint --fix .",
     "workspaces:build": "yarn workspaces foreach -At run build",
-    "release:tag": "ts-node -O '{\"module\":\"commonjs\"}' scripts/release-tag.ts"
+    "release:tag": "ts-node -O '{\"module\":\"commonjs\"}' scripts/release-tag.ts",
+    "release:tag:win": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/release-tag.ts"
   },
   "dependencies": {
     "@bugsnag/js": "~7.22.3",
@@ -162,7 +163,7 @@
   },
   "volta": {
     "node": "24.11.1",
-    "yarn": "4.0.2"
+    "yarn": "4.6.0"
   },
   "packageManager": "yarn@4.6.0"
 }

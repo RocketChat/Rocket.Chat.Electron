@@ -1,16 +1,8 @@
-import { dispatch } from '../../store';
-import { WEBVIEW_USER_THEME_APPEARANCE_CHANGED } from '../../ui/actions';
-import type { Server } from '../common';
-import { getServerUrl } from './urls';
+import type { ThemeAppearance } from '@rocket.chat/desktop-api';
 
 export const setUserThemeAppearance = (
-  themeAppearance: Server['themeAppearance']
+  _themeAppearance: ThemeAppearance
 ): void => {
-  dispatch({
-    type: WEBVIEW_USER_THEME_APPEARANCE_CHANGED,
-    payload: {
-      url: getServerUrl(),
-      themeAppearance,
-    },
-  });
+  // No-op: Theme appearance is now managed globally via userThemePreference
+  // This function is kept for backwards compatibility with the desktop-api interface
 };

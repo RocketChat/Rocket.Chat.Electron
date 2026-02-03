@@ -29,7 +29,6 @@ export type Server = {
   expirationMessageLastTimeShown?: Date;
   supportedVersionsValidatedAt?: Date;
   documentViewerOpenUrl?: string;
-  themeAppearance?: 'dark' | 'light' | 'auto' | 'high-contrast';
 };
 
 export const enum ServerUrlResolutionStatus {

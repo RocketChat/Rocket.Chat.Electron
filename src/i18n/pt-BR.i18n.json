@@ -280,6 +280,13 @@
       "transparentWindow": {
         "title": "Efeito de janela transparente",
         "description": "Ativar efeito nativo de vibração/transparência para a janela. Requer reinicialização para aplicar."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Escolha o tema de cores para o aplicativo.",
+        "auto": "Seguir sistema",
+        "light": "Claro",
+        "dark": "Escuro"
       }
     }
   },

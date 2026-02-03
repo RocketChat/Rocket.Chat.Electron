@@ -31,7 +31,6 @@ import {
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
-  WEBVIEW_USER_THEME_APPEARANCE_CHANGED,
 } from '../ui/actions';
 import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
 import type { Server } from './common';
@@ -74,7 +73,6 @@ type ServersActionTypes =
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
   | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
-  | ActionOf<typeof WEBVIEW_USER_THEME_APPEARANCE_CHANGED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -162,11 +160,6 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_SERVER_UNIQUE_ID_UPDATED: {
       const { url, uniqueID } = action.payload;
       return upsert(state, { url, uniqueID });
-    }
-
-    case WEBVIEW_USER_THEME_APPEARANCE_CHANGED: {
-      const { url, themeAppearance } = action.payload;
-      return upsert(state, { url, themeAppearance });
     }
 
     case WEBVIEW_SERVER_IS_SUPPORTED_VERSION: {

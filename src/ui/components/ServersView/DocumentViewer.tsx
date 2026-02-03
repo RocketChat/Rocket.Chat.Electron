@@ -1,5 +1,4 @@
 import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
-import { useDarkMode } from '@rocket.chat/fuselage-hooks';
 import { useEffect, useRef, useState } from 'react';
 
 import { dispatch } from '../../../store';
@@ -17,21 +16,13 @@ const DocumentViewer = ({
   url,
   partition,
   closeDocumentViewer,
-  themeAppearance,
 }: {
   url: string;
   partition: string;
-  themeAppearance: string | undefined;
   closeDocumentViewer: () => void;
 }) => {
   const [documentUrl, setDocumentUrl] = useState('');
   const webviewRef = useRef<HTMLWebViewElement>(null);
-
-  const theme = useDarkMode(
-    themeAppearance === 'auto' ? undefined : themeAppearance === 'dark'
-  )
-    ? 'dark'
-    : 'light';
 
   useEffect(() => {
     if (documentUrl !== url && url !== '') {
@@ -76,7 +67,7 @@ const DocumentViewer = ({
   return (
     <>
       <Box
-        bg={theme}
+        bg='tint'
         width='100%'
         height='100%'
         position='absolute'
@@ -87,14 +78,9 @@ const DocumentViewer = ({
           content='center'
           alignItems='center'
           display='flex'
-          color={theme === 'dark' ? 'font-white' : 'font-text'}
+          color='default'
         >
-          <IconButton
-            icon='arrow-back'
-            onClick={closeDocumentViewer}
-            mi='x8'
-            color={theme === 'dark' ? 'white' : 'default'}
-          />
+          <IconButton icon='arrow-back' onClick={closeDocumentViewer} mi='x8' />
           <h2>PDF Viewer</h2>
         </Box>
 
@@ -106,11 +92,9 @@ const DocumentViewer = ({
             height='100%'
             width='100%'
             position='absolute'
+            color='default'
           >
-            <Throbber
-              size='x16'
-              color={theme === 'dark' ? 'white' : 'default'}
-            />
+            <Throbber size='x16' inheritColor />
           </Box>
           <webview
             ref={webviewRef}

@@ -294,6 +294,13 @@
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
         "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet. Krever omstart for å brukes."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Velg fargtemaet for applikasjonen.",
+        "auto": "Følg system",
+        "light": "Lys",
+        "dark": "Mørk"
       }
     }
   },

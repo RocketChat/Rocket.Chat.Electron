@@ -100,7 +100,7 @@ jobs:
           Write-Host "Searching for signtool.exe in Windows SDK..." -ForegroundColor Cyan
           $sdkPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin"
           $signtoolFound = $false
-          
+
           if (Test-Path $sdkPath) {
             Write-Host "Windows SDK path exists: $sdkPath"
             $signtoolPath = Get-ChildItem -Path $sdkPath -Include "signtool.exe" -Recurse -ErrorAction SilentlyContinue | 
@@ -127,7 +127,7 @@ jobs:
               $signtoolFound = $true
             }
           }
-          
+
           if (-not $signtoolFound) {
             Write-Error "❌ signtool.exe not found in Windows SDK"
             Write-Host "Attempting to install Windows SDK..."
@@ -135,14 +135,14 @@ jobs:
             # but let's log the issue clearly
             exit 1
           }
-          
+
           # Setup certificates
           $certDir = "$env:RUNNER_TEMP\codesigning"
           New-Item -ItemType Directory -Path $certDir -Force | Out-Null
           '${{ secrets.WIN_USER_CRT }}' | Out-File -FilePath "$certDir\user.crt" -NoNewline
           if ('${{ secrets.WIN_INTERMEDIATE_CRT }}' -ne '') { '${{ secrets.WIN_INTERMEDIATE_CRT }}' | Out-File -FilePath "$certDir\intermediate.crt" -NoNewline }
           if ('${{ secrets.WIN_ROOT_CRT }}' -ne '') { '${{ secrets.WIN_ROOT_CRT }}' | Out-File -FilePath "$certDir\root.crt" -NoNewline }
-          
+
           # Install certificates to stores
           Write-Host "Installing certificates to Windows certificate stores..."
           if (Test-Path "$certDir\root.crt") { 
@@ -155,11 +155,11 @@ jobs:
           }
           Write-Host "Installing user certificate..."
           certutil -user -addstore "MY" "$certDir\user.crt"
-          
+
           # For KMS signing, we need to associate the certificate with the KMS key
           # This is done through the CSP (Cryptographic Service Provider)
           Write-Host "Associating certificate with KMS provider..."
-          
+
           # Get the KMS key resource from environment
           $kmsKeyResource = "${{ secrets.WIN_KMS_KEY_RESOURCE }}"
           if ($kmsKeyResource) {
@@ -177,12 +177,12 @@ jobs:
             Write-Host "Checking certificate key provider information..."
             certutil -user -store MY $thumb | Select-String "Provider\|Key Container"
           }
-          
+
           # Compute and set certificate thumbprint
           $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
           Write-Host "Certificate thumbprint: $thumb"
           echo "WIN_KMS_CERT_SHA1=$thumb" >> $env:GITHUB_ENV
-          
+
           # Verify the certificate is properly installed
           Write-Host "Verifying certificate installation..."
           $cert = Get-ChildItem -Path "Cert:\CurrentUser\My" | Where-Object { $_.Thumbprint -eq $thumb }
@@ -202,7 +202,7 @@ jobs:
             Write-Error "❌ Certificate not found in store!"
             exit 1
           }
-          
+
           # Verify Google Cloud authentication
           if ($env:GOOGLE_APPLICATION_CREDENTIALS) {
             Write-Host "✅ Google Cloud credentials configured: $env:GOOGLE_APPLICATION_CREDENTIALS"
@@ -236,6 +236,22 @@ jobs:
           Write-Host "Installing jsign..." -ForegroundColor Cyan
           choco install jsign -y
           refreshenv
+          # Add jsign to GITHUB_PATH for subsequent steps
+          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
+          $jsignCmd = if (Test-Path "$jsignPath\jsign.cmd") {
+            "$jsignPath\jsign.cmd"
+          } else {
+            (Get-Command jsign.cmd -ErrorAction SilentlyContinue)?.Source
+          }
+
+          if ($jsignCmd) {
+            $resolvedDir = Split-Path $jsignCmd -Parent
+            Write-Host "jsign found at $jsignCmd" -ForegroundColor Green
+            echo "$resolvedDir" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "jsign not found at expected path or on PATH"
+            exit 1
+          }
 
       - name: Setup gcloud (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
@@ -265,13 +281,13 @@ jobs:
           echo '${{ secrets.GCP_SA_JSON }}' > $RUNNER_TEMP/gcp-sa.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcp-sa.json" >> $GITHUB_ENV
 
-      - name: Build Windows Package (Windows native - old signtool method)  
+      - name: Build Windows Package (Windows native - old signtool method)
         if: ${{ matrix.os == 'windows-latest' && false }}
         shell: pwsh
         run: |
           # Verify environment before build
           Write-Host "=== Pre-build Environment Check ===" -ForegroundColor Cyan
-          
+
           # Check signtool availability
           Write-Host "Checking signtool availability..."
           $signtoolCmd = Get-Command signtool -ErrorAction SilentlyContinue
@@ -301,7 +317,7 @@ jobs:
               exit 1
             }
           }
-          
+
           # Verify KMS configuration
           Write-Host "`n=== KMS Configuration ===" -ForegroundColor Cyan
           Write-Host "WIN_KMS_KEY_RESOURCE: $(if ($env:WIN_KMS_KEY_RESOURCE) { '✅ Set' } else { '❌ Not set' })"
@@ -309,7 +325,7 @@ jobs:
           Write-Host "WIN_KMS_CSP: $env:WIN_KMS_CSP"
           Write-Host "WIN_KMS_CERT_STORE: $env:WIN_KMS_CERT_STORE"
           Write-Host "GOOGLE_APPLICATION_CREDENTIALS: $(if ($env:GOOGLE_APPLICATION_CREDENTIALS) { '✅ ' + $env:GOOGLE_APPLICATION_CREDENTIALS } else { '❌ Not set' })"
-          
+
           # Verify certificate in store
           Write-Host "`n=== Certificate Verification ===" -ForegroundColor Cyan
           if ($env:WIN_KMS_CERT_SHA1) {
@@ -327,7 +343,7 @@ jobs:
               }
             }
           }
-          
+
           # Test KMS provider
           Write-Host "`n=== Testing KMS Provider ===" -ForegroundColor Cyan
           try {
@@ -344,20 +360,20 @@ jobs:
           } catch {
             Write-Host "⚠️ Could not verify CSP list: $_"
           }
-          
+
           # Test signing before the actual build
           Write-Host "`n=== Testing Signing Configuration ===" -ForegroundColor Cyan
           $testFile = "$env:RUNNER_TEMP\test-sign.exe"
-          
+
           # Create a small test executable (copy powershell.exe as a test)
           Copy-Item "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination $testFile -Force
-          
+
           Write-Host "Testing signing with the following parameters:"
           Write-Host "  CSP: $env:WIN_KMS_CSP"
           Write-Host "  Key Resource: $(if ($env:WIN_KMS_KEY_RESOURCE) { 'Set (masked)' } else { 'Not set' })"
           Write-Host "  Certificate SHA1: $env:WIN_KMS_CERT_SHA1"
           Write-Host "  Certificate Store: $env:WIN_KMS_CERT_STORE"
-          
+
           # Try to sign the test file
           try {
             $signtoolPath = if ($env:SIGNTOOL_PATH) { $env:SIGNTOOL_PATH } else { "signtool" }
@@ -401,7 +417,7 @@ jobs:
               Remove-Item $testFile -Force -ErrorAction SilentlyContinue
             }
           }
-          
+
           Write-Host "`n=== Starting Build ===" -ForegroundColor Cyan
           # Run electron-builder
           yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis
@@ -421,7 +437,7 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
-          
+
           # Ensure jsign is accessible
           $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
           if (Test-Path "$jsignPath\jsign.cmd") {
@@ -430,8 +446,9 @@ jobs:
             echo "$jsignPath" >> $env:GITHUB_PATH
           } else {
             Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
+            exit 1
           }
-          
+
           # Resolve gcloud from PATH (setup-gcloud added it)
           $gcloudCmd = (Get-Command gcloud -ErrorAction SilentlyContinue)?.Source
           if ($gcloudCmd) {
@@ -440,9 +457,9 @@ jobs:
             Write-Error "❌ gcloud not found on PATH. Ensure setup-gcloud@v2 ran successfully."
             exit 1
           }
-          
+
           Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
-          
+
           # Find Python installation for gcloud
           Write-Host "Locating Python installation..." -ForegroundColor Yellow
           $pythonPaths = @(
@@ -451,7 +468,7 @@ jobs:
             "C:\Program Files\Python*\python.exe",
             "$env:LOCALAPPDATA\Programs\Python\Python*\python.exe"
           )
-          
+
           $pythonExe = $null
           foreach ($path in $pythonPaths) {
             $found = Get-ChildItem $path -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -460,26 +477,26 @@ jobs:
               break
             }
           }
-          
+
           if (-not $pythonExe) {
             Write-Error "Python not found in expected locations"
             exit 1
           }
-          
+
           Write-Host "Found Python at: $pythonExe" -ForegroundColor Green
           $env:CLOUDSDK_PYTHON = $pythonExe
-          
+
           # Authenticate gcloud with service account
           Write-Host "Authenticating gcloud with service account..." -ForegroundColor Yellow
           $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
           Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
-          
+
           & $gcloudCmd auth activate-service-account --key-file="$gcpCredentials"
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to activate service account"
             exit 1
           }
-          
+
           # Set project from service account file
           $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
           $projectId = $projectData.project_id
@@ -489,7 +506,7 @@ jobs:
             Write-Error "Failed to set project"
             exit 1
           }
-          
+
           # Verify authentication is working
           Write-Host "Verifying gcloud authentication..." -ForegroundColor Yellow
           $tokenOutput = & $gcloudCmd auth print-access-token 2>&1
@@ -499,8 +516,8 @@ jobs:
             Write-Host "❌ Google Cloud authentication failed: $tokenOutput" -ForegroundColor Red
             exit 1
           }
-          
-          yarn electron-builder --publish never --x64 --win nsis
+
+          yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt

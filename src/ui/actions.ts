@@ -82,8 +82,6 @@ export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
-export const WEBVIEW_USER_THEME_APPEARANCE_CHANGED =
-  'webview/user-theme-appearance-changed';
 export const WEBVIEW_ALLOWED_REDIRECTS_CHANGED =
   'webview/allowed-redirects-changed';
 export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
@@ -120,6 +118,8 @@ export const SETTINGS_AVAILABLE_BROWSERS_UPDATED =
   'settings/available-browsers-updated';
 export const SETTINGS_SELECTED_BROWSER_CHANGED =
   'settings/selected-browser-changed';
+export const SETTINGS_USER_THEME_PREFERENCE_CHANGED =
+  'settings/user-theme-preference-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -224,10 +224,6 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     userLoggedIn: Server['userLoggedIn'];
   };
-  [WEBVIEW_USER_THEME_APPEARANCE_CHANGED]: {
-    url: Server['url'];
-    themeAppearance: Server['themeAppearance'];
-  };
   [WEBVIEW_GIT_COMMIT_HASH_CHECK]: {
     url: Server['url'];
     gitCommitHash: Server['gitCommitHash'];
@@ -257,6 +253,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];
   [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;
+  [SETTINGS_USER_THEME_PREFERENCE_CHANGED]: 'auto' | 'light' | 'dark';
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;

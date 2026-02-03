@@ -294,6 +294,13 @@
       "transparentWindow": {
         "title": "Transparent window effect",
         "description": "Enable native vibrancy/transparency effect for the window. Requires restart to apply."
+      },
+      "themeAppearance": {
+        "title": "Theme",
+        "description": "Choose the color theme for the application.",
+        "auto": "Follow system",
+        "light": "Light",
+        "dark": "Dark"
       }
     }
   },

@@ -285,6 +285,13 @@
       "transparentWindow": {
         "title": "Áttetsző ablak effektus",
         "description": "Natív vibráció/áttetszőség effektus engedélyezése az ablakhoz. Újraindítás szükséges az alkalmazáshoz."
+      },
+      "themeAppearance": {
+        "title": "Téma",
+        "description": "Válassza ki az alkalmazás színsémáját.",
+        "auto": "Rendszer követése",
+        "light": "Világos",
+        "dark": "Sötét"
       }
     }
   },

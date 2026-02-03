@@ -185,10 +185,6 @@ Typical release progression:
 4.12.0-alpha.1 → 4.12.0-alpha.2 → 4.12.0-beta.1 → 4.12.0-beta.2 → 4.12.0
 ```
 
-4.12.0-alpha.1 → 4.12.0-alpha.2 → 4.12.0-beta.1 → 4.12.0-beta.2 → 4.12.0
-
-```
-
 ## Safety Guarantees
 
 - Stable users **never** see alpha/beta releases (they check `latest.yml` only)
@@ -227,4 +223,3 @@ The channel preference is stored in the app's config file:
 - **Linux**: `~/.config/Rocket.Chat/config.json`
 
 Look for the `updateChannel` key (values: `latest`, `beta`, or `alpha`).
-```

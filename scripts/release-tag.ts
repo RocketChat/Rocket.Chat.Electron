@@ -166,19 +166,6 @@ const main = async (): Promise<void> => {
     process.exit(1);
   }
 
-  console.log(`  Pushing tag to origin...`);
-  try {
-    execSync(`git push origin refs/tags/${version.version}`, {
-      stdio: 'inherit',
-    });
-  } catch {
-    console.error(`  Error: Failed to push tag`);
-    console.error(
-      `  The local tag was created. You may need to push it manually.`
-    );
-    process.exit(1);
-  }
-
   // 8. Success message
   console.log(`\n  Tag created and pushed successfully!\n`);
   console.log(`  Monitor build: ${REPO_URL}/actions`);

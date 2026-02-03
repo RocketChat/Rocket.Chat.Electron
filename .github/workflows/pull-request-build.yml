@@ -446,6 +446,7 @@ jobs:
             echo "$jsignPath" >> $env:GITHUB_PATH
           } else {
             Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
+            exit 1
           }
 
           # Resolve gcloud from PATH (setup-gcloud added it)
@@ -516,7 +517,7 @@ jobs:
             exit 1
           }
 
-          yarn electron-builder --publish never --x64 --win nsis
+          yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt

@@ -158,6 +158,13 @@
       "transparentWindow": {
         "title": "透明窗口效果",
         "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
+      },
+      "themeAppearance": {
+        "title": "主题",
+        "description": "选择应用程序的颜色主题。",
+        "auto": "跟随系统",
+        "light": "浅色",
+        "dark": "深色"
       }
     }
   },

@@ -4,6 +4,13 @@
       "transparentWindow": {
         "title": "Effetto finestra trasparente",
         "description": "Abilita l'effetto nativo di vibrazione/trasparenza per la finestra. Richiede il riavvio per applicare."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Scegli il tema colore per l'applicazione.",
+        "auto": "Segui sistema",
+        "light": "Chiaro",
+        "dark": "Scuro"
       }
     }
   },

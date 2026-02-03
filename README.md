@@ -1,6 +1,6 @@
 # Rocket.Chat Desktop App
 
-[![AppVeyor Build Status](https://img.shields.io/appveyor/ci/RocketChat/rocket-chat-electron/master.svg?logo=appveyor)](https://ci.appveyor.com/project/RocketChat/rocket-chat-electron)
+[![Build Status](https://github.com/RocketChat/Rocket.Chat.Electron/actions/workflows/build-release.yml/badge.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/actions)
 ![Project Dependencies](https://img.shields.io/librariesio/github/RocketChat/Rocket.Chat.Electron)
 [![GitHub All Releases](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
 ![GitHub](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)
@@ -12,13 +12,25 @@ using [Electron][].
 
 ---
 
+## Supported Platforms
+
+| Platform | Minimum Version             | Architectures                   | Formats                          |
+| -------- | --------------------------- | ------------------------------- | -------------------------------- |
+| Windows  | 10                          | x64, ia32, arm64                | NSIS, MSI                        |
+| macOS    | 12 (Monterey)               | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP                    |
+| Linux    | Ubuntu 22.04+ or equivalent | x64                             | AppImage, deb, rpm, snap, tar.gz |
+
+---
+
 ## Engage with us
 
 ### Share your story
-We’d love to hear about [your experience][] and potentially feature it on our
+
+We'd love to hear about [your experience][] and potentially feature it on our
 [Blog][].
 
 ### Subscribe for Updates
+
 Once a month our marketing team releases an email update with news about product
 releases, company related topics, events and use cases. [Sign Up!][]
 
@@ -28,15 +40,9 @@ releases, company related topics, events and use cases. [Sign Up!][]
 
 You can download the latest version from the [Releases][] page.
 
-<div style="width: 100%">
-	<a href='https://snapcraft.io/rocketchat-desktop'>
-		<img width='200' alt='Get it on the Snap Store' src='https://snapcraft.io/static/images/badges/en/snap-store-black.svg'/>
-	</a>
-	&ensp;
-	<a href='https://flathub.org/apps/chat.rocket.RocketChat'>
-		<img width='200' alt='Get it on Flathub' src='https://flathub.org/api/badge'/>
-	</a>
-</div>
+<p>
+  <a href="https://apps.microsoft.com/detail/9nblggh52jv6"><img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" height="50"/></a>&nbsp;&nbsp;<a href="https://apps.apple.com/app/rocket-chat/id1086818840"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-mac-app-store/black/en-us" alt="Download on the Mac App Store" height="50"/></a>&nbsp;&nbsp;<a href="https://snapcraft.io/rocketchat-desktop"><img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" alt="Get it from the Snap Store" height="50"/></a>
+</p>
 
 ## Install
 
@@ -49,7 +55,7 @@ add the options below:
 
 - `/S` - Silent install
 - `/allusers` - Install for all users (requires admin)
-- `/currentuser` - Install only the for current user (default)
+- `/currentuser` - Install only for the current user (default)
 - `/disableAutoUpdates` - Disable automatic updates
 
 ## Development
@@ -59,9 +65,8 @@ add the options below:
 Prerequisites:
 
 - [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Node.js](https://nodejs.org)
-- [node-gyp](https://github.com/nodejs/node-gyp#installation)
-- [Yarn](http://yarnpkg.com/) is recommended instead of npm.
+- [Node.js](https://nodejs.org) >= 24.11.1
+- [Yarn](http://yarnpkg.com/) >= 4.0.2
 
 Now just clone and start the app:
 
@@ -84,7 +89,7 @@ full, runnable application.
 ### TypeScript
 
 Following the [ongoing changes in Rocket.Chat codebase][], the app was
-rewritten in TypeScript 4 to address issues regarding maintainability.
+rewritten in TypeScript 5 to address issues regarding maintainability.
 
 ### The build pipeline
 
@@ -94,7 +99,7 @@ for your code:
 - `src/main.ts`, the script running at the main Electron process, orchestrating
   the whole application;
 
-- `src/rootWindow.ts`, the script that renders the UI of the *root window*, the
+- `src/rootWindow.ts`, the script that renders the UI of the _root window_, the
   app's main window;
 
 - and `src/preload.ts`, which runs in a privileged mode to connect the app and
@@ -108,34 +113,21 @@ distributable app.
 
 ### Troubleshooting
 
-#### node-gyp
+#### Ubuntu/Debian
 
-Follow the installation instruction on [node-gyp readme][].
-
-#### Ubuntu
-
-You will need to install the following packages:
+You may need to install the following packages for development:
 
 ```sh
-build-essential
-libevas-dev
-libxss-dev
+sudo apt install build-essential libxss-dev
 ```
 
-#### Fedora
+#### Fedora/RHEL
 
-You will need to install the following packages:
+You may need to install the following packages for development:
 
 ```sh
-libX11
-libXScrnSaver-devel
-gcc-c++
+sudo dnf install libX11-devel libXScrnSaver-devel gcc-c++
 ```
-
-#### Windows 7
-
-On Windows 7 you may have to follow option 2 of the [node-gyp install guide]
-and install Visual Studio.
 
 ### Testing
 
@@ -224,61 +216,52 @@ a single server mode.
 
 #### The settings that can be overridden are:
 
-| Setting      | Description |
-| ----------- | ----------- |
-| `"isReportEnabled": true,`                   | Sets if the bugs will be reported to developers.
-| `"isInternalVideoChatWindowEnabled": true,`  | Sets the video calls will be opened in an internal window.
-| `"isFlashFrameEnabled": true,`               | Sets if the flash frame will be enabled.
-| `"isMinimizeOnCloseEnabled": false,`         | Sets if the app will be minimized on close.
-|`"doCheckForUpdatesOnStartup": true,`         | Sets if the app will check for updates on startup.
-| `"isMenuBarEnabled": true,`                  | Sets if the menu bar will be enabled.
-|`"isTrayIconEnabled": true,`                  | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"`
-|`"isUpdatingEnabled": true,`                  | Sets if the app can be updated by the user.
-|`"isAddNewServersEnabled": true,`              | Sets if the user can add new servers.
+| Setting                                    | Description                                                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `"isReportEnabled": true`                  | Sets if the bugs will be reported to developers.                                                       |
+| `"isInternalVideoChatWindowEnabled": true` | Sets if video calls will be opened in an internal window.                                              |
+| `"isFlashFrameEnabled": true`              | Sets if the flash frame will be enabled.                                                               |
+| `"isMinimizeOnCloseEnabled": false`        | Sets if the app will be minimized on close.                                                            |
+| `"doCheckForUpdatesOnStartup": true`       | Sets if the app will check for updates on startup.                                                     |
+| `"isMenuBarEnabled": true`                 | Sets if the menu bar will be enabled.                                                                  |
+| `"isTrayIconEnabled": true`                | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"` |
+| `"isUpdatingEnabled": true`                | Sets if the app can be updated by the user.                                                            |
+| `"isAddNewServersEnabled": true`           | Sets if the user can add new servers.                                                                  |
 
 ##### Single server mode
+
 If the setting `"isAddNewServersEnabled": false` is set, the user will not be able to add new servers.
 The buttons and shortcuts will be disabled. Then you will have to add the server to the `servers.json` file.
-With this, you can create a single server mode or just don't let the user to add new servers by his own.
+With this, you can create a single server mode or just don't let the user add new servers on their own.
 
 ##### Example configuration
+
 `overridden-settings.json` file:
 
-    {
-	   "isTrayIconEnabled": false,
-	   "isMinimizeOnCloseEnabled": false
-    }
-When `isTrayIconEnabled` is enabled, the app will be hidden on close.
-When `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
-When both are disabled, the app will quit on close.
+```json
+{
+  "isTrayIconEnabled": false,
+  "isMinimizeOnCloseEnabled": false
+}
+```
+
+If `isTrayIconEnabled` is enabled, the app will be hidden on close.
+If `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
+With both disabled, the app will quit on close.
+
 ## License
 
 Released under the MIT license.
 
 [Rocket.Chat]: https://rocket.chat
-
 [Electron]: https://electronjs.org/
-
 [your experience]: https://survey.zohopublic.com/zs/e4BUFG
-
 [Blog]: https://rocket.chat/case-studies/?utm_source=github&utm_medium=readme&utm_campaign=community
-
 [Sign Up!]: https://rocket.chat/newsletter/?utm_source=github&utm_medium=readme&utm_campaign=community
-
 [Releases]: https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest
-
 [ongoing changes in Rocket.Chat codebase]: https://forums.rocket.chat/t/moving-away-from-meteor-and-beyond/3270
-
 [rollup]: https://github.com/rollup/rollup
-
-[node-gyp readme]: https://github.com/nodejs/node-gyp#installation
-
 [Jest]: https://jestjs.io/
-
-[Jest electron runner]: https://github.com/facebook-atom/jest-electron-runner
-
+[Jest electron runner]: https://github.com/kayahr/jest-electron-runner
 [electron-builder]: https://github.com/electron-userland/electron-builder
-
-[customization options]: https://github.com/electron-userland/electron-builder/wiki/Options
-
-[node-gyp install guide]: https://github.com/nodejs/node-gyp#installation
+[customization options]: https://www.electron.build/configuration

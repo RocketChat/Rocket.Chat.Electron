@@ -92,9 +92,13 @@ type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
   isVideoCallScreenCaptureFallbackEnabled: boolean;
 };
 
+type PersistableValues_4_10_0 = PersistableValues_4_9_0 & {
+  userThemePreference: 'auto' | 'light' | 'dark';
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_9_0,
-  keyof PersistableValues_4_9_0
+  PersistableValues_4_10_0,
+  keyof PersistableValues_4_10_0
 >;
 
 export const migrations = {
@@ -172,5 +176,9 @@ export const migrations = {
     ...before,
     isTransparentWindowEnabled: false,
     isVideoCallScreenCaptureFallbackEnabled: false,
+  }),
+  '>=4.10.0': (before: PersistableValues_4_9_0): PersistableValues_4_10_0 => ({
+    ...before,
+    userThemePreference: 'auto',
   }),
 };

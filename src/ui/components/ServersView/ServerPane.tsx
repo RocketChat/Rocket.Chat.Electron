@@ -24,7 +24,6 @@ type ServerPaneProps = {
   supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   title: string | undefined;
   documentViewerOpenUrl: string | undefined;
-  themeAppearance: string | undefined;
   userLoggedIn?: boolean;
 };
 
@@ -36,7 +35,6 @@ export const ServerPane = ({
   isSupported,
   supportedVersionsFetchState,
   documentViewerOpenUrl,
-  themeAppearance,
   userLoggedIn,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
@@ -216,7 +214,6 @@ export const ServerPane = ({
           url={documentViewerOpenUrl || ''}
           partition={`persist:${serverUrl}`}
           closeDocumentViewer={closeDocumentViewer}
-          themeAppearance={themeAppearance}
         />
       </DocumentViewerWrapper>
       <UnsupportedServer

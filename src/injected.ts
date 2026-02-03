@@ -542,27 +542,6 @@ const start = async () => {
       setupFlags.gitCommitHash = true;
     }
 
-    if (Tracker && Meteor && getUserPreference && !setupFlags.themeAppearance) {
-      Tracker.autorun(() => {
-        const uid = Meteor.userId();
-        if (!uid) return;
-        const themeAppearance: string = getUserPreference(
-          uid,
-          'themeAppearence'
-        );
-        if (
-          ['dark', 'light', 'auto', 'high-contrast'].includes(
-            themeAppearance as any
-          )
-        ) {
-          window.RocketChatDesktop.setUserThemeAppearance(
-            themeAppearance as 'auto' | 'dark' | 'light' | 'high-contrast'
-          );
-        }
-      });
-      setupFlags.themeAppearance = true;
-    }
-
     if (Tracker && Meteor && getUserPreference && !setupFlags.userPresence) {
       Tracker.autorun(() => {
         const uid = Meteor.userId();

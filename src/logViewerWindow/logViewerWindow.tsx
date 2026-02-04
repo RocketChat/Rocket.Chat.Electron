@@ -13,7 +13,6 @@ import {
   useLocalStorage,
   useDebouncedValue,
 } from '@rocket.chat/fuselage-hooks';
-import { ipcRenderer } from 'electron';
 import type { ChangeEvent, Key } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -213,15 +212,12 @@ function LogViewerWindow() {
   const loadLogs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = (await ipcRenderer.invoke(
-        'log-viewer-window/read-logs',
-        {
-          limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
-          filePath: currentLogFile.isDefaultLog
-            ? undefined
-            : currentLogFile.filePath,
-        }
-      )) as ReadLogsResponse;
+      const response = (await window.logViewerAPI.readLogs({
+        limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
+        filePath: currentLogFile.isDefaultLog
+          ? undefined
+          : currentLogFile.filePath,
+      })) as ReadLogsResponse;
       if (response?.success && response.logs !== undefined) {
         const parsedLogs = parseLogLines(response.logs);
         setLogEntries(parsedLogs);
@@ -338,9 +334,9 @@ function LogViewerWindow() {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
 
     try {
-      const response = (await ipcRenderer.invoke('log-viewer-window/stat-log', {
+      const response = await window.logViewerAPI.statLog({
         filePath: undefined,
-      })) as { success: boolean; lastModifiedTime?: number; size?: number };
+      });
 
       if (response?.success && response.lastModifiedTime) {
         const currentModTime = lastModifiedTimeRef.current;
@@ -404,9 +400,8 @@ function LogViewerWindow() {
 
   const handleOpenLogFile = useCallback(async () => {
     try {
-      const response = (await ipcRenderer.invoke(
-        'log-viewer-window/select-log-file'
-      )) as SelectFileResponse;
+      const response =
+        (await window.logViewerAPI.selectLogFile()) as SelectFileResponse;
       if (response?.success && response.filePath) {
         setLogEntries([]);
         setFileInfo(null);
@@ -444,9 +439,8 @@ function LogViewerWindow() {
       return;
     }
     try {
-      const response = (await ipcRenderer.invoke(
-        'log-viewer-window/clear-logs'
-      )) as ClearLogsResponse;
+      const response =
+        (await window.logViewerAPI.clearLogs()) as ClearLogsResponse;
       if (response?.success) {
         loadLogs();
       }
@@ -473,13 +467,10 @@ function LogViewerWindow() {
         .toISOString()
         .slice(0, 19)
         .replace(/:/g, '-');
-      const response = (await ipcRenderer.invoke(
-        'log-viewer-window/save-logs',
-        {
-          content: logText,
-          defaultFileName: `rocketchat_${timestamp}.zip`,
-        }
-      )) as SaveLogsResponse;
+      const response = (await window.logViewerAPI.saveLogs({
+        content: logText,
+        defaultFileName: `rocketchat_${timestamp}.zip`,
+      })) as SaveLogsResponse;
 
       if (response?.success) {
         console.log('Logs saved successfully to:', response.filePath);
@@ -514,7 +505,7 @@ function LogViewerWindow() {
   }, [searchFilter, setSearchFilter, handleSaveLogs]);
 
   const handleClose = useCallback(() => {
-    ipcRenderer.invoke('log-viewer-window/close-requested');
+    window.logViewerAPI.closeWindow();
   }, []);
 
   return (

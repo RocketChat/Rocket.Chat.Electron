@@ -1,4 +1,10 @@
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'verbose';
+export type LogLevel =
+  | 'debug'
+  | 'info'
+  | 'warn'
+  | 'error'
+  | 'verbose'
+  | 'silly';
 
 export interface ILogEntryType {
   id: string;
@@ -55,7 +61,7 @@ export type ClearLogsResponse = IClearLogsResponse;
 
 export const isLogLevel = (value: unknown): value is LogLevel => {
   if (typeof value !== 'string') return false;
-  return ['debug', 'info', 'warn', 'error', 'verbose'].includes(
+  return ['debug', 'info', 'warn', 'error', 'verbose', 'silly'].includes(
     value.toLowerCase()
   );
 };

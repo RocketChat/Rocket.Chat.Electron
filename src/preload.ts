@@ -40,7 +40,10 @@ const start = async (): Promise<void> => {
   console.log('[Rocket.Chat Desktop] Preload.ts start fired');
   const serverUrl = await invoke('server-view/get-url');
 
-  if (retryCount > 5) return;
+  if (retryCount > 5) {
+    startInProgress = false;
+    return;
+  }
 
   if (!serverUrl) {
     console.log('[Rocket.Chat Desktop] serverUrl is not defined');

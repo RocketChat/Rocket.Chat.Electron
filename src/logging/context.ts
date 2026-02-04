@@ -12,6 +12,7 @@ const availableServerIds: number[] = Array.from(
   (_, i) => i + 1
 );
 const usedServerIds = new Map<number, number>();
+let overflowCounter = 0;
 
 // Define the log context interface
 export interface ILogContext {
@@ -85,7 +86,13 @@ export const getServerContext = (webContents?: WebContents): string => {
 
   // For webviews, assign anonymous server ID from pool
   if (webContents.getType() === 'webview') {
-    const serverId = availableServerIds.shift() || MAX_SERVER_ID;
+    let serverId: number;
+    if (availableServerIds.length > 0) {
+      serverId = availableServerIds.shift()!;
+    } else {
+      overflowCounter += 1;
+      serverId = MAX_SERVER_ID + overflowCounter;
+    }
     usedServerIds.set(webContentsId, serverId);
     const serverName = `server-${serverId}`;
     serverContextMap.set(webContentsId, {

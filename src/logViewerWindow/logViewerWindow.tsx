@@ -61,6 +61,7 @@ function LogViewerWindow() {
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const lastModifiedTimeRef = useRef<number | undefined>(undefined);
+  const isAutoScrollingRef = useRef(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showContext, setShowContext] = useState(true);
@@ -374,12 +375,14 @@ function LogViewerWindow() {
       virtuosoRef.current
     ) {
       const timeoutId = setTimeout(() => {
+        isAutoScrollingRef.current = true;
         if (virtuosoRef.current && autoScroll && !userHasScrolled) {
           virtuosoRef.current.scrollToIndex({
             index: 0,
             behavior: 'auto',
           });
         }
+        isAutoScrollingRef.current = false;
       }, SCROLL_DELAY_MS);
 
       return () => clearTimeout(timeoutId);
@@ -388,6 +391,7 @@ function LogViewerWindow() {
   }, [logEntries, autoScroll, userHasScrolled]);
 
   const handleScroll = useCallback(() => {
+    if (isAutoScrollingRef.current) return;
     if (autoScroll && !userHasScrolled) {
       setUserHasScrolled(true);
     }

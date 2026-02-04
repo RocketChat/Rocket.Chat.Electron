@@ -619,17 +619,21 @@ const createHelpMenu = createSelector(
         label: t('menus.openLogViewer'),
         accelerator: 'CommandOrControl+Shift+L',
         click: async () => {
-          const browserWindow = await getRootWindow();
+          try {
+            const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+
+            const { openLogViewerWindow } = await import(
+              '../../logViewerWindow/ipc'
+            );
+            await openLogViewerWindow();
+          } catch (error) {
+            console.error('Error opening log viewer:', error);
           }
-          browserWindow.focus();
-
-          const { openLogViewerWindow } = await import(
-            '../../logViewerWindow/ipc'
-          );
-          await openLogViewerWindow();
         },
       },
       {

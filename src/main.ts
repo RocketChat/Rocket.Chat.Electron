@@ -143,4 +143,7 @@ const start = async (): Promise<void> => {
   console.log('Application initialization completed successfully');
 };
 
-start().catch(console.error);
+start().catch((error) => {
+  logger.error('Failed to start application', error);
+  app.exit(1);
+});

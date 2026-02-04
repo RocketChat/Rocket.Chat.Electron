@@ -188,40 +188,6 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
-    input: 'src/logViewerWindow/preload.ts',
-    preserveEntrySignatures: 'strict',
-    plugins: [
-      json(),
-      replace({
-        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
-        'preventAssignment': true,
-      }),
-      babel({
-        babelHelpers: 'bundled',
-        extensions,
-      }),
-      nodeResolve({
-        browser: true,
-        extensions,
-      }),
-      commonjs(),
-    ],
-    output: [
-      {
-        dir: 'app/preload',
-        entryFileNames: 'log-viewer-preload.js',
-        format: 'cjs',
-        sourcemap: 'inline',
-        interop: 'auto',
-      },
-    ],
-  },
-  {
-    external: [
-      ...builtinModules,
-      ...Object.keys(appManifest.dependencies),
-      ...Object.keys(appManifest.devDependencies),
-    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
     input: 'src/rootWindow.ts',
     preserveEntrySignatures: 'strict',
     plugins: [

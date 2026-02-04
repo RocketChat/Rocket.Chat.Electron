@@ -60,7 +60,7 @@ type ChannelToArgsMap = {
   ) => Electron.DesktopCapturerSource[];
   'outlook-calendar/get-events': (date: Date) => OutlookEventsResponse;
   'outlook-calendar/set-exchange-url': (url: string, userId: string) => void;
-  'outlook-calendar/has-credentials': () => Promise<boolean>;
+  'outlook-calendar/has-credentials': () => boolean;
   'outlook-calendar/clear-credentials': () => void;
   'outlook-calendar/set-user-token': (token: string, userId: string) => void;
   'document-viewer/open-window': (

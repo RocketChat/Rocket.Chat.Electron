@@ -12,7 +12,9 @@ const availableServerIds: number[] = Array.from(
   (_, i) => i + 1
 );
 const usedServerIds = new Map<number, number>();
-let overflowCounter = 0;
+
+// Fallback counter for pool exhaustion - starts after MAX_SERVER_ID
+let overflowServerIdCounter = MAX_SERVER_ID;
 
 // Define the log context interface
 export interface ILogContext {
@@ -86,13 +88,18 @@ export const getServerContext = (webContents?: WebContents): string => {
 
   // For webviews, assign anonymous server ID from pool
   if (webContents.getType() === 'webview') {
-    let serverId: number;
-    if (availableServerIds.length > 0) {
-      serverId = availableServerIds.shift()!;
-    } else {
-      overflowCounter += 1;
-      serverId = MAX_SERVER_ID + overflowCounter;
+    let serverId = availableServerIds.shift();
+
+    if (serverId === undefined) {
+      overflowServerIdCounter += 1;
+      serverId = overflowServerIdCounter;
+      console.warn(
+        `[Logging] Server ID pool exhausted (max: ${MAX_SERVER_ID}). ` +
+          `Allocated overflow ID: ${serverId}. ` +
+          `Active webviews: ${usedServerIds.size}, Available IDs: ${availableServerIds.length}`
+      );
     }
+
     usedServerIds.set(webContentsId, serverId);
     const serverName = `server-${serverId}`;
     serverContextMap.set(webContentsId, {
@@ -109,12 +116,12 @@ export const getServerContext = (webContents?: WebContents): string => {
  * Get component context based on the calling code location
  */
 // eslint-disable-next-line complexity
-export const getComponentContext = (error?: Error): string => {
-  if (!error) {
-    // Create error to get stack trace
-    error = new Error();
+export const getComponentContext = (captureStack = false): string => {
+  if (!captureStack) {
+    return 'general';
   }
 
+  const error = new Error();
   const stack = error.stack || '';
 
   // Analyze stack trace to determine component context (privacy-safe)
@@ -206,12 +213,14 @@ export const getComponentContext = (error?: Error): string => {
 /**
  * Get complete log context
  */
-export const getLogContext = (webContents?: WebContents): ILogContext => {
+export const getLogContext = (
+  webContents?: WebContents,
+  captureComponentStack = false
+): ILogContext => {
   const context: ILogContext = {
     processType: getProcessContext(),
   };
 
-  // Add server context if webContents is provided
   if (webContents) {
     context.webContentsType = webContents.getType();
     context.webContentsId = webContents.id;
@@ -222,8 +231,7 @@ export const getLogContext = (webContents?: WebContents): ILogContext => {
     };
   }
 
-  // Add component context
-  context.component = getComponentContext();
+  context.component = getComponentContext(captureComponentStack);
 
   return context;
 };

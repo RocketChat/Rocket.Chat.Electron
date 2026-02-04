@@ -25,6 +25,7 @@ import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
+import { setupOutlookLogger } from './outlookCalendar/logger';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
@@ -68,6 +69,8 @@ const start = async (): Promise<void> => {
   cleanupOldLogs();
 
   createMainReduxStore();
+
+  setupOutlookLogger();
 
   // Initialize screen capture fallback state after store is available
   initializeScreenCaptureFallbackState();

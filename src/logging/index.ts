@@ -15,17 +15,16 @@ import {
 import { logLoggingFailure } from './fallback';
 import { createPrivacyHook, redactSensitiveData } from './privacy';
 
+const originalConsole = {
+  log: console.log.bind(console),
+  info: console.info.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+  debug: console.debug.bind(console),
+};
+
 // Enhanced console override with context
 const overrideConsole = () => {
-  // Store original console methods for fallback
-  const originalConsole = {
-    log: console.log,
-    info: console.info,
-    warn: console.warn,
-    error: console.error,
-    debug: console.debug,
-  };
-
   try {
     // Override console.log to use electron-log debug level with context
     console.log = (...args: any[]) => {
@@ -120,6 +119,11 @@ const configureLogging = () => {
       log.transports.console.format =
         '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
 
+      // Use original console to prevent recursion when console is overridden
+      log.transports.console.writeFn = ({ message }) => {
+        originalConsole.log(message);
+      };
+
       // Add structured JSON logging for errors (useful for error reporting)
       const errorJsonPath = path.join(app.getPath('logs'), 'errors.json');
       log.hooks.push((message: any) => {
@@ -132,7 +136,9 @@ const configureLogging = () => {
               text: redactSensitiveData(rawText),
               version: app.getVersion(),
             })}\n`;
-            fs.appendFileSync(errorJsonPath, jsonEntry);
+            fs.promises.appendFile(errorJsonPath, jsonEntry).catch((err) => {
+              originalConsole.error('Failed to write error log:', err);
+            });
           } catch {
             // Ignore JSON logging failures
           }
@@ -218,9 +224,10 @@ export const setupWebContentsLogging = () => {
                   debug: console.debug,
                 };
 
-                // Get webContents ID and server URL for context
-                const webContentsId = ${webContents.id};
-                const serverUrl = '${serverUrl.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}';
+                 // Get webContents ID and server URL for context
+                 const webContentsId = ${webContents.id};
+                 const serverUrl = ${JSON.stringify(serverUrl)};
+
 
                 // Override console methods to send to main process with context
                 console.log = (...args) => {

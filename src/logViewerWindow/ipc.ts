@@ -49,6 +49,10 @@ const getLastNEntries = (
   content: string,
   limit: number
 ): { content: string; totalEntries: number } => {
+  if (limit <= 0) {
+    return { content: '', totalEntries: 0 };
+  }
+
   const lines = content.split('\n');
   const entryStartIndices: number[] = [];
 

@@ -103,24 +103,24 @@ jobs:
 
           if (Test-Path $sdkPath) {
             Write-Host "Windows SDK path exists: $sdkPath"
-            $signtoolPath = Get-ChildItem -Path $sdkPath -Include "signtool.exe" -Recurse -ErrorAction SilentlyContinue | 
-              Sort-Object { $_.Directory.Name } -Descending | 
+            $signtoolPath = Get-ChildItem -Path $sdkPath -Include "signtool.exe" -Recurse -ErrorAction SilentlyContinue |
+              Sort-Object { $_.Directory.Name } -Descending |
               Select-Object -First 1
-              
+
             if ($signtoolPath) {
               $binPath = Split-Path $signtoolPath.FullName -Parent
               Write-Host "✅ Found signtool.exe at: $($signtoolPath.FullName)" -ForegroundColor Green
               Write-Host "Adding to PATH: $binPath"
-              
+
               # Add to GITHUB_PATH for future steps
               echo "$binPath" >> $env:GITHUB_PATH
-              
+
               # Also add to current PATH for immediate use
               $env:PATH = "$binPath;$env:PATH"
-              
+
               # Store the full path for electron-builder
               echo "SIGNTOOL_PATH=$($signtoolPath.FullName)" >> $env:GITHUB_ENV
-              
+
               # Verify it's accessible
               Write-Host "Verifying signtool accessibility..."
               & $signtoolPath.FullName /? 2>&1 | Select-Object -First 1
@@ -145,11 +145,11 @@ jobs:
 
           # Install certificates to stores
           Write-Host "Installing certificates to Windows certificate stores..."
-          if (Test-Path "$certDir\root.crt") { 
+          if (Test-Path "$certDir\root.crt") {
             Write-Host "Installing root certificate..."
             certutil -user -addstore "ROOT" "$certDir\root.crt"
           }
-          if (Test-Path "$certDir\intermediate.crt") { 
+          if (Test-Path "$certDir\intermediate.crt") {
             Write-Host "Installing intermediate certificate..."
             certutil -user -addstore "CA" "$certDir\intermediate.crt"
           }
@@ -164,15 +164,15 @@ jobs:
           $kmsKeyResource = "${{ secrets.WIN_KMS_KEY_RESOURCE }}"
           if ($kmsKeyResource) {
             Write-Host "KMS Key Resource: $kmsKeyResource (masked)"
-            
+
             # The certificate needs to be linked to the KMS key through the CSP
             # This is typically done when the certificate is initially created with the KMS key
             # Since we're importing an existing cert, we need to verify it has the proper association
-            
+
             # Try to repair the certificate association
             $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
             Write-Host "Certificate thumbprint: $thumb"
-            
+
             # Use certutil to check the certificate's key provider info
             Write-Host "Checking certificate key provider information..."
             certutil -user -store MY $thumb | Select-String "Provider\|Key Container"
@@ -190,7 +190,7 @@ jobs:
             Write-Host "✅ Certificate found in store: $($cert.Subject)"
             Write-Host "   Issuer: $($cert.Issuer)"
             Write-Host "   Thumbprint: $($cert.Thumbprint)"
-            
+
             # Check if the certificate has a private key reference
             if ($cert.HasPrivateKey) {
               Write-Host "✅ Certificate reports having a private key"
@@ -300,15 +300,15 @@ jobs:
               # Create a shim/wrapper for signtool
               $shimDir = "$env:RUNNER_TEMP\shims"
               New-Item -ItemType Directory -Path $shimDir -Force | Out-Null
-              
+
               # Create a batch file wrapper
               $batchContent = "@echo off`n`"$env:SIGNTOOL_PATH`" %*"
               $batchContent | Out-File -FilePath "$shimDir\signtool.bat" -Encoding ASCII
-              
+
               # Also create a PowerShell wrapper
               $psContent = "& `"$env:SIGNTOOL_PATH`" @args"
               $psContent | Out-File -FilePath "$shimDir\signtool.ps1" -Encoding UTF8
-              
+
               # Add shim directory to PATH
               $env:PATH = "$shimDir;$env:PATH"
               Write-Host "Added signtool shim to PATH at: $shimDir"
@@ -378,7 +378,7 @@ jobs:
           try {
             $signtoolPath = if ($env:SIGNTOOL_PATH) { $env:SIGNTOOL_PATH } else { "signtool" }
             Write-Host "Using signtool at: $signtoolPath"
-            
+
             $signArgs = @(
               "sign",
               "/fd", "SHA256",
@@ -392,19 +392,19 @@ jobs:
               "/debug",  # Debug output
               "$testFile"
             )
-            
+
             Write-Host "Running test signing command..."
             Write-Host "$signtoolPath $($signArgs -join ' ')" -ForegroundColor Gray
-            
+
             $result = & $signtoolPath @signArgs 2>&1
             $result | ForEach-Object { Write-Host $_ }
-            
+
             if ($LASTEXITCODE -eq 0) {
               Write-Host "✅ Test signing successful!" -ForegroundColor Green
             } else {
               Write-Host "❌ Test signing failed with exit code: $LASTEXITCODE" -ForegroundColor Red
               Write-Host "This indicates a configuration issue with KMS signing."
-              
+
               # Additional debugging
               Write-Host "`nAttempting to get more information about the certificate..."
               certutil -user -store MY $env:WIN_KMS_CERT_SHA1 -v | Select-String "Provider\|Container\|Key\|Algorithm"
@@ -464,7 +464,7 @@ jobs:
           Write-Host "Locating Python installation..." -ForegroundColor Yellow
           $pythonPaths = @(
             "C:\hostedtoolcache\windows\Python\*\x64\python.exe",
-            "C:\Python*\python.exe", 
+            "C:\Python*\python.exe",
             "C:\Program Files\Python*\python.exe",
             "$env:LOCALAPPDATA\Programs\Python\Python*\python.exe"
           )

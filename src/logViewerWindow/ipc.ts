@@ -112,9 +112,8 @@ export const openLogViewerWindow = async (): Promise<void> => {
     y,
     title: 'Log Viewer - Rocket.Chat',
     webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(app.getAppPath(), 'app/preload/log-viewer-preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false,
     },
     show: false,
   });

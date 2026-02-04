@@ -431,6 +431,38 @@ afterEach(() => {
 - Only add comments for complex business logic or non-obvious decisions
 - Keep code clean and professional - This is an open source project
 
+## CRITICAL: Never Change Existing Architecture Without Understanding
+
+**Before modifying ANY existing code patterns, you MUST:**
+
+1. **Understand WHY the code is written that way** - Don't assume existing code is wrong or can be "improved"
+2. **Read the surrounding context** - Check how the code integrates with other parts of the system
+3. **Test your assumptions** - Run the app and verify your changes don't break functionality
+4. **Ask if unsure** - If you don't understand why something exists, ASK before changing it
+
+**NEVER do the following without explicit user approval:**
+
+- Change `nodeIntegration`, `contextIsolation`, or other Electron security settings
+- Modify BrowserWindow webPreferences
+- Remove or change preload script configurations
+- Change how IPC communication works between processes
+- Modify Redux store configuration or state synchronization
+- Change build configurations (rollup, electron-builder)
+- Remove "unused" code that might be used by other parts of the system
+
+**Why this matters:**
+
+Electron apps have complex security and process isolation requirements. Settings like `nodeIntegration: true` and `contextIsolation: false` exist for specific reasons (e.g., allowing React components to use `require('electron')` directly). Changing these without understanding breaks the entire window.
+
+**When reviewing code suggestions (like from CodeRabbit):**
+
+- Code review bots don't understand the full application context
+- "Security improvements" may break functionality that depends on specific configurations
+- Always verify suggestions against how the app actually works
+- If a suggestion conflicts with existing patterns, the existing pattern is likely correct
+
+**Rule: If code has been working, assume it's correct until you fully understand why it exists.**
+
 ## Library and Framework Usage
 
 - **Always verify before using** - Check official documentation and type definitions, never guess

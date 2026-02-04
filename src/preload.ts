@@ -14,6 +14,9 @@ import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { whenReady } from './whenReady';
 
+// Import and apply console override for the main renderer process
+import './logging/preload';
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
@@ -27,16 +30,25 @@ contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 let retryCount = 0;
+let startInProgress = false;
 
 const start = async (): Promise<void> => {
+  if (startInProgress) {
+    return;
+  }
+  startInProgress = true;
   console.log('[Rocket.Chat Desktop] Preload.ts start fired');
   const serverUrl = await invoke('server-view/get-url');
 
-  if (retryCount > 5) return;
+  if (retryCount > 5) {
+    startInProgress = false;
+    return;
+  }
 
   if (!serverUrl) {
     console.log('[Rocket.Chat Desktop] serverUrl is not defined');
     console.log('[Rocket.Chat Desktop] Preload start - retrying in 1 seconds');
+    startInProgress = false;
     setTimeout(start, 1000);
     retryCount += 1;
     return;
@@ -75,3 +87,4 @@ const start = async (): Promise<void> => {
 
 console.log('[Rocket.Chat Desktop] waiting for window load');
 window.addEventListener('load', start);
+window.addEventListener('DOMContentLoaded', start);

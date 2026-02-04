@@ -17,6 +17,8 @@ import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
+import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
+import { logger, setupWebContentsLogging, cleanupOldLogs } from './logging';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
@@ -50,9 +52,15 @@ import {
 const start = async (): Promise<void> => {
   setUserDataDirectory();
 
+  logger.info('Starting Rocket.Chat Desktop application');
+
+  setupWebContentsLogging();
+
   performElectronStartup();
 
   await app.whenReady();
+
+  cleanupOldLogs();
 
   createMainReduxStore();
 
@@ -87,6 +95,7 @@ const start = async (): Promise<void> => {
   attentionDrawing.setUp();
   setupScreenSharing();
   startVideoCallWindowHandler();
+  startLogViewerWindowHandler();
 
   await setupSpellChecking();
 
@@ -123,4 +132,7 @@ const start = async (): Promise<void> => {
   console.log('Application initialization completed successfully');
 };
 
-start();
+start().catch((error) => {
+  logger.error('Failed to start application', error);
+  app.exit(1);
+});

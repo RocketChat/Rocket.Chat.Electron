@@ -222,6 +222,10 @@
     "title": "Settings",
     "general": "General",
     "certificates": "Certificates",
+    "developer": "Developer",
+    "sections": {
+      "logging": "Logging"
+    },
     "options": {
       "report": {
         "title": "Report errors to developers",
@@ -301,6 +305,10 @@
         "auto": "Follow system",
         "light": "Light",
         "dark": "Dark"
+      },
+      "verboseOutlookLogging": {
+        "title": "Verbose Outlook Calendar Logging",
+        "description": "Enable detailed Exchange/NTLM debug logs for troubleshooting Outlook Calendar integration issues."
       }
     }
   },

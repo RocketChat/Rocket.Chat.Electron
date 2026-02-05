@@ -160,9 +160,21 @@ export const mergePersistableValues = async (
     };
   }
 
+  const mergedOverrides: Record<string, unknown> = {
+    ...userDataOverriddenSettings,
+    ...appAsarOverriddenSettings,
+  };
+
   dispatch({
     type: APP_SETTINGS_LOADED,
-    payload: values,
+    payload: {
+      ...values,
+      allowInsecureOutlookConnections:
+        mergedOverrides.allowInsecureOutlookConnections === true ||
+        String(
+          mergedOverrides.allowInsecureOutlookConnections
+        ).toLowerCase() === 'true',
+    },
   });
 };
 

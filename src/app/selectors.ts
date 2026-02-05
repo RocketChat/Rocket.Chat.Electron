@@ -3,9 +3,6 @@ import { createStructuredSelector } from 'reselect';
 import type { RootState } from '../store/rootReducer';
 
 export const selectPersistableValues = createStructuredSelector({
-  allowInsecureOutlookConnections: ({
-    allowInsecureOutlookConnections,
-  }: RootState) => allowInsecureOutlookConnections,
   currentView: ({ currentView }: RootState) => currentView,
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }: RootState) =>
     doCheckForUpdatesOnStartup,

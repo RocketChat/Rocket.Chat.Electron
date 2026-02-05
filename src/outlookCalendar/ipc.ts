@@ -338,7 +338,9 @@ async function maybeSyncEvents(serverToSync: Server) {
   if (!checkIfCredentialsAreNotEmpty(credentials))
     throw new Error('Credentials are empty');
 
-  const { allowInsecureOutlookConnections } = select(selectPersistableValues);
+  const allowInsecureOutlookConnections = select(
+    (state) => state.allowInsecureOutlookConnections
+  );
 
   try {
     await syncEventsWithRocketChatServer(
@@ -495,8 +497,8 @@ export const startOutlookCalendarUrlHandler = (): void => {
           : outlookCredentials;
       }
 
-      const { allowInsecureOutlookConnections } = select(
-        selectPersistableValues
+      const allowInsecureOutlookConnections = select(
+        (state) => state.allowInsecureOutlookConnections
       );
 
       try {

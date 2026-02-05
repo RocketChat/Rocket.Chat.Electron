@@ -11,11 +11,15 @@ export const APP_MACHINE_THEME_SET = 'app/machine-theme-set';
 export const APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET =
   'app/screen-capture-fallback-forced-set';
 
+export type OverrideOnlySettings = {
+  allowInsecureOutlookConnections?: boolean;
+};
+
 export type AppActionTypeToPayloadMap = {
   [APP_ERROR_THROWN]: Error;
   [APP_PATH_SET]: string;
   [APP_VERSION_SET]: string;
-  [APP_SETTINGS_LOADED]: Partial<PersistableValues>;
+  [APP_SETTINGS_LOADED]: Partial<PersistableValues> & OverrideOnlySettings;
   [APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET]: string;
   [APP_MAIN_WINDOW_TITLE_SET]: string;
   [APP_MACHINE_THEME_SET]: string;

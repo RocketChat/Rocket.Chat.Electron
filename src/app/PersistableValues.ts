@@ -96,9 +96,13 @@ type PersistableValues_4_10_0 = PersistableValues_4_9_0 & {
   userThemePreference: 'auto' | 'light' | 'dark';
 };
 
+type PersistableValues_4_13_0 = PersistableValues_4_10_0 & {
+  allowInsecureOutlookConnections: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_10_0,
-  keyof PersistableValues_4_10_0
+  PersistableValues_4_13_0,
+  keyof PersistableValues_4_13_0
 >;
 
 export const migrations = {
@@ -180,5 +184,9 @@ export const migrations = {
   '>=4.10.0': (before: PersistableValues_4_9_0): PersistableValues_4_10_0 => ({
     ...before,
     userThemePreference: 'auto',
+  }),
+  '>=4.13.0': (before: PersistableValues_4_10_0): PersistableValues_4_13_0 => ({
+    ...before,
+    allowInsecureOutlookConnections: false,
   }),
 };

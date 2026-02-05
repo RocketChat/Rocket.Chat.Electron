@@ -1,3 +1,5 @@
+import https from 'https';
+
 import axios from 'axios';
 import { safeStorage } from 'electron';
 
@@ -65,10 +67,19 @@ function decryptedCredentials(
   };
 }
 
+/**
+ * Creates an HTTPS agent that bypasses certificate validation.
+ * Used for air-gapped environments with self-signed or internal CA certificates.
+ */
+function createInsecureHttpsAgent(): https.Agent {
+  return new https.Agent({ rejectUnauthorized: false });
+}
+
 async function listEventsFromRocketChatServer(
   serverUrl: string,
   userId: string,
-  token: string
+  token: string,
+  httpsAgent?: https.Agent
 ) {
   try {
     const response = await axios.get(
@@ -82,6 +93,7 @@ async function listEventsFromRocketChatServer(
         params: {
           date: new Date().toISOString(),
         },
+        httpsAgent,
       }
     );
     return response.data;
@@ -94,7 +106,8 @@ async function createEventOnRocketChatServer(
   serverUrl: string,
   userId: string,
   token: string,
-  event: AppointmentData
+  event: AppointmentData,
+  httpsAgent?: https.Agent
 ) {
   try {
     // Get server object to check version
@@ -122,6 +135,7 @@ async function createEventOnRocketChatServer(
         'X-Auth-Token': token,
         'X-User-Id': userId,
       },
+      httpsAgent,
     });
   } catch (error) {
     console.error('Error saving event on server:', error);
@@ -133,7 +147,8 @@ async function updateEventOnRocketChatServer(
   userId: string,
   token: string,
   rocketChatEventId: string,
-  event: AppointmentData
+  event: AppointmentData,
+  httpsAgent?: https.Agent
 ) {
   try {
     // Get server object to check version
@@ -161,6 +176,7 @@ async function updateEventOnRocketChatServer(
         'X-Auth-Token': token,
         'X-User-Id': userId,
       },
+      httpsAgent,
     });
   } catch (error) {
     console.error('Error updating event on server:', error);
@@ -171,7 +187,8 @@ async function deleteEventOnRocketChatServer(
   serverUrl: string,
   userId: string,
   token: string,
-  rocketChatEventId: string
+  rocketChatEventId: string,
+  httpsAgent?: https.Agent
 ) {
   try {
     await axios.post(
@@ -185,6 +202,7 @@ async function deleteEventOnRocketChatServer(
           'X-Auth-Token': token,
           'X-User-Id': userId,
         },
+        httpsAgent,
       }
     );
   } catch (error) {
@@ -195,18 +213,25 @@ async function deleteEventOnRocketChatServer(
 export async function syncEventsWithRocketChatServer(
   serverUrl: string,
   credentials: OutlookCredentials,
-  token: string
+  token: string,
+  allowInsecure: boolean = false
 ) {
   if (!checkIfCredentialsAreNotEmpty(credentials)) return;
+
+  // Create a single HTTPS agent instance to reuse across all requests in this sync
+  const httpsAgent = allowInsecure ? createInsecureHttpsAgent() : undefined;
+
   const eventsOnOutlookServer = await getOutlookEvents(
     credentials,
-    new Date(Date.now())
+    new Date(Date.now()),
+    allowInsecure
   );
 
   const eventsOnRocketChatServer = await listEventsFromRocketChatServer(
     serverUrl,
     credentials.userId,
-    token
+    token,
+    httpsAgent
   );
 
   const appointmentsFound = eventsOnOutlookServer.map(
@@ -234,11 +259,12 @@ export async function syncEventsWithRocketChatServer(
 
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {
-        createEventOnRocketChatServer(
+        await createEventOnRocketChatServer(
           serverUrl,
           credentials.userId,
           token,
-          appointment
+          appointment,
+          httpsAgent
         );
         continue;
       }
@@ -264,7 +290,8 @@ export async function syncEventsWithRocketChatServer(
         credentials.userId,
         token,
         alreadyOnRocketChatServer._id,
-        appointment
+        appointment,
+        httpsAgent
       );
     } catch (error) {
       console.error('Error syncing event:', error);
@@ -285,7 +312,8 @@ export async function syncEventsWithRocketChatServer(
         serverUrl,
         credentials.userId,
         token,
-        event._id
+        event._id,
+        httpsAgent
       );
     } catch (e) {
       console.error(e);
@@ -309,8 +337,18 @@ async function maybeSyncEvents(serverToSync: Server) {
 
   if (!checkIfCredentialsAreNotEmpty(credentials))
     throw new Error('Credentials are empty');
+
+  const allowInsecureOutlookConnections = select(
+    (state) => state.allowInsecureOutlookConnections
+  );
+
   try {
-    await syncEventsWithRocketChatServer(server.url, credentials, userAPIToken);
+    await syncEventsWithRocketChatServer(
+      server.url,
+      credentials,
+      userAPIToken,
+      allowInsecureOutlookConnections
+    );
     console.log('Recurring task executed successfully');
   } catch (e) {
     console.error('Error sending events to server', e);
@@ -459,11 +497,16 @@ export const startOutlookCalendarUrlHandler = (): void => {
           : outlookCredentials;
       }
 
+      const allowInsecureOutlookConnections = select(
+        (state) => state.allowInsecureOutlookConnections
+      );
+
       try {
         await syncEventsWithRocketChatServer(
           server.url,
           credentials,
-          userAPIToken
+          userAPIToken,
+          allowInsecureOutlookConnections
         );
       } catch (e) {
         console.error('Error syncing events with Rocket.Chat server', e);

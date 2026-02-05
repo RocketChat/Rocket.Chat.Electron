@@ -20,12 +20,18 @@ import type { OutlookCredentials, AppointmentData } from './type';
 
 export const getOutlookEvents = async (
   credentials: OutlookCredentials,
-  date: Date
+  date: Date,
+  allowInsecure: boolean = false
 ): Promise<AppointmentData[]> => {
   try {
     const { login, password, serverUrl } = credentials;
 
-    const xhrApi = new XhrApi({ decompress: true });
+    // When allowInsecure is true, bypass SSL certificate validation
+    // for air-gapped environments with self-signed/internal CA certificates
+    const xhrApi = new XhrApi({
+      decompress: true,
+      rejectUnauthorized: !allowInsecure,
+    });
     xhrApi.useNtlmAuthentication(login, password);
 
     ConfigurationApi.ConfigureXHR(xhrApi);

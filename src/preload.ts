@@ -11,6 +11,7 @@ import { createRendererReduxStore, listen } from './store';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
 import { debounce } from './ui/main/debounce';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
+import { setupImageGalleryZoom } from './ui/preload/imageGallery';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { whenReady } from './whenReady';
 
@@ -82,6 +83,7 @@ const start = async (): Promise<void> => {
     listenToScreenSharingRequests();
     listenToMessageBoxEvents();
     handleTrafficLightsSpacing();
+    setupImageGalleryZoom();
   });
 };
 

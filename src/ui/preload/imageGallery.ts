@@ -1,4 +1,3 @@
-
 export const setupImageGalleryZoom = (): void => {
   let lastZoomTime = 0;
   const ZOOM_COOLDOWN = 200; // more = less zoom speed

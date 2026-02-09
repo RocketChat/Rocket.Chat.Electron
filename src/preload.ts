@@ -10,8 +10,8 @@ import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
 import { debounce } from './ui/main/debounce';
-import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { setupImageGalleryZoom } from './ui/preload/imageGallery';
+import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { whenReady } from './whenReady';
 

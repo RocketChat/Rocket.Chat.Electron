@@ -325,6 +325,7 @@ let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
 let currentServer: Server | null = null;
 let restartDebounceTimer: NodeJS.Timeout | undefined;
+let unsubscribeIntervalWatch: (() => void) | undefined;
 
 async function maybeSyncEvents(serverToSync: Server) {
   if (!userAPIToken) throw new Error('No user token');
@@ -407,6 +408,17 @@ export const startOutlookCalendarUrlHandler = (): void => {
     if (!server) return;
     const { outlookCredentials } = server;
     if (!outlookCredentials) return;
+
+    clearInterval(recurringSyncTaskId);
+    clearTimeout(restartDebounceTimer);
+    restartDebounceTimer = undefined;
+    currentServer = null;
+    userAPIToken = '';
+    if (unsubscribeIntervalWatch) {
+      unsubscribeIntervalWatch();
+      unsubscribeIntervalWatch = undefined;
+    }
+
     dispatch({
       type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
       payload: {
@@ -540,7 +552,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
     }
   );
 
-  watch(
+  unsubscribeIntervalWatch = watch(
     (state) =>
       state.outlookCalendarSyncIntervalOverride ??
       state.outlookCalendarSyncInterval,
@@ -563,4 +575,16 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }, 10000);
     }
   );
+};
+
+export const stopOutlookCalendarSync = (): void => {
+  clearInterval(recurringSyncTaskId);
+  clearTimeout(restartDebounceTimer);
+  restartDebounceTimer = undefined;
+  currentServer = null;
+  userAPIToken = '';
+  if (unsubscribeIntervalWatch) {
+    unsubscribeIntervalWatch();
+    unsubscribeIntervalWatch = undefined;
+  }
 };

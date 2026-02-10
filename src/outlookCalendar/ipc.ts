@@ -547,12 +547,20 @@ export const startOutlookCalendarUrlHandler = (): void => {
     (curr, prev) => {
       if (prev === undefined || curr === prev) return;
       if (!currentServer || !userAPIToken) return;
+      console.log(
+        `Outlook sync interval changed to ${curr} minutes, rescheduling sync job`
+      );
       clearTimeout(restartDebounceTimer);
-      restartDebounceTimer = setTimeout(() => {
+      restartDebounceTimer = setTimeout(async () => {
         if (currentServer) {
+          try {
+            await maybeSyncEvents(currentServer);
+          } catch (e) {
+            console.error('Error syncing after interval change', e);
+          }
           startRecurringSyncTask(currentServer);
         }
-      }, 2000);
+      }, 10000);
     }
   );
 };

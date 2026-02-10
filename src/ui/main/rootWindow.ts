@@ -557,6 +557,41 @@ const dispatchMachineTheme = (): void => {
   });
 };
 
+export const syncNativeThemeSource = (): void => {
+  const updateThemeSource = () => {
+    const userThemePreference = select(
+      ({ userThemePreference }: RootState) => userThemePreference
+    );
+
+    // Set nativeTheme.themeSource to ensure window borders follow app theme
+    // instead of OS theme (critical for macOS per-application theme override)
+    switch (userThemePreference) {
+      case 'auto':
+        nativeTheme.themeSource = 'system';
+        break;
+      case 'light':
+        nativeTheme.themeSource = 'light';
+        break;
+      case 'dark':
+        nativeTheme.themeSource = 'dark';
+        break;
+      default:
+        nativeTheme.themeSource = 'system';
+    }
+  };
+
+  // Initial sync
+  updateThemeSource();
+
+  // Watch for changes to user theme preference
+  watch(
+    ({ userThemePreference }: RootState) => userThemePreference,
+    () => {
+      updateThemeSource();
+    }
+  );
+};
+
 export const exportLocalStorage = async (): Promise<Record<string, string>> => {
   try {
     tempWindow = new BrowserWindow({

@@ -73,4 +73,6 @@ export const selectPersistableValues = createStructuredSelector({
   updateChannel: ({ updateChannel }: RootState) => updateChannel,
   userThemePreference: ({ userThemePreference }: RootState) =>
     userThemePreference,
+  outlookCalendarSyncInterval: ({ outlookCalendarSyncInterval }: RootState) =>
+    outlookCalendarSyncInterval,
 });

@@ -297,26 +297,12 @@ function LogViewerWindow() {
 
       const matchesLevel = levelFilter === 'all' || entry.level === levelFilter;
 
-      const matchesContext = (() => {
-        if (contextFilter === 'all') return true;
-        if (contextFilter === 'outlook') {
-          const message = entry.message.toLowerCase();
-          const context = entry.context.toLowerCase();
-          return (
-            message.includes('outlook') ||
-            message.includes('calendar') ||
-            message.includes('exchange') ||
-            message.includes('ntlm') ||
-            message.includes('ewsjs') ||
-            message.includes('xhr') ||
-            context.includes('outlook') ||
-            message.includes('events')
-          );
-        }
-        return entry.context
+      const matchesContext =
+        contextFilter === 'all' ||
+        entry.context
           .toLowerCase()
-          .includes(contextFilter.toLowerCase());
-      })();
+          .split(/\s+/)
+          .some((tag) => tag.startsWith(contextFilter.toLowerCase()));
 
       return matchesSearch && matchesLevel && matchesContext;
     });

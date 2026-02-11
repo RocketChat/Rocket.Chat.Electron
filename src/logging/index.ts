@@ -153,6 +153,19 @@ const configureLogging = () => {
       if (process.type === 'browser') {
         log.initialize();
       }
+
+      // Restrict log file permissions to owner-only (0600)
+      try {
+        const logFilePath = path.join(app.getPath('logs'), 'main.log');
+        if (fs.existsSync(logFilePath)) {
+          fs.chmodSync(logFilePath, 0o600);
+        }
+        if (fs.existsSync(errorJsonPath)) {
+          fs.chmodSync(errorJsonPath, 0o600);
+        }
+      } catch {
+        // Non-critical: chmod may fail on Windows
+      }
     }
 
     // Override console.log to use electron-log
@@ -283,11 +296,28 @@ export const setupWebContentsLogging = () => {
       });
     });
 
+    // Rate limiting for console-log IPC to prevent flooding from compromised webviews
+    const ipcRateLimit = new Map<
+      number,
+      { count: number; resetTime: number }
+    >();
+    const MAX_IPC_MESSAGES_PER_SECOND = 100;
+
     // Handle console messages from renderer processes with enhanced context
     ipcMain.on(
       'console-log',
       (event, level, webContentsId, _serverUrl, ...args) => {
         try {
+          const now = Date.now();
+          let rateState = ipcRateLimit.get(webContentsId);
+          if (!rateState || now > rateState.resetTime) {
+            rateState = { count: 0, resetTime: now + 1000 };
+            ipcRateLimit.set(webContentsId, rateState);
+          }
+          rateState.count++;
+          if (rateState.count > MAX_IPC_MESSAGES_PER_SECOND) {
+            return;
+          }
           // Find the webContents that sent this message
           const senderWebContents =
             webContents.fromId(webContentsId) || event.sender;

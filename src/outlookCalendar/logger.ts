@@ -3,32 +3,36 @@ import { select, watch } from '../store';
 declare global {
   // eslint-disable-next-line no-var
   var isVerboseOutlookLoggingEnabled: boolean;
+  // eslint-disable-next-line no-var
+  var isDetailedEventsLoggingEnabled: boolean;
 }
 
 global.isVerboseOutlookLoggingEnabled = false;
+global.isDetailedEventsLoggingEnabled = false;
 
-const COLORS = {
-  reset: '\x1b[0m',
-  cyan: '\x1b[36m',
-  yellow: '\x1b[33m',
-  red: '\x1b[31m',
-  blue: '\x1b[34m',
-} as const;
-
-const prefix = `${COLORS.cyan}[OutlookCalendar]${COLORS.reset}`;
-const debugPrefix = `${COLORS.blue}[OutlookCalendar]${COLORS.reset}`;
-const warnPrefix = `${COLORS.yellow}[OutlookCalendar]${COLORS.reset}`;
-const errorPrefix = `${COLORS.red}[OutlookCalendar]${COLORS.reset}`;
+const prefix = '[OutlookCalendar]';
+const eventDetailPrefix = '[OutlookCalendar:Events]';
 
 export const setupOutlookLogger = (): void => {
   global.isVerboseOutlookLoggingEnabled = select(
     ({ isVerboseOutlookLoggingEnabled }) => isVerboseOutlookLoggingEnabled
   );
 
+  global.isDetailedEventsLoggingEnabled = select(
+    ({ isDetailedEventsLoggingEnabled }) => isDetailedEventsLoggingEnabled
+  );
+
   watch(
     ({ isVerboseOutlookLoggingEnabled }) => isVerboseOutlookLoggingEnabled,
     (enabled) => {
       global.isVerboseOutlookLoggingEnabled = enabled;
+    }
+  );
+
+  watch(
+    ({ isDetailedEventsLoggingEnabled }) => isDetailedEventsLoggingEnabled,
+    (enabled) => {
+      global.isDetailedEventsLoggingEnabled = enabled;
     }
   );
 };
@@ -41,7 +45,7 @@ export const outlookLog = (...args: unknown[]): void => {
 
 export const outlookDebug = (...args: unknown[]): void => {
   if (global.isVerboseOutlookLoggingEnabled) {
-    console.debug(debugPrefix, ...args);
+    console.debug(prefix, ...args);
   }
 };
 
@@ -53,10 +57,20 @@ export const outlookInfo = (...args: unknown[]): void => {
 
 export const outlookWarn = (...args: unknown[]): void => {
   if (global.isVerboseOutlookLoggingEnabled) {
-    console.warn(warnPrefix, ...args);
+    console.warn(prefix, ...args);
   }
 };
 
-export const outlookError = (...args: unknown[]): void => {
-  console.error(errorPrefix, ...args);
+export const outlookError = (message: unknown, ...details: unknown[]): void => {
+  if (global.isVerboseOutlookLoggingEnabled) {
+    console.error(prefix, message, ...details);
+  } else {
+    console.error(prefix, message);
+  }
+};
+
+export const outlookEventDetail = (...args: unknown[]): void => {
+  if (global.isDetailedEventsLoggingEnabled) {
+    console.debug(eventDetailPrefix, ...args);
+  }
 };

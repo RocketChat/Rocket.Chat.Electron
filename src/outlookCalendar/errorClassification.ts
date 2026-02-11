@@ -228,6 +228,34 @@ export function createClassifiedError(
   };
 }
 
+const SENSITIVE_CONTEXT_KEYS = new Set([
+  'token',
+  'password',
+  'secret',
+  'authorization',
+]);
+
+const sanitizeContext = (
+  context: Record<string, unknown>
+): Record<string, unknown> => {
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(context)) {
+    const lowerKey = key.toLowerCase();
+    if (SENSITIVE_CONTEXT_KEYS.has(lowerKey)) {
+      sanitized[key] = '[REDACTED]';
+    } else if (
+      lowerKey.includes('token') ||
+      lowerKey.includes('password') ||
+      lowerKey.includes('secret')
+    ) {
+      sanitized[key] = '[REDACTED]';
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+};
+
 export function formatErrorForLogging(
   classifiedError: OutlookCalendarError,
   operationContext: string
@@ -235,18 +263,20 @@ export function formatErrorForLogging(
   const { source, severity, code, userMessage, technicalMessage, context } =
     classifiedError;
 
+  const safeContext = context ? sanitizeContext(context) : {};
+
   return `[OutlookCalendar] ${operationContext} failed - ${source.toUpperCase()} ERROR
 ┌─ Error Classification ─────────────────────────────────────
 │ Source: ${source}
 │ Severity: ${severity}
 │ Code: ${code}
-│ 
+│
 │ User Message: ${userMessage}
-│ 
+│
 │ Technical Details: ${technicalMessage}
-│ 
-│ Context: ${JSON.stringify(context, null, 2)}
-│ 
+│
+│ Context: ${JSON.stringify(safeContext, null, 2)}
+│
 │ Suggested Actions:
 ${classifiedError.suggestedActions?.map((action) => `│ • ${action}`).join('\n') || '│ • Contact support'}
 └────────────────────────────────────────────────────────────`;

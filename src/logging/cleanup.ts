@@ -5,6 +5,8 @@ import { app } from 'electron';
 
 const DEFAULT_RETENTION_DAYS = 30;
 
+const PROTECTED_FILES = new Set(['main.log', 'errors.json']);
+
 /**
  * Clean up old log files based on retention policy
  * @param retentionDays - Number of days to keep logs (default 30)
@@ -27,6 +29,8 @@ export const cleanupOldLogs = (
     let deletedCount = 0;
 
     for (const file of files) {
+      if (PROTECTED_FILES.has(file)) continue;
+
       const filePath = path.join(logsPath, file);
       try {
         const stats = fs.statSync(filePath);

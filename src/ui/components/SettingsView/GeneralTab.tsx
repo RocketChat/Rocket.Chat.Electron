@@ -8,6 +8,7 @@ import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
 import { MenuBar } from './features/MenuBar';
 import { MinimizeOnClose } from './features/MinimizeOnClose';
 import { NTLMCredentials } from './features/NTLMCredentials';
+import { OutlookCalendarSyncInterval } from './features/OutlookCalendarSyncInterval';
 import { ReportErrors } from './features/ReportErrors';
 import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
 import { SideBar } from './features/SideBar';
@@ -33,6 +34,7 @@ export const GeneralTab = () => (
       {process.platform === 'win32' && <NTLMCredentials />}
       <ThemeAppearance />
       <AvailableBrowsers />
+      <OutlookCalendarSyncInterval />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>

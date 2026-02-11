@@ -301,6 +301,10 @@
         "auto": "Follow system",
         "light": "Light",
         "dark": "Dark"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook Calendar Sync Interval",
+        "description": "How often to sync Outlook calendar events, in minutes (1-60)."
       }
     }
   },

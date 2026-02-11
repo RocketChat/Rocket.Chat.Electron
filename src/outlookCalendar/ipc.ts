@@ -6,7 +6,7 @@ import { safeStorage } from 'electron';
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
 import type { Server } from '../servers/common';
-import { dispatch, request, select } from '../store';
+import { dispatch, request, select, watch } from '../store';
 import * as urls from '../urls';
 import { meetsMinimumVersion } from '../utils';
 import {
@@ -323,6 +323,9 @@ export async function syncEventsWithRocketChatServer(
 
 let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
+let currentServer: Server | null = null;
+let restartDebounceTimer: NodeJS.Timeout | undefined;
+let unsubscribeIntervalWatch: (() => void) | undefined;
 
 async function maybeSyncEvents(serverToSync: Server) {
   if (!userAPIToken) throw new Error('No user token');
@@ -367,10 +370,17 @@ async function recurringSyncTask(serverToSync: Server) {
 
 function startRecurringSyncTask(server: Server) {
   if (!userAPIToken) return;
+  currentServer = server;
+  const intervalMinutes = select(
+    (state) =>
+      state.outlookCalendarSyncIntervalOverride ??
+      state.outlookCalendarSyncInterval
+  );
+  clearInterval(recurringSyncTaskId);
   recurringSyncTaskId = setInterval(
     () => recurringSyncTask(server),
-    60 * 60 * 1000
-  ); // minutes * seconds * milliseconds
+    intervalMinutes * 60 * 1000
+  );
 }
 
 export const startOutlookCalendarUrlHandler = (): void => {
@@ -398,6 +408,17 @@ export const startOutlookCalendarUrlHandler = (): void => {
     if (!server) return;
     const { outlookCredentials } = server;
     if (!outlookCredentials) return;
+
+    clearInterval(recurringSyncTaskId);
+    clearTimeout(restartDebounceTimer);
+    restartDebounceTimer = undefined;
+    currentServer = null;
+    userAPIToken = '';
+    if (unsubscribeIntervalWatch) {
+      unsubscribeIntervalWatch();
+      unsubscribeIntervalWatch = undefined;
+    }
+
     dispatch({
       type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
       payload: {
@@ -530,4 +551,40 @@ export const startOutlookCalendarUrlHandler = (): void => {
       };
     }
   );
+
+  unsubscribeIntervalWatch = watch(
+    (state) =>
+      state.outlookCalendarSyncIntervalOverride ??
+      state.outlookCalendarSyncInterval,
+    (curr, prev) => {
+      if (prev === undefined || curr === prev) return;
+      if (!currentServer || !userAPIToken) return;
+      console.log(
+        `Outlook sync interval changed to ${curr} minutes, rescheduling sync job`
+      );
+      clearTimeout(restartDebounceTimer);
+      restartDebounceTimer = setTimeout(async () => {
+        if (currentServer) {
+          try {
+            await maybeSyncEvents(currentServer);
+          } catch (e) {
+            console.error('Error syncing after interval change', e);
+          }
+          startRecurringSyncTask(currentServer);
+        }
+      }, 10000);
+    }
+  );
+};
+
+export const stopOutlookCalendarSync = (): void => {
+  clearInterval(recurringSyncTaskId);
+  clearTimeout(restartDebounceTimer);
+  restartDebounceTimer = undefined;
+  currentServer = null;
+  userAPIToken = '';
+  if (unsubscribeIntervalWatch) {
+    unsubscribeIntervalWatch();
+    unsubscribeIntervalWatch = undefined;
+  }
 };

@@ -112,6 +112,8 @@ export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED 
   'settings/set-is-video-call-screen-capture-fallback-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
+export const SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED =
+  'settings/set-outlook-calendar-sync-interval-changed';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
   'settings/ntlm-credentials-changed';
 export const SETTINGS_AVAILABLE_BROWSERS_UPDATED =
@@ -250,6 +252,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
+  [SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED]: number;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];
   [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;

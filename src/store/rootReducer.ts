@@ -15,6 +15,8 @@ import {
   notTrustedCertificates,
 } from '../navigation/reducers';
 import { allowInsecureOutlookConnections } from '../outlookCalendar/reducers/allowInsecureOutlookConnections';
+import { outlookCalendarSyncInterval } from '../outlookCalendar/reducers/outlookCalendarSyncInterval';
+import { outlookCalendarSyncIntervalOverride } from '../outlookCalendar/reducers/outlookCalendarSyncIntervalOverride';
 import { servers } from '../servers/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
@@ -59,6 +61,8 @@ import {
 export const rootReducer = combineReducers({
   allowedJitsiServers,
   allowInsecureOutlookConnections,
+  outlookCalendarSyncInterval,
+  outlookCalendarSyncIntervalOverride,
   appPath,
   appVersion,
   availableBrowsers,

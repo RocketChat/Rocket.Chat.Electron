@@ -36,6 +36,7 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
@@ -107,6 +108,7 @@ export const rootReducer = combineReducers({
   videoCallWindowState,
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
+  isVerboseOutlookLoggingEnabled,
   updateChannel,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,

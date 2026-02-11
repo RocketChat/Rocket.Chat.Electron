@@ -5,7 +5,7 @@ import {
   FieldHint,
   Select,
 } from '@rocket.chat/fuselage';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import type { Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +20,7 @@ type ThemeAppearanceProps = {
 };
 
 export const ThemeAppearance = (props: ThemeAppearanceProps) => {
+  const themeSelectId = useId();
   const userThemePreference = useSelector(
     ({ userThemePreference }: RootState) => userThemePreference
   );
@@ -62,13 +63,16 @@ export const ThemeAppearance = (props: ThemeAppearanceProps) => {
         alignItems='flex-start'
       >
         <Box display='flex' flexDirection='column'>
-          <FieldLabel>{t('settings.options.themeAppearance.title')}</FieldLabel>
+          <FieldLabel htmlFor={themeSelectId}>
+            {t('settings.options.themeAppearance.title')}
+          </FieldLabel>
           <FieldHint>
             {t('settings.options.themeAppearance.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
+        <Box display='flex' alignItems='center' paddingBlockStart='x4'>
           <Select
+            id={themeSelectId}
             options={options}
             value={userThemePreference}
             onChange={handleChangeTheme}

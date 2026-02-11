@@ -5,7 +5,7 @@
 **Always use the centralized logger from `logger.ts`** - never use `console.log('[OutlookCalendar]...')` directly.
 
 ```typescript
-import { outlookLog, outlookError, outlookWarn } from './logger';
+import { outlookLog, outlookDebug, outlookError, outlookWarn, outlookEventDetail } from './logger';
 
 // These respect the verbose logging toggle in Settings > Developer
 outlookLog('message', data); // Only logs when verbose enabled
@@ -14,6 +14,9 @@ outlookDebug('message', data); // Only logs when verbose enabled
 
 // This ALWAYS logs (errors should always be visible)
 outlookError('message', data);
+
+// This respects the detailed events logging toggle in Settings > Developer
+outlookEventDetail('full event data', eventObject); // Only logs when detailed events enabled
 ```
 
 ### Why This Matters
@@ -24,7 +27,7 @@ outlookError('message', data);
 
 ### Architecture
 
-```
+```text
 Redux Store (isVerboseOutlookLoggingEnabled)
     ↓ watch()
 global.isVerboseOutlookLoggingEnabled

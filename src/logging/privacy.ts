@@ -57,10 +57,14 @@ export const redactSensitiveData = (text: string): string => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for re-enabling privacy hook
-const redactObject = (obj: any): any => {
+const redactObject = (obj: any, seen = new WeakSet()): any => {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj === 'string') return redactSensitiveData(obj);
-  if (Array.isArray(obj)) return obj.map(redactObject);
+  if (typeof obj === 'object') {
+    if (seen.has(obj)) return '[Circular]';
+    seen.add(obj);
+  }
+  if (Array.isArray(obj)) return obj.map((item) => redactObject(item, seen));
   if (typeof obj === 'object') {
     // Check if this looks like a Redux state dump
     if (isStateDump(obj)) {
@@ -70,7 +74,7 @@ const redactObject = (obj: any): any => {
     if (obj.state && isStateDump(obj.state)) {
       // Use destructuring to avoid infinite recursion - process all keys except 'state'
       const { state: _state, ...rest } = obj;
-      return { ...redactObject(rest), state: '[Redux State Redacted]' };
+      return { ...redactObject(rest, seen), state: '[Redux State Redacted]' };
     }
 
     const result: any = {};
@@ -86,7 +90,7 @@ const redactObject = (obj: any): any => {
       ) {
         result[key] = '[REDACTED]';
       } else {
-        result[key] = redactObject(obj[key]);
+        result[key] = redactObject(obj[key], seen);
       }
     }
     return result;

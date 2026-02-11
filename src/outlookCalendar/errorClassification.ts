@@ -50,7 +50,7 @@ const ERROR_PATTERNS: Array<{
     },
   },
   {
-    pattern: /getaddrinfo ENOTFOUND|ECONNREFUSED|timeout/i,
+    pattern: /(getaddrinfo ENOTFOUND|ECONNREFUSED|\btimeout\b)/i,
     classification: {
       source: 'network',
       severity: 'high',

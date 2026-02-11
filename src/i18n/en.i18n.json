@@ -313,6 +313,10 @@
       "verboseOutlookLogging": {
         "title": "Verbose Outlook Calendar Logging",
         "description": "Enable detailed Exchange/NTLM debug logs for troubleshooting Outlook Calendar integration issues."
+      },
+      "detailedEventsLogging": {
+        "title": "Detailed Events Logging",
+        "description": "Log full event data exchanged between Outlook and Rocket.Chat during calendar sync. Useful for diagnosing sync issues."
       }
     }
   },

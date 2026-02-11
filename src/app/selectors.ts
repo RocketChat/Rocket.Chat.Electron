@@ -78,4 +78,7 @@ export const selectPersistableValues = createStructuredSelector({
   isVerboseOutlookLoggingEnabled: ({
     isVerboseOutlookLoggingEnabled,
   }: RootState) => isVerboseOutlookLoggingEnabled,
+  isDetailedEventsLoggingEnabled: ({
+    isDetailedEventsLoggingEnabled,
+  }: RootState) => isDetailedEventsLoggingEnabled,
 });

@@ -20,7 +20,12 @@ import {
   createClassifiedError,
   formatErrorForLogging,
 } from './errorClassification';
-import { outlookLog, outlookError, outlookWarn } from './logger';
+import {
+  outlookLog,
+  outlookError,
+  outlookWarn,
+  outlookEventDetail,
+} from './logger';
 import type { OutlookCredentials, AppointmentData } from './type';
 
 /**
@@ -314,6 +319,10 @@ export const getOutlookEvents = async (
       const findResult = await exchange.FindAppointments(folderId, view);
       appointments = findResult.Items as Appointment[];
       outlookLog('Found', appointments.length, 'appointments');
+      outlookEventDetail(
+        'Raw Exchange appointments count:',
+        appointments.length
+      );
     } catch (error) {
       const classifiedError = createClassifiedError(error as Error, {
         operation: 'fetch_appointments',
@@ -405,6 +414,7 @@ export const getOutlookEvents = async (
           startTime: appointmentData.startTime,
           busy: appointmentData.busy,
         });
+        outlookEventDetail(`Mapped appointment ${index + 1}:`, appointmentData);
 
         return appointmentData;
       } catch (error) {

@@ -21,7 +21,12 @@ import {
   generateUserFriendlyMessage,
 } from './errorClassification';
 import { getOutlookEvents } from './getOutlookEvents';
-import { outlookLog, outlookError, outlookWarn } from './logger';
+import {
+  outlookLog,
+  outlookError,
+  outlookWarn,
+  outlookEventDetail,
+} from './logger';
 import type {
   OutlookCredentials,
   AppointmentData,
@@ -183,6 +188,7 @@ async function listEventsFromRocketChatServer(
       statusCode: response.status,
       eventCount: response.data?.data?.length || 0,
     });
+    outlookEventDetail('RC server events response:', response.data);
 
     return response.data;
   } catch (error) {
@@ -246,6 +252,8 @@ async function createEventOnRocketChatServer(
       outlookLog('Including endTime and busy status (server version >= 7.5.0)');
     }
 
+    outlookEventDetail('Create event payload:', payload);
+
     const response = await axios.post(url, payload, {
       headers: {
         'Content-Type': 'application/json',
@@ -261,6 +269,7 @@ async function createEventOnRocketChatServer(
       statusCode: response.status,
       responseData: response.data,
     });
+    outlookEventDetail('Create event response:', response.data);
     return { success: true };
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -331,6 +340,8 @@ async function updateEventOnRocketChatServer(
       );
     }
 
+    outlookEventDetail('Update event payload:', payload);
+
     const response = await axios.post(url, payload, {
       headers: {
         'Content-Type': 'application/json',
@@ -347,6 +358,7 @@ async function updateEventOnRocketChatServer(
       statusCode: response.status,
       responseData: response.data,
     });
+    outlookEventDetail('Update event response:', response.data);
     return { success: true };
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -415,6 +427,7 @@ async function deleteEventOnRocketChatServer(
       statusCode: response.status,
       responseData: response.data,
     });
+    outlookEventDetail('Delete event response:', response.data);
     return { success: true };
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -691,6 +704,10 @@ async function performSync(
     'Outlook events'
   );
 
+  let syncCreated = 0;
+  let syncUpdated = 0;
+  let syncSkipped = 0;
+
   for await (const appointment of eventsOnOutlookServer) {
     try {
       outlookLog('Processing appointment:', {
@@ -710,6 +727,7 @@ async function performSync(
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {
         outlookLog('Creating new event in Rocket.Chat:', appointment.id);
+        outlookEventDetail('New event from Exchange:', appointment);
         await createEventOnRocketChatServer(
           serverUrl,
           credentials.userId,
@@ -717,6 +735,7 @@ async function performSync(
           appointment,
           httpsAgent
         );
+        syncCreated++;
         continue;
       }
 
@@ -735,6 +754,11 @@ async function performSync(
 
       if (!hasChanges) {
         outlookLog('No changes detected for event:', appointment.id);
+        outlookEventDetail('Unchanged event comparison:', {
+          outlookEvent: appointment,
+          rcEvent: alreadyOnRocketChatServer,
+        });
+        syncSkipped++;
         continue;
       }
 
@@ -743,6 +767,11 @@ async function performSync(
         rocketChatId: alreadyOnRocketChatServer._id,
         outlookId: appointment.id,
       });
+      outlookEventDetail(
+        'Event changed — before (RC):',
+        alreadyOnRocketChatServer
+      );
+      outlookEventDetail('Event changed — after (Outlook):', appointment);
 
       await updateEventOnRocketChatServer(
         serverUrl,
@@ -752,6 +781,7 @@ async function performSync(
         appointment,
         httpsAgent
       );
+      syncUpdated++;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -813,7 +843,16 @@ async function performSync(
     }
   }
 
+  const syncDeleted = eventsToDelete.length;
   outlookLog('Sync completed successfully');
+  outlookEventDetail('Sync summary:', {
+    created: syncCreated,
+    updated: syncUpdated,
+    deleted: syncDeleted,
+    unchanged: syncSkipped,
+    totalOutlookEvents: eventsOnOutlookServer.length,
+    totalRcEvents: eventsOnRocketChatServer?.data?.length || 0,
+  });
 }
 
 type QueuedSync = {

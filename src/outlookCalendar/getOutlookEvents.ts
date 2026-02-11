@@ -86,8 +86,11 @@ const buildEwsPathname = (url: URL): void => {
   const pathSegments = url.pathname
     .split('/')
     .filter((segment) => segment.length > 0)
-    .map((segment) => segment.toLowerCase())
-    .filter((segment) => segment !== 'ews' && segment !== 'exchange.asmx');
+    .filter(
+      (segment) =>
+        segment.toLowerCase() !== 'ews' &&
+        segment.toLowerCase() !== 'exchange.asmx'
+    );
 
   pathSegments.push('ews', 'exchange.asmx');
   url.pathname = `/${pathSegments.join('/')}`;

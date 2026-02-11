@@ -66,7 +66,8 @@ const ERROR_PATTERNS: Array<{
     },
   },
   {
-    pattern: /SSL|TLS|certificate/i,
+    pattern:
+      /SSL_ERROR|UNABLE_TO_VERIFY|CERT_|ERR_TLS|self.signed|certificate.has.expired/i,
     classification: {
       source: 'network',
       severity: 'medium',
@@ -235,20 +236,29 @@ const SENSITIVE_CONTEXT_KEYS = new Set([
   'authorization',
 ]);
 
+const isSensitiveKey = (key: string): boolean => {
+  const lowerKey = key.toLowerCase();
+  return (
+    SENSITIVE_CONTEXT_KEYS.has(lowerKey) ||
+    lowerKey.includes('token') ||
+    lowerKey.includes('password') ||
+    lowerKey.includes('secret')
+  );
+};
+
 const sanitizeContext = (
   context: Record<string, unknown>
 ): Record<string, unknown> => {
   const sanitized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(context)) {
-    const lowerKey = key.toLowerCase();
-    if (SENSITIVE_CONTEXT_KEYS.has(lowerKey)) {
+    if (isSensitiveKey(key)) {
       sanitized[key] = '[REDACTED]';
     } else if (
-      lowerKey.includes('token') ||
-      lowerKey.includes('password') ||
-      lowerKey.includes('secret')
+      typeof value === 'object' &&
+      value !== null &&
+      !Array.isArray(value)
     ) {
-      sanitized[key] = '[REDACTED]';
+      sanitized[key] = sanitizeContext(value as Record<string, unknown>);
     } else {
       sanitized[key] = value;
     }
@@ -275,7 +285,7 @@ export function formatErrorForLogging(
 │
 │ Technical Details: ${technicalMessage}
 │
-│ Context: ${JSON.stringify(safeContext, null, 2)}
+│ Context: ${JSON.stringify(safeContext, null, 2).replace(/\n/g, '\n│ ')}
 │
 │ Suggested Actions:
 ${classifiedError.suggestedActions?.map((action) => `│ • ${action}`).join('\n') || '│ • Contact support'}

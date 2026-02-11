@@ -24,7 +24,10 @@ import { logger, setupWebContentsLogging, cleanupOldLogs } from './logging';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
-import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
+import {
+  startOutlookCalendarUrlHandler,
+  stopOutlookCalendarSync,
+} from './outlookCalendar/ipc';
 import { setupOutlookLogger } from './outlookCalendar/logger';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
@@ -128,6 +131,7 @@ const start = async (): Promise<void> => {
     touchBar.tearDown();
     trayIcon.tearDown();
     attentionDrawing.tearDown();
+    stopOutlookCalendarSync();
     cleanupVideoCallResources();
   });
 

@@ -23,6 +23,7 @@ import { currentView } from '../ui/reducers/currentView';
 import { dialogs } from '../ui/reducers/dialogs';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
+import { isDetailedEventsLoggingEnabled } from '../ui/reducers/isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
@@ -36,6 +37,7 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
@@ -107,6 +109,8 @@ export const rootReducer = combineReducers({
   videoCallWindowState,
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
+  isDetailedEventsLoggingEnabled,
+  isVerboseOutlookLoggingEnabled,
   updateChannel,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,

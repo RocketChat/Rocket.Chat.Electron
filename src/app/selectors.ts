@@ -75,4 +75,10 @@ export const selectPersistableValues = createStructuredSelector({
     userThemePreference,
   outlookCalendarSyncInterval: ({ outlookCalendarSyncInterval }: RootState) =>
     outlookCalendarSyncInterval,
+  isVerboseOutlookLoggingEnabled: ({
+    isVerboseOutlookLoggingEnabled,
+  }: RootState) => isVerboseOutlookLoggingEnabled,
+  isDetailedEventsLoggingEnabled: ({
+    isDetailedEventsLoggingEnabled,
+  }: RootState) => isDetailedEventsLoggingEnabled,
 });

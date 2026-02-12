@@ -222,6 +222,10 @@
     "title": "Settings",
     "general": "General",
     "certificates": "Certificates",
+    "developer": "Developer",
+    "sections": {
+      "logging": "Logging"
+    },
     "options": {
       "report": {
         "title": "Report errors to developers",
@@ -305,6 +309,14 @@
       "outlookCalendarSyncInterval": {
         "title": "Outlook Calendar Sync Interval",
         "description": "How often to sync Outlook calendar events, in minutes (1-60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Verbose Outlook Calendar Logging",
+        "description": "Enable detailed Exchange/NTLM debug logs for troubleshooting Outlook Calendar integration issues."
+      },
+      "detailedEventsLogging": {
+        "title": "Detailed Events Logging",
+        "description": "Log full event data exchanged between Outlook and Rocket.Chat during calendar sync. Useful for diagnosing sync issues."
       }
     }
   },
@@ -361,6 +373,7 @@
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
     "openConfigFolder": "Open &Configuration Folder",
+    "openLogViewer": "Open &Log Viewer",
     "videoCallDevTools": "Open Video Call &DevTools",
     "videoCallTools": "Video Call Tools",
     "videoCallDevToolsAutoOpen": "Auto-open DevTools",
@@ -464,6 +477,129 @@
     "noWindowsFound": "No windows found",
     "cancel": "Cancel",
     "share": "Share"
+  },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Main Process",
+        "renderer": "Renderer Process",
+        "preload": "Preload Process",
+        "rendererRoot": "Main Window",
+        "webview": "Server Webview",
+        "videoCall": "Video Call Window"
+      },
+      "components": {
+        "auth": "Authentication",
+        "connection": "Connection",
+        "notification": "Notification",
+        "outlook": "Outlook Calendar",
+        "videoCall": "Video Call",
+        "download": "Download",
+        "spellCheck": "Spell Check",
+        "general": "General"
+      },
+      "serverInfo": {
+        "anonymous": "Anonymous Server",
+        "local": "Local Process",
+        "unknown": "Unknown Server"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "Store module not available for server context mapping",
+      "importFailed": "Store import failed"
+    },
+    "errors": {
+      "configurationFailed": "Failed to configure electron-log",
+      "storeUnavailable": "Store module not available for server context mapping",
+      "webContentsLoggingFailed": "Failed to setup webContents logging",
+      "rendererLogFailed": "Failed to log from renderer",
+      "consoleOverrideFailed": "Failed to override console methods"
+    },
+    "messages": {
+      "serverContext": "Server {{- serverNumber}}",
+      "logContext": "Log Context: {{- context}}"
+    }
+  },
+  "logViewer": {
+    "title": "Log Viewer",
+    "aria": {
+      "logIcon": "Log viewer icon",
+      "entriesCount": "{{count}} log entries displayed"
+    },
+    "fileInfo": {
+      "custom": "Custom",
+      "entries": "{{count}} entries",
+      "entriesOfTotal": "{{count}} of {{total}} entries",
+      "noEntries": "No entries"
+    },
+    "buttons": {
+      "openLogFile": "Open Log File",
+      "defaultLog": "Default Log",
+      "refresh": "Refresh",
+      "autoRefresh": "Auto Refresh",
+      "stopAutoRefresh": "Stop Auto Refresh",
+      "copy": "Copy",
+      "save": "Save",
+      "clear": "Clear",
+      "close": "Close",
+      "clearFilters": "Clear Filters"
+    },
+    "controls": {
+      "showContext": "Show Context",
+      "autoScrollToTop": "Auto Scroll to Top"
+    },
+    "placeholders": {
+      "loadAmount": "Load amount",
+      "searchLogs": "Search logs...",
+      "level": "Level",
+      "context": "Context",
+      "exchangeDebug": "Exchange Debug Filter"
+    },
+    "filters": {
+      "entryLimit": {
+        "last100": "Last 100 entries",
+        "last500": "Last 500 entries",
+        "last1000": "Last 1000 entries",
+        "last5000": "Last 5000 entries",
+        "all": "All entries"
+      },
+      "level": {
+        "all": "All Levels",
+        "debug": "Debug",
+        "info": "Info",
+        "warn": "Warning",
+        "error": "Error",
+        "verbose": "Verbose"
+      },
+      "context": {
+        "all": "All Contexts",
+        "main": "Main Process",
+        "renderer": "Renderer",
+        "webview": "Webview",
+        "videocall": "Video Call",
+        "outlook": "Outlook Calendar",
+        "auth": "Authentication",
+        "updates": "Updates",
+        "notifications": "Notifications",
+        "servers": "Servers",
+        "ipc": "IPC Communication"
+      },
+      "exchangeDebug": {
+        "all": "All Logs",
+        "success": "Success Only",
+        "failure": "Failures Only",
+        "ntlmFlow": "NTLM Authentication",
+        "exchangeComm": "Exchange Communication",
+        "sslCerts": "SSL/Certificate Issues",
+        "networkErrors": "Network Issues",
+        "successFactors": "Success Factors",
+        "outlookCalendar": "Outlook Calendar"
+      }
+    },
+    "messages": {
+      "noLogsFound": "No logs found",
+      "adjustFilters": "Try adjusting your filters or refresh the logs"
+    }
   },
   "serverInfo": {
     "title": "Server Information",

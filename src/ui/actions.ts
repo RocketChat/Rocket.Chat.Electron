@@ -122,6 +122,10 @@ export const SETTINGS_SELECTED_BROWSER_CHANGED =
   'settings/selected-browser-changed';
 export const SETTINGS_USER_THEME_PREFERENCE_CHANGED =
   'settings/user-theme-preference-changed';
+export const SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED =
+  'settings/set-verbose-outlook-logging-changed';
+export const SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED =
+  'settings/set-detailed-events-logging-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -257,6 +261,8 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];
   [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;
   [SETTINGS_USER_THEME_PREFERENCE_CHANGED]: 'auto' | 'light' | 'dark';
+  [SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED]: boolean;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;

@@ -40,6 +40,7 @@ import {
   showRootWindow,
   exportLocalStorage,
   watchMachineTheme,
+  syncNativeThemeSource,
 } from './ui/main/rootWindow';
 import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
@@ -102,6 +103,7 @@ const start = async (): Promise<void> => {
   //   installDevTools();
   // }
   watchMachineTheme();
+  const unsubscribeNativeThemeSource = syncNativeThemeSource();
   setupNotifications();
   attentionDrawing.setUp();
   setupScreenSharing();
@@ -129,6 +131,7 @@ const start = async (): Promise<void> => {
     trayIcon.tearDown();
     attentionDrawing.tearDown();
     cleanupVideoCallResources();
+    unsubscribeNativeThemeSource();
   });
 
   watchAndPersistChanges();

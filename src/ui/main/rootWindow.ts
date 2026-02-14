@@ -90,10 +90,10 @@ export const createRootWindow = (): void => {
     webPreferences,
     ...(enableVibrancy
       ? {
-          transparent: true,
-          vibrancy: 'sidebar',
-          visualEffectState: 'active',
-        }
+        transparent: true,
+        vibrancy: 'sidebar',
+        visualEffectState: 'active',
+      }
       : {}),
   });
 
@@ -555,6 +555,34 @@ const dispatchMachineTheme = (): void => {
     type: APP_MACHINE_THEME_SET,
     payload: isDarkMode ? 'dark' : 'light',
   });
+};
+
+export const syncNativeThemeSource = (): (() => void) => {
+  const updateThemeSource = (userThemePreference: RootState['userThemePreference']) => {
+    // Set nativeTheme.themeSource to ensure window borders follow app theme
+    // instead of OS theme (critical for macOS per-application theme override)
+    switch (userThemePreference) {
+      case 'auto':
+        nativeTheme.themeSource = 'system';
+        break;
+      case 'light':
+        nativeTheme.themeSource = 'light';
+        break;
+      case 'dark':
+        nativeTheme.themeSource = 'dark';
+        break;
+      default:
+        nativeTheme.themeSource = 'system';
+    }
+  };
+
+  // Watch for changes to user theme preference
+  return watch(
+    ({ userThemePreference }: RootState) => userThemePreference,
+    (userThemePreference) => {
+      updateThemeSource(userThemePreference);
+    }
+  );
 };
 
 export const exportLocalStorage = async (): Promise<Record<string, string>> => {

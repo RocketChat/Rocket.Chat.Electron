@@ -90,10 +90,10 @@ export const createRootWindow = (): void => {
     webPreferences,
     ...(enableVibrancy
       ? {
-          transparent: true,
-          vibrancy: 'sidebar',
-          visualEffectState: 'active',
-        }
+        transparent: true,
+        vibrancy: 'sidebar',
+        visualEffectState: 'active',
+      }
       : {}),
   });
 
@@ -557,12 +557,8 @@ const dispatchMachineTheme = (): void => {
   });
 };
 
-export const syncNativeThemeSource = (): void => {
-  const updateThemeSource = () => {
-    const userThemePreference = select(
-      ({ userThemePreference }: RootState) => userThemePreference
-    );
-
+export const syncNativeThemeSource = (): (() => void) => {
+  const updateThemeSource = (userThemePreference: RootState['userThemePreference']) => {
     // Set nativeTheme.themeSource to ensure window borders follow app theme
     // instead of OS theme (critical for macOS per-application theme override)
     switch (userThemePreference) {
@@ -580,14 +576,11 @@ export const syncNativeThemeSource = (): void => {
     }
   };
 
-  // Initial sync
-  updateThemeSource();
-
   // Watch for changes to user theme preference
-  watch(
+  return watch(
     ({ userThemePreference }: RootState) => userThemePreference,
-    () => {
-      updateThemeSource();
+    (userThemePreference) => {
+      updateThemeSource(userThemePreference);
     }
   );
 };

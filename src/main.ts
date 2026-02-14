@@ -103,7 +103,7 @@ const start = async (): Promise<void> => {
   //   installDevTools();
   // }
   watchMachineTheme();
-  syncNativeThemeSource();
+  const unsubscribeNativeThemeSource = syncNativeThemeSource();
   setupNotifications();
   attentionDrawing.setUp();
   setupScreenSharing();
@@ -131,6 +131,7 @@ const start = async (): Promise<void> => {
     trayIcon.tearDown();
     attentionDrawing.tearDown();
     cleanupVideoCallResources();
+    unsubscribeNativeThemeSource();
   });
 
   watchAndPersistChanges();

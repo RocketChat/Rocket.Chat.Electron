@@ -144,7 +144,7 @@ const start = async (): Promise<void> => {
 
   await processDeepLinksInArgs();
 
-  console.log('Application initialization completed successfully');
+  console.info('Application initialization completed successfully');
 };
 
 start().catch((error) => {

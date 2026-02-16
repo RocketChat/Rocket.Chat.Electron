@@ -43,7 +43,7 @@ const validateLogFilePath = (
   return { valid: true };
 };
 
-const LOG_ENTRY_REGEX = /^\[([^\]]+)\] \[([^\]]+)\]/;
+const LOG_ENTRY_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]/;
 
 const getLastNEntries = (
   content: string,
@@ -53,7 +53,7 @@ const getLastNEntries = (
     return { content: '', totalEntries: 0 };
   }
 
-  const lines = content.split('\n');
+  const lines = content.split(/\r?\n/);
   const entryStartIndices: number[] = [];
 
   lines.forEach((line, index) => {

@@ -39,13 +39,13 @@ export const setupOutlookLogger = (): void => {
 
 export const outlookLog = (...args: unknown[]): void => {
   if (global.isVerboseOutlookLoggingEnabled) {
-    console.log(prefix, ...args);
+    console.info(prefix, ...args);
   }
 };
 
 export const outlookDebug = (...args: unknown[]): void => {
   if (global.isVerboseOutlookLoggingEnabled) {
-    console.debug(prefix, ...args);
+    console.info(prefix, ...args);
   }
 };
 
@@ -71,6 +71,6 @@ export const outlookError = (message: unknown, ...details: unknown[]): void => {
 
 export const outlookEventDetail = (...args: unknown[]): void => {
   if (global.isDetailedEventsLoggingEnabled) {
-    console.debug(eventDetailPrefix, ...args);
+    console.info(eventDetailPrefix, ...args);
   }
 };

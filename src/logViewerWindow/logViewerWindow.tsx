@@ -37,7 +37,7 @@ import {
   parseLogLevel,
 } from './types';
 
-const LOG_LINE_REGEX = /^\[([^\]]+)\] \[([^\]]+)\]\s*(.*)$/;
+const LOG_LINE_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]\s*(.*)$/;
 const CONTEXT_REGEX = /^(\[[^\]]+\](?:\s*\[[^\]]+\])*)\s*(.*)$/;
 
 const formatFileSize = (bytes: number): string => {
@@ -172,7 +172,7 @@ function LogViewerWindow() {
     if (!logText || logText.trim() === '') {
       return [];
     }
-    const lines = logText.split('\n').filter((line: string) => line.trim());
+    const lines = logText.split(/\r?\n/).filter((line: string) => line.trim());
     const entries: LogEntryType[] = [];
     let currentEntry: LogEntryType | null = null;
 

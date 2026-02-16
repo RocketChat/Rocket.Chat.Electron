@@ -5,7 +5,7 @@ import type { OutlookEventsResponse } from './type';
 export const getOutlookEvents = async (
   date: Date
 ): Promise<OutlookEventsResponse> => {
-  console.log(
+  console.info(
     '[OutlookCalendar] Preload: Getting Outlook events for date:',
     date.toISOString()
   );
@@ -15,7 +15,7 @@ export const getOutlookEvents = async (
       'outlook-calendar/get-events',
       date
     );
-    console.log(
+    console.info(
       '[OutlookCalendar] Preload: Successfully got Outlook events response:',
       response
     );
@@ -31,7 +31,7 @@ export const getOutlookEvents = async (
 };
 
 export const setOutlookExchangeUrl = (url: string, userId: string): void => {
-  console.log('[OutlookCalendar] Preload: Setting Exchange URL:', {
+  console.info('[OutlookCalendar] Preload: Setting Exchange URL:', {
     url,
     userId,
   });
@@ -39,7 +39,7 @@ export const setOutlookExchangeUrl = (url: string, userId: string): void => {
   ipcRenderer
     .invoke('outlook-calendar/set-exchange-url', url, userId)
     .then(() => {
-      console.log('[OutlookCalendar] Preload: Successfully set Exchange URL');
+      console.info('[OutlookCalendar] Preload: Successfully set Exchange URL');
     })
     .catch((error: unknown) => {
       const errorMessage =
@@ -53,13 +53,16 @@ export const setOutlookExchangeUrl = (url: string, userId: string): void => {
 };
 
 export const hasOutlookCredentials = async (): Promise<boolean> => {
-  console.log(
+  console.info(
     '[OutlookCalendar] Preload: Checking if Outlook credentials exist'
   );
 
   try {
     const result = await ipcRenderer.invoke('outlook-calendar/has-credentials');
-    console.log('[OutlookCalendar] Preload: Credentials check result:', result);
+    console.info(
+      '[OutlookCalendar] Preload: Credentials check result:',
+      result
+    );
     return result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -72,12 +75,12 @@ export const hasOutlookCredentials = async (): Promise<boolean> => {
 };
 
 export const clearOutlookCredentials = (): void => {
-  console.log('[OutlookCalendar] Preload: Clearing Outlook credentials');
+  console.info('[OutlookCalendar] Preload: Clearing Outlook credentials');
 
   ipcRenderer
     .invoke('outlook-calendar/clear-credentials')
     .then(() => {
-      console.log(
+      console.info(
         '[OutlookCalendar] Preload: Successfully cleared credentials'
       );
     })
@@ -92,7 +95,7 @@ export const clearOutlookCredentials = (): void => {
 };
 
 export const setUserToken = (token: string, userId: string): void => {
-  console.log(
+  console.info(
     '[OutlookCalendar] Preload: Setting user token for userId:',
     userId
   );
@@ -100,7 +103,7 @@ export const setUserToken = (token: string, userId: string): void => {
   ipcRenderer
     .invoke('outlook-calendar/set-user-token', token, userId)
     .then(() => {
-      console.log('[OutlookCalendar] Preload: Successfully set user token');
+      console.info('[OutlookCalendar] Preload: Successfully set user token');
     })
     .catch((error: unknown) => {
       const errorMessage =

@@ -8,7 +8,6 @@ import { handle } from '../ipc/main';
 import type { Server } from '../servers/common';
 import { dispatch, request, select, watch } from '../store';
 import * as urls from '../urls';
-import { meetsMinimumVersion } from '../utils';
 import {
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
@@ -232,25 +231,15 @@ async function createEventOnRocketChatServer(
   });
 
   try {
-    // Get server object to check version
-    const { servers } = select(selectPersistableValues);
-    const server = servers.find((server) => server.url === serverUrl);
-
-    // Base payload
-    const payload: Record<string, any> = {
+    const payload = {
       externalId: event.id,
       subject: event.subject,
       startTime: event.startTime,
+      endTime: event.endTime,
       description: event.description,
       reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+      busy: event.busy,
     };
-
-    // Add endTime and busy only for server version 7.5.0 or higher
-    if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
-      payload.endTime = event.endTime;
-      payload.busy = event.busy;
-      outlookLog('Including endTime and busy status (server version >= 7.5.0)');
-    }
 
     outlookEventDetail('Create event payload:', payload);
 
@@ -318,27 +307,15 @@ async function updateEventOnRocketChatServer(
   });
 
   try {
-    // Get server object to check version
-    const { servers } = select(selectPersistableValues);
-    const server = servers.find((server) => server.url === serverUrl);
-
-    // Base payload
-    const payload: Record<string, any> = {
+    const payload = {
       eventId: rocketChatEventId,
       subject: event.subject,
       startTime: event.startTime,
+      endTime: event.endTime,
       description: event.description,
       reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+      busy: event.busy,
     };
-
-    // Add endTime and busy only for server version 7.5.0 or higher
-    if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
-      payload.endTime = event.endTime;
-      payload.busy = event.busy;
-      outlookLog(
-        'Including endTime and busy status for update (server version >= 7.5.0)'
-      );
-    }
 
     outlookEventDetail('Update event payload:', payload);
 
@@ -639,10 +616,6 @@ async function performSync(
       ({ externalId }: { externalId?: string }) => externalId
     ) || [];
 
-  // Get server object to check version
-  const { servers } = select(selectPersistableValues);
-  const server = servers.find((server) => server.url === serverUrl);
-
   // Check for and clean up duplicate events
   const eventsByExternalId = new Map<string, RocketChatCalendarEvent[]>();
   for (const event of externalEventsFromRocketChatServer) {
@@ -746,10 +719,8 @@ async function performSync(
         alreadyOnRocketChatServer.description === description &&
         alreadyOnRocketChatServer.reminderMinutesBeforeStart ===
           reminderMinutesBeforeStart &&
-        (!server?.version ||
-          !meetsMinimumVersion(server.version, '7.5.0') ||
-          (alreadyOnRocketChatServer.endTime === appointment.endTime &&
-            alreadyOnRocketChatServer.busy === appointment.busy))
+        alreadyOnRocketChatServer.endTime === appointment.endTime &&
+        alreadyOnRocketChatServer.busy === appointment.busy
       );
 
       if (!hasChanges) {

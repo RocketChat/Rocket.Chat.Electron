@@ -13,7 +13,7 @@ import type {
   SourcesOptions,
 } from 'electron';
 import { ipcRenderer } from 'electron';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '../ui/components/Dialog';
@@ -37,6 +37,12 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
     isScreenRecordingPermissionGranted,
     setIsScreenRecordingPermissionGranted,
   ] = useState(false);
+
+  // Track whether an IPC response has been sent for the current picker session.
+  // This ensures cancellation is always sent regardless of how the dialog is dismissed
+  // (click outside, ESC key, programmatic close, etc.).
+  const responseSentRef = useRef(false);
+  const wasVisibleRef = useRef(false);
 
   const fetchSources = useCallback(async (): Promise<void> => {
     try {
@@ -96,6 +102,24 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Safety net: if the picker closes without handleShare or handleClose having sent a
+  // response (e.g. due to dialog close event not firing correctly), send cancellation.
+  useEffect(() => {
+    if (visible) {
+      responseSentRef.current = false;
+      wasVisibleRef.current = true;
+    } else if (wasVisibleRef.current) {
+      wasVisibleRef.current = false;
+      if (!responseSentRef.current) {
+        responseSentRef.current = true;
+        ipcRenderer.send(
+          'video-call-window/screen-sharing-source-responded',
+          null
+        );
+      }
+    }
+  }, [visible]);
+
   useEffect(() => {
     if (!visible) {
       return undefined;
@@ -142,6 +166,7 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
         name: selectedSource.name,
       });
 
+      responseSentRef.current = true;
       setVisible(false);
       ipcRenderer.send(
         'video-call-window/screen-sharing-source-responded',
@@ -151,6 +176,7 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
   };
 
   const handleClose = (): void => {
+    responseSentRef.current = true;
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
   };

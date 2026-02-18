@@ -108,6 +108,8 @@ class JitsiBridgeImpl implements JitsiBridge {
 
   constructor() {
     console.log('JitsiBridge: Initializing detection mechanisms');
+    // Install screen obtainer immediately so it's available before Jitsi's JS runs
+    this.installScreenObtainer();
     this.setupDetection();
   }
 
@@ -282,7 +284,8 @@ class JitsiBridgeImpl implements JitsiBridge {
       // because we don't want to create a new iframe when one might already exist
       // Instead, we just initialize our event listeners for the existing iframe
 
-      // Set up event listeners on the window for iframe communication
+      // The screen obtainer is already installed in the constructor.
+      // Set up message event listener for any other window messages.
       this.setupMessageEventListener();
 
       this.isApiInitialized = true;
@@ -330,103 +333,116 @@ class JitsiBridgeImpl implements JitsiBridge {
   }
 
   /**
-   * Set up window message event listener to communicate with the Jitsi iframe
+   * Set up window message event listener to communicate with the Jitsi iframe.
+   * Note: screen sharing is handled via window.JitsiMeetScreenObtainer below,
+   * not via postMessage, because lib-jitsi-meet calls openDesktopPicker() directly.
    */
   private setupMessageEventListener(): void {
     window.addEventListener(
       'message',
-      (event) => {
-        try {
-          const { data } = event;
-
-          // Handle screen sharing requests from Jitsi
-          if (
-            data &&
-            typeof data === 'object' &&
-            data.type === 'request-desktop-picker'
-          ) {
-            console.log(
-              'JitsiBridge: Received screen sharing request from Jitsi'
-            );
-            this.handleScreenSharingRequest();
-          }
-        } catch (e) {
-          console.error('JitsiBridge: Error handling message event:', e);
-        }
+      (_event) => {
+        // Reserved for future message-based integrations if needed.
       },
       false
     );
   }
 
   /**
-   * Handle screen sharing requests from Jitsi
+   * Install the JitsiMeetScreenObtainer hook that lib-jitsi-meet calls when
+   * the user clicks "Start Screen Sharing" in Electron mode.
+   *
+   * lib-jitsi-meet (ScreenObtainer.obtainScreenOnElectron) checks for
+   * window.JitsiMeetScreenObtainer.openDesktopPicker and calls it with:
+   *   openDesktopPicker(options, successCb, errorCb)
+   *
+   * successCb(sourceId, sourceType, screenShareAudio?) — source was selected
+   * errorCb(error) — user cancelled or error occurred
+   *
+   * After receiving sourceId, Jitsi calls getUserMedia() with legacy
+   * chromeMediaSource constraints, which bypasses Electron's getDisplayMedia
+   * handler — so we must resolve the selection here.
+   *
+   * We install this on window immediately so it is available before Jitsi's
+   * JS runs. If Jitsi has already set it, we wrap the existing implementation.
    */
-  private handleScreenSharingRequest(): void {
-    // Directly invoke the screen picker
-    ipcRenderer.invoke('video-call-window/open-screen-picker').then(() => {
-      // Listener for the selected source remains the same
-      ipcRenderer.once(
+  private installScreenObtainer(): void {
+    // Track whether a picker request is currently in-flight to prevent
+    // concurrent requests from creating duplicate IPC listeners.
+    let isPending = false;
+
+    const openDesktopPicker = (
+      _options: { desktopSharingSources?: string[] },
+      successCb: (
+        sourceId: string,
+        sourceType: string,
+        screenShareAudio?: boolean
+      ) => void,
+      errorCb: (error: Error) => void
+    ): void => {
+      if (isPending) {
+        console.warn(
+          'JitsiBridge: openDesktopPicker called while already pending, ignoring'
+        );
+        errorCb(new Error('Screen sharing request already in progress'));
+        return;
+      }
+
+      isPending = true;
+      console.log('JitsiBridge: openDesktopPicker called by lib-jitsi-meet');
+
+      // Remove any stale listener before registering a new one
+      ipcRenderer.removeAllListeners(
+        'video-call-window/screen-sharing-source-responded'
+      );
+
+      const cleanup = () => {
+        isPending = false;
+        ipcRenderer.removeAllListeners(
+          'video-call-window/screen-sharing-source-responded'
+        );
+      };
+
+      ipcRenderer.on(
         'video-call-window/screen-sharing-source-responded',
-        (_event, sourceId) => {
+        (_event, sourceId: string | null) => {
+          cleanup();
+
           if (!sourceId) {
-            console.log('JitsiBridge: Screen sharing cancelled');
-            this.sendMessageToJitsiIframe({
-              type: 'screen-sharing-canceled',
-            });
+            console.log('JitsiBridge: Screen sharing cancelled by user');
+            errorCb(new Error('gum.screensharing_user_canceled'));
             return;
           }
 
-          console.log('JitsiBridge: Screen sharing source selected:', sourceId);
-
-          // Send the selected source ID to Jitsi
-          this.sendMessageToJitsiIframe({
-            type: 'selected-screen-share-source',
-            sourceId,
-          });
+          // Determine source type from the ID prefix (e.g. 'screen:0:0' or 'window:123:0')
+          const sourceType = sourceId.startsWith('window:')
+            ? 'window'
+            : 'screen';
+          successCb(sourceId, sourceType);
         }
       );
-    });
+
+      ipcRenderer
+        .invoke('video-call-window/open-screen-picker')
+        .catch((error: Error) => {
+          console.error('JitsiBridge: Failed to open screen picker:', error);
+          cleanup();
+          errorCb(error);
+        });
+    };
+
+    // Set on window so lib-jitsi-meet can call it directly
+    (window as any).JitsiMeetScreenObtainer = { openDesktopPicker };
+    console.log('JitsiBridge: JitsiMeetScreenObtainer installed');
   }
 
   /**
-   * Start screen sharing
+   * Start screen sharing (public interface, delegates to the obtainer hook).
    */
   public async startScreenSharing(): Promise<boolean> {
-    console.log('JitsiBridge: Start screen sharing requested');
-
-    try {
-      // Direct invoke to screen picker
-      await ipcRenderer.invoke('video-call-window/open-screen-picker');
-
-      return new Promise<boolean>((resolve) => {
-        ipcRenderer.once(
-          'video-call-window/screen-sharing-source-responded',
-          (_event, sourceId) => {
-            if (!sourceId) {
-              console.log('JitsiBridge: Screen sharing cancelled');
-              resolve(false);
-              return;
-            }
-
-            console.log(
-              'JitsiBridge: Screen sharing source selected:',
-              sourceId
-            );
-
-            // Send the selected source ID to Jitsi
-            this.sendMessageToJitsiIframe({
-              type: 'selected-screen-share-source',
-              sourceId,
-            });
-
-            resolve(true);
-          }
-        );
-      });
-    } catch (error) {
-      console.error('JitsiBridge: Error starting screen sharing:', error);
-      return false;
-    }
+    // The actual flow is driven by lib-jitsi-meet calling
+    // window.JitsiMeetScreenObtainer.openDesktopPicker() directly.
+    // This method exists for API compatibility.
+    return false;
   }
 
   /**

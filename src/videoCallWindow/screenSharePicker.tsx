@@ -176,6 +176,10 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
   };
 
   const handleClose = (): void => {
+    if (responseSentRef.current) {
+      // Response already sent (e.g. handleShare ran first and triggered onclose via setVisible)
+      return;
+    }
     responseSentRef.current = true;
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
@@ -238,7 +242,26 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
               >
                 {t('screenSharing.permissionRequired')}
                 <br />
-                {t('screenSharing.permissionInstructions')}
+                {t('screenSharing.permissionInstructions')}{' '}
+                <Box
+                  is='a'
+                  href='#'
+                  onClick={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    const url =
+                      process.platform === 'darwin'
+                        ? 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
+                        : 'ms-settings:privacy-screencapture';
+                    ipcRenderer.invoke('video-call-window/open-url', url);
+                  }}
+                  style={{
+                    color: 'inherit',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('screenSharing.openSystemPreferences')}
+                </Box>
               </Callout>
             ) : (
               <Scrollable vertical>

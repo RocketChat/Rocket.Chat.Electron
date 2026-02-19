@@ -4,9 +4,9 @@ import { select } from '../../store';
 import { openExternal } from '../../utils/browserLauncher';
 
 export const getInternalVideoChatWindowEnabled = (): boolean =>
-  select(({ isInternalVideoChatWindowEnabled }) => ({
-    isInternalVideoChatWindowEnabled,
-  })).isInternalVideoChatWindowEnabled;
+  select(
+    ({ isInternalVideoChatWindowEnabled }) => isInternalVideoChatWindowEnabled
+  );
 
 export type videoCallWindowOptions = {
   providerName?: string | undefined;

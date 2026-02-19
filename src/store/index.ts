@@ -66,6 +66,11 @@ type Selector<T> = (state: RootState) => T;
 export const select = <T>(selector: Selector<T>): T =>
   selector(reduxStore.getState());
 
+export const safeSelect = <T>(selector: Selector<T>): T | undefined => {
+  if (!reduxStore) return undefined;
+  return selector(reduxStore.getState());
+};
+
 export const watch = <T>(
   selector: Selector<T>,
   watcher: (curr: T, prev: T | undefined) => void

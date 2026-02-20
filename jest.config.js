@@ -11,9 +11,7 @@ module.exports = {
         '<rootDir>/src/**/renderer.(spec|test).{js,ts,tsx}',
       ],
       setupFilesAfterEnv: ['./src/.jest/setup.ts'],
-      transformIgnorePatterns: [
-        'node_modules/(?!(uuid|ews-javascript-api)/)',
-      ],
+      transformIgnorePatterns: ['node_modules/(?!(uuid|ews-javascript-api)/)'],
     },
     {
       preset: 'ts-jest',
@@ -26,9 +24,7 @@ module.exports = {
         '<rootDir>/src/**/main.(spec|test).{js,ts,tsx}',
       ],
       setupFilesAfterEnv: ['./src/.jest/setup.ts'],
-      transformIgnorePatterns: [
-        'node_modules/(?!(uuid|ews-javascript-api)/)',
-      ],
+      transformIgnorePatterns: ['node_modules/(?!(uuid|ews-javascript-api)/)'],
     },
   ],
 };

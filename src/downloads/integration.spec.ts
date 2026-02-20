@@ -107,7 +107,7 @@ describe('downloads integration tests', () => {
       // Setup downloads system - this will call electronDl
       setupElectronDlWithTracking();
       setupDownloads();
-      
+
       // Extract callbacks from the electronDl mock call
       const electronDlMock = electronDl as jest.MockedFunction<
         typeof electronDl
@@ -116,7 +116,7 @@ describe('downloads integration tests', () => {
       if (!electronDlCall?.[0]) {
         throw new Error('electronDl was not called');
       }
-      
+
       const onStartedCallback = electronDlCall[0].onStarted!;
       const onCompletedCallback = electronDlCall[0].onCompleted! as any;
 
@@ -257,7 +257,7 @@ describe('downloads integration tests', () => {
 
       // Get IPC handlers
       const mockHandle = handle as jest.MockedFunction<typeof handle>;
-      
+
       // downloads/clear-all is cast to any in the implementation, so we need to find it differently
       const clearAllHandler = mockHandle.mock.calls.find(
         ([channel]) => String(channel) === 'downloads/clear-all'
@@ -343,7 +343,7 @@ describe('downloads integration tests', () => {
       if (!electronDlCall?.[0]?.onStarted) {
         throw new Error('electronDl onStarted was not set');
       }
-      
+
       const onStartedCallback = electronDlCall[0].onStarted;
 
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
@@ -366,7 +366,7 @@ describe('downloads integration tests', () => {
       if (!electronDlCall?.[0]?.onStarted) {
         throw new Error('electronDl onStarted was not set');
       }
-      
+
       const onStartedCallback = electronDlCall[0].onStarted;
 
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
@@ -395,7 +395,7 @@ describe('downloads integration tests', () => {
       if (!electronDlCall?.[0]?.onStarted) {
         throw new Error('electronDl onStarted was not set');
       }
-      
+
       const onStartedCallback = electronDlCall[0].onStarted;
 
       // Mock multiple webContents
@@ -487,7 +487,7 @@ describe('downloads integration tests', () => {
 
       // Update mock to return completed state
       mockItem.getState.mockReturnValue('completed');
-      
+
       // Simulate completion to trigger cleanup
       doneListener!(mockEvent, 'completed');
 

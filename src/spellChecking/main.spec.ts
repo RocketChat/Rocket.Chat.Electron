@@ -1,4 +1,8 @@
 // Mock electron's ipcMain and session before any imports
+import { createMainReduxStore, dispatch } from '../store';
+import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
+import { setupSpellChecking } from './main';
+
 jest.mock('electron', () => ({
   ipcMain: {
     handle: jest.fn(),
@@ -18,10 +22,6 @@ jest.mock('electron', () => ({
     getAllWebContents: jest.fn().mockReturnValue([]),
   },
 }));
-
-import { createMainReduxStore, dispatch } from '../store';
-import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
-import { setupSpellChecking } from './main';
 
 describe('setupSpellChecking', () => {
   beforeAll(() => {

@@ -1,10 +1,10 @@
 // Mock uuid to avoid ES module parsing issues
+import { sanitizeExchangeUrl } from './getOutlookEvents';
+
 jest.mock('uuid', () => ({
   v1: jest.fn(() => '00000000-0000-0000-0000-000000000000'),
   v4: jest.fn(() => '00000000-0000-0000-0000-000000000000'),
 }));
-
-import { sanitizeExchangeUrl } from './getOutlookEvents';
 
 describe('Exchange URL Sanitization', () => {
   describe('Base URL scenarios', () => {

@@ -1,12 +1,12 @@
 import { ipcRenderer } from 'electron';
 
-import { select } from '../../store';
+import { safeSelect } from '../../store';
 import { openExternal } from '../../utils/browserLauncher';
 
 export const getInternalVideoChatWindowEnabled = (): boolean =>
-  select(({ isInternalVideoChatWindowEnabled }) => ({
-    isInternalVideoChatWindowEnabled,
-  })).isInternalVideoChatWindowEnabled;
+  safeSelect(
+    ({ isInternalVideoChatWindowEnabled }) => isInternalVideoChatWindowEnabled
+  ) ?? false;
 
 export type videoCallWindowOptions = {
   providerName?: string | undefined;

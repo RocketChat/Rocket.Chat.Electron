@@ -108,12 +108,12 @@ const DownloadItem = ({
   const errored = state === 'interrupted' || state === 'cancelled';
   const expired = state === 'expired';
   const percentage = useMemo(() => {
-  if (!receivedBytes || !totalBytes) {
-    return 0;
-  }
+    if (!receivedBytes || !totalBytes) {
+      return 0;
+    }
 
-  return Math.floor((receivedBytes / totalBytes) * 100);
-}, [receivedBytes, totalBytes]);
+    return Math.min(100, Math.floor((receivedBytes / totalBytes) * 100));
+  }, [receivedBytes, totalBytes]);
   return (
     <Box
       width='100%'

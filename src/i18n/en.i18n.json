@@ -462,6 +462,7 @@
     "permissionDenied": "Screen Recording Permission Denied",
     "permissionRequired": "Screen recording permission is required to share your screen.",
     "permissionInstructions": "Please enable it in your system preferences and try again.",
+    "openSystemPreferences": "Open System Preferences",
     "title": "Share your screen",
     "entireScreen": "Your entire screen",
     "applicationWindow": "Application window",

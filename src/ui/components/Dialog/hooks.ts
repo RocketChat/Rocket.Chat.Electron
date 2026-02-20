@@ -28,7 +28,6 @@ export const useDialog = (
     dialog.showModal();
 
     dialog.onclose = () => {
-      dialog.close();
       onClose?.();
     };
 

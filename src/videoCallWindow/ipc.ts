@@ -352,12 +352,14 @@ const createInternalPickerHandler = (): ((
       }
       callbackInvoked = true;
 
-      // Remove listener and clear timeout
+      // Remove listener, clear timeout, and mark complete BEFORE invoking the
+      // callback. Jitsi may synchronously re-enter getDisplayMedia inside cb(),
+      // which would re-set isScreenSharingRequestPending before we clear it.
       removeScreenSharingListenerOnly();
+      markScreenSharingComplete();
 
       if (!sourceId) {
         cb({ video: false } as any);
-        markScreenSharingComplete();
         return;
       }
 
@@ -374,16 +376,13 @@ const createInternalPickerHandler = (): ((
             sourceId
           );
           cb({ video: false } as any);
-          markScreenSharingComplete();
           return;
         }
 
         cb({ video: selectedSource });
-        markScreenSharingComplete();
       } catch (error) {
         console.error('Error validating screen sharing source:', error);
         cb({ video: false } as any);
-        markScreenSharingComplete();
       }
     };
 
@@ -410,14 +409,11 @@ const createInternalPickerHandler = (): ((
       console.warn('Screen sharing request timed out, cleaning up listener');
 
       removeScreenSharingListenerOnly();
-      cb({ video: false } as any);
       markScreenSharingComplete();
+      cb({ video: false } as any);
     }, SCREEN_SHARING_REQUEST_TIMEOUT);
 
-    // Register listener
     ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
-
-    // Send request to open picker
     videoCallWindow.webContents.send('video-call-window/open-screen-picker');
   };
 };
@@ -505,15 +501,41 @@ export const startVideoCallWindowHandler = (): void => {
     }
   );
 
-  handle('video-call-window/open-screen-picker', async (_webContents) => {
-    if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-      videoCallWindow.webContents.send('video-call-window/open-screen-picker');
-      return { success: true };
+  handle('video-call-window/open-url', async (_webContents, url) => {
+    await openExternal(url);
+  });
+
+  handle('video-call-window/open-screen-picker', async (callerWebContents) => {
+    if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+      console.warn(
+        'Video call window: Cannot open screen picker - window not available'
+      );
+      return { success: false };
     }
-    console.warn(
-      'Video call window: Cannot open screen picker - window not available'
+
+    // Clean up any stale listener before registering a new one, to ensure only
+    // one ipcMain listener is active at a time (same pattern as createInternalPickerHandler).
+    cleanupScreenSharingListener();
+
+    videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+
+    // Forward the picker response back to the calling webContents (e.g. the Jitsi webview
+    // preload that called ipcRenderer.invoke here). The screenSharePicker renderer sends
+    // the result via ipcRenderer.send → ipcMain; we relay it to the caller so that
+    // jitsiBridge's ipcRenderer.on listener fires correctly.
+    ipcMain.once(
+      'video-call-window/screen-sharing-source-responded',
+      (_event, sourceId: string | null) => {
+        if (!callerWebContents.isDestroyed()) {
+          callerWebContents.send(
+            'video-call-window/screen-sharing-source-responded',
+            sourceId
+          );
+        }
+      }
     );
-    return { success: false };
+
+    return { success: true };
   });
 
   handle('video-call-window/open-window', async (_webContents, url) => {

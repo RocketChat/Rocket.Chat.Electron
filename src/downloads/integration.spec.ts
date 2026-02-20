@@ -2,6 +2,7 @@ import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell, webContents } from 'electron';
 import electronDl from 'electron-dl';
 
+import { handle } from '../ipc/main';
 import { createMainReduxStore, dispatch, select } from '../store';
 import {
   DOWNLOAD_CREATED,
@@ -12,6 +13,7 @@ import {
 import type { Download } from './common';
 import { DownloadStatus } from './common';
 import { handleWillDownloadEvent, setupDownloads } from './main';
+import { setupElectronDlWithTracking } from './main/setup';
 
 // Mock electron modules
 jest.mock('electron', () => ({
@@ -24,14 +26,33 @@ jest.mock('electron', () => ({
   webContents: {
     getAllWebContents: jest.fn(() => []),
   },
+  app: {
+    getPath: jest.fn((name: string) => {
+      if (name === 'downloads') return '/mock/downloads';
+      return '/mock/path';
+    }),
+  },
 }));
 
 jest.mock('electron-dl', () => jest.fn());
 
+jest.mock('electron-store', () => {
+  return jest.fn().mockImplementation(() => ({
+    get: jest.fn((_key: string, defaultValue: any) => defaultValue),
+    set: jest.fn(),
+  }));
+});
+
 // Mock IPC handler
-const mockHandle = jest.fn();
 jest.mock('../ipc/main', () => ({
-  handle: mockHandle,
+  handle: jest.fn(),
+}));
+
+// Mock store functions
+jest.mock('../store', () => ({
+  createMainReduxStore: jest.fn(),
+  dispatch: jest.fn(),
+  select: jest.fn(),
 }));
 
 // Mock notifications
@@ -43,16 +64,6 @@ jest.mock('../notifications/preload', () => ({
 jest.mock('i18next', () => ({
   t: jest.fn((key: string) => key),
 }));
-
-// Mock main.ts to avoid circular dependencies
-jest.mock('./main', () => {
-  const actual = jest.requireActual('./main');
-  return {
-    ...actual,
-    setupDownloads: actual.setupDownloads,
-    handleWillDownloadEvent: actual.handleWillDownloadEvent,
-  };
-});
 
 describe('downloads integration tests', () => {
   beforeEach(() => {
@@ -73,6 +84,7 @@ describe('downloads integration tests', () => {
       getURL: jest.fn(() => 'https://example.com/file.pdf'),
       getMimeType: jest.fn(() => 'application/pdf'),
       getSavePath: jest.fn(() => '/downloads/test-file.pdf'),
+      setSaveDialogOptions: jest.fn(),
       on: jest.fn(),
       ...overrides,
     } as unknown as jest.Mocked<DownloadItem>;
@@ -81,7 +93,8 @@ describe('downloads integration tests', () => {
   const createMockWebContents = (id = 123): WebContents =>
     ({
       id,
-    }) as WebContents;
+      isDestroyed: jest.fn(() => false),
+    }) as unknown as WebContents;
 
   const createMockEvent = (): Event =>
     ({
@@ -91,22 +104,21 @@ describe('downloads integration tests', () => {
 
   describe('end-to-end download flow', () => {
     it('should handle complete download lifecycle with electron-dl integration', async () => {
-      // Setup electron-dl mock
+      // Setup downloads system - this will call electronDl
+      setupElectronDlWithTracking();
+      setupDownloads();
+      
+      // Extract callbacks from the electronDl mock call
       const electronDlMock = electronDl as jest.MockedFunction<
         typeof electronDl
       >;
-      let onStartedCallback: (item: DownloadItem) => void;
-      let onCompletedCallback: (file: { filename: string }) => void;
-
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-          onCompletedCallback = config.onCompleted! as any;
-        }
-      });
-
-      // Setup downloads system
-      setupDownloads();
+      const electronDlCall = electronDlMock.mock.calls[0];
+      if (!electronDlCall?.[0]) {
+        throw new Error('electronDl was not called');
+      }
+      
+      const onStartedCallback = electronDlCall[0].onStarted!;
+      const onCompletedCallback = electronDlCall[0].onCompleted! as any;
 
       // Mock webContents for electron-dl onStarted callback
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
@@ -216,6 +228,7 @@ describe('downloads integration tests', () => {
       );
 
       // Get IPC handlers
+      const mockHandle = handle as jest.MockedFunction<typeof handle>;
       const showInFolderHandler = mockHandle.mock.calls.find(
         ([channel]) => channel === 'downloads/show-in-folder'
       )?.[1];
@@ -224,14 +237,16 @@ describe('downloads integration tests', () => {
         ([channel]) => channel === 'downloads/copy-link'
       )?.[1];
 
+      const mockWC = createMockWebContents();
+
       // Test show in folder
-      await showInFolderHandler?.(null, mockDownload.itemId);
+      await showInFolderHandler?.(mockWC, mockDownload.itemId);
       expect(shell.showItemInFolder).toHaveBeenCalledWith(
         '/downloads/test-file.pdf'
       );
 
       // Test copy link
-      await copyLinkHandler?.(null, mockDownload.itemId);
+      await copyLinkHandler?.(mockWC, mockDownload.itemId);
       expect(clipboard.writeText).toHaveBeenCalledWith(
         'https://example.com/file.pdf'
       );
@@ -241,22 +256,29 @@ describe('downloads integration tests', () => {
       setupDownloads();
 
       // Get IPC handlers
+      const mockHandle = handle as jest.MockedFunction<typeof handle>;
+      
+      // downloads/clear-all is cast to any in the implementation, so we need to find it differently
       const clearAllHandler = mockHandle.mock.calls.find(
-        ([channel]) => channel === 'downloads/clear-all'
-      )?.[1];
+        ([channel]) => String(channel) === 'downloads/clear-all'
+      )?.[1] as (() => Promise<void>) | undefined;
 
       const removeHandler = mockHandle.mock.calls.find(
         ([channel]) => channel === 'downloads/remove'
       )?.[1];
 
-      // Test clear all
-      await clearAllHandler?.();
+      const mockWC = createMockWebContents();
+
+      // Test clear all - this handler doesn't take any parameters
+      if (clearAllHandler) {
+        await clearAllHandler();
+      }
       expect(dispatch).toHaveBeenCalledWith({
         type: DOWNLOADS_CLEARED,
       });
 
       // Test remove individual
-      await removeHandler?.(null, 123456789);
+      await removeHandler?.(mockWC, 123456789);
       expect(dispatch).toHaveBeenCalledWith({
         type: DOWNLOAD_REMOVED,
         payload: 123456789,
@@ -291,6 +313,7 @@ describe('downloads integration tests', () => {
       (select as jest.MockedFunction<typeof select>).mockReturnValue(undefined);
 
       // Get IPC handlers
+      const mockHandle = handle as jest.MockedFunction<typeof handle>;
       const showInFolderHandler = mockHandle.mock.calls.find(
         ([channel]) => channel === 'downloads/show-in-folder'
       )?.[1];
@@ -299,11 +322,13 @@ describe('downloads integration tests', () => {
         ([channel]) => channel === 'downloads/copy-link'
       )?.[1];
 
+      const mockWC = createMockWebContents();
+
       // Test operations on non-existent download
-      await showInFolderHandler?.(null, 'non-existent-id');
+      await showInFolderHandler?.(mockWC, 'non-existent-id');
       expect(shell.showItemInFolder).not.toHaveBeenCalled();
 
-      await copyLinkHandler?.(null, 'non-existent-id');
+      await copyLinkHandler?.(mockWC, 'non-existent-id');
       expect(clipboard.writeText).not.toHaveBeenCalled();
     });
 
@@ -311,15 +336,15 @@ describe('downloads integration tests', () => {
       const electronDlMock = electronDl as jest.MockedFunction<
         typeof electronDl
       >;
-      let onStartedCallback: (item: DownloadItem) => void;
 
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-        }
-      });
+      setupElectronDlWithTracking();
 
-      setupDownloads();
+      const electronDlCall = electronDlMock.mock.calls[0];
+      if (!electronDlCall?.[0]?.onStarted) {
+        throw new Error('electronDl onStarted was not set');
+      }
+      
+      const onStartedCallback = electronDlCall[0].onStarted;
 
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
       webContentsMock.getAllWebContents.mockReturnValue([]);
@@ -334,15 +359,15 @@ describe('downloads integration tests', () => {
       const electronDlMock = electronDl as jest.MockedFunction<
         typeof electronDl
       >;
-      let onStartedCallback: (item: DownloadItem) => void;
 
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-        }
-      });
+      setupElectronDlWithTracking();
 
-      setupDownloads();
+      const electronDlCall = electronDlMock.mock.calls[0];
+      if (!electronDlCall?.[0]?.onStarted) {
+        throw new Error('electronDl onStarted was not set');
+      }
+      
+      const onStartedCallback = electronDlCall[0].onStarted;
 
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
       const destroyedWC = {
@@ -363,15 +388,15 @@ describe('downloads integration tests', () => {
       const electronDlMock = electronDl as jest.MockedFunction<
         typeof electronDl
       >;
-      let onStartedCallback: (item: DownloadItem) => void;
 
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-        }
-      });
+      setupElectronDlWithTracking();
 
-      setupDownloads();
+      const electronDlCall = electronDlMock.mock.calls[0];
+      if (!electronDlCall?.[0]?.onStarted) {
+        throw new Error('electronDl onStarted was not set');
+      }
+      
+      const onStartedCallback = electronDlCall[0].onStarted;
 
       // Mock multiple webContents
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
@@ -460,6 +485,9 @@ describe('downloads integration tests', () => {
       // Verify download was added to items map (internal state)
       // This is tested indirectly through the behavior
 
+      // Update mock to return completed state
+      mockItem.getState.mockReturnValue('completed');
+      
       // Simulate completion to trigger cleanup
       doneListener!(mockEvent, 'completed');
 

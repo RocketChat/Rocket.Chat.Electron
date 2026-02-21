@@ -239,14 +239,18 @@ describe('downloads integration tests', () => {
 
       const mockWC = createMockWebContents();
 
+      // Assert handlers exist upfront for clear failure signals
+      expect(showInFolderHandler).toBeDefined();
+      expect(copyLinkHandler).toBeDefined();
+
       // Test show in folder
-      await showInFolderHandler?.(mockWC, mockDownload.itemId);
+      await showInFolderHandler!(mockWC, mockDownload.itemId);
       expect(shell.showItemInFolder).toHaveBeenCalledWith(
         '/downloads/test-file.pdf'
       );
 
       // Test copy link
-      await copyLinkHandler?.(mockWC, mockDownload.itemId);
+      await copyLinkHandler!(mockWC, mockDownload.itemId);
       expect(clipboard.writeText).toHaveBeenCalledWith(
         'https://example.com/file.pdf'
       );
@@ -269,16 +273,18 @@ describe('downloads integration tests', () => {
 
       const mockWC = createMockWebContents();
 
+      // Assert handlers exist upfront for clear failure signals
+      expect(clearAllHandler).toBeDefined();
+      expect(removeHandler).toBeDefined();
+
       // Test clear all - this handler doesn't take any parameters
-      if (clearAllHandler) {
-        await clearAllHandler();
-      }
+      await clearAllHandler!();
       expect(dispatch).toHaveBeenCalledWith({
         type: DOWNLOADS_CLEARED,
       });
 
       // Test remove individual
-      await removeHandler?.(mockWC, 123456789);
+      await removeHandler!(mockWC, 123456789);
       expect(dispatch).toHaveBeenCalledWith({
         type: DOWNLOAD_REMOVED,
         payload: 123456789,
@@ -324,11 +330,15 @@ describe('downloads integration tests', () => {
 
       const mockWC = createMockWebContents();
 
+      // Assert handlers exist upfront for clear failure signals
+      expect(showInFolderHandler).toBeDefined();
+      expect(copyLinkHandler).toBeDefined();
+
       // Test operations on non-existent download
-      await showInFolderHandler?.(mockWC, 'non-existent-id');
+      await showInFolderHandler!(mockWC, 'non-existent-id');
       expect(shell.showItemInFolder).not.toHaveBeenCalled();
 
-      await copyLinkHandler?.(mockWC, 'non-existent-id');
+      await copyLinkHandler!(mockWC, 'non-existent-id');
       expect(clipboard.writeText).not.toHaveBeenCalled();
     });
 

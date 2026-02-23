@@ -10,7 +10,7 @@ Thumbs.db
 /Development.provisionprofile
 
 # npm (this project uses yarn)
-package-lock.json
+/package-lock.json
 
 # yarn
 .pnp.*

@@ -99,11 +99,6 @@ const start = async (): Promise<void> => {
 
   // Mark main window as stable - GPU crashes after this won't trigger fallback
   markMainWindowStable();
-
-  // React DevTools is currently incompatible with Electron 10
-  // if (process.env.NODE_ENV === 'development') {
-  //   installDevTools();
-  // }
   watchMachineTheme();
   setupNotifications();
   attentionDrawing.setUp();

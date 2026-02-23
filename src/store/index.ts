@@ -36,12 +36,14 @@ export const createRendererReduxStore = async (): Promise<Store> => {
 };
 
 export const dispatch = <Action extends RootAction>(action: Action): void => {
+  if (!reduxStore) return;
   reduxStore.dispatch(action);
 };
 
 export const dispatchSingle = <Action extends RootAction>(
   action: Action
 ): void => {
+  if (!reduxStore) return;
   reduxStore.dispatch({
     ...action,
     ipcMeta: { ...action.ipcMeta, scope: 'single' },
@@ -51,6 +53,7 @@ export const dispatchSingle = <Action extends RootAction>(
 export const dispatchLocal = <Action extends RootAction>(
   action: Action
 ): void => {
+  if (!reduxStore) return;
   reduxStore.dispatch({
     ...action,
     ipcMeta: { ...action.ipcMeta, scope: 'local' },
@@ -63,10 +66,19 @@ type Selector<T> = (state: RootState) => T;
 export const select = <T>(selector: Selector<T>): T =>
   selector(reduxStore.getState());
 
+export const safeSelect = <T>(selector: Selector<T>): T | undefined => {
+  if (!reduxStore) return undefined;
+  return selector(reduxStore.getState());
+};
+
 export const watch = <T>(
   selector: Selector<T>,
   watcher: (curr: T, prev: T | undefined) => void
 ): (() => void) => {
+  if (!reduxStore) {
+    console.warn('[store] watch() called before store initialized');
+    return () => undefined;
+  }
   const initial = select(selector);
   watcher(initial, undefined);
 
@@ -98,6 +110,7 @@ export const listen: {
   typeOrPredicate: ActionType | ((action: RootAction) => action is Action),
   listener: (action: RootAction) => void
 ): (() => void) => {
+  if (!reduxStore) return () => undefined;
   const effectivePredicate =
     typeof typeOrPredicate === 'function'
       ? typeOrPredicate
@@ -184,6 +197,11 @@ export const request = <
   ...types: ResponseTypes
 ): Promise<Response['payload']> =>
   new Promise((resolve, reject) => {
+    if (!reduxStore) {
+      reject(new Error('Store not initialized'));
+      return;
+    }
+
     const id = Math.random().toString(36).slice(2);
 
     const unsubscribe = listen(

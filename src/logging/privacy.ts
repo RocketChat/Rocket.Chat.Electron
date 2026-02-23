@@ -56,7 +56,6 @@ export const redactSensitiveData = (text: string): string => {
   return result;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for re-enabling privacy hook
 const redactObject = (obj: any, seen = new WeakSet()): any => {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj === 'string') return redactSensitiveData(obj);
@@ -98,28 +97,32 @@ const redactObject = (obj: any, seen = new WeakSet()): any => {
   return obj;
 };
 
-// Privacy hook is currently disabled to allow raw log data during feature development.
-// Re-enable by uncommenting the redaction logic below when features are finalized.
-export const createPrivacyHook = () => {
-  return (message: any, _transport: any, _transportName?: string) => message;
+let privacyHookFailed = false;
 
-  // TODO: Re-enable privacy redaction when Outlook calendar features are stable
-  // return (message: any, _transport: any, _transportName?: string) => {
-  //   try {
-  //     const data = Array.isArray(message.data) ? message.data : [message.data];
-  //     const sanitizedData = data.map((item: any) => {
-  //       if (typeof item === 'string') return redactSensitiveData(item);
-  //       if (typeof item === 'object' && item !== null)
-  //         return redactObject(item);
-  //       return item;
-  //     });
-  //     return { ...message, data: sanitizedData };
-  //   } catch {
-  //     return {
-  //       level: message.level,
-  //       date: message.date,
-  //       data: ['[Privacy redaction failed]'],
-  //     };
-  //   }
-  // };
+export const createPrivacyHook = () => {
+  return (message: any, _transport: any, _transportName?: string) => {
+    try {
+      // Guard against non-array data
+      const data = Array.isArray(message.data) ? message.data : [message.data];
+      const sanitizedData = data.map((item: any) => {
+        if (typeof item === 'string') return redactSensitiveData(item);
+        if (typeof item === 'object' && item !== null)
+          return redactObject(item);
+        return item;
+      });
+      return { ...message, data: sanitizedData };
+    } catch {
+      if (!privacyHookFailed) {
+        privacyHookFailed = true;
+        process.stderr.write(
+          '[privacy] redaction hook threw; falling back to placeholder\n'
+        );
+      }
+      return {
+        level: message.level,
+        date: message.date,
+        data: ['[Privacy redaction failed]'],
+      };
+    }
+  };
 };

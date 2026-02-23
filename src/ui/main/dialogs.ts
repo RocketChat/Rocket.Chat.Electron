@@ -45,13 +45,21 @@ export const askForServerAddition = async (
   return response === 0;
 };
 
-export const warnAboutInvalidServerUrl = (
-  _serverUrl: string,
-  _reason: string,
-  _parentWindow?: BrowserWindow
+export const warnAboutInvalidServerUrl = async (
+  serverUrl: string,
+  reason: string,
+  parentWindow?: BrowserWindow
 ): Promise<void> => {
-  // TODO
-  throw Error('not implemented');
+  parentWindow?.show();
+
+  await dialog.showMessageBox(parentWindow ?? (await getRootWindow()), {
+    type: 'error',
+    title: t('dialog.invalidServerUrl.title'),
+    message: t('dialog.invalidServerUrl.message', { serverUrl }),
+    detail: reason || t('dialog.invalidServerUrl.defaultReason'),
+    buttons: [t('dialog.invalidServerUrl.ok')],
+    defaultId: 0,
+  });
 };
 
 export const enum AskUpdateInstallResponse {

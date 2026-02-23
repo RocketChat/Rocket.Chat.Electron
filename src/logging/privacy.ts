@@ -97,6 +97,8 @@ const redactObject = (obj: any, seen = new WeakSet()): any => {
   return obj;
 };
 
+let privacyHookFailed = false;
+
 export const createPrivacyHook = () => {
   return (message: any, _transport: any, _transportName?: string) => {
     try {
@@ -110,9 +112,15 @@ export const createPrivacyHook = () => {
       });
       return { ...message, data: sanitizedData };
     } catch {
-      // Don't emit raw data on failure - only safe placeholder
+      if (!privacyHookFailed) {
+        privacyHookFailed = true;
+        process.stderr.write(
+          '[privacy] redaction hook threw; falling back to placeholder\n'
+        );
+      }
       return {
-        ...message,
+        level: message.level,
+        date: message.date,
         data: ['[Privacy redaction failed]'],
       };
     }

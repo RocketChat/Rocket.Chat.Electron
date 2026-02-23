@@ -293,7 +293,7 @@
       },
       "videoCallWindowPersistence": {
         "title": "A videohívás-ablak pozíciójának megjegyzése",
-        "description": "A videohívás-ablakok pozíciójának és méretének mentése és helyreállítása a munkamenetek között"
+        "description": "A videohívás-ablakok pozíciójának és méretének mentése és helyreállítása a munkamenetek között."
       },
       "transparentWindow": {
         "title": "Átlátszó ablak hatás",
@@ -497,12 +497,12 @@
       }
     },
     "status": {
-      "moduleNotAvailable": "A bolt modul nem érhető el a kiszolgáló környezetének leképezésénél",
-      "importFailed": "A bolt importálása nem sikerült"
+      "moduleNotAvailable": "A tároló modul nem érhető el a kiszolgáló környezetének leképezésénél",
+      "importFailed": "A tároló importálása nem sikerült"
     },
     "errors": {
       "configurationFailed": "Nem sikerült beállítani az elektronnaplót",
-      "storeUnavailable": "A bolt modul nem érhető el a kiszolgáló környezetének leképezésénél",
+      "storeUnavailable": "A tároló modul nem érhető el a kiszolgáló környezetének leképezésénél",
       "webContentsLoggingFailed": "Nem sikerült beállítani a webtartalmak naplózását",
       "rendererLogFailed": "Nem sikerült naplózni a megjelenítőből",
       "consoleOverrideFailed": "Nem sikerült felülbírálni a konzol metódusait"

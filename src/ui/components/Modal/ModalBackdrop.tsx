@@ -8,8 +8,6 @@ const useEscapeKey = (onDismiss: (() => void) | undefined): void => {
       if (e.key !== 'Escape') {
         return;
       }
-
-      e.stopPropagation();
       onDismiss?.();
     };
 
@@ -26,9 +24,7 @@ const isAtBackdropChildren = (
   ref: RefObject<HTMLElement>
 ): boolean => {
   const backdrop = ref.current;
-  const { parentElement } = e.target as HTMLElement;
-
-  return (Boolean(parentElement) && backdrop?.contains(parentElement)) ?? false;
+  return backdrop?.contains(e.target as Node) ?? false;
 };
 
 const useOutsideClick = (
@@ -93,7 +89,6 @@ const ModalBackdrop = ({
   return (
     <Box
       ref={ref}
-      children={children}
       className='rcx-modal__backdrop'
       position='fixed'
       zIndex={9999}
@@ -102,7 +97,9 @@ const ModalBackdrop = ({
       flexDirection='column'
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
-    />
+    >
+      {children}
+    </Box>
   );
 };
 

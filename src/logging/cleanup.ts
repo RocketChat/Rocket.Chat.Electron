@@ -14,8 +14,10 @@ export const cleanupOldLogs = (
 ): void => {
   try {
     if (!Number.isFinite(retentionDays) || retentionDays <= 0) {
-      console.warn('[logging] Invalid retentionDays; skipping log cleanup');
-      return;
+      console.warn(
+        `    [logging] Invalid retentionDays (${retentionDays}); falling back to default (${DEFAULT_RETENTION_DAYS})`
+      );
+      retentionDays = DEFAULT_RETENTION_DAYS;
     }
 
     const logsPath = app.getPath('logs');

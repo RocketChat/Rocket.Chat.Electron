@@ -2,6 +2,26 @@ import { createMainReduxStore, dispatch } from '../store';
 import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
 import { setupSpellChecking } from './main';
 
+jest.mock('electron', () => ({
+  ipcMain: {
+    handle: jest.fn(),
+    removeHandler: jest.fn(),
+  },
+  app: {
+    whenReady: jest.fn().mockResolvedValue(undefined),
+  },
+  session: {
+    defaultSession: {
+      getSpellCheckerLanguages: jest.fn().mockReturnValue(['en-US']),
+      setSpellCheckerLanguages: jest.fn(),
+      availableSpellCheckerLanguages: ['en-US', 'es', 'fr', 'de'],
+    },
+  },
+  webContents: {
+    getAllWebContents: jest.fn().mockReturnValue([]),
+  },
+}));
+
 describe('setupSpellChecking', () => {
   beforeAll(() => {
     createMainReduxStore();

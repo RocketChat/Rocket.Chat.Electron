@@ -176,10 +176,6 @@ export abstract class Service {
   }
 }
 
-// const isResponseTo = <Response extends RootAction>(id: unknown, type: Response['type']) =>
-//   (action: RootAction): action is Response =>
-//     isResponse(action) && action.type === type && action.meta.id === id;
-
 export const request = <
   Request extends RootAction,
   ResponseTypes extends [...RootAction['type'][]],

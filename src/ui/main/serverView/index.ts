@@ -296,19 +296,71 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
 
     webContents.setWindowOpenHandler(({ url, frameName, disposition }) => {
+      // Keep same-origin navigations/downloads inside the app to preserve auth/session
+      const currentServerUrl = getServerUrlByWebContentsId(webContents.id);
+      const currentHost = currentServerUrl ? new URL(currentServerUrl).host : '';
+      const targetHost = (() => {
+        try {
+          return new URL(url).host;
+        } catch {
+          return '';
+        }
+      })();
+
+      const sameOrigin = currentHost !== '' && currentHost === targetHost;
+
+      // For tab dispositions, open externally only if not same-origin
       if (
         disposition === 'foreground-tab' ||
         disposition === 'background-tab'
       ) {
+        if (sameOrigin) {
+          const isVideoCall = isVideoCallWebview(undefined, frameName);
+          const preloadPath = resolvePreloadPath(isVideoCall);
+          return {
+            action: 'allow',
+            overrideBrowserWindowOptions: {
+              ...(isVideoCall
+                ? {
+                    webPreferences: {
+                      ...(preloadPath ? { preload: preloadPath } : {}),
+                      sandbox: false,
+                    },
+                  }
+                : {}),
+              // Crucial: keep the same session to retain authentication
+              webPreferences: {
+                ...(isVideoCall && preloadPath ? { preload: preloadPath } : {}),
+                session: webContents.session,
+                sandbox: false,
+              },
+              show: false,
+            },
+          };
+        }
+
         isProtocolAllowed(url).then((allowed) => {
           if (!allowed) {
             return { action: 'deny' };
           }
-
           openExternal(url);
           return { action: 'deny' };
         });
         return { action: 'deny' };
+      }
+
+      // Let Electron handle explicit save-to-disk with our download hooks
+      if (disposition === 'save-to-disk') {
+        return {
+          action: 'allow',
+          overrideBrowserWindowOptions: {
+            webPreferences: {
+              session: webContents.session,
+              sandbox: false,
+            },
+            show: false,
+          },
+        };
       }
 
       const isVideoCall = isVideoCallWebview(undefined, frameName);

@@ -326,8 +326,8 @@
         "description": "Log full event data exchanged between Outlook and Rocket.Chat during calendar sync. Useful for diagnosing sync issues."
       },
       "debugLogging": {
-        "title": "Debug Logging",
-        "description": "Enable debug-level logging for all components. Shows detailed diagnostic messages in the log file. Useful for troubleshooting issues."
+        "title": "Verbose Logging",
+        "description": "Writes all console output to the log file. When disabled, only errors and important messages are saved, keeping logs smaller and focused."
       }
     }
   },

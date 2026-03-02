@@ -5,3 +5,5 @@
 /scripts
 # Patch source files (copied to node_modules, not compiled directly)
 /patches-src
+# E2E tests (separate tsconfig)
+/e2e

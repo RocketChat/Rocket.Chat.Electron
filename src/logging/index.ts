@@ -256,29 +256,24 @@ export const setupWebContentsLogging = () => {
     }
 
     // Synchronous IPC handler for preload scripts to get their server tag
-    ipcMain.on(
-      'log-viewer-window/get-server-tag',
-      (event, origin: string) => {
-        try {
-          if (selectFunction && origin) {
-            const servers = selectFunction(
-              (state: RootState) => state.servers
-            );
-            const serverIndex =
-              servers.findIndex(
-                (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
-              ) + 1;
-            if (serverIndex > 0) {
-              event.returnValue = `server-${serverIndex}`;
-              return;
-            }
+    ipcMain.on('log-viewer-window/get-server-tag', (event, origin: string) => {
+      try {
+        if (selectFunction && origin) {
+          const servers = selectFunction((state: RootState) => state.servers);
+          const serverIndex =
+            servers.findIndex(
+              (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
+            ) + 1;
+          if (serverIndex > 0) {
+            event.returnValue = `server-${serverIndex}`;
+            return;
           }
-        } catch {
-          // Non-critical
         }
-        event.returnValue = '';
+      } catch {
+        // Non-critical
       }
-    );
+      event.returnValue = '';
+    });
 
     // Rate limiting for console-log IPC to prevent flooding from compromised webviews
     const ipcRateLimit = new Map<

@@ -319,12 +319,7 @@ function LogViewerWindow() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    parseLogLines,
-    currentLogFile.filePath,
-    currentLogFile.isDefaultLog,
-    t,
-  ]);
+  }, [parseLogLines, currentLogFile.filePath, currentLogFile.isDefaultLog, t]);
 
   const filteredLogs = useMemo(() => {
     const filtered = logEntries.filter((entry) => {
@@ -399,11 +394,7 @@ function LogViewerWindow() {
 
   useEffect(() => {
     loadLogs();
-  }, [
-    loadLogs,
-    currentLogFile.filePath,
-    currentLogFile.isDefaultLog,
-  ]);
+  }, [loadLogs, currentLogFile.filePath, currentLogFile.isDefaultLog]);
 
   const checkForUpdates = useCallback(async () => {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;

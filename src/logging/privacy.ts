@@ -85,7 +85,10 @@ const CREDENTIAL_KV_PATTERNS: { pattern: RegExp; label: string }[] = [
 ];
 
 /** Standalone token/secret patterns (not key-value) */
-const TOKEN_PATTERNS: { pattern: RegExp; replacer: (match: string, ...groups: string[]) => string }[] = [
+const TOKEN_PATTERNS: {
+  pattern: RegExp;
+  replacer: (match: string, ...groups: string[]) => string;
+}[] = [
   // Bearer tokens
   {
     pattern: /bearer\s+([a-zA-Z0-9._-]{20,})/gi,
@@ -109,56 +112,56 @@ const TOKEN_PATTERNS: { pattern: RegExp; replacer: (match: string, ...groups: st
 ];
 
 /** PII patterns */
-const PII_PATTERNS: { pattern: RegExp; replacer: (match: string) => string }[] = [
-  // Email addresses — require 2+ char local part, exclude npm-style package scopes
-  // Negative lookbehind for @ prevents matching @scope/package patterns
-  {
-    pattern: /\b[A-Za-z0-9._%+-]{2,}@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
-    replacer: (m) => {
-      // Don't redact package scopes or internal identifiers
-      if (
-        m.includes('/') ||
-        m.endsWith('.js') ||
-        m.endsWith('.ts') ||
-        m.endsWith('.log') ||
-        /^\d+@\d+/.test(m)
-      ) {
-        return m;
-      }
-      const [local, domain] = m.split('@');
-      return `${local[0]}***@${domain}`;
+const PII_PATTERNS: { pattern: RegExp; replacer: (match: string) => string }[] =
+  [
+    // Email addresses — require 2+ char local part, exclude npm-style package scopes
+    // Negative lookbehind for @ prevents matching @scope/package patterns
+    {
+      pattern: /\b[A-Za-z0-9._%+-]{2,}@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+      replacer: (m) => {
+        // Don't redact package scopes or internal identifiers
+        if (
+          m.includes('/') ||
+          m.endsWith('.js') ||
+          m.endsWith('.ts') ||
+          m.endsWith('.log') ||
+          /^\d+@\d+/.test(m)
+        ) {
+          return m;
+        }
+        const [local, domain] = m.split('@');
+        return `${local[0]}***@${domain}`;
+      },
     },
-  },
-  // Credit card numbers (13-19 digits, optionally separated by spaces/dashes)
-  {
-    pattern:
-      /\b(?:\d[ -]*?){13,19}\b/g,
-    replacer: (m) => {
-      const digits = m.replace(/[^0-9]/g, '');
-      if (digits.length < 13 || digits.length > 19) return m;
-      if (!luhnCheck(digits)) return m; // Not a valid CC — don't redact
-      return `****${digits.slice(-4)}`;
+    // Credit card numbers (13-19 digits, optionally separated by spaces/dashes)
+    {
+      pattern: /\b(?:\d[ -]*?){13,19}\b/g,
+      replacer: (m) => {
+        const digits = m.replace(/[^0-9]/g, '');
+        if (digits.length < 13 || digits.length > 19) return m;
+        if (!luhnCheck(digits)) return m; // Not a valid CC — don't redact
+        return `****${digits.slice(-4)}`;
+      },
     },
-  },
-  // IP addresses (IPv4) — partial mask preserving subnet
-  {
-    pattern: /\b(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\b/g,
-    replacer: (m) => {
-      // Don't redact localhost, version numbers, or common non-IP patterns
-      if (
-        m === '127.0.0.1' ||
-        m === '0.0.0.0' ||
-        m.startsWith('192.168.') ||
-        m.startsWith('10.') ||
-        m.startsWith('172.')
-      ) {
-        return m;
-      }
-      const parts = m.split('.');
-      return `${parts[0]}.${parts[1]}.*.*`;
+    // IP addresses (IPv4) — partial mask preserving subnet
+    {
+      pattern: /\b(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\b/g,
+      replacer: (m) => {
+        // Don't redact localhost, version numbers, or common non-IP patterns
+        if (
+          m === '127.0.0.1' ||
+          m === '0.0.0.0' ||
+          m.startsWith('192.168.') ||
+          m.startsWith('10.') ||
+          m.startsWith('172.')
+        ) {
+          return m;
+        }
+        const parts = m.split('.');
+        return `${parts[0]}.${parts[1]}.*.*`;
+      },
     },
-  },
-];
+  ];
 
 // ── Field-based redaction (applied to object keys) ───────────────────────────
 
@@ -286,9 +289,7 @@ const redactObject = (obj: any, depth = 0, seen = new WeakSet()): any => {
         const val = obj[key];
         // Partial mask string values for debugging context
         result[key] =
-          typeof val === 'string' && val.length > 8
-            ? mask(val)
-            : '[REDACTED]';
+          typeof val === 'string' && val.length > 8 ? mask(val) : '[REDACTED]';
       } else {
         result[key] = redactObject(obj[key], depth + 1, seen);
       }

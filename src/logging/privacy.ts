@@ -277,10 +277,11 @@ const redactObject = (obj: any, depth = 0, seen = new WeakSet()): any => {
     }
     if (obj.state && isStateDump(obj.state)) {
       const { state: _state, ...rest } = obj;
-      return {
-        ...redactObject(rest, depth + 1, seen),
-        state: '[Redux State Redacted]',
-      };
+      const redactedRest = redactObject(rest, depth + 1, seen);
+      if (typeof redactedRest === 'object' && redactedRest !== null) {
+        return { ...redactedRest, state: '[Redux State Redacted]' };
+      }
+      return { state: '[Redux State Redacted]' };
     }
 
     const result: any = {};

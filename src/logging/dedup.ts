@@ -66,7 +66,17 @@ export class LogDeduplicator {
       if (transportName !== 'file') return message;
       if (!message || message.level === 'error') return message;
 
-      const text = message.data?.map(String).join(' ') || '';
+      const text =
+        message.data
+          ?.map((item: any) => {
+            if (typeof item === 'string') return item;
+            try {
+              return JSON.stringify(item);
+            } catch {
+              return String(item);
+            }
+          })
+          .join(' ') || '';
       const key = `${message.level}|${text.replace(/\b\d{4,}\b/g, '#').replace(/\b\d+\.\d+\b/g, '#')}`;
 
       if (key === this.lastFileKey) return null; // suppress duplicate

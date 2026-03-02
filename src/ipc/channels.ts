@@ -116,6 +116,10 @@ type ChannelToArgsMap = {
     canceled?: boolean;
     error?: string;
   };
+  'log-viewer-window/get-server-mapping': () => {
+    success: boolean;
+    mapping: Record<string, string>;
+  };
 };
 
 export type Channel = keyof ChannelToArgsMap;

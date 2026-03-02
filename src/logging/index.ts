@@ -255,6 +255,31 @@ export const setupWebContentsLogging = () => {
       );
     }
 
+    // Synchronous IPC handler for preload scripts to get their server tag
+    ipcMain.on(
+      'log-viewer-window/get-server-tag',
+      (event, origin: string) => {
+        try {
+          if (selectFunction && origin) {
+            const servers = selectFunction(
+              (state: RootState) => state.servers
+            );
+            const serverIndex =
+              servers.findIndex(
+                (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
+              ) + 1;
+            if (serverIndex > 0) {
+              event.returnValue = `server-${serverIndex}`;
+              return;
+            }
+          }
+        } catch {
+          // Non-critical
+        }
+        event.returnValue = '';
+      }
+    );
+
     // Rate limiting for console-log IPC to prevent flooding from compromised webviews
     const ipcRateLimit = new Map<
       number,
@@ -270,17 +295,21 @@ export const setupWebContentsLogging = () => {
       // For webviews and other renderer processes, inject console override
       webContents.on('dom-ready', () => {
         try {
-          // Get server context for this webContents if store is available
+          // Get server URL for this webContents
+          // For webviews, derive from the webContents URL by matching against known servers
           let serverUrl = 'unknown';
-          if (selectFunction) {
+          if (selectFunction && webContents.getType() === 'webview') {
             try {
-              const servers = selectFunction(
-                (state: RootState) => state.servers
-              );
-              const server = servers.find(
-                (s: any) => s.webContentsId === webContents.id
-              );
-              serverUrl = server?.url || 'unknown';
+              const currentUrl = webContents.getURL();
+              if (currentUrl) {
+                const servers = selectFunction(
+                  (state: RootState) => state.servers
+                );
+                const server = servers.find(
+                  (s: any) => s.url && currentUrl.startsWith(s.url)
+                );
+                serverUrl = server?.url || 'unknown';
+              }
             } catch (storeError) {
               logLoggingFailure(
                 storeError,
@@ -369,7 +398,7 @@ export const setupWebContentsLogging = () => {
     // Handle console messages from renderer processes with enhanced context
     ipcMain.on(
       'console-log',
-      (event, level, webContentsId, _serverUrl, ...args) => {
+      (event, level, webContentsId, serverUrl, ...args) => {
         try {
           const now = Date.now();
           let rateState = ipcRateLimit.get(webContentsId);
@@ -386,40 +415,33 @@ export const setupWebContentsLogging = () => {
             webContents.fromId(webContentsId) || event.sender;
 
           // Create enhanced context string with server info
-          let contextStr = '';
+          const context = getLogContext(senderWebContents);
+          let contextStr = formatLogContext(context);
 
-          if (selectFunction) {
+          // Add server index to webview context using the URL sent from the
+          // injected script.  We look up the server list from Redux to find
+          // the index that matches the URL.
+          if (
+            selectFunction &&
+            serverUrl &&
+            serverUrl !== 'unknown' &&
+            senderWebContents.getType() === 'webview'
+          ) {
             try {
               const servers = selectFunction(
                 (state: RootState) => state.servers
               );
-              const server = servers.find(
-                (s: any) => s.webContentsId === webContentsId
-              );
-
-              // Get base context
-              const context = getLogContext(senderWebContents);
-              contextStr = formatLogContext(context);
-
-              // Add server context if this is from a webview
-              if (server && senderWebContents.getType() === 'webview') {
-                // Replace or add server context based on the server URL
-                const serverIndex =
-                  servers.findIndex((s: any) => s.url === server.url) + 1;
+              const serverIndex =
+                servers.findIndex((s: any) => s.url === serverUrl) + 1;
+              if (serverIndex > 0) {
                 contextStr = contextStr.replace(
                   '[renderer:webview]',
                   `[renderer:webview] [server-${serverIndex}]`
                 );
               }
-            } catch (storeError) {
-              // Fallback to basic context if store access fails
-              const context = getLogContext(senderWebContents);
-              contextStr = formatLogContext(context);
+            } catch {
+              // Non-critical: server index enrichment failed
             }
-          } else {
-            // Fallback to basic context if store is not available
-            const context = getLogContext(senderWebContents);
-            contextStr = formatLogContext(context);
           }
 
           // Dedup non-error IPC messages before they reach electron-log

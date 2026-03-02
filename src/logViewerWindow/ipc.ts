@@ -9,6 +9,8 @@ import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
+import { select } from '../store';
+import type { RootState } from '../store/rootReducer';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { WINDOW_SIZE_MULTIPLIER } from './constants';
 
@@ -476,4 +478,21 @@ export const startLogViewerWindowHandler = (): void => {
       }
     }
   );
+
+  handle('log-viewer-window/get-server-mapping', async () => {
+    try {
+      const servers = select((state: RootState) => state.servers);
+      if (!servers || !Array.isArray(servers)) {
+        return { success: true, mapping: {} };
+      }
+      const mapping: Record<string, string> = {};
+      servers.forEach((server: any, index: number) => {
+        const key = `server-${index + 1}`;
+        mapping[key] = server.title || server.url || key;
+      });
+      return { success: true, mapping };
+    } catch {
+      return { success: true, mapping: {} };
+    }
+  });
 };

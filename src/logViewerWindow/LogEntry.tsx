@@ -1,6 +1,9 @@
 import { Box, Badge, Chip } from '@rocket.chat/fuselage';
+import { useMemo } from 'react';
 
 import { type LogLevel, type LogEntryType } from './types';
+
+const SERVER_TAG_REGEX = /\bserver-\d+\b/;
 
 const getLevelColor = (
   level: LogLevel
@@ -58,10 +61,31 @@ const getLevelBorderColor = (level: LogLevel): string => {
 export const LogEntry = ({
   entry,
   showContext,
+  showServer,
+  serverMapping,
 }: {
   entry: LogEntryType;
   showContext: boolean;
+  showServer: boolean;
+  serverMapping: Record<string, string>;
 }) => {
+  const { serverTag, serverDisplayName, contextWithoutServer } = useMemo(() => {
+    const match = entry.context.match(SERVER_TAG_REGEX);
+    const tag = match?.[0] || '';
+    const displayName = tag ? serverMapping[tag] || tag : '';
+    const ctxWithout = tag
+      ? entry.context
+          .replace(SERVER_TAG_REGEX, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+      : entry.context;
+    return {
+      serverTag: tag,
+      serverDisplayName: displayName,
+      contextWithoutServer: ctxWithout,
+    };
+  }, [entry.context, serverMapping]);
+
   return (
     <Box
       display='flex'
@@ -90,9 +114,14 @@ export const LogEntry = ({
           {entry.level.toUpperCase()}
         </Badge>
       </Box>
-      {showContext && entry.context && (
+      {showServer && serverTag && (
         <Box marginInlineEnd='x12'>
-          <Chip>{entry.context}</Chip>
+          <Chip>{serverDisplayName}</Chip>
+        </Box>
+      )}
+      {showContext && contextWithoutServer && (
+        <Box marginInlineEnd='x12'>
+          <Chip>{contextWithoutServer}</Chip>
         </Box>
       )}
       <Box

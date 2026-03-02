@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import log from 'electron-log/renderer';
 
 import { getProcessContext, getComponentContext } from './context';
@@ -6,6 +7,22 @@ import { getProcessContext, getComponentContext } from './context';
 try {
   // Get process context once
   const processContext = getProcessContext();
+
+  // For webviews, try to get server index from main process
+  let serverTag = '';
+  if (processContext === 'renderer:webview' && typeof window !== 'undefined') {
+    try {
+      const result = ipcRenderer.sendSync(
+        'log-viewer-window/get-server-tag',
+        window.location?.origin || ''
+      );
+      if (result) {
+        serverTag = ` [${result}]`;
+      }
+    } catch {
+      // Silently fail if IPC not available
+    }
+  }
 
   if (typeof console !== 'undefined') {
     // Store original console methods
@@ -21,7 +38,7 @@ try {
     console.log = (...args: any[]) => {
       try {
         const component = getComponentContext();
-        const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+        const contextStr = `[${processContext}]${serverTag}${component !== 'general' ? ` [${component}]` : ''}`;
         log.debug(contextStr, ...args);
       } catch {
         originalConsole.log(...args);
@@ -32,7 +49,7 @@ try {
     console.info = (...args: any[]) => {
       try {
         const component = getComponentContext();
-        const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+        const contextStr = `[${processContext}]${serverTag}${component !== 'general' ? ` [${component}]` : ''}`;
         log.info(contextStr, ...args);
       } catch {
         originalConsole.info(...args);
@@ -43,7 +60,7 @@ try {
     console.warn = (...args: any[]) => {
       try {
         const component = getComponentContext(true);
-        const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+        const contextStr = `[${processContext}]${serverTag}${component !== 'general' ? ` [${component}]` : ''}`;
         log.warn(contextStr, ...args);
       } catch {
         originalConsole.warn(...args);
@@ -54,7 +71,7 @@ try {
     console.error = (...args: any[]) => {
       try {
         const component = getComponentContext(true);
-        const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+        const contextStr = `[${processContext}]${serverTag}${component !== 'general' ? ` [${component}]` : ''}`;
         log.error(contextStr, ...args);
       } catch {
         originalConsole.error(...args);
@@ -65,7 +82,7 @@ try {
     console.debug = (...args: any[]) => {
       try {
         const component = getComponentContext();
-        const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+        const contextStr = `[${processContext}]${serverTag}${component !== 'general' ? ` [${component}]` : ''}`;
         log.debug(contextStr, ...args);
       } catch {
         originalConsole.debug(...args);

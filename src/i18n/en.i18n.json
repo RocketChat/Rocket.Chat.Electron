@@ -558,6 +558,7 @@
     },
     "controls": {
       "showContext": "Show Context",
+      "showServer": "Show Server",
       "autoScrollToTop": "Auto Scroll to Top"
     },
     "placeholders": {
@@ -595,6 +596,10 @@
         "notifications": "Notifications",
         "servers": "Servers",
         "ipc": "IPC Communication"
+      },
+      "server": {
+        "all": "All Servers",
+        "label": "Server"
       },
       "exchangeDebug": {
         "all": "All Logs",

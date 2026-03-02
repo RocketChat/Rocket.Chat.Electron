@@ -67,6 +67,10 @@ function LogViewerWindow() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showContext, setShowContext] = useState(true);
+  const [showServer, setShowServer] = useState(true);
+  const [serverMapping, setServerMapping] = useState<Record<string, string>>(
+    {}
+  );
   const [fileInfo, setFileInfo] = useState<{
     size: string;
     totalEntries: number;
@@ -156,6 +160,32 @@ function LogViewerWindow() {
     [setContextFilter]
   );
 
+  const serverFilterOptions = useMemo<[string, string][]>(() => {
+    const options: [string, string][] = [
+      ['all', t('logViewer.filters.server.all')],
+    ];
+    Object.entries(serverMapping).forEach(([key, name]) => {
+      const num = key.replace('server-', '');
+      options.push([
+        key,
+        `${t('logViewer.filters.server.label')} ${num} — ${name}`,
+      ]);
+    });
+    return options;
+  }, [serverMapping, t]);
+
+  const [serverFilter, setServerFilter] = useLocalStorage<string>(
+    'log-server',
+    'all'
+  );
+
+  const handleServerFilterChange = useCallback(
+    (value: Key) => {
+      setServerFilter(String(value));
+    },
+    [setServerFilter]
+  );
+
   const handleEntryLimitChange = useCallback(
     (value: Key) => {
       setEntryLimit(String(value));
@@ -167,8 +197,15 @@ function LogViewerWindow() {
     setSearchFilter('');
     setLevelFilter('all');
     setContextFilter('all');
+    setServerFilter('all');
     setEntryLimit('100');
-  }, [setSearchFilter, setLevelFilter, setContextFilter, setEntryLimit]);
+  }, [
+    setSearchFilter,
+    setLevelFilter,
+    setContextFilter,
+    setServerFilter,
+    setEntryLimit,
+  ]);
 
   const parseLogLines = useCallback((logText: string): LogEntryType[] => {
     if (!logText || logText.trim() === '') {
@@ -310,13 +347,45 @@ function LogViewerWindow() {
           .split(/\s+/)
           .some((tag) => tag.startsWith(contextFilter.toLowerCase()));
 
-      return matchesSearch && matchesLevel && matchesContext;
+      const matchesServer =
+        serverFilter === 'all' ||
+        entry.context
+          .toLowerCase()
+          .split(/\s+/)
+          .some((tag) => tag === serverFilter);
+
+      return matchesSearch && matchesLevel && matchesContext && matchesServer;
     });
-  }, [logEntries, debouncedSearchFilter, levelFilter, contextFilter]);
+  }, [
+    logEntries,
+    debouncedSearchFilter,
+    levelFilter,
+    contextFilter,
+    serverFilter,
+  ]);
 
   useEffect(() => {
     lastModifiedTimeRef.current = fileInfo?.lastModifiedTime;
   }, [fileInfo?.lastModifiedTime]);
+
+  // Fetch server-N → workspace name mapping from the main process
+  useEffect(() => {
+    const fetchMapping = async () => {
+      try {
+        const response = (await ipcRenderer.invoke(
+          'log-viewer-window/get-server-mapping'
+        )) as { success: boolean; mapping: Record<string, string> };
+        if (response?.success) {
+          setServerMapping(response.mapping);
+        }
+      } catch {
+        // Non-critical: mapping not available yet
+      }
+    };
+    fetchMapping();
+    const interval = setInterval(fetchMapping, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     loadLogs();
@@ -440,10 +509,16 @@ function LogViewerWindow() {
   const renderLogEntry = useCallback(
     (_index: number, entry: LogEntryType) => {
       return (
-        <LogEntry key={entry.id} entry={entry} showContext={showContext} />
+        <LogEntry
+          key={entry.id}
+          entry={entry}
+          showContext={showContext}
+          showServer={showServer}
+          serverMapping={serverMapping}
+        />
       );
     },
-    [showContext]
+    [showContext, showServer, serverMapping]
   );
 
   const handleOpenLogFile = useCallback(async () => {
@@ -726,6 +801,16 @@ function LogViewerWindow() {
               {t('logViewer.controls.showContext')}
             </Box>
           </Box>
+          <Box display='flex' alignItems='center' marginInlineEnd='x16'>
+            <CheckBox
+              aria-label={t('logViewer.controls.showServer')}
+              checked={showServer}
+              onChange={() => setShowServer(!showServer)}
+            />
+            <Box marginInlineStart='x4' display='inline' color='default'>
+              {t('logViewer.controls.showServer')}
+            </Box>
+          </Box>
           <Box display='flex' alignItems='center'>
             <CheckBox
               aria-label={t('logViewer.controls.autoScrollToTop')}
@@ -787,6 +872,17 @@ function LogViewerWindow() {
               width={200}
             />
           </Box>
+          {serverFilterOptions.length > 1 && (
+            <Box marginInlineEnd='x12'>
+              <Select
+                placeholder={t('logViewer.filters.server.all')}
+                value={serverFilter}
+                options={serverFilterOptions}
+                onChange={handleServerFilterChange}
+                width={240}
+              />
+            </Box>
+          )}
           <Button onClick={handleClearAll}>
             {t('logViewer.buttons.clearFilters')}
           </Button>

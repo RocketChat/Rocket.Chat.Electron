@@ -102,7 +102,7 @@ const TOKEN_PATTERNS: {
   // URLs with embedded credentials: https://user:pass@host
   {
     pattern: /(https?:\/\/)([^:]+):([^@]+)@/gi,
-    replacer: (_m, proto, user) => `${proto}${user}:[REDACTED]@`,
+    replacer: (_m, proto) => `${proto}[REDACTED]:[REDACTED]@`,
   },
   // Long hex strings (32+ chars) — likely API keys, hashes, tokens
   {
@@ -261,7 +261,7 @@ const redactObject = (obj: any, depth = 0, seen = new WeakSet()): any => {
   if (typeof obj === 'string') return redactSensitiveData(obj);
 
   // Prevent stack overflow on deeply nested objects
-  if (depth > 10) return '[Nested Object Redacted]';
+  if (depth >= 10) return '[Nested Object Redacted]';
 
   if (typeof obj === 'object') {
     if (seen.has(obj)) return '[Circular]';

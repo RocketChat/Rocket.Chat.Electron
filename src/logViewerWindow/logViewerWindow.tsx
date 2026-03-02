@@ -256,7 +256,7 @@ function LogViewerWindow() {
       const response = (await ipcRenderer.invoke(
         'log-viewer-window/read-logs',
         {
-          limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
+          limit: 'all',
           filePath: currentLogFile.isDefaultLog
             ? undefined
             : currentLogFile.filePath,
@@ -321,14 +321,13 @@ function LogViewerWindow() {
     }
   }, [
     parseLogLines,
-    entryLimit,
     currentLogFile.filePath,
     currentLogFile.isDefaultLog,
     t,
   ]);
 
   const filteredLogs = useMemo(() => {
-    return logEntries.filter((entry) => {
+    const filtered = logEntries.filter((entry) => {
       const matchesSearch =
         !debouncedSearchFilter ||
         entry.message
@@ -356,12 +355,23 @@ function LogViewerWindow() {
 
       return matchesSearch && matchesLevel && matchesContext && matchesServer;
     });
+
+    // Apply entry limit as a display cap on filtered results
+    if (entryLimit !== 'all') {
+      const limit = parseInt(entryLimit);
+      if (filtered.length > limit) {
+        return filtered.slice(filtered.length - limit);
+      }
+    }
+
+    return filtered;
   }, [
     logEntries,
     debouncedSearchFilter,
     levelFilter,
     contextFilter,
     serverFilter,
+    entryLimit,
   ]);
 
   useEffect(() => {
@@ -393,7 +403,6 @@ function LogViewerWindow() {
     loadLogs,
     currentLogFile.filePath,
     currentLogFile.isDefaultLog,
-    entryLimit,
   ]);
 
   const checkForUpdates = useCallback(async () => {

@@ -147,13 +147,13 @@ const PII_PATTERNS: { pattern: RegExp; replacer: (match: string) => string }[] =
     {
       pattern: /\b(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\b/g,
       replacer: (m) => {
-        // Don't redact localhost, version numbers, or common non-IP patterns
+        // Don't redact localhost or private ranges (RFC 1918)
         if (
           m === '127.0.0.1' ||
           m === '0.0.0.0' ||
           m.startsWith('192.168.') ||
           m.startsWith('10.') ||
-          m.startsWith('172.')
+          /^172\.(1[6-9]|2[0-9]|3[01])\./.test(m)
         ) {
           return m;
         }

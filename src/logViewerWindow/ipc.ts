@@ -352,7 +352,11 @@ export const startLogViewerWindowHandler = (): void => {
         }
 
         const stats = fs.statSync(logPath);
-        const fromByte = Math.max(0, Math.min(options.fromByte, stats.size));
+        const rawFromByte = Number(options.fromByte);
+        const fromByte =
+          Number.isFinite(rawFromByte) && rawFromByte >= 0
+            ? Math.min(Math.floor(rawFromByte), stats.size)
+            : 0;
 
         if (fromByte >= stats.size) {
           return {

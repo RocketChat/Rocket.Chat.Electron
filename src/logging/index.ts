@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import type { WebContents } from 'electron';
-import { app, webContents, ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 import log from 'electron-log';
 
 import { select, watch } from '../store';
@@ -145,7 +145,7 @@ const configureLogging = () => {
       const ERRORS_FLUSH_INTERVAL_MS = 10_000;
       const MAX_BUFFERED_ERRORS = 50;
 
-      const flushErrorJsonl = () => {
+      const flushErrorJsonl = (sync = false) => {
         if (errorJsonlBuffer.length === 0) return;
         const batch = errorJsonlBuffer.splice(0);
         const content = batch.join('');
@@ -168,9 +168,17 @@ const configureLogging = () => {
           // Non-critical: truncation failure
         }
 
-        fs.promises.appendFile(errorJsonlPath, content).catch((err) => {
-          originalConsole.error('Failed to write error log:', err);
-        });
+        if (sync) {
+          try {
+            fs.appendFileSync(errorJsonlPath, content);
+          } catch (err) {
+            originalConsole.error('Failed to write error log:', err);
+          }
+        } else {
+          fs.promises.appendFile(errorJsonlPath, content).catch((err) => {
+            originalConsole.error('Failed to write error log:', err);
+          });
+        }
       };
 
       const errorFlushTimer = setInterval(
@@ -204,7 +212,7 @@ const configureLogging = () => {
       // Flush error buffer before app quits
       if (process.type === 'browser') {
         app.on('before-quit', () => {
-          flushErrorJsonl();
+          flushErrorJsonl(true);
           clearInterval(errorFlushTimer);
         });
       }
@@ -393,46 +401,47 @@ export const setupWebContentsLogging = () => {
     // Handle console messages from renderer processes with enhanced context
     ipcMain.on(
       'console-log',
-      (event, level, webContentsId, serverUrl, ...args) => {
+      (event, level, _webContentsId, _serverUrl, ...args) => {
         try {
+          // Use authenticated sender identity — never trust renderer-supplied IDs
+          const senderWebContents = event.sender;
+          const senderId = senderWebContents.id;
+
           const now = Date.now();
-          let rateState = ipcRateLimit.get(webContentsId);
+          let rateState = ipcRateLimit.get(senderId);
           if (!rateState || now > rateState.resetTime) {
             rateState = { count: 0, resetTime: now + 1000 };
-            ipcRateLimit.set(webContentsId, rateState);
+            ipcRateLimit.set(senderId, rateState);
           }
           rateState.count++;
           if (rateState.count > MAX_IPC_MESSAGES_PER_SECOND) {
             return;
           }
-          // Find the webContents that sent this message
-          const senderWebContents =
-            webContents.fromId(webContentsId) || event.sender;
 
           // Create enhanced context string with server info
           const context = getLogContext(senderWebContents);
           let contextStr = formatLogContext(context);
 
-          // Add server index to webview context using the URL sent from the
-          // injected script.  We look up the server list from Redux to find
-          // the index that matches the URL.
-          if (
-            selectFunction &&
-            serverUrl &&
-            serverUrl !== 'unknown' &&
-            senderWebContents.getType() === 'webview'
-          ) {
+          // Add server index to webview context using the authenticated
+          // sender's URL — never trust renderer-supplied values.
+          if (selectFunction && senderWebContents.getType() === 'webview') {
             try {
-              const servers = selectFunction(
-                (state: RootState) => state.servers
-              );
-              const serverIndex =
-                servers.findIndex((s: any) => s.url === serverUrl) + 1;
-              if (serverIndex > 0) {
-                contextStr = contextStr.replace(
-                  '[renderer:webview]',
-                  `[renderer:webview] [server-${serverIndex}]`
+              const currentUrl = senderWebContents.getURL();
+              if (currentUrl) {
+                const servers = selectFunction(
+                  (state: RootState) => state.servers
                 );
+                const serverIndex =
+                  servers.findIndex(
+                    (s: any) =>
+                      s.url && currentUrl.startsWith(s.url.replace(/\/$/, ''))
+                  ) + 1;
+                if (serverIndex > 0) {
+                  contextStr = contextStr.replace(
+                    '[renderer:webview]',
+                    `[renderer:webview] [server-${serverIndex}]`
+                  );
+                }
               }
             } catch {
               // Non-critical: server index enrichment failed

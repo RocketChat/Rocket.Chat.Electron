@@ -6,10 +6,15 @@
  * 1. `shouldLog()` — call before IPC messages reach electron-log
  * 2. `createFileHook()` — electron-log hook for main-process messages
  *    (file transport only, console stays verbose)
+ *
+ * Each integration point tracks its own last-key so they don't interfere.
  */
 export class LogDeduplicator {
-  /** Key of the last message that was actually written */
-  private lastKey = '';
+  /** Key of the last IPC message that was actually written */
+  private lastIpcKey = '';
+
+  /** Key of the last file-transport message that was actually written */
+  private lastFileKey = '';
 
   /**
    * Build a dedup key from level + message text.
@@ -18,7 +23,14 @@ export class LogDeduplicator {
    */
   private makeKey(level: string, args: any[]): string {
     const text = args
-      .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
+      .map((a) => {
+        if (typeof a === 'string') return a;
+        try {
+          return JSON.stringify(a);
+        } catch {
+          return String(a);
+        }
+      })
       .join(' ')
       .replace(/\b\d{4,}\b/g, '#')
       .replace(/\b\d+\.\d+\b/g, '#');
@@ -34,9 +46,9 @@ export class LogDeduplicator {
     if (level === 'error') return true;
 
     const key = this.makeKey(level, [contextStr, ...args]);
-    if (key === this.lastKey) return false;
+    if (key === this.lastIpcKey) return false;
 
-    this.lastKey = key;
+    this.lastIpcKey = key;
     return true;
   }
 
@@ -57,9 +69,9 @@ export class LogDeduplicator {
       const text = message.data?.map(String).join(' ') || '';
       const key = `${message.level}|${text.replace(/\b\d{4,}\b/g, '#').replace(/\b\d+\.\d+\b/g, '#')}`;
 
-      if (key === this.lastKey) return null; // suppress duplicate
+      if (key === this.lastFileKey) return null; // suppress duplicate
 
-      this.lastKey = key;
+      this.lastFileKey = key;
       return message;
     };
   }

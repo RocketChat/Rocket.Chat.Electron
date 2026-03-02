@@ -31,6 +31,7 @@ import {
   type LogLevel,
   type LogEntryType,
   type ReadLogsResponse,
+  type ReadLogsTailResponse,
   type SaveLogsResponse,
   type SelectFileResponse,
   type ClearLogsResponse,
@@ -51,7 +52,7 @@ const formatFileSize = (bytes: number): string => {
 
 function LogViewerWindow() {
   const { t } = useTranslation();
-  const [searchFilter, setSearchFilter] = useLocalStorage('log-search', '');
+  const [searchFilter, setSearchFilter] = useState('');
   const debouncedSearchFilter = useDebouncedValue(
     searchFilter,
     SEARCH_DEBOUNCE_MS
@@ -61,6 +62,7 @@ function LogViewerWindow() {
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const lastModifiedTimeRef = useRef<number | undefined>(undefined);
+  const lastKnownSizeRef = useRef<number>(0);
   const isAutoScrollingRef = useRef(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
@@ -258,6 +260,10 @@ function LogViewerWindow() {
           }
         }
 
+        if (response.fileSize !== undefined) {
+          lastKnownSizeRef.current = response.fileSize;
+        }
+
         setFileInfo({
           size: sizeFormatted,
           totalEntries: parsedLogs.length,
@@ -325,20 +331,68 @@ function LogViewerWindow() {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
 
     try {
-      const response = (await ipcRenderer.invoke('log-viewer-window/stat-log', {
-        filePath: undefined,
-      })) as { success: boolean; lastModifiedTime?: number; size?: number };
+      const statResponse = (await ipcRenderer.invoke(
+        'log-viewer-window/stat-log',
+        { filePath: undefined }
+      )) as { success: boolean; lastModifiedTime?: number; size?: number };
 
-      if (response?.success && response.lastModifiedTime) {
-        const currentModTime = lastModifiedTimeRef.current;
-        if (currentModTime && response.lastModifiedTime > currentModTime) {
-          loadLogs();
+      if (!statResponse?.success || !statResponse.lastModifiedTime) return;
+
+      const currentModTime = lastModifiedTimeRef.current;
+      if (!currentModTime || statResponse.lastModifiedTime <= currentModTime)
+        return;
+
+      const currentSize = statResponse.size ?? 0;
+      const previousSize = lastKnownSizeRef.current;
+
+      // File was truncated/rotated (or cleared) — full re-read
+      if (currentSize < previousSize) {
+        loadLogs();
+        return;
+      }
+
+      // No new bytes — just a timestamp change (e.g. chmod)
+      if (currentSize === previousSize) {
+        lastModifiedTimeRef.current = statResponse.lastModifiedTime;
+        return;
+      }
+
+      // Incremental read: only fetch new bytes appended since last read
+      const tailResponse = (await ipcRenderer.invoke(
+        'log-viewer-window/read-logs-tail',
+        { fromByte: previousSize }
+      )) as ReadLogsTailResponse;
+
+      if (tailResponse?.success && tailResponse.logs) {
+        const newEntries = parseLogLines(tailResponse.logs);
+        if (newEntries.length > 0) {
+          setLogEntries((prev) => {
+            // newEntries are already reversed (newest first)
+            // Prepend them to existing entries
+            return [...newEntries, ...prev];
+          });
+
+          setFileInfo((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  totalEntries: prev.totalEntries + newEntries.length,
+                  lastModified: new Date().toLocaleString(),
+                  lastModifiedTime: tailResponse.lastModifiedTime,
+                }
+              : prev
+          );
         }
+
+        if (tailResponse.newSize !== undefined) {
+          lastKnownSizeRef.current = tailResponse.newSize;
+        }
+        lastModifiedTimeRef.current = tailResponse.lastModifiedTime;
       }
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
-  }, [isStreaming, currentLogFile.isDefaultLog, loadLogs]);
+  }, [isStreaming, currentLogFile.isDefaultLog, loadLogs, parseLogLines]);
 
   useEffect(() => {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
@@ -434,10 +488,16 @@ function LogViewerWindow() {
       return;
     }
     try {
+      const confirmed = await ipcRenderer.invoke(
+        'log-viewer-window/confirm-clear-logs'
+      );
+      if (!confirmed) return;
+
       const response = (await ipcRenderer.invoke(
         'log-viewer-window/clear-logs'
       )) as ClearLogsResponse;
       if (response?.success) {
+        lastKnownSizeRef.current = 0;
         loadLogs();
       }
     } catch (error) {

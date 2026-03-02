@@ -21,23 +21,6 @@ const getLevelColor = (
   }
 };
 
-const getLevelBackgroundColor = (level: LogLevel): string => {
-  switch (level) {
-    case 'error':
-      return 'surface-light';
-    case 'warn':
-      return 'surface-light';
-    case 'info':
-      return 'surface-light';
-    case 'debug':
-      return 'surface-light';
-    case 'verbose':
-      return 'surface-light';
-    default:
-      return 'surface-light';
-  }
-};
-
 const getLevelTextColor = (level: LogLevel): string => {
   switch (level) {
     case 'error':
@@ -86,7 +69,7 @@ export const LogEntry = ({
       alignItems='flex-start'
       padding='x12'
       borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
-      backgroundColor={getLevelBackgroundColor(entry.level)}
+      backgroundColor='surface-light'
       borderInlineStart={`4px solid ${getLevelBorderColor(entry.level)}`}
       fontFamily='mono'
       fontSize='x12'

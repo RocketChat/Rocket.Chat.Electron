@@ -1,34 +1,6 @@
 import log from 'electron-log';
 
 /**
- * Utility functions for easier logging across the application
- */
-
-export const logInfo = (message: string, ...args: any[]): void => {
-  log.info(message, ...args);
-};
-
-export const logError = (
-  message: string,
-  error?: Error,
-  ...args: any[]
-): void => {
-  if (error) {
-    log.error(message, error, ...args);
-  } else {
-    log.error(message, ...args);
-  }
-};
-
-export const logWarn = (message: string, ...args: any[]): void => {
-  log.warn(message, ...args);
-};
-
-export const logDebug = (message: string, ...args: any[]): void => {
-  log.debug(message, ...args);
-};
-
-/**
  * Log function execution time
  */
 const isThenable = <T>(value: unknown): value is Promise<T> =>

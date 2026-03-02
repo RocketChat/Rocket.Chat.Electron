@@ -5,11 +5,14 @@ import { promisify } from 'util';
 import archiver from 'archiver';
 import type { Event } from 'electron';
 import { app, BrowserWindow, screen, dialog } from 'electron';
+import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { WINDOW_SIZE_MULTIPLIER } from './constants';
+
+const t = i18next.t.bind(i18next);
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -135,6 +138,7 @@ export const openLogViewerWindow = async (): Promise<void> => {
 
   logViewerWindow.on('closed', () => {
     logViewerWindow = null;
+    allowedLogPaths.clear();
   });
 
   logViewerWindow.webContents.on(
@@ -260,6 +264,7 @@ export const startLogViewerWindowHandler = (): void => {
           fileName: path.basename(logPath),
           isDefaultLog: !options?.filePath,
           lastModifiedTime,
+          fileSize: stats.size,
           totalEntries,
         };
       } catch (error) {
@@ -312,6 +317,92 @@ export const startLogViewerWindowHandler = (): void => {
       }
     }
   );
+
+  handle(
+    'log-viewer-window/read-logs-tail',
+    async (_, options: { fromByte: number; filePath?: string }) => {
+      try {
+        let logPath: string;
+        if (options.filePath) {
+          const validation = validateLogFilePath(options.filePath);
+          if (!validation.valid) {
+            return { success: false, error: validation.error };
+          }
+          const normalizedPath = path.normalize(options.filePath);
+          const defaultLogPath = path.normalize(getLogFilePath());
+          if (
+            normalizedPath !== defaultLogPath &&
+            !allowedLogPaths.has(normalizedPath)
+          ) {
+            return {
+              success: false,
+              error:
+                'Log file not authorized. Please select it via the file dialog first.',
+            };
+          }
+          logPath = normalizedPath;
+        } else {
+          logPath = getLogFilePath();
+        }
+
+        if (!fs.existsSync(logPath)) {
+          return { success: false, error: 'Log file does not exist' };
+        }
+
+        const stats = fs.statSync(logPath);
+        const fromByte = Math.max(0, Math.min(options.fromByte, stats.size));
+
+        if (fromByte >= stats.size) {
+          return {
+            success: true,
+            logs: '',
+            newSize: stats.size,
+            lastModifiedTime: stats.mtime.getTime(),
+          };
+        }
+
+        const chunks: Buffer[] = [];
+        await new Promise<void>((resolve, reject) => {
+          const stream = fs.createReadStream(logPath, {
+            start: fromByte,
+            encoding: undefined,
+          });
+          stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+          stream.on('end', () => resolve());
+          stream.on('error', (err) => reject(err));
+        });
+
+        const newContent = Buffer.concat(chunks).toString('utf-8');
+
+        return {
+          success: true,
+          logs: newContent,
+          newSize: stats.size,
+          lastModifiedTime: stats.mtime.getTime(),
+        };
+      } catch (error) {
+        console.error('Failed to read log tail:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    }
+  );
+
+  handle('log-viewer-window/confirm-clear-logs', async () => {
+    if (!logViewerWindow || logViewerWindow.isDestroyed()) {
+      return false;
+    }
+
+    const { response } = await dialog.showMessageBox(logViewerWindow, {
+      type: 'warning',
+      buttons: [t('dialog.clearLogs.yes'), t('dialog.clearLogs.cancel')],
+      defaultId: 1,
+      title: t('dialog.clearLogs.title'),
+      message: t('dialog.clearLogs.message'),
+      detail: t('dialog.clearLogs.detail'),
+    });
+
+    return response === 0;
+  });
 
   handle('log-viewer-window/clear-logs', async () => {
     try {

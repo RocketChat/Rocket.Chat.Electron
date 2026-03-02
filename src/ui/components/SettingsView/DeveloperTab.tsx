@@ -1,6 +1,7 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
+import { DebugLogging } from './features/DebugLogging';
 import { DetailedEventsLogging } from './features/DetailedEventsLogging';
 import { VerboseOutlookLogging } from './features/VerboseOutlookLogging';
 
@@ -13,6 +14,7 @@ export const DeveloperTab = () => {
         <Box fontScale='h4' mbe={16} color='font-default'>
           {t('settings.sections.logging')}
         </Box>
+        <DebugLogging />
         <VerboseOutlookLogging />
         <DetailedEventsLogging />
       </FieldGroup>

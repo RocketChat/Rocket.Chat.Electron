@@ -5,7 +5,7 @@ import { app } from 'electron';
 
 const DEFAULT_RETENTION_DAYS = 30;
 
-const PROTECTED_FILES = new Set(['main.log', 'errors.json']);
+const PROTECTED_FILES = new Set(['main.log', 'errors.jsonl']);
 
 /**
  * Clean up old log files based on retention policy

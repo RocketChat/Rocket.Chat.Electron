@@ -1,6 +1,9 @@
 import { Box, Badge, Chip } from '@rocket.chat/fuselage';
+import { useMemo } from 'react';
 
 import { type LogLevel, type LogEntryType } from './types';
+
+const SERVER_TAG_REGEX = /\bserver-\d+\b/;
 
 const getLevelColor = (
   level: LogLevel
@@ -18,23 +21,6 @@ const getLevelColor = (
       return 'ghost';
     default:
       return 'ghost';
-  }
-};
-
-const getLevelBackgroundColor = (level: LogLevel): string => {
-  switch (level) {
-    case 'error':
-      return 'surface-light';
-    case 'warn':
-      return 'surface-light';
-    case 'info':
-      return 'surface-light';
-    case 'debug':
-      return 'surface-light';
-    case 'verbose':
-      return 'surface-light';
-    default:
-      return 'surface-light';
   }
 };
 
@@ -75,10 +61,31 @@ const getLevelBorderColor = (level: LogLevel): string => {
 export const LogEntry = ({
   entry,
   showContext,
+  showServer,
+  serverMapping,
 }: {
   entry: LogEntryType;
   showContext: boolean;
+  showServer: boolean;
+  serverMapping: Record<string, string>;
 }) => {
+  const { serverTag, serverDisplayName, contextWithoutServer } = useMemo(() => {
+    const match = entry.context.match(SERVER_TAG_REGEX);
+    const tag = match?.[0] || '';
+    const displayName = tag ? serverMapping[tag] || tag : '';
+    const ctxWithout = tag
+      ? entry.context
+          .replace(SERVER_TAG_REGEX, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+      : entry.context;
+    return {
+      serverTag: tag,
+      serverDisplayName: displayName,
+      contextWithoutServer: ctxWithout,
+    };
+  }, [entry.context, serverMapping]);
+
   return (
     <Box
       display='flex'
@@ -86,7 +93,7 @@ export const LogEntry = ({
       alignItems='flex-start'
       padding='x12'
       borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
-      backgroundColor={getLevelBackgroundColor(entry.level)}
+      backgroundColor='surface-light'
       borderInlineStart={`4px solid ${getLevelBorderColor(entry.level)}`}
       fontFamily='mono'
       fontSize='x12'
@@ -107,9 +114,14 @@ export const LogEntry = ({
           {entry.level.toUpperCase()}
         </Badge>
       </Box>
-      {showContext && entry.context && (
+      {showServer && serverTag && (
         <Box marginInlineEnd='x12'>
-          <Chip>{entry.context}</Chip>
+          <Chip>{serverDisplayName}</Chip>
+        </Box>
+      )}
+      {showContext && contextWithoutServer && (
+        <Box marginInlineEnd='x12'>
+          <Chip>{contextWithoutServer}</Chip>
         </Box>
       )}
       <Box

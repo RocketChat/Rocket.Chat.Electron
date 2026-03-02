@@ -2,18 +2,22 @@ import fs from 'fs';
 import path from 'path';
 
 import type { WebContents } from 'electron';
-import { app, webContents, ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 import log from 'electron-log';
 
-import { select } from '../store';
+import { select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
   getLogContext,
   formatLogContext,
   cleanupServerContext,
 } from './context';
+import { LogDeduplicator } from './dedup';
 import { logLoggingFailure } from './fallback';
 import { createPrivacyHook, redactSensitiveData } from './privacy';
+
+// Shared dedup instance — created once, used by both file hook and IPC handler
+let logDeduplicator: LogDeduplicator | null = null;
 
 const originalConsole = {
   log: console.log.bind(console),
@@ -113,6 +117,8 @@ const configureLogging = () => {
       log.transports.file.maxSize = 10 * 1024 * 1024; // 10MB
       log.transports.file.format =
         '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
+      // Enable async writes — batches multiple log lines into single fs.writeFile calls
+      (log.transports.file as any).sync = false;
       // Let electron-log use its default path: ~/Library/Logs/{app name}/main.log
 
       // Configure console transport with enhanced format
@@ -124,21 +130,78 @@ const configureLogging = () => {
         originalConsole.log(message);
       };
 
-      // Add structured JSON logging for errors (useful for error reporting)
-      const errorJsonPath = path.join(app.getPath('logs'), 'errors.json');
+      // Add privacy hook FIRST so all data is redacted before other hooks
+      log.hooks.push(createPrivacyHook());
+
+      // Add dedup hook — suppresses repeated non-error messages at the file
+      // transport only (console stays verbose for live debugging)
+      logDeduplicator = new LogDeduplicator();
+      log.hooks.push(logDeduplicator.createFileHook());
+
+      // Add structured NDJSON logging for errors (useful for error reporting)
+      const errorJsonlPath = path.join(app.getPath('logs'), 'errors.jsonl');
+      const MAX_ERROR_LOG_SIZE = 5 * 1024 * 1024; // 5MB
+      const errorJsonlBuffer: string[] = [];
+      const ERRORS_FLUSH_INTERVAL_MS = 10_000;
+      const MAX_BUFFERED_ERRORS = 50;
+
+      const flushErrorJsonl = (sync = false) => {
+        if (errorJsonlBuffer.length === 0) return;
+        const batch = errorJsonlBuffer.splice(0);
+        const content = batch.join('');
+
+        // Check size and truncate if needed before appending
+        try {
+          if (fs.existsSync(errorJsonlPath)) {
+            const stats = fs.statSync(errorJsonlPath);
+            if (stats.size > MAX_ERROR_LOG_SIZE) {
+              const fileContent = fs.readFileSync(errorJsonlPath, 'utf-8');
+              const lines = fileContent.split('\n');
+              const halfIndex = Math.floor(lines.length / 2);
+              fs.writeFileSync(
+                errorJsonlPath,
+                lines.slice(halfIndex).join('\n')
+              );
+            }
+          }
+        } catch {
+          // Non-critical: truncation failure
+        }
+
+        if (sync) {
+          try {
+            fs.appendFileSync(errorJsonlPath, content);
+          } catch (err) {
+            originalConsole.error('Failed to write error log:', err);
+          }
+        } else {
+          fs.promises.appendFile(errorJsonlPath, content).catch((err) => {
+            originalConsole.error('Failed to write error log:', err);
+          });
+        }
+      };
+
+      const errorFlushTimer = setInterval(
+        flushErrorJsonl,
+        ERRORS_FLUSH_INTERVAL_MS
+      );
+
       log.hooks.push((message: any) => {
         if (message.level === 'error') {
           try {
             const rawText = message.data?.join(' ') || '';
-            const jsonEntry = `${JSON.stringify({
-              timestamp: new Date().toISOString(),
-              level: message.level,
-              text: redactSensitiveData(rawText),
-              version: app.getVersion(),
-            })}\n`;
-            fs.promises.appendFile(errorJsonPath, jsonEntry).catch((err) => {
-              originalConsole.error('Failed to write error log:', err);
-            });
+            errorJsonlBuffer.push(
+              `${JSON.stringify({
+                timestamp: new Date().toISOString(),
+                level: message.level,
+                text: redactSensitiveData(rawText),
+                version: app.getVersion(),
+              })}\n`
+            );
+
+            if (errorJsonlBuffer.length >= MAX_BUFFERED_ERRORS) {
+              flushErrorJsonl();
+            }
           } catch {
             // Ignore JSON logging failures
           }
@@ -146,8 +209,13 @@ const configureLogging = () => {
         return message;
       });
 
-      // Add privacy hook to filter sensitive data
-      log.hooks.push(createPrivacyHook());
+      // Flush error buffer before app quits
+      if (process.type === 'browser') {
+        app.on('before-quit', () => {
+          flushErrorJsonl(true);
+          clearInterval(errorFlushTimer);
+        });
+      }
 
       // Initialize for renderer processes if we're in main process
       if (process.type === 'browser') {
@@ -160,8 +228,8 @@ const configureLogging = () => {
         if (fs.existsSync(logFilePath)) {
           fs.chmodSync(logFilePath, 0o600);
         }
-        if (fs.existsSync(errorJsonPath)) {
-          fs.chmodSync(errorJsonPath, 0o600);
+        if (fs.existsSync(errorJsonlPath)) {
+          fs.chmodSync(errorJsonlPath, 0o600);
         }
       } catch {
         // Non-critical: chmod may fail on Windows
@@ -195,6 +263,33 @@ export const setupWebContentsLogging = () => {
       );
     }
 
+    // Synchronous IPC handler for preload scripts to get their server tag
+    ipcMain.on('log-viewer-window/get-server-tag', (event, origin: string) => {
+      try {
+        if (selectFunction && origin) {
+          const servers = selectFunction((state: RootState) => state.servers);
+          const serverIndex =
+            servers.findIndex(
+              (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
+            ) + 1;
+          if (serverIndex > 0) {
+            event.returnValue = `server-${serverIndex}`;
+            return;
+          }
+        }
+      } catch {
+        // Non-critical
+      }
+      event.returnValue = '';
+    });
+
+    // Rate limiting for console-log IPC to prevent flooding from compromised webviews
+    const ipcRateLimit = new Map<
+      number,
+      { count: number; resetTime: number }
+    >();
+    const MAX_IPC_MESSAGES_PER_SECOND = 100;
+
     // Listen for new webContents creation
     app.on('web-contents-created', (_event, webContents) => {
       // Skip if this is the main renderer process (it already has logging)
@@ -203,17 +298,21 @@ export const setupWebContentsLogging = () => {
       // For webviews and other renderer processes, inject console override
       webContents.on('dom-ready', () => {
         try {
-          // Get server context for this webContents if store is available
+          // Get server URL for this webContents
+          // For webviews, derive from the webContents URL by matching against known servers
           let serverUrl = 'unknown';
-          if (selectFunction) {
+          if (selectFunction && webContents.getType() === 'webview') {
             try {
-              const servers = selectFunction(
-                (state: RootState) => state.servers
-              );
-              const server = servers.find(
-                (s: any) => s.webContentsId === webContents.id
-              );
-              serverUrl = server?.url || 'unknown';
+              const currentUrl = webContents.getURL();
+              if (currentUrl) {
+                const servers = selectFunction(
+                  (state: RootState) => state.servers
+                );
+                const server = servers.find(
+                  (s: any) => s.url && currentUrl.startsWith(s.url)
+                );
+                serverUrl = server?.url || 'unknown';
+              }
             } catch (storeError) {
               logLoggingFailure(
                 storeError,
@@ -222,6 +321,8 @@ export const setupWebContentsLogging = () => {
             }
           }
 
+          // TODO: Replace executeJavaScript injection with a preload script for
+          // better maintainability and debuggability (see src/logging/preload.ts)
           // Inject enhanced console override directly into the webContents
           const consoleOverrideScript = `
             (function() {
@@ -290,78 +391,76 @@ export const setupWebContentsLogging = () => {
         }
       });
 
-      // Clean up context when webContents is destroyed
+      // Clean up context and rate limit state when webContents is destroyed
       webContents.on('destroyed', () => {
         cleanupServerContext(webContents.id);
+        ipcRateLimit.delete(webContents.id);
       });
     });
-
-    // Rate limiting for console-log IPC to prevent flooding from compromised webviews
-    const ipcRateLimit = new Map<
-      number,
-      { count: number; resetTime: number }
-    >();
-    const MAX_IPC_MESSAGES_PER_SECOND = 100;
 
     // Handle console messages from renderer processes with enhanced context
     ipcMain.on(
       'console-log',
-      (event, level, webContentsId, _serverUrl, ...args) => {
+      (event, level, _webContentsId, _serverUrl, ...args) => {
         try {
+          // Use authenticated sender identity — never trust renderer-supplied IDs
+          const senderWebContents = event.sender;
+          const senderId = senderWebContents.id;
+
           const now = Date.now();
-          let rateState = ipcRateLimit.get(webContentsId);
+          let rateState = ipcRateLimit.get(senderId);
           if (!rateState || now > rateState.resetTime) {
             rateState = { count: 0, resetTime: now + 1000 };
-            ipcRateLimit.set(webContentsId, rateState);
+            ipcRateLimit.set(senderId, rateState);
           }
           rateState.count++;
           if (rateState.count > MAX_IPC_MESSAGES_PER_SECOND) {
             return;
           }
-          // Find the webContents that sent this message
-          const senderWebContents =
-            webContents.fromId(webContentsId) || event.sender;
 
           // Create enhanced context string with server info
-          let contextStr = '';
+          const context = getLogContext(senderWebContents);
+          let contextStr = formatLogContext(context);
 
-          if (selectFunction) {
+          // Add server index to webview context using the authenticated
+          // sender's URL — never trust renderer-supplied values.
+          if (selectFunction && senderWebContents.getType() === 'webview') {
             try {
-              const servers = selectFunction(
-                (state: RootState) => state.servers
-              );
-              const server = servers.find(
-                (s: any) => s.webContentsId === webContentsId
-              );
-
-              // Get base context
-              const context = getLogContext(senderWebContents);
-              contextStr = formatLogContext(context);
-
-              // Add server context if this is from a webview
-              if (server && senderWebContents.getType() === 'webview') {
-                // Replace or add server context based on the server URL
-                const serverIndex =
-                  servers.findIndex((s: any) => s.url === server.url) + 1;
-                contextStr = contextStr.replace(
-                  '[renderer:webview]',
-                  `[renderer:webview] [server-${serverIndex}]`
+              const currentUrl = senderWebContents.getURL();
+              if (currentUrl) {
+                const servers = selectFunction(
+                  (state: RootState) => state.servers
                 );
+                const serverIndex =
+                  servers.findIndex(
+                    (s: any) =>
+                      s.url && currentUrl.startsWith(s.url.replace(/\/$/, ''))
+                  ) + 1;
+                if (serverIndex > 0) {
+                  contextStr = contextStr.replace(
+                    '[renderer:webview]',
+                    `[renderer:webview] [server-${serverIndex}]`
+                  );
+                }
               }
-            } catch (storeError) {
-              // Fallback to basic context if store access fails
-              const context = getLogContext(senderWebContents);
-              contextStr = formatLogContext(context);
+            } catch {
+              // Non-critical: server index enrichment failed
             }
-          } else {
-            // Fallback to basic context if store is not available
-            const context = getLogContext(senderWebContents);
-            contextStr = formatLogContext(context);
+          }
+
+          // Dedup non-error IPC messages before they reach electron-log
+          if (
+            logDeduplicator &&
+            !logDeduplicator.shouldLog(level, contextStr, args)
+          ) {
+            return;
           }
 
           // Log with enhanced context
           switch (level) {
             case 'debug':
+            case 'verbose':
+            case 'silly':
               log.debug(contextStr, ...args);
               break;
             case 'info':
@@ -372,6 +471,9 @@ export const setupWebContentsLogging = () => {
               break;
             case 'error':
               log.error(contextStr, ...args);
+              break;
+            default:
+              log.info(contextStr, ...args);
               break;
           }
         } catch (error) {
@@ -404,6 +506,30 @@ export const setLogLevel = (
  */
 export const getLogLevel = (): string => {
   return (log.transports?.file?.level as string) || 'info';
+};
+
+/**
+ * Watch the debug logging toggle in Redux and update log level at runtime.
+ * Called after store is initialized.
+ */
+export const setupDebugLoggingWatch = (): void => {
+  if (process.type !== 'browser') return;
+
+  try {
+    const isEnabled = select((state: RootState) => state.isDebugLoggingEnabled);
+    if (isEnabled) {
+      setLogLevel('debug');
+    }
+
+    watch(
+      (state: RootState) => state.isDebugLoggingEnabled,
+      (enabled) => {
+        setLogLevel(enabled ? 'debug' : 'info');
+      }
+    );
+  } catch {
+    // Store may not be initialized yet — will apply on next toggle
+  }
 };
 
 // Export the configured logger

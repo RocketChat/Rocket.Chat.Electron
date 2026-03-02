@@ -20,7 +20,12 @@ import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
-import { logger, setupWebContentsLogging, cleanupOldLogs } from './logging';
+import {
+  logger,
+  setupWebContentsLogging,
+  cleanupOldLogs,
+  setupDebugLoggingWatch,
+} from './logging';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
@@ -74,6 +79,7 @@ const start = async (): Promise<void> => {
   createMainReduxStore();
 
   setupOutlookLogger();
+  setupDebugLoggingWatch();
 
   // Initialize screen capture fallback state after store is available
   initializeScreenCaptureFallbackState();

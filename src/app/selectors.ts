@@ -81,4 +81,6 @@ export const selectPersistableValues = createStructuredSelector({
   isDetailedEventsLoggingEnabled: ({
     isDetailedEventsLoggingEnabled,
   }: RootState) => isDetailedEventsLoggingEnabled,
+  isDebugLoggingEnabled: ({ isDebugLoggingEnabled }: RootState) =>
+    isDebugLoggingEnabled,
 });

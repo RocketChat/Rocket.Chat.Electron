@@ -164,6 +164,13 @@
     },
     "supportedVersion": {
       "title": "Workspace version unsupported"
+    },
+    "clearLogs": {
+      "title": "Clear Logs",
+      "message": "Are you sure you want to clear the log file?",
+      "detail": "This action cannot be undone. All current log entries will be permanently deleted.",
+      "yes": "Clear",
+      "cancel": "Cancel"
     }
   },
   "downloads": {
@@ -317,6 +324,10 @@
       "detailedEventsLogging": {
         "title": "Detailed Events Logging",
         "description": "Log full event data exchanged between Outlook and Rocket.Chat during calendar sync. Useful for diagnosing sync issues."
+      },
+      "debugLogging": {
+        "title": "Verbose Logging",
+        "description": "Writes all console output to the log file. When disabled, only errors and important messages are saved, keeping logs smaller and focused."
       }
     }
   },
@@ -547,6 +558,7 @@
     },
     "controls": {
       "showContext": "Show Context",
+      "showServer": "Show Server",
       "autoScrollToTop": "Auto Scroll to Top"
     },
     "placeholders": {
@@ -584,6 +596,10 @@
         "notifications": "Notifications",
         "servers": "Servers",
         "ipc": "IPC Communication"
+      },
+      "server": {
+        "all": "All Servers",
+        "label": "Server"
       },
       "exchangeDebug": {
         "all": "All Logs",

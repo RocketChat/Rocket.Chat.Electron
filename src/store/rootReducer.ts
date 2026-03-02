@@ -23,6 +23,7 @@ import { currentView } from '../ui/reducers/currentView';
 import { dialogs } from '../ui/reducers/dialogs';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
+import { isDebugLoggingEnabled } from '../ui/reducers/isDebugLoggingEnabled';
 import { isDetailedEventsLoggingEnabled } from '../ui/reducers/isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
@@ -109,6 +110,7 @@ export const rootReducer = combineReducers({
   videoCallWindowState,
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
+  isDebugLoggingEnabled,
   isDetailedEventsLoggingEnabled,
   isVerboseOutlookLoggingEnabled,
   updateChannel,

@@ -95,6 +95,17 @@ type ChannelToArgsMap = {
     size?: number;
     error?: string;
   };
+  'log-viewer-window/read-logs-tail': (options: {
+    fromByte: number;
+    filePath?: string;
+  }) => {
+    success: boolean;
+    logs?: string;
+    newSize?: number;
+    lastModifiedTime?: number;
+    error?: string;
+  };
+  'log-viewer-window/confirm-clear-logs': () => boolean;
   'log-viewer-window/clear-logs': () => { success: boolean; error?: string };
   'log-viewer-window/save-logs': (options: {
     content: string;
@@ -104,6 +115,10 @@ type ChannelToArgsMap = {
     filePath?: string;
     canceled?: boolean;
     error?: string;
+  };
+  'log-viewer-window/get-server-mapping': () => {
+    success: boolean;
+    mapping: Record<string, string>;
   };
 };
 

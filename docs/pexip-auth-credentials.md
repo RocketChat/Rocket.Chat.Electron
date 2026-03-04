@@ -39,59 +39,13 @@ getAuthCredentials(): Promise<{
 
 **Response fields:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `userId` | `string` | The Rocket.Chat user ID of the logged-in user |
-| `authToken` | `string` | The Meteor login token (session token) for the user |
+| Field       | Type     | Description                                                             |
+| ----------- | -------- | ----------------------------------------------------------------------- |
+| `userId`    | `string` | The Rocket.Chat user ID of the logged-in user                           |
+| `authToken` | `string` | The Meteor login token (session token) for the user                     |
 | `serverUrl` | `string` | The origin of the Rocket.Chat server (e.g., `https://chat.example.com`) |
 
 Returns `null` if credentials are not available.
-
-**Example usage:**
-
-```javascript
-const credentials = await window.videoCallWindow.getAuthCredentials();
-if (credentials) {
-  const { userId, authToken, serverUrl } = credentials;
-
-  // Option A: Append resumeToken to the iframe URL
-  const iframeSrc = `${serverUrl}/channel/room-id?layout=embedded&resumeToken=${authToken}`;
-
-  // Option B: Use Rocket.Chat's postMessage API after iframe loads
-  // (requires Iframe_Integration_receive_enable=true on the RC server)
-  iframe.contentWindow.postMessage({
-    externalCommand: 'login-with-token',
-    token: authToken,
-  }, serverUrl);
-}
-```
-
-## Authentication Options for the RC Iframe
-
-The `authToken` returned is a standard Meteor login token. Two approaches can be used to authenticate the embedded Rocket.Chat iframe:
-
-### Option A: `resumeToken` URL Parameter
-
-Append `?resumeToken=TOKEN` to the iframe URL. Rocket.Chat will automatically log the user in and remove the token from the URL.
-
-```
-https://chat.example.com/channel/room-id?layout=embedded&resumeToken=AUTH_TOKEN
-```
-
-This works without any special server configuration.
-
-### Option B: `postMessage` Command
-
-After the iframe loads, send a postMessage to trigger login:
-
-```javascript
-iframe.contentWindow.postMessage({
-  externalCommand: 'login-with-token',
-  token: authToken,
-}, serverUrl);
-```
-
-This requires the Rocket.Chat server setting **Iframe_Integration_receive_enable** to be set to `true`.
 
 ## Multi-Workspace Support
 

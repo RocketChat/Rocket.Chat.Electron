@@ -41,6 +41,12 @@ const SCREEN_SHARING_REQUEST_TIMEOUT = 60000; // 60 seconds timeout
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
 let pendingVideoCallUrl: string | null = null;
+let videoCallCredentials: {
+  userId: string;
+  authToken: string;
+  serverUrl: string;
+} | null = null;
+let videoCallProviderName: string | null = null;
 
 // Screen sharing request tracking
 let activeScreenSharingListener:
@@ -490,6 +496,12 @@ const setupWebviewHandlers = (webContents: WebContents) => {
 };
 
 export const startVideoCallWindowHandler = (): void => {
+  // Sync IPC handler for provider name - used by jitsiBridge preload
+  // to skip initialization for non-Jitsi providers without async delay
+  ipcMain.on('video-call-window/get-provider-sync', (event) => {
+    event.returnValue = videoCallProviderName;
+  });
+
   handle(
     'video-call-window/screen-recording-is-permission-granted',
     async () => {
@@ -538,8 +550,23 @@ export const startVideoCallWindowHandler = (): void => {
     return { success: true };
   });
 
-  handle('video-call-window/open-window', async (_webContents, url) => {
+  // eslint-disable-next-line complexity
+  handle('video-call-window/open-window', async (_wc, url, options) => {
     console.log('Video call window: Open-window handler called with URL:', url);
+
+    // Store provider name and credentials
+    videoCallProviderName = options?.providerName ?? null;
+    if (options?.providerName === 'pexip' && options?.credentials) {
+      const serverUrl = _wc.getURL();
+      const serverOrigin = new URL(serverUrl).origin;
+      videoCallCredentials = {
+        userId: options.credentials.userId,
+        authToken: options.credentials.authToken,
+        serverUrl: serverOrigin,
+      };
+    } else {
+      videoCallCredentials = null;
+    }
 
     if (isVideoCallWindowDestroying) {
       console.log('Waiting for video call window destruction to complete...');
@@ -728,6 +755,10 @@ export const startVideoCallWindowHandler = (): void => {
 
         // Clean up screen sharing listener
         cleanupScreenSharingListener();
+
+        // Clear credentials and provider on close
+        videoCallCredentials = null;
+        videoCallProviderName = null;
 
         // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
         // This prevents crashes during first launch when timing is critical
@@ -1228,6 +1259,10 @@ handle('video-call-window/webview-ready', async () => {
 handle('video-call-window/webview-failed', async (_webContents, error) => {
   console.error('Video call window: Webview failed to load:', error);
   return { success: true };
+});
+
+handle('video-call-window/get-credentials', async () => {
+  return videoCallCredentials;
 });
 
 handle('video-call-window/get-language', async () => {

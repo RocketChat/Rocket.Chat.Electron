@@ -1270,8 +1270,7 @@ handle('video-call-window/get-credentials', async (callerWebContents) => {
     !!videoCallWindow &&
     !videoCallWindow.isDestroyed() &&
     (callerWebContents.id === videoCallWindow.webContents.id ||
-      callerWebContents.hostWebContents?.id ===
-        videoCallWindow.webContents.id);
+      callerWebContents.hostWebContents?.id === videoCallWindow.webContents.id);
 
   if (!isAuthorizedCaller) {
     return null;

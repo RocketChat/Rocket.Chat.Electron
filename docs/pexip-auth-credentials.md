@@ -6,7 +6,7 @@ When a Pexip video call is opened from the Rocket.Chat Electron desktop app, the
 
 ## How It Works
 
-```
+```text
 ┌──────────────────────────────────────────────────────────┐
 │  Rocket.Chat Desktop App                                  │
 │  ├── User is logged in to workspace                       │

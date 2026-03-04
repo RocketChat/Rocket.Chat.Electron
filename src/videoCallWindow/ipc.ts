@@ -556,16 +556,19 @@ export const startVideoCallWindowHandler = (): void => {
 
     // Store provider name and credentials
     videoCallProviderName = options?.providerName ?? null;
+    videoCallCredentials = null;
     if (options?.providerName === 'pexip' && options?.credentials) {
-      const serverUrl = _wc.getURL();
-      const serverOrigin = new URL(serverUrl).origin;
-      videoCallCredentials = {
-        userId: options.credentials.userId,
-        authToken: options.credentials.authToken,
-        serverUrl: serverOrigin,
-      };
-    } else {
-      videoCallCredentials = null;
+      try {
+        const serverOrigin = new URL(_wc.getURL()).origin;
+        videoCallCredentials = {
+          userId: options.credentials.userId,
+          authToken: options.credentials.authToken,
+          serverUrl: serverOrigin,
+        };
+      } catch {
+        // _wc.getURL() may not be a valid URL in edge cases
+        videoCallCredentials = null;
+      }
     }
 
     if (isVideoCallWindowDestroying) {
@@ -1261,7 +1264,19 @@ handle('video-call-window/webview-failed', async (_webContents, error) => {
   return { success: true };
 });
 
-handle('video-call-window/get-credentials', async () => {
+handle('video-call-window/get-credentials', async (callerWebContents) => {
+  // Only return credentials to the video call window's webview
+  const isAuthorizedCaller =
+    !!videoCallWindow &&
+    !videoCallWindow.isDestroyed() &&
+    (callerWebContents.id === videoCallWindow.webContents.id ||
+      callerWebContents.hostWebContents?.id ===
+        videoCallWindow.webContents.id);
+
+  if (!isAuthorizedCaller) {
+    return null;
+  }
+
   return videoCallCredentials;
 });
 

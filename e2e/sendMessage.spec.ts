@@ -53,6 +53,16 @@ test.describe('Send Message', () => {
 
     // Wait for React app to load
     console.log('\n⏳ Waiting for React app to load in webview...');
+
+    // Click Home button first to ensure we're on the home page
+    console.log('>> Clicking Home button to reset to home page...');
+    await webviewPage.waitForSelector('button.rcx-navbar-item i.rcx-icon--name-home', { timeout: 30000 });
+    await webviewPage.click('button.rcx-navbar-item:has(i.rcx-icon--name-home)');
+    console.log('✓ Clicked Home button');
+
+    // Wait for navigation to home
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     await webviewPage.waitForSelector('a[href="/channel/Testing2"]', { timeout: 30000 });
     console.log('✓ Testing2 channel link found');
 

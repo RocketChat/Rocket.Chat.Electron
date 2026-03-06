@@ -522,17 +522,19 @@ export async function syncEventsWithRocketChatServer(
       const skippedSyncs = state.syncQueue.slice(0, -1);
       state.syncQueue = [];
 
-      for (const skipped of skippedSyncs) {
-        skipped.resolve();
-      }
-
       try {
         // eslint-disable-next-line no-await-in-loop -- Must drain queue sequentially
         await lastSync.run();
         lastSync.resolve();
+        for (const skipped of skippedSyncs) {
+          skipped.resolve();
+        }
       } catch (error) {
         outlookError('Queued sync failed:', error);
         lastSync.reject(error);
+        for (const skipped of skippedSyncs) {
+          skipped.reject(error);
+        }
       }
     }
   } finally {
@@ -726,14 +728,14 @@ async function performSync(
       if (!alreadyOnRocketChatServer) {
         outlookLog('Creating new event in Rocket.Chat:', appointment.id);
         outlookEventDetail('New event from Exchange:', appointment);
-        await createEventOnRocketChatServer(
+        const createResult = await createEventOnRocketChatServer(
           serverUrl,
           credentials.userId,
           token,
           appointment,
           httpsAgent
         );
-        syncCreated++;
+        if (createResult.success) syncCreated++;
         continue;
       }
 
@@ -771,7 +773,7 @@ async function performSync(
       );
       outlookEventDetail('Event changed — after (Outlook):', appointment);
 
-      await updateEventOnRocketChatServer(
+      const updateResult = await updateEventOnRocketChatServer(
         serverUrl,
         credentials.userId,
         token,
@@ -779,7 +781,7 @@ async function performSync(
         appointment,
         httpsAgent
       );
-      syncUpdated++;
+      if (updateResult.success) syncUpdated++;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -1027,8 +1029,6 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }
 
       const state = getServerState(server.url);
-      state.userAPIToken = token;
-      outlookLog('User API token set successfully');
 
       const { outlookCredentials } = server;
       if (!outlookCredentials) {
@@ -1040,6 +1040,9 @@ export const startOutlookCalendarUrlHandler = (): void => {
         outlookLog('User ID mismatch - credentials are for different user');
         return;
       }
+
+      state.userAPIToken = token;
+      outlookLog('User API token set successfully');
 
       if (!state.userAPIToken) {
         outlookError('User API token is empty');

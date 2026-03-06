@@ -85,12 +85,17 @@ export const testExchangeServerConnectivity = testExchangeConnectivity;
 const buildEwsPathname = (url: URL): void => {
   const pathSegments = url.pathname
     .split('/')
-    .filter((segment) => segment.length > 0)
-    .filter(
-      (segment) =>
-        segment.toLowerCase() !== 'ews' &&
-        segment.toLowerCase() !== 'exchange.asmx'
-    );
+    .filter((segment) => segment.length > 0);
+
+  // Only strip trailing 'ews' and 'exchange.asmx' segments
+  while (pathSegments.length > 0) {
+    const last = pathSegments[pathSegments.length - 1].toLowerCase();
+    if (last === 'ews' || last === 'exchange.asmx') {
+      pathSegments.pop();
+    } else {
+      break;
+    }
+  }
 
   pathSegments.push('ews', 'exchange.asmx');
   url.pathname = `/${pathSegments.join('/')}`;

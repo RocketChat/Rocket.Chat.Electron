@@ -242,25 +242,41 @@ const isSensitiveKey = (key: string): boolean => {
     SENSITIVE_CONTEXT_KEYS.has(lowerKey) ||
     lowerKey.includes('token') ||
     lowerKey.includes('password') ||
-    lowerKey.includes('secret')
+    lowerKey.includes('secret') ||
+    lowerKey.includes('authorization')
   );
 };
 
 const sanitizeContext = (
-  context: Record<string, unknown>
+  context: Record<string, unknown>,
+  seen: WeakSet<object> = new WeakSet()
 ): Record<string, unknown> => {
   const sanitized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(context)) {
     if (isSensitiveKey(key)) {
       sanitized[key] = '[REDACTED]';
     } else if (Array.isArray(value)) {
-      sanitized[key] = value.map((item) =>
-        typeof item === 'object' && item !== null
-          ? sanitizeContext(item as Record<string, unknown>)
-          : item
-      );
+      if (seen.has(value)) {
+        sanitized[key] = '[Circular]';
+      } else {
+        seen.add(value);
+        sanitized[key] = value.map((item) => {
+          if (typeof item !== 'object' || item === null) return item;
+          if (seen.has(item)) return '[Circular]';
+          seen.add(item);
+          return sanitizeContext(item as Record<string, unknown>, seen);
+        });
+      }
     } else if (typeof value === 'object' && value !== null) {
-      sanitized[key] = sanitizeContext(value as Record<string, unknown>);
+      if (seen.has(value as object)) {
+        sanitized[key] = '[Circular]';
+      } else {
+        seen.add(value as object);
+        sanitized[key] = sanitizeContext(
+          value as Record<string, unknown>,
+          seen
+        );
+      }
     } else {
       sanitized[key] = value;
     }

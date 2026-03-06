@@ -257,6 +257,9 @@ const cleanupVideoCallWindow = () => {
     }
   }
 
+  // Clear credentials immediately during cleanup
+  videoCallCredentials = null;
+
   // Use setTimeout to ensure this cleanup happens after any window events are processed
   setTimeout(() => {
     videoCallWindow = null;
@@ -1272,7 +1275,22 @@ handle('video-call-window/get-credentials', async (callerWebContents) => {
     (callerWebContents.id === videoCallWindow.webContents.id ||
       callerWebContents.hostWebContents?.id === videoCallWindow.webContents.id);
 
-  if (!isAuthorizedCaller) {
+  if (!isAuthorizedCaller || !videoCallCredentials) {
+    return null;
+  }
+
+  // Verify the caller's current page origin matches the stored server origin
+  try {
+    const callerOrigin = new URL(callerWebContents.getURL()).origin;
+    const storedOrigin = new URL(videoCallCredentials.serverUrl).origin;
+    if (callerOrigin !== storedOrigin) {
+      console.warn(
+        'Video call window: Credential request denied due to origin mismatch'
+      );
+      return null;
+    }
+  } catch {
+    // If URL parsing fails, deny access
     return null;
   }
 

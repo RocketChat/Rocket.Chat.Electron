@@ -446,6 +446,8 @@ function LogViewerWindow() {
               ? {
                   ...prev,
                   totalEntries: prev.totalEntries + newEntries.length,
+                  totalEntriesInFile:
+                    (prev.totalEntriesInFile ?? 0) + newEntries.length,
                   lastModified: new Date().toLocaleString(),
                   lastModifiedTime: tailResponse.lastModifiedTime,
                 }

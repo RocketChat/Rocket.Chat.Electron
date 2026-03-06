@@ -67,7 +67,7 @@ const CREDENTIAL_KV_PATTERNS: { pattern: RegExp; label: string }[] = [
     label: 'x-auth-token',
   },
   {
-    pattern: /authorization["'\s:=]+["']?([^"'\s,}\]]{8,})/gi,
+    pattern: /authorization["'\s:=]+["']?((?:\w+\s+)?[^"',}\]]{8,})/gi,
     label: 'authorization',
   },
   {
@@ -285,6 +285,15 @@ const redactObject = (obj: any, depth = 0, seen = new WeakSet()): any => {
     }
 
     const result: any = {};
+
+    // Error properties (message, stack, name) are non-enumerable;
+    // preserve them so redacted logs still contain useful diagnostics.
+    if (obj instanceof Error) {
+      if (obj.message) result.message = redactSensitiveData(obj.message);
+      if (obj.stack) result.stack = redactSensitiveData(obj.stack);
+      if (obj.name) result.name = obj.name;
+    }
+
     for (const key of Object.keys(obj)) {
       if (isSensitiveKey(key)) {
         const val = obj[key];

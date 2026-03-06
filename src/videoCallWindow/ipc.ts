@@ -683,15 +683,6 @@ export const startVideoCallWindowHandler = (): void => {
         transparent: false,
         skipTaskbar: false,
       });
-
-      videoCallWindow.webContents.on(
-        'will-navigate',
-        (event: Event, url: string) => {
-          if (url.toLowerCase().startsWith('smb://')) {
-            event.preventDefault();
-          }
-        }
-      );
       videoCallWindow.webContents.setWindowOpenHandler(
         ({ url }: { url: string }) => {
           if (url.toLowerCase().startsWith('smb://')) {
@@ -908,30 +899,28 @@ export const startVideoCallWindowHandler = (): void => {
         url
       );
 
-      webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-        console.log('Video call window - new window requested:', url);
-
-        if (url.toLowerCase().startsWith('smb://')) {
-          return { action: 'deny' };
-        }
-
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-          openExternal(url);
-          return { action: 'deny' };
-        }
-
-        return { action: 'allow' };
-      });
-
-      webContents.on('will-navigate', (event: any, url: string) => {
+      webContents.on('will-navigate', (event: Event, url: string) => {
         console.log('Video call window will-navigate:', url);
 
-        // Check for close pages and handle them specially to prevent crashes
-        if (url.includes('/close.html') || url.includes('/close2.html')) {
+        // Block smb protocol
+        if (url.toLowerCase().startsWith('smb://')) {
+          event.preventDefault();
+          return;
+        }
+
+        // Close window immediately when call ends
+        if (url.includes('/static/close')) {
           console.log(
-            'Video call window: Navigation to close page detected, will handle gracefully'
+            'Video call ended — closing video call window immediately'
           );
-          // Don't prevent navigation, but note it for safer handling
+
+          event.preventDefault();
+
+          if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+            videoCallWindow.close();
+          }
+
+          return;
         }
 
         try {
@@ -946,6 +935,7 @@ export const startVideoCallWindowHandler = (): void => {
               'External protocol detected in video call window:',
               parsedUrl.protocol
             );
+
             event.preventDefault();
 
             isProtocolAllowed(url).then((allowed) => {

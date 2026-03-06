@@ -31,13 +31,14 @@ import {
   type LogLevel,
   type LogEntryType,
   type ReadLogsResponse,
+  type ReadLogsTailResponse,
   type SaveLogsResponse,
   type SelectFileResponse,
   type ClearLogsResponse,
   parseLogLevel,
 } from './types';
 
-const LOG_LINE_REGEX = /^\[([^\]]+)\] \[([^\]]+)\]\s*(.*)$/;
+const LOG_LINE_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]\s*(.*)$/;
 const CONTEXT_REGEX = /^(\[[^\]]+\](?:\s*\[[^\]]+\])*)\s*(.*)$/;
 
 const formatFileSize = (bytes: number): string => {
@@ -51,7 +52,7 @@ const formatFileSize = (bytes: number): string => {
 
 function LogViewerWindow() {
   const { t } = useTranslation();
-  const [searchFilter, setSearchFilter] = useLocalStorage('log-search', '');
+  const [searchFilter, setSearchFilter] = useState('');
   const debouncedSearchFilter = useDebouncedValue(
     searchFilter,
     SEARCH_DEBOUNCE_MS
@@ -61,10 +62,15 @@ function LogViewerWindow() {
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const lastModifiedTimeRef = useRef<number | undefined>(undefined);
+  const lastKnownSizeRef = useRef<number>(0);
   const isAutoScrollingRef = useRef(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showContext, setShowContext] = useState(true);
+  const [showServer, setShowServer] = useState(true);
+  const [serverMapping, setServerMapping] = useState<Record<string, string>>(
+    {}
+  );
   const [fileInfo, setFileInfo] = useState<{
     size: string;
     totalEntries: number;
@@ -154,6 +160,40 @@ function LogViewerWindow() {
     [setContextFilter]
   );
 
+  const serverFilterOptions = useMemo<[string, string][]>(() => {
+    const options: [string, string][] = [
+      ['all', t('logViewer.filters.server.all')],
+    ];
+    Object.entries(serverMapping).forEach(([key, name]) => {
+      const num = key.replace('server-', '');
+      options.push([
+        key,
+        `${t('logViewer.filters.server.label')} ${num} — ${name}`,
+      ]);
+    });
+    return options;
+  }, [serverMapping, t]);
+
+  const [serverFilter, setServerFilter] = useLocalStorage<string>(
+    'log-server',
+    'all'
+  );
+
+  // Reset persisted server filter if the stored value no longer exists
+  useEffect(() => {
+    const validKeys = serverFilterOptions.map(([key]) => key);
+    if (!validKeys.includes(serverFilter)) {
+      setServerFilter('all');
+    }
+  }, [serverFilter, serverFilterOptions, setServerFilter]);
+
+  const handleServerFilterChange = useCallback(
+    (value: Key) => {
+      setServerFilter(String(value));
+    },
+    [setServerFilter]
+  );
+
   const handleEntryLimitChange = useCallback(
     (value: Key) => {
       setEntryLimit(String(value));
@@ -165,14 +205,21 @@ function LogViewerWindow() {
     setSearchFilter('');
     setLevelFilter('all');
     setContextFilter('all');
+    setServerFilter('all');
     setEntryLimit('100');
-  }, [setSearchFilter, setLevelFilter, setContextFilter, setEntryLimit]);
+  }, [
+    setSearchFilter,
+    setLevelFilter,
+    setContextFilter,
+    setServerFilter,
+    setEntryLimit,
+  ]);
 
   const parseLogLines = useCallback((logText: string): LogEntryType[] => {
     if (!logText || logText.trim() === '') {
       return [];
     }
-    const lines = logText.split('\n').filter((line: string) => line.trim());
+    const lines = logText.split(/\r?\n/).filter((line: string) => line.trim());
     const entries: LogEntryType[] = [];
     let currentEntry: LogEntryType | null = null;
 
@@ -217,7 +264,7 @@ function LogViewerWindow() {
       const response = (await ipcRenderer.invoke(
         'log-viewer-window/read-logs',
         {
-          limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
+          limit: 'all',
           filePath: currentLogFile.isDefaultLog
             ? undefined
             : currentLogFile.filePath,
@@ -258,6 +305,10 @@ function LogViewerWindow() {
           }
         }
 
+        if (response.fileSize !== undefined) {
+          lastKnownSizeRef.current = response.fileSize;
+        }
+
         setFileInfo({
           size: sizeFormatted,
           totalEntries: parsedLogs.length,
@@ -276,16 +327,10 @@ function LogViewerWindow() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    parseLogLines,
-    entryLimit,
-    currentLogFile.filePath,
-    currentLogFile.isDefaultLog,
-    t,
-  ]);
+  }, [parseLogLines, currentLogFile.filePath, currentLogFile.isDefaultLog, t]);
 
   const filteredLogs = useMemo(() => {
-    return logEntries.filter((entry) => {
+    const filtered = logEntries.filter((entry) => {
       const matchesSearch =
         !debouncedSearchFilter ||
         entry.message
@@ -297,62 +342,136 @@ function LogViewerWindow() {
 
       const matchesLevel = levelFilter === 'all' || entry.level === levelFilter;
 
-      const matchesContext = (() => {
-        if (contextFilter === 'all') return true;
-        if (contextFilter === 'outlook') {
-          const message = entry.message.toLowerCase();
-          const context = entry.context.toLowerCase();
-          return (
-            message.includes('outlook') ||
-            message.includes('calendar') ||
-            message.includes('exchange') ||
-            message.includes('ntlm') ||
-            message.includes('ewsjs') ||
-            message.includes('xhr') ||
-            context.includes('outlook') ||
-            message.includes('events')
-          );
-        }
-        return entry.context
+      const matchesContext =
+        contextFilter === 'all' ||
+        entry.context
           .toLowerCase()
-          .includes(contextFilter.toLowerCase());
-      })();
+          .split(/\s+/)
+          .some((tag) => tag.startsWith(contextFilter.toLowerCase()));
 
-      return matchesSearch && matchesLevel && matchesContext;
+      const matchesServer =
+        serverFilter === 'all' ||
+        entry.context
+          .toLowerCase()
+          .split(/\s+/)
+          .some((tag) => tag === serverFilter);
+
+      return matchesSearch && matchesLevel && matchesContext && matchesServer;
     });
-  }, [logEntries, debouncedSearchFilter, levelFilter, contextFilter]);
+
+    // Apply entry limit as a display cap on filtered results
+    if (entryLimit !== 'all') {
+      const limit = parseInt(entryLimit);
+      if (filtered.length > limit) {
+        return filtered.slice(0, limit);
+      }
+    }
+
+    return filtered;
+  }, [
+    logEntries,
+    debouncedSearchFilter,
+    levelFilter,
+    contextFilter,
+    serverFilter,
+    entryLimit,
+  ]);
 
   useEffect(() => {
     lastModifiedTimeRef.current = fileInfo?.lastModifiedTime;
   }, [fileInfo?.lastModifiedTime]);
 
+  // Fetch server-N → workspace name mapping from the main process
+  useEffect(() => {
+    const fetchMapping = async () => {
+      try {
+        const response = (await ipcRenderer.invoke(
+          'log-viewer-window/get-server-mapping'
+        )) as { success: boolean; mapping: Record<string, string> };
+        if (response?.success) {
+          setServerMapping(response.mapping);
+        }
+      } catch {
+        // Non-critical: mapping not available yet
+      }
+    };
+    fetchMapping();
+    const interval = setInterval(fetchMapping, 30_000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     loadLogs();
-  }, [
-    loadLogs,
-    currentLogFile.filePath,
-    currentLogFile.isDefaultLog,
-    entryLimit,
-  ]);
+  }, [loadLogs, currentLogFile.filePath, currentLogFile.isDefaultLog]);
 
   const checkForUpdates = useCallback(async () => {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
 
     try {
-      const response = (await ipcRenderer.invoke('log-viewer-window/stat-log', {
-        filePath: undefined,
-      })) as { success: boolean; lastModifiedTime?: number; size?: number };
+      const statResponse = (await ipcRenderer.invoke(
+        'log-viewer-window/stat-log',
+        { filePath: undefined }
+      )) as { success: boolean; lastModifiedTime?: number; size?: number };
 
-      if (response?.success && response.lastModifiedTime) {
-        const currentModTime = lastModifiedTimeRef.current;
-        if (currentModTime && response.lastModifiedTime > currentModTime) {
-          loadLogs();
+      if (!statResponse?.success || !statResponse.lastModifiedTime) return;
+
+      const currentModTime = lastModifiedTimeRef.current;
+      if (!currentModTime || statResponse.lastModifiedTime <= currentModTime)
+        return;
+
+      const currentSize = statResponse.size ?? 0;
+      const previousSize = lastKnownSizeRef.current;
+
+      // File was truncated/rotated (or cleared) — full re-read
+      if (currentSize < previousSize) {
+        loadLogs();
+        return;
+      }
+
+      // No new bytes — just a timestamp change (e.g. chmod)
+      if (currentSize === previousSize) {
+        lastModifiedTimeRef.current = statResponse.lastModifiedTime;
+        return;
+      }
+
+      // Incremental read: only fetch new bytes appended since last read
+      const tailResponse = (await ipcRenderer.invoke(
+        'log-viewer-window/read-logs-tail',
+        { fromByte: previousSize }
+      )) as ReadLogsTailResponse;
+
+      if (tailResponse?.success && tailResponse.logs) {
+        const newEntries = parseLogLines(tailResponse.logs);
+        if (newEntries.length > 0) {
+          setLogEntries((prev) => {
+            // newEntries are already reversed (newest first)
+            // Prepend them to existing entries
+            return [...newEntries, ...prev];
+          });
+
+          setFileInfo((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  totalEntries: prev.totalEntries + newEntries.length,
+                  totalEntriesInFile:
+                    (prev.totalEntriesInFile ?? 0) + newEntries.length,
+                  lastModified: new Date().toLocaleString(),
+                  lastModifiedTime: tailResponse.lastModifiedTime,
+                }
+              : prev
+          );
         }
+
+        if (tailResponse.newSize !== undefined) {
+          lastKnownSizeRef.current = tailResponse.newSize;
+        }
+        lastModifiedTimeRef.current = tailResponse.lastModifiedTime;
       }
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
-  }, [isStreaming, currentLogFile.isDefaultLog, loadLogs]);
+  }, [isStreaming, currentLogFile.isDefaultLog, loadLogs, parseLogLines]);
 
   useEffect(() => {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
@@ -400,10 +519,16 @@ function LogViewerWindow() {
   const renderLogEntry = useCallback(
     (_index: number, entry: LogEntryType) => {
       return (
-        <LogEntry key={entry.id} entry={entry} showContext={showContext} />
+        <LogEntry
+          key={entry.id}
+          entry={entry}
+          showContext={showContext}
+          showServer={showServer}
+          serverMapping={serverMapping}
+        />
       );
     },
-    [showContext]
+    [showContext, showServer, serverMapping]
   );
 
   const handleOpenLogFile = useCallback(async () => {
@@ -448,10 +573,16 @@ function LogViewerWindow() {
       return;
     }
     try {
+      const confirmed = await ipcRenderer.invoke(
+        'log-viewer-window/confirm-clear-logs'
+      );
+      if (!confirmed) return;
+
       const response = (await ipcRenderer.invoke(
         'log-viewer-window/clear-logs'
       )) as ClearLogsResponse;
       if (response?.success) {
+        lastKnownSizeRef.current = 0;
         loadLogs();
       }
     } catch (error) {
@@ -680,6 +811,16 @@ function LogViewerWindow() {
               {t('logViewer.controls.showContext')}
             </Box>
           </Box>
+          <Box display='flex' alignItems='center' marginInlineEnd='x16'>
+            <CheckBox
+              aria-label={t('logViewer.controls.showServer')}
+              checked={showServer}
+              onChange={() => setShowServer(!showServer)}
+            />
+            <Box marginInlineStart='x4' display='inline' color='default'>
+              {t('logViewer.controls.showServer')}
+            </Box>
+          </Box>
           <Box display='flex' alignItems='center'>
             <CheckBox
               aria-label={t('logViewer.controls.autoScrollToTop')}
@@ -741,6 +882,17 @@ function LogViewerWindow() {
               width={200}
             />
           </Box>
+          {serverFilterOptions.length > 1 && (
+            <Box marginInlineEnd='x12'>
+              <Select
+                placeholder={t('logViewer.filters.server.all')}
+                value={serverFilter}
+                options={serverFilterOptions}
+                onChange={handleServerFilterChange}
+                width={240}
+              />
+            </Box>
+          )}
           <Button onClick={handleClearAll}>
             {t('logViewer.buttons.clearFilters')}
           </Button>

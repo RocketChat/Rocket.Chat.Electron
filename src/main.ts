@@ -20,11 +20,19 @@ import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
-import { logger, setupWebContentsLogging, cleanupOldLogs } from './logging';
+import {
+  logger,
+  setupWebContentsLogging,
+  cleanupOldLogs,
+  setupDebugLoggingWatch,
+} from './logging';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
-import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
+import {
+  startOutlookCalendarUrlHandler,
+  stopOutlookCalendarSync,
+} from './outlookCalendar/ipc';
 import { setupOutlookLogger } from './outlookCalendar/logger';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
@@ -71,6 +79,7 @@ const start = async (): Promise<void> => {
   createMainReduxStore();
 
   setupOutlookLogger();
+  setupDebugLoggingWatch();
 
   // Initialize screen capture fallback state after store is available
   initializeScreenCaptureFallbackState();
@@ -123,6 +132,7 @@ const start = async (): Promise<void> => {
     touchBar.tearDown();
     trayIcon.tearDown();
     attentionDrawing.tearDown();
+    stopOutlookCalendarSync();
     cleanupVideoCallResources();
   });
 
@@ -135,7 +145,7 @@ const start = async (): Promise<void> => {
 
   await processDeepLinksInArgs();
 
-  console.log('Application initialization completed successfully');
+  console.info('Application initialization completed successfully');
 };
 
 start().catch((error) => {

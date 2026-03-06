@@ -150,10 +150,6 @@
   "engines": {
     "node": ">=24.11.1"
   },
-  "devEngines": {
-    "node": ">=24.11.1",
-    "yarn": ">=4.0.2"
-  },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
     "@fiahfy/ico-convert/sharp": "0.29.3",

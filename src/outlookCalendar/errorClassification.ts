@@ -67,7 +67,7 @@ const ERROR_PATTERNS: Array<{
   },
   {
     pattern:
-      /SSL_ERROR|UNABLE_TO_VERIFY|CERT_|ERR_TLS|self.signed|certificate.has.expired/i,
+      /SSL_ERROR|UNABLE_TO_VERIFY|CERT_|ERR_TLS|self\.signed|certificate\.has\.expired/i,
     classification: {
       source: 'network',
       severity: 'medium',
@@ -253,11 +253,13 @@ const sanitizeContext = (
   for (const [key, value] of Object.entries(context)) {
     if (isSensitiveKey(key)) {
       sanitized[key] = '[REDACTED]';
-    } else if (
-      typeof value === 'object' &&
-      value !== null &&
-      !Array.isArray(value)
-    ) {
+    } else if (Array.isArray(value)) {
+      sanitized[key] = value.map((item) =>
+        typeof item === 'object' && item !== null
+          ? sanitizeContext(item as Record<string, unknown>)
+          : item
+      );
+    } else if (typeof value === 'object' && value !== null) {
       sanitized[key] = sanitizeContext(value as Record<string, unknown>);
     } else {
       sanitized[key] = value;

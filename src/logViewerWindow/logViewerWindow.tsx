@@ -355,7 +355,7 @@ function LogViewerWindow() {
     if (entryLimit !== 'all') {
       const limit = parseInt(entryLimit);
       if (filtered.length > limit) {
-        return filtered.slice(filtered.length - limit);
+        return filtered.slice(0, limit);
       }
     }
 

@@ -268,6 +268,9 @@ export const getOutlookEvents = async (
       decompress: true,
       rejectUnauthorized: !allowInsecure,
     });
+    if (allowInsecure) {
+      outlookWarn('SSL certificate validation disabled (allowInsecure=true)');
+    }
     xhrApi.useNtlmAuthentication(login, password);
 
     ConfigurationApi.ConfigureXHR(xhrApi);

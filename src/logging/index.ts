@@ -309,7 +309,8 @@ export const setupWebContentsLogging = () => {
                   (state: RootState) => state.servers
                 );
                 const server = servers.find(
-                  (s: any) => s.url && currentUrl.startsWith(s.url)
+                  (s: any) =>
+                    s.url && currentUrl.startsWith(s.url.replace(/\/$/, ''))
                 );
                 serverUrl = server?.url || 'unknown';
               }

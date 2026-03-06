@@ -5,11 +5,16 @@ import { promisify } from 'util';
 import archiver from 'archiver';
 import type { Event } from 'electron';
 import { app, BrowserWindow, screen, dialog } from 'electron';
+import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
+import { select } from '../store';
+import type { RootState } from '../store/rootReducer';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { WINDOW_SIZE_MULTIPLIER } from './constants';
+
+const t = i18next.t.bind(i18next);
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -43,7 +48,7 @@ const validateLogFilePath = (
   return { valid: true };
 };
 
-const LOG_ENTRY_REGEX = /^\[([^\]]+)\] \[([^\]]+)\]/;
+const LOG_ENTRY_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]/;
 
 const getLastNEntries = (
   content: string,
@@ -53,7 +58,7 @@ const getLastNEntries = (
     return { content: '', totalEntries: 0 };
   }
 
-  const lines = content.split('\n');
+  const lines = content.split(/\r?\n/);
   const entryStartIndices: number[] = [];
 
   lines.forEach((line, index) => {
@@ -135,6 +140,7 @@ export const openLogViewerWindow = async (): Promise<void> => {
 
   logViewerWindow.on('closed', () => {
     logViewerWindow = null;
+    allowedLogPaths.clear();
   });
 
   logViewerWindow.webContents.on(
@@ -260,6 +266,7 @@ export const startLogViewerWindowHandler = (): void => {
           fileName: path.basename(logPath),
           isDefaultLog: !options?.filePath,
           lastModifiedTime,
+          fileSize: stats.size,
           totalEntries,
         };
       } catch (error) {
@@ -312,6 +319,96 @@ export const startLogViewerWindowHandler = (): void => {
       }
     }
   );
+
+  handle(
+    'log-viewer-window/read-logs-tail',
+    async (_, options: { fromByte: number; filePath?: string }) => {
+      try {
+        let logPath: string;
+        if (options.filePath) {
+          const validation = validateLogFilePath(options.filePath);
+          if (!validation.valid) {
+            return { success: false, error: validation.error };
+          }
+          const normalizedPath = path.normalize(options.filePath);
+          const defaultLogPath = path.normalize(getLogFilePath());
+          if (
+            normalizedPath !== defaultLogPath &&
+            !allowedLogPaths.has(normalizedPath)
+          ) {
+            return {
+              success: false,
+              error:
+                'Log file not authorized. Please select it via the file dialog first.',
+            };
+          }
+          logPath = normalizedPath;
+        } else {
+          logPath = getLogFilePath();
+        }
+
+        if (!fs.existsSync(logPath)) {
+          return { success: false, error: 'Log file does not exist' };
+        }
+
+        const stats = fs.statSync(logPath);
+        const rawFromByte = Number(options.fromByte);
+        const fromByte =
+          Number.isFinite(rawFromByte) && rawFromByte >= 0
+            ? Math.min(Math.floor(rawFromByte), stats.size)
+            : 0;
+
+        if (fromByte >= stats.size) {
+          return {
+            success: true,
+            logs: '',
+            newSize: stats.size,
+            lastModifiedTime: stats.mtime.getTime(),
+          };
+        }
+
+        const chunks: Buffer[] = [];
+        await new Promise<void>((resolve, reject) => {
+          const stream = fs.createReadStream(logPath, {
+            start: fromByte,
+            encoding: undefined,
+          });
+          stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+          stream.on('end', () => resolve());
+          stream.on('error', (err) => reject(err));
+        });
+
+        const newContent = Buffer.concat(chunks).toString('utf-8');
+
+        return {
+          success: true,
+          logs: newContent,
+          newSize: stats.size,
+          lastModifiedTime: stats.mtime.getTime(),
+        };
+      } catch (error) {
+        console.error('Failed to read log tail:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    }
+  );
+
+  handle('log-viewer-window/confirm-clear-logs', async () => {
+    if (!logViewerWindow || logViewerWindow.isDestroyed()) {
+      return false;
+    }
+
+    const { response } = await dialog.showMessageBox(logViewerWindow, {
+      type: 'warning',
+      buttons: [t('dialog.clearLogs.yes'), t('dialog.clearLogs.cancel')],
+      defaultId: 1,
+      title: t('dialog.clearLogs.title'),
+      message: t('dialog.clearLogs.message'),
+      detail: t('dialog.clearLogs.detail'),
+    });
+
+    return response === 0;
+  });
 
   handle('log-viewer-window/clear-logs', async () => {
     try {
@@ -385,4 +482,21 @@ export const startLogViewerWindowHandler = (): void => {
       }
     }
   );
+
+  handle('log-viewer-window/get-server-mapping', async () => {
+    try {
+      const servers = select((state: RootState) => state.servers);
+      if (!servers || !Array.isArray(servers)) {
+        return { success: true, mapping: {} };
+      }
+      const mapping: Record<string, string> = {};
+      servers.forEach((server: any, index: number) => {
+        const key = `server-${index + 1}`;
+        mapping[key] = server.title || server.url || key;
+      });
+      return { success: true, mapping };
+    } catch {
+      return { success: true, mapping: {} };
+    }
+  });
 };

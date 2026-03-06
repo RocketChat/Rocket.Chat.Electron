@@ -6,7 +6,7 @@ import { safeStorage, webContents } from 'electron';
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
 import type { Server } from '../servers/common';
-import { dispatch, request, select } from '../store';
+import { dispatch, request, select, watch } from '../store';
 import * as urls from '../urls';
 import { meetsMinimumVersion } from '../utils';
 import {
@@ -21,7 +21,12 @@ import {
   generateUserFriendlyMessage,
 } from './errorClassification';
 import { getOutlookEvents } from './getOutlookEvents';
-import { outlookLog, outlookError, outlookWarn } from './logger';
+import {
+  outlookLog,
+  outlookError,
+  outlookWarn,
+  outlookEventDetail,
+} from './logger';
 import type {
   OutlookCredentials,
   AppointmentData,
@@ -36,7 +41,6 @@ type CrudOperationResult = {
 };
 
 const AXIOS_TIMEOUT_MS = 10_000;
-const SYNC_INTERVAL_MS = 60 * 60 * 1000;
 const INITIAL_SYNC_DEBOUNCE_MS = 100;
 
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
@@ -145,10 +149,19 @@ function decryptedCredentials(
   }
 }
 
+/**
+ * Creates an HTTPS agent that bypasses certificate validation.
+ * Used for air-gapped environments with self-signed or internal CA certificates.
+ */
+function createInsecureHttpsAgent(): https.Agent {
+  return new https.Agent({ rejectUnauthorized: false });
+}
+
 async function listEventsFromRocketChatServer(
   serverUrl: string,
   userId: string,
-  token: string
+  token: string,
+  httpsAgent?: https.Agent
 ) {
   const url = urls.server(serverUrl).calendarEvents.list;
   outlookLog('Fetching events from Rocket.Chat server:', {
@@ -168,15 +181,14 @@ async function listEventsFromRocketChatServer(
         date: new Date().toISOString(),
       },
       timeout: AXIOS_TIMEOUT_MS,
-      httpsAgent: new https.Agent({
-        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
-      }),
+      httpsAgent,
     });
 
     outlookLog('Successfully fetched events from server:', {
       statusCode: response.status,
       eventCount: response.data?.data?.length || 0,
     });
+    outlookEventDetail('RC server events response:', response.data);
 
     return response.data;
   } catch (error) {
@@ -208,7 +220,8 @@ async function createEventOnRocketChatServer(
   serverUrl: string,
   userId: string,
   token: string,
-  event: AppointmentData
+  event: AppointmentData,
+  httpsAgent?: https.Agent
 ): Promise<CrudOperationResult> {
   const url = urls.server(serverUrl).calendarEvents.import;
   outlookLog('Creating event on Rocket.Chat server:', {
@@ -223,7 +236,6 @@ async function createEventOnRocketChatServer(
     const { servers } = select(selectPersistableValues);
     const server = servers.find((server) => server.url === serverUrl);
 
-    // Base payload
     const payload: Record<string, any> = {
       externalId: event.id,
       subject: event.subject,
@@ -239,6 +251,8 @@ async function createEventOnRocketChatServer(
       outlookLog('Including endTime and busy status (server version >= 7.5.0)');
     }
 
+    outlookEventDetail('Create event payload:', payload);
+
     const response = await axios.post(url, payload, {
       headers: {
         'Content-Type': 'application/json',
@@ -246,9 +260,7 @@ async function createEventOnRocketChatServer(
         'X-User-Id': userId,
       },
       timeout: AXIOS_TIMEOUT_MS,
-      httpsAgent: new https.Agent({
-        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
-      }),
+      httpsAgent,
     });
 
     outlookLog('Successfully created event:', {
@@ -256,6 +268,7 @@ async function createEventOnRocketChatServer(
       statusCode: response.status,
       responseData: response.data,
     });
+    outlookEventDetail('Create event response:', response.data);
     return { success: true };
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -291,7 +304,8 @@ async function updateEventOnRocketChatServer(
   userId: string,
   token: string,
   rocketChatEventId: string,
-  event: AppointmentData
+  event: AppointmentData,
+  httpsAgent?: https.Agent
 ): Promise<CrudOperationResult> {
   const url = urls.server(serverUrl).calendarEvents.update;
   outlookLog('Updating event on Rocket.Chat server:', {
@@ -307,7 +321,6 @@ async function updateEventOnRocketChatServer(
     const { servers } = select(selectPersistableValues);
     const server = servers.find((server) => server.url === serverUrl);
 
-    // Base payload
     const payload: Record<string, any> = {
       eventId: rocketChatEventId,
       subject: event.subject,
@@ -325,6 +338,8 @@ async function updateEventOnRocketChatServer(
       );
     }
 
+    outlookEventDetail('Update event payload:', payload);
+
     const response = await axios.post(url, payload, {
       headers: {
         'Content-Type': 'application/json',
@@ -332,9 +347,7 @@ async function updateEventOnRocketChatServer(
         'X-User-Id': userId,
       },
       timeout: AXIOS_TIMEOUT_MS,
-      httpsAgent: new https.Agent({
-        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
-      }),
+      httpsAgent,
     });
 
     outlookLog('Successfully updated event:', {
@@ -343,6 +356,7 @@ async function updateEventOnRocketChatServer(
       statusCode: response.status,
       responseData: response.data,
     });
+    outlookEventDetail('Update event response:', response.data);
     return { success: true };
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -379,7 +393,8 @@ async function deleteEventOnRocketChatServer(
   serverUrl: string,
   userId: string,
   token: string,
-  rocketChatEventId: string
+  rocketChatEventId: string,
+  httpsAgent?: https.Agent
 ): Promise<CrudOperationResult> {
   const url = urls.server(serverUrl).calendarEvents.delete;
   outlookLog('Deleting event from Rocket.Chat server:', {
@@ -401,9 +416,7 @@ async function deleteEventOnRocketChatServer(
           'X-User-Id': userId,
         },
         timeout: AXIOS_TIMEOUT_MS,
-        httpsAgent: new https.Agent({
-          // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
-        }),
+        httpsAgent,
       }
     );
 
@@ -412,6 +425,7 @@ async function deleteEventOnRocketChatServer(
       statusCode: response.status,
       responseData: response.data,
     });
+    outlookEventDetail('Delete event response:', response.data);
     return { success: true };
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -459,7 +473,8 @@ async function deleteEventOnRocketChatServer(
 export async function syncEventsWithRocketChatServer(
   serverUrl: string,
   credentials: OutlookCredentials,
-  token: string
+  token: string,
+  allowInsecure: boolean = false
 ) {
   // Validate token before doing anything else
   if (!token || typeof token !== 'string') {
@@ -483,7 +498,7 @@ export async function syncEventsWithRocketChatServer(
               'Authentication required - please log in to Rocket.Chat first'
             );
           }
-          await performSync(serverUrl, credentials, token);
+          await performSync(serverUrl, credentials, token, allowInsecure);
         },
         resolve,
         reject,
@@ -495,7 +510,7 @@ export async function syncEventsWithRocketChatServer(
   state.isSyncInProgress = true;
 
   try {
-    await performSync(serverUrl, credentials, token);
+    await performSync(serverUrl, credentials, token, allowInsecure);
 
     // Process queued syncs - loop until queue is truly empty
     // (new syncs can be queued while lastSync.run() executes)
@@ -507,17 +522,19 @@ export async function syncEventsWithRocketChatServer(
       const skippedSyncs = state.syncQueue.slice(0, -1);
       state.syncQueue = [];
 
-      for (const skipped of skippedSyncs) {
-        skipped.resolve();
-      }
-
       try {
         // eslint-disable-next-line no-await-in-loop -- Must drain queue sequentially
         await lastSync.run();
         lastSync.resolve();
+        for (const skipped of skippedSyncs) {
+          skipped.resolve();
+        }
       } catch (error) {
         outlookError('Queued sync failed:', error);
         lastSync.reject(error);
+        for (const skipped of skippedSyncs) {
+          skipped.reject(error);
+        }
       }
     }
   } finally {
@@ -530,7 +547,8 @@ export async function syncEventsWithRocketChatServer(
 async function performSync(
   serverUrl: string,
   credentials: OutlookCredentials,
-  token: string
+  token: string,
+  allowInsecure: boolean = false
 ) {
   outlookLog(
     'Starting Outlook calendar synchronization for server:',
@@ -556,6 +574,9 @@ async function performSync(
 
   // Token is already validated in syncEventsWithRocketChatServer
 
+  // Create a single HTTPS agent instance to reuse across all requests in this sync
+  const httpsAgent = allowInsecure ? createInsecureHttpsAgent() : undefined;
+
   let eventsOnOutlookServer: AppointmentData[];
   let eventsOnRocketChatServer: RocketChatEventsResponse | null;
 
@@ -563,7 +584,8 @@ async function performSync(
     outlookLog('Fetching events from Outlook server...');
     eventsOnOutlookServer = await getOutlookEvents(
       credentials,
-      new Date(Date.now())
+      new Date(Date.now()),
+      allowInsecure
     );
     outlookLog(
       'Found',
@@ -575,7 +597,8 @@ async function performSync(
     eventsOnRocketChatServer = await listEventsFromRocketChatServer(
       serverUrl,
       credentials.userId,
-      token
+      token,
+      httpsAgent
     );
 
     // If we can't fetch events from the server, propagate the failure
@@ -607,6 +630,10 @@ async function performSync(
     );
   }
 
+  // Get server object to check version
+  const { servers } = select(selectPersistableValues);
+  const server = servers.find((server) => server.url === serverUrl);
+
   const appointmentsFound = eventsOnOutlookServer.map(
     (appointment) => appointment.id
   );
@@ -615,10 +642,6 @@ async function performSync(
     eventsOnRocketChatServer?.data?.filter(
       ({ externalId }: { externalId?: string }) => externalId
     ) || [];
-
-  // Get server object to check version
-  const { servers } = select(selectPersistableValues);
-  const server = servers.find((server) => server.url === serverUrl);
 
   // Check for and clean up duplicate events
   const eventsByExternalId = new Map<string, RocketChatCalendarEvent[]>();
@@ -653,7 +676,8 @@ async function performSync(
             serverUrl,
             credentials.userId,
             token,
-            duplicateEvent._id
+            duplicateEvent._id,
+            httpsAgent
           );
         } catch (error) {
           outlookError('Failed to delete duplicate event:', {
@@ -680,6 +704,10 @@ async function performSync(
     'Outlook events'
   );
 
+  let syncCreated = 0;
+  let syncUpdated = 0;
+  let syncSkipped = 0;
+
   for await (const appointment of eventsOnOutlookServer) {
     try {
       outlookLog('Processing appointment:', {
@@ -699,12 +727,15 @@ async function performSync(
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {
         outlookLog('Creating new event in Rocket.Chat:', appointment.id);
-        await createEventOnRocketChatServer(
+        outlookEventDetail('New event from Exchange:', appointment);
+        const createResult = await createEventOnRocketChatServer(
           serverUrl,
           credentials.userId,
           token,
-          appointment
+          appointment,
+          httpsAgent
         );
+        if (createResult.success) syncCreated++;
         continue;
       }
 
@@ -723,6 +754,11 @@ async function performSync(
 
       if (!hasChanges) {
         outlookLog('No changes detected for event:', appointment.id);
+        outlookEventDetail('Unchanged event comparison:', {
+          outlookEvent: appointment,
+          rcEvent: alreadyOnRocketChatServer,
+        });
+        syncSkipped++;
         continue;
       }
 
@@ -731,14 +767,21 @@ async function performSync(
         rocketChatId: alreadyOnRocketChatServer._id,
         outlookId: appointment.id,
       });
+      outlookEventDetail(
+        'Event changed — before (RC):',
+        alreadyOnRocketChatServer
+      );
+      outlookEventDetail('Event changed — after (Outlook):', appointment);
 
-      await updateEventOnRocketChatServer(
+      const updateResult = await updateEventOnRocketChatServer(
         serverUrl,
         credentials.userId,
         token,
         alreadyOnRocketChatServer._id,
-        appointment
+        appointment,
+        httpsAgent
       );
+      if (updateResult.success) syncUpdated++;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -782,7 +825,8 @@ async function performSync(
         serverUrl,
         credentials.userId,
         token,
-        event._id
+        event._id,
+        httpsAgent
       );
     } catch (error) {
       const errorMessage =
@@ -799,7 +843,16 @@ async function performSync(
     }
   }
 
+  const syncDeleted = eventsToDelete.length;
   outlookLog('Sync completed successfully');
+  outlookEventDetail('Sync summary:', {
+    created: syncCreated,
+    updated: syncUpdated,
+    deleted: syncDeleted,
+    unchanged: syncSkipped,
+    totalOutlookEvents: eventsOnOutlookServer.length,
+    totalRcEvents: eventsOnRocketChatServer?.data?.length || 0,
+  });
 }
 
 type QueuedSync = {
@@ -812,6 +865,8 @@ type ServerSyncState = {
   recurringSyncTaskId?: NodeJS.Timeout;
   userAPIToken?: string;
   initialSyncTimeoutId?: NodeJS.Timeout;
+  restartDebounceTimer?: NodeJS.Timeout;
+  serverRef?: Server;
   isSyncInProgress: boolean;
   syncQueue: QueuedSync[];
 };
@@ -836,6 +891,9 @@ const clearServerState = (serverUrl: string): void => {
     }
     if (state.initialSyncTimeoutId) {
       clearTimeout(state.initialSyncTimeoutId);
+    }
+    if (state.restartDebounceTimer) {
+      clearTimeout(state.restartDebounceTimer);
     }
     serverSyncStates.delete(serverUrl);
   }
@@ -875,11 +933,16 @@ async function maybeSyncEvents(serverToSync: Server) {
       throw new Error('Outlook credentials are empty or invalid');
     }
 
+    const allowInsecureOutlookConnections = select(
+      (state) => state.allowInsecureOutlookConnections
+    );
+
     outlookLog('Starting sync with server:', server.url);
     await syncEventsWithRocketChatServer(
       server.url,
       credentials,
-      state.userAPIToken
+      state.userAPIToken,
+      allowInsecureOutlookConnections
     );
     outlookLog('Sync task completed successfully');
   } catch (error) {
@@ -932,9 +995,15 @@ function startRecurringSyncTask(server: Server) {
     clearInterval(state.recurringSyncTaskId);
   }
 
+  const intervalMinutes = select(
+    (state) =>
+      state.outlookCalendarSyncIntervalOverride ??
+      state.outlookCalendarSyncInterval
+  );
+  state.serverRef = server;
   state.recurringSyncTaskId = setInterval(
     () => recurringSyncTask(server),
-    SYNC_INTERVAL_MS
+    intervalMinutes * 60 * 1000
   );
 }
 
@@ -960,8 +1029,6 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }
 
       const state = getServerState(server.url);
-      state.userAPIToken = token;
-      outlookLog('User API token set successfully');
 
       const { outlookCredentials } = server;
       if (!outlookCredentials) {
@@ -973,6 +1040,9 @@ export const startOutlookCalendarUrlHandler = (): void => {
         outlookLog('User ID mismatch - credentials are for different user');
         return;
       }
+
+      state.userAPIToken = token;
+      outlookLog('User API token set successfully');
 
       if (!state.userAPIToken) {
         outlookError('User API token is empty');
@@ -1124,6 +1194,10 @@ export const startOutlookCalendarUrlHandler = (): void => {
           : outlookCredentials;
       }
 
+      const allowInsecureOutlookConnections = select(
+        (state) => state.allowInsecureOutlookConnections
+      );
+
       try {
         // Check if user is logged in before attempting sync
         if (!state.userAPIToken) {
@@ -1148,7 +1222,8 @@ export const startOutlookCalendarUrlHandler = (): void => {
                 await syncEventsWithRocketChatServer(
                   server.url,
                   credentials,
-                  token
+                  token,
+                  allowInsecureOutlookConnections
                 );
                 return { status: 'success' };
               }
@@ -1167,7 +1242,8 @@ export const startOutlookCalendarUrlHandler = (): void => {
         await syncEventsWithRocketChatServer(
           server.url,
           credentials,
-          state.userAPIToken
+          state.userAPIToken,
+          allowInsecureOutlookConnections
         );
       } catch (e) {
         const classifiedError = createClassifiedError(e as Error, {
@@ -1207,4 +1283,35 @@ export const startOutlookCalendarUrlHandler = (): void => {
       };
     }
   );
+
+  watch(
+    (state) =>
+      state.outlookCalendarSyncIntervalOverride ??
+      state.outlookCalendarSyncInterval,
+    (curr, prev) => {
+      if (prev === undefined || curr === prev) return;
+      outlookLog(
+        `Outlook sync interval changed to ${curr} minutes, rescheduling sync jobs`
+      );
+      for (const [, state] of serverSyncStates) {
+        if (!state.serverRef || !state.userAPIToken) continue;
+        clearTimeout(state.restartDebounceTimer);
+        const server = state.serverRef;
+        state.restartDebounceTimer = setTimeout(async () => {
+          try {
+            await maybeSyncEvents(server);
+          } catch (e) {
+            outlookError('Error syncing after interval change:', e);
+          }
+          startRecurringSyncTask(server);
+        }, 10000);
+      }
+    }
+  );
+};
+
+export const stopOutlookCalendarSync = (): void => {
+  for (const [serverUrl] of serverSyncStates) {
+    clearServerState(serverUrl);
+  }
 };

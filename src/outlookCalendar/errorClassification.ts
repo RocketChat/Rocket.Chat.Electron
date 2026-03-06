@@ -50,7 +50,7 @@ const ERROR_PATTERNS: Array<{
     },
   },
   {
-    pattern: /getaddrinfo ENOTFOUND|ECONNREFUSED|timeout/i,
+    pattern: /(getaddrinfo ENOTFOUND|ECONNREFUSED|\btimeout\b)/i,
     classification: {
       source: 'network',
       severity: 'high',
@@ -66,7 +66,8 @@ const ERROR_PATTERNS: Array<{
     },
   },
   {
-    pattern: /SSL|TLS|certificate/i,
+    pattern:
+      /SSL_ERROR|UNABLE_TO_VERIFY|CERT_|ERR_TLS|self\.signed|certificate\.has\.expired/i,
     classification: {
       source: 'network',
       severity: 'medium',
@@ -228,6 +229,61 @@ export function createClassifiedError(
   };
 }
 
+const SENSITIVE_CONTEXT_KEYS = new Set([
+  'token',
+  'password',
+  'secret',
+  'authorization',
+]);
+
+const isSensitiveKey = (key: string): boolean => {
+  const lowerKey = key.toLowerCase();
+  return (
+    SENSITIVE_CONTEXT_KEYS.has(lowerKey) ||
+    lowerKey.includes('token') ||
+    lowerKey.includes('password') ||
+    lowerKey.includes('secret') ||
+    lowerKey.includes('authorization')
+  );
+};
+
+const sanitizeContext = (
+  context: Record<string, unknown>,
+  seen: WeakSet<object> = new WeakSet()
+): Record<string, unknown> => {
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(context)) {
+    if (isSensitiveKey(key)) {
+      sanitized[key] = '[REDACTED]';
+    } else if (Array.isArray(value)) {
+      if (seen.has(value)) {
+        sanitized[key] = '[Circular]';
+      } else {
+        seen.add(value);
+        sanitized[key] = value.map((item) => {
+          if (typeof item !== 'object' || item === null) return item;
+          if (seen.has(item)) return '[Circular]';
+          seen.add(item);
+          return sanitizeContext(item as Record<string, unknown>, seen);
+        });
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      if (seen.has(value as object)) {
+        sanitized[key] = '[Circular]';
+      } else {
+        seen.add(value as object);
+        sanitized[key] = sanitizeContext(
+          value as Record<string, unknown>,
+          seen
+        );
+      }
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+};
+
 export function formatErrorForLogging(
   classifiedError: OutlookCalendarError,
   operationContext: string
@@ -235,18 +291,20 @@ export function formatErrorForLogging(
   const { source, severity, code, userMessage, technicalMessage, context } =
     classifiedError;
 
+  const safeContext = context ? sanitizeContext(context) : {};
+
   return `[OutlookCalendar] ${operationContext} failed - ${source.toUpperCase()} ERROR
 ┌─ Error Classification ─────────────────────────────────────
 │ Source: ${source}
 │ Severity: ${severity}
 │ Code: ${code}
-│ 
+│
 │ User Message: ${userMessage}
-│ 
+│
 │ Technical Details: ${technicalMessage}
-│ 
-│ Context: ${JSON.stringify(context, null, 2)}
-│ 
+│
+│ Context: ${JSON.stringify(safeContext, null, 2).replace(/\n/g, '\n│ ')}
+│
 │ Suggested Actions:
 ${classifiedError.suggestedActions?.map((action) => `│ • ${action}`).join('\n') || '│ • Contact support'}
 └────────────────────────────────────────────────────────────`;

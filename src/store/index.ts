@@ -75,7 +75,10 @@ export const watch = <T>(
   selector: Selector<T>,
   watcher: (curr: T, prev: T | undefined) => void
 ): (() => void) => {
-  if (!reduxStore) return () => undefined;
+  if (!reduxStore) {
+    console.warn('[store] watch() called before store initialized');
+    return () => undefined;
+  }
   const initial = select(selector);
   watcher(initial, undefined);
 

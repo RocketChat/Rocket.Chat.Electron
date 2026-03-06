@@ -20,7 +20,12 @@ import {
   createClassifiedError,
   formatErrorForLogging,
 } from './errorClassification';
-import { outlookLog, outlookError, outlookWarn } from './logger';
+import {
+  outlookLog,
+  outlookError,
+  outlookWarn,
+  outlookEventDetail,
+} from './logger';
 import type { OutlookCredentials, AppointmentData } from './type';
 
 /**
@@ -80,9 +85,17 @@ export const testExchangeServerConnectivity = testExchangeConnectivity;
 const buildEwsPathname = (url: URL): void => {
   const pathSegments = url.pathname
     .split('/')
-    .filter((segment) => segment.length > 0)
-    .map((segment) => segment.toLowerCase())
-    .filter((segment) => segment !== 'ews' && segment !== 'exchange.asmx');
+    .filter((segment) => segment.length > 0);
+
+  // Only strip trailing 'ews' and 'exchange.asmx' segments
+  while (pathSegments.length > 0) {
+    const last = pathSegments[pathSegments.length - 1].toLowerCase();
+    if (last === 'ews' || last === 'exchange.asmx') {
+      pathSegments.pop();
+    } else {
+      break;
+    }
+  }
 
   pathSegments.push('ews', 'exchange.asmx');
   url.pathname = `/${pathSegments.join('/')}`;
@@ -222,7 +235,8 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
 
 export const getOutlookEvents = async (
   credentials: OutlookCredentials,
-  date: Date
+  date: Date,
+  allowInsecure: boolean = false
 ): Promise<AppointmentData[]> => {
   outlookLog('Starting getOutlookEvents', {
     userId: credentials.userId,
@@ -253,13 +267,15 @@ export const getOutlookEvents = async (
     }
 
     outlookLog('Initializing Exchange connection');
-    // Exchange 2016 compatibility: Allow self-signed certificates
-    // This is commonly needed for on-premises Exchange servers
-    // NOTE: rejectUnauthorized disabled for production - uncomment for testing with self-signed certs
+    // When allowInsecure is true, bypass SSL certificate validation
+    // for air-gapped environments with self-signed/internal CA certificates
     const xhrApi = new XhrApi({
       decompress: true,
-      // rejectUnauthorized: false, // Allows self-signed/internal CA certificates (disabled for production)
+      rejectUnauthorized: !allowInsecure,
     });
+    if (allowInsecure) {
+      outlookWarn('SSL certificate validation disabled (allowInsecure=true)');
+    }
     xhrApi.useNtlmAuthentication(login, password);
 
     ConfigurationApi.ConfigureXHR(xhrApi);
@@ -314,6 +330,10 @@ export const getOutlookEvents = async (
       const findResult = await exchange.FindAppointments(folderId, view);
       appointments = findResult.Items as Appointment[];
       outlookLog('Found', appointments.length, 'appointments');
+      outlookEventDetail(
+        'Raw Exchange appointments count:',
+        appointments.length
+      );
     } catch (error) {
       const classifiedError = createClassifiedError(error as Error, {
         operation: 'fetch_appointments',
@@ -405,6 +425,7 @@ export const getOutlookEvents = async (
           startTime: appointmentData.startTime,
           busy: appointmentData.busy,
         });
+        outlookEventDetail(`Mapped appointment ${index + 1}:`, appointmentData);
 
         return appointmentData;
       } catch (error) {

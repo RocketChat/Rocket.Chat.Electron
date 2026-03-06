@@ -1,11 +1,16 @@
 import log from 'electron-log';
 
+import { getProcessContext } from './context';
+
 export interface IScopedLogger {
   debug: (...args: any[]) => void;
   info: (...args: any[]) => void;
   warn: (...args: any[]) => void;
   error: (...args: any[]) => void;
 }
+
+// Cache process context at module load (doesn't change at runtime)
+const processContext = `[${getProcessContext()}]`;
 
 /**
  * Create a scoped logger with a consistent prefix
@@ -16,10 +21,10 @@ export interface IScopedLogger {
 export const createScopedLogger = (scope: string): IScopedLogger => {
   const scopeStr = `[${scope}]`;
   return {
-    debug: (...args: any[]) => log.debug(scopeStr, ...args),
-    info: (...args: any[]) => log.info(scopeStr, ...args),
-    warn: (...args: any[]) => log.warn(scopeStr, ...args),
-    error: (...args: any[]) => log.error(scopeStr, ...args),
+    debug: (...args: any[]) => log.debug(processContext, scopeStr, ...args),
+    info: (...args: any[]) => log.info(processContext, scopeStr, ...args),
+    warn: (...args: any[]) => log.warn(processContext, scopeStr, ...args),
+    error: (...args: any[]) => log.error(processContext, scopeStr, ...args),
   };
 };
 

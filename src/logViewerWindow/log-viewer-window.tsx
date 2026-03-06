@@ -39,17 +39,40 @@ const ThemedLogViewerWindow = () => {
   );
 };
 
+const detectLocale = (): string => {
+  const browserLang = navigator.language;
+  if (!browserLang) return fallbackLng;
+
+  // Try exact match first (e.g., "pt-BR" → "pt-BR")
+  if (browserLang in resources) return browserLang;
+
+  // Try language code only (e.g., "fr-FR" → "fr")
+  const [langCode] = browserLang.split('-');
+  if (langCode && langCode in resources) return langCode;
+
+  return fallbackLng;
+};
+
 const setupI18n = async () => {
-  const lng = fallbackLng;
+  const lng = detectLocale();
+
+  const resourceBundles: Record<string, { translation: any }> = {
+    [fallbackLng]: {
+      translation: await resources[fallbackLng](),
+    },
+  };
+
+  // Load detected locale if different from fallback
+  if (lng !== fallbackLng && lng in resources) {
+    resourceBundles[lng] = {
+      translation: await resources[lng as keyof typeof resources](),
+    };
+  }
 
   await i18next.use(initReactI18next).init({
     lng,
     fallbackLng,
-    resources: {
-      [fallbackLng]: {
-        translation: await resources[fallbackLng](),
-      },
-    },
+    resources: resourceBundles,
     interpolation,
     initImmediate: true,
   });

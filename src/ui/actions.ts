@@ -112,6 +112,8 @@ export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED 
   'settings/set-is-video-call-screen-capture-fallback-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
+export const SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED =
+  'settings/set-outlook-calendar-sync-interval-changed';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
   'settings/ntlm-credentials-changed';
 export const SETTINGS_AVAILABLE_BROWSERS_UPDATED =
@@ -122,6 +124,10 @@ export const SETTINGS_USER_THEME_PREFERENCE_CHANGED =
   'settings/user-theme-preference-changed';
 export const SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED =
   'settings/set-verbose-outlook-logging-changed';
+export const SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED =
+  'settings/set-detailed-events-logging-changed';
+export const SETTINGS_SET_DEBUG_LOGGING_CHANGED =
+  'settings/set-debug-logging-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -252,11 +258,14 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
+  [SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED]: number;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];
   [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;
   [SETTINGS_USER_THEME_PREFERENCE_CHANGED]: 'auto' | 'light' | 'dark';
   [SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_DEBUG_LOGGING_CHANGED]: boolean;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;

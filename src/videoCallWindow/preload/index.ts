@@ -16,4 +16,11 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
       );
     });
   },
+  getAuthCredentials: async (): Promise<{
+    userId: string;
+    authToken: string;
+    serverUrl: string;
+  } | null> => {
+    return ipcRenderer.invoke('video-call-window/get-credentials');
+  },
 });

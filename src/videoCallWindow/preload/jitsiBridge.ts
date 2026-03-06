@@ -538,9 +538,28 @@ class JitsiBridgeImpl implements JitsiBridge {
   }
 }
 
-// Create and expose the Jitsi Bridge
-const jitsiBridge = new JitsiBridgeImpl();
-window.jitsiBridge = jitsiBridge;
+// Only create JitsiBridge for Jitsi providers (not Pexip or others)
+// Use synchronous IPC to get provider name before initializing
+let providerName: string | null = null;
+try {
+  providerName = ipcRenderer.sendSync('video-call-window/get-provider-sync') as
+    | string
+    | null;
+} catch {
+  // Fallback: if sync IPC fails, assume Jitsi for backward compatibility
+}
+
+let jitsiBridge: JitsiBridgeImpl | null = null;
+
+if (providerName && providerName !== 'jitsi') {
+  console.log(
+    `JitsiBridge: Skipping initialization for provider: ${providerName}`
+  );
+} else {
+  // Create bridge for Jitsi or unknown providers (backward compatibility)
+  jitsiBridge = new JitsiBridgeImpl();
+  window.jitsiBridge = jitsiBridge;
+}
 
 // Export as default for module usage
 export default jitsiBridge;

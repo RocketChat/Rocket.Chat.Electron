@@ -22,7 +22,16 @@ export interface IReadLogsResponse {
   fileName?: string;
   isDefaultLog?: boolean;
   lastModifiedTime?: number;
+  fileSize?: number;
   totalEntries?: number;
+  error?: string;
+}
+
+export interface IReadLogsTailResponse {
+  success: boolean;
+  logs?: string;
+  newSize?: number;
+  lastModifiedTime?: number;
   error?: string;
 }
 
@@ -55,6 +64,7 @@ export interface IStatLogResponse {
 
 export type LogEntryType = ILogEntryType;
 export type ReadLogsResponse = IReadLogsResponse;
+export type ReadLogsTailResponse = IReadLogsTailResponse;
 export type SaveLogsResponse = ISaveLogsResponse;
 export type SelectFileResponse = ISelectFileResponse;
 export type ClearLogsResponse = IClearLogsResponse;

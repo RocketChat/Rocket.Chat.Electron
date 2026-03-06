@@ -179,6 +179,14 @@ function LogViewerWindow() {
     'all'
   );
 
+  // Reset persisted server filter if the stored value no longer exists
+  useEffect(() => {
+    const validKeys = serverFilterOptions.map(([key]) => key);
+    if (!validKeys.includes(serverFilter)) {
+      setServerFilter('all');
+    }
+  }, [serverFilter, serverFilterOptions, setServerFilter]);
+
   const handleServerFilterChange = useCallback(
     (value: Key) => {
       setServerFilter(String(value));

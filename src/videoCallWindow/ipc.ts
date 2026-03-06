@@ -1279,21 +1279,6 @@ handle('video-call-window/get-credentials', async (callerWebContents) => {
     return null;
   }
 
-  // Verify the caller's current page origin matches the stored server origin
-  try {
-    const callerOrigin = new URL(callerWebContents.getURL()).origin;
-    const storedOrigin = new URL(videoCallCredentials.serverUrl).origin;
-    if (callerOrigin !== storedOrigin) {
-      console.warn(
-        'Video call window: Credential request denied due to origin mismatch'
-      );
-      return null;
-    }
-  } catch {
-    // If URL parsing fails, deny access
-    return null;
-  }
-
   return videoCallCredentials;
 });
 

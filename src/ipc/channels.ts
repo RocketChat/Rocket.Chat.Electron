@@ -24,7 +24,13 @@ type ChannelToArgsMap = {
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
   'server-view/open-url-on-browser': (url: string) => void;
-  'video-call-window/open-window': (url: string) => void;
+  'video-call-window/open-window': (
+    url: string,
+    options?: {
+      providerName?: string;
+      credentials?: { userId: string; authToken: string };
+    }
+  ) => void;
   'video-call-window/open-url': (url: string) => void;
   'video-call-window/web-contents-id': (webContentsId: number) => void;
   'video-call-window/open-screen-picker': () => { success: boolean };
@@ -45,6 +51,11 @@ type ChannelToArgsMap = {
   'video-call-window/webview-loading': () => { success: boolean };
   'video-call-window/webview-ready': () => { success: boolean };
   'video-call-window/webview-failed': (error: string) => { success: boolean };
+  'video-call-window/get-credentials': () => {
+    userId: string;
+    authToken: string;
+    serverUrl: string;
+  } | null;
   'video-call-window/get-language': () => {
     success: boolean;
     language: string;

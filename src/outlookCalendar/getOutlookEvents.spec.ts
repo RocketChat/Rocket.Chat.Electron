@@ -357,6 +357,12 @@ describe('Exchange URL Sanitization', () => {
       const result = sanitizeExchangeUrl('  https://mail.example.com  ');
       expect(result).toBe('https://mail.example.com/ews/exchange.asmx');
     });
+
+    it('throws error for whitespace-only input', () => {
+      expect(() => sanitizeExchangeUrl('   ')).toThrow(
+        'Invalid server URL: must be a non-empty string'
+      );
+    });
   });
 
   describe('Multiple query parameters', () => {
@@ -385,4 +391,5 @@ describe('Exchange URL Sanitization', () => {
       expect(result).toBe('https://mail.example.com/extra/ews/exchange.asmx');
     });
   });
+
 });

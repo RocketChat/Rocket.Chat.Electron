@@ -190,6 +190,34 @@ const start = async () => {
   navigator.clipboard.writeText = async (...args) =>
     window.RocketChatDesktop.writeTextToClipboard(...args);
 
+  // Handle clicks on links to open them externally
+  document.addEventListener(
+    'click',
+    (event) => {
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest('a') as HTMLAnchorElement | null;
+
+      if (!link?.href) {
+        return;
+      }
+
+      const url = link.href;
+      const currentOrigin = window.location.origin;
+
+      // If it is an internal Rocket.Chat link, allow normal navigation
+      if (url.startsWith(currentOrigin)) {
+        return;
+      }
+
+      // External link
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        event.preventDefault();
+        window.RocketChatDesktop.openExternal(url);
+      }
+    },
+    true
+  );
+
   console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
   window.Notification = class RocketChatDesktopNotification

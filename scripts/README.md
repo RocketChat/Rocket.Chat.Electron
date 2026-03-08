@@ -21,11 +21,13 @@ Installs Volta (JavaScript toolchain manager) if it's not already installed. Vol
 #### What It Does
 
 1. **Checks if Volta is installed**
+
    - Looks for `volta` command in PATH
    - Checks `$VOLTA_HOME` environment variable
    - Checks common installation location (`~/.volta/bin/volta`)
 
 2. **Installs Volta if missing**
+
    - Downloads and runs the official Volta installer
    - Adds Volta to PATH for current session
    - Adds Volta to `~/.bashrc` for future sessions
@@ -66,16 +68,19 @@ Builds, installs, and runs the Rocket.Chat Desktop .deb package for testing purp
 #### Examples
 
 Build, install, and run:
+
 ```bash
 ./scripts/linux-test-deb.sh
 ```
 
 Skip build if .deb already exists:
+
 ```bash
 ./scripts/linux-test-deb.sh --skip-build
 ```
 
 Only build and install, don't run:
+
 ```bash
 ./scripts/linux-test-deb.sh --skip-run
 ```
@@ -83,14 +88,17 @@ Only build and install, don't run:
 #### What It Does
 
 1. **Builds the .deb package**
+
    - Runs `yarn build-linux` to build the app and create Linux packages
    - Outputs to `dist/` directory
 
 2. **Finds the .deb file**
+
    - Searches for `dist/rocketchat-*-linux-*.deb`
    - Uses the first matching file found
 
 3. **Installs the .deb package**
+
    - Uninstalls any previous version if present
    - Installs the new package using `dpkg -i`
    - Automatically fixes missing dependencies with `apt-get install -f`
@@ -110,6 +118,7 @@ Only build and install, don't run:
 #### Automatic Dependency Installation
 
 The script automatically installs missing dependencies:
+
 - **Volta** (if node.js/yarn not found) - provides node.js and npm
 - **binutils** (if `ar` command not found) - required for building .deb packages
 - **Package dependencies** - automatically resolved during .deb installation
@@ -117,6 +126,7 @@ The script automatically installs missing dependencies:
 #### Output
 
 The script provides color-coded output:
+
 - 🔵 Blue: Informational messages
 - 🟢 Green: Success messages
 - 🟡 Yellow: Warnings
@@ -136,4 +146,3 @@ The script will exit with a non-zero status code if any step fails. Common issue
 - Missing dependencies are automatically resolved during installation
 - The app runs in the background; use `kill <PID>` to stop it
 - This script is intended for development/testing purposes only
-

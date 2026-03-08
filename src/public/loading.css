@@ -31,7 +31,9 @@
   animation-delay: -0.16s;
 }
 
-.loading__animation__bounce + .loading__animation__bounce + .loading__animation__bounce {
+.loading__animation__bounce
+  + .loading__animation__bounce
+  + .loading__animation__bounce {
   animation-delay: 0s;
 }
 
@@ -90,4 +92,3 @@
   line-height: 1.25rem;
   color: #ccc;
 }
-

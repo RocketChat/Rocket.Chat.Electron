@@ -7,7 +7,7 @@ packages, which are hosted in the [Rocket.Chat Organization] on GitHub.
 
 [Rocket.Chat Organization]: https://github.com/RocketChat
 
-__Note:__ If there's a feature you'd like, there's a bug you'd like to fix, or
+**Note:** If there's a feature you'd like, there's a bug you'd like to fix, or
 you'd just like to get involved please raise an issue and start a conversation.
 We'll help as much as we can so you can get contributing - although we may not
 always be able to respond right away :)

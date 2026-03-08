@@ -1,5 +1,3 @@
 {
-  "setup-worktree": [
-    "yarn install"
-  ]
+  "setup-worktree": ["yarn install"]
 }

@@ -23,17 +23,17 @@ on:
 jobs:
   lint:
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install PSScriptAnalyzer
         shell: pwsh
         run: |
           Set-PSRepository PSGallery -InstallationPolicy Trusted
           Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
-      
+
       - name: Run PSScriptAnalyzer
         shell: pwsh
         run: |

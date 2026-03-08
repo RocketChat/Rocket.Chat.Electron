@@ -24,6 +24,7 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
+import { openExternal } from './openExternal';
 import { reloadServer } from './reloadServer';
 import {
   setBackground,
@@ -47,6 +48,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
     options: CustomNotificationOptions
   ) => Promise<unknown>;
   closeCustomNotification: (id: unknown) => void;
+  openExternal: (url: string) => Promise<void>;
 };
 
 declare global {
@@ -92,4 +94,5 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setSidebarCustomTheme,
   openDocumentViewer,
   reloadServer,
+  openExternal,
 };

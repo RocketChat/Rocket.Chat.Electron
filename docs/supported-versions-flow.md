@@ -488,7 +488,7 @@ The app constructs API URLs with proper URL encoding to ensure reliable server c
 
 The Cloud API endpoint requires a valid **domain** (not IP address) to look up server-specific version policies:
 
-```text
+```
 https://releases.rocket.chat/v2/server/supportedVersions?domain={domain}&uniqueId={uniqueId}&source=desktop
 ```
 

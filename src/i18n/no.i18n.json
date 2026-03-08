@@ -132,10 +132,10 @@
       "no": "Kansellere"
     },
     "mediaPermission": {
-      "title": "Medietillatelse Påkrevd",
+      "title": "Medietillatelse påkrevd",
       "message": "Tilgang til {{- permissionType}} er for øyeblikket deaktivert i systeminnstillingene dine.",
       "detail": "For å aktivere videosamtalefunksjoner, vennligst tillat tilgang i systemets personverninnstillinger og start deretter applikasjonen på nytt.",
-      "openSettings": "Åpne Innstillinger",
+      "openSettings": "Åpne innstillinger",
       "cancel": "Avbryt",
       "microphone": "Mikrofon",
       "camera": "Kamera",
@@ -297,7 +297,7 @@
       },
       "themeAppearance": {
         "title": "Tema",
-        "description": "Velg fargtemaet for applikasjonen.",
+        "description": "Velg fargetemaet for applikasjonen.",
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"

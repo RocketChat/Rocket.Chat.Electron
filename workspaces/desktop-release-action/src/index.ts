@@ -29,7 +29,7 @@ const pack = async () => {
       break;
 
     case 'darwin':
-      await disableSpotlightIndexing(); 
+      await disableSpotlightIndexing();
       await packOnMacOS();
       break;
 
@@ -71,17 +71,19 @@ const releaseDevelopment = async (commitSha: string) => {
 
   const release = await getDevelopmentRelease(commitSha);
   const existingAssets = await getReleaseAssets(release.id);
-  
+
   // Force clean old assets if we have too many (close to GitHub's 1000 limit)
   if (existingAssets.length > 900) {
-    core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+    core.info(
+      `Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`
+    );
     await forceCleanOldAssets(release.id, 100);
   } else {
     const filesToUpload = await getFilesToUpload();
-    const expectedAssetNames = filesToUpload.map(path => basename(path));
+    const expectedAssetNames = filesToUpload.map((path) => basename(path));
     await clearStaleAssets(release.id, expectedAssetNames);
   }
-  
+
   const assets = await getReleaseAssets(release.id);
 
   for (const path of await getFilesToUpload()) {
@@ -102,17 +104,19 @@ const releaseSnapshot = async (commitSha: string) => {
 
   const release = await getSnapshotRelease(commitSha);
   const existingAssets = await getReleaseAssets(release.id);
-  
+
   // Force clean old assets if we have too many (close to GitHub's 1000 limit)
   if (existingAssets.length > 900) {
-    core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+    core.info(
+      `Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`
+    );
     await forceCleanOldAssets(release.id, 100);
   } else {
     const filesToUpload = await getFilesToUpload();
-    const expectedAssetNames = filesToUpload.map(path => basename(path));
+    const expectedAssetNames = filesToUpload.map((path) => basename(path));
     await clearStaleAssets(release.id, expectedAssetNames);
   }
-  
+
   const assets = await getReleaseAssets(release.id);
 
   for (const path of await getFilesToUpload()) {
@@ -184,7 +188,6 @@ const start = async () => {
     await releaseSnapshot(payload.after);
     return;
   }
-
 
   if (ref.match(/^refs\/tags\//)) {
     const tag = ref.slice('refs/tags/'.length);

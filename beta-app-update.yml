@@ -2,4 +2,4 @@ owner: RocketChat
 repo: Rocket.Chat.Electron
 provider: github
 vPrefixedTagName: false
-channel: beta 
+channel: beta

@@ -29,6 +29,7 @@ The system uses a **vanilla JavaScript bootstrap** with **deferred React loading
 ```
 
 **Key design decisions:**
+
 - Vanilla JS for critical path (faster load, simpler recovery)
 - React only for ScreenSharePicker (complex UI component)
 - Stale-while-revalidate caching (instant UX, fresh data)
@@ -43,6 +44,7 @@ The system uses a **vanilla JavaScript bootstrap** with **deferred React loading
 This document explains the vanilla JS architecture that manages the video call window. It shows how the app creates a separate window, initializes without React overhead, handles loading states through direct DOM manipulation, and provides automatic error recovery.
 
 **You'll learn about:**
+
 - Vanilla JS bootstrap architecture
 - Why React is deferred (performance benefits)
 - Webview creation and attribute ordering
@@ -52,6 +54,7 @@ This document explains the vanilla JS architecture that manages the video call w
 - Window cleanup and resource management
 
 **Architecture highlights:**
+
 - No React in critical path
 - Direct DOM manipulation for overlays
 - Deferred React import for screen sharing
@@ -64,6 +67,7 @@ This document explains the vanilla JS architecture that manages the video call w
 This document explains the caching architecture that makes screen sharing feel instant. It shows how the cache is pre-warmed when the video call loads, how stale data is returned immediately while fresh data is fetched in the background, and why the cache persists indefinitely.
 
 **You'll learn about:**
+
 - Stale-while-revalidate pattern
 - Cache pre-warming strategy
 - Why cache never expires
@@ -73,6 +77,7 @@ This document explains the caching architecture that makes screen sharing feel i
 - Memory usage characteristics
 
 **Cache characteristics:**
+
 - Always returns data immediately
 - Background refresh when stale (>3s)
 - Persists until app quit or error
@@ -107,6 +112,7 @@ This document explains why screen sharing fails in Remote Desktop (RDP) sessions
 ### Real-World Example
 
 **Starting a call:**
+
 1. Click "Join Video Call" in Rocket.Chat
 2. Window Management Flow creates dedicated window
 3. Vanilla JS shows loading overlay with localized text
@@ -116,6 +122,7 @@ This document explains why screen sharing fails in Remote Desktop (RDP) sessions
 7. If Jitsi: jitsiBridge auto-detects and initializes (required for screen sharing)
 
 **Sharing your screen:**
+
 1. Click screen share button in video call
 2. ScreenSharePicker React component loaded (first time) or shown
 3. Cached sources displayed instantly (no loading spinner)
@@ -126,20 +133,26 @@ This document explains why screen sharing fails in Remote Desktop (RDP) sessions
 ## Key Innovations
 
 ### Vanilla JS Bootstrap
+
 Traditional Electron apps render everything with React. This video call window uses vanilla JavaScript for the critical path:
+
 - **Faster startup**: No React bundle to parse/execute initially
 - **Simpler recovery**: Direct DOM manipulation, no state management
 - **Lower memory**: React only loaded when needed
 
 ### Stale-While-Revalidate Cache
+
 Traditional caching uses TTL (time-to-live) expiration. This system uses stale-while-revalidate:
+
 - **Always instant**: Returns cached data immediately
 - **Always fresh**: Background refresh keeps data current
 - **Never empty**: Cache persists, no expiration
 - **Error resilient**: Keeps last good data on fetch failure
 
 ### Cache Pre-warming
+
 Traditional apps fetch data on demand. This system pre-warms:
+
 - **Proactive fetch**: Cache populated when webview loads
 - **Zero wait**: First screen share shows sources instantly
 - **Background operation**: No impact on video call startup
@@ -149,13 +162,16 @@ Traditional apps fetch data on demand. This system pre-warms:
 The video call window is designed to work with any video conferencing provider. The core system is generic and provider-agnostic:
 
 ### Generic Support (All Providers)
+
 - **URL validation**: Only checks HTTP/HTTPS protocol (no provider-specific patterns)
 - **Webview lifecycle**: Standard Electron webview handling
 - **Screen sharing**: Uses generic Electron desktop capturer API
 - **Partition**: Uses generic `persist:video-call-session` partition
 
 ### Jitsi-Specific Requirements
+
 For Jitsi servers, a required bridge module (`jitsiBridge.ts`) is essential for screen sharing:
+
 - **Auto-detection**: Automatically detects Jitsi meetings and initializes integration
 - **Screen sharing coordination**: Required for screen sharing to work with Jitsi's External API
 - **Event handling**: Listens for Jitsi-specific events and messages
@@ -163,7 +179,9 @@ For Jitsi servers, a required bridge module (`jitsiBridge.ts`) is essential for 
 **Important**: The jitsiBridge is **required** for Jitsi calls - screen sharing will not work without it. Other providers (like PEXIP) work with the standard generic events and do not need a bridge.
 
 ### PEXIP and Other Providers
+
 PEXIP and other providers work seamlessly with the generic event system:
+
 - No special bridge code required
 - Uses standard webview events and IPC communication
 - Screen sharing works through the generic desktop capturer API

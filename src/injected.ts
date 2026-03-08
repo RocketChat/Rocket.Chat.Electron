@@ -197,7 +197,7 @@ const start = async () => {
       const target = event.target as HTMLElement | null;
       const link = target?.closest('a') as HTMLAnchorElement | null;
 
-      if (!link?.href) {
+      if (!link || !link.href) {
         return;
       }
 

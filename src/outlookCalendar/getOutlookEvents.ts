@@ -115,12 +115,15 @@ const buildFinalUrl = (url: URL, originalUrl: string): string => {
 
   // Check if original URL had an explicit default port that was normalized away
   // Match port in authority section (after //) or at start (for URLs without protocol)
-  const portMatch = originalUrl.match(/(?:\/\/|^)[^/:]+:(\d+)/);
+  // Supports both regular hosts and IPv6 addresses in brackets
+  const portMatch = originalUrl.match(/(?:\/\/|^)(?:\[[^\]]+\]|[^/:]+):(\d+)/);
   if (portMatch) {
     const explicitPort = portMatch[1];
     // Only restore if it's a default port that was dropped
-    if ((url.protocol === 'https:' && explicitPort === '443') ||
-        (url.protocol === 'http:' && explicitPort === '80')) {
+    const isDefaultPort =
+      (url.protocol === 'https:' && explicitPort === '443') ||
+      (url.protocol === 'http:' && explicitPort === '80');
+    if (isDefaultPort) {
       return baseUrl.replace(url.host, `${url.hostname}:${explicitPort}`);
     }
   }
@@ -202,9 +205,14 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Re-throw validation errors without attempting fallback, except for cases
-    // where the URL looks like it's missing a protocol (e.g., "domain.com:443")
-    // Match IPv4 addresses or hostnames with dots followed by port (not scheme:port like "ftp:21")
-    if (errorMessage.includes('Invalid protocol') && !serverUrl.match(/^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-z0-9-]+\.[a-z0-9.-]+):\d+/i)) {
+    // where the URL looks like it's missing a protocol (e.g., "domain.com:443", "localhost:443")
+    // Match IPv4 addresses, hostnames (with optional dots), or single-label names with ports
+    const hostnameWithPortPattern =
+      /^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-z0-9-]+(?:\.[a-z0-9.-]+)?):\d+/i;
+    if (
+      errorMessage.includes('Invalid protocol') &&
+      !serverUrl.match(hostnameWithPortPattern)
+    ) {
       throw error;
     }
 
@@ -257,16 +265,24 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
 
       return finalUrl;
     } catch (fallbackError) {
-      const fallbackErrorMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+      const fallbackErrorMsg =
+        fallbackError instanceof Error
+          ? fallbackError.message
+          : String(fallbackError);
 
       // Re-throw validation errors directly
-      if (fallbackErrorMsg.includes('URL must have a valid hostname') ||
-          fallbackErrorMsg.includes('Invalid protocol')) {
+      if (
+        fallbackErrorMsg.includes('URL must have a valid hostname') ||
+        fallbackErrorMsg.includes('Invalid protocol')
+      ) {
         throw fallbackError;
       }
 
       // Handle "Invalid URL" for empty hostname case (both http:// and https://)
-      if (fallbackErrorMsg.includes('Invalid URL') && fallbackUrl.match(/^https?:\/\/$/)) {
+      if (
+        fallbackErrorMsg.includes('Invalid URL') &&
+        fallbackUrl.match(/^https?:\/\/$/)
+      ) {
         throw new Error('URL must have a valid hostname');
       }
 

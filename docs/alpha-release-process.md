@@ -5,17 +5,18 @@ This document describes how to create alpha releases for QA testing and early cu
 ## Overview
 
 The Rocket.Chat Desktop app supports three release channels:
+
 - **Stable** (`latest`) - Production releases for all users
 - **Beta** - Pre-release testing with broader audience
 - **Alpha** - Early testing for QA and select customers
 
 ## How Channels Work
 
-| Channel | Version Format | Who Gets It | Update File |
-|---------|---------------|-------------|-------------|
-| Stable | `4.12.0` | All users (default) | `latest.yml` |
-| Beta | `4.12.0-beta.1` | Beta opt-in users | `beta.yml` |
-| Alpha | `4.12.0-alpha.1` | Alpha opt-in users | `alpha.yml` |
+| Channel | Version Format   | Who Gets It         | Update File  |
+| ------- | ---------------- | ------------------- | ------------ |
+| Stable  | `4.12.0`         | All users (default) | `latest.yml` |
+| Beta    | `4.12.0-beta.1`  | Beta opt-in users   | `beta.yml`   |
+| Alpha   | `4.12.0-alpha.1` | Alpha opt-in users  | `alpha.yml`  |
 
 **Channel hierarchy**: Alpha users receive alpha, beta, AND stable updates. Beta users receive beta AND stable. Stable users only receive stable.
 
@@ -32,6 +33,7 @@ git checkout -b release/4.12.0-alpha.1
 ### 2. Update Version
 
 Edit `package.json`:
+
 ```json
 {
   "version": "4.12.0-alpha.1"
@@ -56,6 +58,7 @@ git push origin 4.12.0-alpha.1
 ### 5. CI Builds Automatically
 
 The GitHub Actions workflow triggers on tag push and:
+
 - Builds for all platforms (Windows, macOS, Linux)
 - Generates `alpha.yml`, `alpha-mac.yml`, `alpha-linux.yml` metadata
 - Creates a draft GitHub release marked as **Pre-release**
@@ -84,13 +87,14 @@ The setting persists - users don't need to select it again.
 
 Create `update.json` in the user data directory:
 
-| Platform | Location |
-|----------|----------|
-| Windows | `%APPDATA%\Rocket.Chat\update.json` |
-| macOS | `~/Library/Application Support/Rocket.Chat/update.json` |
-| Linux | `~/.config/Rocket.Chat/update.json` |
+| Platform | Location                                                |
+| -------- | ------------------------------------------------------- |
+| Windows  | `%APPDATA%\Rocket.Chat\update.json`                     |
+| macOS    | `~/Library/Application Support/Rocket.Chat/update.json` |
+| Linux    | `~/.config/Rocket.Chat/update.json`                     |
 
 Content:
+
 ```json
 {
   "channel": "alpha"
@@ -98,6 +102,7 @@ Content:
 ```
 
 For enterprise deployments where you want to force the setting:
+
 ```json
 {
   "channel": "alpha",
@@ -112,6 +117,7 @@ For enterprise deployments where you want to force the setting:
 - **Stable**: `4.12.0`
 
 When promoting:
+
 - Alpha `4.12.0-alpha.5` → Beta `4.12.0-beta.1`
 - Beta `4.12.0-beta.3` → Stable `4.12.0`
 

@@ -5,7 +5,13 @@
 **Always use the centralized logger from `logger.ts`** - never use `console.log('[OutlookCalendar]...')` directly.
 
 ```typescript
-import { outlookLog, outlookDebug, outlookError, outlookWarn, outlookEventDetail } from './logger';
+import {
+  outlookLog,
+  outlookDebug,
+  outlookError,
+  outlookWarn,
+  outlookEventDetail,
+} from './logger';
 
 // These respect the verbose logging toggle in Settings > Developer
 outlookLog('message', data); // Only logs when verbose enabled

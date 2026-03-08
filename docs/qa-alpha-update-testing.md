@@ -53,16 +53,16 @@ By default, the app checks for stable updates only. To receive alpha updates:
 
 ## Expected Results
 
-| Step | Expected Behavior |
-|------|-------------------|
-| Install Alpha 1 | App installs and runs without errors |
-| About dialog | Shows version 4.12.0-alpha.1 |
+| Step                  | Expected Behavior                        |
+| --------------------- | ---------------------------------------- |
+| Install Alpha 1       | App installs and runs without errors     |
+| About dialog          | Shows version 4.12.0-alpha.1             |
 | Enable Developer Mode | Update Channel dropdown appears in About |
-| Select Alpha channel | Channel selection is saved |
-| Check for Updates | Finds 4.12.0-alpha.2 |
-| Download update | Downloads without errors |
-| Restart | App restarts and applies update |
-| Final version | Shows 4.12.0-alpha.2 |
+| Select Alpha channel  | Channel selection is saved               |
+| Check for Updates     | Finds 4.12.0-alpha.2                     |
+| Download update       | Downloads without errors                 |
+| Restart               | App restarts and applies update          |
+| Final version         | Shows 4.12.0-alpha.2                     |
 
 ## Troubleshooting
 

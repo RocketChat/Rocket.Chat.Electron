@@ -18,6 +18,7 @@ import { setupDownloads } from './downloads/main';
 import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
+import { handle } from './ipc/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
 import {
@@ -54,6 +55,7 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
+import { openExternal } from './utils/browserLauncher';
 import {
   handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
@@ -142,6 +144,10 @@ const start = async (): Promise<void> => {
   handleClearCacheDialog();
   startDocumentViewerHandler();
   checkSupportedVersionServers();
+
+  handle('open-external', async (_webContents, url) => {
+    await openExternal(url);
+  });
 
   await processDeepLinksInArgs();
 

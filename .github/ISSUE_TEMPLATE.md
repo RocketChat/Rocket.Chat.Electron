@@ -16,14 +16,18 @@ Thanks for opening an issue! A few things to keep in mind:
 - Installation type: <!-- exe, dmg, package manager etc. -->
 
 <!-- Answer questions by putting x in box, e.g. [x] -->
+
 - [ ] I have tested with the latest version
 - [ ] I can simulate the issue easily
 
 ## Description
+
 <!-- If relevant, attach screenshots, and how to reproduce -->
 
 ### Current Behavior
+
 <!-- What actually happens? -->
 
 ### Expected Behavior
+
 <!-- What do you think should happen? -->

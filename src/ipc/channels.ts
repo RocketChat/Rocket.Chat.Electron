@@ -131,6 +131,7 @@ type ChannelToArgsMap = {
     success: boolean;
     mapping: Record<string, string>;
   };
+  'open-external': (url: string) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

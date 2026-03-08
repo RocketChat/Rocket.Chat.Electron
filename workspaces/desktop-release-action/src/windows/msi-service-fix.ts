@@ -7,15 +7,17 @@ import { run } from '../shell';
  */
 export const fixWindowsInstallerService = async (): Promise<void> => {
   core.info('Fixing Windows Installer service for MSI builds...');
-  
+
   try {
     // Re-register Windows Installer service
     await run('msiexec /unregister');
     await run('msiexec /regserver');
-    
+
     // Ensure the service is running
-    await run('powershell -Command "Start-Service msiserver -ErrorAction SilentlyContinue"');
-    
+    await run(
+      'powershell -Command "Start-Service msiserver -ErrorAction SilentlyContinue"'
+    );
+
     core.info('Windows Installer service fixed successfully');
   } catch (error) {
     core.warning(`Failed to fix Windows Installer service: ${error}`);

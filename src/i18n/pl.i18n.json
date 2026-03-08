@@ -27,7 +27,7 @@
         "label": "Kanał aktualizacji",
         "latest": "Stabilny",
         "beta": "Beta",
-        "alpha": "Alfa (eksperymentalny)"
+        "alpha": "Alfa (eksperymentalna)"
       }
     },
     "addServer": {
@@ -94,8 +94,8 @@
     },
     "mediaPermission": {
       "title": "Wymagane Uprawnienie Mediów",
-      "message": "Dostęp do urządzenia: {{- permissionType}} jest obecnie wyłączony w ustawieniach systemu.",
-      "detail": "Aby włączyć funkcje rozmów wideo, proszę zezwolić na dostęp w ustawieniach prywatności systemu, a następnie uruchomić ponownie aplikację.",
+      "message": "Dostęp do {{- permissionType}} jest obecnie wyłączony w ustawieniach systemu.",
+      "detail" : "Aby włączyć funkcje rozmów wideo, proszę zezwolić na dostęp w ustawieniach prywatności systemu, a następnie uruchomić ponownie aplikację.",
       "openSettings": "Otwórz Ustawienia",
       "cancel": "Anuluj",
       "microphone": "mikrofonu",

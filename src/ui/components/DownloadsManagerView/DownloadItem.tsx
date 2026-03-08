@@ -182,51 +182,51 @@ const DownloadItem = ({
           </Box>
           <Box display='flex' fontScale='c1'>
             {expired && (
-              <ActionButton onClick={handleRemove}>
+              <ActionButton onClick={handleRemove} aria-label={t('downloads.item.remove')}>
                 {t('downloads.item.remove')}
               </ActionButton>
             )}
             {!expired && (
-              <ActionButton onClick={handleCopyLink}>
+              <ActionButton onClick={handleCopyLink} aria-label={t('downloads.item.copyLink')}>
                 {t('downloads.item.copyLink')}
               </ActionButton>
             )}
             {state === 'progressing' && (
               <>
-                <ActionButton onClick={handlePause}>
+                <ActionButton onClick={handlePause}  aria-label={t('downloads.item.pause')}>
                   {t('downloads.item.pause')}
                 </ActionButton>
-                <ActionButton onClick={handleCancel}>
+                <ActionButton onClick={handleCancel} aria-label={t('downloads.item.cancel')}>
                   {t('downloads.item.cancel')}
                 </ActionButton>
               </>
             )}
             {state === 'paused' && (
               <>
-                <ActionButton onClick={handleResume}>
+                <ActionButton onClick={handleResume} aria-label={t('downloads.item.resume')}>
                   {t('downloads.item.resume')}
                 </ActionButton>
-                <ActionButton onClick={handleCancel}>
+                <ActionButton onClick={handleCancel} aria-label={t('downloads.item.cancel')}>
                   {t('downloads.item.cancel')}
                 </ActionButton>
               </>
             )}
             {state === 'completed' && (
               <>
-                <ActionButton onClick={handleShowInFolder}>
+                <ActionButton onClick={handleShowInFolder}  aria-label={t('downloads.item.showInFolder')}>
                   {t('downloads.item.showInFolder')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
+                <ActionButton onClick={handleRemove} aria-label={t('downloads.item.remove')}>
                   {t('downloads.item.remove')}
                 </ActionButton>
               </>
             )}
             {errored && (
               <>
-                <ActionButton onClick={handleRetry}>
+                <ActionButton onClick={handleRetry} aria-label={t('downloads.item.retry')}>
                   {t('downloads.item.retry')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
+                <ActionButton onClick={handleRemove} aria-label={t('downloads.item.remove')}>
                   {t('downloads.item.remove')}
                 </ActionButton>
               </>

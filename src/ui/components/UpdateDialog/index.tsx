@@ -89,10 +89,10 @@ export const UpdateDialog = () => {
       </Box>
 
       <ButtonGroup>
-        <Button type='button' onClick={handleSkipButtonClick}>
+        <Button type='button' onClick={handleSkipButtonClick} aria-label={t('dialog.update.skip')} >
           {t('dialog.update.skip')}
         </Button>
-        <Button type='button' onClick={handleRemindLaterButtonClick}>
+        <Button type='button' onClick={handleRemindLaterButtonClick} aria-label={t('dialog.update.remindLater')} >
           {t('dialog.update.remindLater')}
         </Button>
         <Button
@@ -100,6 +100,7 @@ export const UpdateDialog = () => {
           type='button'
           primary
           onClick={handleInstallButtonClick}
+           aria-label={t('dialog.update.install')}
         >
           {t('dialog.update.install')}
         </Button>

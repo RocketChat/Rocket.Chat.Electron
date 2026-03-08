@@ -197,7 +197,7 @@ const start = async () => {
       const target = event.target as HTMLElement | null;
       const link = target?.closest('a') as HTMLAnchorElement | null;
 
-      if (!link || !link.href) {
+      if (!link?.href) {
         return;
       }
 
@@ -212,7 +212,7 @@ const start = async () => {
       // External link
       if (url.startsWith('http://') || url.startsWith('https://')) {
         event.preventDefault();
-        window.RocketChatDesktop.openExternal(url);
+        window.RocketChatDesktop?.openExternal(url);
       }
     },
     true

@@ -384,7 +384,8 @@
       "timeout": "Tidsavbrudd - videosamtalen kunne ikke lastes innen 15 sekunder",
       "crashed": "Webview krasjet",
       "maxRetriesReached": "Kunne ikke laste etter flere forsøk",
-      "reload": "Last videosamtale på nytt"
+      "reload": "Last videosamtale på nytt",
+      "noUrl": "Ingen videosamtale-URL oppgitt"
     }
   },
   "unsupportedServer": {

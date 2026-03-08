@@ -102,6 +102,33 @@ const buildEwsPathname = (url: URL): void => {
 };
 
 /**
+ * Converts URL to string, preserving explicit default ports
+ * Uses url.port to detect if a non-default port was explicitly set
+ */
+const buildFinalUrl = (url: URL, originalUrl: string): string => {
+  const baseUrl = url.toString();
+
+  // If URL already has a non-default port, it's preserved by toString()
+  if (url.port) {
+    return baseUrl;
+  }
+
+  // Check if original URL had an explicit default port that was normalized away
+  // Match port in authority section (after //) or at start (for URLs without protocol)
+  const portMatch = originalUrl.match(/(?:\/\/|^)[^/:]+:(\d+)/);
+  if (portMatch) {
+    const explicitPort = portMatch[1];
+    // Only restore if it's a default port that was dropped
+    if ((url.protocol === 'https:' && explicitPort === '443') ||
+        (url.protocol === 'http:' && explicitPort === '80')) {
+      return baseUrl.replace(url.host, `${url.hostname}:${explicitPort}`);
+    }
+  }
+
+  return baseUrl;
+};
+
+/**
  * Sanitizes and constructs a proper Exchange Web Services (EWS) URL
  * Handles various input formats and edge cases to prevent URL construction errors
  *
@@ -156,7 +183,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     // Normalize and construct EWS path using URL properties
     buildEwsPathname(url);
 
-    const sanitizedUrl = url.toString();
+    const sanitizedUrl = buildFinalUrl(url, serverUrl);
 
     outlookLog('URL sanitization completed:', {
       input: serverUrl,
@@ -216,16 +243,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
       // Use the same clean path construction as main logic
       buildEwsPathname(url);
 
-      // Preserve explicit port if it was in the original URL
-      let finalUrl = url.toString();
-      const portMatch = serverUrl.match(/:(\d+)/);
-      if (portMatch && !url.port) {
-        const port = portMatch[1];
-        if ((url.protocol === 'https:' && port === '443') ||
-            (url.protocol === 'http:' && port === '80')) {
-          finalUrl = finalUrl.replace(url.host, `${url.hostname}:${port}`);
-        }
-      }
+      const finalUrl = buildFinalUrl(url, serverUrl);
 
       outlookLog('Fallback URL construction successful:', {
         input: serverUrl,

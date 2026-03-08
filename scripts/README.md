@@ -109,8 +109,8 @@ Only build and install, don't run:
 
 #### Requirements
 
-- Linux operating system
-- `node.js` and `yarn` (or Volta - the script will install it automatically if needed)
+- Debian/Ubuntu-based Linux
+- `node.js` and `npm` (or Volta - the script will install it automatically if needed); Yarn is provided in-repo at `.yarn/releases/yarn-4.6.0.cjs`
 - `dpkg` and `apt-get` (standard on Debian/Ubuntu systems)
 - `curl` (for installing Volta if needed)
 - Sudo access (for installation, if not running as root)
@@ -119,7 +119,7 @@ Only build and install, don't run:
 
 The script automatically installs missing dependencies:
 
-- **Volta** (if node.js/yarn not found) - provides node.js and npm
+- **Volta** (if node.js/npm not found) - provides node.js and npm; Yarn is already bundled in the repository at `.yarn/releases/yarn-4.6.0.cjs`
 - **binutils** (if `ar` command not found) - required for building .deb packages
 - **Package dependencies** - automatically resolved during .deb installation
 

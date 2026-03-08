@@ -116,7 +116,7 @@ sequenceDiagram
     Desktop->>Delay: Move to Cloud
 ```
 
-**Total wait per source**: Up to 6 seconds (3 attempts × 2s delays)
+**Total wait per source**: Up to 4 seconds (3 attempts with 2 waits × 2s delays)
 
 ---
 
@@ -332,16 +332,18 @@ timeline
     4s: Wait 2s
     6s: Server attempt 3 timeout
     6s: Try Cloud
-    8s: Cloud timeout (no network)
-    8s: Try Cloud attempt 2
-    10s: Cloud timeout again
-    10s: Try localStorage
-    10s: Found cached data ✓
-    10s: fetchState = error
-    10s: User sees webview (using cache)
+    8s: Cloud attempt 1 timeout
+    8s: Wait 2s
+    10s: Cloud attempt 2 timeout
+    10s: Wait 2s
+    12s: Cloud attempt 3 timeout
+    12s: Try localStorage
+    12s: Found cached data ✓
+    12s: fetchState = error
+    12s: User sees webview (using cache)
 ```
 
-**Total time**: ~10 seconds
+**Total time**: ~12 seconds
 **Result**: User can work, using last-known-good data
 
 ---
@@ -580,7 +582,7 @@ stateDiagram-v2
 
 ### Key Principles
 
-1. **Blocking decision**: Block only on fresh `success` state with confirmed unsupported version. Allow on `loading` or `error` states.
+1. **Blocking decision**: Block only on fresh `success` state with confirmed unsupported version. Allow on `loading` state. On `error` state, block if fallback data (cache or builtin) confirms unsupported version.
 
 2. **Validation throttle**: Expensive validation checks run max once per 30 minutes per server. Reduces API load while maintaining accuracy.
 

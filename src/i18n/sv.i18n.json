@@ -292,8 +292,8 @@
         "description": "Spara och återställ position och storlek för videosamtalsfönster mellan sessioner"
       },
       "transparentWindow": {
-        "title": "Transparent fönstereffekt",
-        "description": "Aktivera inbyggd vibrans/transparenseffekt för fönstret. Kräver omstart för att tillämpas."
+        "title": "Genomskinlig fönstereffekt",
+        "description": "Aktivera inbyggd vibrans/genomskinlighetseffekt för fönstret. Kräver omstart för att tillämpa."
       },
       "themeAppearance": {
         "title": "Tema",

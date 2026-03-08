@@ -212,7 +212,7 @@ const start = async () => {
       // External link
       if (url.startsWith('http://') || url.startsWith('https://')) {
         event.preventDefault();
-        window.RocketChatDesktop.openExternal(url);
+        window.RocketChatDesktop?.openExternal(url);
       }
     },
     true

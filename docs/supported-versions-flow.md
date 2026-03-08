@@ -133,7 +133,7 @@ graph TD
 
     CheckState -->|loading| Allow2["✅ ALLOW<br/>Still fetching, not proven"]
     CheckState -->|success| Block["❌ BLOCK<br/>Fresh data confirms unsupported"]
-    CheckState -->|error| Block2["❌ BLOCK<br/>Even fallback confirms unsupported"]
+    CheckState -->|error| Block2["❌ BLOCK<br/>Block if fallback confirms unsupported; otherwise allow (uncertain data)"]
 
     style Allow fill:#c8e6c9
     style Allow2 fill:#c8e6c9
@@ -480,7 +480,7 @@ The app constructs API URLs with proper URL encoding to ensure reliable server c
 
 The Cloud API endpoint requires a valid **domain** (not IP address) to look up server-specific version policies:
 
-```
+```text
 https://releases.rocket.chat/v2/server/supportedVersions?domain={domain}&uniqueId={uniqueId}&source=desktop
 ```
 

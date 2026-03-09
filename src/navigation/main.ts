@@ -1,3 +1,4 @@
+import { X509Certificate } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
@@ -45,18 +46,13 @@ const isHostnameValid = (
   certificate: Certificate,
   hostname: string
 ): boolean => {
-  const san = certificate.subjectAltName;
-
-  if (san) {
-    const names = san.split(', ').map((s: string) => s.replace(/^DNS:/, ''));
-
-    if (names.includes(hostname)) {
-      return true;
-    }
+  try {
+    const x509 = new X509Certificate(certificate.data);
+    const cleanHost = hostname.split(':')[0];
+    return x509.checkHost(cleanHost) !== undefined;
+  } catch {
+    return false;
   }
-
-  const cn = certificate.subject?.CN;
-  return cn === hostname;
 };
 
 const queuedTrustRequests = new Map<
@@ -72,8 +68,11 @@ export const setupNavigation = async (): Promise<void> => {
 
       const { host } = new URL(requestedUrl);
 
-      // Check if hostname is valid according to certificate SAN/CN
-      if (isHostnameValid(certificate, host)) {
+      // Only bypass hostname mismatch errors
+      if (
+        error === 'net::ERR_CERT_COMMON_NAME_INVALID' &&
+        isHostnameValid(certificate, host)
+      ) {
         callback(true);
         return;
       }

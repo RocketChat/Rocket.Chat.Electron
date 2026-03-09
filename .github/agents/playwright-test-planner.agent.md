@@ -2,27 +2,7 @@
 name: playwright-test-planner
 description: Use this agent when you need to create comprehensive test plan for a web application or website
 tools:
-  - search
-  - playwright-test/browser_click
-  - playwright-test/browser_close
-  - playwright-test/browser_console_messages
-  - playwright-test/browser_drag
-  - playwright-test/browser_evaluate
-  - playwright-test/browser_file_upload
-  - playwright-test/browser_handle_dialog
-  - playwright-test/browser_hover
-  - playwright-test/browser_navigate
-  - playwright-test/browser_navigate_back
-  - playwright-test/browser_network_requests
-  - playwright-test/browser_press_key
-  - playwright-test/browser_run_code
-  - playwright-test/browser_select_option
-  - playwright-test/browser_snapshot
-  - playwright-test/browser_take_screenshot
-  - playwright-test/browser_type
-  - playwright-test/browser_wait_for
-  - playwright-test/planner_setup_page
-  - playwright-test/planner_save_plan
+  [vscode/getProjectSetupInfo, vscode/installExtension, vscode/newWorkspace, vscode/openSimpleBrowser, vscode/runCommand, vscode/askQuestions, vscode/vscodeAPI, vscode/extensions, execute/runNotebookCell, execute/testFailure, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runTests, read/getNotebookSummary, read/problems, read/readFile, read/terminalSelection, read/terminalLastCommand, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/usages, web/fetch, web/githubRepo, playwright/browser_click, playwright/browser_close, playwright/browser_console_messages, playwright/browser_drag, playwright/browser_evaluate, playwright/browser_file_upload, playwright/browser_fill_form, playwright/browser_handle_dialog, playwright/browser_hover, playwright/browser_install, playwright/browser_navigate, playwright/browser_navigate_back, playwright/browser_network_requests, playwright/browser_press_key, playwright/browser_resize, playwright/browser_run_code, playwright/browser_select_option, playwright/browser_snapshot, playwright/browser_tabs, playwright/browser_take_screenshot, playwright/browser_type, playwright/browser_wait_for, playwright-electron/browser_click, playwright-electron/browser_close, playwright-electron/browser_console_messages, playwright-electron/browser_drag, playwright-electron/browser_file_upload, playwright-electron/browser_generate_playwright_test, playwright-electron/browser_handle_dialog, playwright-electron/browser_hover, playwright-electron/browser_install, playwright-electron/browser_navigate, playwright-electron/browser_navigate_back, playwright-electron/browser_navigate_forward, playwright-electron/browser_network_requests, playwright-electron/browser_pdf_save, playwright-electron/browser_press_key, playwright-electron/browser_resize, playwright-electron/browser_select_option, playwright-electron/browser_snapshot, playwright-electron/browser_tab_close, playwright-electron/browser_tab_list, playwright-electron/browser_tab_new, playwright-electron/browser_tab_select, playwright-electron/browser_take_screenshot, playwright-electron/browser_type, playwright-electron/browser_wait_for, playwright-electron/electron_browser_window, playwright-electron/electron_evaluate, playwright-electron/electron_first_window, playwright-electron/electron_windows, playwright/browser_click, playwright/browser_close, playwright/browser_console_messages, playwright/browser_drag, playwright/browser_evaluate, playwright/browser_file_upload, playwright/browser_fill_form, playwright/browser_handle_dialog, playwright/browser_hover, playwright/browser_install, playwright/browser_navigate, playwright/browser_navigate_back, playwright/browser_network_requests, playwright/browser_press_key, playwright/browser_resize, playwright/browser_run_code, playwright/browser_select_option, playwright/browser_snapshot, playwright/browser_tabs, playwright/browser_take_screenshot, playwright/browser_type, playwright/browser_wait_for, todo]
 model: Claude Sonnet 4
 mcp-servers:
   playwright-test:

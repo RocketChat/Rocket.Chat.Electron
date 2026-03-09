@@ -1,9 +1,9 @@
-import { test, expect } from './fixtures/base';
+import { test, expect } from './fixtures/web-base';
 
 test.describe('Seed For Logged In Users', () => {
-  test('Seed Using Fixture', async ({ webviewPage }) => {
+  test('Seed Using Fixture', async ({ homePage }) => {
 
-    const page = webviewPage;
+    const page = homePage;
 
 
   });

@@ -92,14 +92,17 @@ export const updateWindowsYamlChecksums = async (
     // Update the main path file checksum (usually the primary installer)
     if (yamlData.path) {
       const mainFilePath = path.join(distPath, yamlData.path);
-      if (fs.existsSync(mainFilePath)) {
-        const mainChecksum = calculateSHA512(mainFilePath);
-        if (yamlData.sha512 !== mainChecksum) {
-          core.info(`Updating main installer ${yamlData.path}:`);
-          core.info(`  Old SHA512: ${yamlData.sha512}`);
-          core.info(`  New SHA512: ${mainChecksum}`);
-          yamlData.sha512 = mainChecksum;
-        }
+      if (!fs.existsSync(mainFilePath)) {
+        throw new Error(
+          `Primary installer referenced by latest.yml was not found: ${yamlData.path}`
+        );
+      }
+      const mainChecksum = calculateSHA512(mainFilePath);
+      if (yamlData.sha512 !== mainChecksum) {
+        core.info(`Updating main installer ${yamlData.path}:`);
+        core.info(`  Old SHA512: ${yamlData.sha512}`);
+        core.info(`  New SHA512: ${mainChecksum}`);
+        yamlData.sha512 = mainChecksum;
       }
     }
 

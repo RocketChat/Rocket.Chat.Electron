@@ -519,10 +519,10 @@ export const showRootWindow = async (): Promise<void> => {
   // Handle renderer process crashes
   browserWindow.webContents.on(
     'render-process-gone',
-    async (event, details) => {
+    async (_event, details) => {
       console.error('Renderer process crashed:', details.reason);
       try {
-        const session = browserWindow.webContents.session;
+        const { session } = browserWindow.webContents;
         await session.clearCache();
         await session.clearStorageData();
         console.log('Cache cleared. Reloading window...');

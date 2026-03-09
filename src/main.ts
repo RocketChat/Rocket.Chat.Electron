@@ -146,6 +146,11 @@ const start = async (): Promise<void> => {
   checkSupportedVersionServers();
 
   handle('open-external', async (_webContents, url) => {
+    const { isProtocolAllowed } = await import('./navigation/main');
+    if (!(await isProtocolAllowed(url))) {
+      console.error('Blocked external URL:', url);
+      return;
+    }
     await openExternal(url);
   });
 

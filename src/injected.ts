@@ -201,18 +201,19 @@ const start = async () => {
         return;
       }
 
-      const url = link.href;
-      const currentOrigin = window.location.origin;
+      try {
+        const parsedUrl = new URL(link.href);
 
-      // If it is an internal Rocket.Chat link, allow normal navigation
-      if (url.startsWith(currentOrigin)) {
-        return;
-      }
+        if (parsedUrl.origin === window.location.origin) {
+          return;
+        }
 
-      // External link
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        event.preventDefault();
-        window.RocketChatDesktop?.openExternal(url);
+        if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+          event.preventDefault();
+          void window.RocketChatDesktop?.openExternal(parsedUrl.toString());
+        }
+      } catch {
+        // Invalid URL, ignore
       }
     },
     true

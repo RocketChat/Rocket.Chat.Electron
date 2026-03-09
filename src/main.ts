@@ -148,7 +148,7 @@ const start = async (): Promise<void> => {
   handle('open-external', async (_webContents, url) => {
     const { isProtocolAllowed } = await import('./navigation/main');
     if (!(await isProtocolAllowed(url))) {
-      console.error('Blocked external URL:', url);
+      console.warn('Blocked external URL with disallowed protocol');
       return;
     }
     await openExternal(url);

@@ -516,6 +516,20 @@ export const setupRootWindow = (): void => {
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
 
+  // Handle renderer process crashes
+  browserWindow.webContents.on('render-process-gone', async (event, details) => {
+    console.error('Renderer process crashed:', details.reason);
+    try {
+      const session = browserWindow.webContents.session;
+      await session.clearCache();
+      await session.clearStorageData();
+      console.log('Cache cleared. Reloading window...');
+      browserWindow.reload();
+    } catch (error) {
+      console.error('Failed to recover from crash:', error);
+    }
+  });
+
   browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
   if (process.env.NODE_ENV === 'development') {

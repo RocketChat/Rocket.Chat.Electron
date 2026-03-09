@@ -41,13 +41,14 @@ const loadUserTrustedCertificates = async (): Promise<
 const serializeCertificate = (certificate: Certificate): string =>
   `${certificate.issuerName}\n${certificate.data.toString()}`;
 
-const isHostnameValid = (certificate: Certificate, hostname: string): boolean => {
+const isHostnameValid = (
+  certificate: Certificate,
+  hostname: string
+): boolean => {
   const san = certificate.subjectAltName;
 
   if (san) {
-    const names = san
-      .split(', ')
-      .map((s: string) => s.replace(/^DNS:/, ''));
+    const names = san.split(', ').map((s: string) => s.replace(/^DNS:/, ''));
 
     if (names.includes(hostname)) {
       return true;

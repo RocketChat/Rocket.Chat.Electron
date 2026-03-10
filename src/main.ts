@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, shell } from 'electron';
 
 import {
   performElectronStartup,
@@ -18,6 +18,7 @@ import { setupDownloads } from './downloads/main';
 import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
+import { handle } from './ipc/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
 import {
@@ -26,7 +27,7 @@ import {
   cleanupOldLogs,
   setupDebugLoggingWatch,
 } from './logging';
-import { setupNavigation } from './navigation/main';
+import { setupNavigation, isProtocolAllowed } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
 import {
@@ -54,6 +55,7 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
+import { openExternal } from './utils/browserLauncher';
 import {
   handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
@@ -101,6 +103,30 @@ const start = async (): Promise<void> => {
   createRootWindow();
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
+
+  handle('open-external', async (_webContents, rawUrl) => {
+    let url: URL;
+
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      console.warn('Blocked malformed external URL');
+      return;
+    }
+
+    if (!(await isProtocolAllowed(url.toString()))) {
+      console.warn('Blocked external URL with disallowed protocol');
+      return;
+    }
+
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      await openExternal(url.toString());
+      return;
+    }
+
+    await shell.openExternal(url.toString());
+  });
+
   await showRootWindow();
 
   // Mark main window as stable - GPU crashes after this won't trigger fallback

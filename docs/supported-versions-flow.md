@@ -116,7 +116,7 @@ sequenceDiagram
     Desktop->>Delay: Move to Cloud
 ```
 
-**Total wait per source**: Up to 6 seconds (3 attempts × 2s delays)
+**Total wait per source**: Up to 4 seconds (3 attempts with 2 waits × 2s delays)
 
 ---
 
@@ -133,7 +133,7 @@ graph TD
 
     CheckState -->|loading| Allow2["✅ ALLOW<br/>Still fetching, not proven"]
     CheckState -->|success| Block["❌ BLOCK<br/>Fresh data confirms unsupported"]
-    CheckState -->|error| Block2["❌ BLOCK<br/>Even fallback confirms unsupported"]
+    CheckState -->|error| Block2["❌ BLOCK<br/>Block if fallback confirms unsupported; otherwise allow (uncertain data)"]
 
     style Allow fill:#c8e6c9
     style Allow2 fill:#c8e6c9
@@ -165,12 +165,12 @@ timeline
 
 ### Throttle Behavior
 
-| Navigation | Time Since Last Validation | Action |
-|-----------|---------------------------|--------|
-| First load | N/A | ✅ Run full validation |
-| Within 30 minutes | < 30 min | ⏸️ Skip validation, check 12h timer |
-| After 30 minutes | ≥ 30 min | ✅ Run full validation again |
-| Dialog showing timing | Independent | ✅ Can show if 12h passed, even within throttle |
+| Navigation            | Time Since Last Validation | Action                                          |
+| --------------------- | -------------------------- | ----------------------------------------------- |
+| First load            | N/A                        | ✅ Run full validation                          |
+| Within 30 minutes     | < 30 min                   | ⏸️ Skip validation, check 12h timer             |
+| After 30 minutes      | ≥ 30 min                   | ✅ Run full validation again                    |
+| Dialog showing timing | Independent                | ✅ Can show if 12h passed, even within throttle |
 
 ### Benefits
 
@@ -212,23 +212,27 @@ graph TD
 ```
 
 **Modal shows when**:
+
 - `supportedVersions` data exists AND
 - `fetchState !== 'loading'` (not actively fetching) AND
 - 12 hours have passed since last shown (independent timer) AND
 - Server version is expiring soon (has expiration message)
 
 **Modal skips when**:
+
 - No data available (`supportedVersions` undefined)
 - Currently fetching (`fetchState === 'loading'`)
 - Within 12-hour display suppression window (shows max once per 12 hours)
 
 **Data sources that trigger modal**:
+
 - ✅ Fresh server data (`fetchState === 'success'`)
 - ✅ Fresh cloud data (`fetchState === 'success'`)
 - ✅ Stale cached data (`fetchState === 'error'`)
 - ✅ Generic builtin fallback (`fetchState === 'error'`)
 
 **Key difference from blocking overlay**:
+
 - **Overlay blocks access** - only when definitely unsupported with fresh data
 - **Modal warns users** - shows expiration info from any available data, but not while actively loading
 - **Modal has separate suppression** - shows max once per 12 hours independent of validation throttle
@@ -268,6 +272,7 @@ localStorage['supportedVersions:https://chat.example.com'] = {
 ```
 
 **New field `supportedVersionsValidatedAt`**:
+
 - Tracks when the last version validation check occurred
 - Used to implement 30-minute validation throttle (see "Validation Throttling" section)
 - Independent from the 12-hour dialog suppression timer
@@ -327,16 +332,18 @@ timeline
     4s: Wait 2s
     6s: Server attempt 3 timeout
     6s: Try Cloud
-    8s: Cloud timeout (no network)
-    8s: Try Cloud attempt 2
-    10s: Cloud timeout again
-    10s: Try localStorage
-    10s: Found cached data ✓
-    10s: fetchState = error
-    10s: User sees webview (using cache)
+    8s: Cloud attempt 1 timeout
+    8s: Wait 2s
+    10s: Cloud attempt 2 timeout
+    10s: Wait 2s
+    12s: Cloud attempt 3 timeout
+    12s: Try localStorage
+    12s: Found cached data ✓
+    12s: fetchState = error
+    12s: User sees webview (using cache)
 ```
 
-**Total time**: ~10 seconds
+**Total time**: ~12 seconds
 **Result**: User can work, using last-known-good data
 
 ---
@@ -463,7 +470,7 @@ The app constructs API URLs with proper URL encoding to ensure reliable server c
 ```typescript
 // Query parameter for uniqueID lookup (< v7.0.0)
 // ✅ Properly encoded:
-`${serverUrl}api/v1/settings.public?query=${encodeURIComponent(JSON.stringify({ _id: 'uniqueID' }))}`
+`${serverUrl}api/v1/settings.public?query=${encodeURIComponent(JSON.stringify({ _id: 'uniqueID' }))}`;
 // Results in: ?query=%7B%22_id%22%3A%20%22uniqueID%22%7D
 
 // ❌ Would fail if unencoded (causes "Invalid query parameter" errors):
@@ -471,6 +478,7 @@ The app constructs API URLs with proper URL encoding to ensure reliable server c
 ```
 
 **Why encoding matters**:
+
 - Servers validate query parameters strictly
 - Special characters in JSON (quotes, braces) must be URL-encoded
 - Without encoding, older Rocket.Chat versions (especially v6.x) reject the request
@@ -480,22 +488,25 @@ The app constructs API URLs with proper URL encoding to ensure reliable server c
 
 The Cloud API endpoint requires a valid **domain** (not IP address) to look up server-specific version policies:
 
-```
+```text
 https://releases.rocket.chat/v2/server/supportedVersions?domain={domain}&uniqueId={uniqueId}&source=desktop
 ```
 
 **Domain requirement**:
+
 - ✅ Works: `domain=chat.company.com`
 - ✅ Works: `domain=ngrok-provided-url.ngrok.io` (tunneled service)
 - ❌ Fails: `domain=192.168.1.100:3000` (IP addresses not recognized by Cloud API)
 - ❌ Fails: `domain=192.168.1.100:3000:3620` (malformed)
 
 **Workarounds for local/internal servers**:
+
 1. Use a reverse proxy with domain routing (ngrok, Caddy, nginx)
 2. Add DNS record pointing to the server IP
 3. Configure local `/etc/hosts` entry if only for local access
 
 **Impact when domain is unavailable**:
+
 - Cloud API returns generic/default version policies
 - Server may not be correctly identified
 - Version validation uses fallback data (cache or builtin)
@@ -551,27 +562,27 @@ stateDiagram-v2
 
 ### Fetch Scenarios
 
-| Scenario | Server | Cloud | Cache | Builtin | Result | Time |
-|----------|--------|-------|-------|---------|--------|------|
-| Fast network | ✓ | - | - | - | Allow/Block based on data | ~1s |
-| Slow server | ✗ | ✓ | - | - | Allow/Block based on data | ~7s |
-| Offline + cache | ✗ | ✗ | ✓ | - | ALLOW (uncertain) | ~10s |
-| Offline + no cache | ✗ | ✗ | ✗ | ✓ | Allow/Block based on builtin | ~12s |
-| Airgapped | ✓ | ✗ | - | - | Allow/Block (Cloud skipped) | ~1s |
+| Scenario           | Server | Cloud | Cache | Builtin | Result                       | Time |
+| ------------------ | ------ | ----- | ----- | ------- | ---------------------------- | ---- |
+| Fast network       | ✓      | -     | -     | -       | Allow/Block based on data    | ~1s  |
+| Slow server        | ✗      | ✓     | -     | -       | Allow/Block based on data    | ~7s  |
+| Offline + cache    | ✗      | ✗     | ✓     | -       | ALLOW (uncertain)            | ~10s |
+| Offline + no cache | ✗      | ✗     | ✗     | ✓       | Allow/Block based on builtin | ~12s |
+| Airgapped          | ✓      | ✗     | -     | -       | Allow/Block (Cloud skipped)  | ~1s  |
 
 ### Validation Throttle Scenarios
 
-| Scenario | Last Validation | Time Elapsed | Action |
-|----------|-----------------|--------------|--------|
-| First navigation | None | N/A | ✅ Run full validation |
-| Subsequent nav (quick) | 5 min ago | 5 min | ⏸️ Skip validation (within 30 min) |
-| Subsequent nav (delayed) | 35 min ago | 35 min | ✅ Run validation (30 min passed) |
-| Server reload | Any time | Any time | ✅ Always validate (bypass throttle) |
-| Dialog dismissed | Any time | Any time | ✅ Always validate (bypass throttle) |
+| Scenario                 | Last Validation | Time Elapsed | Action                               |
+| ------------------------ | --------------- | ------------ | ------------------------------------ |
+| First navigation         | None            | N/A          | ✅ Run full validation               |
+| Subsequent nav (quick)   | 5 min ago       | 5 min        | ⏸️ Skip validation (within 30 min)   |
+| Subsequent nav (delayed) | 35 min ago      | 35 min       | ✅ Run validation (30 min passed)    |
+| Server reload            | Any time        | Any time     | ✅ Always validate (bypass throttle) |
+| Dialog dismissed         | Any time        | Any time     | ✅ Always validate (bypass throttle) |
 
 ### Key Principles
 
-1. **Blocking decision**: Block only on fresh `success` state with confirmed unsupported version. Allow on `loading` or `error` states.
+1. **Blocking decision**: Block only on fresh `success` state with confirmed unsupported version. Allow on `loading` state. On `error` state, block if fallback data (cache or builtin) confirms unsupported version.
 
 2. **Validation throttle**: Expensive validation checks run max once per 30 minutes per server. Reduces API load while maintaining accuracy.
 

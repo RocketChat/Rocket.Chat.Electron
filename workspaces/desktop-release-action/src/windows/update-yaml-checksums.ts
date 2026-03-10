@@ -93,9 +93,7 @@ export const updateWindowsYamlChecksums = async (
     if (yamlData.path) {
       const mainFilePath = path.join(distPath, yamlData.path);
       if (!fs.existsSync(mainFilePath)) {
-        throw new Error(
-          `Primary installer referenced by latest.yml was not found: ${yamlData.path}`
-        );
+        throw new Error(`Artifact not found: ${yamlData.path}`);
       }
       const mainChecksum = calculateSHA512(mainFilePath);
       if (yamlData.sha512 !== mainChecksum) {

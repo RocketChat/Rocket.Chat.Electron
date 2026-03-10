@@ -370,6 +370,7 @@
       "timeout": "Tiempo de espera agotado - la videollamada no pudo cargar en 15 segundos",
       "crashed": "Webview se ha bloqueado",
       "maxRetriesReached": "Error al cargar después de múltiples intentos",
+      "noUrl": "No se proporcionó URL de videollamada",
       "reload": "Recargar videollamada"
     }
   },

@@ -51,6 +51,7 @@ export const installJsign = async (): Promise<void> => {
     core.addPath(javaBinPath);
     process.env.PATH = `${javaBinPath};${process.env.PATH}`;
     process.env.JAVA_HOME = javaHome.trim();
+    core.exportVariable('JAVA_HOME', javaHome.trim());
   } else {
     throw new Error('Java installation not found or JAVA_HOME not set');
   }

@@ -536,6 +536,11 @@ export const showRootWindow = async (): Promise<void> => {
           return;
         }
 
+        if (browserWindow.isDestroyed()) {
+          app.quit();
+          return;
+        }
+
         try {
           const { session } = browserWindow.webContents;
           await session.clearCache();

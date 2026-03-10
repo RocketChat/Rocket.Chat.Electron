@@ -21,9 +21,10 @@ type ServerPaneProps = {
   isSelected: boolean;
   isFailed: boolean;
   isSupported: boolean | undefined;
+  supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   title: string | undefined;
   documentViewerOpenUrl: string | undefined;
-  themeAppearance: string | undefined;
+  userLoggedIn?: boolean;
 };
 
 export const ServerPane = ({
@@ -32,8 +33,9 @@ export const ServerPane = ({
   isSelected,
   isFailed,
   isSupported,
+  supportedVersionsFetchState,
   documentViewerOpenUrl,
-  themeAppearance,
+  userLoggedIn,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -140,10 +142,12 @@ export const ServerPane = ({
       return;
     }
 
-    if (!webview.src) {
+    const shouldLoad = isSelected || userLoggedIn !== false;
+
+    if (!webview.src && shouldLoad) {
       webview.src = lastPath || serverUrl;
     }
-  }, [lastPath, serverUrl]);
+  }, [lastPath, serverUrl, isSelected, userLoggedIn]);
 
   useEffect(() => {
     const webview = webviewRef.current;
@@ -210,11 +214,11 @@ export const ServerPane = ({
           url={documentViewerOpenUrl || ''}
           partition={`persist:${serverUrl}`}
           closeDocumentViewer={closeDocumentViewer}
-          themeAppearance={themeAppearance}
         />
       </DocumentViewerWrapper>
       <UnsupportedServer
         isSupported={isSupported}
+        fetchState={supportedVersionsFetchState}
         instanceDomain={new URL(serverUrl).hostname}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />

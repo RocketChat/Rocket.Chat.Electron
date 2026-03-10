@@ -62,12 +62,21 @@ export const mergePersistableValues = async (
     })
   );
 
+  const {
+    outlookCalendarSyncInterval: _udSync,
+    ...userDataPersistableOverrides
+  } = userDataOverriddenSettings;
+  const {
+    outlookCalendarSyncInterval: _aaSync,
+    ...appAsarPersistableOverrides
+  } = appAsarOverriddenSettings;
+
   let values = selectPersistableValues({
     ...initialValues,
     ...electronStoreValues,
     ...localStorageValues,
-    ...userDataOverriddenSettings,
-    ...appAsarOverriddenSettings,
+    ...userDataPersistableOverrides,
+    ...appAsarPersistableOverrides,
   });
 
   if (localStorage.autohideMenu) {
@@ -153,9 +162,39 @@ export const mergePersistableValues = async (
     },
   };
 
+  if (!values.isMenuBarEnabled && !values.isSideBarEnabled) {
+    values = {
+      ...values,
+      isSideBarEnabled: true,
+    };
+  }
+
+  const mergedOverrides: Record<string, unknown> = {
+    ...userDataOverriddenSettings,
+    ...appAsarOverriddenSettings,
+  };
+
+  const outlookCalendarSyncIntervalOverride =
+    mergedOverrides.outlookCalendarSyncInterval !== undefined
+      ? (() => {
+          const raw = Number(mergedOverrides.outlookCalendarSyncInterval);
+          return Number.isFinite(raw) && Number.isInteger(raw)
+            ? Math.max(1, Math.min(60, raw))
+            : 60;
+        })()
+      : null;
+
   dispatch({
     type: APP_SETTINGS_LOADED,
-    payload: values,
+    payload: {
+      ...values,
+      allowInsecureOutlookConnections:
+        mergedOverrides.allowInsecureOutlookConnections === true ||
+        String(
+          mergedOverrides.allowInsecureOutlookConnections
+        ).toLowerCase() === 'true',
+      outlookCalendarSyncIntervalOverride,
+    },
   });
 };
 

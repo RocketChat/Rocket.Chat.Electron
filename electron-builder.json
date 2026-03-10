@@ -6,11 +6,12 @@
     "name": "Rocket.Chat",
     "schemes": ["rocketchat"]
   },
+  "afterPack": "./build/afterPack.js",
   "mac": {
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "25041",
+    "bundleVersion": "26031",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",
@@ -22,7 +23,9 @@
     },
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
-    "provisioningProfile": "Desktop.provisionprofile"
+    "provisioningProfile": "Desktop.provisionprofile",
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist"
   },
   "dmg": {
     "background": "build/background.png",
@@ -56,15 +59,15 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64", "ia32"]
+        "arch": ["x64", "ia32", "arm64"]
       },
       {
         "target": "msi",
-        "arch": ["x64", "ia32"]
+        "arch": ["x64", "ia32", "arm64"]
       },
       {
         "target": "zip",
-        "arch": ["x64", "ia32"]
+        "arch": ["x64", "ia32", "arm64"]
       }
     ],
     "icon": "build/icon.ico",
@@ -72,7 +75,12 @@
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
+    "signtoolOptions": {
+      "sign": "./build/winSignKms.js",
+      "signingHashAlgorithms": ["sha256"],
+      "timeStampServer": "http://timestamp.digicert.com"
+    }
   },
   "nsis": {
     "oneClick": false,
@@ -95,6 +103,10 @@
     "createStartMenuShortcut": true,
     "menuCategory": false
   },
+  "msi": {
+    "warningsAsErrors": false,
+    "additionalWixArgs": ["-sval"]
+  },
   "appx": {
     "backgroundColor": "#2f343d",
     "languages": ["en-US", "en-GB", "pt-BR"],
@@ -113,27 +125,31 @@
         "Name": "Rocket.Chat",
         "Comment": "Official Rocket.Chat Desktop Client",
         "GenericName": "Rocket.Chat",
-        "Categories": "GNOME;GTK;Network;InstantMessaging",
-        "StartupWMClass": "Rocket.Chat",
-        "MimeType": "x-scheme-handler/rocketchat"
+        "Categories": "GNOME;GTK;Network;InstantMessaging"
       }
     },
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "deb": {
-    "fpm": [
-      "--after-install=build/linux/postinst.sh"
-    ]
+    "fpm": ["--after-install=build/linux/postinst.sh"],
+    "recommends": ["xdg-desktop-portal", "xdg-desktop-portal-gtk"]
   },
   "rpm": {
-    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
+    "fpm": [
+      "--rpm-rpmbuild-define=_build_id_links none",
+      "--rpm-tag=Recommends: xdg-desktop-portal",
+      "--rpm-tag=Recommends: xdg-desktop-portal-gtk"
+    ]
   },
   "snap": {
+    "base": "core22",
+    "allowNativeWayland": false,
     "plugs": [
       "desktop",
       "desktop-legacy",
       "home",
       "x11",
+      "wayland",
       "unity7",
       "browser-support",
       "network",
@@ -144,7 +160,8 @@
       "audio-playback",
       "audio-record",
       "screen-inhibit-control",
-      "upower-observe"
+      "upower-observe",
+      "pipewire"
     ]
   },
   "afterSign": "./build/notarize.js",

@@ -67,15 +67,6 @@ export const setupNavigation = async (): Promise<void> => {
 
       const { host, hostname } = new URL(requestedUrl);
 
-      // Only bypass hostname mismatch errors
-      if (
-        error === 'net::ERR_CERT_COMMON_NAME_INVALID' &&
-        isHostnameValid(certificate, hostname)
-      ) {
-        callback(true);
-        return;
-      }
-
       const serialized = serializeCertificate(certificate);
 
       let trustedCertificates = select(
@@ -100,6 +91,15 @@ export const setupNavigation = async (): Promise<void> => {
 
       if (isNotTrusted) {
         callback(false);
+        return;
+      }
+
+      // Only bypass hostname mismatch errors
+      if (
+        error === 'net::ERR_CERT_COMMON_NAME_INVALID' &&
+        isHostnameValid(certificate, hostname)
+      ) {
+        callback(true);
         return;
       }
 

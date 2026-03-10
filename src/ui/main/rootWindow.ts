@@ -524,7 +524,17 @@ export const showRootWindow = async (): Promise<void> => {
       try {
         const { session } = browserWindow.webContents;
         await session.clearCache();
-        await session.clearStorageData();
+        await session.clearStorageData({
+          storages: [
+            'cookies',
+            'indexdb',
+            'filesystem',
+            'shadercache',
+            'websql',
+            'serviceworkers',
+            'cachestorage',
+          ],
+        });
         console.log('Cache cleared. Reloading window...');
         browserWindow.reload();
       } catch (error) {

@@ -1,6 +1,6 @@
-import { Box, IconButton, Tabs } from '@rocket.chat/fuselage';
+import { Box, IconButton, Scrollable, Tabs } from '@rocket.chat/fuselage';
 import '@rocket.chat/fuselage-polyfills';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -8,6 +8,7 @@ import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import { CertificatesTab } from './CertificatesTab';
+import { DeveloperTab } from './DeveloperTab';
 import { GeneralTab } from './GeneralTab';
 
 export const SettingsView = () => {
@@ -26,6 +27,16 @@ export const SettingsView = () => {
     ({ lastSelectedServerUrl }: RootState) => lastSelectedServerUrl
   );
 
+  const isDeveloperModeEnabled = useSelector(
+    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
+  );
+
+  useEffect(() => {
+    if (!isDeveloperModeEnabled && currentTab === 'developer') {
+      setCurrentTab('general');
+    }
+  }, [isDeveloperModeEnabled, currentTab]);
+
   const handleBackButton = function (): void {
     dispatch({
       type: DOWNLOADS_BACK_BUTTON_CLICKED,
@@ -40,7 +51,7 @@ export const SettingsView = () => {
       height='full'
       width='full'
       className='rcx-sidebar--main'
-      bg='light'
+      bg={process.platform === 'darwin' ? undefined : 'light'}
     >
       <Box
         width='full'
@@ -49,7 +60,7 @@ export const SettingsView = () => {
         flexDirection='row'
         flexWrap='nowrap'
         fontScale='h1'
-        color='font-default'
+        color='default'
       >
         {!isSideBarEnabled && (
           <IconButton icon='arrow-back' onClick={handleBackButton} />
@@ -70,11 +81,22 @@ export const SettingsView = () => {
         >
           {t('settings.certificates')}
         </Tabs.Item>
+        {isDeveloperModeEnabled && (
+          <Tabs.Item
+            selected={currentTab === 'developer'}
+            onClick={() => setCurrentTab('developer')}
+          >
+            {t('settings.developer')}
+          </Tabs.Item>
+        )}
       </Tabs>
-      <Box m='x24' overflowY='auto'>
-        {(currentTab === 'general' && <GeneralTab />) ||
-          (currentTab === 'certificates' && <CertificatesTab />)}
-      </Box>
+      <Scrollable>
+        <Box m='x24'>
+          {(currentTab === 'general' && <GeneralTab />) ||
+            (currentTab === 'certificates' && <CertificatesTab />) ||
+            (currentTab === 'developer' && <DeveloperTab />)}
+        </Box>
+      </Scrollable>
     </Box>
   );
 };

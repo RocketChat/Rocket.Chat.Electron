@@ -1,0 +1,34 @@
+diff --git a/dist/ntlmProvider.js b/dist/ntlmProvider.js
+index df9a914110df069ad0a7b3cd4d07461a23aeee2a..e2dc5e7d8cd2e64823fea9fc4ec32fc258a20063 100644
+--- a/dist/ntlmProvider.js
++++ b/dist/ntlmProvider.js
+@@ -40,7 +40,11 @@ class NtlmProvider {
+         delete opt['data'];
+         delete opt['responseType'];
+         try {
+-            const response = await (0, axios_1.default)(opt).catch(err => err.response);
++            const response = await (0, axios_1.default)(opt).catch(err => {
++                if (err.response)
++                    return err.response;
++                throw err;
++            });
+             if (!response.headers['www-authenticate'])
+                 throw new Error('www-authenticate not found on response of second request');
+             let type2msg = (0, ntlm_client_1.decodeType2Message)(response.headers['www-authenticate']);
+diff --git a/src/ntlmProvider.ts b/src/ntlmProvider.ts
+index e6689cbef424452426ae46ca00cf34abcbb77b88..fb0a47127155229ab886adc39f1059e4ed2a2454 100644
+--- a/src/ntlmProvider.ts
++++ b/src/ntlmProvider.ts
+@@ -51,7 +51,11 @@ export class NtlmProvider implements IProvider {
+     delete opt['responseType'];
+ 
+     try {
+-      const response = await axios(opt).catch(err => err.response);
++      const response = await axios(opt).catch(err => {
++        if (err.response)
++          return err.response;
++        throw err;
++      });
+ 
+       if (!response.headers['www-authenticate'])
+         throw new Error('www-authenticate not found on response of second request');

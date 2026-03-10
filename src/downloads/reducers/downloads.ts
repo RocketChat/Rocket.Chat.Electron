@@ -41,9 +41,14 @@ export const downloads = (
     }
 
     case DOWNLOAD_UPDATED: {
+      const existingDownload = state[action.payload.itemId];
+      if (!existingDownload) {
+        return state; // Don't update if download doesn't exist
+      }
+
       const newState = { ...state };
       newState[action.payload.itemId] = {
-        ...newState[action.payload.itemId],
+        ...existingDownload,
         ...action.payload,
       };
       return newState;

@@ -1,6 +1,6 @@
 {
   "contextMenu": {
-    "cut": "Co&rtar",
+    "cut": "Cor&tar",
     "copy": "&Copiar",
     "paste": "&Pegar",
     "selectAll": "Seleccionar &todo",
@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Buscar actualizaciones al iniciar",
       "noUpdatesAvailable": "No hay actualizaciones disponibles.",
       "copyright": "Derechos de autor {{copyright}}",
-      "errorWhenLookingForUpdates": "Ha ocurrido un error al buscar actualizaciones"
+      "errorWhenLookingForUpdates": "Ha ocurrido un error al buscar actualizaciones",
+      "updateChannel": {
+        "label": "Canal de actualización",
+        "latest": "Estable",
+        "beta": "Beta",
+        "alpha": "Alfa (Experimental)"
+      }
     },
     "addServer": {
       "title": "Agregar servidor",
@@ -116,6 +122,28 @@
       "yes": "Permitir",
       "no": "Cancelar"
     },
+    "mediaPermission": {
+      "title": "Permiso de Medios Requerido",
+      "message": "El acceso al {{- permissionType}} está deshabilitado en la configuración de tu sistema.",
+      "detail": "Para habilitar las funciones de videollamada, por favor permite el acceso en la configuración de privacidad de tu sistema y luego reinicia la aplicación.",
+      "openSettings": "Abrir Configuración",
+      "cancel": "Cancelar",
+      "microphone": "Micrófono",
+      "camera": "Cámara",
+      "both": "Micrófono y Cámara"
+    },
+    "microphonePermissionDenied": {
+      "title": "Acceso al Micrófono Requerido",
+      "message": "Se requiere acceso al micrófono para {{- actionType}}. Por favor revisa la configuración de tu sistema.",
+      "detail": "Puedes habilitar el acceso al micrófono en la configuración de privacidad de tu sistema.",
+      "openSettings": "Abrir Configuración",
+      "cancel": "Cancelar",
+      "actionTypes": {
+        "initiateCall": "realizar llamadas",
+        "answerCall": "responder llamadas",
+        "recordMessage": "grabar mensajes"
+      }
+    },
     "outlookCalendar": {
       "title": "Calendario de Outlook",
       "encryptionUnavailableTitle": "Encriptación no disponible",
@@ -202,6 +230,11 @@
         "title": "Aceleración de hardware",
         "description": "Habilita el uso de la aceleración de hardware cuando esté disponible. La aplicación se reiniciará al realizar cambios."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Modo alternativo de captura en videollamadas",
+        "description": "Desactiva Windows Graphics Capture para que el uso compartido funcione en sesiones RDP. La app se reinicia cuando cambias esta opción.",
+        "forcedDescription": "Actualmente está aplicado porque la app detectó una sesión RDP. El interruptor controla el comportamiento en siguientes arranques locales."
+      },
       "internalVideoChatWindow": {
         "title": "Abrir videollamada en la ventana de la aplicación",
         "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong> y <strong>Jitsi</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirán en el navegador independientemente de esta configuración.",
@@ -213,11 +246,13 @@
       },
       "menubar": {
         "title": "Barra de menú",
-        "description": "Mostrar la barra de menú en la parte superior de la ventana."
+        "description": "Mostrar la barra de menú en la parte superior de la ventana.",
+        "disabledHint": "No se puede desactivar la barra de menú cuando la barra lateral está desactivada. La configuración sería inaccesible."
       },
       "sidebar": {
         "title": "Barra lateral",
-        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración."
+        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración.",
+        "disabledHint": "No se puede desactivar la barra lateral cuando la barra de menú está desactivada. La configuración sería inaccesible."
       },
       "trayIcon": {
         "title": "Icono de la bandeja",
@@ -246,6 +281,17 @@
       "videoCallWindowPersistence": {
         "title": "Recordar posición de la ventana de videollamada",
         "description": "Guardar y restaurar la posición y el tamaño de las ventanas de videollamada entre sesiones"
+      },
+      "transparentWindow": {
+        "title": "Efecto de ventana transparente",
+        "description": "Habilitar efecto nativo de vibración/transparencia para la ventana. Requiere reinicio para aplicar."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Elige el tema de color para la aplicación.",
+        "auto": "Seguir sistema",
+        "light": "Claro",
+        "dark": "Oscuro"
       }
     }
   },
@@ -269,8 +315,9 @@
     "clearTrustedCertificates": "Borrar certificados de confianza",
     "close": "Cerrar",
     "copy": "&Copiar",
-    "cut": "Cu&tar",
-    "disableGpu": "Desactivar GPU",
+    "cut": "Cor&tar",
+    "developerMode": "Modo desarrollador",
+    "disableGpu": "Deshabilitar GPU",
     "documentation": "Documentación",
     "downloads": "Descargas",
     "settings": "Configuración",
@@ -310,6 +357,22 @@
     "title": "Fallo al cargar el servidor",
     "announcement": "Houston, tenemos un problema",
     "reload": "Recargar"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Cargando videollamada...",
+      "reloading": "Recargando videollamada...",
+      "description": "Por favor espera mientras nos conectamos a la videollamada"
+    },
+    "error": {
+      "title": "Error al cargar la videollamada",
+      "announcement": "Houston, tenemos un problema",
+      "timeout": "Tiempo de espera agotado - la videollamada no pudo cargar en 15 segundos",
+      "crashed": "Webview se ha bloqueado",
+      "maxRetriesReached": "Error al cargar después de múltiples intentos",
+      "noUrl": "No se proporcionó URL de videollamada",
+      "reload": "Recargar videollamada"
+    }
   },
   "unsupportedServer": {
     "title": "{{instanceDomain}} está ejecutando una versión no compatible de Rocket.Chat",
@@ -373,5 +436,31 @@
     "noWindowsFound": "No se encontraron ventanas",
     "cancel": "Cancelar",
     "share": "Compartir"
+  },
+  "serverInfo": {
+    "title": "Información del Servidor",
+    "urlLabel": "URL:",
+    "versionLabel": "Versión:",
+    "unknown": "Desconocido",
+    "exchangeUrlLabel": "URL de Outlook Exchange:",
+    "supportedVersionsTitle": "Versiones Soportadas",
+    "statusLabel": "Estado:",
+    "status": {
+      "loading": "Cargando...",
+      "error": "Error al cargar",
+      "loaded": "Cargado",
+      "idle": "Inactivo",
+      "from": "desde {{source}}"
+    },
+    "supported": {
+      "unknown": "Desconocido",
+      "expiring": "Por expirar",
+      "yes": "Sí",
+      "no": "No"
+    },
+    "expiration": {
+      "label": "Expiración:",
+      "expiresOn": "Expira el {{date}}"
+    }
   }
 }

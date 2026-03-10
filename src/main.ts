@@ -1,7 +1,12 @@
-import { app } from 'electron';
-import electronDl from 'electron-dl';
+import { app, shell } from 'electron';
 
-import { performElectronStartup, setupApp } from './app/main/app';
+import {
+  performElectronStartup,
+  setupApp,
+  initializeScreenCaptureFallbackState,
+  setupGpuCrashHandler,
+  markMainWindowStable,
+} from './app/main/app';
 import {
   mergePersistableValues,
   watchAndPersistChanges,
@@ -10,12 +15,26 @@ import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
 import { setupDownloads } from './downloads/main';
+import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
+import { handle } from './ipc/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
-import { setupNavigation } from './navigation/main';
+import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
+import {
+  logger,
+  setupWebContentsLogging,
+  cleanupOldLogs,
+  setupDebugLoggingWatch,
+} from './logging';
+import { setupNavigation, isProtocolAllowed } from './navigation/main';
+import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
-import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
+import {
+  startOutlookCalendarUrlHandler,
+  stopOutlookCalendarSync,
+} from './outlookCalendar/ipc';
+import { setupOutlookLogger } from './outlookCalendar/logger';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
@@ -36,21 +55,44 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
+import { openExternal } from './utils/browserLauncher';
 import {
   handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
+  cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
-
-electronDl({ saveAs: true });
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
 
+  // Performance optimizations
+  app.commandLine.appendSwitch('disable-renderer-backgrounding');
+  app.commandLine.appendSwitch('disable-background-timer-throttling');
+  app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512');
+
+  logger.info('Starting Rocket.Chat Desktop application');
+
+  setupWebContentsLogging();
+
   performElectronStartup();
+
+  // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
+  setupGpuCrashHandler();
 
   await app.whenReady();
 
+  cleanupOldLogs();
+
   createMainReduxStore();
+
+  setupOutlookLogger();
+  setupDebugLoggingWatch();
+
+  // Initialize screen capture fallback state after store is available
+  initializeScreenCaptureFallbackState();
+
+  // Set up electron-dl with our download tracking callbacks
+  setupElectronDlWithTracking();
 
   const localStorage = await exportLocalStorage();
   await mergePersistableValues(localStorage);
@@ -68,14 +110,14 @@ const start = async (): Promise<void> => {
   attachGuestWebContentsEvents();
   await showRootWindow();
 
-  // React DevTools is currently incompatible with Electron 10
-  // if (process.env.NODE_ENV === 'development') {
-  //   installDevTools();
-  // }
+  // Mark main window as stable - GPU crashes after this won't trigger fallback
+  markMainWindowStable();
   watchMachineTheme();
   setupNotifications();
+  attentionDrawing.setUp();
   setupScreenSharing();
   startVideoCallWindowHandler();
+  startLogViewerWindowHandler();
 
   await setupSpellChecking();
 
@@ -85,6 +127,29 @@ const start = async (): Promise<void> => {
   await setupUpdates();
   setupDownloads();
   handleCertificatesManager();
+
+  handle('open-external', async (_webContents, rawUrl) => {
+    let url: URL;
+
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      console.warn('Blocked malformed external URL');
+      return;
+    }
+
+    if (!(await isProtocolAllowed(url.toString()))) {
+      console.warn('Blocked external URL with disallowed protocol');
+      return;
+    }
+
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      await openExternal(url.toString());
+      return;
+    }
+
+    await shell.openExternal(url.toString());
+  });
 
   dock.setUp();
   menuBar.setUp();
@@ -96,6 +161,9 @@ const start = async (): Promise<void> => {
     menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();
+    attentionDrawing.tearDown();
+    stopOutlookCalendarSync();
+    cleanupVideoCallResources();
   });
 
   watchAndPersistChanges();
@@ -106,6 +174,11 @@ const start = async (): Promise<void> => {
   checkSupportedVersionServers();
 
   await processDeepLinksInArgs();
+
+  console.info('Application initialization completed successfully');
 };
 
-start();
+start().catch((error) => {
+  logger.error('Failed to start application', error);
+  app.exit(1);
+});

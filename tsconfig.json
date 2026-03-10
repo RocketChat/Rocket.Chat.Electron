@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "rootDir": "./src",
-    "module": "ESNext",
+    "module": "ES2020",
     "target": "ES2015",
     "lib": ["DOM", "ES2021"],
     "sourceMap": true,
@@ -19,5 +19,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["src"],
+  "include": ["src"]
 }

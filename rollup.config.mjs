@@ -34,7 +34,14 @@ const run = () => {
         proc ? 'Restarting main process...' : 'Starting main process...'
       );
 
-      proc = spawn(electron, ['.'], { stdio: 'inherit' });
+      const electronArgs = ['.'];
+
+      // Linux-specific flags for development
+      if (process.platform === 'linux') {
+        electronArgs.push('--no-sandbox');
+      }
+
+      proc = spawn(electron, electronArgs, { stdio: 'inherit' });
 
       proc.on('close', () => {
         proc = null;
@@ -81,7 +88,40 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
-    input: 'src/videoCallWindow/video-call-window.tsx',
+    input: 'src/videoCallWindow/video-call-window.ts',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
+    external: [
+      ...builtinModules,
+      ...Object.keys(appManifest.dependencies),
+      ...Object.keys(appManifest.devDependencies),
+    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    input: 'src/logViewerWindow/log-viewer-window.tsx',
     preserveEntrySignatures: 'strict',
     plugins: [
       json(),
@@ -134,8 +174,8 @@ export default [
     ],
     output: [
       {
-        dir: 'app',
-        name: 'preload',
+        dir: 'app/preload',
+        entryFileNames: 'preload.js',
         format: 'cjs',
         sourcemap: 'inline',
         interop: 'auto',

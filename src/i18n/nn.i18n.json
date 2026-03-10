@@ -1,1 +1,43 @@
-{ }
+{
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "Gjennomsiktig vinduseffekt",
+        "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Velg fargtemaet for applikasjonen.",
+        "auto": "Følg system",
+        "light": "Lys",
+        "dark": "Mørk"
+      }
+    }
+  },
+  "serverInfo": {
+    "title": "Serverinformasjon",
+    "urlLabel": "URL:",
+    "versionLabel": "Versjon:",
+    "unknown": "Ukjent",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Støttede versjoner",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Lastar...",
+      "error": "Kunne ikkje laste",
+      "loaded": "Lasta",
+      "idle": "Inaktiv",
+      "from": "frå {{source}}"
+    },
+    "supported": {
+      "unknown": "Ukjent",
+      "expiring": "Utløper snart",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "expiration": {
+      "label": "Utløpsdato:",
+      "expiresOn": "Utløper {{date}}"
+    }
+  }
+}

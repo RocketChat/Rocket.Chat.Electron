@@ -7,6 +7,16 @@ export const TopBar = () => {
   const mainWindowTitle = useSelector(
     ({ mainWindowTitle }: RootState) => mainWindowTitle
   );
+
+  const isTransparentWindowEnabled = useSelector(
+    ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  );
+
+  const sidebarBg =
+    process.platform === 'darwin' && isTransparentWindowEnabled
+      ? undefined
+      : 'tint';
+
   return (
     <Box
       className='rcx-sidebar--main'
@@ -16,7 +26,7 @@ export const TopBar = () => {
       justifyContent='center'
       alignItems='center'
       color='default'
-      bg='tint'
+      bg={sidebarBg}
       width='100%'
     >
       <Box fontScale='p2'>{mainWindowTitle}</Box>

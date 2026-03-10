@@ -80,6 +80,28 @@
       "title": "忽略更新",
       "message": "我们将会在下次有新的更新版本的时候通知您\n如果您改变主意想安装此处更新，您可以从「关于」的选项中检查更新。",
       "ok": "好"
+    },
+    "mediaPermission": {
+      "title": "需要媒体权限",
+      "message": "{{- permissionType}}访问目前在您的系统设置中已被禁用。",
+      "detail": "要启用视频通话功能，请在您的系统隐私设置中允许访问，然后重新启动应用程序。",
+      "openSettings": "打开设置",
+      "cancel": "取消",
+      "microphone": "麦克风",
+      "camera": "摄像头",
+      "both": "麦克风和摄像头"
+    },
+    "microphonePermissionDenied": {
+      "title": "需要麦克风访问权限",
+      "message": "需要麦克风访问权限才能{{- actionType}}。请检查您的系统设置。",
+      "detail": "您可以在系统的隐私设置中启用麦克风访问权限。",
+      "openSettings": "打开设置",
+      "cancel": "取消",
+      "actionTypes": {
+        "initiateCall": "拨打电话",
+        "answerCall": "接听电话",
+        "recordMessage": "录制消息"
+      }
     }
   },
   "downloads": {
@@ -132,6 +154,17 @@
         "title": "在程序窗口中打开视频通话",
         "description": "如果启用，视频通话将在应用程序窗口中打开，而不是在默认浏览器中打开。但是，对于<strong>Google Meet</strong>和<strong>Jitsi</strong>，Electron应用程序不支持屏幕录制，所以无论此设置如何，它们始终会在浏览器中打开。",
         "masDescription": "从Mac App Store安装时此选项被禁用。出于安全原因，视频通话将始终默认在浏览器中打开。"
+      },
+      "transparentWindow": {
+        "title": "透明窗口效果",
+        "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
+      },
+      "themeAppearance": {
+        "title": "主题",
+        "description": "选择应用程序的颜色主题。",
+        "auto": "跟随系统",
+        "light": "浅色",
+        "dark": "深色"
       }
     }
   },
@@ -156,7 +189,8 @@
     "close": "关闭",
     "copy": "复制 (&C)",
     "cut": "剪切 (&T)",
-    "disableGpu": "禁用GPU",
+    "developerMode": "开发者模式",
+    "disableGpu": "禁用 GPU",
     "documentation": "文件",
     "downloads": "下载",
     "settings": "设置",
@@ -191,6 +225,21 @@
     "title": "服务器载入失败",
     "announcement": "稍等一下，我们遇到问题了",
     "reload": "重新載入"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "正在加载视频通话...",
+      "reloading": "正在重新加载视频通话...",
+      "description": "请稍候，我们正在连接到视频通话"
+    },
+    "error": {
+      "title": "视频通话加载失败",
+      "announcement": "休斯顿，我们遇到了问题",
+      "timeout": "加载超时 - 视频通话无法在15秒内加载",
+      "crashed": "网页视图崩溃了",
+      "maxRetriesReached": "多次尝试后加载失败",
+      "reload": "重新加载视频通话"
+    }
   },
   "sidebar": {
     "addNewServer": "新增服务器",
@@ -237,5 +286,31 @@
     "noWindowsFound": "未找到窗口",
     "cancel": "取消",
     "share": "共享"
+  },
+  "serverInfo": {
+    "title": "服务器信息",
+    "urlLabel": "URL:",
+    "versionLabel": "版本:",
+    "unknown": "未知",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "支持的版本",
+    "statusLabel": "状态:",
+    "status": {
+      "loading": "加载中...",
+      "error": "加载失败",
+      "loaded": "已加载",
+      "idle": "空闲",
+      "from": "来自 {{source}}"
+    },
+    "supported": {
+      "unknown": "未知",
+      "expiring": "即将过期",
+      "yes": "是",
+      "no": "否"
+    },
+    "expiration": {
+      "label": "过期时间:",
+      "expiresOn": "将于 {{date}} 过期"
+    }
   }
 }

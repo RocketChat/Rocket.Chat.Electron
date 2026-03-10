@@ -5,6 +5,7 @@ import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
+import { screenCaptureFallbackForced } from '../app/reducers/screenCaptureFallbackForced';
 import { downloads } from '../downloads/reducers/downloads';
 import { allowedJitsiServers } from '../jitsi/reducers';
 import {
@@ -16,8 +17,10 @@ import {
 import { servers } from '../servers/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
+import { dialogs } from '../ui/reducers/dialogs';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
+import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
@@ -28,13 +31,18 @@ import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnable
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
+import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
+import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
+import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
 import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
+import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
   doCheckForUpdatesOnStartup,
@@ -45,6 +53,7 @@ import {
   newUpdateVersion,
   skippedUpdateVersion,
   updateError,
+  updateChannel,
 } from '../updates/reducers';
 
 export const rootReducer = combineReducers({
@@ -54,6 +63,7 @@ export const rootReducer = combineReducers({
   availableBrowsers,
   clientCertificates,
   currentView,
+  dialogs,
   doCheckForUpdatesOnStartup,
   downloads,
   externalProtocols,
@@ -75,6 +85,7 @@ export const rootReducer = combineReducers({
   rootWindowState,
   selectedBrowser,
   servers,
+  userThemePreference,
   skippedUpdateVersion,
   trustedCertificates,
   notTrustedCertificates,
@@ -90,6 +101,13 @@ export const rootReducer = combineReducers({
   isNTLMCredentialsEnabled,
   videoCallWindowState,
   isVideoCallWindowPersistenceEnabled,
+  isDeveloperModeEnabled,
+  isVerboseOutlookLoggingEnabled,
+  updateChannel,
+  screenCaptureFallbackForced,
+  isVideoCallDevtoolsAutoOpenEnabled,
+  isTransparentWindowEnabled,
+  isVideoCallScreenCaptureFallbackEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

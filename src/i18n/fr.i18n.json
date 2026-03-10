@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Vérifier les mises à jour au démarrage",
       "noUpdatesAvailable": "Aucune mise à jour n'est disponible.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "Une erreur s'est produite lors de la recherche de mises à jour"
+      "errorWhenLookingForUpdates": "Une erreur s'est produite lors de la recherche de mises à jour",
+      "updateChannel": {
+        "label": "Canal de mise à jour",
+        "latest": "Stable",
+        "beta": "Bêta",
+        "alpha": "Alpha (Expérimental)"
+      }
     },
     "addServer": {
       "title": "Ajouter un serveur",
@@ -115,6 +121,28 @@
       "dontAskAgain": "Toujours autoriser les appels vidéo de ce serveur pour capturer votre écran",
       "yes": "Autoriser",
       "no": "Annuler"
+    },
+    "mediaPermission": {
+      "title": "Autorisation Multimédia Requise",
+      "message": "L'accès au {{- permissionType}} est actuellement désactivé dans les paramètres de votre système.",
+      "detail": "Pour activer les fonctionnalités d'appel vidéo, veuillez autoriser l'accès dans les paramètres de confidentialité de votre système, puis redémarrer l'application.",
+      "openSettings": "Ouvrir les Paramètres",
+      "cancel": "Annuler",
+      "microphone": "Microphone",
+      "camera": "Caméra",
+      "both": "Microphone et Caméra"
+    },
+    "microphonePermissionDenied": {
+      "title": "Accès au Microphone Requis",
+      "message": "L'accès au microphone est requis pour {{- actionType}}. Veuillez vérifier les paramètres de votre système.",
+      "detail": "Vous pouvez activer l'accès au microphone dans les paramètres de confidentialité de votre système.",
+      "openSettings": "Ouvrir les Paramètres",
+      "cancel": "Annuler",
+      "actionTypes": {
+        "initiateCall": "passer des appels",
+        "answerCall": "répondre aux appels",
+        "recordMessage": "enregistrer des messages"
+      }
     }
   },
   "downloads": {
@@ -190,6 +218,11 @@
         "title": "Accélération matérielle",
         "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Solution de capture d'écran pour les appels vidéo",
+        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option.",
+        "forcedDescription": "Actuellement appliqué car l'application a détecté une session RDP. Le commutateur contrôle le comportement lors des prochains démarrages locaux."
+      },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
         "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc ils s'ouvriront toujours dans le navigateur, quel que soit ce paramètre.",
@@ -201,11 +234,13 @@
       },
       "menubar": {
         "title": "Barre de menu",
-        "description": "Afficher la barre de menus en haut de la fenêtre."
+        "description": "Afficher la barre de menus en haut de la fenêtre.",
+        "disabledHint": "Impossible de désactiver la barre de menu quand la barre latérale est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "sidebar": {
         "title": "Barre latérale",
-        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres."
+        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres.",
+        "disabledHint": "Impossible de désactiver la barre latérale quand la barre de menu est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "trayIcon": {
         "title": "Icône de la barre d'état système",
@@ -221,6 +256,17 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
         "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."
+      },
+      "transparentWindow": {
+        "title": "Effet de fenêtre transparente",
+        "description": "Activer l'effet natif de vibrance/transparence pour la fenêtre. Nécessite un redémarrage pour s'appliquer."
+      },
+      "themeAppearance": {
+        "title": "Thème",
+        "description": "Choisissez le thème de couleur pour l'application.",
+        "auto": "Suivre le système",
+        "light": "Clair",
+        "dark": "Sombre"
       }
     }
   },
@@ -245,6 +291,7 @@
     "close": "Fermer",
     "copy": "&Copier",
     "cut": "Cou&per",
+    "developerMode": "Mode développeur",
     "disableGpu": "Désactiver le GPU",
     "documentation": "Documentation",
     "downloads": "Téléchargements",
@@ -285,6 +332,21 @@
     "title": "Echec du chargement du serveur",
     "announcement": "Houston, nous avons un problème",
     "reload": "Recharger"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Chargement de l'appel vidéo...",
+      "reloading": "Rechargement de l'appel vidéo...",
+      "description": "Veuillez patienter pendant que nous nous connectons à l'appel vidéo"
+    },
+    "error": {
+      "title": "Échec du chargement de l'appel vidéo",
+      "announcement": "Houston, nous avons un problème",
+      "timeout": "Délai d'attente dépassé - l'appel vidéo n'a pas pu se charger en 15 secondes",
+      "crashed": "Webview a planté",
+      "maxRetriesReached": "Échec du chargement après plusieurs tentatives",
+      "reload": "Recharger l'appel vidéo"
+    }
   },
   "selfxss": {
     "title": "Stop !",
@@ -342,5 +404,31 @@
     "noWindowsFound": "Aucune fenêtre trouvée",
     "cancel": "Annuler",
     "share": "Partager"
+  },
+  "serverInfo": {
+    "title": "Informations du Serveur",
+    "urlLabel": "URL :",
+    "versionLabel": "Version :",
+    "unknown": "Inconnu",
+    "exchangeUrlLabel": "URL Outlook Exchange :",
+    "supportedVersionsTitle": "Versions Prise en Charge",
+    "statusLabel": "Statut :",
+    "status": {
+      "loading": "Chargement...",
+      "error": "Échec du chargement",
+      "loaded": "Chargé",
+      "idle": "Inactif",
+      "from": "depuis {{source}}"
+    },
+    "supported": {
+      "unknown": "Inconnu",
+      "expiring": "Expiration proche",
+      "yes": "Oui",
+      "no": "Non"
+    },
+    "expiration": {
+      "label": "Expiration :",
+      "expiresOn": "Expire le {{date}}"
+    }
   }
 }

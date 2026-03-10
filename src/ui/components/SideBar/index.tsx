@@ -14,7 +14,6 @@ import { useSelector } from 'react-redux';
 import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import {
-  SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
@@ -34,16 +33,13 @@ export const SideBar = () => {
   const isAddNewServersEnabled = useSelector(
     ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
   );
-  const isVisible = servers.length > 0 && isSideBarEnabled;
-  // const style = useMemo(
-  //   () => servers.find(({ selected }) => selected)?.style || {},
-  //   [servers]
-  // );
 
-  // const customTheme = useMemo(
-  //   () => servers.find(({ selected }) => selected)?.customTheme || '',
-  //   [servers]
-  // );
+  const isTransparentWindowEnabled = useSelector(
+    ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  );
+
+  const isVisible = servers.length > 0 && isSideBarEnabled;
+
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
     sortedServers,
@@ -53,6 +49,7 @@ export const SideBar = () => {
     handleDragEnter,
     handleDrop,
   } = useSorting(servers);
+
   const handleAddServerButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
   };
@@ -63,18 +60,8 @@ export const SideBar = () => {
     dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
   };
 
-  const handleHideWorkspaceBar = (): void => {
-    dispatch({
-      type: SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED,
-      payload: false,
-    });
-  };
-
   const handleMenuClick = (key: React.Key) => {
     switch (key) {
-      case 'hide_workspace_bar':
-        handleHideWorkspaceBar();
-        break;
       case 'downloads':
         handleDownloadsButtonClicked();
         break;
@@ -86,10 +73,13 @@ export const SideBar = () => {
 
   const { t } = useTranslation();
 
-  // const currentView = useSelector(({ currentView }: RootState) => currentView);
+  const sidebarBg =
+    process.platform === 'darwin' && isTransparentWindowEnabled
+      ? undefined
+      : 'tint';
 
   return (
-    <Box className='rcx-sidebar--main' bg='tint'>
+    <Box className='rcx-sidebar--main' bg={sidebarBg}>
       <Box
         width='x44'
         display={isVisible ? 'flex' : 'none'}
@@ -101,36 +91,44 @@ export const SideBar = () => {
         paddingBlockEnd='x8'
       >
         <ButtonGroup vertical large>
-          {sortedServers.map((server, order) => (
-            <ServerButton
-              key={server.url}
-              url={server.url}
-              title={
-                server.title === 'Rocket.Chat' &&
-                new URL(server.url).hostname !== 'open.rocket.chat'
-                  ? `${server.title} - ${server.url}`
-                  : server.title ?? server.url
-              }
-              shortcutNumber={
-                typeof order === 'number' && order <= 9
-                  ? String(order + 1)
-                  : null
-              }
-              isSelected={server.selected}
-              favicon={server.favicon ?? null}
-              hasUnreadMessages={!!server.badge}
-              userLoggedIn={server.userLoggedIn}
-              mentionCount={
-                typeof server.badge === 'number' ? server.badge : undefined
-              }
-              isShortcutVisible={isEachShortcutVisible}
-              isDragged={draggedServerUrl === server.url}
-              onDragStart={handleDragStart(server.url)}
-              onDragEnd={handleDragEnd}
-              onDragEnter={handleDragEnter(server.url)}
-              onDrop={handleDrop(server.url)}
-            />
-          ))}
+          {sortedServers.map((server, order) => {
+            return (
+              <ServerButton
+                key={server.url}
+                url={server.url}
+                title={
+                  server.title === 'Rocket.Chat' &&
+                  new URL(server.url).hostname !== 'open.rocket.chat'
+                    ? `${server.title} - ${server.url}`
+                    : server.title ?? server.url
+                }
+                shortcutNumber={
+                  typeof order === 'number' && order <= 9
+                    ? String(order + 1)
+                    : null
+                }
+                isSelected={server.selected}
+                favicon={server.favicon ?? null}
+                hasUnreadMessages={!!server.badge}
+                userLoggedIn={server.userLoggedIn}
+                mentionCount={
+                  typeof server.badge === 'number' ? server.badge : undefined
+                }
+                isDragged={draggedServerUrl === server.url}
+                version={server.version}
+                isSupportedVersion={server.isSupportedVersion}
+                supportedVersionsSource={server.supportedVersionsSource}
+                supportedVersionsFetchState={server.supportedVersionsFetchState}
+                supportedVersions={server.supportedVersions}
+                exchangeUrl={server.outlookCredentials?.serverUrl}
+                isShortcutVisible={isEachShortcutVisible}
+                onDragStart={handleDragStart(server.url)}
+                onDragEnd={handleDragEnd}
+                onDragEnter={handleDragEnter(server.url)}
+                onDrop={handleDrop(server.url)}
+              />
+            );
+          })}
           {isAddNewServersEnabled && (
             <IconButton
               small
@@ -149,10 +147,6 @@ export const SideBar = () => {
           onAction={handleMenuClick}
         >
           <MenuSection title={t('sidebar.menuTitle')}>
-            {/* <MenuItem key='hide_workspace_bar'>
-              <OptionIcon name='burger-arrow-left' />
-              <OptionContent>Hide workspace bar</OptionContent>
-            </MenuItem> */}
             <MenuItem key='downloads'>
               <OptionIcon name='circle-arrow-down' />
               <OptionContent>{t('sidebar.downloads')}</OptionContent>

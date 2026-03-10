@@ -9,6 +9,8 @@ import type { SemVer } from 'semver';
 import { parse } from 'semver';
 
 import {
+  clearStaleAssets,
+  forceCleanOldAssets,
   getDevelopmentRelease,
   getReleaseAssets,
   getSnapshotRelease,
@@ -17,7 +19,7 @@ import {
 } from './github';
 import { packOnLinux, setupSnapcraft, uploadSnap } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
-import { packOnWindows } from './windows';
+import { packOnWindows } from './windows/index';
 
 const pack = async () => {
   switch (process.platform) {
@@ -27,7 +29,7 @@ const pack = async () => {
       break;
 
     case 'darwin':
-      await disableSpotlightIndexing();
+      await disableSpotlightIndexing(); 
       await packOnMacOS();
       break;
 
@@ -56,12 +58,30 @@ const getFilesToUpload = () =>
     'dist/*.exe',
     'dist/*.exe.blockmap',
     'dist/*.AppImage',
+    'dist/alpha.yml',
+    'dist/alpha-mac.yml',
+    'dist/alpha-linux.yml',
+    'dist/beta.yml',
+    'dist/beta-mac.yml',
+    'dist/beta-linux.yml',
   ]);
 
 const releaseDevelopment = async (commitSha: string) => {
   await pack();
 
   const release = await getDevelopmentRelease(commitSha);
+  const existingAssets = await getReleaseAssets(release.id);
+  
+  // Force clean old assets if we have too many (close to GitHub's 1000 limit)
+  if (existingAssets.length > 900) {
+    core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+    await forceCleanOldAssets(release.id, 100);
+  } else {
+    const filesToUpload = await getFilesToUpload();
+    const expectedAssetNames = filesToUpload.map(path => basename(path));
+    await clearStaleAssets(release.id, expectedAssetNames);
+  }
+  
   const assets = await getReleaseAssets(release.id);
 
   for (const path of await getFilesToUpload()) {
@@ -81,6 +101,18 @@ const releaseSnapshot = async (commitSha: string) => {
   await pack();
 
   const release = await getSnapshotRelease(commitSha);
+  const existingAssets = await getReleaseAssets(release.id);
+  
+  // Force clean old assets if we have too many (close to GitHub's 1000 limit)
+  if (existingAssets.length > 900) {
+    core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+    await forceCleanOldAssets(release.id, 100);
+  } else {
+    const filesToUpload = await getFilesToUpload();
+    const expectedAssetNames = filesToUpload.map(path => basename(path));
+    await clearStaleAssets(release.id, expectedAssetNames);
+  }
+  
   const assets = await getReleaseAssets(release.id);
 
   for (const path of await getFilesToUpload()) {
@@ -137,9 +169,9 @@ const start = async () => {
   const payload = github.context.payload as PushEvent;
   const ref = core.getInput('ref') || payload.ref;
 
-  if (ref === 'refs/heads/develop') {
+  if (ref === 'refs/heads/dev') {
     core.info(
-      `push event on develop branch detected, performing development release`
+      `push event on dev branch detected, performing development release`
     );
     await releaseDevelopment(payload.after);
     return;
@@ -152,6 +184,7 @@ const start = async () => {
     await releaseSnapshot(payload.after);
     return;
   }
+
 
   if (ref.match(/^refs\/tags\//)) {
     const tag = ref.slice('refs/tags/'.length);

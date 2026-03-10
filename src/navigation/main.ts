@@ -41,6 +41,23 @@ const loadUserTrustedCertificates = async (): Promise<
 const serializeCertificate = (certificate: Certificate): string =>
   `${certificate.issuerName}\n${certificate.data.toString()}`;
 
+const isHostnameValid = (certificate: Certificate, hostname: string): boolean => {
+  const san = certificate.subjectAltName;
+
+  if (san) {
+    const names = san
+      .split(', ')
+      .map((s: string) => s.replace(/^DNS:/, ''));
+
+    if (names.includes(hostname)) {
+      return true;
+    }
+  }
+
+  const cn = certificate.subject?.CN;
+  return cn === hostname;
+};
+
 const queuedTrustRequests = new Map<
   Certificate['fingerprint'],
   Array<(isTrusted: boolean) => void>
@@ -52,8 +69,15 @@ export const setupNavigation = async (): Promise<void> => {
     async (event, _webContents, requestedUrl, error, certificate, callback) => {
       event.preventDefault();
 
-      const serialized = serializeCertificate(certificate);
       const { host } = new URL(requestedUrl);
+
+      // Check if hostname is valid according to certificate SAN/CN
+      if (isHostnameValid(certificate, host)) {
+        callback(true);
+        return;
+      }
+
+      const serialized = serializeCertificate(certificate);
 
       let trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates

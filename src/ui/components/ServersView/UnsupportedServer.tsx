@@ -14,11 +14,13 @@ import * as urls from '../../../urls';
 
 type UnsupportedServerProps = {
   isSupported: boolean | undefined;
+  fetchState?: 'idle' | 'loading' | 'success' | 'error';
   instanceDomain: string;
 };
 
 const UnsupportedServer = ({
   isSupported,
+  fetchState,
   instanceDomain,
 }: UnsupportedServerProps) => {
   const { t } = useTranslation();
@@ -30,9 +32,12 @@ const UnsupportedServer = ({
     );
   };
 
+  // Only block if we have definitive proof (success state) that server is unsupported
+  const shouldBlock = isSupported === false && fetchState !== 'loading';
+
   return (
     <>
-      {isSupported === false && (
+      {shouldBlock && (
         <Box
           backgroundColor='surface-light'
           display='flex'

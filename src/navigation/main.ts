@@ -48,8 +48,7 @@ const isHostnameValid = (
 ): boolean => {
   try {
     const x509 = new X509Certificate(certificate.data);
-    const cleanHost = hostname.split(':')[0];
-    return x509.checkHost(cleanHost) !== undefined;
+    return x509.checkHost(hostname) !== undefined;
   } catch {
     return false;
   }
@@ -66,12 +65,12 @@ export const setupNavigation = async (): Promise<void> => {
     async (event, _webContents, requestedUrl, error, certificate, callback) => {
       event.preventDefault();
 
-      const { host } = new URL(requestedUrl);
+      const { host, hostname } = new URL(requestedUrl);
 
       // Only bypass hostname mismatch errors
       if (
         error === 'net::ERR_CERT_COMMON_NAME_INVALID' &&
-        isHostnameValid(certificate, host)
+        isHostnameValid(certificate, hostname)
       ) {
         callback(true);
         return;

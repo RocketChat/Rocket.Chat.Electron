@@ -45,6 +45,8 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
 let _rootWindow: BrowserWindow;
 let tempWindow: BrowserWindow;
 let crashHandlerRegistered = false;
+let rendererRecoveryAttempts = 0;
+const MAX_RENDERER_RECOVERY_ATTEMPTS = 1;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
@@ -525,6 +527,14 @@ export const showRootWindow = async (): Promise<void> => {
       'render-process-gone',
       async (_event, details) => {
         console.error('Renderer process crashed:', details.reason);
+        rendererRecoveryAttempts++;
+
+        if (rendererRecoveryAttempts > MAX_RENDERER_RECOVERY_ATTEMPTS) {
+          console.error('Max recovery attempts reached, quitting app');
+          app.quit();
+          return;
+        }
+
         try {
           const { session } = browserWindow.webContents;
           await session.clearCache();

@@ -559,13 +559,20 @@ export const showRootWindow = async (): Promise<void> => {
           await session.clearStorageData({
             storages: ['shadercache', 'cachestorage'],
           });
+
+          if (recoveryResetTimer) {
+            clearTimeout(recoveryResetTimer);
+            recoveryResetTimer = null;
+          }
+
+          browserWindow.webContents.once('did-finish-load', () => {
+            recoveryResetTimer = setTimeout(() => {
+              rendererRecoveryAttempts = 0;
+            }, RECOVERY_RESET_DELAY_MS);
+          });
+
           console.log('Cache cleared. Reloading window...');
           browserWindow.reload();
-
-          if (recoveryResetTimer) clearTimeout(recoveryResetTimer);
-          recoveryResetTimer = setTimeout(() => {
-            rendererRecoveryAttempts = 0;
-          }, RECOVERY_RESET_DELAY_MS);
         } catch (error) {
           console.error('Failed to recover from crash:', error);
           app.quit();

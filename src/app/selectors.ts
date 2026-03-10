@@ -42,6 +42,8 @@ export const selectPersistableValues = createStructuredSelector({
     isMinimizeOnCloseEnabled,
   isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
+  isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
+    isDeveloperModeEnabled,
   hasHideOnTrayNotificationShown: ({
     hasHideOnTrayNotificationShown,
   }: RootState) => hasHideOnTrayNotificationShown,
@@ -57,4 +59,28 @@ export const selectPersistableValues = createStructuredSelector({
   selectedBrowser: ({ selectedBrowser }: RootState) => selectedBrowser,
   videoCallWindowState: ({ videoCallWindowState }: RootState) =>
     videoCallWindowState,
+  isVideoCallWindowPersistenceEnabled: ({
+    isVideoCallWindowPersistenceEnabled,
+  }: RootState) => isVideoCallWindowPersistenceEnabled,
+  isVideoCallDevtoolsAutoOpenEnabled: ({
+    isVideoCallDevtoolsAutoOpenEnabled,
+  }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
+  isTransparentWindowEnabled: ({ isTransparentWindowEnabled }: RootState) =>
+    isTransparentWindowEnabled,
+  isVideoCallScreenCaptureFallbackEnabled: ({
+    isVideoCallScreenCaptureFallbackEnabled,
+  }: RootState) => isVideoCallScreenCaptureFallbackEnabled,
+  updateChannel: ({ updateChannel }: RootState) => updateChannel,
+  userThemePreference: ({ userThemePreference }: RootState) =>
+    userThemePreference,
+  outlookCalendarSyncInterval: ({ outlookCalendarSyncInterval }: RootState) =>
+    outlookCalendarSyncInterval,
+  isVerboseOutlookLoggingEnabled: ({
+    isVerboseOutlookLoggingEnabled,
+  }: RootState) => isVerboseOutlookLoggingEnabled,
+  isDetailedEventsLoggingEnabled: ({
+    isDetailedEventsLoggingEnabled,
+  }: RootState) => isDetailedEventsLoggingEnabled,
+  isDebugLoggingEnabled: ({ isDebugLoggingEnabled }: RootState) =>
+    isDebugLoggingEnabled,
 });

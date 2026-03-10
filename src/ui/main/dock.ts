@@ -10,7 +10,7 @@ class DockService extends Service {
     }
 
     this.watch(selectGlobalBadgeText, (globalBadgeText) => {
-      app.dock.setBadge(globalBadgeText);
+      app.dock?.setBadge(globalBadgeText);
     });
 
     this.watch(
@@ -25,7 +25,7 @@ class DockService extends Service {
         }
 
         if (isFlashFrameEnabled) {
-          app.dock.bounce();
+          app.dock?.bounce();
         }
       }
     );

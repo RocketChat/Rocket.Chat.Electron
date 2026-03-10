@@ -123,28 +123,6 @@ const start = async (): Promise<void> => {
   setupDownloads();
   handleCertificatesManager();
 
-  dock.setUp();
-  menuBar.setUp();
-  touchBar.setUp();
-  trayIcon.setUp();
-
-  app.addListener('before-quit', () => {
-    dock.tearDown();
-    menuBar.tearDown();
-    touchBar.tearDown();
-    trayIcon.tearDown();
-    attentionDrawing.tearDown();
-    stopOutlookCalendarSync();
-    cleanupVideoCallResources();
-  });
-
-  watchAndPersistChanges();
-  handleJitsiDesktopCapturerGetSources();
-  handleDesktopCapturerGetSources();
-  handleClearCacheDialog();
-  startDocumentViewerHandler();
-  checkSupportedVersionServers();
-
   handle('open-external', async (_webContents, rawUrl) => {
     let url: URL;
 
@@ -169,6 +147,28 @@ const start = async (): Promise<void> => {
 
     await shell.openExternal(url.toString());
   });
+
+  dock.setUp();
+  menuBar.setUp();
+  touchBar.setUp();
+  trayIcon.setUp();
+
+  app.addListener('before-quit', () => {
+    dock.tearDown();
+    menuBar.tearDown();
+    touchBar.tearDown();
+    trayIcon.tearDown();
+    attentionDrawing.tearDown();
+    stopOutlookCalendarSync();
+    cleanupVideoCallResources();
+  });
+
+  watchAndPersistChanges();
+  handleJitsiDesktopCapturerGetSources();
+  handleDesktopCapturerGetSources();
+  handleClearCacheDialog();
+  startDocumentViewerHandler();
+  checkSupportedVersionServers();
 
   await processDeepLinksInArgs();
 

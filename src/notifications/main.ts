@@ -94,9 +94,7 @@ const createNotification = async (
       ({ isFlashFrameEnabled }) => isFlashFrameEnabled
     );
     if (isFlashFrameEnabled) {
-      getRootWindow()
-        .then((window) => window.flashFrame(true))
-        .catch(() => {});
+      attentionDrawing.drawAttention(id);
     }
   });
 

@@ -13,7 +13,7 @@ import type {
   SourcesOptions,
 } from 'electron';
 import { ipcRenderer } from 'electron';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '../ui/components/Dialog';
@@ -23,7 +23,11 @@ const desktopCapturer: DesktopCapturer = {
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts]),
 };
 
-export function ScreenSharePicker() {
+interface IScreenSharePickerProps {
+  onMounted?: (setVisible: (visible: boolean) => void) => void;
+}
+
+export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
@@ -34,16 +38,47 @@ export function ScreenSharePicker() {
     setIsScreenRecordingPermissionGranted,
   ] = useState(false);
 
-  const fetchSources = async (): Promise<void> => {
-    const sources = await desktopCapturer.getSources({
-      types: ['window', 'screen'],
-    });
-    const filteredSources = sources
-      .filter((source) => !source.thumbnail.isEmpty())
-      .sort((a, b) => a.name.localeCompare(b.name));
-    if (filteredSources.length === 0) return;
-    setSources(filteredSources);
-  };
+  // Track whether an IPC response has been sent for the current picker session.
+  // This ensures cancellation is always sent regardless of how the dialog is dismissed
+  // (click outside, ESC key, programmatic close, etc.).
+  const responseSentRef = useRef(false);
+  const wasVisibleRef = useRef(false);
+
+  const fetchSources = useCallback(async (): Promise<void> => {
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ['window', 'screen'],
+      });
+
+      // Filter out sources that are not capturable
+      const filteredSources = sources
+        .filter((source) => {
+          // Only check for basic validity - thumbnail validation is already done by IPC handler
+          if (!source.name || source.name.trim() === '') {
+            return false;
+          }
+
+          return true;
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      setSources(filteredSources);
+
+      // If the currently selected source is no longer available, clear the selection
+      if (
+        selectedSourceId &&
+        !filteredSources.find((s) => s.id === selectedSourceId)
+      ) {
+        console.log(
+          'Previously selected source no longer available, clearing selection'
+        );
+        setSelectedSourceId(null);
+      }
+    } catch (error) {
+      console.error('Error fetching screen sharing sources:', error);
+      setSources([]);
+    }
+  }, [selectedSourceId]);
 
   useEffect(() => {
     const checkScreenRecordingPermission = async () => {
@@ -58,12 +93,31 @@ export function ScreenSharePicker() {
 
   useEffect(() => {
     fetchSources();
-  }, []);
+  }, [fetchSources]);
 
   useEffect(() => {
-    ipcRenderer.on('video-call-window/open-screen-picker', () => {
-      setVisible(true);
-    });
+    if (onMounted) {
+      onMounted(setVisible);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Safety net: if the picker closes without handleShare or handleClose having sent a
+  // response (e.g. due to dialog close event not firing correctly), send cancellation.
+  useEffect(() => {
+    if (visible) {
+      responseSentRef.current = false;
+      wasVisibleRef.current = true;
+    } else if (wasVisibleRef.current) {
+      wasVisibleRef.current = false;
+      if (!responseSentRef.current) {
+        responseSentRef.current = true;
+        ipcRenderer.send(
+          'video-call-window/screen-sharing-source-responded',
+          null
+        );
+      }
+    }
   }, [visible]);
 
   useEffect(() => {
@@ -78,7 +132,7 @@ export function ScreenSharePicker() {
     return () => {
       clearInterval(timer);
     };
-  }, [visible]);
+  }, [visible, fetchSources]);
 
   const handleScreenSharingSourceClick = (id: string) => () => {
     setSelectedSourceId(id);
@@ -86,6 +140,33 @@ export function ScreenSharePicker() {
 
   const handleShare = (): void => {
     if (selectedSourceId) {
+      // Validate that the selected source still exists in our current sources list
+      const selectedSource = sources.find((s) => s.id === selectedSourceId);
+
+      if (!selectedSource) {
+        console.error('Selected source no longer available:', selectedSourceId);
+        // Refresh sources and clear selection
+        fetchSources();
+        setSelectedSourceId(null);
+        return;
+      }
+
+      // Additional validation before sharing
+      if (selectedSource.thumbnail.isEmpty()) {
+        console.error(
+          'Selected source has empty thumbnail, cannot share:',
+          selectedSourceId
+        );
+        setSelectedSourceId(null);
+        return;
+      }
+
+      console.log('Sharing screen source:', {
+        id: selectedSource.id,
+        name: selectedSource.name,
+      });
+
+      responseSentRef.current = true;
       setVisible(false);
       ipcRenderer.send(
         'video-call-window/screen-sharing-source-responded',
@@ -95,6 +176,11 @@ export function ScreenSharePicker() {
   };
 
   const handleClose = (): void => {
+    if (responseSentRef.current) {
+      // Response already sent (e.g. handleShare ran first and triggered onclose via setVisible)
+      return;
+    }
+    responseSentRef.current = true;
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
   };
@@ -114,19 +200,18 @@ export function ScreenSharePicker() {
         <Box
           width='680px'
           margin='auto'
-          padding='x24'
           display='flex'
           flexDirection='column'
           height='560px'
-          backgroundColor='surface'
+          backgroundColor='light'
           color='default'
         >
-          <Box mb='x16'>
-            <Box fontScale='h1' mb='x16'>
+          <Box marginBlockEnd='x12'>
+            <Box fontScale='h1' marginBlockEnd='x12'>
               {t('screenSharing.title')}
             </Box>
 
-            <Tabs marginBlockEnd='x16'>
+            <Tabs>
               <Tabs.Item
                 selected={currentTab === 'screen'}
                 onClick={() => setCurrentTab('screen')}
@@ -157,11 +242,38 @@ export function ScreenSharePicker() {
               >
                 {t('screenSharing.permissionRequired')}
                 <br />
-                {t('screenSharing.permissionInstructions')}
+                {t('screenSharing.permissionInstructions')}{' '}
+                <Box
+                  is='a'
+                  href='#'
+                  onClick={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    const url =
+                      process.platform === 'darwin'
+                        ? 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
+                        : 'ms-settings:privacy-screencapture';
+                    ipcRenderer.invoke('video-call-window/open-url', url);
+                  }}
+                  style={{
+                    color: 'inherit',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('screenSharing.openSystemPreferences')}
+                </Box>
               </Callout>
             ) : (
               <Scrollable vertical>
-                <Box display='flex' flexWrap='wrap' justifyContent='flex-start'>
+                <Box
+                  padding='x8'
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, 208px)',
+                    gap: '16px',
+                    justifyContent: 'center',
+                  }}
+                >
                   {filteredSources.length === 0 ? (
                     <Box
                       display='flex'
@@ -169,6 +281,7 @@ export function ScreenSharePicker() {
                       justifyContent='center'
                       width='100%'
                       p='x16'
+                      style={{ gridColumn: '1 / -1' }}
                     >
                       <Label>
                         {currentTab === 'screen'
@@ -180,15 +293,12 @@ export function ScreenSharePicker() {
                     filteredSources.map(({ id, name, thumbnail }) => (
                       <Box
                         key={id}
-                        width='x180'
-                        height='x140'
-                        m='x8'
-                        overflow='hidden'
+                        width='x208'
+                        height='x170'
                         display='flex'
                         flexDirection='column'
                         onClick={handleScreenSharingSourceClick(id)}
                         bg={selectedSourceId === id ? 'selected' : 'light'}
-                        color={selectedSourceId === id ? 'selected' : 'light'}
                         border={
                           selectedSourceId === id
                             ? '2px solid var(--rcx-color-stroke-highlight)'
@@ -197,24 +307,67 @@ export function ScreenSharePicker() {
                         borderRadius='x2'
                         cursor='pointer'
                         className='screen-share-thumbnail'
+                        style={{
+                          position: 'relative',
+                          overflow: 'visible',
+                        }}
                       >
                         <Box
                           flexGrow={1}
                           display='flex'
-                          alignItems='center'
-                          justifyContent='center'
+                          alignItems='flex-start'
+                          justifyContent='flex-start'
                           overflow='hidden'
+                          style={{
+                            minHeight: '120px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                          }}
                         >
                           <Box
                             is='img'
                             src={thumbnail.toDataURL()}
                             alt={name}
-                            width='100%'
-                            height='auto'
+                            style={{
+                              width: '100%',
+                              height: 'auto',
+                              objectFit: 'contain',
+                              objectPosition: 'top',
+                              display: 'block',
+                            }}
                           />
                         </Box>
-                        <Box p='x4'>
-                          <Label>{name}</Label>
+                        <Box
+                          p='x4'
+                          style={{
+                            position: 'absolute',
+                            bottom: '0',
+                            left: '0',
+                            right: '0',
+                            background: 'rgba(0, 0, 0, 0.5)',
+                            backdropFilter: 'blur(4px)',
+                            zIndex: 10,
+                            minHeight: 'auto',
+                          }}
+                        >
+                          <Label
+                            title={name}
+                            style={{
+                              fontSize: '11px',
+                              lineHeight: '1.2',
+                              color: 'white',
+                              textAlign: 'center',
+                              width: '100%',
+                              margin: 0,
+                              wordBreak: 'break-word',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {name}
+                          </Label>
                         </Box>
                       </Box>
                     ))

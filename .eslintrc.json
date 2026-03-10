@@ -1,5 +1,6 @@
 {
   "extends": ["@rocket.chat/eslint-config"],
+  "ignorePatterns": ["patches-src/**/*"],
   "plugins": ["react", "react-hooks"],
   "env": {
     "browser": true,
@@ -14,7 +15,14 @@
     "react/display-name": "error",
     "react/jsx-curly-brace-presence": "error",
     "react/jsx-fragments": ["error", "syntax"],
-    "react/jsx-key": ["error", { "checkFragmentShorthand": true, "checkKeyMustBeforeSpread": true, "warnOnDuplicates": true }],
+    "react/jsx-key": [
+      "error",
+      {
+        "checkFragmentShorthand": true,
+        "checkKeyMustBeforeSpread": true,
+        "warnOnDuplicates": true
+      }
+    ],
     "react/jsx-no-undef": "error",
     "react/jsx-uses-react": "error",
     "react/jsx-uses-vars": "error",
@@ -43,7 +51,13 @@
       }
     },
     {
-      "files": ["**/*.stories.js", "**/*.stories.jsx", "**/*.stories.ts", "**/*.stories.tsx", "**/*.spec.tsx"],
+      "files": [
+        "**/*.stories.js",
+        "**/*.stories.jsx",
+        "**/*.stories.ts",
+        "**/*.stories.tsx",
+        "**/*.spec.tsx"
+      ],
       "rules": {
         "react/display-name": "off",
         "react/no-multi-comp": "off"

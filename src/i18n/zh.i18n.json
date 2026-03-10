@@ -1,1 +1,43 @@
-{ }
+{
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "透明窗口效果",
+        "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
+      },
+      "themeAppearance": {
+        "title": "主题",
+        "description": "选择应用程序的颜色主题。",
+        "auto": "跟随系统",
+        "light": "浅色",
+        "dark": "深色"
+      }
+    }
+  },
+  "serverInfo": {
+    "title": "服务器信息",
+    "urlLabel": "URL:",
+    "versionLabel": "版本:",
+    "unknown": "未知",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "支持的版本",
+    "statusLabel": "状态:",
+    "status": {
+      "loading": "加载中...",
+      "error": "加载失败",
+      "loaded": "已加载",
+      "idle": "空闲",
+      "from": "来自 {{source}}"
+    },
+    "supported": {
+      "unknown": "未知",
+      "expiring": "即将过期",
+      "yes": "是",
+      "no": "否"
+    },
+    "expiration": {
+      "label": "过期时间:",
+      "expiresOn": "将于 {{date}} 过期"
+    }
+  }
+}

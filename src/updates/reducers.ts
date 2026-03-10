@@ -2,7 +2,10 @@ import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
 import type { ActionOf } from '../store/actions';
-import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START } from '../ui/actions';
+import {
+  ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
+  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
+} from '../ui/actions';
 import {
   UPDATES_CHECKING_FOR_UPDATE,
   UPDATES_ERROR_THROWN,
@@ -10,6 +13,7 @@ import {
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
   UPDATE_SKIPPED,
+  UPDATES_CHANNEL_CHANGED,
 } from './actions';
 
 type DoCheckForUpdatesOnStartupAction =
@@ -137,18 +141,23 @@ export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (
 
 type NewUpdateVersionAction =
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
-  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>;
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
+  | ActionOf<typeof UPDATE_SKIPPED>;
 
 export const newUpdateVersion: Reducer<
   string | null,
   NewUpdateVersionAction
 > = (state = null, action) => {
   switch (action.type) {
-    case UPDATES_NEW_VERSION_AVAILABLE:
-      return action.payload;
+    case UPDATES_NEW_VERSION_AVAILABLE: {
+      const newUpdateVersion = action.payload;
+      return newUpdateVersion;
+    }
 
     case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+    case UPDATE_SKIPPED: {
       return null;
+    }
 
     default:
       return state;
@@ -207,6 +216,37 @@ export const updateError: Reducer<Error | null, UpdateErrorAction> = (
 
     case UPDATES_NEW_VERSION_AVAILABLE:
       return null;
+
+    default:
+      return state;
+  }
+};
+
+type UpdateChannelAction =
+  | ActionOf<typeof ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED>
+  | ActionOf<typeof UPDATES_CHANNEL_CHANGED>
+  | ActionOf<typeof UPDATES_READY>
+  | ActionOf<typeof APP_SETTINGS_LOADED>;
+
+export const updateChannel: Reducer<string, UpdateChannelAction> = (
+  state = 'latest',
+  action
+) => {
+  switch (action.type) {
+    case ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED:
+    case UPDATES_CHANNEL_CHANGED: {
+      return action.payload;
+    }
+
+    case UPDATES_READY: {
+      const { updateChannel } = action.payload;
+      return updateChannel;
+    }
+
+    case APP_SETTINGS_LOADED: {
+      const { updateChannel = state } = action.payload;
+      return updateChannel;
+    }
 
     default:
       return state;

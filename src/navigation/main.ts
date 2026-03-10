@@ -1,3 +1,4 @@
+import { X509Certificate } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
@@ -41,6 +42,18 @@ const loadUserTrustedCertificates = async (): Promise<
 const serializeCertificate = (certificate: Certificate): string =>
   `${certificate.issuerName}\n${certificate.data.toString()}`;
 
+const isHostnameValid = (
+  certificate: Certificate,
+  hostname: string
+): boolean => {
+  try {
+    const x509 = new X509Certificate(certificate.data);
+    return x509.checkHost(hostname) !== undefined;
+  } catch {
+    return false;
+  }
+};
+
 const queuedTrustRequests = new Map<
   Certificate['fingerprint'],
   Array<(isTrusted: boolean) => void>
@@ -52,8 +65,18 @@ export const setupNavigation = async (): Promise<void> => {
     async (event, _webContents, requestedUrl, error, certificate, callback) => {
       event.preventDefault();
 
+      const { host, hostname } = new URL(requestedUrl);
+
+      // Only bypass hostname mismatch errors
+      if (
+        error === 'net::ERR_CERT_COMMON_NAME_INVALID' &&
+        isHostnameValid(certificate, hostname)
+      ) {
+        callback(true);
+        return;
+      }
+
       const serialized = serializeCertificate(certificate);
-      const { host } = new URL(requestedUrl);
 
       let trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates

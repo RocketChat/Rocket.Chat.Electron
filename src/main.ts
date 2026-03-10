@@ -103,25 +103,6 @@ const start = async (): Promise<void> => {
   createRootWindow();
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
-  await showRootWindow();
-
-  // Mark main window as stable - GPU crashes after this won't trigger fallback
-  markMainWindowStable();
-  watchMachineTheme();
-  setupNotifications();
-  attentionDrawing.setUp();
-  setupScreenSharing();
-  startVideoCallWindowHandler();
-  startLogViewerWindowHandler();
-
-  await setupSpellChecking();
-
-  setupDeepLinks();
-  await setupNavigation();
-  setupPowerMonitor();
-  await setupUpdates();
-  setupDownloads();
-  handleCertificatesManager();
 
   handle('open-external', async (_webContents, rawUrl) => {
     let url: URL;
@@ -145,6 +126,26 @@ const start = async (): Promise<void> => {
 
     await shell.openExternal(url.toString());
   });
+
+  await showRootWindow();
+
+  // Mark main window as stable - GPU crashes after this won't trigger fallback
+  markMainWindowStable();
+  watchMachineTheme();
+  setupNotifications();
+  attentionDrawing.setUp();
+  setupScreenSharing();
+  startVideoCallWindowHandler();
+  startLogViewerWindowHandler();
+
+  await setupSpellChecking();
+
+  setupDeepLinks();
+  await setupNavigation();
+  setupPowerMonitor();
+  await setupUpdates();
+  setupDownloads();
+  handleCertificatesManager();
 
   dock.setUp();
   menuBar.setUp();

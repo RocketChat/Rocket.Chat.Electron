@@ -86,11 +86,11 @@ const createNotification = async (
     });
 
     const notificationType = notificationTypes.get(id);
-    if (notificationType === 'voice') {
+
+    // Only flash for chat-related notifications
+    if (notificationType === 'text' || notificationType === 'voice') {
       attentionDrawing.drawAttention(id);
     }
-
-    attentionDrawing.drawAttention(id);
   });
 
   notification.addListener('close', () => {

@@ -527,7 +527,13 @@ export const showRootWindow = async (): Promise<void> => {
     browserWindow.webContents.on(
       'render-process-gone',
       async (_event, details) => {
-        if (details.reason === 'clean-exit') {
+        const crashReasons = [
+          'crashed',
+          'oom',
+          'abnormal-exit',
+          'launch-failed',
+        ];
+        if (!crashReasons.includes(details.reason)) {
           return;
         }
 

@@ -67,8 +67,7 @@ export const updateWindowsYamlChecksums = async (
       const filePath = path.join(distPath, fileName);
 
       if (!fs.existsSync(filePath)) {
-        core.warning(`File not found: ${fileName}, skipping...`);
-        continue;
+        throw new Error(`Artifact not found: ${filePath}`);
       }
 
       // Calculate new checksum and size

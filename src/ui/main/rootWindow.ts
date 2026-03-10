@@ -527,6 +527,10 @@ export const showRootWindow = async (): Promise<void> => {
     browserWindow.webContents.on(
       'render-process-gone',
       async (_event, details) => {
+        if (details.reason === 'clean-exit') {
+          return;
+        }
+
         console.error('Renderer process crashed:', details.reason);
         rendererRecoveryAttempts++;
 
@@ -545,15 +549,7 @@ export const showRootWindow = async (): Promise<void> => {
           const { session } = browserWindow.webContents;
           await session.clearCache();
           await session.clearStorageData({
-            storages: [
-              'cookies',
-              'indexdb',
-              'filesystem',
-              'shadercache',
-              'websql',
-              'serviceworkers',
-              'cachestorage',
-            ],
+            storages: ['shadercache', 'cachestorage'],
           });
           console.log('Cache cleared. Reloading window...');
           browserWindow.reload();

@@ -553,6 +553,7 @@ export const showRootWindow = async (): Promise<void> => {
           browserWindow.reload();
         } catch (error) {
           console.error('Failed to recover from crash:', error);
+          app.quit();
         }
       }
     );

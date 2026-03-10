@@ -2,7 +2,7 @@ import type { NativeImage } from 'electron';
 import { Notification, nativeImage } from 'electron';
 
 import { invoke } from '../ipc/main';
-import { dispatch, dispatchSingle, listen, select } from '../store';
+import { dispatch, dispatchSingle, listen } from '../store';
 import type { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -90,12 +90,7 @@ const createNotification = async (
       attentionDrawing.drawAttention(id);
     }
 
-    const isFlashFrameEnabled = select(
-      ({ isFlashFrameEnabled }) => isFlashFrameEnabled
-    );
-    if (isFlashFrameEnabled) {
-      attentionDrawing.drawAttention(id);
-    }
+    attentionDrawing.drawAttention(id);
   });
 
   notification.addListener('close', () => {
@@ -106,10 +101,9 @@ const createNotification = async (
     });
     notifications.delete(id);
 
-    const notificationType = notificationTypes.get(id);
-    if (notificationType === 'voice') {
-      attentionDrawing.stopAttention(id);
-    }
+    // Always stop attention for any notification type
+    attentionDrawing.stopAttention(id);
+
     notificationTypes.delete(id);
     notificationCategories.delete(id);
   });

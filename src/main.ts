@@ -27,7 +27,7 @@ import {
   cleanupOldLogs,
   setupDebugLoggingWatch,
 } from './logging';
-import { setupNavigation } from './navigation/main';
+import { setupNavigation, isProtocolAllowed } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
 import {
@@ -132,8 +132,6 @@ const start = async (): Promise<void> => {
       console.warn('Blocked malformed external URL');
       return;
     }
-
-    const { isProtocolAllowed } = await import('./navigation/main');
 
     if (!(await isProtocolAllowed(url.toString()))) {
       console.warn('Blocked external URL with disallowed protocol');

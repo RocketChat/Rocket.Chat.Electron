@@ -24,6 +24,7 @@ const webPreferences: WebPreferences = {
   nodeIntegrationInSubFrames: true,
   contextIsolation: false,
   webviewTag: true,
+  backgroundThrottling: false,
 };
 
 const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>

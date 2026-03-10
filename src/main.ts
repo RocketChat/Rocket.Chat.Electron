@@ -65,6 +65,11 @@ import {
 const start = async (): Promise<void> => {
   setUserDataDirectory();
 
+  // Performance optimizations
+  app.commandLine.appendSwitch('disable-renderer-backgrounding');
+  app.commandLine.appendSwitch('disable-background-timer-throttling');
+  app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512');
+
   logger.info('Starting Rocket.Chat Desktop application');
 
   setupWebContentsLogging();

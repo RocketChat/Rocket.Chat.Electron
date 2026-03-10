@@ -214,7 +214,8 @@
       "timeout": "Przekroczono czas oczekiwania - nie udało się załadować połączenia wideo w ciągu 15 sekund",
       "crashed": "Webview się zawiesił",
       "maxRetriesReached": "Nie udało się załadować po wielu próbach",
-      "reload": "Przeładuj połączenie wideo"
+      "reload": "Przeładuj połączenie wideo",
+      "noUrl": "Nie podano adresu URL połączenia wideo"
     }
   },
   "selfxss": {

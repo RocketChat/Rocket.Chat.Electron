@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, shell } from 'electron';
 
 import {
   performElectronStartup,
@@ -145,13 +145,29 @@ const start = async (): Promise<void> => {
   startDocumentViewerHandler();
   checkSupportedVersionServers();
 
-  handle('open-external', async (_webContents, url) => {
+  handle('open-external', async (_webContents, rawUrl) => {
+    let url: URL;
+
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      console.warn('Blocked malformed external URL');
+      return;
+    }
+
     const { isProtocolAllowed } = await import('./navigation/main');
-    if (!(await isProtocolAllowed(url))) {
+
+    if (!(await isProtocolAllowed(url.toString()))) {
       console.warn('Blocked external URL with disallowed protocol');
       return;
     }
-    await openExternal(url);
+
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      await openExternal(url.toString());
+      return;
+    }
+
+    await shell.openExternal(url.toString());
   });
 
   await processDeepLinksInArgs();

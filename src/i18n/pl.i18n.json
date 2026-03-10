@@ -199,7 +199,7 @@
   },
   "loadingError": {
     "title": "Błąd ładowania serwera",
-    "announcement": "Hjuston, mamy problem",
+    "announcement": "Houston, mamy problem",
     "reload": "Przeładuj"
   },
   "videoCall": {
@@ -210,7 +210,7 @@
     },
     "error": {
       "title": "Nie udało się załadować połączenia wideo",
-      "announcement": "Hjuston, mamy problem",
+      "announcement": "Houston, mamy problem",
       "timeout": "Przekroczono czas oczekiwania - nie udało się załadować połączenia wideo w ciągu 15 sekund",
       "crashed": "Webview się zawiesił",
       "maxRetriesReached": "Nie udało się załadować po wielu próbach",

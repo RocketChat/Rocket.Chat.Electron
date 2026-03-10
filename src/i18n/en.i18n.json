@@ -412,7 +412,8 @@
       "timeout": "Loading timeout - video call failed to load within 15 seconds",
       "crashed": "Webview crashed",
       "maxRetriesReached": "Failed to load after multiple attempts",
-      "reload": "Reload Video Call"
+      "reload": "Reload Video Call",
+      "noUrl": "No video call URL provided"
     }
   },
   "unsupportedServer": {

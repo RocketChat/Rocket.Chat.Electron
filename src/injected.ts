@@ -208,7 +208,11 @@ const start = async () => {
           return;
         }
 
-        if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+        if (
+          parsedUrl.protocol === 'http:' ||
+          parsedUrl.protocol === 'https:' ||
+          parsedUrl.protocol === 'afp:'
+        ) {
           event.preventDefault();
           void window.RocketChatDesktop?.openExternal(parsedUrl.toString());
         }

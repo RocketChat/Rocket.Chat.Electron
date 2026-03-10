@@ -244,13 +244,12 @@ export const setupNotifications = (): void => {
 
   listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action) => {
     const notificationId = String(action.payload.id);
-    const notificationType = notificationTypes.get(notificationId);
 
     notifications.get(notificationId)?.close();
 
-    if (notificationType === 'voice') {
-      attentionDrawing.stopAttention(notificationId);
-    }
+    // stopAttention is safe and idempotent
+    attentionDrawing.stopAttention(notificationId);
+
     notificationTypes.delete(notificationId);
   });
 };

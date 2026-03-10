@@ -48,6 +48,8 @@ let tempWindow: BrowserWindow;
 let crashHandlerRegistered = false;
 let rendererRecoveryAttempts = 0;
 const MAX_RENDERER_RECOVERY_ATTEMPTS = 1;
+let recoveryResetTimer: ReturnType<typeof setTimeout> | null = null;
+const RECOVERY_RESET_DELAY_MS = 60000;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
@@ -559,6 +561,11 @@ export const showRootWindow = async (): Promise<void> => {
           });
           console.log('Cache cleared. Reloading window...');
           browserWindow.reload();
+
+          if (recoveryResetTimer) clearTimeout(recoveryResetTimer);
+          recoveryResetTimer = setTimeout(() => {
+            rendererRecoveryAttempts = 0;
+          }, RECOVERY_RESET_DELAY_MS);
         } catch (error) {
           console.error('Failed to recover from crash:', error);
           app.quit();

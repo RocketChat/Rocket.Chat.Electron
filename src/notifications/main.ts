@@ -86,7 +86,9 @@ const createNotification = async (
     });
 
     const notificationType = notificationTypes.get(id);
-    if (notificationType === 'voice') {
+
+    // Only flash for chat-related notifications
+    if (notificationType === 'text' || notificationType === 'voice') {
       attentionDrawing.drawAttention(id);
     }
   });
@@ -99,10 +101,9 @@ const createNotification = async (
     });
     notifications.delete(id);
 
-    const notificationType = notificationTypes.get(id);
-    if (notificationType === 'voice') {
-      attentionDrawing.stopAttention(id);
-    }
+    // Always stop attention for any notification type
+    attentionDrawing.stopAttention(id);
+
     notificationTypes.delete(id);
     notificationCategories.delete(id);
   });
@@ -243,13 +244,12 @@ export const setupNotifications = (): void => {
 
   listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action) => {
     const notificationId = String(action.payload.id);
-    const notificationType = notificationTypes.get(notificationId);
 
     notifications.get(notificationId)?.close();
 
-    if (notificationType === 'voice') {
-      attentionDrawing.stopAttention(notificationId);
-    }
+    // stopAttention is safe and idempotent
+    attentionDrawing.stopAttention(notificationId);
+
     notificationTypes.delete(notificationId);
   });
 };

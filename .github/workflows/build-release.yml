@@ -90,6 +90,5 @@ jobs:
           win_intermediate_crt: ${{ secrets.WIN_INTERMEDIATE_CRT }}
           win_root_crt: ${{ secrets.WIN_ROOT_CRT }}
           github_token: ${{ secrets.GH_TOKEN }}
-          snapcraft_token: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}

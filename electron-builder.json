@@ -6,7 +6,6 @@
     "name": "Rocket.Chat",
     "schemes": ["rocketchat"]
   },
-  "afterPack": "./build/afterPack.js",
   "mac": {
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],

@@ -293,22 +293,7 @@
       },
       "videoCallWindowPersistence": {
         "title": "A videohívás-ablak pozíciójának megjegyzése",
-        "description": "A videohívás-ablakok pozíciójának és méretének mentése és helyreállítása a munkamenetek között."
-      },
-      "transparentWindow": {
-        "title": "Átlátszó ablak hatás",
-        "description": "Natív vibrálás vagy átlátszóság hatás engedélyezése az ablakhoz. Újraindítást igényel az alkalmazáshoz."
-      },
-      "themeAppearance": {
-        "title": "Téma",
-        "description": "Az alkalmazás színtémájának kiválasztása.",
-        "auto": "Rendszer követése",
-        "light": "Világos",
-        "dark": "Sötét"
-      },
-      "verboseOutlookLogging": {
-        "title": "Részletes Outlook naptár naplózás",
-        "description": "Részletes Exchange/NTLM hibakeresési naplók engedélyezése az Outlook naptár integrációs problémáinak elhárításához."
+        "description": "A videohívás-ablakok pozíciójának és méretének mentése és helyreállítása a munkamenetek között"
       }
     }
   },
@@ -365,10 +350,6 @@
     "showTrayIcon": "Tálcaikon",
     "toggleDevTools": "&Fejlesztői eszközök ki- és bekapcsolása",
     "openConfigFolder": "&Beállítások mappa megnyitása",
-    "openLogViewer": "&Naplómegjelenítő megnyitása",
-    "videoCallDevTools": "Videohívás &fejlesztői eszközeinek megnyitása",
-    "videoCallTools": "Videohívási eszközök",
-    "videoCallDevToolsAutoOpen": "Fejlesztői eszközök automatikus megnyitása",
     "undo": "&Visszavonás",
     "unhide": "Összes megjelenítése",
     "viewMenu": "&Nézet",
@@ -418,9 +399,7 @@
       "clearCache": "Gyorsítótár törlése",
       "clearStorageData": "Tárolóadatok törlése",
       "copyCurrentUrl": "Jelenlegi URL másolása",
-      "reloadClearingCache": "Kényszerített újratöltés",
-      "serverInfo": "Kiszolgálóinformációk",
-      "supportedVersionsInfo": "Támogatott verziók információi"
+      "reloadClearingCache": "Kényszerített újratöltés"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} olvasatlan üzenet",

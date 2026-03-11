@@ -390,7 +390,6 @@ const start = async () => {
     titleUpdates: false,
     userLoginDetection: false,
     gitCommitHash: false,
-    themeAppearance: false,
     userPresence: false,
   };
 
@@ -580,7 +579,18 @@ const start = async () => {
 
   // Self-rescheduling timeout that stops once all features are initialized
   const scheduleSetupCheck = () => {
-    const allFeaturesSetup = Object.values(setupFlags).every((flag) => flag);
+    const effectiveSetupFlags = {
+      ...setupFlags,
+      backgroundSettings: versionIsGreaterOrEqualsTo(
+        serverInfo.version,
+        '6.4.0'
+      )
+        ? true
+        : setupFlags.backgroundSettings,
+    };
+    const allFeaturesSetup = Object.values(effectiveSetupFlags).every(
+      Boolean
+    );
 
     if (!allFeaturesSetup) {
       setupReactiveFeatures();

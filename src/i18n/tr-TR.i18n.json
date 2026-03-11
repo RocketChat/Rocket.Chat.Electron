@@ -79,6 +79,28 @@
       "title": "Güncellemeyi Atla",
       "message": "Bir sonraki güncellemenin ne zaman yapılacağını size bildireceğiz. Fikrinizi değiştirirseniz Hakkında menüsünden güncellemeleri manuel kontrol edebilirsiniz.",
       "ok": "TAMAM"
+    },
+    "mediaPermission": {
+      "title": "Medya İzni Gerekli",
+      "message": "{{- permissionType}} erişimi şu anda sistem ayarlarınızda devre dışı.",
+      "detail": "Video arama özelliklerini etkinleştirmek için lütfen sistem gizlilik ayarlarınızda erişime izin verin ve ardından uygulamayı yeniden başlatın.",
+      "openSettings": "Ayarları Aç",
+      "cancel": "İptal",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon ve Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofon Erişimi Gerekli",
+      "message": "{{- actionType}} için mikrofon erişimi gereklidir. Lütfen sistem ayarlarınızı kontrol edin.",
+      "detail": "Mikrofon erişimini sistem gizlilik ayarlarınızdan etkinleştirebilirsiniz.",
+      "openSettings": "Ayarları Aç",
+      "cancel": "İptal",
+      "actionTypes": {
+        "initiateCall": "aramalar yapmak",
+        "answerCall": "aramaları yanıtlamak",
+        "recordMessage": "mesaj kaydetmek"
+      }
     }
   },
   "settings": {
@@ -95,6 +117,17 @@
         "systemDefault": "Sistem Varsayılanı",
         "loading": "Tarayıcılar yükleniyor...",
         "current": "Şu anda kullanılan:"
+      },
+      "transparentWindow": {
+        "title": "Şeffaf pencere efekti",
+        "description": "Pencere için yerel titreşim/şeffaflık efektini etkinleştir. Uygulamak için yeniden başlatma gerektirir."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Uygulama için renk temasını seçin.",
+        "auto": "Sistemi takip et",
+        "light": "Açık",
+        "dark": "Koyu"
       }
     }
   },
@@ -119,6 +152,7 @@
     "close": "Kapat",
     "copy": "&Kopyala",
     "cut": "Kes",
+    "developerMode": "Geliştirici Modu",
     "documentation": "Dökümantasyon",
     "editMenu": "&Düzenle",
     "fileMenu": "&Dosya",
@@ -151,6 +185,21 @@
     "title": "Sunucu yüklenirken hata oluştu",
     "announcement": "Houston, bir sorunumuz var",
     "reload": "Yeniden yükle"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Video görüşme yükleniyor...",
+      "reloading": "Video görüşme yeniden yükleniyor...",
+      "description": "Video görüşmeye bağlanırken lütfen bekleyin"
+    },
+    "error": {
+      "title": "Video görüşme yüklenemedi",
+      "announcement": "Houston, bir problemimiz var",
+      "timeout": "Zaman aşımı - video görüşme 15 saniye içinde yüklenemedi",
+      "crashed": "Webview çöktü",
+      "maxRetriesReached": "Birden fazla deneme sonrası yükleme başarısız",
+      "reload": "Video görüşmeyi yeniden yükle"
+    }
   },
   "selfxss": {
     "title": "Dur!",
@@ -198,5 +247,31 @@
     "noWindowsFound": "Pencere bulunamadı",
     "cancel": "İptal et",
     "share": "Paylaş"
+  },
+  "serverInfo": {
+    "title": "Sunucu Bilgileri",
+    "urlLabel": "URL:",
+    "versionLabel": "Sürüm:",
+    "unknown": "Bilinmiyor",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Desteklenen Sürümler",
+    "statusLabel": "Durum:",
+    "status": {
+      "loading": "Yükleniyor...",
+      "error": "Yükleme başarısız",
+      "loaded": "Yüklendi",
+      "idle": "Boşta",
+      "from": "{{source}} kaynağından"
+    },
+    "supported": {
+      "unknown": "Bilinmiyor",
+      "expiring": "Süresi doluyor",
+      "yes": "Evet",
+      "no": "Hayır"
+    },
+    "expiration": {
+      "label": "Son Kullanma:",
+      "expiresOn": "{{date}} tarihinde sona eriyor"
+    }
   }
 }

@@ -22,7 +22,13 @@
       "checkUpdatesOnStart": "Sprawdzanie aktualizacji przy uruchomieniu",
       "noUpdatesAvailable": "Brak dostępnych aktualizacji.",
       "copyright": "Prawa autorskie {{copyright}}",
-      "errorWhenLookingForUpdates": "Wystąpił błąd podczas wyszukiwania aktualizacji"
+      "errorWhenLookingForUpdates": "Wystąpił błąd podczas wyszukiwania aktualizacji",
+      "updateChannel": {
+        "label": "Kanał aktualizacji",
+        "latest": "Stabilny",
+        "beta": "Beta",
+        "alpha": "Alfa (Eksperymentalny)"
+      }
     },
     "addServer": {
       "title": "Dodaj Serwer",
@@ -85,6 +91,28 @@
       "announcement": "Wybierz Certyfikat",
       "select": "Wybierz",
       "validDates": "Ważny od {{-validStart,}} do {{-validExpiry,}}"
+    },
+    "mediaPermission": {
+      "title": "Wymagane Uprawnienie Mediów",
+      "message": "Dostęp do {{- permissionType}} jest obecnie wyłączony w ustawieniach systemu.",
+      "detail": "Aby włączyć funkcje rozmów wideo, proszę zezwolić na dostęp w ustawieniach prywatności systemu, a następnie uruchomić ponownie aplikację.",
+      "openSettings": "Otwórz Ustawienia",
+      "cancel": "Anuluj",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon i Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Wymagany dostęp do mikrofonu",
+      "message": "Do {{- actionType}} wymagany jest dostęp do mikrofonu. Sprawdź ustawienia systemowe.",
+      "detail": "Możesz włączyć dostęp do mikrofonu w ustawieniach prywatności systemu.",
+      "openSettings": "Otwórz ustawienia",
+      "cancel": "Anuluj",
+      "actionTypes": {
+        "initiateCall": "wykonywania połączeń",
+        "answerCall": "odbierania połączeń",
+        "recordMessage": "nagrywania wiadomości"
+      }
     }
   },
   "settings": {
@@ -101,6 +129,17 @@
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
+      },
+      "transparentWindow": {
+        "title": "Efekt przezroczystego okna",
+        "description": "Włącz natywny efekt wibracji/przezroczystości dla okna. Wymaga ponownego uruchomienia, aby zastosować."
+      },
+      "themeAppearance": {
+        "title": "Motyw",
+        "description": "Wybierz motyw kolorystyczny aplikacji.",
+        "auto": "Zgodnie z systemem",
+        "light": "Jasny",
+        "dark": "Ciemny"
       }
     }
   },
@@ -125,6 +164,7 @@
     "close": "Zamknij",
     "copy": "&Kopiuj",
     "cut": "&Wytnij",
+    "developerMode": "Tryb programisty",
     "documentation": "Dokumentacja",
     "editMenu": "&Edycja",
     "fileMenu": "&Plik",
@@ -161,6 +201,21 @@
     "title": "Błąd ładowania serwera",
     "announcement": "Hjuston, mamy problem",
     "reload": "Przeładuj"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Ładowanie połączenia wideo...",
+      "reloading": "Ponowne ładowanie połączenia wideo...",
+      "description": "Proszę czekać, łączymy z połączeniem wideo"
+    },
+    "error": {
+      "title": "Nie udało się załadować połączenia wideo",
+      "announcement": "Houston, mamy problem",
+      "timeout": "Przekroczono czas oczekiwania - nie udało się załadować połączenia wideo w ciągu 15 sekund",
+      "crashed": "Webview się zawiesił",
+      "maxRetriesReached": "Nie udało się załadować po wielu próbach",
+      "reload": "Przeładuj połączenie wideo"
+    }
   },
   "selfxss": {
     "title": "Stop!",
@@ -214,5 +269,31 @@
     "noWindowsFound": "Nie znaleziono okien",
     "cancel": "Anuluj",
     "share": "Udostępnij"
+  },
+  "serverInfo": {
+    "title": "Informacje o serwerze",
+    "urlLabel": "URL:",
+    "versionLabel": "Wersja:",
+    "unknown": "Nieznana",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Obsługiwane wersje",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Ładowanie...",
+      "error": "Nie udało się załadować",
+      "loaded": "Załadowano",
+      "idle": "Bezczynny",
+      "from": "z {{source}}"
+    },
+    "supported": {
+      "unknown": "Nieznana",
+      "expiring": "Wygasa",
+      "yes": "Tak",
+      "no": "Nie"
+    },
+    "expiration": {
+      "label": "Wygaśnięcie:",
+      "expiresOn": "Wygasa {{date}}"
+    }
   }
 }

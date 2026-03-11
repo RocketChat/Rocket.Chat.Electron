@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Beim Start auf Aktualisierungen prüfen",
       "noUpdatesAvailable": "Es sind keine Aktualisierungen verfügbar.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "Bei der Suche nach Updates ist ein Fehler aufgetreten"
+      "errorWhenLookingForUpdates": "Bei der Suche nach Updates ist ein Fehler aufgetreten",
+      "updateChannel": {
+        "label": "Update-Kanal",
+        "latest": "Stabil",
+        "beta": "Beta",
+        "alpha": "Alpha (Experimentell)"
+      }
     },
     "addServer": {
       "title": "Server hinzufügen",
@@ -108,6 +114,28 @@
       "dontAskAgain": "Lassen Sie immer zu, dass Videoanrufe von diesem Server Ihren Bildschirm erfassen",
       "yes": "Erlauben",
       "no": "Absagen"
+    },
+    "mediaPermission": {
+      "title": "Medienberechtigung Erforderlich",
+      "message": "Der Zugriff auf {{- permissionType}} ist derzeit in Ihren Systemeinstellungen deaktiviert.",
+      "detail": "Um Videoanruf-Funktionen zu aktivieren, erlauben Sie bitte den Zugriff in den Datenschutzeinstellungen Ihres Systems und starten Sie dann die Anwendung neu.",
+      "openSettings": "Einstellungen Öffnen",
+      "cancel": "Abbrechen",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon und Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofonzugriff erforderlich",
+      "message": "Mikrofonzugriff ist erforderlich, um {{- actionType}}. Bitte überprüfen Sie Ihre Systemeinstellungen.",
+      "detail": "Sie können den Mikrofonzugriff in den Datenschutzeinstellungen Ihres Systems aktivieren.",
+      "openSettings": "Einstellungen öffnen",
+      "cancel": "Abbrechen",
+      "actionTypes": {
+        "initiateCall": "Anrufe tätigen",
+        "answerCall": "Anrufe entgegennehmen",
+        "recordMessage": "Nachrichten aufnehmen"
+      }
     }
   },
   "downloads": {
@@ -183,6 +211,11 @@
         "title": "Hardware-Beschleunigung",
         "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Alternative Bildschirmaufnahme für Videoanrufe",
+        "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
+        "forcedDescription": "Bereits aktiv, weil die Anwendung eine RDP-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
+      },
       "internalVideoChatWindow": {
         "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
         "description": "Wenn diese Option aktiviert ist, wird der Video-Chat im Anwendungsfenster anstelle des Standardbrowsers geöffnet. Allerdings wird für <strong>Google Meet</strong> und <strong>Jitsi</strong> die Bildschirmaufzeichnung in Electron-Anwendungen nicht unterstützt, daher werden sie unabhängig von dieser Einstellung immer im Browser geöffnet.",
@@ -194,11 +227,13 @@
       },
       "menubar": {
         "title": "Menüleiste",
-        "description": "Menüleiste oben im Fenster anzeigen."
+        "description": "Menüleiste oben im Fenster anzeigen.",
+        "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Seitenleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "sidebar": {
         "title": "Seitenleiste",
-        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen."
+        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen.",
+        "disabledHint": "Die Seitenleiste kann nicht deaktiviert werden, wenn die Menüleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "trayIcon": {
         "title": "Taskleistensymbol",
@@ -223,6 +258,17 @@
       "videoCallWindowPersistence": {
         "title": "Videoanruf-Fensterposition speichern",
         "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
+      },
+      "transparentWindow": {
+        "title": "Transparentes Fenstereffekt",
+        "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
+      },
+      "themeAppearance": {
+        "title": "Design",
+        "description": "Wählen Sie das Farbschema für die Anwendung.",
+        "auto": "System folgen",
+        "light": "Hell",
+        "dark": "Dunkel"
       }
     }
   },
@@ -242,11 +288,12 @@
   "menus": {
     "about": "Über {{- appName}}",
     "addNewServer": "&Neuen server hinzufügen",
-    "back": "&Der Rücken",
+    "back": "&Zurück",
     "clearTrustedCertificates": "Vertraute zertifikate löschen",
     "close": "Schließen",
     "copy": "&Kopieren",
     "cut": "&Ausschneiden",
+    "developerMode": "Entwicklermodus",
     "disableGpu": "GPU deaktivieren",
     "documentation": "Dokumentation",
     "downloads": "Downloads",
@@ -287,9 +334,24 @@
     "announcement": "Houston, we have a problem",
     "reload": "Neu laden"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Videoanruf wird geladen...",
+      "reloading": "Videoanruf wird neu geladen...",
+      "description": "Bitte warten Sie, während wir eine Verbindung zum Videoanruf herstellen"
+    },
+    "error": {
+      "title": "Videoanruf konnte nicht geladen werden",
+      "announcement": "Houston, wir haben ein Problem",
+      "timeout": "Ladezeitüberschreitung - Videoanruf konnte nicht innerhalb von 15 Sekunden geladen werden",
+      "crashed": "Webview ist abgestürzt",
+      "maxRetriesReached": "Laden nach mehreren Versuchen fehlgeschlagen",
+      "reload": "Videoanruf neu laden"
+    }
+  },
   "selfxss": {
     "title": "Halt!",
-    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren, oder \"hack\" das Konto einer anderen Person, ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
+    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren oder um das Konto einer anderen Person zu \"hacken\", ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
     "moreInfo": "Weitere Informationen finden Sie unter https://go.rocket.chat/i/xss."
   },
   "sidebar": {
@@ -317,7 +379,7 @@
     "tooltip": {
       "noUnreadMessage": "{{- appName}}: keine ungelesene Nachricht",
       "unreadMention": "{{- appName}}: Sie haben eine ungelesene Erwähnung/Direktnachricht",
-      "unreadMention_plural": "{{- appName}}: you have {{- count}} ungelesene Erwähnungen/Direktnachrichten",
+      "unreadMention_plural": "{{- appName}}: Sie haben {{- count}} ungelesene Erwähnungen/Direktnachrichten",
       "unreadMessage": "{{- appName}}: Sie haben ungelesene Nachrichten"
     },
     "balloon": {
@@ -343,5 +405,31 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
+  },
+  "serverInfo": {
+    "title": "Serverinformationen",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Unbekannt",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Unterstützte Versionen",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Lädt...",
+      "error": "Laden fehlgeschlagen",
+      "loaded": "Geladen",
+      "idle": "Inaktiv",
+      "from": "von {{source}}"
+    },
+    "supported": {
+      "unknown": "Unbekannt",
+      "expiring": "Läuft ab",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "expiration": {
+      "label": "Ablauf:",
+      "expiresOn": "Läuft ab am {{date}}"
+    }
   }
 }

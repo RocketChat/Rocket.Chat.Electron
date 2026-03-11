@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Frissítések keresése indításkor",
       "noUpdatesAvailable": "Nincsenek elérhető frissítések.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "Hiba történt a frissítések keresésekor"
+      "errorWhenLookingForUpdates": "Hiba történt a frissítések keresésekor",
+      "updateChannel": {
+        "label": "Frissítési csatorna",
+        "latest": "Stabil",
+        "beta": "Béta",
+        "alpha": "Alfa (kísérleti)"
+      }
     },
     "addServer": {
       "title": "Kiszolgáló hozzáadása",
@@ -125,6 +131,28 @@
       "yes": "Engedélyezés",
       "no": "Mégse"
     },
+    "mediaPermission": {
+      "title": "Médiaengedély szükséges",
+      "message": "A(z) {{- permissionType}} hozzáférés jelenleg le van tiltva a rendszerbeállításokban.",
+      "detail": "A videohívási funkciók engedélyezéséhez engedélyezze a hozzáférést a rendszer adatvédelmi beállításaiban, majd indítsa újra az alkalmazást.",
+      "openSettings": "Beállítások megnyitása",
+      "cancel": "Mégse",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon és kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofon hozzáférés szükséges",
+      "message": "Mikrofon hozzáférés szükséges ehhez: {{- actionType}}. Ellenőrizze a rendszerbeállításokat.",
+      "detail": "A mikrofon hozzáférést a rendszer adatvédelmi beállításaiban engedélyezheti.",
+      "openSettings": "Beállítások megnyitása",
+      "cancel": "Mégse",
+      "actionTypes": {
+        "initiateCall": "hívások indítása",
+        "answerCall": "hívások megválaszolása",
+        "recordMessage": "üzenetek rögzítése"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook naptár",
       "encryptionUnavailableTitle": "A titkosítás nem érhető el",
@@ -194,6 +222,10 @@
     "title": "Beállítások",
     "general": "Általános",
     "certificates": "Tanúsítványok",
+    "developer": "Fejlesztő",
+    "sections": {
+      "logging": "Naplózás"
+    },
     "options": {
       "report": {
         "title": "Hibák jelentése a fejlesztőknek",
@@ -211,6 +243,11 @@
         "title": "Hardveres gyorsítás",
         "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Tartalék képernyőrögzítés a videohívásokhoz",
+        "description": "A Windows Graphics Capture funkció letiltása, hogy a képernyőmegosztás működjön a távoli asztal munkameneteiben. Az alkalmazás újraindul, ha megváltoztatja ezt a beállítást.",
+        "forcedDescription": "Jelenleg érvényben van, mert az alkalmazás távoli asztali munkamenetet észlelt. A kapcsoló mostantól a jövőbeli indításokat vezérli, amikor helyileg fut."
+      },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása az alkalmazásablakban",
         "description": "Ha engedélyezve van, akkor a videócsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyő rögzítése nem támogatott az Electron alkalmazásokban, így azok ettől a beállítástól függetlenül mindig a böngészőben nyílnak meg.",
@@ -222,11 +259,13 @@
       },
       "menubar": {
         "title": "Menüsáv",
-        "description": "Menüsáv megjelenítése az ablak tetején."
+        "description": "Menüsáv megjelenítése az ablak tetején.",
+        "disabledHint": "Nem lehet letiltani a menüsort, ha az oldalsáv le van tiltva. A beállítások elérhetetlenné válnának."
       },
       "sidebar": {
         "title": "Oldalsáv",
-        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal."
+        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal.",
+        "disabledHint": "Nem lehet letiltani az oldalsávot, ha a menüsor le van tiltva. A beállítások elérhetetlenné válnának."
       },
       "trayIcon": {
         "title": "Tálcaikon",
@@ -279,6 +318,7 @@
     "close": "Bezárás",
     "copy": "&Másolás",
     "cut": "&Kivágás",
+    "developerMode": "Fejlesztői mód",
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",
@@ -321,6 +361,21 @@
     "title": "Kiszolgáló betöltése sikertelen",
     "announcement": "Houston, baj van!",
     "reload": "Újratöltés"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Videohívás betöltése…",
+      "reloading": "Videohívás újratöltése…",
+      "description": "Várjon, amíg kapcsolódunk a videohíváshoz"
+    },
+    "error": {
+      "title": "A videohívást nem sikerült betölteni",
+      "announcement": "Houston, baj van!",
+      "timeout": "Betöltési időtúllépés – a videohívást nem sikerült betölteni 15 másodpercen belül",
+      "crashed": "A webnézet összeomlott",
+      "maxRetriesReached": "Nem sikerült betölteni többszöri próbálkozás után sem",
+      "reload": "Videohívás újratöltése"
+    }
   },
   "unsupportedServer": {
     "title": "A(z) {{instanceDomain}} a Rocket.Chat nem támogatott verzióját futtatja",
@@ -393,5 +448,154 @@
     "noWindowsFound": "Nem találhatók ablakok",
     "cancel": "Mégse",
     "share": "Megosztás"
+  },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Főfolyamat",
+        "renderer": "Megjelenítő folyamat",
+        "preload": "Előtöltő folyamat",
+        "rendererRoot": "Főablak",
+        "webview": "Kiszolgáló webnézete",
+        "videoCall": "Videohívás ablaka"
+      },
+      "components": {
+        "auth": "Hitelesítés",
+        "connection": "Kapcsolat",
+        "notification": "Értesítés",
+        "outlook": "Outlook naptár",
+        "videoCall": "Videohívás",
+        "download": "Letöltés",
+        "spellCheck": "Helyesírás-ellenőrzés",
+        "general": "Általános"
+      },
+      "serverInfo": {
+        "anonymous": "Névtelen kiszolgáló",
+        "local": "Helyi folyamat",
+        "unknown": "Ismeretlen kiszolgáló"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "A tároló modul nem érhető el a kiszolgáló környezetének leképezésénél",
+      "importFailed": "A tároló importálása nem sikerült"
+    },
+    "errors": {
+      "configurationFailed": "Nem sikerült beállítani az elektronnaplót",
+      "storeUnavailable": "A tároló modul nem érhető el a kiszolgáló környezetének leképezésénél",
+      "webContentsLoggingFailed": "Nem sikerült beállítani a webtartalmak naplózását",
+      "rendererLogFailed": "Nem sikerült naplózni a megjelenítőből",
+      "consoleOverrideFailed": "Nem sikerült felülbírálni a konzol metódusait"
+    },
+    "messages": {
+      "serverContext": "{{- serverNumber}}. kiszolgáló",
+      "logContext": "Naplózási környezet: {{- context}}"
+    }
+  },
+  "logViewer": {
+    "title": "Naplómegjelenítő",
+    "aria": {
+      "logIcon": "Naplómegjelenítő ikon",
+      "entriesCount": "{{count}} naplóbejegyzés megjelenítve"
+    },
+    "fileInfo": {
+      "custom": "Egyéni",
+      "entries": "{{count}} bejegyzés",
+      "entriesOfTotal": "{{count}} / {{total}} bejegyzés",
+      "noEntries": "Nincsenek bejegyzések"
+    },
+    "buttons": {
+      "openLogFile": "Naplófájl megnyitása",
+      "defaultLog": "Alapértelmezett napló",
+      "refresh": "Frissítés",
+      "autoRefresh": "Automatikus frissítés",
+      "stopAutoRefresh": "Automatikus frissítés leállítása",
+      "copy": "Másolás",
+      "save": "Mentés",
+      "clear": "Törlés",
+      "close": "Bezárás",
+      "clearFilters": "Szűrők törlése"
+    },
+    "controls": {
+      "showContext": "Környezet megjelenítése",
+      "autoScrollToTop": "Automatikus görgetés a tetejére"
+    },
+    "placeholders": {
+      "loadAmount": "Betöltés mennyisége",
+      "searchLogs": "Naplók keresése…",
+      "level": "Szint",
+      "context": "Környezet",
+      "exchangeDebug": "Exchange hibakeresési szűrő"
+    },
+    "filters": {
+      "entryLimit": {
+        "last100": "Utolsó 100 bejegyzés",
+        "last500": "Utolsó 500 bejegyzés",
+        "last1000": "Utolsó 1000 bejegyzés",
+        "last5000": "Utolsó 5000 bejegyzés",
+        "all": "Összes bejegyzés"
+      },
+      "level": {
+        "all": "Összes szint",
+        "debug": "Hibakeresés",
+        "info": "Információ",
+        "warn": "Figyelmeztetés",
+        "error": "Hiba",
+        "verbose": "Részletes"
+      },
+      "context": {
+        "all": "Összes környezet",
+        "main": "Főfolyamat",
+        "renderer": "Megjelenítő",
+        "webview": "Webnézet",
+        "videocall": "Videohívás",
+        "outlook": "Outlook naptár",
+        "auth": "Hitelesítés",
+        "updates": "Frissítések",
+        "notifications": "Értesítések",
+        "servers": "Kiszolgálók",
+        "ipc": "IPC-kommunikáció"
+      },
+      "exchangeDebug": {
+        "all": "Összes napló",
+        "success": "Csak sikeresek",
+        "failure": "Csak sikertelenek",
+        "ntlmFlow": "NTLM hitelesítés",
+        "exchangeComm": "Exchange kommunikáció",
+        "sslCerts": "SSL- vagy tanúsítványproblémák",
+        "networkErrors": "Hálózati problémák",
+        "successFactors": "Sikertényezők",
+        "outlookCalendar": "Outlook naptár"
+      }
+    },
+    "messages": {
+      "noLogsFound": "Nem találhatók naplók",
+      "adjustFilters": "Próbálja meg beállítani a szűrőket, vagy frissítse a naplókat"
+    }
+  },
+  "serverInfo": {
+    "title": "Kiszolgálóinformációk",
+    "urlLabel": "URL:",
+    "versionLabel": "Verzió:",
+    "unknown": "Ismeretlen",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Támogatott verziók",
+    "statusLabel": "Állapot:",
+    "status": {
+      "loading": "Betöltés…",
+      "error": "Nem sikerült betölteni",
+      "loaded": "Betöltve",
+      "idle": "Üresjárat",
+      "from": "innen: {{source}}"
+    },
+    "supported": {
+      "unknown": "Ismeretlen",
+      "expiring": "Lejáró",
+      "yes": "Igen",
+      "no": "Nem"
+    },
+    "expiration": {
+      "label": "Lejárat:",
+      "expiresOn": "Lejár ekkor: {{date}}"
+    }
   }
 }

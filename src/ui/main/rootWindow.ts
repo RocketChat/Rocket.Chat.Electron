@@ -44,6 +44,7 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
 
 let _rootWindow: BrowserWindow;
 let tempWindow: BrowserWindow;
+let crashHandlerRegistered = false;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
@@ -515,6 +516,37 @@ export const setupRootWindow = (): void => {
 
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
+
+  // Handle renderer process crashes
+  if (!crashHandlerRegistered) {
+    crashHandlerRegistered = true;
+
+    browserWindow.webContents.on(
+      'render-process-gone',
+      async (_event, details) => {
+        console.error('Renderer process crashed:', details.reason);
+        try {
+          const { session } = browserWindow.webContents;
+          await session.clearCache();
+          await session.clearStorageData({
+            storages: [
+              'cookies',
+              'indexdb',
+              'filesystem',
+              'shadercache',
+              'websql',
+              'serviceworkers',
+              'cachestorage',
+            ],
+          });
+          console.log('Cache cleared. Reloading window...');
+          browserWindow.reload();
+        } catch (error) {
+          console.error('Failed to recover from crash:', error);
+        }
+      }
+    );
+  }
 
   browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 

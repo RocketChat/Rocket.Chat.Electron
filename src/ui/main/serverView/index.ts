@@ -15,18 +15,10 @@ import type {
   WebContents,
   WebPreferences,
 } from 'electron';
-import {
-  app,
-  clipboard,
-  dialog,
-  Menu,
-  systemPreferences,
-  webContents,
-} from 'electron';
+import { app, clipboard, Menu, webContents } from 'electron';
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
-import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
@@ -50,7 +42,9 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
 } from '../../actions';
+import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
 
@@ -58,9 +52,72 @@ const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
+const VIDEO_CALL_PRELOAD_PATH = 'app/preload/preload.js';
+
+/**
+ * Determines if a webview is a video call webview based on partition and frame name.
+ */
+const isVideoCallWebview = (
+  partition?: string,
+  frameName?: string
+): boolean => {
+  if (partition === 'persist:video-call-session') {
+    return true;
+  }
+
+  if (frameName === 'Video Call') {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Resolves and validates preload file paths, falling back to safe defaults.
+ * Returns the preload path or null if no valid preload is available.
+ */
+const resolvePreloadPath = (isVideoCall: boolean): string | null => {
+  const appPath = app.getAppPath();
+  const defaultPreload = path.join(appPath, 'app/preload.js');
+  const videoCallPreload = path.join(appPath, VIDEO_CALL_PRELOAD_PATH);
+
+  const targetPreload = isVideoCall ? videoCallPreload : defaultPreload;
+  const fallbackPreload = isVideoCall ? defaultPreload : null;
+
+  if (fs.existsSync(targetPreload)) {
+    return targetPreload;
+  }
+
+  if (fallbackPreload && fs.existsSync(fallbackPreload)) {
+    console.warn(
+      `Preload file not found: ${targetPreload}, falling back to: ${fallbackPreload}`
+    );
+    return fallbackPreload;
+  }
+
+  console.warn(
+    `Preload file not found: ${targetPreload}${
+      fallbackPreload ? ` or fallback: ${fallbackPreload}` : ''
+    }. Preload will be disabled.`
+  );
+  return null;
+};
+
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
+
+export const getServerUrlByWebContentsId = (
+  webContentsId: number
+): string | undefined => {
+  const targetWebContents = webContents.fromId(webContentsId);
+  if (!targetWebContents) {
+    return undefined;
+  }
+  return Array.from(webContentsByServerUrl.entries()).find(
+    ([, wc]) => wc === targetWebContents
+  )?.[0];
+};
 
 const initializeServerWebContentsAfterReady = (
   _serverUrl: string,
@@ -90,13 +147,18 @@ export const serverReloadView = async (
 ): Promise<void> => {
   const url = new URL(serverUrl).href;
   const guestWebContents = getWebContentsByServerUrl(url);
-  await guestWebContents?.loadURL(url);
-  if (url) {
-    dispatch({
-      type: WEBVIEW_SERVER_RELOADED,
-      payload: { url },
-    });
+  if (!guestWebContents) {
+    return;
   }
+  try {
+    await guestWebContents.loadURL(url);
+  } catch (error) {
+    console.error('Failed to load URL for guestWebContents:', error);
+  }
+  dispatch({
+    type: WEBVIEW_SERVER_RELOADED,
+    payload: { url },
+  });
 };
 
 const initializeServerWebContentsAfterAttach = (
@@ -203,13 +265,23 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     _params: Record<string, string>
   ): void => {
     delete webPreferences.enableBlinkFeatures;
-    webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
+    const isVideoCall = isVideoCallWebview(
+      _params.partition,
+      _params.frameName
+    );
+    const preloadPath = resolvePreloadPath(isVideoCall);
+    if (preloadPath) {
+      webPreferences.preload = preloadPath;
+    } else {
+      delete webPreferences.preload;
+    }
     webPreferences.nodeIntegration = false;
     webPreferences.nodeIntegrationInWorker = false;
     webPreferences.nodeIntegrationInSubFrames = false;
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
     webPreferences.sandbox = false;
+    webPreferences.plugins = true;
   };
 
   const handleDidAttachWebview = (
@@ -240,7 +312,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return { action: 'deny' };
       }
 
-      const isVideoCall = frameName === 'Video Call';
+      const isVideoCall = isVideoCallWebview(undefined, frameName);
+      const preloadPath = resolvePreloadPath(isVideoCall);
 
       return {
         action: 'allow',
@@ -248,8 +321,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           ...(isVideoCall
             ? {
                 webPreferences: {
-                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                  ...(preloadPath ? { preload: preloadPath } : {}),
                   sandbox: false,
+                  plugins: true,
                 },
               }
             : {}),
@@ -301,18 +375,13 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     console.log('Permission request', permission, details);
     switch (permission) {
       case 'media': {
-        if (process.platform !== 'darwin') {
-          callback(true);
-          return;
-        }
-
         const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-        const allowed =
-          (!mediaTypes.includes('audio') ||
-            (await systemPreferences.askForMediaAccess('microphone'))) &&
-          (!mediaTypes.includes('video') ||
-            (await systemPreferences.askForMediaAccess('camera')));
-        callback(allowed);
+        await handleMediaPermissionRequest(
+          mediaTypes as ReadonlyArray<'audio' | 'video'>,
+          rootWindow,
+          'recordMessage',
+          callback
+        );
         return;
       }
 
@@ -355,32 +424,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
-    guestWebContents.session.on(
-      'will-download',
-      (event, item, _webContents) => {
-        const fileName = item.getFilename();
-        const extension = path.extname(fileName)?.slice(1).toLowerCase();
-        const savePath = dialog.showSaveDialogSync(rootWindow, {
-          defaultPath: item.getFilename(),
-          filters: [
-            {
-              name: `*.${extension}`,
-              extensions: [extension],
-            },
-            {
-              name: '*.*',
-              extensions: ['*'],
-            },
-          ],
-        });
-        if (savePath !== undefined) {
-          item.setSavePath(savePath);
-          handleWillDownloadEvent(event, item, _webContents);
-          return;
-        }
-        event.preventDefault();
-      }
-    );
+    // Download handling is now managed by electron-dl in main.ts
+    // and integrated with our downloads system via setupDownloads()
 
     // prevents the webview from navigating because of twitter preview links
     guestWebContents.on('will-navigate', (e, redirectUrl) => {
@@ -412,7 +457,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
-    guestWebContents?.loadURL(action.payload.url);
+    if (!guestWebContents) {
+      return;
+    }
+    guestWebContents.loadURL(action.payload.url).catch((error) => {
+      console.error('Failed to load URL for guestWebContents:', error);
+    });
   });
 
   listen(SIDE_BAR_SERVER_RELOAD, (action) => {
@@ -456,7 +506,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.reload'),
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.loadURL(serverUrl);
+          if (!guestWebContents) {
+            return;
+          }
+          guestWebContents.loadURL(serverUrl).catch((error) => {
+            console.error('Failed to load URL for guestWebContents:', error);
+          });
           if (serverUrl) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,
@@ -556,5 +611,35 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
 
     openExternal(url);
+  });
+
+  listen(WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR, async (action) => {
+    const serverUrl = action.payload;
+    const guestWebContents = getWebContentsByServerUrl(serverUrl);
+    if (!guestWebContents) {
+      return;
+    }
+
+    // Clear cache keeping login data using the same method as Force Reload
+    await guestWebContents.session.clearCache();
+    await guestWebContents.session.clearStorageData({
+      storages: [
+        'cookies',
+        'indexdb',
+        'filesystem',
+        'shadercache',
+        'websql',
+        'serviceworkers',
+        'cachestorage',
+      ],
+    });
+
+    // Reload ignoring cache
+    guestWebContents.reloadIgnoringCache();
+
+    dispatch({
+      type: WEBVIEW_SERVER_RELOADED,
+      payload: { url: serverUrl },
+    });
   });
 };

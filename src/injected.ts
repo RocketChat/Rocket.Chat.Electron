@@ -577,7 +577,22 @@ const start = async () => {
 
   // Call setupReactiveFeatures immediately and then periodically check for new modules
   setupReactiveFeatures();
-  setInterval(setupReactiveFeatures, 1000); // Check every second for newly loaded modules
+
+  // Self-rescheduling timeout that stops once all features are initialized
+  const scheduleSetupCheck = () => {
+    const allFeaturesSetup = Object.values(setupFlags).every((flag) => flag);
+
+    if (!allFeaturesSetup) {
+      setupReactiveFeatures();
+      setTimeout(scheduleSetupCheck, 1000);
+    } else {
+      console.log(
+        '[Rocket.Chat Desktop] All reactive features initialized, stopping polling'
+      );
+    }
+  };
+
+  scheduleSetupCheck();
 
   console.log('[Rocket.Chat Desktop] Injected');
 };

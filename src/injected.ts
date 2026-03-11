@@ -192,6 +192,19 @@ const start = async () => {
 
   console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
+  // Inject custom CSS to fix attachment width
+  const customStyle = document.createElement('style');
+  customStyle.id = 'rocketchat-desktop-custom-styles';
+  customStyle.textContent = `
+    /* Override hardcoded 360px width for text format attachments */
+    .rcx-attachment__content {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+  `;
+  document.head.appendChild(customStyle);
+  console.log('[Rocket.Chat Desktop] Custom CSS injected for attachment width fix');
+
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
     implements Notification

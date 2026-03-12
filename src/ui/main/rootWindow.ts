@@ -16,6 +16,7 @@ import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
+import { checkActiveUploads } from '../../uploads/main';
 import { getTrayIconPath } from './icons';
 
 const webPreferences: WebPreferences = {
@@ -261,6 +262,12 @@ export const setupRootWindow = (): void => {
     });
 
     rootWindow.addListener('close', async () => {
+      // Check for active uploads before closing
+      const canClose = await checkActiveUploads();
+      if (!canClose) {
+        return;
+      }
+
       if (rootWindow?.isFullScreen()) {
         await new Promise<void>((resolve) =>
           rootWindow.once('leave-full-screen', () => resolve())

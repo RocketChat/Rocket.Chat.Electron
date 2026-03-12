@@ -36,6 +36,7 @@ import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
+import { activeUploads } from '../uploads/reducer';
 import {
   doCheckForUpdatesOnStartup,
   isCheckingForUpdates,
@@ -48,6 +49,7 @@ import {
 } from '../updates/reducers';
 
 export const rootReducer = combineReducers({
+  activeUploads,
   allowedJitsiServers,
   appPath,
   appVersion,

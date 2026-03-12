@@ -36,6 +36,7 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
+import { setupUploadTracking } from './uploads/main';
 import {
   handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
@@ -75,6 +76,7 @@ const start = async (): Promise<void> => {
   watchMachineTheme();
   setupNotifications();
   setupScreenSharing();
+  setupUploadTracking();
   startVideoCallWindowHandler();
 
   await setupSpellChecking();

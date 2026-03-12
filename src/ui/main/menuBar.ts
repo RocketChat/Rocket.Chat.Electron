@@ -25,7 +25,7 @@ import {
   WEBVIEW_SERVER_RELOADED,
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
-import { getRootWindow } from './rootWindow';
+import { getRootWindow, guardedQuit } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
 
 const t = i18next.t.bind(i18next);
@@ -115,7 +115,7 @@ const createAppMenu = createSelector(
         label: t('menus.quit', { appName: app.name }),
         accelerator: 'CommandOrControl+Q',
         click: () => {
-          app.quit();
+          guardedQuit();
         },
       },
     ],

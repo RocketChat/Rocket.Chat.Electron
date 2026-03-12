@@ -35,6 +35,7 @@ import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
+import { setupUploadTracking } from './uploads/main';
 import { setupPowerMonitor } from './userPresence/main';
 import {
   handleDesktopCapturerGetSources,
@@ -75,6 +76,7 @@ const start = async (): Promise<void> => {
   watchMachineTheme();
   setupNotifications();
   setupScreenSharing();
+  setupUploadTracking();
   startVideoCallWindowHandler();
 
   await setupSpellChecking();

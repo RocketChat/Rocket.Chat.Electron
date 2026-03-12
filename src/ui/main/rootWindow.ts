@@ -12,11 +12,19 @@ import {
 import { setupRootWindowReload } from '../../app/main/dev';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
+import { checkActiveUploads } from '../../uploads/main';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
+
+export const guardedQuit = async (): Promise<void> => {
+  const canQuit = await checkActiveUploads();
+  if (canQuit) {
+    app.quit();
+  }
+};
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
@@ -260,12 +268,14 @@ export const setupRootWindow = (): void => {
       rootWindow.flashFrame(false);
     });
 
-    rootWindow.addListener('close', async () => {
+    rootWindow.addListener('close', async (event) => {
       if (rootWindow?.isFullScreen()) {
         await new Promise<void>((resolve) =>
           rootWindow.once('leave-full-screen', () => resolve())
         );
         rootWindow.setFullScreen(false);
+        event.preventDefault();
+        return;
       }
 
       if (process.platform !== 'linux') rootWindow.blur();
@@ -276,6 +286,7 @@ export const setupRootWindow = (): void => {
 
       if (process.platform === 'darwin' || isTrayIconEnabled) {
         rootWindow.hide();
+        event.preventDefault();
         return;
       }
 
@@ -285,6 +296,14 @@ export const setupRootWindow = (): void => {
 
       if (process.platform === 'win32' && isMinimizeOnCloseEnabled) {
         rootWindow.minimize();
+        event.preventDefault();
+        return;
+      }
+
+      // Only check uploads when actually quitting
+      const canQuit = await checkActiveUploads();
+      if (!canQuit) {
+        event.preventDefault();
         return;
       }
 

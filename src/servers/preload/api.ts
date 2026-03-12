@@ -10,6 +10,11 @@ import {
   setUserToken,
 } from '../../outlookCalendar/preload';
 import type { OutlookEventsResponse } from '../../outlookCalendar/type';
+import {
+  notifyUploadStarted,
+  notifyUploadFinished,
+  notifyUploadFailed,
+} from '../../uploads/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import type { Server } from '../common';
 import { setBadge } from './badge';
@@ -76,6 +81,9 @@ export type RocketChatDesktopAPI = {
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
   openDocumentViewer: (url: string, format: string, options: any) => void;
+  notifyUploadStarted: (id: string, fileName: string) => void;
+  notifyUploadFinished: (id: string) => void;
+  notifyUploadFailed: (id: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -111,4 +119,7 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setUserToken,
   setSidebarCustomTheme,
   openDocumentViewer,
+  notifyUploadStarted,
+  notifyUploadFinished,
+  notifyUploadFailed,
 };

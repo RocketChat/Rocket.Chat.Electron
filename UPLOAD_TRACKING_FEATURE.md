@@ -186,7 +186,7 @@ describe('Upload Tracking', () => {
 
 ## 🎨 Dialog Appearance
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  ⚠️  Upload in Progress                 │
 ├─────────────────────────────────────────┤

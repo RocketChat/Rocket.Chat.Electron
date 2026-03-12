@@ -4,24 +4,30 @@ import { listen } from '../store';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { UPLOAD_STARTED, UPLOAD_FINISHED, UPLOAD_FAILED } from './actions';
 
-let activeUploadsCount = 0;
+const activeUploads = new Set<string>();
 
 export const setupUploadTracking = (): void => {
-  listen(UPLOAD_STARTED, () => {
-    activeUploadsCount++;
+  listen(UPLOAD_STARTED, ({ payload }) => {
+    if (payload?.id) {
+      activeUploads.add(payload.id);
+    }
   });
 
-  listen(UPLOAD_FINISHED, () => {
-    activeUploadsCount = Math.max(0, activeUploadsCount - 1);
+  listen(UPLOAD_FINISHED, ({ payload }) => {
+    if (payload?.id) {
+      activeUploads.delete(payload.id);
+    }
   });
 
-  listen(UPLOAD_FAILED, () => {
-    activeUploadsCount = Math.max(0, activeUploadsCount - 1);
+  listen(UPLOAD_FAILED, ({ payload }) => {
+    if (payload?.id) {
+      activeUploads.delete(payload.id);
+    }
   });
 };
 
 export const checkActiveUploads = async (): Promise<boolean> => {
-  if (activeUploadsCount === 0) {
+  if (activeUploads.size === 0) {
     return true;
   }
 
@@ -31,7 +37,8 @@ export const checkActiveUploads = async (): Promise<boolean> => {
     buttons: ['Cancel', 'Quit'],
     defaultId: 0,
     title: 'Upload in Progress',
-    message: 'A file upload is currently in progress. Are you sure you want to quit?',
+    message:
+      'A file upload is currently in progress. Are you sure you want to quit?',
   });
 
   return choice === 1;

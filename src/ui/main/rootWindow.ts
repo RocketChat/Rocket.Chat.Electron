@@ -19,6 +19,13 @@ import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
 
+export const guardedQuit = async (): Promise<void> => {
+  const canQuit = await checkActiveUploads();
+  if (canQuit) {
+    app.quit();
+  }
+};
+
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
   nodeIntegrationInSubFrames: true,
@@ -295,7 +302,7 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      app.quit();
+      guardedQuit();
     });
 
     unsubscribers.push(() => {

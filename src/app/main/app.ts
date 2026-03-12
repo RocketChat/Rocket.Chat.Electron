@@ -68,8 +68,14 @@ export const performElectronStartup = (): void => {
 
   // Enable Kerberos/SPNEGO authentication for SAML on macOS
   if (process.platform === 'darwin') {
-    app.commandLine.appendSwitch('auth-server-whitelist', '*.local,*.domain.local');
-    app.commandLine.appendSwitch('auth-negotiate-delegate-whitelist', '*.local,*.domain.local');
+    app.commandLine.appendSwitch(
+      'auth-server-whitelist',
+      '*.local,*.domain.local'
+    );
+    app.commandLine.appendSwitch(
+      'auth-negotiate-delegate-whitelist',
+      '*.local,*.domain.local'
+    );
   }
 
   if (getPlatformName() === 'macOS' && process.mas) {

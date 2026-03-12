@@ -42,7 +42,7 @@ const notification = new Notification({
   subtitle,
   body: body ?? '',
   icon: await resolveIcon(icon),
-  silent: silent === true,  // ✅ Fix: Only false when explicitly false
+  silent: silent !== false,  // ✅ Fix: Silent unless explicitly false
   hasReply: canReply,
   actions: actions?.map((action) => ({
     type: 'button',
@@ -53,19 +53,19 @@ const notification = new Notification({
 
 ### Why This Works
 
-| Scenario | Old Behavior | New Behavior |
+| Input | Result | Behavior |
 |----------|--------------|--------------|
-| `silent: true` | ✅ Silent | ✅ Silent |
-| `silent: false` | ❌ Plays sound (undefined) | ✅ Silent (false) |
-| `silent: undefined` | ❌ Plays sound | ✅ Silent (false) |
-| Not specified | ❌ Plays sound | ✅ Silent (false) |
+| `silent: true` | `true` | ✅ Silent (no sound) |
+| `silent: false` | `false` | ✅ Plays sound |
+| `silent: undefined` | `true` | ✅ Silent (no sound) |
+| Not specified | `true` | ✅ Silent (no sound) |
 
-**Key Change**: Changed from `silent ?? undefined` to `silent === true`
+**Key Change**: Changed from `silent ?? undefined` to `silent !== false`
 
 This ensures:
 - Sound only plays when `silent` is explicitly `false`
-- Default behavior is silent (no sound)
-- Respects user's notification settings
+- When `silent` is `true` or `undefined`, notification is silent
+- Fixes the doorbell sound bug where unwanted sounds played
 
 ## 🔍 Technical Details
 
@@ -109,7 +109,7 @@ const id = await request({
 
 **In main.ts** (FIXED):
 ```typescript
-silent: silent === true,  // Only true if explicitly true
+silent: silent !== false,  // Silent unless explicitly false
 ```
 
 ## 🧪 Testing Instructions
@@ -174,13 +174,13 @@ silent: true,  // Always silent
 
 ### Option 3: Current Solution (Implemented) ✅
 ```typescript
-silent: silent === true,  // Default to silent
+silent: silent !== false,  // Silent unless explicitly false
 ```
 **Why yes**: 
 - Fixes the bug
 - Maintains flexibility
 - Respects explicit settings
-- Safe default behavior
+- Silent by default (prevents unwanted sounds)
 
 ## 📊 Impact Analysis
 

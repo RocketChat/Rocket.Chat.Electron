@@ -38,7 +38,7 @@ Preload (notifyUploadStarted)
          ↓
 Redux Action (UPLOAD_STARTED)
          ↓
-Main Process (activeUploadsCount++)
+Main Process (activeUploads.add(id))
 ```
 
 ### 2. Close Prevention Flow
@@ -48,9 +48,11 @@ User clicks close button
          ↓
 rootWindow 'close' event
          ↓
+Check if actually quitting (not hiding/minimizing)
+         ↓
 checkActiveUploads()
          ↓
-activeUploadsCount > 0?
+activeUploads.size > 0?
          ↓
 Show dialog: "Upload in progress. Quit?"
          ↓
@@ -66,7 +68,7 @@ window.RocketChatDesktop.notifyUploadFinished(id)
          ↓
 Redux Action (UPLOAD_FINISHED)
          ↓
-Main Process (activeUploadsCount--)
+Main Process (activeUploads.delete(id))
 ```
 
 ## 📝 Usage in Rocket.Chat Web Client

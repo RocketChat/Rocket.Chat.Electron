@@ -268,18 +268,14 @@ export const setupRootWindow = (): void => {
       rootWindow.flashFrame(false);
     });
 
-    rootWindow.addListener('close', async () => {
-      // Check for active uploads before closing
-      const canClose = await checkActiveUploads();
-      if (!canClose) {
-        return;
-      }
-
+    rootWindow.addListener('close', async (event) => {
       if (rootWindow?.isFullScreen()) {
         await new Promise<void>((resolve) =>
           rootWindow.once('leave-full-screen', () => resolve())
         );
         rootWindow.setFullScreen(false);
+        event.preventDefault();
+        return;
       }
 
       if (process.platform !== 'linux') rootWindow.blur();
@@ -290,6 +286,7 @@ export const setupRootWindow = (): void => {
 
       if (process.platform === 'darwin' || isTrayIconEnabled) {
         rootWindow.hide();
+        event.preventDefault();
         return;
       }
 
@@ -299,10 +296,18 @@ export const setupRootWindow = (): void => {
 
       if (process.platform === 'win32' && isMinimizeOnCloseEnabled) {
         rootWindow.minimize();
+        event.preventDefault();
         return;
       }
 
-      guardedQuit();
+      // Only check uploads when actually quitting
+      const canQuit = await checkActiveUploads();
+      if (!canQuit) {
+        event.preventDefault();
+        return;
+      }
+
+      app.quit();
     });
 
     unsubscribers.push(() => {

@@ -31,7 +31,13 @@ export const checkActiveUploads = async (): Promise<boolean> => {
     return true;
   }
 
-  const rootWindow = await getRootWindow();
+  let rootWindow;
+  try {
+    rootWindow = await getRootWindow();
+  } catch {
+    rootWindow = undefined;
+  }
+
   const choice = dialog.showMessageBoxSync(rootWindow, {
     type: 'warning',
     buttons: ['Cancel', 'Quit'],

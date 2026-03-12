@@ -7,7 +7,7 @@ import type { RootState } from '../../store/rootReducer';
 import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 import { selectGlobalBadge } from '../selectors';
 import { getTrayIconPath, getAppIconPath } from './icons';
-import { getRootWindow } from './rootWindow';
+import { getRootWindow, guardedQuit } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
@@ -153,7 +153,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
         {
           label: t('tray.menu.quit'),
           click: () => {
-            app.quit();
+            guardedQuit();
           },
         },
       ];

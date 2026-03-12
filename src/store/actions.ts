@@ -11,6 +11,7 @@ import type { ServersActionTypeToPayloadMap } from '../servers/actions';
 import type { SpellCheckingActionTypeToPayloadMap } from '../spellChecking/actions';
 import type { UiActionTypeToPayloadMap } from '../ui/actions';
 import type { UpdatesActionTypeToPayloadMap } from '../updates/actions';
+import type { UploadsActionTypeToPayloadMap } from '../uploads/actions';
 import type { UserPresenceActionTypeToPayloadMap } from '../userPresence/actions';
 
 type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
@@ -25,6 +26,7 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   SpellCheckingActionTypeToPayloadMap &
   UiActionTypeToPayloadMap &
   UpdatesActionTypeToPayloadMap &
+  UploadsActionTypeToPayloadMap &
   UserPresenceActionTypeToPayloadMap &
   OutlookCalendarActionTypeToPayloadMap;
 

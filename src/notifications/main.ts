@@ -63,7 +63,7 @@ const createNotification = async (
     subtitle,
     body: body ?? '',
     icon: await resolveIcon(icon),
-    silent: silent !== false,
+    silent: typeof silent === 'boolean' ? silent : undefined,
     hasReply: canReply,
     actions: actions?.map((action) => ({
       type: 'button',

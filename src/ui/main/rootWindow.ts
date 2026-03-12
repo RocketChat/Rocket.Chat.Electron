@@ -12,11 +12,11 @@ import {
 import { setupRootWindowReload } from '../../app/main/dev';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
+import { checkActiveUploads } from '../../uploads/main';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
-import { checkActiveUploads } from '../../uploads/main';
 import { getTrayIconPath } from './icons';
 
 const webPreferences: WebPreferences = {

@@ -141,10 +141,6 @@
   "engines": {
     "node": ">=22.13.1"
   },
-  "devEngines": {
-    "node": ">=22.13.1",
-    "yarn": ">=4.0.2"
-  },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
     "@fiahfy/ico-convert/sharp": "0.29.3"

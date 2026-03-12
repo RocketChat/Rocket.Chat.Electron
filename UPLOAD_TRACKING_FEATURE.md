@@ -29,7 +29,7 @@
 
 ### 1. Upload Tracking Flow
 
-```
+```text
 Rocket.Chat Web Client starts upload
          ↓
 window.RocketChatDesktop.notifyUploadStarted(id, fileName)
@@ -43,7 +43,7 @@ Main Process (activeUploadsCount++)
 
 ### 2. Close Prevention Flow
 
-```
+```text
 User clicks close button
          ↓
 rootWindow 'close' event
@@ -59,7 +59,7 @@ User choice: Cancel (stay) or Quit (close)
 
 ### 3. Upload Completion Flow
 
-```
+```text
 Upload finishes/fails
          ↓
 window.RocketChatDesktop.notifyUploadFinished(id)
@@ -297,7 +297,7 @@ if (!warnOnUploadClose) {
 
 ---
 
-**Created**: 2025-01-XX
+**Created**: 2026-03-12
 **Feature**: Upload tracking & close prevention
 **Status**: ✅ Implemented
 **Impact**: Prevents data loss from interrupted uploads

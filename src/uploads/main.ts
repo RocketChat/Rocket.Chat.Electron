@@ -1,6 +1,6 @@
 import { dialog } from 'electron';
 
-import { dispatch, listen, select } from '../store';
+import { listen } from '../store';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { UPLOAD_STARTED, UPLOAD_FINISHED, UPLOAD_FAILED } from './actions';
 

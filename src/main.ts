@@ -35,8 +35,8 @@ import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
-import { setupPowerMonitor } from './userPresence/main';
 import { setupUploadTracking } from './uploads/main';
+import { setupPowerMonitor } from './userPresence/main';
 import {
   handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,

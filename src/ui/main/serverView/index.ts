@@ -210,6 +210,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
     webPreferences.sandbox = false;
+    webPreferences.plugins = true;
   };
 
   const handleDidAttachWebview = (
@@ -250,6 +251,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
                 webPreferences: {
                   preload: path.join(app.getAppPath(), 'app/preload.js'),
                   sandbox: false,
+                  plugins: true,
                 },
               }
             : {}),

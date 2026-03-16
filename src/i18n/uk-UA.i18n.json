@@ -99,6 +99,17 @@
         "systemDefault": "Системний за замовчуванням",
         "loading": "Завантаження браузерів...",
         "current": "Зараз використовується:"
+      },
+      "transparentWindow": {
+        "title": "Ефект прозорого вікна",
+        "description": "Увімкнути нативний ефект вібрації/прозорості для вікна. Потрібен перезапуск для застосування."
+      },
+      "themeAppearance": {
+        "title": "Тема",
+        "description": "Виберіть колірну тему для програми.",
+        "auto": "Слідувати системі",
+        "light": "Світла",
+        "dark": "Темна"
       }
     }
   },
@@ -227,5 +238,31 @@
     "noWindowsFound": "Вікна не знайдено",
     "cancel": "Скасувати",
     "share": "Демонструвати"
+  },
+  "serverInfo": {
+    "title": "Інформація про сервер",
+    "urlLabel": "URL:",
+    "versionLabel": "Версія:",
+    "unknown": "Невідомо",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Підтримувані версії",
+    "statusLabel": "Статус:",
+    "status": {
+      "loading": "Завантаження...",
+      "error": "Помилка завантаження",
+      "loaded": "Завантажено",
+      "idle": "Неактивно",
+      "from": "з {{source}}"
+    },
+    "supported": {
+      "unknown": "Невідомо",
+      "expiring": "Термін дії закінчується",
+      "yes": "Так",
+      "no": "Ні"
+    },
+    "expiration": {
+      "label": "Термін дії:",
+      "expiresOn": "Закінчується {{date}}"
+    }
   }
 }

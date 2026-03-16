@@ -240,9 +240,10 @@ describe('main.ts electron-dl integration', () => {
       },
       onCompleted: (file) => {
         createNotification({
-          title: 'Downloads',
-          body: file.filename,
+          title: t('downloads.title', { defaultValue: 'Downloads' }),
+          body: file.filename || 'Unknown file',
           subtitle: t('downloads.notifications.downloadFinished'),
+          category: 'DOWNLOADS',
         });
       },
     });
@@ -351,16 +352,30 @@ describe('main.ts electron-dl integration', () => {
         onCompletedCallback(mockFile);
 
         expect(createNotificationMock).toHaveBeenCalledWith({
-          title: 'Downloads',
+          title: 'downloads.title',
           body: 'completed-file.pdf',
           subtitle: 'downloads.notifications.downloadFinished',
+          category: 'DOWNLOADS',
+        });
+        expect(t).toHaveBeenCalledWith('downloads.title', {
+          defaultValue: 'Downloads',
         });
       });
 
       it('should use translated subtitle', () => {
         const mockFile = { filename: 'test.pdf' };
         const tMock = t as jest.MockedFunction<typeof t>;
-        tMock.mockReturnValue('Download finished');
+        tMock.mockImplementation((...args: any[]) => {
+          const key = args[0];
+          const options = args[1];
+          if (key === 'downloads.title') {
+            return options?.defaultValue || 'Downloads';
+          }
+          if (key === 'downloads.notifications.downloadFinished') {
+            return 'Download finished';
+          }
+          return key;
+        });
 
         onCompletedCallback(mockFile);
 
@@ -371,6 +386,10 @@ describe('main.ts electron-dl integration', () => {
           title: 'Downloads',
           body: 'test.pdf',
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
+        });
+        expect(tMock).toHaveBeenCalledWith('downloads.title', {
+          defaultValue: 'Downloads',
         });
       });
     });

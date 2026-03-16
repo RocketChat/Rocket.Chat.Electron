@@ -19,7 +19,7 @@ import {
 } from './github';
 import { packOnLinux, setupSnapcraft, uploadSnap } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
-import { packOnWindows } from './windows';
+import { packOnWindows } from './windows/index';
 
 const pack = async () => {
   switch (process.platform) {
@@ -169,9 +169,9 @@ const start = async () => {
   const payload = github.context.payload as PushEvent;
   const ref = core.getInput('ref') || payload.ref;
 
-  if (ref === 'refs/heads/develop') {
+  if (ref === 'refs/heads/dev') {
     core.info(
-      `push event on develop branch detected, performing development release`
+      `push event on dev branch detected, performing development release`
     );
     await releaseDevelopment(payload.after);
     return;
@@ -184,6 +184,7 @@ const start = async () => {
     await releaseSnapshot(payload.after);
     return;
   }
+
 
   if (ref.match(/^refs\/tags\//)) {
     const tag = ref.slice('refs/tags/'.length);

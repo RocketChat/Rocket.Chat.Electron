@@ -131,6 +131,18 @@
       "microphone": "Microphone",
       "camera": "Caméra",
       "both": "Microphone et Caméra"
+    },
+    "microphonePermissionDenied": {
+      "title": "Accès au Microphone Requis",
+      "message": "L'accès au microphone est requis pour {{- actionType}}. Veuillez vérifier les paramètres de votre système.",
+      "detail": "Vous pouvez activer l'accès au microphone dans les paramètres de confidentialité de votre système.",
+      "openSettings": "Ouvrir les Paramètres",
+      "cancel": "Annuler",
+      "actionTypes": {
+        "initiateCall": "passer des appels",
+        "answerCall": "répondre aux appels",
+        "recordMessage": "enregistrer des messages"
+      }
     }
   },
   "downloads": {
@@ -206,6 +218,11 @@
         "title": "Accélération matérielle",
         "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Solution de capture d'écran pour les appels vidéo",
+        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option.",
+        "forcedDescription": "Actuellement appliqué car l'application a détecté une session RDP. Le commutateur contrôle le comportement lors des prochains démarrages locaux."
+      },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
         "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc ils s'ouvriront toujours dans le navigateur, quel que soit ce paramètre.",
@@ -239,6 +256,17 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
         "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."
+      },
+      "transparentWindow": {
+        "title": "Effet de fenêtre transparente",
+        "description": "Activer l'effet natif de vibrance/transparence pour la fenêtre. Nécessite un redémarrage pour s'appliquer."
+      },
+      "themeAppearance": {
+        "title": "Thème",
+        "description": "Choisissez le thème de couleur pour l'application.",
+        "auto": "Suivre le système",
+        "light": "Clair",
+        "dark": "Sombre"
       }
     }
   },
@@ -376,5 +404,31 @@
     "noWindowsFound": "Aucune fenêtre trouvée",
     "cancel": "Annuler",
     "share": "Partager"
+  },
+  "serverInfo": {
+    "title": "Informations du Serveur",
+    "urlLabel": "URL :",
+    "versionLabel": "Version :",
+    "unknown": "Inconnu",
+    "exchangeUrlLabel": "URL Outlook Exchange :",
+    "supportedVersionsTitle": "Versions Prise en Charge",
+    "statusLabel": "Statut :",
+    "status": {
+      "loading": "Chargement...",
+      "error": "Échec du chargement",
+      "loaded": "Chargé",
+      "idle": "Inactif",
+      "from": "depuis {{source}}"
+    },
+    "supported": {
+      "unknown": "Inconnu",
+      "expiring": "Expiration proche",
+      "yes": "Oui",
+      "no": "Non"
+    },
+    "expiration": {
+      "label": "Expiration :",
+      "expiresOn": "Expire le {{date}}"
+    }
   }
 }

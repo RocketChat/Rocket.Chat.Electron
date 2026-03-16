@@ -10,6 +10,7 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
 } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
+import { getPersistedValues } from '../../app/main/persistence';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
@@ -47,23 +48,53 @@ let tempWindow: BrowserWindow;
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
-      _rootWindow ? resolve(_rootWindow) : reject(new Error());
+      if (!_rootWindow) {
+        reject(new Error('Root window not initialized'));
+        return;
+      }
+      if (_rootWindow.isDestroyed()) {
+        reject(new Error('Root window has been destroyed'));
+        return;
+      }
+      resolve(_rootWindow);
     }, 300);
   });
 
 const platformTitleBarStyle =
   process.platform === 'darwin' ? 'hidden' : 'default';
 
+const isMac = process.platform === 'darwin';
+const getEnableVibrancy = (): boolean => {
+  if (!isMac) {
+    return false;
+  }
+  try {
+    const persistedValues: { isTransparentWindowEnabled?: boolean } =
+      getPersistedValues();
+    return persistedValues?.isTransparentWindowEnabled === true;
+  } catch (error) {
+    return false;
+  }
+};
+
 export const createRootWindow = (): void => {
+  const enableVibrancy = getEnableVibrancy();
   _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,
     minWidth: 400,
     minHeight: 400,
     titleBarStyle: platformTitleBarStyle,
-    backgroundColor: '#2f343d',
+    backgroundColor: enableVibrancy ? '#00000000' : '#2f343d',
     show: false,
     webPreferences,
+    ...(enableVibrancy
+      ? {
+          transparent: true,
+          vibrancy: 'sidebar',
+          visualEffectState: 'active',
+        }
+      : {}),
   });
 
   // Block navigation to smb:// protocol
@@ -188,41 +219,58 @@ const fetchRootWindowState = async (): Promise<
 };
 
 export const setupRootWindow = (): void => {
+  const safeWindowOperation = async <T>(
+    operation: (window: BrowserWindow) => Promise<T> | T,
+    operationName: string
+  ): Promise<T | void> => {
+    try {
+      const window = await getRootWindow();
+      if (window.isDestroyed()) {
+        return;
+      }
+      return await operation(window);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`${operationName} skipped:`, error);
+      }
+    }
+  };
+
   const unsubscribers = [
     watch(selectGlobalBadgeCount, async (globalBadgeCount) => {
-      const browserWindow = await getRootWindow();
-
-      if (browserWindow.isFocused() || globalBadgeCount === 0) {
-        return;
-      }
-
-      const { isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled } =
-        select(
-          ({ isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled }) => ({
-            isShowWindowOnUnreadChangedEnabled,
-            isFlashFrameEnabled,
-          })
-        );
-
-      if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
-        const isMinimized = browserWindow.isMinimized();
-        const isMaximized = browserWindow.isMaximized();
-
-        browserWindow.showInactive();
-
-        if (isMinimized) {
-          browserWindow.minimize();
+      await safeWindowOperation(async (browserWindow) => {
+        if (browserWindow.isFocused() || globalBadgeCount === 0) {
+          return;
         }
 
-        if (isMaximized) {
-          browserWindow.maximize();
-        }
-        return;
-      }
+        const { isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled } =
+          select(
+            ({ isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled }) => ({
+              isShowWindowOnUnreadChangedEnabled,
+              isFlashFrameEnabled,
+            })
+          );
 
-      if (isFlashFrameEnabled && process.platform !== 'darwin') {
-        browserWindow.flashFrame(true);
-      }
+        if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
+          const isMinimized = browserWindow.isMinimized();
+          const isMaximized = browserWindow.isMaximized();
+
+          browserWindow.showInactive();
+
+          if (isMinimized) {
+            browserWindow.minimize();
+          }
+
+          if (isMaximized) {
+            browserWindow.maximize();
+          }
+          return;
+        }
+
+        if (isFlashFrameEnabled && process.platform !== 'darwin') {
+          browserWindow.flashFrame(true);
+        }
+      }, 'Badge count update');
     }),
     watch(
       ({ currentView, servers }) => {
@@ -233,26 +281,35 @@ export const setupRootWindow = (): void => {
         return currentServer?.pageTitle || currentServer?.title || app.name;
       },
       async (windowTitle) => {
-        const browserWindow = await getRootWindow();
-        browserWindow.setTitle(windowTitle);
-        dispatch({
-          type: APP_MAIN_WINDOW_TITLE_SET,
-          payload: windowTitle,
-        });
+        await safeWindowOperation((browserWindow) => {
+          browserWindow.setTitle(windowTitle);
+          dispatch({
+            type: APP_MAIN_WINDOW_TITLE_SET,
+            payload: windowTitle,
+          });
+        }, 'Window title update');
       }
     ),
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
-      const rootWindow = await getRootWindow();
-      rootWindow.focus();
-      rootWindow.show();
+      await safeWindowOperation((rootWindow) => {
+        rootWindow.focus();
+        rootWindow.show();
+      }, 'Webview focus request');
     }),
   ];
 
   const fetchAndDispatchWindowState = debounce(async (): Promise<void> => {
-    dispatchLocal({
-      type: ROOT_WINDOW_STATE_CHANGED,
-      payload: await fetchRootWindowState(),
-    });
+    try {
+      const state = await fetchRootWindowState();
+      dispatchLocal({
+        type: ROOT_WINDOW_STATE_CHANGED,
+        payload: state,
+      });
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to fetch window state:', error);
+      }
+    }
   }, 1000);
 
   getRootWindow().then((rootWindow) => {
@@ -334,8 +391,18 @@ export const setupRootWindow = (): void => {
     });
 
     unsubscribers.push(() => {
-      rootWindow.removeAllListeners();
-      rootWindow.close();
+      try {
+        if (rootWindow && !rootWindow.isDestroyed()) {
+          rootWindow.removeAllListeners();
+          setImmediate(() => {
+            if (rootWindow && !rootWindow.isDestroyed()) {
+              rootWindow.close();
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error during root window cleanup:', error);
+      }
     });
   });
 
@@ -347,116 +414,103 @@ export const setupRootWindow = (): void => {
 
     unsubscribers.push(
       watch(selectRootWindowIcon, async ({ globalBadge, rootWindowIcon }) => {
-        const browserWindow = await getRootWindow();
+        await safeWindowOperation(async (browserWindow) => {
+          if (!rootWindowIcon) {
+            browserWindow.setIcon(
+              nativeImage.createFromPath(
+                getTrayIconPath({
+                  platform: process.platform,
+                  badge: globalBadge,
+                })
+              )
+            );
+            return;
+          }
 
-        if (!rootWindowIcon) {
-          browserWindow.setIcon(
-            nativeImage.createFromPath(
-              getTrayIconPath({
-                platform: process.platform,
-                badge: globalBadge,
-              })
-            )
-          );
-          return;
-        }
+          const icon = nativeImage.createEmpty();
+          const { scaleFactor } = screen.getPrimaryDisplay();
 
-        const icon = nativeImage.createEmpty();
-        const { scaleFactor } = screen.getPrimaryDisplay();
-
-        if (process.platform === 'linux') {
-          rootWindowIcon.icon.forEach((representation) => {
-            icon.addRepresentation({
-              ...representation,
-              scaleFactor,
-            });
-          });
-        }
-
-        if (process.platform === 'win32') {
-          for (const representation of rootWindowIcon.icon) {
-            icon.addRepresentation({
-              ...representation,
-              scaleFactor: representation.width ?? 0 / 32,
+          if (process.platform === 'linux') {
+            rootWindowIcon.icon.forEach((representation) => {
+              icon.addRepresentation({
+                ...representation,
+                scaleFactor,
+              });
             });
           }
-        }
 
-        browserWindow.setIcon(icon);
-
-        if (process.platform === 'win32') {
-          let overlayIcon: NativeImage | null = null;
-          const overlayDescription: string =
-            (typeof globalBadge === 'number' &&
-              i18next.t('unreadMention', {
-                appName: app.name,
-                count: globalBadge,
-              })) ||
-            (globalBadge === '•' &&
-              i18next.t('unreadMessage', { appName: app.name })) ||
-            i18next.t('noUnreadMessage', { appName: app.name });
-          if (rootWindowIcon.overlay) {
-            overlayIcon = nativeImage.createEmpty();
-
-            for (const representation of rootWindowIcon.overlay) {
-              overlayIcon.addRepresentation({
+          if (process.platform === 'win32') {
+            for (const representation of rootWindowIcon.icon) {
+              icon.addRepresentation({
                 ...representation,
-                scaleFactor: 1,
+                scaleFactor: Math.max((representation.width ?? 0) / 32, 1),
               });
             }
           }
 
-          const isTrayIconEnabled = select(
-            ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
-          );
+          browserWindow.setIcon(icon);
 
-          if (!isTrayIconEnabled) {
-            const t = i18next.t.bind(i18next);
-            const translate = `taskbar.${overlayDescription}`;
-            const taskbarTitle =
-              globalBadge !== undefined
-                ? `(${globalBadge}) ${t(translate)}`
-                : t(translate);
+          if (process.platform === 'win32') {
+            let overlayIcon: NativeImage | null = null;
+            const overlayDescription: string =
+              (typeof globalBadge === 'number' &&
+                i18next.t('unreadMention', {
+                  appName: app.name,
+                  count: globalBadge,
+                })) ||
+              (globalBadge === '•' &&
+                i18next.t('unreadMessage', { appName: app.name })) ||
+              i18next.t('noUnreadMessage', { appName: app.name });
+            if (rootWindowIcon.overlay) {
+              overlayIcon = nativeImage.createEmpty();
 
-            browserWindow.setTitle(taskbarTitle);
+              for (const representation of rootWindowIcon.overlay) {
+                overlayIcon.addRepresentation({
+                  ...representation,
+                  scaleFactor: 1,
+                });
+              }
+            }
+
+            const isTrayIconEnabled = select(
+              ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
+            );
+
+            if (!isTrayIconEnabled) {
+              const t = i18next.t.bind(i18next);
+              const translate = `taskbar.${overlayDescription}`;
+              const taskbarTitle =
+                globalBadge !== undefined
+                  ? `(${globalBadge}) ${t(translate)}`
+                  : t(translate);
+
+              browserWindow.setTitle(taskbarTitle);
+            }
+            browserWindow.setOverlayIcon(overlayIcon, overlayDescription);
           }
-          browserWindow.setOverlayIcon(overlayIcon, overlayDescription);
-        }
+        }, 'Window icon update');
       }),
       watch(
         ({ isMenuBarEnabled }) => isMenuBarEnabled,
         async (isMenuBarEnabled) => {
-          const browserWindow = await getRootWindow();
-          browserWindow.autoHideMenuBar = !isMenuBarEnabled;
-          browserWindow.setMenuBarVisibility(isMenuBarEnabled);
+          await safeWindowOperation((browserWindow) => {
+            browserWindow.autoHideMenuBar = !isMenuBarEnabled;
+            browserWindow.setMenuBarVisibility(isMenuBarEnabled);
+          }, 'Menu bar visibility update');
         }
       )
     );
   }
 
   app.addListener('before-quit', () => {
-    unsubscribers.forEach((unsubscriber) => unsubscriber());
-  });
-};
-
-const ensureWindowsMediaRegistration = async (): Promise<void> => {
-  if (process.platform !== 'win32') {
-    return;
-  }
-
-  try {
-    const browserWindow = await getRootWindow();
-    await browserWindow.webContents.executeJavaScript(`
-      if (!window._rocketChatMediaRegistered) {
-        window._rocketChatMediaRegistered = true;
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-          .then(() => console.log('Media access registered with Windows'))
-          .catch(() => console.log('Media registration attempted'));
+    unsubscribers.forEach((unsubscriber) => {
+      try {
+        unsubscriber();
+      } catch (error) {
+        console.warn('Unsubscriber error during quit:', error);
       }
-    `);
-  } catch (error) {
-    console.log('Media registration failed:', error);
-  }
+    });
+  });
 };
 
 export const showRootWindow = async (): Promise<void> => {
@@ -482,7 +536,6 @@ export const showRootWindow = async (): Promise<void> => {
       }
 
       setupRootWindow();
-      ensureWindowsMediaRegistration();
 
       resolve();
     });

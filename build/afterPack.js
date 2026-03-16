@@ -1,4 +1,32 @@
+const fs = require('fs');
+const path = require('path');
+
 const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
+
+async function setupLinuxWrapper(context) {
+  const { appOutDir } = context;
+
+  const binaryPath = path.join(appOutDir, 'rocketchat-desktop');
+  const binaryBinPath = path.join(appOutDir, 'rocketchat-desktop.bin');
+  const wrapperSrc = path.join(__dirname, 'linux', 'wrapper.sh');
+  const wrapperDest = path.join(appOutDir, 'rocketchat-desktop');
+
+  if (fs.existsSync(binaryBinPath)) {
+    console.log('Wrapper already installed, skipping');
+    return;
+  }
+
+  console.log('Setting up Linux display server wrapper...');
+
+  fs.renameSync(binaryPath, binaryBinPath);
+  console.log('  Renamed binary to rocketchat-desktop.bin');
+
+  fs.copyFileSync(wrapperSrc, wrapperDest);
+  fs.chmodSync(wrapperDest, 0o755);
+  console.log('  Installed wrapper script as rocketchat-desktop');
+
+  console.log('Linux wrapper setup complete');
+}
 
 exports.default = async function afterPack(context) {
   console.log(
@@ -8,7 +36,6 @@ exports.default = async function afterPack(context) {
     context.appOutDir
   );
 
-  // Apply security fuses for all builds
   let appPath;
   switch (context.electronPlatformName) {
     case 'darwin':
@@ -23,6 +50,11 @@ exports.default = async function afterPack(context) {
       break;
   }
 
+  // Fuses MUST be applied BEFORE signing. Per Electron docs:
+  // "Because they are flipped at package time before you code sign your app,
+  // the OS becomes responsible for ensuring those bits aren't flipped back
+  // via OS-level code signing validation"
+  // See: https://www.electronjs.org/docs/latest/tutorial/fuses
   console.log('Applying electron fuses for enhanced security to:', appPath);
 
   await flipFuses(appPath, {
@@ -38,4 +70,8 @@ exports.default = async function afterPack(context) {
   });
 
   console.log('Electron fuses applied successfully');
+
+  if (context.electronPlatformName === 'linux') {
+    await setupLinuxWrapper(context);
+  }
 };

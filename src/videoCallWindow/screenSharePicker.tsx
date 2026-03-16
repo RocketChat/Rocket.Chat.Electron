@@ -13,7 +13,7 @@ import type {
   SourcesOptions,
 } from 'electron';
 import { ipcRenderer } from 'electron';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '../ui/components/Dialog';
@@ -23,7 +23,11 @@ const desktopCapturer: DesktopCapturer = {
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts]),
 };
 
-export function ScreenSharePicker() {
+interface IScreenSharePickerProps {
+  onMounted?: (setVisible: (visible: boolean) => void) => void;
+}
+
+export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
@@ -33,6 +37,12 @@ export function ScreenSharePicker() {
     isScreenRecordingPermissionGranted,
     setIsScreenRecordingPermissionGranted,
   ] = useState(false);
+
+  // Track whether an IPC response has been sent for the current picker session.
+  // This ensures cancellation is always sent regardless of how the dialog is dismissed
+  // (click outside, ESC key, programmatic close, etc.).
+  const responseSentRef = useRef(false);
+  const wasVisibleRef = useRef(false);
 
   const fetchSources = useCallback(async (): Promise<void> => {
     try {
@@ -86,9 +96,28 @@ export function ScreenSharePicker() {
   }, [fetchSources]);
 
   useEffect(() => {
-    ipcRenderer.on('video-call-window/open-screen-picker', () => {
-      setVisible(true);
-    });
+    if (onMounted) {
+      onMounted(setVisible);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Safety net: if the picker closes without handleShare or handleClose having sent a
+  // response (e.g. due to dialog close event not firing correctly), send cancellation.
+  useEffect(() => {
+    if (visible) {
+      responseSentRef.current = false;
+      wasVisibleRef.current = true;
+    } else if (wasVisibleRef.current) {
+      wasVisibleRef.current = false;
+      if (!responseSentRef.current) {
+        responseSentRef.current = true;
+        ipcRenderer.send(
+          'video-call-window/screen-sharing-source-responded',
+          null
+        );
+      }
+    }
   }, [visible]);
 
   useEffect(() => {
@@ -137,6 +166,7 @@ export function ScreenSharePicker() {
         name: selectedSource.name,
       });
 
+      responseSentRef.current = true;
       setVisible(false);
       ipcRenderer.send(
         'video-call-window/screen-sharing-source-responded',
@@ -146,6 +176,11 @@ export function ScreenSharePicker() {
   };
 
   const handleClose = (): void => {
+    if (responseSentRef.current) {
+      // Response already sent (e.g. handleShare ran first and triggered onclose via setVisible)
+      return;
+    }
+    responseSentRef.current = true;
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
   };
@@ -168,7 +203,7 @@ export function ScreenSharePicker() {
           display='flex'
           flexDirection='column'
           height='560px'
-          backgroundColor='surface'
+          backgroundColor='light'
           color='default'
         >
           <Box marginBlockEnd='x12'>
@@ -207,7 +242,26 @@ export function ScreenSharePicker() {
               >
                 {t('screenSharing.permissionRequired')}
                 <br />
-                {t('screenSharing.permissionInstructions')}
+                {t('screenSharing.permissionInstructions')}{' '}
+                <Box
+                  is='a'
+                  href='#'
+                  onClick={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    const url =
+                      process.platform === 'darwin'
+                        ? 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
+                        : 'ms-settings:privacy-screencapture';
+                    ipcRenderer.invoke('video-call-window/open-url', url);
+                  }}
+                  style={{
+                    color: 'inherit',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('screenSharing.openSystemPreferences')}
+                </Box>
               </Callout>
             ) : (
               <Scrollable vertical>
@@ -245,7 +299,6 @@ export function ScreenSharePicker() {
                         flexDirection='column'
                         onClick={handleScreenSharingSourceClick(id)}
                         bg={selectedSourceId === id ? 'selected' : 'light'}
-                        color={selectedSourceId === id ? 'selected' : 'light'}
                         border={
                           selectedSourceId === id
                             ? '2px solid var(--rcx-color-stroke-highlight)'

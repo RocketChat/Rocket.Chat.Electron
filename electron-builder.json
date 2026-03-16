@@ -11,7 +11,7 @@
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "25072",
+    "bundleVersion": "26031",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",
@@ -59,15 +59,15 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64", "ia32"]
+        "arch": ["x64", "ia32", "arm64"]
       },
       {
         "target": "msi",
-        "arch": ["x64", "ia32"]
+        "arch": ["x64", "ia32", "arm64"]
       },
       {
         "target": "zip",
-        "arch": ["x64", "ia32"]
+        "arch": ["x64", "ia32", "arm64"]
       }
     ],
     "icon": "build/icon.ico",
@@ -75,7 +75,12 @@
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
+    "signtoolOptions": {
+      "sign": "./build/winSignKms.js",
+      "signingHashAlgorithms": ["sha256"],
+      "timeStampServer": "http://timestamp.digicert.com"
+    }
   },
   "nsis": {
     "oneClick": false,
@@ -97,6 +102,10 @@
     "createDesktopShortcut": "always",
     "createStartMenuShortcut": true,
     "menuCategory": false
+  },
+  "msi": {
+    "warningsAsErrors": false,
+    "additionalWixArgs": ["-sval"]
   },
   "appx": {
     "backgroundColor": "#2f343d",
@@ -122,19 +131,25 @@
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "deb": {
-    "fpm": [
-      "--after-install=build/linux/postinst.sh"
-    ]
+    "fpm": ["--after-install=build/linux/postinst.sh"],
+    "recommends": ["xdg-desktop-portal", "xdg-desktop-portal-gtk"]
   },
   "rpm": {
-    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
+    "fpm": [
+      "--rpm-rpmbuild-define=_build_id_links none",
+      "--rpm-tag=Recommends: xdg-desktop-portal",
+      "--rpm-tag=Recommends: xdg-desktop-portal-gtk"
+    ]
   },
   "snap": {
+    "base": "core22",
+    "allowNativeWayland": false,
     "plugs": [
       "desktop",
       "desktop-legacy",
       "home",
       "x11",
+      "wayland",
       "unity7",
       "browser-support",
       "network",
@@ -145,7 +160,8 @@
       "audio-playback",
       "audio-record",
       "screen-inhibit-control",
-      "upower-observe"
+      "upower-observe",
+      "pipewire"
     ]
   },
   "afterSign": "./build/notarize.js",

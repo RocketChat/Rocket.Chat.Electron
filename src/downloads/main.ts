@@ -75,16 +75,7 @@ export const handleWillDownloadEvent = async (
     });
   });
 
-  item.on('done', (_event, state) => {
-    createNotification({
-      title: 'Downloads',
-      body: item.getFilename(),
-      subtitle:
-        state === 'completed'
-          ? t('downloads.notifications.downloadFinished')
-          : t('downloads.notifications.downloadCancelled'),
-    });
-
+  item.on('done', (_event, _state) => {
     dispatch({
       type: DOWNLOAD_UPDATED,
       payload: {
@@ -201,6 +192,7 @@ export const setupDownloads = (): void => {
         title: t('downloads.notifications.downloadExpired'),
         body: t('downloads.notifications.downloadExpiredMessage'),
         subtitle: download.fileName,
+        category: 'DOWNLOADS',
       });
 
       dispatch({

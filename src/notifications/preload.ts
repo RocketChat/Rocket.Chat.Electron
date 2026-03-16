@@ -1,6 +1,9 @@
 import { getServerUrl, getAbsoluteUrl } from '../servers/preload/urls';
 import { dispatch, listen, request } from '../store';
-import { WEBVIEW_FOCUS_REQUESTED } from '../ui/actions';
+import {
+  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  WEBVIEW_FOCUS_REQUESTED,
+} from '../ui/actions';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
   NOTIFICATIONS_CREATE_RESPONDED,
@@ -11,6 +14,7 @@ import {
   NOTIFICATIONS_NOTIFICATION_REPLIED,
   NOTIFICATIONS_NOTIFICATION_SHOWN,
 } from './actions';
+import type { CustomNotificationOptions } from './common';
 
 const normalizeIconUrl = (iconUrl: string): string => {
   if (/^data:/.test(iconUrl)) {
@@ -38,6 +42,8 @@ export const createNotification = async ({
   canReply?: boolean;
   title: string;
   subtitle?: string;
+  notificationType?: 'voice' | 'text';
+  category?: 'DOWNLOADS' | 'SERVER';
   onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
   const id = await request(
@@ -68,6 +74,25 @@ export const destroyNotification = (id: unknown): void => {
   eventHandlers.delete(id);
 };
 
+export const dispatchCustomNotification = async (
+  options: CustomNotificationOptions
+): Promise<unknown> => {
+  const { id, payload, type } = options;
+  const notificationId = id || Math.random().toString(36).slice(2);
+  return createNotification({
+    title: payload.title,
+    body: payload.body,
+    icon: payload.avatar,
+    tag: notificationId,
+    requireInteraction: payload.requireInteraction,
+    notificationType: type,
+  });
+};
+
+export const closeCustomNotification = (id: unknown): void => {
+  destroyNotification(id);
+};
+
 export const listenToNotificationsRequests = (): void => {
   listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
     const {
@@ -88,16 +113,20 @@ export const listenToNotificationsRequests = (): void => {
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
     const {
-      payload: { id, title },
+      payload: { id, serverUrl, category },
     } = action;
 
-    dispatch({
-      type: WEBVIEW_FOCUS_REQUESTED,
-      payload: {
-        url: getServerUrl(),
-        view: title === 'Downloads' ? 'downloads' : 'server',
-      },
-    });
+    if (category === 'DOWNLOADS') {
+      dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+    } else {
+      dispatch({
+        type: WEBVIEW_FOCUS_REQUESTED,
+        payload: {
+          url: serverUrl || getServerUrl(),
+          view: 'server',
+        },
+      });
+    }
 
     const eventHandler = eventHandlers.get(id);
     eventHandler?.({ type: 'click' });

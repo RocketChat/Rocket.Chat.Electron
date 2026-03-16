@@ -9,6 +9,9 @@ Thumbs.db
 /dist
 /Development.provisionprofile
 
+# npm (this project uses yarn)
+/package-lock.json
+
 # yarn
 .pnp.*
 .yarn/*

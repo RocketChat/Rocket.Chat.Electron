@@ -1,8 +1,12 @@
-import { app, webContents } from 'electron';
-import electronDl from 'electron-dl';
-import { t } from 'i18next';
+import { app } from 'electron';
 
-import { performElectronStartup, setupApp } from './app/main/app';
+import {
+  performElectronStartup,
+  setupApp,
+  initializeScreenCaptureFallbackState,
+  setupGpuCrashHandler,
+  markMainWindowStable,
+} from './app/main/app';
 import {
   mergePersistableValues,
   watchAndPersistChanges,
@@ -10,14 +14,26 @@ import {
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
-import { setupDownloads, handleWillDownloadEvent } from './downloads/main';
+import { setupDownloads } from './downloads/main';
+import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
+import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
+import {
+  logger,
+  setupWebContentsLogging,
+  cleanupOldLogs,
+  setupDebugLoggingWatch,
+} from './logging';
 import { setupNavigation } from './navigation/main';
+import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
-import { createNotification } from './notifications/preload';
-import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
+import {
+  startOutlookCalendarUrlHandler,
+  stopOutlookCalendarSync,
+} from './outlookCalendar/ipc';
+import { setupOutlookLogger } from './outlookCalendar/logger';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
@@ -44,51 +60,29 @@ import {
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
-const setupElectronDlWithTracking = () => {
-  electronDl({
-    saveAs: true,
-    onStarted: (item) => {
-      // Find the webContents that initiated this download
-      const webContentsArray = webContents.getAllWebContents();
-
-      // Use the first available webContents for tracking
-      let sourceWebContents = null;
-      for (const wc of webContentsArray) {
-        if (wc && !wc.isDestroyed()) {
-          sourceWebContents = wc;
-          break;
-        }
-      }
-
-      if (sourceWebContents) {
-        const fakeEvent = { defaultPrevented: false, preventDefault: () => {} };
-        handleWillDownloadEvent(
-          fakeEvent as any,
-          item,
-          sourceWebContents
-        ).catch(() => {
-          // Silently handle tracking errors
-        });
-      }
-    },
-    onCompleted: (file) => {
-      createNotification({
-        title: 'Downloads',
-        body: file.filename,
-        subtitle: t('downloads.notifications.downloadFinished'),
-      });
-    },
-  });
-};
-
 const start = async (): Promise<void> => {
   setUserDataDirectory();
 
+  logger.info('Starting Rocket.Chat Desktop application');
+
+  setupWebContentsLogging();
+
   performElectronStartup();
+
+  // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
+  setupGpuCrashHandler();
 
   await app.whenReady();
 
+  cleanupOldLogs();
+
   createMainReduxStore();
+
+  setupOutlookLogger();
+  setupDebugLoggingWatch();
+
+  // Initialize screen capture fallback state after store is available
+  initializeScreenCaptureFallbackState();
 
   // Set up electron-dl with our download tracking callbacks
   setupElectronDlWithTracking();
@@ -109,14 +103,14 @@ const start = async (): Promise<void> => {
   attachGuestWebContentsEvents();
   await showRootWindow();
 
-  // React DevTools is currently incompatible with Electron 10
-  // if (process.env.NODE_ENV === 'development') {
-  //   installDevTools();
-  // }
+  // Mark main window as stable - GPU crashes after this won't trigger fallback
+  markMainWindowStable();
   watchMachineTheme();
   setupNotifications();
+  attentionDrawing.setUp();
   setupScreenSharing();
   startVideoCallWindowHandler();
+  startLogViewerWindowHandler();
 
   await setupSpellChecking();
 
@@ -137,6 +131,8 @@ const start = async (): Promise<void> => {
     menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();
+    attentionDrawing.tearDown();
+    stopOutlookCalendarSync();
     cleanupVideoCallResources();
   });
 
@@ -149,7 +145,10 @@ const start = async (): Promise<void> => {
 
   await processDeepLinksInArgs();
 
-  console.log('Application initialization completed successfully');
+  console.info('Application initialization completed successfully');
 };
 
-start();
+start().catch((error) => {
+  logger.error('Failed to start application', error);
+  app.exit(1);
+});

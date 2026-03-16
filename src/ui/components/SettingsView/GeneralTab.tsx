@@ -8,9 +8,11 @@ import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
 import { MenuBar } from './features/MenuBar';
 import { MinimizeOnClose } from './features/MinimizeOnClose';
 import { NTLMCredentials } from './features/NTLMCredentials';
+import { OutlookCalendarSyncInterval } from './features/OutlookCalendarSyncInterval';
 import { ReportErrors } from './features/ReportErrors';
 import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
 import { SideBar } from './features/SideBar';
+import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
@@ -30,7 +32,9 @@ export const GeneralTab = () => (
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
       {process.platform === 'win32' && <NTLMCredentials />}
+      <ThemeAppearance />
       <AvailableBrowsers />
+      <OutlookCalendarSyncInterval />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>

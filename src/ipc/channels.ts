@@ -24,7 +24,13 @@ type ChannelToArgsMap = {
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
   'server-view/open-url-on-browser': (url: string) => void;
-  'video-call-window/open-window': (url: string) => void;
+  'video-call-window/open-window': (
+    url: string,
+    options?: {
+      providerName?: string;
+      credentials?: { userId: string; authToken: string };
+    }
+  ) => void;
   'video-call-window/open-url': (url: string) => void;
   'video-call-window/web-contents-id': (webContentsId: number) => void;
   'video-call-window/open-screen-picker': () => { success: boolean };
@@ -45,6 +51,11 @@ type ChannelToArgsMap = {
   'video-call-window/webview-loading': () => { success: boolean };
   'video-call-window/webview-ready': () => { success: boolean };
   'video-call-window/webview-failed': (error: string) => { success: boolean };
+  'video-call-window/get-credentials': () => {
+    userId: string;
+    authToken: string;
+    serverUrl: string;
+  } | null;
   'video-call-window/get-language': () => {
     success: boolean;
     language: string;
@@ -60,7 +71,7 @@ type ChannelToArgsMap = {
   ) => Electron.DesktopCapturerSource[];
   'outlook-calendar/get-events': (date: Date) => OutlookEventsResponse;
   'outlook-calendar/set-exchange-url': (url: string, userId: string) => void;
-  'outlook-calendar/has-credentials': () => Promise<boolean>;
+  'outlook-calendar/has-credentials': () => boolean;
   'outlook-calendar/clear-credentials': () => void;
   'outlook-calendar/set-user-token': (token: string, userId: string) => void;
   'document-viewer/open-window': (
@@ -68,6 +79,58 @@ type ChannelToArgsMap = {
     format: string,
     options: any
   ) => void;
+  'log-viewer-window/open-window': () => void;
+  'log-viewer-window/close-requested': () => void;
+  'log-viewer-window/select-log-file': () => {
+    success: boolean;
+    filePath?: string;
+    fileName?: string;
+    canceled?: boolean;
+    error?: string;
+  };
+  'log-viewer-window/read-logs': (options?: {
+    filePath?: string;
+    limit?: number | 'all';
+  }) => {
+    success: boolean;
+    logs?: string;
+    filePath?: string;
+    fileName?: string;
+    isDefaultLog?: boolean;
+    lastModifiedTime?: number;
+    error?: string;
+  };
+  'log-viewer-window/stat-log': (options?: { filePath?: string }) => {
+    success: boolean;
+    lastModifiedTime?: number;
+    size?: number;
+    error?: string;
+  };
+  'log-viewer-window/read-logs-tail': (options: {
+    fromByte: number;
+    filePath?: string;
+  }) => {
+    success: boolean;
+    logs?: string;
+    newSize?: number;
+    lastModifiedTime?: number;
+    error?: string;
+  };
+  'log-viewer-window/confirm-clear-logs': () => boolean;
+  'log-viewer-window/clear-logs': () => { success: boolean; error?: string };
+  'log-viewer-window/save-logs': (options: {
+    content: string;
+    defaultFileName: string;
+  }) => {
+    success: boolean;
+    filePath?: string;
+    canceled?: boolean;
+    error?: string;
+  };
+  'log-viewer-window/get-server-mapping': () => {
+    success: boolean;
+    mapping: Record<string, string>;
+  };
 };
 
 export type Channel = keyof ChannelToArgsMap;

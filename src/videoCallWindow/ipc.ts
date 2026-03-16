@@ -41,6 +41,12 @@ const SCREEN_SHARING_REQUEST_TIMEOUT = 60000; // 60 seconds timeout
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
 let pendingVideoCallUrl: string | null = null;
+let videoCallCredentials: {
+  userId: string;
+  authToken: string;
+  serverUrl: string;
+} | null = null;
+let videoCallProviderName: string | null = null;
 
 // Screen sharing request tracking
 let activeScreenSharingListener:
@@ -251,6 +257,9 @@ const cleanupVideoCallWindow = () => {
     }
   }
 
+  // Clear credentials immediately during cleanup
+  videoCallCredentials = null;
+
   // Use setTimeout to ensure this cleanup happens after any window events are processed
   setTimeout(() => {
     videoCallWindow = null;
@@ -352,12 +361,14 @@ const createInternalPickerHandler = (): ((
       }
       callbackInvoked = true;
 
-      // Remove listener and clear timeout
+      // Remove listener, clear timeout, and mark complete BEFORE invoking the
+      // callback. Jitsi may synchronously re-enter getDisplayMedia inside cb(),
+      // which would re-set isScreenSharingRequestPending before we clear it.
       removeScreenSharingListenerOnly();
+      markScreenSharingComplete();
 
       if (!sourceId) {
         cb({ video: false } as any);
-        markScreenSharingComplete();
         return;
       }
 
@@ -374,16 +385,13 @@ const createInternalPickerHandler = (): ((
             sourceId
           );
           cb({ video: false } as any);
-          markScreenSharingComplete();
           return;
         }
 
         cb({ video: selectedSource });
-        markScreenSharingComplete();
       } catch (error) {
         console.error('Error validating screen sharing source:', error);
         cb({ video: false } as any);
-        markScreenSharingComplete();
       }
     };
 
@@ -410,14 +418,11 @@ const createInternalPickerHandler = (): ((
       console.warn('Screen sharing request timed out, cleaning up listener');
 
       removeScreenSharingListenerOnly();
-      cb({ video: false } as any);
       markScreenSharingComplete();
+      cb({ video: false } as any);
     }, SCREEN_SHARING_REQUEST_TIMEOUT);
 
-    // Register listener
     ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
-
-    // Send request to open picker
     videoCallWindow.webContents.send('video-call-window/open-screen-picker');
   };
 };
@@ -494,6 +499,12 @@ const setupWebviewHandlers = (webContents: WebContents) => {
 };
 
 export const startVideoCallWindowHandler = (): void => {
+  // Sync IPC handler for provider name - used by jitsiBridge preload
+  // to skip initialization for non-Jitsi providers without async delay
+  ipcMain.on('video-call-window/get-provider-sync', (event) => {
+    event.returnValue = videoCallProviderName;
+  });
+
   handle(
     'video-call-window/screen-recording-is-permission-granted',
     async () => {
@@ -505,19 +516,63 @@ export const startVideoCallWindowHandler = (): void => {
     }
   );
 
-  handle('video-call-window/open-screen-picker', async (_webContents) => {
-    if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-      videoCallWindow.webContents.send('video-call-window/open-screen-picker');
-      return { success: true };
-    }
-    console.warn(
-      'Video call window: Cannot open screen picker - window not available'
-    );
-    return { success: false };
+  handle('video-call-window/open-url', async (_webContents, url) => {
+    await openExternal(url);
   });
 
-  handle('video-call-window/open-window', async (_webContents, url) => {
+  handle('video-call-window/open-screen-picker', async (callerWebContents) => {
+    if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+      console.warn(
+        'Video call window: Cannot open screen picker - window not available'
+      );
+      return { success: false };
+    }
+
+    // Clean up any stale listener before registering a new one, to ensure only
+    // one ipcMain listener is active at a time (same pattern as createInternalPickerHandler).
+    cleanupScreenSharingListener();
+
+    videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+
+    // Forward the picker response back to the calling webContents (e.g. the Jitsi webview
+    // preload that called ipcRenderer.invoke here). The screenSharePicker renderer sends
+    // the result via ipcRenderer.send → ipcMain; we relay it to the caller so that
+    // jitsiBridge's ipcRenderer.on listener fires correctly.
+    ipcMain.once(
+      'video-call-window/screen-sharing-source-responded',
+      (_event, sourceId: string | null) => {
+        if (!callerWebContents.isDestroyed()) {
+          callerWebContents.send(
+            'video-call-window/screen-sharing-source-responded',
+            sourceId
+          );
+        }
+      }
+    );
+
+    return { success: true };
+  });
+
+  // eslint-disable-next-line complexity
+  handle('video-call-window/open-window', async (_wc, url, options) => {
     console.log('Video call window: Open-window handler called with URL:', url);
+
+    // Store provider name and credentials
+    videoCallProviderName = options?.providerName ?? null;
+    videoCallCredentials = null;
+    if (options?.providerName === 'pexip' && options?.credentials) {
+      try {
+        const serverOrigin = new URL(_wc.getURL()).origin;
+        videoCallCredentials = {
+          userId: options.credentials.userId,
+          authToken: options.credentials.authToken,
+          serverUrl: serverOrigin,
+        };
+      } catch {
+        // _wc.getURL() may not be a valid URL in edge cases
+        videoCallCredentials = null;
+      }
+    }
 
     if (isVideoCallWindowDestroying) {
       console.log('Waiting for video call window destruction to complete...');
@@ -706,6 +761,10 @@ export const startVideoCallWindowHandler = (): void => {
 
         // Clean up screen sharing listener
         cleanupScreenSharingListener();
+
+        // Clear credentials and provider on close
+        videoCallCredentials = null;
+        videoCallProviderName = null;
 
         // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
         // This prevents crashes during first launch when timing is critical
@@ -1206,6 +1265,21 @@ handle('video-call-window/webview-ready', async () => {
 handle('video-call-window/webview-failed', async (_webContents, error) => {
   console.error('Video call window: Webview failed to load:', error);
   return { success: true };
+});
+
+handle('video-call-window/get-credentials', async (callerWebContents) => {
+  // Only return credentials to the video call window's webview
+  const isAuthorizedCaller =
+    !!videoCallWindow &&
+    !videoCallWindow.isDestroyed() &&
+    (callerWebContents.id === videoCallWindow.webContents.id ||
+      callerWebContents.hostWebContents?.id === videoCallWindow.webContents.id);
+
+  if (!isAuthorizedCaller || !videoCallCredentials) {
+    return null;
+  }
+
+  return videoCallCredentials;
 });
 
 handle('video-call-window/get-language', async () => {

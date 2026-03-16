@@ -92,9 +92,23 @@ type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
   isVideoCallScreenCaptureFallbackEnabled: boolean;
 };
 
+type PersistableValues_4_10_0 = PersistableValues_4_9_0 & {
+  userThemePreference: 'auto' | 'light' | 'dark';
+};
+
+type PersistableValues_4_11_0 = PersistableValues_4_10_0 & {
+  outlookCalendarSyncInterval: number;
+  isVerboseOutlookLoggingEnabled: boolean;
+  isDetailedEventsLoggingEnabled: boolean;
+};
+
+type PersistableValues_4_13_0 = PersistableValues_4_11_0 & {
+  isDebugLoggingEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_9_0,
-  keyof PersistableValues_4_9_0
+  PersistableValues_4_13_0,
+  keyof PersistableValues_4_13_0
 >;
 
 export const migrations = {
@@ -172,5 +186,19 @@ export const migrations = {
     ...before,
     isTransparentWindowEnabled: false,
     isVideoCallScreenCaptureFallbackEnabled: false,
+  }),
+  '>=4.10.0': (before: PersistableValues_4_9_0): PersistableValues_4_10_0 => ({
+    ...before,
+    userThemePreference: 'auto',
+  }),
+  '>=4.11.0': (before: PersistableValues_4_10_0): PersistableValues_4_11_0 => ({
+    ...before,
+    outlookCalendarSyncInterval: 60,
+    isVerboseOutlookLoggingEnabled: false,
+    isDetailedEventsLoggingEnabled: false,
+  }),
+  '>=4.13.0': (before: PersistableValues_4_11_0): PersistableValues_4_13_0 => ({
+    ...before,
+    isDebugLoggingEnabled: false,
   }),
 };

@@ -262,6 +262,13 @@
       "transparentWindow": {
         "title": "Transparentes Fenstereffekt",
         "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
+      },
+      "themeAppearance": {
+        "title": "Design",
+        "description": "Wählen Sie das Farbschema für die Anwendung.",
+        "auto": "System folgen",
+        "light": "Hell",
+        "dark": "Dunkel"
       }
     }
   },
@@ -281,7 +288,7 @@
   "menus": {
     "about": "Über {{- appName}}",
     "addNewServer": "&Neuen server hinzufügen",
-    "back": "&Der Rücken",
+    "back": "&Zurück",
     "clearTrustedCertificates": "Vertraute zertifikate löschen",
     "close": "Schließen",
     "copy": "&Kopieren",
@@ -344,7 +351,7 @@
   },
   "selfxss": {
     "title": "Halt!",
-    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren, oder \"hack\" das Konto einer anderen Person, ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
+    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren oder um das Konto einer anderen Person zu \"hacken\", ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
     "moreInfo": "Weitere Informationen finden Sie unter https://go.rocket.chat/i/xss."
   },
   "sidebar": {
@@ -372,7 +379,7 @@
     "tooltip": {
       "noUnreadMessage": "{{- appName}}: keine ungelesene Nachricht",
       "unreadMention": "{{- appName}}: Sie haben eine ungelesene Erwähnung/Direktnachricht",
-      "unreadMention_plural": "{{- appName}}: you have {{- count}} ungelesene Erwähnungen/Direktnachrichten",
+      "unreadMention_plural": "{{- appName}}: Sie haben {{- count}} ungelesene Erwähnungen/Direktnachrichten",
       "unreadMessage": "{{- appName}}: Sie haben ungelesene Nachrichten"
     },
     "balloon": {

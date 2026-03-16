@@ -71,4 +71,16 @@ export const selectPersistableValues = createStructuredSelector({
     isVideoCallScreenCaptureFallbackEnabled,
   }: RootState) => isVideoCallScreenCaptureFallbackEnabled,
   updateChannel: ({ updateChannel }: RootState) => updateChannel,
+  userThemePreference: ({ userThemePreference }: RootState) =>
+    userThemePreference,
+  outlookCalendarSyncInterval: ({ outlookCalendarSyncInterval }: RootState) =>
+    outlookCalendarSyncInterval,
+  isVerboseOutlookLoggingEnabled: ({
+    isVerboseOutlookLoggingEnabled,
+  }: RootState) => isVerboseOutlookLoggingEnabled,
+  isDetailedEventsLoggingEnabled: ({
+    isDetailedEventsLoggingEnabled,
+  }: RootState) => isDetailedEventsLoggingEnabled,
+  isDebugLoggingEnabled: ({ isDebugLoggingEnabled }: RootState) =>
+    isDebugLoggingEnabled,
 });

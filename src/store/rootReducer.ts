@@ -14,12 +14,17 @@ import {
   trustedCertificates,
   notTrustedCertificates,
 } from '../navigation/reducers';
+import { allowInsecureOutlookConnections } from '../outlookCalendar/reducers/allowInsecureOutlookConnections';
+import { outlookCalendarSyncInterval } from '../outlookCalendar/reducers/outlookCalendarSyncInterval';
+import { outlookCalendarSyncIntervalOverride } from '../outlookCalendar/reducers/outlookCalendarSyncIntervalOverride';
 import { servers } from '../servers/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
 import { dialogs } from '../ui/reducers/dialogs';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
+import { isDebugLoggingEnabled } from '../ui/reducers/isDebugLoggingEnabled';
+import { isDetailedEventsLoggingEnabled } from '../ui/reducers/isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
@@ -33,6 +38,7 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
@@ -41,6 +47,7 @@ import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
+import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
   doCheckForUpdatesOnStartup,
@@ -56,6 +63,9 @@ import {
 
 export const rootReducer = combineReducers({
   allowedJitsiServers,
+  allowInsecureOutlookConnections,
+  outlookCalendarSyncInterval,
+  outlookCalendarSyncIntervalOverride,
   appPath,
   appVersion,
   availableBrowsers,
@@ -83,6 +93,7 @@ export const rootReducer = combineReducers({
   rootWindowState,
   selectedBrowser,
   servers,
+  userThemePreference,
   skippedUpdateVersion,
   trustedCertificates,
   notTrustedCertificates,
@@ -99,6 +110,9 @@ export const rootReducer = combineReducers({
   videoCallWindowState,
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
+  isDebugLoggingEnabled,
+  isDetailedEventsLoggingEnabled,
+  isVerboseOutlookLoggingEnabled,
   updateChannel,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,

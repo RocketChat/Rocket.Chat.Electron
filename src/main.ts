@@ -19,10 +19,21 @@ import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
+import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
+import {
+  logger,
+  setupWebContentsLogging,
+  cleanupOldLogs,
+  setupDebugLoggingWatch,
+} from './logging';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
-import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
+import {
+  startOutlookCalendarUrlHandler,
+  stopOutlookCalendarSync,
+} from './outlookCalendar/ipc';
+import { setupOutlookLogger } from './outlookCalendar/logger';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
@@ -52,6 +63,10 @@ import {
 const start = async (): Promise<void> => {
   setUserDataDirectory();
 
+  logger.info('Starting Rocket.Chat Desktop application');
+
+  setupWebContentsLogging();
+
   performElectronStartup();
 
   // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
@@ -59,7 +74,12 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
+  cleanupOldLogs();
+
   createMainReduxStore();
+
+  setupOutlookLogger();
+  setupDebugLoggingWatch();
 
   // Initialize screen capture fallback state after store is available
   initializeScreenCaptureFallbackState();
@@ -85,16 +105,12 @@ const start = async (): Promise<void> => {
 
   // Mark main window as stable - GPU crashes after this won't trigger fallback
   markMainWindowStable();
-
-  // React DevTools is currently incompatible with Electron 10
-  // if (process.env.NODE_ENV === 'development') {
-  //   installDevTools();
-  // }
   watchMachineTheme();
   setupNotifications();
   attentionDrawing.setUp();
   setupScreenSharing();
   startVideoCallWindowHandler();
+  startLogViewerWindowHandler();
 
   await setupSpellChecking();
 
@@ -116,6 +132,7 @@ const start = async (): Promise<void> => {
     touchBar.tearDown();
     trayIcon.tearDown();
     attentionDrawing.tearDown();
+    stopOutlookCalendarSync();
     cleanupVideoCallResources();
   });
 
@@ -128,7 +145,10 @@ const start = async (): Promise<void> => {
 
   await processDeepLinksInArgs();
 
-  console.log('Application initialization completed successfully');
+  console.info('Application initialization completed successfully');
 };
 
-start();
+start().catch((error) => {
+  logger.error('Failed to start application', error);
+  app.exit(1);
+});

@@ -26,7 +26,7 @@
   },
   "main": "app/main.js",
   "scripts": {
-    "postinstall": "run-s install-app-deps clean patch-package",
+    "postinstall": "ts-node scripts/validate-env.ts && run-s install-app-deps clean patch-package",
     "patch-package": "patch-package",
     "start": "run-s build:watch",
     "clean": "rimraf app dist",

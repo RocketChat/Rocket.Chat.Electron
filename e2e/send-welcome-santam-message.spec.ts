@@ -1,5 +1,5 @@
 // spec: specs/santam-test.md
-import { test, expect } from './fixtures/base';
+import { test } from './fixtures/base';
 
 test.describe('Send "Welcome Santam" Message to Testing2 Channel', () => {
   test('Send "Welcome Santam" Message', async ({ webviewPage }) => {

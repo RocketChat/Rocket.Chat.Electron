@@ -1,25 +1,69 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  /* Run tests in files in parallel */
+
   fullyParallel: false,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
   workers: 1,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  retries: process.env.CI ? 2 : 0,
+  timeout: 60000,
+
+  reporter: [
+    ['line'],
+    [
+      'allure-playwright',
+      {
+        resultsDir: 'allure-report',
+
+        detail: true,
+        suiteTitle: true,
+
+        screenshots: true,
+        traces: true,
+        videos: true,
+
+        attachments: true,
+
+        links: {
+          issue: {
+            nameTemplate: 'Issue #%s',
+            urlTemplate: 'https://github.com/yourrepo/issues/%s',
+          },
+          tms: {
+            nameTemplate: 'TMS #%s',
+            urlTemplate: 'https://tms.company.com/tests/%s',
+          },
+        },
+
+        environmentInfo: {
+          Framework: 'Playwright',
+          Language: 'TypeScript',
+          Node: process.version,
+          OS: process.platform,
+          Tester: 'Santam Roy Choudhury'
+        },
+      },
+    ],
+  ],
+
   use: {
-    trace: 'on-first-retry',
+    baseURL: 'http://localhost:3000',
+
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
+
+    actionTimeout: 15000,
+    navigationTimeout: 30000,
   },
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+
+  outputDir: 'test-results',
+
+  projects: [
+    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    {
+      name: 'chromium',
+      use: { browserName: 'chromium' },
+    },
+  ],
 });

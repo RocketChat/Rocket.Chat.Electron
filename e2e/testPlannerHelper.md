@@ -20,10 +20,11 @@ GENERAL PRINCIPLES
 
 5. Before exploring the UI, ensure the application has fully rendered.
 
-   Wait until:
-   - the element "#react-root" exists
-   - loading indicators are gone
-   - at least one interactive element (button, link, input) is visible
+Wait until:
+
+- the element "#react-root" exists
+- loading indicators are not visible
+- at least one interactive element (button, link, input) is visible
 
 --------------------------------------------------
 
@@ -57,7 +58,9 @@ Avoid unstable selectors such as:
 
 SELECTOR PRIORITY SCORING
 
-When multiple selectors are available for the same element, choose the selector with the highest stability:
+When multiple selectors are available for the same element choose the selector with the highest stability.
+
+Priority order:
 
 1. getByRole()
 2. getByLabel()
@@ -75,6 +78,30 @@ Never use selectors with low stability such as:
 
 --------------------------------------------------
 
+LOCATOR FIRST RULE
+
+Always attempt to use Playwright locators before using JavaScript evaluation.
+
+Preferred locator order:
+
+1. page.getByRole()
+2. page.getByLabel()
+3. page.getByPlaceholder()
+4. page.getByText()
+5. page.locator()
+
+Do NOT use:
+
+- page.evaluate()
+- document.querySelector()
+- manual DOM traversal
+
+unless no locator-based solution exists.
+
+Playwright locators are significantly more stable and must be preferred.
+
+--------------------------------------------------
+
 DOM VALIDATION
 
 Before performing any interaction:
@@ -85,9 +112,55 @@ Before performing any interaction:
 
 If an expected element is not found:
 
+- take a page snapshot
 - re-inspect the DOM
+- choose a different selector
 - do not guess selectors
-- do not assume UI structure
+
+--------------------------------------------------
+
+SELECTOR CONFIDENCE RULE
+
+Before recording a selector verify that:
+
+- the selector uniquely identifies one element
+- the element is visible
+- the element is interactable
+- the selector remains stable after interaction
+
+Prefer selectors that uniquely identify the element.
+
+--------------------------------------------------
+
+LIMIT SELECTOR RETRIES
+
+If a selector does not work after two attempts:
+
+1. Take a page snapshot
+2. Re-inspect the DOM
+3. Choose a new selector
+
+Do not repeatedly attempt multiple JavaScript-based solutions.
+
+Avoid trial-and-error loops.
+
+--------------------------------------------------
+
+WAITING RULE
+
+Never use fixed waits such as:
+
+- waitForTimeout
+- wait for X seconds
+- arbitrary delays
+
+Instead wait for:
+
+- visible elements
+- selector presence
+- UI state changes
+
+Use Playwright's auto-waiting behavior.
 
 --------------------------------------------------
 
@@ -95,62 +168,55 @@ PLAYWRIGHT BEST PRACTICES
 
 1. Prefer Playwright locators instead of ElementHandles.
 
-Avoid patterns like:
+Avoid:
 
 page.$()
 page.$$
 manual loops over elements
 
-Use Playwright locators instead.
+Use locators instead.
 
-2. Do not rely on arbitrary delays.
+2. Prefer assertions for state verification instead of fixed waits.
 
-Avoid:
+Examples:
 
-setTimeout
-manual waits
-
-Use Playwright's built-in auto-waiting behavior.
-
-3. Prefer assertions for state verification instead of fixed waits.
-
-Example:
-
-Use visibility checks instead of time delays.
+await expect(locator).toBeVisible()
+await expect(page).toHaveURL(...)
+await expect(locator).toContainText(...)
 
 --------------------------------------------------
 
 EXPLORATION LOGGING
 
-When performing actions during exploration:
+When performing actions during exploration record:
 
-Record:
-
-- the selector used
-- the visible text of the element
-- the HTML snippet containing the element
-- a snapshot of the page
+- selector used
+- visible text of the element
+- HTML snippet containing the element
+- action performed
 
 Snapshots should be taken:
 
 - after page navigation
-- after each UI interaction
+- after important UI interactions
 - after completing the workflow
+
+Avoid excessive screenshots.
 
 --------------------------------------------------
 
 TEST PLAN STRUCTURE
 
-Generate only one complete end-to-end flow.
+Generate only ONE complete end-to-end flow.
 
 Do not generate multiple test cases.
 
-The generated test plan must include:
+The test plan must include:
 
 - step-by-step workflow
 - selectors used for each action
-- HTML snippets for important elements
-- snapshot checkpoints
+- important HTML snippets
+- verification steps
 
 --------------------------------------------------
 
@@ -158,28 +224,61 @@ ENVIRONMENT
 
 The browser must be initialized the same way as defined in seed.spec.ts.
 
-Navigation should start at:
+Navigation must start at:
 
 http://localhost:3000
 
-unless specified otherwise.
-
---------------------------------------------------
-
-OUTPUT
-
-The final output must be:
-
-- a Markdown test plan
-- saved inside the "specs" folder
-- containing steps, selectors, HTML snippets, and snapshot points
+unless the task specifies otherwise.
 
 --------------------------------------------------
 
 FINAL VALIDATION
 
-At the end of the workflow:
+At the end of the workflow verify that the expected outcome occurred.
 
-1. Verify the expected outcome
-2. Take a final snapshot confirming success
-3. Close the browser
+Examples:
+
+- expected URL
+- confirmation message
+- created object visible in UI
+
+--------------------------------------------------
+
+OUTPUT
+
+The test plan MUST be written to disk.
+
+Steps:
+
+1. Ensure the folder `specs` exists.
+2. If it does not exist, create it using `edit/createDirectory`.
+3. Save the test plan using `edit/createFile`.
+
+File naming rules:
+
+- Use descriptive kebab-case names.
+
+Example:
+
+specs/create-public-channel.md
+
+--------------------------------------------------
+
+FILE CONTENT
+
+The Markdown file must contain:
+
+- clear title
+- numbered steps
+- selectors used
+- HTML snippets where relevant
+- verification step confirming success
+
+--------------------------------------------------
+
+END OF PROCESS
+
+After saving the test plan:
+
+1. Confirm the file path.
+2. Close the browser session.

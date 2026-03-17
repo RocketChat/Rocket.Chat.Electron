@@ -159,14 +159,17 @@ let provider: ScreenPickerProvider | null = null;
 let providerReady = false;
 
 const initializeProvider = async (): Promise<void> => {
-  const { createScreenPicker, InternalPickerProvider } = await import(
-    '../videoCallWindow/screenPicker'
-  );
+  const { detectPickerType, InternalPickerProvider, PortalPickerProvider } =
+    await import('../videoCallWindow/screenPicker');
 
-  provider = createScreenPicker();
+  const pickerType = detectPickerType();
 
-  if (provider instanceof InternalPickerProvider) {
-    provider.setHandleRequestHandler(createRootWindowPickerHandler());
+  if (pickerType === 'portal') {
+    provider = new PortalPickerProvider();
+  } else {
+    const internalProvider = new InternalPickerProvider();
+    internalProvider.setHandleRequestHandler(createRootWindowPickerHandler());
+    provider = internalProvider;
   }
 
   providerReady = true;

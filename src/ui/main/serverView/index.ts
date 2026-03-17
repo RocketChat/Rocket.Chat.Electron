@@ -22,6 +22,7 @@ import { setupPreloadReload } from '../../../app/main/dev';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
+import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewScreenSharing';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
@@ -422,6 +423,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
+
+    setupServerViewDisplayMedia(guestWebContents);
+
     // Download handling is now managed by electron-dl in main.ts
     // and integrated with our downloads system via setupDownloads()
 

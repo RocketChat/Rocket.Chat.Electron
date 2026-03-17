@@ -35,6 +35,7 @@ import {
 } from './outlookCalendar/ipc';
 import { setupOutlookLogger } from './outlookCalendar/logger';
 import { setupScreenSharing } from './screenSharing/main';
+import { startServerViewScreenSharingHandler } from './screenSharing/serverViewScreenSharing';
 import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
@@ -109,6 +110,7 @@ const start = async (): Promise<void> => {
   setupNotifications();
   attentionDrawing.setUp();
   setupScreenSharing();
+  startServerViewScreenSharingHandler();
   startVideoCallWindowHandler();
   startLogViewerWindowHandler();
 

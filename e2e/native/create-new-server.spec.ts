@@ -1,5 +1,6 @@
 import { test, _electron as electron, expect } from '@playwright/test';
 import path from 'path';
+import 'dotenv/config';
 
 test.describe('Create New Server', () => {
   test('should create a new server', async () => {
@@ -32,10 +33,6 @@ test.describe('Create New Server', () => {
       throw new Error('No active window found');
     }
 
-    // Take a screenshot before interaction
-    await activeWindow.screenshot({ path: 'test-results/before-add-server.png' });
-    console.log('📸 Screenshot saved: before-add-server.png');
-
     // Look for the "Add workspace" button in the sidebar
     console.log('🔍 Looking for add workspace button...');
     const addButton = activeWindow.locator('button[title*="Add workspace"]').first();
@@ -50,9 +47,6 @@ test.describe('Create New Server', () => {
     // Wait for the add server dialog/screen to appear
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Take a screenshot after clicking
-    await activeWindow.screenshot({ path: 'test-results/after-add-server-click.png' });
-    console.log('📸 Screenshot saved: after-add-server-click.png');
 
     // Find the URL input field and enter "open.rocket.chat"
     console.log('� Looking for URL input field...');
@@ -65,9 +59,6 @@ test.describe('Create New Server', () => {
     await urlInput.fill('http://localhost:3000');
     console.log('✓ Entered "http://localhost:3000" in URL field');
 
-    // Take a screenshot after entering URL
-    // await activeWindow.screenshot({ path: 'test-results/after-url-entry.png' });
-    // console.log('📸 Screenshot saved: after-url-entry.png');
 
     // Find and click the Connect button
     console.log('🔍 Looking for Connect button...');
@@ -114,28 +105,28 @@ test.describe('Create New Server', () => {
     if (webviewPage) {
       console.log(`✓ Found webview with URL: ${webviewPage.url()}`);
 
-      // Take a screenshot of login page
-      await webviewPage.screenshot({ path: 'test-results/login-page.png' });
-      console.log('Screenshot saved: login-page.png');
-
       // Enter login credentials in the webview
       console.log('\nEntering login credentials...');
+
+      // Get credentials from environment variables
+      const username = process.env.TEST_USERNAME;
+      const password = process.env.TEST_PASSWORD;
+
+      if (!username || !password) {
+        throw new Error('TEST_USERNAME and TEST_PASSWORD environment variables must be set');
+      }
 
       // Find email/username field
       const emailInput = webviewPage.locator('input[placeholder="example@example.com"], input[name="emailOrUsername"]').first();
       await emailInput.waitFor({ state: 'visible', timeout: 10000 });
-      await emailInput.fill('santam');
-      console.log('✓ Entered username: santam');
+      await emailInput.fill(username);
+      console.log(`✓ Entered username: ${username}`);
 
       // Find password field
       const passwordInput = webviewPage.locator('input[type="password"]').first();
       await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-      await passwordInput.fill('SayMyName123**');
+      await passwordInput.fill(password);
       console.log('✓ Entered password');
-
-      // Take screenshot before login
-      await webviewPage.screenshot({ path: 'test-results/before-login.png' });
-      console.log('📸 Screenshot saved: before-login.png');
 
       // Find and click Login button
       const loginButton = webviewPage.locator('button:has-text("Login")').first();
@@ -148,10 +139,6 @@ test.describe('Create New Server', () => {
     } else {
       console.log('Webview not found');
     }
-
-    // Take a screenshot after connecting
-    await activeWindow.screenshot({ path: 'test-results/after-connect.png' });
-    console.log('Screenshot saved: after-connect.png');
 
     console.log('\n Closing app...');
     await electronApp.close();

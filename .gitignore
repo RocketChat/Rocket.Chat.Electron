@@ -34,3 +34,7 @@ node_modules/
 
 /allure-report
 /allure-results
+
+# Environment variables
+.env
+.env.local

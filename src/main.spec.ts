@@ -159,8 +159,11 @@ jest.mock('./userPresence/main', () => ({
   setupPowerMonitor: jest.fn(),
 }));
 
-jest.mock('./videoCallWindow/ipc', () => ({
+jest.mock('./screenSharing/desktopCapturerCache', () => ({
   handleDesktopCapturerGetSources: jest.fn(),
+}));
+
+jest.mock('./videoCallWindow/ipc', () => ({
   startVideoCallWindowHandler: jest.fn(),
   cleanupVideoCallResources: jest.fn(),
 }));

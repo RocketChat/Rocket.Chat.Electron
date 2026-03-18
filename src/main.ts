@@ -34,6 +34,7 @@ import {
   stopOutlookCalendarSync,
 } from './outlookCalendar/ipc';
 import { setupOutlookLogger } from './outlookCalendar/logger';
+import { handleDesktopCapturerGetSources } from './screenSharing/desktopCapturerCache';
 import { setupScreenSharing } from './screenSharing/main';
 import { startServerViewScreenSharingHandler } from './screenSharing/serverViewScreenSharing';
 import { handleClearCacheDialog } from './servers/cache';
@@ -56,7 +57,6 @@ import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
 import {
-  handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';

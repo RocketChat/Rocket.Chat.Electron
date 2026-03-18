@@ -28,6 +28,7 @@ interface IScreenSharePickerProps {
   responseChannel?: string;
   permissionChannel?: string;
   openUrlChannel?: string;
+  includeTheme?: boolean;
 }
 
 export function ScreenSharePicker({
@@ -35,6 +36,7 @@ export function ScreenSharePicker({
   responseChannel = 'video-call-window/screen-sharing-source-responded',
   permissionChannel = 'video-call-window/screen-recording-is-permission-granted',
   openUrlChannel = 'video-call-window/open-url',
+  includeTheme = true,
 }: IScreenSharePickerProps = {}) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
@@ -128,6 +130,8 @@ export function ScreenSharePicker({
       return undefined;
     }
 
+    fetchSources();
+
     const timer = setInterval(() => {
       fetchSources();
     }, 3000);
@@ -195,7 +199,7 @@ export function ScreenSharePicker({
 
   return (
     <>
-      <PaletteStyleTag theme='dark' selector=':root' />
+      {includeTheme && <PaletteStyleTag theme='dark' selector=':root' />}
       <Dialog isVisible={visible} onClose={handleClose}>
         <Box
           width='680px'

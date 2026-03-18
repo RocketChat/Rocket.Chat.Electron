@@ -1,179 +1,63 @@
-import type { Event, WebContents } from 'electron';
-import { desktopCapturer, ipcMain, systemPreferences } from 'electron';
+import type { WebContents } from 'electron';
 
 import { handle } from '../ipc/main';
 import { isProtocolAllowed } from '../navigation/main';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
+import { ScreenSharingRequestTracker } from './ScreenSharingRequestTracker';
+import { prewarmDesktopCapturerCache } from './desktopCapturerCache';
 import type {
   DisplayMediaCallback,
   ScreenPickerProvider,
-} from '../videoCallWindow/screenPicker/types';
+} from './screenPicker/types';
+import { checkScreenRecordingPermission } from './screenRecordingPermission';
 
-const SCREEN_SHARING_REQUEST_TIMEOUT = 60000;
-
-let activeScreenSharingListener:
-  | ((event: Event, sourceId: string | null) => void)
-  | null = null;
-let activeScreenSharingRequestId: string | null = null;
-let screenSharingTimeout: NodeJS.Timeout | null = null;
-let isScreenSharingRequestPending = false;
-
-const cleanupScreenSharingListener = (): void => {
-  if (activeScreenSharingListener) {
-    ipcMain.removeListener(
-      'screen-picker/source-responded',
-      activeScreenSharingListener
-    );
-    activeScreenSharingListener = null;
-  }
-
-  if (screenSharingTimeout) {
-    clearTimeout(screenSharingTimeout);
-    screenSharingTimeout = null;
-  }
-
-  activeScreenSharingRequestId = null;
-  isScreenSharingRequestPending = false;
-};
-
-const removeScreenSharingListenerOnly = (): void => {
-  if (activeScreenSharingListener) {
-    ipcMain.removeListener(
-      'screen-picker/source-responded',
-      activeScreenSharingListener
-    );
-    activeScreenSharingListener = null;
-  }
-};
-
-const markScreenSharingComplete = (): void => {
-  if (screenSharingTimeout) {
-    clearTimeout(screenSharingTimeout);
-    screenSharingTimeout = null;
-  }
-  activeScreenSharingRequestId = null;
-  isScreenSharingRequestPending = false;
-};
+const serverViewTracker = new ScreenSharingRequestTracker(
+  'screen-picker/source-responded',
+  'Server view screen sharing'
+);
 
 const createRootWindowPickerHandler =
-  (): ((callback: DisplayMediaCallback) => void) =>
-  (cb: DisplayMediaCallback) => {
-    if (isScreenSharingRequestPending) {
-      console.warn(
-        'Server view screen sharing: request already pending, ignoring'
-      );
-      cb({ video: false } as any);
-      return;
-    }
+  (): ((callback: DisplayMediaCallback) => void) => (cb) => {
+    prewarmDesktopCapturerCache();
 
-    cleanupScreenSharingListener();
-
-    const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-    activeScreenSharingRequestId = requestId;
-    isScreenSharingRequestPending = true;
-
-    let callbackInvoked = false;
-
-    const listener = async (_event: Event, sourceId: string | null) => {
-      if (activeScreenSharingRequestId !== requestId) {
-        return;
-      }
-
-      if (callbackInvoked) {
-        return;
-      }
-      callbackInvoked = true;
-
-      removeScreenSharingListenerOnly();
-      markScreenSharingComplete();
-
-      if (!sourceId) {
-        cb({ video: false } as any);
-        return;
-      }
-
-      try {
-        const sources = await desktopCapturer.getSources({
-          types: ['window', 'screen'],
-        });
-
-        const selectedSource = sources.find((s) => s.id === sourceId);
-
-        if (!selectedSource) {
-          console.warn(
-            'Server view screen sharing: selected source no longer available:',
-            sourceId
-          );
-          cb({ video: false } as any);
-          return;
+    serverViewTracker.createRequest(cb, () => {
+      getRootWindow().then((rootWindow) => {
+        if (rootWindow && !rootWindow.isDestroyed()) {
+          rootWindow.webContents.send('screen-picker/open');
+        } else {
+          console.warn('Server view screen sharing: root window not available');
         }
-
-        cb({ video: selectedSource });
-      } catch (error) {
-        console.error(
-          'Server view screen sharing: error validating source:',
-          error
-        );
-        cb({ video: false } as any);
-      }
-    };
-
-    activeScreenSharingListener = listener;
-
-    screenSharingTimeout = setTimeout(() => {
-      if (activeScreenSharingRequestId !== requestId) {
-        return;
-      }
-      if (callbackInvoked) {
-        return;
-      }
-      callbackInvoked = true;
-
-      console.warn(
-        'Server view screen sharing: request timed out, cleaning up'
-      );
-      removeScreenSharingListenerOnly();
-      markScreenSharingComplete();
-      cb({ video: false } as any);
-    }, SCREEN_SHARING_REQUEST_TIMEOUT);
-
-    ipcMain.once('screen-picker/source-responded', listener);
-
-    getRootWindow().then((rootWindow) => {
-      if (rootWindow && !rootWindow.isDestroyed()) {
-        rootWindow.webContents.send('screen-picker/open');
-      } else {
-        console.warn('Server view screen sharing: root window not available');
-        if (!callbackInvoked) {
-          callbackInvoked = true;
-          removeScreenSharingListenerOnly();
-          markScreenSharingComplete();
-          cb({ video: false } as any);
-        }
-      }
+      });
     });
   };
 
 let provider: ScreenPickerProvider | null = null;
 let providerReady = false;
+let initPromise: Promise<void> | null = null;
 
-const initializeProvider = async (): Promise<void> => {
-  const { detectPickerType, InternalPickerProvider, PortalPickerProvider } =
-    await import('../videoCallWindow/screenPicker');
+const initializeProvider = (): Promise<void> => {
+  if (initPromise) return initPromise;
 
-  const pickerType = detectPickerType();
+  initPromise = (async () => {
+    const { detectPickerType, InternalPickerProvider, PortalPickerProvider } =
+      await import('./screenPicker');
 
-  if (pickerType === 'portal') {
-    provider = new PortalPickerProvider();
-  } else {
-    const internalProvider = new InternalPickerProvider();
-    internalProvider.setHandleRequestHandler(createRootWindowPickerHandler());
-    provider = internalProvider;
-  }
+    const pickerType = detectPickerType();
 
-  providerReady = true;
-  console.log(`Server view screen sharing: using ${provider.type} provider`);
+    if (pickerType === 'portal') {
+      provider = new PortalPickerProvider();
+    } else {
+      const internalProvider = new InternalPickerProvider();
+      internalProvider.setHandleRequestHandler(createRootWindowPickerHandler());
+      provider = internalProvider;
+    }
+
+    providerReady = true;
+    console.log(`Server view screen sharing: using ${provider.type} provider`);
+  })();
+
+  return initPromise;
 };
 
 export const setupServerViewDisplayMedia = (
@@ -198,6 +82,7 @@ export const setupServerViewDisplayMedia = (
         },
         { useSystemPicker: false }
       );
+      prewarmDesktopCapturerCache();
     } catch (error) {
       console.error(
         'Server view screen sharing: error setting up handler:',
@@ -225,13 +110,9 @@ export const setupServerViewDisplayMedia = (
 };
 
 export const startServerViewScreenSharingHandler = (): void => {
-  handle('screen-picker/screen-recording-is-permission-granted', async () => {
-    if (process.platform === 'darwin') {
-      const permission = systemPreferences.getMediaAccessStatus('screen');
-      return permission === 'granted';
-    }
-    return true;
-  });
+  handle('screen-picker/screen-recording-is-permission-granted', async () =>
+    checkScreenRecordingPermission()
+  );
 
   handle('screen-picker/open-url', async (_webContents, url) => {
     const allowed = await isProtocolAllowed(url);

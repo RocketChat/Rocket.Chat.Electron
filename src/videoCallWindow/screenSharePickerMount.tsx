@@ -2,7 +2,7 @@ import i18next from 'i18next';
 import { createRoot, type Root } from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
 
-import { ScreenSharePicker } from './screenSharePicker';
+import { ScreenSharePicker } from '../screenSharing/screenSharePicker';
 
 export type ScreenSharePickerModuleType = {
   mount: () => void;

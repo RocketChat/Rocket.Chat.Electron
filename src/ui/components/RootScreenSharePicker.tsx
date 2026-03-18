@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { useEffect, useRef } from 'react';
 
-import { ScreenSharePicker } from '../../videoCallWindow/screenSharePicker';
+import { ScreenSharePicker } from '../../screenSharing/screenSharePicker';
 
 export const RootScreenSharePicker = () => {
   const setVisibleRef = useRef<((visible: boolean) => void) | null>(null);
@@ -28,6 +28,7 @@ export const RootScreenSharePicker = () => {
       responseChannel='screen-picker/source-responded'
       permissionChannel='screen-picker/screen-recording-is-permission-granted'
       openUrlChannel='screen-picker/open-url'
+      includeTheme={false}
     />
   );
 };

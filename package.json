@@ -6,7 +6,7 @@
   "productName": "Rocket.Chat",
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "4.13.0",
+  "version": "4.14.0-alpha.0",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2016-2026, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -151,8 +151,10 @@
     "node": ">=24.11.1"
   },
   "devEngines": {
-    "node": ">=24.11.1",
-    "yarn": ">=4.0.2"
+    "runtime": {
+      "name": "node",
+      "version": ">=22.0.0"
+    }
   },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
@@ -167,7 +169,7 @@
     "undici": "5.28.5"
   },
   "volta": {
-    "node": "24.11.1",
+    "node": "22.22.1",
     "yarn": "4.6.0"
   },
   "packageManager": "yarn@4.6.0"

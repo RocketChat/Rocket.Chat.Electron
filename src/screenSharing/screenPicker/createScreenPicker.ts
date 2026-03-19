@@ -2,7 +2,7 @@ import { InternalPickerProvider } from './providers/InternalPickerProvider';
 import { PortalPickerProvider } from './providers/PortalPickerProvider';
 import type { ScreenPickerProvider, ScreenPickerType } from './types';
 
-function detectPickerType(): ScreenPickerType {
+export function detectPickerType(): ScreenPickerType {
   if (process.platform === 'linux') {
     const sessionType = process.env.XDG_SESSION_TYPE;
     const desktop = process.env.XDG_CURRENT_DESKTOP || '';

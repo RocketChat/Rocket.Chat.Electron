@@ -131,6 +131,10 @@ type ChannelToArgsMap = {
     success: boolean;
     mapping: Record<string, string>;
   };
+  'screen-picker/open': () => void;
+  'screen-picker/source-responded': (sourceId: string | null) => void;
+  'screen-picker/screen-recording-is-permission-granted': () => boolean;
+  'screen-picker/open-url': (url: string) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

@@ -522,10 +522,6 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallCredentials = null;
         videoCallProviderName = null;
 
-        // Clear credentials and provider on close
-        videoCallCredentials = null;
-        videoCallProviderName = null;
-
         // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
         // This prevents crashes during first launch when timing is critical
         setTimeout(() => {

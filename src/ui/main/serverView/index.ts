@@ -230,6 +230,16 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  let isGuestInHtmlFullscreen = false;
+
+  guestWebContents.addListener('enter-html-full-screen', () => {
+    isGuestInHtmlFullscreen = true;
+  });
+
+  guestWebContents.addListener('leave-html-full-screen', () => {
+    isGuestInHtmlFullscreen = false;
+  });
+
   const handleBeforeInputEvent = (
     _event: Event,
     { type, key }: Input
@@ -241,6 +251,10 @@ const initializeServerWebContentsAfterAttach = (
     const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
     if (key !== shortcutKey && key !== 'Escape') {
+      return;
+    }
+
+    if (key === 'Escape' && isGuestInHtmlFullscreen) {
       return;
     }
 

@@ -1,7 +1,19 @@
 import path from 'path';
 
-import type { Rectangle, NativeImage, WebPreferences } from 'electron';
-import { app, BrowserWindow, nativeImage, nativeTheme, screen } from 'electron';
+import type {
+  ContextMenuParams,
+  Rectangle,
+  NativeImage,
+  WebPreferences,
+} from 'electron';
+import {
+  app,
+  BrowserWindow,
+  Menu,
+  nativeImage,
+  nativeTheme,
+  screen,
+} from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
@@ -513,8 +525,67 @@ export const setupRootWindow = (): void => {
   });
 };
 
+const createRootWindowContextMenu = ({
+  editFlags: {
+    canUndo = false,
+    canRedo = false,
+    canCut = false,
+    canCopy = false,
+    canPaste = false,
+    canSelectAll = false,
+  },
+}: ContextMenuParams): Menu => {
+  const t = i18next.t.bind(i18next);
+  return Menu.buildFromTemplate([
+    {
+      label: t('contextMenu.undo'),
+      role: 'undo',
+      accelerator: 'CommandOrControl+Z',
+      enabled: canUndo,
+    },
+    {
+      label: t('contextMenu.redo'),
+      role: 'redo',
+      accelerator:
+        process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
+      enabled: canRedo,
+    },
+    { type: 'separator' },
+    {
+      label: t('contextMenu.cut'),
+      role: 'cut',
+      accelerator: 'CommandOrControl+X',
+      enabled: canCut,
+    },
+    {
+      label: t('contextMenu.copy'),
+      role: 'copy',
+      accelerator: 'CommandOrControl+C',
+      enabled: canCopy,
+    },
+    {
+      label: t('contextMenu.paste'),
+      role: 'paste',
+      accelerator: 'CommandOrControl+V',
+      enabled: canPaste,
+    },
+    {
+      label: t('contextMenu.selectAll'),
+      role: 'selectAll',
+      accelerator: 'CommandOrControl+A',
+      enabled: canSelectAll,
+    },
+  ]);
+};
+
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
+
+  browserWindow.webContents.on('context-menu', (event, params) => {
+    event.preventDefault();
+    const menu = createRootWindowContextMenu(params);
+    menu.popup({ window: browserWindow });
+  });
 
   browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 

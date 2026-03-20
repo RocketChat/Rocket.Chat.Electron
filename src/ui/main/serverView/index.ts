@@ -254,6 +254,9 @@ const initializeServerWebContentsAfterAttach = (
       return;
     }
 
+    // On macOS, forwarding ESC to the root window while the guest is in
+    // HTML5 fullscreen (e.g. a video player) causes the native window to
+    // also exit fullscreen. This does not occur on Windows/Linux.
     if (key === 'Escape' && isGuestInHtmlFullscreen) {
       return;
     }

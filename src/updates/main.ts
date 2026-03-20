@@ -162,6 +162,8 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
   );
 };
 
+let isUserInitiatedCheck = false;
+
 export const setupUpdates = async (): Promise<void> => {
   // This is necessary to make the updater work in development mode
   if (process.env.NODE_ENV === 'development') {
@@ -244,7 +246,7 @@ export const setupUpdates = async (): Promise<void> => {
     const skippedUpdateVersion = select(
       ({ skippedUpdateVersion }) => skippedUpdateVersion
     );
-    if (skippedUpdateVersion === version) {
+    if (!isUserInitiatedCheck && skippedUpdateVersion === version) {
       dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
       return;
     }
@@ -329,6 +331,7 @@ export const setupUpdates = async (): Promise<void> => {
 
   if (doCheckForUpdatesOnStartup) {
     try {
+      isUserInitiatedCheck = false;
       await autoUpdater.checkForUpdates();
     } catch (error) {
       error instanceof Error &&
@@ -345,6 +348,7 @@ export const setupUpdates = async (): Promise<void> => {
 
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {
+      isUserInitiatedCheck = true;
       setTimeout(() => {
         autoUpdater.checkForUpdates();
       }, 100);

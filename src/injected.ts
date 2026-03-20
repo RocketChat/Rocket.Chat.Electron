@@ -192,6 +192,19 @@ const start = async () => {
 
   console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
+  // Inject custom CSS to fix attachment width
+  const customStyle = document.createElement('style');
+  customStyle.id = 'rocketchat-desktop-custom-styles';
+  customStyle.textContent = `
+    /* Override hardcoded 360px width for text format attachments */
+    .rcx-attachment__content {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+  `;
+  document.head.appendChild(customStyle);
+  console.log('[Rocket.Chat Desktop] Custom CSS injected for attachment width fix');
+
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
     implements Notification
@@ -390,7 +403,6 @@ const start = async () => {
     titleUpdates: false,
     userLoginDetection: false,
     gitCommitHash: false,
-    themeAppearance: false,
     userPresence: false,
   };
 
@@ -577,7 +589,33 @@ const start = async () => {
 
   // Call setupReactiveFeatures immediately and then periodically check for new modules
   setupReactiveFeatures();
-  setInterval(setupReactiveFeatures, 1000); // Check every second for newly loaded modules
+
+  // Self-rescheduling timeout that stops once all features are initialized
+  const scheduleSetupCheck = () => {
+    const effectiveSetupFlags = {
+      ...setupFlags,
+      backgroundSettings: versionIsGreaterOrEqualsTo(
+        serverInfo.version,
+        '6.4.0'
+      )
+        ? true
+        : setupFlags.backgroundSettings,
+    };
+    const allFeaturesSetup = Object.values(effectiveSetupFlags).every(
+      Boolean
+    );
+
+    if (!allFeaturesSetup) {
+      setupReactiveFeatures();
+      setTimeout(scheduleSetupCheck, 1000);
+    } else {
+      console.log(
+        '[Rocket.Chat Desktop] All reactive features initialized, stopping polling'
+      );
+    }
+  };
+
+  scheduleSetupCheck();
 
   console.log('[Rocket.Chat Desktop] Injected');
 };

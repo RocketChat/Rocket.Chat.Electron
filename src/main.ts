@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, shell } from 'electron';
 
 import {
   performElectronStartup,
@@ -18,6 +18,7 @@ import { setupDownloads } from './downloads/main';
 import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
+import { handle } from './ipc/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
 import {
@@ -54,6 +55,7 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
+import { openExternal } from './utils/browserLauncher';
 import {
   handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
@@ -142,6 +144,31 @@ const start = async (): Promise<void> => {
   handleClearCacheDialog();
   startDocumentViewerHandler();
   checkSupportedVersionServers();
+
+  handle('open-external', async (_webContents, rawUrl) => {
+    let url: URL;
+
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      console.warn('Blocked malformed external URL');
+      return;
+    }
+
+    const { isProtocolAllowed } = await import('./navigation/main');
+
+    if (!(await isProtocolAllowed(url.toString()))) {
+      console.warn('Blocked external URL with disallowed protocol');
+      return;
+    }
+
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      await openExternal(url.toString());
+      return;
+    }
+
+    await shell.openExternal(url.toString());
+  });
 
   await processDeepLinksInArgs();
 

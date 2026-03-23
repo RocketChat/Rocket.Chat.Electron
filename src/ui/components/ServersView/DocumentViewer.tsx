@@ -70,21 +70,22 @@ const DocumentViewer = ({
         bg='tint'
         width='100%'
         height='100%'
-        position='absolute'
-        content='center'
-        alignItems='center'
+        display='flex'
+        flexDirection='column'
       >
         <Box
-          content='center'
-          alignItems='center'
           display='flex'
+          alignItems='center'
           color='default'
+          pbe='x8'
+          pbs='x8'
+          pis='x8'
         >
           <IconButton icon='arrow-back' onClick={closeDocumentViewer} mi='x8' />
           <h2>PDF Viewer</h2>
         </Box>
 
-        <Box>
+        <Box position='relative' flexGrow={1}>
           <Box
             display='flex'
             justifyContent='center'
@@ -101,9 +102,10 @@ const DocumentViewer = ({
             src={documentUrl}
             style={{
               width: '100%',
+              height: '100%',
               position: 'absolute',
               left: 0,
-              top: 50,
+              top: 0,
               right: 0,
               bottom: 0,
             }}

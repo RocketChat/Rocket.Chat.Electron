@@ -103,6 +103,7 @@ const formatDuration = (duration: number): string => {
 };
 
 export const interpolation: InitOptions['interpolation'] = {
+  escapeValue: false,
   format: (value, format, lng) => {
     if (value instanceof Date && !Number.isNaN(value.getTime())) {
       return new Intl.DateTimeFormat(lng).format(value);

@@ -9,6 +9,7 @@ import { AddServerView } from '../AddServerView';
 import { ClearCacheDialog } from '../ClearCacheDialog';
 import DownloadsManagerView from '../DownloadsManagerView';
 import { OutlookCredentialsDialog } from '../OutlookCredentialsDialog';
+import { RootScreenSharePicker } from '../RootScreenSharePicker';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { ServerInfoModal } from '../ServerInfoModal';
@@ -96,6 +97,7 @@ export const Shell = () => {
       <ServerInfoModal />
       <SupportedVersionDialog />
       <ScreenSharingDialog />
+      <RootScreenSharePicker />
       <SelectClientCertificateDialog />
       <UpdateDialog />
       <ClearCacheDialog />

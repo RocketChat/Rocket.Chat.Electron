@@ -6,37 +6,33 @@ import type {
   WebContents,
   MediaAccessPermissionRequest,
 } from 'electron';
-import {
-  app,
-  BrowserWindow,
-  desktopCapturer,
-  ipcMain,
-  screen,
-  systemPreferences,
-  webContents,
-} from 'electron';
+import { app, BrowserWindow, ipcMain, screen, webContents } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
 import { fallbackLng } from '../i18n/common';
 import { handle } from '../ipc/main';
 import { isProtocolAllowed } from '../navigation/main';
+import { ScreenSharingRequestTracker } from '../screenSharing/ScreenSharingRequestTracker';
+import {
+  clearDesktopCapturerCache,
+  getDesktopCapturerCacheStatus,
+  prewarmDesktopCapturerCache,
+} from '../screenSharing/desktopCapturerCache';
+import type {
+  DisplayMediaCallback,
+  ScreenPickerProvider,
+} from '../screenSharing/screenPicker/types';
+import { checkScreenRecordingPermission } from '../screenSharing/screenRecordingPermission';
 import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
-import type {
-  DisplayMediaCallback,
-  ScreenPickerProvider,
-} from './screenPicker/types';
 
-const DESKTOP_CAPTURER_STALE_THRESHOLD = 3000;
-const SOURCE_VALIDATION_CACHE_TTL = 30000;
 const DESTRUCTION_CHECK_INTERVAL = 50;
 const DEVTOOLS_TIMEOUT = 2000;
 const WEBVIEW_CHECK_INTERVAL = 100;
-const SCREEN_SHARING_REQUEST_TIMEOUT = 60000; // 60 seconds timeout
 
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
@@ -48,13 +44,10 @@ let videoCallCredentials: {
 } | null = null;
 let videoCallProviderName: string | null = null;
 
-// Screen sharing request tracking
-let activeScreenSharingListener:
-  | ((event: Event, sourceId: string | null) => void)
-  | null = null;
-let activeScreenSharingRequestId: string | null = null;
-let screenSharingTimeout: NodeJS.Timeout | null = null;
-let isScreenSharingRequestPending = false;
+const videoCallScreenSharingTracker = new ScreenSharingRequestTracker(
+  'video-call-window/screen-sharing-source-responded',
+  'Video call screen sharing'
+);
 
 // Helper function to log URL changes
 const setPendingVideoCallUrl = (url: string, reason: string) => {
@@ -68,108 +61,17 @@ const setPendingVideoCallUrl = (url: string, reason: string) => {
   });
 };
 
-let desktopCapturerCache: {
-  sources: Electron.DesktopCapturerSource[];
-  timestamp: number;
-} | null = null;
-
-let desktopCapturerPromise: Promise<Electron.DesktopCapturerSource[]> | null =
-  null;
-
-const sourceValidationCache: Set<string> = new Set();
-let sourceValidationCacheTimestamp = 0;
-
 let videoCallWindowCreationCount = 0;
 let videoCallWindowDestructionCount = 0;
 
 const logVideoCallWindowStats = () => {
+  const cacheStatus = getDesktopCapturerCacheStatus();
   console.log('Video call window stats:', {
     created: videoCallWindowCreationCount,
     destroyed: videoCallWindowDestructionCount,
     currentInstance: videoCallWindow ? 'active' : 'none',
-    cacheStatus: desktopCapturerCache ? 'cached' : 'empty',
-    promiseStatus: desktopCapturerPromise ? 'pending' : 'none',
-  });
-};
-
-const refreshDesktopCapturerCache = (
-  options: Electron.SourcesOptions
-): void => {
-  if (desktopCapturerPromise) return;
-
-  desktopCapturerPromise = (async () => {
-    try {
-      const sources = await desktopCapturer.getSources(options);
-
-      const validSources = sources.filter((source) => {
-        if (!source.name || source.name.trim() === '') {
-          return false;
-        }
-
-        const now = Date.now();
-        const cacheExpired =
-          now - sourceValidationCacheTimestamp > SOURCE_VALIDATION_CACHE_TTL;
-
-        if (!cacheExpired && sourceValidationCache.has(source.id)) {
-          return true;
-        }
-
-        if (source.thumbnail.isEmpty()) {
-          return false;
-        }
-
-        if (cacheExpired) {
-          sourceValidationCache.clear();
-          sourceValidationCacheTimestamp = now;
-        }
-        sourceValidationCache.add(source.id);
-
-        return true;
-      });
-
-      desktopCapturerCache = {
-        sources: validSources,
-        timestamp: Date.now(),
-      };
-
-      return validSources;
-    } catch (error) {
-      console.error('Background cache refresh failed:', error);
-      return desktopCapturerCache?.sources || [];
-    } finally {
-      desktopCapturerPromise = null;
-    }
-  })();
-};
-
-export const handleDesktopCapturerGetSources = () => {
-  handle('desktop-capturer-get-sources', async (_webContents, opts) => {
-    try {
-      const options = Array.isArray(opts) ? opts[0] : opts;
-
-      if (desktopCapturerCache) {
-        const isStale =
-          Date.now() - desktopCapturerCache.timestamp >
-          DESKTOP_CAPTURER_STALE_THRESHOLD;
-        if (isStale && !desktopCapturerPromise) {
-          refreshDesktopCapturerCache(options);
-        }
-        return desktopCapturerCache.sources;
-      }
-
-      if (desktopCapturerPromise) {
-        return await desktopCapturerPromise;
-      }
-
-      refreshDesktopCapturerCache(options);
-      if (desktopCapturerPromise) {
-        return await desktopCapturerPromise;
-      }
-      return [];
-    } catch (error) {
-      console.error('Error in desktop capturer handler:', error);
-      return desktopCapturerCache?.sources || [];
-    }
+    cacheStatus: cacheStatus.cached ? 'cached' : 'empty',
+    promiseStatus: cacheStatus.pending ? 'pending' : 'none',
   });
 };
 
@@ -229,7 +131,7 @@ const cleanupVideoCallWindow = () => {
       }
 
       // Clean up screen sharing listener before removing window listeners
-      cleanupScreenSharingListener();
+      videoCallScreenSharingTracker.cleanup();
 
       videoCallWindow.removeAllListeners();
 
@@ -271,58 +173,9 @@ const cleanupVideoCallWindow = () => {
   }, 10);
 };
 
-const cleanupScreenSharingListener = (): void => {
-  if (activeScreenSharingListener) {
-    ipcMain.removeListener(
-      'video-call-window/screen-sharing-source-responded',
-      activeScreenSharingListener
-    );
-    activeScreenSharingListener = null;
-  }
-
-  if (screenSharingTimeout) {
-    clearTimeout(screenSharingTimeout);
-    screenSharingTimeout = null;
-  }
-
-  activeScreenSharingRequestId = null;
-  isScreenSharingRequestPending = false;
-};
-
-const removeScreenSharingListenerOnly = (): void => {
-  if (activeScreenSharingListener) {
-    ipcMain.removeListener(
-      'video-call-window/screen-sharing-source-responded',
-      activeScreenSharingListener
-    );
-    activeScreenSharingListener = null;
-  }
-
-  if (screenSharingTimeout) {
-    clearTimeout(screenSharingTimeout);
-    screenSharingTimeout = null;
-  }
-};
-
-const markScreenSharingComplete = (): void => {
-  activeScreenSharingRequestId = null;
-  isScreenSharingRequestPending = false;
-};
-
-// Internal picker handler function - encapsulates the internal picker logic
-const createInternalPickerHandler = (): ((
-  callback: DisplayMediaCallback
-) => void) => {
-  return (cb: DisplayMediaCallback) => {
-    // Prevent concurrent requests
-    if (isScreenSharingRequestPending) {
-      console.warn(
-        'Screen sharing request already pending, ignoring concurrent request'
-      );
-      cb({ video: false } as any);
-      return;
-    }
-
+// Internal picker handler function - uses shared tracker
+const createInternalPickerHandler =
+  (): ((callback: DisplayMediaCallback) => void) => (cb) => {
     if (!videoCallWindow || videoCallWindow.isDestroyed()) {
       console.warn(
         'Screen sharing request rejected - video call window not available'
@@ -331,101 +184,11 @@ const createInternalPickerHandler = (): ((
       return;
     }
 
-    // Clean up any existing listener
-    cleanupScreenSharingListener();
-
-    // Generate unique request ID
-    const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-    activeScreenSharingRequestId = requestId;
-    isScreenSharingRequestPending = true;
-
-    // Flag to prevent double-invocation of callback
-    let callbackInvoked = false;
-
-    // Create the listener function
-    const listener = async (_event: Event, sourceId: string | null) => {
-      // Ignore responses for different requests
-      if (activeScreenSharingRequestId !== requestId) {
-        console.warn(
-          'Screen sharing response received for different request, ignoring'
-        );
-        return;
-      }
-
-      // Guard against double-invocation (race with timeout)
-      if (callbackInvoked) {
-        console.warn(
-          'Screen sharing callback already invoked, ignoring duplicate'
-        );
-        return;
-      }
-      callbackInvoked = true;
-
-      // Remove listener, clear timeout, and mark complete BEFORE invoking the
-      // callback. Jitsi may synchronously re-enter getDisplayMedia inside cb(),
-      // which would re-set isScreenSharingRequestPending before we clear it.
-      removeScreenSharingListenerOnly();
-      markScreenSharingComplete();
-
-      if (!sourceId) {
-        cb({ video: false } as any);
-        return;
-      }
-
-      try {
-        const sources = await desktopCapturer.getSources({
-          types: ['window', 'screen'],
-        });
-
-        const selectedSource = sources.find((s) => s.id === sourceId);
-
-        if (!selectedSource) {
-          console.warn(
-            'Selected screen sharing source no longer available:',
-            sourceId
-          );
-          cb({ video: false } as any);
-          return;
-        }
-
-        cb({ video: selectedSource });
-      } catch (error) {
-        console.error('Error validating screen sharing source:', error);
-        cb({ video: false } as any);
-      }
-    };
-
-    // Store listener for cleanup
-    activeScreenSharingListener = listener;
-
-    // Set timeout to prevent orphaned listeners
-    screenSharingTimeout = setTimeout(() => {
-      if (activeScreenSharingRequestId !== requestId) {
-        console.warn(
-          'Screen sharing timeout fired for different request, ignoring'
-        );
-        return;
-      }
-
-      if (callbackInvoked) {
-        console.warn(
-          'Screen sharing callback already invoked by listener, ignoring timeout'
-        );
-        return;
-      }
-      callbackInvoked = true;
-
-      console.warn('Screen sharing request timed out, cleaning up listener');
-
-      removeScreenSharingListenerOnly();
-      markScreenSharingComplete();
-      cb({ video: false } as any);
-    }, SCREEN_SHARING_REQUEST_TIMEOUT);
-
-    ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
-    videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+    const window = videoCallWindow;
+    videoCallScreenSharingTracker.createRequest(cb, () => {
+      window.webContents.send('video-call-window/open-screen-picker');
+    });
   };
-};
 
 const setupWebviewHandlers = (webContents: WebContents) => {
   // Track attached webviews that need handler setup
@@ -473,7 +236,7 @@ const setupWebviewHandlers = (webContents: WebContents) => {
   webContents.on('did-attach-webview', handleDidAttachWebview);
 
   // Load screen picker module asynchronously
-  import('./screenPicker')
+  import('../screenSharing/screenPicker')
     .then((screenPickerModule) => {
       const { createScreenPicker, InternalPickerProvider } = screenPickerModule;
       provider = createScreenPicker();
@@ -505,15 +268,8 @@ export const startVideoCallWindowHandler = (): void => {
     event.returnValue = videoCallProviderName;
   });
 
-  handle(
-    'video-call-window/screen-recording-is-permission-granted',
-    async () => {
-      if (process.platform === 'darwin') {
-        const permission = systemPreferences.getMediaAccessStatus('screen');
-        return permission === 'granted';
-      }
-      return true;
-    }
+  handle('video-call-window/screen-recording-is-permission-granted', async () =>
+    checkScreenRecordingPermission()
   );
 
   handle('video-call-window/open-url', async (_webContents, url) => {
@@ -530,7 +286,7 @@ export const startVideoCallWindowHandler = (): void => {
 
     // Clean up any stale listener before registering a new one, to ensure only
     // one ipcMain listener is active at a time (same pattern as createInternalPickerHandler).
-    cleanupScreenSharingListener();
+    videoCallScreenSharingTracker.cleanup();
 
     videoCallWindow.webContents.send('video-call-window/open-screen-picker');
 
@@ -760,7 +516,7 @@ export const startVideoCallWindowHandler = (): void => {
         console.log('Video call window closed - destroying completely');
 
         // Clean up screen sharing listener
-        cleanupScreenSharingListener();
+        videoCallScreenSharingTracker.cleanup();
 
         // Clear credentials and provider on close
         videoCallCredentials = null;
@@ -792,7 +548,7 @@ export const startVideoCallWindowHandler = (): void => {
           );
 
           // Clean up screen sharing listener
-          cleanupScreenSharingListener();
+          videoCallScreenSharingTracker.cleanup();
 
           try {
             if (videoCallWindow && !videoCallWindow.isDestroyed()) {
@@ -1178,10 +934,7 @@ export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
 export const cleanupVideoCallResources = () => {
   console.log('Cleaning up all video call resources');
 
-  desktopCapturerCache = null;
-  desktopCapturerPromise = null;
-  sourceValidationCache.clear();
-  sourceValidationCacheTimestamp = 0;
+  clearDesktopCapturerCache();
 
   isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();
@@ -1297,6 +1050,6 @@ handle('video-call-window/get-language', async () => {
 });
 
 handle('video-call-window/prewarm-capturer-cache', async () => {
-  refreshDesktopCapturerCache({ types: ['window', 'screen'] });
+  prewarmDesktopCapturerCache();
   return { success: true };
 });

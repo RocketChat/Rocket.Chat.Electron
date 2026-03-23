@@ -26,6 +26,7 @@
   },
   "main": "app/main.js",
   "scripts": {
+    "test:e2e": "playwright test --config=e2e/playwright.config.ts",
     "postinstall": "run-s install-app-deps clean patch-package",
     "patch-package": "patch-package",
     "start": "run-s build:watch",
@@ -119,6 +120,7 @@
     "chokidar": "~3.5.3",
     "conventional-changelog-cli": "~4.1.0",
     "convert-svg-to-png": "~0.6.4",
+    "dotenv": "~17.3.1",
     "electron": "40.0.0",
     "electron-builder": "26.0.3",
     "electron-devtools-installer": "^3.2.0",

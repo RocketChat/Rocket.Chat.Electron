@@ -1,21 +1,24 @@
 import { Page } from '@playwright/test';
 
-export async function login(page: Page) {
-  await page.goto('http://localhost:3000');
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const USERNAME = process.env.E2E_USERNAME || 'admin';
+const PASSWORD = process.env.E2E_PASSWORD || 'admin123';
 
-  // Wait for login form
-  await page.locator('input').first().waitFor({ timeout: 60000 });
+export async function login(page: Page): Promise<void> {
+  await page.goto(BASE_URL);
 
+// Using index-based fallback due to dynamic UI rendering in Rocket.Chat
   const inputs = page.locator('input');
+  await inputs.first().waitFor({ timeout: 60000 });
 
-  await inputs.nth(0).fill('admin');
-  await inputs.nth(1).fill('admin123');
+  await inputs.nth(0).fill(USERNAME);
+  await inputs.nth(1).fill(PASSWORD);
 
   await page.getByRole('button', { name: /login/i }).click();
 
-  // Wait for navigation to home
-  await page.waitForURL(/home/, { timeout: 60000 });
+  await page.waitForURL(/\/home\/?$/, { timeout: 60000 });
 
-  // Small delay for UI stabilization (important for Rocket.Chat)
-  await page.waitForTimeout(3000);
+ 
+  await page.waitForLoadState('networkidle');
+  
 }

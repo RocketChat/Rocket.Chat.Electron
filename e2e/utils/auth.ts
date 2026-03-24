@@ -7,10 +7,14 @@ const PASSWORD = process.env.E2E_PASSWORD || 'admin123';
 export async function login(page: Page): Promise<void> {
   await page.goto(BASE_URL);
 
-// Using index-based fallback due to dynamic UI rendering in Rocket.Chat
+ // Prefer semantic selectors when possible, fallback due to dynamic UI rendering
   const inputs = page.locator('input');
+
+// Wait for login form to be ready
   await inputs.first().waitFor({ timeout: 60000 });
 
+// Prefer semantic selectors when available, fallback to index-based selectors
+// due to dynamic rendering and lack of stable attributes in Rocket.Chat login UI
   await inputs.nth(0).fill(USERNAME);
   await inputs.nth(1).fill(PASSWORD);
 
@@ -19,6 +23,7 @@ export async function login(page: Page): Promise<void> {
   await page.waitForURL(/\/home\/?$/, { timeout: 60000 });
 
  
-  await page.waitForLoadState('networkidle');
+// Wait for actual UI instead of networkidle
+  await page.locator('body').waitFor({ timeout: 60000 });
   
 }

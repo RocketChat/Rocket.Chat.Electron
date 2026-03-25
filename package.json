@@ -98,6 +98,7 @@
     "@fiahfy/icns-convert": "~0.0.12",
     "@fiahfy/ico-convert": "~0.0.12",
     "@kayahr/jest-electron-runner": "29.14.0",
+    "@nut-tree-fork/nut-js": "~4.2.6",
     "@playwright/test": "~1.58.2",
     "@rocket.chat/eslint-config": "~0.7.0",
     "@rocket.chat/prettier-config": "~0.31.25",

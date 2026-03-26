@@ -145,6 +145,12 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "Visionneuse PDF",
+      "markdown": "Visionneuse Markdown"
+    }
+  },
   "downloads": {
     "title": "Téléchargements",
     "notifications": {

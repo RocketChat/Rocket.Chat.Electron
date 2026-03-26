@@ -1,4 +1,10 @@
 {
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF-čájáhus",
+      "markdown": "Markdown-čájáhus"
+    }
+  },
   "settings": {
     "options": {
       "transparentWindow": {

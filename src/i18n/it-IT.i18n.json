@@ -1,4 +1,10 @@
 {
+  "documentViewer": {
+    "title": {
+      "pdf": "Visualizzatore PDF",
+      "markdown": "Visualizzatore Markdown"
+    }
+  },
   "settings": {
     "options": {
       "transparentWindow": {

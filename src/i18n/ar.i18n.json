@@ -1,4 +1,10 @@
 {
+  "documentViewer": {
+    "title": {
+      "pdf": "عارض PDF",
+      "markdown": "عارض Markdown"
+    }
+  },
   "settings": {
     "options": {
       "transparentWindow": {

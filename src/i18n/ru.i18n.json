@@ -139,6 +139,12 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "Просмотр PDF",
+      "markdown": "Просмотр Markdown"
+    }
+  },
   "downloads": {
     "title": "Загрузки",
     "notifications": {

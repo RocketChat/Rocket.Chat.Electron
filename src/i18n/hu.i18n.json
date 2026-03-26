@@ -166,6 +166,12 @@
       "title": "A munkaterület verziója nem támogatott"
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF megjelenítő",
+      "markdown": "Markdown megjelenítő"
+    }
+  },
   "downloads": {
     "title": "Letöltések",
     "notifications": {

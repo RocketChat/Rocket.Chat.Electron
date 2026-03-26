@@ -166,6 +166,12 @@
       "title": "Versionen av arbetsytan stöds inte"
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF-visare",
+      "markdown": "Markdown-visare"
+    }
+  },
   "downloads": {
     "title": "Nedladdningar",
     "notifications": {

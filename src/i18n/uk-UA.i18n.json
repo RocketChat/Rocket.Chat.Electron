@@ -85,6 +85,12 @@
       "validDates": "Дійсний з {{-validStart,}} по {{-validExpiry,}}"
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "Перегляд PDF",
+      "markdown": "Перегляд Markdown"
+    }
+  },
   "settings": {
     "title": "Налаштування",
     "general": "Загальні",

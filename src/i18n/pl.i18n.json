@@ -115,6 +115,12 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "Przeglądarka PDF",
+      "markdown": "Przeglądarka Markdown"
+    }
+  },
   "settings": {
     "title": "Ustawienia",
     "general": "Ogólne",

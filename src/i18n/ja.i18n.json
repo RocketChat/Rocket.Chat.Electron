@@ -103,6 +103,12 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDFビューアー",
+      "markdown": "Markdownビューアー"
+    }
+  },
   "settings": {
     "options": {
       "transparentWindow": {

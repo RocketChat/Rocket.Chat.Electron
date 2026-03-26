@@ -161,7 +161,8 @@
     "title": {
       "pdf": "Visualizador de PDF",
       "markdown": "Visualizador de Markdown"
-    }
+    },
+    "back": "Voltar"
   },
   "downloads": {
     "title": "Downloads",

@@ -3,7 +3,8 @@
     "title": {
       "pdf": "PDF-visning",
       "markdown": "Markdown-visning"
-    }
+    },
+    "back": "Tilbake"
   },
   "settings": {
     "options": {

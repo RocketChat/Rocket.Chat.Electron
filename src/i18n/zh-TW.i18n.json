@@ -86,7 +86,8 @@
     "title": {
       "pdf": "PDF 檢視器",
       "markdown": "Markdown 檢視器"
-    }
+    },
+    "back": "返回"
   },
   "settings": {
     "title": "設定",

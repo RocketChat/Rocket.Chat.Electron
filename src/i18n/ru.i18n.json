@@ -143,7 +143,8 @@
     "title": {
       "pdf": "Просмотр PDF",
       "markdown": "Просмотр Markdown"
-    }
+    },
+    "back": "Назад"
   },
   "downloads": {
     "title": "Загрузки",

@@ -60,15 +60,30 @@ const MarkdownContent = ({
 
     const handleClick = (e: MouseEvent) => {
       const anchor = (e.target as HTMLElement).closest('a');
-      if (anchor?.href) {
-        e.preventDefault();
-        shell.openExternal(anchor.href);
+      if (!anchor) return;
+
+      const rawHref = anchor.getAttribute('href');
+      if (!rawHref) return;
+
+      e.preventDefault();
+
+      // Skip in-page anchor links
+      if (rawHref.startsWith('#')) return;
+
+      try {
+        const resolved = new URL(rawHref, url);
+        const allowedProtocols = ['http:', 'https:', 'mailto:'];
+        if (allowedProtocols.includes(resolved.protocol)) {
+          shell.openExternal(resolved.toString());
+        }
+      } catch {
+        // Ignore malformed URLs
       }
     };
 
     container.addEventListener('click', handleClick);
     return () => container.removeEventListener('click', handleClick);
-  }, [htmlContent]);
+  }, [htmlContent, url]);
 
   useEffect(() => {
     if (!url) return;

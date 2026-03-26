@@ -170,7 +170,8 @@
     "title": {
       "pdf": "PDF-visare",
       "markdown": "Markdown-visare"
-    }
+    },
+    "back": "Tillbaka"
   },
   "downloads": {
     "title": "Nedladdningar",

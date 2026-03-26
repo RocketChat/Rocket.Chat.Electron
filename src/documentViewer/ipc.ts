@@ -38,6 +38,18 @@ export const startDocumentViewerHandler = (): void => {
   handle(
     'document-viewer/fetch-content',
     async (_event, url: string, serverUrl: string) => {
+      const parsedUrl = new URL(url);
+      const parsedServerUrl = new URL(serverUrl);
+      const allowedProtocols = ['http:', 'https:'];
+
+      if (!allowedProtocols.includes(parsedUrl.protocol)) {
+        throw new Error('Invalid URL protocol');
+      }
+
+      if (parsedUrl.origin !== parsedServerUrl.origin) {
+        throw new Error('URL origin does not match server');
+      }
+
       const partition = `persist:${serverUrl}`;
       const ses = session.fromPartition(partition);
       const response = await ses.fetch(url);

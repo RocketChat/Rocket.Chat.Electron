@@ -3,7 +3,8 @@
     "title": {
       "pdf": "PDF 查看器",
       "markdown": "Markdown 查看器"
-    }
+    },
+    "back": "返回"
   },
   "settings": {
     "options": {

@@ -37,8 +37,15 @@ const DocumentViewer = ({
         pbs='x8'
         pis='x8'
       >
-        <IconButton icon='arrow-back' onClick={closeDocumentViewer} mi='x8' />
-        <h2>{title}</h2>
+        <IconButton
+          icon='arrow-back'
+          onClick={closeDocumentViewer}
+          mi='x8'
+          aria-label={t('documentViewer.back')}
+        />
+        <Box is='h2' fontScale='h2' m='none'>
+          {title}
+        </Box>
       </Box>
 
       {isMarkdown ? (

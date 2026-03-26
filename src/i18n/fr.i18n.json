@@ -149,7 +149,8 @@
     "title": {
       "pdf": "Visionneuse PDF",
       "markdown": "Visionneuse Markdown"
-    }
+    },
+    "back": "Retour"
   },
   "downloads": {
     "title": "Téléchargements",

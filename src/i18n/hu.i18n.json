@@ -170,7 +170,8 @@
     "title": {
       "pdf": "PDF megjelenítő",
       "markdown": "Markdown megjelenítő"
-    }
+    },
+    "back": "Vissza"
   },
   "downloads": {
     "title": "Letöltések",

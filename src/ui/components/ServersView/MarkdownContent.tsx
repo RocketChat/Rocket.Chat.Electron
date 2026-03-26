@@ -65,10 +65,10 @@ const MarkdownContent = ({
       const rawHref = anchor.getAttribute('href');
       if (!rawHref) return;
 
-      e.preventDefault();
-
-      // Skip in-page anchor links
+      // Allow in-page anchor links to scroll normally
       if (rawHref.startsWith('#')) return;
+
+      e.preventDefault();
 
       try {
         const resolved = new URL(rawHref, url);

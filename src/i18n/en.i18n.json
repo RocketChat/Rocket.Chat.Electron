@@ -173,6 +173,12 @@
       "cancel": "Cancel"
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF Viewer",
+      "markdown": "Markdown Viewer"
+    }
+  },
   "downloads": {
     "title": "Downloads",
     "notifications": {

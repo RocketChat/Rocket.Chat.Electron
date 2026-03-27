@@ -103,6 +103,7 @@
     "createStartMenuShortcut": true,
     "menuCategory": false
   },
+  "msiProjectCreated": "./build/msiProjectCreated.js",
   "msi": {
     "warningsAsErrors": false,
     "additionalWixArgs": ["-sval"]

@@ -993,6 +993,17 @@ export const startVideoCallWindowHandler = (): void => {
         }
       });
 
+      const VIDEO_CALL_ALLOWED_PERMISSIONS = [
+        'geolocation',
+        'notifications',
+        'midiSysex',
+        'pointerLock',
+        'fullscreen',
+        'screen-wake-lock',
+        'system-wake-lock',
+        'openExternal',
+      ] as const;
+
       webContents.session.setPermissionRequestHandler(
         async (
           _webContents: any,
@@ -1011,18 +1022,21 @@ export const startVideoCallWindowHandler = (): void => {
               return;
             }
 
-            case 'geolocation':
-            case 'notifications':
-            case 'midiSysex':
-            case 'pointerLock':
-            case 'fullscreen':
-            case 'screen-wake-lock':
-            case 'system-wake-lock':
-              callback(true);
-              return;
-
             case 'openExternal': {
               callback(true);
+              return;
+            }
+
+            default: {
+              if (
+                (VIDEO_CALL_ALLOWED_PERMISSIONS as readonly string[]).includes(
+                  permission
+                )
+              ) {
+                callback(true);
+                return;
+              }
+              callback(false);
             }
           }
         }
@@ -1034,16 +1048,9 @@ export const startVideoCallWindowHandler = (): void => {
             return true;
           }
           if (
-            [
-              'geolocation',
-              'notifications',
-              'midiSysex',
-              'pointerLock',
-              'fullscreen',
-              'screen-wake-lock',
-              'system-wake-lock',
-              'openExternal',
-            ].includes(permission)
+            (VIDEO_CALL_ALLOWED_PERMISSIONS as readonly string[]).includes(
+              permission
+            )
           ) {
             return true;
           }

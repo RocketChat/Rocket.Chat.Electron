@@ -157,6 +157,13 @@
       "title": "Versão de workspace não suportada"
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "Visualizador de PDF",
+      "markdown": "Visualizador de Markdown"
+    },
+    "back": "Voltar"
+  },
   "downloads": {
     "title": "Downloads",
     "notifications": {

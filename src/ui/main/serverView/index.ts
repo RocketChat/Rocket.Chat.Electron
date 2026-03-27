@@ -23,6 +23,7 @@ import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewScreenSharing';
+import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
@@ -170,6 +171,22 @@ const initializeServerWebContentsAfterAttach = (
   webContentsByServerUrl.set(serverUrl, guestWebContents);
 
   const webviewSession = guestWebContents.session;
+
+  // Intercept markdown file downloads and open in document viewer
+  webviewSession.on('will-download', (_event, item) => {
+    if (item.getFilename().endsWith('.md')) {
+      const downloadUrl = item.getURL();
+      item.cancel();
+      dispatch({
+        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
+        payload: {
+          server: serverUrl,
+          documentUrl: downloadUrl,
+          documentFormat: 'markdown',
+        },
+      });
+    }
+  });
 
   guestWebContents.addListener('destroyed', () => {
     guestWebContents.removeAllListeners();

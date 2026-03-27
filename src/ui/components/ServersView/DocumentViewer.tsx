@@ -1,119 +1,61 @@
-import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
-import { useEffect, useRef, useState } from 'react';
+import { Box, IconButton } from '@rocket.chat/fuselage';
+import { useTranslation } from 'react-i18next';
 
-import { dispatch } from '../../../store';
-import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  interface HTMLWebViewElement {
-    getWebContentsId: () => number;
-    executeJavaScript: (code: string) => Promise<any>;
-  }
-}
+import MarkdownContent from './MarkdownContent';
+import PdfContent from './PdfContent';
 
 const DocumentViewer = ({
   url,
+  format,
   partition,
   closeDocumentViewer,
 }: {
   url: string;
+  format?: string;
   partition: string;
   closeDocumentViewer: () => void;
 }) => {
-  const [documentUrl, setDocumentUrl] = useState('');
-  const webviewRef = useRef<HTMLWebViewElement>(null);
-
-  useEffect(() => {
-    if (documentUrl !== url && url !== '') {
-      setDocumentUrl('about:blank');
-      setTimeout(() => {
-        setDocumentUrl(url);
-      }, 100);
-    }
-  }, [url, documentUrl]);
-
-  useEffect(() => {
-    const webviewElement = webviewRef.current;
-
-    if (webviewElement) {
-      const handleDidAttach: () => void = () => {
-        const webContentsId = webviewElement.getWebContentsId();
-        dispatch({
-          type: WEBVIEW_PDF_VIEWER_ATTACHED,
-          payload: { WebContentsId: webContentsId },
-        });
-
-        webviewElement.addEventListener('did-finish-load', () => {
-          webviewElement.executeJavaScript(`
-            document.addEventListener('click', (event) => {
-              if (event.target.tagName === 'A' && event.target.href.endsWith('.pdf')) {
-                event.preventDefault(); // Block PDF link navigation
-              }
-            }, true);
-          `);
-        });
-      };
-
-      webviewElement.addEventListener('did-attach', handleDidAttach);
-
-      return () => {
-        webviewElement.removeEventListener('did-attach', handleDidAttach);
-      };
-    }
-    return () => {};
-  }, []);
+  const { t } = useTranslation();
+  const isMarkdown = format === 'markdown';
+  const title = isMarkdown
+    ? t('documentViewer.title.markdown')
+    : t('documentViewer.title.pdf');
 
   return (
-    <>
+    <Box
+      bg='tint'
+      width='100%'
+      height='100%'
+      display='flex'
+      flexDirection='column'
+    >
       <Box
-        bg='tint'
-        width='100%'
-        height='100%'
         display='flex'
-        flexDirection='column'
+        alignItems='center'
+        color='default'
+        pbe='x8'
+        pbs='x8'
+        pis='x8'
       >
-        <Box
-          display='flex'
-          alignItems='center'
-          color='default'
-          pbe='x8'
-          pbs='x8'
-          pis='x8'
-        >
-          <IconButton icon='arrow-back' onClick={closeDocumentViewer} mi='x8' />
-          <h2>PDF Viewer</h2>
-        </Box>
-
-        <Box position='relative' flexGrow={1}>
-          <Box
-            display='flex'
-            justifyContent='center'
-            alignItems='center'
-            height='100%'
-            width='100%'
-            position='absolute'
-            color='default'
-          >
-            <Throbber size='x16' inheritColor />
-          </Box>
-          <webview
-            ref={webviewRef}
-            src={documentUrl}
-            style={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-            }}
-            partition={partition}
-          />
+        <IconButton
+          icon='arrow-back'
+          onClick={closeDocumentViewer}
+          mi='x8'
+          aria-label={t('documentViewer.back')}
+        />
+        <Box is='h2' fontScale='h2' m='none'>
+          {title}
         </Box>
       </Box>
-    </>
+
+      {isMarkdown ? (
+        <Box position='relative' flexGrow={1}>
+          <MarkdownContent url={url} partition={partition} />
+        </Box>
+      ) : (
+        <PdfContent url={url} partition={partition} />
+      )}
+    </Box>
   );
 };
 

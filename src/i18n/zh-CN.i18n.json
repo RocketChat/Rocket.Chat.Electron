@@ -104,6 +104,13 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF 查看器",
+      "markdown": "Markdown 查看器"
+    },
+    "back": "返回"
+  },
   "downloads": {
     "title": "下载",
     "filters": {

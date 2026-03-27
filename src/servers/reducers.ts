@@ -248,6 +248,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         ...server,
         url: ensureUrlFormat(server.url),
         documentViewerOpenUrl: '',
+        documentViewerFormat: '',
       }));
     }
 
@@ -267,8 +268,12 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     }
 
     case SERVER_DOCUMENT_VIEWER_OPEN_URL: {
-      const { server, documentUrl } = action.payload;
-      return upsert(state, { url: server, documentViewerOpenUrl: documentUrl });
+      const { server, documentUrl, documentFormat } = action.payload;
+      return upsert(state, {
+        url: server,
+        documentViewerOpenUrl: documentUrl,
+        documentViewerFormat: documentFormat ?? '',
+      });
     }
 
     default:

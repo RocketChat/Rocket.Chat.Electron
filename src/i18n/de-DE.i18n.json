@@ -138,6 +138,13 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF-Betrachter",
+      "markdown": "Markdown-Betrachter"
+    },
+    "back": "Zurück"
+  },
   "downloads": {
     "title": "Downloads",
     "notifications": {

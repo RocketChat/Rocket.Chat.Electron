@@ -17,5 +17,6 @@ export type ServersActionTypeToPayloadMap = {
   [SERVER_DOCUMENT_VIEWER_OPEN_URL]: {
     server: Server['url'];
     documentUrl: string;
+    documentFormat?: string;
   };
 };

@@ -1,11 +1,7 @@
 import path from 'path';
 import process from 'process';
 
-import type {
-  Event,
-  WebContents,
-  MediaAccessPermissionRequest,
-} from 'electron';
+import type { Event, WebContents } from 'electron';
 import {
   app,
   BrowserWindow,
@@ -23,7 +19,6 @@ import { isProtocolAllowed } from '../navigation/main';
 import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
-import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 import type {
@@ -697,9 +692,11 @@ export const startVideoCallWindowHandler = (): void => {
         x,
         y,
         webPreferences: {
-          nodeIntegration: true,
+          partition: 'persist:video-call-window',
+          nodeIntegration: false,
           nodeIntegrationInSubFrames: true,
-          contextIsolation: false,
+          contextIsolation: true,
+          sandbox: false,
           webviewTag: true,
           experimentalFeatures: false,
           offscreen: false,
@@ -1010,22 +1007,7 @@ export const startVideoCallWindowHandler = (): void => {
           );
           switch (permission) {
             case 'media': {
-              const { mediaTypes = [] } =
-                details as MediaAccessPermissionRequest;
-              try {
-                await handleMediaPermissionRequest(
-                  mediaTypes as ReadonlyArray<'audio' | 'video'>,
-                  videoCallWindow,
-                  'initiateCall',
-                  callback
-                );
-              } catch (error) {
-                console.error(
-                  'Error handling media permission request in video call window:',
-                  error
-                );
-                callback(false);
-              }
+              callback(true);
               return;
             }
 
@@ -1041,12 +1023,31 @@ export const startVideoCallWindowHandler = (): void => {
 
             case 'openExternal': {
               callback(true);
-              return;
             }
-
-            default:
-              callback(false);
           }
+        }
+      );
+
+      webContents.session.setPermissionCheckHandler(
+        (_webContents, permission) => {
+          if (permission === 'media') {
+            return true;
+          }
+          if (
+            [
+              'geolocation',
+              'notifications',
+              'midiSysex',
+              'pointerLock',
+              'fullscreen',
+              'screen-wake-lock',
+              'system-wake-lock',
+              'openExternal',
+            ].includes(permission)
+          ) {
+            return true;
+          }
+          return false;
         }
       );
     }

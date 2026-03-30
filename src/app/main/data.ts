@@ -3,7 +3,9 @@ import path from 'path';
 
 import { app } from 'electron';
 
+import { logger } from '../../logging';
 import { select, dispatch, watch } from '../../store';
+import { getSystemCertificateStatus } from '../../systemCertificates';
 import { normalizeNumber } from '../../ui/main/rootWindow';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
@@ -184,18 +186,27 @@ export const mergePersistableValues = async (
         })()
       : null;
 
+  const isInsecureOutlookEnabled =
+    mergedOverrides.allowInsecureOutlookConnections === true ||
+    String(mergedOverrides.allowInsecureOutlookConnections).toLowerCase() ===
+      'true';
+
   dispatch({
     type: APP_SETTINGS_LOADED,
     payload: {
       ...values,
-      allowInsecureOutlookConnections:
-        mergedOverrides.allowInsecureOutlookConnections === true ||
-        String(
-          mergedOverrides.allowInsecureOutlookConnections
-        ).toLowerCase() === 'true',
+      allowInsecureOutlookConnections: isInsecureOutlookEnabled,
       outlookCalendarSyncIntervalOverride,
     },
   });
+
+  if (isInsecureOutlookEnabled && getSystemCertificateStatus().applied) {
+    logger.warn(
+      'Both allowInsecureOutlookConnections and system CA certificates are active. ' +
+        'System CAs should make the insecure bypass unnecessary. ' +
+        'Consider removing allowInsecureOutlookConnections from overridden-settings.json.'
+    );
+  }
 };
 
 export const watchAndPersistChanges = (): void => {

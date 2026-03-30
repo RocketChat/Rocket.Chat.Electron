@@ -1,10 +1,12 @@
 # Outlook Calendar: Allow Insecure Connections
 
+> **Recommended:** Before using this setting, try [System CA Certificates](system-ca-certificates.md) instead. If your Exchange server's CA is installed in the OS trust store, system CA support will handle it securely without disabling certificate validation.
+
 ## Overview
 
 Air-gapped or corporate environments often use Exchange servers with self-signed or internal CA certificates that are not trusted by the system certificate store. The `allowInsecureOutlookConnections` setting allows the Outlook calendar sync to connect to these servers by bypassing SSL certificate validation.
 
-> **Warning:** This setting disables TLS certificate verification for Outlook calendar sync requests. Only enable it when connecting to Exchange servers with known self-signed or internal CA certificates. Do not enable it in production environments with public-facing servers.
+> **Warning:** This setting disables TLS certificate verification for Outlook calendar sync requests. Only use it as a last resort when system CA certificates cannot solve the problem (e.g., truly self-signed certificates not installed in the OS trust store).
 
 ## Configuration
 

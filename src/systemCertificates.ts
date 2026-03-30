@@ -24,22 +24,22 @@ const readUseSystemCertificatesSetting = (): boolean => {
     ),
   ];
 
+  let enabled = true;
   for (const filePath of locations) {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       const json = JSON.parse(content);
       if (json && typeof json === 'object' && 'useSystemCertificates' in json) {
-        return (
+        enabled =
           json.useSystemCertificates !== false &&
-          String(json.useSystemCertificates).toLowerCase() !== 'false'
-        );
+          String(json.useSystemCertificates).toLowerCase() !== 'false';
       }
     } catch {
       // File doesn't exist or is invalid — continue to next location
     }
   }
 
-  return true;
+  return enabled;
 };
 
 export const applySystemCertificates = (): void => {
@@ -61,8 +61,8 @@ export const applySystemCertificates = (): void => {
       return;
     }
 
-    const bundledCerts = tls.getCACertificates('bundled');
-    tls.setDefaultCACertificates([...systemCerts, ...bundledCerts]);
+    const defaultCerts = tls.getCACertificates();
+    tls.setDefaultCACertificates([...defaultCerts, ...systemCerts]);
 
     status = { applied: true, certCount: systemCerts.length };
     logger.info(

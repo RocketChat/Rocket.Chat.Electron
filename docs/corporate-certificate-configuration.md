@@ -69,7 +69,7 @@ This setting defaults to `false`. When both this and system CAs are active, a wa
 | **macOS** | `~/Library/Application Support/Rocket.Chat/overridden-settings.json` |
 | **Linux** | `~/.config/Rocket.Chat/overridden-settings.json` |
 
-Settings can also be placed at the app ASAR level (outside the app bundle) for system-wide deployment by administrators.
+Settings can also be placed alongside `app.asar` (outside the ASAR archive) for system-wide deployment by administrators.
 
 ## Related
 

@@ -52,24 +52,24 @@ export const getProcessContext = (): string => {
 };
 
 /**
- * Extract hostname from a URL.
+ * Extract host (hostname + port when non-default) from a URL.
  */
-export const getHostname = (url: string): string => {
+export const getHost = (url: string): string => {
   try {
-    return new URL(url).hostname;
+    return new URL(url).host;
   } catch {
     return url;
   }
 };
 
 /**
- * Register a webContentsId with a server URL (stores hostname).
+ * Register a webContentsId with a server URL (stores host).
  */
 export const registerWebContentsServer = (
   webContentsId: number,
   serverUrl: string
 ): void => {
-  webContentsToHostname.set(webContentsId, getHostname(serverUrl));
+  webContentsToHostname.set(webContentsId, getHost(serverUrl));
 };
 
 /**

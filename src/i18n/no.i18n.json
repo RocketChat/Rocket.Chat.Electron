@@ -164,6 +164,13 @@
     },
     "supportedVersion": {
       "title": "Workspace-versjonen støttes ikke"
+    },
+    "clearLogs": {
+      "title": "Tøm logger",
+      "message": "Er du sikker på at du vil slette loggfilen?",
+      "detail": "Denne handlingen kan ikke angres. Alle gjeldende loggoppføringer vil bli slettet permanent.",
+      "yes": "Klar",
+      "cancel": "Kansellere"
     }
   },
   "downloads": {
@@ -222,6 +229,10 @@
     "title": "Innstillinger",
     "general": "General",
     "certificates": "Sertifikater",
+    "developer": "Utvikler",
+    "sections": {
+      "logging": "Logging"
+    },
     "options": {
       "report": {
         "title": "Rapporter feil til utviklere",
@@ -301,6 +312,17 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Synkroniseringsintervall for Outlook-kalender",
+        "description": "Hvor ofte skal Outlook-kalenderhendelser synkroniseres, i minutter (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Utførlig logging av Outlook-kalenderen",
+        "description": "Aktiver detaljerte feilsøkingslogger for Exchange/NTLM for feilsøking av problemer med integrering av Outlook-kalender."
+      },
+      "detailedEventsLogging": {
+        "title": "Detaljert hendelseslogging"
       }
     }
   },

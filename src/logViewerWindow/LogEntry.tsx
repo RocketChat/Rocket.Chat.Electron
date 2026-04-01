@@ -85,8 +85,9 @@ export const LogEntry = ({
     const displayName = tag ? serverMapping[tag] || tag : '';
     const ctxWithout = tag
       ? entry.context
-          .replace(tag, '')
-          .replace(/\s{2,}/g, ' ')
+          .split(/\s+/)
+          .filter((token) => token !== tag)
+          .join(' ')
           .trim()
       : entry.context;
     return {

@@ -1,7 +1,7 @@
 import type { WebContents } from 'electron';
 
 // Maps webContentsId → server hostname (for context lookup)
-const webContentsToHostname = new Map<number, string>();
+const webContentsToHost = new Map<number, string>();
 
 // Define the log context interface
 export interface ILogContext {
@@ -69,7 +69,7 @@ export const registerWebContentsServer = (
   webContentsId: number,
   serverUrl: string
 ): void => {
-  webContentsToHostname.set(webContentsId, getHost(serverUrl));
+  webContentsToHost.set(webContentsId, getHost(serverUrl));
 };
 
 /**
@@ -78,7 +78,7 @@ export const registerWebContentsServer = (
 export const getServerContext = (webContents?: WebContents): string => {
   if (!webContents) return 'local';
 
-  const hostname = webContentsToHostname.get(webContents.id);
+  const hostname = webContentsToHost.get(webContents.id);
   if (hostname) {
     return hostname;
   }
@@ -240,5 +240,5 @@ export const formatLogContext = (context: ILogContext): string => {
  * Clean up webContents association when destroyed.
  */
 export const cleanupServerContext = (webContentsId: number): void => {
-  webContentsToHostname.delete(webContentsId);
+  webContentsToHost.delete(webContentsId);
 };

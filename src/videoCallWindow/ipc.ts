@@ -5,6 +5,7 @@ import type {
   Event,
   WebContents,
   MediaAccessPermissionRequest,
+  Session,
 } from 'electron';
 import {
   app,
@@ -28,8 +29,9 @@ import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 import type {
   DisplayMediaCallback,
-  ScreenPickerProvider,
-} from './screenPicker/types';
+  DesktopCapturerSource,
+} from './types';
+import type { ScreenPickerProvider } from './screenPicker/types';
 
 const DESKTOP_CAPTURER_STALE_THRESHOLD = 3000;
 const SOURCE_VALIDATION_CACHE_TTL = 30000;
@@ -93,7 +95,7 @@ const logVideoCallWindowStats = () => {
 };
 
 const refreshDesktopCapturerCache = (
-  options: Electron.SourcesOptions
+  options: { types: Array<'screen' | 'window'>; thumbnailSize?: { width: number; height: number }; fetchWindowIcons?: boolean }
 ): void => {
   if (desktopCapturerPromise) return;
 
@@ -319,7 +321,7 @@ const createInternalPickerHandler = (): ((
       console.warn(
         'Screen sharing request already pending, ignoring concurrent request'
       );
-      cb({ video: false } as any);
+      cb({ video: false });
       return;
     }
 
@@ -327,7 +329,7 @@ const createInternalPickerHandler = (): ((
       console.warn(
         'Screen sharing request rejected - video call window not available'
       );
-      cb({ video: false } as any);
+      cb({ video: false });
       return;
     }
 
@@ -368,7 +370,7 @@ const createInternalPickerHandler = (): ((
       markScreenSharingComplete();
 
       if (!sourceId) {
-        cb({ video: false } as any);
+        cb({ video: false });
         return;
       }
 
@@ -384,14 +386,14 @@ const createInternalPickerHandler = (): ((
             'Selected screen sharing source no longer available:',
             sourceId
           );
-          cb({ video: false } as any);
+          cb({ video: false });
           return;
         }
 
         cb({ video: selectedSource });
       } catch (error) {
         console.error('Error validating screen sharing source:', error);
-        cb({ video: false } as any);
+        cb({ video: false });
       }
     };
 
@@ -419,7 +421,7 @@ const createInternalPickerHandler = (): ((
 
       removeScreenSharingListenerOnly();
       markScreenSharingComplete();
-      cb({ video: false } as any);
+      cb({ video: false });
     }, SCREEN_SHARING_REQUEST_TIMEOUT);
 
     ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
@@ -447,7 +449,7 @@ const setupWebviewHandlers = (webContents: WebContents) => {
             currentProvider.handleDisplayMediaRequest(cb);
           } catch (error) {
             console.error('Error in screen picker handler:', error);
-            cb({ video: false } as any);
+            cb({ video: false });
           }
         },
         { useSystemPicker: false } // Always false - portal handled via callback on Linux
@@ -960,7 +962,7 @@ export const startVideoCallWindowHandler = (): void => {
         return { action: 'allow' };
       });
 
-      webContents.on('will-navigate', (event: any, url: string) => {
+      webContents.on('will-navigate', (event: Event, url: string) => {
         console.log('Video call window will-navigate:', url);
 
         // Check for close pages and handle them specially to prevent crashes
@@ -996,59 +998,56 @@ export const startVideoCallWindowHandler = (): void => {
         }
       });
 
-      webContents.session.setPermissionRequestHandler(
-        async (
-          _webContents: any,
-          permission: any,
-          callback: any,
-          details: any
-        ) => {
-          console.log(
-            'Video call window permission request',
-            permission,
-            details
-          );
-          switch (permission) {
-            case 'media': {
-              const { mediaTypes = [] } =
-                details as MediaAccessPermissionRequest;
-              try {
-                await handleMediaPermissionRequest(
-                  mediaTypes as ReadonlyArray<'audio' | 'video'>,
-                  videoCallWindow,
-                  'initiateCall',
-                  callback
-                );
-              } catch (error) {
-                console.error(
-                  'Error handling media permission request in video call window:',
-                  error
-                );
-                callback(false);
-              }
-              return;
-            }
-
-            case 'geolocation':
-            case 'notifications':
-            case 'midiSysex':
-            case 'pointerLock':
-            case 'fullscreen':
-            case 'screen-wake-lock':
-            case 'system-wake-lock':
-              callback(true);
-              return;
-
-            case 'openExternal': {
-              callback(true);
-              return;
-            }
-
-            default:
+      const handlePermissionRequest: Parameters<
+        Session['setPermissionRequestHandler']
+      >[0] = async (_webContents, permission, callback, details) => {
+        console.log(
+          'Video call window permission request',
+          permission,
+          details
+        );
+        switch (permission) {
+          case 'media': {
+            const { mediaTypes = [] } =
+              details as MediaAccessPermissionRequest;
+            try {
+              await handleMediaPermissionRequest(
+                mediaTypes as ReadonlyArray<'audio' | 'video'>,
+                videoCallWindow,
+                'initiateCall',
+                callback
+              );
+            } catch (error) {
+              console.error(
+                'Error handling media permission request in video call window:',
+                error
+              );
               callback(false);
+            }
+            return;
           }
+
+          case 'geolocation':
+          case 'notifications':
+          case 'midiSysex':
+          case 'pointerLock':
+          case 'fullscreen':
+          case 'screen-wake-lock':
+          case 'system-wake-lock':
+            callback(true);
+            return;
+
+          case 'openExternal': {
+            callback(true);
+            return;
+          }
+
+          default:
+            callback(false);
         }
-      );
+      };
+
+      webContents.session.setPermissionRequestHandler(handlePermissionRequest);
     }
   });
 

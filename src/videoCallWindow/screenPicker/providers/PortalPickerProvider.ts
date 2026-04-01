@@ -1,6 +1,7 @@
 import { desktopCapturer } from 'electron';
 
 import type { DisplayMediaCallback, ScreenPickerProvider } from '../types';
+import type { DesktopCapturerSource } from '../../types';
 
 export class PortalPickerProvider implements ScreenPickerProvider {
   readonly type = 'portal' as const;
@@ -19,22 +20,22 @@ export class PortalPickerProvider implements ScreenPickerProvider {
 
     desktopCapturer
       .getSources({ types: ['screen', 'window'] })
-      .then((sources) => {
+      .then((sources: DesktopCapturerSource[]) => {
         if (sources.length > 0) {
           // User selected a source via portal picker
           callback({ video: sources[0] });
         } else {
           // User cancelled or no source available
           console.warn('Screen picker [portal]: No source selected by user');
-          callback({ video: false } as any);
+          callback({ video: false });
         }
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error(
           'Screen picker [portal]: Failed to get source from XDG portal:',
           error
         );
-        callback({ video: false } as any);
+        callback({ video: false });
       });
   }
 

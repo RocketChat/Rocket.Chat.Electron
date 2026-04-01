@@ -9,6 +9,11 @@ import { invokeWithRetry } from '../ipc/renderer';
 import type { IRetryOptions } from '../ipc/renderer';
 import { createScreenPicker, InternalPickerProvider } from './screenPicker';
 import type { ScreenSharePickerModuleType } from './screenSharePickerMount';
+import type {
+  DidFailLoadEvent,
+  DidNavigateEvent,
+  WebviewElement,
+} from './types';
 
 const MAX_INIT_ATTEMPTS = 10;
 const MAX_RECOVERY_ATTEMPTS = 3;
@@ -30,7 +35,7 @@ interface IVideoCallWindowState {
   url: string | null;
   status: Status;
   recoveryAttempt: number;
-  webview: HTMLElement | null;
+  webview: WebviewElement | null;
   shouldAutoOpenDevtools: boolean;
   isReloading: boolean;
   hasInitialLoadCompleted: boolean;
@@ -149,7 +154,7 @@ const updateLoadingUI = (show: boolean, isReloading: boolean = false): void => {
     }
     // Hide webview when showing loading
     if (state.webview) {
-      (state.webview as any).style.visibility = 'hidden';
+      state.webview.style.visibility = 'hidden';
     }
   } else {
     overlay.classList.remove('show');
@@ -193,7 +198,7 @@ const updateErrorUI = (show: boolean, message: string | null = null): void => {
     }
     // Hide webview when showing error
     if (state.webview) {
-      (state.webview as any).style.visibility = 'hidden';
+      state.webview.style.visibility = 'hidden';
     }
   } else {
     overlay.classList.remove('show');
@@ -278,7 +283,7 @@ const attemptAutoRecovery = (): void => {
   }
 
   recoveryTimeout = setTimeout(() => {
-    const webview = state.webview as any;
+    const webview = state.webview;
 
     switch (currentAttempt) {
       case 1:
@@ -357,9 +362,7 @@ const checkForClosePage = async (url: string): Promise<void> => {
   }
 };
 
-const setupWebviewEventHandlers = (webview: HTMLElement): void => {
-  const webviewElement = webview as any;
-
+const setupWebviewEventHandlers = (webview: WebviewElement): void => {
   const handleLoadStart = (): void => {
     console.log('Video call window: Load started');
 
@@ -409,7 +412,7 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
     }, LOADING_TIMEOUT_MS);
   };
 
-  const handleNavigate = (event: any): void => {
+  const handleNavigate = (event: DidNavigateEvent): void => {
     console.log('Video call window: Navigation event:', event.url);
     checkForClosePage(event.url);
   };
@@ -431,7 +434,7 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
             console.warn('Video call window: Failed to auto-open devtools');
           }
         })
-        .catch((error: any) => {
+        .catch((error: unknown) => {
           console.error(
             'Video call window: Error auto-opening devtools:',
             error
@@ -454,7 +457,7 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
     updateErrorUI(false);
 
     if (state.webview) {
-      (state.webview as any).style.visibility = 'visible';
+      state.webview.style.visibility = 'visible';
     }
 
     invokeWithRetry('video-call-window/webview-ready', {
@@ -488,7 +491,7 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
     });
   };
 
-  const handleDidFailLoad = (event: any): void => {
+  const handleDidFailLoad = (event: DidFailLoadEvent): void => {
     const errorInfo = {
       errorCode: event.errorCode,
       errorDescription: event.errorDescription,
@@ -574,7 +577,7 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
               );
             }
           })
-          .catch((error: any) => {
+          .catch((error: unknown) => {
             console.error(
               'Video call window: Error auto-opening devtools on attach:',
               error
@@ -584,13 +587,13 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
     }
   };
 
-  webviewElement.addEventListener('webview-attached', handleWebviewAttached);
-  webviewElement.addEventListener('did-start-loading', handleLoadStart);
-  webviewElement.addEventListener('did-navigate', handleNavigate);
-  webviewElement.addEventListener('dom-ready', handleDomReady);
-  webviewElement.addEventListener('did-finish-load', handleFinishLoad);
-  webviewElement.addEventListener('did-fail-load', handleDidFailLoad);
-  webviewElement.addEventListener('crashed', handleCrashed);
+  webview.addEventListener('webview-attached', handleWebviewAttached);
+  webview.addEventListener('did-start-loading', handleLoadStart);
+  webview.addEventListener('did-navigate', handleNavigate);
+  webview.addEventListener('dom-ready', handleDomReady);
+  webview.addEventListener('did-finish-load', handleFinishLoad);
+  webview.addEventListener('did-fail-load', handleDidFailLoad);
+  webview.addEventListener('crashed', handleCrashed);
 };
 
 const validateVideoCallUrl = (url: string): string => {
@@ -699,9 +702,8 @@ const handleReload = (): void => {
   updateErrorUI(false);
   updateLoadingUI(true, true);
 
-  const webview = state.webview as any;
-  if (webview) {
-    webview.reload();
+  if (state.webview) {
+    state.webview.reload();
   }
 };
 

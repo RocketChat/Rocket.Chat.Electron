@@ -1,8 +1,9 @@
+import type { DisplayMediaCallback } from '../types';
+
 export type ScreenPickerType = 'internal' | 'portal';
 
-// DisplayMediaCallback matches Electron's setDisplayMediaRequestHandler callback
-// We use 'any' to match the existing code pattern that uses 'as any' casts for flexibility
-export type DisplayMediaCallback = (streams: any) => void;
+// Re-export DisplayMediaCallback from parent types for convenience
+export type { DisplayMediaCallback } from '../types';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface ScreenPickerProvider {

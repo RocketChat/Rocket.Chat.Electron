@@ -1,16 +1,27 @@
 import { ipcRenderer } from 'electron';
 
+import type {
+  JitsiCommand,
+  JitsiEvent,
+  JitsiIframeMessage,
+  JitsiMeetScreenObtainer,
+  JitsiParticipantInfo,
+} from '../types';
+
 /**
  * Jitsi Meet External API Interface
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 type JitsiMeetExternalAPI = {
-  executeCommand(command: string, ...args: any[]): void;
-  addListener(event: string, listener: (...args: any[]) => void): void;
-  removeListener(event: string, listener: (...args: any[]) => void): void;
+  executeCommand(command: JitsiCommand, ...args: unknown[]): void;
+  addListener(event: JitsiEvent, listener: (...args: unknown[]) => void): void;
+  removeListener(
+    event: JitsiEvent,
+    listener: (...args: unknown[]) => void
+  ): void;
   dispose(): void;
   getIFrame(): HTMLIFrameElement;
-  getParticipantsInfo(): any[];
+  getParticipantsInfo(): JitsiParticipantInfo[];
   getVideoQuality(): string;
   isAudioMuted(): boolean;
   isVideoMuted(): boolean;
@@ -34,8 +45,8 @@ interface JitsiMeetExternalAPIOptions {
   width?: string | number;
   height?: string | number;
   parentNode?: Element;
-  configOverwrite?: Record<string, any>;
-  interfaceConfigOverwrite?: Record<string, any>;
+  configOverwrite?: Record<string, unknown>;
+  interfaceConfigOverwrite?: Record<string, unknown>;
   jwt?: string;
   onload?: () => void;
   invitees?: Array<Record<string, unknown>>;
@@ -404,7 +415,7 @@ class JitsiBridgeImpl implements JitsiBridge {
 
       ipcRenderer.on(
         'video-call-window/screen-sharing-source-responded',
-        (_event, sourceId: string | null) => {
+        (_event: unknown, sourceId: string | null) => {
           cleanup();
 
           if (!sourceId) {
@@ -431,7 +442,7 @@ class JitsiBridgeImpl implements JitsiBridge {
     };
 
     // Set on window so lib-jitsi-meet can call it directly
-    (window as any).JitsiMeetScreenObtainer = { openDesktopPicker };
+    window.JitsiMeetScreenObtainer = { openDesktopPicker };
     console.log('JitsiBridge: JitsiMeetScreenObtainer installed');
   }
 
@@ -448,7 +459,7 @@ class JitsiBridgeImpl implements JitsiBridge {
   /**
    * Send a message to the Jitsi iframe
    */
-  private sendMessageToJitsiIframe(message: any): void {
+  private sendMessageToJitsiIframe(message: JitsiIframeMessage): void {
     const jitsiIframes = document.querySelectorAll('iframe');
     for (const iframe of Array.from(jitsiIframes)) {
       if (iframe.src && this.isJitsiMeetingUrl(iframe.src)) {

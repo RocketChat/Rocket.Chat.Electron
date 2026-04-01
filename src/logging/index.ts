@@ -8,6 +8,7 @@ import log from 'electron-log';
 import { select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
+  getHost,
   getLogContext,
   formatLogContext,
   cleanupServerContext,
@@ -269,12 +270,11 @@ export const setupWebContentsLogging = () => {
       try {
         if (selectFunction && origin) {
           const servers = selectFunction((state: RootState) => state.servers);
-          const serverIndex =
-            servers.findIndex(
-              (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
-            ) + 1;
-          if (serverIndex > 0) {
-            event.returnValue = `server-${serverIndex}`;
+          const matchedServer = servers.find(
+            (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
+          );
+          if (matchedServer?.url) {
+            event.returnValue = getHost(matchedServer.url);
             return;
           }
         }
@@ -321,6 +321,12 @@ export const setupWebContentsLogging = () => {
                 'setupWebContentsLogging - store access'
               );
             }
+          }
+
+          // Register server context early so all logs from this webContents
+          // get tagged with the server hostname, even if console injection fails
+          if (serverUrl !== 'unknown') {
+            registerWebContentsServer(webContents.id, serverUrl);
           }
 
           // TODO: Replace executeJavaScript injection with a preload script for

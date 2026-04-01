@@ -338,19 +338,16 @@ function LogViewerWindow() {
 
       const matchesLevel = levelFilter === 'all' || entry.level === levelFilter;
 
+      const contextTags = entry.context.toLowerCase().split(/\s+/);
+
       const matchesContext =
         contextFilter === 'all' ||
-        entry.context
-          .toLowerCase()
-          .split(/\s+/)
-          .some((tag) => tag.startsWith(contextFilter.toLowerCase()));
+        contextTags.some((tag) => tag.startsWith(contextFilter.toLowerCase()));
 
       const matchesServer =
         serverFilter === 'all' ||
-        entry.context
-          .toLowerCase()
-          .split(/\s+/)
-          .some((tag) => tag === serverFilter.toLowerCase());
+        contextTags.some((tag) => tag === serverFilter.toLowerCase()) ||
+        entry.raw.toLowerCase().includes(serverFilter.toLowerCase());
 
       return matchesSearch && matchesLevel && matchesContext && matchesServer;
     });

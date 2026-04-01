@@ -3,7 +3,18 @@ import { useMemo } from 'react';
 
 import { type LogLevel, type LogEntryType } from './types';
 
-const SERVER_TAG_REGEX = /\bserver-\d+\b/;
+/**
+ * Find the server hostname tag in a context string by matching against
+ * known hostnames from the server mapping.
+ */
+const findServerTag = (
+  context: string,
+  serverMapping: Record<string, string>
+): string => {
+  const contextTags = context.split(/\s+/);
+  const hostnames = Object.keys(serverMapping);
+  return contextTags.find((tag) => hostnames.includes(tag)) || '';
+};
 
 const getLevelColor = (
   level: LogLevel
@@ -70,13 +81,13 @@ export const LogEntry = ({
   serverMapping: Record<string, string>;
 }) => {
   const { serverTag, serverDisplayName, contextWithoutServer } = useMemo(() => {
-    const match = entry.context.match(SERVER_TAG_REGEX);
-    const tag = match?.[0] || '';
+    const tag = findServerTag(entry.context, serverMapping);
     const displayName = tag ? serverMapping[tag] || tag : '';
     const ctxWithout = tag
       ? entry.context
-          .replace(SERVER_TAG_REGEX, '')
-          .replace(/\s{2,}/g, ' ')
+          .split(/\s+/)
+          .filter((token) => token !== tag)
+          .join(' ')
           .trim()
       : entry.context;
     return {

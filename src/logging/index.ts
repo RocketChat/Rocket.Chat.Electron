@@ -8,9 +8,11 @@ import log from 'electron-log';
 import { select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
+  getHost,
   getLogContext,
   formatLogContext,
   cleanupServerContext,
+  registerWebContentsServer,
 } from './context';
 import { LogDeduplicator } from './dedup';
 import { logLoggingFailure } from './fallback';
@@ -268,12 +270,11 @@ export const setupWebContentsLogging = () => {
       try {
         if (selectFunction && origin) {
           const servers = selectFunction((state: RootState) => state.servers);
-          const serverIndex =
-            servers.findIndex(
-              (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
-            ) + 1;
-          if (serverIndex > 0) {
-            event.returnValue = `server-${serverIndex}`;
+          const matchedServer = servers.find(
+            (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
+          );
+          if (matchedServer?.url) {
+            event.returnValue = getHost(matchedServer.url);
             return;
           }
         }
@@ -320,6 +321,12 @@ export const setupWebContentsLogging = () => {
                 'setupWebContentsLogging - store access'
               );
             }
+          }
+
+          // Register server context early so all logs from this webContents
+          // get tagged with the server hostname, even if console injection fails
+          if (serverUrl !== 'unknown') {
+            registerWebContentsServer(webContents.id, serverUrl);
           }
 
           // TODO: Replace executeJavaScript injection with a preload script for
@@ -419,35 +426,38 @@ export const setupWebContentsLogging = () => {
             return;
           }
 
-          // Create enhanced context string with server info
-          const context = getLogContext(senderWebContents);
-          let contextStr = formatLogContext(context);
-
-          // Add server index to webview context using the authenticated
+          // Register webContents → server URL mapping using the authenticated
           // sender's URL — never trust renderer-supplied values.
           if (selectFunction && senderWebContents.getType() === 'webview') {
             try {
               const currentUrl = senderWebContents.getURL();
               if (currentUrl) {
+                const currentOrigin = new URL(currentUrl).origin;
                 const servers = selectFunction(
                   (state: RootState) => state.servers
                 );
-                const serverIndex =
-                  servers.findIndex(
-                    (s: any) =>
-                      s.url && currentUrl.startsWith(s.url.replace(/\/$/, ''))
-                  ) + 1;
-                if (serverIndex > 0) {
-                  contextStr = contextStr.replace(
-                    '[renderer:webview]',
-                    `[renderer:webview] [server-${serverIndex}]`
+                const matchedServer = servers.find((s: any) => {
+                  try {
+                    return s.url && new URL(s.url).origin === currentOrigin;
+                  } catch {
+                    return false;
+                  }
+                });
+                if (matchedServer?.url) {
+                  registerWebContentsServer(
+                    senderWebContents.id,
+                    matchedServer.url
                   );
                 }
               }
             } catch {
-              // Non-critical: server index enrichment failed
+              // Non-critical: server URL registration failed
             }
           }
+
+          // Create enhanced context string with server info
+          const context = getLogContext(senderWebContents);
+          const contextStr = formatLogContext(context);
 
           // Dedup non-error IPC messages before they reach electron-log
           if (

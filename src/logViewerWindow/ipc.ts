@@ -9,6 +9,7 @@ import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
+import { getHostname } from '../logging/context';
 import { select } from '../store';
 import type { RootState } from '../store/rootReducer';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -490,9 +491,10 @@ export const startLogViewerWindowHandler = (): void => {
         return { success: true, mapping: {} };
       }
       const mapping: Record<string, string> = {};
-      servers.forEach((server: any, index: number) => {
-        const key = `server-${index + 1}`;
-        mapping[key] = server.title || server.url || key;
+      servers.forEach((server: any) => {
+        if (!server.url) return;
+        const hostname = getHostname(server.url);
+        mapping[hostname] = server.title || server.url || hostname;
       });
       return { success: true, mapping };
     } catch {

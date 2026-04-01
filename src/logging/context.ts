@@ -1,20 +1,7 @@
 import type { WebContents } from 'electron';
 
-// Define server context storage map
-const serverContextMap = new Map<
-  number,
-  { serverUrl: string; serverName: string }
->();
-
-const MAX_SERVER_ID = 100;
-const availableServerIds: number[] = Array.from(
-  { length: MAX_SERVER_ID },
-  (_, i) => i + 1
-);
-const usedServerIds = new Map<number, number>();
-
-// Fallback counter for pool exhaustion - starts after MAX_SERVER_ID
-let overflowServerIdCounter = MAX_SERVER_ID;
+// Maps webContentsId → server hostname (for context lookup)
+const webContentsToHostname = new Map<number, string>();
 
 // Define the log context interface
 export interface ILogContext {
@@ -65,48 +52,39 @@ export const getProcessContext = (): string => {
 };
 
 /**
- * Get server context for webContents (privacy-safe anonymous ID)
+ * Extract hostname from a URL.
+ */
+export const getHostname = (url: string): string => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};
+
+/**
+ * Register a webContentsId with a server URL (stores hostname).
+ */
+export const registerWebContentsServer = (
+  webContentsId: number,
+  serverUrl: string
+): void => {
+  webContentsToHostname.set(webContentsId, getHostname(serverUrl));
+};
+
+/**
+ * Get server context for webContents (hostname-based).
  */
 export const getServerContext = (webContents?: WebContents): string => {
   if (!webContents) return 'local';
 
-  const webContentsId = webContents.id;
-
-  // Check if we already have a context for this webContents
-  if (serverContextMap.has(webContentsId)) {
-    return serverContextMap.get(webContentsId)!.serverName;
+  const hostname = webContentsToHostname.get(webContents.id);
+  if (hostname) {
+    return hostname;
   }
 
-  // For main window, it's local
   if (webContents.getType() === 'window') {
-    serverContextMap.set(webContentsId, {
-      serverUrl: 'local',
-      serverName: 'local',
-    });
     return 'local';
-  }
-
-  // For webviews, assign anonymous server ID from pool
-  if (webContents.getType() === 'webview') {
-    let serverId = availableServerIds.shift();
-
-    if (serverId === undefined) {
-      overflowServerIdCounter += 1;
-      serverId = overflowServerIdCounter;
-      console.warn(
-        `[Logging] Server ID pool exhausted (max: ${MAX_SERVER_ID}). ` +
-          `Allocated overflow ID: ${serverId}. ` +
-          `Active webviews: ${usedServerIds.size}, Available IDs: ${availableServerIds.length}`
-      );
-    }
-
-    usedServerIds.set(webContentsId, serverId);
-    const serverName = `server-${serverId}`;
-    serverContextMap.set(webContentsId, {
-      serverUrl: 'unknown',
-      serverName,
-    });
-    return serverName;
   }
 
   return 'unknown';
@@ -259,25 +237,8 @@ export const formatLogContext = (context: ILogContext): string => {
 };
 
 /**
- * Clean up server context mapping when webContents is destroyed
+ * Clean up webContents association when destroyed.
  */
 export const cleanupServerContext = (webContentsId: number): void => {
-  serverContextMap.delete(webContentsId);
-  const serverId = usedServerIds.get(webContentsId);
-  if (serverId !== undefined) {
-    availableServerIds.push(serverId);
-    usedServerIds.delete(webContentsId);
-  }
+  webContentsToHostname.delete(webContentsId);
 };
-
-/**
- * Get current server mappings (for debugging)
- */
-export const getServerMappings = (): Map<
-  number,
-  { serverUrl: string; serverName: string }
-> => {
-  return new Map(serverContextMap);
-};
-
-export { MAX_SERVER_ID };

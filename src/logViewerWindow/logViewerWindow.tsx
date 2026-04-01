@@ -164,12 +164,8 @@ function LogViewerWindow() {
     const options: [string, string][] = [
       ['all', t('logViewer.filters.server.all')],
     ];
-    Object.entries(serverMapping).forEach(([key, name]) => {
-      const num = key.replace('server-', '');
-      options.push([
-        key,
-        `${t('logViewer.filters.server.label')} ${num} — ${name}`,
-      ]);
+    Object.entries(serverMapping).forEach(([hostname, name]) => {
+      options.push([hostname, name || hostname]);
     });
     return options;
   }, [serverMapping, t]);
@@ -354,7 +350,7 @@ function LogViewerWindow() {
         entry.context
           .toLowerCase()
           .split(/\s+/)
-          .some((tag) => tag === serverFilter);
+          .some((tag) => tag === serverFilter.toLowerCase());
 
       return matchesSearch && matchesLevel && matchesContext && matchesServer;
     });

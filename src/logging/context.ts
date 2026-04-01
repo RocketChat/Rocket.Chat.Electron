@@ -63,7 +63,7 @@ export const getHost = (url: string): string => {
 };
 
 /**
- * Register a webContentsId with a server URL (stores host).
+ * Register a webContentsId with a server URL (stores server tag).
  */
 export const registerWebContentsServer = (
   webContentsId: number,

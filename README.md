@@ -265,3 +265,15 @@ Released under the MIT license.
 [Jest electron runner]: https://github.com/kayahr/jest-electron-runner
 [electron-builder]: https://github.com/electron-userland/electron-builder
 [customization options]: https://www.electron.build/configuration
+
+
+## End-to-End (E2E) Testing
+
+This project includes Playwright-based End-to-End (E2E) tests focused on reliability, stability, and maintainability.
+
+## Setup
+
+Create a `.env` file using the provided template:
+
+```bash
+cp .env.example .env

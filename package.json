@@ -26,6 +26,7 @@
   },
   "main": "app/main.js",
   "scripts": {
+    "test:e2e": "playwright test --config=e2e/playwright.config.ts",
     "postinstall": "run-s install-app-deps clean patch-package",
     "patch-package": "patch-package",
     "start": "run-s build:watch",
@@ -98,6 +99,7 @@
     "@fiahfy/icns-convert": "~0.0.12",
     "@fiahfy/ico-convert": "~0.0.12",
     "@kayahr/jest-electron-runner": "29.14.0",
+    "@playwright/test": "~1.58.2",
     "@rocket.chat/eslint-config": "~0.7.0",
     "@rocket.chat/prettier-config": "~0.31.25",
     "@rollup/plugin-babel": "~6.0.4",
@@ -118,6 +120,7 @@
     "chokidar": "~3.5.3",
     "conventional-changelog-cli": "~4.1.0",
     "convert-svg-to-png": "~0.6.4",
+    "dotenv": "~17.3.1",
     "electron": "40.0.0",
     "electron-builder": "26.0.3",
     "electron-devtools-installer": "^3.2.0",

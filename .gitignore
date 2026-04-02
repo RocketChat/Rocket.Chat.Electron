@@ -23,3 +23,14 @@ Thumbs.db
 supportedVersions.jwt
 # local research (git-ignored)
 localdev/
+
+
+test-results/
+playwright-report/
+coverage/
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example

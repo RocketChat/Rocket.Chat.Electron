@@ -44,6 +44,8 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
 
 let _rootWindow: BrowserWindow;
 let tempWindow: BrowserWindow;
+let crashHandlerRegistered = false;
+let consecutiveCrashCount = 0;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
@@ -515,6 +517,48 @@ export const setupRootWindow = (): void => {
 
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
+
+  // Handle renderer process crashes
+  if (!crashHandlerRegistered) {
+    crashHandlerRegistered = true;
+
+    browserWindow.webContents.on(
+      'render-process-gone',
+      async (_event, details) => {
+        console.error('Renderer process crashed:', details.reason);
+        consecutiveCrashCount++;
+        console.log(
+          `Crash count: ${consecutiveCrashCount}. Attempting recovery...`
+        );
+
+        try {
+          const { session } = browserWindow.webContents;
+
+          // Only clear cache/storage after 3+ consecutive crashes
+          if (consecutiveCrashCount > 3) {
+            console.log(
+              'Multiple crashes detected. Clearing cache and storage...'
+            );
+            await session.clearCache();
+            await session.clearStorageData({
+              storages: ['shadercache', 'cachestorage'],
+            });
+          }
+
+          console.log('Reloading window...');
+          browserWindow.reload();
+        } catch (error) {
+          console.error('Failed to recover from crash:', error);
+        }
+      }
+    );
+
+    // Reset crash counter on successful load
+    browserWindow.webContents.on('did-finish-load', () => {
+      consecutiveCrashCount = 0;
+      console.log('Page loaded successfully. Crash counter reset.');
+    });
+  }
 
   browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 

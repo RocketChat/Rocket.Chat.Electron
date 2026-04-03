@@ -23,3 +23,18 @@ Thumbs.db
 supportedVersions.jwt
 # local research (git-ignored)
 localdev/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+/allure-report
+/allure-results
+
+# Environment variables
+.env
+.env.local

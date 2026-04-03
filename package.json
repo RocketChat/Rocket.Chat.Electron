@@ -98,6 +98,8 @@
     "@fiahfy/icns-convert": "~0.0.12",
     "@fiahfy/ico-convert": "~0.0.12",
     "@kayahr/jest-electron-runner": "29.14.0",
+    "@nut-tree-fork/nut-js": "~4.2.6",
+    "@playwright/test": "~1.58.2",
     "@rocket.chat/eslint-config": "~0.7.0",
     "@rocket.chat/prettier-config": "~0.31.25",
     "@rollup/plugin-babel": "~6.0.4",
@@ -114,6 +116,8 @@
     "@types/react-dom": "~18.3.5",
     "@typescript-eslint/eslint-plugin": "~6.17.0",
     "@typescript-eslint/parser": "~6.17.0",
+    "allure-js-commons": "~3.6.0",
+    "allure-playwright": "~3.6.0",
     "builtin-modules": "~3.3.0",
     "chokidar": "~3.5.3",
     "conventional-changelog-cli": "~4.1.0",
@@ -149,10 +153,6 @@
   },
   "engines": {
     "node": ">=24.11.1"
-  },
-  "devEngines": {
-    "node": ">=24.11.1",
-    "yarn": ">=4.0.2"
   },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",

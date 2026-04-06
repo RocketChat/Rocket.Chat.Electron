@@ -6,8 +6,8 @@ import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import { useEffect, useRef, useState } from 'react';
 
-// Inject highlight.js themes with media queries for light/dark support
-const injectHighlightThemes = (() => {
+// Inject highlight.js themes and markdown styles
+const injectStyles = (() => {
   let injected = false;
   return () => {
     if (injected) return;
@@ -24,6 +24,65 @@ const injectHighlightThemes = (() => {
     darkLink.href = '../node_modules/highlight.js/styles/github-dark.css';
     darkLink.media = '(prefers-color-scheme: dark)';
     document.head.appendChild(darkLink);
+
+    const mdStyles = document.createElement('style');
+    mdStyles.textContent = `
+      .markdown-body li:has(> input[type="checkbox"]) {
+        list-style-type: none;
+        margin-left: -1.5em;
+      }
+      .markdown-body li > input[type="checkbox"] {
+        margin-right: 0.5em;
+      }
+      .markdown-body pre {
+        overflow-x: auto;
+      }
+      .markdown-body pre code {
+        display: block;
+        overflow-x: auto;
+      }
+      .markdown-body table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .markdown-body table th,
+      .markdown-body table td {
+        border: 1px solid var(--rcx-color-stroke-light, #e1e5e9);
+        padding: 6px 13px;
+      }
+      .markdown-body table tr:nth-child(2n) {
+        background-color: var(--rcx-color-surface-tint, rgba(0,0,0,0.03));
+      }
+      .markdown-body blockquote {
+        border-left: 4px solid var(--rcx-color-stroke-light, #e1e5e9);
+        padding: 0 1em;
+        margin-left: 0;
+        opacity: 0.85;
+      }
+      .markdown-body img {
+        max-width: 100%;
+        height: auto;
+      }
+      .markdown-body hr {
+        border: none;
+        border-top: 1px solid var(--rcx-color-stroke-light, #e1e5e9);
+        margin: 1.5em 0;
+      }
+      .markdown-body details {
+        margin: 1em 0;
+      }
+      .markdown-body details summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .markdown-body code:not(pre code) {
+        background-color: var(--rcx-color-surface-tint, rgba(0,0,0,0.05));
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-size: 85%;
+      }
+    `;
+    document.head.appendChild(mdStyles);
   };
 })();
 
@@ -38,6 +97,21 @@ const marked = new Marked(
 );
 marked.setOptions({ gfm: true, breaks: true });
 
+marked.use({
+  renderer: {
+    heading({ text, depth }: { text: string; depth: number }) {
+      const slug = text
+        .toLowerCase()
+        .replace(/<[^>]*>/g, '')
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+      return `<h${depth} id="${slug}">${text}</h${depth}>`;
+    },
+  },
+});
+
 const MarkdownContent = ({
   url,
   partition,
@@ -51,7 +125,7 @@ const MarkdownContent = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    injectHighlightThemes();
+    injectStyles();
   }, []);
 
   useEffect(() => {
@@ -104,6 +178,8 @@ const MarkdownContent = ({
         if (cancelled) return;
         const sanitized = DOMPurify.sanitize(html as string, {
           USE_PROFILES: { html: true },
+          ADD_TAGS: ['details', 'summary', 'input'],
+          ADD_ATTR: ['id', 'type', 'checked', 'disabled'],
         });
         setHtmlContent(sanitized);
         setIsLoading(false);

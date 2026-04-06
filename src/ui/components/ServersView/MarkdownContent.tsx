@@ -100,9 +100,10 @@ marked.setOptions({ gfm: true, breaks: true });
 marked.use({
   renderer: {
     heading({ text, depth }: { text: string; depth: number }) {
-      const slug = text
+      const temp = document.createElement('div');
+      temp.innerHTML = text;
+      const slug = (temp.textContent || '')
         .toLowerCase()
-        .replace(/<[^>]*>/g, '')
         .replace(/[^\w\s-]/g, '')
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')

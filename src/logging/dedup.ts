@@ -43,7 +43,10 @@ export class LogDeduplicator {
    * Errors always return true.
    */
   shouldLog(level: string, contextStr: string, args: any[]): boolean {
-    if (level === 'error') return true;
+    if (level === 'error') {
+      this.lastIpcKey = '';
+      return true;
+    }
 
     const key = this.makeKey(level, [contextStr, ...args]);
     if (key === this.lastIpcKey) return false;
@@ -64,7 +67,11 @@ export class LogDeduplicator {
       transportName?: string
     ): any | null => {
       if (transportName !== 'file') return message;
-      if (!message || message.level === 'error') return message;
+      if (!message) return message;
+      if (message.level === 'error') {
+        this.lastFileKey = '';
+        return message;
+      }
 
       const text =
         message.data

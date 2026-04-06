@@ -17,13 +17,20 @@ const PdfContent = ({ url, partition }: { url: string; partition: string }) => {
   const webviewRef = useRef<HTMLWebViewElement>(null);
 
   useEffect(() => {
-    if (documentUrl !== url && url !== '') {
-      setDocumentUrl('about:blank');
-      setTimeout(() => {
-        setDocumentUrl(url);
-      }, 100);
+    if (!url) {
+      setDocumentUrl('');
+      return;
     }
-  }, [url, documentUrl]);
+
+    setDocumentUrl('about:blank');
+    const timeoutId = window.setTimeout(() => {
+      setDocumentUrl(url);
+    }, 100);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [url]);
 
   useEffect(() => {
     const webviewElement = webviewRef.current;
@@ -39,8 +46,14 @@ const PdfContent = ({ url, partition }: { url: string; partition: string }) => {
         webviewElement.addEventListener('did-finish-load', () => {
           webviewElement.executeJavaScript(`
             document.addEventListener('click', (event) => {
-              if (event.target.tagName === 'A' && event.target.href.endsWith('.pdf')) {
-                event.preventDefault(); // Block PDF link navigation
+              const anchor = event.target instanceof Element ? event.target.closest('a') : null;
+              if (anchor && anchor.href) {
+                try {
+                  const url = new URL(anchor.href, document.baseURI);
+                  if (url.pathname.toLowerCase().endsWith('.pdf')) {
+                    event.preventDefault();
+                  }
+                } catch {}
               }
             }, true);
           `);

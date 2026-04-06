@@ -1,0 +1,73 @@
+{
+  "active_context": [
+    {
+      "order": 2,
+      "path": "ci_cd/_index.md",
+      "tokens": 1013,
+      "type": "summary"
+    },
+    {
+      "order": 1,
+      "path": "ci_cd/desktop_release_action/_index.md",
+      "tokens": 613,
+      "type": "summary"
+    },
+    {
+      "order": 1,
+      "path": "ci_cd/linux_build_and_snapcraft_publishing/_index.md",
+      "tokens": 326,
+      "type": "summary"
+    },
+    {
+      "importance": 60,
+      "path": "ci_cd/macos_build_signing/macos_build_and_code_signing.md",
+      "tokens": 628,
+      "type": "context"
+    },
+    {
+      "importance": 60,
+      "path": "ci_cd/shell_utilities/shell_execution_utilities.md",
+      "tokens": 627,
+      "type": "context"
+    },
+    {
+      "importance": 55,
+      "path": "ci_cd/github_release_management/github_release_management_system.md",
+      "tokens": 901,
+      "type": "context"
+    },
+    {
+      "importance": 55,
+      "path": "ci_cd/windows_signing/windows_signing_pipeline_implementation.md",
+      "tokens": 1106,
+      "type": "context"
+    },
+    {
+      "importance": 55,
+      "path": "electron_apps/rocketchat_desktop/integrations/deep_links_protocol_handling.md",
+      "tokens": 509,
+      "type": "context"
+    },
+    {
+      "importance": 50,
+      "path": "ci_cd/context.md",
+      "tokens": 120,
+      "type": "context"
+    },
+    {
+      "importance": 50,
+      "path": "ci_cd/macos_build_signing/context.md",
+      "tokens": 89,
+      "type": "context"
+    }
+  ],
+  "generated_at": "2026-04-04T19:00:09.661Z",
+  "lane_tokens": {
+    "contexts": 3980,
+    "stubs": 0,
+    "summaries": 1952
+  },
+  "source_fingerprint": "785a480201702139d8abaa1188c978deb07b11e405638605d100c5475c45a9d8",
+  "total_tokens": 5932,
+  "version": 1
+}

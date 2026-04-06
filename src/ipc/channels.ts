@@ -79,6 +79,7 @@ type ChannelToArgsMap = {
     format: string,
     options: any
   ) => void;
+  'document-viewer/fetch-content': (url: string, serverUrl: string) => string;
   'log-viewer-window/open-window': () => void;
   'log-viewer-window/close-requested': () => void;
   'log-viewer-window/select-log-file': () => {
@@ -131,6 +132,10 @@ type ChannelToArgsMap = {
     success: boolean;
     mapping: Record<string, string>;
   };
+  'screen-picker/open': () => void;
+  'screen-picker/source-responded': (sourceId: string | null) => void;
+  'screen-picker/screen-recording-is-permission-granted': () => boolean;
+  'screen-picker/open-url': (url: string) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

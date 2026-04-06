@@ -173,6 +173,13 @@
       "cancel": "Kansellere"
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF-visning",
+      "markdown": "Markdown-visning"
+    },
+    "back": "Tilbake"
+  },
   "downloads": {
     "title": "Nedlastinger",
     "notifications": {

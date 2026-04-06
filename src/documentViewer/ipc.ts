@@ -1,4 +1,4 @@
-import { webContents } from 'electron';
+import { session, webContents } from 'electron';
 
 import { handle } from '../ipc/main';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../servers/actions';
@@ -9,7 +9,7 @@ import { openExternal } from '../utils/browserLauncher';
 export const startDocumentViewerHandler = (): void => {
   handle(
     'document-viewer/open-window',
-    async (event, url, _format, _options) => {
+    async (event, url, format, _options) => {
       const validUrl = new URL(url);
       const allowedProtocols = ['http:', 'https:'];
       if (!allowedProtocols.includes(validUrl.protocol)) {
@@ -26,8 +26,37 @@ export const startDocumentViewerHandler = (): void => {
 
       dispatch({
         type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-        payload: { server: server.url, documentUrl: url },
+        payload: {
+          server: server.url,
+          documentUrl: url,
+          documentFormat: format,
+        },
       });
+    }
+  );
+
+  handle(
+    'document-viewer/fetch-content',
+    async (_event, url: string, serverUrl: string) => {
+      const parsedUrl = new URL(url);
+      const parsedServerUrl = new URL(serverUrl);
+      const allowedProtocols = ['http:', 'https:'];
+
+      if (!allowedProtocols.includes(parsedUrl.protocol)) {
+        throw new Error('Invalid URL protocol');
+      }
+
+      if (parsedUrl.origin !== parsedServerUrl.origin) {
+        throw new Error('URL origin does not match server');
+      }
+
+      const partition = `persist:${serverUrl}`;
+      const ses = session.fromPartition(partition);
+      const response = await ses.fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
+      return response.text();
     }
   );
 

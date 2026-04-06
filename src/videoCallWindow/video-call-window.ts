@@ -7,7 +7,10 @@ import { interpolation, fallbackLng } from '../i18n/common';
 import resources from '../i18n/resources';
 import { invokeWithRetry } from '../ipc/renderer';
 import type { IRetryOptions } from '../ipc/renderer';
-import { createScreenPicker, InternalPickerProvider } from './screenPicker';
+import {
+  createScreenPicker,
+  InternalPickerProvider,
+} from '../screenSharing/screenPicker';
 import type { ScreenSharePickerModuleType } from './screenSharePickerMount';
 
 const MAX_INIT_ATTEMPTS = 10;

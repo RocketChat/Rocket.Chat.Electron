@@ -103,6 +103,13 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF Görüntüleyici",
+      "markdown": "Markdown Görüntüleyici"
+    },
+    "back": "Geri"
+  },
   "settings": {
     "title": "Ayarlar",
     "general": "Genel",

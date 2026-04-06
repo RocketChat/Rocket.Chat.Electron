@@ -1,5 +1,6 @@
 export {
   createScreenPicker,
+  detectPickerType,
   getScreenPicker,
   resetScreenPicker,
 } from './createScreenPicker';

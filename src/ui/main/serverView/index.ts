@@ -22,6 +22,8 @@ import { setupPreloadReload } from '../../../app/main/dev';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
+import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewScreenSharing';
+import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
@@ -170,6 +172,22 @@ const initializeServerWebContentsAfterAttach = (
 
   const webviewSession = guestWebContents.session;
 
+  // Intercept markdown file downloads and open in document viewer
+  webviewSession.on('will-download', (_event, item) => {
+    if (item.getFilename().endsWith('.md')) {
+      const downloadUrl = item.getURL();
+      item.cancel();
+      dispatch({
+        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
+        payload: {
+          server: serverUrl,
+          documentUrl: downloadUrl,
+          documentFormat: 'markdown',
+        },
+      });
+    }
+  });
+
   guestWebContents.addListener('destroyed', () => {
     guestWebContents.removeAllListeners();
     webviewSession.removeAllListeners();
@@ -230,6 +248,16 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  let isGuestInHtmlFullscreen = false;
+
+  guestWebContents.addListener('enter-html-full-screen', () => {
+    isGuestInHtmlFullscreen = true;
+  });
+
+  guestWebContents.addListener('leave-html-full-screen', () => {
+    isGuestInHtmlFullscreen = false;
+  });
+
   const handleBeforeInputEvent = (
     _event: Event,
     { type, key }: Input
@@ -241,6 +269,13 @@ const initializeServerWebContentsAfterAttach = (
     const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
     if (key !== shortcutKey && key !== 'Escape') {
+      return;
+    }
+
+    // On macOS, forwarding ESC to the root window while the guest is in
+    // HTML5 fullscreen (e.g. a video player) causes the native window to
+    // also exit fullscreen. This does not occur on Windows/Linux.
+    if (key === 'Escape' && isGuestInHtmlFullscreen) {
       return;
     }
 
@@ -422,6 +457,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
+
+    setupServerViewDisplayMedia(guestWebContents);
+
     // Download handling is now managed by electron-dl in main.ts
     // and integrated with our downloads system via setupDownloads()
 

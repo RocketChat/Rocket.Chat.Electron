@@ -24,6 +24,7 @@ type ServerPaneProps = {
   supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   title: string | undefined;
   documentViewerOpenUrl: string | undefined;
+  documentViewerFormat: string | undefined;
   userLoggedIn?: boolean;
 };
 
@@ -35,6 +36,7 @@ export const ServerPane = ({
   isSupported,
   supportedVersionsFetchState,
   documentViewerOpenUrl,
+  documentViewerFormat,
   userLoggedIn,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
@@ -184,7 +186,7 @@ export const ServerPane = ({
   const closeDocumentViewer = () => {
     dispatch({
       type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-      payload: { server: serverUrl, documentUrl: '' },
+      payload: { server: serverUrl, documentUrl: '', documentFormat: '' },
     });
     setDocumentViewerActive(false);
   };
@@ -212,6 +214,7 @@ export const ServerPane = ({
       <DocumentViewerWrapper isVisible={documentViewerActive}>
         <DocumentViewer
           url={documentViewerOpenUrl || ''}
+          format={documentViewerFormat}
           partition={`persist:${serverUrl}`}
           closeDocumentViewer={closeDocumentViewer}
         />

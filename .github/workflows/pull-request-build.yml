@@ -40,10 +40,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node 22.17.1
+      - name: Setup Node 24.11.1
         uses: actions/setup-node@v4
         with:
-          node-version: '22.17.1'
+          node-version: '24.11.1'
 
       - name: Setup node_modules cache
         uses: actions/cache@v4
@@ -517,7 +517,7 @@ jobs:
             exit 1
           }
 
-          yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis
+          yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis msi
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
@@ -574,7 +574,8 @@ jobs:
             --acl public-read `
             --endpoint-url=https://s3.us-east-1.wasabisys.com `
             --exclude "*" `
-            --include "rocketchat-*.exe"
+            --include "rocketchat-*.exe" `
+            --include "rocketchat-*.msi"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
@@ -619,7 +620,7 @@ jobs:
             const path = require('path');
             const distDir = path.join(process.cwd(), 'dist');
             const files = fs.readdirSync(distDir);
-            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/, /rocketchat-.*\.appimage$/i];
+            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.msi$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/, /rocketchat-.*\.appimage$/i];
             let artifactUrls = '';
             for (const file of files) {
               if (patterns.some(pattern => pattern.test(file))) {

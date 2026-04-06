@@ -34,12 +34,15 @@ import {
   stopOutlookCalendarSync,
 } from './outlookCalendar/ipc';
 import { setupOutlookLogger } from './outlookCalendar/logger';
+import { handleDesktopCapturerGetSources } from './screenSharing/desktopCapturerCache';
 import { setupScreenSharing } from './screenSharing/main';
+import { startServerViewScreenSharingHandler } from './screenSharing/serverViewScreenSharing';
 import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
+import { applySystemCertificates } from './systemCertificates';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -55,13 +58,13 @@ import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
 import {
-  handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
+  applySystemCertificates();
 
   logger.info('Starting Rocket.Chat Desktop application');
 
@@ -109,6 +112,7 @@ const start = async (): Promise<void> => {
   setupNotifications();
   attentionDrawing.setUp();
   setupScreenSharing();
+  startServerViewScreenSharingHandler();
   startVideoCallWindowHandler();
   startLogViewerWindowHandler();
 

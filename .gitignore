@@ -23,3 +23,21 @@ Thumbs.db
 supportedVersions.jwt
 # local research (git-ignored)
 localdev/
+
+# caches and temp
+jest_dx/
+node-compile-cache/
+coderabbit-update-*/
+
+# Claude Code local config
+.claude/
+
+# ByteRover context-tree (local knowledge base)
+.brv/
+
+# dylib artifacts
+*.dylib
+
+# legacy agent docs (consolidated into CLAUDE.md)
+AGENTS.md
+src/outlookCalendar/AGENTS.md

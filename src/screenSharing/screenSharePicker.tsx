@@ -25,9 +25,19 @@ const desktopCapturer: DesktopCapturer = {
 
 interface IScreenSharePickerProps {
   onMounted?: (setVisible: (visible: boolean) => void) => void;
+  responseChannel?: string;
+  permissionChannel?: string;
+  openUrlChannel?: string;
+  includeTheme?: boolean;
 }
 
-export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
+export function ScreenSharePicker({
+  onMounted,
+  responseChannel = 'video-call-window/screen-sharing-source-responded',
+  permissionChannel = 'video-call-window/screen-recording-is-permission-granted',
+  openUrlChannel = 'video-call-window/open-url',
+  includeTheme = true,
+}: IScreenSharePickerProps = {}) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
@@ -82,14 +92,12 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
 
   useEffect(() => {
     const checkScreenRecordingPermission = async () => {
-      const result = await ipcRenderer.invoke(
-        'video-call-window/screen-recording-is-permission-granted'
-      );
+      const result = await ipcRenderer.invoke(permissionChannel);
       setIsScreenRecordingPermissionGranted(result);
     };
 
     checkScreenRecordingPermission().catch(console.error);
-  }, [visible]);
+  }, [visible, permissionChannel]);
 
   useEffect(() => {
     fetchSources();
@@ -112,18 +120,17 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
       wasVisibleRef.current = false;
       if (!responseSentRef.current) {
         responseSentRef.current = true;
-        ipcRenderer.send(
-          'video-call-window/screen-sharing-source-responded',
-          null
-        );
+        ipcRenderer.send(responseChannel, null);
       }
     }
-  }, [visible]);
+  }, [visible, responseChannel]);
 
   useEffect(() => {
     if (!visible) {
       return undefined;
     }
+
+    fetchSources();
 
     const timer = setInterval(() => {
       fetchSources();
@@ -168,10 +175,7 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
 
       responseSentRef.current = true;
       setVisible(false);
-      ipcRenderer.send(
-        'video-call-window/screen-sharing-source-responded',
-        selectedSourceId
-      );
+      ipcRenderer.send(responseChannel, selectedSourceId);
     }
   };
 
@@ -182,7 +186,7 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
     }
     responseSentRef.current = true;
     setVisible(false);
-    ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
+    ipcRenderer.send(responseChannel, null);
   };
 
   // Filter sources based on the current tab
@@ -195,7 +199,7 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
 
   return (
     <>
-      <PaletteStyleTag theme='dark' selector=':root' />
+      {includeTheme && <PaletteStyleTag theme='dark' selector=':root' />}
       <Dialog isVisible={visible} onClose={handleClose}>
         <Box
           width='680px'
@@ -252,7 +256,7 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
                       process.platform === 'darwin'
                         ? 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
                         : 'ms-settings:privacy-screencapture';
-                    ipcRenderer.invoke('video-call-window/open-url', url);
+                    ipcRenderer.invoke(openUrlChannel, url);
                   }}
                   style={{
                     color: 'inherit',

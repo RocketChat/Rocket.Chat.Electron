@@ -67,7 +67,7 @@ const ERROR_PATTERNS: Array<{
   },
   {
     pattern:
-      /SSL_ERROR|UNABLE_TO_VERIFY|CERT_|ERR_TLS|self\.signed|certificate\.has\.expired/i,
+      /SSL_ERROR|UNABLE_TO_VERIFY|CERT_|ERR_TLS|self[.\s-]signed|certificate[.\s]has[.\s]expired/i,
     classification: {
       source: 'network',
       severity: 'medium',
@@ -234,6 +234,8 @@ const SENSITIVE_CONTEXT_KEYS = new Set([
   'password',
   'secret',
   'authorization',
+  'cookie',
+  'set-cookie',
 ]);
 
 const isSensitiveKey = (key: string): boolean => {
@@ -243,7 +245,8 @@ const isSensitiveKey = (key: string): boolean => {
     lowerKey.includes('token') ||
     lowerKey.includes('password') ||
     lowerKey.includes('secret') ||
-    lowerKey.includes('authorization')
+    lowerKey.includes('authorization') ||
+    lowerKey.includes('cookie')
   );
 };
 

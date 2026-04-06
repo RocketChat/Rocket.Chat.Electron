@@ -6,7 +6,7 @@
   "productName": "Rocket.Chat",
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "4.13.0",
+  "version": "4.14.0-alpha.2",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2016-2026, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -64,15 +64,20 @@
     "@rocket.chat/fuselage-polyfills": "~0.31.25",
     "@rocket.chat/icons": "0.37.0",
     "archiver": "~7.0.1",
-    "axios": "~1.13.2",
+    "axios": "~1.13.6",
     "detect-browsers": "~6.1.0",
+    "dompurify": "~3.3.3",
     "electron-dl": "4.0.0",
     "electron-log": "~5.4.3",
     "electron-store": "~8.1.0",
     "electron-updater": "^6.3.9",
     "ews-javascript-api": "~0.13.2",
+    "github-markdown-css": "~5.9.0",
+    "highlight.js": "~11.11.1",
     "i18next": "~23.7.16",
     "jsonwebtoken": "~9.0.2",
+    "marked": "~17.0.5",
+    "marked-highlight": "~2.2.3",
     "moment": "~2.30.1",
     "react": "~18.3.1",
     "react-dom": "~18.3.1",
@@ -106,6 +111,7 @@
     "@rollup/plugin-node-resolve": "~15.2.3",
     "@rollup/plugin-replace": "~5.0.5",
     "@types/archiver": "~7.0.0",
+    "@types/dompurify": "~3.2.0",
     "@types/electron-devtools-installer": "~2.2.5",
     "@types/jest": "~29.5.11",
     "@types/jsonwebtoken": "~9.0.5",
@@ -118,7 +124,7 @@
     "chokidar": "~3.5.3",
     "conventional-changelog-cli": "~4.1.0",
     "convert-svg-to-png": "~0.6.4",
-    "electron": "40.0.0",
+    "electron": "40.8.5",
     "electron-builder": "26.0.3",
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.2.2",
@@ -151,8 +157,10 @@
     "node": ">=24.11.1"
   },
   "devEngines": {
-    "node": ">=24.11.1",
-    "yarn": ">=4.0.2"
+    "runtime": {
+      "name": "node",
+      "version": ">=22.0.0"
+    }
   },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
@@ -161,13 +169,14 @@
     "cross-spawn": "7.0.6",
     "braces": "3.0.3",
     "ws": "8.18.0",
+    "axios": "1.13.6",
     "follow-redirects": "1.15.9",
     "form-data": "4.0.5",
     "tar-fs": "3.0.8",
     "undici": "5.28.5"
   },
   "volta": {
-    "node": "24.11.1",
+    "node": "22.22.1",
     "yarn": "4.6.0"
   },
   "packageManager": "yarn@4.6.0"

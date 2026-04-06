@@ -187,7 +187,16 @@ export default [
       ...builtinModules,
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
-    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    ].filter(
+      (moduleName) =>
+        ![
+          '@bugsnag/js',
+          'marked',
+          'marked-highlight',
+          'highlight.js',
+          'dompurify',
+        ].includes(moduleName)
+    ),
     input: 'src/rootWindow.ts',
     preserveEntrySignatures: 'strict',
     plugins: [

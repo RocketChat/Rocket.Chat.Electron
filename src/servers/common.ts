@@ -29,6 +29,7 @@ export type Server = {
   expirationMessageLastTimeShown?: Date;
   supportedVersionsValidatedAt?: Date;
   documentViewerOpenUrl?: string;
+  documentViewerFormat?: string;
 };
 
 export const enum ServerUrlResolutionStatus {

@@ -145,6 +145,13 @@
       }
     }
   },
+  "documentViewer": {
+    "title": {
+      "pdf": "PDF-katseluohjelma",
+      "markdown": "Markdown-katseluohjelma"
+    },
+    "back": "Takaisin"
+  },
   "downloads": {
     "title": "Lataukset",
     "notifications": {

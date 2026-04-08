@@ -402,6 +402,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     );
   };
 
+  const handlePermissionCheck: Parameters<
+    Session['setPermissionCheckHandler']
+  >[0] = (_webContents, permission) => {
+    if (permission === 'media') {
+      return true;
+    }
+    return false;
+  };
+
   const handlePermissionRequest: Parameters<
     Session['setPermissionRequestHandler']
   >[0] = async (_webContents, permission, callback, details) => {
@@ -454,6 +463,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       rootWindow
     );
 
+    guestWebContents.session.setPermissionCheckHandler(handlePermissionCheck);
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );

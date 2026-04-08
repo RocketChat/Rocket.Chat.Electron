@@ -47,7 +47,8 @@ const supportedVersionsStore = new ElectronStore<{
   [key: string]: SupportedVersions;
 }>({
   name: 'supportedVersions',
-});
+  fileMode: 0o600,
+} as any);
 
 let builtinSupportedVersions: SupportedVersions | undefined;
 
@@ -69,21 +70,21 @@ const getBuiltinSupportedVersions = async (): Promise<
 
 const logRequestError =
   (description: string) =>
-  (error: unknown): undefined => {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        console.error(
-          `Couldn't load ${description}: ${error.response.status} ${error.response.data}`
-        );
+    (error: unknown): undefined => {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          console.error(
+            `Couldn't load ${description}: ${error.response.status} ${error.response.data}`
+          );
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error(`Couldn't load ${description}: ${error.message}`);
+        }
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error(`Couldn't load ${description}: ${error.message}`);
+       console.error(`Fetching ${description} error:`, error);
       }
-    } else {
-      console.error('Fetching ${description} error:', error);
-    }
-    return undefined;
-  };
+      return undefined;
+    };
 
 const getCacheKey = (serverUrl: string): string =>
   `supportedVersions:${serverUrl}`;

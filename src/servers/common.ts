@@ -18,6 +18,9 @@ export type Server = {
   webContentsId?: number;
   userLoggedIn?: boolean;
   gitCommitHash?: string;
+  lastServerBuildId?: string;
+  lastCacheVersion?: string;
+  webviewNonce?: number;
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;
   version?: string;

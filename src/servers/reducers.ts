@@ -22,6 +22,7 @@ import {
   WEBVIEW_READY,
   WEBVIEW_ATTACHED,
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+  WEBVIEW_SERVER_BUILD_UPDATED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING,
@@ -32,7 +33,11 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
-import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
+import {
+  SERVERS_LOADED,
+  SERVER_DOCUMENT_VIEWER_OPEN_URL,
+  SERVER_WEBVIEW_RECREATE_REQUESTED,
+} from './actions';
 import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
@@ -53,6 +58,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>
   | ActionOf<typeof WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED>
   | ActionOf<typeof WEBVIEW_GIT_COMMIT_HASH_CHANGED>
+  | ActionOf<typeof WEBVIEW_SERVER_BUILD_UPDATED>
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
   | ActionOf<typeof WEBVIEW_USER_LOGGED_IN>
@@ -72,6 +78,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
   | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
+  | ActionOf<typeof SERVER_WEBVIEW_RECREATE_REQUESTED>
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
@@ -204,6 +211,21 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_GIT_COMMIT_HASH_CHANGED: {
       const { url, gitCommitHash } = action.payload;
       return upsert(state, { url, gitCommitHash });
+    }
+
+    case WEBVIEW_SERVER_BUILD_UPDATED: {
+      const { url, buildId, cacheVersion } = action.payload;
+      const patch: Partial<Server> & { url: string } = { url };
+      if (buildId !== undefined) patch.lastServerBuildId = buildId;
+      if (cacheVersion !== undefined) patch.lastCacheVersion = cacheVersion;
+      return upsert(state, patch as Server);
+    }
+
+    case SERVER_WEBVIEW_RECREATE_REQUESTED: {
+      const { url } = action.payload;
+      const existing = state.find((s) => s.url === url);
+      const nextNonce = (existing?.webviewNonce ?? 0) + 1;
+      return upsert(state, { url, webviewNonce: nextNonce } as Server);
     }
 
     case WEBVIEW_FAVICON_CHANGED: {

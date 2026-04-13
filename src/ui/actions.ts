@@ -78,6 +78,8 @@ export const WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED =
 export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
   'webview/git-commit-hash-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
+export const WEBVIEW_SERVER_BUILD_CHECK = 'webview/server-build-check';
+export const WEBVIEW_SERVER_BUILD_UPDATED = 'webview/server-build-updated';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
@@ -239,6 +241,16 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_GIT_COMMIT_HASH_CHANGED]: {
     url: Server['url'];
     gitCommitHash: Server['gitCommitHash'];
+  };
+  [WEBVIEW_SERVER_BUILD_CHECK]: {
+    url: Server['url'];
+    buildId?: string;
+    cacheVersion?: string;
+  };
+  [WEBVIEW_SERVER_BUILD_UPDATED]: {
+    url: Server['url'];
+    buildId?: string;
+    cacheVersion?: string;
   };
   [WEBVIEW_ALLOWED_REDIRECTS_CHANGED]: {
     url: Server['url'];

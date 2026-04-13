@@ -25,6 +25,7 @@ import {
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
 import { reloadServer } from './reloadServer';
+import { setServerBuildSignals } from './serverBuild';
 import {
   setBackground,
   setServerVersionToSidebar,
@@ -37,6 +38,9 @@ import { setUserLoggedIn } from './userLoggedIn';
 
 type ServerInfo = {
   version: string;
+  commit?: {
+    hash?: string;
+  };
 };
 
 export let serverInfo: ServerInfo;
@@ -67,6 +71,14 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
     serverInfo = _serverInfo;
     cb(_serverInfo);
     setServerVersionToSidebar(_serverInfo.version);
+    const extended = _serverInfo as ServerInfo;
+    const buildId = extended?.commit?.hash || extended?.version;
+    const cacheVersionMatch =
+      typeof document !== 'undefined'
+        ? document.cookie?.match(/(?:^|;\s*)cache_version=([^;]+)/)
+        : null;
+    const cacheVersion = cacheVersionMatch?.[1];
+    setServerBuildSignals({ buildId, cacheVersion });
   },
   setUrlResolver,
   setBadge,

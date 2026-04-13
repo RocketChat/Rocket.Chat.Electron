@@ -11,6 +11,8 @@ import { hasMeta } from '../store/fsa';
 import {
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_GIT_COMMIT_HASH_CHECK,
+  WEBVIEW_SERVER_BUILD_CHECK,
+  WEBVIEW_SERVER_BUILD_UPDATED,
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
@@ -20,6 +22,7 @@ import {
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
+import { clearWebviewStorageKeepingLoginData } from './cache';
 import type { Server, ServerUrlResolutionResult } from './common';
 import {
   ServerUrlResolutionStatus,
@@ -200,6 +203,62 @@ export const setupServers = async (
       });
       await guestWebContents?.session.clearCache();
       guestWebContents?.reload();
+    }
+  });
+
+  listen(WEBVIEW_SERVER_BUILD_CHECK, async (action) => {
+    const { url, buildId, cacheVersion } = action.payload;
+    if (!buildId && !cacheVersion) return;
+
+    const servers = select(({ servers }) => servers);
+    const server = servers.find((s) => s.url === url);
+    if (!server) return;
+
+    const firstObservation =
+      !server.lastServerBuildId && !server.lastCacheVersion;
+
+    const buildChanged =
+      !!buildId &&
+      !!server.lastServerBuildId &&
+      server.lastServerBuildId !== buildId;
+    const cacheVersionChanged =
+      !!cacheVersion &&
+      !!server.lastCacheVersion &&
+      server.lastCacheVersion !== cacheVersion;
+
+    if (firstObservation) {
+      dispatch({
+        type: WEBVIEW_SERVER_BUILD_UPDATED,
+        payload: { url, buildId, cacheVersion },
+      });
+      return;
+    }
+
+    if (buildChanged || cacheVersionChanged) {
+      const guestWebContents = getWebContentsByServerUrl(url);
+      if (!guestWebContents) return;
+      const reason = buildChanged
+        ? `buildId ${server.lastServerBuildId} -> ${buildId}`
+        : `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`;
+      console.log(
+        `[Rocket.Chat Desktop] auto cache-clear + webview recreate for ${url} (${reason})`
+      );
+      await clearWebviewStorageKeepingLoginData(guestWebContents);
+      dispatch({
+        type: WEBVIEW_SERVER_BUILD_UPDATED,
+        payload: { url, buildId, cacheVersion },
+      });
+      return;
+    }
+
+    if (
+      (buildId && !server.lastServerBuildId) ||
+      (cacheVersion && !server.lastCacheVersion)
+    ) {
+      dispatch({
+        type: WEBVIEW_SERVER_BUILD_UPDATED,
+        payload: { url, buildId, cacheVersion },
+      });
     }
   });
 

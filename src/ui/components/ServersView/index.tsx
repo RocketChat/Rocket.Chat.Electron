@@ -9,7 +9,7 @@ export const ServersView = () => {
     <ReparentingContainer>
       {servers.map((server) => (
         <ServerPane
-          key={server.url}
+          key={`${server.url}:${server.webviewNonce ?? 0}`}
           lastPath={server.lastPath}
           serverUrl={server.url}
           isSelected={server.selected}

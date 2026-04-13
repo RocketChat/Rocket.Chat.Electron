@@ -20,7 +20,6 @@ export type Server = {
   gitCommitHash?: string;
   lastServerBuildId?: string;
   lastCacheVersion?: string;
-  webviewNonce?: number;
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;
   version?: string;

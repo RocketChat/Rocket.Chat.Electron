@@ -33,11 +33,7 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
-import {
-  SERVERS_LOADED,
-  SERVER_DOCUMENT_VIEWER_OPEN_URL,
-  SERVER_WEBVIEW_RECREATE_REQUESTED,
-} from './actions';
+import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
 import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
@@ -78,7 +74,6 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
   | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
-  | ActionOf<typeof SERVER_WEBVIEW_RECREATE_REQUESTED>
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
@@ -220,14 +215,6 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       if (buildId !== undefined) patch.lastServerBuildId = buildId;
       if (cacheVersion !== undefined) patch.lastCacheVersion = cacheVersion;
       return update(state, patch as Server);
-    }
-
-    case SERVER_WEBVIEW_RECREATE_REQUESTED: {
-      const { url } = action.payload;
-      const existing = state.find((s) => s.url === url);
-      if (!existing) return state;
-      const nextNonce = (existing.webviewNonce ?? 0) + 1;
-      return update(state, { url, webviewNonce: nextNonce } as Server);
     }
 
     case WEBVIEW_FAVICON_CHANGED: {

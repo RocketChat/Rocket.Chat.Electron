@@ -6,8 +6,6 @@ export const SERVER_URL_RESOLUTION_REQUESTED =
 export const SERVER_URL_RESOLVED = 'server/url-resolved';
 export const SERVER_DOCUMENT_VIEWER_OPEN_URL =
   'server/document-viewer/open-url';
-export const SERVER_WEBVIEW_RECREATE_REQUESTED =
-  'server/webview-recreate-requested';
 
 export type ServersActionTypeToPayloadMap = {
   [SERVERS_LOADED]: {
@@ -21,5 +19,4 @@ export type ServersActionTypeToPayloadMap = {
     documentUrl: string;
     documentFormat?: string;
   };
-  [SERVER_WEBVIEW_RECREATE_REQUESTED]: { url: Server['url'] };
 };

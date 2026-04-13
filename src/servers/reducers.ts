@@ -215,17 +215,19 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case WEBVIEW_SERVER_BUILD_UPDATED: {
       const { url, buildId, cacheVersion } = action.payload;
+      if (!state.some((s) => s.url === url)) return state;
       const patch: Partial<Server> & { url: string } = { url };
       if (buildId !== undefined) patch.lastServerBuildId = buildId;
       if (cacheVersion !== undefined) patch.lastCacheVersion = cacheVersion;
-      return upsert(state, patch as Server);
+      return update(state, patch as Server);
     }
 
     case SERVER_WEBVIEW_RECREATE_REQUESTED: {
       const { url } = action.payload;
       const existing = state.find((s) => s.url === url);
-      const nextNonce = (existing?.webviewNonce ?? 0) + 1;
-      return upsert(state, { url, webviewNonce: nextNonce } as Server);
+      if (!existing) return state;
+      const nextNonce = (existing.webviewNonce ?? 0) + 1;
+      return update(state, { url, webviewNonce: nextNonce } as Server);
     }
 
     case WEBVIEW_FAVICON_CHANGED: {

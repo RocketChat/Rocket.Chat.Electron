@@ -31,6 +31,8 @@ import {
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 
+const buildCheckInFlight = new Set<Server['url']>();
+
 export const convertToURL = (input: string): URL => {
   let url: URL;
 
@@ -235,19 +237,25 @@ export const setupServers = async (
     }
 
     if (buildChanged || cacheVersionChanged) {
+      if (buildCheckInFlight.has(url)) return;
       const guestWebContents = getWebContentsByServerUrl(url);
       if (!guestWebContents) return;
-      const reason = buildChanged
-        ? `buildId ${server.lastServerBuildId} -> ${buildId}`
-        : `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`;
-      console.log(
-        `[Rocket.Chat Desktop] auto cache-clear + webview recreate for ${url} (${reason})`
-      );
-      await clearWebviewStorageKeepingLoginData(guestWebContents);
-      dispatch({
-        type: WEBVIEW_SERVER_BUILD_UPDATED,
-        payload: { url, buildId, cacheVersion },
-      });
+      buildCheckInFlight.add(url);
+      try {
+        const reason = buildChanged
+          ? `buildId ${server.lastServerBuildId} -> ${buildId}`
+          : `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`;
+        console.log(
+          `[Rocket.Chat Desktop] auto cache-clear + webview recreate for ${url} (${reason})`
+        );
+        await clearWebviewStorageKeepingLoginData(guestWebContents);
+        dispatch({
+          type: WEBVIEW_SERVER_BUILD_UPDATED,
+          payload: { url, buildId, cacheVersion },
+        });
+      } finally {
+        buildCheckInFlight.delete(url);
+      }
       return;
     }
 

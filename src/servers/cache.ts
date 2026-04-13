@@ -1,6 +1,6 @@
 import { webContents, type WebContents } from 'electron';
 
-import { dispatch, listen, select } from '../store';
+import { dispatch, listen, safeSelect } from '../store';
 import {
   CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
   CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED,
@@ -11,8 +11,8 @@ const getServerUrlFromWebContents = (
   guestWebContents: WebContents
 ): string | undefined => {
   const { id } = guestWebContents;
-  const servers = select(({ servers }) => servers);
-  return servers.find((s) => s.webContentsId === id)?.url;
+  const servers = safeSelect(({ servers }) => servers);
+  return servers?.find((s) => s.webContentsId === id)?.url;
 };
 
 const requestWebviewRecreate = (url: string): void => {

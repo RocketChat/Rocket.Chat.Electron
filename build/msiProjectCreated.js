@@ -53,6 +53,10 @@ exports.default = async function msiProjectCreated(projectFile) {
       Impersonate="no"
       Return="check">
       <![CDATA[
+        ' On Error Resume Next is deliberate: every subsequent operation
+        ' checks Err.Number explicitly so failures raise with context instead
+        ' of aborting the CA mid-write. Do NOT add code below without an
+        ' explicit Err.Number check or an On Error GoTo 0 reset first.
         On Error Resume Next
         Dim fso, installDir, resourcesDir, filePath, f
 

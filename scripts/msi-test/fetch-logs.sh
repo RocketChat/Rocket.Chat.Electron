@@ -6,6 +6,8 @@ VM_PORT="${VM_PORT:-22}"
 VM_USER="${VM_USER:-jean}"
 : "${VM_PASS:?Set VM_PASS to the Windows VM password (export VM_PASS=...)}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 HARNESS_KNOWN_HOSTS="${SCRIPT_DIR}/.known_hosts"
 SSH_OPTS=(
   -o StrictHostKeyChecking=accept-new
@@ -13,8 +15,6 @@ SSH_OPTS=(
   -o ConnectTimeout=5
 )
 SSHPASS=(sshpass -p "${VM_PASS}")
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP="$(date +%Y%m%dT%H%M%S)"
 LOG_DIR="${SCRIPT_DIR}/logs/${TIMESTAMP}"
 mkdir -p "${LOG_DIR}"
@@ -37,5 +37,9 @@ echo "Saved to: ${LOG_DIR}"
 if [[ -f "${LOG_DIR}/test-results.json" ]]; then
   echo ""
   echo "--- test-results.json ---"
-  grep -E '"scenario"|"result"|"details"' "${LOG_DIR}/test-results.json" || cat "${LOG_DIR}/test-results.json"
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.[] | "\(.scenario)  \(.result)  \(.details)"' "${LOG_DIR}/test-results.json"
+  else
+    cat "${LOG_DIR}/test-results.json"
+  fi
 fi

@@ -35,7 +35,7 @@ writes `C:\Program Files\Rocket.Chat\resources\update.json` with `{"canUpdate":f
 ## Running
 
 ```bash
-# Full run (builds, copies, executes, prints summary)
+# Full run (copies an existing MSI, executes tests, prints summary)
 MSI_PATH=dist/rocketchat-4.14.0-win-x64.msi ./scripts/msi-test/run-msi-tests.sh
 
 # Or pass as argument

@@ -9,6 +9,8 @@ REMOTE_MSI='Downloads\\rocketchat-test.msi'
 REMOTE_PS1='test-msi.ps1'
 REMOTE_PS1_FULL='C:\\Users\\'"${VM_USER}"'\\test-msi.ps1'
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 HARNESS_KNOWN_HOSTS="${SCRIPT_DIR}/.known_hosts"
 SSH_OPTS=(
   -o StrictHostKeyChecking=accept-new
@@ -16,8 +18,6 @@ SSH_OPTS=(
   -o ConnectTimeout=5
 )
 SSHPASS=(sshpass -p "${VM_PASS}")
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 MSI_PATH="${1:-${MSI_PATH:-}}"
 
@@ -96,7 +96,11 @@ echo "TEST SUMMARY"
 echo "========================================"
 if [[ -f "${LOG_DIR}/test-results.json" ]]; then
   # print each scenario result line
-  grep -E '"scenario"|"result"|"details"' "${LOG_DIR}/test-results.json" || cat "${LOG_DIR}/test-results.json"
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.[] | "\(.scenario)  \(.result)  \(.details)"' "${LOG_DIR}/test-results.json"
+  else
+    cat "${LOG_DIR}/test-results.json"
+  fi
 else
   echo "No test-results.json retrieved."
 fi

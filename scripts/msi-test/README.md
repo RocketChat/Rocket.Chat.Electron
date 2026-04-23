@@ -6,9 +6,15 @@ writes `C:\Program Files\Rocket.Chat\resources\update.json` with `{"canUpdate":f
 ## Prerequisites
 
 - macOS host with `sshpass`, `ssh`, `scp` in PATH
-- Windows 10 VM at `192.168.13.87` with OpenSSH on port 22 (user: `jean`, pass: `cb6wist3`)
+- Windows 10 VM with OpenSSH on port 22. Configure `VM_HOST`, `VM_PORT`, `VM_USER`, and `VM_PASS` in your shell before running these scripts. Example:
+  ```
+  export VM_HOST=192.168.13.87 VM_USER=jean VM_PASS='<your password>'
+  bash scripts/msi-test/run-msi-tests.sh
+  ```
+  Never commit `VM_PASS` to the repo.
 - Built MSI artifact — e.g. `dist/rocketchat-4.14.0-win-x64.msi`
 - VM must be running before you invoke the orchestrator
+- If the VM is reprovisioned behind the same IP, delete `scripts/msi-test/.known_hosts` before running again.
 
 ## Files
 

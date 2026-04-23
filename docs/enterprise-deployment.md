@@ -19,7 +19,7 @@ available when running as SYSTEM.
 
 ## Standard deployment command
 
-```
+```cmd
 msiexec /i rocketchat-<version>-win-x64.msi /qn
 ```
 
@@ -36,7 +36,7 @@ Disables the in-app auto-update mechanism by writing
 `resources/update.json` with `{"canUpdate": false, "autoUpdate": false}`
 during installation.
 
-```
+```cmd
 msiexec /i rocketchat-<version>-win-x64.msi DISABLE_AUTO_UPDATES=1 /qn
 ```
 
@@ -52,7 +52,7 @@ together with the rest of the installation directory.
 The MSI runs correctly under `NT AUTHORITY\SYSTEM`. Typical deployment
 program command line:
 
-```
+```cmd
 msiexec /i "rocketchat-<version>-win-x64.msi" DISABLE_AUTO_UPDATES=1 /qn /norestart
 ```
 
@@ -66,7 +66,7 @@ Detection method: MSI product code, or file presence at
 Add `/l*v install.log` to capture a full MSI log (useful if a custom action
 or property is not applying as expected):
 
-```
+```cmd
 msiexec /i rocketchat-<version>-win-x64.msi DISABLE_AUTO_UPDATES=1 /qn /l*v install.log
 ```
 
@@ -77,7 +77,7 @@ Search the log for `DISABLE_AUTO_UPDATES`, `WriteUpdateJson`, and
 
 After install, check that `update.json` exists in the resources folder:
 
-```
+```cmd
 type "%ProgramFiles%\Rocket.Chat\resources\update.json"
 ```
 

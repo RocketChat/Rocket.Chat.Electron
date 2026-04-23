@@ -2,12 +2,13 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$MsiPath    = "C:\Users\jean\Downloads\rocketchat-test.msi"
-$InstallDir = "C:\Program Files\Rocket.Chat"
-$UpdateJson = "$InstallDir\resources\update.json"
-$ResultFile = "C:\Users\jean\test-results.json"
-$PsExecPath = "C:\Tools\PsExec.exe"
-$LogBase    = "C:\Users\jean"
+$UserProfile = $env:USERPROFILE
+$MsiPath     = Join-Path $UserProfile 'Downloads\rocketchat-test.msi'
+$InstallDir  = 'C:\Program Files\Rocket.Chat'
+$UpdateJson  = "$InstallDir\resources\update.json"
+$ResultFile  = Join-Path $UserProfile 'test-results.json'
+$PsExecPath  = 'C:\Tools\PsExec.exe'
+$LogBase     = $UserProfile
 
 $results = @()
 
@@ -104,9 +105,19 @@ try {
     if ($json.canUpdate  -ne $false) { throw "canUpdate is not false (got: $($json.canUpdate))" }
     if ($json.autoUpdate -ne $false) { throw "autoUpdate is not false (got: $($json.autoUpdate))" }
 
+    $logRepairB = "$LogBase\repair-b.log"
+    Write-Host "  Repairing without DISABLE_AUTO_UPDATES to verify update.json is preserved ..."
+    $repair = Start-Process msiexec -ArgumentList "/fa `"$MsiPath`" /qn /l*v `"$logRepairB`"" -Wait -PassThru -NoNewWindow
+    if ($repair.ExitCode -ne 0) { throw "repair msiexec exited $($repair.ExitCode)" }
+
+    if (-not (Test-Path $UpdateJson)) { throw "update.json missing after repair at $UpdateJson" }
+    $json = Get-Content $UpdateJson -Raw | ConvertFrom-Json
+    if ($json.canUpdate  -ne $false) { throw "canUpdate changed after repair (got: $($json.canUpdate))" }
+    if ($json.autoUpdate -ne $false) { throw "autoUpdate changed after repair (got: $($json.autoUpdate))" }
+
     Write-Host "  PASS"
     $scenarioB.result  = "PASS"
-    $scenarioB.details = "update.json present with canUpdate=false, autoUpdate=false."
+    $scenarioB.details = "update.json present with canUpdate=false, autoUpdate=false; preserved after repair."
     $scenarioB.log     = $logContent
 } catch {
     Write-Host "  FAIL: $_"
@@ -135,8 +146,13 @@ try {
     }
     if (-not (Test-Path $PsExecPath)) { throw "PsExec.exe not found at $PsExecPath after download." }
 
+    $sig = Get-AuthenticodeSignature $PsExecPath
+    if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'Microsoft') {
+        throw "Downloaded PsExec.exe failed Authenticode signature validation. Status=$($sig.Status), Subject=$($sig.SignerCertificate.Subject)"
+    }
+
     Uninstall-RocketChat
-    $logC = "C:\Users\jean\install-c.log"
+    $logC = Join-Path $UserProfile 'install-c.log'
     Write-Host "  Installing as SYSTEM with DISABLE_AUTO_UPDATES=1 ..."
 
     # PsExec -s runs the process as SYSTEM; -accepteula suppresses the EULA dialog.
@@ -162,7 +178,7 @@ try {
 } catch {
     Write-Host "  FAIL: $_"
     $scenarioC.details = $_.ToString()
-    $scenarioC.log     = Read-InstallLog "C:\Users\jean\install-c.log"
+    $scenarioC.log     = Read-InstallLog (Join-Path $UserProfile 'install-c.log')
 } finally {
     Uninstall-RocketChat
 }

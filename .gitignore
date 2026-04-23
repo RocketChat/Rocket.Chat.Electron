@@ -40,6 +40,7 @@ coderabbit-update-*/
 
 # MSI test harness artifacts
 scripts/msi-test/logs/
+scripts/msi-test/.known_hosts
 
 # dylib artifacts
 *.dylib

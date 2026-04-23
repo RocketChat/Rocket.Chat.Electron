@@ -118,7 +118,7 @@ Committed a reusable test harness at `scripts/msi-test/`:
 - `fetch-logs.sh` — Standalone log puller.
 - `README.md` — Usage and VM prerequisites.
 
-Validation run on Windows 10 VM (192.168.13.87) with the patched MSI
+Validation run on Windows 10 VM (<windows-test-vm>) with the patched MSI
 produced all three scenarios `PASS`. The log excerpt proving the fix
 fired correctly:
 
@@ -186,7 +186,7 @@ on the command line is a trap — any missing property leads to a per-user
 install under the SCCM SYSTEM profile, which is invisible to all logged-in
 users. NSIS retains `perMachine: false` for consumer installs.
 
-### 6. Cross-building Windows MSI from macOS arm64 is not viable in 2026
+### 6. Cross-building Windows MSI from macOS arm64 is not viable in our tested environment as of April 2026
 
 Attempted `electronuserland/builder:wine` under `--platform linux/amd64`:
 WiX4's candle.exe needs Wine-Mono, which is not shipped in that image;
@@ -202,7 +202,7 @@ MSI on Apple Silicon. Do not spend time on it; go straight to Windows.
 
 ## What this does NOT fix
 
-- **NSIS `/allusers` under SYSCM/SYSTEM is still unreliable.** NSIS was
+- **NSIS `/allusers` under SCCM/SYSTEM is still unreliable.** NSIS was
   never designed for SYSTEM-context execution; its per-user vs per-machine
   probing depends on UAC token information that isn't meaningful for
   SYSTEM. `docs/enterprise-deployment.md` now documents that enterprise

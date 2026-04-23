@@ -135,7 +135,7 @@
     "item": {
       "cancel": "取消",
       "copyLink": "複製連結",
-      "errored": "下載已取消",
+      "errored": "下載失敗",
       "pause": "暫停",
       "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}} ({{ratio, percentage}})",
       "remove": "從列表中刪除",

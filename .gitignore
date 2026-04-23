@@ -35,6 +35,12 @@ coderabbit-update-*/
 # ByteRover context-tree (local knowledge base)
 .brv/
 
+# mastermind (local knowledge base)
+.knowledge/
+
+# MSI test harness artifacts
+scripts/msi-test/logs/
+
 # dylib artifacts
 *.dylib
 

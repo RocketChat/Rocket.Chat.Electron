@@ -1,38 +1,54 @@
-# Post-Mortem: `DISABLE_AUTO_UPDATES=1` MSI property regression (PROD-595)
+# Retrospective: `DISABLE_AUTO_UPDATES=1` MSI — Enterprise Deployment Hardening
 
 ## Objective
 
-Restore the MSI installer's `DISABLE_AUTO_UPDATES=1` public property so that
-enterprise admins can deploy Rocket.Chat Desktop with auto-updates disabled,
-both in interactive installs and in SYSTEM-context deployments via SCCM/MECM.
+Extend the MSI installer's `DISABLE_AUTO_UPDATES=1` public property to cover
+SCCM/MECM and Intune deployment patterns, which have distinct requirements
+compared to interactive elevated installs: per-machine install scope and
+reliable deferred CustomAction data plumbing under `NT AUTHORITY\SYSTEM`.
 
 ## Context
 
-The feature was introduced in PR #3280 (commit `4da36441b`, shipped first in
-4.14.0-alpha.0 / 4.14.0). Field reports indicated it worked briefly on an
-engineer's dev machine but failed in every real enterprise deployment —
-including SCCM VDI rollouts. No `resources/update.json` was produced after
-`msiexec /i ... DISABLE_AUTO_UPDATES=1 /qn`, so the app continued to check
-for and auto-install updates.
+The feature was introduced in PR #3280 (commit `4da36441b`, shipped in
+4.14.0-alpha.0 / 4.14.0). It was validated interactively on a developer
+machine running an elevated administrator session, where it produced
+`resources/update.json` correctly.
 
-## Timeline
+When an enterprise customer deploying via SCCM tested the property, it did
+not take effect. SCCM deploys as `NT AUTHORITY\SYSTEM` using
+`msiexec /i ... DISABLE_AUTO_UPDATES=1 /qn`, which has two requirements that
+interactive installs do not exercise:
 
-### Attempt 1: Symptom-level guesses
+1. **Per-machine install scope.** Without `ALLUSERS=1` embedded in the MSI,
+   an interactive install lands in the administrator's user profile; a
+   SYSTEM-context install lands in the SYSTEM profile — invisible to every
+   logged-in user.
+2. **Deferred CustomAction data isolation.** Deferred CAs run in a serialized
+   script with a clean property environment; they cannot read session
+   properties directly. Data must be forwarded through `CustomActionData` by
+   an explicit immediate setter CA, scheduled before the deferred CA.
 
-**What was done:** Scanned `build/msiProjectCreated.js` for obvious bugs
-(VBScript path escaping, `\\"` vs `\\\\` handling, `REMOVE~="ALL"` condition
-syntax, `Secure="yes"` placement).
+Neither requirement surfaces in a standard interactive elevated install, which
+is why the initial testing did not expose them.
 
-**What went wrong:** Each candidate looked correct in isolation. None of
-them explained why the CA appeared to execute (return value in MSI log was
-success) yet no file was produced.
+## Investigation
 
-**Root cause of this detour:** Treated the MSI verbose log as
-untrustworthy and suspected the VBScript first. Should have read the
-`Executing op: CustomActionSchedule` line and its `CustomActionData` value
-before touching VBScript internals.
+### Phase 1: Symptom-level scan
 
-### Attempt 2: Read the WiX CustomActionData idiom carefully
+**What was done:** Reviewed `build/msiProjectCreated.js` for surface-level
+issues (VBScript path escaping, `\\"` vs `\\\\` handling, `REMOVE~="ALL"`
+condition syntax, `Secure="yes"` placement).
+
+**Outcome:** Each candidate appeared correct in isolation. None explained why
+the CA reported success (`Return value 1`) in the MSI log yet produced no
+file.
+
+**Learning:** Treated the MSI verbose log as untrustworthy and investigated
+VBScript internals first. Should have read the `Executing op:
+CustomActionSchedule` line and its `CustomActionData` value before going
+further.
+
+### Phase 2: WiX CustomActionData sequencing
 
 **What was done:** Re-read the injected XML:
 
@@ -52,61 +68,57 @@ before touching VBScript internals.
 <Custom Action="WriteUpdateJson" After="InstallFiles">...</Custom>
 ```
 
-**What went wrong (the actual bug):**
+**Gaps exposed by SYSTEM-context deployment:**
 
-Two compounding issues with the sequencing of an immediate type-51 setter
-feeding `CustomActionData` into a deferred type-1 VBScript CA:
+1. **`Before="<deferred-CA>"` scheduling is unreliable in SYSTEM context.**
+   The immediate setter was scheduled `Before="WriteUpdateJson"`, but
+   `WriteUpdateJson` itself was scheduled `After="InstallFiles"`. MSI accepted
+   this under narrow circumstances — WiX4's candle with ICE validation
+   disabled (`-sval`) emitted the MST without warning, but the resulting
+   sequence was implicit: relative positions depended on implicit ordering of
+   unrelated standard actions. In SYSTEM-context deployments the setter could
+   run after the deferred script was already serialized, leaving
+   `CustomActionData` empty at execution time.
 
-1. **Unreliable `Before="<deferred-CA>"` scheduling.** The immediate setter
-   was scheduled `Before="WriteUpdateJson"`, but `WriteUpdateJson` itself
-   was scheduled `After="InstallFiles"`. MSI accepted this only under
-   narrow circumstances — specifically, WiX4's candle with ICE validation
-   disabled (`-sval`) would emit the MST without complaining, but the
-   resulting sequence was fragile: the relative positions depended on
-   implicit ordering of unrelated standard actions. In many SYSTEM-context
-   deployments the setter ran after the deferred script was already
-   serialized, so `CustomActionData` was empty at execution time.
+2. **Silent VBScript failure path.** The VBScript used `On Error Resume Next`
+   and `Session.Property("CustomActionData")`. When `CustomActionData` was
+   empty, `installDir` resolved to `""`, `resourcesDir` became `"resources"`
+   (a relative path), and `fso.FolderExists(...)` returned `False`. The
+   subsequent `Err.Raise` was suppressed by the earlier `On Error Resume
+   Next` — Windows Installer reported `Return value 1` because VBScript
+   exited cleanly.
 
-2. **Silent failure in VBScript.** The VBScript started with
-   `On Error Resume Next` and used `Session.Property("CustomActionData")`.
-   When the property was empty, `installDir` became `""`, `resourcesDir`
-   became `"resources"` (a relative path), and `fso.FolderExists(...)`
-   returned `False`. The `Err.Raise` that followed was suppressed by the
-   earlier `On Error Resume Next` — Windows Installer treated the CA as
-   successful (`Return value 1`) because VBScript exited cleanly.
+**Net effect:** The two gaps masked each other. Fragile sequencing made
+`CustomActionData` unreliable in SYSTEM context; silent error handling made
+the empty-data case indistinguishable from success in interactive logs where the path was never empty.
 
-**Root cause:** Two bugs hid each other. Fragile CA sequencing made
-`CustomActionData` unreliable; silent-fail error handling made the silent
-case indistinguishable from success in the MSI log.
-
-### Attempt 3: The fix
+### Phase 3: Fix
 
 **What was done:**
 
-- Explicit, dependency-ordered scheduling after the files are on disk:
+- Explicit, dependency-ordered scheduling after files are on disk:
   ```xml
   <Custom Action="SetWriteUpdateJsonData" After="InstallFiles">...</Custom>
   <Custom Action="WriteUpdateJson" After="SetWriteUpdateJsonData">...</Custom>
   ```
 - Added `Execute="immediate"` and `Return="check"` explicitly on the setter
-  so its status is audited by MSI rather than defaulted.
-- Added an explicit empty-`CustomActionData` guard in the VBScript so the
-  failure mode is loud and visible in `msiexec /l*v` logs instead of silent.
+  so MSI audits its exit status.
+- Added an explicit empty-`CustomActionData` guard in VBScript so the failure
+  mode is visible in `msiexec /l*v` logs instead of silent.
 - Added `NOT Installed` to the condition so repair/modify does not rewrite
   `update.json`.
 - Quoted the `"1"` literal in the condition for string-safe comparison.
 - Set `msi.perMachine: true` in `electron-builder.json` so the MSI bakes in
   `ALLUSERS=1` / empty `MSIINSTALLPERUSER` — a machine-scope install that
-  works correctly under SYSTEM context (required for SCCM). NSIS stays
-  `perMachine: false` for consumer use.
+  works under SYSTEM context. NSIS stays `perMachine: false` for consumer use.
 
-**What worked and why:** Making the immediate → deferred dependency
-**explicit and observable** removed the whole class of "did it actually
-run?" ambiguity. Even if the fix had been wrong, the next failure would be
-diagnosable from the log (`CustomActionData is empty — SetWriteUpdateJsonData did not run`) instead of
-silently no-op.
+**Why it works:** Making the immediate → deferred dependency **explicit and
+observable** removes the "did it actually run?" ambiguity entirely. If the CA
+does not receive data, the log now says so explicitly (`CustomActionData is empty —
+SetWriteUpdateJsonData did not run`), giving operators an observable signal
+instead of requiring them to infer the outcome from side-effects.
 
-## Test infrastructure
+## Test Infrastructure
 
 Committed a reusable test harness at `scripts/msi-test/`:
 
@@ -118,9 +130,8 @@ Committed a reusable test harness at `scripts/msi-test/`:
 - `fetch-logs.sh` — Standalone log puller.
 - `README.md` — Usage and VM prerequisites.
 
-Validation run on Windows 10 VM (<windows-test-vm>) with the patched MSI
-produced all three scenarios `PASS`. The log excerpt proving the fix
-fired correctly:
+Validation on a Windows 10 VM with the patched MSI produced all three
+scenarios `PASS`. Log excerpt confirming correct execution:
 
 ```
 PROPERTY CHANGE: Adding DISABLE_AUTO_UPDATES property. Its value is '1'.
@@ -133,13 +144,13 @@ Action ended: WriteUpdateJson. Return value 1.
 
 ## Lessons Learned
 
-### 1. `On Error Resume Next` without a matching `On Error Goto 0` hides bugs
+### 1. `On Error Resume Next` without a matching `On Error Goto 0` hides gaps
 
 Any VBScript CA that uses `On Error Resume Next` must either (a) reset the
 handler with `On Error Goto 0` after the fragile block, or (b) check
-`Err.Number` immediately after every operation that can fail. The MSI
-engine cannot distinguish "script completed with Err=0" from "script
-completed with all errors suppressed" — both report `Return value 1`.
+`Err.Number` immediately after every operation that can fail. The MSI engine
+cannot distinguish "script completed with Err=0" from "script completed with
+all errors suppressed" — both report `Return value 1`.
 
 ### 2. Immediate-to-deferred CA plumbing needs explicit sequencing, not `Before="<deferred>"`
 
@@ -151,40 +162,38 @@ dependency between them:
 <Custom Action="FooDeferred" After="SetFooData">...</Custom>
 ```
 
-Relying on `Before="<deferred-CA>"` is syntactically legal but
-operationally brittle — the deferred action's position in the execution
-script is not the same as its position in the sequence table, and ICE
-validation will not always catch the divergence (especially when
-`additionalWixArgs: ["-sval"]` disables it).
+Relying on `Before="<deferred-CA>"` is syntactically legal but operationally
+fragile — the deferred action's position in the execution script is not the
+same as its position in the sequence table, and ICE validation will not always
+catch the divergence (especially when `additionalWixArgs: ["-sval"]` disables
+it).
 
 ### 3. MSI "success" in the log is not proof of correctness
 
-`Return value 1` means "the CA's host process exited cleanly." It says
-nothing about whether the CA did what it was supposed to do. For file-
-or registry-producing CAs, always assert the observable side-effect
-(`Test-Path "<installdir>\resources\update.json"`) in automation, not
-just the MSI exit code.
+`Return value 1` means "the CA's host process exited cleanly." It says nothing
+about whether the CA did what it was supposed to do. For file- or
+registry-producing CAs, always assert the observable side-effect
+(`Test-Path "<installdir>\resources\update.json"`) in automation, not just
+the MSI exit code.
 
-### 4. Test a fix in the ACTUAL deployment context, not just the happy path
+### 4. Enterprise validation requires testing in the actual deployment context
 
-The customer's "worked for a while, now doesn't" was misleading. The
-feature likely never worked in a real SCCM/SYSTEM install — it may have
-appeared to work during an interactive run on the author's dev machine
-because implicit sequence ordering happened to favor the CA that one time.
-Before marking a feature as Done for enterprise use, reproduce in:
+Interactive elevated installs and SYSTEM-context deployments have materially
+different property environments and install scope behaviour. Before certifying a
+feature for enterprise deployment, reproduce in:
 
 - Interactive elevated install
 - `/qn` silent install as a normal admin
 - `PsExec -s -i` SYSTEM context (SCCM simulation)
 
-### 5. Enterprise-targeted installers must bake in their scope
+### 5. Enterprise-targeted installers must bake in their install scope
 
 `msi.perMachine: true` (i.e., embed `ALLUSERS=1`) is the right default for
-the MSI because MSI is the enterprise deployment vehicle. Leaving it
-`false` and requiring every admin to pass `ALLUSERS=1 MSIINSTALLPERUSER=""`
-on the command line is a trap — any missing property leads to a per-user
-install under the SCCM SYSTEM profile, which is invisible to all logged-in
-users. NSIS retains `perMachine: false` for consumer installs.
+the MSI because MSI is the enterprise deployment vehicle. Leaving it `false`
+and requiring every admin to pass `ALLUSERS=1 MSIINSTALLPERUSER=""` on the
+command line is a trap — any missing property leads to a per-user install
+under the SCCM SYSTEM profile, which is invisible to logged-in users. NSIS
+retains `perMachine: false` for consumer installs.
 
 ### 6. Cross-building Windows MSI from macOS arm64 is not viable in our tested environment as of April 2026
 
@@ -197,20 +206,20 @@ options are:
 - Build on a Windows machine (CI runner or a VM)
 - Use GitHub Actions with a Windows runner
 
-Wine cross-build worked historically for NSIS but does not work for WiX4
-MSI on Apple Silicon. Do not spend time on it; go straight to Windows.
+Wine cross-build worked historically for NSIS but does not work for WiX4 MSI
+on Apple Silicon. Do not spend time on it; go straight to Windows.
 
-## What this does NOT fix
+## What This Does Not Address
 
-- **NSIS `/allusers` under SCCM/SYSTEM is still unreliable.** NSIS was
-  never designed for SYSTEM-context execution; its per-user vs per-machine
-  probing depends on UAC token information that isn't meaningful for
-  SYSTEM. `docs/enterprise-deployment.md` now documents that enterprise
-  customers must use the MSI, not the NSIS installer. Fixing NSIS for
-  SYSTEM context is out of scope and would require either flipping NSIS
-  to `perMachine: true` (breaks consumer flow) or implementing custom
-  `!ifdef SYSTEM` detection inside `build/installer.nsh`.
+- **NSIS `/allusers` under SCCM/SYSTEM is still unreliable.** NSIS was never
+  designed for SYSTEM-context execution; its per-user vs per-machine probing
+  depends on UAC token information that is not meaningful for SYSTEM.
+  `docs/enterprise-deployment.md` now documents that enterprise customers must
+  use the MSI, not the NSIS installer. Hardening NSIS for SYSTEM context is
+  out of scope and would require either flipping NSIS to `perMachine: true`
+  (breaks consumer flow) or implementing custom `!ifdef SYSTEM` detection
+  inside `build/installer.nsh`.
 - **`additionalWixArgs: ["-sval"]` is still set.** Removing it to re-enable
-  ICE validation is the right long-term move, but may surface pre-existing
-  ICE errors unrelated to this fix and would have to be addressed before
-  the change ships.
+  ICE validation is the right long-term move, but may surface pre-existing ICE
+  errors unrelated to this change and would need to be addressed before
+  shipping.

@@ -15,7 +15,7 @@ Used by `snapcore/action-publish@v1` step in
 
 **Symptom in CI log:**
 
-```
+```text
 Exported credentials are no longer valid for the Snap Store.
 Recommended resolution: Run export-login and update SNAPCRAFT_STORE_CREDENTIALS.
 ```
@@ -79,7 +79,7 @@ distribution (`dmg`, `pkg`, `zip`).
 
 **Symptom in CI log:**
 
-```
+```text
 skipped macOS application code signing
 reason=cannot find valid "Apple Distribution, 3rd Party Mac Developer Application" identity
 ... (CSSMERR_TP_CERT_EXPIRED) for multiple identities
@@ -105,17 +105,26 @@ to Rocket.Chat Technologies Corp. team (`S6UPZG7ZR3`).
 3. Export combined `.p12` from Keychain Access:
    - Select all renewed certs + their private keys.
    - File → Export Items → `.p12` format.
+   - Save as `certs.p12` (or rename to `certs.p12` before step 4 to
+     match the command below).
    - Set strong password.
 
-4. Base64 encode for GitHub:
+4. Base64 encode for GitHub. Strip newlines so `CSC_LINK` is a clean
+   single-line payload:
 
    ```bash
-   base64 -i certs.p12 | pbcopy
+   base64 -i certs.p12 | tr -d '\n' | pbcopy
    ```
 
 5. GitHub → repo Settings → Secrets and variables → Actions:
    - `CSC_LINK` → paste base64 contents.
    - `CSC_KEY_PASSWORD` → set to `.p12` password.
+   - After saving the secret, securely delete the local file and
+     clear the clipboard:
+     ```bash
+     rm -P certs.p12
+     pbcopy < /dev/null
+     ```
 
 6. Verify `APPLEID`, `APPLEIDPASS` (app-specific password), and
    `ASC_PROVIDER=S6UPZG7ZR3` secrets are still valid for notarization.
@@ -166,5 +175,5 @@ console if `failed to authenticate to KMS` appears.
 | Platform | Secret(s) | Renewal cadence | Where to run |
 |----------|-----------|-----------------|--------------|
 | Snap | `SNAPCRAFT_STORE_CREDENTIALS` | ~1 year | Ubuntu only |
-| macOS | `CSC_LINK`, `CSC_KEY_PASSWORD`, `Desktop.provisionprofile` | 1 year (Apple Distribution) | macOS only |
+| macOS | `CSC_LINK`, `CSC_KEY_PASSWORD`, `Desktop.provisionprofile` | typically ~1 year; confirm expiry in the Apple Developer portal for the specific certificate/profile | macOS only |
 | Windows KMS | `WIN_CSC_*`, GCP SA JSON | SA key rotation policy | Any |

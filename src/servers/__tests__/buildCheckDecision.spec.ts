@@ -1,7 +1,8 @@
 import { decideBuildCheck } from '../buildCheckDecision';
 
 const noBaseline = {
-  lastServerBuildId: undefined,
+  lastCommitBuildId: undefined,
+  lastVersionBuildId: undefined,
   lastBundleVersion: undefined,
   lastCacheVersion: undefined,
   gitCommitHash: undefined,
@@ -18,11 +19,20 @@ describe('decideBuildCheck', () => {
   });
 
   describe('first observation (no baseline anywhere)', () => {
-    it('adopts when no legacy or new baseline exists', () => {
+    it('adopts when no legacy or new baseline exists (commit source)', () => {
       expect(
         decideBuildCheck(noBaseline, {
           buildId: 'abc123',
           buildIdSource: 'commit',
+        })
+      ).toEqual({ kind: 'adopt' });
+    });
+
+    it('adopts when no legacy or new baseline exists (version source)', () => {
+      expect(
+        decideBuildCheck(noBaseline, {
+          buildId: '7.5.0',
+          buildIdSource: 'version',
         })
       ).toEqual({ kind: 'adopt' });
     });
@@ -64,7 +74,7 @@ describe('decideBuildCheck', () => {
     });
 
     it('adopts (not clears) when legacy commit present but incoming is version-source', () => {
-      // Cross-source — cannot confidently compare; treat as first observation.
+      // Cross-source — version source has no lastVersionBuildId and no server.version, adopt.
       expect(
         decideBuildCheck(serverWithCommit, {
           buildId: '7.5.0',
@@ -104,6 +114,7 @@ describe('decideBuildCheck', () => {
     });
 
     it('adopts (not clears) when legacy version present but incoming is commit-source', () => {
+      // Cross-source — commit source has no lastCommitBuildId and no gitCommitHash, adopt.
       expect(
         decideBuildCheck(serverWithVersion, {
           buildId: 'abc123',
@@ -113,60 +124,160 @@ describe('decideBuildCheck', () => {
     });
   });
 
-  describe('new baseline — buildId changed', () => {
-    it('clears when lastServerBuildId differs from incoming buildId', () => {
+  describe('new baseline — commit source', () => {
+    it('clears when lastCommitBuildId differs from incoming commit-source buildId', () => {
       const result = decideBuildCheck(
-        { ...noBaseline, lastServerBuildId: 'old-build', lastCacheVersion: '2' },
-        { buildId: 'new-build', cacheVersion: '2', buildIdSource: 'commit' }
+        { ...noBaseline, lastCommitBuildId: 'old-commit', lastCacheVersion: '2' },
+        { buildId: 'new-commit', cacheVersion: '2', buildIdSource: 'commit' }
       );
       expect(result.kind).toBe('clear');
       expect((result as { kind: 'clear'; reason: string }).reason).toContain(
-        'old-build'
+        'old-commit'
       );
+    });
+
+    it('returns noop when lastCommitBuildId matches incoming', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastCommitBuildId: 'abc', lastCacheVersion: '2' },
+          { buildId: 'abc', cacheVersion: '2', buildIdSource: 'commit' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('adopts when buildId arrives but commit baseline was not previously stored', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastCommitBuildId: undefined, lastCacheVersion: '1' },
+          { buildId: 'abc', cacheVersion: '1', buildIdSource: 'commit' }
+        )
+      ).toEqual({ kind: 'adopt' });
+    });
+  });
+
+  describe('new baseline — version source', () => {
+    it('clears when lastVersionBuildId differs from incoming version-source buildId', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastVersionBuildId: '7.4.0', lastCacheVersion: '2' },
+        { buildId: '7.5.0', cacheVersion: '2', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain(
+        '7.4.0'
+      );
+    });
+
+    it('returns noop when lastVersionBuildId matches incoming', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastVersionBuildId: '7.5.0', lastCacheVersion: '2' },
+          { buildId: '7.5.0', cacheVersion: '2', buildIdSource: 'version' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('adopts when buildId arrives but version baseline was not previously stored', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastVersionBuildId: undefined, lastCacheVersion: '1' },
+          { buildId: '7.5.0', cacheVersion: '1', buildIdSource: 'version' }
+        )
+      ).toEqual({ kind: 'adopt' });
+    });
+  });
+
+  describe('cross-source isolation (core bug fix)', () => {
+    it('version baseline + incoming commit (different value) → adopt, not clear', () => {
+      // Server previously seen via version source. Now commit hash arrives.
+      // Must NOT trigger a clear — these are independent baselines.
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastVersionBuildId: '7.5.0' },
+          { buildId: 'deadbeef', buildIdSource: 'commit' }
+        )
+      ).toEqual({ kind: 'adopt' });
+    });
+
+    it('commit baseline + incoming version (different value) → adopt, not clear', () => {
+      // Server previously seen via commit source. Now version string arrives.
+      // Must NOT trigger a clear.
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastCommitBuildId: 'deadbeef' },
+          { buildId: '7.5.0', buildIdSource: 'version' }
+        )
+      ).toEqual({ kind: 'adopt' });
+    });
+
+    it('version baseline + incoming version (different value) → clear', () => {
+      // Same-source mismatch: version changed, should clear.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastVersionBuildId: '7.4.0' },
+        { buildId: '7.5.0', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.4.0');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0');
+    });
+
+    it('commit baseline + incoming commit (different value) → clear', () => {
+      // Same-source mismatch: commit changed, should clear.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCommitBuildId: 'oldbeef' },
+        { buildId: 'newbeef', buildIdSource: 'commit' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('oldbeef');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('newbeef');
+    });
+
+    it('both baselines populated — only same-source mismatch triggers clear', () => {
+      // lastVersionBuildId and lastCommitBuildId both set. Incoming version differs.
+      // commit baseline is untouched, version baseline triggers the clear.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCommitBuildId: 'deadbeef', lastVersionBuildId: '7.4.0' },
+        { buildId: '7.5.0', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.4.0');
+    });
+
+    it('both baselines populated — incoming commit matches → noop', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastCommitBuildId: 'deadbeef', lastVersionBuildId: '7.4.0' },
+          { buildId: 'deadbeef', buildIdSource: 'commit' }
+        )
+      ).toEqual({ kind: 'noop' });
     });
   });
 
   describe('new baseline — cacheVersion changed', () => {
-    it('clears when lastCacheVersion differs from incoming cacheVersion', () => {
+    it('clears when lastCacheVersion differs from incoming (commit source)', () => {
       const result = decideBuildCheck(
-        { ...noBaseline, lastServerBuildId: 'same-build', lastCacheVersion: '2' },
+        { ...noBaseline, lastCommitBuildId: 'same-build', lastCacheVersion: '2' },
         { buildId: 'same-build', cacheVersion: '3', buildIdSource: 'commit' }
       );
       expect(result.kind).toBe('clear');
-      expect((result as { kind: 'clear'; reason: string }).reason).toContain(
-        '2'
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('2');
+    });
+
+    it('clears when lastCacheVersion differs from incoming (version source)', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastVersionBuildId: '7.5.0', lastCacheVersion: '2' },
+        { buildId: '7.5.0', cacheVersion: '3', buildIdSource: 'version' }
       );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('2');
     });
-  });
 
-  describe('partial baseline — new field arriving', () => {
-    it('adopts when cacheVersion arrives but was not previously stored', () => {
+    it('adopts when cacheVersion arrives but was not previously stored (commit source)', () => {
       expect(
         decideBuildCheck(
-          { ...noBaseline, lastServerBuildId: 'abc', lastCacheVersion: undefined },
+          { ...noBaseline, lastCommitBuildId: 'abc', lastCacheVersion: undefined },
           { buildId: 'abc', cacheVersion: '1', buildIdSource: 'commit' }
         )
       ).toEqual({ kind: 'adopt' });
-    });
-
-    it('adopts when buildId arrives but was not previously stored', () => {
-      expect(
-        decideBuildCheck(
-          { ...noBaseline, lastServerBuildId: undefined, lastCacheVersion: '1' },
-          { buildId: 'abc', cacheVersion: '1', buildIdSource: 'commit' }
-        )
-      ).toEqual({ kind: 'adopt' });
-    });
-  });
-
-  describe('no change', () => {
-    it('returns noop when baseline matches incoming on both fields', () => {
-      expect(
-        decideBuildCheck(
-          { ...noBaseline, lastServerBuildId: 'abc', lastCacheVersion: '2' },
-          { buildId: 'abc', cacheVersion: '2', buildIdSource: 'commit' }
-        )
-      ).toEqual({ kind: 'noop' });
     });
   });
 
@@ -203,11 +314,10 @@ describe('decideBuildCheck', () => {
       );
     });
 
-    it('does not interact with lastServerBuildId', () => {
-      // Autoupdate with a stored lastServerBuildId — should only look at lastBundleVersion
+    it('does not interact with lastCommitBuildId', () => {
       expect(
         decideBuildCheck(
-          { ...noBaseline, lastServerBuildId: 'commit-xyz', lastBundleVersion: undefined },
+          { ...noBaseline, lastCommitBuildId: 'commit-xyz', lastBundleVersion: undefined },
           { buildId: 'bundle-new', buildIdSource: 'autoupdate' }
         )
       ).toEqual({ kind: 'adopt' });
@@ -221,13 +331,12 @@ describe('decideBuildCheck', () => {
   });
 
   describe('commit source does not interact with lastBundleVersion', () => {
-    it('uses lastServerBuildId path even when lastBundleVersion is set', () => {
-      // commit source with both baselines present — commit path uses lastServerBuildId
+    it('uses lastCommitBuildId path even when lastBundleVersion is set', () => {
       expect(
         decideBuildCheck(
           {
             ...noBaseline,
-            lastServerBuildId: 'deadbeef',
+            lastCommitBuildId: 'deadbeef',
             lastBundleVersion: 'bundle-xyz',
           },
           { buildId: 'deadbeef', buildIdSource: 'commit' }

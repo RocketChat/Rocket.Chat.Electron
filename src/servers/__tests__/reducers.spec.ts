@@ -11,22 +11,21 @@ const baseServer: Server = {
 };
 
 describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
-  it('records lastServerBuildId and lastCacheVersion on first observation', () => {
+  it('records lastCacheVersion on first observation (no source)', () => {
     const state = [{ ...baseServer }];
     const next = servers(state, {
       type: WEBVIEW_SERVER_BUILD_UPDATED,
       payload: {
         url: baseServer.url,
-        buildId: 'abc123',
+        buildId: undefined,
         cacheVersion: 'v2',
       },
     });
     const updated = next.find((s) => s.url === baseServer.url)!;
-    expect(updated.lastServerBuildId).toBe('abc123');
     expect(updated.lastCacheVersion).toBe('v2');
   });
 
-  it('mirrors buildId to gitCommitHash only when buildIdSource is commit', () => {
+  it('writes lastCommitBuildId and mirrors to gitCommitHash when buildIdSource is commit', () => {
     const state = [{ ...baseServer, gitCommitHash: 'old-hash' }];
     const next = servers(state, {
       type: WEBVIEW_SERVER_BUILD_UPDATED,
@@ -38,11 +37,13 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
       },
     });
     const updated = next.find((s) => s.url === baseServer.url)!;
+    expect(updated.lastCommitBuildId).toBe('new-hash');
     expect(updated.gitCommitHash).toBe('new-hash');
-    expect(updated.lastServerBuildId).toBe('new-hash');
+    // Must NOT touch version baseline
+    expect(updated.lastVersionBuildId).toBeUndefined();
   });
 
-  it('does NOT mirror buildId to gitCommitHash when buildIdSource is version', () => {
+  it('writes lastVersionBuildId and does NOT touch gitCommitHash when buildIdSource is version', () => {
     const state = [{ ...baseServer, gitCommitHash: 'real-hash-abc' }];
     const next = servers(state, {
       type: WEBVIEW_SERVER_BUILD_UPDATED,
@@ -54,12 +55,14 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
       },
     });
     const updated = next.find((s) => s.url === baseServer.url)!;
+    expect(updated.lastVersionBuildId).toBe('7.5.0');
     // gitCommitHash must NOT be overwritten by the version string
     expect(updated.gitCommitHash).toBe('real-hash-abc');
-    expect(updated.lastServerBuildId).toBe('7.5.0');
+    // Must NOT touch commit baseline
+    expect(updated.lastCommitBuildId).toBeUndefined();
   });
 
-  it('does NOT mirror buildId to gitCommitHash when buildIdSource is absent', () => {
+  it('does NOT write commit or version baseline when buildIdSource is absent', () => {
     const state = [{ ...baseServer, gitCommitHash: 'real-hash-xyz' }];
     const next = servers(state, {
       type: WEBVIEW_SERVER_BUILD_UPDATED,
@@ -72,7 +75,8 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
     });
     const updated = next.find((s) => s.url === baseServer.url)!;
     expect(updated.gitCommitHash).toBe('real-hash-xyz');
-    expect(updated.lastServerBuildId).toBe('some-id');
+    expect(updated.lastCommitBuildId).toBeUndefined();
+    expect(updated.lastVersionBuildId).toBeUndefined();
   });
 
   it('does not set gitCommitHash when buildId is absent', () => {
@@ -107,8 +111,8 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
 });
 
 describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED autoupdate source', () => {
-  it('writes lastBundleVersion (not lastServerBuildId, not gitCommitHash) when buildIdSource is autoupdate', () => {
-    const state = [{ ...baseServer, gitCommitHash: 'real-hash', lastServerBuildId: 'commit-id' }];
+  it('writes lastBundleVersion (not lastCommitBuildId, not lastVersionBuildId, not gitCommitHash) when buildIdSource is autoupdate', () => {
+    const state = [{ ...baseServer, gitCommitHash: 'real-hash', lastCommitBuildId: 'commit-id' }];
     const next = servers(state, {
       type: WEBVIEW_SERVER_BUILD_UPDATED,
       payload: {
@@ -120,10 +124,12 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED autoupdate source', (
     });
     const updated = next.find((s) => s.url === baseServer.url)!;
     expect(updated.lastBundleVersion).toBe('bundle-abc');
-    // lastServerBuildId must remain unchanged
-    expect(updated.lastServerBuildId).toBe('commit-id');
+    // lastCommitBuildId must remain unchanged
+    expect(updated.lastCommitBuildId).toBe('commit-id');
     // gitCommitHash must remain unchanged
     expect(updated.gitCommitHash).toBe('real-hash');
+    // version baseline untouched
+    expect(updated.lastVersionBuildId).toBeUndefined();
   });
 });
 

@@ -8,7 +8,8 @@ export type BuildCheckDecision =
 export const decideBuildCheck = (
   server: Pick<
     Server,
-    | 'lastServerBuildId'
+    | 'lastCommitBuildId'
+    | 'lastVersionBuildId'
     | 'lastBundleVersion'
     | 'lastCacheVersion'
     | 'gitCommitHash'
@@ -25,11 +26,10 @@ export const decideBuildCheck = (
   // Nothing actionable from the server — caller should short-circuit, but guard here too.
   if (!buildId && !cacheVersion) return { kind: 'noop' };
 
-  // --- autoupdate source: operates on lastBundleVersion, never touches lastServerBuildId ---
+  // --- autoupdate source: operates on lastBundleVersion only ---
   if (buildIdSource === 'autoupdate') {
     if (!buildId) return { kind: 'noop' };
     if (!server.lastBundleVersion) {
-      // No autoupdate baseline yet — first observation, adopt.
       return { kind: 'adopt' };
     }
     if (server.lastBundleVersion === buildId) return { kind: 'noop' };
@@ -39,63 +39,79 @@ export const decideBuildCheck = (
     };
   }
 
-  // --- commit / version sources: operate on lastServerBuildId / lastCacheVersion ---
-
-  const hasNewBaseline =
-    !!server.lastServerBuildId || !!server.lastCacheVersion;
-
-  const incomingIsCommit = buildIdSource === 'commit' && !!buildId;
-  const incomingIsVersion = buildIdSource === 'version' && !!buildId;
-
-  // Legacy migration: no new-baseline fields recorded yet.
-  if (!hasNewBaseline) {
-    if (incomingIsCommit && !!server.gitCommitHash) {
-      // Compare like-for-like: incoming commit vs stored commit.
-      if (server.gitCommitHash === buildId) return { kind: 'adopt' };
-      return {
-        kind: 'clear',
-        reason: `legacy gitCommitHash ${server.gitCommitHash} -> ${buildId}`,
-      };
+  // --- commit source: operates on lastCommitBuildId ---
+  if (buildIdSource === 'commit' && buildId) {
+    if (!server.lastCommitBuildId) {
+      // No commit baseline yet — check legacy gitCommitHash migration.
+      if (server.gitCommitHash) {
+        if (server.gitCommitHash === buildId) return { kind: 'adopt' };
+        return {
+          kind: 'clear',
+          reason: `legacy gitCommitHash ${server.gitCommitHash} -> ${buildId}`,
+        };
+      }
+      // First observation, adopt.
+      return { kind: 'adopt' };
     }
-
-    if (incomingIsVersion && !!server.version) {
-      // Compare like-for-like: incoming version vs stored version.
-      if (server.version === buildId) return { kind: 'adopt' };
-      return {
-        kind: 'clear',
-        reason: `legacy version ${server.version} -> ${buildId}`,
-      };
+    if (server.lastCommitBuildId === buildId) {
+      // buildId matches; check cacheVersion if present.
+      if (cacheVersion && server.lastCacheVersion && server.lastCacheVersion !== cacheVersion) {
+        return {
+          kind: 'clear',
+          reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
+        };
+      }
+      if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
+      return { kind: 'noop' };
     }
-
-    // Cross-source or no legacy baseline at all — first observation, adopt.
-    return { kind: 'adopt' };
+    return {
+      kind: 'clear',
+      reason: `commitBuildId ${server.lastCommitBuildId} -> ${buildId}`,
+    };
   }
 
-  // New-baseline path: check for actual changes.
-  const buildChanged =
-    !!buildId &&
-    !!server.lastServerBuildId &&
-    server.lastServerBuildId !== buildId;
-  const cacheVersionChanged =
-    !!cacheVersion &&
-    !!server.lastCacheVersion &&
-    server.lastCacheVersion !== cacheVersion;
-
-  if (buildChanged || cacheVersionChanged) {
-    const reason = buildChanged
-      ? `buildId ${server.lastServerBuildId} -> ${buildId}`
-      : `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`;
-    return { kind: 'clear', reason };
+  // --- version source: operates on lastVersionBuildId ---
+  if (buildIdSource === 'version' && buildId) {
+    if (!server.lastVersionBuildId) {
+      // No version baseline yet — check legacy server.version migration.
+      if (server.version) {
+        if (server.version === buildId) return { kind: 'adopt' };
+        return {
+          kind: 'clear',
+          reason: `legacy version ${server.version} -> ${buildId}`,
+        };
+      }
+      // First observation, adopt.
+      return { kind: 'adopt' };
+    }
+    if (server.lastVersionBuildId === buildId) {
+      // buildId matches; check cacheVersion if present.
+      if (cacheVersion && server.lastCacheVersion && server.lastCacheVersion !== cacheVersion) {
+        return {
+          kind: 'clear',
+          reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
+        };
+      }
+      if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
+      return { kind: 'noop' };
+    }
+    return {
+      kind: 'clear',
+      reason: `versionBuildId ${server.lastVersionBuildId} -> ${buildId}`,
+    };
   }
 
-  // Partial baseline: new field arriving that wasn't stored yet — adopt patch.
-  if (
-    (buildId && !server.lastServerBuildId) ||
-    (cacheVersion && !server.lastCacheVersion)
-  ) {
-    return { kind: 'adopt' };
+  // --- source undefined: only cacheVersion can arrive here (buildId without source) ---
+  // Treat as adopt/noop based solely on cacheVersion; do not write commit or version baseline.
+  if (cacheVersion) {
+    if (!server.lastCacheVersion) return { kind: 'adopt' };
+    if (server.lastCacheVersion === cacheVersion) return { kind: 'noop' };
+    return {
+      kind: 'clear',
+      reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
+    };
   }
 
-  // No change.
-  return { kind: 'noop' };
+  // buildId present but source unknown — first observation, adopt.
+  return { kind: 'adopt' };
 };

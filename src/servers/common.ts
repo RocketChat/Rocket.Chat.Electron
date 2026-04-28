@@ -18,7 +18,8 @@ export type Server = {
   webContentsId?: number;
   userLoggedIn?: boolean;
   gitCommitHash?: string;
-  lastServerBuildId?: string;
+  lastCommitBuildId?: string;
+  lastVersionBuildId?: string;
   lastBundleVersion?: string;
   lastCacheVersion?: string;
   allowedRedirects?: string[];

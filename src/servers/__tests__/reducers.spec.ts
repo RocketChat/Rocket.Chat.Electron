@@ -1,5 +1,4 @@
 import {
-  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_SERVER_BUILD_UPDATED,
 } from '../../ui/actions';
 import type { Server } from '../common';
@@ -133,14 +132,3 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED autoupdate source', (
   });
 });
 
-describe('servers reducer — WEBVIEW_GIT_COMMIT_HASH_CHANGED', () => {
-  it('updates gitCommitHash', () => {
-    const state = [{ ...baseServer, gitCommitHash: 'old' }];
-    const next = servers(state, {
-      type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
-      payload: { url: baseServer.url, gitCommitHash: 'new' },
-    });
-    const updated = next.find((s) => s.url === baseServer.url)!;
-    expect(updated.gitCommitHash).toBe('new');
-  });
-});

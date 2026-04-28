@@ -75,9 +75,6 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED =
   'webview/sidebar-custom-theme-changed';
-export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
-  'webview/git-commit-hash-changed';
-export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
 export const WEBVIEW_SERVER_BUILD_CHECK = 'webview/server-build-check';
 export const WEBVIEW_SERVER_BUILD_UPDATED = 'webview/server-build-updated';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
@@ -233,14 +230,6 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_USER_LOGGED_IN]: {
     url: Server['url'];
     userLoggedIn: Server['userLoggedIn'];
-  };
-  [WEBVIEW_GIT_COMMIT_HASH_CHECK]: {
-    url: Server['url'];
-    gitCommitHash: Server['gitCommitHash'];
-  };
-  [WEBVIEW_GIT_COMMIT_HASH_CHANGED]: {
-    url: Server['url'];
-    gitCommitHash: Server['gitCommitHash'];
   };
   [WEBVIEW_SERVER_BUILD_CHECK]: {
     url: Server['url'];

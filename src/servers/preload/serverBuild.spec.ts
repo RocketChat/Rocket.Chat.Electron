@@ -220,6 +220,32 @@ describe('setServerBuildSignals / flushPendingBuildSignal', () => {
     });
   });
 
+  describe('setGitCommitHash routing (F3)', () => {
+    it('routes gitCommitHash through setServerBuildSignals with buildIdSource=commit', () => {
+      jest.isolateModules(() => {
+        const storeMock = require('../../store');
+        const { flushPendingBuildSignal } = require('./serverBuild');
+        const { setGitCommitHash } = require('./gitCommitHash');
+
+        flushPendingBuildSignal();
+        storeMock.dispatch.mockClear();
+
+        setGitCommitHash('deadbeef');
+
+        expect(storeMock.dispatch).toHaveBeenCalledTimes(1);
+        expect(storeMock.dispatch).toHaveBeenCalledWith({
+          type: WEBVIEW_SERVER_BUILD_CHECK,
+          payload: {
+            url: 'https://example.rocket.chat/',
+            buildId: 'deadbeef',
+            cacheVersion: undefined,
+            buildIdSource: 'commit',
+          },
+        });
+      });
+    });
+  });
+
   describe('server-record-ready gate (C2)', () => {
     it('holds signal when store ready but server not in registry, dispatches after server appears', () => {
       jest.useFakeTimers();

@@ -551,9 +551,23 @@ const start = async () => {
       try {
         const Autoupdate = (window as any).Autoupdate;
         if (Autoupdate && typeof Autoupdate.newClientAvailable === 'function') {
+          // Edge-trigger guard: when the private Meteor store cannot supply a
+          // real bundle version we must NOT dispatch on every autorun re-fire
+          // (Tracker re-runs after each reload while newClientAvailable stays
+          // true and the store stays broken → infinite clear+reload loop).
+          // Fire at most once per false→true edge; reset when available drops
+          // back to false so the next true-edge can fire again.
+          let unknownBundleSent = false;
+
           Tracker.autorun(() => {
             const available = Autoupdate.newClientAvailable();
-            if (!available) return;
+
+            if (!available) {
+              // Re-arm: next true-edge is allowed to dispatch.
+              unknownBundleSent = false;
+              return;
+            }
+
             let bundleVersion: string | undefined;
             try {
               const store =
@@ -564,10 +578,22 @@ const start = async () => {
                 store?.get?.('version-refreshable') ?? store?.get?.('version');
               bundleVersion = doc?.version ?? doc?._id;
             } catch {
-              // store access failed — signal without version; main process will
-              // treat it as a new-baseline adopt on first call
+              // store access failed — fall through to the no-version path below
             }
-            window.RocketChatDesktop.notifyBundleAutoupdate?.({ bundleVersion });
+
+            if (bundleVersion) {
+              // Concrete version available — dispatch unconditionally (each
+              // distinct version string is its own edge in the main process).
+              window.RocketChatDesktop.notifyBundleAutoupdate?.({ bundleVersion });
+              return;
+            }
+
+            // No version yet — emit at most once per true-edge to avoid the
+            // infinite-reload loop described in the edge-trigger contract above.
+            if (!unknownBundleSent) {
+              unknownBundleSent = true;
+              window.RocketChatDesktop.notifyBundleAutoupdate?.({});
+            }
           });
           setupFlags.autoupdateSetup = true;
         }

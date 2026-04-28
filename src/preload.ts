@@ -6,6 +6,7 @@ import { JitsiMeetElectron } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop } from './servers/preload/api';
+import { flushPendingBuildSignal } from './servers/preload/serverBuild';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
@@ -61,6 +62,7 @@ const start = async (): Promise<void> => {
   await whenReady();
 
   await createRendererReduxStore();
+  flushPendingBuildSignal();
 
   await invoke('server-view/ready');
 

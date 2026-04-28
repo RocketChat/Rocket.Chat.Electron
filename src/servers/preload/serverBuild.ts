@@ -2,12 +2,13 @@ import { dispatch } from '../../store';
 import { WEBVIEW_SERVER_BUILD_CHECK } from '../../ui/actions';
 import { getServerUrl } from './urls';
 
-export const setServerBuildSignals = (signals: {
-  buildId?: string;
-  cacheVersion?: string;
-}): void => {
+type BuildSignals = { buildId?: string; cacheVersion?: string };
+
+let pendingSignal: BuildSignals | null = null;
+let storeReady = false;
+
+const doDispatch = (signals: BuildSignals): void => {
   const { buildId, cacheVersion } = signals;
-  if (!buildId && !cacheVersion) return;
   dispatch({
     type: WEBVIEW_SERVER_BUILD_CHECK,
     payload: {
@@ -16,4 +17,28 @@ export const setServerBuildSignals = (signals: {
       cacheVersion,
     },
   });
+};
+
+export const setServerBuildSignals = (signals: BuildSignals): void => {
+  const { buildId, cacheVersion } = signals;
+  if (!buildId && !cacheVersion) return;
+  if (storeReady) {
+    doDispatch(signals);
+  } else {
+    // Store not ready yet — queue the most recent signal. The flush will
+    // dispatch it once createRendererReduxStore() has resolved.
+    pendingSignal = signals;
+  }
+};
+
+/**
+ * Must be called once, immediately after createRendererReduxStore() resolves.
+ * Replays any build signal that arrived before the store was initialised.
+ */
+export const flushPendingBuildSignal = (): void => {
+  storeReady = true;
+  if (!pendingSignal) return;
+  const signal = pendingSignal;
+  pendingSignal = null;
+  doDispatch(signal);
 };

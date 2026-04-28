@@ -212,7 +212,12 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       const { url, buildId, cacheVersion } = action.payload;
       if (!state.some((s) => s.url === url)) return state;
       const patch: Partial<Server> & { url: string } = { url };
-      if (buildId !== undefined) patch.lastServerBuildId = buildId;
+      if (buildId !== undefined) {
+        patch.lastServerBuildId = buildId;
+        // Keep gitCommitHash in sync so the legacy WEBVIEW_GIT_COMMIT_HASH_CHECK
+        // path does not trigger a second cache-clear for the same deploy.
+        patch.gitCommitHash = buildId;
+      }
       if (cacheVersion !== undefined) patch.lastCacheVersion = cacheVersion;
       return update(state, patch as Server);
     }

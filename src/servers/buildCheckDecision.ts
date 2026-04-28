@@ -82,7 +82,10 @@ export const decideBuildCheck = (
   if (buildIdSource === 'autoupdate') {
     if (!buildId) return { kind: 'noop' };
     if (!server.lastBundleVersion) {
-      return { kind: 'adopt' };
+      return {
+        kind: 'clear',
+        reason: `bundleVersion (first observation, autoupdate signal implies stale bundle) -> ${buildId}`,
+      };
     }
     if (server.lastBundleVersion === buildId) return { kind: 'noop' };
 

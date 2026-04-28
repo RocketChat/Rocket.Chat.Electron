@@ -282,13 +282,18 @@ describe('decideBuildCheck', () => {
   });
 
   describe('autoupdate source', () => {
-    it('adopts when no lastBundleVersion baseline exists', () => {
-      expect(
-        decideBuildCheck(noBaseline, {
-          buildId: 'bundle-abc.def',
-          buildIdSource: 'autoupdate',
-        })
-      ).toEqual({ kind: 'adopt' });
+    it('clears on first autoupdate observation (skipInitial=true means signal is reliable)', () => {
+      const result = decideBuildCheck(noBaseline, {
+        buildId: 'bundle-abc.def',
+        buildIdSource: 'autoupdate',
+      });
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain(
+        'first observation'
+      );
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain(
+        'bundle-abc.def'
+      );
     });
 
     it('returns noop when lastBundleVersion matches incoming', () => {
@@ -315,12 +320,14 @@ describe('decideBuildCheck', () => {
     });
 
     it('does not interact with lastCommitBuildId', () => {
-      expect(
-        decideBuildCheck(
-          { ...noBaseline, lastCommitBuildId: 'commit-xyz', lastBundleVersion: undefined },
-          { buildId: 'bundle-new', buildIdSource: 'autoupdate' }
-        )
-      ).toEqual({ kind: 'adopt' });
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCommitBuildId: 'commit-xyz', lastBundleVersion: undefined },
+        { buildId: 'bundle-new', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain(
+        'bundle-new'
+      );
     });
 
     it('returns noop when buildId is absent for autoupdate source', () => {

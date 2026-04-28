@@ -6,7 +6,7 @@ import { satisfies, coerce } from 'semver';
 
 import { packageJsonInformation } from '../app/main/app';
 import { invoke } from '../ipc/main';
-import { select, dispatch, listen } from '../store';
+import { select, safeSelect, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
 import {
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
@@ -212,7 +212,8 @@ export const setupServers = async (
     const { url, buildId, cacheVersion } = action.payload;
     if (!buildId && !cacheVersion) return;
 
-    const servers = select(({ servers }) => servers);
+    const servers = safeSelect(({ servers }) => servers);
+    if (!servers) return;
     const server = servers.find((s) => s.url === url);
     if (!server) return;
 
@@ -246,7 +247,7 @@ export const setupServers = async (
           ? `buildId ${server.lastServerBuildId} -> ${buildId}`
           : `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`;
         console.log(
-          `[Rocket.Chat Desktop] auto cache-clear + webview recreate for ${url} (${reason})`
+          `[Rocket.Chat Desktop] auto cache-clear for ${url} (${reason})`
         );
         await clearWebviewStorageKeepingLoginData(guestWebContents);
         dispatch({

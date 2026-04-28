@@ -25,6 +25,7 @@ import {
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
 import { reloadServer } from './reloadServer';
+import { SENTINEL_PREFIX } from '../buildCheckDecision';
 import { setServerBuildSignals } from './serverBuild';
 import {
   setBackground,
@@ -118,7 +119,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
     // newClientAvailable() fired; if Meteor's private store didn't yield a
     // version string, synthesize a per-event sentinel so the main process
     // still treats this as a real bundle change and clears the cache.
-    const buildId = bundleVersion || `autoupdate-${Date.now()}`;
+    const buildId = bundleVersion || `${SENTINEL_PREFIX}${Date.now()}`;
     setServerBuildSignals({ buildId, buildIdSource: 'autoupdate' });
   },
 };

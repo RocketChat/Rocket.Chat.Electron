@@ -1,5 +1,15 @@
 import { coerce } from 'semver';
 
+/**
+ * Prefix used by api.ts when Meteor's autoupdate does not supply a concrete
+ * bundle version string.  Exported so api.ts can use the same constant and
+ * the main-process sentinel-recognition logic stays in sync with the renderer.
+ */
+export const SENTINEL_PREFIX = 'autoupdate-';
+
+const isSentinel = (v: string | undefined): boolean =>
+  typeof v === 'string' && v.startsWith(SENTINEL_PREFIX);
+
 import type { Server } from './common';
 
 /**
@@ -67,6 +77,32 @@ export const decideBuildCheck = (
       return { kind: 'adopt' };
     }
     if (server.lastBundleVersion === buildId) return { kind: 'noop' };
+
+    // Sentinel-aware comparison: synthetic IDs (Date.now() based) must not
+    // bounce against each other or against an existing concrete baseline.
+    // The page context that synthesizes sentinels is torn down on reload, so
+    // consecutive sentinels differ (new Date.now()), but they represent the
+    // same true-edge event — not a real bundle change.
+    const incomingSentinel = isSentinel(buildId);
+    const persistedSentinel = isSentinel(server.lastBundleVersion);
+
+    // Both synthetic — same true-edge story across renderer reloads. Noop.
+    if (incomingSentinel && persistedSentinel) return { kind: 'noop' };
+
+    // Incoming synthetic, persisted concrete — concrete is more authoritative.
+    // Don't downgrade baseline. Noop.
+    if (incomingSentinel && !persistedSentinel) return { kind: 'noop' };
+
+    // Incoming concrete, persisted synthetic — first real observation after
+    // edge-trigger. Clear and adopt the concrete version.
+    if (!incomingSentinel && persistedSentinel) {
+      return {
+        kind: 'clear',
+        reason: `bundleVersion sentinel -> concrete ${buildId}`,
+      };
+    }
+
+    // Both concrete and different — real bundle change.
     return {
       kind: 'clear',
       reason: `bundleVersion ${server.lastBundleVersion} -> ${buildId}`,

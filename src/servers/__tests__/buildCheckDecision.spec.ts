@@ -1,4 +1,4 @@
-import { decideBuildCheck } from '../buildCheckDecision';
+import { decideBuildCheck, SENTINEL_PREFIX } from '../buildCheckDecision';
 
 const noBaseline = {
   lastCommitBuildId: undefined,
@@ -478,6 +478,60 @@ describe('decideBuildCheck', () => {
         { buildId: '7.4.0', buildIdSource: 'version' }
       );
       expect(result.kind).toBe('clear');
+    });
+  });
+
+  describe('autoupdate sentinel-aware comparison (reload-loop fix)', () => {
+    it('returns noop when both persisted and incoming are synthetic sentinels (reload scenario)', () => {
+      // Simulates: sentinel persisted from first autoupdate, then page reloads,
+      // new sentinel synthesized with different Date.now() — must NOT clear.
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastBundleVersion: `${SENTINEL_PREFIX}100` },
+          { buildId: `${SENTINEL_PREFIX}200`, buildIdSource: 'autoupdate' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('clears when persisted is synthetic sentinel and incoming is a concrete version', () => {
+      // First real concrete observation after edge-trigger — legitimate clear.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastBundleVersion: `${SENTINEL_PREFIX}100` },
+        { buildId: 'realhashabc', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('sentinel');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('realhashabc');
+    });
+
+    it('returns noop when incoming is synthetic sentinel and persisted is a concrete version', () => {
+      // Don't downgrade a concrete baseline to a sentinel.
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastBundleVersion: 'realhashabc' },
+          { buildId: `${SENTINEL_PREFIX}200`, buildIdSource: 'autoupdate' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('clears when both persisted and incoming are concrete and different', () => {
+      // Real bundle change — existing behaviour preserved.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastBundleVersion: 'realhashabc' },
+        { buildId: 'realhashdef', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('realhashabc');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('realhashdef');
+    });
+
+    it('returns noop when both persisted and incoming are the same concrete version', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastBundleVersion: 'realhashabc' },
+          { buildId: 'realhashabc', buildIdSource: 'autoupdate' }
+        )
+      ).toEqual({ kind: 'noop' });
     });
   });
 

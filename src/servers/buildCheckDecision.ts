@@ -3,15 +3,19 @@ import { coerce } from 'semver';
 import type { Server } from './common';
 
 /**
- * Compare two version strings using semver coercion so that pre-release
- * variants of the same release (e.g. '7.5.0' vs '7.5.0-rc.1') are treated as
- * equal and do not trigger a false cache-clear.
+ * Compare two version strings using semver coercion so that formatting
+ * differences (e.g. leading 'v', extra whitespace) for the same release are
+ * treated as equal and do not trigger a false cache-clear.
+ * Pre-release versions (containing '-') are compared with strict string
+ * equality so that RC bumps (7.5.0-rc.1 → 7.5.0-rc.2) and RC→GA promotions
+ * (7.5.0-rc.1 → 7.5.0) always trigger a clear.
  * Commit hashes and bundle identifiers are NOT compared via this helper —
  * those are opaque strings where string equality is correct.
  */
 const sameVersion = (a: string | undefined, b: string | undefined): boolean => {
   if (a === b) return true;
   if (!a || !b) return false;
+  if (a.includes('-') || b.includes('-')) return false;
   const ca = coerce(a)?.version;
   const cb = coerce(b)?.version;
   return !!ca && !!cb && ca === cb;

@@ -385,21 +385,21 @@ describe('decideBuildCheck', () => {
   });
 
   describe('semver-aware version compare (H2)', () => {
-    it('returns noop when lastVersionBuildId is 7.5.0 and incoming is 7.5.0-rc.1 (same patch)', () => {
+    it('returns noop when lastVersionBuildId is 7.5.0 and incoming is 7.5.0 (same GA release)', () => {
+      // regression guard: coerce still handles non-prerelease formatting differences
       expect(
         decideBuildCheck(
           { ...noBaseline, lastVersionBuildId: '7.5.0', lastCacheVersion: '1' },
-          { buildId: '7.5.0-rc.1', cacheVersion: '1', buildIdSource: 'version' }
+          { buildId: '7.5.0', cacheVersion: '1', buildIdSource: 'version' }
         )
       ).toEqual({ kind: 'noop' });
     });
 
-    it('returns noop when lastVersionBuildId is 7.5.0 and incoming is 7.5.0-rc.1 with no cacheVersion baseline', () => {
-      // sameVersion('7.5.0', '7.5.0-rc.1') → true; no cacheVersion to adopt → noop
+    it('returns noop for v-prefixed baseline matching GA incoming (coerce still works for non-prerelease)', () => {
       expect(
         decideBuildCheck(
-          { ...noBaseline, lastVersionBuildId: '7.5.0' },
-          { buildId: '7.5.0-rc.1', buildIdSource: 'version' }
+          { ...noBaseline, lastVersionBuildId: 'v7.5.0' },
+          { buildId: '7.5.0', buildIdSource: 'version' }
         )
       ).toEqual({ kind: 'noop' });
     });
@@ -412,15 +412,6 @@ describe('decideBuildCheck', () => {
       expect(result.kind).toBe('clear');
       expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0');
       expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.1');
-    });
-
-    it('legacy version: adopts when legacy is 7.4.0 and incoming is 7.4.0-rc.2 (same patch)', () => {
-      expect(
-        decideBuildCheck(
-          { ...noBaseline, version: '7.4.0' },
-          { buildId: '7.4.0-rc.2', buildIdSource: 'version' }
-        )
-      ).toEqual({ kind: 'adopt' });
     });
 
     it('legacy version: clears when legacy is 7.4.0 and incoming is 7.5.0 (different patch)', () => {
@@ -436,6 +427,55 @@ describe('decideBuildCheck', () => {
       const result = decideBuildCheck(
         { ...noBaseline, lastCommitBuildId: 'deadbeef' },
         { buildId: 'deadbeef-rc.1', buildIdSource: 'commit' }
+      );
+      expect(result.kind).toBe('clear');
+    });
+  });
+
+  describe('RC version changes (H4 regression)', () => {
+    it('clears when baseline is 7.5.0-rc.1 and incoming is 7.5.0-rc.2', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastVersionBuildId: '7.5.0-rc.1' },
+        { buildId: '7.5.0-rc.2', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0-rc.1');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0-rc.2');
+    });
+
+    it('clears when baseline is 7.5.0-rc.1 and incoming is 7.5.0 (RC to GA promotion)', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastVersionBuildId: '7.5.0-rc.1' },
+        { buildId: '7.5.0', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0-rc.1');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0');
+    });
+
+    it('clears when baseline is 7.5.0 (GA) and incoming is 7.5.0-rc.1 (downgrade)', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastVersionBuildId: '7.5.0' },
+        { buildId: '7.5.0-rc.1', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0-rc.1');
+    });
+
+    it('returns noop when baseline and incoming are both the same GA version (regression guard from H2)', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastVersionBuildId: '7.5.0', lastCacheVersion: '2' },
+          { buildId: '7.5.0', cacheVersion: '2', buildIdSource: 'version' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('legacy version: clears when legacy is 7.4.0-rc.2 and incoming is 7.4.0 (RC to GA)', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, version: '7.4.0-rc.2' },
+        { buildId: '7.4.0', buildIdSource: 'version' }
       );
       expect(result.kind).toBe('clear');
     });

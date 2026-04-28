@@ -23,6 +23,7 @@ import {
   SERVERS_LOADED,
 } from './actions';
 import { clearWebviewStorageKeepingLoginData } from './cache';
+import { decideBuildCheck } from './buildCheckDecision';
 import type { Server, ServerUrlResolutionResult } from './common';
 import {
   ServerUrlResolutionStatus,
@@ -217,55 +218,11 @@ export const setupServers = async (
     const server = servers.find((s) => s.url === url);
     if (!server) return;
 
-    const incomingIsCommit = buildIdSource === 'commit' && !!buildId;
-    const hasNewBaseline = !!server.lastServerBuildId || !!server.lastCacheVersion;
-    // Legacy migration: v4.13 client stored only gitCommitHash; new fields are empty.
-    // Only usable as a baseline when the incoming buildId is a real commit hash.
-    const hasLegacyCommitBaseline =
-      incomingIsCommit && !hasNewBaseline && !!server.gitCommitHash;
+    const decision = decideBuildCheck(server, { buildId, cacheVersion, buildIdSource });
 
-    const buildChanged =
-      !!buildId &&
-      !!server.lastServerBuildId &&
-      server.lastServerBuildId !== buildId;
-    const cacheVersionChanged =
-      !!cacheVersion &&
-      !!server.lastCacheVersion &&
-      server.lastCacheVersion !== cacheVersion;
+    if (decision.kind === 'noop') return;
 
-    // Legacy migration path: new fields empty but a legacy commit hash exists.
-    // If the incoming commit matches the stored hash the server hasn't changed —
-    // just adopt the new baseline without clearing. If it differs the server was
-    // updated between client versions — clear then record.
-    if (hasLegacyCommitBaseline) {
-      if (server.gitCommitHash === buildId) {
-        dispatch({
-          type: WEBVIEW_SERVER_BUILD_UPDATED,
-          payload: { url, buildId, cacheVersion, buildIdSource },
-        });
-        return;
-      }
-      if (buildCheckInFlight.has(url)) return;
-      const guestWebContents = getWebContentsByServerUrl(url);
-      if (!guestWebContents) return;
-      buildCheckInFlight.add(url);
-      try {
-        console.log(
-          `[Rocket.Chat Desktop] auto cache-clear for ${url} (migration: legacy gitCommitHash ${server.gitCommitHash} -> ${buildId})`
-        );
-        await clearWebviewStorageKeepingLoginData(guestWebContents);
-        dispatch({
-          type: WEBVIEW_SERVER_BUILD_UPDATED,
-          payload: { url, buildId, cacheVersion, buildIdSource },
-        });
-      } finally {
-        buildCheckInFlight.delete(url);
-      }
-      return;
-    }
-
-    // True first observation — no new fields and no usable legacy baseline.
-    if (!hasNewBaseline) {
+    if (decision.kind === 'adopt') {
       dispatch({
         type: WEBVIEW_SERVER_BUILD_UPDATED,
         payload: { url, buildId, cacheVersion, buildIdSource },
@@ -273,37 +230,29 @@ export const setupServers = async (
       return;
     }
 
-    if (buildChanged || cacheVersionChanged) {
-      if (buildCheckInFlight.has(url)) return;
-      const guestWebContents = getWebContentsByServerUrl(url);
-      if (!guestWebContents) return;
-      buildCheckInFlight.add(url);
+    // decision.kind === 'clear'
+    if (buildCheckInFlight.has(url)) return;
+    const guestWebContents = getWebContentsByServerUrl(url);
+    if (!guestWebContents) return;
+    buildCheckInFlight.add(url);
+    try {
+      console.log(
+        `[Rocket.Chat Desktop] auto cache-clear for ${url} (${decision.reason})`
+      );
       try {
-        const reason = buildChanged
-          ? `buildId ${server.lastServerBuildId} -> ${buildId}`
-          : `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`;
-        console.log(
-          `[Rocket.Chat Desktop] auto cache-clear for ${url} (${reason})`
-        );
         await clearWebviewStorageKeepingLoginData(guestWebContents);
         dispatch({
           type: WEBVIEW_SERVER_BUILD_UPDATED,
           payload: { url, buildId, cacheVersion, buildIdSource },
         });
-      } finally {
-        buildCheckInFlight.delete(url);
+      } catch (err) {
+        console.warn(
+          `[Rocket.Chat Desktop] auto cache-clear FAILED for ${url} (${decision.reason}): ${(err as Error)?.message ?? err}`
+        );
+        // Do not dispatch — baseline stays stale so we retry next observation.
       }
-      return;
-    }
-
-    if (
-      (buildId && !server.lastServerBuildId) ||
-      (cacheVersion && !server.lastCacheVersion)
-    ) {
-      dispatch({
-        type: WEBVIEW_SERVER_BUILD_UPDATED,
-        payload: { url, buildId, cacheVersion, buildIdSource },
-      });
+    } finally {
+      buildCheckInFlight.delete(url);
     }
   });
 

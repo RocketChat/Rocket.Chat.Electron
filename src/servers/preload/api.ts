@@ -81,6 +81,8 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
       : versionStr
       ? 'version'
       : undefined;
+    // `cache_version` cookie is an optional proxy-supplied signal — stock
+    // Rocket.Chat does not set it. Best-effort: absent on most deployments.
     const cacheVersionMatch =
       typeof document !== 'undefined'
         ? document.cookie?.match(/(?:^|;\s*)cache_version=([^;]+)/)

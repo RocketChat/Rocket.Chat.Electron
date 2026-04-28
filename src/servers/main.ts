@@ -185,9 +185,15 @@ export const setupServers = async (
   listen(WEBVIEW_GIT_COMMIT_HASH_CHECK, async (action) => {
     const { url, gitCommitHash } = action.payload;
 
-    const servers = select(({ servers }) => servers);
+    const servers = safeSelect(({ servers }) => servers);
+    if (!servers) return;
 
     const server = servers.find((server) => server.url === url);
+
+    // The WEBVIEW_SERVER_BUILD_CHECK path is the canonical handler once
+    // lastCommitBuildId has been observed. Skip the legacy clear+reload here
+    // to avoid double-clearing for the same deploy.
+    if (server?.lastCommitBuildId !== undefined) return;
 
     if (
       server?.gitCommitHash !== gitCommitHash &&

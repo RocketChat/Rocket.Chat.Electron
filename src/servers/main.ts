@@ -9,8 +9,6 @@ import { invoke } from '../ipc/main';
 import { select, safeSelect, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
 import {
-  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
-  WEBVIEW_GIT_COMMIT_HASH_CHECK,
   WEBVIEW_SERVER_BUILD_CHECK,
   WEBVIEW_SERVER_BUILD_UPDATED,
 } from '../ui/actions';
@@ -32,15 +30,26 @@ import {
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 
+const CLEAR_COOLDOWN_MS = 60_000;
+
 const buildCheckInFlight = new Set<Server['url']>();
 const pendingClears = new Map<
   Server['url'],
-  {
+  Map<string, {
     buildId?: string;
     cacheVersion?: string;
     buildIdSource?: 'commit' | 'version' | 'autoupdate';
-  }
+  }>
 >();
+const lastClearAt = new Map<Server['url'], number>();
+
+const pendingKey = (
+  source?: 'commit' | 'version' | 'autoupdate',
+  hasBuildId?: boolean
+): string => {
+  if (source) return source;
+  return hasBuildId ? 'sourceless-buildId' : 'cacheVersion-only';
+};
 
 export const convertToURL = (input: string): URL => {
   let url: URL;
@@ -190,45 +199,6 @@ export const setupServers = async (
     }
   });
 
-  listen(WEBVIEW_GIT_COMMIT_HASH_CHECK, async (action) => {
-    const { url, gitCommitHash } = action.payload;
-
-    const servers = safeSelect(({ servers }) => servers);
-    if (!servers) return;
-
-    const server = servers.find((server) => server.url === url);
-
-    // The WEBVIEW_SERVER_BUILD_CHECK path is the canonical handler once any
-    // new-path field has been observed. Skip the legacy clear+reload here to
-    // avoid double-clearing (covers H1 cacheVersion-only deploys and M3
-    // version-first → commit-later transitions).
-    if (
-      server?.lastCommitBuildId !== undefined ||
-      server?.lastVersionBuildId !== undefined ||
-      server?.lastBundleVersion !== undefined ||
-      server?.lastCacheVersion !== undefined
-    ) return;
-
-    if (
-      server?.gitCommitHash !== gitCommitHash &&
-      server?.gitCommitHash !== undefined
-    ) {
-      dispatch({
-        type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
-        payload: {
-          url,
-          gitCommitHash,
-        },
-      });
-      const guestWebContents = getWebContentsByServerUrl(url);
-      await guestWebContents?.session.clearStorageData({
-        storages: ['indexdb'],
-      });
-      await guestWebContents?.session.clearCache();
-      guestWebContents?.reload();
-    }
-  });
-
   listen(WEBVIEW_SERVER_BUILD_CHECK, async (action) => {
     const { url, buildId, cacheVersion, buildIdSource } = action.payload;
     if (!buildId && !cacheVersion) return;
@@ -254,9 +224,23 @@ export const setupServers = async (
     }
 
     // decision.kind === 'clear'
+    const last = lastClearAt.get(url);
+    if (last !== undefined && Date.now() - last < CLEAR_COOLDOWN_MS) {
+      console.log(
+        `[Rocket.Chat Desktop] cache-clear cooldown active for ${url}, adopting baseline (${decision.reason})`
+      );
+      dispatch({
+        type: WEBVIEW_SERVER_BUILD_UPDATED,
+        payload: { url, buildId, cacheVersion, buildIdSource },
+      });
+      return;
+    }
+
     if (buildCheckInFlight.has(url)) {
-      // Latest-wins: overwrite any previously pending payload for this URL.
-      pendingClears.set(url, { buildId, cacheVersion, buildIdSource });
+      // Per-source: store each source in its own slot so no cross-source data is lost.
+      const inner = pendingClears.get(url) ?? new Map();
+      inner.set(pendingKey(buildIdSource, !!buildId), { buildId, cacheVersion, buildIdSource });
+      pendingClears.set(url, inner);
       return;
     }
     const guestWebContents = getWebContentsByServerUrl(url);
@@ -268,6 +252,7 @@ export const setupServers = async (
       );
       try {
         await clearWebviewStorageKeepingLoginData(guestWebContents);
+        lastClearAt.set(url, Date.now());
         dispatch({
           type: WEBVIEW_SERVER_BUILD_UPDATED,
           payload: { url, buildId, cacheVersion, buildIdSource },
@@ -280,13 +265,15 @@ export const setupServers = async (
       }
     } finally {
       buildCheckInFlight.delete(url);
-      const pending = pendingClears.get(url);
-      if (pending) {
+      const innerMap = pendingClears.get(url);
+      if (innerMap && innerMap.size > 0) {
         pendingClears.delete(url);
-        dispatch({
-          type: WEBVIEW_SERVER_BUILD_CHECK,
-          payload: { url, ...pending },
-        });
+        for (const payload of innerMap.values()) {
+          dispatch({
+            type: WEBVIEW_SERVER_BUILD_CHECK,
+            payload: { url, ...payload },
+          });
+        }
       }
     }
   });

@@ -2,19 +2,24 @@ import { dispatch } from '../../store';
 import { WEBVIEW_SERVER_BUILD_CHECK } from '../../ui/actions';
 import { getServerUrl } from './urls';
 
-type BuildSignals = { buildId?: string; cacheVersion?: string };
+type BuildSignals = {
+  buildId?: string;
+  cacheVersion?: string;
+  buildIdSource?: 'commit' | 'version';
+};
 
 let pendingSignal: BuildSignals | null = null;
 let storeReady = false;
 
 const doDispatch = (signals: BuildSignals): void => {
-  const { buildId, cacheVersion } = signals;
+  const { buildId, cacheVersion, buildIdSource } = signals;
   dispatch({
     type: WEBVIEW_SERVER_BUILD_CHECK,
     payload: {
       url: getServerUrl(),
       buildId,
       cacheVersion,
+      buildIdSource,
     },
   });
 };

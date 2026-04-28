@@ -27,7 +27,7 @@ describe('setServerBuildSignals / flushPendingBuildSignal', () => {
       flushPendingBuildSignal();
       storeMock.dispatch.mockClear();
 
-      setServerBuildSignals({ buildId: 'abc', cacheVersion: 'v1' });
+      setServerBuildSignals({ buildId: 'abc', cacheVersion: 'v1', buildIdSource: 'commit' });
 
       expect(storeMock.dispatch).toHaveBeenCalledTimes(1);
       expect(storeMock.dispatch).toHaveBeenCalledWith({
@@ -36,6 +36,29 @@ describe('setServerBuildSignals / flushPendingBuildSignal', () => {
           url: 'https://example.rocket.chat/',
           buildId: 'abc',
           cacheVersion: 'v1',
+          buildIdSource: 'commit',
+        },
+      });
+    });
+  });
+
+  it('forwards buildIdSource=version in dispatched payload', () => {
+    jest.isolateModules(() => {
+      const storeMock = require('../../store');
+      const { setServerBuildSignals, flushPendingBuildSignal } = require('./serverBuild');
+
+      flushPendingBuildSignal();
+      storeMock.dispatch.mockClear();
+
+      setServerBuildSignals({ buildId: '7.5.0', cacheVersion: undefined, buildIdSource: 'version' });
+
+      expect(storeMock.dispatch).toHaveBeenCalledWith({
+        type: WEBVIEW_SERVER_BUILD_CHECK,
+        payload: {
+          url: 'https://example.rocket.chat/',
+          buildId: '7.5.0',
+          cacheVersion: undefined,
+          buildIdSource: 'version',
         },
       });
     });
@@ -47,7 +70,7 @@ describe('setServerBuildSignals / flushPendingBuildSignal', () => {
       const { setServerBuildSignals, flushPendingBuildSignal } = require('./serverBuild');
 
       // Store not ready yet — setServerBuildSignals should NOT dispatch
-      setServerBuildSignals({ buildId: 'queued-id', cacheVersion: undefined });
+      setServerBuildSignals({ buildId: 'queued-id', cacheVersion: undefined, buildIdSource: 'commit' });
       expect(storeMock.dispatch).not.toHaveBeenCalled();
 
       // Now flush — should dispatch the queued signal
@@ -59,6 +82,7 @@ describe('setServerBuildSignals / flushPendingBuildSignal', () => {
           url: 'https://example.rocket.chat/',
           buildId: 'queued-id',
           cacheVersion: undefined,
+          buildIdSource: 'commit',
         },
       });
     });

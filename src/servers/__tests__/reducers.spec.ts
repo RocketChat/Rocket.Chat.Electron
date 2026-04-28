@@ -26,7 +26,7 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
     expect(updated.lastCacheVersion).toBe('v2');
   });
 
-  it('sets gitCommitHash to buildId when buildId is present (Issue 2 fix)', () => {
+  it('mirrors buildId to gitCommitHash only when buildIdSource is commit', () => {
     const state = [{ ...baseServer, gitCommitHash: 'old-hash' }];
     const next = servers(state, {
       type: WEBVIEW_SERVER_BUILD_UPDATED,
@@ -34,11 +34,45 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
         url: baseServer.url,
         buildId: 'new-hash',
         cacheVersion: undefined,
+        buildIdSource: 'commit',
       },
     });
     const updated = next.find((s) => s.url === baseServer.url)!;
     expect(updated.gitCommitHash).toBe('new-hash');
     expect(updated.lastServerBuildId).toBe('new-hash');
+  });
+
+  it('does NOT mirror buildId to gitCommitHash when buildIdSource is version', () => {
+    const state = [{ ...baseServer, gitCommitHash: 'real-hash-abc' }];
+    const next = servers(state, {
+      type: WEBVIEW_SERVER_BUILD_UPDATED,
+      payload: {
+        url: baseServer.url,
+        buildId: '7.5.0',
+        cacheVersion: undefined,
+        buildIdSource: 'version',
+      },
+    });
+    const updated = next.find((s) => s.url === baseServer.url)!;
+    // gitCommitHash must NOT be overwritten by the version string
+    expect(updated.gitCommitHash).toBe('real-hash-abc');
+    expect(updated.lastServerBuildId).toBe('7.5.0');
+  });
+
+  it('does NOT mirror buildId to gitCommitHash when buildIdSource is absent', () => {
+    const state = [{ ...baseServer, gitCommitHash: 'real-hash-xyz' }];
+    const next = servers(state, {
+      type: WEBVIEW_SERVER_BUILD_UPDATED,
+      payload: {
+        url: baseServer.url,
+        buildId: 'some-id',
+        cacheVersion: undefined,
+        buildIdSource: undefined,
+      },
+    });
+    const updated = next.find((s) => s.url === baseServer.url)!;
+    expect(updated.gitCommitHash).toBe('real-hash-xyz');
+    expect(updated.lastServerBuildId).toBe('some-id');
   });
 
   it('does not set gitCommitHash when buildId is absent', () => {

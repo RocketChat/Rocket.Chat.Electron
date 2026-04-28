@@ -209,14 +209,18 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     }
 
     case WEBVIEW_SERVER_BUILD_UPDATED: {
-      const { url, buildId, cacheVersion } = action.payload;
+      const { url, buildId, cacheVersion, buildIdSource } = action.payload;
       if (!state.some((s) => s.url === url)) return state;
       const patch: Partial<Server> & { url: string } = { url };
       if (buildId !== undefined) {
         patch.lastServerBuildId = buildId;
-        // Keep gitCommitHash in sync so the legacy WEBVIEW_GIT_COMMIT_HASH_CHECK
-        // path does not trigger a second cache-clear for the same deploy.
-        patch.gitCommitHash = buildId;
+        // Only mirror to gitCommitHash when the buildId is a real commit hash.
+        // Version-string buildIds (e.g. "7.5.0") must not overwrite the legacy
+        // gitCommitHash baseline — doing so would cause a spurious cache-clear
+        // when the real commit hash arrives via setGitCommitHash.
+        if (buildIdSource === 'commit') {
+          patch.gitCommitHash = buildId;
+        }
       }
       if (cacheVersion !== undefined) patch.lastCacheVersion = cacheVersion;
       return update(state, patch as Server);

@@ -72,13 +72,20 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
     cb(_serverInfo);
     setServerVersionToSidebar(_serverInfo.version);
     const extended = _serverInfo as ServerInfo;
-    const buildId = extended?.commit?.hash || extended?.version;
+    const commitHash = extended?.commit?.hash;
+    const versionStr = extended?.version;
+    const buildId = commitHash || versionStr;
+    const buildIdSource: 'commit' | 'version' | undefined = commitHash
+      ? 'commit'
+      : versionStr
+      ? 'version'
+      : undefined;
     const cacheVersionMatch =
       typeof document !== 'undefined'
         ? document.cookie?.match(/(?:^|;\s*)cache_version=([^;]+)/)
         : null;
     const cacheVersion = cacheVersionMatch?.[1];
-    setServerBuildSignals({ buildId, cacheVersion });
+    setServerBuildSignals({ buildId, cacheVersion, buildIdSource });
   },
   setUrlResolver,
   setBadge,

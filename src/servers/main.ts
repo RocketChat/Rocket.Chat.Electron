@@ -209,7 +209,7 @@ export const setupServers = async (
   });
 
   listen(WEBVIEW_SERVER_BUILD_CHECK, async (action) => {
-    const { url, buildId, cacheVersion } = action.payload;
+    const { url, buildId, cacheVersion, buildIdSource } = action.payload;
     if (!buildId && !cacheVersion) return;
 
     const servers = safeSelect(({ servers }) => servers);
@@ -217,8 +217,12 @@ export const setupServers = async (
     const server = servers.find((s) => s.url === url);
     if (!server) return;
 
-    const firstObservation =
-      !server.lastServerBuildId && !server.lastCacheVersion;
+    const incomingIsCommit = buildIdSource === 'commit' && !!buildId;
+    const hasNewBaseline = !!server.lastServerBuildId || !!server.lastCacheVersion;
+    // Legacy migration: v4.13 client stored only gitCommitHash; new fields are empty.
+    // Only usable as a baseline when the incoming buildId is a real commit hash.
+    const hasLegacyCommitBaseline =
+      incomingIsCommit && !hasNewBaseline && !!server.gitCommitHash;
 
     const buildChanged =
       !!buildId &&
@@ -229,10 +233,42 @@ export const setupServers = async (
       !!server.lastCacheVersion &&
       server.lastCacheVersion !== cacheVersion;
 
-    if (firstObservation) {
+    // Legacy migration path: new fields empty but a legacy commit hash exists.
+    // If the incoming commit matches the stored hash the server hasn't changed —
+    // just adopt the new baseline without clearing. If it differs the server was
+    // updated between client versions — clear then record.
+    if (hasLegacyCommitBaseline) {
+      if (server.gitCommitHash === buildId) {
+        dispatch({
+          type: WEBVIEW_SERVER_BUILD_UPDATED,
+          payload: { url, buildId, cacheVersion, buildIdSource },
+        });
+        return;
+      }
+      if (buildCheckInFlight.has(url)) return;
+      const guestWebContents = getWebContentsByServerUrl(url);
+      if (!guestWebContents) return;
+      buildCheckInFlight.add(url);
+      try {
+        console.log(
+          `[Rocket.Chat Desktop] auto cache-clear for ${url} (migration: legacy gitCommitHash ${server.gitCommitHash} -> ${buildId})`
+        );
+        await clearWebviewStorageKeepingLoginData(guestWebContents);
+        dispatch({
+          type: WEBVIEW_SERVER_BUILD_UPDATED,
+          payload: { url, buildId, cacheVersion, buildIdSource },
+        });
+      } finally {
+        buildCheckInFlight.delete(url);
+      }
+      return;
+    }
+
+    // True first observation — no new fields and no usable legacy baseline.
+    if (!hasNewBaseline) {
       dispatch({
         type: WEBVIEW_SERVER_BUILD_UPDATED,
-        payload: { url, buildId, cacheVersion },
+        payload: { url, buildId, cacheVersion, buildIdSource },
       });
       return;
     }
@@ -252,7 +288,7 @@ export const setupServers = async (
         await clearWebviewStorageKeepingLoginData(guestWebContents);
         dispatch({
           type: WEBVIEW_SERVER_BUILD_UPDATED,
-          payload: { url, buildId, cacheVersion },
+          payload: { url, buildId, cacheVersion, buildIdSource },
         });
       } finally {
         buildCheckInFlight.delete(url);
@@ -266,7 +302,7 @@ export const setupServers = async (
     ) {
       dispatch({
         type: WEBVIEW_SERVER_BUILD_UPDATED,
-        payload: { url, buildId, cacheVersion },
+        payload: { url, buildId, cacheVersion, buildIdSource },
       });
     }
   });

@@ -384,6 +384,63 @@ describe('decideBuildCheck', () => {
     });
   });
 
+  describe('semver-aware version compare (H2)', () => {
+    it('returns noop when lastVersionBuildId is 7.5.0 and incoming is 7.5.0-rc.1 (same patch)', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastVersionBuildId: '7.5.0', lastCacheVersion: '1' },
+          { buildId: '7.5.0-rc.1', cacheVersion: '1', buildIdSource: 'version' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('returns noop when lastVersionBuildId is 7.5.0 and incoming is 7.5.0-rc.1 with no cacheVersion baseline', () => {
+      // sameVersion('7.5.0', '7.5.0-rc.1') → true; no cacheVersion to adopt → noop
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastVersionBuildId: '7.5.0' },
+          { buildId: '7.5.0-rc.1', buildIdSource: 'version' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('clears when lastVersionBuildId is 7.5.0 and incoming is 7.5.1 (different patch)', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastVersionBuildId: '7.5.0' },
+        { buildId: '7.5.1', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.0');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('7.5.1');
+    });
+
+    it('legacy version: adopts when legacy is 7.4.0 and incoming is 7.4.0-rc.2 (same patch)', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, version: '7.4.0' },
+          { buildId: '7.4.0-rc.2', buildIdSource: 'version' }
+        )
+      ).toEqual({ kind: 'adopt' });
+    });
+
+    it('legacy version: clears when legacy is 7.4.0 and incoming is 7.5.0 (different patch)', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, version: '7.4.0' },
+        { buildId: '7.5.0', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+    });
+
+    it('commit source still uses exact string equality (not semver)', () => {
+      // 'deadbeef' and 'deadbeef-rc.1' are different opaque hashes — must clear
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCommitBuildId: 'deadbeef' },
+        { buildId: 'deadbeef-rc.1', buildIdSource: 'commit' }
+      );
+      expect(result.kind).toBe('clear');
+    });
+  });
+
   describe('commit source does not interact with lastBundleVersion', () => {
     it('uses lastCommitBuildId path even when lastBundleVersion is set', () => {
       expect(

@@ -190,10 +190,16 @@ export const setupServers = async (
 
     const server = servers.find((server) => server.url === url);
 
-    // The WEBVIEW_SERVER_BUILD_CHECK path is the canonical handler once
-    // lastCommitBuildId has been observed. Skip the legacy clear+reload here
-    // to avoid double-clearing for the same deploy.
-    if (server?.lastCommitBuildId !== undefined) return;
+    // The WEBVIEW_SERVER_BUILD_CHECK path is the canonical handler once any
+    // new-path field has been observed. Skip the legacy clear+reload here to
+    // avoid double-clearing (covers H1 cacheVersion-only deploys and M3
+    // version-first → commit-later transitions).
+    if (
+      server?.lastCommitBuildId !== undefined ||
+      server?.lastVersionBuildId !== undefined ||
+      server?.lastBundleVersion !== undefined ||
+      server?.lastCacheVersion !== undefined
+    ) return;
 
     if (
       server?.gitCommitHash !== gitCommitHash &&

@@ -1,4 +1,21 @@
+import { coerce } from 'semver';
+
 import type { Server } from './common';
+
+/**
+ * Compare two version strings using semver coercion so that pre-release
+ * variants of the same release (e.g. '7.5.0' vs '7.5.0-rc.1') are treated as
+ * equal and do not trigger a false cache-clear.
+ * Commit hashes and bundle identifiers are NOT compared via this helper —
+ * those are opaque strings where string equality is correct.
+ */
+const sameVersion = (a: string | undefined, b: string | undefined): boolean => {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const ca = coerce(a)?.version;
+  const cb = coerce(b)?.version;
+  return !!ca && !!cb && ca === cb;
+};
 
 export type BuildCheckDecision =
   | { kind: 'noop' }
@@ -82,7 +99,7 @@ export const decideBuildCheck = (
     if (!server.lastVersionBuildId) {
       // No version baseline yet — check legacy server.version migration.
       if (server.version) {
-        if (server.version === buildId) return { kind: 'adopt' };
+        if (sameVersion(server.version, buildId)) return { kind: 'adopt' };
         return {
           kind: 'clear',
           reason: `legacy version ${server.version} -> ${buildId}`,
@@ -91,7 +108,7 @@ export const decideBuildCheck = (
       // First observation, adopt.
       return { kind: 'adopt' };
     }
-    if (server.lastVersionBuildId === buildId) {
+    if (sameVersion(server.lastVersionBuildId, buildId)) {
       // buildId matches; cacheVersion mismatch already handled above.
       if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
       return { kind: 'noop' };

@@ -26,6 +26,19 @@ export const decideBuildCheck = (
   // Nothing actionable from the server — caller should short-circuit, but guard here too.
   if (!buildId && !cacheVersion) return { kind: 'noop' };
 
+  // cacheVersion mismatch is an independent bundle-change signal regardless of which
+  // source path runs. Check it once here before any source-specific logic.
+  if (
+    cacheVersion !== undefined &&
+    server.lastCacheVersion !== undefined &&
+    server.lastCacheVersion !== cacheVersion
+  ) {
+    return {
+      kind: 'clear',
+      reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
+    };
+  }
+
   // --- autoupdate source: operates on lastBundleVersion only ---
   if (buildIdSource === 'autoupdate') {
     if (!buildId) return { kind: 'noop' };
@@ -54,13 +67,7 @@ export const decideBuildCheck = (
       return { kind: 'adopt' };
     }
     if (server.lastCommitBuildId === buildId) {
-      // buildId matches; check cacheVersion if present.
-      if (cacheVersion && server.lastCacheVersion && server.lastCacheVersion !== cacheVersion) {
-        return {
-          kind: 'clear',
-          reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
-        };
-      }
+      // buildId matches; cacheVersion mismatch already handled above.
       if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
       return { kind: 'noop' };
     }
@@ -85,13 +92,7 @@ export const decideBuildCheck = (
       return { kind: 'adopt' };
     }
     if (server.lastVersionBuildId === buildId) {
-      // buildId matches; check cacheVersion if present.
-      if (cacheVersion && server.lastCacheVersion && server.lastCacheVersion !== cacheVersion) {
-        return {
-          kind: 'clear',
-          reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
-        };
-      }
+      // buildId matches; cacheVersion mismatch already handled above.
       if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
       return { kind: 'noop' };
     }

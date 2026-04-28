@@ -330,6 +330,60 @@ describe('decideBuildCheck', () => {
     });
   });
 
+  describe('hoisted cacheVersion mismatch — clears before source-specific path runs', () => {
+    it('clears when commit source has no lastCommitBuildId but cacheVersion changed', () => {
+      // Reproduces round-5 bug: adopt branch would have run and returned adopt,
+      // skipping the cacheVersion change entirely.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCacheVersion: '1' },
+        { buildId: 'abc', cacheVersion: '2', buildIdSource: 'commit' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('1');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('2');
+    });
+
+    it('clears when version source has no lastVersionBuildId but cacheVersion changed', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCacheVersion: '1' },
+        { buildId: '7.5.0', cacheVersion: '2', buildIdSource: 'version' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('1');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('2');
+    });
+
+    it('clears when autoupdate source has no lastBundleVersion but cacheVersion changed', () => {
+      // autoupdate path previously had no cacheVersion handling at all; hoisted guard now catches it.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCacheVersion: '1' },
+        { buildId: 'bundle-hash', cacheVersion: '2', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('1');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('2');
+    });
+
+    it('clears on sourceless observation when cacheVersion changed (was already working, verify still works)', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastCacheVersion: '1' },
+        { cacheVersion: '2' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('1');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain('2');
+    });
+
+    it('preserves adopt when cacheVersion matches and no commit baseline (sanity)', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastCacheVersion: '1' },
+          { buildId: 'abc', cacheVersion: '1', buildIdSource: 'commit' }
+        )
+      ).toEqual({ kind: 'adopt' });
+    });
+  });
+
   describe('commit source does not interact with lastBundleVersion', () => {
     it('uses lastCommitBuildId path even when lastBundleVersion is set', () => {
       expect(

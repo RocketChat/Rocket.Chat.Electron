@@ -114,8 +114,11 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setSidebarCustomTheme,
   openDocumentViewer,
   reloadServer,
-  notifyBundleAutoupdate: ({ bundleVersion }) => {
-    if (!bundleVersion) return;
-    setServerBuildSignals({ buildId: bundleVersion, buildIdSource: 'autoupdate' });
+  notifyBundleAutoupdate: ({ bundleVersion }: { bundleVersion?: string }): void => {
+    // newClientAvailable() fired; if Meteor's private store didn't yield a
+    // version string, synthesize a per-event sentinel so the main process
+    // still treats this as a real bundle change and clears the cache.
+    const buildId = bundleVersion || `autoupdate-${Date.now()}`;
+    setServerBuildSignals({ buildId, buildIdSource: 'autoupdate' });
   },
 };

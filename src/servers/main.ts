@@ -35,13 +35,12 @@ const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 const buildCheckInFlight = new Set<Server['url']>();
 const pendingClears = new Map<
   Server['url'],
-  Array<{
+  {
     buildId?: string;
     cacheVersion?: string;
     buildIdSource?: 'commit' | 'version' | 'autoupdate';
-  }>
+  }
 >();
-const PENDING_CLEARS_CAP = 8;
 
 export const convertToURL = (input: string): URL => {
   let url: URL;
@@ -256,15 +255,8 @@ export const setupServers = async (
 
     // decision.kind === 'clear'
     if (buildCheckInFlight.has(url)) {
-      const queue = pendingClears.get(url) ?? [];
-      if (queue.length < PENDING_CLEARS_CAP) {
-        queue.push({ buildId, cacheVersion, buildIdSource });
-        pendingClears.set(url, queue);
-      } else {
-        console.warn(
-          `[Rocket.Chat Desktop] pending clear queue for ${url} is full (${PENDING_CLEARS_CAP}); dropping signal`
-        );
-      }
+      // Latest-wins: overwrite any previously pending payload for this URL.
+      pendingClears.set(url, { buildId, cacheVersion, buildIdSource });
       return;
     }
     const guestWebContents = getWebContentsByServerUrl(url);
@@ -288,15 +280,13 @@ export const setupServers = async (
       }
     } finally {
       buildCheckInFlight.delete(url);
-      const queued = pendingClears.get(url);
-      if (queued && queued.length > 0) {
+      const pending = pendingClears.get(url);
+      if (pending) {
         pendingClears.delete(url);
-        for (const payload of queued) {
-          dispatch({
-            type: WEBVIEW_SERVER_BUILD_CHECK,
-            payload: { url, ...payload },
-          });
-        }
+        dispatch({
+          type: WEBVIEW_SERVER_BUILD_CHECK,
+          payload: { url, ...pending },
+        });
       }
     }
   });

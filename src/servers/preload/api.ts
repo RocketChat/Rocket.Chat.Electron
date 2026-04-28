@@ -51,6 +51,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
     options: CustomNotificationOptions
   ) => Promise<unknown>;
   closeCustomNotification: (id: unknown) => void;
+  notifyBundleAutoupdate: (payload: { bundleVersion?: string }) => void;
 };
 
 declare global {
@@ -111,4 +112,8 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setSidebarCustomTheme,
   openDocumentViewer,
   reloadServer,
+  notifyBundleAutoupdate: ({ bundleVersion }) => {
+    if (!bundleVersion) return;
+    setServerBuildSignals({ buildId: bundleVersion, buildIdSource: 'autoupdate' });
+  },
 };

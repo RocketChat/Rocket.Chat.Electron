@@ -8,18 +8,38 @@ export type BuildCheckDecision =
 export const decideBuildCheck = (
   server: Pick<
     Server,
-    'lastServerBuildId' | 'lastCacheVersion' | 'gitCommitHash' | 'version'
+    | 'lastServerBuildId'
+    | 'lastBundleVersion'
+    | 'lastCacheVersion'
+    | 'gitCommitHash'
+    | 'version'
   >,
   payload: {
     buildId?: string;
     cacheVersion?: string;
-    buildIdSource?: 'commit' | 'version';
+    buildIdSource?: 'commit' | 'version' | 'autoupdate';
   }
 ): BuildCheckDecision => {
   const { buildId, cacheVersion, buildIdSource } = payload;
 
   // Nothing actionable from the server — caller should short-circuit, but guard here too.
   if (!buildId && !cacheVersion) return { kind: 'noop' };
+
+  // --- autoupdate source: operates on lastBundleVersion, never touches lastServerBuildId ---
+  if (buildIdSource === 'autoupdate') {
+    if (!buildId) return { kind: 'noop' };
+    if (!server.lastBundleVersion) {
+      // No autoupdate baseline yet — first observation, adopt.
+      return { kind: 'adopt' };
+    }
+    if (server.lastBundleVersion === buildId) return { kind: 'noop' };
+    return {
+      kind: 'clear',
+      reason: `bundleVersion ${server.lastBundleVersion} -> ${buildId}`,
+    };
+  }
+
+  // --- commit / version sources: operate on lastServerBuildId / lastCacheVersion ---
 
   const hasNewBaseline =
     !!server.lastServerBuildId || !!server.lastCacheVersion;

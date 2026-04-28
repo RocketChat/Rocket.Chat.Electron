@@ -64,6 +64,28 @@ describe('setServerBuildSignals / flushPendingBuildSignal', () => {
     });
   });
 
+  it('forwards buildIdSource=autoupdate in dispatched payload', () => {
+    jest.isolateModules(() => {
+      const storeMock = require('../../store');
+      const { setServerBuildSignals, flushPendingBuildSignal } = require('./serverBuild');
+
+      flushPendingBuildSignal();
+      storeMock.dispatch.mockClear();
+
+      setServerBuildSignals({ buildId: 'bundle-abc.def', cacheVersion: undefined, buildIdSource: 'autoupdate' });
+
+      expect(storeMock.dispatch).toHaveBeenCalledWith({
+        type: WEBVIEW_SERVER_BUILD_CHECK,
+        payload: {
+          url: 'https://example.rocket.chat/',
+          buildId: 'bundle-abc.def',
+          cacheVersion: undefined,
+          buildIdSource: 'autoupdate',
+        },
+      });
+    });
+  });
+
   it('queues signal when store is not ready and dispatches on flush (Issue 1 fix)', () => {
     jest.isolateModules(() => {
       const storeMock = require('../../store');

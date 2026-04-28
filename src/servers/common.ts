@@ -19,6 +19,7 @@ export type Server = {
   userLoggedIn?: boolean;
   gitCommitHash?: string;
   lastServerBuildId?: string;
+  lastBundleVersion?: string;
   lastCacheVersion?: string;
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;

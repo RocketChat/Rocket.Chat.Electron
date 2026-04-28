@@ -5,7 +5,7 @@ import { getServerUrl } from './urls';
 type BuildSignals = {
   buildId?: string;
   cacheVersion?: string;
-  buildIdSource?: 'commit' | 'version';
+  buildIdSource?: 'commit' | 'version' | 'autoupdate';
 };
 
 let pendingSignal: BuildSignals | null = null;

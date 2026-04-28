@@ -218,7 +218,10 @@ export const setupServers = async (
     const server = servers.find((s) => s.url === url);
     if (!server) return;
 
-    const decision = decideBuildCheck(server, { buildId, cacheVersion, buildIdSource });
+    const decision = decideBuildCheck(
+      server,
+      { buildId, cacheVersion, buildIdSource }
+    );
 
     if (decision.kind === 'noop') return;
 

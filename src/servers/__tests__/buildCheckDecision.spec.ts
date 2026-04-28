@@ -2,6 +2,7 @@ import { decideBuildCheck } from '../buildCheckDecision';
 
 const noBaseline = {
   lastServerBuildId: undefined,
+  lastBundleVersion: undefined,
   lastCacheVersion: undefined,
   gitCommitHash: undefined,
   version: undefined,
@@ -164,6 +165,72 @@ describe('decideBuildCheck', () => {
         decideBuildCheck(
           { ...noBaseline, lastServerBuildId: 'abc', lastCacheVersion: '2' },
           { buildId: 'abc', cacheVersion: '2', buildIdSource: 'commit' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+  });
+
+  describe('autoupdate source', () => {
+    it('adopts when no lastBundleVersion baseline exists', () => {
+      expect(
+        decideBuildCheck(noBaseline, {
+          buildId: 'bundle-abc.def',
+          buildIdSource: 'autoupdate',
+        })
+      ).toEqual({ kind: 'adopt' });
+    });
+
+    it('returns noop when lastBundleVersion matches incoming', () => {
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastBundleVersion: 'bundle-abc.def' },
+          { buildId: 'bundle-abc.def', buildIdSource: 'autoupdate' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+
+    it('clears when lastBundleVersion differs from incoming', () => {
+      const result = decideBuildCheck(
+        { ...noBaseline, lastBundleVersion: 'bundle-old' },
+        { buildId: 'bundle-new', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('clear');
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain(
+        'bundle-old'
+      );
+      expect((result as { kind: 'clear'; reason: string }).reason).toContain(
+        'bundle-new'
+      );
+    });
+
+    it('does not interact with lastServerBuildId', () => {
+      // Autoupdate with a stored lastServerBuildId — should only look at lastBundleVersion
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastServerBuildId: 'commit-xyz', lastBundleVersion: undefined },
+          { buildId: 'bundle-new', buildIdSource: 'autoupdate' }
+        )
+      ).toEqual({ kind: 'adopt' });
+    });
+
+    it('returns noop when buildId is absent for autoupdate source', () => {
+      expect(
+        decideBuildCheck(noBaseline, { buildIdSource: 'autoupdate' })
+      ).toEqual({ kind: 'noop' });
+    });
+  });
+
+  describe('commit source does not interact with lastBundleVersion', () => {
+    it('uses lastServerBuildId path even when lastBundleVersion is set', () => {
+      // commit source with both baselines present — commit path uses lastServerBuildId
+      expect(
+        decideBuildCheck(
+          {
+            ...noBaseline,
+            lastServerBuildId: 'deadbeef',
+            lastBundleVersion: 'bundle-xyz',
+          },
+          { buildId: 'deadbeef', buildIdSource: 'commit' }
         )
       ).toEqual({ kind: 'noop' });
     });

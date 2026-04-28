@@ -246,13 +246,13 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     buildId?: string;
     cacheVersion?: string;
-    buildIdSource?: 'commit' | 'version';
+    buildIdSource?: 'commit' | 'version' | 'autoupdate';
   };
   [WEBVIEW_SERVER_BUILD_UPDATED]: {
     url: Server['url'];
     buildId?: string;
     cacheVersion?: string;
-    buildIdSource?: 'commit' | 'version';
+    buildIdSource?: 'commit' | 'version' | 'autoupdate';
   };
   [WEBVIEW_ALLOWED_REDIRECTS_CHANGED]: {
     url: Server['url'];

@@ -390,6 +390,7 @@ const start = async () => {
     titleUpdates: false,
     userLoginDetection: false,
     gitCommitHash: false,
+    autoupdateSetup: false,
     themeAppearance: false,
     userPresence: false,
   };
@@ -540,6 +541,39 @@ const start = async () => {
         window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
       });
       setupFlags.gitCommitHash = true;
+    }
+
+    // Meteor Autoupdate: observe when the server pushes a new client bundle.
+    // When newClientAvailable() becomes true, read the new bundle version and
+    // notify the desktop so it can decide whether to clear cache + reload.
+    // Falls back silently when Autoupdate is not present (older RC versions).
+    if (Tracker && !setupFlags.autoupdateSetup) {
+      try {
+        const Autoupdate = (window as any).Autoupdate;
+        if (Autoupdate && typeof Autoupdate.newClientAvailable === 'function') {
+          Tracker.autorun(() => {
+            const available = Autoupdate.newClientAvailable();
+            if (!available) return;
+            let bundleVersion: string | undefined;
+            try {
+              const store =
+                Meteor?.connection?._stores?.[
+                  'meteor_autoupdate_clientVersions'
+                ];
+              const doc =
+                store?.get?.('version-refreshable') ?? store?.get?.('version');
+              bundleVersion = doc?.version ?? doc?._id;
+            } catch {
+              // store access failed — signal without version; main process will
+              // treat it as a new-baseline adopt on first call
+            }
+            window.RocketChatDesktop.notifyBundleAutoupdate?.({ bundleVersion });
+          });
+          setupFlags.autoupdateSetup = true;
+        }
+      } catch {
+        // Autoupdate not available — silently skip
+      }
     }
 
     if (Tracker && Meteor && getUserPreference && !setupFlags.userPresence) {

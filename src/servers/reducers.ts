@@ -213,13 +213,19 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       if (!state.some((s) => s.url === url)) return state;
       const patch: Partial<Server> & { url: string } = { url };
       if (buildId !== undefined) {
-        patch.lastServerBuildId = buildId;
-        // Only mirror to gitCommitHash when the buildId is a real commit hash.
-        // Version-string buildIds (e.g. "7.5.0") must not overwrite the legacy
-        // gitCommitHash baseline — doing so would cause a spurious cache-clear
-        // when the real commit hash arrives via setGitCommitHash.
-        if (buildIdSource === 'commit') {
-          patch.gitCommitHash = buildId;
+        if (buildIdSource === 'autoupdate') {
+          // Autoupdate bundle versions live in a separate field to avoid
+          // conflating them with commit-hash or version-string build ids.
+          patch.lastBundleVersion = buildId;
+        } else {
+          patch.lastServerBuildId = buildId;
+          // Only mirror to gitCommitHash when the buildId is a real commit hash.
+          // Version-string buildIds (e.g. "7.5.0") must not overwrite the legacy
+          // gitCommitHash baseline — doing so would cause a spurious cache-clear
+          // when the real commit hash arrives via setGitCommitHash.
+          if (buildIdSource === 'commit') {
+            patch.gitCommitHash = buildId;
+          }
         }
       }
       if (cacheVersion !== undefined) patch.lastCacheVersion = cacheVersion;

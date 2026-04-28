@@ -106,6 +106,27 @@ describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED', () => {
   });
 });
 
+describe('servers reducer — WEBVIEW_SERVER_BUILD_UPDATED autoupdate source', () => {
+  it('writes lastBundleVersion (not lastServerBuildId, not gitCommitHash) when buildIdSource is autoupdate', () => {
+    const state = [{ ...baseServer, gitCommitHash: 'real-hash', lastServerBuildId: 'commit-id' }];
+    const next = servers(state, {
+      type: WEBVIEW_SERVER_BUILD_UPDATED,
+      payload: {
+        url: baseServer.url,
+        buildId: 'bundle-abc',
+        cacheVersion: undefined,
+        buildIdSource: 'autoupdate',
+      },
+    });
+    const updated = next.find((s) => s.url === baseServer.url)!;
+    expect(updated.lastBundleVersion).toBe('bundle-abc');
+    // lastServerBuildId must remain unchanged
+    expect(updated.lastServerBuildId).toBe('commit-id');
+    // gitCommitHash must remain unchanged
+    expect(updated.gitCommitHash).toBe('real-hash');
+  });
+});
+
 describe('servers reducer — WEBVIEW_GIT_COMMIT_HASH_CHANGED', () => {
   it('updates gitCommitHash', () => {
     const state = [{ ...baseServer, gitCommitHash: 'old' }];

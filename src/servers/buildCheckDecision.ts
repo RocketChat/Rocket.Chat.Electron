@@ -1,14 +1,22 @@
 import { coerce } from 'semver';
 
 /**
- * Prefix used by api.ts when Meteor's autoupdate does not supply a concrete
- * bundle version string.  Exported so api.ts can use the same constant and
- * the main-process sentinel-recognition logic stays in sync with the renderer.
+ * Synthesized client-side timestamp marker emitted when Meteor's Autoupdate
+ * signals a new client bundle but the private store can't yield a concrete
+ * version. Distinct from the `buildIdSource: 'autoupdate'` enum value.
+ * Pattern: `autoupdate-<Date.now()>`.
  */
 export const SENTINEL_PREFIX = 'autoupdate-';
 
-const isSentinel = (v: string | undefined): boolean =>
-  typeof v === 'string' && v.startsWith(SENTINEL_PREFIX);
+/**
+ * Sentinel pattern: `autoupdate-` followed by 10+ digits (timestamp).
+ * Date.now() produces 13-digit values; allow 10+ for future-proofing.
+ * Anything not matching this exact pattern is treated as a concrete buildId.
+ */
+const isSentinel = (v: string | undefined): boolean => {
+  if (typeof v !== 'string') return false;
+  return /^autoupdate-\d{10,}$/.test(v);
+};
 
 import type { Server } from './common';
 

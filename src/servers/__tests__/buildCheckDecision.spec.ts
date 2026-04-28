@@ -481,14 +481,54 @@ describe('decideBuildCheck', () => {
     });
   });
 
+  describe('autoupdate sentinel regex tightening (non-numeric suffix rejection)', () => {
+    it('treats autoupdate-2026-04 (label-like, not all-digit) as concrete, not sentinel', () => {
+      // Prevents collision with Meteor build labels like 'autoupdate-2026-04'.
+      // This is NOT a timestamp sentinel (Date.now() is all digits).
+      const result = decideBuildCheck(
+        { ...noBaseline, lastBundleVersion: 'autoupdate-2026-04' },
+        { buildId: 'autoupdate-2026-04', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('noop');
+    });
+
+    it('treats autoupdate- (empty suffix) as concrete, not sentinel', () => {
+      // Missing timestamp entirely — not a valid sentinel.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastBundleVersion: 'autoupdate-' },
+        { buildId: 'autoupdate-', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('noop');
+    });
+
+    it('treats autoupdate-12345 (5 digits, below 10-digit minimum) as concrete, not sentinel', () => {
+      // Too short to be a real Date.now() timestamp — treat as concrete buildId.
+      const result = decideBuildCheck(
+        { ...noBaseline, lastBundleVersion: 'autoupdate-12345' },
+        { buildId: 'autoupdate-12345', buildIdSource: 'autoupdate' }
+      );
+      expect(result.kind).toBe('noop');
+    });
+
+    it('treats autoupdate-1730000000000 (13 digits) as sentinel', () => {
+      // Full Date.now() timestamp — valid sentinel.
+      expect(
+        decideBuildCheck(
+          { ...noBaseline, lastBundleVersion: `${SENTINEL_PREFIX}1730000000000` },
+          { buildId: `${SENTINEL_PREFIX}1730000000001`, buildIdSource: 'autoupdate' }
+        )
+      ).toEqual({ kind: 'noop' });
+    });
+  });
+
   describe('autoupdate sentinel-aware comparison (reload-loop fix)', () => {
     it('returns noop when both persisted and incoming are synthetic sentinels (reload scenario)', () => {
       // Simulates: sentinel persisted from first autoupdate, then page reloads,
       // new sentinel synthesized with different Date.now() — must NOT clear.
       expect(
         decideBuildCheck(
-          { ...noBaseline, lastBundleVersion: `${SENTINEL_PREFIX}100` },
-          { buildId: `${SENTINEL_PREFIX}200`, buildIdSource: 'autoupdate' }
+          { ...noBaseline, lastBundleVersion: `${SENTINEL_PREFIX}1730000000000` },
+          { buildId: `${SENTINEL_PREFIX}1730000000099`, buildIdSource: 'autoupdate' }
         )
       ).toEqual({ kind: 'noop' });
     });
@@ -496,7 +536,7 @@ describe('decideBuildCheck', () => {
     it('clears when persisted is synthetic sentinel and incoming is a concrete version', () => {
       // First real concrete observation after edge-trigger — legitimate clear.
       const result = decideBuildCheck(
-        { ...noBaseline, lastBundleVersion: `${SENTINEL_PREFIX}100` },
+        { ...noBaseline, lastBundleVersion: `${SENTINEL_PREFIX}1730000000000` },
         { buildId: 'realhashabc', buildIdSource: 'autoupdate' }
       );
       expect(result.kind).toBe('clear');
@@ -509,7 +549,7 @@ describe('decideBuildCheck', () => {
       expect(
         decideBuildCheck(
           { ...noBaseline, lastBundleVersion: 'realhashabc' },
-          { buildId: `${SENTINEL_PREFIX}200`, buildIdSource: 'autoupdate' }
+          { buildId: `${SENTINEL_PREFIX}1730000000099`, buildIdSource: 'autoupdate' }
         )
       ).toEqual({ kind: 'noop' });
     });

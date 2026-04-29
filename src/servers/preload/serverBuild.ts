@@ -8,12 +8,18 @@ type BuildSignals = {
   buildIdSource?: 'commit' | 'version' | 'autoupdate';
 };
 
-type SlotKey = 'commit' | 'version' | 'autoupdate' | 'cacheVersion-only';
+type SlotKey =
+  | 'commit'
+  | 'version'
+  | 'autoupdate'
+  | 'sourceless-buildId'
+  | 'cacheVersion-only';
 
 const FLUSH_ORDER: SlotKey[] = [
   'commit',
   'version',
   'autoupdate',
+  'sourceless-buildId',
   'cacheVersion-only',
 ];
 const RETRY_INTERVAL_MS = 250;
@@ -25,6 +31,7 @@ let storeReady = false;
 const slotKey = (signals: BuildSignals): SlotKey => {
   const { buildId, buildIdSource } = signals;
   if (buildId && buildIdSource) return buildIdSource;
+  if (buildId) return 'sourceless-buildId';
   return 'cacheVersion-only';
 };
 

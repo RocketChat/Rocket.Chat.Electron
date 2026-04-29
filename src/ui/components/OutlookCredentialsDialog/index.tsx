@@ -104,6 +104,32 @@ export const OutlookCredentialsDialog = () => {
   }, [isVisible]);
 
   useEffect(() => {
+    if (isVisible) {
+      return;
+    }
+    if (process.platform !== 'darwin') {
+      return;
+    }
+    if (passwordFieldActiveRef.current) {
+      passwordFieldActiveRef.current = false;
+      invoke('secure-keyboard-entry/set', false);
+    }
+  }, [isVisible]);
+
+  useEffect(
+    () => () => {
+      if (process.platform !== 'darwin') {
+        return;
+      }
+      if (passwordFieldActiveRef.current) {
+        passwordFieldActiveRef.current = false;
+        invoke('secure-keyboard-entry/set', false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
     if (process.platform !== 'darwin') {
       return undefined;
     }

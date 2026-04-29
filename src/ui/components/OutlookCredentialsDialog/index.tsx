@@ -156,8 +156,14 @@ export const OutlookCredentialsDialog = () => {
             <FieldRow>
               <PasswordInput
                 {...register('password', { required: true })}
-                onFocus={() => invoke('secure-keyboard-entry/set', true)}
-                onBlur={() => invoke('secure-keyboard-entry/set', false)}
+                onFocus={() =>
+                  process.platform === 'darwin' &&
+                  invoke('secure-keyboard-entry/set', true)
+                }
+                onBlur={() =>
+                  process.platform === 'darwin' &&
+                  invoke('secure-keyboard-entry/set', false)
+                }
               />
             </FieldRow>
             {errors.password && (

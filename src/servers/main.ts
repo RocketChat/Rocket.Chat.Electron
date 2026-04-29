@@ -20,8 +20,8 @@ import {
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
-import { clearWebviewStorageKeepingLoginData } from './cache';
 import { decideBuildCheck } from './buildCheckDecision';
+import { clearWebviewStorageKeepingLoginData } from './cache';
 import type { Server, ServerUrlResolutionResult } from './common';
 import {
   ServerUrlResolutionStatus,
@@ -32,15 +32,14 @@ const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 
 const CLEAR_COOLDOWN_MS = 60_000;
 
+type BuildSignalPayload = {
+  buildId?: string;
+  cacheVersion?: string;
+  buildIdSource?: 'commit' | 'version' | 'autoupdate';
+};
+
 const buildCheckInFlight = new Set<Server['url']>();
-const pendingClears = new Map<
-  Server['url'],
-  Map<string, {
-    buildId?: string;
-    cacheVersion?: string;
-    buildIdSource?: 'commit' | 'version' | 'autoupdate';
-  }>
->();
+const pendingClears = new Map<Server['url'], Map<string, BuildSignalPayload>>();
 const lastClearAt = new Map<Server['url'], number>();
 
 const pendingKey = (
@@ -49,6 +48,32 @@ const pendingKey = (
 ): string => {
   if (source) return source;
   return hasBuildId ? 'sourceless-buildId' : 'cacheVersion-only';
+};
+
+const enqueuePendingClear = (
+  url: Server['url'],
+  { buildId, cacheVersion, buildIdSource }: BuildSignalPayload
+): void => {
+  const inner = pendingClears.get(url) ?? new Map<string, BuildSignalPayload>();
+  inner.set(pendingKey(buildIdSource, !!buildId), {
+    buildId,
+    cacheVersion,
+    buildIdSource,
+  });
+  pendingClears.set(url, inner);
+};
+
+const flushPendingClears = (url: Server['url']): void => {
+  const innerMap = pendingClears.get(url);
+  if (!innerMap || innerMap.size === 0) return;
+
+  pendingClears.delete(url);
+  for (const payload of innerMap.values()) {
+    dispatch({
+      type: WEBVIEW_SERVER_BUILD_CHECK,
+      payload: { url, ...payload },
+    });
+  }
 };
 
 export const convertToURL = (input: string): URL => {
@@ -208,10 +233,11 @@ export const setupServers = async (
     const server = servers.find((s) => s.url === url);
     if (!server) return;
 
-    const decision = decideBuildCheck(
-      server,
-      { buildId, cacheVersion, buildIdSource }
-    );
+    const decision = decideBuildCheck(server, {
+      buildId,
+      cacheVersion,
+      buildIdSource,
+    });
 
     if (decision.kind === 'noop') return;
 
@@ -225,7 +251,8 @@ export const setupServers = async (
 
     // decision.kind === 'clear'
     const last = lastClearAt.get(url);
-    if (last !== undefined && Date.now() - last < CLEAR_COOLDOWN_MS) {
+    const now = Date.now();
+    if (last !== undefined && now - last < CLEAR_COOLDOWN_MS) {
       console.log(
         `[Rocket.Chat Desktop] cache-clear cooldown active for ${url}, adopting baseline (${decision.reason})`
       );
@@ -238,9 +265,7 @@ export const setupServers = async (
 
     if (buildCheckInFlight.has(url)) {
       // Per-source: store each source in its own slot so no cross-source data is lost.
-      const inner = pendingClears.get(url) ?? new Map();
-      inner.set(pendingKey(buildIdSource, !!buildId), { buildId, cacheVersion, buildIdSource });
-      pendingClears.set(url, inner);
+      enqueuePendingClear(url, { buildId, cacheVersion, buildIdSource });
       return;
     }
     const guestWebContents = getWebContentsByServerUrl(url);
@@ -265,16 +290,7 @@ export const setupServers = async (
       }
     } finally {
       buildCheckInFlight.delete(url);
-      const innerMap = pendingClears.get(url);
-      if (innerMap && innerMap.size > 0) {
-        pendingClears.delete(url);
-        for (const payload of innerMap.values()) {
-          dispatch({
-            type: WEBVIEW_SERVER_BUILD_CHECK,
-            payload: { url, ...payload },
-          });
-        }
-      }
+      flushPendingClears(url);
     }
   });
 

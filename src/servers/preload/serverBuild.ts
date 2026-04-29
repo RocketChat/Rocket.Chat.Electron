@@ -10,7 +10,12 @@ type BuildSignals = {
 
 type SlotKey = 'commit' | 'version' | 'autoupdate' | 'cacheVersion-only';
 
-const FLUSH_ORDER: SlotKey[] = ['commit', 'version', 'autoupdate', 'cacheVersion-only'];
+const FLUSH_ORDER: SlotKey[] = [
+  'commit',
+  'version',
+  'autoupdate',
+  'cacheVersion-only',
+];
 const RETRY_INTERVAL_MS = 250;
 const RETRY_HARD_CAP_MS = 30_000;
 

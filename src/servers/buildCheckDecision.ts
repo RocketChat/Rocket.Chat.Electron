@@ -1,5 +1,7 @@
 import { coerce } from 'semver';
 
+import type { Server } from './common';
+
 /**
  * Synthesized client-side timestamp marker emitted when Meteor's Autoupdate
  * signals a new client bundle but the private store can't yield a concrete
@@ -17,8 +19,6 @@ const isSentinel = (v: string | undefined): boolean => {
   if (typeof v !== 'string') return false;
   return /^autoupdate-\d{10,}$/.test(v);
 };
-
-import type { Server } from './common';
 
 /**
  * Compare two version strings using semver coercion so that formatting
@@ -44,21 +44,138 @@ export type BuildCheckDecision =
   | { kind: 'adopt' }
   | { kind: 'clear'; reason: string };
 
-export const decideBuildCheck = (
-  server: Pick<
-    Server,
-    | 'lastCommitBuildId'
-    | 'lastVersionBuildId'
-    | 'lastBundleVersion'
-    | 'lastCacheVersion'
-    | 'gitCommitHash'
-    | 'version'
-  >,
-  payload: {
-    buildId?: string;
-    cacheVersion?: string;
-    buildIdSource?: 'commit' | 'version' | 'autoupdate';
+type BuildCheckServer = Pick<
+  Server,
+  | 'lastCommitBuildId'
+  | 'lastVersionBuildId'
+  | 'lastBundleVersion'
+  | 'lastCacheVersion'
+  | 'gitCommitHash'
+  | 'version'
+>;
+
+type BuildCheckPayload = {
+  buildId?: string;
+  cacheVersion?: string;
+  buildIdSource?: 'commit' | 'version' | 'autoupdate';
+};
+
+const decideAutoupdateBuildCheck = (
+  server: BuildCheckServer,
+  buildId?: string
+): BuildCheckDecision => {
+  if (!buildId) return { kind: 'noop' };
+  if (!server.lastBundleVersion) {
+    return {
+      kind: 'clear',
+      reason: `bundleVersion (first observation, autoupdate signal implies stale bundle) -> ${buildId}`,
+    };
   }
+  if (server.lastBundleVersion === buildId) return { kind: 'noop' };
+
+  // Sentinel-aware comparison: synthetic IDs (Date.now() based) must not
+  // bounce against each other or against an existing concrete baseline.
+  // The page context that synthesizes sentinels is torn down on reload, so
+  // consecutive sentinels differ (new Date.now()), but they represent the
+  // same true-edge event — not a real bundle change.
+  const incomingSentinel = isSentinel(buildId);
+  const persistedSentinel = isSentinel(server.lastBundleVersion);
+
+  // Both synthetic — same true-edge story across renderer reloads. Noop.
+  if (incomingSentinel && persistedSentinel) return { kind: 'noop' };
+
+  // Incoming synthetic, persisted concrete — concrete is more authoritative.
+  // Don't downgrade baseline. Noop.
+  if (incomingSentinel && !persistedSentinel) return { kind: 'noop' };
+
+  // Incoming concrete, persisted synthetic — first real observation after
+  // edge-trigger. Clear and adopt the concrete version.
+  if (!incomingSentinel && persistedSentinel) {
+    return {
+      kind: 'clear',
+      reason: `bundleVersion sentinel -> concrete ${buildId}`,
+    };
+  }
+
+  // Both concrete and different — real bundle change.
+  return {
+    kind: 'clear',
+    reason: `bundleVersion ${server.lastBundleVersion} -> ${buildId}`,
+  };
+};
+
+const decideCommitBuildCheck = (
+  server: BuildCheckServer,
+  buildId: string,
+  cacheVersion?: string
+): BuildCheckDecision => {
+  if (!server.lastCommitBuildId) {
+    // No commit baseline yet — check legacy gitCommitHash migration.
+    if (server.gitCommitHash) {
+      if (server.gitCommitHash === buildId) return { kind: 'adopt' };
+      return {
+        kind: 'clear',
+        reason: `legacy gitCommitHash ${server.gitCommitHash} -> ${buildId}`,
+      };
+    }
+    // First observation, adopt.
+    return { kind: 'adopt' };
+  }
+  if (server.lastCommitBuildId === buildId) {
+    // buildId matches; cacheVersion mismatch already handled above.
+    if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
+    return { kind: 'noop' };
+  }
+  return {
+    kind: 'clear',
+    reason: `commitBuildId ${server.lastCommitBuildId} -> ${buildId}`,
+  };
+};
+
+const decideVersionBuildCheck = (
+  server: BuildCheckServer,
+  buildId: string,
+  cacheVersion?: string
+): BuildCheckDecision => {
+  if (!server.lastVersionBuildId) {
+    // No version baseline yet — check legacy server.version migration.
+    if (server.version) {
+      if (sameVersion(server.version, buildId)) return { kind: 'adopt' };
+      return {
+        kind: 'clear',
+        reason: `legacy version ${server.version} -> ${buildId}`,
+      };
+    }
+    // First observation, adopt.
+    return { kind: 'adopt' };
+  }
+  if (sameVersion(server.lastVersionBuildId, buildId)) {
+    // buildId matches; cacheVersion mismatch already handled above.
+    if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
+    return { kind: 'noop' };
+  }
+  return {
+    kind: 'clear',
+    reason: `versionBuildId ${server.lastVersionBuildId} -> ${buildId}`,
+  };
+};
+
+const decideCacheVersionOnlyBuildCheck = (
+  server: BuildCheckServer,
+  cacheVersion?: string
+): BuildCheckDecision => {
+  if (!cacheVersion) return { kind: 'adopt' };
+  if (!server.lastCacheVersion) return { kind: 'adopt' };
+  if (server.lastCacheVersion === cacheVersion) return { kind: 'noop' };
+  return {
+    kind: 'clear',
+    reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
+  };
+};
+
+export const decideBuildCheck = (
+  server: BuildCheckServer,
+  payload: BuildCheckPayload
 ): BuildCheckDecision => {
   const { buildId, cacheVersion, buildIdSource } = payload;
 
@@ -78,109 +195,21 @@ export const decideBuildCheck = (
     };
   }
 
-  // --- autoupdate source: operates on lastBundleVersion only ---
+  // Autoupdate source operates on lastBundleVersion only.
   if (buildIdSource === 'autoupdate') {
-    if (!buildId) return { kind: 'noop' };
-    if (!server.lastBundleVersion) {
-      return {
-        kind: 'clear',
-        reason: `bundleVersion (first observation, autoupdate signal implies stale bundle) -> ${buildId}`,
-      };
-    }
-    if (server.lastBundleVersion === buildId) return { kind: 'noop' };
-
-    // Sentinel-aware comparison: synthetic IDs (Date.now() based) must not
-    // bounce against each other or against an existing concrete baseline.
-    // The page context that synthesizes sentinels is torn down on reload, so
-    // consecutive sentinels differ (new Date.now()), but they represent the
-    // same true-edge event — not a real bundle change.
-    const incomingSentinel = isSentinel(buildId);
-    const persistedSentinel = isSentinel(server.lastBundleVersion);
-
-    // Both synthetic — same true-edge story across renderer reloads. Noop.
-    if (incomingSentinel && persistedSentinel) return { kind: 'noop' };
-
-    // Incoming synthetic, persisted concrete — concrete is more authoritative.
-    // Don't downgrade baseline. Noop.
-    if (incomingSentinel && !persistedSentinel) return { kind: 'noop' };
-
-    // Incoming concrete, persisted synthetic — first real observation after
-    // edge-trigger. Clear and adopt the concrete version.
-    if (!incomingSentinel && persistedSentinel) {
-      return {
-        kind: 'clear',
-        reason: `bundleVersion sentinel -> concrete ${buildId}`,
-      };
-    }
-
-    // Both concrete and different — real bundle change.
-    return {
-      kind: 'clear',
-      reason: `bundleVersion ${server.lastBundleVersion} -> ${buildId}`,
-    };
+    return decideAutoupdateBuildCheck(server, buildId);
   }
 
-  // --- commit source: operates on lastCommitBuildId ---
+  // Commit source operates on lastCommitBuildId.
   if (buildIdSource === 'commit' && buildId) {
-    if (!server.lastCommitBuildId) {
-      // No commit baseline yet — check legacy gitCommitHash migration.
-      if (server.gitCommitHash) {
-        if (server.gitCommitHash === buildId) return { kind: 'adopt' };
-        return {
-          kind: 'clear',
-          reason: `legacy gitCommitHash ${server.gitCommitHash} -> ${buildId}`,
-        };
-      }
-      // First observation, adopt.
-      return { kind: 'adopt' };
-    }
-    if (server.lastCommitBuildId === buildId) {
-      // buildId matches; cacheVersion mismatch already handled above.
-      if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
-      return { kind: 'noop' };
-    }
-    return {
-      kind: 'clear',
-      reason: `commitBuildId ${server.lastCommitBuildId} -> ${buildId}`,
-    };
+    return decideCommitBuildCheck(server, buildId, cacheVersion);
   }
 
-  // --- version source: operates on lastVersionBuildId ---
+  // Version source operates on lastVersionBuildId.
   if (buildIdSource === 'version' && buildId) {
-    if (!server.lastVersionBuildId) {
-      // No version baseline yet — check legacy server.version migration.
-      if (server.version) {
-        if (sameVersion(server.version, buildId)) return { kind: 'adopt' };
-        return {
-          kind: 'clear',
-          reason: `legacy version ${server.version} -> ${buildId}`,
-        };
-      }
-      // First observation, adopt.
-      return { kind: 'adopt' };
-    }
-    if (sameVersion(server.lastVersionBuildId, buildId)) {
-      // buildId matches; cacheVersion mismatch already handled above.
-      if (cacheVersion && !server.lastCacheVersion) return { kind: 'adopt' };
-      return { kind: 'noop' };
-    }
-    return {
-      kind: 'clear',
-      reason: `versionBuildId ${server.lastVersionBuildId} -> ${buildId}`,
-    };
+    return decideVersionBuildCheck(server, buildId, cacheVersion);
   }
 
-  // --- source undefined: only cacheVersion can arrive here (buildId without source) ---
   // Treat as adopt/noop based solely on cacheVersion; do not write commit or version baseline.
-  if (cacheVersion) {
-    if (!server.lastCacheVersion) return { kind: 'adopt' };
-    if (server.lastCacheVersion === cacheVersion) return { kind: 'noop' };
-    return {
-      kind: 'clear',
-      reason: `cacheVersion ${server.lastCacheVersion} -> ${cacheVersion}`,
-    };
-  }
-
-  // buildId present but source unknown — first observation, adopt.
-  return { kind: 'adopt' };
+  return decideCacheVersionOnlyBuildCheck(server, cacheVersion);
 };

@@ -549,7 +549,7 @@ const start = async () => {
     // Falls back silently when Autoupdate is not present (older RC versions).
     if (Tracker && !setupFlags.autoupdateSetup) {
       try {
-        const Autoupdate = (window as any).Autoupdate;
+        const { Autoupdate } = window as any;
         if (Autoupdate && typeof Autoupdate.newClientAvailable === 'function') {
           // Edge-trigger guard: when the private Meteor store cannot supply a
           // real bundle version we must NOT dispatch on every autorun re-fire
@@ -571,9 +571,7 @@ const start = async () => {
             let bundleVersion: string | undefined;
             try {
               const store =
-                Meteor?.connection?._stores?.[
-                  'meteor_autoupdate_clientVersions'
-                ];
+                Meteor?.connection?._stores?.meteor_autoupdate_clientVersions;
               const doc =
                 store?.get?.('version-refreshable') ?? store?.get?.('version');
               bundleVersion = doc?.version ?? doc?._id;
@@ -584,7 +582,9 @@ const start = async () => {
             if (bundleVersion) {
               // Concrete version available — dispatch unconditionally (each
               // distinct version string is its own edge in the main process).
-              window.RocketChatDesktop.notifyBundleAutoupdate?.({ bundleVersion });
+              window.RocketChatDesktop.notifyBundleAutoupdate?.({
+                bundleVersion,
+              });
               return;
             }
 

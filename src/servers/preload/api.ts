@@ -15,6 +15,7 @@ import {
   setUserToken,
 } from '../../outlookCalendar/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
+import { SENTINEL_PREFIX } from '../buildCheckDecision';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import { openDocumentViewer } from './documentViewer';
@@ -25,7 +26,6 @@ import {
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
 import { reloadServer } from './reloadServer';
-import { SENTINEL_PREFIX } from '../buildCheckDecision';
 import { setServerBuildSignals } from './serverBuild';
 import {
   setBackground,
@@ -77,11 +77,12 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
     const commitHash = extended?.commit?.hash;
     const versionStr = extended?.version;
     const buildId = commitHash || versionStr;
-    const buildIdSource: 'commit' | 'version' | undefined = commitHash
-      ? 'commit'
-      : versionStr
-      ? 'version'
-      : undefined;
+    let buildIdSource: 'commit' | 'version' | undefined;
+    if (commitHash) {
+      buildIdSource = 'commit';
+    } else if (versionStr) {
+      buildIdSource = 'version';
+    }
     // `cache_version` cookie is an optional proxy-supplied signal — stock
     // Rocket.Chat does not set it. Best-effort: absent on most deployments.
     const cacheVersionMatch =
@@ -115,7 +116,11 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setSidebarCustomTheme,
   openDocumentViewer,
   reloadServer,
-  notifyBundleAutoupdate: ({ bundleVersion }: { bundleVersion?: string }): void => {
+  notifyBundleAutoupdate: ({
+    bundleVersion,
+  }: {
+    bundleVersion?: string;
+  }): void => {
     // newClientAvailable() fired; if Meteor's private store didn't yield a
     // version string, synthesize a per-event sentinel so the main process
     // still treats this as a real bundle change and clears the cache.

@@ -507,7 +507,7 @@ export function checkSupportedVersionServers(): void {
   });
 
   ipcMain.handle('refresh-supported-versions', async (event, serverUrl) => {
-    if (!isTrustedSender(event.sender, ['server-webview'])) {
+    if (!isTrustedSender(event.sender, ['main-window'])) {
       console.warn(
         '[ipc] refresh-supported-versions: rejected untrusted sender',
         event.sender.getURL()

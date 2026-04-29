@@ -270,7 +270,7 @@ export const setupWebContentsLogging = () => {
     // Origin is derived from event.sender.getURL() — the renderer-supplied
     // origin parameter is intentionally ignored to prevent spoofing.
     ipcMain.on('log-viewer-window/get-server-tag', (event, _origin: string) => {
-      if (!isTrustedSender(event.sender, ['log-viewer'])) {
+      if (!isTrustedSender(event.sender, ['server-webview'])) {
         console.warn(
           '[ipc] log-viewer-window/get-server-tag: rejected untrusted sender',
           event.sender.getURL()

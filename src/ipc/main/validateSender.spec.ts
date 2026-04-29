@@ -167,6 +167,74 @@ describe('isTrustedSender — video-call', () => {
 });
 
 // ---------------------------------------------------------------------------
+// main-window (local window class — used by refresh-supported-versions)
+// ---------------------------------------------------------------------------
+
+describe('isTrustedSender — main-window', () => {
+  const allow: SenderClass[] = ['main-window'];
+
+  const mainWindowWc = makeWebContents({ id: 60, type: 'window' });
+
+  beforeEach(() => {
+    registerWindowGetter('main-window', () => mainWindowWc);
+  });
+
+  it('accepts the main window WebContents (refresh-supported-versions caller)', () => {
+    expect(isTrustedSender(mainWindowWc, allow)).toBe(true);
+  });
+
+  it('rejects a server-webview sender that is not the main window', () => {
+    const serverWebview = makeWebContents({
+      id: 61,
+      type: 'webview',
+      url: 'https://chat.example.com/',
+    });
+    mockSelect.mockReturnValue([{ url: 'https://chat.example.com/' }]);
+    expect(isTrustedSender(serverWebview, allow)).toBe(false);
+  });
+
+  it('rejects an unrelated window', () => {
+    const other = makeWebContents({ id: 99, type: 'window' });
+    expect(isTrustedSender(other, allow)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// log-viewer-window/get-server-tag — sent by server-webview preload
+// ---------------------------------------------------------------------------
+
+describe('isTrustedSender — log-viewer-window/get-server-tag allowlist', () => {
+  const allow: SenderClass[] = ['server-webview'];
+
+  it('accepts a server webview sender (preload context)', () => {
+    const sender = makeWebContents({
+      type: 'webview',
+      url: 'https://chat.example.com/some/path',
+    });
+    mockSelect.mockReturnValue([{ url: 'https://chat.example.com/' }]);
+
+    expect(isTrustedSender(sender, allow)).toBe(true);
+  });
+
+  it('rejects a log-viewer window sender for this channel', () => {
+    const logViewerWc = makeWebContents({ id: 70, type: 'window' });
+    registerWindowGetter('log-viewer', () => logViewerWc);
+
+    expect(isTrustedSender(logViewerWc, allow)).toBe(false);
+  });
+
+  it('rejects a webview whose origin does not match any server', () => {
+    const sender = makeWebContents({
+      type: 'webview',
+      url: 'https://evil.example.com/',
+    });
+    mockSelect.mockReturnValue([{ url: 'https://chat.example.com/' }]);
+
+    expect(isTrustedSender(sender, allow)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // multi-class allow list
 // ---------------------------------------------------------------------------
 

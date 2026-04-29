@@ -69,19 +69,23 @@ export const setupServerViewDisplayMedia = (
     const currentProvider = provider;
     try {
       guestWebContents.session.setDisplayMediaRequestHandler(
-        (_request, cb) => {
-          try {
-            currentProvider.handleDisplayMediaRequest(cb);
-          } catch (error) {
-            console.error(
-              'Server view screen sharing: error in handler:',
-              error
-            );
-            cb({ video: false } as any);
-          }
-        },
-        { useSystemPicker: false }
+  (request, cb) => {
+    if (!request.userGesture) {
+      cb({} as any);
+      return;
+    }
+    try {
+      currentProvider.handleDisplayMediaRequest(cb);
+    } catch (error) {
+      console.error(
+        'Server view screen sharing: error in handler:',
+        error
       );
+      cb({ video: false } as any);
+    }
+  },
+  { useSystemPicker: false }
+);
       prewarmDesktopCapturerCache();
     } catch (error) {
       console.error(

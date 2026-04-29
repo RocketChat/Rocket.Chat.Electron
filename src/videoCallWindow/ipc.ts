@@ -11,6 +11,7 @@ import { app, BrowserWindow, ipcMain, screen, webContents } from 'electron';
 import { packageJsonInformation } from '../app/main/app';
 import { fallbackLng } from '../i18n/common';
 import { handle } from '../ipc/main';
+import { isTrustedSender, registerWindowGetter } from '../ipc/validateSender';
 import { isProtocolAllowed } from '../navigation/main';
 import { ScreenSharingRequestTracker } from '../screenSharing/ScreenSharingRequestTracker';
 import {
@@ -262,9 +263,19 @@ const setupWebviewHandlers = (webContents: WebContents) => {
 };
 
 export const startVideoCallWindowHandler = (): void => {
+  registerWindowGetter('video-call', () => videoCallWindow?.webContents);
+
   // Sync IPC handler for provider name - used by jitsiBridge preload
   // to skip initialization for non-Jitsi providers without async delay
   ipcMain.on('video-call-window/get-provider-sync', (event) => {
+    if (!isTrustedSender(event.sender, ['video-call'])) {
+      console.warn(
+        '[ipc] video-call-window/get-provider-sync: rejected untrusted sender',
+        event.sender.getURL()
+      );
+      event.returnValue = null;
+      return;
+    }
     event.returnValue = videoCallProviderName;
   });
 
@@ -296,7 +307,14 @@ export const startVideoCallWindowHandler = (): void => {
     // jitsiBridge's ipcRenderer.on listener fires correctly.
     ipcMain.once(
       'video-call-window/screen-sharing-source-responded',
-      (_event, sourceId: string | null) => {
+      (onceEvent, sourceId: string | null) => {
+        if (!isTrustedSender(onceEvent.sender, ['video-call'])) {
+          console.warn(
+            '[ipc] video-call-window/screen-sharing-source-responded: rejected untrusted sender',
+            onceEvent.sender.getURL()
+          );
+          return;
+        }
         if (!callerWebContents.isDestroyed()) {
           callerWebContents.send(
             'video-call-window/screen-sharing-source-responded',

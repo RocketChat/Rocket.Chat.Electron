@@ -5,6 +5,7 @@ import type { WebContents } from 'electron';
 import { app, ipcMain } from 'electron';
 import log from 'electron-log';
 
+import { isTrustedSender } from '../ipc/validateSender';
 import { select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
@@ -265,17 +266,31 @@ export const setupWebContentsLogging = () => {
       );
     }
 
-    // Synchronous IPC handler for preload scripts to get their server tag
-    ipcMain.on('log-viewer-window/get-server-tag', (event, origin: string) => {
+    // Synchronous IPC handler for preload scripts to get their server tag.
+    // Origin is derived from event.sender.getURL() — the renderer-supplied
+    // origin parameter is intentionally ignored to prevent spoofing.
+    ipcMain.on('log-viewer-window/get-server-tag', (event, _origin: string) => {
+      if (!isTrustedSender(event.sender, ['log-viewer'])) {
+        console.warn(
+          '[ipc] log-viewer-window/get-server-tag: rejected untrusted sender',
+          event.sender.getURL()
+        );
+        event.returnValue = '';
+        return;
+      }
       try {
-        if (selectFunction && origin) {
-          const servers = selectFunction((state: RootState) => state.servers);
-          const matchedServer = servers.find(
-            (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
-          );
-          if (matchedServer?.url) {
-            event.returnValue = getHost(matchedServer.url);
-            return;
+        if (selectFunction) {
+          const senderUrl = event.sender.getURL();
+          if (senderUrl) {
+            const servers = selectFunction((state: RootState) => state.servers);
+            const matchedServer = servers.find(
+              (s: any) =>
+                s.url && senderUrl.startsWith(s.url.replace(/\/$/, ''))
+            );
+            if (matchedServer?.url) {
+              event.returnValue = getHost(matchedServer.url);
+              return;
+            }
           }
         }
       } catch {

@@ -80,8 +80,10 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
 
+const mockUseSelector = jest.fn<string, []>(() => 'outlook-credentials');
+
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => 'outlook-credentials'),
+  useSelector: (_selector: unknown) => mockUseSelector(),
   useDispatch: jest.fn(() => jest.fn()),
 }));
 
@@ -105,10 +107,15 @@ jest.mock('../Dialog', () => {
 
 const originalPlatform = process.platform;
 
-function renderDialog(): { container: HTMLElement; unmount: () => void } {
+function renderDialog(openDialog = 'outlook-credentials'): {
+  container: HTMLElement;
+  unmount: () => void;
+  setOpenDialog: (value: string) => void;
+} {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = createRoot(container);
+  mockUseSelector.mockReturnValue(openDialog);
   act(() => {
     root.render(React.createElement(OutlookCredentialsDialog));
   });
@@ -117,6 +124,12 @@ function renderDialog(): { container: HTMLElement; unmount: () => void } {
     unmount: () => {
       act(() => root.unmount());
       document.body.removeChild(container);
+    },
+    setOpenDialog: (value: string) => {
+      mockUseSelector.mockReturnValue(value);
+      act(() => {
+        root.render(React.createElement(OutlookCredentialsDialog));
+      });
     },
   };
 }
@@ -132,6 +145,7 @@ function getPasswordInput(container: HTMLElement): HTMLInputElement {
 describe('OutlookCredentialsDialog — secure keyboard entry', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue('outlook-credentials');
     Object.defineProperty(process, 'platform', { value: originalPlatform });
   });
 
@@ -222,6 +236,52 @@ describe('OutlookCredentialsDialog — secure keyboard entry', () => {
       expect(removeSpy).toHaveBeenCalledWith('focus', expect.any(Function));
       removeSpy.mockRestore();
     });
+
+    it('calls secure-keyboard-entry/set false on unmount when password was focused', () => {
+      const { container, unmount } = renderDialog();
+      act(() => {
+        Simulate.focus(getPasswordInput(container));
+      });
+      mockInvoke.mockClear();
+      unmount();
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'secure-keyboard-entry/set',
+        false
+      );
+    });
+
+    it('does NOT call secure-keyboard-entry/set false on unmount when password was never focused', () => {
+      const { unmount } = renderDialog();
+      unmount();
+      expect(mockInvoke).not.toHaveBeenCalledWith(
+        'secure-keyboard-entry/set',
+        false
+      );
+    });
+
+    it('calls secure-keyboard-entry/set false when dialog closes via state change (isVisible flips false)', () => {
+      const { container, setOpenDialog, unmount } = renderDialog();
+      act(() => {
+        Simulate.focus(getPasswordInput(container));
+      });
+      mockInvoke.mockClear();
+      setOpenDialog('some-other-dialog');
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'secure-keyboard-entry/set',
+        false
+      );
+      unmount();
+    });
+
+    it('does NOT call secure-keyboard-entry/set false on dialog close when password was never focused', () => {
+      const { setOpenDialog, unmount } = renderDialog();
+      setOpenDialog('some-other-dialog');
+      expect(mockInvoke).not.toHaveBeenCalledWith(
+        'secure-keyboard-entry/set',
+        false
+      );
+      unmount();
+    });
   });
 
   describe('on linux', () => {
@@ -246,6 +306,27 @@ describe('OutlookCredentialsDialog — secure keyboard entry', () => {
       expect(mockInvoke).not.toHaveBeenCalled();
       unmount();
     });
+
+    it('does not call secure-keyboard-entry/set on unmount', () => {
+      const { container, unmount } = renderDialog();
+      act(() => {
+        Simulate.focus(getPasswordInput(container));
+      });
+      mockInvoke.mockClear();
+      unmount();
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it('does not call secure-keyboard-entry/set on dialog close via state change', () => {
+      const { container, setOpenDialog, unmount } = renderDialog();
+      act(() => {
+        Simulate.focus(getPasswordInput(container));
+      });
+      mockInvoke.mockClear();
+      setOpenDialog('some-other-dialog');
+      expect(mockInvoke).not.toHaveBeenCalled();
+      unmount();
+    });
   });
 
   describe('on win32', () => {
@@ -258,6 +339,27 @@ describe('OutlookCredentialsDialog — secure keyboard entry', () => {
       act(() => {
         Simulate.focus(getPasswordInput(container));
       });
+      expect(mockInvoke).not.toHaveBeenCalled();
+      unmount();
+    });
+
+    it('does not call secure-keyboard-entry/set on unmount', () => {
+      const { container, unmount } = renderDialog();
+      act(() => {
+        Simulate.focus(getPasswordInput(container));
+      });
+      mockInvoke.mockClear();
+      unmount();
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it('does not call secure-keyboard-entry/set on dialog close via state change', () => {
+      const { container, setOpenDialog, unmount } = renderDialog();
+      act(() => {
+        Simulate.focus(getPasswordInput(container));
+      });
+      mockInvoke.mockClear();
+      setOpenDialog('some-other-dialog');
       expect(mockInvoke).not.toHaveBeenCalled();
       unmount();
     });

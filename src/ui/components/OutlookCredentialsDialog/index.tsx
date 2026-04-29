@@ -47,6 +47,7 @@ export const OutlookCredentialsDialog = () => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const requestIdRef = useRef<unknown>();
+  const passwordFieldActiveRef = useRef(false);
 
   const [server, setServer] = useState<Server | undefined>();
   const [userId, setUserId] = useState<string>('');
@@ -102,6 +103,21 @@ export const OutlookCredentialsDialog = () => {
     window.focus();
   }, [isVisible]);
 
+  useEffect(() => {
+    if (process.platform !== 'darwin') {
+      return undefined;
+    }
+
+    const handleWindowFocus = (): void => {
+      if (passwordFieldActiveRef.current) {
+        invoke('secure-keyboard-entry/set', true);
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
+  }, []);
+
   const handleAuth = async ({
     login,
     password,
@@ -156,14 +172,18 @@ export const OutlookCredentialsDialog = () => {
             <FieldRow>
               <PasswordInput
                 {...register('password', { required: true })}
-                onFocus={() =>
-                  process.platform === 'darwin' &&
-                  invoke('secure-keyboard-entry/set', true)
-                }
-                onBlur={() =>
-                  process.platform === 'darwin' &&
-                  invoke('secure-keyboard-entry/set', false)
-                }
+                onFocus={() => {
+                  if (process.platform === 'darwin') {
+                    passwordFieldActiveRef.current = true;
+                    invoke('secure-keyboard-entry/set', true);
+                  }
+                }}
+                onBlur={() => {
+                  if (process.platform === 'darwin') {
+                    passwordFieldActiveRef.current = false;
+                    invoke('secure-keyboard-entry/set', false);
+                  }
+                }}
               />
             </FieldRow>
             {errors.password && (

@@ -197,6 +197,19 @@ describe('isTrustedSender — main-window', () => {
     const other = makeWebContents({ id: 99, type: 'window' });
     expect(isTrustedSender(other, allow)).toBe(false);
   });
+
+  it('rejects a server webview whose hostWebContents is the main window (CORE-1129)', () => {
+    // A malicious server webview is hosted by the main window and must NOT be
+    // allowed to impersonate the main-window sender class.
+    const serverWebview = makeWebContents({
+      id: 62,
+      type: 'webview',
+      url: 'https://chat.example.com/some/path',
+      hostWebContents: mainWindowWc,
+    });
+    mockSelect.mockReturnValue([{ url: 'https://chat.example.com/' }]);
+    expect(isTrustedSender(serverWebview, allow)).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------

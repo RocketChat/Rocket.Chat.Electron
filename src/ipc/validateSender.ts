@@ -33,10 +33,11 @@ export const registerWindowGetter = (
  *
  * - 'server-webview': sender must be a webview whose origin matches a
  *   configured server URL in Redux state.
- * - 'main-window' | 'log-viewer' | 'video-call': sender must be exactly the
- *   registered WebContents for that window, OR a webview whose
- *   hostWebContents is that window's WebContents (covers preload scripts
- *   running inside hosted webviews).
+ * - 'main-window' | 'log-viewer': sender must be exactly the registered
+ *   WebContents for that window (identity-only match).
+ * - 'video-call': sender must be exactly the registered WebContents OR a
+ *   webview whose hostWebContents is that window's WebContents (covers the
+ *   Jitsi webview hosted inside the video-call window).
  */
 export const isTrustedSender = (
   sender: WebContents,
@@ -79,11 +80,15 @@ const isLocalWindowSender = (
   // Direct match: sender IS the window's webContents
   if (sender.id === trusted.id) return true;
 
-  // Hosted webview match: sender is a webview whose host is the window
-  // WebContents.hostWebContents is available on webview guests
-  const host = (sender as WebContents & { hostWebContents?: WebContents })
-    .hostWebContents;
-  if (host && host.id === trusted.id) return true;
+  // Hosted webview match: only permitted for 'video-call' (Jitsi webview).
+  // 'main-window' and 'log-viewer' use identity-only matching to prevent a
+  // server webview (which shares hostWebContents with the main window) from
+  // impersonating those classes.
+  if (cls === 'video-call') {
+    const host = (sender as WebContents & { hostWebContents?: WebContents })
+      .hostWebContents;
+    if (host && host.id === trusted.id) return true;
+  }
 
   return false;
 };

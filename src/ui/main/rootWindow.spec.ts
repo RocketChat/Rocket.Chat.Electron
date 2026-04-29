@@ -38,6 +38,10 @@ jest.mock('./icons', () => ({
   getTrayIconPath: jest.fn(),
 }));
 
+jest.mock('../../ipc/validateSender', () => ({
+  registerWindowGetter: jest.fn(),
+}));
+
 describe('rootWindow close event handler', () => {
   let mockWindow: any;
   let mockEvent: any;
@@ -339,6 +343,64 @@ describe('rootWindow close event handler', () => {
 
       expect(mockWindow.hide).toHaveBeenCalled();
       expect(app.quit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createRootWindow — main-window getter registration', () => {
+    let MockBrowserWindow: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      MockBrowserWindow = require('electron').BrowserWindow as jest.Mock;
+    });
+
+    const buildFakeWindow = (wc: any) => ({
+      webContents: wc,
+      on: jest.fn(),
+      addListener: jest.fn(),
+      once: jest.fn(),
+      destroy: jest.fn(),
+    });
+
+    it('calls registerWindowGetter with "main-window" after creating the BrowserWindow', () => {
+      const { registerWindowGetter } = require('../../ipc/validateSender');
+      const rootWindowModule = require('./rootWindow');
+      const fakeWc = { id: 42 };
+      MockBrowserWindow.mockReturnValue(buildFakeWindow(fakeWc));
+
+      // tempWindow.destroy() is called by createRootWindow; tempWindow is set during
+      // exportLocalStorage. In test context it is undefined, so we catch that throw.
+      try {
+        rootWindowModule.createRootWindow();
+      } catch {
+        // expected: tempWindow is undefined in this test context
+      }
+
+      expect(registerWindowGetter).toHaveBeenCalledWith(
+        'main-window',
+        expect.any(Function)
+      );
+    });
+
+    it('getter returned to registerWindowGetter returns the root window webContents', () => {
+      const { registerWindowGetter } = require('../../ipc/validateSender');
+      const rootWindowModule = require('./rootWindow');
+      const fakeWc = { id: 42 };
+      MockBrowserWindow.mockReturnValue(buildFakeWindow(fakeWc));
+
+      try {
+        rootWindowModule.createRootWindow();
+      } catch {
+        // expected: tempWindow is undefined in this test context
+      }
+
+      const registrationCall = (
+        registerWindowGetter as jest.Mock
+      ).mock.calls.find(([cls]: [string]) => cls === 'main-window');
+      expect(registrationCall).toBeDefined();
+
+      const getter = registrationCall[1];
+      expect(getter()).toBe(fakeWc);
     });
   });
 

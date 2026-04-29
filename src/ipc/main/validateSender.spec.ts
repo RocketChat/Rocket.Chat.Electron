@@ -235,6 +235,90 @@ describe('isTrustedSender — log-viewer-window/get-server-tag allowlist', () =>
 });
 
 // ---------------------------------------------------------------------------
+// screen-sharing-source-responded: once-vs-on listener robustness
+//
+// Verifies that an untrusted sender firing the channel does NOT consume the
+// listener, so the legitimate picker reply is still handled correctly.
+// ---------------------------------------------------------------------------
+
+describe('ipcMain.on + removeListener pattern for picker response', () => {
+  // Minimal ipcMain double that tracks listeners and lets tests fire them.
+  const makeIpcMainDouble = () => {
+    const listeners: Map<string, ((...args: unknown[]) => void)[]> = new Map();
+    return {
+      on(channel: string, fn: (...args: unknown[]) => void) {
+        const existing = listeners.get(channel) ?? [];
+        listeners.set(channel, [...existing, fn]);
+      },
+      removeListener(channel: string, fn: (...args: unknown[]) => void) {
+        const existing = listeners.get(channel) ?? [];
+        listeners.set(
+          channel,
+          existing.filter((l) => l !== fn)
+        );
+      },
+      emit(channel: string, ...args: unknown[]) {
+        const fns = listeners.get(channel) ?? [];
+        // snapshot so removeListener inside handler doesn't skip entries
+        [...fns].forEach((fn) => fn(...args));
+      },
+      listenerCount(channel: string) {
+        return (listeners.get(channel) ?? []).length;
+      },
+    };
+  };
+
+  it('untrusted sender does not consume the listener', () => {
+    const ipcDouble = makeIpcMainDouble();
+    const channel = 'video-call-window/screen-sharing-source-responded';
+
+    const received: Array<string | null> = [];
+
+    // Simulate the on+removeListener pattern from the fixed code
+    const handler = (...args: unknown[]) => {
+      const event = args[0] as { trusted: boolean };
+      const sourceId = args[1] as string | null;
+      if (!event.trusted) return; // keep listening
+      ipcDouble.removeListener(channel, handler);
+      received.push(sourceId);
+    };
+    ipcDouble.on(channel, handler);
+
+    // Untrusted sender fires first — must not consume handler
+    ipcDouble.emit(channel, { trusted: false }, null);
+    expect(ipcDouble.listenerCount(channel)).toBe(1);
+    expect(received).toHaveLength(0);
+
+    // Trusted sender fires — handler runs and self-removes
+    ipcDouble.emit(channel, { trusted: true }, 'screen:1');
+    expect(received).toEqual(['screen:1']);
+    expect(ipcDouble.listenerCount(channel)).toBe(0);
+  });
+
+  it('trusted sender consumes the listener and invokes handler exactly once', () => {
+    const ipcDouble = makeIpcMainDouble();
+    const channel = 'video-call-window/screen-sharing-source-responded';
+    const received: Array<string | null> = [];
+
+    const handler = (...args: unknown[]) => {
+      const event = args[0] as { trusted: boolean };
+      const sourceId = args[1] as string | null;
+      if (!event.trusted) return;
+      ipcDouble.removeListener(channel, handler);
+      received.push(sourceId);
+    };
+    ipcDouble.on(channel, handler);
+
+    ipcDouble.emit(channel, { trusted: true }, 'screen:2');
+    // Second trusted emit should be a no-op (listener already removed)
+    ipcDouble.emit(channel, { trusted: true }, 'screen:3');
+
+    expect(received).toEqual(['screen:2']);
+    expect(ipcDouble.listenerCount(channel)).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // multi-class allow list
 // ---------------------------------------------------------------------------
 

@@ -3,6 +3,7 @@ import process from 'process';
 
 import type {
   Event,
+  IpcMainEvent,
   WebContents,
   MediaAccessPermissionRequest,
 } from 'electron';
@@ -305,23 +306,36 @@ export const startVideoCallWindowHandler = (): void => {
     // preload that called ipcRenderer.invoke here). The screenSharePicker renderer sends
     // the result via ipcRenderer.send → ipcMain; we relay it to the caller so that
     // jitsiBridge's ipcRenderer.on listener fires correctly.
-    ipcMain.once(
-      'video-call-window/screen-sharing-source-responded',
-      (onceEvent, sourceId: string | null) => {
-        if (!isTrustedSender(onceEvent.sender, ['video-call'])) {
-          console.warn(
-            '[ipc] video-call-window/screen-sharing-source-responded: rejected untrusted sender',
-            onceEvent.sender.getURL()
-          );
-          return;
-        }
-        if (!callerWebContents.isDestroyed()) {
-          callerWebContents.send(
-            'video-call-window/screen-sharing-source-responded',
-            sourceId
-          );
-        }
+    //
+    // Use ipcMain.on + manual removeListener instead of ipcMain.once so that an
+    // untrusted sender firing the channel first does NOT consume the listener.
+    // With once(), a malicious renderer could remove the handler before the
+    // legitimate picker reply arrives, leaving the request permanently hung.
+    const pickerResponseHandler = (
+      responseEvent: IpcMainEvent,
+      sourceId: string | null
+    ) => {
+      if (!isTrustedSender(responseEvent.sender, ['video-call'])) {
+        console.warn(
+          '[ipc] video-call-window/screen-sharing-source-responded: rejected untrusted sender',
+          responseEvent.sender.getURL()
+        );
+        return; // keep listening — wait for trusted sender
       }
+      ipcMain.removeListener(
+        'video-call-window/screen-sharing-source-responded',
+        pickerResponseHandler
+      );
+      if (!callerWebContents.isDestroyed()) {
+        callerWebContents.send(
+          'video-call-window/screen-sharing-source-responded',
+          sourceId
+        );
+      }
+    };
+    ipcMain.on(
+      'video-call-window/screen-sharing-source-responded',
+      pickerResponseHandler
     );
 
     return { success: true };

@@ -12,17 +12,9 @@ export const clearWebviewStorageKeepingLoginData = async (
   if (!guestWebContents) return;
   await guestWebContents.session.clearCache();
   await guestWebContents.session.clearStorageData({
-    storages: [
-      'cookies',
-      'indexdb',
-      'filesystem',
-      'shadercache',
-      'websql',
-      'serviceworkers',
-      'cachestorage',
-    ],
+    storages: ['indexdb', 'serviceworkers', 'cachestorage'],
   });
-  guestWebContents?.reloadIgnoringCache();
+  guestWebContents.reloadIgnoringCache();
 };
 
 export const clearWebviewStorageDeletingLoginData = async (
@@ -31,7 +23,7 @@ export const clearWebviewStorageDeletingLoginData = async (
   if (!guestWebContents) return;
   await guestWebContents.session.clearCache();
   await guestWebContents.session.clearStorageData();
-  guestWebContents?.reloadIgnoringCache();
+  guestWebContents.reloadIgnoringCache();
 };
 
 export const handleClearCacheDialog = () => {

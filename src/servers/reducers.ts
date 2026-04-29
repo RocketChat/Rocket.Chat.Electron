@@ -21,7 +21,7 @@ import {
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
   WEBVIEW_ATTACHED,
-  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+  WEBVIEW_SERVER_BUILD_UPDATED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING,
@@ -52,7 +52,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_DID_NAVIGATE>
   | ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>
   | ActionOf<typeof WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED>
-  | ActionOf<typeof WEBVIEW_GIT_COMMIT_HASH_CHANGED>
+  | ActionOf<typeof WEBVIEW_SERVER_BUILD_UPDATED>
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
   | ActionOf<typeof WEBVIEW_USER_LOGGED_IN>
@@ -201,9 +201,29 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, customTheme });
     }
 
-    case WEBVIEW_GIT_COMMIT_HASH_CHANGED: {
-      const { url, gitCommitHash } = action.payload;
-      return upsert(state, { url, gitCommitHash });
+    case WEBVIEW_SERVER_BUILD_UPDATED: {
+      const { url, buildId, cacheVersion, buildIdSource } = action.payload;
+      if (!state.some((s) => s.url === url)) return state;
+      const patch: Partial<Server> & { url: string } = { url };
+      if (buildId !== undefined) {
+        if (buildIdSource === 'autoupdate') {
+          // Autoupdate bundle versions live in a separate field.
+          patch.lastBundleVersion = buildId;
+        } else if (buildIdSource === 'commit') {
+          // Commit-hash build ids go to the commit-specific baseline.
+          patch.lastCommitBuildId = buildId;
+          // Also mirror to gitCommitHash for legacy consumers.
+          patch.gitCommitHash = buildId;
+        } else if (buildIdSource === 'version') {
+          // Version-string build ids go to the version-specific baseline.
+          // Must NOT overwrite gitCommitHash — version strings are not commit hashes.
+          patch.lastVersionBuildId = buildId;
+        }
+        // source undefined: do not write either commit or version baseline to
+        // avoid cross-source conflation. Only cacheVersion (handled below) is recorded.
+      }
+      if (cacheVersion !== undefined) patch.lastCacheVersion = cacheVersion;
+      return update(state, patch as Server);
     }
 
     case WEBVIEW_FAVICON_CHANGED: {

@@ -75,9 +75,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED =
   'webview/sidebar-custom-theme-changed';
-export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
-  'webview/git-commit-hash-changed';
-export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
+export const WEBVIEW_SERVER_BUILD_CHECK = 'webview/server-build-check';
+export const WEBVIEW_SERVER_BUILD_UPDATED = 'webview/server-build-updated';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
@@ -232,13 +231,17 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     userLoggedIn: Server['userLoggedIn'];
   };
-  [WEBVIEW_GIT_COMMIT_HASH_CHECK]: {
+  [WEBVIEW_SERVER_BUILD_CHECK]: {
     url: Server['url'];
-    gitCommitHash: Server['gitCommitHash'];
+    buildId?: string;
+    cacheVersion?: string;
+    buildIdSource?: 'commit' | 'version' | 'autoupdate';
   };
-  [WEBVIEW_GIT_COMMIT_HASH_CHANGED]: {
+  [WEBVIEW_SERVER_BUILD_UPDATED]: {
     url: Server['url'];
-    gitCommitHash: Server['gitCommitHash'];
+    buildId?: string;
+    cacheVersion?: string;
+    buildIdSource?: 'commit' | 'version' | 'autoupdate';
   };
   [WEBVIEW_ALLOWED_REDIRECTS_CHANGED]: {
     url: Server['url'];

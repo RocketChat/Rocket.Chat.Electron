@@ -136,6 +136,7 @@ type ChannelToArgsMap = {
   'screen-picker/source-responded': (sourceId: string | null) => void;
   'screen-picker/screen-recording-is-permission-granted': () => boolean;
   'screen-picker/open-url': (url: string) => void;
+  'secure-keyboard-entry/set': (enabled: boolean) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

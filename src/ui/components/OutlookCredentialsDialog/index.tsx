@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { invoke } from '../../../ipc/renderer';
 import {
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
   OUTLOOK_CALENDAR_DIALOG_DISMISSED,
@@ -153,7 +154,11 @@ export const OutlookCredentialsDialog = () => {
           <Field>
             <Label>{t('Password')}</Label>
             <FieldRow>
-              <PasswordInput {...register('password', { required: true })} />
+              <PasswordInput
+                {...register('password', { required: true })}
+                onFocus={() => invoke('secure-keyboard-entry/set', true)}
+                onBlur={() => invoke('secure-keyboard-entry/set', false)}
+              />
             </FieldRow>
             {errors.password && (
               <FieldError>

@@ -30,6 +30,7 @@ import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
+import { setupSecureKeyboardEntry } from './secureKeyboardEntry';
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
@@ -248,6 +249,8 @@ export const setupRootWindow = (): void => {
     }
   };
 
+  const removeSecureKeyboardHandler = setupSecureKeyboardEntry();
+
   const unsubscribers = [
     watch(selectGlobalBadgeCount, async (globalBadgeCount) => {
       await safeWindowOperation(async (browserWindow) => {
@@ -342,7 +345,17 @@ export const setupRootWindow = (): void => {
       rootWindow.flashFrame(false);
     });
 
+    if (process.platform === 'darwin') {
+      rootWindow.addListener('blur', () => {
+        app.setSecureKeyboardEntryEnabled(false);
+      });
+    }
+
     rootWindow.addListener('close', async (event) => {
+      if (process.platform === 'darwin') {
+        app.setSecureKeyboardEntryEnabled(false);
+      }
+
       try {
         if (rootWindow.isDestroyed()) {
           return;
@@ -515,6 +528,7 @@ export const setupRootWindow = (): void => {
   }
 
   app.addListener('before-quit', () => {
+    removeSecureKeyboardHandler();
     unsubscribers.forEach((unsubscriber) => {
       try {
         unsubscriber();

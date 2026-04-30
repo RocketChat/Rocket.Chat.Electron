@@ -11,7 +11,9 @@ export const GlobalStyles = ({
   isTransparentWindowEnabled,
 }: GlobalStylesProps) => {
   const backgroundColor =
-    isDarwin && isTransparentWindowEnabled ? 'transparent' : '#2f343d';
+    isDarwin && isTransparentWindowEnabled
+      ? 'transparent'
+      : 'var(--rcx-color-surface-room, #2f343d)';
 
   return (
     <Global
@@ -61,7 +63,9 @@ export const Wrapper = styled.div<WrapperProps>`
   cursor: default;
   user-select: none;
   background-color: ${({ isTransparentWindowEnabled }) =>
-    isDarwin && isTransparentWindowEnabled ? 'transparent' : '#2f343d'};
+    isDarwin && isTransparentWindowEnabled
+      ? 'transparent'
+      : 'var(--rcx-color-surface-room, #2f343d)'};
   display: flex;
   flex-flow: row nowrap;
 `;

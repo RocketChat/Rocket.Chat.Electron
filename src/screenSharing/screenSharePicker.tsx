@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Callout,
+  CheckBox,
   Label,
   Tabs,
   Scrollable,
@@ -13,6 +14,7 @@ import type {
   SourcesOptions,
 } from 'electron';
 import { ipcRenderer } from 'electron';
+import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -31,6 +33,11 @@ interface IScreenSharePickerProps {
   includeTheme?: boolean;
 }
 
+type ScreenSharingSelectionPayload = {
+  sourceId: string | null;
+  shareAudio?: boolean;
+};
+
 export function ScreenSharePicker({
   onMounted,
   responseChannel = 'video-call-window/screen-sharing-source-responded',
@@ -43,6 +50,7 @@ export function ScreenSharePicker({
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
   const [currentTab, setCurrentTab] = useState<'screen' | 'window'>('screen');
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  const [shareAudio, setShareAudio] = useState(false);
   const [
     isScreenRecordingPermissionGranted,
     setIsScreenRecordingPermissionGranted,
@@ -120,7 +128,11 @@ export function ScreenSharePicker({
       wasVisibleRef.current = false;
       if (!responseSentRef.current) {
         responseSentRef.current = true;
-        ipcRenderer.send(responseChannel, null);
+        const payload: ScreenSharingSelectionPayload = {
+          sourceId: null,
+          shareAudio: false,
+        };
+        ipcRenderer.send(responseChannel, payload);
       }
     }
   }, [visible, responseChannel]);
@@ -175,7 +187,11 @@ export function ScreenSharePicker({
 
       responseSentRef.current = true;
       setVisible(false);
-      ipcRenderer.send(responseChannel, selectedSourceId);
+      const payload: ScreenSharingSelectionPayload = {
+        sourceId: selectedSourceId,
+        shareAudio,
+      };
+      ipcRenderer.send(responseChannel, payload);
     }
   };
 
@@ -186,7 +202,11 @@ export function ScreenSharePicker({
     }
     responseSentRef.current = true;
     setVisible(false);
-    ipcRenderer.send(responseChannel, null);
+    const payload: ScreenSharingSelectionPayload = {
+      sourceId: null,
+      shareAudio: false,
+    };
+    ipcRenderer.send(responseChannel, payload);
   };
 
   // Filter sources based on the current tab
@@ -383,8 +403,25 @@ export function ScreenSharePicker({
           <Box
             display='flex'
             justifyContent='space-between'
+            alignItems='center'
             marginBlockStart='auto'
           >
+            <Box
+              display='flex'
+              alignItems='center'
+              style={{ columnGap: '8px' }}
+            >
+              <CheckBox
+                id='share-system-audio'
+                checked={shareAudio}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  setShareAudio(event.currentTarget.checked)
+                }
+              />
+              <Label htmlFor='share-system-audio'>
+                {t('screenSharing.shareSystemAudio', 'Share system audio')}
+              </Label>
+            </Box>
             <Button onClick={handleClose}>{t('screenSharing.cancel')}</Button>
             <Button primary onClick={handleShare} disabled={!selectedSourceId}>
               {t('screenSharing.share')}

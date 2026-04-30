@@ -15,10 +15,7 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
     return new Promise<string | null>((resolve) => {
       ipcRenderer.once(
         'video-call-window/screen-sharing-source-responded',
-        (
-          _event,
-          payload: string | null | ScreenSharingSelectionPayload
-        ) => {
+        (_event, payload: string | null | ScreenSharingSelectionPayload) => {
           if (typeof payload === 'object' && payload !== null) {
             resolve(payload.sourceId);
             return;

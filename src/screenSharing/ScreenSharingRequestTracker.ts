@@ -126,7 +126,11 @@ export class ScreenSharingRequestTracker {
           return;
         }
 
-        cb(shareAudio ? ({ video: selectedSource, audio: 'loopback' } as any) : { video: selectedSource });
+        cb(
+          shareAudio
+            ? ({ video: selectedSource, audio: 'loopback' } as any)
+            : { video: selectedSource }
+        );
       } catch (error) {
         console.error(`${this.label}: error validating source:`, error);
         cb({ video: false } as any);

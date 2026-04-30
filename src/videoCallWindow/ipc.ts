@@ -300,10 +300,7 @@ export const startVideoCallWindowHandler = (): void => {
     // jitsiBridge's ipcRenderer.on listener fires correctly.
     ipcMain.once(
       'video-call-window/screen-sharing-source-responded',
-      (
-        _event,
-        payload: string | null | ScreenSharingSelectionPayload
-      ) => {
+      (_event, payload: string | null | ScreenSharingSelectionPayload) => {
         if (!callerWebContents.isDestroyed()) {
           callerWebContents.send(
             'video-call-window/screen-sharing-source-responded',

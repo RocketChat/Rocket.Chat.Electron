@@ -408,10 +408,7 @@ class JitsiBridgeImpl implements JitsiBridge {
 
       ipcRenderer.on(
         'video-call-window/screen-sharing-source-responded',
-        (
-          _event,
-          payload: string | null | ScreenSharingSelectionPayload
-        ) => {
+        (_event, payload: string | null | ScreenSharingSelectionPayload) => {
           cleanup();
 
           const sourceId =

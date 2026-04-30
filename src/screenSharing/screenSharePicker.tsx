@@ -124,6 +124,7 @@ export function ScreenSharePicker({
     if (visible) {
       responseSentRef.current = false;
       wasVisibleRef.current = true;
+      setShareAudio(false);
     } else if (wasVisibleRef.current) {
       wasVisibleRef.current = false;
       if (!responseSentRef.current) {

@@ -105,6 +105,7 @@
   },
   "msiProjectCreated": "./build/msiProjectCreated.js",
   "msi": {
+    "perMachine": true,
     "warningsAsErrors": false,
     "additionalWixArgs": ["-sval"]
   },

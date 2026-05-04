@@ -25,14 +25,27 @@ exports.default = async function msiProjectCreated(projectFile) {
   let xml = await fs.promises.readFile(projectFile, 'utf8');
 
   // -- 1. Property and custom action definitions --
+  //
+  // WiX CustomActionData idiom for passing data to a deferred CA:
+  //   - Immediate type-51 CA where Property="<deferred-CA-Id>" sets the
+  //     session property whose value becomes CustomActionData at deferred
+  //     execution time.
+  //   - The immediate CA is scheduled just before the deferred CA, so the
+  //     value is captured into the execution script for the elevated phase.
+  //   - Deferred CA (Impersonate="no") runs elevated during commit phase and
+  //     has no access to session properties other than CustomActionData.
 
   const propertyAndActions = `
     <!-- DISABLE_AUTO_UPDATES: enterprise property to disable auto-updates -->
     <Property Id="DISABLE_AUTO_UPDATES" Secure="yes"/>
 
-    <CustomAction Id="SetWriteUpdateJsonDir"
+    <!-- Immediate CA: sets CustomActionData for the deferred WriteUpdateJson CA.
+         Property attribute MUST match the deferred CA's Id. -->
+    <CustomAction Id="SetWriteUpdateJsonData"
       Property="WriteUpdateJson"
-      Value="[APPLICATIONFOLDER]"/>
+      Value="[APPLICATIONFOLDER]"
+      Execute="immediate"
+      Return="check"/>
 
     <CustomAction Id="WriteUpdateJson"
       Script="vbscript"
@@ -40,11 +53,20 @@ exports.default = async function msiProjectCreated(projectFile) {
       Impersonate="no"
       Return="check">
       <![CDATA[
+        ' On Error Resume Next is deliberate: every subsequent operation
+        ' checks Err.Number explicitly so failures raise with context instead
+        ' of aborting the CA mid-write. Do NOT add code below without an
+        ' explicit Err.Number check or an On Error GoTo 0 reset first.
         On Error Resume Next
         Dim fso, installDir, resourcesDir, filePath, f
 
         Set fso = CreateObject("Scripting.FileSystemObject")
         installDir = Session.Property("CustomActionData")
+
+        If Len(installDir) = 0 Then
+          Err.Raise 1, "WriteUpdateJson", "CustomActionData is empty — SetWriteUpdateJsonData did not run"
+        End If
+
         If Right(installDir, 1) <> "\\" Then installDir = installDir & "\\"
 
         resourcesDir = installDir & "resources"
@@ -74,10 +96,18 @@ exports.default = async function msiProjectCreated(projectFile) {
     </CustomAction>`;
 
   // -- 2. Scheduling entries (only during install, not uninstall) --
+  //
+  // Both CAs scheduled explicitly After="InstallFiles" in dependency order.
+  // The immediate setter runs first to populate CustomActionData, then the
+  // deferred writer runs. Condition also excludes maintenance mode (Installed)
+  // so update.json is not rewritten on repair/modify.
+
+  const installCondition =
+    'DISABLE_AUTO_UPDATES = "1" AND NOT Installed AND NOT REMOVE~="ALL"';
 
   const sequenceEntries = `
-      <Custom Action="SetWriteUpdateJsonDir" Before="WriteUpdateJson">DISABLE_AUTO_UPDATES = 1 AND NOT REMOVE~="ALL"</Custom>
-      <Custom Action="WriteUpdateJson" After="InstallFiles">DISABLE_AUTO_UPDATES = 1 AND NOT REMOVE~="ALL"</Custom>`;
+      <Custom Action="SetWriteUpdateJsonData" After="InstallFiles">${installCondition}</Custom>
+      <Custom Action="WriteUpdateJson" After="SetWriteUpdateJsonData">${installCondition}</Custom>`;
 
   // -- 3. Inject into the WiX XML --
 
@@ -109,6 +139,13 @@ exports.default = async function msiProjectCreated(projectFile) {
   if (!xml.includes('WriteUpdateJson')) {
     throw new Error(
       `msiProjectCreated: failed to inject WriteUpdateJson custom action into WiX project. ` +
+        `The generated .wxs structure may have changed — check ${projectFile}`
+    );
+  }
+
+  if (!xml.includes('SetWriteUpdateJsonData')) {
+    throw new Error(
+      `msiProjectCreated: failed to inject SetWriteUpdateJsonData custom action into WiX project. ` +
         `The generated .wxs structure may have changed — check ${projectFile}`
     );
   }

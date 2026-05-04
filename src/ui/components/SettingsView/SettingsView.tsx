@@ -51,7 +51,7 @@ export const SettingsView = () => {
       height='full'
       width='full'
       className='rcx-sidebar--main'
-      bg={process.platform === 'darwin' ? undefined : 'light'}
+      bg='room'
     >
       <Box
         width='full'

@@ -71,7 +71,7 @@ export const Shell = () => {
       <GlobalStyles isTransparentWindowEnabled={isTransparentWindowEnabled} />
       {process.platform === 'darwin' && <WindowDragBar />}
       <Box
-        bg={process.platform === 'darwin' ? undefined : 'light'}
+        bg='room'
         display='flex'
         flexWrap='wrap'
         height='100vh'

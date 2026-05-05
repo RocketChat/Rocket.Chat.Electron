@@ -271,13 +271,16 @@ describeOnDarwin('MAS signing assets', () => {
   });
 
   const cscLink = process.env.CSC_LINK;
-  const hasCsc = Boolean(cscLink);
+  const cscKeyPassword = process.env.CSC_KEY_PASSWORD;
+  const hasCsc = Boolean(cscLink) && Boolean(cscKeyPassword);
 
   const itCsc = hasCsc ? it : it.skip;
 
   describe('cert-in-profile matches p12 cert (requires CSC_LINK env)', () => {
     if (!hasCsc) {
-      console.warn('CSC_LINK not set — skipping p12/profile cert-match test');
+      console.warn(
+        'CSC_LINK or CSC_KEY_PASSWORD not set — skipping p12/profile cert-match test'
+      );
     }
 
     itCsc('profile cert SHA1 is present in the signing p12', () => {

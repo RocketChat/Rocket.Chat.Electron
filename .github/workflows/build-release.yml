@@ -56,6 +56,9 @@ jobs:
         run: yarn lint
 
       - name: Test
+        env:
+          CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
         run: yarn test
 
       - name: Build app/

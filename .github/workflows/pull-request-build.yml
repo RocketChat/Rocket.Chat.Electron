@@ -58,6 +58,9 @@ jobs:
         run: yarn lint
 
       - name: Test
+        env:
+          CSC_LINK: ${{ matrix.build-target == 'mac' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.build-target == 'mac' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
         run: yarn test
 
       - name: Build app/

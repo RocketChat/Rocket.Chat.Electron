@@ -176,7 +176,11 @@ describeOnDarwin('MAS signing assets', () => {
 
   afterAll(() => {
     if (tmpP12Path && fs.existsSync(tmpP12Path)) {
-      fs.unlinkSync(tmpP12Path);
+      try {
+        fs.unlinkSync(tmpP12Path);
+      } catch {
+        // ignore — keep cleanup running
+      }
     }
     if (tmpKeychainPath) {
       try {

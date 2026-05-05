@@ -81,7 +81,13 @@ function extractDeveloperCertsDer(plist: string): Buffer[] {
   return certs;
 }
 
+// SHA-1 is required here, not chosen: Apple's `security find-identity` and the
+// `DeveloperCertificates` DER fingerprints inside provisioning profiles are
+// identified by SHA-1. We compare against Apple's own format, not securing
+// anything ourselves. SHA-256 would not match any value Apple emits.
+// codeql[js/weak-cryptographic-algorithm]
 function sha1Hex(buf: Buffer): string {
+  // codeql[js/weak-cryptographic-algorithm]
   return crypto.createHash('sha1').update(buf).digest('hex').toUpperCase();
 }
 

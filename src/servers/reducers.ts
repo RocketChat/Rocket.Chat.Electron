@@ -172,8 +172,17 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     }
 
     case WEBVIEW_SERVER_VERSION_UPDATED: {
-      const { url, version } = action.payload;
-      return upsert(state, { url, version });
+      const { url, version, gitCommitHash } = action.payload;
+      // Only overwrite gitCommitHash when the payload provides one. The same
+      // action is dispatched from the renderer preload's setVersion without a
+      // hash; preserving the value avoids erasing the commit hash captured
+      // from /api/info, which the SupportedVersionDialog needs for sha-based
+      // exception matching.
+      const patch: Server =
+        gitCommitHash !== undefined
+          ? { url, version, gitCommitHash }
+          : { url, version };
+      return upsert(state, patch);
     }
 
     case WEBVIEW_UNREAD_CHANGED: {

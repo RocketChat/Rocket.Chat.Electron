@@ -19,6 +19,7 @@ import {
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_RELOADED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
+  WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
 } from '../../ui/actions';
 import * as urls from '../../urls';
 import type { Server } from '../common';
@@ -251,7 +252,8 @@ export const getExpirationMessageTranslated = (
 
 export const isServerVersionSupported = async (
   server: Server,
-  supportedVersionsData?: SupportedVersions
+  supportedVersionsData?: SupportedVersions,
+  serverCommitHash?: string
 ): Promise<{
   supported: boolean;
   message?: Message | undefined;
@@ -273,9 +275,42 @@ export const isServerVersionSupported = async (
 
   if (!supportedVersionsData) return { supported: true };
 
-  const exception = exceptions?.versions?.find(({ version }) =>
-    satisfies(coerce(version)?.version ?? '', serverVersionTilde)
-  );
+  // Exception entries only apply when the payload's exceptions block is scoped
+  // to THIS server. The cloud-source and server-source payloads are inherently
+  // scoped, but the builtin (bundled) and cache payloads can be from a different
+  // tenant, so a domain/uniqueId mismatch must disqualify the exceptions to
+  // avoid cross-tenant bypass.
+  // Treat present scope fields as REQUIRED equality. Missing local identity
+  // (e.g. server.uniqueID undefined) does NOT relax the check — it must reject.
+  let exceptionScopeMatches = true;
+  if (exceptions) {
+    let hostname: string | undefined;
+    try {
+      hostname = new URL(server.url).hostname;
+    } catch {
+      hostname = undefined;
+    }
+    if (exceptions.domain && exceptions.domain !== hostname) {
+      exceptionScopeMatches = false;
+    }
+    if (exceptions.uniqueId && exceptions.uniqueId !== server.uniqueID) {
+      exceptionScopeMatches = false;
+    }
+  }
+
+  // Try exact-string and commit-hash match first, then fall back to semver satisfies
+  const exception = exceptionScopeMatches
+    ? exceptions?.versions?.find(
+        ({ version }) =>
+          version === serverVersion ||
+          (serverCommitHash &&
+            (version === `sha-${serverCommitHash.slice(0, 7)}` ||
+              version === serverCommitHash))
+      ) ??
+      exceptions?.versions?.find(({ version }) =>
+        satisfies(coerce(version)?.version ?? '', serverVersionTilde)
+      )
+    : undefined;
 
   if (exception) {
     if (new Date(exception.expiration) > new Date()) {
@@ -349,6 +384,7 @@ const dispatchVersionUpdated = (url: string) => (info: ServerInfo) => {
     payload: {
       url,
       version: info.version,
+      gitCommitHash: info.commit?.hash,
     },
   });
 
@@ -384,6 +420,14 @@ const dispatchSupportedVersionsUpdated = (
   });
 };
 
+// Per-URL request generation counter. Each call to updateSupportedVersionsData
+// bumps the counter and captures its own generation. Awaited steps inside the
+// call check whether their generation is still current before dispatching, so
+// an older slower request cannot overwrite a newer request's verdict when the
+// listeners (WEBVIEW_READY, WEBVIEW_SERVER_RELOADED, SUPPORTED_VERSION_DIALOG_DISMISS,
+// ipc refresh-supported-versions) overlap for the same URL.
+const requestGenerations = new Map<string, number>();
+
 export const updateSupportedVersionsData = async (
   serverUrl: string
 ): Promise<void> => {
@@ -391,6 +435,10 @@ export const updateSupportedVersionsData = async (
     servers.find((server) => server.url === serverUrl)
   );
   if (!server) return;
+
+  const myGeneration = (requestGenerations.get(serverUrl) ?? 0) + 1;
+  requestGenerations.set(serverUrl, myGeneration);
+  const isStale = () => requestGenerations.get(serverUrl) !== myGeneration;
 
   // Dispatch loading state
   dispatch({
@@ -407,7 +455,24 @@ export const updateSupportedVersionsData = async (
     2000
   );
 
+  // Build a server view that reflects the freshly-fetched version and
+  // uniqueId when available, so every downstream support check
+  // (server/cloud/cache/builtin) is evaluated against the same authoritative
+  // identity. /api/info returns `uniqueId`, which is required for exception
+  // scope matching to honor server-source exceptions on first launch (when
+  // persisted server.uniqueID may be undefined).
+  const serverWithFreshVersion: Server = serverInfoResult
+    ? {
+        ...server,
+        version: serverInfoResult.version,
+        uniqueID: serverInfoResult.uniqueId ?? server.uniqueID,
+      }
+    : server;
+  const freshCommitHash = serverInfoResult?.commit?.hash;
+
   let serverEncoded: string | undefined;
+
+  if (isStale()) return;
 
   if (serverInfoResult) {
     dispatchVersionUpdated(server.url)(serverInfoResult);
@@ -418,7 +483,23 @@ export const updateSupportedVersionsData = async (
     if (serverEncoded) {
       try {
         const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
+        if (isStale()) return;
         saveToCache(serverUrl, serverSupportedVersions);
+        const supported = await isServerVersionSupported(
+          serverWithFreshVersion,
+          serverSupportedVersions,
+          freshCommitHash
+        );
+        if (isStale()) return;
+        // Dispatch verdict BEFORE fetchState='success' so UnsupportedServer
+        // never sees a fresh success-state with the stale isSupportedVersion.
+        dispatch({
+          type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+          payload: {
+            url: server.url,
+            isSupportedVersion: supported.supported,
+          },
+        });
         dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
           source: 'server',
         });
@@ -431,9 +512,24 @@ export const updateSupportedVersionsData = async (
     }
   }
 
-  const uniqueID = await getUniqueId(server.url, server.version || '')
+  // Use freshly-fetched version (when available) for endpoint selection, so a
+  // pre-7.0.0 persisted version with a fresh 7.0.0+ /api/info response does
+  // not hit the legacy settings endpoint.
+  const versionForUniqueId = serverInfoResult?.version ?? server.version ?? '';
+  const uniqueID = await getUniqueId(server.url, versionForUniqueId)
     .then(dispatchUniqueIdUpdated(server.url))
     .catch(logRequestError('unique ID'));
+
+  if (isStale()) return;
+
+  // After uniqueID is known (or remained from persisted state), thread it into
+  // the server view used for downstream support checks so exception scoping
+  // (which requires server.uniqueID to match exceptions.uniqueId) operates on
+  // fresh identity, not stale persisted state.
+  const serverWithFreshIdentity: Server = {
+    ...serverWithFreshVersion,
+    uniqueID: uniqueID ?? serverWithFreshVersion.uniqueID,
+  };
 
   // Try Cloud with retries (3x with 2s delays) if unique ID available
   if (!serverEncoded && uniqueID) {
@@ -448,7 +544,21 @@ export const updateSupportedVersionsData = async (
         const cloudSupportedVersions = decodeSupportedVersions(
           cloudVersionsWithRetry.signed
         );
+        if (isStale()) return;
         saveToCache(serverUrl, cloudSupportedVersions);
+        const supported = await isServerVersionSupported(
+          serverWithFreshIdentity,
+          cloudSupportedVersions,
+          freshCommitHash
+        );
+        if (isStale()) return;
+        dispatch({
+          type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+          payload: {
+            url: server.url,
+            isSupportedVersion: supported.supported,
+          },
+        });
         dispatchSupportedVersionsUpdated(server.url, cloudSupportedVersions, {
           source: 'cloud',
         });
@@ -462,6 +572,20 @@ export const updateSupportedVersionsData = async (
   // Try to load from cache
   const cachedVersions = loadFromCache(serverUrl);
   if (cachedVersions) {
+    if (isStale()) return;
+    const cachedSupported = await isServerVersionSupported(
+      serverWithFreshIdentity,
+      cachedVersions,
+      freshCommitHash
+    );
+    if (isStale()) return;
+    dispatch({
+      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+      payload: {
+        url: server.url,
+        isSupportedVersion: cachedSupported.supported,
+      },
+    });
     dispatchSupportedVersionsUpdated(server.url, cachedVersions, {
       source: 'cloud',
     });
@@ -474,7 +598,21 @@ export const updateSupportedVersionsData = async (
 
   // Fall back to builtin (always available)
   if (builtinSupportedVersions) {
+    if (isStale()) return;
     saveToCache(serverUrl, builtinSupportedVersions);
+    const builtinSupported = await isServerVersionSupported(
+      serverWithFreshIdentity,
+      builtinSupportedVersions,
+      freshCommitHash
+    );
+    if (isStale()) return;
+    dispatch({
+      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+      payload: {
+        url: server.url,
+        isSupportedVersion: builtinSupported.supported,
+      },
+    });
     dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
       source: 'builtin',
     });
@@ -485,7 +623,13 @@ export const updateSupportedVersionsData = async (
     return;
   }
 
-  // No data available from any source
+  if (isStale()) return;
+
+  // No data available from any source. Preserve any prior definitive verdict
+  // (sticky `false` is security-correct: do not fail-open under total
+  // dependency failure). Only signal fetch error so UI knows the attempt
+  // completed without fresh evidence; UnsupportedServer keeps blocking if
+  // the previous determination was unsupported.
   dispatch({
     type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
     payload: { url: serverUrl },

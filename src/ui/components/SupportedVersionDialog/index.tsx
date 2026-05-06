@@ -14,10 +14,7 @@ import {
 import type { MessageTranslated } from '../../../servers/supportedVersions/types';
 import type { RootAction } from '../../../store/actions';
 import * as urls from '../../../urls';
-import {
-  SUPPORTED_VERSION_DIALOG_DISMISS,
-  WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
-} from '../../actions';
+import { SUPPORTED_VERSION_DIALOG_DISMISS } from '../../actions';
 import { currentView } from '../../reducers/currentView';
 import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
@@ -75,7 +72,8 @@ export const SupportedVersionDialog = () => {
       if (server.supportedVersions) {
         const supported = await isServerVersionSupported(
           server,
-          server.supportedVersions
+          server.supportedVersions,
+          server.gitCommitHash
         );
 
         if (supported.message && supported.expiration) {
@@ -100,16 +98,9 @@ export const SupportedVersionDialog = () => {
 
     const supported = await isServerVersionSupported(
       server,
-      server?.supportedVersions
+      server?.supportedVersions,
+      server?.gitCommitHash
     );
-
-    dispatch({
-      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
-      payload: {
-        url: server.url,
-        isSupportedVersion: supported.supported,
-      },
-    });
 
     if (!supported.message || !supported.expiration) return;
 
@@ -133,7 +124,7 @@ export const SupportedVersionDialog = () => {
       setExpirationMessage(translatedMessage);
       setIsVisible(supported.supported);
     }
-  }, [server, dispatch, setExpirationMessage, setIsVisible]);
+  }, [server, setExpirationMessage, setIsVisible]);
 
   useEffect(() => {
     checkServerVersion();

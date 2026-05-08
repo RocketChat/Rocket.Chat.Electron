@@ -49,8 +49,11 @@ const getRootWindowMock = getRootWindow as jest.MockedFunction<
 >;
 
 describe('deepLinks/main.ts', () => {
+  const mockRootWindow = {} as any;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    getRootWindowMock.mockResolvedValue(mockRootWindow);
   });
 
   describe('parseTelephonyLink', () => {
@@ -187,7 +190,7 @@ describe('deepLinks/main.ts', () => {
 
       await performTelephonyCall(mockLink);
 
-      expect(dialogMock.showMessageBox).toHaveBeenCalledWith({
+      expect(dialogMock.showMessageBox).toHaveBeenCalledWith(mockRootWindow, {
         type: 'question',
         title: 'Select Server',
         message: 'Which server should handle this call?',
@@ -301,6 +304,7 @@ describe('deepLinks/main.ts', () => {
       await performTelephonyCall(mockLink);
 
       expect(dialogMock.showMessageBox).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           buttons: ['server1.com', 'server2.com'],
         })

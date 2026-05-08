@@ -107,14 +107,17 @@ export const performTelephonyCall = async (
     if (preferredServer && servers.some((s) => s.url === preferredServer)) {
       serverUrl = preferredServer;
     } else {
-      const { response, checkboxChecked } = await dialog.showMessageBox({
-        type: 'question',
-        title: 'Select Server',
-        message: 'Which server should handle this call?',
-        buttons: servers.map((s) => s.title ?? new URL(s.url).hostname),
-        checkboxLabel: 'Remember this choice',
-        checkboxChecked: false,
-      });
+      const { response, checkboxChecked } = await dialog.showMessageBox(
+        await getRootWindow(),
+        {
+          type: 'question',
+          title: 'Select Server',
+          message: 'Which server should handle this call?',
+          buttons: servers.map((s) => s.title ?? new URL(s.url).hostname),
+          checkboxLabel: 'Remember this choice',
+          checkboxChecked: false,
+        }
+      );
 
       serverUrl = servers[response].url;
 

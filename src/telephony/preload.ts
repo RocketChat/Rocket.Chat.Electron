@@ -15,7 +15,14 @@ export const onTelephonyCallRequested = (
   }
 };
 
+let listening = false;
+
 export const listenToTelephonyRequests = (): void => {
+  if (listening) {
+    return;
+  }
+  listening = true;
+
   ipcRenderer.on(
     'telephony/call-requested',
     (_event, payload: TelephonyPayload) => {

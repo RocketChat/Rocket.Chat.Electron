@@ -1,5 +1,5 @@
 import type { WebContents } from 'electron';
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 
 import {
   electronBuilderJsonInformation,
@@ -8,6 +8,7 @@ import {
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
+import { TELEPHONY_PREFERRED_SERVER_SET } from '../telephony/actions';
 import {
   askForServerAddition,
   warnAboutInvalidServerUrl,
@@ -52,6 +53,85 @@ const parseDeepLink = (
   }
 
   return null;
+};
+
+const TELEPHONY_PROTOCOLS = ['tel:', 'callto:'];
+
+export type TelephonyLink = { phoneNumber: string; rawUri: string };
+
+export const parseTelephonyLink = (input: string): TelephonyLink | null => {
+  if (/^--/.test(input)) {
+    return null;
+  }
+
+  let url: URL;
+
+  try {
+    url = new URL(input);
+  } catch {
+    return null;
+  }
+
+  if (!TELEPHONY_PROTOCOLS.includes(url.protocol)) {
+    return null;
+  }
+
+  const raw = url.pathname || url.href.slice(url.protocol.length);
+  const phoneNumber = raw.replace(/^\/+/, '').replace(/[\s\-().]/g, '');
+
+  if (!phoneNumber) {
+    return null;
+  }
+
+  return { phoneNumber, rawUri: input };
+};
+
+export const performTelephonyCall = async (
+  link: TelephonyLink
+): Promise<void> => {
+  const servers = select(({ servers }) => servers);
+
+  if (servers.length === 0) {
+    return;
+  }
+
+  let serverUrl: string;
+
+  if (servers.length === 1) {
+    serverUrl = servers[0].url;
+  } else {
+    const preferredServer = select(
+      ({ telephonyPreferredServer }) => telephonyPreferredServer
+    );
+
+    if (preferredServer && servers.some((s) => s.url === preferredServer)) {
+      serverUrl = preferredServer;
+    } else {
+      const { response, checkboxChecked } = await dialog.showMessageBox({
+        type: 'question',
+        title: 'Select Server',
+        message: 'Which server should handle this call?',
+        buttons: servers.map((s) => s.title ?? new URL(s.url).hostname),
+        checkboxLabel: 'Remember this choice',
+        checkboxChecked: false,
+      });
+
+      serverUrl = servers[response].url;
+
+      if (checkboxChecked) {
+        dispatch({
+          type: TELEPHONY_PREFERRED_SERVER_SET,
+          payload: serverUrl,
+        });
+      }
+    }
+  }
+
+  const webContents = await getWebContents(serverUrl);
+  webContents.send('telephony/call-requested', {
+    phoneNumber: link.phoneNumber,
+    rawUri: link.rawUri,
+  });
 };
 
 export let processDeepLinksInArgs = async (): Promise<void> => undefined;
@@ -180,6 +260,12 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
   });
 
 const processDeepLink = async (deepLink: string): Promise<void> => {
+  const telephonyLink = parseTelephonyLink(deepLink);
+  if (telephonyLink) {
+    await performTelephonyCall(telephonyLink);
+    return;
+  }
+
   const parsedDeepLink = parseDeepLink(deepLink);
 
   if (!parsedDeepLink) {

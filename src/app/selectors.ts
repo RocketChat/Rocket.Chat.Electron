@@ -83,4 +83,6 @@ export const selectPersistableValues = createStructuredSelector({
   }: RootState) => isDetailedEventsLoggingEnabled,
   isDebugLoggingEnabled: ({ isDebugLoggingEnabled }: RootState) =>
     isDebugLoggingEnabled,
+  telephonyPreferredServer: ({ telephonyPreferredServer }: RootState) =>
+    telephonyPreferredServer,
 });

@@ -2,10 +2,10 @@
   "files": ["app/**/*", "package.json"],
   "extraResources": ["build/icon.ico", "servers.json"],
   "appId": "chat.rocket",
-  "protocols": {
-    "name": "Rocket.Chat",
-    "schemes": ["rocketchat"]
-  },
+  "protocols": [
+    { "name": "Rocket.Chat", "schemes": ["rocketchat"] },
+    { "name": "Rocket.Chat Telephony", "schemes": ["callto", "tel"] }
+  ],
   "afterPack": "./build/afterPack.js",
   "mac": {
     "category": "public.app-category.productivity",
@@ -123,6 +123,7 @@
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {
+      "MimeType": "x-scheme-handler/rocketchat;x-scheme-handler/callto;x-scheme-handler/tel;",
       "entry": {
         "Name": "Rocket.Chat",
         "Comment": "Official Rocket.Chat Desktop Client",

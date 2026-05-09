@@ -14,6 +14,7 @@ import {
   clearOutlookCredentials,
   setUserToken,
 } from '../../outlookCalendar/preload';
+import { onTelephonyCallRequested } from '../../telephony/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
@@ -49,6 +50,9 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   ) => Promise<unknown>;
   closeCustomNotification: (id: unknown) => void;
   openInBrowser: (url: string) => void;
+  onTelephonyCallRequested: (
+    callback: (payload: { phoneNumber: string; rawUri: string }) => void
+  ) => void;
 };
 
 declare global {
@@ -95,4 +99,5 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   openDocumentViewer,
   openInBrowser,
   reloadServer,
+  onTelephonyCallRequested,
 };

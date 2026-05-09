@@ -19,6 +19,7 @@ import {
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_RELOADED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
+  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
 } from '../../ui/actions';
 import * as urls from '../../urls';
 import type { Server } from '../common';
@@ -207,6 +208,40 @@ const getExpirationMessage = ({
   return message;
 };
 
+const isVersionExceptionForServer = (
+  exceptionVersion: string,
+  server: Server,
+  serverVersionTilde: string
+): boolean => {
+  if (satisfies(coerce(exceptionVersion)?.version ?? '', serverVersionTilde)) {
+    return true;
+  }
+
+  const trimmedExceptionVersion = exceptionVersion.trim();
+  if (!trimmedExceptionVersion.startsWith('sha-')) {
+    return false;
+  }
+
+  const normalizedExceptionVersion = trimmedExceptionVersion
+    .replace(/^sha-/, '')
+    .toLowerCase();
+  if (!normalizedExceptionVersion) {
+    return false;
+  }
+
+  const gitCommitHash = server.gitCommitHash?.trim();
+  if (!gitCommitHash) {
+    return false;
+  }
+
+  const normalizedGitCommitHash = gitCommitHash
+    .trim()
+    .replace(/^sha-/, '')
+    .toLowerCase();
+
+  return normalizedGitCommitHash.startsWith(normalizedExceptionVersion);
+};
+
 export const getExpirationMessageTranslated = (
   i18n: Dictionary | undefined,
   message: Message,
@@ -274,7 +309,7 @@ export const isServerVersionSupported = async (
   if (!supportedVersionsData) return { supported: true };
 
   const exception = exceptions?.versions?.find(({ version }) =>
-    satisfies(coerce(version)?.version ?? '', serverVersionTilde)
+    isVersionExceptionForServer(version, server, serverVersionTilde)
   );
 
   if (exception) {
@@ -351,6 +386,16 @@ const dispatchVersionUpdated = (url: string) => (info: ServerInfo) => {
       version: info.version,
     },
   });
+
+  if (info.commit?.hash) {
+    dispatch({
+      type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+      payload: {
+        url,
+        gitCommitHash: info.commit.hash,
+      },
+    });
+  }
 
   return info;
 };

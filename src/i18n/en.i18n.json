@@ -292,6 +292,11 @@
         "loading": "Loading browsers...",
         "current": "Currently using:"
       },
+      "telephonyServer": {
+        "title": "Telephony Server",
+        "description": "Choose which server handles incoming phone calls (tel: and callto: links).",
+        "auto": "Auto (ask each time)"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
         "description": "Clear the screen capture permissions that was selected to not ask again on video calls."

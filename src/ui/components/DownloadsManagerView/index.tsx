@@ -196,7 +196,7 @@ const DownloadsManagerView = () => {
         alignItems='center'
       >
         {!isSideBarEnabled && (
-          <IconButton icon='arrow-back' onClick={handleBackButton} />
+          <IconButton icon='arrow-back' onClick={handleBackButton} aria-label={t('downloads.back')} />
         )}
         <Box is='div' color='default' fontScale='h1'>
           {t('downloads.title')}
@@ -257,6 +257,7 @@ const DownloadsManagerView = () => {
           <IconButton
             icon='trash'
             title={t('downloads.filters.clear')}
+            aria-label={t('downloads.filters.clear')}
             onClick={handleClearAll}
           />
         </Box>

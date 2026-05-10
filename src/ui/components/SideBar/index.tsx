@@ -103,7 +103,7 @@ export const SideBar = () => {
                     : server.title ?? server.url
                 }
                 shortcutNumber={
-                  typeof order === 'number' && order <= 9
+                  typeof order === 'number' && order < 9
                     ? String(order + 1)
                     : null
                 }

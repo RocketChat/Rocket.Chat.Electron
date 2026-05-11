@@ -136,6 +136,11 @@
         "answerCall": "Anrufe entgegennehmen",
         "recordMessage": "Nachrichten aufnehmen"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Server auswählen",
+      "message": "Welcher Server soll diesen Anruf bearbeiten?",
+      "rememberChoice": "Diese Auswahl merken"
     }
   },
   "documentViewer": {

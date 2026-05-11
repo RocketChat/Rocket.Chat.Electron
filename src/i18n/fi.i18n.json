@@ -143,6 +143,11 @@
         "answerCall": "vastata puheluun",
         "recordMessage": "tallentaa viestin"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Valitse palvelin",
+      "message": "Mikä palvelin käsittelee tämän puhelun?",
+      "rememberChoice": "Muista tämä valinta"
     }
   },
   "documentViewer": {

@@ -164,6 +164,11 @@
     },
     "supportedVersion": {
       "title": "A munkaterület verziója nem támogatott"
+    },
+    "telephonySelectServer": {
+      "title": "Szerver kiválasztása",
+      "message": "Melyik szerver kezelje ezt a hívást?",
+      "rememberChoice": "Választás megjegyzése"
     }
   },
   "documentViewer": {

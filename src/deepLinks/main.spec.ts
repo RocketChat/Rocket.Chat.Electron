@@ -15,6 +15,9 @@ import {
 } from './main';
 import type { TelephonyLink } from './main';
 
+jest.mock('i18next', () => ({
+  t: (key: string) => key,
+}));
 jest.mock('electron', () => ({
   app: {
     addListener: jest.fn(),
@@ -192,10 +195,10 @@ describe('deepLinks/main.ts', () => {
 
       expect(dialogMock.showMessageBox).toHaveBeenCalledWith(mockRootWindow, {
         type: 'question',
-        title: 'Select Server',
-        message: 'Which server should handle this call?',
+        title: 'dialog.telephonySelectServer.title',
+        message: 'dialog.telephonySelectServer.message',
         buttons: ['Server 1', 'Server 2'],
-        checkboxLabel: 'Remember this choice',
+        checkboxLabel: 'dialog.telephonySelectServer.rememberChoice',
         checkboxChecked: false,
       });
 

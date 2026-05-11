@@ -113,6 +113,11 @@
         "answerCall": "odbierania połączeń",
         "recordMessage": "nagrywania wiadomości"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Wybierz serwer",
+      "message": "Który serwer ma obsłużyć to połączenie?",
+      "rememberChoice": "Zapamiętaj ten wybór"
     }
   },
   "documentViewer": {

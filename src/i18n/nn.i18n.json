@@ -21,6 +21,13 @@
       }
     }
   },
+  "dialog": {
+    "telephonySelectServer": {
+      "title": "Vel tenar",
+      "message": "Kva tenar skal handtere denne samtalen?",
+      "rememberChoice": "Hugs dette valet"
+    }
+  },
   "serverInfo": {
     "title": "Serverinformasjon",
     "urlLabel": "URL:",

@@ -137,6 +137,11 @@
         "answerCall": "отвечать на звонки",
         "recordMessage": "записывать сообщения"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Выбор сервера",
+      "message": "Какой сервер должен обработать этот звонок?",
+      "rememberChoice": "Запомнить этот выбор"
     }
   },
   "documentViewer": {

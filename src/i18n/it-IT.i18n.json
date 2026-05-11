@@ -21,6 +21,13 @@
       }
     }
   },
+  "dialog": {
+    "telephonySelectServer": {
+      "title": "Seleziona server",
+      "message": "Quale server deve gestire questa chiamata?",
+      "rememberChoice": "Ricorda questa scelta"
+    }
+  },
   "serverInfo": {
     "title": "Informazioni sul Server",
     "urlLabel": "URL:",

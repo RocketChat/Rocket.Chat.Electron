@@ -1,5 +1,6 @@
 import type { WebContents } from 'electron';
 import { app, dialog } from 'electron';
+import i18next from 'i18next';
 
 import {
   electronBuilderJsonInformation,
@@ -16,6 +17,8 @@ import {
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
+
+const t = i18next.t.bind(i18next);
 
 const isDefinedProtocol = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === `${electronBuilderJsonInformation.protocol}:`;
@@ -111,10 +114,10 @@ export const performTelephonyCall = async (
         await getRootWindow(),
         {
           type: 'question',
-          title: 'Select Server',
-          message: 'Which server should handle this call?',
+          title: t('dialog.telephonySelectServer.title'),
+          message: t('dialog.telephonySelectServer.message'),
           buttons: servers.map((s) => s.title ?? new URL(s.url).hostname),
-          checkboxLabel: 'Remember this choice',
+          checkboxLabel: t('dialog.telephonySelectServer.rememberChoice'),
           checkboxChecked: false,
         }
       );

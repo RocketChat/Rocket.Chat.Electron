@@ -101,6 +101,11 @@
         "answerCall": "通話に応答する",
         "recordMessage": "メッセージを録音する"
       }
+    },
+    "telephonySelectServer": {
+      "title": "サーバーを選択",
+      "message": "この通話をどのサーバーで処理しますか？",
+      "rememberChoice": "この選択を記憶する"
     }
   },
   "documentViewer": {

@@ -21,6 +21,13 @@
       }
     }
   },
+  "dialog": {
+    "telephonySelectServer": {
+      "title": "اختيار الخادم",
+      "message": "أي خادم يجب أن يتعامل مع هذه المكالمة؟",
+      "rememberChoice": "تذكر هذا الاختيار"
+    }
+  },
   "serverInfo": {
     "title": "معلومات الخادم",
     "urlLabel": "الرابط:",

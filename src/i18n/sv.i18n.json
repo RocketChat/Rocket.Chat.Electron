@@ -164,6 +164,11 @@
     },
     "supportedVersion": {
       "title": "Versionen av arbetsytan stöds inte"
+    },
+    "telephonySelectServer": {
+      "title": "Välj server",
+      "message": "Vilken server ska hantera detta samtal?",
+      "rememberChoice": "Kom ihåg detta val"
     }
   },
   "documentViewer": {

@@ -101,6 +101,11 @@
         "answerCall": "aramaları yanıtlamak",
         "recordMessage": "mesaj kaydetmek"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Sunucu Seç",
+      "message": "Bu aramayı hangi sunucu yönetmeli?",
+      "rememberChoice": "Bu seçimi hatırla"
     }
   },
   "documentViewer": {

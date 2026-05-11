@@ -21,6 +21,13 @@
       }
     }
   },
+  "dialog": {
+    "telephonySelectServer": {
+      "title": "Vállje bálvá",
+      "message": "Guđe bálvá galgá meannudit dán riŋgema?",
+      "rememberChoice": "Muitte dán válljema"
+    }
+  },
   "serverInfo": {
     "title": "Serverinformation",
     "urlLabel": "URL:",

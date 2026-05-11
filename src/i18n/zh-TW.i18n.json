@@ -80,6 +80,11 @@
       "title": "忽略更新",
       "message": "我們將會在下次有新的更新版本的時候通知您\n如果您改變主意想安裝此次更新，您可以從「關於」的選單中檢視更新",
       "ok": "好"
+    },
+    "telephonySelectServer": {
+      "title": "選擇伺服器",
+      "message": "哪個伺服器應該處理此通話？",
+      "rememberChoice": "記住此選擇"
     }
   },
   "documentViewer": {

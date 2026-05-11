@@ -102,6 +102,11 @@
         "answerCall": "接听电话",
         "recordMessage": "录制消息"
       }
+    },
+    "telephonySelectServer": {
+      "title": "选择服务器",
+      "message": "哪个服务器应该处理此通话？",
+      "rememberChoice": "记住此选择"
     }
   },
   "documentViewer": {

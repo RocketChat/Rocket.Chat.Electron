@@ -143,6 +143,11 @@
         "answerCall": "répondre aux appels",
         "recordMessage": "enregistrer des messages"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Sélectionner le serveur",
+      "message": "Quel serveur doit gérer cet appel ?",
+      "rememberChoice": "Se souvenir de ce choix"
     }
   },
   "documentViewer": {

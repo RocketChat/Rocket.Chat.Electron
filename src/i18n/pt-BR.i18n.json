@@ -155,6 +155,11 @@
     },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
+    },
+    "telephonySelectServer": {
+      "title": "Selecionar servidor",
+      "message": "Qual servidor deve atender esta chamada?",
+      "rememberChoice": "Lembrar desta escolha"
     }
   },
   "documentViewer": {

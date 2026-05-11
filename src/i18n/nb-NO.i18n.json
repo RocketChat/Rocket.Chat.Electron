@@ -21,6 +21,13 @@
       }
     }
   },
+  "dialog": {
+    "telephonySelectServer": {
+      "title": "Velg server",
+      "message": "Hvilken server skal håndtere denne samtalen?",
+      "rememberChoice": "Husk dette valget"
+    }
+  },
   "serverInfo": {
     "title": "Serverinformasjon",
     "urlLabel": "URL:",

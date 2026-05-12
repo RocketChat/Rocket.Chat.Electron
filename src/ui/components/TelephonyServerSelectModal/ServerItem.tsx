@@ -1,4 +1,4 @@
-import { Avatar, Box, Tile } from '@rocket.chat/fuselage';
+import { Avatar, Box } from '@rocket.chat/fuselage';
 import type { MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
 
@@ -36,9 +36,9 @@ export const ServerItem = ({
   };
 
   return (
-    <Tile
-      elevation='0'
-      padding='x12'
+    <Box
+      paddingBlock='x6'
+      paddingInline='x8'
       display='flex'
       alignItems='center'
       style={{
@@ -89,6 +89,6 @@ export const ServerItem = ({
           {hostname}
         </Box>
       </Box>
-    </Tile>
+    </Box>
   );
 };

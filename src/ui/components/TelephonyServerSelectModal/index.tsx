@@ -1,4 +1,4 @@
-import { Box, CheckBox, Margins } from '@rocket.chat/fuselage';
+import { Box, CheckBox } from '@rocket.chat/fuselage';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -37,46 +37,44 @@ export const TelephonyServerSelectModal = () => {
 
   return (
     <Dialog isVisible={isVisible} onClose={handleClose}>
-      <Margins block='x16'>
-        <Box fontScale='h3' marginBlockEnd='x8'>
-          {t('dialog.telephonySelectServer.title')}
-        </Box>
-        <Box fontScale='p2' color='hint' marginBlockEnd='x16'>
-          {t('dialog.telephonySelectServer.message')}
-        </Box>
+      <Box fontScale='h3' marginBlockEnd='x4'>
+        {t('dialog.telephonySelectServer.title')}
+      </Box>
+      <Box fontScale='p2' color='hint' marginBlockEnd='x12'>
+        {t('dialog.telephonySelectServer.message')}
+      </Box>
 
-        <Box
-          display='flex'
-          flexDirection='column'
-          style={{ maxHeight: '300px', overflowY: 'auto' }}
-        >
-          {servers.map((server) => (
-            <ServerItem
-              key={server.url}
-              url={server.url}
-              title={server.title}
-              favicon={server.favicon}
-              onClick={() => handleServerClick(server.url)}
-            />
-          ))}
-        </Box>
-
-        <Box display='flex' alignItems='center' marginBlockStart='x16'>
-          <CheckBox
-            checked={rememberChoice}
-            onChange={() => setRememberChoice(!rememberChoice)}
+      <Box
+        display='flex'
+        flexDirection='column'
+        style={{ maxHeight: '300px', overflowY: 'auto' }}
+      >
+        {servers.map((server) => (
+          <ServerItem
+            key={server.url}
+            url={server.url}
+            title={server.title}
+            favicon={server.favicon}
+            onClick={() => handleServerClick(server.url)}
           />
-          <Box
-            is='label'
-            fontScale='p2'
-            marginInlineStart='x8'
-            style={{ cursor: 'pointer' }}
-            onClick={() => setRememberChoice(!rememberChoice)}
-          >
-            {t('dialog.telephonySelectServer.rememberChoice')}
-          </Box>
+        ))}
+      </Box>
+
+      <Box display='flex' alignItems='center' marginBlockStart='x12'>
+        <CheckBox
+          checked={rememberChoice}
+          onChange={() => setRememberChoice(!rememberChoice)}
+        />
+        <Box
+          is='label'
+          fontScale='p2'
+          marginInlineStart='x8'
+          style={{ cursor: 'pointer' }}
+          onClick={() => setRememberChoice(!rememberChoice)}
+        >
+          {t('dialog.telephonySelectServer.rememberChoice')}
         </Box>
-      </Margins>
+      </Box>
     </Dialog>
   );
 };

@@ -1,6 +1,5 @@
 import type { WebContents } from 'electron';
-import { app, dialog } from 'electron';
-import i18next from 'i18next';
+import { app } from 'electron';
 
 import {
   electronBuilderJsonInformation,
@@ -8,8 +7,12 @@ import {
 } from '../app/main/app';
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
-import { select, dispatch } from '../store';
+import { select, dispatch, listen } from '../store';
 import { TELEPHONY_PREFERRED_SERVER_SET } from '../telephony/actions';
+import {
+  TELEPHONY_SERVER_SELECT_OPEN,
+  TELEPHONY_SERVER_SELECT_CLOSE,
+} from '../ui/actions';
 import {
   askForServerAddition,
   warnAboutInvalidServerUrl,
@@ -17,8 +20,6 @@ import {
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
-
-const t = i18next.t.bind(i18next);
 
 const isDefinedProtocol = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === `${electronBuilderJsonInformation.protocol}:`;
@@ -89,55 +90,94 @@ export const parseTelephonyLink = (input: string): TelephonyLink | null => {
   return { phoneNumber, rawUri: input };
 };
 
+const MODAL_TIMEOUT_MS = 120_000;
+const WEB_CONTENTS_TIMEOUT_MS = 10_000;
+
+let telephonyCallInProgress = false;
+
 export const performTelephonyCall = async (
   link: TelephonyLink
 ): Promise<void> => {
+  if (telephonyCallInProgress) {
+    return;
+  }
+
   const servers = select(({ servers }) => servers);
 
   if (servers.length === 0) {
     return;
   }
 
-  let serverUrl: string;
+  telephonyCallInProgress = true;
 
-  if (servers.length === 1) {
-    serverUrl = servers[0].url;
-  } else {
-    const preferredServer = select(
-      ({ telephonyPreferredServer }) => telephonyPreferredServer
-    );
+  try {
+    let serverUrl: string;
 
-    if (preferredServer && servers.some((s) => s.url === preferredServer)) {
-      serverUrl = preferredServer;
+    if (servers.length === 1) {
+      serverUrl = servers[0].url;
     } else {
-      const { response, checkboxChecked } = await dialog.showMessageBox(
-        await getRootWindow(),
-        {
-          type: 'question',
-          title: t('dialog.telephonySelectServer.title'),
-          message: t('dialog.telephonySelectServer.message'),
-          buttons: servers.map((s) => s.title ?? new URL(s.url).hostname),
-          checkboxLabel: t('dialog.telephonySelectServer.rememberChoice'),
-          checkboxChecked: false,
-        }
+      const preferredServer = select(
+        ({ telephonyPreferredServer }) => telephonyPreferredServer
       );
 
-      serverUrl = servers[response].url;
+      if (preferredServer && servers.some((s) => s.url === preferredServer)) {
+        serverUrl = preferredServer;
+      } else {
+        const result = await new Promise<{
+          serverUrl: string;
+          rememberChoice: boolean;
+        } | null>((resolve) => {
+          const timeout = setTimeout(() => {
+            unsubscribe();
+            dispatch({ type: TELEPHONY_SERVER_SELECT_CLOSE, payload: null });
+            resolve(null);
+          }, MODAL_TIMEOUT_MS);
 
-      if (checkboxChecked) {
-        dispatch({
-          type: TELEPHONY_PREFERRED_SERVER_SET,
-          payload: serverUrl,
+          const unsubscribe = listen(
+            TELEPHONY_SERVER_SELECT_CLOSE,
+            (action) => {
+              clearTimeout(timeout);
+              unsubscribe();
+              resolve(action.payload);
+            }
+          );
+
+          dispatch({
+            type: TELEPHONY_SERVER_SELECT_OPEN,
+            payload: { phoneNumber: link.phoneNumber, rawUri: link.rawUri },
+          });
         });
+
+        if (!result) {
+          return;
+        }
+
+        serverUrl = result.serverUrl;
+
+        if (result.rememberChoice) {
+          dispatch({
+            type: TELEPHONY_PREFERRED_SERVER_SET,
+            payload: serverUrl,
+          });
+        }
       }
     }
-  }
 
-  const webContents = await getWebContents(serverUrl);
-  webContents.send('telephony/call-requested', {
-    phoneNumber: link.phoneNumber,
-    rawUri: link.rawUri,
-  });
+    const webContents = await getWebContents(
+      serverUrl,
+      WEB_CONTENTS_TIMEOUT_MS
+    );
+    if (!webContents) {
+      return;
+    }
+
+    webContents.send('telephony/call-requested', {
+      phoneNumber: link.phoneNumber,
+      rawUri: link.rawUri,
+    });
+  } finally {
+    telephonyCallInProgress = false;
+  }
 };
 
 export let processDeepLinksInArgs = async (): Promise<void> => undefined;
@@ -194,12 +234,28 @@ const performOnServer = async (
   await action(serverUrl);
 };
 
-const getWebContents = (serverUrl: string): Promise<WebContents> =>
-  new Promise((resolve) => {
+function getWebContents(serverUrl: string): Promise<WebContents>;
+function getWebContents(
+  serverUrl: string,
+  timeoutMs: number
+): Promise<WebContents | null>;
+function getWebContents(
+  serverUrl: string,
+  timeoutMs?: number
+): Promise<WebContents | null> {
+  return new Promise((resolve) => {
+    const deadline =
+      timeoutMs !== undefined ? Date.now() + timeoutMs : undefined;
+
     const poll = (): void => {
       const webContents = getWebContentsByServerUrl(serverUrl);
       if (webContents) {
         resolve(webContents);
+        return;
+      }
+
+      if (deadline !== undefined && Date.now() >= deadline) {
+        resolve(null);
         return;
       }
 
@@ -208,6 +264,7 @@ const getWebContents = (serverUrl: string): Promise<WebContents> =>
 
     poll();
   });
+}
 
 const performAuthentication = async ({
   host,

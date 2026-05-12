@@ -156,6 +156,8 @@ export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
 export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
 export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
+export const TELEPHONY_SERVER_SELECT_OPEN = 'telephony-server-select/open';
+export const TELEPHONY_SERVER_SELECT_CLOSE = 'telephony-server-select/close';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -307,4 +309,12 @@ export type UiActionTypeToPayloadMap = {
     supportedVersions?: Server['supportedVersions'];
   };
   [CLOSE_SERVER_INFO_MODAL]: void;
+  [TELEPHONY_SERVER_SELECT_OPEN]: {
+    phoneNumber: string;
+    rawUri: string;
+  };
+  [TELEPHONY_SERVER_SELECT_CLOSE]: {
+    serverUrl: string;
+    rememberChoice: boolean;
+  } | null;
 };

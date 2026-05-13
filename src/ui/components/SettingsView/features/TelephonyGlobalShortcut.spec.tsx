@@ -12,11 +12,18 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('@rocket.chat/fuselage', () => ({
-  Box: ({ children, is: component = 'div', ...props }: any) => {
+  Box: ({
+    children,
+    is: component = 'div',
+    display: _display,
+    alignItems: _alignItems,
+    flexGrow: _flexGrow,
+    ...props
+  }: any) => {
     const Component = component;
     return <Component {...props}>{children}</Component>;
   },
-  Button: ({ children, ...props }: any) => (
+  Button: ({ children, mis: _mis, ...props }: any) => (
     <button {...props}>{children}</button>
   ),
   Field: ({ children }: any) => <div>{children}</div>,
@@ -119,6 +126,69 @@ describe('TelephonyGlobalShortcut', () => {
         accelerator: null,
       },
     });
+  });
+
+  it('does not save reserved copy/paste accelerators', () => {
+    const store = makeStore(defaultState);
+    const dispatchSpy = jest.spyOn(store, 'dispatch');
+
+    render(
+      <Provider store={store}>
+        <TelephonyGlobalShortcut />
+      </Provider>
+    );
+
+    fireEvent.change(screen.getByTestId('telephony-shortcut-input'), {
+      target: { value: 'CommandOrControl+C' },
+    });
+    fireEvent.click(screen.getByTestId('telephony-shortcut-save'));
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('settings.options.telephonyShortcut.reservedAccelerator')
+    ).toBeInTheDocument();
+  });
+
+  it('does not save accelerators used by the app menu', () => {
+    const store = makeStore(defaultState);
+    const dispatchSpy = jest.spyOn(store, 'dispatch');
+
+    render(
+      <Provider store={store}>
+        <TelephonyGlobalShortcut />
+      </Provider>
+    );
+
+    fireEvent.change(screen.getByTestId('telephony-shortcut-input'), {
+      target: { value: 'CommandOrControl+N' },
+    });
+    fireEvent.click(screen.getByTestId('telephony-shortcut-save'));
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('restores the saved accelerator when capture is cancelled with Escape', () => {
+    const store = makeStore({
+      ...defaultState,
+      telephonyGlobalShortcutConfig: {
+        enabled: true,
+        accelerator: 'CommandOrControl+Shift+D',
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <TelephonyGlobalShortcut />
+      </Provider>
+    );
+
+    const input = screen.getByTestId('telephony-shortcut-input');
+    fireEvent.change(input, {
+      target: { value: 'CommandOrControl+Shift+E' },
+    });
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    expect(input).toHaveValue('CommandOrControl+Shift+D');
   });
 
   it('shows registration failure feedback from main process status', () => {

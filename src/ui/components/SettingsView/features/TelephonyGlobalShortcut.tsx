@@ -16,8 +16,13 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { TELEPHONY_GLOBAL_SHORTCUT_CONFIG_SET } from '../../../../telephony/actions';
+import {
+  isReservedTelephonyShortcutAccelerator,
+  normalizeTelephonyShortcutAccelerator,
+} from '../../../../telephony/shortcuts';
 
-const normalizeShortcutText = (value: string): string => value.trim();
+const normalizeShortcutText = (value: string): string | null =>
+  normalizeTelephonyShortcutAccelerator(value);
 
 const keyToAcceleratorPart = (key: string): string | null => {
   if (['Control', 'Meta', 'Shift', 'Alt'].includes(key)) {
@@ -74,6 +79,7 @@ export const TelephonyGlobalShortcut = () => {
   const [draftAccelerator, setDraftAccelerator] = useState(
     telephonyGlobalShortcutConfig.accelerator ?? ''
   );
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     setDraftAccelerator(telephonyGlobalShortcutConfig.accelerator ?? '');
@@ -82,15 +88,25 @@ export const TelephonyGlobalShortcut = () => {
   const saveShortcut = useCallback(
     (value: string) => {
       const accelerator = normalizeShortcutText(value);
+      if (accelerator && isReservedTelephonyShortcutAccelerator(accelerator)) {
+        setValidationError(
+          t('settings.options.telephonyShortcut.reservedAccelerator', {
+            accelerator,
+          })
+        );
+        return;
+      }
+
+      setValidationError(null);
       dispatch({
         type: TELEPHONY_GLOBAL_SHORTCUT_CONFIG_SET,
         payload: {
           enabled: Boolean(accelerator),
-          accelerator: accelerator || null,
+          accelerator,
         },
       });
     },
-    [dispatch]
+    [dispatch, t]
   );
 
   const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -100,14 +116,22 @@ export const TelephonyGlobalShortcut = () => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       const accelerator = eventToAccelerator(event);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setDraftAccelerator(telephonyGlobalShortcutConfig.accelerator ?? '');
+        setValidationError(null);
+        return;
+      }
+
       if (!accelerator) {
         return;
       }
 
       event.preventDefault();
       setDraftAccelerator(accelerator);
+      setValidationError(null);
     },
-    []
+    [telephonyGlobalShortcutConfig.accelerator]
   );
 
   const handleSave = useCallback(() => {
@@ -167,6 +191,11 @@ export const TelephonyGlobalShortcut = () => {
           <FieldHint color='danger'>
             {telephonyGlobalShortcutRegistrationStatus.error}
           </FieldHint>
+        </FieldRow>
+      )}
+      {validationError && (
+        <FieldRow>
+          <FieldHint color='danger'>{validationError}</FieldHint>
         </FieldRow>
       )}
       {isRegistered && (

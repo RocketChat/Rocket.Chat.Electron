@@ -105,6 +105,22 @@ describe('telephony/preload', () => {
     expect(cb).toHaveBeenCalledWith(payload);
   });
 
+  it('delivers empty phone payloads so the renderer can open an empty dial pad', () => {
+    listenToTelephonyRequests();
+
+    const cb = jest.fn();
+    onTelephonyCallRequested(cb);
+
+    const payload: TelephonyPayload = {
+      phoneNumber: '',
+      rawUri: '',
+    };
+    fireIpcEvent(payload);
+
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(cb).toHaveBeenCalledWith(payload);
+  });
+
   it('replacing callback: next IPC event fires the new callback only', () => {
     listenToTelephonyRequests();
 

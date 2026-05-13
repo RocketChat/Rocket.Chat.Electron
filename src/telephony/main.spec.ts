@@ -37,6 +37,7 @@ jest.mock('electron', () => {
       readText: jest.fn(),
     },
     globalShortcut: {
+      isRegistered: jest.fn(() => false),
       register: jest.fn(),
       unregister: jest.fn(),
     },
@@ -95,6 +96,7 @@ describe('telephony global shortcut main process pipeline', () => {
     jest.clearAllMocks();
     parseTelephonyLinkMock.mockReturnValue(null);
     getRootWindowMock.mockResolvedValue(rootWindow as any);
+    globalShortcutMock.isRegistered.mockReturnValue(false);
     globalShortcutMock.register.mockReturnValue(true);
   });
 
@@ -160,6 +162,39 @@ describe('telephony global shortcut main process pipeline', () => {
       phoneNumber: '',
       rawUri: '',
     });
+  });
+
+  it('skips parsing and opens empty input for empty clipboard text', () => {
+    expect(createTelephonyLinkFromClipboardText('   ')).toEqual({
+      phoneNumber: '',
+      rawUri: '',
+    });
+    expect(parseTelephonyLinkMock).not.toHaveBeenCalled();
+  });
+
+  it('caps clipboard text before parsing or sending it to the renderer', () => {
+    expect(createTelephonyLinkFromClipboardText('1'.repeat(257))).toEqual({
+      phoneNumber: '',
+      rawUri: '',
+    });
+    expect(parseTelephonyLinkMock).not.toHaveBeenCalled();
+  });
+
+  it('debounces repeated shortcut triggers', async () => {
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_100)
+      .mockReturnValueOnce(1_300);
+    clipboardMock.readText.mockReturnValue('+1 800 555 0199');
+
+    await triggerTelephonyGlobalShortcut();
+    await triggerTelephonyGlobalShortcut();
+    await triggerTelephonyGlobalShortcut();
+
+    expect(clipboardMock.readText).toHaveBeenCalledTimes(2);
+    expect(performTelephonyCallMock).toHaveBeenCalledTimes(2);
+    nowSpy.mockRestore();
   });
 
   it('preserves parsed tel/callto links from clipboard', () => {
@@ -241,6 +276,44 @@ describe('telephony global shortcut main process pipeline', () => {
     ).toHaveBeenCalled();
   });
 
+  it('rejects reserved app accelerators before registering', () => {
+    registerTelephonyGlobalShortcut({
+      enabled: true,
+      accelerator: 'CommandOrControl+C',
+    });
+
+    expect(globalShortcutMock.register).not.toHaveBeenCalled();
+    expect(dispatchMock).toHaveBeenLastCalledWith({
+      type: TELEPHONY_GLOBAL_SHORTCUT_REGISTRATION_CHANGED,
+      payload: {
+        registered: false,
+        accelerator: 'CommandOrControl+C',
+        error:
+          'Telephony shortcut CommandOrControl+C is reserved by the app or operating system',
+      },
+    });
+  });
+
+  it('reports accelerators already registered by Electron before registering', () => {
+    globalShortcutMock.isRegistered.mockReturnValue(true);
+
+    registerTelephonyGlobalShortcut({
+      enabled: true,
+      accelerator: 'CommandOrControl+Shift+D',
+    });
+
+    expect(globalShortcutMock.register).not.toHaveBeenCalled();
+    expect(dispatchMock).toHaveBeenLastCalledWith({
+      type: TELEPHONY_GLOBAL_SHORTCUT_REGISTRATION_CHANGED,
+      payload: {
+        registered: false,
+        accelerator: 'CommandOrControl+Shift+D',
+        error:
+          'Telephony shortcut CommandOrControl+Shift+D is already registered',
+      },
+    });
+  });
+
   it('watches config changes and unregisters on app close teardown', () => {
     const unsubscribe = jest.fn();
     let watcher: Parameters<typeof watchMock>[1] | undefined;
@@ -285,6 +358,30 @@ describe('telephony global shortcut main process pipeline', () => {
       'CommandOrControl+Shift+E'
     );
   });
+
+  it('unregisters the current accelerator when Electron emits will-quit', () => {
+    let willQuitHandler: (() => void) | undefined;
+    appMock.addListener.mockImplementation(((event: string, listener) => {
+      if (event === 'will-quit') {
+        willQuitHandler = listener as () => void;
+      }
+      return appMock;
+    }) as typeof appMock.addListener);
+    watchMock.mockImplementation((_selector, callback) => {
+      callback(
+        { enabled: true, accelerator: 'CommandOrControl+Shift+D' },
+        undefined
+      );
+      return jest.fn();
+    });
+
+    setupTelephonyGlobalShortcut();
+    willQuitHandler?.();
+
+    expect(globalShortcutMock.unregister).toHaveBeenCalledWith(
+      'CommandOrControl+Shift+D'
+    );
+  });
 });
 
 describe('telephony shortcut reducers', () => {
@@ -302,7 +399,7 @@ describe('telephony shortcut reducers', () => {
   it('keeps shortcut config disabled by default and stores UI-provided config', () => {
     expect(
       telephonyGlobalShortcutConfig(undefined, { type: 'UNKNOWN' } as any)
-    ).toBe(defaultTelephonyGlobalShortcutConfig);
+    ).toEqual(defaultTelephonyGlobalShortcutConfig);
 
     expect(
       telephonyGlobalShortcutConfig(defaultTelephonyGlobalShortcutConfig, {
@@ -337,7 +434,33 @@ describe('telephony shortcut reducers', () => {
           telephonyGlobalShortcutConfig: null as any,
         },
       })
-    ).toBe(defaultTelephonyGlobalShortcutConfig);
+    ).toEqual(defaultTelephonyGlobalShortcutConfig);
+  });
+
+  it('rejects non-string and oversized persisted shortcut accelerators', () => {
+    expect(
+      telephonyGlobalShortcutConfig(defaultTelephonyGlobalShortcutConfig, {
+        type: APP_SETTINGS_LOADED,
+        payload: {
+          telephonyGlobalShortcutConfig: {
+            enabled: true,
+            accelerator: 123 as any,
+          },
+        },
+      })
+    ).toEqual(defaultTelephonyGlobalShortcutConfig);
+
+    expect(
+      telephonyGlobalShortcutConfig(defaultTelephonyGlobalShortcutConfig, {
+        type: APP_SETTINGS_LOADED,
+        payload: {
+          telephonyGlobalShortcutConfig: {
+            enabled: true,
+            accelerator: 'A'.repeat(65),
+          },
+        },
+      })
+    ).toEqual(defaultTelephonyGlobalShortcutConfig);
   });
 
   it('stores registration status for Settings UI feedback', () => {

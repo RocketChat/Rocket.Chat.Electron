@@ -308,7 +308,8 @@
         "placeholder": "CommandOrControl+Shift+D",
         "save": "Save",
         "clear": "Clear",
-        "registered": "Shortcut registered"
+        "registered": "Shortcut registered",
+        "reservedAccelerator": "{{accelerator}} is reserved by Rocket.Chat or your operating system."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",

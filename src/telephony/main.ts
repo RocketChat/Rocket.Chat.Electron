@@ -8,6 +8,11 @@ import type { RootState } from '../store/rootReducer';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { TELEPHONY_GLOBAL_SHORTCUT_REGISTRATION_CHANGED } from './actions';
 import type { TelephonyGlobalShortcutConfig } from './actions';
+import {
+  MAX_CLIPBOARD_PHONE_LENGTH,
+  isReservedTelephonyShortcutAccelerator,
+  normalizeTelephonyShortcutAccelerator,
+} from './shortcuts';
 
 const selectTelephonyGlobalShortcutConfig = ({
   telephonyGlobalShortcutConfig,
@@ -15,6 +20,9 @@ const selectTelephonyGlobalShortcutConfig = ({
 
 let registeredAccelerator: string | null = null;
 let unsubscribeFromShortcutConfig: (() => void) | null = null;
+let lastTelephonyShortcutTriggeredAt = 0;
+
+const TELEPHONY_GLOBAL_SHORTCUT_DEBOUNCE_MS = 250;
 
 const EMPTY_TELEPHONY_LINK: TelephonyLink = {
   phoneNumber: '',
@@ -33,10 +41,7 @@ const normalizeTelephonyGlobalShortcutConfig = (
     return DISABLED_SHORTCUT_CONFIG;
   }
 
-  const accelerator =
-    typeof config.accelerator === 'string' && config.accelerator.trim()
-      ? config.accelerator.trim()
-      : null;
+  const accelerator = normalizeTelephonyShortcutAccelerator(config.accelerator);
 
   return {
     enabled: config.enabled === true,
@@ -59,6 +64,9 @@ export const createTelephonyLinkFromClipboardText = (
   text: string
 ): TelephonyLink => {
   const trimmedText = text.trim();
+  if (!trimmedText || trimmedText.length > MAX_CLIPBOARD_PHONE_LENGTH) {
+    return EMPTY_TELEPHONY_LINK;
+  }
 
   const telephonyLink = parseTelephonyLink(trimmedText);
   if (telephonyLink) {
@@ -87,6 +95,16 @@ const focusRootWindow = async (): Promise<void> => {
 };
 
 export const triggerTelephonyGlobalShortcut = async (): Promise<void> => {
+  const now = Date.now();
+  if (
+    lastTelephonyShortcutTriggeredAt &&
+    now - lastTelephonyShortcutTriggeredAt <
+      TELEPHONY_GLOBAL_SHORTCUT_DEBOUNCE_MS
+  ) {
+    return;
+  }
+  lastTelephonyShortcutTriggeredAt = now;
+
   const telephonyLink = createTelephonyLinkFromClipboardText(
     clipboard.readText()
   );
@@ -153,6 +171,20 @@ export const registerTelephonyGlobalShortcut = (
   }
 
   try {
+    if (isReservedTelephonyShortcutAccelerator(accelerator)) {
+      const error = `Telephony shortcut ${accelerator} is reserved by the app or operating system`;
+      dispatchRegistrationStatus(false, accelerator, error);
+      notifyRegistrationFailure(accelerator, error);
+      return;
+    }
+
+    if (globalShortcut.isRegistered?.(accelerator)) {
+      const error = `Telephony shortcut ${accelerator} is already registered`;
+      dispatchRegistrationStatus(false, accelerator, error);
+      notifyRegistrationFailure(accelerator, error);
+      return;
+    }
+
     const registered = globalShortcut.register(accelerator, () => {
       void triggerTelephonyGlobalShortcut().catch((error) => {
         logger.error('Failed to handle telephony global shortcut', error);
@@ -193,6 +225,7 @@ export const setupTelephonyGlobalShortcut = (): void => {
 
 export const teardownTelephonyGlobalShortcut = (): void => {
   app.removeListener('will-quit', teardownTelephonyGlobalShortcut);
+  lastTelephonyShortcutTriggeredAt = 0;
 
   if (unsubscribeFromShortcutConfig) {
     unsubscribeFromShortcutConfig();

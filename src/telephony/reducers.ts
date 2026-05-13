@@ -11,6 +11,7 @@ import type {
   TelephonyGlobalShortcutConfig,
   TelephonyGlobalShortcutRegistrationStatus,
 } from './actions';
+import { normalizeTelephonyShortcutAccelerator } from './shortcuts';
 
 type TelephonyPreferredServerAction =
   | ActionOf<typeof TELEPHONY_PREFERRED_SERVER_SET>
@@ -44,10 +45,9 @@ const normalizeTelephonyGlobalShortcutConfig = (
     return defaultTelephonyGlobalShortcutConfig;
   }
 
-  const accelerator =
-    typeof config.accelerator === 'string' && config.accelerator.trim()
-      ? config.accelerator.trim()
-      : null;
+  const accelerator = normalizeTelephonyShortcutAccelerator(
+    config.accelerator
+  );
 
   return {
     enabled: config.enabled === true && Boolean(accelerator),

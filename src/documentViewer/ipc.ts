@@ -11,7 +11,7 @@ export const startDocumentViewerHandler = (): void => {
     'document-viewer/open-window',
     async (event, url, format, _options) => {
       const validUrl = new URL(url);
-      const allowedProtocols = ['http:', 'https:'];
+      const allowedProtocols = ['http:', 'https:', 'blob:'];
       if (!allowedProtocols.includes(validUrl.protocol)) {
         return;
       }

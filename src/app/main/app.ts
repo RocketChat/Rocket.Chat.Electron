@@ -189,7 +189,7 @@ export const performElectronStartup = (): void => {
       // Only use Wayland if we're actually in a Wayland session AND have a valid socket
       // This covers all edge cases:
       // - X11 sessions (sessionType === 'x11' or unset) → force X11
-      // - Invalid session types (tty, mir, etc.) → force X11
+      // - Invalid session types (tty, mir, etc.) → probe for Wayland socket as fallback
       // - Wayland session but no display → force X11
       // - Wayland session but socket doesn't exist → force X11
       const checkWaylandSocket = (): boolean => {
@@ -212,6 +212,30 @@ export const performElectronStartup = (): void => {
       };
       const isWaylandSession = checkWaylandSocket();
 
+      // Secondary fallback: check if a Wayland socket exists at known paths
+      // even when session type is ambiguous (e.g. XDG_SESSION_TYPE=tty via SSH
+      // connecting to a Wayland desktop). This prevents forcing X11 and crashing
+      // when there's no X11 display/auth but a Wayland compositor is running.
+      const detectWaylandSocketFallback = (): boolean => {
+        if (normalizedSessionType === 'x11') {
+          return false; // explicit X11 session, don't second-guess
+        }
+        const runtimeDir =
+          process.env.XDG_RUNTIME_DIR ||
+          `/run/user/${process.getuid?.() ?? 1000}`;
+        for (const name of ['wayland-0', 'wayland-1']) {
+          try {
+            const stats = fs.statSync(`${runtimeDir}/${name}`);
+            if (stats.isSocket()) {
+              return true;
+            }
+          } catch {
+            // socket doesn't exist, continue
+          }
+        }
+        return false;
+      };
+
       if (isWaylandSession) {
         console.log(
           'Using Wayland platform',
@@ -221,6 +245,17 @@ export const performElectronStartup = (): void => {
           })
         );
         // Let Electron use Wayland (default auto behavior)
+        // Don't set ozone-platform, let Electron auto-detect
+      } else if (detectWaylandSocketFallback()) {
+        // Fallback: session type is ambiguous (e.g. tty via SSH) but a Wayland
+        // socket exists. Use Wayland rather than forcing X11 which would crash.
+        console.log(
+          'Using Wayland platform (fallback socket detection)',
+          JSON.stringify({
+            sessionType: normalizedSessionType || 'unset',
+            waylandDisplay: normalizedWaylandDisplay || 'unset',
+          })
+        );
         // Don't set ozone-platform, let Electron auto-detect
       } else {
         let reason: string;
@@ -280,6 +315,12 @@ export const setupGpuCrashHandler = (): void => {
       return;
     }
 
+    // Prevent relaunch loop: if --disable-gpu is already active, we've
+    // already handled the GPU crash via gpu-info-update.
+    if (process.argv.includes('--disable-gpu')) {
+      return;
+    }
+
     console.log('GPU process crashed, disabling GPU and relaunching with X11');
     const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
     relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
@@ -296,9 +337,16 @@ export const setupGpuCrashHandler = (): void => {
       status.startsWith('disabled') ||
       status.startsWith('unavailable');
 
+    // Prevent relaunch loop: if --disable-gpu is already active, we've
+    // already handled this. gpu-info-update fires again after relaunch
+    // and would see disabled features, causing an infinite relaunch loop.
+    if (process.argv.includes('--disable-gpu')) {
+      return;
+    }
+
     if (isGpuBroken(gpuCompositing) || isGpuBroken(webgl)) {
       console.log(
-        'GPU features unavailable, disabling GPU and relaunching with X11',
+        'GPU features unavailable, disabling GPU and relaunching',
         JSON.stringify(gpuFeatures)
       );
       const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);

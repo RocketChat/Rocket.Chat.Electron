@@ -12,6 +12,7 @@ import { OutlookCalendarSyncInterval } from './features/OutlookCalendarSyncInter
 import { ReportErrors } from './features/ReportErrors';
 import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
 import { SideBar } from './features/SideBar';
+import { TelephonyGlobalShortcut } from './features/TelephonyGlobalShortcut';
 import { TelephonyServer } from './features/TelephonyServer';
 import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
@@ -36,6 +37,7 @@ export const GeneralTab = () => (
       <ThemeAppearance />
       <AvailableBrowsers />
       <OutlookCalendarSyncInterval />
+      <TelephonyGlobalShortcut />
       <TelephonyServer />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>

@@ -85,4 +85,7 @@ export const selectPersistableValues = createStructuredSelector({
     isDebugLoggingEnabled,
   telephonyPreferredServer: ({ telephonyPreferredServer }: RootState) =>
     telephonyPreferredServer,
+  telephonyGlobalShortcutConfig: ({
+    telephonyGlobalShortcutConfig,
+  }: RootState) => telephonyGlobalShortcutConfig,
 });

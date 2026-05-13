@@ -299,8 +299,16 @@
       },
       "telephonyServer": {
         "title": "Telephony Server",
-        "description": "Choose which server handles incoming phone calls (tel: and callto: links).",
+        "description": "Choose which server handles telephony calls from global shortcuts and tel:/callto: links.",
         "auto": "Auto (ask each time)"
+      },
+      "telephonyShortcut": {
+        "title": "Telephony Global Shortcut",
+        "description": "Press this shortcut anywhere to focus Rocket.Chat and open the telephony dial pad. Clipboard is read only when the shortcut is pressed.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "save": "Save",
+        "clear": "Clear",
+        "registered": "Shortcut registered"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",

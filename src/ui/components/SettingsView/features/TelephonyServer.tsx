@@ -15,6 +15,14 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { TELEPHONY_PREFERRED_SERVER_SET } from '../../../../telephony/actions';
 
+const safeHostname = (url: string): string => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};
+
 export const TelephonyServer = () => {
   const servers = useSelector(({ servers }: RootState) => servers);
   const telephonyPreferredServer = useSelector(
@@ -39,7 +47,7 @@ export const TelephonyServer = () => {
       ['auto', t('settings.options.telephonyServer.auto')],
       ...servers.map((s): [string, string] => [
         s.url,
-        s.title ?? new URL(s.url).hostname,
+        s.title ?? safeHostname(s.url),
       ]),
     ],
     [servers, t]

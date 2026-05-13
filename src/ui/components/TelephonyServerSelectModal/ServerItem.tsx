@@ -37,6 +37,8 @@ export const ServerItem = ({
 
   return (
     <Box
+      is='button'
+      type='button'
       paddingBlock='x6'
       paddingInline='x8'
       display='flex'

@@ -62,15 +62,16 @@ export const TelephonyServerSelectModal = () => {
 
       <Box display='flex' alignItems='center' marginBlockStart='x12'>
         <CheckBox
+          id='telephony-remember-choice'
           checked={rememberChoice}
           onChange={() => setRememberChoice(!rememberChoice)}
         />
         <Box
           is='label'
+          htmlFor='telephony-remember-choice'
           fontScale='p2'
           marginInlineStart='x8'
           style={{ cursor: 'pointer' }}
-          onClick={() => setRememberChoice(!rememberChoice)}
         >
           {t('dialog.telephonySelectServer.rememberChoice')}
         </Box>

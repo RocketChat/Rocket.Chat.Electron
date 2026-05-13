@@ -80,7 +80,15 @@ export const parseTelephonyLink = (input: string): TelephonyLink | null => {
     return null;
   }
 
-  const raw = url.pathname || url.href.slice(url.protocol.length);
+  let raw: string;
+  try {
+    raw = decodeURIComponent(
+      url.pathname || url.href.slice(url.protocol.length)
+    );
+  } catch {
+    return null;
+  }
+
   const phoneNumber = raw.replace(/^\/+/, '').replace(/[\s\-().]/g, '');
 
   if (!phoneNumber) {

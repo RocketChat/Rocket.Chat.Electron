@@ -188,6 +188,22 @@ describe('deepLinks/main.ts', () => {
       expect(listenMock).not.toHaveBeenCalled();
     });
 
+    it('should open dialpad path with empty input when requested', async () => {
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      await performTelephonyCall({ phoneNumber: '', rawUri: '' });
+
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '',
+          rawUri: '',
+        }
+      );
+    });
+
     it('should show dialog when there are 2+ servers and no preference', async () => {
       selectMock
         .mockReturnValueOnce([

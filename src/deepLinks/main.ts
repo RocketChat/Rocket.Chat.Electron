@@ -7,12 +7,9 @@ import {
 } from '../app/main/app';
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
-import { select, dispatch, listen } from '../store';
-import { TELEPHONY_PREFERRED_SERVER_SET } from '../telephony/actions';
-import {
-  TELEPHONY_SERVER_SELECT_OPEN,
-  TELEPHONY_SERVER_SELECT_CLOSE,
-} from '../ui/actions';
+import { select, dispatch } from '../store';
+import { openTelephonyDialpad } from '../telephony/dialpad';
+import { parseTelephonyLink } from '../telephony/links';
 import {
   askForServerAddition,
   warnAboutInvalidServerUrl,
@@ -20,6 +17,10 @@ import {
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
+
+export type { TelephonyLink } from '../telephony/common';
+export { openTelephonyDialpad as performTelephonyCall } from '../telephony/dialpad';
+export { parseTelephonyLink } from '../telephony/links';
 
 const isDefinedProtocol = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === `${electronBuilderJsonInformation.protocol}:`;
@@ -57,135 +58,6 @@ const parseDeepLink = (
   }
 
   return null;
-};
-
-const TELEPHONY_PROTOCOLS = ['tel:', 'callto:'];
-
-export type TelephonyLink = { phoneNumber: string; rawUri: string };
-
-export const parseTelephonyLink = (input: string): TelephonyLink | null => {
-  if (/^--/.test(input)) {
-    return null;
-  }
-
-  let url: URL;
-
-  try {
-    url = new URL(input);
-  } catch {
-    return null;
-  }
-
-  if (!TELEPHONY_PROTOCOLS.includes(url.protocol)) {
-    return null;
-  }
-
-  let raw: string;
-  try {
-    raw = decodeURIComponent(
-      url.pathname || url.href.slice(url.protocol.length)
-    );
-  } catch {
-    return null;
-  }
-
-  const phoneNumber = raw.replace(/^\/+/, '').replace(/[\s\-().]/g, '');
-
-  if (!phoneNumber) {
-    return null;
-  }
-
-  return { phoneNumber, rawUri: input };
-};
-
-const MODAL_TIMEOUT_MS = 120_000;
-const WEB_CONTENTS_TIMEOUT_MS = 10_000;
-
-let telephonyCallInProgress = false;
-
-export const performTelephonyCall = async (
-  link: TelephonyLink
-): Promise<void> => {
-  if (telephonyCallInProgress) {
-    return;
-  }
-
-  const servers = select(({ servers }) => servers);
-
-  if (servers.length === 0) {
-    return;
-  }
-
-  telephonyCallInProgress = true;
-
-  try {
-    let serverUrl: string;
-
-    if (servers.length === 1) {
-      serverUrl = servers[0].url;
-    } else {
-      const preferredServer = select(
-        ({ telephonyPreferredServer }) => telephonyPreferredServer
-      );
-
-      if (preferredServer && servers.some((s) => s.url === preferredServer)) {
-        serverUrl = preferredServer;
-      } else {
-        const result = await new Promise<{
-          serverUrl: string;
-          rememberChoice: boolean;
-        } | null>((resolve) => {
-          const timeout = setTimeout(() => {
-            unsubscribe();
-            dispatch({ type: TELEPHONY_SERVER_SELECT_CLOSE, payload: null });
-            resolve(null);
-          }, MODAL_TIMEOUT_MS);
-
-          const unsubscribe = listen(
-            TELEPHONY_SERVER_SELECT_CLOSE,
-            (action) => {
-              clearTimeout(timeout);
-              unsubscribe();
-              resolve(action.payload);
-            }
-          );
-
-          dispatch({
-            type: TELEPHONY_SERVER_SELECT_OPEN,
-            payload: { phoneNumber: link.phoneNumber, rawUri: link.rawUri },
-          });
-        });
-
-        if (!result) {
-          return;
-        }
-
-        serverUrl = result.serverUrl;
-
-        if (result.rememberChoice) {
-          dispatch({
-            type: TELEPHONY_PREFERRED_SERVER_SET,
-            payload: serverUrl,
-          });
-        }
-      }
-    }
-
-    const webContents = await getWebContents(
-      serverUrl,
-      WEB_CONTENTS_TIMEOUT_MS
-    );
-    if (!webContents) {
-      return;
-    }
-
-    webContents.send('telephony/call-requested', {
-      phoneNumber: link.phoneNumber,
-      rawUri: link.rawUri,
-    });
-  } finally {
-    telephonyCallInProgress = false;
-  }
 };
 
 export let processDeepLinksInArgs = async (): Promise<void> => undefined;
@@ -333,7 +205,7 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
 const processDeepLink = async (deepLink: string): Promise<void> => {
   const telephonyLink = parseTelephonyLink(deepLink);
   if (telephonyLink) {
-    await performTelephonyCall(telephonyLink);
+    await openTelephonyDialpad(telephonyLink);
     return;
   }
 

@@ -277,6 +277,21 @@
         "loading": "Cargando navegadores...",
         "current": "Usando actualmente:"
       },
+      "telephonyServer": {
+        "title": "Servidor de telefonía",
+        "description": "Elige qué espacio de trabajo se abre cuando usas el atajo de telefonía o un enlace tel: o callto:.",
+        "auto": "Automático (preguntar siempre)"
+      },
+      "telephonyShortcut": {
+        "title": "Atajo global de telefonía",
+        "description": "Usa este atajo desde cualquier lugar para traer Rocket.Chat al frente y abrir el teclado de marcado de telefonía. Si tu portapapeles contiene texto que parece un número de teléfono, Rocket.Chat lo completará automáticamente.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Presiona las teclas...",
+        "save": "Guardar",
+        "clear": "Borrar",
+        "registered": "Atajo registrado",
+        "reservedAccelerator": "{{accelerator}} está reservado por Rocket.Chat o por tu sistema operativo."
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Borrar permisos de captura de pantalla",
         "description": "Borrar los permisos de captura de pantalla que se seleccionaron para no volver a preguntar en las videollamadas."

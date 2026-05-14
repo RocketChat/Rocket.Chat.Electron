@@ -265,6 +265,21 @@
         "loading": "Chargement des navigateurs...",
         "current": "Actuellement utilisé:"
       },
+      "telephonyServer": {
+        "title": "Serveur de téléphonie",
+        "description": "Choisissez l'espace de travail qui s'ouvre lorsque vous utilisez le raccourci de téléphonie ou un lien tel: ou callto:.",
+        "auto": "Auto (demander à chaque fois)"
+      },
+      "telephonyShortcut": {
+        "title": "Raccourci global de téléphonie",
+        "description": "Utilisez ce raccourci depuis n'importe où pour ramener Rocket.Chat au premier plan et ouvrir le clavier de numérotation. Si votre presse-papiers contient du texte qui ressemble à un numéro de téléphone, Rocket.Chat le préremplit.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Appuyez sur des touches...",
+        "save": "Enregistrer",
+        "clear": "Effacer",
+        "registered": "Raccourci enregistré",
+        "reservedAccelerator": "{{accelerator}} est réservé par Rocket.Chat ou votre système d'exploitation."
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
         "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."

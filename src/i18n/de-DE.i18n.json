@@ -258,6 +258,21 @@
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
+      "telephonyServer": {
+        "title": "Telefonie-Server",
+        "description": "Wählen Sie aus, welcher Workspace geöffnet wird, wenn Sie die Telefonie-Tastenkombination oder einen tel:- bzw. callto:-Link verwenden.",
+        "auto": "Automatisch (jedes Mal fragen)"
+      },
+      "telephonyShortcut": {
+        "title": "Globale Telefonie-Tastenkombination",
+        "description": "Verwenden Sie diese Tastenkombination von überall aus, um Rocket.Chat in den Vordergrund zu bringen und das Telefonie-Wählfeld zu öffnen. Wenn Ihre Zwischenablage Text enthält, der wie eine Telefonnummer aussieht, füllt Rocket.Chat ihn vorab aus.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Tasten drücken...",
+        "save": "Speichern",
+        "clear": "Löschen",
+        "registered": "Tastenkombination registriert",
+        "reservedAccelerator": "{{accelerator}} ist von Rocket.Chat oder Ihrem Betriebssystem reserviert."
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Erlaubte Bildschirmaufnahmeserver löschen",
         "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"

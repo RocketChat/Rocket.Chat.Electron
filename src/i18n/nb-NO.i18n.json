@@ -18,6 +18,21 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "telephonyServer": {
+        "title": "Telefoniserver",
+        "description": "Velg hvilket arbeidsområde som åpnes når du bruker telefonisnarveien eller en tel:- eller callto:-lenke.",
+        "auto": "Automatisk (spør hver gang)"
+      },
+      "telephonyShortcut": {
+        "title": "Global telefonisnarvei",
+        "description": "Bruk denne snarveien hvor som helst for å hente Rocket.Chat frem og åpne telefonitastaturet. Hvis utklippstavlen inneholder tekst som ser ut som et telefonnummer, fyller Rocket.Chat det ut på forhånd.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Trykk på taster...",
+        "save": "Lagre",
+        "clear": "Tøm",
+        "registered": "Snarvei registrert",
+        "reservedAccelerator": "{{accelerator}} er reservert av Rocket.Chat eller operativsystemet ditt."
       }
     }
   },

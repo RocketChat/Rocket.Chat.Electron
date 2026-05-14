@@ -18,6 +18,21 @@
         "auto": "اتباع النظام",
         "light": "فاتح",
         "dark": "داكن"
+      },
+      "telephonyServer": {
+        "title": "خادم الاتصالات الهاتفية",
+        "description": "اختر مساحة العمل التي تفتح عند استخدام اختصار الاتصالات الهاتفية أو رابط tel: أو callto:.",
+        "auto": "تلقائي (السؤال في كل مرة)"
+      },
+      "telephonyShortcut": {
+        "title": "اختصار الاتصالات الهاتفية العام",
+        "description": "استخدم هذا الاختصار من أي مكان لإحضار Rocket.Chat إلى المقدمة وفتح لوحة الاتصال الهاتفية. إذا كانت الحافظة تحتوي على نص يبدو كرقم هاتف، فسيقوم Rocket.Chat بتعبئته مسبقًا.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "اضغط على المفاتيح...",
+        "save": "حفظ",
+        "clear": "مسح",
+        "registered": "تم تسجيل الاختصار",
+        "reservedAccelerator": "{{accelerator}} محجوز بواسطة Rocket.Chat أو نظام التشغيل لديك."
       }
     }
   },

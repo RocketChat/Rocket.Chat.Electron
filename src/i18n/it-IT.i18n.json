@@ -18,6 +18,21 @@
         "auto": "Segui sistema",
         "light": "Chiaro",
         "dark": "Scuro"
+      },
+      "telephonyServer": {
+        "title": "Server telefonia",
+        "description": "Scegli quale spazio di lavoro si apre quando usi la scorciatoia di telefonia o un link tel: o callto:.",
+        "auto": "Automatico (chiedi ogni volta)"
+      },
+      "telephonyShortcut": {
+        "title": "Scorciatoia globale di telefonia",
+        "description": "Usa questa scorciatoia da qualsiasi punto per portare Rocket.Chat in primo piano e aprire il tastierino di telefonia. Se gli appunti contengono testo che sembra un numero di telefono, Rocket.Chat lo precompila.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Premi i tasti...",
+        "save": "Salva",
+        "clear": "Cancella",
+        "registered": "Scorciatoia registrata",
+        "reservedAccelerator": "{{accelerator}} è riservata da Rocket.Chat o dal tuo sistema operativo."
       }
     }
   },

@@ -58,7 +58,7 @@ export const TelephonyServer = () => {
   }
 
   return (
-    <Field>
+    <Field marginBlock='x16'>
       <Box
         display='flex'
         flexDirection='row'

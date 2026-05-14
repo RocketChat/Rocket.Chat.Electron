@@ -55,7 +55,7 @@ export const ThemeAppearance = (props: ThemeAppearanceProps) => {
   );
 
   return (
-    <Field className={props.className}>
+    <Field className={props.className} marginBlock='x16'>
       <Box
         display='flex'
         flexDirection='row'

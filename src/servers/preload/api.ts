@@ -17,7 +17,10 @@ import {
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
-import { openDocumentViewer } from './documentViewer';
+import {
+  openDocumentViewer,
+  downloadEncryptedDocument,
+} from './documentViewer';
 import { setFavicon } from './favicon';
 import { setGitCommitHash } from './gitCommitHash';
 import {
@@ -49,6 +52,11 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   ) => Promise<unknown>;
   closeCustomNotification: (id: unknown) => void;
   openInBrowser: (url: string) => void;
+  downloadEncryptedDocument: (
+    serverUrl: string,
+    fileUrl: string,
+    filename: string
+  ) => void;
 };
 
 declare global {
@@ -93,6 +101,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserToken,
   setSidebarCustomTheme,
   openDocumentViewer,
+  downloadEncryptedDocument,
   openInBrowser,
   reloadServer,
 };

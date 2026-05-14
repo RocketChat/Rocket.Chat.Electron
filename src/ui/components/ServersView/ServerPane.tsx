@@ -25,6 +25,8 @@ type ServerPaneProps = {
   title: string | undefined;
   documentViewerOpenUrl: string | undefined;
   documentViewerFormat: string | undefined;
+  documentViewerFilename?: string;
+  documentViewerIsEncrypted?: boolean;
   userLoggedIn?: boolean;
 };
 
@@ -37,6 +39,8 @@ export const ServerPane = ({
   supportedVersionsFetchState,
   documentViewerOpenUrl,
   documentViewerFormat,
+  documentViewerFilename,
+  documentViewerIsEncrypted,
   userLoggedIn,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
@@ -217,6 +221,8 @@ export const ServerPane = ({
           format={documentViewerFormat}
           partition={`persist:${serverUrl}`}
           closeDocumentViewer={closeDocumentViewer}
+          filename={documentViewerFilename}
+          isEncrypted={documentViewerIsEncrypted}
         />
       </DocumentViewerWrapper>
       <UnsupportedServer

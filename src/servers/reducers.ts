@@ -268,11 +268,19 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     }
 
     case SERVER_DOCUMENT_VIEWER_OPEN_URL: {
-      const { server, documentUrl, documentFormat } = action.payload;
+      const {
+        server,
+        documentUrl,
+        documentFormat,
+        documentFilename,
+        isEncrypted,
+      } = action.payload;
       return upsert(state, {
         url: server,
         documentViewerOpenUrl: documentUrl,
         documentViewerFormat: documentFormat ?? '',
+        documentViewerFilename: documentFilename ?? '',
+        documentViewerIsEncrypted: isEncrypted ?? false,
       });
     }
 

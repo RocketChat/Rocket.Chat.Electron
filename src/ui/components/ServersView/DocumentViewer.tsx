@@ -1,4 +1,5 @@
 import { Box, IconButton } from '@rocket.chat/fuselage';
+import { ipcRenderer } from 'electron';
 import { useTranslation } from 'react-i18next';
 
 import MarkdownContent from './MarkdownContent';
@@ -8,11 +9,15 @@ const DocumentViewer = ({
   url,
   format,
   partition,
+  filename,
+  isEncrypted,
   closeDocumentViewer,
 }: {
   url: string;
   format?: string;
   partition: string;
+  filename?: string;
+  isEncrypted?: boolean;
   closeDocumentViewer: () => void;
 }) => {
   const { t } = useTranslation();
@@ -20,6 +25,17 @@ const DocumentViewer = ({
   const title = isMarkdown
     ? t('documentViewer.title.markdown')
     : t('documentViewer.title.pdf');
+
+  const handleDownload = async () => {
+    // Extract serverUrl from partition string: "persist:https://server.com"
+    const serverUrl = partition.replace(/^persist:/, '');
+    await ipcRenderer.invoke(
+      'document-viewer/download-encrypted',
+      serverUrl,
+      url,
+      filename ?? 'document.pdf'
+    );
+  };
 
   return (
     <Box
@@ -46,6 +62,14 @@ const DocumentViewer = ({
         <Box is='h2' fontScale='h2' m='none'>
           {title}
         </Box>
+        {isEncrypted && (
+          <IconButton
+            icon='download'
+            onClick={handleDownload}
+            mi='x8'
+            aria-label={t('documentViewer.download')}
+          />
+        )}
       </Box>
 
       {isMarkdown ? (

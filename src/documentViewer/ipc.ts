@@ -4,6 +4,7 @@ import { handle } from '../ipc/main';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../servers/actions';
 import { dispatch, listen, select } from '../store';
 import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../ui/actions';
+import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { openExternal } from '../utils/browserLauncher';
 
 export const startDocumentViewerHandler = (): void => {
@@ -30,8 +31,38 @@ export const startDocumentViewerHandler = (): void => {
           server: server.url,
           documentUrl: url,
           documentFormat: format,
+          documentFilename: _options?.filename ?? '',
+          isEncrypted: _options?.isEncrypted ?? false,
         },
       });
+    }
+  );
+
+  handle(
+    'document-viewer/download-encrypted',
+    async (_event, serverUrl: string, fileUrl: string, filename: string) => {
+      const serverWebContents = getWebContentsByServerUrl(serverUrl);
+      if (!serverWebContents) {
+        throw new Error('Server webview not found');
+      }
+
+      // Execute download inside the RC server webview, where the service worker
+      // is registered and has access to the decryption key.
+      await serverWebContents.executeJavaScript(`
+        (async () => {
+          const response = await fetch(${JSON.stringify(fileUrl)});
+          if (!response.ok) throw new Error('Failed to fetch: ' + response.status);
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = ${JSON.stringify(filename)};
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        })();
+      `);
     }
   );
 

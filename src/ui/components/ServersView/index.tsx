@@ -19,6 +19,8 @@ export const ServersView = () => {
           title={server.title}
           documentViewerOpenUrl={server.documentViewerOpenUrl}
           documentViewerFormat={server.documentViewerFormat}
+          documentViewerFilename={server.documentViewerFilename}
+          documentViewerIsEncrypted={server.documentViewerIsEncrypted}
           userLoggedIn={server.userLoggedIn}
         />
       ))}

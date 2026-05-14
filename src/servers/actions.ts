@@ -18,5 +18,7 @@ export type ServersActionTypeToPayloadMap = {
     server: Server['url'];
     documentUrl: string;
     documentFormat?: string;
+    documentFilename?: string;
+    isEncrypted?: boolean;
   };
 };

@@ -30,6 +30,8 @@ export type Server = {
   supportedVersionsValidatedAt?: Date;
   documentViewerOpenUrl?: string;
   documentViewerFormat?: string;
+  documentViewerFilename?: string;
+  documentViewerIsEncrypted?: boolean;
 };
 
 export const enum ServerUrlResolutionStatus {

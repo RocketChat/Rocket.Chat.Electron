@@ -1,5 +1,5 @@
 import { Box, CheckBox } from '@rocket.chat/fuselage';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -21,6 +21,12 @@ export const TelephonyServerSelectModal = () => {
   const servers = useSelector(({ servers }: RootState) => servers);
 
   const [rememberChoice, setRememberChoice] = useState(false);
+
+  useEffect(() => {
+    if (!isVisible) {
+      setRememberChoice(false);
+    }
+  }, [isVisible]);
 
   const handleClose = () => {
     dispatch({ type: TELEPHONY_SERVER_SELECT_CLOSE, payload: null });

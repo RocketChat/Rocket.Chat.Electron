@@ -135,6 +135,22 @@ describe('deepLinks/main.ts', () => {
       });
     });
 
+    it('should ignore query strings in callto:// authority format', () => {
+      const result = parseTelephonyLink('callto://+491234567890?source=crm');
+      expect(result).toEqual({
+        phoneNumber: '+491234567890',
+        rawUri: 'callto://+491234567890?source=crm',
+      });
+    });
+
+    it('should ignore fragments in callto:// authority format', () => {
+      const result = parseTelephonyLink('callto://+491234567890#details');
+      expect(result).toEqual({
+        phoneNumber: '+491234567890',
+        rawUri: 'callto://+491234567890#details',
+      });
+    });
+
     it('should preserve callto: with extension syntax', () => {
       const result = parseTelephonyLink('callto:+1234;ext=5678');
       expect(result).toEqual({

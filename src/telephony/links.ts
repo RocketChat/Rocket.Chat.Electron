@@ -2,6 +2,11 @@ import type { TelephonyLink } from './common';
 
 const TELEPHONY_PROTOCOLS = ['tel:', 'callto:'];
 
+const getTelephonyTarget = (url: URL): string =>
+  url.host ||
+  url.pathname ||
+  url.href.slice(url.protocol.length).split(/[?#]/)[0];
+
 export const parseTelephonyLink = (input: string): TelephonyLink | null => {
   if (/^--/.test(input)) {
     return null;
@@ -21,9 +26,7 @@ export const parseTelephonyLink = (input: string): TelephonyLink | null => {
 
   let raw: string;
   try {
-    raw = decodeURIComponent(
-      url.pathname || url.href.slice(url.protocol.length)
-    );
+    raw = decodeURIComponent(getTelephonyTarget(url));
   } catch {
     return null;
   }

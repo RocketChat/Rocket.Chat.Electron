@@ -207,4 +207,45 @@ describe('TelephonyServerSelectModal', () => {
     // Suppress unused var warning — dispatchSpy was used to trigger close above
     expect(dispatchSpy).toHaveBeenCalled();
   });
+
+  it('rememberChoice resets when the dialog is closed by state update', () => {
+    const store = makeStore(openDialogState());
+
+    const { rerender } = render(
+      <Provider store={store}>
+        <TelephonyServerSelectModal />
+      </Provider>
+    );
+
+    fireEvent.click(
+      screen.getByText('dialog.telephonySelectServer.rememberChoice')
+    );
+
+    rerender(
+      <Provider store={makeStore(closedDialogState())}>
+        <TelephonyServerSelectModal />
+      </Provider>
+    );
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    const reopenedStore = makeStore(openDialogState());
+    const dispatchSpy = jest.spyOn(reopenedStore, 'dispatch');
+
+    rerender(
+      <Provider store={reopenedStore}>
+        <TelephonyServerSelectModal />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('Alpha Chat'));
+
+    expect(dispatchSpy).toHaveBeenCalledWith({
+      type: TELEPHONY_SERVER_SELECT_CLOSE,
+      payload: {
+        serverUrl: 'https://chat.alpha.com',
+        rememberChoice: false,
+      },
+    });
+  });
 });

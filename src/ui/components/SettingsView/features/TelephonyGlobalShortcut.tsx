@@ -161,7 +161,7 @@ export const TelephonyGlobalShortcut = () => {
       telephonyGlobalShortcutConfig.accelerator;
 
   return (
-    <Field>
+    <Field marginBlock='x16'>
       <FieldRow>
         <FieldLabel>{t('settings.options.telephonyShortcut.title')}</FieldLabel>
       </FieldRow>

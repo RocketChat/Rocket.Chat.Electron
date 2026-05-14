@@ -299,12 +299,12 @@
       },
       "telephonyServer": {
         "title": "Telephony Server",
-        "description": "Choose which server handles telephony calls from global shortcuts and tel:/callto: links.",
+        "description": "Choose which workspace opens when you use the telephony shortcut or a tel: or callto: link.",
         "auto": "Auto (ask each time)"
       },
       "telephonyShortcut": {
         "title": "Telephony Global Shortcut",
-        "description": "Press this shortcut anywhere to focus Rocket.Chat and open the telephony dial pad. Clipboard is read only when the shortcut is pressed.",
+        "description": "Use this shortcut from anywhere to bring Rocket.Chat to the front and open the telephony dial pad. If your clipboard contains text that looks like a phone number, Rocket.Chat pre-fills it.",
         "placeholder": "CommandOrControl+Shift+D",
         "capturePlaceholder": "Press keys...",
         "save": "Save",

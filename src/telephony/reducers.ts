@@ -45,9 +45,7 @@ const normalizeTelephonyGlobalShortcutConfig = (
     return defaultTelephonyGlobalShortcutConfig;
   }
 
-  const accelerator = normalizeTelephonyShortcutAccelerator(
-    config.accelerator
-  );
+  const accelerator = normalizeTelephonyShortcutAccelerator(config.accelerator);
 
   return {
     enabled: config.enabled === true && Boolean(accelerator),

@@ -299,10 +299,9 @@ describe('telephony global shortcut main process pipeline', () => {
       .results[0].value;
     const clickListener = notification.addListener.mock.calls.find(
       ([event]: [string]) => event === 'click'
-    )?.[1] as (() => void) | undefined;
+    )?.[1] as (() => Promise<void>) | undefined;
 
-    clickListener?.();
-    await Promise.resolve();
+    await clickListener?.();
 
     expect(rootWindow.focus).toHaveBeenCalled();
     expect(dispatchMock).toHaveBeenCalledWith({

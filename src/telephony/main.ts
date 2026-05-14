@@ -131,11 +131,18 @@ const notifyRegistrationFailure = (
       title: 'Rocket.Chat',
       body: `Telephony shortcut ${accelerator} could not be registered. It may already be in use.`,
     });
-    notification.addListener('click', () => {
-      void focusRootWindow().finally(() => {
-        dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
-      });
-    });
+    notification.addListener('click', () =>
+      focusRootWindow()
+        .catch((error) => {
+          logger.warn(
+            'Failed to focus Rocket.Chat from telephony shortcut notification'
+          );
+          logger.warn(error);
+        })
+        .finally(() => {
+          dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
+        })
+    );
     notification.show();
   } catch (notificationError) {
     logger.warn('Failed to show telephony shortcut registration feedback');

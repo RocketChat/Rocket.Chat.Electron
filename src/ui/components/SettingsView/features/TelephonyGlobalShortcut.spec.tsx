@@ -101,6 +101,34 @@ describe('TelephonyGlobalShortcut', () => {
     expect(input).toHaveValue('CommandOrControl+Shift+D');
   });
 
+  it('shows capture placeholder while the shortcut input is focused', () => {
+    const store = makeStore(defaultState);
+
+    render(
+      <Provider store={store}>
+        <TelephonyGlobalShortcut />
+      </Provider>
+    );
+
+    const input = screen.getByTestId('telephony-shortcut-input');
+    expect(input).toHaveAttribute(
+      'placeholder',
+      'settings.options.telephonyShortcut.placeholder'
+    );
+
+    fireEvent.focus(input);
+    expect(input).toHaveAttribute(
+      'placeholder',
+      'settings.options.telephonyShortcut.capturePlaceholder'
+    );
+
+    fireEvent.blur(input);
+    expect(input).toHaveAttribute(
+      'placeholder',
+      'settings.options.telephonyShortcut.placeholder'
+    );
+  });
+
   it('clears the accelerator and disables registration', () => {
     const store = makeStore({
       ...defaultState,
@@ -189,6 +217,10 @@ describe('TelephonyGlobalShortcut', () => {
     fireEvent.keyDown(input, { key: 'Escape' });
 
     expect(input).toHaveValue('CommandOrControl+Shift+D');
+    expect(input).toHaveAttribute(
+      'placeholder',
+      'settings.options.telephonyShortcut.placeholder'
+    );
   });
 
   it('shows registration failure feedback from main process status', () => {

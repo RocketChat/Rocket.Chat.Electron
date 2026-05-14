@@ -1,13 +1,15 @@
 import { app, clipboard, globalShortcut, Notification } from 'electron';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
-import { performTelephonyCall, parseTelephonyLink } from '../deepLinks/main';
 import { dispatch, watch } from '../store';
+import { SIDE_BAR_SETTINGS_BUTTON_CLICKED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
   TELEPHONY_GLOBAL_SHORTCUT_CONFIG_SET,
   TELEPHONY_GLOBAL_SHORTCUT_REGISTRATION_CHANGED,
 } from './actions';
+import type { openTelephonyDialpad } from './dialpad';
+import { parseTelephonyLink } from './links';
 import {
   createTelephonyLinkFromClipboardText,
   registerTelephonyGlobalShortcut,
@@ -25,6 +27,7 @@ import {
 
 jest.mock('electron', () => {
   const NotificationMock = jest.fn(() => ({
+    addListener: jest.fn(),
     show: jest.fn(),
   }));
 
@@ -47,8 +50,11 @@ jest.mock('electron', () => {
   };
 });
 
-jest.mock('../deepLinks/main', () => ({
-  performTelephonyCall: jest.fn(() => Promise.resolve()),
+jest.mock('./dialpad', () => ({
+  openTelephonyDialpad: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('./links', () => ({
   parseTelephonyLink: jest.fn(),
 }));
 
@@ -72,9 +78,14 @@ const appMock = app as jest.Mocked<typeof app>;
 const clipboardMock = clipboard as jest.Mocked<typeof clipboard>;
 const globalShortcutMock = globalShortcut as jest.Mocked<typeof globalShortcut>;
 const notificationMock = Notification as jest.Mocked<typeof Notification>;
-const performTelephonyCallMock = performTelephonyCall as jest.MockedFunction<
-  typeof performTelephonyCall
->;
+const getOpenTelephonyDialpadMock = (): jest.MockedFunction<
+  typeof openTelephonyDialpad
+> => {
+  const dialpad = jest.requireMock('./dialpad') as {
+    openTelephonyDialpad: jest.MockedFunction<typeof openTelephonyDialpad>;
+  };
+  return dialpad.openTelephonyDialpad;
+};
 const parseTelephonyLinkMock = parseTelephonyLink as jest.MockedFunction<
   typeof parseTelephonyLink
 >;
@@ -138,7 +149,7 @@ describe('telephony global shortcut main process pipeline', () => {
 
     expect(rootWindow.showInactive).toHaveBeenCalled();
     expect(rootWindow.focus).toHaveBeenCalled();
-    expect(performTelephonyCallMock).toHaveBeenCalledWith({
+    expect(getOpenTelephonyDialpadMock()).toHaveBeenCalledWith({
       phoneNumber: '+1 (800) 555-0199',
       rawUri: '+1 (800) 555-0199',
     });
@@ -158,7 +169,7 @@ describe('telephony global shortcut main process pipeline', () => {
 
     await triggerTelephonyGlobalShortcut();
 
-    expect(performTelephonyCallMock).toHaveBeenCalledWith({
+    expect(getOpenTelephonyDialpadMock()).toHaveBeenCalledWith({
       phoneNumber: '',
       rawUri: '',
     });
@@ -193,7 +204,7 @@ describe('telephony global shortcut main process pipeline', () => {
     await triggerTelephonyGlobalShortcut();
 
     expect(clipboardMock.readText).toHaveBeenCalledTimes(2);
-    expect(performTelephonyCallMock).toHaveBeenCalledTimes(2);
+    expect(getOpenTelephonyDialpadMock()).toHaveBeenCalledTimes(2);
     nowSpy.mockRestore();
   });
 
@@ -274,6 +285,29 @@ describe('telephony global shortcut main process pipeline', () => {
     expect(
       (notificationMock as unknown as jest.Mock).mock.results[0].value.show
     ).toHaveBeenCalled();
+  });
+
+  it('opens Settings when the registration failure notification is clicked', async () => {
+    globalShortcutMock.register.mockReturnValue(false);
+
+    registerTelephonyGlobalShortcut({
+      enabled: true,
+      accelerator: 'CommandOrControl+Shift+D',
+    });
+
+    const notification = (notificationMock as unknown as jest.Mock).mock
+      .results[0].value;
+    const clickListener = notification.addListener.mock.calls.find(
+      ([event]: [string]) => event === 'click'
+    )?.[1] as (() => void) | undefined;
+
+    clickListener?.();
+    await Promise.resolve();
+
+    expect(rootWindow.focus).toHaveBeenCalled();
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: SIDE_BAR_SETTINGS_BUTTON_CLICKED,
+    });
   });
 
   it('rejects reserved app accelerators before registering', () => {

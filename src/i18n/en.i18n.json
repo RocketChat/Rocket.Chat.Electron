@@ -306,6 +306,7 @@
         "title": "Telephony Global Shortcut",
         "description": "Press this shortcut anywhere to focus Rocket.Chat and open the telephony dial pad. Clipboard is read only when the shortcut is pressed.",
         "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Press keys...",
         "save": "Save",
         "clear": "Clear",
         "registered": "Shortcut registered",

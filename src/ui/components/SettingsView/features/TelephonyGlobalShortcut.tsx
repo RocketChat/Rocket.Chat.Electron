@@ -79,6 +79,7 @@ export const TelephonyGlobalShortcut = () => {
   const [draftAccelerator, setDraftAccelerator] = useState(
     telephonyGlobalShortcutConfig.accelerator ?? ''
   );
+  const [isCapturingShortcut, setIsCapturingShortcut] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,12 +114,21 @@ export const TelephonyGlobalShortcut = () => {
     setDraftAccelerator(event.currentTarget.value);
   }, []);
 
+  const handleFocus = useCallback(() => {
+    setIsCapturingShortcut(true);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setIsCapturingShortcut(false);
+  }, []);
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       const accelerator = eventToAccelerator(event);
       if (event.key === 'Escape') {
         event.preventDefault();
         setDraftAccelerator(telephonyGlobalShortcutConfig.accelerator ?? '');
+        setIsCapturingShortcut(false);
         setValidationError(null);
         return;
       }
@@ -129,6 +139,7 @@ export const TelephonyGlobalShortcut = () => {
 
       event.preventDefault();
       setDraftAccelerator(accelerator);
+      setIsCapturingShortcut(false);
       setValidationError(null);
     },
     [telephonyGlobalShortcutConfig.accelerator]
@@ -164,8 +175,14 @@ export const TelephonyGlobalShortcut = () => {
           <TextInput
             data-testid='telephony-shortcut-input'
             value={draftAccelerator}
-            placeholder={t('settings.options.telephonyShortcut.placeholder')}
+            placeholder={t(
+              isCapturingShortcut
+                ? 'settings.options.telephonyShortcut.capturePlaceholder'
+                : 'settings.options.telephonyShortcut.placeholder'
+            )}
             onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             onKeyDown={handleKeyDown}
           />
           <Button

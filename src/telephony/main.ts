@@ -1,13 +1,14 @@
 import { app, clipboard, globalShortcut, Notification } from 'electron';
 
-import { performTelephonyCall, parseTelephonyLink } from '../deepLinks/main';
-import type { TelephonyLink } from '../deepLinks/main';
 import { logger } from '../logging';
 import { dispatch, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
+import { SIDE_BAR_SETTINGS_BUTTON_CLICKED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { TELEPHONY_GLOBAL_SHORTCUT_REGISTRATION_CHANGED } from './actions';
 import type { TelephonyGlobalShortcutConfig } from './actions';
+import type { TelephonyLink } from './common';
+import { parseTelephonyLink } from './links';
 import {
   MAX_CLIPBOARD_PHONE_LENGTH,
   isReservedTelephonyShortcutAccelerator,
@@ -109,8 +110,10 @@ export const triggerTelephonyGlobalShortcut = async (): Promise<void> => {
     clipboard.readText()
   );
 
+  const { openTelephonyDialpad } = await import('./dialpad');
+
   await focusRootWindow();
-  await performTelephonyCall(telephonyLink);
+  await openTelephonyDialpad(telephonyLink);
 };
 
 const notifyRegistrationFailure = (
@@ -124,10 +127,16 @@ const notifyRegistrationFailure = (
       return;
     }
 
-    new Notification({
+    const notification = new Notification({
       title: 'Rocket.Chat',
       body: `Telephony shortcut ${accelerator} could not be registered. It may already be in use.`,
-    }).show();
+    });
+    notification.addListener('click', () => {
+      void focusRootWindow().finally(() => {
+        dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
+      });
+    });
+    notification.show();
   } catch (notificationError) {
     logger.warn('Failed to show telephony shortcut registration feedback');
     logger.warn(notificationError);

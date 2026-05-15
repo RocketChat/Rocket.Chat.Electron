@@ -1,4 +1,4 @@
-import { migrations } from './PersistableValues';
+import { migrations } from '../PersistableValues';
 
 describe('PersistableValues migrations', () => {
   it('adds telephony shortcut config without losing a persisted telephony server', () => {
@@ -7,6 +7,7 @@ describe('PersistableValues migrations', () => {
     } as unknown as Parameters<(typeof migrations)['>=4.14.0']>[0];
 
     expect(migrations['>=4.14.0'](before)).toEqual({
+      isTelephonyEnabled: false,
       telephonyPreferredServer: 'https://chat.example.com',
       telephonyGlobalShortcutConfig: {
         enabled: false,

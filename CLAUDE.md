@@ -50,6 +50,7 @@ This prevents MSI build failures from KMS CNG provider conflicts.
 
 - `*.spec.ts` — Renderer process tests
 - `*.main.spec.ts` — Main process tests
+- Renderer specs must live in a Jest-matched nested path, e.g. `src/<module>/<subdir>/*.spec.ts(x)` or `src/<module>/renderer.spec.ts(x)`. Flat `src/<module>/*.spec.ts` files are not discovered by current `testMatch`; verify new specs with `yarn test --listTests --runTestsByPath <file>`.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation
 - Tests run on Windows, macOS, AND Linux CI — always verify cross-platform
 

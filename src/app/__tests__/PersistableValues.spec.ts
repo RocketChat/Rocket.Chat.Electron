@@ -1,10 +1,10 @@
-import { migrations } from './PersistableValues';
+import { migrations } from '../PersistableValues';
 
 describe('PersistableValues migrations', () => {
   it('adds telephony shortcut config without losing a persisted telephony server', () => {
-    const before = ({
+    const before = {
       telephonyPreferredServer: 'https://chat.example.com',
-    } as unknown) as Parameters<(typeof migrations)['>=4.14.0']>[0];
+    } as unknown as Parameters<(typeof migrations)['>=4.14.0']>[0];
 
     expect(migrations['>=4.14.0'](before)).toEqual({
       telephonyPreferredServer: 'https://chat.example.com',

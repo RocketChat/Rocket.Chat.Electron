@@ -160,6 +160,12 @@ export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
 export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
 export const TELEPHONY_SERVER_SELECT_OPEN = 'telephony-server-select/open';
 export const TELEPHONY_SERVER_SELECT_CLOSE = 'telephony-server-select/close';
+export const TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN =
+  'telephony-default-handler-prompt/open';
+export const TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE =
+  'telephony-default-handler-prompt/close';
+export const TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED =
+  'telephony-default-handler-prompt/open-settings-clicked';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -320,4 +326,7 @@ export type UiActionTypeToPayloadMap = {
     serverUrl: string;
     rememberChoice: boolean;
   } | null;
+  [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN]: void;
+  [TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE]: void;
+  [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED]: void;
 };

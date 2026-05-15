@@ -674,5 +674,14 @@
       "label": "Expiration:",
       "expiresOn": "Expires on {{date}}"
     }
+  },
+  "telephony": {
+    "defaultHandlerPrompt": {
+      "title": "Set Rocket.Chat as the default phone-link handler",
+      "body": "Rocket.Chat is now registered as a handler for tel: and callto: links.",
+      "body2": "Other apps like Microsoft Teams, Zoom, or Skype may already be set as your system default. To finish the setup, open your operating system's default-apps settings and pick Rocket.Chat for tel and callto.",
+      "openSettings": "Open System Settings",
+      "dismiss": "Got it"
+    }
   }
 }

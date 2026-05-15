@@ -6,6 +6,9 @@ import {
   OPEN_SERVER_INFO_MODAL,
   TELEPHONY_SERVER_SELECT_OPEN,
   TELEPHONY_SERVER_SELECT_CLOSE,
+  TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN,
+  TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE,
+  TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED,
 } from '../actions';
 
 type ServerInfoModalState = {
@@ -27,16 +30,24 @@ type TelephonyServerSelectState = {
   rawUri: string;
 } | null;
 
+type TelephonyDefaultHandlerPromptState = {
+  isOpen: boolean;
+} | null;
+
 type DialogsState = {
   serverInfoModal: ServerInfoModalState;
   telephonyServerSelect: TelephonyServerSelectState;
+  telephonyDefaultHandlerPrompt: TelephonyDefaultHandlerPromptState;
 };
 
 type DialogsAction =
   | ActionOf<typeof OPEN_SERVER_INFO_MODAL>
   | ActionOf<typeof CLOSE_SERVER_INFO_MODAL>
   | ActionOf<typeof TELEPHONY_SERVER_SELECT_OPEN>
-  | ActionOf<typeof TELEPHONY_SERVER_SELECT_CLOSE>;
+  | ActionOf<typeof TELEPHONY_SERVER_SELECT_CLOSE>
+  | ActionOf<typeof TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN>
+  | ActionOf<typeof TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE>
+  | ActionOf<typeof TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED>;
 
 const initialServerInfoModalState: ServerInfoModalState = {
   isOpen: false,
@@ -82,10 +93,30 @@ const telephonyServerSelect: Reducer<
   }
 };
 
+const telephonyDefaultHandlerPrompt: Reducer<
+  TelephonyDefaultHandlerPromptState,
+  DialogsAction
+> = (state = null, action) => {
+  switch (action.type) {
+    case TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN:
+      return {
+        isOpen: true,
+      };
+
+    case TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE:
+    case TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED:
+      return null;
+
+    default:
+      return state;
+  }
+};
+
 export const dialogs: Reducer<DialogsState, DialogsAction> = (
   state = {
     serverInfoModal: initialServerInfoModalState,
     telephonyServerSelect: null,
+    telephonyDefaultHandlerPrompt: null,
   },
   action
 ) => {
@@ -103,6 +134,17 @@ export const dialogs: Reducer<DialogsState, DialogsAction> = (
         ...state,
         telephonyServerSelect: telephonyServerSelect(
           state.telephonyServerSelect,
+          action
+        ),
+      };
+
+    case TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN:
+    case TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE:
+    case TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED:
+      return {
+        ...state,
+        telephonyDefaultHandlerPrompt: telephonyDefaultHandlerPrompt(
+          state.telephonyDefaultHandlerPrompt,
           action
         ),
       };

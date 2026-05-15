@@ -1,7 +1,9 @@
-import { app, clipboard, globalShortcut, Notification } from 'electron';
+import { spawn } from 'child_process';
+
+import { app, clipboard, globalShortcut, Notification, shell } from 'electron';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
-import { dispatch, watch } from '../store';
+import { dispatch, listen, select, watch } from '../store';
 import { SIDE_BAR_SETTINGS_BUTTON_CLICKED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
@@ -13,8 +15,10 @@ import { parseTelephonyLink } from './links';
 import {
   createTelephonyLinkFromClipboardText,
   registerTelephonyGlobalShortcut,
+  setupTelephonyDefaultHandlerPrompt,
   setupTelephonyGlobalShortcut,
   setupTelephonyProtocolHandlers,
+  teardownTelephonyDefaultHandlerPrompt,
   teardownTelephonyGlobalShortcut,
   teardownTelephonyProtocolHandlers,
   triggerTelephonyGlobalShortcut,
@@ -51,8 +55,15 @@ jest.mock('electron', () => {
     Notification: Object.assign(NotificationMock, {
       isSupported: jest.fn(() => true),
     }),
+    shell: {
+      openExternal: jest.fn(),
+    },
   };
 });
+
+jest.mock('child_process', () => ({
+  spawn: jest.fn(() => ({ on: jest.fn(), unref: jest.fn() })),
+}));
 
 jest.mock('./dialpad', () => ({
   openTelephonyDialpad: jest.fn(() => Promise.resolve()),
@@ -71,6 +82,8 @@ jest.mock('../logging', () => ({
 
 jest.mock('../store', () => ({
   dispatch: jest.fn(),
+  listen: jest.fn(),
+  select: jest.fn(),
   watch: jest.fn(),
 }));
 
@@ -82,6 +95,7 @@ const appMock = app as jest.Mocked<typeof app>;
 const clipboardMock = clipboard as jest.Mocked<typeof clipboard>;
 const globalShortcutMock = globalShortcut as jest.Mocked<typeof globalShortcut>;
 const notificationMock = Notification as jest.Mocked<typeof Notification>;
+const shellMock = shell as jest.Mocked<typeof shell>;
 const getOpenTelephonyDialpadMock = (): jest.MockedFunction<
   typeof openTelephonyDialpad
 > => {
@@ -94,6 +108,9 @@ const parseTelephonyLinkMock = parseTelephonyLink as jest.MockedFunction<
   typeof parseTelephonyLink
 >;
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
+const listenMock = listen as jest.MockedFunction<typeof listen>;
+const selectMock = select as jest.MockedFunction<typeof select>;
+const spawnMock = spawn as jest.MockedFunction<typeof spawn>;
 const watchMock = watch as jest.MockedFunction<typeof watch>;
 const getRootWindowMock = getRootWindow as jest.MockedFunction<
   typeof getRootWindow
@@ -649,5 +666,235 @@ describe('telephony protocol handlers gate', () => {
       2,
       'callto'
     );
+  });
+});
+
+describe('telephony default-handler prompt', () => {
+  const originalPlatform = process.platform;
+
+  beforeEach(() => {
+    teardownTelephonyDefaultHandlerPrompt();
+    jest.clearAllMocks();
+    selectMock.mockReturnValue(false);
+    watchMock.mockReturnValue(() => undefined);
+    listenMock.mockReturnValue(() => undefined);
+    spawnMock.mockReturnValue({ on: jest.fn(), unref: jest.fn() } as any);
+  });
+
+  afterEach(() => {
+    teardownTelephonyDefaultHandlerPrompt();
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  it('dispatches TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN on first false→true transition', () => {
+    selectMock.mockReturnValue(false);
+    watchMock.mockReturnValue(() => undefined);
+
+    setupTelephonyDefaultHandlerPrompt();
+    const watchCallback = watchMock.mock.calls[0][1] as (
+      enabled: boolean
+    ) => void;
+
+    watchCallback(true);
+
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: 'telephony-default-handler-prompt/open',
+    });
+  });
+
+  it('does NOT dispatch when telephony transitions from true to false', () => {
+    selectMock.mockReturnValue(true);
+    watchMock.mockReturnValue(() => undefined);
+
+    setupTelephonyDefaultHandlerPrompt();
+    const watchCallback = watchMock.mock.calls[0][1] as (
+      enabled: boolean
+    ) => void;
+
+    watchCallback(false);
+
+    expect(dispatchMock).not.toHaveBeenCalledWith({
+      type: 'telephony-default-handler-prompt/open',
+    });
+  });
+
+  it('dispatches again on a subsequent false→true transition', () => {
+    selectMock.mockReturnValue(false);
+    watchMock.mockReturnValue(() => undefined);
+
+    setupTelephonyDefaultHandlerPrompt();
+    const watchCallback = watchMock.mock.calls[0][1] as (
+      enabled: boolean
+    ) => void;
+
+    watchCallback(true);
+    watchCallback(false);
+    watchCallback(true);
+
+    expect(dispatchMock).toHaveBeenCalledTimes(2);
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: 'telephony-default-handler-prompt/open',
+    });
+  });
+
+  it('does NOT dispatch when initial subscribe fires with enabled=false', () => {
+    selectMock.mockReturnValue(false);
+    watchMock.mockImplementation((_selector, callback) => {
+      (callback as (enabled: boolean) => void)(false);
+      return () => undefined;
+    });
+
+    setupTelephonyDefaultHandlerPrompt();
+
+    expect(dispatchMock).not.toHaveBeenCalledWith({
+      type: 'telephony-default-handler-prompt/open',
+    });
+  });
+
+  it('does NOT dispatch when returning user already has telephony enabled (seed-then-subscribe)', () => {
+    // Seed phase: select returns true (returning user)
+    selectMock.mockReturnValue(true);
+    // watch fires immediately with enabled=true on subscribe
+    watchMock.mockImplementation((_selector, callback) => {
+      (callback as (enabled: boolean) => void)(true);
+      return () => undefined;
+    });
+
+    setupTelephonyDefaultHandlerPrompt();
+
+    expect(dispatchMock).not.toHaveBeenCalledWith({
+      type: 'telephony-default-handler-prompt/open',
+    });
+  });
+
+  it('is idempotent — calling setup twice results in watch and listen called once each', () => {
+    setupTelephonyDefaultHandlerPrompt();
+    setupTelephonyDefaultHandlerPrompt();
+
+    expect(watchMock).toHaveBeenCalledTimes(1);
+    expect(listenMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('registers a will-quit listener bound to teardownTelephonyDefaultHandlerPrompt', () => {
+    setupTelephonyDefaultHandlerPrompt();
+
+    expect(appMock.addListener).toHaveBeenCalledWith(
+      'will-quit',
+      teardownTelephonyDefaultHandlerPrompt
+    );
+  });
+
+  it('teardown calls both unsubscribes, detaches will-quit listener, and resets tracker', () => {
+    const unsubscribeWatch = jest.fn();
+    const unsubscribeListen = jest.fn();
+    watchMock.mockReturnValue(unsubscribeWatch);
+    listenMock.mockReturnValue(unsubscribeListen);
+
+    setupTelephonyDefaultHandlerPrompt();
+    teardownTelephonyDefaultHandlerPrompt();
+
+    expect(unsubscribeWatch).toHaveBeenCalledTimes(1);
+    expect(unsubscribeListen).toHaveBeenCalledTimes(1);
+    expect(appMock.removeListener).toHaveBeenCalledWith(
+      'will-quit',
+      teardownTelephonyDefaultHandlerPrompt
+    );
+  });
+
+  it('OPEN_SETTINGS_CLICKED on win32 opens ms-settings:defaultapps via shell.openExternal', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'win32',
+      writable: true,
+      configurable: true,
+    });
+
+    setupTelephonyDefaultHandlerPrompt();
+    const settingsCallback = listenMock.mock.calls[0][1] as () => void;
+    settingsCallback();
+
+    expect(shellMock.openExternal).toHaveBeenCalledWith(
+      'ms-settings:defaultapps'
+    );
+  });
+
+  it('OPEN_SETTINGS_CLICKED on darwin opens FaceTime prefs via shell.openExternal', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'darwin',
+      writable: true,
+      configurable: true,
+    });
+
+    setupTelephonyDefaultHandlerPrompt();
+    const settingsCallback = listenMock.mock.calls[0][1] as () => void;
+    settingsCallback();
+
+    expect(shellMock.openExternal).toHaveBeenCalledWith(
+      'x-apple.systempreferences:com.apple.preferences.FaceTime'
+    );
+  });
+
+  it('OPEN_SETTINGS_CLICKED on linux with GNOME desktop spawns gnome-control-center', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'linux',
+      writable: true,
+      configurable: true,
+    });
+    process.env.XDG_CURRENT_DESKTOP = 'GNOME';
+
+    setupTelephonyDefaultHandlerPrompt();
+    const settingsCallback = listenMock.mock.calls[0][1] as () => void;
+    settingsCallback();
+
+    expect(spawnMock).toHaveBeenCalledWith(
+      'gnome-control-center',
+      ['default-apps'],
+      { detached: true, stdio: 'ignore' }
+    );
+    expect(shellMock.openExternal).not.toHaveBeenCalled();
+
+    delete process.env.XDG_CURRENT_DESKTOP;
+  });
+
+  it('OPEN_SETTINGS_CLICKED on linux with KDE desktop spawns kcmshell5', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'linux',
+      writable: true,
+      configurable: true,
+    });
+    process.env.XDG_CURRENT_DESKTOP = 'KDE';
+
+    setupTelephonyDefaultHandlerPrompt();
+    const settingsCallback = listenMock.mock.calls[0][1] as () => void;
+    settingsCallback();
+
+    expect(spawnMock).toHaveBeenCalledWith('kcmshell5', ['componentchooser'], {
+      detached: true,
+      stdio: 'ignore',
+    });
+    expect(shellMock.openExternal).not.toHaveBeenCalled();
+
+    delete process.env.XDG_CURRENT_DESKTOP;
+  });
+
+  it('OPEN_SETTINGS_CLICKED on linux with unknown desktop does not spawn or call openExternal', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'linux',
+      writable: true,
+      configurable: true,
+    });
+    process.env.XDG_CURRENT_DESKTOP = 'Sway';
+
+    setupTelephonyDefaultHandlerPrompt();
+    const settingsCallback = listenMock.mock.calls[0][1] as () => void;
+    settingsCallback();
+
+    expect(spawnMock).not.toHaveBeenCalled();
+    expect(shellMock.openExternal).not.toHaveBeenCalled();
+
+    delete process.env.XDG_CURRENT_DESKTOP;
   });
 });

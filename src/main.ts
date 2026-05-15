@@ -45,6 +45,7 @@ import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
 import { applySystemCertificates } from './systemCertificates';
 import {
+  setupTelephonyDefaultHandlerPrompt,
   setupTelephonyGlobalShortcut,
   setupTelephonyProtocolHandlers,
 } from './telephony/main';
@@ -126,6 +127,7 @@ const start = async (): Promise<void> => {
   setupDeepLinks();
   setupTelephonyGlobalShortcut();
   setupTelephonyProtocolHandlers();
+  setupTelephonyDefaultHandlerPrompt();
   await setupNavigation();
   setupPowerMonitor();
   await setupUpdates();

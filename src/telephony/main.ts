@@ -1,10 +1,16 @@
-import { app, clipboard, globalShortcut, Notification } from 'electron';
+import { spawn } from 'child_process';
+
+import { app, clipboard, globalShortcut, Notification, shell } from 'electron';
 
 import { TELEPHONY_SCHEMES } from '../app/main/app';
 import { logger } from '../logging';
-import { dispatch, watch } from '../store';
+import { dispatch, listen, select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
-import { SIDE_BAR_SETTINGS_BUTTON_CLICKED } from '../ui/actions';
+import {
+  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
+  TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN,
+  TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED,
+} from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { TELEPHONY_GLOBAL_SHORTCUT_REGISTRATION_CHANGED } from './actions';
 import type { TelephonyGlobalShortcutConfig } from './actions';
@@ -299,4 +305,108 @@ export const teardownTelephonyProtocolHandlers = (): void => {
     unsubscribeFromTelephonyEnabled();
     unsubscribeFromTelephonyEnabled = null;
   }
+};
+
+let unsubscribeFromDefaultHandlerPrompt: (() => void) | null = null;
+let unsubscribeFromDefaultHandlerSettingsListener: (() => void) | null = null;
+let lastTelephonyEnabledForPrompt = false;
+
+const openSystemDefaultAppsSettings = (): void => {
+  if (process.platform === 'win32') {
+    try {
+      void shell.openExternal('ms-settings:defaultapps');
+    } catch (error) {
+      logger.warn('Failed to open Windows default apps settings');
+      logger.warn(error);
+    }
+  } else if (process.platform === 'darwin') {
+    void shell.openExternal(
+      'x-apple.systempreferences:com.apple.preferences.FaceTime'
+    );
+  } else if (process.platform === 'linux') {
+    try {
+      const desktop = (process.env.XDG_CURRENT_DESKTOP ?? '')
+        .toUpperCase()
+        .trim();
+
+      if (
+        desktop.includes('GNOME') ||
+        desktop.includes('UNITY') ||
+        desktop.includes('CINNAMON')
+      ) {
+        spawn('gnome-control-center', ['default-apps'], {
+          detached: true,
+          stdio: 'ignore',
+        }).unref();
+      } else if (desktop.includes('KDE') || desktop.includes('PLASMA')) {
+        const child = spawn('kcmshell5', ['componentchooser'], {
+          detached: true,
+          stdio: 'ignore',
+        });
+        child.on('error', (error: NodeJS.ErrnoException) => {
+          if (error.code === 'ENOENT') {
+            spawn('kcmshell6', ['componentchooser'], {
+              detached: true,
+              stdio: 'ignore',
+            }).unref();
+          }
+        });
+        child.unref();
+      } else {
+        logger.info(
+          `No known default-apps settings command for desktop environment: ${desktop}`
+        );
+      }
+    } catch (error) {
+      logger.warn('Failed to open Linux default apps settings');
+      logger.warn(error);
+    }
+  } else {
+    logger.info(
+      `openSystemDefaultAppsSettings: no-op on platform ${process.platform}`
+    );
+  }
+};
+
+export const setupTelephonyDefaultHandlerPrompt = (): void => {
+  if (unsubscribeFromDefaultHandlerPrompt) {
+    return;
+  }
+
+  lastTelephonyEnabledForPrompt = select(selectIsTelephonyEnabled);
+
+  unsubscribeFromDefaultHandlerPrompt = watch(
+    selectIsTelephonyEnabled,
+    (enabled) => {
+      if (enabled && !lastTelephonyEnabledForPrompt) {
+        dispatch({ type: TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN });
+      }
+      lastTelephonyEnabledForPrompt = enabled;
+    }
+  );
+
+  unsubscribeFromDefaultHandlerSettingsListener = listen(
+    TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED,
+    () => {
+      openSystemDefaultAppsSettings();
+    }
+  );
+
+  app.addListener('will-quit', teardownTelephonyDefaultHandlerPrompt);
+};
+
+export const teardownTelephonyDefaultHandlerPrompt = (): void => {
+  app.removeListener('will-quit', teardownTelephonyDefaultHandlerPrompt);
+
+  if (unsubscribeFromDefaultHandlerPrompt) {
+    unsubscribeFromDefaultHandlerPrompt();
+    unsubscribeFromDefaultHandlerPrompt = null;
+  }
+
+  if (unsubscribeFromDefaultHandlerSettingsListener) {
+    unsubscribeFromDefaultHandlerSettingsListener();
+    unsubscribeFromDefaultHandlerSettingsListener = null;
+  }
+
+  lastTelephonyEnabledForPrompt = false;
 };

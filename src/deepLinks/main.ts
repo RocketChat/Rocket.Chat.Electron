@@ -205,6 +205,12 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
 const processDeepLink = async (deepLink: string): Promise<void> => {
   const telephonyLink = parseTelephonyLink(deepLink);
   if (telephonyLink) {
+    const isTelephonyEnabled = select(
+      ({ isTelephonyEnabled }) => isTelephonyEnabled
+    );
+    if (!isTelephonyEnabled) {
+      return;
+    }
     await openTelephonyDialpad(telephonyLink);
     return;
   }

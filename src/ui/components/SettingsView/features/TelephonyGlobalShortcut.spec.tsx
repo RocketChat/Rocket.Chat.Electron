@@ -37,7 +37,9 @@ jest.mock('@rocket.chat/fuselage', () => ({
 
 type PartialState = Pick<
   RootState,
-  'telephonyGlobalShortcutConfig' | 'telephonyGlobalShortcutRegistrationStatus'
+  | 'telephonyGlobalShortcutConfig'
+  | 'telephonyGlobalShortcutRegistrationStatus'
+  | 'isTelephonyEnabled'
 >;
 
 const makeStore = (partial: PartialState) => {
@@ -46,6 +48,7 @@ const makeStore = (partial: PartialState) => {
 };
 
 const defaultState: PartialState = {
+  isTelephonyEnabled: true,
   telephonyGlobalShortcutConfig: {
     enabled: false,
     accelerator: null,
@@ -225,6 +228,7 @@ describe('TelephonyGlobalShortcut', () => {
 
   it('shows registration failure feedback from main process status', () => {
     const store = makeStore({
+      isTelephonyEnabled: true,
       telephonyGlobalShortcutConfig: {
         enabled: true,
         accelerator: 'CommandOrControl+Shift+D',

@@ -1,5 +1,6 @@
 import { app, clipboard, globalShortcut, Notification } from 'electron';
 
+import { TELEPHONY_SCHEMES } from '../app/main/app';
 import { logger } from '../logging';
 import { dispatch, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
@@ -17,10 +18,16 @@ import {
 
 const selectTelephonyGlobalShortcutConfig = ({
   telephonyGlobalShortcutConfig,
-}: RootState): TelephonyGlobalShortcutConfig => telephonyGlobalShortcutConfig;
+  isTelephonyEnabled,
+}: RootState): TelephonyGlobalShortcutConfig =>
+  isTelephonyEnabled ? telephonyGlobalShortcutConfig : DISABLED_SHORTCUT_CONFIG;
+
+const selectIsTelephonyEnabled = ({ isTelephonyEnabled }: RootState): boolean =>
+  isTelephonyEnabled;
 
 let registeredAccelerator: string | null = null;
 let unsubscribeFromShortcutConfig: (() => void) | null = null;
+let unsubscribeFromTelephonyEnabled: (() => void) | null = null;
 let lastTelephonyShortcutTriggeredAt = 0;
 
 const TELEPHONY_GLOBAL_SHORTCUT_DEBOUNCE_MS = 250;
@@ -249,4 +256,47 @@ export const teardownTelephonyGlobalShortcut = (): void => {
   }
 
   unregisterTelephonyGlobalShortcut();
+};
+
+const applyTelephonyProtocolRegistration = (enabled: boolean): void => {
+  for (const scheme of TELEPHONY_SCHEMES) {
+    try {
+      if (enabled) {
+        app.setAsDefaultProtocolClient(scheme);
+      } else {
+        app.removeAsDefaultProtocolClient(scheme);
+      }
+    } catch (error) {
+      logger.warn(
+        `Failed to ${
+          enabled ? 'register' : 'unregister'
+        } telephony protocol handler for ${scheme}:`
+      );
+      logger.warn(error);
+    }
+  }
+};
+
+export const setupTelephonyProtocolHandlers = (): void => {
+  if (unsubscribeFromTelephonyEnabled) {
+    return;
+  }
+
+  unsubscribeFromTelephonyEnabled = watch(
+    selectIsTelephonyEnabled,
+    (enabled) => {
+      applyTelephonyProtocolRegistration(enabled);
+    }
+  );
+
+  app.addListener('will-quit', teardownTelephonyProtocolHandlers);
+};
+
+export const teardownTelephonyProtocolHandlers = (): void => {
+  app.removeListener('will-quit', teardownTelephonyProtocolHandlers);
+
+  if (unsubscribeFromTelephonyEnabled) {
+    unsubscribeFromTelephonyEnabled();
+    unsubscribeFromTelephonyEnabled = null;
+  }
 };

@@ -14,7 +14,9 @@ import {
   createTelephonyLinkFromClipboardText,
   registerTelephonyGlobalShortcut,
   setupTelephonyGlobalShortcut,
+  setupTelephonyProtocolHandlers,
   teardownTelephonyGlobalShortcut,
+  teardownTelephonyProtocolHandlers,
   triggerTelephonyGlobalShortcut,
 } from './main';
 import {
@@ -35,6 +37,8 @@ jest.mock('electron', () => {
     app: {
       addListener: jest.fn(),
       removeListener: jest.fn(),
+      setAsDefaultProtocolClient: jest.fn(() => true),
+      removeAsDefaultProtocolClient: jest.fn(() => true),
     },
     clipboard: {
       readText: jest.fn(),
@@ -520,5 +524,130 @@ describe('telephony shortcut reducers', () => {
       accelerator: 'CommandOrControl+Shift+D',
       error: 'conflict',
     });
+  });
+});
+
+describe('telephony protocol handlers gate', () => {
+  beforeEach(() => {
+    teardownTelephonyProtocolHandlers();
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardownTelephonyProtocolHandlers();
+  });
+
+  it('registers tel and callto when isTelephonyEnabled becomes true', () => {
+    watchMock.mockReturnValue(() => undefined);
+
+    setupTelephonyProtocolHandlers();
+    const watchCallback = watchMock.mock.calls[0][1] as (
+      enabled: boolean
+    ) => void;
+    expect(watchCallback).toBeInstanceOf(Function);
+
+    watchCallback(true);
+
+    expect(appMock.setAsDefaultProtocolClient).toHaveBeenCalledWith('tel');
+    expect(appMock.setAsDefaultProtocolClient).toHaveBeenCalledWith('callto');
+    expect(appMock.removeAsDefaultProtocolClient).not.toHaveBeenCalled();
+  });
+
+  it('unregisters tel and callto when isTelephonyEnabled becomes false', () => {
+    watchMock.mockReturnValue(() => undefined);
+
+    setupTelephonyProtocolHandlers();
+    const watchCallback = watchMock.mock.calls[0][1] as (
+      enabled: boolean
+    ) => void;
+
+    watchCallback(false);
+
+    expect(appMock.removeAsDefaultProtocolClient).toHaveBeenCalledWith('tel');
+    expect(appMock.removeAsDefaultProtocolClient).toHaveBeenCalledWith(
+      'callto'
+    );
+    expect(appMock.setAsDefaultProtocolClient).not.toHaveBeenCalled();
+  });
+
+  it('is idempotent — repeated setup calls only subscribe once', () => {
+    const unsubscribe = jest.fn();
+    watchMock.mockReturnValue(unsubscribe);
+
+    setupTelephonyProtocolHandlers();
+    setupTelephonyProtocolHandlers();
+
+    expect(watchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('teardown unsubscribes the watcher and detaches will-quit listener', () => {
+    const unsubscribe = jest.fn();
+    watchMock.mockReturnValue(unsubscribe);
+
+    setupTelephonyProtocolHandlers();
+    teardownTelephonyProtocolHandlers();
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(appMock.removeListener).toHaveBeenCalledWith(
+      'will-quit',
+      teardownTelephonyProtocolHandlers
+    );
+  });
+
+  it('registers will-quit teardown listener on setup', () => {
+    watchMock.mockReturnValue(() => undefined);
+
+    setupTelephonyProtocolHandlers();
+
+    expect(appMock.addListener).toHaveBeenCalledWith(
+      'will-quit',
+      teardownTelephonyProtocolHandlers
+    );
+  });
+
+  it('continues to second scheme when first scheme registration throws', () => {
+    watchMock.mockReturnValue(() => undefined);
+    appMock.setAsDefaultProtocolClient.mockImplementationOnce(() => {
+      throw new Error('registry locked');
+    });
+
+    setupTelephonyProtocolHandlers();
+    const watchCallback = watchMock.mock.calls[0][1] as (
+      enabled: boolean
+    ) => void;
+
+    expect(() => watchCallback(true)).not.toThrow();
+    expect(appMock.setAsDefaultProtocolClient).toHaveBeenCalledTimes(2);
+    expect(appMock.setAsDefaultProtocolClient).toHaveBeenNthCalledWith(
+      1,
+      'tel'
+    );
+    expect(appMock.setAsDefaultProtocolClient).toHaveBeenNthCalledWith(
+      2,
+      'callto'
+    );
+  });
+
+  it('continues to second scheme when first scheme unregistration throws', () => {
+    watchMock.mockReturnValue(() => undefined);
+    appMock.removeAsDefaultProtocolClient.mockImplementationOnce(() => {
+      throw new Error('not registered');
+    });
+
+    setupTelephonyProtocolHandlers();
+    const watchCallback = watchMock.mock.calls[0][1] as (
+      enabled: boolean
+    ) => void;
+
+    expect(() => watchCallback(false)).not.toThrow();
+    expect(appMock.removeAsDefaultProtocolClient).toHaveBeenCalledTimes(2);
+    expect(appMock.removeAsDefaultProtocolClient).toHaveBeenNthCalledWith(
+      1,
+      'tel'
+    );
+    expect(appMock.removeAsDefaultProtocolClient).toHaveBeenNthCalledWith(
+      2,
+      'callto'
+    );
   });
 });

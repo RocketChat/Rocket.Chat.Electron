@@ -44,7 +44,10 @@ import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
 import { applySystemCertificates } from './systemCertificates';
-import { setupTelephonyGlobalShortcut } from './telephony/main';
+import {
+  setupTelephonyGlobalShortcut,
+  setupTelephonyProtocolHandlers,
+} from './telephony/main';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -122,6 +125,7 @@ const start = async (): Promise<void> => {
 
   setupDeepLinks();
   setupTelephonyGlobalShortcut();
+  setupTelephonyProtocolHandlers();
   await setupNavigation();
   setupPowerMonitor();
   await setupUpdates();

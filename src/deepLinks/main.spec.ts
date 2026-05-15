@@ -540,6 +540,126 @@ describe('deepLinks/main.ts', () => {
       expect(listenMock).not.toHaveBeenCalled();
     });
   });
+
+  describe('isTelephonyEnabled gate for tel: deep links', () => {
+    const mockBrowserWindow = {
+      isVisible: jest.fn(() => true),
+      focus: jest.fn(),
+      showInactive: jest.fn(),
+    };
+
+    const mockWebContents = {
+      send: jest.fn(),
+      loadURL: jest.fn(),
+    };
+
+    beforeEach(() => {
+      getRootWindowMock.mockResolvedValue(mockBrowserWindow as any);
+      getWebContentsByServerUrlMock.mockReturnValue(mockWebContents as any);
+    });
+
+    it('does NOT open dialpad for tel: link when isTelephonyEnabled=false', async () => {
+      setupDeepLinks();
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: false,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = ['electron', '.', 'tel:+491234567890'];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+      expect(mockWebContents.send).not.toHaveBeenCalled();
+      expect(resolveServerUrlMock).not.toHaveBeenCalled();
+    });
+
+    it('does NOT open dialpad for callto: link when isTelephonyEnabled=false', async () => {
+      setupDeepLinks();
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: false,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = ['electron', '.', 'callto:+491234567890'];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+      expect(mockWebContents.send).not.toHaveBeenCalled();
+    });
+
+    it('opens dialpad for tel: link when isTelephonyEnabled=true', async () => {
+      setupDeepLinks();
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: true,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = ['electron', '.', 'tel:+491234567890'];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+    });
+
+    it('does not gate non-telephony deep links on isTelephonyEnabled', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: false,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(resolveServerUrlMock).toHaveBeenCalled();
+    });
+  });
 });
 
 describe('telephonyPreferredServer reducer', () => {

@@ -297,6 +297,10 @@
         "loading": "Loading browsers...",
         "current": "Currently using:"
       },
+      "telephony": {
+        "title": "Telephony",
+        "description": "Enable the telephony feature. When off, the global shortcut and tel: deep links are disabled and the related settings below are unavailable."
+      },
       "telephonyServer": {
         "title": "Telephony Server",
         "description": "Choose which workspace opens when you use the telephony shortcut or a tel: or callto: link.",

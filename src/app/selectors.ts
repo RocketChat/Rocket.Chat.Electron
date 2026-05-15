@@ -88,4 +88,5 @@ export const selectPersistableValues = createStructuredSelector({
   telephonyGlobalShortcutConfig: ({
     telephonyGlobalShortcutConfig,
   }: RootState) => telephonyGlobalShortcutConfig,
+  isTelephonyEnabled: ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled,
 });

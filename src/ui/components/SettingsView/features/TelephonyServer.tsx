@@ -28,6 +28,9 @@ export const TelephonyServer = () => {
   const telephonyPreferredServer = useSelector(
     ({ telephonyPreferredServer }: RootState) => telephonyPreferredServer
   );
+  const isTelephonyEnabled = useSelector(
+    ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled
+  );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
 
@@ -73,6 +76,7 @@ export const TelephonyServer = () => {
         </Box>
         <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
           <Select
+            disabled={!isTelephonyEnabled}
             options={options}
             value={telephonyPreferredServer ?? 'auto'}
             onChange={handleChange}

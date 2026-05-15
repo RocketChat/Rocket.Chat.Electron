@@ -470,6 +470,26 @@ describe('performElectronStartup - Platform Detection', () => {
     });
   });
 
+  describe('Telephony scheme gating', () => {
+    it('registers rocketchat at startup', () => {
+      performElectronStartup();
+
+      expect(app.setAsDefaultProtocolClient).toHaveBeenCalledWith('rocketchat');
+    });
+
+    it('does NOT register tel at startup', () => {
+      performElectronStartup();
+
+      expect(app.setAsDefaultProtocolClient).not.toHaveBeenCalledWith('tel');
+    });
+
+    it('does NOT register callto at startup', () => {
+      performElectronStartup();
+
+      expect(app.setAsDefaultProtocolClient).not.toHaveBeenCalledWith('callto');
+    });
+  });
+
   describe('Integration', () => {
     it('should work correctly with PipeWire feature enabled', () => {
       process.env.XDG_SESSION_TYPE = 'x11';

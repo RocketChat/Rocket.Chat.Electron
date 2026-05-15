@@ -76,6 +76,9 @@ export const TelephonyGlobalShortcut = () => {
     ({ telephonyGlobalShortcutRegistrationStatus }: RootState) =>
       telephonyGlobalShortcutRegistrationStatus
   );
+  const isTelephonyEnabled = useSelector(
+    ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled
+  );
   const [draftAccelerator, setDraftAccelerator] = useState(
     telephonyGlobalShortcutConfig.accelerator ?? ''
   );
@@ -174,6 +177,7 @@ export const TelephonyGlobalShortcut = () => {
         <Box display='flex' alignItems='center' flexGrow={1}>
           <TextInput
             data-testid='telephony-shortcut-input'
+            disabled={!isTelephonyEnabled}
             value={draftAccelerator}
             placeholder={t(
               isCapturingShortcut
@@ -187,6 +191,7 @@ export const TelephonyGlobalShortcut = () => {
           />
           <Button
             data-testid='telephony-shortcut-save'
+            disabled={!isTelephonyEnabled}
             type='button'
             onClick={handleSave}
             mis='x8'
@@ -195,6 +200,7 @@ export const TelephonyGlobalShortcut = () => {
           </Button>
           <Button
             data-testid='telephony-shortcut-clear'
+            disabled={!isTelephonyEnabled}
             type='button'
             onClick={handleClear}
             mis='x8'

@@ -96,6 +96,8 @@ export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
 export const SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED =
   'settings/set-is-tray-icon-enabled-changed';
+export const SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED =
+  'settings/set-is-telephony-enabled-changed';
 export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
   'settings/set-is-side-bar-enabled-changed';
 export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
@@ -252,6 +254,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;

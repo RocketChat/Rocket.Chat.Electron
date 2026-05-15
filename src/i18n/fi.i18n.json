@@ -265,6 +265,21 @@
         "loading": "Ladataan selaimia...",
         "current": "Käytössä nyt:"
       },
+      "telephonyServer": {
+        "title": "Puhelinpalvelin",
+        "description": "Valitse, mikä työtila avataan, kun käytät puhelutoiminnon pikanäppäintä tai tel:- tai callto:-linkkiä.",
+        "auto": "Automaattinen (kysy joka kerta)"
+      },
+      "telephonyShortcut": {
+        "title": "Puhelutoiminnon yleinen pikanäppäin",
+        "description": "Käytä tätä pikanäppäintä mistä tahansa tuodaksesi Rocket.Chatin etualalle ja avataksesi puhelutoiminnon numeronäppäimistön. Jos leikepöydälläsi on tekstiä, joka näyttää puhelinnumerolta, Rocket.Chat täyttää sen valmiiksi.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Paina näppäimiä...",
+        "save": "Tallenna",
+        "clear": "Tyhjennä",
+        "registered": "Pikanäppäin rekisteröity",
+        "reservedAccelerator": "{{accelerator}} on Rocket.Chatin tai käyttöjärjestelmäsi varaama."
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökuvaoikeudet",
         "description": "Tyhjennä valitut näyttökuvaoikeudet, joilla estettiin kysyminen uudelleen videopuheluissa."

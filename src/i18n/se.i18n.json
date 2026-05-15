@@ -18,6 +18,21 @@
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
+      },
+      "telephonyServer": {
+        "title": "Telefoniabálvá",
+        "description": "Vállje guđe bargosadji rahpasa go geavahat telefoniija oanehisboalu dahje tel: dahje callto: liŋkka.",
+        "auto": "Automáhtalaš (jeara juohke háve)"
+      },
+      "telephonyShortcut": {
+        "title": "Telefoniija globála oanehisboallu",
+        "description": "Geavat dán oanehisboalu gos fal vai Rocket.Chat boahtá ovdii ja telefoniija numerboallu rahpasa. Jus čuohpusis lea teaksta mii orru telefonnummirin, de Rocket.Chat deavdá dan ovdagihtii.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Deaddil boaluid...",
+        "save": "Vurke",
+        "clear": "Sálke",
+        "registered": "Oanehisboallu lea registrerejuvvon",
+        "reservedAccelerator": "{{accelerator}} lea Rocket.Chat dahje du operatiivavuogádaga várrejuvvon."
       }
     }
   },

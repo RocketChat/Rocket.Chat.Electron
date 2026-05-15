@@ -272,6 +272,21 @@
         "loading": "Carregando navegadores...",
         "current": "Usando atualmente:"
       },
+      "telephonyServer": {
+        "title": "Servidor de Telefonia",
+        "description": "Escolha qual espaço de trabalho será aberto quando você usar o atalho de telefonia ou um link tel: ou callto:.",
+        "auto": "Automático (perguntar sempre)"
+      },
+      "telephonyShortcut": {
+        "title": "Atalho Global de Telefonia",
+        "description": "Use este atalho de qualquer lugar para trazer o Rocket.Chat para frente e abrir o teclado de telefonia. Se a área de transferência contiver um texto que pareça um número de telefone, o Rocket.Chat o preencherá automaticamente.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Pressione as teclas...",
+        "save": "Salvar",
+        "clear": "Limpar",
+        "registered": "Atalho registrado",
+        "reservedAccelerator": "{{accelerator}} está reservado pelo Rocket.Chat ou pelo seu sistema operacional."
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar Permissões de Captura de Tela",
         "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."

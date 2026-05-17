@@ -501,6 +501,7 @@ const createWindowMenu = createSelector(
       {
         id: 'settings',
         label: t('menus.settings'),
+        accelerator: 'CmdOrCtrl+,',
         checked: currentView === 'settings',
         click: async () => {
           const browserWindow = await getRootWindow();

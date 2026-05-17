@@ -40,8 +40,14 @@ export const packageJsonInformation = {
 
 export const electronBuilderJsonInformation = {
   appId: electronBuilderJson.appId,
-  protocol: electronBuilderJson.protocols.schemes[0],
+  protocol: (electronBuilderJson.protocols as Array<{ schemes: string[] }>)[0]
+    .schemes[0],
+  protocols: (
+    electronBuilderJson.protocols as Array<{ schemes: string[] }>
+  ).flatMap((p) => p.schemes),
 };
+
+export const TELEPHONY_SCHEMES = ['tel', 'callto'] as const;
 
 let isScreenCaptureFallbackForced = false;
 
@@ -83,7 +89,12 @@ export const relaunchApp = (...args: string[]): void => {
 };
 
 export const performElectronStartup = (): void => {
-  app.setAsDefaultProtocolClient(electronBuilderJsonInformation.protocol);
+  for (const scheme of electronBuilderJsonInformation.protocols) {
+    if ((TELEPHONY_SCHEMES as readonly string[]).includes(scheme)) {
+      continue;
+    }
+    app.setAsDefaultProtocolClient(scheme);
+  }
   app.setAppUserModelId(electronBuilderJsonInformation.appId);
 
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');

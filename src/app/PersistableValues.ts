@@ -2,6 +2,7 @@ import type { Certificate } from 'electron';
 
 import type { Download } from '../downloads/common';
 import type { Server } from '../servers/common';
+import type { TelephonyGlobalShortcutConfig } from '../telephony/actions';
 import type { WindowState } from '../ui/common';
 
 type PersistableValues_0_0_0 = {
@@ -106,9 +107,15 @@ type PersistableValues_4_13_0 = PersistableValues_4_11_0 & {
   isDebugLoggingEnabled: boolean;
 };
 
+type PersistableValues_4_14_0 = PersistableValues_4_13_0 & {
+  isTelephonyEnabled: boolean;
+  telephonyPreferredServer: string | null;
+  telephonyGlobalShortcutConfig: TelephonyGlobalShortcutConfig;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_13_0,
-  keyof PersistableValues_4_13_0
+  PersistableValues_4_14_0,
+  keyof PersistableValues_4_14_0
 >;
 
 export const migrations = {
@@ -200,5 +207,17 @@ export const migrations = {
   '>=4.13.0': (before: PersistableValues_4_11_0): PersistableValues_4_13_0 => ({
     ...before,
     isDebugLoggingEnabled: false,
+  }),
+  '>=4.14.0': (before: PersistableValues_4_13_0): PersistableValues_4_14_0 => ({
+    ...before,
+    isTelephonyEnabled:
+      (before as Partial<PersistableValues_4_14_0>).isTelephonyEnabled ?? false,
+    telephonyPreferredServer:
+      (before as Partial<PersistableValues_4_14_0>).telephonyPreferredServer ??
+      null,
+    telephonyGlobalShortcutConfig: {
+      enabled: false,
+      accelerator: null,
+    },
   }),
 };

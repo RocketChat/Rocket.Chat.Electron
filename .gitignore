@@ -48,3 +48,4 @@ scripts/msi-test/.known_hosts
 # legacy agent docs (consolidated into CLAUDE.md)
 AGENTS.md
 src/outlookCalendar/AGENTS.md
+.gitnexus

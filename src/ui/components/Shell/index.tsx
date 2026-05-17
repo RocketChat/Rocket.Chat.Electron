@@ -17,6 +17,8 @@ import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
+import { TelephonyDefaultHandlerPromptModal } from '../TelephonyDefaultHandlerPromptModal';
+import { TelephonyServerSelectModal } from '../TelephonyServerSelectModal';
 import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
 import TooltipProvider from '../utils/TooltipProvider';
@@ -102,6 +104,8 @@ export const Shell = () => {
       <UpdateDialog />
       <ClearCacheDialog />
       <OutlookCredentialsDialog />
+      <TelephonyServerSelectModal />
+      <TelephonyDefaultHandlerPromptModal />
     </TooltipProvider>
   );
 };

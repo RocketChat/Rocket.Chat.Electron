@@ -8,6 +8,8 @@ import {
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
+import { openTelephonyDialpad } from '../telephony/dialpad';
+import { parseTelephonyLink } from '../telephony/links';
 import {
   askForServerAddition,
   warnAboutInvalidServerUrl,
@@ -15,6 +17,10 @@ import {
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
+
+export type { TelephonyLink } from '../telephony/common';
+export { openTelephonyDialpad as performTelephonyCall } from '../telephony/dialpad';
+export { parseTelephonyLink } from '../telephony/links';
 
 const isDefinedProtocol = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === `${electronBuilderJsonInformation.protocol}:`;
@@ -108,12 +114,28 @@ const performOnServer = async (
   await action(serverUrl);
 };
 
-const getWebContents = (serverUrl: string): Promise<WebContents> =>
-  new Promise((resolve) => {
+function getWebContents(serverUrl: string): Promise<WebContents>;
+function getWebContents(
+  serverUrl: string,
+  timeoutMs: number
+): Promise<WebContents | null>;
+function getWebContents(
+  serverUrl: string,
+  timeoutMs?: number
+): Promise<WebContents | null> {
+  return new Promise((resolve) => {
+    const deadline =
+      timeoutMs !== undefined ? Date.now() + timeoutMs : undefined;
+
     const poll = (): void => {
       const webContents = getWebContentsByServerUrl(serverUrl);
       if (webContents) {
         resolve(webContents);
+        return;
+      }
+
+      if (deadline !== undefined && Date.now() >= deadline) {
+        resolve(null);
         return;
       }
 
@@ -122,6 +144,7 @@ const getWebContents = (serverUrl: string): Promise<WebContents> =>
 
     poll();
   });
+}
 
 const performAuthentication = async ({
   host,
@@ -180,6 +203,18 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
   });
 
 const processDeepLink = async (deepLink: string): Promise<void> => {
+  const telephonyLink = parseTelephonyLink(deepLink);
+  if (telephonyLink) {
+    const isTelephonyEnabled = select(
+      ({ isTelephonyEnabled }) => isTelephonyEnabled
+    );
+    if (!isTelephonyEnabled) {
+      return;
+    }
+    await openTelephonyDialpad(telephonyLink);
+    return;
+  }
+
   const parsedDeepLink = parseDeepLink(deepLink);
 
   if (!parsedDeepLink) {

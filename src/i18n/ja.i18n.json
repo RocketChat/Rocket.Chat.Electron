@@ -101,6 +101,11 @@
         "answerCall": "通話に応答する",
         "recordMessage": "メッセージを録音する"
       }
+    },
+    "telephonySelectServer": {
+      "title": "サーバーを選択",
+      "message": "この通話をどのサーバーで処理しますか？",
+      "rememberChoice": "この選択を記憶する"
     }
   },
   "documentViewer": {
@@ -122,6 +127,21 @@
         "auto": "システムに従う",
         "light": "ライト",
         "dark": "ダーク"
+      },
+      "telephonyServer": {
+        "title": "テレフォニーサーバー",
+        "description": "テレフォニーショートカットまたは tel: / callto: リンクを使用したときに開くワークスペースを選択します。",
+        "auto": "自動（毎回確認）"
+      },
+      "telephonyShortcut": {
+        "title": "テレフォニーのグローバルショートカット",
+        "description": "このショートカットをどこからでも使用して Rocket.Chat を前面に表示し、テレフォニーのダイヤルパッドを開きます。クリップボードに電話番号のようなテキストがある場合、Rocket.Chat が自動的に入力します。",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "キーを押してください...",
+        "save": "保存",
+        "clear": "クリア",
+        "registered": "ショートカットを登録しました",
+        "reservedAccelerator": "{{accelerator}} は Rocket.Chat またはオペレーティングシステムによって予約されています。"
       }
     }
   },

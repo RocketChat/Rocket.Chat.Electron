@@ -165,6 +165,11 @@
     "supportedVersion": {
       "title": "Workspace version unsupported"
     },
+    "telephonySelectServer": {
+      "title": "Select Server",
+      "message": "Which server should handle this call?",
+      "rememberChoice": "Remember this choice"
+    },
     "clearLogs": {
       "title": "Clear Logs",
       "message": "Are you sure you want to clear the log file?",
@@ -291,6 +296,25 @@
         "systemDefault": "System Default",
         "loading": "Loading browsers...",
         "current": "Currently using:"
+      },
+      "telephony": {
+        "title": "Telephony",
+        "description": "Enable the telephony feature. When off, the global shortcut and tel: deep links are disabled and the related settings below are unavailable."
+      },
+      "telephonyServer": {
+        "title": "Telephony Server",
+        "description": "Choose which workspace opens when you use the telephony shortcut or a tel: or callto: link.",
+        "auto": "Auto (ask each time)"
+      },
+      "telephonyShortcut": {
+        "title": "Telephony Global Shortcut",
+        "description": "Use this shortcut from anywhere to bring Rocket.Chat to the front and open the telephony dial pad. If your clipboard contains text that looks like a phone number, Rocket.Chat pre-fills it.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Press keys...",
+        "save": "Save",
+        "clear": "Clear",
+        "registered": "Shortcut registered",
+        "reservedAccelerator": "{{accelerator}} is reserved by Rocket.Chat or your operating system."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
@@ -649,6 +673,15 @@
     "expiration": {
       "label": "Expiration:",
       "expiresOn": "Expires on {{date}}"
+    }
+  },
+  "telephony": {
+    "defaultHandlerPrompt": {
+      "title": "Set Rocket.Chat as the default phone-link handler",
+      "body": "Rocket.Chat is now registered as a handler for tel: and callto: links.",
+      "body2": "Other apps like Microsoft Teams, Zoom, or Skype may already be set as your system default. To finish the setup, open your operating system's default-apps settings and pick Rocket.Chat for tel and callto.",
+      "openSettings": "Open System Settings",
+      "dismiss": "Got it"
     }
   }
 }

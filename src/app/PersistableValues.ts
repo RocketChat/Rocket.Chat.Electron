@@ -106,9 +106,13 @@ type PersistableValues_4_13_0 = PersistableValues_4_11_0 & {
   isDebugLoggingEnabled: boolean;
 };
 
+type PersistableValues_4_14_0 = PersistableValues_4_13_0 & {
+  e2ePdfPreviewSizeLimit: number;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_13_0,
-  keyof PersistableValues_4_13_0
+  PersistableValues_4_14_0,
+  keyof PersistableValues_4_14_0
 >;
 
 export const migrations = {
@@ -200,5 +204,9 @@ export const migrations = {
   '>=4.13.0': (before: PersistableValues_4_11_0): PersistableValues_4_13_0 => ({
     ...before,
     isDebugLoggingEnabled: false,
+  }),
+  '>=4.14.0': (before: PersistableValues_4_13_0): PersistableValues_4_14_0 => ({
+    ...before,
+    e2ePdfPreviewSizeLimit: 10,
   }),
 };

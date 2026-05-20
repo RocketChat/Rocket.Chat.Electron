@@ -242,8 +242,11 @@
     "general": "General",
     "certificates": "Certificates",
     "developer": "Developer",
+    "voiceVideo": "Voice & Video",
     "sections": {
-      "logging": "Logging"
+      "logging": "Logging",
+      "telephony": "Telephony",
+      "videoCalls": "Video calls"
     },
     "options": {
       "report": {
@@ -682,6 +685,41 @@
       "body2": "Other apps like Microsoft Teams, Zoom, or Skype may already be set as your system default. To finish the setup, open your operating system's default-apps settings and pick Rocket.Chat for tel and callto.",
       "openSettings": "Open System Settings",
       "dismiss": "Got it"
+    },
+    "diagnostics": {
+      "title": "Default-handler diagnostics",
+      "subtitle": "Verify Rocket.Chat is registered as the system handler for telephony links.",
+      "refresh": "Refresh",
+      "copy": "Copy diagnostics",
+      "copied": "Copied",
+      "platform": "Platform",
+      "lastChecked": "Last checked",
+      "summary": {
+        "checking": "Checking…",
+        "issues_one": "{{count}} issue",
+        "issues_other": "{{count}} issues",
+        "warnings_one": "{{count}} warning",
+        "warnings_other": "{{count}} warnings",
+        "healthy": "All checks pass"
+      },
+      "status": {
+        "pass": "Pass",
+        "fail": "Fail",
+        "unknown": "Unknown"
+      },
+      "checks": {
+        "isDefault.tel": "System default for click-to-call (tel:): Rocket.Chat",
+        "isDefault.callto": "System default for click-to-conference (callto:): Rocket.Chat",
+        "windows.registeredApp": "Rocket.Chat listed in Windows Registered Applications",
+        "windows.capabilities.tel": "Windows Capabilities map click-to-call (tel:) to Rocket.Chat",
+        "windows.capabilities.callto": "Windows Capabilities map click-to-conference (callto:) to Rocket.Chat",
+        "windows.progid.tel": "Windows ProgID for click-to-call (tel:) launches Rocket.Chat",
+        "windows.progid.callto": "Windows ProgID for click-to-conference (callto:) launches Rocket.Chat",
+        "darwin.handler.tel": "macOS verifies this Rocket.Chat handles click-to-call (tel:)",
+        "darwin.handler.callto": "macOS verifies this Rocket.Chat handles click-to-conference (callto:)",
+        "linux.xdg.tel": "Linux xdg-mime points click-to-call (tel:) at Rocket.Chat",
+        "linux.xdg.callto": "Linux xdg-mime points click-to-conference (callto:) at Rocket.Chat"
+      }
     }
   }
 }

@@ -16,14 +16,20 @@ export const VoiceVideoTab = () => {
     <Box display='flex' justifyContent='center'>
       <Box maxWidth={600} width='100%'>
         <Accordion>
-          <Accordion.Item title={t('settings.sections.telephony')} defaultExpanded>
+          <Accordion.Item
+            title={t('settings.sections.telephony')}
+            defaultExpanded
+          >
             <FieldGroup is='form'>
               <Telephony />
               <TelephonyGlobalShortcut />
               <TelephonyServer />
             </FieldGroup>
           </Accordion.Item>
-          <Accordion.Item title={t('settings.sections.videoCalls')} defaultExpanded>
+          <Accordion.Item
+            title={t('settings.sections.videoCalls')}
+            defaultExpanded
+          >
             <FieldGroup is='form'>
               <InternalVideoChatWindow />
               <VideoCallWindowPersistence />

@@ -35,7 +35,7 @@ export const TelephonyDefaultHandlerPromptModal = () => {
         <Box fontScale='h3' marginBlockEnd='x4'>
           {t('telephony.defaultHandlerPrompt.title')}
         </Box>
-        <Box fontScale='p2' marginBlockEnd='x4'>
+        <Box fontScale='p2' marginBlockEnd='x16'>
           {t('telephony.defaultHandlerPrompt.body')}
         </Box>
         {process.platform === 'win32' && (

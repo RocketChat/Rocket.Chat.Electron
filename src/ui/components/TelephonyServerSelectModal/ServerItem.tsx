@@ -84,7 +84,7 @@ export const ServerItem = ({
         )}
       </Box>
       <Box marginInlineStart='x12' flexGrow={1} overflow='hidden'>
-        <Box fontScale='p2b' withTruncatedText>
+        <Box fontScale='p2b' color='default' withTruncatedText>
           {displayTitle}
         </Box>
         <Box fontScale='c1' color='hint' withTruncatedText>

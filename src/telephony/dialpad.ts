@@ -1,5 +1,6 @@
 import type { WebContents } from 'electron';
 
+import { DEEP_LINKS_SERVER_FOCUSED } from '../deepLinks/actions';
 import { select, dispatch, listen } from '../store';
 import {
   TELEPHONY_SERVER_SELECT_OPEN,
@@ -113,6 +114,8 @@ export const openTelephonyDialpad = async (
     if (!serverUrl) {
       return;
     }
+
+    dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
 
     const webContents = await getTelephonyWebContents(
       serverUrl,

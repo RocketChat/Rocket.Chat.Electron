@@ -3,6 +3,7 @@ import type { AnyAction } from 'redux';
 import type { Download } from '../downloads/common';
 import type { OutlookEventsResponse } from '../outlookCalendar/type';
 import type { Server } from '../servers/common';
+import type { TelephonyDiagnostics } from '../telephony/diagnostics';
 import type { SystemIdleState } from '../userPresence/common';
 
 type ChannelToArgsMap = {
@@ -137,6 +138,7 @@ type ChannelToArgsMap = {
   'screen-picker/source-responded': (sourceId: string | null) => void;
   'screen-picker/screen-recording-is-permission-granted': () => boolean;
   'screen-picker/open-url': (url: string) => void;
+  'telephony/get-diagnostics': () => TelephonyDiagnostics;
 };
 
 export type Channel = keyof ChannelToArgsMap;

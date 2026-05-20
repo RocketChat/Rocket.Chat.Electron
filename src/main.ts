@@ -44,6 +44,7 @@ import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
 import { applySystemCertificates } from './systemCertificates';
+import { setupTelephonyIpc } from './telephony/ipc';
 import {
   setupTelephonyDefaultHandlerPrompt,
   setupTelephonyGlobalShortcut,
@@ -128,6 +129,7 @@ const start = async (): Promise<void> => {
   setupTelephonyGlobalShortcut();
   setupTelephonyProtocolHandlers();
   setupTelephonyDefaultHandlerPrompt();
+  setupTelephonyIpc();
   await setupNavigation();
   setupPowerMonitor();
   await setupUpdates();

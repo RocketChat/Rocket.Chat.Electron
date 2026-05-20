@@ -14,6 +14,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED } from '../../../actions';
+import { TelephonyDiagnostics } from './TelephonyDiagnostics';
 
 type TelephonyProps = {
   className?: string;
@@ -53,6 +54,7 @@ export const Telephony = (props: TelephonyProps) => {
       <FieldRow>
         <FieldHint>{t('settings.options.telephony.description')}</FieldHint>
       </FieldRow>
+      {isTelephonyEnabled && <TelephonyDiagnostics />}
     </Field>
   );
 };

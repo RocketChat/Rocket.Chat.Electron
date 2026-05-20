@@ -166,9 +166,9 @@
       "title": "Workspace version unsupported"
     },
     "telephonySelectServer": {
-      "title": "Select Server",
-      "message": "Which server should handle this call?",
-      "rememberChoice": "Remember this choice"
+      "title": "Choose a workspace for this call",
+      "message": "Which workspace should take this call?",
+      "rememberChoice": "Remember for future calls"
     },
     "clearLogs": {
       "title": "Clear Logs",
@@ -302,7 +302,7 @@
       },
       "telephony": {
         "title": "Telephony",
-        "description": "Enable the telephony feature. When off, the global shortcut and tel: deep links are disabled and the related settings below are unavailable."
+        "description": "Let Rocket.Chat handle phone-call shortcuts and tel: or callto: links. Turn off to disable the shortcut, ignore phone-link clicks, and hide the settings below."
       },
       "telephonyServer": {
         "title": "Telephony Server",
@@ -310,14 +310,15 @@
         "auto": "Auto (ask each time)"
       },
       "telephonyShortcut": {
-        "title": "Telephony Global Shortcut",
-        "description": "Use this shortcut from anywhere to bring Rocket.Chat to the front and open the telephony dial pad. If your clipboard contains text that looks like a phone number, Rocket.Chat pre-fills it.",
-        "placeholder": "CommandOrControl+Shift+D",
-        "capturePlaceholder": "Press keys...",
+        "title": "Global call shortcut",
+        "description": "Press this shortcut from any app to bring Rocket.Chat to the front and open the dial pad. If a phone number is on your clipboard, it gets pre-filled.",
+        "placeholder": "Not set — click Save to record",
+        "capturePlaceholder": "Press shortcut keys…",
         "save": "Save",
         "clear": "Clear",
         "registered": "Shortcut registered",
-        "reservedAccelerator": "{{accelerator}} is reserved by Rocket.Chat or your operating system."
+        "reservedByApp": "{{accelerator}} is already used by Rocket.Chat. Pick a different combination.",
+        "reservedByOS": "{{accelerator}} is reserved by your operating system. Pick a different combination."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
@@ -680,15 +681,15 @@
   },
   "telephony": {
     "defaultHandlerPrompt": {
-      "title": "Set Rocket.Chat as the default phone-link handler",
-      "body": "Rocket.Chat is now registered as a handler for tel: and callto: links.",
-      "body2": "Other apps like Microsoft Teams, Zoom, or Skype may already be set as your system default. To finish the setup, open your operating system's default-apps settings and pick Rocket.Chat for tel and callto.",
-      "openSettings": "Open System Settings",
+      "title": "Rocket.Chat now opens phone links",
+      "body": "tel: and callto: links from your browser or other apps can now open Rocket.Chat.",
+      "body2": "Your system may still send these links to another app like Microsoft Teams, Zoom, or Skype. Open default-apps settings and pick Rocket.Chat for tel: and callto: to finish.",
+      "openSettings": "Open default-apps settings",
       "dismiss": "Got it"
     },
     "diagnostics": {
-      "title": "Default-handler diagnostics",
-      "subtitle": "Verify Rocket.Chat is registered as the system handler for telephony links.",
+      "title": "Phone-link handler diagnostics",
+      "subtitle": "Check whether your system routes tel: and callto: links to Rocket.Chat.",
       "refresh": "Refresh",
       "copy": "Copy diagnostics",
       "copied": "Copied",
@@ -715,8 +716,8 @@
         "windows.capabilities.callto": "Windows Capabilities map click-to-conference (callto:) to Rocket.Chat",
         "windows.progid.tel": "Windows ProgID for click-to-call (tel:) launches Rocket.Chat",
         "windows.progid.callto": "Windows ProgID for click-to-conference (callto:) launches Rocket.Chat",
-        "darwin.handler.tel": "macOS verifies this Rocket.Chat handles click-to-call (tel:)",
-        "darwin.handler.callto": "macOS verifies this Rocket.Chat handles click-to-conference (callto:)",
+        "darwin.handler.tel": "macOS confirms Rocket.Chat handles click-to-call (tel:)",
+        "darwin.handler.callto": "macOS confirms Rocket.Chat handles click-to-conference (callto:)",
         "linux.xdg.tel": "Linux xdg-mime points click-to-call (tel:) at Rocket.Chat",
         "linux.xdg.callto": "Linux xdg-mime points click-to-conference (callto:) at Rocket.Chat"
       }

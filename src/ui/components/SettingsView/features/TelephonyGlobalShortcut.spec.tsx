@@ -8,7 +8,22 @@ import { TELEPHONY_GLOBAL_SHORTCUT_CONFIG_SET } from '../../../../telephony/acti
 import { TelephonyGlobalShortcut } from './TelephonyGlobalShortcut';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (
+      key: string,
+      options?: { defaultValue?: string } & Record<string, unknown>
+    ) => {
+      if (!options) return key;
+      const { defaultValue, ...rest } = options;
+      if (defaultValue !== undefined && Object.keys(rest).length === 0) {
+        return defaultValue;
+      }
+      const interpolated = Object.entries(rest)
+        .map(([name, value]) => `${name}=${String(value)}`)
+        .join(' ');
+      return interpolated ? `${key} ${interpolated}` : key;
+    },
+  }),
 }));
 
 jest.mock('@rocket.chat/fuselage', () => ({
@@ -60,8 +75,18 @@ const defaultState: PartialState = {
   },
 };
 
+const originalPlatform = process.platform;
+
 describe('TelephonyGlobalShortcut', () => {
-  it('saves a manually entered accelerator', () => {
+  beforeAll(() => {
+    Object.defineProperty(process, 'platform', { value: 'linux' });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(process, 'platform', { value: originalPlatform });
+  });
+
+  it('saves an accelerator captured from a key chord', () => {
     const store = makeStore(defaultState);
     const dispatchSpy = jest.spyOn(store, 'dispatch');
 
@@ -71,8 +96,11 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    fireEvent.change(screen.getByTestId('telephony-shortcut-input'), {
-      target: { value: 'CommandOrControl+Shift+D' },
+    const input = screen.getByTestId('telephony-shortcut-input');
+    fireEvent.keyDown(input, {
+      key: 'd',
+      ctrlKey: true,
+      shiftKey: true,
     });
     fireEvent.click(screen.getByTestId('telephony-shortcut-save'));
 
@@ -85,7 +113,7 @@ describe('TelephonyGlobalShortcut', () => {
     });
   });
 
-  it('captures a pressed key chord into Electron accelerator syntax', () => {
+  it('captures a pressed key chord and renders it in the input', () => {
     const store = makeStore(defaultState);
 
     render(
@@ -101,7 +129,7 @@ describe('TelephonyGlobalShortcut', () => {
       shiftKey: true,
     });
 
-    expect(input).toHaveValue('CommandOrControl+Shift+D');
+    expect(input).toHaveValue('Ctrl+Shift+D');
   });
 
   it('shows capture placeholder while the shortcut input is focused', () => {
@@ -169,15 +197,15 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    fireEvent.change(screen.getByTestId('telephony-shortcut-input'), {
-      target: { value: 'CommandOrControl+C' },
+    const input = screen.getByTestId('telephony-shortcut-input');
+    fireEvent.keyDown(input, {
+      key: 'c',
+      ctrlKey: true,
     });
     fireEvent.click(screen.getByTestId('telephony-shortcut-save'));
 
     expect(dispatchSpy).not.toHaveBeenCalled();
-    expect(
-      screen.getByText('settings.options.telephonyShortcut.reservedAccelerator')
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Ctrl\+C/)).toBeInTheDocument();
   });
 
   it('does not save accelerators used by the app menu', () => {
@@ -190,8 +218,10 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    fireEvent.change(screen.getByTestId('telephony-shortcut-input'), {
-      target: { value: 'CommandOrControl+N' },
+    const input = screen.getByTestId('telephony-shortcut-input');
+    fireEvent.keyDown(input, {
+      key: 'n',
+      ctrlKey: true,
     });
     fireEvent.click(screen.getByTestId('telephony-shortcut-save'));
 
@@ -214,12 +244,16 @@ describe('TelephonyGlobalShortcut', () => {
     );
 
     const input = screen.getByTestId('telephony-shortcut-input');
-    fireEvent.change(input, {
-      target: { value: 'CommandOrControl+Shift+E' },
+    fireEvent.keyDown(input, {
+      key: 'e',
+      ctrlKey: true,
+      shiftKey: true,
     });
+    expect(input).toHaveValue('Ctrl+Shift+E');
+
     fireEvent.keyDown(input, { key: 'Escape' });
 
-    expect(input).toHaveValue('CommandOrControl+Shift+D');
+    expect(input).toHaveValue('Ctrl+Shift+D');
     expect(input).toHaveAttribute(
       'placeholder',
       'settings.options.telephonyShortcut.placeholder'

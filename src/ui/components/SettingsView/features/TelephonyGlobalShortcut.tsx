@@ -7,7 +7,7 @@ import {
   FieldRow,
   TextInput,
 } from '@rocket.chat/fuselage';
-import type { ChangeEvent, KeyboardEvent } from 'react';
+import type { KeyboardEvent } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +15,7 @@ import type { Dispatch } from 'redux';
 
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
+import { formatAcceleratorForDisplay } from '../../../../telephony/acceleratorDisplay';
 import { TELEPHONY_GLOBAL_SHORTCUT_CONFIG_SET } from '../../../../telephony/actions';
 import {
   isReservedTelephonyShortcutAccelerator,
@@ -94,8 +95,8 @@ export const TelephonyGlobalShortcut = () => {
       const accelerator = normalizeShortcutText(value);
       if (accelerator && isReservedTelephonyShortcutAccelerator(accelerator)) {
         setValidationError(
-          t('settings.options.telephonyShortcut.reservedAccelerator', {
-            accelerator,
+          t('settings.options.telephonyShortcut.reservedByApp', {
+            accelerator: formatAcceleratorForDisplay(accelerator),
           })
         );
         return;
@@ -112,10 +113,6 @@ export const TelephonyGlobalShortcut = () => {
     },
     [dispatch, t]
   );
-
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setDraftAccelerator(event.currentTarget.value);
-  }, []);
 
   const handleFocus = useCallback(() => {
     setIsCapturingShortcut(true);
@@ -178,13 +175,13 @@ export const TelephonyGlobalShortcut = () => {
           <TextInput
             data-testid='telephony-shortcut-input'
             disabled={!isTelephonyEnabled}
-            value={draftAccelerator}
+            readOnly
+            value={formatAcceleratorForDisplay(draftAccelerator)}
             placeholder={t(
               isCapturingShortcut
                 ? 'settings.options.telephonyShortcut.capturePlaceholder'
                 : 'settings.options.telephonyShortcut.placeholder'
             )}
-            onChange={handleChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}

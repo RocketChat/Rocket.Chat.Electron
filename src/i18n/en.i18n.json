@@ -683,8 +683,10 @@
     "defaultHandlerPrompt": {
       "title": "Rocket.Chat now opens phone links",
       "body": "tel: and callto: links from your browser or other apps can now open Rocket.Chat.",
-      "body2": "Windows still needs your confirmation. On the Default Apps page, tap each link type (tel and callto) and pick Rocket.Chat. You do this once per link type, and Windows prevents apps from setting it for you.",
-      "openSettings": "Open Rocket.Chat default apps",
+      "bodyWindows": "Windows still needs your confirmation. On the Default Apps page, tap each link type (tel and callto) and pick Rocket.Chat. You do this once per link type, and Windows prevents apps from setting it for you.",
+      "bodyLinux": "Other apps may still claim phone links on your system. Open default applications and set Rocket.Chat for tel: and callto: to finish.",
+      "openSettingsWindows": "Open Rocket.Chat default apps",
+      "openSettingsLinux": "Open default applications",
       "dismiss": "Got it"
     },
     "diagnostics": {

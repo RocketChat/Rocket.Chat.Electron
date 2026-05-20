@@ -38,15 +38,25 @@ export const TelephonyDefaultHandlerPromptModal = () => {
         <Box fontScale='p2' marginBlockEnd='x4'>
           {t('telephony.defaultHandlerPrompt.body')}
         </Box>
-        {process.platform !== 'darwin' && (
+        {process.platform === 'win32' && (
           <Box fontScale='p2' marginBlockEnd='x12'>
-            {t('telephony.defaultHandlerPrompt.body2')}
+            {t('telephony.defaultHandlerPrompt.bodyWindows')}
+          </Box>
+        )}
+        {process.platform === 'linux' && (
+          <Box fontScale='p2' marginBlockEnd='x12'>
+            {t('telephony.defaultHandlerPrompt.bodyLinux')}
           </Box>
         )}
         <ButtonGroup stretch>
-          {process.platform !== 'darwin' && (
+          {process.platform === 'win32' && (
             <Button primary onClick={handleOpenSettings}>
-              {t('telephony.defaultHandlerPrompt.openSettings')}
+              {t('telephony.defaultHandlerPrompt.openSettingsWindows')}
+            </Button>
+          )}
+          {process.platform === 'linux' && (
+            <Button primary onClick={handleOpenSettings}>
+              {t('telephony.defaultHandlerPrompt.openSettingsLinux')}
             </Button>
           )}
           <Button primary={process.platform === 'darwin'} onClick={handleClose}>

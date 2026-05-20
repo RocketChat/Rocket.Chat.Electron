@@ -108,10 +108,10 @@ describe('TelephonyDefaultHandlerPromptModal', () => {
       screen.getByText('telephony.defaultHandlerPrompt.body')
     ).toBeInTheDocument();
     expect(
-      screen.getByText('telephony.defaultHandlerPrompt.body2')
+      screen.getByText('telephony.defaultHandlerPrompt.bodyLinux')
     ).toBeInTheDocument();
     expect(
-      screen.getByText('telephony.defaultHandlerPrompt.openSettings')
+      screen.getByText('telephony.defaultHandlerPrompt.openSettingsLinux')
     ).toBeInTheDocument();
     expect(
       screen.getByText('telephony.defaultHandlerPrompt.dismiss')
@@ -128,10 +128,10 @@ describe('TelephonyDefaultHandlerPromptModal', () => {
     );
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
-      screen.queryByText('telephony.defaultHandlerPrompt.body2')
+      screen.queryByText('telephony.defaultHandlerPrompt.bodyLinux')
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText('telephony.defaultHandlerPrompt.openSettings')
+      screen.queryByText('telephony.defaultHandlerPrompt.openSettingsLinux')
     ).not.toBeInTheDocument();
     expect(
       screen.getByText('telephony.defaultHandlerPrompt.dismiss')
@@ -169,7 +169,7 @@ describe('TelephonyDefaultHandlerPromptModal', () => {
     );
 
     fireEvent.click(
-      screen.getByText('telephony.defaultHandlerPrompt.openSettings')
+      screen.getByText('telephony.defaultHandlerPrompt.openSettingsLinux')
     );
 
     expect(dispatchSpy).toHaveBeenCalledTimes(2);

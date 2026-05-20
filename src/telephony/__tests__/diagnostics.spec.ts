@@ -208,6 +208,53 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
     expect(check?.status).toBe('fail');
     expect(check?.details).toBeDefined();
   });
+
+  it('isDefault.tel passes when UserChoice ProgId equals RocketChat.tel', async () => {
+    getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
+      const keyPath: string = args[1] ?? '';
+      if (keyPath.includes('URLAssociations\\tel\\UserChoice')) {
+        return Promise.resolve({
+          stdout: '\n    ProgId    REG_SZ    RocketChat.tel\n',
+          stderr: '',
+        });
+      }
+      return Promise.reject(new Error('not found'));
+    });
+
+    const result = await getTelephonyDiagnostics();
+
+    const check = result.checks.find((c) => c.id === 'isDefault.tel');
+    expect(check?.status).toBe('pass');
+  });
+
+  it('isDefault.tel fails when UserChoice ProgId points to another handler', async () => {
+    getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
+      const keyPath: string = args[1] ?? '';
+      if (keyPath.includes('URLAssociations\\tel\\UserChoice')) {
+        return Promise.resolve({
+          stdout: '\n    ProgId    REG_SZ    MSTeams.Url.tel\n',
+          stderr: '',
+        });
+      }
+      return Promise.reject(new Error('not found'));
+    });
+
+    const result = await getTelephonyDiagnostics();
+
+    const check = result.checks.find((c) => c.id === 'isDefault.tel');
+    expect(check?.status).toBe('fail');
+    expect(check?.details).toContain('MSTeams.Url.tel');
+  });
+
+  it('isDefault.tel fails when no UserChoice ProgId is set', async () => {
+    getExecFileMock().mockRejectedValue(new Error('not found'));
+
+    const result = await getTelephonyDiagnostics();
+
+    const check = result.checks.find((c) => c.id === 'isDefault.tel');
+    expect(check?.status).toBe('fail');
+    expect(check?.details).toContain('UserChoice');
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -22,18 +22,62 @@ export type TelephonyDiagnostics = {
 
 const SCHEMES = ['tel', 'callto'] as const;
 
-const checkIsDefault = (scheme: string): TelephonyDiagnosticCheck => {
+const checkIsDefaultOnWindows = async (
+  scheme: string
+): Promise<TelephonyDiagnosticCheck> => {
+  const id = `isDefault.${scheme}`;
+  const label = `${scheme}: is set to Rocket.Chat`;
+  const expected = `RocketChat.${scheme}`;
+  try {
+    const progId = await queryRegValue(
+      `Software\\Microsoft\\Windows\\Shell\\Associations\\URLAssociations\\${scheme}\\UserChoice`,
+      'ProgId'
+    );
+    if (progId === null) {
+      return {
+        id,
+        label,
+        status: 'fail',
+        details: 'No UserChoice ProgId set; user has not picked a default.',
+      };
+    }
+    return {
+      id,
+      label,
+      status: progId === expected ? 'pass' : 'fail',
+      details:
+        progId === expected ? undefined : `UserChoice ProgId is "${progId}"`,
+    };
+  } catch (err) {
+    return {
+      id,
+      label,
+      status: 'unknown',
+      details: err instanceof Error ? err.message : String(err),
+    };
+  }
+};
+
+const checkIsDefault = async (
+  scheme: string
+): Promise<TelephonyDiagnosticCheck> => {
+  if (process.platform === 'win32') {
+    return checkIsDefaultOnWindows(scheme);
+  }
+
+  const id = `isDefault.${scheme}`;
+  const label = `${scheme}: is set to Rocket.Chat`;
   try {
     const isDefault = app.isDefaultProtocolClient(scheme);
     return {
-      id: `isDefault.${scheme}`,
-      label: `${scheme}:// is set to Rocket.Chat`,
+      id,
+      label,
       status: isDefault ? 'pass' : 'fail',
     };
   } catch (err) {
     return {
-      id: `isDefault.${scheme}`,
-      label: `${scheme}:// is set to Rocket.Chat`,
+      id,
+      label,
       status: 'unknown',
       details: err instanceof Error ? err.message : String(err),
     };
@@ -289,7 +333,9 @@ const getLinuxChecks = (): Promise<TelephonyDiagnosticCheck[]> =>
 
 export const getTelephonyDiagnostics =
   async (): Promise<TelephonyDiagnostics> => {
-    const isDefaultChecks = SCHEMES.map((scheme) => checkIsDefault(scheme));
+    const isDefaultChecks = await Promise.all(
+      SCHEMES.map((scheme) => checkIsDefault(scheme))
+    );
 
     let platformChecks: TelephonyDiagnosticCheck[] = [];
     try {

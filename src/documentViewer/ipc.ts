@@ -15,10 +15,17 @@ export const startDocumentViewerHandler = (): void => {
       if (!allowedProtocols.includes(validUrl.protocol)) {
         return;
       }
+
+      const eventOrigin = new URL(event.getURL()).origin;
+
+      if (validUrl.protocol === 'blob:') {
+        if (validUrl.origin === 'null' || validUrl.origin !== eventOrigin) {
+          return;
+        }
+      }
+
       const server = select(({ servers }) =>
-        servers.find(
-          (s) => new URL(s.url).origin === new URL(event.getURL()).origin
-        )
+        servers.find((s) => new URL(s.url).origin === eventOrigin)
       );
       if (!server) {
         return;

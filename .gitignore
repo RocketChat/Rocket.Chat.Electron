@@ -38,6 +38,9 @@ coderabbit-update-*/
 # mastermind (local knowledge base)
 .knowledge/
 
+# OpenWolf local tooling state
+.wolf/
+
 # MSI test harness artifacts
 scripts/msi-test/logs/
 scripts/msi-test/.known_hosts

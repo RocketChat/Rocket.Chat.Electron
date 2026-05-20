@@ -311,18 +311,31 @@ let unsubscribeFromDefaultHandlerPrompt: (() => void) | null = null;
 let unsubscribeFromDefaultHandlerSettingsListener: (() => void) | null = null;
 let lastTelephonyEnabledForPrompt = false;
 
+const WINDOWS_REGISTERED_APP_NAME = 'Rocket.Chat';
+
+const isWindowsPerMachineInstall = (): boolean =>
+  process.execPath.toLowerCase().includes('\\program files');
+
+const buildWindowsDefaultAppsUri = (): string => {
+  const param = isWindowsPerMachineInstall()
+    ? 'registeredAppMachine'
+    : 'registeredAppUser';
+  return `ms-settings:defaultapps?${param}=${encodeURIComponent(
+    WINDOWS_REGISTERED_APP_NAME
+  )}`;
+};
+
 const openSystemDefaultAppsSettings = (): void => {
   if (process.platform === 'win32') {
     try {
-      void shell.openExternal('ms-settings:defaultapps');
+      void shell.openExternal(buildWindowsDefaultAppsUri());
     } catch (error) {
       logger.warn('Failed to open Windows default apps settings');
       logger.warn(error);
     }
   } else if (process.platform === 'darwin') {
-    void shell.openExternal(
-      'x-apple.systempreferences:com.apple.preferences.FaceTime'
-    );
+    // macOS: Launch Services already claimed tel: via app.setAsDefaultProtocolClient;
+    // no System Settings pane exists for default tel handler.
   } else if (process.platform === 'linux') {
     try {
       const desktop = (process.env.XDG_CURRENT_DESKTOP ?? '')
@@ -378,10 +391,11 @@ export const setupTelephonyDefaultHandlerPrompt = (): void => {
   unsubscribeFromDefaultHandlerPrompt = watch(
     selectIsTelephonyEnabled,
     (enabled) => {
-      if (enabled && !lastTelephonyEnabledForPrompt) {
+      const shouldPrompt = enabled && !lastTelephonyEnabledForPrompt;
+      lastTelephonyEnabledForPrompt = enabled;
+      if (shouldPrompt) {
         dispatch({ type: TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN });
       }
-      lastTelephonyEnabledForPrompt = enabled;
     }
   );
 

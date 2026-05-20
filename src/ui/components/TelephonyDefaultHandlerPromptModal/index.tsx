@@ -38,14 +38,18 @@ export const TelephonyDefaultHandlerPromptModal = () => {
         <Box fontScale='p2' marginBlockEnd='x4'>
           {t('telephony.defaultHandlerPrompt.body')}
         </Box>
-        <Box fontScale='p2' marginBlockEnd='x12'>
-          {t('telephony.defaultHandlerPrompt.body2')}
-        </Box>
+        {process.platform !== 'darwin' && (
+          <Box fontScale='p2' marginBlockEnd='x12'>
+            {t('telephony.defaultHandlerPrompt.body2')}
+          </Box>
+        )}
         <ButtonGroup stretch>
-          <Button primary onClick={handleOpenSettings}>
-            {t('telephony.defaultHandlerPrompt.openSettings')}
-          </Button>
-          <Button onClick={handleClose}>
+          {process.platform !== 'darwin' && (
+            <Button primary onClick={handleOpenSettings}>
+              {t('telephony.defaultHandlerPrompt.openSettings')}
+            </Button>
+          )}
+          <Button primary={process.platform === 'darwin'} onClick={handleClose}>
             {t('telephony.defaultHandlerPrompt.dismiss')}
           </Button>
         </ButtonGroup>

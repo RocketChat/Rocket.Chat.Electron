@@ -60,8 +60,28 @@ const closedState = (): PartialState => ({
   } as unknown as RootState['dialogs'],
 });
 
+const setPlatform = (platform: NodeJS.Platform): (() => void) => {
+  const original = process.platform;
+  Object.defineProperty(process, 'platform', {
+    value: platform,
+    configurable: true,
+  });
+  return () =>
+    Object.defineProperty(process, 'platform', {
+      value: original,
+      configurable: true,
+    });
+};
+
 describe('TelephonyDefaultHandlerPromptModal', () => {
+  let restorePlatform: () => void;
+
+  afterEach(() => {
+    restorePlatform?.();
+  });
+
   it('renders nothing when isOpen=false', () => {
+    restorePlatform = setPlatform('linux');
     const store = makeStore(closedState());
     const { container } = render(
       <Provider store={store}>
@@ -72,7 +92,8 @@ describe('TelephonyDefaultHandlerPromptModal', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders title and both body paragraphs when isOpen=true', () => {
+  it('renders title, body, body2 and both buttons on non-darwin platforms', () => {
+    restorePlatform = setPlatform('linux');
     const store = makeStore(openState());
     render(
       <Provider store={store}>
@@ -89,9 +110,36 @@ describe('TelephonyDefaultHandlerPromptModal', () => {
     expect(
       screen.getByText('telephony.defaultHandlerPrompt.body2')
     ).toBeInTheDocument();
+    expect(
+      screen.getByText('telephony.defaultHandlerPrompt.openSettings')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('telephony.defaultHandlerPrompt.dismiss')
+    ).toBeInTheDocument();
+  });
+
+  it('hides body2 and openSettings button on darwin', () => {
+    restorePlatform = setPlatform('darwin');
+    const store = makeStore(openState());
+    render(
+      <Provider store={store}>
+        <TelephonyDefaultHandlerPromptModal />
+      </Provider>
+    );
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(
+      screen.queryByText('telephony.defaultHandlerPrompt.body2')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('telephony.defaultHandlerPrompt.openSettings')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('telephony.defaultHandlerPrompt.dismiss')
+    ).toBeInTheDocument();
   });
 
   it('dismiss button dispatches TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE only', () => {
+    restorePlatform = setPlatform('linux');
     const store = makeStore(openState());
     const dispatchSpy = jest.spyOn(store, 'dispatch');
 
@@ -110,6 +158,7 @@ describe('TelephonyDefaultHandlerPromptModal', () => {
   });
 
   it('open settings button dispatches OPEN_SETTINGS_CLICKED then CLOSE in order', () => {
+    restorePlatform = setPlatform('linux');
     const store = makeStore(openState());
     const dispatchSpy = jest.spyOn(store, 'dispatch');
 

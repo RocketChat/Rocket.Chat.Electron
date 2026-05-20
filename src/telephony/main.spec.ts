@@ -671,6 +671,7 @@ describe('telephony protocol handlers gate', () => {
 
 describe('telephony default-handler prompt', () => {
   const originalPlatform = process.platform;
+  const originalExecPath = process.execPath;
 
   beforeEach(() => {
     teardownTelephonyDefaultHandlerPrompt();
@@ -685,6 +686,11 @@ describe('telephony default-handler prompt', () => {
     teardownTelephonyDefaultHandlerPrompt();
     Object.defineProperty(process, 'platform', {
       value: originalPlatform,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(process, 'execPath', {
+      value: originalExecPath,
       writable: true,
       configurable: true,
     });
@@ -805,9 +811,15 @@ describe('telephony default-handler prompt', () => {
     );
   });
 
-  it('OPEN_SETTINGS_CLICKED on win32 opens ms-settings:defaultapps via shell.openExternal', () => {
+  it('OPEN_SETTINGS_CLICKED on win32 per-user install opens registeredAppUser deep link', () => {
     Object.defineProperty(process, 'platform', {
       value: 'win32',
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(process, 'execPath', {
+      value:
+        'C:\\Users\\Jean\\AppData\\Local\\Programs\\Rocket.Chat\\Rocket.Chat.exe',
       writable: true,
       configurable: true,
     });
@@ -817,11 +829,32 @@ describe('telephony default-handler prompt', () => {
     settingsCallback();
 
     expect(shellMock.openExternal).toHaveBeenCalledWith(
-      'ms-settings:defaultapps'
+      'ms-settings:defaultapps?registeredAppUser=Rocket.Chat'
     );
   });
 
-  it('OPEN_SETTINGS_CLICKED on darwin opens FaceTime prefs via shell.openExternal', () => {
+  it('OPEN_SETTINGS_CLICKED on win32 per-machine install opens registeredAppMachine deep link', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'win32',
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(process, 'execPath', {
+      value: 'C:\\Program Files\\Rocket.Chat\\Rocket.Chat.exe',
+      writable: true,
+      configurable: true,
+    });
+
+    setupTelephonyDefaultHandlerPrompt();
+    const settingsCallback = listenMock.mock.calls[0][1] as () => void;
+    settingsCallback();
+
+    expect(shellMock.openExternal).toHaveBeenCalledWith(
+      'ms-settings:defaultapps?registeredAppMachine=Rocket.Chat'
+    );
+  });
+
+  it('OPEN_SETTINGS_CLICKED on darwin is a no-op (Launch Services handles it)', () => {
     Object.defineProperty(process, 'platform', {
       value: 'darwin',
       writable: true,
@@ -832,9 +865,7 @@ describe('telephony default-handler prompt', () => {
     const settingsCallback = listenMock.mock.calls[0][1] as () => void;
     settingsCallback();
 
-    expect(shellMock.openExternal).toHaveBeenCalledWith(
-      'x-apple.systempreferences:com.apple.preferences.FaceTime'
-    );
+    expect(shellMock.openExternal).not.toHaveBeenCalled();
   });
 
   it('OPEN_SETTINGS_CLICKED on linux with GNOME desktop spawns gnome-control-center', () => {

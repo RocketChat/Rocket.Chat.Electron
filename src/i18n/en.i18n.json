@@ -683,8 +683,8 @@
     "defaultHandlerPrompt": {
       "title": "Rocket.Chat now opens phone links",
       "body": "tel: and callto: links from your browser or other apps can now open Rocket.Chat.",
-      "body2": "Your system may still send these links to another app like Microsoft Teams, Zoom, or Skype. Open default-apps settings and pick Rocket.Chat for tel: and callto: to finish.",
-      "openSettings": "Open default-apps settings",
+      "body2": "Windows still needs your confirmation. On the Default Apps page, tap each link type (tel and callto) and pick Rocket.Chat. You do this once per link type, and Windows prevents apps from setting it for you.",
+      "openSettings": "Open Rocket.Chat default apps",
       "dismiss": "Got it"
     },
     "diagnostics": {

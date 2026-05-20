@@ -253,7 +253,7 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
 
     const check = result.checks.find((c) => c.id === 'isDefault.tel');
     expect(check?.status).toBe('fail');
-    expect(check?.details).toContain('UserChoice');
+    expect(check?.details).toContain('default apps');
   });
 });
 

@@ -38,7 +38,8 @@ const checkIsDefaultOnWindows = async (
         id,
         label,
         status: 'fail',
-        details: 'No UserChoice ProgId set; user has not picked a default.',
+        details:
+          'Windows has not been told which app to use for this link. Open default apps and pick Rocket.Chat.',
       };
     }
     return {
@@ -46,7 +47,9 @@ const checkIsDefaultOnWindows = async (
       label,
       status: progId === expected ? 'pass' : 'fail',
       details:
-        progId === expected ? undefined : `UserChoice ProgId is "${progId}"`,
+        progId === expected
+          ? undefined
+          : `Currently handled by another app (${progId}). Open default apps to switch to Rocket.Chat.`,
     };
   } catch (err) {
     return {

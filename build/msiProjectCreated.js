@@ -204,7 +204,14 @@ exports.default = async function msiProjectCreated(projectFile) {
   const setDefaultAssocInstallCondition =
     'SET_DEFAULT_ASSOCIATIONS = "1" AND NOT Installed AND NOT REMOVE~="ALL"';
 
-  const setDefaultAssocUninstallCondition = 'REMOVE~="ALL"';
+  // Skip cleanup during a major upgrade — when the old MSI's uninstall
+  // sequence runs as part of RemoveExistingProducts, UPGRADINGPRODUCTCODE
+  // is populated with the new product's code. Wiping the policy mid-upgrade
+  // would leave a clean install of the new MSI without the policy (the new
+  // install only re-writes when SET_DEFAULT_ASSOCIATIONS=1 is passed again,
+  // which admins typically forget on upgrade).
+  const setDefaultAssocUninstallCondition =
+    'REMOVE~="ALL" AND UPGRADINGPRODUCTCODE=""';
 
   const sequenceEntries = `
       <Custom Action="SetWriteUpdateJsonData" After="InstallFiles">${installCondition}</Custom>

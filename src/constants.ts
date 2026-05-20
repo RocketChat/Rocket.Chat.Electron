@@ -1,0 +1,1 @@
+export const DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB = 10;

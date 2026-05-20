@@ -1,5 +1,6 @@
 import type { Certificate } from 'electron';
 
+import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../constants';
 import type { Download } from '../downloads/common';
 import type { Server } from '../servers/common';
 import type { WindowState } from '../ui/common';
@@ -207,6 +208,6 @@ export const migrations = {
   }),
   '>=4.14.0': (before: PersistableValues_4_13_0): PersistableValues_4_14_0 => ({
     ...before,
-    e2ePdfPreviewSizeLimit: 10,
+    e2ePdfPreviewSizeLimit: DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB,
   }),
 };

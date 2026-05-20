@@ -61,6 +61,8 @@ export const E2ePdfPreviewSizeLimit = (props: E2ePdfPreviewSizeLimitProps) => {
           <InputBox
             id={id}
             type='number'
+            min={1}
+            step={1}
             value={e2ePdfPreviewSizeLimit}
             onChange={handleChange}
             style={{ maxWidth: '5rem' }}

@@ -93,6 +93,102 @@ exports.default = async function msiProjectCreated(projectFile) {
           Err.Raise Err.Number, "WriteUpdateJson", "Failed to write " & filePath & ": " & Err.Description
         End If
       ]]>
+    </CustomAction>
+
+    <!-- SET_DEFAULT_ASSOCIATIONS: enterprise property to wire the Windows
+         "DefaultAssociationsConfiguration" policy at the bundled XML so
+         tel:/callto: default to Rocket.Chat without admins authoring the
+         policy XML themselves. Active Directory GPOs still override this
+         locally-written value at the next gpupdate cycle. -->
+    <Property Id="SET_DEFAULT_ASSOCIATIONS" Secure="yes"/>
+
+    <CustomAction Id="SetWriteDefaultAssociationsPolicyData"
+      Property="WriteDefaultAssociationsPolicy"
+      Value="[APPLICATIONFOLDER]"
+      Execute="immediate"
+      Return="check"/>
+
+    <CustomAction Id="SetCleanupDefaultAssociationsPolicyData"
+      Property="CleanupDefaultAssociationsPolicy"
+      Value="[APPLICATIONFOLDER]"
+      Execute="immediate"
+      Return="check"/>
+
+    <CustomAction Id="WriteDefaultAssociationsPolicy"
+      Script="vbscript"
+      Execute="deferred"
+      Impersonate="no"
+      Return="check">
+      <![CDATA[
+        On Error Resume Next
+        Dim shell, installDir, xmlPath, policyKey, sentinelKey, writeErr
+
+        Set shell = CreateObject("WScript.Shell")
+        installDir = Session.Property("CustomActionData")
+
+        If Len(installDir) = 0 Then
+          Err.Raise 1, "WriteDefaultAssociationsPolicy", "CustomActionData is empty — SetWriteDefaultAssociationsPolicyData did not run"
+        End If
+
+        If Right(installDir, 1) <> "\\" Then installDir = installDir & "\\"
+
+        xmlPath = installDir & "resources\\RocketChatDefaultAppAssociations.xml"
+        policyKey = "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System\\DefaultAssociationsConfiguration"
+        sentinelKey = "HKLM\\SOFTWARE\\Rocket.Chat\\InstallState\\WroteDefaultAssociationsPolicy"
+
+        shell.RegWrite policyKey, xmlPath, "REG_SZ"
+        If Err.Number <> 0 Then
+          writeErr = Err.Description
+          Err.Clear
+          Err.Raise 1, "WriteDefaultAssociationsPolicy", "Failed to write " & policyKey & ": " & writeErr
+        End If
+
+        shell.RegWrite sentinelKey, "1", "REG_SZ"
+        If Err.Number <> 0 Then
+          writeErr = Err.Description
+          Err.Clear
+          Err.Raise 1, "WriteDefaultAssociationsPolicy", "Failed to write " & sentinelKey & ": " & writeErr
+        End If
+      ]]>
+    </CustomAction>
+
+    <CustomAction Id="CleanupDefaultAssociationsPolicy"
+      Script="vbscript"
+      Execute="deferred"
+      Impersonate="no"
+      Return="check">
+      <![CDATA[
+        On Error Resume Next
+        Dim shell, installDir, expectedXmlPath, policyKey, sentinelKey, sentinelValue, currentValue
+
+        Set shell = CreateObject("WScript.Shell")
+        installDir = Session.Property("CustomActionData")
+
+        If Len(installDir) > 0 Then
+          If Right(installDir, 1) <> "\\" Then installDir = installDir & "\\"
+          expectedXmlPath = installDir & "resources\\RocketChatDefaultAppAssociations.xml"
+          policyKey = "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System\\DefaultAssociationsConfiguration"
+          sentinelKey = "HKLM\\SOFTWARE\\Rocket.Chat\\InstallState\\WroteDefaultAssociationsPolicy"
+
+          sentinelValue = ""
+          sentinelValue = shell.RegRead(sentinelKey)
+          Err.Clear
+
+          If sentinelValue = "1" Then
+            currentValue = ""
+            currentValue = shell.RegRead(policyKey)
+            Err.Clear
+
+            If currentValue = expectedXmlPath Then
+              shell.RegDelete policyKey
+              Err.Clear
+            End If
+
+            shell.RegDelete sentinelKey
+            Err.Clear
+          End If
+        End If
+      ]]>
     </CustomAction>`;
 
   // -- 2. Scheduling entries (only during install, not uninstall) --
@@ -105,9 +201,18 @@ exports.default = async function msiProjectCreated(projectFile) {
   const installCondition =
     'DISABLE_AUTO_UPDATES = "1" AND NOT Installed AND NOT REMOVE~="ALL"';
 
+  const setDefaultAssocInstallCondition =
+    'SET_DEFAULT_ASSOCIATIONS = "1" AND NOT Installed AND NOT REMOVE~="ALL"';
+
+  const setDefaultAssocUninstallCondition = 'REMOVE~="ALL"';
+
   const sequenceEntries = `
       <Custom Action="SetWriteUpdateJsonData" After="InstallFiles">${installCondition}</Custom>
-      <Custom Action="WriteUpdateJson" After="SetWriteUpdateJsonData">${installCondition}</Custom>`;
+      <Custom Action="WriteUpdateJson" After="SetWriteUpdateJsonData">${installCondition}</Custom>
+      <Custom Action="SetWriteDefaultAssociationsPolicyData" After="InstallFiles">${setDefaultAssocInstallCondition}</Custom>
+      <Custom Action="WriteDefaultAssociationsPolicy" After="SetWriteDefaultAssociationsPolicyData">${setDefaultAssocInstallCondition}</Custom>
+      <Custom Action="SetCleanupDefaultAssociationsPolicyData" Before="RemoveFiles">${setDefaultAssocUninstallCondition}</Custom>
+      <Custom Action="CleanupDefaultAssociationsPolicy" After="SetCleanupDefaultAssociationsPolicyData">${setDefaultAssocUninstallCondition}</Custom>`;
 
   // -- 3. Inject into the WiX XML --
 
@@ -146,6 +251,41 @@ exports.default = async function msiProjectCreated(projectFile) {
   if (!xml.includes('SetWriteUpdateJsonData')) {
     throw new Error(
       `msiProjectCreated: failed to inject SetWriteUpdateJsonData custom action into WiX project. ` +
+        `The generated .wxs structure may have changed — check ${projectFile}`
+    );
+  }
+
+  if (!xml.includes('SET_DEFAULT_ASSOCIATIONS')) {
+    throw new Error(
+      `msiProjectCreated: failed to inject SET_DEFAULT_ASSOCIATIONS into WiX project. ` +
+        `The generated .wxs structure may have changed — check ${projectFile}`
+    );
+  }
+
+  if (!xml.includes('WriteDefaultAssociationsPolicy')) {
+    throw new Error(
+      `msiProjectCreated: failed to inject WriteDefaultAssociationsPolicy custom action into WiX project. ` +
+        `The generated .wxs structure may have changed — check ${projectFile}`
+    );
+  }
+
+  if (!xml.includes('CleanupDefaultAssociationsPolicy')) {
+    throw new Error(
+      `msiProjectCreated: failed to inject CleanupDefaultAssociationsPolicy custom action into WiX project. ` +
+        `The generated .wxs structure may have changed — check ${projectFile}`
+    );
+  }
+
+  if (!xml.includes('SetWriteDefaultAssociationsPolicyData')) {
+    throw new Error(
+      `msiProjectCreated: failed to inject SetWriteDefaultAssociationsPolicyData custom action into WiX project. ` +
+        `The generated .wxs structure may have changed — check ${projectFile}`
+    );
+  }
+
+  if (!xml.includes('SetCleanupDefaultAssociationsPolicyData')) {
+    throw new Error(
+      `msiProjectCreated: failed to inject SetCleanupDefaultAssociationsPolicyData custom action into WiX project. ` +
         `The generated .wxs structure may have changed — check ${projectFile}`
     );
   }

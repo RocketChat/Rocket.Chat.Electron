@@ -47,6 +47,41 @@ updates on its own.
 The property is applied during install. On uninstall, `update.json` is removed
 together with the rest of the installation directory.
 
+### `SET_DEFAULT_ASSOCIATIONS`
+
+Wires the bundled default-app associations XML into the Windows
+"DefaultAssociationsConfiguration" policy so that `tel:` and `callto:` links
+open Rocket.Chat without requiring each user to choose it in Settings →
+Default Apps.
+
+```cmd
+msiexec /i rocketchat-<version>-win-x64.msi SET_DEFAULT_ASSOCIATIONS=1 /qn
+```
+
+When set, the installer:
+
+- Writes `HKLM\SOFTWARE\Policies\Microsoft\Windows\System` value
+  `DefaultAssociationsConfiguration` = `%ProgramFiles%\Rocket.Chat\resources\RocketChatDefaultAppAssociations.xml`.
+- Writes a sentinel `HKLM\SOFTWARE\Rocket.Chat\InstallState!WroteDefaultAssociationsPolicy = "1"`.
+
+On uninstall the policy value is removed only if the sentinel says we wrote
+it AND it still points at our XML; other values under the `System` policy
+key are left untouched.
+
+**Important caveats**:
+
+- This is the same registry value an Active Directory GPO writes. If your
+  domain already deploys a `Set a default associations configuration file`
+  GPO, that GPO wins at the next `gpupdate /force` cycle and overwrites the
+  installer's value. Use the property only on machines that are *not*
+  managed by such a GPO; managed machines should rely on the GPO instead
+  (see "Default app associations" below).
+- The policy is read by Windows at user logon. Existing user profiles keep
+  their current default until the next logon; brand-new profiles pick up
+  Rocket.Chat immediately.
+- This property is MSI-only. The per-user NSIS installer does not expose
+  it.
+
 ## SCCM / MECM deployment
 
 The MSI runs correctly under `NT AUTHORITY\SYSTEM`. Typical deployment
@@ -89,3 +124,78 @@ It should contain:
   "autoUpdate": false
 }
 ```
+
+## Default app associations (tel:/callto:)
+
+Windows 10 1803+ protects per-user file/protocol defaults with a SHA256
+"UserChoice" hash bound to the user SID + scheme + ProgId, and the User
+Choice Protection Driver (UCPD) introduced in March 2024 blocks all
+user-mode writes to those keys. As a result, **no installer or app — ours
+included — can set itself as the default `tel:` or `callto:` handler
+without the user picking it from Settings → Default Apps**.
+
+The supported automation path is the per-machine policy registry value
+`HKLM\SOFTWARE\Policies\Microsoft\Windows\System!DefaultAssociationsConfiguration`,
+which Windows reads at user logon and applies to the UserChoice keys on
+the user's behalf. The installer ships a ready-made XML for this purpose
+at:
+
+```
+%ProgramFiles%\Rocket.Chat\resources\RocketChatDefaultAppAssociations.xml
+```
+
+containing:
+
+```xml
+<DefaultAssociations>
+  <Association Identifier="tel"    ProgId="RocketChat.tel"    ApplicationName="Rocket.Chat" />
+  <Association Identifier="callto" ProgId="RocketChat.callto" ApplicationName="Rocket.Chat" />
+</DefaultAssociations>
+```
+
+Three channels can apply this XML at scale.
+
+### Group Policy (Active Directory)
+
+1. Group Policy Management → edit your target GPO.
+2. **Computer Configuration → Administrative Templates → Windows Components → File Explorer → "Set a default associations configuration file"**.
+3. Set the policy to **Enabled** and point it at the XML — either the
+   bundled path above (each machine has its own copy) or a UNC share with
+   the same contents.
+4. `gpupdate /force` and log out / log back in. The diagnostics panel in
+   Rocket.Chat → Settings → Voice & Video → Telephony → Diagnostics should
+   show `isDefault.tel` and `isDefault.callto` as pass.
+
+The registry equivalent (writable directly by the installer when
+`SET_DEFAULT_ASSOCIATIONS=1` is passed; see above):
+
+```cmd
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v DefaultAssociationsConfiguration /t REG_SZ /d "%ProgramFiles%\Rocket.Chat\resources\RocketChatDefaultAppAssociations.xml" /f
+```
+
+### Intune / MDM
+
+For workgroup / Intune-only fleets, deploy the same XML via the
+`ApplicationDefaults` CSP:
+
+- OMA-URI: `./Vendor/MSFT/Policy/Config/ApplicationDefaults/DefaultAssociationsConfiguration`
+- Data type: String
+- Value: Base64-encoded contents of `RocketChatDefaultAppAssociations.xml`
+
+### DISM (image deployment)
+
+For MDT / SCCM image builds:
+
+```cmd
+dism /Online /Import-DefaultAppAssociations:"%ProgramFiles%\Rocket.Chat\resources\RocketChatDefaultAppAssociations.xml"
+```
+
+This applies the associations to **new** user profiles created after the
+import; existing profiles are not modified.
+
+### Precedence
+
+GPO and MDM-driven policy refreshes overwrite any value the installer
+writes via `SET_DEFAULT_ASSOCIATIONS=1`. If your environment uses both,
+treat the installer flag as a fallback for unmanaged machines only and
+rely on the GPO/CSP for managed ones.

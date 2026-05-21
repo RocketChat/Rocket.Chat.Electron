@@ -111,6 +111,13 @@ making Rocket.Chat the default for `tel:` and `callto:` requires a
 policy-channel rollout (GPO, Intune, DISM) or the
 `SET_DEFAULT_ASSOCIATIONS=1` MSI flag above for unmanaged machines.
 
+After deployment, users or support staff can verify the effective
+handler in **Settings → Voice & Video → Telephony → Diagnostics**.
+The diagnostics distinguish between install registration problems and
+per-user default-app choices; when the user choice is missing or points
+to another app, the affected row includes an action to open Windows
+Default Apps.
+
 See [`windows-default-app-associations.md`](./windows-default-app-associations.md)
 for the bundled XML, every supported channel, precedence rules, and
 verification steps.

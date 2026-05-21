@@ -141,10 +141,29 @@ on the GPO/CSP for managed ones.
 reg query "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v DefaultAssociationsConfiguration
 ```
 
-should print the XML path, then in Rocket.Chat:
+should print the XML path. Rocket.Chat's in-app diagnostics then
+validate the user's effective protocol choice, not only the installer
+registration. On Windows, the `isDefault.tel` and `isDefault.callto`
+checks read the user's
+`HKCU\Software\Microsoft\Windows\Shell\Associations\URLAssociations\<scheme>\UserChoice!ProgId`
+value and fall back to `UserChoiceLatest\ProgId` when present. This
+detects cases where another app is now the active `tel:` or `callto:`
+handler even though Rocket.Chat is still correctly registered in
+`RegisteredApplications`, `Capabilities\URLAssociations`, and its
+ProgIDs.
+
+In Rocket.Chat:
 
 1. Open **Settings → Voice & Video → Telephony**.
 2. Expand **Diagnostics**.
 3. `isDefault.tel` and `isDefault.callto` should both report **pass**.
-   If they fail, the `details` field explains which scheme is missing
-   or being claimed by another handler.
+   If either check fails because Windows has no user choice or another
+   app owns the scheme, the diagnostics row shows an **Open settings**
+   action that opens the Default Apps page so the user can pick
+   Rocket.Chat.
+4. The Windows registration checks (`windows.registeredApp`,
+   `windows.capabilities.*`, and `windows.progid.*`) should also pass.
+   These checks confirm the installer registration that makes
+   Rocket.Chat available in the Windows Default Apps picker; failures
+   here indicate an install or registry problem rather than a user
+   default-app choice.

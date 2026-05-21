@@ -695,6 +695,7 @@
       "refresh": "Refresh",
       "copy": "Copy diagnostics",
       "copied": "Copied",
+      "openSettingsAction": "Open settings",
       "platform": "Platform",
       "lastChecked": "Last checked",
       "summary": {

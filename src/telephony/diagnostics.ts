@@ -1,4 +1,7 @@
 import { execFile as execFileCb } from 'child_process';
+import { readFile } from 'fs/promises';
+import { homedir } from 'os';
+import path from 'path';
 import { promisify } from 'util';
 
 import { app } from 'electron';
@@ -6,12 +9,14 @@ import { app } from 'electron';
 const execFile = promisify(execFileCb);
 
 export type TelephonyDiagnosticStatus = 'pass' | 'fail' | 'unknown';
+export type TelephonyDiagnosticAction = 'openDefaultAppsSettings';
 
 export type TelephonyDiagnosticCheck = {
   id: string;
   label: string;
   status: TelephonyDiagnosticStatus;
   details?: string;
+  action?: TelephonyDiagnosticAction;
 };
 
 export type TelephonyDiagnostics = {
@@ -21,6 +26,16 @@ export type TelephonyDiagnostics = {
 };
 
 const SCHEMES = ['tel', 'callto'] as const;
+const OPEN_DEFAULT_APPS_SETTINGS_ACTION: TelephonyDiagnosticAction =
+  'openDefaultAppsSettings';
+
+const commandLaunchesRocketChat = (command: string): boolean => {
+  const normalizedCommand = command.toLowerCase();
+  return (
+    normalizedCommand.includes('rocket.chat') ||
+    normalizedCommand.includes(process.execPath.toLowerCase())
+  );
+};
 
 const checkIsDefaultOnWindows = async (
   scheme: string
@@ -29,10 +44,7 @@ const checkIsDefaultOnWindows = async (
   const label = `${scheme}: is set to Rocket.Chat`;
   const expected = `RocketChat.${scheme}`;
   try {
-    const progId = await queryRegValue(
-      `Software\\Microsoft\\Windows\\Shell\\Associations\\URLAssociations\\${scheme}\\UserChoice`,
-      'ProgId'
-    );
+    const progId = await queryWindowsUserChoiceProgId(scheme);
     if (progId === null) {
       return {
         id,
@@ -40,8 +52,10 @@ const checkIsDefaultOnWindows = async (
         status: 'fail',
         details:
           'Windows has not been told which app to use for this link. Open default apps and pick Rocket.Chat.',
+        action: OPEN_DEFAULT_APPS_SETTINGS_ACTION,
       };
     }
+
     return {
       id,
       label,
@@ -50,6 +64,8 @@ const checkIsDefaultOnWindows = async (
         progId === expected
           ? undefined
           : `Currently handled by another app (${progId}). Open default apps to switch to Rocket.Chat.`,
+      action:
+        progId === expected ? undefined : OPEN_DEFAULT_APPS_SETTINGS_ACTION,
     };
   } catch (err) {
     return {
@@ -76,6 +92,10 @@ const checkIsDefault = async (
       id,
       label,
       status: isDefault ? 'pass' : 'fail',
+      action:
+        !isDefault && process.platform === 'linux'
+          ? OPEN_DEFAULT_APPS_SETTINGS_ACTION
+          : undefined,
     };
   } catch (err) {
     return {
@@ -122,6 +142,18 @@ const queryRegValue = async (
   }
   return null;
 };
+
+const queryWindowsUserChoiceProgId = async (
+  scheme: string
+): Promise<string | null> =>
+  (await queryRegValue(
+    `Software\\Microsoft\\Windows\\Shell\\Associations\\URLAssociations\\${scheme}\\UserChoice`,
+    'ProgId'
+  )) ??
+  queryRegValue(
+    `Software\\Microsoft\\Windows\\Shell\\Associations\\URLAssociations\\${scheme}\\UserChoiceLatest\\ProgId`,
+    'ProgId'
+  );
 
 const checkWindowsRegisteredApp =
   async (): Promise<TelephonyDiagnosticCheck> => {
@@ -217,7 +249,7 @@ const checkWindowsProgId = async (
         details: 'Key not found in HKCU or HKLM',
       };
     }
-    const passes = value.toLowerCase().includes('rocket.chat.exe');
+    const passes = commandLaunchesRocketChat(value);
     return {
       id,
       label,
@@ -310,12 +342,22 @@ const checkLinuxXdg = async (
       `x-scheme-handler/${scheme}`,
     ]);
     const trimmed = stdout.trim();
-    const passes = trimmed.toLowerCase().includes('rocket');
+    const desktopIdLooksRocketChat = trimmed.toLowerCase().includes('rocket');
+    const desktopExec = desktopIdLooksRocketChat
+      ? null
+      : await readLinuxDesktopExec(trimmed);
+    const passes =
+      desktopIdLooksRocketChat ||
+      (desktopExec !== null && commandLaunchesRocketChat(desktopExec));
     return {
       id,
       label,
       status: passes ? 'pass' : 'fail',
-      details: trimmed || undefined,
+      details:
+        desktopExec !== null
+          ? `${trimmed} Exec=${desktopExec}`
+          : trimmed || undefined,
+      action: passes ? undefined : OPEN_DEFAULT_APPS_SETTINGS_ACTION,
     };
   } catch (err) {
     return {
@@ -325,6 +367,45 @@ const checkLinuxXdg = async (
       details: err instanceof Error ? err.message : String(err),
     };
   }
+};
+
+const getLinuxDesktopSearchDirs = (): string[] => {
+  const dataHome =
+    process.env.XDG_DATA_HOME || path.join(homedir(), '.local', 'share');
+  const dataDirs = (
+    process.env.XDG_DATA_DIRS || '/usr/local/share:/usr/share'
+  ).split(':');
+
+  return [dataHome, ...dataDirs].map((dir) => path.join(dir, 'applications'));
+};
+
+const readLinuxDesktopExec = async (
+  desktopId: string
+): Promise<string | null> => {
+  if (!desktopId) {
+    return null;
+  }
+
+  const candidates = path.isAbsolute(desktopId)
+    ? [desktopId]
+    : getLinuxDesktopSearchDirs().map((dir) => path.join(dir, desktopId));
+
+  for (const candidate of candidates) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const content = await readFile(candidate, 'utf8');
+      const execLine = content
+        .split(/\r?\n/)
+        .find((line) => line.startsWith('Exec='));
+      if (execLine) {
+        return execLine.slice('Exec='.length).trim();
+      }
+    } catch {
+      // Try next XDG applications directory.
+    }
+  }
+
+  return null;
 };
 
 const getLinuxChecks = (): Promise<TelephonyDiagnosticCheck[]> =>

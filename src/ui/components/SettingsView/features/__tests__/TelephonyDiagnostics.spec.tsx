@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 
 import type { TelephonyDiagnostics } from '../../../../../telephony/diagnostics';
+import { TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED } from '../../../../actions';
 import { TelephonyDiagnostics as TelephonyDiagnosticsComponent } from '../TelephonyDiagnostics';
 
 jest.mock('react-i18next', () => ({
@@ -15,6 +16,11 @@ jest.mock('react-i18next', () => ({
     t: (key: string, opts?: { defaultValue?: string }) =>
       opts?.defaultValue ?? key,
   }),
+}));
+
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
 }));
 
 const mockInvoke = jest.fn();
@@ -181,6 +187,9 @@ describe('TelephonyDiagnostics', () => {
 
     const pill = screen.getByTestId('telephony-diagnostic-status');
     expect(pill.getAttribute('data-status')).toBe('pass');
+    expect(
+      screen.queryByTestId('telephony-diagnostic-open-settings')
+    ).not.toBeInTheDocument();
   });
 
   it('fail status renders pill with data-status="fail"', async () => {
@@ -205,6 +214,65 @@ describe('TelephonyDiagnostics', () => {
 
     const pill = screen.getByTestId('telephony-diagnostic-status');
     expect(pill.getAttribute('data-status')).toBe('fail');
+    expect(
+      screen.queryByTestId('telephony-diagnostic-open-settings')
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows an open settings action for actionable failures', async () => {
+    mockInvoke.mockResolvedValue(
+      makeDiagnostics({
+        checks: [
+          {
+            id: 'isDefault.callto',
+            label: 'callto:// is set to Rocket.Chat',
+            status: 'fail',
+            details: 'Not registered',
+            action: 'openDefaultAppsSettings',
+          },
+        ],
+      })
+    );
+
+    render(<TelephonyDiagnosticsComponent />);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('throbber')).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByTestId('telephony-diagnostic-open-settings')
+    ).toHaveTextContent('telephony.diagnostics.openSettingsAction');
+  });
+
+  it('open settings action dispatches the default apps action', async () => {
+    mockInvoke.mockResolvedValue(
+      makeDiagnostics({
+        checks: [
+          {
+            id: 'isDefault.callto',
+            label: 'callto:// is set to Rocket.Chat',
+            status: 'fail',
+            details: 'Not registered',
+            action: 'openDefaultAppsSettings',
+          },
+        ],
+      })
+    );
+
+    render(<TelephonyDiagnosticsComponent />);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('throbber')).not.toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('telephony-diagnostic-open-settings'));
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED,
+    });
   });
 
   it('unknown status renders pill with data-status="unknown"', async () => {

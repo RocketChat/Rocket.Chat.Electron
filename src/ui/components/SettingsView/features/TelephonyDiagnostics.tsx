@@ -9,12 +9,16 @@ import {
 } from '@rocket.chat/fuselage';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import { invoke } from '../../../../ipc/renderer';
+import type { RootAction } from '../../../../store/actions';
 import type {
   TelephonyDiagnosticCheck,
   TelephonyDiagnostics as TelephonyDiagnosticsData,
 } from '../../../../telephony/diagnostics';
+import { TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED } from '../../../actions';
 
 type DiagnosticStatus = TelephonyDiagnosticCheck['status'];
 
@@ -54,6 +58,7 @@ const formatPlatformForDisplay = (platform: string): string =>
 
 export const TelephonyDiagnostics = () => {
   const { t } = useTranslation();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
   const [diagnostics, setDiagnostics] =
     useState<TelephonyDiagnosticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,6 +88,10 @@ export const TelephonyDiagnostics = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [diagnostics]);
+
+  const handleOpenSettings = useCallback(() => {
+    dispatch({ type: TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED });
+  }, [dispatch]);
 
   const summaryTag = useMemo(() => {
     if (loading || !diagnostics) {
@@ -210,7 +219,21 @@ export const TelephonyDiagnostics = () => {
                       </Box>
                     )}
                   </Box>
-                  <Box flexShrink={0}>
+                  <Box display='flex' alignItems='center' flexShrink={0}>
+                    {check.status !== 'pass' &&
+                      check.action === 'openDefaultAppsSettings' && (
+                        <Box mie='x8'>
+                          <Button
+                            type='button'
+                            icon='new-window'
+                            onClick={handleOpenSettings}
+                            data-testid='telephony-diagnostic-open-settings'
+                            small
+                          >
+                            {t('telephony.diagnostics.openSettingsAction')}
+                          </Button>
+                        </Box>
+                      )}
                     <Tag
                       variant={STATUS_TAG_VARIANT[check.status]}
                       data-testid='telephony-diagnostic-status'

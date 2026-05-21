@@ -9,6 +9,10 @@ jest.mock('child_process', () => ({
   execFile: jest.fn(),
 }));
 
+jest.mock('fs/promises', () => ({
+  readFile: jest.fn(),
+}));
+
 jest.mock('util', () => ({
   promisify: (fn: unknown) => fn,
 }));
@@ -29,6 +33,9 @@ const appMock = app as jest.Mocked<typeof app>;
 // Retrieve the mock after jest.mock() factories have run
 const getExecFileMock = () =>
   (jest.requireMock('child_process') as { execFile: jest.Mock }).execFile;
+
+const getReadFileMock = () =>
+  (jest.requireMock('fs/promises') as { readFile: jest.Mock }).readFile;
 
 const REG_OUTPUT_REGISTERED_APP =
   '\n    Rocket.Chat    REG_SZ    Software\\Rocket.Chat\\Capabilities\n';
@@ -212,7 +219,7 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
   it('isDefault.tel passes when UserChoice ProgId equals RocketChat.tel', async () => {
     getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
       const keyPath: string = args[1] ?? '';
-      if (keyPath.includes('URLAssociations\\tel\\UserChoice')) {
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoice')) {
         return Promise.resolve({
           stdout: '\n    ProgId    REG_SZ    RocketChat.tel\n',
           stderr: '',
@@ -230,7 +237,7 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
   it('isDefault.tel fails when UserChoice ProgId points to another handler', async () => {
     getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
       const keyPath: string = args[1] ?? '';
-      if (keyPath.includes('URLAssociations\\tel\\UserChoice')) {
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoice')) {
         return Promise.resolve({
           stdout: '\n    ProgId    REG_SZ    MSTeams.Url.tel\n',
           stderr: '',
@@ -244,6 +251,99 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
     const check = result.checks.find((c) => c.id === 'isDefault.tel');
     expect(check?.status).toBe('fail');
     expect(check?.details).toContain('MSTeams.Url.tel');
+    expect(check?.action).toBe('openDefaultAppsSettings');
+  });
+
+  it('isDefault.tel passes when UserChoice is missing but UserChoiceLatest equals RocketChat.tel', async () => {
+    getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
+      const keyPath: string = args[1] ?? '';
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoice')) {
+        return Promise.reject(new Error('not found'));
+      }
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoiceLatest\\ProgId')) {
+        return Promise.resolve({
+          stdout: '\n    ProgId    REG_SZ    RocketChat.tel\n',
+          stderr: '',
+        });
+      }
+      return Promise.reject(new Error('not found'));
+    });
+
+    const result = await getTelephonyDiagnostics();
+
+    const check = result.checks.find((c) => c.id === 'isDefault.tel');
+    expect(check?.status).toBe('pass');
+  });
+
+  it('isDefault.tel fails when UserChoiceLatest points to another handler even if the protocol class launches Rocket.Chat', async () => {
+    getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
+      const keyPath: string = args[1] ?? '';
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoice')) {
+        return Promise.reject(new Error('not found'));
+      }
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoiceLatest\\ProgId')) {
+        return Promise.resolve({
+          stdout: '\n    ProgId    REG_SZ    ChromeHTML\n',
+          stderr: '',
+        });
+      }
+      if (keyPath.includes('Software\\Classes\\tel\\shell\\open\\command')) {
+        return Promise.resolve({
+          stdout: REG_OUTPUT_PROGID_TEL,
+          stderr: '',
+        });
+      }
+      return Promise.reject(new Error('not found'));
+    });
+
+    const result = await getTelephonyDiagnostics();
+
+    const check = result.checks.find((c) => c.id === 'isDefault.tel');
+    expect(check?.status).toBe('fail');
+    expect(check?.details).toContain('ChromeHTML');
+    expect(check?.action).toBe('openDefaultAppsSettings');
+  });
+
+  it('isDefault.tel fails when no user choice is set even if the protocol class launches the current Electron executable', async () => {
+    const originalExecPath = process.execPath;
+    Object.defineProperty(process, 'execPath', {
+      value:
+        'C:\\Users\\jean\\repo\\node_modules\\electron\\dist\\electron.exe',
+      writable: true,
+      configurable: true,
+    });
+
+    getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
+      const keyPath: string = args[1] ?? '';
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoice')) {
+        return Promise.reject(new Error('not found'));
+      }
+      if (keyPath.endsWith('URLAssociations\\tel\\UserChoiceLatest\\ProgId')) {
+        return Promise.reject(new Error('not found'));
+      }
+      if (keyPath.includes('Software\\Classes\\tel\\shell\\open\\command')) {
+        return Promise.resolve({
+          stdout:
+            '\n    (Default)    REG_SZ    "C:\\Users\\jean\\repo\\node_modules\\electron\\dist\\electron.exe" "%1"\n',
+          stderr: '',
+        });
+      }
+      return Promise.reject(new Error('not found'));
+    });
+
+    let status;
+    try {
+      const result = await getTelephonyDiagnostics();
+      status = result.checks.find((c) => c.id === 'isDefault.tel')?.status;
+    } finally {
+      Object.defineProperty(process, 'execPath', {
+        value: originalExecPath,
+        writable: true,
+        configurable: true,
+      });
+    }
+
+    expect(status).toBe('fail');
   });
 
   it('isDefault.tel fails when no UserChoice ProgId is set', async () => {
@@ -254,6 +354,7 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
     const check = result.checks.find((c) => c.id === 'isDefault.tel');
     expect(check?.status).toBe('fail');
     expect(check?.details).toContain('default apps');
+    expect(check?.action).toBe('openDefaultAppsSettings');
   });
 });
 
@@ -373,17 +474,66 @@ describe('getTelephonyDiagnostics — Linux platform checks', () => {
     expect(check?.details).toBe('rocketchat.desktop');
   });
 
+  it('linux.xdg.tel passes when the default desktop file launches Rocket.Chat', async () => {
+    getExecFileMock().mockResolvedValue({
+      stdout: 'chat.desktop\n',
+      stderr: '',
+    });
+    getReadFileMock().mockResolvedValue(
+      '[Desktop Entry]\nExec=/opt/Rocket.Chat/rocket.chat %u\n'
+    );
+
+    const result = await getTelephonyDiagnostics();
+
+    const check = result.checks.find((c) => c.id === 'linux.xdg.tel');
+    expect(check?.status).toBe('pass');
+    expect(check?.details).toContain('Exec=/opt/Rocket.Chat/rocket.chat %u');
+  });
+
+  it('linux.xdg.tel passes in dev when the default desktop file launches the current executable', async () => {
+    const originalExecPath = process.execPath;
+    Object.defineProperty(process, 'execPath', {
+      value: '/home/jean/repo/node_modules/electron/dist/electron',
+      writable: true,
+      configurable: true,
+    });
+
+    getExecFileMock().mockResolvedValue({
+      stdout: 'electron.desktop\n',
+      stderr: '',
+    });
+    getReadFileMock().mockResolvedValue(
+      '[Desktop Entry]\nExec=/home/jean/repo/node_modules/electron/dist/electron %u\n'
+    );
+
+    let status;
+    try {
+      const result = await getTelephonyDiagnostics();
+      status = result.checks.find((c) => c.id === 'linux.xdg.tel')?.status;
+    } finally {
+      Object.defineProperty(process, 'execPath', {
+        value: originalExecPath,
+        writable: true,
+        configurable: true,
+      });
+    }
+
+    expect(status).toBe('pass');
+  });
+
   it('linux.xdg.tel fails when stdout is for a different app', async () => {
     getExecFileMock().mockResolvedValue({
       stdout: 'facetime.desktop\n',
       stderr: '',
     });
+    getReadFileMock().mockRejectedValue(new Error('not found'));
 
     const result = await getTelephonyDiagnostics();
 
     const check = result.checks.find((c) => c.id === 'linux.xdg.tel');
     expect(check?.status).toBe('fail');
     expect(check?.details).toBe('facetime.desktop');
+    expect(check?.action).toBe('openDefaultAppsSettings');
   });
 
   it('linux.xdg.* returns unknown when execFile rejects', async () => {

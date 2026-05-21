@@ -1,3 +1,4 @@
+import { css } from '@rocket.chat/css-in-js';
 import {
   Box,
   Field,
@@ -22,6 +23,21 @@ const safeHostname = (url: string): string => {
     return url;
   }
 };
+
+const selectWrapperStyle = css`
+  max-width: 100%;
+
+  .rcx-select {
+    white-space: nowrap;
+  }
+
+  .rcx-select > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
 
 export const TelephonyServer = () => {
   const servers = useSelector(({ servers }: RootState) => servers);
@@ -74,7 +90,12 @@ export const TelephonyServer = () => {
             {t('settings.options.telephonyServer.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
+        <Box
+          display='flex'
+          alignItems='center'
+          className={selectWrapperStyle}
+          style={{ paddingTop: '4px' }}
+        >
           <Select
             disabled={!isTelephonyEnabled}
             options={options}

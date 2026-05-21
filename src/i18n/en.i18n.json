@@ -307,7 +307,7 @@
       "telephonyServer": {
         "title": "Telephony Server",
         "description": "Choose which workspace opens when you use the telephony shortcut or a tel: or callto: link.",
-        "auto": "Auto (ask each time)"
+        "auto": "Ask each time"
       },
       "telephonyShortcut": {
         "title": "Global call shortcut",

@@ -275,7 +275,7 @@
       "telephonyServer": {
         "title": "Servidor de Telefonia",
         "description": "Escolha qual espaço de trabalho será aberto quando você usar o atalho de telefonia ou um link tel: ou callto:.",
-        "auto": "Automático (perguntar sempre)"
+        "auto": "Perguntar sempre"
       },
       "telephonyShortcut": {
         "title": "Atalho Global de Telefonia",

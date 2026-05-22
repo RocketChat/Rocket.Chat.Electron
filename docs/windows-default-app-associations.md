@@ -53,6 +53,10 @@ The `RocketChat.tel` and `RocketChat.callto` ProgIDs are the same ones
 the installer registers under `HKLM\SOFTWARE\Classes\` on per-machine
 MSI installs, so the XML is ready to consume as-is.
 
+Important: `SET_DEFAULT_ASSOCIATIONS` only wires Windows defaults for
+`tel:`/`callto:`. It does not enable Rocket.Chat telephony by itself;
+admins still need to enable telephony through overridden Rocket.Chat settings.
+
 ## How to apply it
 
 Four channels deliver the same XML to a fleet. Pick whichever matches

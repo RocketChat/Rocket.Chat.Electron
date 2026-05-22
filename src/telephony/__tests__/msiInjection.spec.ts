@@ -125,4 +125,35 @@ describe('msiProjectCreated default-associations injection', () => {
     expect(injected).toContain('DISABLE_AUTO_UPDATES');
     expect(injected).toContain('WriteUpdateJson');
   });
+
+  it('registers telephony capabilities/ProgIds and RegisteredApplications for MSI installs', () => {
+    expect(injected).toContain('WriteTelephonyCapabilities');
+    expect(injected).toContain('HKLM\\SOFTWARE\\RegisteredApplications\\Rocket.Chat');
+    expect(injected).toContain(
+      'HKLM\\SOFTWARE\\Rocket.Chat\\Capabilities\\URLAssociations\\tel'
+    );
+    expect(injected).toContain(
+      'HKLM\\SOFTWARE\\Rocket.Chat\\Capabilities\\URLAssociations\\callto'
+    );
+    expect(injected).toContain('HKLM\\SOFTWARE\\Classes\\RocketChat.tel');
+    expect(injected).toContain('HKLM\\SOFTWARE\\Classes\\RocketChat.callto');
+  });
+
+  it('schedules telephony registration independent of SET_DEFAULT_ASSOCIATIONS', () => {
+    expect(injected).toMatch(
+      /<Custom Action="SetWriteTelephonyCapabilitiesData"[^>]*>NOT REMOVE~="ALL"<\/Custom>/
+    );
+    expect(injected).toMatch(
+      /<Custom Action="WriteTelephonyCapabilities"[^>]*>NOT REMOVE~="ALL"<\/Custom>/
+    );
+  });
+
+  it('schedules telephony cleanup to skip major-upgrade RemoveExistingProducts', () => {
+    expect(injected).toMatch(
+      /<Custom Action="SetCleanupTelephonyCapabilitiesData"[^>]*>REMOVE~="ALL" AND UPGRADINGPRODUCTCODE=""<\/Custom>/
+    );
+    expect(injected).toMatch(
+      /<Custom Action="CleanupTelephonyCapabilities"[^>]*>REMOVE~="ALL" AND UPGRADINGPRODUCTCODE=""<\/Custom>/
+    );
+  });
 });

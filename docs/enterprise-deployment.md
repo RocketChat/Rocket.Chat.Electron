@@ -61,6 +61,10 @@ Full details — including the bundled XML, GPO / Intune / DISM
 alternatives, precedence rules, and client-side verification — live in
 [`windows-default-app-associations.md`](./windows-default-app-associations.md).
 
+`SET_DEFAULT_ASSOCIATIONS` only wires Windows protocol defaults for
+`tel:`/`callto:`. It does not enable Rocket.Chat telephony by itself;
+admins must still enable telephony via overridden Rocket.Chat settings.
+
 ## SCCM / MECM deployment
 
 The MSI runs correctly under `NT AUTHORITY\SYSTEM`. Typical deployment

@@ -4,7 +4,7 @@
     "build/icon.ico",
     {
       "from": "build/RocketChatDefaultAppAssociations.xml",
-      "to": "resources/RocketChatDefaultAppAssociations.xml"
+      "to": "RocketChatDefaultAppAssociations.xml"
     },
     "servers.json"
   ],

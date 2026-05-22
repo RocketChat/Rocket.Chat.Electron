@@ -22,6 +22,9 @@ export type { TelephonyLink } from '../telephony/common';
 export { openTelephonyDialpad as performTelephonyCall } from '../telephony/dialpad';
 export { parseTelephonyLink } from '../telephony/links';
 
+const pendingOpenUrls: string[] = [];
+let isOpenUrlProcessingReady = false;
+
 const isDefinedProtocol = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === `${electronBuilderJsonInformation.protocol}:`;
 
@@ -61,6 +64,15 @@ const parseDeepLink = (
 };
 
 export let processDeepLinksInArgs = async (): Promise<void> => undefined;
+
+const focusRootWindow = async (): Promise<void> => {
+  const browserWindow = await getRootWindow();
+
+  if (!browserWindow.isVisible()) {
+    browserWindow.showInactive();
+  }
+  browserWindow.focus();
+};
 
 type AuthenticationParams = {
   host: string;
@@ -266,18 +278,31 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
 };
 
 export const setupDeepLinks = (): void => {
+  pendingOpenUrls.length = 0;
+  isOpenUrlProcessingReady = false;
+
   app.addListener('open-url', async (event, url): Promise<void> => {
     event.preventDefault();
 
-    const browserWindow = await getRootWindow();
-
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
+    if (!isOpenUrlProcessingReady) {
+      pendingOpenUrls.push(url);
+      return;
     }
-    browserWindow.focus();
 
+    await focusRootWindow();
     await processDeepLink(url);
   });
+
+  const processQueuedOpenUrls = async (): Promise<void> => {
+    const urls = pendingOpenUrls.splice(0);
+
+    for (const url of urls) {
+      // eslint-disable-next-line no-await-in-loop
+      await focusRootWindow();
+      // eslint-disable-next-line no-await-in-loop
+      await processDeepLink(url);
+    }
+  };
 
   app.addListener('second-instance', async (event, argv): Promise<void> => {
     event.preventDefault();
@@ -298,6 +323,10 @@ export const setupDeepLinks = (): void => {
   });
 
   processDeepLinksInArgs = async (): Promise<void> => {
+    isOpenUrlProcessingReady = true;
+
+    await processQueuedOpenUrls();
+
     const args = process.argv.slice(app.isPackaged ? 1 : 2);
 
     for (const arg of args) {

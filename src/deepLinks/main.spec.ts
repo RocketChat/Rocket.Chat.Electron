@@ -1,3 +1,5 @@
+import { app } from 'electron';
+
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch, listen } from '../store';
@@ -48,6 +50,7 @@ const resolveServerUrlMock = resolveServerUrl as jest.MockedFunction<
 const getRootWindowMock = getRootWindow as jest.MockedFunction<
   typeof getRootWindow
 >;
+const appMock = app as jest.Mocked<typeof app>;
 
 describe('deepLinks/main.ts', () => {
   const mockRootWindow = {} as any;
@@ -508,6 +511,84 @@ describe('deepLinks/main.ts', () => {
       );
       // Normal deep link path NOT taken
       expect(resolveServerUrlMock).not.toHaveBeenCalled();
+    });
+
+    it('queues macOS open-url events until startup processing is ready', async () => {
+      setupDeepLinks();
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const openUrlHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'open-url'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!openUrlHandler) {
+        throw new Error('open-url listener was not registered');
+      }
+
+      openUrlHandler(event, 'tel:+491234567890');
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+
+      await processDeepLinksInArgs();
+
+      expect(mockBrowserWindow.focus).toHaveBeenCalled();
+      expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+    });
+
+    it('processes second-instance argv immediately', async () => {
+      setupDeepLinks();
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const secondInstanceHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'second-instance'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!secondInstanceHandler) {
+        throw new Error('second-instance listener was not registered');
+      }
+
+      await secondInstanceHandler(event, [
+        'electron',
+        '.',
+        'tel:+491234567890',
+      ]);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(mockBrowserWindow.focus).toHaveBeenCalled();
+      expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
     });
 
     it('should route rocketchat:// URL to normal deep link path, not telephony', async () => {

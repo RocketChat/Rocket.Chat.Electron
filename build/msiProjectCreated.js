@@ -304,7 +304,8 @@ exports.default = async function msiProjectCreated(projectFile) {
   // which admins typically forget on upgrade).
   const setDefaultAssocUninstallCondition =
     'REMOVE~="ALL" AND UPGRADINGPRODUCTCODE=""';
-  const telephonyUninstallCondition = 'REMOVE~="ALL" AND UPGRADINGPRODUCTCODE=""';
+  const telephonyUninstallCondition =
+    'REMOVE~="ALL" AND UPGRADINGPRODUCTCODE=""';
   const telephonyInstallCondition = 'NOT REMOVE~="ALL"';
 
   const sequenceEntries = `

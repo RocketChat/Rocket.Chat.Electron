@@ -44,7 +44,7 @@ describe('RocketChatDefaultAppAssociations.xml', () => {
       expect.arrayContaining([
         expect.objectContaining({
           from: 'build/RocketChatDefaultAppAssociations.xml',
-          to: 'resources/RocketChatDefaultAppAssociations.xml',
+          to: 'RocketChatDefaultAppAssociations.xml',
         }),
       ])
     );

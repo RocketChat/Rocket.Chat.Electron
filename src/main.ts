@@ -78,6 +78,7 @@ const start = async (): Promise<void> => {
   setupWebContentsLogging();
 
   performElectronStartup();
+  setupDeepLinks();
 
   // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
   setupGpuCrashHandler();
@@ -125,7 +126,6 @@ const start = async (): Promise<void> => {
 
   await setupSpellChecking();
 
-  setupDeepLinks();
   setupTelephonyGlobalShortcut();
   setupTelephonyProtocolHandlers();
   setupTelephonyDefaultHandlerPrompt();

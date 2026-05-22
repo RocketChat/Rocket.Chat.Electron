@@ -128,7 +128,9 @@ describe('msiProjectCreated default-associations injection', () => {
 
   it('registers telephony capabilities/ProgIds and RegisteredApplications for MSI installs', () => {
     expect(injected).toContain('WriteTelephonyCapabilities');
-    expect(injected).toContain('HKLM\\SOFTWARE\\RegisteredApplications\\Rocket.Chat');
+    expect(injected).toContain(
+      'HKLM\\SOFTWARE\\RegisteredApplications\\Rocket.Chat'
+    );
     expect(injected).toContain(
       'HKLM\\SOFTWARE\\Rocket.Chat\\Capabilities\\URLAssociations\\tel'
     );

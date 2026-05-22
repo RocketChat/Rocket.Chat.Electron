@@ -32,8 +32,10 @@ const OPEN_DEFAULT_APPS_SETTINGS_ACTION: TelephonyDiagnosticAction =
 const commandLaunchesRocketChat = (command: string): boolean => {
   const normalizedCommand = command.toLowerCase();
   return (
-    normalizedCommand.includes('rocket.chat') ||
-    normalizedCommand.includes(process.execPath.toLowerCase())
+    normalizedCommand.includes(process.execPath.toLowerCase()) ||
+    /(?:^|[\s"'])rocket\.chat(?:\.exe)?(?:$|[\s"'])/i.test(
+      command.replace(/\\/g, '/').split('/').pop() ?? command
+    )
   );
 };
 
@@ -46,6 +48,17 @@ const checkIsDefaultOnWindows = async (
   try {
     const progId = await queryWindowsUserChoiceProgId(scheme);
     if (progId === null) {
+      const command = await queryWindowsProtocolCommand(scheme);
+      if (command !== null && commandLaunchesRocketChat(command)) {
+        return {
+          id,
+          label,
+          status: 'pass',
+          details:
+            'Windows has no UserChoice ProgId, but the effective protocol command launches Rocket.Chat.',
+        };
+      }
+
       return {
         id,
         label,
@@ -154,6 +167,9 @@ const queryWindowsUserChoiceProgId = async (
     `Software\\Microsoft\\Windows\\Shell\\Associations\\URLAssociations\\${scheme}\\UserChoiceLatest\\ProgId`,
     'ProgId'
   );
+
+const queryWindowsProtocolCommand = (scheme: string): Promise<string | null> =>
+  queryRegValue(`Software\\Classes\\${scheme}\\shell\\open\\command`, null);
 
 const checkWindowsRegisteredApp =
   async (): Promise<TelephonyDiagnosticCheck> => {

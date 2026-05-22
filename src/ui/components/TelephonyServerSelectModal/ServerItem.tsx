@@ -74,10 +74,10 @@ export const ServerItem = ({
             justifyContent='center'
             width='x36'
             height='x36'
-            bg='neutral-400'
             color='white'
             fontScale='p2b'
             borderRadius='x4'
+            style={{ backgroundColor: 'var(--rcx-color-neutral-400, #9ea2a8)' }}
           >
             {initials}
           </Box>

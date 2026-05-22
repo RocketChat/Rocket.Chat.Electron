@@ -304,7 +304,7 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
     expect(check?.action).toBe('openDefaultAppsSettings');
   });
 
-  it('isDefault.tel fails when no user choice is set even if the protocol class launches the current Electron executable', async () => {
+  it('isDefault.tel passes when no user choice is set but the protocol class launches the current Electron executable', async () => {
     const originalExecPath = process.execPath;
     Object.defineProperty(process, 'execPath', {
       value:
@@ -343,7 +343,34 @@ describe('getTelephonyDiagnostics — Windows platform checks', () => {
       });
     }
 
-    expect(status).toBe('fail');
+    expect(status).toBe('pass');
+  });
+
+  it('isDefault.callto passes when no user choice is set but the protocol class launches Rocket.Chat.exe', async () => {
+    getExecFileMock().mockImplementation((_cmd: string, args: string[]) => {
+      const keyPath: string = args[1] ?? '';
+      if (keyPath.endsWith('URLAssociations\\callto\\UserChoice')) {
+        return Promise.reject(new Error('not found'));
+      }
+      if (
+        keyPath.endsWith('URLAssociations\\callto\\UserChoiceLatest\\ProgId')
+      ) {
+        return Promise.reject(new Error('not found'));
+      }
+      if (keyPath.includes('Software\\Classes\\callto\\shell\\open\\command')) {
+        return Promise.resolve({
+          stdout:
+            '\n    (Default)    REG_SZ    "C:\\Program Files\\Rocket.Chat\\Rocket.Chat.exe" "%1"\n',
+          stderr: '',
+        });
+      }
+      return Promise.reject(new Error('not found'));
+    });
+
+    const result = await getTelephonyDiagnostics();
+
+    const check = result.checks.find((c) => c.id === 'isDefault.callto');
+    expect(check?.status).toBe('pass');
   });
 
   it('isDefault.tel fails when no UserChoice ProgId is set', async () => {

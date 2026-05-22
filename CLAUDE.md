@@ -61,6 +61,12 @@ When creating or updating QA flows under `qa/`, read `qa/README.md`,
 self-contained and visually findable for a tester or visual agent that knows
 nothing about the feature.
 
+- For Desktop PR, branch, or release-candidate QA passes, use
+  `skills/desktop-qa-flows/SKILL.md` as the workflow entrypoint. The skill
+  decides whether to update existing flows, add new flows, or create a new
+  `qa/<feature-slug>/` pack based on changed user-visible risk. It is plain
+  Markdown and can be used by any agent, including Codex, Claude, Hermes, Cursor,
+  and GitHub agents, when explicitly pointed to it.
 - Derive tester-facing steps from the implementation, not product intuition.
   Inspect changed React components, Fuselage icons, i18n labels, menu
   definitions, modal buttons, platform branches, tests, and helper pages.

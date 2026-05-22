@@ -62,6 +62,10 @@ yarn workspaces:build
 
 When creating or updating QA assets under `qa/`, read these first:
 
+- `skills/desktop-qa-flows/SKILL.md` when the task is for a Desktop PR, branch,
+  or release-candidate QA pass. This file is plain Markdown and can be used by
+  any agent, including Codex, Claude, Hermes, Cursor, and GitHub agents, when
+  explicitly pointed to it.
 - `qa/README.md`
 - `qa/AGENTS.md`
 - `qa/flow-template.md`

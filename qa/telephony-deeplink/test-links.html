@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rocket.Chat Telephony QA Links</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px;
+        line-height: 1.45;
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+      }
+
+      section {
+        margin-block: 28px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border: 1px solid ButtonBorder;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      a {
+        font-weight: 700;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .note {
+        padding: 12px 14px;
+        border: 1px solid ButtonBorder;
+        background: Canvas;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Rocket.Chat Telephony QA Links</h1>
+      <p>
+        Open this file in a browser on the test machine, then click the links
+        while Rocket.Chat is installed or running from this branch.
+      </p>
+
+      <div class="note">
+        Expected result for valid links: Rocket.Chat handles the protocol and
+        opens the telephony dialpad flow with the normalized number.
+      </div>
+
+      <section>
+        <h2>Valid tel links</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Link</th>
+              <th>Purpose</th>
+              <th>Expected normalized number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="tel:+15551234567">tel:+15551234567</a></td>
+              <td>Basic international `tel:` link.</td>
+              <td><code>+15551234567</code></td>
+            </tr>
+            <tr>
+              <td><a href="tel:+55%2011%2099999-1234">tel:+55 11 99999-1234</a></td>
+              <td>Spaces and dash should be accepted.</td>
+              <td><code>+5511999991234</code></td>
+            </tr>
+            <tr>
+              <td><a href="tel:(555)%20123-4567">tel:(555) 123-4567</a></td>
+              <td>Parentheses and formatting should be stripped.</td>
+              <td><code>5551234567</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Valid callto links</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Link</th>
+              <th>Purpose</th>
+              <th>Expected normalized number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="callto:+15551234567">callto:+15551234567</a></td>
+              <td>Basic `callto:` link.</td>
+              <td><code>+15551234567</code></td>
+            </tr>
+            <tr>
+              <td><a href="callto://+491234567890">callto://+491234567890</a></td>
+              <td>Authority form with double slash.</td>
+              <td><code>+491234567890</code></td>
+            </tr>
+            <tr>
+              <td><a href="callto:+44%2020%207123%204567?ignored=true">callto with query</a></td>
+              <td>Query string should not become part of the number.</td>
+              <td><code>+442071234567</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Negative examples</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Link</th>
+              <th>Purpose</th>
+              <th>Expected result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="tel:">tel:</a></td>
+              <td>Empty target.</td>
+              <td>No dialpad call request should be placed.</td>
+            </tr>
+            <tr>
+              <td><a href="callto:?subject=empty">callto:?subject=empty</a></td>
+              <td>Only query data.</td>
+              <td>No dialpad call request should be placed.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

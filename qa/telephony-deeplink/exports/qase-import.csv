@@ -22,22 +22,28 @@ Agent: Navigate to Settings view.""
 
 Disabled telephony ignores phone links; enabled telephony handles them.","test-links-html
 at_least_one_workspace","- Screenshot or screen recording showing disabled vs enabled behavior.
-- Note any OS prompt shown by the browser.","major","high","actual","manual","classic","TEL-QA-002,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:test-links-html,requires:at_least_one_workspace","1. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, then find the `Telephony` section heading.""
-2. ""Switch the Telephony toggle off.""
-3. ""Open `test-links.html` and click `tel:+15551234567`.""
-4. ""Switch the Telephony toggle on.""
-5. ""Click `tel:+15551234567` again.""
-6. ""Click `callto:+15551234567`.""","1. ""Agent: Navigate to Telephony settings.""
-2. ""Agent: Set telephony toggle to off.""
-3. ""Agent: Trigger the same link.""
-4. ""Agent: Set telephony toggle to on.""
-5. ""Agent: Trigger the same link.""
-6. ""Agent: Trigger the same link.""","1. ""Toggle is visible.""
-2. ""Diagnostics section is hidden or inactive.""
-3. ""Rocket.Chat does not place a telephony call request.""
-4. ""Default-handler prompt or diagnostics can appear.""
-5. ""Rocket.Chat opens the telephony dialpad flow.""
-6. ""Rocket.Chat opens the telephony dialpad flow."""
+- Note any OS prompt shown by the browser.
+- Optional code-path proof: targeted test output for startup registration showing
+  `rocketchat` registers at startup while `tel` and `callto` do not.","major","high","actual","manual","classic","TEL-QA-002,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:test-links-html,requires:at_least_one_workspace","1. ""Start from a fresh app launch before enabling Telephony. Open `test-links.html` in a browser and click `tel:+15551234567`.""
+2. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, then find the `Telephony` section heading.""
+3. ""Switch the Telephony toggle off if it is on.""
+4. ""Click `callto:+15551234567` from `test-links.html`.""
+5. ""Switch the Telephony toggle on.""
+6. ""Click `tel:+15551234567` again.""
+7. ""Click `callto:+15551234567`.""","1. ""Telephony has not been enabled in this profile.
+Agent: Trigger the link before enabling Telephony.""
+2. ""Agent: Navigate to Telephony settings.""
+3. ""Agent: Set telephony toggle to off.""
+4. ""Agent: Trigger the same link.""
+5. ""Agent: Set telephony toggle to on.""
+6. ""Agent: Trigger the same link.""
+7. ""Agent: Trigger the same link.""","1. ""Rocket.Chat does not place a telephony call request or steal the link as a newly registered phone handler.""
+2. ""Toggle is visible.""
+3. ""Diagnostics section is hidden or inactive.""
+4. ""Rocket.Chat does not place a telephony call request.""
+5. ""Default-handler prompt or diagnostics can appear.""
+6. ""Rocket.Chat opens the telephony dialpad flow.""
+7. ""Rocket.Chat opens the telephony dialpad flow."""
 "","1","Telephony deeplinks","","Default handler prompt","Source flow: TEL-QA-003
 
 Enabling telephony shows a clear default-handler prompt with working actions where supported.","telephony_toggle","- Screenshot of the prompt.
@@ -157,7 +163,9 @@ at_least_one_workspace","- Screenshot shortcut configuration and any error state
 6. ""Press the shortcut.""
 7. ""Copy invalid text.""
 8. ""Press the shortcut.""
-9. ""Try a reserved/conflicting shortcut.""","1. ""Agent: Navigate to Telephony settings.""
+9. ""Try a reserved/conflicting shortcut.""
+10. ""Switch Telephony off from the same Telephony settings section.""
+11. ""Press the previously configured shortcut again.""","1. ""Agent: Navigate to Telephony settings.""
 2. ""Agent: Configure shortcut.""
 3. ""Agent: Set clipboard text.""
 4. ""Agent: Dispatch accelerator.""
@@ -165,7 +173,10 @@ at_least_one_workspace","- Screenshot shortcut configuration and any error state
 6. ""Agent: Dispatch accelerator.""
 7. ""Agent: Set clipboard text to `not a phone`.""
 8. ""Agent: Dispatch accelerator.""
-9. ""Agent: Configure known conflict if safe.""","1. ""Global shortcut controls are visible.""
+9. ""Agent: Configure known conflict if safe.""
+10. ""Agent: Set telephony toggle to off.""
+11. ""Clipboard still contains the last valid phone number.
+Agent: Dispatch the same accelerator after disabling Telephony.""","1. ""Global shortcut controls are visible.""
 2. ""Registration status shows success or no error.""
 3. ""Clipboard contains phone number.""
 4. ""Dialpad opens with `+15551234567`.""
@@ -173,7 +184,9 @@ at_least_one_workspace","- Screenshot shortcut configuration and any error state
 6. ""Dialpad opens with `+5511999991234`.""
 7. ""Clipboard contains invalid text.""
 8. ""Dialpad opens with empty input; no malformed number is sent.""
-9. ""UI reports failure without crashing."""
+9. ""UI reports failure without crashing.""
+10. ""Shortcut controls become inactive or the configured shortcut is no longer active.""
+11. ""Dialpad does not open and no call request is created while Telephony is disabled."""
 "","1","Telephony deeplinks","","macOS cold launch from tel and callto links","Source flow: TEL-QA-009
 
 Clicking a phone link while Rocket.Chat is closed launches the app and routes the link.","telephony_enabled

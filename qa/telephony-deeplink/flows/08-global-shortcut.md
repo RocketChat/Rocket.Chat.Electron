@@ -40,6 +40,8 @@ expected_result: Configured shortcut reads clipboard on trigger and opens the te
 | 7 | Copy invalid text. |  | Clipboard contains invalid text. | Set clipboard text to `not a phone`. |
 | 8 | Press the shortcut. |  | Dialpad opens with empty input; no malformed number is sent. | Dispatch accelerator. |
 | 9 | Try a reserved/conflicting shortcut. |  | UI reports failure without crashing. | Configure known conflict if safe. |
+| 10 | Switch Telephony off from the same Telephony settings section. |  | Shortcut controls become inactive or the configured shortcut is no longer active. | Set telephony toggle to off. |
+| 11 | Press the previously configured shortcut again. | Clipboard still contains the last valid phone number. | Dialpad does not open and no call request is created while Telephony is disabled. | Dispatch the same accelerator after disabling Telephony. |
 
 ## Evidence
 
@@ -51,3 +53,4 @@ expected_result: Configured shortcut reads clipboard on trigger and opens the te
 - Clipboard is read before shortcut is pressed.
 - Invalid clipboard crashes or opens a malformed call.
 - Conflict state is silent.
+- Shortcut still opens the dialpad after Telephony is disabled.

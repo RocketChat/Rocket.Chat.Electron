@@ -54,6 +54,26 @@ This prevents MSI build failures from KMS CNG provider conflicts.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation
 - Tests run on Windows, macOS, AND Linux CI — always verify cross-platform
 
+## QA Flow Authoring
+
+When creating or updating QA flows under `qa/`, read `qa/README.md`,
+`qa/AGENTS.md`, and `qa/flow-template.md` first. QA steps must be
+self-contained and visually findable for a tester or visual agent that knows
+nothing about the feature.
+
+- Derive tester-facing steps from the implementation, not product intuition.
+  Inspect changed React components, Fuselage icons, i18n labels, menu
+  definitions, modal buttons, platform branches, tests, and helper pages.
+- Put the visible path directly in the `Action` cell. Do not create separate
+  navigation sections or ask testers to open another file for basic UI
+  discovery.
+- Describe screen region, relative position, icon shape, nearby UI, visible
+  text after interaction, and the confirmation state. If a tooltip or menu title
+  appears only after hover/click, describe the visible anchor first.
+- For Qase compatibility, keep the flow table columns aligned with
+  `qa/flow-template.md` and run `node qa/scripts/validate-flows.mjs qa/<pack>`
+  plus `node qa/scripts/export-qase-csv.mjs qa/<pack>` after changes.
+
 ### Cross-Platform Compatibility
 
 Use optional chaining with fallbacks for platform-specific APIs:

@@ -3,6 +3,13 @@ id: TEL-QA-004
 title: Telephony diagnostics panel
 platforms: [windows, macos, linux]
 priority: smoke
+qase:
+  suite: Telephony deeplinks
+  priority: high
+  severity: major
+  status: actual
+  automation: manual
+  qase_id: null
 requires: [telephony_enabled]
 test_links: []
 expected_result: Diagnostics can be expanded, refreshed, copied, and interpreted.
@@ -12,14 +19,14 @@ expected_result: Diagnostics can be expanded, refreshed, copied, and interpreted
 
 ## Steps
 
-| Step | Human action | Agent action | Expected result |
-| --- | --- | --- | --- |
-| 1 | Open Settings -> Voice & Video -> Telephony. | Navigate to Telephony settings. | Diagnostics accordion is visible. |
-| 2 | Expand Diagnostics. | Expand diagnostics panel. | Checks list appears. |
-| 3 | Click Refresh. | Activate Refresh. | Generated timestamp or statuses update. |
-| 4 | Click Copy. | Activate Copy. | Clipboard contains diagnostics JSON. |
-| 5 | Review `isDefault.tel` and `isDefault.callto`. | Parse copied JSON checks. | Statuses reflect current OS default-handler state. |
-| 6 | If a row has Open Settings, click it. | Activate row action. | OS settings opens where supported. |
+| Step | Action | Test data | Expected result | Agent action |
+| --- | --- | --- | --- | --- |
+| 1 | In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, then find the `Telephony` section heading. |  | Diagnostics accordion is visible. | Navigate to Telephony settings. |
+| 2 | Expand Diagnostics. |  | Checks list appears. | Expand diagnostics panel. |
+| 3 | Click Refresh. |  | Generated timestamp or statuses update. | Activate Refresh. |
+| 4 | Click Copy. |  | Clipboard contains diagnostics JSON. | Activate Copy. |
+| 5 | Review `isDefault.tel` and `isDefault.callto`. |  | Statuses reflect current OS default-handler state. | Parse copied JSON checks. |
+| 6 | If a diagnostics row has a button labeled `Open Settings`, click it. |  | OS settings opens where supported. | Activate row action. |
 
 ## Evidence
 
@@ -31,4 +38,3 @@ expected_result: Diagnostics can be expanded, refreshed, copied, and interpreted
 - Diagnostics never load.
 - Copy button does not write JSON.
 - `tel` and `callto` rows are missing.
-

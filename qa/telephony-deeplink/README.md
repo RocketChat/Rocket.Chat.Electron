@@ -5,6 +5,11 @@ deeplink branch. It covers `tel:` and `callto:` protocol handling, telephony
 settings, diagnostics, workspace selection, default-app registration, and
 installer policy behavior.
 
+The steps are intentionally visual and self-contained. They describe screen
+region, icon shape, visible labels, and confirmation states because these flows
+are meant for both QA engineers and future visual agents. Do not replace those
+instructions with references to a separate navigation document.
+
 ## Quick Start
 
 1. Install or run a build from this branch.
@@ -12,6 +17,9 @@ installer policy behavior.
    window to load.
 3. Open `qa/telephony-deeplink/test-links.html` in a browser.
 4. Follow the smoke order below, then run the platform-specific flows.
+5. For Qase import, run
+   `node qa/scripts/export-qase-csv.mjs qa/telephony-deeplink` and import the
+   generated CSV with source type `Qase.io`.
 
 ## Smoke Order
 
@@ -48,6 +56,18 @@ failures, and install logs for MSI failures.
 | --- | --- |
 | `test-links.html` | Local browser page with clickable `tel:` and `callto:` links |
 | `flows/` | Structured QA flows |
+| `exports/` | Generated Qase CSV exports |
 | `scripts/` | Future helper scripts for OS-specific checks |
 | `results/` | Optional local evidence area; do not commit run-specific evidence |
 
+## Source Of UI Truth
+
+When updating this pack, derive visible steps from the implementation:
+
+- Sidebar entry point: `src/ui/components/SideBar/index.tsx`.
+- Settings tabs: `src/ui/components/SettingsView/SettingsView.tsx`.
+- Telephony settings: `src/ui/components/SettingsView/VoiceVideoTab.tsx`.
+- Telephony feature controls: `src/ui/components/SettingsView/features/`.
+- User-facing strings: `src/i18n/` and generated `app/*.i18n-*.js` only as a
+  built artifact reference.
+- Protocol/default-app behavior: `src/telephony/` and related tests.

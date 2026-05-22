@@ -3,6 +3,13 @@ id: TEL-QA-002
 title: Enable and disable telephony protocol handling
 platforms: [windows, macos, linux]
 priority: smoke
+qase:
+  suite: Telephony deeplinks
+  priority: high
+  severity: major
+  status: actual
+  automation: manual
+  qase_id: null
 requires: [test-links-html, at_least_one_workspace]
 test_links: ["tel:+15551234567", "callto:+15551234567"]
 expected_result: Disabled telephony ignores phone links; enabled telephony handles them.
@@ -12,14 +19,14 @@ expected_result: Disabled telephony ignores phone links; enabled telephony handl
 
 ## Steps
 
-| Step | Human action | Agent action | Expected result |
-| --- | --- | --- | --- |
-| 1 | Open Settings -> Voice & Video -> Telephony. | Navigate to Telephony settings. | Toggle is visible. |
-| 2 | Turn Telephony off. | Set telephony toggle to off. | Diagnostics section is hidden or inactive. |
-| 3 | Open `test-links.html` and click `tel:+15551234567`. | Trigger the same link. | Rocket.Chat does not place a telephony call request. |
-| 4 | Turn Telephony on. | Set telephony toggle to on. | Default-handler prompt or diagnostics can appear. |
-| 5 | Click `tel:+15551234567` again. | Trigger the same link. | Rocket.Chat opens the telephony dialpad flow. |
-| 6 | Click `callto:+15551234567`. | Trigger the same link. | Rocket.Chat opens the telephony dialpad flow. |
+| Step | Action | Test data | Expected result | Agent action |
+| --- | --- | --- | --- | --- |
+| 1 | In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, then find the `Telephony` section heading. |  | Toggle is visible. | Navigate to Telephony settings. |
+| 2 | Switch the Telephony toggle off. |  | Diagnostics section is hidden or inactive. | Set telephony toggle to off. |
+| 3 | Open `test-links.html` and click `tel:+15551234567`. |  | Rocket.Chat does not place a telephony call request. | Trigger the same link. |
+| 4 | Switch the Telephony toggle on. |  | Default-handler prompt or diagnostics can appear. | Set telephony toggle to on. |
+| 5 | Click `tel:+15551234567` again. |  | Rocket.Chat opens the telephony dialpad flow. | Trigger the same link. |
+| 6 | Click `callto:+15551234567`. |  | Rocket.Chat opens the telephony dialpad flow. | Trigger the same link. |
 
 ## Evidence
 

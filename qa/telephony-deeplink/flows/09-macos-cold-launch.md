@@ -3,6 +3,13 @@ id: TEL-QA-009
 title: macOS cold launch from tel and callto links
 platforms: [macos]
 priority: release
+qase:
+  suite: Telephony deeplinks
+  priority: high
+  severity: critical
+  status: actual
+  automation: manual
+  qase_id: null
 requires: [telephony_enabled, app_registered_for_protocols, test-links-html]
 test_links: ["tel:+15551234567", "callto:+15551234567"]
 expected_result: Clicking a phone link while Rocket.Chat is closed launches the app and routes the link.
@@ -12,15 +19,15 @@ expected_result: Clicking a phone link while Rocket.Chat is closed launches the 
 
 ## Steps
 
-| Step | Human action | Agent action | Expected result |
-| --- | --- | --- | --- |
-| 1 | Enable Telephony in Rocket.Chat. | Set telephony toggle on. | App is registered for phone protocols. |
-| 2 | Quit Rocket.Chat completely. | Ensure no Rocket.Chat process remains. | App is closed. |
-| 3 | Open `test-links.html` in Safari or Chrome. | Open local HTML in browser. | Link page is visible. |
-| 4 | Click `tel:+15551234567`. | Trigger link. | Rocket.Chat launches and opens telephony flow. |
-| 5 | Quit Rocket.Chat again. | Ensure no process remains. | App is closed. |
-| 6 | Click `callto:+15551234567`. | Trigger link. | Rocket.Chat launches and opens telephony flow. |
-| 7 | Repeat while Rocket.Chat is already running. | Trigger link with running app. | Existing app window focuses and routes link. |
+| Step | Action | Test data | Expected result | Agent action |
+| --- | --- | --- | --- | --- |
+| 1 | In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony on. |  | App is registered for phone protocols. | Set telephony toggle on. |
+| 2 | Quit Rocket.Chat completely. |  | App is closed. | Ensure no Rocket.Chat process remains. |
+| 3 | Open `test-links.html` in Safari or Chrome. |  | Link page is visible. | Open local HTML in browser. |
+| 4 | Click `tel:+15551234567`. |  | Rocket.Chat launches and opens telephony flow. | Trigger link. |
+| 5 | Quit Rocket.Chat again. |  | App is closed. | Ensure no process remains. |
+| 6 | Click `callto:+15551234567`. |  | Rocket.Chat launches and opens telephony flow. | Trigger link. |
+| 7 | Repeat while Rocket.Chat is already running. |  | Existing app window focuses and routes link. | Trigger link with running app. |
 
 ## Evidence
 

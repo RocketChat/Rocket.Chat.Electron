@@ -9,3 +9,7 @@ Rules for future scripts:
 - Do not change system defaults unless the flow explicitly says to do so.
 - Prefer read-only checks for registry, desktop files, and protocol handlers.
 
+Shared QA scripts live in `qa/scripts/`:
+
+- `validate-flows.mjs` checks source Markdown structure.
+- `export-qase-csv.mjs` generates the Qase import CSV.

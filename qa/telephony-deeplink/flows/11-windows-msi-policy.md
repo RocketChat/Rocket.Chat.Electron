@@ -17,6 +17,17 @@ expected_result: MSI policy points to an existing XML and diagnostics pass after
 
 # Windows MSI Policy
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Windows MSI installer protocol association policy.
+- User-visible risk: Enterprise installs do not register the phone-link
+  protocols, or policy blocks expected association behavior.
+- Hypothesis: The MSI package contains the expected `tel:` and `callto:`
+  association data needed for Windows deployment.
+- Smallest useful proof: Installer/package inspection or Windows install repro,
+  depending on available release artifacts.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

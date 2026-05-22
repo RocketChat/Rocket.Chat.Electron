@@ -17,6 +17,17 @@ expected_result: Clicking valid phone links opens the dialpad in the only config
 
 # Single Workspace Links
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Deep-link routing when exactly one workspace is available.
+- User-visible risk: Clicking a phone link opens the wrong destination, does
+  nothing, or asks for a server when only one valid workspace exists.
+- Hypothesis: With one workspace, enabled Telephony routes `tel:` and `callto:`
+  links directly to that workspace's call handling path.
+- Smallest useful proof: Local UI repro using clickable protocol links from
+  `test-links.html`.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

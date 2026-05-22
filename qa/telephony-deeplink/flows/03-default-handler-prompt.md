@@ -17,6 +17,18 @@ expected_result: Enabling telephony shows a clear default-handler prompt with wo
 
 # Default Handler Prompt
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Default handler prompt, remember-choice state, and OS handler
+  detection.
+- User-visible risk: The app prompts at the wrong time, repeats dismissed
+  prompts, or hides the OS settings path when Rocket.Chat is not the handler.
+- Hypothesis: Enabling Telephony shows the correct default-handler prompt flow
+  and respects the tester's prompt decision.
+- Smallest useful proof: Local UI repro with the current OS default-handler
+  state observed before and after the prompt.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

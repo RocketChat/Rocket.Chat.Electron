@@ -17,6 +17,17 @@ expected_result: Rocket.Chat appears in Windows Default Apps and can own both te
 
 # Windows Default Apps
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Windows default-app detection and Settings handoff.
+- User-visible risk: Windows reports Rocket.Chat as unavailable or the app sends
+  testers to the wrong system settings surface.
+- Hypothesis: Windows users can verify and change `tel:` / `callto:` ownership
+  through the expected Default Apps UI path.
+- Smallest useful proof: OS-level repro on Windows plus observed Default Apps
+  state.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

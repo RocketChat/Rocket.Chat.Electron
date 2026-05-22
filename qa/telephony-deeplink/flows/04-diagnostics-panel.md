@@ -17,6 +17,16 @@ expected_result: Diagnostics can be expanded, refreshed, copied, and interpreted
 
 # Diagnostics Panel
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Telephony diagnostics UI and copied diagnostics payload.
+- User-visible risk: Support cannot diagnose protocol-handler state because the
+  panel is missing, stale, or omits platform-specific details.
+- Hypothesis: Diagnostics expose enabled state, default-handler state, and useful
+  platform details without requiring code knowledge.
+- Smallest useful proof: Local UI repro plus copied diagnostics text or JSON.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

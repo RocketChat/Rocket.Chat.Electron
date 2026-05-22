@@ -64,12 +64,22 @@ nothing about the feature.
 - Derive tester-facing steps from the implementation, not product intuition.
   Inspect changed React components, Fuselage icons, i18n labels, menu
   definitions, modal buttons, platform branches, tests, and helper pages.
+- For branch-specific QA packs, lock the exact comparison range first: base
+  branch, head branch or commit, and whether the whole requested range was
+  reviewed. Do not claim complete QA coverage for a partial review.
+- Convert risky Desktop changes into falsifiable user-visible hypotheses before
+  writing flows. Use Desktop risk surfaces such as Electron main process,
+  protocol handlers, OS default handlers, settings UI, menus, modals,
+  packaging/installers, startup, shortcuts, workspace routing, i18n, and layout.
 - Put the visible path directly in the `Action` cell. Do not create separate
   navigation sections or ask testers to open another file for basic UI
   discovery.
 - Describe screen region, relative position, icon shape, nearby UI, visible
   text after interaction, and the confirmation state. If a tooltip or menu title
   appears only after hover/click, describe the visible anchor first.
+- Prefer the smallest useful proof for the hypothesis: existing tests, targeted
+  tests, local UI repro, OS-level repro, or code-path proof when runtime
+  validation is not practical.
 - For Qase compatibility, keep the flow table columns aligned with
   `qa/flow-template.md` and run `node qa/scripts/validate-flows.mjs qa/<pack>`
   plus `node qa/scripts/export-qase-csv.mjs qa/<pack>` after changes.

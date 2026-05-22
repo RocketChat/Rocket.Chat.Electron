@@ -17,6 +17,18 @@ expected_result: Telephony UI is readable without clipping in key locales.
 
 # Localization And Layout Smoke
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Telephony labels, settings layout, modal copy, and diagnostics
+  layout across locales and viewport sizes.
+- User-visible risk: New strings overflow, become untranslated, or make controls
+  visually hard to find.
+- Hypothesis: Telephony UI remains readable and visually findable in supported
+  layout and localization conditions.
+- Smallest useful proof: Local UI smoke across representative locale/layout
+  states.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

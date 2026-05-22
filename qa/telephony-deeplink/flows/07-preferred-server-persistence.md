@@ -17,6 +17,16 @@ expected_result: Remembering a workspace skips the picker on later calls and sur
 
 # Preferred Server Persistence
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Preferred workspace persistence for future phone links.
+- User-visible risk: The app forgets the tester's preferred workspace or routes
+  future phone links to an unexpected server.
+- Hypothesis: Choosing a preferred server persists across subsequent `tel:` and
+  `callto:` activations until changed or cleared by the UI.
+- Smallest useful proof: Local UI repro with repeated clickable protocol links.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

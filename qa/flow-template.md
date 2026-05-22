@@ -17,6 +17,17 @@ expected_result: One-sentence pass condition.
 
 # Flow Title
 
+## Review Basis
+
+- Comparison range: Base branch and head branch or commit used to derive this
+  branch-specific flow, or `not branch-derived`.
+- Changed surface: Code, UI, platform, script, installer, or integration surface
+  this flow covers.
+- User-visible risk: What a customer could notice, hit, or be blocked by.
+- Hypothesis: Falsifiable statement this flow proves or disproves.
+- Smallest useful proof: Existing test, targeted test, local UI repro, OS-level
+  repro, or code-path proof used to justify this manual flow.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

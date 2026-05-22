@@ -37,6 +37,13 @@ intuition. Check the changed components, i18n strings, menu definitions, modal
 buttons, icons, platform branches, tests, and any helper pages. If the UI is not
 clear from code, stop and inspect more context before writing the flow.
 
+For branch-specific QA packs, record the exact comparison range before deriving
+flows: base branch, head branch or commit, and whether the whole range was
+reviewed. Classify changed Desktop surfaces by user-visible risk, then write a
+falsifiable hypothesis for each flow. The hypothesis should be provable by the
+smallest useful proof: existing tests, targeted tests, local UI repro, OS-level
+repro, or code-path proof when runtime validation is not practical.
+
 Required frontmatter keys:
 
 ```yaml
@@ -61,6 +68,8 @@ expected_result: One-sentence pass condition.
 Required body sections:
 
 - `# <Title>`
+- `## Review Basis` for new branch-derived flows, with changed surface,
+  user-visible risk, hypothesis, and smallest useful proof
 - `## Steps` with a table containing `Step`, `Action`, `Test data`,
   `Expected result`, and `Agent action`
 - `## Evidence`
@@ -138,10 +147,18 @@ comment:
 Flow ID:
 Platform:
 Build:
+Review range:
+Coverage: Full requested range | Partial surface review
 Result: Pass | Fail | Blocked
+Finding status: confirmed | suspected | blocked | none
 Evidence:
 Notes:
 ```
+
+Use `confirmed` only when the behavior was reproduced with evidence. Use
+`suspected` when the code path is credible but not fully reproduced. Use
+`blocked` when platform, permissions, environment, or build access prevents
+validation.
 
 Do not commit screenshots, logs, diagnostics JSON, or machine-specific results
 unless a release owner explicitly asks for them.

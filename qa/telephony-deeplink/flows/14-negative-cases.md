@@ -17,6 +17,18 @@ expected_result: Invalid or unsupported inputs fail safely without crashes or wr
 
 # Negative And Edge Cases
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Link parsing, disabled states, malformed inputs, cancellation,
+  and unavailable workspace handling.
+- User-visible risk: Invalid phone links crash the app, leak stale state, or
+  route calls despite cancellation or disabled Telephony.
+- Hypothesis: Negative and edge inputs fail safely without crashes, unintended
+  routing, or persistent bad state.
+- Smallest useful proof: Local UI repro using malformed links, cancellation, and
+  disabled-feature scenarios.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

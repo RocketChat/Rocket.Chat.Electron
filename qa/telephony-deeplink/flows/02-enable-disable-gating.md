@@ -17,6 +17,17 @@ expected_result: Disabled telephony ignores phone links; enabled telephony handl
 
 # Enable And Disable Gating
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Telephony settings toggle and `tel:` / `callto:` link gating.
+- User-visible risk: Phone links route into the app while Telephony is disabled,
+  or fail to route after Telephony is enabled.
+- Hypothesis: The enabled setting is the user-visible gate for handling phone
+  links.
+- Smallest useful proof: Local UI repro using `test-links.html` clickable
+  protocol links.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

@@ -17,6 +17,16 @@ expected_result: Clicking a phone link while Rocket.Chat is closed launches the 
 
 # macOS Cold Launch
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: macOS protocol handling during cold launch.
+- User-visible risk: A phone link clicked while the app is closed is lost,
+  ignored, or routed before workspaces are ready.
+- Hypothesis: macOS launches Rocket.Chat from a `tel:` or `callto:` link and
+  preserves the pending call until the app can route it.
+- Smallest useful proof: OS-level repro on macOS using clickable protocol links.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

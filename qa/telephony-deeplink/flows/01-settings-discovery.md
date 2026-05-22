@@ -17,6 +17,17 @@ expected_result: Telephony settings are visible under Voice & Video and start di
 
 # Telephony Settings Discovery
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Settings UI under Voice & Video.
+- User-visible risk: QA cannot find the new Telephony controls, or the controls
+  appear in the wrong state.
+- Hypothesis: A tester with no feature context can visually navigate to Settings,
+  open Voice & Video, and identify the Telephony section.
+- Smallest useful proof: Local UI repro against an installed or running branch
+  build.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

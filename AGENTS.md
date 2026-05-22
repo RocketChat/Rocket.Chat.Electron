@@ -71,6 +71,13 @@ about the feature. Do not guess where UI lives. Derive every user-facing step
 from the implementation: changed React components, Fuselage icons, i18n labels,
 menu definitions, modal buttons, platform branches, tests, and helper pages.
 
+For branch-specific QA packs, lock the comparison range before deriving flows:
+record the base branch, head branch or commit, and whether the whole range was
+reviewed. Classify changed Desktop surfaces by user-visible risk, then turn each
+risk into a falsifiable hypothesis the flow proves or disproves. Prefer the
+smallest useful proof: existing tests, targeted tests, local UI repro, OS-level
+repro, or code-path proof when runtime validation is not practical.
+
 Write the visible path directly in the flow step `Action` cell. Include screen
 region, relative position, icon shape, nearby UI, visible labels after
 interaction, and the visual confirmation state. If a label only appears as a

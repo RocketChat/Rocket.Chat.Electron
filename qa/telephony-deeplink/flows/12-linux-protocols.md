@@ -17,6 +17,16 @@ expected_result: Linux desktop protocol defaults can route tel and callto links 
 
 # Linux Protocol Handling
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Linux desktop protocol registration and runtime handling.
+- User-visible risk: Linux desktops do not expose Rocket.Chat as a handler, or
+  phone links fail after registration.
+- Hypothesis: Supported Linux desktop environments can associate and invoke
+  Rocket.Chat for `tel:` and `callto:` links.
+- Smallest useful proof: OS-level repro with desktop/MIME handler inspection.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

@@ -13,6 +13,14 @@ same preconditions, actions, expected results, and evidence.
 - Inspect the feature surface first: changed files, UI components, Fuselage
   icons, i18n labels, menu definitions, modal buttons, docs, tests, helper
   pages, scripts, and platform-specific behavior.
+- For branch-specific packs, lock the comparison range before authoring:
+  default/base branch, head branch or commit, and whether the complete requested
+  range was reviewed.
+- Classify changed Desktop surfaces by user-visible risk: Electron main process,
+  protocol handlers, OS default handlers, settings UI, menus, modals,
+  packaging/installers, startup, shortcuts, workspace routing, i18n, and layout.
+- Turn each risky change into a falsifiable hypothesis. A good hypothesis names
+  the user action, expected behavior, failure mode, platform, and proof needed.
 - Extract the tester-facing steps from the implementation. Do not guess where
   the feature lives, which label appears, or which control opens the next view.
 - Reuse the existing pack shape from `qa/telephony-deeplink/` unless the feature
@@ -38,6 +46,8 @@ Every flow must include:
 
 - YAML frontmatter with `id`, `title`, `platforms`, `priority`, `requires`,
   `test_links`, `expected_result`, and a `qase` block.
+- For new branch-derived flows, a `## Review Basis` section naming the changed
+  surface, user-visible risk, hypothesis, and smallest useful proof.
 - A `## Steps` table with `Step`, `Action`, `Test data`, `Expected result`,
   and `Agent action`.
 - A `## Evidence` section.
@@ -59,6 +69,12 @@ keys, menu action definitions, modal button labels, and platform guards. For
 browser helpers, inspect the committed HTML. For OS behavior, inspect the branch
 code/tests that determine which prompt, settings button, registry/default-app
 state, or desktop integration is expected.
+
+Use the smallest useful proof for the flow's hypothesis. Prefer existing tests
+or targeted tests when they directly cover the behavior. Use local UI repros for
+rendering and workflow risks, OS-level repros for protocol/default-handler
+behavior, and code-path proof only when runtime validation is too expensive or
+requires unavailable infrastructure.
 
 Do not write separate navigation sections for basic UI discovery. Do not point
 to another file for basic UI navigation. Put the visually findable path directly
@@ -87,6 +103,13 @@ Qase rules:
 
 ## Results And Evidence
 
+- Classify findings as `confirmed` only when reproduced with evidence.
+- Classify findings as `suspected` when the code path is credible but the
+  behavior was not fully reproduced.
+- Classify findings as `blocked` when platform, permissions, environment, or
+  build access prevents validation.
+- Report whether the whole requested comparison range was checked. Do not claim
+  full QA for a partial surface review.
 - Do not commit run-specific screenshots, logs, copied diagnostics JSON, or
   machine-specific result files unless the user explicitly asks.
 - It is fine to commit `results/README.md` and placeholder guidance.

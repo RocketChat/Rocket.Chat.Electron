@@ -17,6 +17,16 @@ expected_result: The server picker opens, routes to the chosen workspace, and su
 
 # Multi-Workspace Server Picker
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Multi-workspace picker shown after phone-link activation.
+- User-visible risk: The app selects the wrong workspace, hides available
+  workspaces, or leaves the tester without a way to choose where the call goes.
+- Hypothesis: With multiple workspaces, enabled Telephony presents a visually
+  findable picker and routes the call to the selected workspace.
+- Smallest useful proof: Local UI repro with two or more configured workspaces.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

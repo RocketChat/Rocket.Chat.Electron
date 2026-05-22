@@ -17,6 +17,16 @@ expected_result: Configured shortcut reads clipboard on trigger and opens the te
 
 # Global Shortcut
 
+## Review Basis
+
+- Comparison range: `master` to `feat/telephony-deeplink`.
+- Changed surface: Global shortcut and dialpad entrypoint.
+- User-visible risk: The shortcut fails, opens the wrong UI, or remains active
+  when Telephony is disabled.
+- Hypothesis: The configured shortcut opens the expected Telephony dialpad or
+  shortcut handling surface only when the feature state allows it.
+- Smallest useful proof: Local keyboard/UI repro on a branch build.
+
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |

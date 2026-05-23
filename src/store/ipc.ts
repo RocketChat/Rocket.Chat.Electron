@@ -13,6 +13,10 @@ const enum ActionScope {
   SINGLE = 'single',
 }
 
+const shouldLogTelephonyServerSelect = (action: { type?: unknown }): boolean =>
+  action.type === 'telephony-server-select/open' ||
+  action.type === 'telephony-server-select/close';
+
 export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   const renderers = new Set<WebContents>();
 
@@ -39,7 +43,24 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   });
 
   return (next) => (action) => {
-    if (!isFSA(action) || isLocallyScoped(action)) {
+    if (!isFSA(action)) {
+      return next(action);
+    }
+
+    const locallyScoped = isLocallyScoped(action);
+    if (shouldLogTelephonyServerSelect(action)) {
+      console.error(
+        '[MOSDAT-DIAG] forwardToRenderers received',
+        JSON.stringify({
+          locallyScoped,
+          rendererCount: renderers.size,
+          singleScoped: isSingleScoped(action),
+          type: action.type,
+        })
+      );
+    }
+
+    if (locallyScoped) {
       return next(action);
     }
     const rendererAction = {
@@ -51,16 +72,32 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     };
     if (isSingleScoped(action)) {
       const { webContentsId, viewInstanceId } = action.ipcMeta;
-      [...renderers]
-        .filter(
-          (w) =>
-            w.id === webContentsId ||
-            (viewInstanceId && w.id === viewInstanceId)
-        )
-        .forEach((w) =>
-          invokeFromMain(w, 'redux/action-dispatched', rendererAction)
+      const targets = [...renderers].filter(
+        (w) =>
+          w.id === webContentsId || (viewInstanceId && w.id === viewInstanceId)
+      );
+      if (shouldLogTelephonyServerSelect(action)) {
+        console.error(
+          '[MOSDAT-DIAG] forwardToRenderers single-scope targets',
+          JSON.stringify({
+            targetIds: targets.map((w) => w.id),
+            type: action.type,
+          })
         );
+      }
+      targets.forEach((w) =>
+        invokeFromMain(w, 'redux/action-dispatched', rendererAction)
+      );
       return next(action);
+    }
+    if (shouldLogTelephonyServerSelect(action)) {
+      console.error(
+        '[MOSDAT-DIAG] forwardToRenderers broadcast',
+        JSON.stringify({
+          rendererIds: [...renderers].map((w) => w.id),
+          type: action.type,
+        })
+      );
     }
     renderers.forEach((webContents) => {
       invokeFromMain(webContents, 'redux/action-dispatched', rendererAction);

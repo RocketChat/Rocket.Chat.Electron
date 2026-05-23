@@ -13,6 +13,7 @@ import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import {
   parseTelephonyLink,
+  getDeepLinkArgs,
   performTelephonyCall,
   setupDeepLinks,
   processDeepLinksInArgs,
@@ -71,6 +72,29 @@ describe('deepLinks/main.ts', () => {
       return jest.fn();
     });
   };
+
+  describe('getDeepLinkArgs', () => {
+    it('keeps only supported deep link arguments', () => {
+      expect(
+        getDeepLinkArgs([
+          'electron',
+          '.',
+          '--force-renderer-accessibility',
+          'tel:+491234567890',
+          '--source-app-id',
+          'callto:+15551234567',
+          'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+          'https://go.rocket.chat/invite?host=https://chat.example.com',
+          'https://example.com/not-a-deep-link',
+        ])
+      ).toEqual([
+        'tel:+491234567890',
+        'callto:+15551234567',
+        'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+        'https://go.rocket.chat/invite?host=https://chat.example.com',
+      ]);
+    });
+  });
 
   describe('parseTelephonyLink', () => {
     it('should parse valid tel: with international format', () => {

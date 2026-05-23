@@ -44,56 +44,25 @@ const selectTelephonyServerUrl = async (
   link: TelephonyLink
 ): Promise<string | null> => {
   const servers = select(({ servers }) => servers);
-  // eslint-disable-next-line no-console
-  console.error(
-    '[MOSDAT-DIAG] selectTelephonyServerUrl: servers.length=',
-    servers.length,
-    'urls=',
-    servers.map((s) => s.url)
-  );
 
   if (servers.length === 0) {
-    // eslint-disable-next-line no-console
-    console.error(
-      '[MOSDAT-DIAG] selectTelephonyServerUrl: returning null (no servers)'
-    );
     return null;
   }
 
   if (servers.length === 1) {
-    // eslint-disable-next-line no-console
-    console.error(
-      '[MOSDAT-DIAG] selectTelephonyServerUrl: single server short-circuit:',
-      servers[0].url
-    );
     return servers[0].url;
   }
 
   const preferredServer = select(
     ({ telephonyPreferredServer }) => telephonyPreferredServer
   );
-  // eslint-disable-next-line no-console
-  console.error(
-    '[MOSDAT-DIAG] selectTelephonyServerUrl: preferredServer=',
-    preferredServer
-  );
 
   if (
     preferredServer &&
     servers.some((server) => server.url === preferredServer)
   ) {
-    // eslint-disable-next-line no-console
-    console.error(
-      '[MOSDAT-DIAG] selectTelephonyServerUrl: using preferred:',
-      preferredServer
-    );
     return preferredServer;
   }
-
-  // eslint-disable-next-line no-console
-  console.error(
-    '[MOSDAT-DIAG] selectTelephonyServerUrl: dispatching TELEPHONY_SERVER_SELECT_OPEN (picker)'
-  );
 
   const result = await new Promise<{
     serverUrl: string;
@@ -108,11 +77,6 @@ const selectTelephonyServerUrl = async (
     const unsubscribe = listen(TELEPHONY_SERVER_SELECT_CLOSE, (action) => {
       clearTimeout(timeout);
       unsubscribe();
-      // eslint-disable-next-line no-console
-      console.error(
-        '[MOSDAT-DIAG] selectTelephonyServerUrl: SELECT_CLOSE received, payload=',
-        JSON.stringify(action.payload)
-      );
       resolve(action.payload);
     });
 
@@ -120,16 +84,7 @@ const selectTelephonyServerUrl = async (
       type: TELEPHONY_SERVER_SELECT_OPEN,
       payload: { phoneNumber: link.phoneNumber, rawUri: link.rawUri },
     });
-    // eslint-disable-next-line no-console
-    console.error(
-      '[MOSDAT-DIAG] selectTelephonyServerUrl: SELECT_OPEN dispatched, awaiting CLOSE'
-    );
   });
-  // eslint-disable-next-line no-console
-  console.error(
-    '[MOSDAT-DIAG] selectTelephonyServerUrl: promise resolved, result=',
-    JSON.stringify(result)
-  );
 
   if (!result) {
     return null;

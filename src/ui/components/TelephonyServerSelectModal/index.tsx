@@ -1,5 +1,5 @@
 import { Box, CheckBox } from '@rocket.chat/fuselage';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -22,34 +22,12 @@ export const TelephonyServerSelectModal = () => {
 
   const [rememberChoice, setRememberChoice] = useState(false);
 
-  useEffect(() => {
-    if (!isVisible) {
-      console.error('[MOSDAT-DIAG] TelephonyServerSelectModal hidden');
-      setRememberChoice(false);
-      return;
-    }
-
-    console.error(
-      '[MOSDAT-DIAG] TelephonyServerSelectModal buttons-render',
-      JSON.stringify({
-        rememberChoice,
-        serverCount: servers.length,
-        servers: servers.map(({ title, url }) => ({ title, url })),
-      })
-    );
-  }, [isVisible, rememberChoice, servers]);
-
   const handleClose = () => {
-    console.error('[MOSDAT-DIAG] TelephonyServerSelectModal close');
     dispatch({ type: TELEPHONY_SERVER_SELECT_CLOSE, payload: null });
     setRememberChoice(false);
   };
 
   const handleServerClick = (serverUrl: string) => {
-    console.error(
-      '[MOSDAT-DIAG] TelephonyServerSelectModal server-click',
-      JSON.stringify({ rememberChoice, serverUrl })
-    );
     dispatch({
       type: TELEPHONY_SERVER_SELECT_CLOSE,
       payload: { serverUrl, rememberChoice },

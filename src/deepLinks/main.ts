@@ -63,6 +63,11 @@ const parseDeepLink = (
   return null;
 };
 
+export const getDeepLinkArgs = (argv: string[]): string[] =>
+  argv
+    .slice(app.isPackaged ? 1 : 2)
+    .filter((arg) => parseTelephonyLink(arg) || parseDeepLink(arg));
+
 export let processDeepLinksInArgs = async (): Promise<void> => undefined;
 
 const focusRootWindow = async (): Promise<void> => {
@@ -215,26 +220,15 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
   });
 
 const processDeepLink = async (deepLink: string): Promise<void> => {
-  console.error('[MOSDAT-DIAG] processDeepLink called:', deepLink);
   const telephonyLink = parseTelephonyLink(deepLink);
-  console.error('[MOSDAT-DIAG] parseTelephonyLink result:', telephonyLink);
   if (telephonyLink) {
     const isTelephonyEnabled = select(
       ({ isTelephonyEnabled }) => isTelephonyEnabled
     );
-    console.error('[MOSDAT-DIAG] isTelephonyEnabled:', isTelephonyEnabled);
     if (!isTelephonyEnabled) {
-      console.error('[MOSDAT-DIAG] RETURNING - telephony disabled');
       return;
     }
-    console.error('[MOSDAT-DIAG] calling openTelephonyDialpad');
-    try {
-      await openTelephonyDialpad(telephonyLink);
-      console.error('[MOSDAT-DIAG] openTelephonyDialpad completed');
-    } catch (e) {
-      console.error('[MOSDAT-DIAG] openTelephonyDialpad threw:', e);
-      throw e;
-    }
+    await openTelephonyDialpad(telephonyLink);
     return;
   }
 
@@ -316,41 +310,16 @@ export const setupDeepLinks = (): void => {
   };
 
   app.addListener('second-instance', async (event, argv): Promise<void> => {
-    console.error(
-      '[MOSDAT-DIAG] second-instance event, argv:',
-      JSON.stringify(argv)
-    );
     event.preventDefault();
 
     const browserWindow = await getRootWindow();
-    const browserWindowDestroyed =
-      typeof browserWindow?.isDestroyed === 'function'
-        ? browserWindow.isDestroyed()
-        : undefined;
-    const webContentsDestroyed =
-      typeof browserWindow?.webContents?.isDestroyed === 'function'
-        ? browserWindow.webContents.isDestroyed()
-        : undefined;
-    // eslint-disable-next-line no-console
-    console.error(
-      '[MOSDAT-DIAG] rootWindow exists:',
-      !!browserWindow,
-      'isVisible:',
-      browserWindow?.isVisible(),
-      'isDestroyed:',
-      browserWindowDestroyed,
-      'wcId:',
-      browserWindow?.webContents?.id,
-      'wcDestroyed:',
-      webContentsDestroyed
-    );
 
     if (browserWindow && !browserWindow.isVisible()) {
       browserWindow.showInactive();
     }
     if (browserWindow) browserWindow.focus();
 
-    const args = argv.slice(app.isPackaged ? 1 : 2);
+    const args = getDeepLinkArgs(argv);
 
     for (const arg of args) {
       // eslint-disable-next-line no-await-in-loop
@@ -363,7 +332,7 @@ export const setupDeepLinks = (): void => {
 
     await processQueuedOpenUrls();
 
-    const args = process.argv.slice(app.isPackaged ? 1 : 2);
+    const args = getDeepLinkArgs(process.argv);
 
     for (const arg of args) {
       // eslint-disable-next-line no-await-in-loop

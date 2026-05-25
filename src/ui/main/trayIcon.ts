@@ -155,8 +155,8 @@ const manageTrayIcon = async (): Promise<() => void> => {
           timeoutType: 'never',
           urgency: 'critical',
         }).show();
-        updateTrayIconImage(trayIcon, undefined);
       }
+      updateTrayIconImage(trayIcon, undefined);
     }
   );
 

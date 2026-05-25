@@ -148,10 +148,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
         }
         new Notification({
           title: t('tray.balloon.stillRunning.title', { appName: app.name }),
-          body: t('error.authNeeded', { auth: '' }).replace(
-            /<[\/]?strong>/g,
-            ''
-          ),
+          body: t('error.authNeeded', { auth: '' }).replace(/<\/?strong>/g, ''),
           timeoutType: 'never',
           urgency: 'critical',
         }).show();

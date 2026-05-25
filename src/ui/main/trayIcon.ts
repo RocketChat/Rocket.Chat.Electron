@@ -156,7 +156,8 @@ const manageTrayIcon = async (): Promise<() => void> => {
           urgency: 'critical',
         }).show();
       }
-      updateTrayIconImage(trayIcon, undefined);
+      const globalBadge = select(selectGlobalBadge);
+      updateTrayIconImage(trayIcon, globalBadge);
     }
   );
 

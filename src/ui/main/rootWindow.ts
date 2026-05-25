@@ -438,6 +438,7 @@ export const setupRootWindow = (): void => {
                 getTrayIconPath({
                   platform: process.platform,
                   badge: globalBadge,
+                  isLoggedIn: true,
                 })
               )
             );

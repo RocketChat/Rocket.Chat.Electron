@@ -16,13 +16,28 @@ export const getAppIconPath = ({
   return `${app.getAppPath()}/app/images/icon.ico`;
 };
 
-const getMacOSTrayIconPath = (badge: Server['badge']): string =>
-  path.join(
+const getMacOSTrayIconPath = (
+  badge: Server['badge'],
+  isLoggedIn: boolean
+): string => {
+  if (!isLoggedIn) {
+    return path.join(app.getAppPath(), 'app/images/tray/darwin/offline.png');
+  }
+
+  return path.join(
     app.getAppPath(),
     `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
   );
+}
 
-const getWindowsTrayIconPath = (badge: Server['badge']): string => {
+const getWindowsTrayIconPath = (
+  badge: Server['badge'],
+  isLoggedIn: boolean
+): string => {
+  if (!isLoggedIn) {
+    return path.join(app.getAppPath(), 'app/images/tray/win32/offline.ico');
+  }
+
   const name =
     (!badge && 'default') ||
     (badge === '•' && 'notification-dot') ||
@@ -31,7 +46,14 @@ const getWindowsTrayIconPath = (badge: Server['badge']): string => {
   return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
 };
 
-const getLinuxTrayIconPath = (badge: Server['badge']): string => {
+const getLinuxTrayIconPath = (
+  badge: Server['badge'],
+  isLoggedIn: boolean
+): string => {
+  if (!isLoggedIn) {
+    return path.join(app.getAppPath(), 'app/images/tray/linux/offline.png');
+  }
+
   const name =
     (!badge && 'default') ||
     (badge === '•' && 'notification-dot') ||
@@ -43,19 +65,21 @@ const getLinuxTrayIconPath = (badge: Server['badge']): string => {
 export const getTrayIconPath = ({
   badge,
   platform,
+  isLoggedIn = false,
 }: {
   badge?: Server['badge'];
   platform: NodeJS.Platform;
+  isLoggedIn?: boolean;
 }): string => {
   switch (platform ?? process.platform) {
     case 'darwin':
-      return getMacOSTrayIconPath(badge);
+      return getMacOSTrayIconPath(badge, isLoggedIn);
 
     case 'win32':
-      return getWindowsTrayIconPath(badge);
+      return getWindowsTrayIconPath(badge, isLoggedIn);
 
     case 'linux':
-      return getLinuxTrayIconPath(badge);
+      return getLinuxTrayIconPath(badge, isLoggedIn);
 
     default:
       throw Error(`unsupported platform (${platform})`);

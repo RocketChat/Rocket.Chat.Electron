@@ -1,4 +1,4 @@
-import { app, Menu, nativeImage, Tray } from 'electron';
+import { app, Menu, nativeImage, Tray, Notification } from 'electron';
 import i18next from 'i18next';
 
 import type { Server } from '../../servers/common';
@@ -63,9 +63,12 @@ const createTrayIcon = (): Tray => {
 };
 
 const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge']): void => {
+  const servers = select(({ servers }) => servers || []);
+  const isLoggedIn = servers.every((server) => server.userLoggedIn);
   const image = getTrayIconPath({
     platform: process.platform,
     badge,
+    isLoggedIn,
   });
   trayIcon.setImage(nativeImage.createFromPath(image));
 };
@@ -128,6 +131,32 @@ const manageTrayIcon = async (): Promise<() => void> => {
     updateTrayIconToolTip(trayIcon, globalBadge);
   });
 
+  const unwatchUserLoggedIn = watch(
+    (state: RootState) => {
+      const servers = state.servers || [];
+      return (
+        servers.length > 0 && servers.every((server) => !server.userLoggedIn)
+      );
+    },
+    async (isLoggedOut) => {
+      if (isLoggedOut) {
+        const rootWindow = await getRootWindow();
+        if (rootWindow) {
+          if (rootWindow.isMinimized()) rootWindow.restore();
+          rootWindow.show();
+          rootWindow.focus();
+        }
+        new Notification({
+          title: t('tray.balloon.stillRunning.title', { appName: app.name }),
+          body: t('error.authNeeded', { auth: '' }).replace(/<\/?strong>/g, ''),
+          timeoutType: 'never',
+          urgency: 'critical',
+        }).show();
+      }
+      updateTrayIconImage(trayIcon, undefined);
+    }
+  );
+
   let firstTrayIconBalloonShown = false;
 
   const unwatchIsRootWindowVisible = watch(
@@ -175,6 +204,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
 
   return () => {
     unwatchGlobalBadge();
+    unwatchUserLoggedIn();
     unwatchIsRootWindowVisible();
     trayIcon.destroy();
   };

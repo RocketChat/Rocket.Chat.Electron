@@ -28,7 +28,7 @@ const getMacOSTrayIconPath = (
     app.getAppPath(),
     `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
   );
-}
+};
 
 const getWindowsTrayIconPath = (
   badge: Server['badge'],

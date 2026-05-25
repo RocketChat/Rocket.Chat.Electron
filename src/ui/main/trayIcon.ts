@@ -135,7 +135,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
     (state: RootState) => {
       const servers = state.servers || [];
       return (
-        servers.length > 0 && servers.every((server) => !server.userLoggedIn)
+        servers.length === 0 || servers.some((server) => !server.userLoggedIn)
       );
     },
     async (isLoggedOut) => {

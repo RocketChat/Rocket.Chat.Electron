@@ -140,11 +140,13 @@ const manageTrayIcon = async (): Promise<() => void> => {
     },
     async (isLoggedOut) => {
       if (isLoggedOut) {
-        const rootWindow = await getRootWindow();
-        if (rootWindow) {
+        try {
+          const rootWindow = await getRootWindow();
           if (rootWindow.isMinimized()) rootWindow.restore();
           rootWindow.show();
           rootWindow.focus();
+        } catch {
+          // Root window may not be ready/destroyed; continue with notification/icon update.
         }
         new Notification({
           title: t('tray.balloon.stillRunning.title', { appName: app.name }),

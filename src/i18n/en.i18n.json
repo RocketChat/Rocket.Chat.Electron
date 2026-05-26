@@ -234,10 +234,16 @@
   },
   "settings": {
     "title": "Settings",
+    "back": "Back",
     "general": "General",
     "certificates": "Certificates",
     "developer": "Developer",
     "sections": {
+      "notifications": "Notifications",
+      "performance": "Performance",
+      "callsAndVideo": "Calls & video",
+      "windowAndAppearance": "Window & appearance",
+      "integrations": "Integrations",
       "logging": "Logging"
     },
     "options": {

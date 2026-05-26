@@ -1,6 +1,7 @@
 import { Box, IconButton, Scrollable, Tabs } from '@rocket.chat/fuselage';
 import '@rocket.chat/fuselage-polyfills';
-import { useEffect, useState } from 'react';
+import type { KeyboardEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -37,12 +38,22 @@ export const SettingsView = () => {
     }
   }, [isDeveloperModeEnabled, currentTab]);
 
-  const handleBackButton = function (): void {
+  const handleBackButton = useCallback((): void => {
     dispatch({
       type: DOWNLOADS_BACK_BUTTON_CLICKED,
       payload: lastSelectedServerUrl,
     });
-  };
+  }, [lastSelectedServerUrl]);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Escape') {
+        handleBackButton();
+      }
+    },
+    [handleBackButton]
+  );
+
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
@@ -52,46 +63,59 @@ export const SettingsView = () => {
       width='full'
       className='rcx-sidebar--main'
       bg='room'
+      onKeyDown={handleKeyDown}
+      tabIndex={isVisible ? -1 : undefined}
     >
       <Box
         width='full'
-        padding={24}
+        pi={24}
+        pbs={24}
+        pbe={16}
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
-        fontScale='h1'
+        alignItems='center'
+        fontScale='h2'
         color='default'
       >
         {!isSideBarEnabled && (
-          <IconButton icon='arrow-back' onClick={handleBackButton} />
+          <Box mie={8} display='flex' alignItems='center'>
+            <IconButton
+              icon='arrow-back'
+              onClick={handleBackButton}
+              aria-label={t('settings.back')}
+            />
+          </Box>
         )}
         {t('settings.title')}
       </Box>
 
-      <Tabs>
-        <Tabs.Item
-          selected={currentTab === 'general'}
-          onClick={() => setCurrentTab('general')}
-        >
-          {t('settings.general')}
-        </Tabs.Item>
-        <Tabs.Item
-          selected={currentTab === 'certificates'}
-          onClick={() => setCurrentTab('certificates')}
-        >
-          {t('settings.certificates')}
-        </Tabs.Item>
-        {isDeveloperModeEnabled && (
+      <Box pi={24}>
+        <Tabs>
           <Tabs.Item
-            selected={currentTab === 'developer'}
-            onClick={() => setCurrentTab('developer')}
+            selected={currentTab === 'general'}
+            onClick={() => setCurrentTab('general')}
           >
-            {t('settings.developer')}
+            {t('settings.general')}
           </Tabs.Item>
-        )}
-      </Tabs>
+          <Tabs.Item
+            selected={currentTab === 'certificates'}
+            onClick={() => setCurrentTab('certificates')}
+          >
+            {t('settings.certificates')}
+          </Tabs.Item>
+          {isDeveloperModeEnabled && (
+            <Tabs.Item
+              selected={currentTab === 'developer'}
+              onClick={() => setCurrentTab('developer')}
+            >
+              {t('settings.developer')}
+            </Tabs.Item>
+          )}
+        </Tabs>
+      </Box>
       <Scrollable>
-        <Box m='x24'>
+        <Box pi={24} pbs={24} pbe={24}>
           {(currentTab === 'general' && <GeneralTab />) ||
             (currentTab === 'certificates' && <CertificatesTab />) ||
             (currentTab === 'developer' && <DeveloperTab />)}

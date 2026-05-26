@@ -182,6 +182,13 @@
   },
   "downloads": {
     "title": "Downloads",
+    "back": "Back",
+    "empty": {
+      "noDownloads": "No downloads yet.",
+      "noDownloadsDescription": "Files downloaded from your Rocket.Chat workspaces appear here.",
+      "noResults": "No downloads match these filters.",
+      "noResultsAction": "Clear filters"
+    },
     "notifications": {
       "downloadFinished": "Download Finished",
       "downloadInterrupted": "Download Interrupted",
@@ -218,7 +225,7 @@
       "remove": "Remove from list",
       "resume": "Resume",
       "retry": "Retry",
-      "showInFolder": "Show in Folder"
+      "showInFolder": "Show in folder"
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },

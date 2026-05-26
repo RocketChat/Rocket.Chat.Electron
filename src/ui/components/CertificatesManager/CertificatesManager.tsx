@@ -42,7 +42,7 @@ const CertificateSection = ({
           {emptyText}
         </Box>
       ) : (
-        <Table striped fixed>
+        <Table fixed>
           <TableHead>
             <TableRow>
               <TableCell>{t('certificatesManager.item.domain')}</TableCell>

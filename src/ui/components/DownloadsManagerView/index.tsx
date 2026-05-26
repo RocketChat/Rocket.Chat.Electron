@@ -1,14 +1,15 @@
 import {
   Box,
+  Button,
   SearchInput,
   Icon,
   Pagination,
   Scrollable,
   IconButton,
-  SelectLegacy,
+  Select,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, Key, KeyboardEvent } from 'react';
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -68,8 +69,8 @@ const DownloadsManagerView = () => {
   >('download-server', '');
 
   const handleServerFilterChange = useCallback(
-    (value: (typeof serverFilterOptions)[number][0]) => {
-      setServerFilter(value);
+    (value: Key) => {
+      setServerFilter(String(value));
     },
     [setServerFilter]
   );
@@ -91,8 +92,8 @@ const DownloadsManagerView = () => {
   >('download-type', '');
 
   const handleMimeFilter = useCallback(
-    (value: (typeof mimeTypeOptions)[number][0]) => {
-      setMimeTypeFilter(value);
+    (value: Key) => {
+      setMimeTypeFilter(String(value));
     },
     [setMimeTypeFilter]
   );
@@ -111,17 +112,23 @@ const DownloadsManagerView = () => {
   >('download-tab', DownloadStatus.ALL);
 
   const handleTabChange = useCallback(
-    (value: (typeof statusFilterOptions)[number][0]) => {
-      setStatusFilter(value);
+    (value: Key) => {
+      setStatusFilter(String(value));
     },
     [setStatusFilter]
   );
+
+  const hasActiveFilters =
+    Boolean(searchFilter) ||
+    (serverFilter !== '' && serverFilter !== '*') ||
+    (mimeTypeFilter !== '' && mimeTypeFilter !== '*') ||
+    (statusFilter !== '' && statusFilter !== DownloadStatus.ALL);
 
   const handleClearAll = useCallback((): void => {
     setSearchFilter('');
     setMimeTypeFilter('');
     setServerFilter('');
-    setStatusFilter('');
+    setStatusFilter(DownloadStatus.ALL);
   }, [setSearchFilter, setMimeTypeFilter, setServerFilter, setStatusFilter]);
 
   const [itemsPerPage, setItemsPerPage] = useState<25 | 50 | 100>(25);
@@ -143,6 +150,10 @@ const DownloadsManagerView = () => {
         count,
       }),
     [t]
+  );
+
+  const totalDownloads = useSelector(
+    ({ downloads }: RootState) => Object.keys(downloads).length
   );
 
   const downloads = useSelector(({ downloads }: RootState) => {
@@ -170,12 +181,24 @@ const DownloadsManagerView = () => {
       .sort((a, b) => b.itemId - a.itemId);
   });
 
-  const handleBackButton = function (): void {
+  const handleBackButton = useCallback((): void => {
     dispatch({
       type: DOWNLOADS_BACK_BUTTON_CLICKED,
       payload: lastSelectedServerUrl,
     });
-  };
+  }, [lastSelectedServerUrl]);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Escape') {
+        handleBackButton();
+      }
+    },
+    [handleBackButton]
+  );
+
+  const isEmpty = downloads.length === 0;
+  const noDownloadsAtAll = totalDownloads === 0;
 
   return (
     <Box
@@ -185,93 +208,146 @@ const DownloadsManagerView = () => {
       flexDirection='column'
       height='full'
       width='full'
-      backgroundColor='light'
+      bg='room'
+      onKeyDown={handleKeyDown}
+      tabIndex={isVisible ? -1 : undefined}
     >
       <Box
-        minHeight={64}
-        padding={24}
+        pi={24}
+        pbs={24}
+        pbe={16}
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
         alignItems='center'
+        fontScale='h2'
+        color='default'
       >
         {!isSideBarEnabled && (
-          <IconButton icon='arrow-back' onClick={handleBackButton} />
+          <Box mie={8} display='flex' alignItems='center'>
+            <IconButton
+              icon='arrow-back'
+              onClick={handleBackButton}
+              aria-label={t('downloads.back')}
+            />
+          </Box>
         )}
-        <Box is='div' color='default' fontScale='h1'>
-          {t('downloads.title')}
-        </Box>
+        {t('downloads.title')}
       </Box>
+
       <Box
         display='flex'
-        justifyContent='space-between'
         alignItems='center'
-        marginBlock={8}
-        padding={24}
+        pi={24}
+        pbe={16}
       >
         <Box
-          display='flex'
-          flexGrow={7}
-          flexShrink={7}
-          flexBasis='0'
-          paddingInline={2}
+          flexGrow={3}
+          flexShrink={1}
+          flexBasis={0}
+          minWidth='x160'
+          mie={8}
         >
           <SearchInput
             value={searchFilter}
             placeholder={t('downloads.filters.search')}
-            addon={<Icon name='magnifier' size={20} />}
+            addon={<Icon name='magnifier' size='x20' />}
             onChange={handleSearchFilterChange}
           />
         </Box>
         <Box
-          display='flex'
-          flexGrow={3}
-          flexShrink={3}
-          flexBasis='0'
-          paddingInline={2}
+          flexGrow={2}
+          flexShrink={1}
+          flexBasis={0}
+          minWidth='x140'
+          mie={8}
         >
-          <SelectLegacy
+          <Select
             value={serverFilter}
             placeholder={t('downloads.filters.server')}
             options={serverFilterOptions}
             onChange={handleServerFilterChange}
           />
         </Box>
-        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <SelectLegacy
+        <Box
+          flexGrow={2}
+          flexShrink={1}
+          flexBasis={0}
+          minWidth='x120'
+          mie={8}
+        >
+          <Select
             value={mimeTypeFilter}
             placeholder={t('downloads.filters.mimeType')}
             options={mimeTypeOptions}
             onChange={handleMimeFilter}
           />
         </Box>
-        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <SelectLegacy
+        <Box
+          flexGrow={2}
+          flexShrink={1}
+          flexBasis={0}
+          minWidth='x120'
+          mie={8}
+        >
+          <Select
             value={statusFilter}
             placeholder={t('downloads.filters.status')}
             options={statusFilterOptions}
             onChange={handleTabChange}
           />
         </Box>
-        <Box display='flex' flexGrow={1} flexShrink={1} paddingInline={2}>
-          <IconButton
-            icon='trash'
-            title={t('downloads.filters.clear')}
-            onClick={handleClearAll}
-          />
-        </Box>
+        <IconButton
+          icon='cross'
+          aria-label={t('downloads.filters.clear')}
+          title={t('downloads.filters.clear')}
+          disabled={!hasActiveFilters}
+          onClick={handleClearAll}
+        />
       </Box>
+
       <Scrollable>
-        <Box flexGrow={1} flexShrink={1} paddingBlock={8} paddingInline={64}>
-          <Box>
-            {downloads
+        <Box flexGrow={1} flexShrink={1} pi={24} pbs={16} pbe={16}>
+          {isEmpty ? (
+            <Box
+              display='flex'
+              flexDirection='column'
+              alignItems='center'
+              justifyContent='center'
+              pb={64}
+              pbs={64}
+            >
+              <Box fontScale='h4' color='font-default' mbe={8}>
+                {noDownloadsAtAll
+                  ? t('downloads.empty.noDownloads')
+                  : t('downloads.empty.noResults')}
+              </Box>
+              <Box
+                fontScale='p2'
+                color='font-secondary-info'
+                mbe={hasActiveFilters ? 16 : 0}
+                style={{ maxWidth: '48ch', textAlign: 'center' }}
+              >
+                {noDownloadsAtAll
+                  ? t('downloads.empty.noDownloadsDescription')
+                  : ''}
+              </Box>
+              {hasActiveFilters && (
+                <Button small onClick={handleClearAll}>
+                  {t('downloads.empty.noResultsAction')}
+                </Button>
+              )}
+            </Box>
+          ) : (
+            downloads
               .slice(currentPagination, currentPagination + itemsPerPage)
               .map((downloadItem) => (
                 <DownloadItem key={downloadItem.itemId} {...downloadItem} />
-              ))}
-          </Box>
+              ))
+          )}
         </Box>
       </Scrollable>
+
       {downloads.length > 0 && (
         <Pagination
           divider

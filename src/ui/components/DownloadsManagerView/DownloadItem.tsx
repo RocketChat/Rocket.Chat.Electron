@@ -1,4 +1,5 @@
-import { Box, ProgressBar } from '@rocket.chat/fuselage';
+import { css } from '@rocket.chat/css-in-js';
+import { Box, ButtonGroup, ProgressBar } from '@rocket.chat/fuselage';
 import type { ComponentProps } from 'react';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +10,18 @@ import ActionButton from './ActionButton';
 import FileIcon from './FileIcon';
 
 type DownloadItemProps = Download & ComponentProps<typeof Box>;
+
+const rowStyles = css`
+  border-block-start: 1px solid
+    var(--rcx-color-stroke-extra-light, transparent);
+  transition: background-color 120ms ease-out;
+  &:first-of-type {
+    border-block-start: none;
+  }
+  &:hover {
+    background-color: var(--rcx-color-surface-hover, transparent);
+  }
+`;
 
 const DownloadItem = ({
   itemId,
@@ -114,50 +127,67 @@ const DownloadItem = ({
 
   return (
     <Box
+      className={rowStyles}
       width='100%'
-      height={44}
-      mbe={26}
+      pbs={16}
+      pbe={16}
+      pi={8}
       display='flex'
       alignItems='center'
       {...props}
     >
       <Box
-        width={388}
         flexShrink={0}
         display='flex'
         flexDirection='row'
-        alignItems='left'
-        justifyContent='center'
+        alignItems='center'
+        minWidth='x320'
+        maxWidth='x388'
+        flexGrow={0}
+        flexBasis='x388'
       >
         <FileIcon fileName={fileName} mimeType={mimeType} />
-        <Box width={344} mis={8}>
+        <Box mis={8} minWidth={0} flexGrow={1}>
           <Box
             mbe={4}
-            color={errored || expired ? 'danger-500' : 'default'}
+            color={errored || expired ? 'font-danger' : 'font-default'}
             fontScale='p1'
             withTruncatedText
           >
             {fileName}
           </Box>
-          <Box color='neutral-600' fontScale='c1' withTruncatedText>
+          <Box color='font-secondary-info' fontScale='c1' withTruncatedText>
             {serverTitle}
           </Box>
         </Box>
       </Box>
 
-      <Box display='flex' flexDirection='column' flexGrow={1} mi={16}>
+      <Box
+        display='flex'
+        flexDirection='column'
+        flexGrow={1}
+        flexShrink={1}
+        minWidth={0}
+        mi={16}
+      >
         <Box
           display='flex'
           flexDirection='row'
-          mbe={6}
+          mbe={8}
           alignItems='center'
           justifyContent='space-between'
         >
-          <Box display='flex' flexDirection='row' alignItems='center'>
+          <Box
+            display='flex'
+            flexDirection='row'
+            alignItems='center'
+            minWidth={0}
+            flexShrink={1}
+          >
             {progressSize ? (
               <Box
                 mie={12}
-                color='neutral-600'
+                color='font-secondary-info'
                 fontScale='c1'
                 withTruncatedText
               >
@@ -167,7 +197,7 @@ const DownloadItem = ({
             {progressSpeed ? (
               <Box
                 mie={12}
-                color='neutral-600'
+                color='font-secondary-info'
                 fontScale='c1'
                 withTruncatedText
               >
@@ -175,14 +205,18 @@ const DownloadItem = ({
               </Box>
             ) : null}
             {estimatedTimeLeft ? (
-              <Box color='neutral-600' fontScale='c1' withTruncatedText>
+              <Box
+                color='font-secondary-info'
+                fontScale='c1'
+                withTruncatedText
+              >
                 {estimatedTimeLeft}
               </Box>
             ) : null}
           </Box>
-          <Box display='flex' fontScale='c1'>
+          <ButtonGroup small>
             {expired && (
-              <ActionButton onClick={handleRemove}>
+              <ActionButton danger onClick={handleRemove}>
                 {t('downloads.item.remove')}
               </ActionButton>
             )}
@@ -196,7 +230,7 @@ const DownloadItem = ({
                 <ActionButton onClick={handlePause}>
                   {t('downloads.item.pause')}
                 </ActionButton>
-                <ActionButton onClick={handleCancel}>
+                <ActionButton danger onClick={handleCancel}>
                   {t('downloads.item.cancel')}
                 </ActionButton>
               </>
@@ -206,7 +240,7 @@ const DownloadItem = ({
                 <ActionButton onClick={handleResume}>
                   {t('downloads.item.resume')}
                 </ActionButton>
-                <ActionButton onClick={handleCancel}>
+                <ActionButton danger onClick={handleCancel}>
                   {t('downloads.item.cancel')}
                 </ActionButton>
               </>
@@ -216,7 +250,7 @@ const DownloadItem = ({
                 <ActionButton onClick={handleShowInFolder}>
                   {t('downloads.item.showInFolder')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
+                <ActionButton danger onClick={handleRemove}>
                   {t('downloads.item.remove')}
                 </ActionButton>
               </>
@@ -226,21 +260,22 @@ const DownloadItem = ({
                 <ActionButton onClick={handleRetry}>
                   {t('downloads.item.retry')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
+                <ActionButton danger onClick={handleRemove}>
                   {t('downloads.item.remove')}
                 </ActionButton>
               </>
             )}
+          </ButtonGroup>
+        </Box>
+        {state !== 'completed' && (
+          <Box position='relative'>
+            <ProgressBar
+              percentage={percentage}
+              error={errored ? t('downloads.item.errored') : undefined}
+              animated={percentage !== 100}
+            />
           </Box>
-        </Box>
-        <Box mbe={8} position='relative'>
-          <ProgressBar
-            percentage={percentage}
-            error={errored ? t('downloads.item.errored') : undefined}
-            // TODO: get complete file details, such as file-size from different cloud storages
-            animated={percentage !== 100}
-          />
-        </Box>
+        )}
       </Box>
     </Box>
   );

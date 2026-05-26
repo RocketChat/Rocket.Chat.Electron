@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-26T00:00:00Z",
+  "title": "Design System: Rocket.Chat Desktop",
+  "extensions": {
+    "colorMeta": {
+      "button-background-primary-default": {
+        "role": "primary",
+        "displayName": "Action Blue",
+        "canonical": "oklch(58% 0.20 257)",
+        "fuselageToken": "button.backgroundPrimaryDefault -> colors.b500",
+        "darkThemeValue": "#1d74f5 (b500 also used in dark)",
+        "tonalRamp": [
+          "#012247",
+          "#01336B",
+          "#10529E",
+          "#095AD2",
+          "#1D74F5",
+          "#549DF9",
+          "#76B7FC",
+          "#D1EBFE"
+        ]
+      },
+      "badge-background-level-1": {
+        "role": "secondary",
+        "displayName": "Mention Slate",
+        "canonical": "oklch(52% 0.012 256)",
+        "fuselageToken": "badge.light.level-1 -> colors.n700",
+        "darkThemeValue": "#484C51",
+        "tonalRamp": [
+          "#1F2329",
+          "#2F343D",
+          "#6C737A",
+          "#9EA2A8",
+          "#CBCED1",
+          "#D7DBE0",
+          "#E4E7EA",
+          "#F7F8FA"
+        ]
+      },
+      "badge-background-level-3": {
+        "role": "tertiary",
+        "displayName": "Caution Orange",
+        "canonical": "oklch(72% 0.16 51)",
+        "fuselageToken": "badge.light.level-3 -> colors.o500",
+        "darkThemeValue": "#955828",
+        "tonalRamp": [
+          "#713607",
+          "#974809",
+          "#BD5A0B",
+          "#E26D0E",
+          "#F38C39",
+          "#F59B53",
+          "#F7B27B",
+          "#FAD1B0"
+        ]
+      },
+      "badge-background-level-4": {
+        "role": "tertiary",
+        "displayName": "Alert Crimson",
+        "canonical": "oklch(65% 0.22 18)",
+        "fuselageToken": "badge.light.level-4 -> colors.r500",
+        "darkThemeValue": "#B43C4C",
+        "tonalRamp": [
+          "#8B0719",
+          "#9B1325",
+          "#BB0B21",
+          "#D40C26",
+          "#EC0D2A",
+          "#F5455C",
+          "#F98F9D",
+          "#FFC1C9"
+        ]
+      },
+      "button-background-danger-default": {
+        "role": "tertiary",
+        "displayName": "Destructive Red",
+        "canonical": "oklch(57% 0.23 24)",
+        "fuselageToken": "button.backgroundDangerDefault -> colors.r500",
+        "darkThemeValue": "#EC0D2A (also used in dark)",
+        "tonalRamp": [
+          "#8B0719",
+          "#9B1325",
+          "#BB0B21",
+          "#D40C26",
+          "#EC0D2A",
+          "#F5495F",
+          "#F98F9D",
+          "#FFC1C9"
+        ]
+      },
+      "surface-room": {
+        "role": "neutral",
+        "displayName": "Room",
+        "canonical": "theme-following",
+        "fuselageToken": "surface.{theme}.room",
+        "lightHex": "#FFFFFF",
+        "darkHex": "#1F2329",
+        "highContrastHex": "#FFFFFF",
+        "tonalRamp": [
+          "#1F2329",
+          "#2F343D",
+          "#6C737A",
+          "#9EA2A8",
+          "#CBCED1",
+          "#D7DBE0",
+          "#E4E7EA",
+          "#FFFFFF"
+        ]
+      },
+      "surface-tint": {
+        "role": "neutral",
+        "displayName": "Wall Cream",
+        "canonical": "oklch(98% 0.004 250)",
+        "fuselageToken": "surface.light.tint -> colors.n100",
+        "darkHex": "#1F2329",
+        "tonalRamp": [
+          "#1F2329",
+          "#2F343D",
+          "#6C737A",
+          "#9EA2A8",
+          "#CBCED1",
+          "#D7DBE0",
+          "#E4E7EA",
+          "#F7F8FA"
+        ]
+      },
+      "surface-selected": {
+        "role": "neutral",
+        "displayName": "Active Tone",
+        "canonical": "oklch(88% 0.006 256)",
+        "fuselageToken": "surface.light.selected -> colors.n450",
+        "darkHex": "#4C5362",
+        "tonalRamp": [
+          "#1F2329",
+          "#2F343D",
+          "#6C737A",
+          "#9EA2A8",
+          "#CBCED1",
+          "#D7DBE0",
+          "#E4E7EA",
+          "#F7F8FA"
+        ]
+      },
+      "surface-hover": {
+        "role": "neutral",
+        "displayName": "Hover Tone",
+        "canonical": "oklch(96% 0.005 250)",
+        "fuselageToken": "surface.light.hover -> colors.n200",
+        "darkHex": "#1A1E23",
+        "tonalRamp": [
+          "#1F2329",
+          "#2F343D",
+          "#6C737A",
+          "#9EA2A8",
+          "#CBCED1",
+          "#D7DBE0",
+          "#E4E7EA",
+          "#F2F3F5"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "hero": { "displayName": "Hero", "purpose": "Splash / pre-hydration only." },
+      "h1": { "displayName": "H1", "purpose": "Reserved (Settings/Downloads use h2 instead)." },
+      "h2": { "displayName": "H2", "purpose": "SettingsView and DownloadsManagerView titles." },
+      "h3": { "displayName": "H3", "purpose": "Subsection titles, large dialog titles." },
+      "h4": { "displayName": "H4", "purpose": "Section headers in GeneralTab / DeveloperTab / CertificatesManager." },
+      "h5": { "displayName": "H5", "purpose": "Compact list-item titles." },
+      "p1": { "displayName": "P1", "purpose": "Primary dialog copy." },
+      "p2": { "displayName": "P2", "purpose": "Default shell body." },
+      "c1": { "displayName": "C1", "purpose": "Server initials, hint subtitles, metadata." },
+      "c2": { "displayName": "C2", "purpose": "Emphasized micro-labels." },
+      "micro": { "displayName": "Micro", "purpose": "Extreme density. Not currently used." }
+    },
+    "shadows": [
+      { "name": "shadow-highlight", "value": "from --rcx-color-shadow-highlight", "purpose": "Focus ring on input-like surfaces." },
+      { "name": "shadow-danger", "value": "from --rcx-color-shadow-danger", "purpose": "Error-state ring." },
+      { "name": "shadow-elevation-border", "value": "from --rcx-color-shadow-elevation-border", "purpose": "Hairline edge accent on elevated surfaces." },
+      { "name": "shadow-elevation-1", "value": "from --rcx-color-shadow-elevation-1", "purpose": "Default tile lift." },
+      { "name": "shadow-elevation-2x", "value": "from --rcx-color-shadow-elevation-2x", "purpose": "Modal-tier x-axis shadow on Dialog and Dropdown." },
+      { "name": "shadow-elevation-2y", "value": "from --rcx-color-shadow-elevation-2y", "purpose": "Modal-tier y-axis shadow on Dialog and Dropdown." }
+    ],
+    "motion": [
+      { "name": "selection-stripe", "value": "height var(--transitions-duration), opacity var(--transitions-duration)", "purpose": "Animates the 4px selection stripe on server buttons." },
+      { "name": "row-hover", "value": "background-color 120ms ease-out", "purpose": "Hover tint transition on list rows (Downloads + Certificates)." }
+    ],
+    "themes": ["light", "dark", "high-contrast"],
+    "breakpoints": [
+      { "name": "xs", "value": "0" },
+      { "name": "sm", "value": "600px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "xxl", "value": "1600px" },
+      { "name": "xxxl", "value": "1920px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Server Button (Selected)",
+      "kind": "custom",
+      "refersTo": "server-button-selected",
+      "description": "44px rail item with 28px square avatar and the canonical 4px selection stripe to its left.",
+      "html": "<li class=\"ds-server-btn ds-server-btn--selected\"><button class=\"ds-server-btn__avatar\"><span class=\"ds-server-btn__initials\">RC</span></button></li>",
+      "css": ".ds-server-btn { position: relative; display: flex; list-style: none; padding: 4px 0; } .ds-server-btn::before { position: absolute; content: ''; left: -8px; width: 4px; height: 0; border-radius: 0 4px 4px 0; background-color: var(--rcx-color-surface-selected, #d7dbe0); transition: height 0.2s, opacity 0.2s; } .ds-server-btn--selected::before { height: 28px; opacity: 1; } .ds-server-btn__avatar { width: 36px; height: 36px; border-radius: 4px; background: var(--rcx-color-surface-tint, #f7f8fa); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font: 400 12px/16px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--rcx-color-font-titles-labels, #1f2329); } .ds-server-btn__avatar:hover { background: var(--rcx-color-surface-selected, #d7dbe0); }"
+    },
+    {
+      "name": "Mention Count Badge (variant=secondary)",
+      "kind": "chip",
+      "refersTo": "badge-mention-count",
+      "description": "Unread mention count anchored top-right of avatar. Fuselage Badge variant='secondary' — gray, not red.",
+      "html": "<span class=\"ds-badge-secondary\">3</span>",
+      "css": ".ds-badge-secondary { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 5px; background: var(--rcx-color-badge-background-level-1, #6c737a); color: var(--rcx-color-font-white, #fff); font: 700 12px/16px Inter, -apple-system, sans-serif; border-radius: 9999px; transform: translate(30%, -30%); }"
+    },
+    {
+      "name": "Warning Badge (variant=warning)",
+      "kind": "chip",
+      "refersTo": "badge-warning",
+      "description": "Not-logged-in state. Fuselage Badge variant='warning' — orange.",
+      "html": "<span class=\"ds-badge-warning\">!</span>",
+      "css": ".ds-badge-warning { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 5px; background: var(--rcx-color-badge-background-level-3, #f38c39); color: var(--rcx-color-font-white, #fff); font: 700 12px/16px Inter, -apple-system, sans-serif; border-radius: 9999px; transform: translate(30%, -30%); }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Dominant action inside dialogs.",
+      "html": "<button class=\"ds-btn-primary\">Save</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; background: var(--rcx-color-button-background-primary-default, #1d74f5); color: var(--rcx-color-font-white, #fff); border: none; border-radius: 4px; font: 400 14px/20px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: pointer; transition: background 0.15s; } .ds-btn-primary:hover { background: var(--rcx-color-button-background-primary-hover, #095ad2); } .ds-btn-primary:active { background: var(--rcx-color-button-background-primary-press, #10529e); } .ds-btn-primary:focus-visible { outline: 2px solid var(--rcx-color-stroke-highlight, #156ff5); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive confirmation (Remove server, Clear cache).",
+      "html": "<button class=\"ds-btn-danger\">Remove</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; background: var(--rcx-color-button-background-danger-default, #ec0d2a); color: var(--rcx-color-font-white, #fff); border: none; border-radius: 4px; font: 400 14px/20px Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: pointer; transition: background 0.15s; } .ds-btn-danger:hover { background: var(--rcx-color-button-background-danger-hover, #d40c26); } .ds-btn-danger:focus-visible { outline: 2px solid var(--rcx-color-shadow-danger, #ec0d2a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Dialog",
+      "kind": "card",
+      "refersTo": "dialog",
+      "description": "Centered modal with title, body, action row.",
+      "html": "<div class=\"ds-dialog\"><div class=\"ds-dialog__title\">Remove workspace</div><div class=\"ds-dialog__body\">This removes the workspace from this device. Your messages on the server are unaffected.</div><div class=\"ds-dialog__actions\"><button class=\"ds-btn-ghost\">Cancel</button><button class=\"ds-btn-danger\">Remove</button></div></div>",
+      "css": ".ds-dialog { background: var(--rcx-color-surface-light, #fff); color: var(--rcx-color-font-default, #2f343d); border-radius: 4px; padding: 24px; max-width: 480px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 12px rgba(31,35,41,0.08), 0 12px 28px rgba(31,35,41,0.12); } .ds-dialog__title { font: 700 24px/32px inherit; margin-bottom: 8px; color: var(--rcx-color-font-titles-labels, #1f2329); } .ds-dialog__body { font: 400 16px/24px inherit; color: var(--rcx-color-font-secondary-info, #6c737a); margin-bottom: 24px; max-width: 65ch; } .ds-dialog__actions { display: flex; gap: 8px; justify-content: flex-end; } .ds-btn-ghost { background: transparent; color: var(--rcx-color-font-default, #2f343d); border: 1px solid var(--rcx-color-stroke-light, #cbced1); border-radius: 4px; padding: 8px 16px; font: 400 14px/20px inherit; cursor: pointer; } .ds-btn-ghost:hover { background: var(--rcx-color-surface-hover, #f2f3f5); } .ds-btn-danger { background: var(--rcx-color-button-background-danger-default, #ec0d2a); color: #fff; border: none; border-radius: 4px; padding: 8px 16px; font: 400 14px/20px inherit; cursor: pointer; } .ds-btn-danger:hover { background: var(--rcx-color-button-background-danger-hover, #d40c26); }"
+    },
+    {
+      "name": "Sidebar Rail",
+      "kind": "nav",
+      "refersTo": "sidebar",
+      "description": "44-pixel vertical workshop wall holding server buttons and bottom-anchored controls.",
+      "html": "<aside class=\"ds-rail\"><ul class=\"ds-rail__servers\"><li class=\"ds-server-btn ds-server-btn--selected\"><button class=\"ds-server-btn__avatar\">RC</button><span class=\"ds-badge-secondary ds-badge-secondary--anchored\">3</span></li><li class=\"ds-server-btn\"><button class=\"ds-server-btn__avatar\">OS</button></li><li class=\"ds-server-btn\"><button class=\"ds-server-btn__avatar\">DV</button><span class=\"ds-badge-warning ds-badge-warning--anchored\">!</span></li></ul><div class=\"ds-rail__footer\"><button class=\"ds-rail__icon\" aria-label=\"Add server\">+</button></div></aside>",
+      "css": ".ds-rail { width: 44px; height: 100%; background: var(--rcx-color-surface-tint, #f7f8fa); padding: 8px 0; display: flex; flex-direction: column; justify-content: space-between; align-items: center; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; } .ds-rail__servers { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; align-items: center; } .ds-server-btn { position: relative; } .ds-server-btn::before { position: absolute; content: ''; left: -8px; width: 4px; height: 0; border-radius: 0 4px 4px 0; background: var(--rcx-color-surface-selected, #d7dbe0); transition: height 0.2s; } .ds-server-btn--selected::before { height: 28px; } .ds-server-btn__avatar { width: 36px; height: 36px; border-radius: 4px; background: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font: 400 12px/16px inherit; color: var(--rcx-color-font-titles-labels, #1f2329); } .ds-server-btn__avatar:hover { background: var(--rcx-color-surface-selected, #d7dbe0); } .ds-badge-secondary--anchored, .ds-badge-warning--anchored { position: absolute; top: 0; right: 0; transform: translate(30%, -30%); } .ds-badge-secondary { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 5px; background: var(--rcx-color-badge-background-level-1, #6c737a); color: #fff; font: 700 12px/16px inherit; border-radius: 9999px; } .ds-badge-warning { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 5px; background: var(--rcx-color-badge-background-level-3, #f38c39); color: #fff; font: 700 12px/16px inherit; border-radius: 9999px; } .ds-rail__icon { width: 36px; height: 36px; border-radius: 4px; background: transparent; border: none; cursor: pointer; color: var(--rcx-color-font-secondary-info, #6c737a); font-size: 18px; } .ds-rail__icon:hover { background: var(--rcx-color-surface-selected, #d7dbe0); color: var(--rcx-color-font-default, #2f343d); }"
+    },
+    {
+      "name": "List Row (Downloads / Certificates)",
+      "kind": "custom",
+      "refersTo": "list-row",
+      "description": "Shared row affordance: hairline divider above each row (skipped on :first-of-type) + hover tint reaching edge-to-edge. Used by DownloadItem and TableRow action.",
+      "html": "<div class=\"ds-row-list\"><div class=\"ds-row\"><div class=\"ds-row__primary\">first item</div><div class=\"ds-row__actions\">action</div></div><div class=\"ds-row\"><div class=\"ds-row__primary\">second item</div><div class=\"ds-row__actions\">action</div></div></div>",
+      "css": ".ds-row-list { font-family: Inter, -apple-system, sans-serif; color: var(--rcx-color-font-default, #2f343d); } .ds-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 8px; border-block-start: 1px solid var(--rcx-color-stroke-extra-light, #e4e7ea); transition: background-color 120ms ease-out; } .ds-row:first-of-type { border-block-start: none; } .ds-row:hover { background: var(--rcx-color-surface-hover, #f2f3f5); } .ds-row__primary { font: 400 14px/20px inherit; } .ds-row__actions { font: 400 12px/16px inherit; color: var(--rcx-color-font-secondary-info, #6c737a); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Workshop Wall",
+    "overview": "The desktop shell is a tool rail: a quiet 44-pixel column of workspaces hung along the side of a screen, each one sized for instant reach. Tokens are sourced from @rocket.chat/fuselage-tokens and emitted at runtime by PaletteStyleTag as --rcx-color-* CSS custom properties. Three themes ship: light, dark, and high-contrast. The Electron shell does not invent colors, weights, radii, or spacing values outside that scheme.",
+    "keyCharacteristics": [
+      "44-pixel server rail as the signature surface.",
+      "Flat by default, depth through tonal tint shifts.",
+      "Inter primary, system stack fallback.",
+      "One accent gesture: the 4-pixel selection stripe in surface-selected.",
+      "Color follows runtime --rcx-color-* CSS variables; three themes (light, dark, high-contrast) ship.",
+      "Native per-platform: macOS vibrancy + 22-pixel drag bar, Windows Mica, Linux fallback."
+    ],
+    "rules": [
+      { "name": "The Fuselage Truth Rule", "body": "Every color resolves to a semantic --rcx-color-* custom property emitted by PaletteStyleTag. Palette-grade vars are not emitted at runtime.", "section": "colors" },
+      { "name": "The Three-Theme Rule", "body": "Every shell color choice must look correct in light, dark, and high-contrast. High-contrast is not optional for this product.", "section": "colors" },
+      { "name": "The One Stripe Rule", "body": "The 4-pixel left stripe on the selected server button is the entire decorative vocabulary of the rail.", "section": "colors" },
+      { "name": "The Quiet Mention Rule", "body": "Mention badge is Badge variant=secondary: gray badge-background-level-1, not red. Red is reserved for variant=danger on true alerts.", "section": "colors" },
+      { "name": "The Semantic-Token-First Rule", "body": "Read tokens through their semantic name, never through palette grades. TS palette maps primary->b, danger->r, success->g, warning->y, neutral->n.", "section": "colors" },
+      { "name": "The fontScale Rule", "body": "Use Fuselage fontScale on Box rather than raw font-size literals.", "section": "typography" },
+      { "name": "The Inter-First Rule", "body": "Add Inter at the front of the family stack. Do not strip back to system-ui.", "section": "typography" },
+      { "name": "The Sentence Case Rule", "body": "All shell strings are sentence case in source. Fuselage applies title case or uppercase at the component layer when needed.", "section": "typography" },
+      { "name": "The Tonal Step Rule", "body": "Adjacent shell surfaces differ by exactly one tint step. Stacking two surfaces of the same tint is a layout bug.", "section": "elevation" },
+      { "name": "The Shadow Tenancy Rule", "body": "Shadows belong to Fuselage's transient overlays and the OS-native layer. The shell does not author box-shadow in any CSS it owns.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do import primitives from @rocket.chat/fuselage first.",
+      "Do reference colors via semantic --rcx-color-<category>-<role> CSS custom properties.",
+      "Do use Fuselage fontScale on Box rather than raw font-size literals.",
+      "Do keep the 44-pixel rail width sacred.",
+      "Do use the 4-pixel left selection stripe as the only selected-state decoration.",
+      "Do respect prefers-reduced-motion on every shell transition.",
+      "Do keep Badge variant=secondary (gray) for unread counts and variant=warning (orange) for not-logged-in.",
+      "Do verify every color choice in light, dark, and high-contrast themes.",
+      "Do use sentence case in source strings.",
+      "Do apply the shared row affordance (hairline + hover) to every new list surface.",
+      "Do use Box withTruncatedText and title={...} tooltip for long URLs and file names.",
+      "Do use pi/pbs/pbe Fuselage spacing shorthand on multiples of 4."
+    ],
+    "donts": [
+      "Don't use Discord/gamer aesthetics: no neon, no drenched purple, no playful microcopy.",
+      "Don't revive old Skype or legacy Teams chrome: no heavy gradients, no decorative iconography.",
+      "Don't use generic SaaS marketing patterns: no hero metric tiles, no identical card grids.",
+      "Don't pursue Linear-empty minimalism at the cost of sidebar density.",
+      "Don't use border-left or border-right greater than 1px as a colored stripe except the canonical 4-pixel server selection stripe.",
+      "Don't use background-clip: text gradient text.",
+      "Don't introduce glassmorphism. OS-provided vibrancy is acceptable; CSS backdrop-filter is forbidden.",
+      "Don't author box-shadow in shell-owned CSS.",
+      "Don't treat hardcoded #2f343d or #d7dbe0 as design tokens. They are pre-hydration backstops.",
+      "Don't pass a ghost prop to Fuselage Button (does not exist). Use secondary for subtle non-primary actions.",
+      "Don't use Table striped. Stripe clashes with surface-room. Use <TableRow action> for hover.",
+      "Don't strip Inter out of the font stack.",
+      "Don't wrap shell content in card grids.",
+      "Don't use modals as the first thought for new flows.",
+      "Don't rename, recolor, or re-style Fuselage primitives.",
+      "Don't confuse Badge variants: unread is secondary (gray), not-logged-in is warning (orange), danger (red) is reserved.",
+      "Don't invent border-radius outside 2 / 4 / 8 / 9999 pixels.",
+      "Don't add a settings divergence across light / dark / high-contrast themes.",
+      "Don't use em dashes anywhere in shell copy."
+    ]
+  }
+}

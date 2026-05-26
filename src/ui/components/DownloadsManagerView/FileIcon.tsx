@@ -26,7 +26,7 @@ const FileIcon = ({ fileName, mimeType }: FileIconProps) => {
         width={32}
         mi={2}
         mbs={-20}
-        color='neutral-600'
+        color='font-secondary-info'
         fontScale='c2'
         textAlign='center'
         withTruncatedText

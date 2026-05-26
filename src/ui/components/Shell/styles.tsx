@@ -34,7 +34,8 @@ export const GlobalStyles = ({
           -webkit-font-smoothing: antialiased;
           margin: 0;
           padding: 0;
-          font-family: system-ui;
+          font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+            Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
           font-size: 0.875rem;
           line-height: 1rem;
           background-color: ${backgroundColor};

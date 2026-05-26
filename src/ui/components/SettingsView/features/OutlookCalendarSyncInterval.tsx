@@ -59,7 +59,7 @@ export const OutlookCalendarSyncInterval = () => {
             {t('settings.options.outlookCalendarSyncInterval.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
+        <Box display='flex' alignItems='center' paddingBlockStart='x4'>
           <InputBox
             id={fieldId}
             type='number'

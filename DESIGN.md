@@ -270,7 +270,14 @@ Use Fuselage `fontScale` props on `Box` and components rather than raw CSS. Each
 
 **The fontScale Rule.** Use Fuselage `fontScale='p2'` (or other key) on `Box` rather than raw `font-size` literals. Pixel literals drift; scale tags are the contract.
 
-**The Inter-First Rule.** Inter at the front of the family stack. Do not strip back to `system-ui`. The existing `font-family: system-ui` in `Shell/styles.tsx:37` predates the Inter migration in Fuselage and is a known drift item.
+**The Inter-First Rule.** Inter at the front of the family stack inside React-rendered surfaces. Do not strip back to `system-ui`.
+
+**The Pre-Hydration Exception.** Two stylesheets are loaded by `index.html` before the React tree mounts and before Fuselage's `PaletteStyleTag` runs:
+
+- `src/public/loading.css` (renderer boot splash)
+- `src/public/error.css` (renderer fatal-error screen)
+
+These intentionally use `font-family: system-ui` and the hardcoded `#2f343d` background (also seen in `Shell/styles.tsx` and `SideBar/styles.tsx` as fallback values inside `var()` expressions). Inter is not yet available at this point; `--rcx-color-*` variables are not yet emitted; the React palette has not hydrated. The hardcoded values are the only thing visible in the racy window between window-open and first paint. **Do not "fix" them to reference Fuselage tokens or Inter, and do not reuse those hex literals anywhere else.** They are bug-prevention backstops, not design tokens.
 
 **The Sentence Case Rule.** All shell strings are sentence case in source. Fuselage applies title case or uppercase at the component layer when needed (e.g. `Option.title` is uppercased by CSS).
 

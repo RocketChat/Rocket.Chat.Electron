@@ -221,7 +221,7 @@ const DownloadsManagerView = () => {
         flexWrap='nowrap'
         alignItems='center'
         fontScale='h2'
-        color='default'
+        color='font-default'
       >
         {!isSideBarEnabled && (
           <Box mie={8} display='flex' alignItems='center'>

@@ -12,8 +12,7 @@ import FileIcon from './FileIcon';
 type DownloadItemProps = Download & ComponentProps<typeof Box>;
 
 const rowStyles = css`
-  border-block-start: 1px solid
-    var(--rcx-color-stroke-extra-light, transparent);
+  border-block-start: 1px solid var(--rcx-color-stroke-extra-light, transparent);
   transition: background-color 120ms ease-out;
   &:first-of-type {
     border-block-start: none;
@@ -205,11 +204,7 @@ const DownloadItem = ({
               </Box>
             ) : null}
             {estimatedTimeLeft ? (
-              <Box
-                color='font-secondary-info'
-                fontScale='c1'
-                withTruncatedText
-              >
+              <Box color='font-secondary-info' fontScale='c1' withTruncatedText>
                 {estimatedTimeLeft}
               </Box>
             ) : null}

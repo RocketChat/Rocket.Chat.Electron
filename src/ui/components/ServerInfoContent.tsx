@@ -345,7 +345,11 @@ const ServerInfoContent = ({
                       )}
                     </Box>
                   )}
-                  <Box fontSize='x10' color='font-annotation' style={textWrapStyle}>
+                  <Box
+                    fontSize='x10'
+                    color='font-annotation'
+                    style={textWrapStyle}
+                  >
                     {(() => {
                       const expirationDate = new Date(
                         expirationData.expiration

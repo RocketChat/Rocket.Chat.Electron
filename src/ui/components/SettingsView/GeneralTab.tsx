@@ -1,7 +1,7 @@
-import { Box, FieldGroup } from '@rocket.chat/fuselage';
-import type { ReactNode } from 'react';
+import { Box } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
+import { Section } from './Section';
 import { AvailableBrowsers } from './features/AvailableBrowsers';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';
@@ -19,21 +19,6 @@ import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
-
-type SectionProps = {
-  title: string;
-  isFirst?: boolean;
-  children: ReactNode;
-};
-
-const Section = ({ title, isFirst, children }: SectionProps) => (
-  <Box mbs={isFirst ? 0 : 32} mbe={16}>
-    <Box fontScale='h4' color='font-default' mbe={16}>
-      {title}
-    </Box>
-    <FieldGroup>{children}</FieldGroup>
-  </Box>
-);
 
 export const GeneralTab = () => {
   const { t } = useTranslation();

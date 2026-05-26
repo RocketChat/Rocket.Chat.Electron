@@ -235,19 +235,8 @@ const DownloadsManagerView = () => {
         {t('downloads.title')}
       </Box>
 
-      <Box
-        display='flex'
-        alignItems='center'
-        pi={24}
-        pbe={16}
-      >
-        <Box
-          flexGrow={3}
-          flexShrink={1}
-          flexBasis={0}
-          minWidth='x160'
-          mie={8}
-        >
+      <Box display='flex' alignItems='center' pi={24} pbe={16}>
+        <Box flexGrow={3} flexShrink={1} flexBasis={0} minWidth='x160' mie={8}>
           <SearchInput
             value={searchFilter}
             placeholder={t('downloads.filters.search')}
@@ -255,13 +244,7 @@ const DownloadsManagerView = () => {
             onChange={handleSearchFilterChange}
           />
         </Box>
-        <Box
-          flexGrow={2}
-          flexShrink={1}
-          flexBasis={0}
-          minWidth='x140'
-          mie={8}
-        >
+        <Box flexGrow={2} flexShrink={1} flexBasis={0} minWidth='x140' mie={8}>
           <Select
             value={serverFilter}
             placeholder={t('downloads.filters.server')}
@@ -269,13 +252,7 @@ const DownloadsManagerView = () => {
             onChange={handleServerFilterChange}
           />
         </Box>
-        <Box
-          flexGrow={2}
-          flexShrink={1}
-          flexBasis={0}
-          minWidth='x120'
-          mie={8}
-        >
+        <Box flexGrow={2} flexShrink={1} flexBasis={0} minWidth='x120' mie={8}>
           <Select
             value={mimeTypeFilter}
             placeholder={t('downloads.filters.mimeType')}
@@ -283,13 +260,7 @@ const DownloadsManagerView = () => {
             onChange={handleMimeFilter}
           />
         </Box>
-        <Box
-          flexGrow={2}
-          flexShrink={1}
-          flexBasis={0}
-          minWidth='x120'
-          mie={8}
-        >
+        <Box flexGrow={2} flexShrink={1} flexBasis={0} minWidth='x120' mie={8}>
           <Select
             value={statusFilter}
             placeholder={t('downloads.filters.status')}

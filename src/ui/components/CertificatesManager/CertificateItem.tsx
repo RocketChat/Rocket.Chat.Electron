@@ -1,4 +1,4 @@
-import { Icon, TableCell, TableRow } from '@rocket.chat/fuselage';
+import { Box, TableCell, TableRow } from '@rocket.chat/fuselage';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,8 +19,9 @@ const CertificateItem = ({ url }: CertificateItemProps) => {
   return (
     <TableRow key={url}>
       <TableCell>
-        <Icon name='key' size='x16' />
-        {url}
+        <Box withTruncatedText title={url}>
+          {url}
+        </Box>
       </TableCell>
       <TableCell align='end'>
         <ActionButton onClick={handleRemove}>

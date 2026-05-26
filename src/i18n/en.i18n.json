@@ -225,7 +225,13 @@
   "certificatesManager": {
     "title": "Certificates manager",
     "trustedCertificates": "Trusted certificates",
+    "trustedHint": "Servers whose certificates you accepted when connecting. Remove an entry to be prompted again on the next connection.",
     "notTrustedCertificates": "Not trusted certificates",
+    "notTrustedHint": "Servers whose certificates were flagged and not stored. Remove an entry to clear the rejection.",
+    "empty": {
+      "trusted": "No trusted certificates yet.",
+      "notTrusted": "No certificates have been flagged."
+    },
     "item": {
       "domain": "Domain",
       "actions": "Actions",

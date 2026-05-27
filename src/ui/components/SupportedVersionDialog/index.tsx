@@ -1,4 +1,16 @@
-import { Box, Button, Modal } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Button,
+  Modal,
+  ModalClose,
+  ModalContent,
+  ModalFooter,
+  ModalFooterControllers,
+  ModalHeader,
+  ModalHeaderText,
+  ModalIcon,
+  ModalTitle,
+} from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
@@ -157,27 +169,27 @@ export const SupportedVersionDialog = () => {
     <Wrapper isVisible={isVisible}>
       <ModalBackdrop>
         <Modal>
-          <Modal.Header>
-            <Modal.Icon name='warning' color='danger' />
-            <Modal.HeaderText>
-              <Modal.Title>{expirationMessage?.title}</Modal.Title>
-            </Modal.HeaderText>
-            <Modal.Close onClick={dismissTimeUpdate} />
-          </Modal.Header>
-          <Modal.Content>
+          <ModalHeader>
+            <ModalIcon name='warning' color='danger' />
+            <ModalHeaderText>
+              <ModalTitle>{expirationMessage?.title}</ModalTitle>
+            </ModalHeaderText>
+            <ModalClose onClick={dismissTimeUpdate} />
+          </ModalHeader>
+          <ModalContent>
             <Box fontScale='p2b'>{expirationMessage?.subtitle}</Box>
 
             <Box fontScale='p2' mbs={20}>
               {expirationMessage?.description}
             </Box>
-          </Modal.Content>
-          <Modal.Footer>
-            <Modal.FooterControllers>
+          </ModalContent>
+          <ModalFooter>
+            <ModalFooterControllers>
               <Button secondary onClick={handleMoreInfoButtonClick}>
                 {t('unsupportedServer.moreInformation')}
               </Button>
-            </Modal.FooterControllers>
-          </Modal.Footer>
+            </ModalFooterControllers>
+          </ModalFooter>
         </Modal>
       </ModalBackdrop>
     </Wrapper>

@@ -11,7 +11,7 @@ export const DeveloperTab = () => {
   return (
     <Box display='flex' justifyContent='center'>
       <FieldGroup is='form' maxWidth={600}>
-        <Box fontScale='h4' mbe={16} color='font-default'>
+        <Box fontScale='h4' mbe={16} color='default'>
           {t('settings.sections.logging')}
         </Box>
         <DebugLogging />

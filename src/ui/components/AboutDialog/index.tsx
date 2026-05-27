@@ -5,6 +5,7 @@ import {
   FieldLabel,
   FieldRow,
   Margins,
+  Select,
   Throbber,
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
@@ -171,38 +172,14 @@ export const AboutDialog = () => {
                     >
                       {t('dialog.about.updateChannel.label')}
                     </FieldLabel>
-                    <select
+                    <Select
                       id='updateChannelSelect'
                       value={updateChannel}
-                      onChange={(e) =>
-                        handleUpdateChannelChange(e.target.value)
+                      options={updateChannelOptions}
+                      onChange={(value) =>
+                        handleUpdateChannelChange(String(value))
                       }
-                      style={{
-                        width: '200px',
-                        height: '40px',
-                        padding: '8px 12px',
-                        border: '2px solid #e4e7ea',
-                        borderRadius: '4px',
-                        backgroundColor: '#ffffff',
-                        fontSize: '14px',
-                        color: '#2f343d',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        appearance: 'none',
-                        backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 12px center',
-                        backgroundSize: '16px',
-                        paddingRight: '40px',
-                      }}
-                    >
-                      {updateChannelOptions.map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </FieldRow>
                 </Field>
               </Box>

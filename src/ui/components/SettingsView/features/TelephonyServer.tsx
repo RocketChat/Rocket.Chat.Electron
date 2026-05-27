@@ -63,7 +63,7 @@ export const TelephonyServer = () => {
             {t('settings.options.telephonyServer.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
+        <Box display='flex' alignItems='center' pbs='x4'>
           <Select
             options={options}
             value={telephonyPreferredServer ?? 'auto'}

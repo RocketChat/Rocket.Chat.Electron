@@ -229,10 +229,11 @@ const MarkdownContent = ({
   }
 
   return (
-    <Box overflow='auto' position='absolute' style={{ inset: 0 }} bg='surface'>
+    <Box overflow='auto' position='absolute' style={{ inset: 0 }} bg='light'>
       <Box
         ref={containerRef}
         className='markdown-body'
+        // centered reading column, arbitrary maxWidth has no x* token
         style={{ maxWidth: 980, margin: '0 auto', padding: '48px 40px 64px' }}
         color='default'
         dangerouslySetInnerHTML={{ __html: htmlContent }}

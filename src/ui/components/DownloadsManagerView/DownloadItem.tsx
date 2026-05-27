@@ -133,13 +133,13 @@ const DownloadItem = ({
         <Box width={344} mis={8}>
           <Box
             mbe={4}
-            color={errored || expired ? 'danger-500' : 'default'}
+            color={errored || expired ? 'danger' : 'default'}
             fontScale='p1'
             withTruncatedText
           >
             {fileName}
           </Box>
-          <Box color='neutral-600' fontScale='c1' withTruncatedText>
+          <Box color='hint' fontScale='c1' withTruncatedText>
             {serverTitle}
           </Box>
         </Box>
@@ -155,27 +155,17 @@ const DownloadItem = ({
         >
           <Box display='flex' flexDirection='row' alignItems='center'>
             {progressSize ? (
-              <Box
-                mie={12}
-                color='neutral-600'
-                fontScale='c1'
-                withTruncatedText
-              >
+              <Box mie={12} color='hint' fontScale='c1' withTruncatedText>
                 {progressSize}
               </Box>
             ) : null}
             {progressSpeed ? (
-              <Box
-                mie={12}
-                color='neutral-600'
-                fontScale='c1'
-                withTruncatedText
-              >
+              <Box mie={12} color='hint' fontScale='c1' withTruncatedText>
                 {progressSpeed}
               </Box>
             ) : null}
             {estimatedTimeLeft ? (
-              <Box color='neutral-600' fontScale='c1' withTruncatedText>
+              <Box color='hint' fontScale='c1' withTruncatedText>
                 {estimatedTimeLeft}
               </Box>
             ) : null}

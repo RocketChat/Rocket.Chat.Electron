@@ -55,7 +55,7 @@ export const SettingsView = () => {
     >
       <Box
         width='full'
-        padding={24}
+        padding='x24'
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'

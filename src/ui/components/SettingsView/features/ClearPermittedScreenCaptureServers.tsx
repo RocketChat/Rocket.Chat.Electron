@@ -18,8 +18,7 @@ export const ClearPermittedScreenCaptureServers = (
       <FieldRow>
         <Button
           danger
-          onClick={async () => {
-            console.log('Clearing permitted screen capture servers');
+          onClick={() => {
             dispatch({
               type: SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
             });

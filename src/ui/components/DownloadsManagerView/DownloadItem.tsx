@@ -172,7 +172,7 @@ const DownloadItem = ({
           </Box>
           <Box display='flex' fontScale='c1'>
             {expired && (
-              <ActionButton onClick={handleRemove}>
+              <ActionButton danger onClick={handleRemove}>
                 {t('downloads.item.remove')}
               </ActionButton>
             )}
@@ -186,7 +186,7 @@ const DownloadItem = ({
                 <ActionButton onClick={handlePause}>
                   {t('downloads.item.pause')}
                 </ActionButton>
-                <ActionButton onClick={handleCancel}>
+                <ActionButton danger onClick={handleCancel}>
                   {t('downloads.item.cancel')}
                 </ActionButton>
               </>
@@ -196,7 +196,7 @@ const DownloadItem = ({
                 <ActionButton onClick={handleResume}>
                   {t('downloads.item.resume')}
                 </ActionButton>
-                <ActionButton onClick={handleCancel}>
+                <ActionButton danger onClick={handleCancel}>
                   {t('downloads.item.cancel')}
                 </ActionButton>
               </>
@@ -206,7 +206,7 @@ const DownloadItem = ({
                 <ActionButton onClick={handleShowInFolder}>
                   {t('downloads.item.showInFolder')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
+                <ActionButton danger onClick={handleRemove}>
                   {t('downloads.item.remove')}
                 </ActionButton>
               </>
@@ -216,7 +216,7 @@ const DownloadItem = ({
                 <ActionButton onClick={handleRetry}>
                   {t('downloads.item.retry')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
+                <ActionButton danger onClick={handleRemove}>
                   {t('downloads.item.remove')}
                 </ActionButton>
               </>

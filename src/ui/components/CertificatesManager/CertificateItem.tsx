@@ -23,7 +23,7 @@ const CertificateItem = ({ url }: CertificateItemProps) => {
         {url}
       </TableCell>
       <TableCell align='end'>
-        <ActionButton onClick={handleRemove}>
+        <ActionButton danger onClick={handleRemove}>
           {t('certificatesManager.item.remove')}
         </ActionButton>
       </TableCell>

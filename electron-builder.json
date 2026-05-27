@@ -123,12 +123,12 @@
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {
-      "MimeType": "x-scheme-handler/rocketchat;x-scheme-handler/callto;x-scheme-handler/tel;",
       "entry": {
         "Name": "Rocket.Chat",
         "Comment": "Official Rocket.Chat Desktop Client",
         "GenericName": "Rocket.Chat",
-        "Categories": "GNOME;GTK;Network;InstantMessaging"
+        "Categories": "GNOME;GTK;Network;InstantMessaging",
+        "MimeType": "x-scheme-handler/rocketchat;x-scheme-handler/callto;x-scheme-handler/tel;"
       }
     },
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"

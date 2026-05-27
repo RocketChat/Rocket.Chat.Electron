@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 
+// emotion styled-component, color uses layout-specific dark theme hex
 export const Wrapper = styled.section`
   position: absolute;
   left: 0;

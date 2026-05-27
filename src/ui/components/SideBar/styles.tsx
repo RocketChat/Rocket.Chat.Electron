@@ -15,10 +15,13 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
   list-style-type: none;
   ${({ isDragged }) =>
     isDragged &&
+    /* emotion conditional css block */
     css`
       opacity: 0.5;
     `}
 
+  // emotion styled-component pseudo-element, uses var(--rcx-*) tokens correctly
+  // emotion styled-component, transition cannot be expressed as Box props
   &::before {
     position: absolute;
     width: 4px;
@@ -42,6 +45,7 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
 
     ${({ isSelected }) =>
       isSelected &&
+      // emotion conditional css block with dimension value
       css`
         height: 28px;
         opacity: 1;
@@ -53,6 +57,7 @@ type InitialsProps = {
   visible: boolean;
 };
 
+// emotion styled-component, line-height pixel value in template literal
 export const Initials = styled.span<InitialsProps>`
   line-height: 42px;
 

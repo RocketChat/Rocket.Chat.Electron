@@ -932,6 +932,7 @@ function LogViewerWindow() {
                   top: '8px',
                   right: '8px',
                   color: 'var(--rcx-color-font-hint)',
+                  // raw div element with inline styles, not a Box prop
                   fontSize: '12px',
                   zIndex: 10,
                   background: 'var(--rcx-color-surface-tint)',

@@ -273,7 +273,9 @@ export function ScreenSharePicker({
                   padding='x8'
                   style={{
                     display: 'grid',
+                    // CSS grid auto-fit with fixed column width, not convertible to Box props
                     gridTemplateColumns: 'repeat(auto-fit, 208px)',
+                    // CSS grid gap in px, not a convertible Box prop
                     gap: '16px',
                     justifyContent: 'center',
                   }}
@@ -323,7 +325,9 @@ export function ScreenSharePicker({
                           justifyContent='flex-start'
                           overflow='hidden'
                           style={{
+                            // minHeight 120px for thumbnail aspect ratio, not on x* scale
                             minHeight: '120px',
+                            // rgba color for thumbnail background, transparency value cannot be expressed as Box prop
                             backgroundColor: 'rgba(0, 0, 0, 0.1)',
                           }}
                         >
@@ -347,6 +351,7 @@ export function ScreenSharePicker({
                             bottom: '0',
                             left: '0',
                             right: '0',
+                            // rgba color with transparency for label overlay, cannot be expressed as Box prop
                             background: 'rgba(0, 0, 0, 0.5)',
                             backdropFilter: 'blur(4px)',
                             zIndex: 10,
@@ -356,6 +361,7 @@ export function ScreenSharePicker({
                           <Label
                             title={name}
                             style={{
+                              // fontSize 11px for compact label text, not on x* scale
                               fontSize: '11px',
                               lineHeight: '1.2',
                               color: 'white',

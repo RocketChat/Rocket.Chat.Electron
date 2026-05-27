@@ -17,6 +17,8 @@ export const GlobalStyles = ({
 
   return (
     <Global
+      // emotion Global styles, not a Box prop
+      // emotion Global css block with layout dimensions
       styles={css`
         *,
         *::before,
@@ -44,6 +46,7 @@ export const GlobalStyles = ({
   );
 };
 
+// emotion styled-component, -webkit-app-region is platform-specific drag affordance, not convertible to Box props
 export const WindowDragBar = styled.div`
   position: fixed;
   width: 100vw;
@@ -56,6 +59,7 @@ type WrapperProps = {
   isTransparentWindowEnabled: boolean;
 };
 
+// emotion styled-component with conditional transparent/dark theme, not a Box prop
 export const Wrapper = styled.div<WrapperProps>`
   overflow: hidden;
   width: 100vw;
@@ -66,6 +70,7 @@ export const Wrapper = styled.div<WrapperProps>`
     isDarwin && isTransparentWindowEnabled
       ? 'transparent'
       : 'var(--rcx-color-surface-room, #2f343d)'};
+  /* emotion: conditional background-color with theme logic */
   display: flex;
   flex-flow: row nowrap;
 `;

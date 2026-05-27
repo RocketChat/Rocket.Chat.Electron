@@ -13,7 +13,9 @@ const MacOSTrayIcon = ({ notification }: MacOSTrayIconProps) => (
     xmlns='http://www.w3.org/2000/svg'
   >
     <g transform='translate(256, 256) scale(0.8) translate(-256, -256)'>
+      {/* AppIcon is native SVG component, color='black' is bitmap tray icon paint, not Fuselage Box */}
       <AppIcon color='black'>
+        {/* Badge is native SVG component, backgroundColor='black' is bitmap paint, not Fuselage Box */}
         {notification && <Badge value={0} backgroundColor='black' />}
       </AppIcon>
     </g>

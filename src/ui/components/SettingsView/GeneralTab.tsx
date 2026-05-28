@@ -19,25 +19,27 @@ import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
 
 export const GeneralTab = () => (
-  <Box display='flex' justifyContent='center'>
-    <FieldGroup is='form' maxWidth={600}>
-      <ReportErrors />
-      <FlashFrame />
-      <HardwareAcceleration />
-      {process.platform === 'win32' && <ScreenCaptureFallback />}
-      <InternalVideoChatWindow />
-      <VideoCallWindowPersistence />
-      {process.platform === 'darwin' && <TransparentWindow />}
-      <TrayIcon />
-      {process.platform === 'win32' && <MinimizeOnClose />}
-      <SideBar />
-      {process.platform !== 'darwin' && <MenuBar />}
-      {process.platform === 'win32' && <NTLMCredentials />}
-      <ThemeAppearance />
-      <AvailableBrowsers />
-      <OutlookCalendarSyncInterval />
-      <TelephonyServer />
-      {!process.mas && <ClearPermittedScreenCaptureServers />}
-    </FieldGroup>
+  <Box display='flex' justifyContent='center' p='x24'>
+    <Box is='form' width='x600' maxWidth='full'>
+      <FieldGroup>
+        <ReportErrors />
+        <FlashFrame />
+        <HardwareAcceleration />
+        {process.platform === 'win32' && <ScreenCaptureFallback />}
+        <InternalVideoChatWindow />
+        <VideoCallWindowPersistence />
+        {process.platform === 'darwin' && <TransparentWindow />}
+        <TrayIcon />
+        {process.platform === 'win32' && <MinimizeOnClose />}
+        <SideBar />
+        {process.platform !== 'darwin' && <MenuBar />}
+        {process.platform === 'win32' && <NTLMCredentials />}
+        <ThemeAppearance />
+        <AvailableBrowsers />
+        <OutlookCalendarSyncInterval />
+        <TelephonyServer />
+        {!process.mas && <ClearPermittedScreenCaptureServers />}
+      </FieldGroup>
+    </Box>
   </Box>
 );

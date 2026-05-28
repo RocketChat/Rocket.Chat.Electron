@@ -55,15 +55,18 @@ export const SettingsView = () => {
     >
       <Box
         width='full'
-        padding={24}
+        pi='x24'
+        pbs='x24'
+        pbe='x16'
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
+        alignItems='center'
         fontScale='h1'
         color='default'
       >
         {!isSideBarEnabled && (
-          <IconButton icon='arrow-back' onClick={handleBackButton} />
+          <IconButton icon='arrow-back' onClick={handleBackButton} mie='x8' />
         )}
         {t('settings.title')}
       </Box>

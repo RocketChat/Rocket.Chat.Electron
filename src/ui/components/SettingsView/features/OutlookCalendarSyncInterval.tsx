@@ -10,7 +10,13 @@ import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED } from '../../../actions';
 import { SettingField } from './SettingField';
 
-export const OutlookCalendarSyncInterval = () => {
+type OutlookCalendarSyncIntervalProps = {
+  className?: string;
+};
+
+export const OutlookCalendarSyncInterval = (
+  props: OutlookCalendarSyncIntervalProps
+) => {
   const isOverridden = useSelector(
     ({ outlookCalendarSyncIntervalOverride }: RootState) =>
       outlookCalendarSyncIntervalOverride !== null
@@ -40,8 +46,8 @@ export const OutlookCalendarSyncInterval = () => {
 
   return (
     <SettingField
+      className={props.className}
       htmlFor={fieldId}
-      marginBlock='x16'
       label={t('settings.options.outlookCalendarSyncInterval.title')}
       hint={t('settings.options.outlookCalendarSyncInterval.description')}
     >

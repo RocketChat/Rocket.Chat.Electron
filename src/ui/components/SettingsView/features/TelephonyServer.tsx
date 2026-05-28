@@ -10,7 +10,11 @@ import type { RootState } from '../../../../store/rootReducer';
 import { TELEPHONY_PREFERRED_SERVER_SET } from '../../../../telephony/actions';
 import { SettingField } from './SettingField';
 
-export const TelephonyServer = () => {
+type TelephonyServerProps = {
+  className?: string;
+};
+
+export const TelephonyServer = (props: TelephonyServerProps) => {
   const servers = useSelector(({ servers }: RootState) => servers);
   const telephonyPreferredServer = useSelector(
     ({ telephonyPreferredServer }: RootState) => telephonyPreferredServer
@@ -47,6 +51,7 @@ export const TelephonyServer = () => {
 
   return (
     <SettingField
+      className={props.className}
       htmlFor={telephonyServerSelectId}
       label={t('settings.options.telephonyServer.title')}
       hint={t('settings.options.telephonyServer.description')}

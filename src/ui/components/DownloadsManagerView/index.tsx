@@ -15,7 +15,7 @@ import {
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { ChangeEvent, Key } from 'react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -182,6 +182,15 @@ const DownloadsManagerView = () => {
       .sort((a, b) => b.itemId - a.itemId);
   });
 
+  // Reset to the first page whenever the current offset falls outside the
+  // (filtered) result set — e.g. after narrowing a filter or removing items —
+  // so the list never renders a blank page past the end.
+  useEffect(() => {
+    if (currentPagination > 0 && currentPagination >= downloads.length) {
+      setCurrentPagination(0);
+    }
+  }, [currentPagination, downloads.length]);
+
   const handleBackButton = function (): void {
     dispatch({
       type: DOWNLOADS_BACK_BUTTON_CLICKED,
@@ -216,12 +225,7 @@ const DownloadsManagerView = () => {
           {t('downloads.title')}
         </Box>
       </Box>
-      <Box
-        display='flex'
-        alignItems='center'
-        pi='x24'
-        pbe='x16'
-      >
+      <Box display='flex' alignItems='center' pi='x24' pbe='x16'>
         <Field flexGrow={7} flexShrink={7} flexBasis='0' mie='x8'>
           <FieldRow>
             <SearchInput

@@ -24,10 +24,10 @@ export const CertificatesManager = () => {
 
   const { t } = useTranslation();
   return (
-    <Box is='form' padding={24} flexGrow={1} flexShrink={1}>
-      <Box flexGrow={1} flexShrink={1} paddingBlock={8}>
+    <Box is='form' p='x24' flexGrow={1} flexShrink={1}>
+      <Box flexGrow={1} flexShrink={1} pb='x8'>
         <Label>{t('certificatesManager.trustedCertificates')}</Label>
-        <Table sticky striped fixed>
+        <Table sticky fixed>
           <TableHead>
             <TableRow>
               <TableCell>{t('certificatesManager.item.domain')}</TableCell>
@@ -43,9 +43,9 @@ export const CertificatesManager = () => {
           </TableBody>
         </Table>
       </Box>
-      <Box marginBlockStart={50} flexGrow={1} flexShrink={1} paddingBlock={8}>
+      <Box mbs='x32' flexGrow={1} flexShrink={1} pb='x8'>
         <Label>{t('certificatesManager.notTrustedCertificates')}</Label>
-        <Table sticky striped fixed>
+        <Table sticky fixed>
           <TableHead>
             <TableRow>
               <TableCell>{t('certificatesManager.item.domain')}</TableCell>

@@ -1,3 +1,4 @@
+import { css } from '@rocket.chat/css-in-js';
 import { Box, ButtonGroup, ProgressBar } from '@rocket.chat/fuselage';
 import type { ComponentProps } from 'react';
 import { useCallback, useMemo } from 'react';
@@ -116,8 +117,17 @@ const DownloadItem = ({
     <Box
       width='100%'
       mbe='x16'
+      pi='x8'
+      pb='x8'
+      borderRadius='x4'
       display='flex'
       alignItems='center'
+      className={css`
+        transition: background-color 0.15s ease;
+        &:hover {
+          background-color: var(--rcx-color-surface-hover);
+        }
+      `}
       {...props}
     >
       <Box
@@ -151,7 +161,12 @@ const DownloadItem = ({
           alignItems='center'
           justifyContent='space-between'
         >
-          <Box display='flex' flexDirection='row' alignItems='center' minWidth={0}>
+          <Box
+            display='flex'
+            flexDirection='row'
+            alignItems='center'
+            minWidth={0}
+          >
             {progressSize ? (
               <Box mie='x16' color='hint' fontScale='c1' withTruncatedText>
                 {progressSize}
@@ -170,56 +185,56 @@ const DownloadItem = ({
           </Box>
           <Box mis='x16'>
             <ButtonGroup small>
-            {expired && (
-              <ActionButton onClick={handleRemove}>
-                {t('downloads.item.remove')}
-              </ActionButton>
-            )}
-            {!expired && (
-              <ActionButton onClick={handleCopyLink}>
-                {t('downloads.item.copyLink')}
-              </ActionButton>
-            )}
-            {state === 'progressing' && (
-              <>
-                <ActionButton onClick={handlePause}>
-                  {t('downloads.item.pause')}
-                </ActionButton>
-                <ActionButton onClick={handleCancel}>
-                  {t('downloads.item.cancel')}
-                </ActionButton>
-              </>
-            )}
-            {state === 'paused' && (
-              <>
-                <ActionButton onClick={handleResume}>
-                  {t('downloads.item.resume')}
-                </ActionButton>
-                <ActionButton onClick={handleCancel}>
-                  {t('downloads.item.cancel')}
-                </ActionButton>
-              </>
-            )}
-            {state === 'completed' && (
-              <>
-                <ActionButton onClick={handleShowInFolder}>
-                  {t('downloads.item.showInFolder')}
-                </ActionButton>
+              {expired && (
                 <ActionButton onClick={handleRemove}>
                   {t('downloads.item.remove')}
                 </ActionButton>
-              </>
-            )}
-            {errored && (
-              <>
-                <ActionButton danger onClick={handleRetry}>
-                  {t('downloads.item.retry')}
+              )}
+              {!expired && (
+                <ActionButton onClick={handleCopyLink}>
+                  {t('downloads.item.copyLink')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
-                  {t('downloads.item.remove')}
-                </ActionButton>
-              </>
-            )}
+              )}
+              {state === 'progressing' && (
+                <>
+                  <ActionButton onClick={handlePause}>
+                    {t('downloads.item.pause')}
+                  </ActionButton>
+                  <ActionButton onClick={handleCancel}>
+                    {t('downloads.item.cancel')}
+                  </ActionButton>
+                </>
+              )}
+              {state === 'paused' && (
+                <>
+                  <ActionButton onClick={handleResume}>
+                    {t('downloads.item.resume')}
+                  </ActionButton>
+                  <ActionButton onClick={handleCancel}>
+                    {t('downloads.item.cancel')}
+                  </ActionButton>
+                </>
+              )}
+              {state === 'completed' && (
+                <>
+                  <ActionButton onClick={handleShowInFolder}>
+                    {t('downloads.item.showInFolder')}
+                  </ActionButton>
+                  <ActionButton onClick={handleRemove}>
+                    {t('downloads.item.remove')}
+                  </ActionButton>
+                </>
+              )}
+              {errored && (
+                <>
+                  <ActionButton danger onClick={handleRetry}>
+                    {t('downloads.item.retry')}
+                  </ActionButton>
+                  <ActionButton onClick={handleRemove}>
+                    {t('downloads.item.remove')}
+                  </ActionButton>
+                </>
+              )}
             </ButtonGroup>
           </Box>
         </Box>

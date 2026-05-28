@@ -176,6 +176,7 @@ const initializeServerWebContentsAfterAttach = (
   webviewSession.on('will-download', (_event, item) => {
     if (item.getFilename().endsWith('.md')) {
       const downloadUrl = item.getURL();
+      if (!downloadUrl.endsWith('download=')) return;
       item.cancel();
       dispatch({
         type: SERVER_DOCUMENT_VIEWER_OPEN_URL,

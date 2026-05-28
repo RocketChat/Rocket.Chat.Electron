@@ -176,6 +176,8 @@ const initializeServerWebContentsAfterAttach = (
   webviewSession.on('will-download', (_event, item) => {
     if (item.getFilename().endsWith('.md')) {
       const downloadUrl = item.getURL();
+      // Only intercept for viewer URLs; allow normal downloads to proceed.
+      // Rocket.Chat server appends 'download=' for view actions vs. download actions.
       if (!downloadUrl.endsWith('download=')) return;
       item.cancel();
       dispatch({

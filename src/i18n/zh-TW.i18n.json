@@ -9,7 +9,7 @@
     "spellingLanguages": "拼字檢查",
     "moreSpellingSuggestions": "更多拼字建議",
     "noSpellingSuggestions": "沒有拼字建議",
-    "copyLinkAddress": "複製連結",
+    "copyLinkAddress": "複製連結網址",
     "copyLinkText": "複製連結文字",
     "openLink": "開啟連結",
     "saveImageAs": "儲存影像為...",
@@ -80,6 +80,28 @@
       "title": "忽略更新",
       "message": "我們將會在下次有新的更新版本的時候通知您\n如果您改變主意想安裝此次更新，您可以從「關於」的選單中檢視更新",
       "ok": "好"
+    },
+    "mediaPermission": {
+      "title": "需要媒體權限",
+      "message": "{{- permissionType}}存取目前在您的系統設定中已被停用。",
+      "detail": "若要啟用視訊通話功能，請在您的系統隱私設定中允許存取，然後重新啟動應用程式。",
+      "openSettings": "開啟設定",
+      "cancel": "取消",
+      "microphone": "麥克風",
+      "camera": "攝影機",
+      "both": "麥克風和攝影機"
+    },
+    "microphonePermissionDenied": {
+      "title": "需要麥克風存取權限",
+      "message": "需要麥克風存取權限才能{{- actionType}}。請檢查您的系統設定。",
+      "detail": "您可以在系統的隱私設定中啟用麥克風存取權限。",
+      "openSettings": "開啟設定",
+      "cancel": "取消",
+      "actionTypes": {
+        "initiateCall": "撥打電話",
+        "answerCall": "接聽電話",
+        "recordMessage": "錄製訊息"
+      }
     }
   },
   "documentViewer": {
@@ -89,17 +111,65 @@
     },
     "back": "返回"
   },
+  "downloads": {
+    "title": "下載",
+    "filters": {
+      "search": "搜尋",
+      "server": "伺服器",
+      "mimeType": "類型",
+      "status": "狀態",
+      "clear": "清除篩選器",
+      "all": "全部",
+      "mimes": {
+        "images": "圖片",
+        "videos": "影片",
+        "audios": "音訊",
+        "texts": "文字",
+        "files": "檔案"
+      },
+      "statuses": {
+        "paused": "已暫停",
+        "cancelled": "已取消"
+      }
+    },
+    "item": {
+      "cancel": "取消",
+      "copyLink": "複製連結",
+      "errored": "下載失敗",
+      "pause": "暫停",
+      "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "從列表中刪除",
+      "resume": "繼續",
+      "retry": "重試",
+      "showInFolder": "在資料夾中顯示"
+    },
+    "showingResults": "顯示{{count}}個中的第{{first}} - {{last}}個"
+  },
   "settings": {
     "title": "設定",
     "general": "一般",
     "options": {
+      "report": {
+        "title": "向開發者回報錯誤",
+        "description": "匿名向開發者回報錯誤。會傳送包括程式版本號、作業系統類型、伺服器位址、裝置語言和錯誤類型。不會傳送聊天內容和使用者名稱等資訊。"
+      },
+      "flashFrame": {
+        "title": "允許閃爍視窗",
+        "description": "使用閃爍視窗來吸引使用者的注意。",
+        "onLinux": "在一些 Linux 系統上這個功能不可用。"
+      },
+      "internalVideoChatWindow": {
+        "title": "在程式視窗中開啟視訊通話",
+        "description": "如果啟用，視訊通話將在應用程式視窗中開啟，而不是在預設瀏覽器中開啟。但是，對於 <strong>Google Meet</strong> 和 <strong>Jitsi</strong>，Electron 應用程式不支援螢幕錄製，所以無論此設定如何，它們始終會在瀏覽器中開啟。",
+        "masDescription": "從 Mac App Store 安裝時此選項被停用。基於安全原因，視訊通話將始終預設在瀏覽器中開啟。"
+      },
       "trayIcon": {
         "title": "系統匣圖示",
         "description": "顯示系統匣圖示。啟用系統匣圖示時，關閉視窗會將應用程式最小化到系統匣。否則，應用程式將會關閉。"
       },
       "availableBrowsers": {
         "title": "預設瀏覽器",
-        "description": "選擇哪個瀏覽器將開啟此應用程式的外部連結。系統預設使用您操作系統的設定。",
+        "description": "選擇哪個瀏覽器將開啟此應用程式的外部連結。系統預設使用您作業系統的設定。",
         "systemDefault": "系統預設",
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
@@ -110,7 +180,7 @@
       },
       "themeAppearance": {
         "title": "主題",
-        "description": "選擇應用程式的顏色主題。",
+        "description": "選擇應用程式的色彩主題。",
         "auto": "跟隨系統",
         "light": "淺色",
         "dark": "深色"
@@ -139,11 +209,14 @@
     "copy": "複製 (&C)",
     "cut": "剪下 (&T)",
     "developerMode": "開發者模式",
+    "disableGpu": "停用 GPU",
     "documentation": "文件",
+    "downloads": "下載",
+    "settings": "設定",
     "editMenu": "編輯 (&E)",
     "fileMenu": "檔案 (&F)",
     "forward": "下一步 (&F)",
-    "helpMenu": "幫助 (&H)",
+    "helpMenu": "說明 (&H)",
     "learnMore": "了解更多",
     "minimize": "最小化",
     "openDevTools": "開啟開發工具 (&D)",
@@ -172,16 +245,35 @@
     "announcement": "休士頓，我們遇到問題了",
     "reload": "重新載入"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "正在載入視訊通話...",
+      "reloading": "正在重新載入視訊通話...",
+      "description": "請稍候，我們正在連線到視訊通話"
+    },
+    "error": {
+      "title": "視訊通話載入失敗",
+      "announcement": "休士頓，我們遇到了問題",
+      "timeout": "載入逾時 - 視訊通話無法在 15 秒內載入",
+      "crashed": "網頁檢視已當機",
+      "maxRetriesReached": "多次嘗試後載入失敗",
+      "reload": "重新載入視訊通話"
+    }
+  },
   "sidebar": {
     "addNewServer": "新增伺服器",
+    "downloads": "下載",
+    "settings": "設定",
     "item": {
       "reload": "重新載入伺服器",
       "remove": "移除伺服器",
-      "openDevTools": "開啟開發工具"
+      "openDevTools": "開啟開發工具",
+      "clearCache": "清除快取",
+      "clearStorageData": "清除儲存資料"
     }
   },
   "touchBar": {
-    "formatting": "Formatting",
+    "formatting": "格式化",
     "selectServer": "選擇伺服器"
   },
   "tray": {

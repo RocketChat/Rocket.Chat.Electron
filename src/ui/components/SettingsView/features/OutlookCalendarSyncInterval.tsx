@@ -1,10 +1,4 @@
-import {
-  Box,
-  Field,
-  FieldHint,
-  FieldLabel,
-  InputBox,
-} from '@rocket.chat/fuselage';
+import { InputBox } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +8,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED } from '../../../actions';
+import { SettingField } from './SettingField';
 
 export const OutlookCalendarSyncInterval = () => {
   const isOverridden = useSelector(
@@ -44,33 +39,21 @@ export const OutlookCalendarSyncInterval = () => {
   if (isOverridden) return null;
 
   return (
-    <Field marginBlock='x16'>
-      <Box
-        display='flex'
-        flexDirection='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
-      >
-        <Box display='flex' flexDirection='column'>
-          <FieldLabel htmlFor={fieldId}>
-            {t('settings.options.outlookCalendarSyncInterval.title')}
-          </FieldLabel>
-          <FieldHint>
-            {t('settings.options.outlookCalendarSyncInterval.description')}
-          </FieldHint>
-        </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
-          <InputBox
-            id={fieldId}
-            type='number'
-            min={1}
-            max={60}
-            value={intervalMinutes}
-            onChange={handleChange}
-            style={{ maxWidth: '5rem' }}
-          />
-        </Box>
-      </Box>
-    </Field>
+    <SettingField
+      htmlFor={fieldId}
+      marginBlock='x16'
+      label={t('settings.options.outlookCalendarSyncInterval.title')}
+      hint={t('settings.options.outlookCalendarSyncInterval.description')}
+    >
+      <InputBox
+        id={fieldId}
+        type='number'
+        min={1}
+        max={60}
+        value={intervalMinutes}
+        onChange={handleChange}
+        maxWidth='x80'
+      />
+    </SettingField>
   );
 };

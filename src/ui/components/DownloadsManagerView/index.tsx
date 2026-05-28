@@ -5,7 +5,7 @@ import {
   Pagination,
   Scrollable,
   IconButton,
-  SelectLegacy,
+  Select,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { ChangeEvent } from 'react';
@@ -230,27 +230,27 @@ const DownloadsManagerView = () => {
           flexBasis='0'
           paddingInline={2}
         >
-          <SelectLegacy
+          <Select
             value={serverFilter}
             placeholder={t('downloads.filters.server')}
             options={serverFilterOptions}
-            onChange={handleServerFilterChange}
+            onChange={(value) => handleServerFilterChange(String(value))}
           />
         </Box>
         <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <SelectLegacy
+          <Select
             value={mimeTypeFilter}
             placeholder={t('downloads.filters.mimeType')}
             options={mimeTypeOptions}
-            onChange={handleMimeFilter}
+            onChange={(value) => handleMimeFilter(String(value))}
           />
         </Box>
         <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <SelectLegacy
+          <Select
             value={statusFilter}
             placeholder={t('downloads.filters.status')}
             options={statusFilterOptions}
-            onChange={handleTabChange}
+            onChange={(value) => handleTabChange(String(value))}
           />
         </Box>
         <Box display='flex' flexGrow={1} flexShrink={1} paddingInline={2}>

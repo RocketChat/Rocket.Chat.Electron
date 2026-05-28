@@ -84,14 +84,14 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
             {t('settings.options.availableBrowsers.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' pbs='x4'>
+        <Box display='flex' alignItems='center' pbs='x4' flexShrink={0}>
           <Select
             options={options}
             value={selectedBrowser ?? 'system'}
             onChange={handleChangeBrowser}
             placeholder={t('settings.options.availableBrowsers.loading')}
             disabled={isLoading || availableBrowsers.length === 0}
-            width={220}
+            width={272}
           />
         </Box>
       </Box>

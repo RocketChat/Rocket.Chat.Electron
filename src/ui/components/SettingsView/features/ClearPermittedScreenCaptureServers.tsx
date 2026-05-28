@@ -15,7 +15,7 @@ export const ClearPermittedScreenCaptureServers = (
 
   return (
     <Field className={props.className}>
-      <FieldRow>
+      <FieldRow mbs='x8'>
         <Button
           danger
           onClick={() => {

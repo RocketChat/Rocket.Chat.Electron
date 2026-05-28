@@ -70,13 +70,18 @@ export const ThemeAppearance = (props: ThemeAppearanceProps) => {
             {t('settings.options.themeAppearance.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' paddingBlockStart='x4'>
+        <Box
+          display='flex'
+          alignItems='center'
+          paddingBlockStart='x4'
+          flexShrink={0}
+        >
           <Select
             id={themeSelectId}
             options={options}
             value={userThemePreference}
             onChange={handleChangeTheme}
-            width={220}
+            width={272}
           />
         </Box>
       </Box>

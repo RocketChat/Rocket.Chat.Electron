@@ -122,6 +122,16 @@
     },
     "back": "Wstecz"
   },
+  "downloads": {
+    "empty": {
+      "title": "Brak pobrań",
+      "subtitle": "Pobrane pliki pojawią się tutaj."
+    },
+    "noResults": {
+      "title": "Brak pasujących pobrań",
+      "subtitle": "Spróbuj dostosować filtry lub wyszukiwanie."
+    }
+  },
   "settings": {
     "title": "Ustawienia",
     "general": "Ogólne",

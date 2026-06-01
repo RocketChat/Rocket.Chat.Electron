@@ -64,14 +64,17 @@ const normalizeTelephonyGlobalShortcutConfig = (
 };
 
 const extractClipboardPhoneNumber = (text: string): string | null => {
-  const trimmedText = text.trim();
-  const digitCount = (trimmedText.match(/\d/g) ?? []).length;
+  // Strip everything that is not a dialable phone character so surrounding
+  // words and formatting debris (e.g. "Call (800) 555-0199 now") never reach
+  // the dial pad. '+' is only meaningful as a leading international prefix.
+  const sanitized = text.replace(/[^\d+*#]/g, '').replace(/(?!^)\+/g, '');
+  const digitCount = (sanitized.match(/\d/g) ?? []).length;
 
   if (digitCount < 3) {
     return null;
   }
 
-  return trimmedText;
+  return sanitized;
 };
 
 export const createTelephonyLinkFromClipboardText = (

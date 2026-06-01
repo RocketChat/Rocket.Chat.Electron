@@ -171,16 +171,16 @@ describe('telephony global shortcut main process pipeline', () => {
     expect(rootWindow.showInactive).toHaveBeenCalled();
     expect(rootWindow.focus).toHaveBeenCalled();
     expect(getOpenTelephonyDialpadMock()).toHaveBeenCalledWith({
-      phoneNumber: '+1 (800) 555-0199',
+      phoneNumber: '+18005550199',
       rawUri: '+1 (800) 555-0199',
     });
   });
 
-  it('keeps common pasted phone number formats permissive', () => {
+  it('strips surrounding words and formatting debris from pasted text', () => {
     expect(
       createTelephonyLinkFromClipboardText('Call +1 (800) 555-0199 x123')
     ).toEqual({
-      phoneNumber: 'Call +1 (800) 555-0199 x123',
+      phoneNumber: '+18005550199123',
       rawUri: 'Call +1 (800) 555-0199 x123',
     });
   });

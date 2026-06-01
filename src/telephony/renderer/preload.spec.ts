@@ -161,4 +161,53 @@ describe('telephony/preload', () => {
 
     expect(cb2).not.toHaveBeenCalled();
   });
+
+  it('silently drops a buffered payload once the 120s TTL elapses', () => {
+    jest.useFakeTimers();
+    try {
+      listenToTelephonyRequests();
+
+      const payload: TelephonyPayload = {
+        phoneNumber: '2222',
+        rawUri: 'tel:2222',
+      };
+      fireIpcEvent(payload);
+
+      // TTL elapses before any callback registers (e.g. non-VoIP workspace).
+      jest.advanceTimersByTime(120_000);
+
+      const cb = jest.fn();
+      onTelephonyCallRequested(cb);
+
+      expect(cb).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('delivers a buffered payload registered just before the TTL elapses', () => {
+    jest.useFakeTimers();
+    try {
+      listenToTelephonyRequests();
+
+      const payload: TelephonyPayload = {
+        phoneNumber: '3333',
+        rawUri: 'tel:3333',
+      };
+      fireIpcEvent(payload);
+
+      jest.advanceTimersByTime(119_999);
+
+      const cb = jest.fn();
+      onTelephonyCallRequested(cb);
+      expect(cb).toHaveBeenCalledTimes(1);
+      expect(cb).toHaveBeenCalledWith(payload);
+
+      // The expiry timer was cleared on flush; later ticks must not re-fire.
+      jest.advanceTimersByTime(120_000);
+      expect(cb).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });

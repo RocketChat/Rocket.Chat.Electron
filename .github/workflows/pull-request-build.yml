@@ -10,8 +10,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   build:
+    permissions:
+      contents: read
+      pull-requests: write
     if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
     strategy:
       fail-fast: false

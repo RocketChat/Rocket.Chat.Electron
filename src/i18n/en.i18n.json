@@ -165,6 +165,11 @@
     "supportedVersion": {
       "title": "Workspace version unsupported"
     },
+    "telephonySelectServer": {
+      "title": "Choose a workspace for this call",
+      "message": "Which workspace should take this call?",
+      "rememberChoice": "Remember for future calls"
+    },
     "clearLogs": {
       "title": "Clear Logs",
       "message": "Are you sure you want to clear the log file?",
@@ -237,8 +242,11 @@
     "general": "General",
     "certificates": "Certificates",
     "developer": "Developer",
+    "voiceVideo": "Voice & Video",
     "sections": {
-      "logging": "Logging"
+      "logging": "Logging",
+      "telephony": "Telephony",
+      "videoCalls": "Video calls"
     },
     "options": {
       "report": {
@@ -292,10 +300,25 @@
         "loading": "Loading browsers...",
         "current": "Currently using:"
       },
+      "telephony": {
+        "title": "Telephony",
+        "description": "Let Rocket.Chat handle phone-call shortcuts and tel: or callto: links. Turn off to disable the shortcut, ignore phone-link clicks, and hide the settings below."
+      },
       "telephonyServer": {
         "title": "Telephony Server",
-        "description": "Choose which server handles incoming phone calls (tel: and callto: links).",
-        "auto": "Auto (ask each time)"
+        "description": "Choose which workspace opens when you use the telephony shortcut or a tel: or callto: link.",
+        "auto": "Ask each time"
+      },
+      "telephonyShortcut": {
+        "title": "Global call shortcut",
+        "description": "Press this shortcut from any app to bring Rocket.Chat to the front and open the dial pad. If a phone number is on your clipboard, it gets pre-filled.",
+        "placeholder": "Not set — click Save to record",
+        "capturePlaceholder": "Press shortcut keys…",
+        "save": "Save",
+        "clear": "Clear",
+        "registered": "Shortcut registered",
+        "reservedByApp": "{{accelerator}} is already used by Rocket.Chat. Pick a different combination.",
+        "reservedByOS": "{{accelerator}} is reserved by your operating system. Pick a different combination."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
@@ -654,6 +677,53 @@
     "expiration": {
       "label": "Expiration:",
       "expiresOn": "Expires on {{date}}"
+    }
+  },
+  "telephony": {
+    "defaultHandlerPrompt": {
+      "title": "Rocket.Chat now opens phone links",
+      "body": "tel: and callto: links from your browser or other apps can now open Rocket.Chat.",
+      "bodyWindows": "Windows still needs your confirmation. On the Default Apps page, tap each link type (tel and callto) and pick Rocket.Chat. You do this once per link type, and Windows prevents apps from setting it for you.",
+      "bodyLinux": "Other apps may still claim phone links on your system. Open default applications and set Rocket.Chat for tel: and callto: to finish.",
+      "openSettingsWindows": "Open Rocket.Chat default apps",
+      "openSettingsLinux": "Open default applications",
+      "dismiss": "Got it"
+    },
+    "diagnostics": {
+      "title": "Phone-link handler diagnostics",
+      "subtitle": "Check whether your system routes tel: and callto: links to Rocket.Chat.",
+      "refresh": "Refresh",
+      "copy": "Copy diagnostics",
+      "copied": "Copied",
+      "openSettingsAction": "Open settings",
+      "platform": "Platform",
+      "lastChecked": "Last checked",
+      "summary": {
+        "checking": "Checking…",
+        "issues_one": "{{count}} issue",
+        "issues_other": "{{count}} issues",
+        "warnings_one": "{{count}} warning",
+        "warnings_other": "{{count}} warnings",
+        "healthy": "All checks pass"
+      },
+      "status": {
+        "pass": "Pass",
+        "fail": "Fail",
+        "unknown": "Unknown"
+      },
+      "checks": {
+        "isDefault.tel": "System default for click-to-call (tel:): Rocket.Chat",
+        "isDefault.callto": "System default for click-to-conference (callto:): Rocket.Chat",
+        "windows.registeredApp": "Rocket.Chat listed in Windows Registered Applications",
+        "windows.capabilities.tel": "Windows Capabilities map click-to-call (tel:) to Rocket.Chat",
+        "windows.capabilities.callto": "Windows Capabilities map click-to-conference (callto:) to Rocket.Chat",
+        "windows.progid.tel": "Windows ProgID for click-to-call (tel:) launches Rocket.Chat",
+        "windows.progid.callto": "Windows ProgID for click-to-conference (callto:) launches Rocket.Chat",
+        "darwin.handler.tel": "macOS confirms Rocket.Chat handles click-to-call (tel:)",
+        "darwin.handler.callto": "macOS confirms Rocket.Chat handles click-to-conference (callto:)",
+        "linux.xdg.tel": "Linux xdg-mime points click-to-call (tel:) at Rocket.Chat",
+        "linux.xdg.callto": "Linux xdg-mime points click-to-conference (callto:) at Rocket.Chat"
+      }
     }
   }
 }

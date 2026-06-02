@@ -1,3 +1,4 @@
+import { css } from '@rocket.chat/css-in-js';
 import {
   Box,
   Field,
@@ -15,10 +16,36 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { TELEPHONY_PREFERRED_SERVER_SET } from '../../../../telephony/actions';
 
+const safeHostname = (url: string): string => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};
+
+const selectWrapperStyle = css`
+  max-width: 100%;
+
+  .rcx-select {
+    white-space: nowrap;
+  }
+
+  .rcx-select > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
 export const TelephonyServer = () => {
   const servers = useSelector(({ servers }: RootState) => servers);
   const telephonyPreferredServer = useSelector(
     ({ telephonyPreferredServer }: RootState) => telephonyPreferredServer
+  );
+  const isTelephonyEnabled = useSelector(
+    ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
@@ -39,7 +66,7 @@ export const TelephonyServer = () => {
       ['auto', t('settings.options.telephonyServer.auto')],
       ...servers.map((s): [string, string] => [
         s.url,
-        s.title ?? new URL(s.url).hostname,
+        s.title ?? safeHostname(s.url),
       ]),
     ],
     [servers, t]
@@ -50,7 +77,7 @@ export const TelephonyServer = () => {
   }
 
   return (
-    <Field>
+    <Field marginBlock='x16'>
       <Box
         display='flex'
         flexDirection='row'
@@ -63,8 +90,14 @@ export const TelephonyServer = () => {
             {t('settings.options.telephonyServer.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
+        <Box
+          display='flex'
+          alignItems='center'
+          className={selectWrapperStyle}
+          style={{ paddingTop: '4px' }}
+        >
           <Select
+            disabled={!isTelephonyEnabled}
             options={options}
             value={telephonyPreferredServer ?? 'auto'}
             onChange={handleChange}

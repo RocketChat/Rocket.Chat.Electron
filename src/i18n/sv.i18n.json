@@ -164,6 +164,11 @@
     },
     "supportedVersion": {
       "title": "Versionen av arbetsytan stöds inte"
+    },
+    "telephonySelectServer": {
+      "title": "Välj server",
+      "message": "Vilken server ska hantera detta samtal?",
+      "rememberChoice": "Kom ihåg detta val"
     }
   },
   "documentViewer": {
@@ -280,6 +285,21 @@
         "systemDefault": "Systemstandard",
         "loading": "Laddar webbläsare...",
         "current": "Använder för närvarande:"
+      },
+      "telephonyServer": {
+        "title": "Telefoniserver",
+        "description": "Välj vilken arbetsyta som öppnas när du använder telefonigenvägen eller en tel:- eller callto:-länk.",
+        "auto": "Automatiskt (fråga varje gång)"
+      },
+      "telephonyShortcut": {
+        "title": "Global telefonigenväg",
+        "description": "Använd den här genvägen var som helst för att ta Rocket.Chat till förgrunden och öppna telefonins knappsats. Om urklippet innehåller text som ser ut som ett telefonnummer fyller Rocket.Chat i den i förväg.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Tryck på tangenter...",
+        "save": "Spara",
+        "clear": "Rensa",
+        "registered": "Genväg registrerad",
+        "reservedAccelerator": "{{accelerator}} är reserverad av Rocket.Chat eller ditt operativsystem."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Rensa behörigheter för skärmdumpning",

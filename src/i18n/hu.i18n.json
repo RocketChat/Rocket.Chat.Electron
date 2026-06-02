@@ -164,6 +164,11 @@
     },
     "supportedVersion": {
       "title": "A munkaterület verziója nem támogatott"
+    },
+    "telephonySelectServer": {
+      "title": "Szerver kiválasztása",
+      "message": "Melyik szerver kezelje ezt a hívást?",
+      "rememberChoice": "Választás megjegyzése"
     }
   },
   "documentViewer": {
@@ -284,6 +289,21 @@
         "systemDefault": "Rendszer alapértelmezettje",
         "loading": "Böngészők betöltése…",
         "current": "Jelenleg használt:"
+      },
+      "telephonyServer": {
+        "title": "Telefonos kiszolgáló",
+        "description": "Válaszd ki, melyik munkaterület nyíljon meg, amikor a telefonos gyorsbillentyűt vagy egy tel: vagy callto: hivatkozást használsz.",
+        "auto": "Automatikus (mindig kérdezzen)"
+      },
+      "telephonyShortcut": {
+        "title": "Globális telefonos gyorsbillentyű",
+        "description": "Ezzel a gyorsbillentyűvel bárhonnan előtérbe hozhatod a Rocket.Chatet, és megnyithatod a telefonos tárcsázót. Ha a vágólapodon telefonszámnak tűnő szöveg van, a Rocket.Chat előre kitölti.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Nyomd meg a billentyűket...",
+        "save": "Mentés",
+        "clear": "Törlés",
+        "registered": "Gyorsbillentyű regisztrálva",
+        "reservedAccelerator": "{{accelerator}} a Rocket.Chat vagy az operációs rendszer által fenntartott."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Képernyőfelvételi engedélyek törlése",

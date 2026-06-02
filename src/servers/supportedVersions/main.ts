@@ -218,12 +218,12 @@ const isVersionExceptionForServer = (
   }
 
   const trimmedExceptionVersion = exceptionVersion.trim();
-  if (!trimmedExceptionVersion.startsWith('sha-')) {
+  if (!trimmedExceptionVersion.toLowerCase().startsWith('sha-')) {
     return false;
   }
 
   const normalizedExceptionVersion = trimmedExceptionVersion
-    .replace(/^sha-/, '')
+    .replace(/^sha-/i, '')
     .toLowerCase();
   if (!normalizedExceptionVersion) {
     return false;
@@ -236,7 +236,7 @@ const isVersionExceptionForServer = (
 
   const normalizedGitCommitHash = gitCommitHash
     .trim()
-    .replace(/^sha-/, '')
+    .replace(/^sha-/i, '')
     .toLowerCase();
 
   return normalizedGitCommitHash.startsWith(normalizedExceptionVersion);

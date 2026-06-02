@@ -18,7 +18,11 @@ import { allowInsecureOutlookConnections } from '../outlookCalendar/reducers/all
 import { outlookCalendarSyncInterval } from '../outlookCalendar/reducers/outlookCalendarSyncInterval';
 import { outlookCalendarSyncIntervalOverride } from '../outlookCalendar/reducers/outlookCalendarSyncIntervalOverride';
 import { servers } from '../servers/reducers';
-import { telephonyPreferredServer } from '../telephony/reducers';
+import {
+  telephonyGlobalShortcutConfig,
+  telephonyGlobalShortcutRegistrationStatus,
+  telephonyPreferredServer,
+} from '../telephony/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
 import { dialogs } from '../ui/reducers/dialogs';
@@ -37,6 +41,7 @@ import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnable
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
+import { isTelephonyEnabled } from '../ui/reducers/isTelephonyEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
 import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
@@ -120,6 +125,9 @@ export const rootReducer = combineReducers({
   isTransparentWindowEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
   telephonyPreferredServer,
+  telephonyGlobalShortcutConfig,
+  telephonyGlobalShortcutRegistrationStatus,
+  isTelephonyEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

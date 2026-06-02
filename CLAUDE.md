@@ -50,8 +50,45 @@ This prevents MSI build failures from KMS CNG provider conflicts.
 
 - `*.spec.ts` — Renderer process tests
 - `*.main.spec.ts` — Main process tests
+- Renderer specs must live in a Jest-matched nested path, e.g. `src/<module>/<subdir>/*.spec.ts(x)` or `src/<module>/renderer.spec.ts(x)`. Flat `src/<module>/*.spec.ts` files are not discovered by current `testMatch`; verify new specs with `yarn test --listTests --runTestsByPath <file>`.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation
 - Tests run on Windows, macOS, AND Linux CI — always verify cross-platform
+
+## QA Flow Authoring
+
+When creating or updating QA flows under `qa/`, read `qa/README.md`,
+`qa/AGENTS.md`, and `qa/flow-template.md` first. QA steps must be
+self-contained and visually findable for a tester or visual agent that knows
+nothing about the feature.
+
+- For Desktop PR, branch, or release-candidate QA passes, use
+  `skills/desktop-qa-flows/SKILL.md` as the workflow entrypoint. The skill
+  decides whether to update existing flows, add new flows, or create a new
+  `qa/<feature-slug>/` pack based on changed user-visible risk. It is plain
+  Markdown and can be used by any agent, including Codex, Claude, Hermes, Cursor,
+  and GitHub agents, when explicitly pointed to it.
+- Derive tester-facing steps from the implementation, not product intuition.
+  Inspect changed React components, Fuselage icons, i18n labels, menu
+  definitions, modal buttons, platform branches, tests, and helper pages.
+- For branch-specific QA packs, lock the exact comparison range first: base
+  branch, head branch or commit, and whether the whole requested range was
+  reviewed. Do not claim complete QA coverage for a partial review.
+- Convert risky Desktop changes into falsifiable user-visible hypotheses before
+  writing flows. Use Desktop risk surfaces such as Electron main process,
+  protocol handlers, OS default handlers, settings UI, menus, modals,
+  packaging/installers, startup, shortcuts, workspace routing, i18n, and layout.
+- Put the visible path directly in the `Action` cell. Do not create separate
+  navigation sections or ask testers to open another file for basic UI
+  discovery.
+- Describe screen region, relative position, icon shape, nearby UI, visible
+  text after interaction, and the confirmation state. If a tooltip or menu title
+  appears only after hover/click, describe the visible anchor first.
+- Prefer the smallest useful proof for the hypothesis: existing tests, targeted
+  tests, local UI repro, OS-level repro, or code-path proof when runtime
+  validation is not practical.
+- For Qase compatibility, keep the flow table columns aligned with
+  `qa/flow-template.md` and run `node qa/scripts/validate-flows.mjs qa/<pack>`
+  plus `node qa/scripts/export-qase-csv.mjs qa/<pack>` after changes.
 
 ### Cross-Platform Compatibility
 

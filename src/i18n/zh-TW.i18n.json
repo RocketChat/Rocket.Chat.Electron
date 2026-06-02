@@ -80,6 +80,11 @@
       "title": "忽略更新",
       "message": "我們將會在下次有新的更新版本的時候通知您\n如果您改變主意想安裝此次更新，您可以從「關於」的選單中檢視更新",
       "ok": "好"
+    },
+    "telephonySelectServer": {
+      "title": "選擇伺服器",
+      "message": "哪個伺服器應該處理此通話？",
+      "rememberChoice": "記住此選擇"
     }
   },
   "documentViewer": {
@@ -103,6 +108,21 @@
         "systemDefault": "系統預設",
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
+      },
+      "telephonyServer": {
+        "title": "語音通話伺服器",
+        "description": "選擇使用語音通話快捷鍵或 tel:、callto: 連結時要開啟的工作區。",
+        "auto": "自動（每次詢問）"
+      },
+      "telephonyShortcut": {
+        "title": "語音通話全域快捷鍵",
+        "description": "在任何地方使用此快捷鍵，將 Rocket.Chat 帶到最前方並開啟語音通話撥號盤。如果剪貼簿包含看起來像電話號碼的文字，Rocket.Chat 會自動預先填入。",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "按下按鍵...",
+        "save": "儲存",
+        "clear": "清除",
+        "registered": "快捷鍵已註冊",
+        "reservedAccelerator": "{{accelerator}} 已由 Rocket.Chat 或您的作業系統保留。"
       },
       "transparentWindow": {
         "title": "透明視窗效果",

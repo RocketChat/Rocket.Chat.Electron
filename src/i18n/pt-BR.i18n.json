@@ -153,8 +153,29 @@
         "recordMessage": "gravar mensagens"
       }
     },
+    "outlookCalendar": {
+      "title": "Calendário do Outlook",
+      "encryptionUnavailableTitle": "Criptografia indisponível",
+      "encryptionUnavailable": "Seu sistema operacional não oferece suporte à criptografia.\nSuas credenciais serão armazenadas em texto simples.",
+      "field_required": "Este campo é obrigatório",
+      "remember_credentials": "Lembrar minhas credenciais",
+      "cancel": " Cancelar",
+      "submit": "Entrar"
+    },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
+    },
+    "telephonySelectServer": {
+      "title": "Selecionar servidor",
+      "message": "Qual servidor deve atender esta chamada?",
+      "rememberChoice": "Lembrar desta escolha"
+    },
+    "clearLogs": {
+      "title": "Limpar logs",
+      "message": "Tem certeza de que deseja limpar o arquivo de log?",
+      "detail": "Esta ação não pode ser desfeita. Todas as entradas de log atuais serão excluídas permanentemente.",
+      "yes": "Limpar",
+      "cancel": "Cancelar"
     }
   },
   "documentViewer": {
@@ -167,7 +188,12 @@
   "downloads": {
     "title": "Downloads",
     "notifications": {
-      "downloadFinished": "Download finalizado"
+      "downloadFinished": "Download finalizado",
+      "downloadInterrupted": "Download interrompido",
+      "downloadCancelled": "Download cancelado",
+      "downloadFailed": "Falha no download",
+      "downloadExpired": "Download expirado",
+      "downloadExpiredMessage": "Tente baixar novamente pela origem."
     },
     "filters": {
       "search": "Buscar",
@@ -215,6 +241,13 @@
     "title": "Configurações",
     "general": "Geral",
     "certificates": "Certificados",
+    "developer": "Desenvolvedor",
+    "voiceVideo": "Voz e vídeo",
+    "sections": {
+      "logging": "Logs",
+      "telephony": "Telefonia",
+      "videoCalls": "Chamadas de vídeo"
+    },
     "options": {
       "report": {
         "title": "Relatar erros aos desenvolvedores",
@@ -267,6 +300,26 @@
         "loading": "Carregando navegadores...",
         "current": "Usando atualmente:"
       },
+      "telephony": {
+        "title": "Telefonia",
+        "description": "Permitir que o Rocket.Chat lide com atalhos de chamada e links tel: ou callto:. Desative para desabilitar o atalho, ignorar cliques em links telefônicos e ocultar as configurações abaixo."
+      },
+      "telephonyServer": {
+        "title": "Servidor de Telefonia",
+        "description": "Escolha qual espaço de trabalho será aberto quando você usar o atalho de telefonia ou um link tel: ou callto:.",
+        "auto": "Perguntar sempre"
+      },
+      "telephonyShortcut": {
+        "title": "Atalho Global de Telefonia",
+        "description": "Use este atalho de qualquer lugar para trazer o Rocket.Chat para frente e abrir o teclado de telefonia. Se a área de transferência contiver um texto que pareça um número de telefone, o Rocket.Chat o preencherá automaticamente.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Pressione as teclas...",
+        "save": "Salvar",
+        "clear": "Limpar",
+        "registered": "Atalho registrado",
+        "reservedByApp": "{{accelerator}} já está em uso pelo Rocket.Chat. Escolha outra combinação.",
+        "reservedByOS": "{{accelerator}} está reservado pelo seu sistema operacional. Escolha outra combinação."
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar Permissões de Captura de Tela",
         "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."
@@ -294,6 +347,22 @@
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Escuro"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Intervalo de sincronização do Calendário do Outlook",
+        "description": "Com que frequência sincronizar eventos do calendário do Outlook, em minutos (1-60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Logs detalhados do Calendário do Outlook",
+        "description": "Ativar logs detalhados de depuração de Exchange/NTLM para solucionar problemas de integração com o Calendário do Outlook."
+      },
+      "detailedEventsLogging": {
+        "title": "Logs detalhados de eventos",
+        "description": "Registrar todos os dados de eventos trocados entre o Outlook e o Rocket.Chat durante a sincronização do calendário. Útil para diagnosticar problemas de sincronização."
+      },
+      "debugLogging": {
+        "title": "Logs detalhados",
+        "description": "Grava toda a saída do console no arquivo de log. Quando desativado, apenas erros e mensagens importantes são salvos, mantendo os logs menores e focados."
       }
     }
   },
@@ -349,6 +418,11 @@
     "showServerList": "Lista de servidores",
     "showTrayIcon": "Ícone da bandeja",
     "toggleDevTools": "Alternar &DevTools",
+    "openConfigFolder": "Abrir pasta de &configuração",
+    "openLogViewer": "Abrir visualizador de &logs",
+    "videoCallDevTools": "Abrir &DevTools da chamada de vídeo",
+    "videoCallTools": "Ferramentas de chamada de vídeo",
+    "videoCallDevToolsAutoOpen": "Abrir DevTools automaticamente",
     "undo": "&Desfazer",
     "unhide": "Mostrar todos",
     "viewMenu": "&Exibir",
@@ -398,7 +472,9 @@
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
       "copyCurrentUrl": "Copiar URL",
-      "reloadClearingCache": "Forçar recarregamento"
+      "reloadClearingCache": "Forçar recarregamento",
+      "serverInfo": "Informações do servidor",
+      "supportedVersionsInfo": "Informações de versões suportadas"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} mensagem não lida",
@@ -440,6 +516,7 @@
     "permissionDenied": "Permissão de Gravação de Tela Negada",
     "permissionRequired": "A permissão de gravação de tela é necessária para compartilhar sua tela.",
     "permissionInstructions": "Por favor, ative-a nas preferências do sistema e tente novamente.",
+    "openSystemPreferences": "Abrir preferências do sistema",
     "title": "Compartilhar sua tela",
     "entireScreen": "Toda sua tela",
     "applicationWindow": "Janela de aplicativo",
@@ -447,6 +524,134 @@
     "noWindowsFound": "Nenhuma janela encontrada",
     "cancel": "Cancelar",
     "share": "Compartilhar"
+  },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Processo principal",
+        "renderer": "Processo renderer",
+        "preload": "Processo preload",
+        "rendererRoot": "Janela principal",
+        "webview": "Webview do servidor",
+        "videoCall": "Janela de chamada de vídeo"
+      },
+      "components": {
+        "auth": "Autenticação",
+        "connection": "Conexão",
+        "notification": "Notificação",
+        "outlook": "Calendário do Outlook",
+        "videoCall": "Chamada de vídeo",
+        "download": "Download",
+        "spellCheck": "Verificação ortográfica",
+        "general": "Geral"
+      },
+      "serverInfo": {
+        "anonymous": "Servidor anônimo",
+        "local": "Processo local",
+        "unknown": "Servidor desconhecido"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "Módulo de armazenamento indisponível para mapeamento de contexto do servidor",
+      "importFailed": "Falha ao importar o armazenamento"
+    },
+    "errors": {
+      "configurationFailed": "Falha ao configurar electron-log",
+      "storeUnavailable": "Módulo de armazenamento indisponível para mapeamento de contexto do servidor",
+      "webContentsLoggingFailed": "Falha ao configurar logs de webContents",
+      "rendererLogFailed": "Falha ao registrar log do renderer",
+      "consoleOverrideFailed": "Falha ao substituir métodos do console"
+    },
+    "messages": {
+      "serverContext": "Servidor {{- serverNumber}}",
+      "logContext": "Contexto do log: {{- context}}"
+    }
+  },
+  "logViewer": {
+    "title": "Visualizador de logs",
+    "aria": {
+      "logIcon": "Ícone do visualizador de logs",
+      "entriesCount": "{{count}} entradas de log exibidas"
+    },
+    "fileInfo": {
+      "custom": "Personalizado",
+      "entries": "{{count}} entradas",
+      "entriesOfTotal": "{{count}} de {{total}} entradas",
+      "noEntries": "Nenhuma entrada"
+    },
+    "buttons": {
+      "openLogFile": "Abrir arquivo de log",
+      "defaultLog": "Log padrão",
+      "refresh": "Atualizar",
+      "autoRefresh": "Atualização automática",
+      "stopAutoRefresh": "Parar atualização automática",
+      "copy": "Copiar",
+      "save": "Salvar",
+      "clear": "Limpar",
+      "close": "Fechar",
+      "clearFilters": "Limpar filtros"
+    },
+    "controls": {
+      "showContext": "Mostrar contexto",
+      "showServer": "Mostrar servidor",
+      "autoScrollToTop": "Rolar automaticamente para o topo"
+    },
+    "placeholders": {
+      "loadAmount": "Quantidade a carregar",
+      "searchLogs": "Buscar logs...",
+      "level": "Nível",
+      "context": "Contexto",
+      "exchangeDebug": "Filtro de depuração do Exchange"
+    },
+    "filters": {
+      "entryLimit": {
+        "last100": "Últimas 100 entradas",
+        "last500": "Últimas 500 entradas",
+        "last1000": "Últimas 1000 entradas",
+        "last5000": "Últimas 5000 entradas",
+        "all": "Todas as entradas"
+      },
+      "level": {
+        "all": "Todos os níveis",
+        "debug": "Depuração",
+        "info": "Informação",
+        "warn": "Aviso",
+        "error": "Erro",
+        "verbose": "Detalhado"
+      },
+      "context": {
+        "all": "Todos os contextos",
+        "main": "Processo principal",
+        "renderer": "Renderer",
+        "webview": "Webview",
+        "videocall": "Chamada de vídeo",
+        "outlook": "Calendário do Outlook",
+        "auth": "Autenticação",
+        "updates": "Atualizações",
+        "notifications": "Notificações",
+        "servers": "Servidores",
+        "ipc": "Comunicação IPC"
+      },
+      "server": {
+        "all": "Todos os servidores",
+        "label": "Servidor"
+      },
+      "exchangeDebug": {
+        "all": "Todos os logs",
+        "success": "Apenas sucessos",
+        "failure": "Apenas falhas",
+        "ntlmFlow": "Autenticação NTLM",
+        "exchangeComm": "Comunicação com Exchange",
+        "sslCerts": "Problemas de SSL/certificado",
+        "networkErrors": "Problemas de rede",
+        "successFactors": "Fatores de sucesso",
+        "outlookCalendar": "Calendário do Outlook"
+      }
+    },
+    "messages": {
+      "noLogsFound": "Nenhum log encontrado",
+      "adjustFilters": "Tente ajustar os filtros ou atualizar os logs"
+    }
   },
   "serverInfo": {
     "title": "Informações do Servidor",
@@ -472,6 +677,53 @@
     "expiration": {
       "label": "Expiração:",
       "expiresOn": "Expira em {{date}}"
+    }
+  },
+  "telephony": {
+    "defaultHandlerPrompt": {
+      "title": "O Rocket.Chat agora abre links telefônicos",
+      "body": "Links tel: e callto: do seu navegador ou de outros aplicativos agora podem abrir o Rocket.Chat.",
+      "bodyWindows": "O Windows ainda precisa da sua confirmação. Na página Aplicativos padrão, selecione cada tipo de link (tel e callto) e escolha Rocket.Chat. Você faz isso uma vez por tipo de link, e o Windows impede que aplicativos façam isso por você.",
+      "bodyLinux": "Outros aplicativos ainda podem reivindicar links telefônicos no seu sistema. Abra os aplicativos padrão e defina o Rocket.Chat para tel: e callto: para concluir.",
+      "openSettingsWindows": "Abrir aplicativos padrão do Rocket.Chat",
+      "openSettingsLinux": "Abrir aplicativos padrão",
+      "dismiss": "Entendi"
+    },
+    "diagnostics": {
+      "title": "Diagnóstico do manipulador de links telefônicos",
+      "subtitle": "Verifique se o sistema direciona links tel: e callto: para o Rocket.Chat.",
+      "refresh": "Atualizar",
+      "copy": "Copiar diagnóstico",
+      "copied": "Copiado",
+      "openSettingsAction": "Abrir configurações",
+      "platform": "Plataforma",
+      "lastChecked": "Última verificação",
+      "summary": {
+        "checking": "Verificando...",
+        "issues_one": "{{count}} problema",
+        "issues_other": "{{count}} problemas",
+        "warnings_one": "{{count}} aviso",
+        "warnings_other": "{{count}} avisos",
+        "healthy": "Todas as verificações passaram"
+      },
+      "status": {
+        "pass": "Passou",
+        "fail": "Falhou",
+        "unknown": "Desconhecido"
+      },
+      "checks": {
+        "isDefault.tel": "Padrão do sistema para click-to-call (tel:): Rocket.Chat",
+        "isDefault.callto": "Padrão do sistema para click-to-conference (callto:): Rocket.Chat",
+        "windows.registeredApp": "Rocket.Chat listado em Aplicativos Registrados do Windows",
+        "windows.capabilities.tel": "Capabilities do Windows mapeiam click-to-call (tel:) para Rocket.Chat",
+        "windows.capabilities.callto": "Capabilities do Windows mapeiam click-to-conference (callto:) para Rocket.Chat",
+        "windows.progid.tel": "ProgID do Windows para click-to-call (tel:) inicia o Rocket.Chat",
+        "windows.progid.callto": "ProgID do Windows para click-to-conference (callto:) inicia o Rocket.Chat",
+        "darwin.handler.tel": "macOS confirma que o Rocket.Chat lida com click-to-call (tel:)",
+        "darwin.handler.callto": "macOS confirma que o Rocket.Chat lida com click-to-conference (callto:)",
+        "linux.xdg.tel": "xdg-mime do Linux aponta click-to-call (tel:) para Rocket.Chat",
+        "linux.xdg.callto": "xdg-mime do Linux aponta click-to-conference (callto:) para Rocket.Chat"
+      }
     }
   }
 }

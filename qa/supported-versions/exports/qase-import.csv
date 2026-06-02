@@ -1,0 +1,25 @@
+v2.id,suite_id,suite,suite_without_cases,title,description,preconditions,postconditions,severity,priority,status,automation,steps_type,tags,steps_actions,steps_data,steps_results
+"","1","Supported versions","1","","","","","","","","","","","","",""
+"","1","Supported versions","","SHA-prefixed supported-version exception allows matching server commit","Source flow: SV-QA-001
+
+A server matching a sha-prefixed exception is treated as supported and does not show the unsupported-version block.","repo_checkout
+dependencies_installed","- Targeted test output showing the SHA-prefixed exception test passed.
+- Optional screenshot showing the app opened the matching server without the
+  unsupported-version block.","major","high","actual","manual","classic","SV-QA-001,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:repo_checkout,requires:dependencies_installed","1. ""From a terminal at the Rocket.Chat Desktop repo root, confirm the branch under test is checked out with `git branch --show-current`.""
+2. ""Run the targeted supported-version test file: `yarn test src/servers/supportedVersions/main.main.spec.ts --runInBand`.""
+3. ""In the terminal output, find the test named `should support sha-prefixed exception versions by git commit hash`.""
+4. ""If the release owner provides a runtime fixture, launch the Desktop build and add the server whose supported-version data contains the `sha-<commit-prefix>` exception.""
+5. ""Record the result using `qa/supported-versions/README.md` result format.""","1. ""Expected branch: `feat/telephony-deeplink` or the release branch containing the supported-version exception change.
+Agent: Run `git branch --show-current` and record the output.""
+2. ""Test case names include `should support sha-prefixed exception versions by git commit hash` and `should not match malformed exception versions by git commit hash`.
+Agent: Execute the command and capture pass/fail output.""
+3. ""Exception version: `sha-bb83777`; server git commit hash: `bb83777b51a42d`.
+Agent: Inspect the test output or rerun the specific test if the runner supports name filtering.""
+4. ""Fixture must include the same server domain/unique ID rules used by supported-version data and a matching server git commit hash.
+Agent: If a fixture is unavailable, mark runtime validation as blocked and keep the targeted test as code-path proof.""
+5. ""Include branch, platform, test command, and whether runtime fixture validation was available.
+Agent: Write a concise result note without committing machine-specific logs unless requested.""","1. ""Terminal shows the intended branch name.""
+2. ""The targeted test command exits successfully.""
+3. ""The matching SHA-prefixed exception test passes.""
+4. ""Desktop opens the server without showing the unsupported-version block.""
+5. ""Result clearly distinguishes confirmed test proof from blocked runtime validation."""

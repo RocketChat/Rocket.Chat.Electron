@@ -69,7 +69,7 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
   );
 
   return (
-    <Field className={props.className}>
+    <Field className={props.className} marginBlock='x16'>
       <Box
         display='flex'
         flexDirection='row'

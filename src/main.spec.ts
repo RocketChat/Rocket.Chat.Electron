@@ -115,6 +115,10 @@ jest.mock('./spellChecking/main', () => ({
   setupSpellChecking: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('./telephony/main', () => ({
+  setupTelephonyGlobalShortcut: jest.fn(),
+}));
+
 jest.mock('./ui/components/CertificatesManager/main', () => ({
   handleCertificatesManager: jest.fn(),
 }));

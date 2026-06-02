@@ -13,6 +13,7 @@ import { OutlookCalendarSyncInterval } from './features/OutlookCalendarSyncInter
 import { ReportErrors } from './features/ReportErrors';
 import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
 import { SideBar } from './features/SideBar';
+import { TelephonyServer } from './features/TelephonyServer';
 import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
@@ -36,6 +37,7 @@ export const GeneralTab = () => (
       <ThemeAppearance />
       <AvailableBrowsers />
       <OutlookCalendarSyncInterval />
+      <TelephonyServer />
       <E2ePdfPreviewSizeLimit />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>

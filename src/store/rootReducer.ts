@@ -18,6 +18,7 @@ import { allowInsecureOutlookConnections } from '../outlookCalendar/reducers/all
 import { outlookCalendarSyncInterval } from '../outlookCalendar/reducers/outlookCalendarSyncInterval';
 import { outlookCalendarSyncIntervalOverride } from '../outlookCalendar/reducers/outlookCalendarSyncIntervalOverride';
 import { servers } from '../servers/reducers';
+import { telephonyPreferredServer } from '../telephony/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
 import { dialogs } from '../ui/reducers/dialogs';
@@ -120,6 +121,7 @@ export const rootReducer = combineReducers({
   isVideoCallDevtoolsAutoOpenEnabled,
   isTransparentWindowEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
+  telephonyPreferredServer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

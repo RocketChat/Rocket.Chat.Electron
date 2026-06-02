@@ -9,6 +9,7 @@ import type { OutlookCalendarActionTypeToPayloadMap } from '../outlookCalendar/a
 import type { ScreenSharingActionTypeToPayloadMap } from '../screenSharing/actions';
 import type { ServersActionTypeToPayloadMap } from '../servers/actions';
 import type { SpellCheckingActionTypeToPayloadMap } from '../spellChecking/actions';
+import type { TelephonyActionTypeToPayloadMap } from '../telephony/actions';
 import type { UiActionTypeToPayloadMap } from '../ui/actions';
 import type { UpdatesActionTypeToPayloadMap } from '../updates/actions';
 import type { UserPresenceActionTypeToPayloadMap } from '../userPresence/actions';
@@ -26,7 +27,8 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   UiActionTypeToPayloadMap &
   UpdatesActionTypeToPayloadMap &
   UserPresenceActionTypeToPayloadMap &
-  OutlookCalendarActionTypeToPayloadMap;
+  OutlookCalendarActionTypeToPayloadMap &
+  TelephonyActionTypeToPayloadMap;
 
 type RootActions = {
   [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type]

@@ -28,13 +28,13 @@ export const E2ePdfPreviewSizeLimit = (props: E2ePdfPreviewSizeLimitProps) => {
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      const value = parseInt(event.currentTarget.value, 10);
-      if (!isNaN(value) && value > 0) {
-        dispatch({
-          type: SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED,
-          payload: value,
-        });
-      }
+      const raw = parseInt(event.currentTarget.value, 10);
+      if (Number.isNaN(raw)) return;
+      const clamped = Math.max(1, Math.min(500, raw));
+      dispatch({
+        type: SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED,
+        payload: clamped,
+      });
     },
     [dispatch]
   );
@@ -62,6 +62,7 @@ export const E2ePdfPreviewSizeLimit = (props: E2ePdfPreviewSizeLimitProps) => {
             id={id}
             type='number'
             min={1}
+            max={500}
             step={1}
             value={e2ePdfPreviewSizeLimit}
             onChange={handleChange}

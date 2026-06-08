@@ -1,57 +1,46 @@
-import type { Server } from 'http';
-import { createServer } from 'http';
-
 import { fetchInfo } from './renderer';
 
 describe('servers/fetch-info', () => {
   const serverVersion = Array.from({ length: 3 }, () =>
     Math.round(Math.random() * 9)
   ).join('.');
-  let server: Server | null;
+
+  const originalFetch = global.fetch;
+
+  // Maps a requested home URL to the effective URL it resolves to.
+  // Mirrors `fetch` following redirects: `response.url` is the final URL.
+  const redirects: Record<string, string> = {
+    'http://localhost:3000/redirect': 'http://localhost:3000/subdir/',
+  };
+
+  const createResponse = (url: string, body?: unknown): Response =>
+    ({
+      ok: true,
+      url,
+      statusText: 'OK',
+      json: async () => body,
+    }) as unknown as Response;
 
   beforeEach(() => {
-    server = createServer((req, res) => {
-      if (req.url === '/' || req.url?.match(/^(\/subdir)+\/$/)) {
-        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.write('Home');
-        res.end();
-        return;
-      }
+    global.fetch = jest.fn(async (input: RequestInfo | URL) => {
+      const requestedUrl = typeof input === 'string' ? input : input.toString();
 
-      if (
-        req.url === '/api/info' ||
-        req.url?.match(/^(\/subdir)+\/api\/info$/)
-      ) {
-        res.writeHead(200, {
-          'Content-Type': 'application/json; charset=utf-8',
+      // api/info endpoint request
+      if (/\/api\/info$/.test(requestedUrl)) {
+        return createResponse(requestedUrl, {
+          success: true,
+          version: serverVersion,
         });
-        res.write(
-          JSON.stringify({
-            success: true,
-            version: serverVersion,
-          })
-        );
-        res.end();
-        return;
       }
 
-      if (req.url === '/redirect') {
-        res.writeHead(302, { Location: 'http://localhost:3000/subdir/' });
-        res.end();
-        return;
-      }
-
-      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.write('Not found!');
-      res.end();
-    });
-
-    server.listen(3000);
+      // home request — `.url` reflects the final URL after redirects
+      const effectiveUrl = redirects[requestedUrl] ?? requestedUrl;
+      return createResponse(effectiveUrl);
+    }) as jest.Mock;
   });
 
   afterEach(() => {
-    server?.close();
-    server = null;
+    global.fetch = originalFetch;
   });
 
   it('reaches the server at root directory', async () => {

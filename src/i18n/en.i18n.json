@@ -220,7 +220,8 @@
       "retry": "Retry",
       "showInFolder": "Show in Folder"
     },
-    "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
+    "showingResults": "Showing results {{first}} - {{last}} of {{count}}",
+    "back": "Back"
   },
   "certificatesManager": {
     "title": "Certificates manager",
@@ -341,7 +342,8 @@
         "title": "Verbose Logging",
         "description": "Writes all console output to the log file. When disabled, only errors and important messages are saved, keeping logs smaller and focused."
       }
-    }
+    },
+    "back": "Back"
   },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",

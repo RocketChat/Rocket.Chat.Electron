@@ -63,7 +63,11 @@ export const SettingsView = () => {
         color='default'
       >
         {!isSideBarEnabled && (
-          <IconButton icon='arrow-back' onClick={handleBackButton} />
+          <IconButton
+            icon='arrow-back'
+            onClick={handleBackButton}
+            aria-label={t('settings.back')}
+          />
         )}
         {t('settings.title')}
       </Box>

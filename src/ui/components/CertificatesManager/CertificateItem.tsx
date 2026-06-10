@@ -17,7 +17,7 @@ const CertificateItem = ({ url }: CertificateItemProps) => {
   }, [url]);
 
   return (
-    <TableRow key={url}>
+    <TableRow key={url} action>
       <TableCell>
         <Icon name='key' size='x16' />
         {url}

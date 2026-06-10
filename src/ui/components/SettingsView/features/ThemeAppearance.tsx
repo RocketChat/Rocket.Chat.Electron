@@ -1,10 +1,4 @@
-import {
-  Box,
-  Field,
-  FieldLabel,
-  FieldHint,
-  Select,
-} from '@rocket.chat/fuselage';
+import { Select } from '@rocket.chat/fuselage';
 import { useCallback, useId, useMemo } from 'react';
 import type { Key } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +8,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_USER_THEME_PREFERENCE_CHANGED } from '../../../actions';
+import { SettingField } from './SettingField';
 
 type ThemeAppearanceProps = {
   className?: string;
@@ -55,31 +50,18 @@ export const ThemeAppearance = (props: ThemeAppearanceProps) => {
   );
 
   return (
-    <Field className={props.className}>
-      <Box
-        display='flex'
-        flexDirection='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
-      >
-        <Box display='flex' flexDirection='column'>
-          <FieldLabel htmlFor={themeSelectId}>
-            {t('settings.options.themeAppearance.title')}
-          </FieldLabel>
-          <FieldHint>
-            {t('settings.options.themeAppearance.description')}
-          </FieldHint>
-        </Box>
-        <Box display='flex' alignItems='center' paddingBlockStart='x4'>
-          <Select
-            id={themeSelectId}
-            options={options}
-            value={userThemePreference}
-            onChange={handleChangeTheme}
-            width={220}
-          />
-        </Box>
-      </Box>
-    </Field>
+    <SettingField
+      htmlFor={themeSelectId}
+      className={props.className}
+      label={t('settings.options.themeAppearance.title')}
+      hint={t('settings.options.themeAppearance.description')}
+    >
+      <Select
+        id={themeSelectId}
+        options={options}
+        value={userThemePreference}
+        onChange={handleChangeTheme}
+      />
+    </SettingField>
   );
 };

@@ -23,10 +23,10 @@ const FileIcon = ({ fileName, mimeType }: FileIconProps) => {
     <Box display='flex' flexDirection='column' width='x36' height='x44'>
       <Box is='img' src='images/file-icon.svg' alt={label} width='x36' />
       <Box
-        width={32}
-        mi={2}
-        mbs={-20}
-        color='neutral-600'
+        width='x32'
+        mi='x2'
+        mbs='neg-x20'
+        color='hint'
         fontScale='c2'
         textAlign='center'
         withTruncatedText

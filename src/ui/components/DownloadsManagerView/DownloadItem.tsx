@@ -1,4 +1,5 @@
-import { Box, ProgressBar } from '@rocket.chat/fuselage';
+import { css } from '@rocket.chat/css-in-js';
+import { Box, ButtonGroup, ProgressBar } from '@rocket.chat/fuselage';
 import type { ComponentProps } from 'react';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -115,125 +116,129 @@ const DownloadItem = ({
   return (
     <Box
       width='100%'
-      height={44}
-      mbe={26}
+      mbe='x16'
+      pi='x8'
+      pb='x8'
+      borderRadius='x4'
       display='flex'
       alignItems='center'
+      className={css`
+        transition: background-color 0.15s ease;
+        &:hover {
+          background-color: var(--rcx-color-surface-hover);
+        }
+      `}
       {...props}
     >
       <Box
-        width={388}
+        width='x320'
         flexShrink={0}
         display='flex'
         flexDirection='row'
-        alignItems='left'
-        justifyContent='center'
+        alignItems='center'
       >
         <FileIcon fileName={fileName} mimeType={mimeType} />
-        <Box width={344} mis={8}>
+        <Box flexGrow={1} mis='x12' minWidth={0}>
           <Box
-            mbe={4}
-            color={errored || expired ? 'danger-500' : 'default'}
+            mbe='x4'
+            color={errored || expired ? 'danger' : 'default'}
             fontScale='p1'
             withTruncatedText
           >
             {fileName}
           </Box>
-          <Box color='neutral-600' fontScale='c1' withTruncatedText>
+          <Box color='hint' fontScale='c1' withTruncatedText>
             {serverTitle}
           </Box>
         </Box>
       </Box>
 
-      <Box display='flex' flexDirection='column' flexGrow={1} mi={16}>
+      <Box display='flex' flexDirection='column' flexGrow={1} mis='x16'>
         <Box
           display='flex'
           flexDirection='row'
-          mbe={6}
+          mbe='x8'
           alignItems='center'
           justifyContent='space-between'
         >
-          <Box display='flex' flexDirection='row' alignItems='center'>
+          <Box
+            display='flex'
+            flexDirection='row'
+            alignItems='center'
+            minWidth={0}
+          >
             {progressSize ? (
-              <Box
-                mie={12}
-                color='neutral-600'
-                fontScale='c1'
-                withTruncatedText
-              >
+              <Box mie='x16' color='hint' fontScale='c1' withTruncatedText>
                 {progressSize}
               </Box>
             ) : null}
             {progressSpeed ? (
-              <Box
-                mie={12}
-                color='neutral-600'
-                fontScale='c1'
-                withTruncatedText
-              >
+              <Box mie='x16' color='hint' fontScale='c1' withTruncatedText>
                 {progressSpeed}
               </Box>
             ) : null}
             {estimatedTimeLeft ? (
-              <Box color='neutral-600' fontScale='c1' withTruncatedText>
+              <Box color='hint' fontScale='c1' withTruncatedText>
                 {estimatedTimeLeft}
               </Box>
             ) : null}
           </Box>
-          <Box display='flex' fontScale='c1'>
-            {expired && (
-              <ActionButton onClick={handleRemove}>
-                {t('downloads.item.remove')}
-              </ActionButton>
-            )}
-            {!expired && (
-              <ActionButton onClick={handleCopyLink}>
-                {t('downloads.item.copyLink')}
-              </ActionButton>
-            )}
-            {state === 'progressing' && (
-              <>
-                <ActionButton onClick={handlePause}>
-                  {t('downloads.item.pause')}
-                </ActionButton>
-                <ActionButton onClick={handleCancel}>
-                  {t('downloads.item.cancel')}
-                </ActionButton>
-              </>
-            )}
-            {state === 'paused' && (
-              <>
-                <ActionButton onClick={handleResume}>
-                  {t('downloads.item.resume')}
-                </ActionButton>
-                <ActionButton onClick={handleCancel}>
-                  {t('downloads.item.cancel')}
-                </ActionButton>
-              </>
-            )}
-            {state === 'completed' && (
-              <>
-                <ActionButton onClick={handleShowInFolder}>
-                  {t('downloads.item.showInFolder')}
-                </ActionButton>
+          <Box mis='x16'>
+            <ButtonGroup small>
+              {expired && (
                 <ActionButton onClick={handleRemove}>
                   {t('downloads.item.remove')}
                 </ActionButton>
-              </>
-            )}
-            {errored && (
-              <>
-                <ActionButton onClick={handleRetry}>
-                  {t('downloads.item.retry')}
+              )}
+              {!expired && (
+                <ActionButton onClick={handleCopyLink}>
+                  {t('downloads.item.copyLink')}
                 </ActionButton>
-                <ActionButton onClick={handleRemove}>
-                  {t('downloads.item.remove')}
-                </ActionButton>
-              </>
-            )}
+              )}
+              {state === 'progressing' && (
+                <>
+                  <ActionButton onClick={handlePause}>
+                    {t('downloads.item.pause')}
+                  </ActionButton>
+                  <ActionButton onClick={handleCancel}>
+                    {t('downloads.item.cancel')}
+                  </ActionButton>
+                </>
+              )}
+              {state === 'paused' && (
+                <>
+                  <ActionButton onClick={handleResume}>
+                    {t('downloads.item.resume')}
+                  </ActionButton>
+                  <ActionButton onClick={handleCancel}>
+                    {t('downloads.item.cancel')}
+                  </ActionButton>
+                </>
+              )}
+              {state === 'completed' && (
+                <>
+                  <ActionButton onClick={handleShowInFolder}>
+                    {t('downloads.item.showInFolder')}
+                  </ActionButton>
+                  <ActionButton onClick={handleRemove}>
+                    {t('downloads.item.remove')}
+                  </ActionButton>
+                </>
+              )}
+              {errored && (
+                <>
+                  <ActionButton danger onClick={handleRetry}>
+                    {t('downloads.item.retry')}
+                  </ActionButton>
+                  <ActionButton onClick={handleRemove}>
+                    {t('downloads.item.remove')}
+                  </ActionButton>
+                </>
+              )}
+            </ButtonGroup>
           </Box>
         </Box>
-        <Box mbe={8} position='relative'>
+        <Box position='relative'>
           <ProgressBar
             percentage={percentage}
             error={errored ? t('downloads.item.errored') : undefined}

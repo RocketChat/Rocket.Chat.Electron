@@ -14,7 +14,7 @@ export const ClearPermittedScreenCaptureServers = (
   const { t } = useTranslation();
 
   return (
-    <Field className={props.className}>
+    <Field className={props.className} marginBlockStart='x16'>
       <FieldRow>
         <Button
           danger

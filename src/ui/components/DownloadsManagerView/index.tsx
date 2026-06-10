@@ -1,15 +1,21 @@
 import {
   Box,
+  Field,
+  FieldRow,
   SearchInput,
   Icon,
   Pagination,
   Scrollable,
   IconButton,
-  SelectLegacy,
+  Select,
+  States,
+  StatesIcon,
+  StatesTitle,
+  StatesSubtitle,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
-import type { ChangeEvent } from 'react';
-import { useState, useMemo, useCallback } from 'react';
+import type { ChangeEvent, Key } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -68,8 +74,8 @@ const DownloadsManagerView = () => {
   >('download-server', '');
 
   const handleServerFilterChange = useCallback(
-    (value: (typeof serverFilterOptions)[number][0]) => {
-      setServerFilter(value);
+    (value: Key) => {
+      setServerFilter(String(value));
     },
     [setServerFilter]
   );
@@ -91,8 +97,8 @@ const DownloadsManagerView = () => {
   >('download-type', '');
 
   const handleMimeFilter = useCallback(
-    (value: (typeof mimeTypeOptions)[number][0]) => {
-      setMimeTypeFilter(value);
+    (value: Key) => {
+      setMimeTypeFilter(String(value));
     },
     [setMimeTypeFilter]
   );
@@ -111,8 +117,8 @@ const DownloadsManagerView = () => {
   >('download-tab', DownloadStatus.ALL);
 
   const handleTabChange = useCallback(
-    (value: (typeof statusFilterOptions)[number][0]) => {
-      setStatusFilter(value);
+    (value: Key) => {
+      setStatusFilter(String(value));
     },
     [setStatusFilter]
   );
@@ -145,6 +151,12 @@ const DownloadsManagerView = () => {
     [t]
   );
 
+  const hasActiveFilters =
+    !!searchFilter ||
+    (serverFilter !== '' && serverFilter !== '*') ||
+    (mimeTypeFilter !== '' && mimeTypeFilter !== '*') ||
+    (statusFilter !== '' && statusFilter !== DownloadStatus.ALL);
+
   const downloads = useSelector(({ downloads }: RootState) => {
     type Predicate = (download: Download) => boolean;
     const searchPredicate: Predicate = searchFilter
@@ -170,6 +182,15 @@ const DownloadsManagerView = () => {
       .sort((a, b) => b.itemId - a.itemId);
   });
 
+  // Reset to the first page whenever the current offset falls outside the
+  // (filtered) result set — e.g. after narrowing a filter or removing items —
+  // so the list never renders a blank page past the end.
+  useEffect(() => {
+    if (currentPagination > 0 && currentPagination >= downloads.length) {
+      setCurrentPagination(0);
+    }
+  }, [currentPagination, downloads.length]);
+
   const handleBackButton = function (): void {
     dispatch({
       type: DOWNLOADS_BACK_BUTTON_CLICKED,
@@ -188,88 +209,100 @@ const DownloadsManagerView = () => {
       backgroundColor='light'
     >
       <Box
-        minHeight={64}
-        padding={24}
+        minHeight='x64'
+        pi='x24'
+        pbs='x24'
+        pbe='x16'
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
         alignItems='center'
       >
         {!isSideBarEnabled && (
-          <IconButton icon='arrow-back' onClick={handleBackButton} />
+          <IconButton icon='arrow-back' onClick={handleBackButton} mie='x8' />
         )}
         <Box is='div' color='default' fontScale='h1'>
           {t('downloads.title')}
         </Box>
       </Box>
-      <Box
-        display='flex'
-        justifyContent='space-between'
-        alignItems='center'
-        marginBlock={8}
-        padding={24}
-      >
-        <Box
-          display='flex'
-          flexGrow={7}
-          flexShrink={7}
-          flexBasis='0'
-          paddingInline={2}
-        >
-          <SearchInput
-            value={searchFilter}
-            placeholder={t('downloads.filters.search')}
-            addon={<Icon name='magnifier' size={20} />}
-            onChange={handleSearchFilterChange}
-          />
-        </Box>
-        <Box
-          display='flex'
-          flexGrow={3}
-          flexShrink={3}
-          flexBasis='0'
-          paddingInline={2}
-        >
-          <SelectLegacy
-            value={serverFilter}
-            placeholder={t('downloads.filters.server')}
-            options={serverFilterOptions}
-            onChange={handleServerFilterChange}
-          />
-        </Box>
-        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <SelectLegacy
-            value={mimeTypeFilter}
-            placeholder={t('downloads.filters.mimeType')}
-            options={mimeTypeOptions}
-            onChange={handleMimeFilter}
-          />
-        </Box>
-        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <SelectLegacy
-            value={statusFilter}
-            placeholder={t('downloads.filters.status')}
-            options={statusFilterOptions}
-            onChange={handleTabChange}
-          />
-        </Box>
-        <Box display='flex' flexGrow={1} flexShrink={1} paddingInline={2}>
-          <IconButton
-            icon='trash'
-            title={t('downloads.filters.clear')}
-            onClick={handleClearAll}
-          />
-        </Box>
+      <Box display='flex' alignItems='center' pi='x24' pbe='x16'>
+        <Field flexGrow={7} flexShrink={7} flexBasis='0' mie='x8'>
+          <FieldRow>
+            <SearchInput
+              value={searchFilter}
+              placeholder={t('downloads.filters.search')}
+              addon={<Icon name='magnifier' size='x20' />}
+              onChange={handleSearchFilterChange}
+              aria-label={t('downloads.filters.search')}
+            />
+          </FieldRow>
+        </Field>
+        <Field flexGrow={3} flexShrink={3} flexBasis='0' mie='x8'>
+          <FieldRow>
+            <Select
+              value={serverFilter}
+              placeholder={t('downloads.filters.server')}
+              options={serverFilterOptions}
+              onChange={handleServerFilterChange}
+              aria-label={t('downloads.filters.server')}
+            />
+          </FieldRow>
+        </Field>
+        <Field flexGrow={3} flexShrink={3} flexBasis='0' mie='x8'>
+          <FieldRow>
+            <Select
+              value={mimeTypeFilter}
+              placeholder={t('downloads.filters.mimeType')}
+              options={mimeTypeOptions}
+              onChange={handleMimeFilter}
+              aria-label={t('downloads.filters.mimeType')}
+            />
+          </FieldRow>
+        </Field>
+        <Field flexGrow={3} flexShrink={3} flexBasis='0' mie='x8'>
+          <FieldRow>
+            <Select
+              value={statusFilter}
+              placeholder={t('downloads.filters.status')}
+              options={statusFilterOptions}
+              onChange={handleTabChange}
+              aria-label={t('downloads.filters.status')}
+            />
+          </FieldRow>
+        </Field>
+        <IconButton
+          icon='trash'
+          title={t('downloads.filters.clear')}
+          onClick={handleClearAll}
+        />
       </Box>
       <Scrollable>
-        <Box flexGrow={1} flexShrink={1} paddingBlock={8} paddingInline={64}>
-          <Box>
-            {downloads
-              .slice(currentPagination, currentPagination + itemsPerPage)
-              .map((downloadItem) => (
-                <DownloadItem key={downloadItem.itemId} {...downloadItem} />
-              ))}
-          </Box>
+        <Box flexGrow={1} flexShrink={1} pi='x24' pbe='x16'>
+          {downloads.length === 0 ? (
+            <States>
+              <StatesIcon
+                name={hasActiveFilters ? 'magnifier' : 'circle-arrow-down'}
+              />
+              <StatesTitle>
+                {hasActiveFilters
+                  ? t('downloads.noResults.title')
+                  : t('downloads.empty.title')}
+              </StatesTitle>
+              <StatesSubtitle>
+                {hasActiveFilters
+                  ? t('downloads.noResults.subtitle')
+                  : t('downloads.empty.subtitle')}
+              </StatesSubtitle>
+            </States>
+          ) : (
+            <Box>
+              {downloads
+                .slice(currentPagination, currentPagination + itemsPerPage)
+                .map((downloadItem) => (
+                  <DownloadItem key={downloadItem.itemId} {...downloadItem} />
+                ))}
+            </Box>
+          )}
         </Box>
       </Scrollable>
       {downloads.length > 0 && (

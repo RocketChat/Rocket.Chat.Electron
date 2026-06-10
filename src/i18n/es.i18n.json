@@ -204,7 +204,15 @@
       "retry": "Reintentar",
       "showInFolder": "Mostrar en la carpeta"
     },
-    "showingResults": "Mostrando resultados {{first}} - {{last}} de {{count}}"
+    "showingResults": "Mostrando resultados {{first}} - {{last}} de {{count}}",
+    "empty": {
+      "title": "Aún no hay descargas",
+      "subtitle": "Los archivos que descargues aparecerán aquí."
+    },
+    "noResults": {
+      "title": "No hay descargas coincidentes",
+      "subtitle": "Intenta ajustar tus filtros o búsqueda."
+    }
   },
   "certificatesManager": {
     "title": "Gestor de certificados",

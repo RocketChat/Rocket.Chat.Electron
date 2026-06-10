@@ -110,6 +110,16 @@
     },
     "back": "戻る"
   },
+  "downloads": {
+    "empty": {
+      "title": "まだダウンロードはありません",
+      "subtitle": "ダウンロードしたファイルはここに表示されます。"
+    },
+    "noResults": {
+      "title": "一致するダウンロードはありません",
+      "subtitle": "フィルターや検索条件を変更してお試しください。"
+    }
+  },
   "settings": {
     "options": {
       "transparentWindow": {

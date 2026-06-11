@@ -32,7 +32,7 @@ const DocumentViewer = ({
       <Box
         display='flex'
         alignItems='center'
-        color='default'
+        color='font-default'
         pbe='x8'
         pbs='x8'
         pis='x8'

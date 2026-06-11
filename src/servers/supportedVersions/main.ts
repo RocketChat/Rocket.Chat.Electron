@@ -339,11 +339,12 @@ export const isServerVersionSupported = async (
     ? { ...server, gitCommitHash: serverCommitHash }
     : server;
 
-  // Try exact-string match first, then semver/commit-hash matching
+  // Try exact-string and raw commit-hash match first, then semver/sha matching
   const exception = exceptionScopeMatches
     ? exceptions?.versions?.find(
         ({ version }) =>
           version === serverVersion ||
+          (serverCommitHash && version === serverCommitHash) ||
           isVersionExceptionForServer(
             version,
             serverForExceptionMatch,

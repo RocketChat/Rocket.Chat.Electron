@@ -925,24 +925,23 @@ function LogViewerWindow() {
             </Box>
           )}
           {!isLoading && filteredLogs.length > 0 && (
-            <Box style={{ height: '100%', position: 'relative' }}>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '8px',
-                  right: '8px',
-                  color: 'var(--rcx-color-font-hint)',
-                  fontSize: '12px',
-                  zIndex: 10,
-                  background: 'var(--rcx-color-surface-tint)',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                }}
+            <Box height='100%' position='relative'>
+              <Box
+                position='absolute'
+                insetBlockStart='x8'
+                insetInlineEnd='x8'
+                zIndex={10}
+                pi='x8'
+                pb='x4'
+                borderRadius='x4'
+                bg='tint'
+                color='hint'
+                fontScale='c1'
               >
                 {t('logViewer.fileInfo.entries', {
                   count: filteredLogs.length,
                 })}
-              </div>
+              </Box>
               <Virtuoso
                 ref={virtuosoRef}
                 data={filteredLogs}

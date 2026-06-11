@@ -1,9 +1,11 @@
+import { css } from '@rocket.chat/css-in-js';
 import {
   Box,
   Button,
   Field,
   FieldLabel,
   FieldRow,
+  Icon,
   Margins,
   Throbber,
   ToggleSwitch,
@@ -31,6 +33,51 @@ import { RocketChatLogo } from '../RocketChatLogo';
 const copyright = `© 2016-${new Date().getFullYear()}, ${
   packageJsonInformation.productName
 }`;
+
+/**
+ * The About dialog renders inside a native `<dialog>` opened with
+ * `showModal()` (top layer). Fuselage's modern `Select` portals its dropdown
+ * to `document.body`, which sits below the top-layer dialog, so it cannot be
+ * used here (see docs/KNOWN_ISSUES.md). A native `<select>` works because its
+ * dropdown is browser-native; we style it with Fuselage color/radius tokens so
+ * it stays theme-correct. Dimensions are literal rems (no `--rcx-spacing`
+ * custom property exists for raw CSS), matching the x* scale.
+ */
+const updateChannelSelectClass = css`
+  width: 13.75rem;
+  height: 2.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 0.75rem 2.5rem;
+  border: 1px solid var(--rcx-color-stroke-light);
+  border-radius: var(--rcx-border-radius-medium);
+  background-color: var(--rcx-color-surface-tint);
+  color: var(--rcx-color-font-default);
+  font: inherit;
+  outline: 0;
+  cursor: pointer;
+  appearance: none;
+
+  &:focus {
+    border-color: var(--rcx-color-stroke-highlight);
+  }
+
+  & option {
+    color: var(--rcx-color-font-default);
+    background-color: var(--rcx-color-surface-tint);
+  }
+`;
+
+const updateChannelWrapperClass = css`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  & > .rcx-icon {
+    position: absolute;
+    right: 0.75rem;
+    pointer-events: none;
+  }
+`;
 
 export const AboutDialog = () => {
   const appVersion = useSelector(({ appVersion }: RootState) => appVersion);
@@ -136,6 +183,7 @@ export const AboutDialog = () => {
 
   const checkForUpdatesButtonRef = useAutoFocus(isVisible);
   const checkForUpdatesOnStartupToggleSwitchId = useId();
+  const updateChannelSelectId = useId();
 
   const updateChannelOptions = UPDATE_CHANNELS.map(
     (channel) =>
@@ -162,47 +210,33 @@ export const AboutDialog = () => {
         {canUpdate && (
           <Box display='flex' flexDirection='column'>
             {isDeveloperModeEnabled && (
-              <Box marginBlockEnd={16}>
+              <Box mbe='x16'>
                 <Field>
-                  <FieldRow style={{ verticalAlign: 'middle' }}>
+                  <FieldRow>
                     <FieldLabel
-                      htmlFor='updateChannelSelect'
-                      marginBlock='auto'
+                      htmlFor={updateChannelSelectId}
+                      alignSelf='center'
                     >
                       {t('dialog.about.updateChannel.label')}
                     </FieldLabel>
-                    <select
-                      id='updateChannelSelect'
-                      value={updateChannel}
-                      onChange={(e) =>
-                        handleUpdateChannelChange(e.target.value)
-                      }
-                      style={{
-                        width: '200px',
-                        height: '40px',
-                        padding: '8px 12px',
-                        border: '2px solid #e4e7ea',
-                        borderRadius: '4px',
-                        backgroundColor: '#ffffff',
-                        fontSize: '14px',
-                        color: '#2f343d',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        appearance: 'none',
-                        backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 12px center',
-                        backgroundSize: '16px',
-                        paddingRight: '40px',
-                      }}
-                    >
-                      {updateChannelOptions.map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
+                    <Box className={updateChannelWrapperClass}>
+                      <Box
+                        is='select'
+                        id={updateChannelSelectId}
+                        className={updateChannelSelectClass}
+                        value={updateChannel}
+                        onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                          handleUpdateChannelChange(e.target.value)
+                        }
+                      >
+                        {updateChannelOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </Box>
+                      <Icon name='chevron-down' size='x20' color='hint' />
+                    </Box>
                   </FieldRow>
                 </Field>
               </Box>

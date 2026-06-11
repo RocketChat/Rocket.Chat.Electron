@@ -220,7 +220,15 @@
       "retry": "Retry",
       "showInFolder": "Show in Folder"
     },
-    "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
+    "showingResults": "Showing results {{first}} - {{last}} of {{count}}",
+    "empty": {
+      "title": "No downloads yet",
+      "subtitle": "Files you download will appear here."
+    },
+    "noResults": {
+      "title": "No matching downloads",
+      "subtitle": "Try adjusting your filters or search."
+    }
   },
   "certificatesManager": {
     "title": "Certificates manager",

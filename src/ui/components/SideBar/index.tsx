@@ -2,9 +2,9 @@ import {
   Box,
   ButtonGroup,
   IconButton,
+  Menu,
   MenuItem,
   MenuSection,
-  MenuV2,
   OptionContent,
   OptionIcon,
 } from '@rocket.chat/fuselage';
@@ -141,7 +141,7 @@ export const SideBar = () => {
           )}
         </ButtonGroup>
 
-        <MenuV2
+        <Menu
           title={t('sidebar.tooltips.settingsMenu')}
           placement='right'
           onAction={handleMenuClick}
@@ -156,7 +156,7 @@ export const SideBar = () => {
               <OptionContent>{t('sidebar.settings')}</OptionContent>
             </MenuItem>
           </MenuSection>
-        </MenuV2>
+        </Menu>
       </Box>
     </Box>
   );

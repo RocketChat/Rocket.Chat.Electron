@@ -294,6 +294,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SERVER_VERSION_UPDATED]: {
     url: Server['url'];
     version: Server['version'];
+    gitCommitHash?: Server['gitCommitHash'];
   };
   [SUPPORTED_VERSION_DIALOG_DISMISS]: { url: Server['url'] };
   [WEBVIEW_SERVER_RELOADED]: {

@@ -110,6 +110,16 @@
     },
     "back": "Geri"
   },
+  "downloads": {
+    "empty": {
+      "title": "Henüz indirme yok",
+      "subtitle": "İndirdiğiniz dosyalar burada görünecek."
+    },
+    "noResults": {
+      "title": "Eşleşen indirme yok",
+      "subtitle": "Filtrelerinizi veya aramanızı ayarlamayı deneyin."
+    }
+  },
   "settings": {
     "title": "Ayarlar",
     "general": "Genel",

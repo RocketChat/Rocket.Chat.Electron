@@ -1,4 +1,16 @@
-import { Box, Button, Modal } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Button,
+  Modal,
+  ModalClose,
+  ModalContent,
+  ModalFooter,
+  ModalFooterControllers,
+  ModalHeader,
+  ModalHeaderText,
+  ModalIcon,
+  ModalTitle,
+} from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
@@ -14,10 +26,7 @@ import {
 import type { MessageTranslated } from '../../../servers/supportedVersions/types';
 import type { RootAction } from '../../../store/actions';
 import * as urls from '../../../urls';
-import {
-  SUPPORTED_VERSION_DIALOG_DISMISS,
-  WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
-} from '../../actions';
+import { SUPPORTED_VERSION_DIALOG_DISMISS } from '../../actions';
 import { currentView } from '../../reducers/currentView';
 import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
@@ -75,7 +84,8 @@ export const SupportedVersionDialog = () => {
       if (server.supportedVersions) {
         const supported = await isServerVersionSupported(
           server,
-          server.supportedVersions
+          server.supportedVersions,
+          server.gitCommitHash
         );
 
         if (supported.message && supported.expiration) {
@@ -100,16 +110,9 @@ export const SupportedVersionDialog = () => {
 
     const supported = await isServerVersionSupported(
       server,
-      server?.supportedVersions
+      server?.supportedVersions,
+      server?.gitCommitHash
     );
-
-    dispatch({
-      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
-      payload: {
-        url: server.url,
-        isSupportedVersion: supported.supported,
-      },
-    });
 
     if (!supported.message || !supported.expiration) return;
 
@@ -133,7 +136,7 @@ export const SupportedVersionDialog = () => {
       setExpirationMessage(translatedMessage);
       setIsVisible(supported.supported);
     }
-  }, [server, dispatch, setExpirationMessage, setIsVisible]);
+  }, [server, setExpirationMessage, setIsVisible]);
 
   useEffect(() => {
     checkServerVersion();
@@ -157,27 +160,27 @@ export const SupportedVersionDialog = () => {
     <Wrapper isVisible={isVisible}>
       <ModalBackdrop>
         <Modal>
-          <Modal.Header>
-            <Modal.Icon name='warning' color='danger' />
-            <Modal.HeaderText>
-              <Modal.Title>{expirationMessage?.title}</Modal.Title>
-            </Modal.HeaderText>
-            <Modal.Close onClick={dismissTimeUpdate} />
-          </Modal.Header>
-          <Modal.Content>
+          <ModalHeader>
+            <ModalIcon name='warning' color='danger' />
+            <ModalHeaderText>
+              <ModalTitle>{expirationMessage?.title}</ModalTitle>
+            </ModalHeaderText>
+            <ModalClose onClick={dismissTimeUpdate} />
+          </ModalHeader>
+          <ModalContent>
             <Box fontScale='p2b'>{expirationMessage?.subtitle}</Box>
 
             <Box fontScale='p2' mbs={20}>
               {expirationMessage?.description}
             </Box>
-          </Modal.Content>
-          <Modal.Footer>
-            <Modal.FooterControllers>
+          </ModalContent>
+          <ModalFooter>
+            <ModalFooterControllers>
               <Button secondary onClick={handleMoreInfoButtonClick}>
                 {t('unsupportedServer.moreInformation')}
               </Button>
-            </Modal.FooterControllers>
-          </Modal.Footer>
+            </ModalFooterControllers>
+          </ModalFooter>
         </Modal>
       </ModalBackdrop>
     </Wrapper>

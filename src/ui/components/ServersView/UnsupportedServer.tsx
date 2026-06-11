@@ -32,7 +32,13 @@ const UnsupportedServer = ({
     );
   };
 
-  // Only block if we have definitive proof (success state) that server is unsupported
+  // Block whenever a definitive `false` verdict exists, except while a fresh
+  // validation is actively in flight ('loading'). The main process is the
+  // sole writer of `isSupportedVersion` and only writes `false` based on real
+  // evidence (server/cloud/cache/builtin), so a persisted `false` (including
+  // hydrated from electron-store with `idle` or undefined fetchState) reflects
+  // a previous determination and must keep blocking until a fresh fetch
+  // overwrites it.
   const shouldBlock = isSupported === false && fetchState !== 'loading';
 
   return (

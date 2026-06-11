@@ -12,6 +12,7 @@ import {
   WEBVIEW_SERVER_RELOADED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
 } from '../../ui/actions';
 import {
   checkSupportedVersionServers,
@@ -173,6 +174,32 @@ describe('supportedVersions/main.ts', () => {
           url: mockServer.url,
           version: mockServerInfo.version,
           gitCommitHash: mockServerInfo.commit.hash,
+        },
+      });
+    });
+
+    it('should dispatch git commit hash from server info', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        commit: {
+          ...createMockServerInfo().commit,
+          hash: 'bb83777b51a42d',
+        },
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        createMockSupportedVersions()
+      );
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+        payload: {
+          url: mockServer.url,
+          gitCommitHash: 'bb83777b51a42d',
         },
       });
     });
@@ -768,7 +795,7 @@ describe('supportedVersions/main.ts', () => {
     });
 
     it('should optionally include message property', async () => {
-      const futureDate = new Date(Date.now() + 86400000).toISOString();
+      const futureDate = new Date(Date.now() + 86400000);
       const supportedVersions = {
         versions: [
           {
@@ -808,6 +835,80 @@ describe('supportedVersions/main.ts', () => {
       );
 
       expect(result.supported).toBe(true);
+    });
+
+    it('should support sha-prefixed exception versions by git commit hash', async () => {
+      const futureDate = new Date(Date.now() + 86400000);
+      const supportedVersions: SupportedVersions = {
+        enforcementStartDate: new Date(Date.now() - 86400000).toISOString(),
+        timestamp: new Date().toISOString(),
+        versions: [
+          {
+            version: '8.4.0',
+            expiration: futureDate,
+          },
+        ],
+        exceptions: {
+          domain: 'open.rocket.chat',
+          uniqueId: 'test-unique-id',
+          versions: [
+            {
+              version: 'sha-bb83777',
+              expiration: futureDate,
+            },
+          ],
+        },
+      };
+
+      const result = await isServerVersionSupported(
+        {
+          url: 'https://open.rocket.chat/',
+          version: '8.5',
+          title: 'Rocket.Chat Open',
+          uniqueID: 'test-unique-id',
+          gitCommitHash: 'bb83777b51a42d',
+        } as any,
+        supportedVersions
+      );
+
+      expect(result.supported).toBe(true);
+    });
+
+    it('should not match malformed exception versions by git commit hash', async () => {
+      const futureDate = new Date(Date.now() + 86400000);
+      const supportedVersions: SupportedVersions = {
+        enforcementStartDate: new Date(Date.now() - 86400000).toISOString(),
+        timestamp: new Date().toISOString(),
+        versions: [
+          {
+            version: '8.4.0',
+            expiration: futureDate,
+          },
+        ],
+        exceptions: {
+          domain: 'open.rocket.chat',
+          uniqueId: 'test-unique-id',
+          versions: [
+            {
+              version: '',
+              expiration: futureDate,
+            },
+          ],
+        },
+      };
+
+      const result = await isServerVersionSupported(
+        {
+          url: 'https://open.rocket.chat/',
+          version: '8.5',
+          title: 'Rocket.Chat Open',
+          uniqueID: 'test-unique-id',
+          gitCommitHash: 'bb83777b51a42d',
+        } as any,
+        supportedVersions
+      );
+
+      expect(result.supported).toBe(false);
     });
   });
 

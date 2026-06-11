@@ -192,7 +192,15 @@
       "retry": "Yritä uudelleen",
       "showInFolder": "Näytä kansiossa"
     },
-    "showingResults": "Näytetään tulokset {{first}} - {{last}} / {{count}}"
+    "showingResults": "Näytetään tulokset {{first}} - {{last}} / {{count}}",
+    "empty": {
+      "title": "Ei latauksia vielä",
+      "subtitle": "Lataamasi tiedostot näkyvät täällä."
+    },
+    "noResults": {
+      "title": "Ei vastaavia latauksia",
+      "subtitle": "Kokeile muuttaa suodattimia tai hakua."
+    }
   },
   "certificatesManager": {
     "title": "Varmenteiden hallinta",

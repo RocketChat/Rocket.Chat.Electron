@@ -20,6 +20,7 @@ import {
   WEBVIEW_SERVER_RELOADED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
 } from '../../ui/actions';
 import * as urls from '../../urls';
 import type { Server } from '../common';
@@ -208,6 +209,40 @@ const getExpirationMessage = ({
   return message;
 };
 
+const isVersionExceptionForServer = (
+  exceptionVersion: string,
+  server: Server,
+  serverVersionTilde: string
+): boolean => {
+  if (satisfies(coerce(exceptionVersion)?.version ?? '', serverVersionTilde)) {
+    return true;
+  }
+
+  const trimmedExceptionVersion = exceptionVersion.trim();
+  if (!trimmedExceptionVersion.startsWith('sha-')) {
+    return false;
+  }
+
+  const normalizedExceptionVersion = trimmedExceptionVersion
+    .replace(/^sha-/, '')
+    .toLowerCase();
+  if (!normalizedExceptionVersion) {
+    return false;
+  }
+
+  const gitCommitHash = server.gitCommitHash?.trim();
+  if (!gitCommitHash) {
+    return false;
+  }
+
+  const normalizedGitCommitHash = gitCommitHash
+    .trim()
+    .replace(/^sha-/, '')
+    .toLowerCase();
+
+  return normalizedGitCommitHash.startsWith(normalizedExceptionVersion);
+};
+
 export const getExpirationMessageTranslated = (
   i18n: Dictionary | undefined,
   message: Message,
@@ -298,17 +333,22 @@ export const isServerVersionSupported = async (
     }
   }
 
-  // Try exact-string and commit-hash match first, then fall back to semver satisfies
+  // Match against the freshly-fetched commit hash when available, falling
+  // back to the persisted server.gitCommitHash.
+  const serverForExceptionMatch: Server = serverCommitHash
+    ? { ...server, gitCommitHash: serverCommitHash }
+    : server;
+
+  // Try exact-string match first, then semver/commit-hash matching
   const exception = exceptionScopeMatches
     ? exceptions?.versions?.find(
         ({ version }) =>
           version === serverVersion ||
-          (serverCommitHash &&
-            (version === `sha-${serverCommitHash.slice(0, 7)}` ||
-              version === serverCommitHash))
-      ) ??
-      exceptions?.versions?.find(({ version }) =>
-        satisfies(coerce(version)?.version ?? '', serverVersionTilde)
+          isVersionExceptionForServer(
+            version,
+            serverForExceptionMatch,
+            serverVersionTilde
+          )
       )
     : undefined;
 
@@ -387,6 +427,16 @@ const dispatchVersionUpdated = (url: string) => (info: ServerInfo) => {
       gitCommitHash: info.commit?.hash,
     },
   });
+
+  if (info.commit?.hash) {
+    dispatch({
+      type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+      payload: {
+        url,
+        gitCommitHash: info.commit.hash,
+      },
+    });
+  }
 
   return info;
 };

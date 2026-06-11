@@ -213,7 +213,15 @@
       "retry": "Újrapróbálás",
       "showInFolder": "Megjelenítés mappában"
     },
-    "showingResults": "Eredmények megjelenítése: {{first}} - {{last}} / {{count}}"
+    "showingResults": "Eredmények megjelenítése: {{first}} - {{last}} / {{count}}",
+    "empty": {
+      "title": "Még nincsenek letöltések",
+      "subtitle": "A letöltött fájlok itt fognak megjelenni."
+    },
+    "noResults": {
+      "title": "Nincs egyező letöltés",
+      "subtitle": "Próbálja módosítani a szűrőket vagy a keresési feltételt."
+    }
   },
   "certificatesManager": {
     "title": "Tanúsítványok kezelője",

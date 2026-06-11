@@ -220,7 +220,15 @@
       "retry": "Prøv på nytt",
       "showInFolder": "Vis i mappe"
     },
-    "showingResults": "Viser resultater {{first}} - {{last}} av {{count}}"
+    "showingResults": "Viser resultater {{first}} - {{last}} av {{count}}",
+    "empty": {
+      "title": "Ingen nedlastinger ennå",
+      "subtitle": "Filer du laster ned vil vises her."
+    },
+    "noResults": {
+      "title": "Ingen samsvarende nedlastinger",
+      "subtitle": "Prøv å justere filtrene eller søket ditt."
+    }
   },
   "certificatesManager": {
     "title": "Sertifikatansvarlig",

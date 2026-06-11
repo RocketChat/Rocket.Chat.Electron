@@ -199,7 +199,15 @@
       "retry": "Tentar novamente",
       "showInFolder": "Mostrar na Pasta"
     },
-    "showingResults": "Mostrando resultados {{first}} - {{last}} de {{count}}"
+    "showingResults": "Mostrando resultados {{first}} - {{last}} de {{count}}",
+    "empty": {
+      "title": "Nenhum download ainda",
+      "subtitle": "Os arquivos que você baixar aparecerão aqui."
+    },
+    "noResults": {
+      "title": "Nenhum download encontrado",
+      "subtitle": "Tente ajustar seus filtros ou a busca."
+    }
   },
   "certificatesManager": {
     "title": "Gerenciador de certificados",

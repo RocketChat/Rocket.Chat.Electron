@@ -22,6 +22,7 @@ import { telephonyPreferredServer } from '../telephony/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
 import { dialogs } from '../ui/reducers/dialogs';
+import { e2ePdfPreviewSizeLimit } from '../ui/reducers/e2ePdfPreviewSizeLimit';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isDebugLoggingEnabled } from '../ui/reducers/isDebugLoggingEnabled';
@@ -112,6 +113,7 @@ export const rootReducer = combineReducers({
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
   isDebugLoggingEnabled,
+  e2ePdfPreviewSizeLimit,
   isDetailedEventsLoggingEnabled,
   isVerboseOutlookLoggingEnabled,
   updateChannel,

@@ -83,6 +83,8 @@ export const selectPersistableValues = createStructuredSelector({
   }: RootState) => isDetailedEventsLoggingEnabled,
   isDebugLoggingEnabled: ({ isDebugLoggingEnabled }: RootState) =>
     isDebugLoggingEnabled,
+  e2ePdfPreviewSizeLimit: ({ e2ePdfPreviewSizeLimit }: RootState) =>
+    e2ePdfPreviewSizeLimit,
   telephonyPreferredServer: ({ telephonyPreferredServer }: RootState) =>
     telephonyPreferredServer,
 });

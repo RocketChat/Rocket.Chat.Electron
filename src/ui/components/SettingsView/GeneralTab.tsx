@@ -2,6 +2,7 @@ import { Box, FieldGroup } from '@rocket.chat/fuselage';
 
 import { AvailableBrowsers } from './features/AvailableBrowsers';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
+import { E2ePdfPreviewSizeLimit } from './features/E2ePdfPreviewSizeLimit';
 import { FlashFrame } from './features/FlashFrame';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
 import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
@@ -38,6 +39,7 @@ export const GeneralTab = () => (
         <AvailableBrowsers />
         <OutlookCalendarSyncInterval />
         <TelephonyServer />
+        <E2ePdfPreviewSizeLimit />
         {!process.mas && <ClearPermittedScreenCaptureServers />}
       </FieldGroup>
     </Box>

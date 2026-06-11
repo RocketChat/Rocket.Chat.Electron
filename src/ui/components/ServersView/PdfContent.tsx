@@ -78,7 +78,7 @@ const PdfContent = ({ url, partition }: { url: string; partition: string }) => {
         height='100%'
         width='100%'
         position='absolute'
-        color='default'
+        color='font-default'
       >
         <Throbber size='x16' inheritColor />
       </Box>

@@ -2,7 +2,7 @@ import {
   Box,
   ButtonGroup,
   IconButton,
-  Menu,
+  MenuV2 as Menu,
   MenuItem,
   MenuSection,
   OptionContent,

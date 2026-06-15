@@ -48,6 +48,7 @@ import {
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
+import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);
@@ -174,18 +175,17 @@ const initializeServerWebContentsAfterAttach = (
 
   // Intercept markdown file downloads and open in document viewer
   webviewSession.on('will-download', (_event, item) => {
-    if (item.getFilename().endsWith('.md')) {
-      const downloadUrl = item.getURL();
-      item.cancel();
-      dispatch({
-        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-        payload: {
-          server: serverUrl,
-          documentUrl: downloadUrl,
-          documentFormat: 'markdown',
-        },
-      });
-    }
+    const downloadUrl = item.getURL();
+    if (!isMarkdownViewerDownloadUrl(downloadUrl, item.getFilename())) return;
+    item.cancel();
+    dispatch({
+      type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
+      payload: {
+        server: serverUrl,
+        documentUrl: downloadUrl,
+        documentFormat: 'markdown',
+      },
+    });
   });
 
   guestWebContents.addListener('destroyed', () => {

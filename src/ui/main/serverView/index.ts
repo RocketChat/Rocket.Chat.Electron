@@ -44,6 +44,7 @@ import {
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
+  TAB_WEBVIEW_ATTACHED,
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
@@ -195,7 +196,11 @@ const initializeServerWebContentsAfterReady = (
     params: ContextMenuParams
   ): Promise<void> => {
     event.preventDefault();
-    const menu = createPopupMenuForServerView(guestWebContents, params);
+    const menu = createPopupMenuForServerView(
+      guestWebContents,
+      params,
+      _serverUrl
+    );
     menu.popup({ window: rootWindow });
   };
   guestWebContents.addListener('context-menu', handleContextMenu);
@@ -497,6 +502,29 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         });
       }
     });
+  });
+
+  listen(TAB_WEBVIEW_ATTACHED, (action) => {
+    const guestWebContents = webContents.fromId(
+      action.payload.webContentsId
+    ) as WebContents | undefined;
+    if (!guestWebContents) {
+      return;
+    }
+
+    const handleContextMenu = async (
+      event: Event,
+      params: ContextMenuParams
+    ): Promise<void> => {
+      event.preventDefault();
+      const menu = createPopupMenuForServerView(
+        guestWebContents,
+        params,
+        action.payload.serverUrl
+      );
+      menu.popup({ window: rootWindow });
+    };
+    guestWebContents.addListener('context-menu', handleContextMenu);
   });
 
   listen(WEBVIEW_ATTACHED, (action) => {

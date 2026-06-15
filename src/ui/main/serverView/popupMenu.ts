@@ -13,6 +13,7 @@ import {
 } from '../../../spellChecking/actions';
 import { dispatch } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
+import { OPEN_NEW_TAB } from '../../actions';
 
 const t = i18next.t.bind(i18next);
 
@@ -134,7 +135,8 @@ const createImageMenuTemplate = (
 
 const createLinkMenuTemplate = (
   _serverViewWebContents: WebContents,
-  { linkURL, linkText }: ContextMenuParams
+  { linkURL, linkText }: ContextMenuParams,
+  serverUrl: string
 ): MenuItemConstructorOptions[] =>
   linkURL
     ? [
@@ -147,6 +149,35 @@ const createLinkMenuTemplate = (
               }
 
               openExternal(linkURL);
+            });
+          },
+        },
+        {
+          label: t('contextMenu.openInNewTab'),
+          click: () => {
+            const url = new URL(linkURL);
+            const [, type] = url.pathname.split('/');
+            let text = '';
+
+            switch (type) {
+              case 'channel':
+              case 'group': {
+                text = linkText.slice(1, -1);
+                break;
+              }
+              case 'direct': {
+                text = linkText.slice(0, -2);
+                break;
+              }
+            }
+
+            dispatch({
+              type: OPEN_NEW_TAB,
+              payload: {
+                url: linkURL,
+                text,
+                serverUrl,
+              },
             });
           },
         },
@@ -218,11 +249,12 @@ const createDefaultMenuTemplate = (
 
 export const createPopupMenuForServerView = (
   serverViewWebContents: WebContents,
-  params: ContextMenuParams
+  params: ContextMenuParams,
+  serverUrl: string
 ): Menu =>
   Menu.buildFromTemplate([
     ...createSpellCheckingMenuTemplate(serverViewWebContents, params),
     ...createImageMenuTemplate(serverViewWebContents, params),
-    ...createLinkMenuTemplate(serverViewWebContents, params),
+    ...createLinkMenuTemplate(serverViewWebContents, params, serverUrl),
     ...createDefaultMenuTemplate(serverViewWebContents, params),
   ]);

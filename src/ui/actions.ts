@@ -41,6 +41,10 @@ export const SIDE_BAR_ADD_NEW_SERVER_CLICKED =
   'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
   'side-bar/context-menu-triggered';
+export const OPEN_NEW_TAB = 'tab-pane/open-new-tab';
+export const CLOSE_TAB = 'tab-pane/close-tab';
+export const ACTIVE_TAB = 'tab-pane/active-tab';
+export const TAB_WEBVIEW_ATTACHED = 'tab-pane/webview-attached';
 export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED =
   'side-bar/downloads-button-clicked';
 export const SIDE_BAR_SETTINGS_BUTTON_CLICKED =
@@ -338,4 +342,12 @@ export type UiActionTypeToPayloadMap = {
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN]: void;
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE]: void;
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED]: void;
+  [OPEN_NEW_TAB]: { url: string; text: string; serverUrl: string };
+  [CLOSE_TAB]: { url: string };
+  [ACTIVE_TAB]: { url: string };
+  [TAB_WEBVIEW_ATTACHED]: {
+    url: string;
+    serverUrl: string;
+    webContentsId: number;
+  };
 };

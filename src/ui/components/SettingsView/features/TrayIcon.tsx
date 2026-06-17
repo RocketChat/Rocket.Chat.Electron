@@ -42,7 +42,9 @@ export const TrayIcon = (props: TrayIconProps) => {
     <Field className={props.className}>
       <FieldRow>
         <FieldLabel htmlFor={isTrayIconEnabledId}>
-          {t('settings.options.trayIcon.title')}
+          {process.platform === 'darwin'
+            ? t('settings.options.trayIcon.titleDarwin')
+            : t('settings.options.trayIcon.title')}
         </FieldLabel>
         <ToggleSwitch
           id={isTrayIconEnabledId}
@@ -51,7 +53,11 @@ export const TrayIcon = (props: TrayIconProps) => {
         />
       </FieldRow>
       <FieldRow>
-        <FieldHint>{t('settings.options.trayIcon.description')}</FieldHint>
+        <FieldHint>
+          {process.platform === 'darwin'
+            ? t('settings.options.trayIcon.descriptionDarwin')
+            : t('settings.options.trayIcon.description')}
+        </FieldHint>
       </FieldRow>
     </Field>
   );

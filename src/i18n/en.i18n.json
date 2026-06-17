@@ -241,112 +241,120 @@
     }
   },
   "settings": {
-    "title": "Settings",
+    "title": "App settings",
     "general": "General",
     "certificates": "Certificates",
     "developer": "Developer",
     "sections": {
+      "appUi": "App UI",
+      "systemUi": "System UI",
+      "systemBehavior": "System behavior",
+      "calling": "Calling",
+      "other": "Other & technical",
       "logging": "Logging"
     },
     "options": {
       "report": {
-        "title": "Report errors to developers",
-        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared.",
-        "masDescription": "This option is disabled when installed from the Mac App Store, the errors will be reported through the Mac App Store error report process."
+        "title": "Report errors to Rocket.Chat",
+        "description": "Anonymously report issues to app developers. Shared information includes app version number, operating system type, workspace URL, device language and error type. No content or usernames are shared.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. Errors are reported through the Mac App Store error report process."
       },
       "flashFrame": {
-        "title": "Enable Flash Frame",
-        "titleDarwin": "Toggle Dock Bounce on alert",
-        "description": "Flashes the window to attract user's attention.",
+        "title": "Flash frame",
+        "titleDarwin": "Bounce dock icon",
+        "description": "Flash window when a new message is received.",
         "onLinux": "Some Linux distros don't have support for this feature.",
-        "descriptionDarwin": "Bounces the app icon in the dock to attract user's attention."
+        "descriptionDarwin": "Dock icon bounces when a new message is received."
       },
       "hardwareAcceleration": {
-        "title": "Hardware Acceleration",
-        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
+        "title": "Hardware acceleration",
+        "description": "Improves visual rendering and performance. Disable if you experience visual glitches or instability. Reloads app on change."
       },
       "videoCallScreenCaptureFallback": {
-        "title": "Fallback Screen Capture for Video Calls",
-        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option.",
+        "title": "Video call screen capture fallback",
+        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. App restarts when this option is changed.",
         "forcedDescription": "Currently enforced because the app detected a Remote Desktop session. Toggle now controls future launches when running locally."
       },
       "internalVideoChatWindow": {
-        "title": "Open Video Chat in Application Window",
-        "description": "If enabled, the Video Chat will open in the application's window instead of the default browser. However, for <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen recording is not supported in Electron applications, so they will always open in the browser regardless of this setting.",
-        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, Video Chat will always open in the browser by default."
+        "title": "Video calls inside app",
+        "description": "Open video calls inside app window instead of browser. <strong>Google Meet</strong> and <strong>Jitsi</strong> calls can only open in browser.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, video calls always open in the browser by default."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",
-        "description": "When closed the app will be minimized, otherwise it will quit the application. Tray Icon need to be disabled to this take effect."
+        "description": "Minimize and do not quit app when closing.",
+        "disabledHint": "Tray icon must be disabled."
       },
       "menubar": {
         "title": "Menu bar",
         "description": "Show menu bar on the top of the window.",
-        "disabledHint": "Cannot disable menu bar when sidebar is disabled. Settings would become inaccessible."
+        "disabledHint": "Cannot disable menu bar when the workspace bar is disabled. App settings would become inaccessible."
       },
       "sidebar": {
-        "title": "Sidebar",
-        "description": "Show sidebar on the left of the window with the Server List, Downloads and Settings.",
-        "disabledHint": "Cannot disable sidebar when menu bar is disabled. Settings would become inaccessible."
+        "title": "Workspace bar",
+        "description": "Show workspace list with downloads and settings buttons.",
+        "disabledHint": "Cannot disable workspace bar when the menu bar is disabled. App settings would become inaccessible."
       },
       "trayIcon": {
-        "title": "Tray Icon",
-        "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
+        "title": "Tray icon",
+        "titleDarwin": "Menu bar extra",
+        "description": "Show tray icon on system tray. Instead of quitting, app is hidden to tray on close when enabled.",
+        "descriptionDarwin": "Show app icon in menu bar."
       },
       "availableBrowsers": {
-        "title": "Default Browser",
-        "description": "Choose which browser will open external links from this app. System Default uses your operating system settings.",
-        "systemDefault": "System Default",
+        "title": "Default browser",
+        "description": "Choose which browser to open external links in. System default uses your operating system settings.",
+        "systemDefault": "System default",
         "loading": "Loading browsers...",
         "current": "Currently using:"
       },
       "telephonyServer": {
-        "title": "Telephony Server",
-        "description": "Choose which server handles incoming phone calls (tel: and callto: links).",
+        "title": "Telephony workspace",
+        "description": "Choose which workspace handles incoming phone calls (tel: and callto: links).",
         "auto": "Auto (ask each time)"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Clear Screen Capture Permissions",
-        "description": "Clear the screen capture permissions that was selected to not ask again on video calls."
+        "title": "Clear screen capture permissions",
+        "description": "Clear permissions even if \"do not ask again\" was previously selected for calling."
       },
       "allowScreenCaptureOnVideoCalls": {
-        "title": "Allow Screen Capture on Video Calls",
-        "description": "Allow screen capture on video calls. This will ask for permission on each video call."
+        "title": "Allow screen capture on video calls",
+        "description": "Allow screen capture on video calls. Asks for permission on each video call."
       },
       "ntlmCredentials": {
-        "title": "NTLM Credentials",
-        "description": "Allow NTLM Credentials to be used when connecting to a server.",
-        "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
+        "title": "NTLM credentials",
+        "description": "Allow NTLM credentials to be used when connecting to a workspace.",
+        "domains": "Domains that will be used as the credentials. Separated by comma. Use * for match all servers."
       },
       "videoCallWindowPersistence": {
-        "title": "Remember video call window position",
-        "description": "Save and restore the position and size of video call windows between sessions"
+        "title": "Retain video call window position",
+        "description": "Remember position and size of video call window between sessions."
       },
       "transparentWindow": {
         "title": "Transparent window effect",
-        "description": "Enable native vibrancy/transparency effect for the window. Requires restart to apply."
+        "description": "Enable native vibrancy on app window. Requires app restart."
       },
       "themeAppearance": {
         "title": "Theme",
-        "description": "Choose the color theme for the application.",
-        "auto": "Follow system",
+        "description": "App color theme.",
+        "auto": "Match system",
         "light": "Light",
         "dark": "Dark"
       },
       "outlookCalendarSyncInterval": {
-        "title": "Outlook Calendar Sync Interval",
-        "description": "How often to sync Outlook calendar events, in minutes (1-60)."
+        "title": "Outlook Calendar sync interval",
+        "description": "Frequency of calendar events update checks in minutes (1–60)."
       },
       "verboseOutlookLogging": {
-        "title": "Verbose Outlook Calendar Logging",
+        "title": "Verbose Outlook Calendar logging",
         "description": "Enable detailed Exchange/NTLM debug logs for troubleshooting Outlook Calendar integration issues."
       },
       "detailedEventsLogging": {
-        "title": "Detailed Events Logging",
+        "title": "Detailed events logging",
         "description": "Log full event data exchanged between Outlook and Rocket.Chat during calendar sync. Useful for diagnosing sync issues."
       },
       "debugLogging": {
-        "title": "Verbose Logging",
+        "title": "Verbose logging",
         "description": "Writes all console output to the log file. When disabled, only errors and important messages are saved, keeping logs smaller and focused."
       },
       "e2ePdfPreviewSizeLimit": {

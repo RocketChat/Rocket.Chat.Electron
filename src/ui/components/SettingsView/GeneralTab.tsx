@@ -1,4 +1,5 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
+import { useTranslation } from 'react-i18next';
 
 import { AvailableBrowsers } from './features/AvailableBrowsers';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
@@ -19,29 +20,63 @@ import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
 
-export const GeneralTab = () => (
-  <Box display='flex' justifyContent='center' p='x24'>
-    <Box is='form' width='x600' maxWidth='full'>
-      <FieldGroup>
-        <ReportErrors />
-        <FlashFrame />
-        <HardwareAcceleration />
-        {process.platform === 'win32' && <ScreenCaptureFallback />}
-        <InternalVideoChatWindow />
-        <VideoCallWindowPersistence />
-        {process.platform === 'darwin' && <TransparentWindow />}
-        <TrayIcon />
-        {process.platform === 'win32' && <MinimizeOnClose />}
-        <SideBar />
-        {process.platform !== 'darwin' && <MenuBar />}
-        {process.platform === 'win32' && <NTLMCredentials />}
-        <ThemeAppearance />
-        <AvailableBrowsers />
-        <OutlookCalendarSyncInterval />
-        <TelephonyServer />
-        <E2ePdfPreviewSizeLimit />
-        {!process.mas && <ClearPermittedScreenCaptureServers />}
-      </FieldGroup>
+export const GeneralTab = () => {
+  const { t } = useTranslation();
+
+  const isDarwin = process.platform === 'darwin';
+  const isWin32 = process.platform === 'win32';
+
+  return (
+    <Box display='flex' justifyContent='center' p='x24'>
+      <Box is='form' width='x600' maxWidth='full'>
+        <FieldGroup>
+          <Box fontScale='h4' mbe='x16' color='default'>
+            {t('settings.sections.appUi')}
+          </Box>
+          <SideBar />
+          <ThemeAppearance />
+        </FieldGroup>
+
+        <FieldGroup mbs='x24'>
+          <Box fontScale='h4' mbe='x16' color='default'>
+            {t('settings.sections.systemUi')}
+          </Box>
+          {isDarwin && <TransparentWindow />}
+          <TrayIcon />
+          {isWin32 && <MinimizeOnClose />}
+          {!isDarwin && <MenuBar />}
+          <FlashFrame />
+        </FieldGroup>
+
+        <FieldGroup mbs='x24'>
+          <Box fontScale='h4' mbe='x16' color='default'>
+            {t('settings.sections.systemBehavior')}
+          </Box>
+          <AvailableBrowsers />
+          <InternalVideoChatWindow />
+          <VideoCallWindowPersistence />
+        </FieldGroup>
+
+        <FieldGroup mbs='x24'>
+          <Box fontScale='h4' mbe='x16' color='default'>
+            {t('settings.sections.calling')}
+          </Box>
+          {!process.mas && <ClearPermittedScreenCaptureServers />}
+          {isWin32 && <ScreenCaptureFallback />}
+          <OutlookCalendarSyncInterval />
+          <TelephonyServer />
+        </FieldGroup>
+
+        <FieldGroup mbs='x24'>
+          <Box fontScale='h4' mbe='x16' color='default'>
+            {t('settings.sections.other')}
+          </Box>
+          <HardwareAcceleration />
+          <ReportErrors />
+          {isWin32 && <NTLMCredentials />}
+          <E2ePdfPreviewSizeLimit />
+        </FieldGroup>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};

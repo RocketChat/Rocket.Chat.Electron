@@ -59,6 +59,13 @@ export const MinimizeOnClose = (props: MinimizeOnCloseProps) => {
           {t('settings.options.minimizeOnClose.description')}
         </FieldHint>
       </FieldRow>
+      {isTrayIconEnabled && (
+        <FieldRow>
+          <FieldHint>
+            {t('settings.options.minimizeOnClose.disabledHint')}
+          </FieldHint>
+        </FieldRow>
+      )}
     </Field>
   );
 };

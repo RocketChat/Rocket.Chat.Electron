@@ -6,6 +6,7 @@ jest.mock('electron', () => ({
     quit: jest.fn(),
     addListener: jest.fn(),
     name: 'Test App',
+    setSecureKeyboardEntryEnabled: jest.fn(),
   },
   BrowserWindow: jest.fn(),
   nativeImage: {
@@ -36,6 +37,10 @@ jest.mock('../../app/main/dev', () => ({
 
 jest.mock('./icons', () => ({
   getTrayIconPath: jest.fn(),
+}));
+
+jest.mock('./secureKeyboardEntry', () => ({
+  setupSecureKeyboardEntry: jest.fn(() => () => undefined),
 }));
 
 describe('rootWindow close event handler', () => {

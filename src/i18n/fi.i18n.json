@@ -213,53 +213,64 @@
     }
   },
   "settings": {
-    "title": "Asetukset",
+    "title": "Sovelluksen asetukset",
     "general": "Yleiset",
     "certificates": "Varmenteet",
+    "sections": {
+      "appUi": "Sovelluksen käyttöliittymä",
+      "systemUi": "Järjestelmän käyttöliittymä",
+      "systemBehavior": "Järjestelmän toiminta",
+      "calling": "Puhelut",
+      "other": "Muut ja tekniset",
+      "logging": "Lokikirjaus"
+    },
     "options": {
       "report": {
-        "title": "Ilmoita virheistä kehittäjille",
-        "description": "Ilmoita virheistä kehittäjille nimettömästi. Jaettuja tietoja ovat mm. sovelluksen versionumero, käyttöjärjestelmän tyyppi, palvelimen URL-osoite, laitteen kieli ja virheen tyyppi. Sisältöä tai käyttäjätunnuksia ei jaeta.",
-        "masDescription": "Tämä ei ole käytössä, kun asennus on tehty Macin App Storesta. Virheistä ilmoitetaan Macin App Storen virheilmotusprosessilla."
+        "title": "Ilmoita virheistä Rocket.Chatille",
+        "description": "Ilmoita virheistä sovelluskehittäjille nimettömästi. Jaettuja tietoja ovat mm. sovelluksen versionumero, käyttöjärjestelmän tyyppi, työtilan URL-osoite, laitteen kieli ja virheen tyyppi. Sisältöä tai käyttäjätunnuksia ei jaeta.",
+        "masDescription": "Tämä ei ole käytössä, kun asennus on tehty Macin App Storesta. Virheistä ilmoitetaan Macin App Storen virheilmoitusprosessilla."
       },
       "flashFrame": {
-        "title": "Ota käyttöön Flash-kehys",
-        "titleDarwin": "Vaihda Dockin ponnahdusta hälytyksen yhteydessä",
-        "description": "Herättää käyttäjän huomion väläyttämällä ikkunaa.",
+        "title": "Väläytä kehys",
+        "titleDarwin": "Pompputa Dock-kuvaketta",
+        "description": "Väläyttää ikkunaa, kun uusi viesti saapuu.",
         "onLinux": "Jotkin Linux-jakelut eivät tue tätä ominaisuutta.",
-        "descriptionDarwin": "Herättää käyttäjän huomion ponnauttamalla sovelluskuvaketta Dockissa."
+        "descriptionDarwin": "Dock-kuvake pomppaa, kun uusi viesti saapuu."
       },
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
-        "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
+        "description": "Parantaa visuaalista renderöintiä ja suorituskykyä. Poista käytöstä, jos koet visuaalisia häiriöitä tai epävakautta. Lataa sovelluksen uudelleen muutoksen yhteydessä."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Videopuhelujen varanäyttökaappaus",
-        "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
-        "forcedDescription": "Tällä hetkellä pakotettu, koska sovellus havaitsi RDP-istunnon. Vaihtoehto määrittää seuraavien paikallisten käynnistysten käytöksen."
+        "description": "Poistaa Windows Graphics Capture -tilan käytöstä, jotta näytön jakaminen toimii etätyöpöytäistunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
+        "forcedDescription": "Tällä hetkellä pakotettu, koska sovellus havaitsi etätyöpöytäistunnon. Valitsin määrittää seuraavien paikallisten käynnistysten toiminnan."
       },
       "internalVideoChatWindow": {
-        "title": "Avaa videokeskustelu sovellusikkunaan",
-        "description": "Jos käytössä, videokeskustelu avautuu sovelluksen ikkunaan oletusselaimen sijaan. Kuitenkin <strong>Google Meet</strong> ja <strong>Jitsi</strong> -palveluissa ruuduntallennus ei ole tuettu Electron-sovelluksissa, joten ne avautuvat aina selaimessa tästä asetuksesta riippumatta.",
-        "masDescription": "Asetus ei ole käytössä, kun asennus on tehty Macin App Storesta. Suojaussyistä videokeskustelu avautuu oletusarvoisesti selaimeen."
+        "title": "Videopuhelut sovelluksessa",
+        "description": "Avaa videopuhelut sovelluksen ikkunassa selaimen sijaan. <strong>Google Meet</strong>- ja <strong>Jitsi</strong>-puhelut voidaan avata vain selaimessa.",
+        "masDescription": "Asetus ei ole käytössä, kun asennus on tehty Macin App Storesta. Suojaussyistä videopuhelut avautuvat oletusarvoisesti selaimeen."
       },
       "minimizeOnClose": {
         "title": "Pienennä suljettaessa",
-        "description": "Sovellus pienennetään suljettaessa, muutoin sovellus suljetaan. Ilmaisinalueen kuvakkeen on oltava poissa käytöstä, jotta tämä onnistuu."
+        "description": "Pienennä sovellus sulkematta sitä, kun sulkupainike painetaan.",
+        "disabledHint": "Ilmaisinalueen kuvake on poistettava käytöstä."
       },
       "menubar": {
         "title": "Valikkopalkki",
         "description": "Näytä valikkopalkki ikkunan yläreunassa.",
-        "disabledHint": "Valikkopalkkinsa poisto ei ole mahdollista, kun sivupalkki on pois käytöstä. Asetukset tulisivat saavuttamattomiksi."
+        "disabledHint": "Valikkopalkki ei voi olla pois käytöstä, kun työtilabalkki on pois käytöstä. Sovelluksen asetukset muuttuisivat saavuttamattomiksi."
       },
       "sidebar": {
-        "title": "Sivupalkki",
-        "description": "Näytä ikkunan vasemmassa reunassa sivupalkki, jossa näkyvät palvelinluettelo, lataukset ja asetukset.",
-        "disabledHint": "Sivupalkin poisto ei ole mahdollista, kun valikkopalkki on pois käytöstä. Asetukset tulisivat saavuttamattomiksi."
+        "title": "Työtilabalkki",
+        "description": "Näytä työtila­luettelo lataukset- ja asetukset-painikkeilla.",
+        "disabledHint": "Työtilabalkki ei voi olla pois käytöstä, kun valikkopalkki on pois käytöstä. Sovelluksen asetukset muuttuisivat saavuttamattomiksi."
       },
       "trayIcon": {
         "title": "Ilmaisinalueen kuvake",
-        "description": "Näytä ilmaisinalueen kuvake ilmaisinalueella. Jos ilmaisinalueen kuvake on käytössä, sovellus piilotetaan suljettaessa ilmaisinalueelle. Muutoin sovellus suljetaan."
+        "titleDarwin": "Valikkorivin lisäkuvake",
+        "description": "Näytä kuvake järjestelmän ilmaisinalueella. Kun käytössä, sovellus piilotetaan ilmaisinalueelle suljettaessa eikä sammuteta.",
+        "descriptionDarwin": "Näytä sovelluksen kuvake valikkorivissä."
       },
       "availableBrowsers": {
         "title": "Oletusselain",
@@ -269,16 +280,16 @@
         "current": "Käytössä nyt:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Tyhjennä näyttökuvaoikeudet",
-        "description": "Tyhjennä valitut näyttökuvaoikeudet, joilla estettiin kysyminen uudelleen videopuheluissa."
+        "title": "Tyhjennä näyttökaappausoikeudet",
+        "description": "Tyhjennä oikeudet, vaikka \"älä kysy uudelleen\" olisi aiemmin valittu puheluiden yhteydessä."
       },
       "transparentWindow": {
         "title": "Läpinäkyvä ikkuna-efekti",
-        "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle. Vaatii uudelleenkäynnistyksen toimiakseen."
+        "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle. Vaatii sovelluksen uudelleenkäynnistyksen."
       },
       "themeAppearance": {
         "title": "Teema",
-        "description": "Valitse sovelluksen väriteema.",
+        "description": "Sovelluksen väriteema.",
         "auto": "Seuraa järjestelmää",
         "light": "Vaalea",
         "dark": "Tumma"
@@ -309,7 +320,7 @@
     "disableGpu": "Poista grafiikkasuoritin käytöstä",
     "documentation": "Oppaat",
     "downloads": "Lataukset",
-    "settings": "Asetukset",
+    "settings": "Sovelluksen asetukset",
     "editMenu": "M&uokkaa",
     "fileMenu": "Tie&dosto",
     "forward": "V&älitä",
@@ -370,7 +381,7 @@
   "sidebar": {
     "addNewServer": "Lisää uusi palvelin",
     "downloads": "Lataukset",
-    "settings": "Asetukset",
+    "settings": "Sovelluksen asetukset",
     "item": {
       "reload": "Lataa palvelin uudelleen",
       "remove": "Poista palvelin",

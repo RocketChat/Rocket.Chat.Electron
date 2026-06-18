@@ -100,12 +100,63 @@
     }
   },
   "settings": {
-    "title": "設定",
+    "title": "應用程式設定",
     "general": "一般",
+    "sections": {
+      "appUi": "應用程式介面",
+      "systemUi": "系統介面",
+      "systemBehavior": "系統行為",
+      "calling": "通話",
+      "other": "其他與技術",
+      "logging": "記錄"
+    },
     "options": {
+      "report": {
+        "title": "向 Rocket.Chat 回報錯誤",
+        "description": "匿名向應用程式開發者回報問題。共享資訊包括應用程式版本號、作業系統類型、工作區 URL、裝置語言及錯誤類型。不會共享任何內容或使用者名稱。",
+        "masDescription": "從 Mac App Store 安裝時，此選項將被停用。錯誤將透過 Mac App Store 的錯誤回報流程進行回報。"
+      },
+      "flashFrame": {
+        "title": "閃爍視窗框",
+        "titleDarwin": "彈跳 Dock 圖示",
+        "description": "收到新訊息時閃爍視窗。",
+        "onLinux": "某些 Linux 發行版不支援此功能。",
+        "descriptionDarwin": "收到新訊息時 Dock 圖示會彈跳。"
+      },
+      "hardwareAcceleration": {
+        "title": "硬體加速",
+        "description": "改善視覺渲染和效能。若遇到視覺異常或不穩定的情況，請停用此選項。變更後將重新載入應用程式。"
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "視訊通話螢幕擷取備援",
+        "description": "停用 Windows 圖形擷取，讓螢幕共享在遠端桌面工作階段中正常運作。變更此選項時應用程式將重新啟動。",
+        "forcedDescription": "目前已強制啟用，因為應用程式偵測到遠端桌面工作階段。切換開關現在控制在本機執行時未來啟動的行為。"
+      },
+      "internalVideoChatWindow": {
+        "title": "在應用程式內進行視訊通話",
+        "description": "在應用程式視窗內開啟視訊通話，而非在瀏覽器中開啟。<strong>Google Meet</strong> 和 <strong>Jitsi</strong> 通話只能在瀏覽器中開啟。",
+        "masDescription": "從 Mac App Store 安裝時，此選項將被停用。基於安全考量，視訊通話預設一律在瀏覽器中開啟。"
+      },
+      "minimizeOnClose": {
+        "title": "關閉時最小化",
+        "description": "關閉時最小化應用程式而非結束。",
+        "disabledHint": "必須停用系統匣圖示。"
+      },
+      "menubar": {
+        "title": "選單列",
+        "description": "在視窗頂部顯示選單列。",
+        "disabledHint": "停用工作區列時無法停用選單列。應用程式設定將無法存取。"
+      },
+      "sidebar": {
+        "title": "工作區列",
+        "description": "顯示工作區清單，以及下載和設定按鈕。",
+        "disabledHint": "停用選單列時無法停用工作區列。應用程式設定將無法存取。"
+      },
       "trayIcon": {
         "title": "系統匣圖示",
-        "description": "顯示系統匣圖示。啟用系統匣圖示時，關閉視窗會將應用程式最小化到系統匣。否則，應用程式將會關閉。"
+        "titleDarwin": "選單列附加項目",
+        "description": "在系統匣顯示圖示。啟用時，關閉視窗會將應用程式隱藏至系統匣而非結束。",
+        "descriptionDarwin": "在選單列顯示應用程式圖示。"
       },
       "availableBrowsers": {
         "title": "預設瀏覽器",
@@ -114,16 +165,58 @@
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
       },
+      "telephonyServer": {
+        "title": "電話工作區",
+        "description": "選擇哪個工作區處理來電（tel: 和 callto: 連結）。",
+        "auto": "自動（每次詢問）"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "清除螢幕擷取權限",
+        "description": "即使之前在通話中選擇了「不再詢問」，也清除相關權限。"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "允許在視訊通話中擷取螢幕",
+        "description": "允許在視訊通話中擷取螢幕。每次視訊通話都會要求權限。"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM 憑證",
+        "description": "允許在連線至工作區時使用 NTLM 憑證。",
+        "domains": "將使用憑證的網域。以逗號分隔。使用 * 符合所有工作區。"
+      },
+      "videoCallWindowPersistence": {
+        "title": "保留視訊通話視窗位置",
+        "description": "記住工作階段間視訊通話視窗的位置和大小。"
+      },
       "transparentWindow": {
         "title": "透明視窗效果",
-        "description": "啟用視窗的原生模糊/透明效果。需要重新啟動才能套用。"
+        "description": "啟用應用程式視窗的原生活力效果。需要重新啟動應用程式。"
       },
       "themeAppearance": {
         "title": "主題",
-        "description": "選擇應用程式的顏色主題。",
+        "description": "應用程式顏色主題。",
         "auto": "跟隨系統",
         "light": "淺色",
         "dark": "深色"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook 行事曆同步間隔",
+        "description": "行事曆活動更新檢查的頻率（分鐘，1–60）。"
+      },
+      "verboseOutlookLogging": {
+        "title": "詳細 Outlook 行事曆記錄",
+        "description": "啟用詳細的 Exchange/NTLM 除錯記錄，用於排除 Outlook 行事曆整合問題。"
+      },
+      "detailedEventsLogging": {
+        "title": "詳細事件記錄",
+        "description": "記錄行事曆同步期間 Outlook 與 Rocket.Chat 之間交換的完整事件資料。有助於診斷同步問題。"
+      },
+      "debugLogging": {
+        "title": "詳細記錄",
+        "description": "將所有主控台輸出寫入記錄檔。停用時，僅儲存錯誤和重要訊息，讓記錄更精簡且集中。"
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "加密房間中的 PDF 預覽大小限制（MB）",
+        "description": "加密檔案會載入記憶體以進行預覽。超過此限制的檔案將直接下載。"
       }
     }
   },
@@ -143,6 +236,7 @@
   "menus": {
     "about": "關於 {{- appName}}",
     "addNewServer": "新增伺服器",
+    "settings": "應用程式設定",
     "back": "上一步 (&B)",
     "clearTrustedCertificates": "清除已信任的憑證",
     "close": "關閉",
@@ -184,6 +278,7 @@
   },
   "sidebar": {
     "addNewServer": "新增伺服器",
+    "settings": "應用程式設定",
     "item": {
       "reload": "重新載入伺服器",
       "remove": "移除伺服器",

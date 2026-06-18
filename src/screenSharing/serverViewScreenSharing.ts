@@ -111,6 +111,43 @@ export const setupServerViewDisplayMedia = (
   }
 };
 
+/**
+ * Routes a display-media request to the server-view screen picker (root window).
+ * Used by the video call window's unified handler when it shares the server's
+ * session and must dispatch a main-app request back to the server-view picker.
+ */
+export const handleServerViewDisplayMediaRequest = (
+  callback: DisplayMediaCallback
+): void => {
+  const dispatch = (): void => {
+    if (!provider) {
+      callback({ video: false } as any);
+      return;
+    }
+    try {
+      provider.handleDisplayMediaRequest(callback);
+    } catch (error) {
+      console.error('Server view screen sharing: error in handler:', error);
+      callback({ video: false } as any);
+    }
+  };
+
+  if (providerReady) {
+    dispatch();
+    return;
+  }
+
+  initializeProvider()
+    .then(dispatch)
+    .catch((error) => {
+      console.error(
+        'Server view screen sharing: error initializing provider:',
+        error
+      );
+      callback({ video: false } as any);
+    });
+};
+
 export const startServerViewScreenSharingHandler = (): void => {
   handle('screen-picker/screen-recording-is-permission-granted', async () =>
     checkScreenRecordingPermission()

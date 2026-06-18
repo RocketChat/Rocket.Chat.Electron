@@ -23,12 +23,24 @@ import type {
   ScreenPickerProvider,
 } from '../screenSharing/screenPicker/types';
 import { checkScreenRecordingPermission } from '../screenSharing/screenRecordingPermission';
+import {
+  handleServerViewDisplayMediaRequest,
+  setupServerViewDisplayMedia,
+} from '../screenSharing/serverViewScreenSharing';
 import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
+import {
+  getServerUrlByWebContentsId,
+  getWebContentsByServerUrl,
+} from '../ui/main/serverView';
 import { openExternal } from '../utils/browserLauncher';
+
+// Alias to reach the WebContents static methods (e.g. fromFrame) from inside
+// functions that shadow `webContents` with a parameter of the same name.
+const electronWebContents = webContents;
 
 const DESTRUCTION_CHECK_INTERVAL = 50;
 const DEVTOOLS_TIMEOUT = 2000;
@@ -37,6 +49,10 @@ const WEBVIEW_CHECK_INTERVAL = 100;
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
 let pendingVideoCallUrl: string | null = null;
+// The originating server's partition (`persist:<serverUrl>`) so the call shares
+// the main webview's cookies + localStorage. Resolved per call in the
+// open-window handler; null when the caller couldn't be resolved to a server.
+let pendingVideoCallPartition: string | null = null;
 let videoCallCredentials: {
   userId: string;
   authToken: string;
@@ -121,7 +137,11 @@ const cleanupVideoCallWindow = () => {
           console.log(
             'Stopping webview JavaScript execution before window cleanup'
           );
-          webviewContents.session.setPermissionRequestHandler(() => false);
+          // Don't reset the permission handler when sharing the server's
+          // session — it would disable permissions on the live main webview.
+          if (pendingVideoCallPartition === null) {
+            webviewContents.session.setPermissionRequestHandler(() => false);
+          }
           webviewContents.loadURL('about:blank').catch(() => {});
         }
       } catch (error) {
@@ -200,13 +220,32 @@ const setupWebviewHandlers = (webContents: WebContents) => {
   const setupDisplayMediaHandler = (webviewWebContents: WebContents): void => {
     if (!provider) return;
     const currentProvider = provider; // Capture for closure
+    // When the call shares the server's session, this single per-session handler
+    // also serves the main server webview, so it must route by origin.
+    const isSharedSession = pendingVideoCallPartition !== null;
     try {
       // useSystemPicker is an experimental macOS 15+ option; not available on other platforms.
       // We set it to false unconditionally and use the callback handler on all platforms to
       // enable custom source selection (including PipeWire on Wayland via XDG portal).
       webviewWebContents.session.setDisplayMediaRequestHandler(
-        (_request, cb) => {
+        (request, cb) => {
           try {
+            // On a shared session, route by originating frame: in-call requests
+            // use the call window's picker; anything else (the main server
+            // webview) falls back to the server-view picker in the root window.
+            if (isSharedSession) {
+              const originWebContents = request.frame
+                ? electronWebContents.fromFrame(request.frame)
+                : null;
+              const fromCallWindow =
+                !!originWebContents &&
+                originWebContents.hostWebContents?.id ===
+                  videoCallWindow?.webContents.id;
+              if (!fromCallWindow) {
+                handleServerViewDisplayMediaRequest(cb);
+                return;
+              }
+            }
             currentProvider.handleDisplayMediaRequest(cb);
           } catch (error) {
             console.error('Error in screen picker handler:', error);
@@ -328,6 +367,21 @@ export const startVideoCallWindowHandler = (): void => {
         // _wc.getURL() may not be a valid URL in edge cases
         videoCallCredentials = null;
       }
+    }
+
+    // Always load the call webview in the originating server's partition so it
+    // shares the main webview's session (cookies + localStorage).
+    const serverUrl = getServerUrlByWebContentsId(_wc.id);
+    pendingVideoCallPartition = serverUrl ? `persist:${serverUrl}` : null;
+    if (pendingVideoCallPartition) {
+      console.log(
+        'Video call window: sharing server session via partition',
+        pendingVideoCallPartition
+      );
+    } else {
+      console.warn(
+        'Video call window: could not resolve originating server; opening without a shared partition'
+      );
     }
 
     if (isVideoCallWindowDestroying) {
@@ -473,6 +527,10 @@ export const startVideoCallWindowHandler = (): void => {
         skipTaskbar: false,
       });
 
+      // Capture per-window so a later call opening (which resets the module
+      // state) can't change which server's handlers this window restores.
+      const windowPartition = pendingVideoCallPartition;
+
       videoCallWindow.webContents.on(
         'will-navigate',
         (event: Event, url: string) => {
@@ -517,6 +575,19 @@ export const startVideoCallWindowHandler = (): void => {
 
         // Clean up screen sharing listener
         videoCallScreenSharingTracker.cleanup();
+
+        // This call's unified handler took over the shared session's
+        // display-media handler. Restore the plain server-view handler so
+        // main-app screen sharing keeps working. The server URL is the
+        // partition with the `persist:` prefix stripped.
+        if (windowPartition) {
+          const serverWebContents = getWebContentsByServerUrl(
+            windowPartition.replace(/^persist:/, '')
+          );
+          if (serverWebContents && !serverWebContents.isDestroyed()) {
+            setupServerViewDisplayMedia(serverWebContents);
+          }
+        }
 
         // Clear credentials and provider on close
         videoCallCredentials = null;
@@ -665,6 +736,9 @@ export const startVideoCallWindowHandler = (): void => {
           query: {
             url,
             autoOpenDevtools: String(state.isAutoOpenEnabled),
+            ...(pendingVideoCallPartition && {
+              partition: pendingVideoCallPartition,
+            }),
           },
         })
         .catch((error) => {
@@ -992,6 +1066,7 @@ handle('video-call-window/request-url', async () => {
     success: true,
     url: pendingVideoCallUrl,
     autoOpenDevtools: state.isAutoOpenEnabled,
+    partition: pendingVideoCallPartition ?? undefined,
   };
 });
 

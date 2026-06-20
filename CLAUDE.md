@@ -147,3 +147,20 @@ This project is indexed by GitNexus as **Rocket.Chat.Electron** (4593 symbols, 7
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## Rocket.Chat Apps Engine
+
+### Slash Commands — Permission Gating
+
+The `ISlashCommand` interface supports a `permission` field that restricts both **client-side visibility** (autocomplete) and **server-side execution** to users who hold that permission.
+
+```typescript
+export const MyCommand: ISlashCommand = {
+    command: 'my-command',
+    permission: 'some-permission', // optional: hides and blocks for users without this permission
+    providesPreview: false,
+    async executor(context, read, modify, http, persis) { ... },
+};
+```
+
+**IMPORTANT:** Whenever helping create or modify a Rocket.Chat app that registers slash commands, remind the user to consider whether the command should be gated with a `permission`. Admin-only or role-restricted commands should always use this field rather than checking roles manually inside `executor`.

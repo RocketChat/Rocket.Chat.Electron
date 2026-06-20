@@ -69,7 +69,13 @@ export const setupServerViewDisplayMedia = (
     const currentProvider = provider;
     try {
       guestWebContents.session.setDisplayMediaRequestHandler(
-        (_request, cb) => {
+        (request, cb) => {
+          // Ignore the automatic, gesture-less getDisplayMedia() probe the web app fires on
+          // load; only open the picker for a genuine user-initiated share (regression #3308).
+          if (!request.userGesture) {
+            cb({ video: false } as any);
+            return;
+          }
           try {
             currentProvider.handleDisplayMediaRequest(cb);
           } catch (error) {

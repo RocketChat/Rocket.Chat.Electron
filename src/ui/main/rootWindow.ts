@@ -137,6 +137,9 @@ export const createRootWindow = (): void => {
 export const normalizeNumber = (value: number | undefined): number =>
   value && isFinite(1 / value) ? value : 0;
 
+// A window counts as on-screen if it overlaps any display, rather than being fully contained
+// by one. This preserves the saved bounds for windows parked at a screen edge or spanning two
+// monitors, which were previously discarded and re-centered on the primary display (#2714).
 export const isInsideSomeScreen = ({
   x,
   y,
@@ -147,10 +150,10 @@ export const isInsideSomeScreen = ({
     .getAllDisplays()
     .some(
       ({ bounds }) =>
-        x >= bounds.x &&
-        y >= bounds.y &&
-        x + width <= bounds.x + bounds.width &&
-        y + height <= bounds.y + bounds.height
+        x < bounds.x + bounds.width &&
+        x + width > bounds.x &&
+        y < bounds.y + bounds.height &&
+        y + height > bounds.y
     );
 
 export const applyRootWindowState = (browserWindow: BrowserWindow): void => {

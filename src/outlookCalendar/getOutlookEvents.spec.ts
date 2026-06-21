@@ -339,4 +339,57 @@ describe('Exchange URL Sanitization', () => {
       });
     });
   });
+
+  describe('IP addresses', () => {
+    it('handles IPv4 addresses', () => {
+      const result = sanitizeExchangeUrl('https://192.168.1.100/ews');
+      expect(result).toBe('https://192.168.1.100/ews/exchange.asmx');
+    });
+
+    it('handles IPv6 addresses', () => {
+      const result = sanitizeExchangeUrl('https://[::1]/ews');
+      expect(result).toBe('https://[::1]/ews/exchange.asmx');
+    });
+  });
+
+  describe('Whitespace handling', () => {
+    it('trims whitespace from URLs', () => {
+      const result = sanitizeExchangeUrl('  https://mail.example.com  ');
+      expect(result).toBe('https://mail.example.com/ews/exchange.asmx');
+    });
+
+    it('throws error for whitespace-only input', () => {
+      expect(() => sanitizeExchangeUrl('   ')).toThrow(
+        'Invalid server URL: must be a non-empty string'
+      );
+    });
+  });
+
+  describe('Multiple query parameters', () => {
+    it('preserves multiple query parameters', () => {
+      const result = sanitizeExchangeUrl(
+        'https://mail.example.com/ews?param1=value1&param2=value2'
+      );
+      expect(result).toBe(
+        'https://mail.example.com/ews/exchange.asmx?param1=value1&param2=value2'
+      );
+    });
+  });
+
+  describe('Path normalization', () => {
+    it('normalizes path traversal sequences', () => {
+      const result = sanitizeExchangeUrl(
+        'https://mail.example.com/path/../ews'
+      );
+      expect(result).toBe('https://mail.example.com/ews/exchange.asmx');
+    });
+
+    it('handles /ews/exchange.asmx in middle of path', () => {
+      const result = sanitizeExchangeUrl(
+        'https://mail.example.com/ews/exchange.asmx/extra'
+      );
+      expect(result).toBe('https://mail.example.com/extra/ews/exchange.asmx');
+    });
+  });
+
 });

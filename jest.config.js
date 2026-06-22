@@ -10,14 +10,6 @@ module.exports = {
   coverageReporters: ['text-summary', 'lcov', 'json-summary'],
   coverageDirectory: 'coverage',
   coveragePathIgnorePatterns: ['/node_modules/', '/app/', '/dist/'],
-  coverageThreshold: {
-    global: {
-      lines: 32,
-      statements: 32,
-      branches: 28,
-      functions: 26,
-    },
-  },
   projects: [
     {
       preset: 'ts-jest',

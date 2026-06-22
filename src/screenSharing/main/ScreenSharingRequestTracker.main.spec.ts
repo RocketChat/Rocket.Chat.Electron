@@ -41,11 +41,20 @@ const getRegisteredListener = (): ResponseListener => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Every createRequest() schedules a real setTimeout (default 60s). Tests that
+  // neither fire the response listener nor call cleanup would leak a live,
+  // ref'd timer that keeps the process alive and blocks jest --forceExit. Fake
+  // timers make those handles fake; clearAllTimers in afterEach disposes them.
+  // setImmediate is left real so flushPromises() (used by the async response
+  // listener tests) still resolves without manual timer advancement.
+  jest.useFakeTimers({ doNotFake: ['setImmediate'] });
   jest.spyOn(console, 'warn').mockImplementation(() => undefined);
   jest.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
   jest.restoreAllMocks();
 });
 

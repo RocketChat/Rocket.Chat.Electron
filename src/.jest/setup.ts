@@ -1,5 +1,6 @@
 import path from 'path';
 
+import '@testing-library/jest-dom';
 import { app } from 'electron';
 
 expect.extend({

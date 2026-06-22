@@ -127,7 +127,10 @@ const loadModule = (): typeof LoggingModule => {
 describe('logging/index', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useRealTimers();
+    // Fake timers so the error-buffer flush setInterval scheduled by
+    // configureLogging() is a fake (non-ref'd) handle rather than a real timer
+    // that would keep the process alive and block jest --forceExit.
+    jest.useFakeTimers();
     fakeLog = makeFakeLog(true);
     selectImpl = jest.fn(() => false);
     watchImpl = jest.fn();
@@ -141,6 +144,15 @@ describe('logging/index', () => {
 
   afterEach(() => {
     setProcessType(originalProcessType);
+    // configureLogging() schedules a real, ref'd setInterval (the error-buffer
+    // flush timer) on every module load. It is only cleared on 'before-quit',
+    // which most tests never fire — left alone, each load leaks a live timer
+    // that keeps the libuv loop alive and blocks jest --forceExit. Switching to
+    // fake timers in beforeEach makes that interval a fake handle, and
+    // clearAllTimers here disposes it.
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   describe('configureLogging at import (main / browser process)', () => {

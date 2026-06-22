@@ -1,0 +1,14 @@
+codecov:
+  max_report_age: off
+coverage:
+  status:
+    patch: off
+    project:
+      default:
+        target: auto
+        threshold: 1%
+flags:
+  unit:
+    carryforward: true
+comment:
+  layout: 'reach, diff, flags'

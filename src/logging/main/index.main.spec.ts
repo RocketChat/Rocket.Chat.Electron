@@ -7,7 +7,17 @@
  * `jest.isolateModules`.
  */
 
+import path from 'path';
+
 import type * as LoggingModule from '../index';
+
+// The source builds log paths with path.join(app.getPath('logs'), ...), so on
+// Windows the separator is '\\'. Mirror that here so assertions are
+// platform-correct: on POSIX these resolve to '/logs/...', on Windows to
+// '\\logs\\...'.
+const LOGS_DIR = '/logs';
+const MAIN_LOG_PATH = path.join(LOGS_DIR, 'main.log');
+const ERRORS_JSONL_PATH = path.join(LOGS_DIR, 'errors.jsonl');
 
 type Hook = (message: any, transport?: any, transportName?: string) => any;
 
@@ -51,7 +61,7 @@ const makeFakeLog = (withTransports: boolean): FakeLog => ({
 let fakeLog: FakeLog;
 const appOn = jest.fn<void, [string, (...args: any[]) => void]>();
 const ipcMainOn = jest.fn<void, [string, (...args: any[]) => void]>();
-const getPath = jest.fn<string, [string]>(() => '/logs');
+const getPath = jest.fn<string, [string]>(() => LOGS_DIR);
 const getVersion = jest.fn<string, []>(() => '9.9.9');
 let selectImpl: jest.Mock;
 let watchImpl: jest.Mock;
@@ -134,7 +144,7 @@ describe('logging/index', () => {
     fakeLog = makeFakeLog(true);
     selectImpl = jest.fn(() => false);
     watchImpl = jest.fn();
-    getPath.mockReturnValue('/logs');
+    getPath.mockReturnValue(LOGS_DIR);
     getVersion.mockReturnValue('9.9.9');
     fsMock.existsSync.mockReturnValue(false);
     fsMock.statSync.mockReturnValue({ size: 0 } as any);
@@ -203,11 +213,8 @@ describe('logging/index', () => {
       setProcessType('browser');
       fsMock.existsSync.mockReturnValue(true);
       loadModule();
-      expect(fsMock.chmodSync).toHaveBeenCalledWith('/logs/main.log', 0o600);
-      expect(fsMock.chmodSync).toHaveBeenCalledWith(
-        '/logs/errors.jsonl',
-        0o600
-      );
+      expect(fsMock.chmodSync).toHaveBeenCalledWith(MAIN_LOG_PATH, 0o600);
+      expect(fsMock.chmodSync).toHaveBeenCalledWith(ERRORS_JSONL_PATH, 0o600);
     });
 
     it('does not register before-quit when not in browser process', () => {
@@ -334,7 +341,7 @@ describe('logging/index', () => {
     it('truncates the error log file when it exceeds the size limit', () => {
       setProcessType('browser');
       fsMock.existsSync.mockImplementation(
-        (p: string) => p === '/logs/errors.jsonl'
+        (p: string) => p === ERRORS_JSONL_PATH
       );
       fsMock.statSync.mockReturnValue({ size: 6 * 1024 * 1024 } as any);
       fsMock.readFileSync.mockReturnValue('a\nb\nc\nd\n' as any);
@@ -345,7 +352,7 @@ describe('logging/index', () => {
       }
       // The writeFileSync (truncation) must have been invoked for errors.jsonl.
       expect(fsMock.writeFileSync).toHaveBeenCalledWith(
-        '/logs/errors.jsonl',
+        ERRORS_JSONL_PATH,
         expect.any(String)
       );
     });

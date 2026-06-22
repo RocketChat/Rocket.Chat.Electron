@@ -12,10 +12,10 @@ module.exports = {
   coveragePathIgnorePatterns: ['/node_modules/', '/app/', '/dist/'],
   coverageThreshold: {
     global: {
-      lines: 21,
-      statements: 21,
-      branches: 19,
-      functions: 15,
+      lines: 25,
+      statements: 25,
+      branches: 22,
+      functions: 18,
     },
   },
   projects: [

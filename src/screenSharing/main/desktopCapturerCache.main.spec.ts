@@ -58,6 +58,10 @@ describe('screenSharing/desktopCapturerCache', () => {
   });
 
   afterEach(() => {
+    // The module schedules no timers of its own, but two tests opt into fake
+    // timers; clear any pending fake handle before restoring real timers so
+    // nothing survives into the next test or blocks jest --forceExit.
+    jest.clearAllTimers();
     jest.useRealTimers();
     clearDesktopCapturerCache();
   });

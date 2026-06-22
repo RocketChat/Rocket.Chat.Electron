@@ -1,4 +1,9 @@
-import { Accordion, Box, FieldGroup } from '@rocket.chat/fuselage';
+import {
+  Accordion,
+  AccordionItem,
+  Box,
+  FieldGroup,
+} from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
@@ -16,7 +21,7 @@ export const VoiceVideoTab = () => {
     <Box display='flex' justifyContent='center'>
       <Box maxWidth={600} width='100%'>
         <Accordion>
-          <Accordion.Item
+          <AccordionItem
             title={t('settings.sections.telephony')}
             defaultExpanded
           >
@@ -25,8 +30,8 @@ export const VoiceVideoTab = () => {
               <TelephonyGlobalShortcut />
               <TelephonyServer />
             </FieldGroup>
-          </Accordion.Item>
-          <Accordion.Item
+          </AccordionItem>
+          <AccordionItem
             title={t('settings.sections.videoCalls')}
             defaultExpanded
           >
@@ -36,7 +41,7 @@ export const VoiceVideoTab = () => {
               {process.platform === 'win32' && <ScreenCaptureFallback />}
               {!process.mas && <ClearPermittedScreenCaptureServers />}
             </FieldGroup>
-          </Accordion.Item>
+          </AccordionItem>
         </Accordion>
       </Box>
     </Box>

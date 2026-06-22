@@ -1,11 +1,5 @@
-import {
-  Box,
-  Field,
-  FieldLabel,
-  FieldHint,
-  Select,
-} from '@rocket.chat/fuselage';
-import { useEffect, useCallback, useMemo, useState } from 'react';
+import { Select } from '@rocket.chat/fuselage';
+import { useEffect, useCallback, useId, useMemo, useState } from 'react';
 import type { Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,6 +8,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SELECTED_BROWSER_CHANGED } from '../../../actions';
+import { SettingField } from './SettingField';
 
 type AvailableBrowsersProps = {
   className?: string;
@@ -39,6 +34,7 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(availableBrowsers.length === 0);
+  const browserSelectId = useId();
 
   useEffect(() => {
     if (availableBrowsers.length > 0) {
@@ -69,32 +65,20 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
   );
 
   return (
-    <Field className={props.className} marginBlock='x16'>
-      <Box
-        display='flex'
-        flexDirection='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
-      >
-        <Box display='flex' flexDirection='column'>
-          <FieldLabel>
-            {t('settings.options.availableBrowsers.title')}
-          </FieldLabel>
-          <FieldHint>
-            {t('settings.options.availableBrowsers.description')}
-          </FieldHint>
-        </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
-          <Select
-            options={options}
-            value={selectedBrowser ?? 'system'}
-            onChange={handleChangeBrowser}
-            placeholder={t('settings.options.availableBrowsers.loading')}
-            disabled={isLoading || availableBrowsers.length === 0}
-            width={220}
-          />
-        </Box>
-      </Box>
-    </Field>
+    <SettingField
+      htmlFor={browserSelectId}
+      className={props.className}
+      label={t('settings.options.availableBrowsers.title')}
+      hint={t('settings.options.availableBrowsers.description')}
+    >
+      <Select
+        id={browserSelectId}
+        options={options}
+        value={selectedBrowser ?? 'system'}
+        onChange={handleChangeBrowser}
+        placeholder={t('settings.options.availableBrowsers.loading')}
+        disabled={isLoading || availableBrowsers.length === 0}
+      />
+    </SettingField>
   );
 };

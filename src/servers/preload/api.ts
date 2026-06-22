@@ -18,7 +18,11 @@ import { onTelephonyCallRequested } from '../../telephony/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
-import { openDocumentViewer } from './documentViewer';
+import {
+  openDocumentViewer,
+  supportedDocumentViewerFormats,
+} from './documentViewer';
+import { getE2ePdfPreviewSizeLimit } from './e2ePdfPreviewSizeLimit';
 import { setFavicon } from './favicon';
 import { setGitCommitHash } from './gitCommitHash';
 import {
@@ -50,9 +54,11 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   ) => Promise<unknown>;
   closeCustomNotification: (id: unknown) => void;
   openInBrowser: (url: string) => void;
+  getE2ePdfPreviewSizeLimit: () => number;
   onTelephonyCallRequested: (
     callback: (payload: { phoneNumber: string; rawUri: string }) => void
   ) => void;
+  supportedDocumentViewerFormats: () => string[];
 };
 
 declare global {
@@ -97,7 +103,9 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserToken,
   setSidebarCustomTheme,
   openDocumentViewer,
+  supportedDocumentViewerFormats,
   openInBrowser,
   reloadServer,
+  getE2ePdfPreviewSizeLimit,
   onTelephonyCallRequested,
 };

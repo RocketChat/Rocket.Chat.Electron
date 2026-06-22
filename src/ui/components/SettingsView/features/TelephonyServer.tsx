@@ -1,12 +1,5 @@
-import { css } from '@rocket.chat/css-in-js';
-import {
-  Box,
-  Field,
-  FieldLabel,
-  FieldHint,
-  Select,
-} from '@rocket.chat/fuselage';
-import { useCallback, useMemo } from 'react';
+import { Select } from '@rocket.chat/fuselage';
+import { useCallback, useId, useMemo } from 'react';
 import type { Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +8,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { TELEPHONY_PREFERRED_SERVER_SET } from '../../../../telephony/actions';
+import { SettingField } from './SettingField';
 
 const safeHostname = (url: string): string => {
   try {
@@ -24,22 +18,11 @@ const safeHostname = (url: string): string => {
   }
 };
 
-const selectWrapperStyle = css`
-  max-width: 100%;
+type TelephonyServerProps = {
+  className?: string;
+};
 
-  .rcx-select {
-    white-space: nowrap;
-  }
-
-  .rcx-select > span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-`;
-
-export const TelephonyServer = () => {
+export const TelephonyServer = (props: TelephonyServerProps) => {
   const servers = useSelector(({ servers }: RootState) => servers);
   const telephonyPreferredServer = useSelector(
     ({ telephonyPreferredServer }: RootState) => telephonyPreferredServer
@@ -49,6 +32,7 @@ export const TelephonyServer = () => {
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
+  const telephonyServerSelectId = useId();
 
   const handleChange = useCallback(
     (value: Key) => {
@@ -77,34 +61,19 @@ export const TelephonyServer = () => {
   }
 
   return (
-    <Field marginBlock='x16'>
-      <Box
-        display='flex'
-        flexDirection='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
-      >
-        <Box display='flex' flexDirection='column'>
-          <FieldLabel>{t('settings.options.telephonyServer.title')}</FieldLabel>
-          <FieldHint>
-            {t('settings.options.telephonyServer.description')}
-          </FieldHint>
-        </Box>
-        <Box
-          display='flex'
-          alignItems='center'
-          className={selectWrapperStyle}
-          style={{ paddingTop: '4px' }}
-        >
-          <Select
-            disabled={!isTelephonyEnabled}
-            options={options}
-            value={telephonyPreferredServer ?? 'auto'}
-            onChange={handleChange}
-            width={220}
-          />
-        </Box>
-      </Box>
-    </Field>
+    <SettingField
+      className={props.className}
+      htmlFor={telephonyServerSelectId}
+      label={t('settings.options.telephonyServer.title')}
+      hint={t('settings.options.telephonyServer.description')}
+    >
+      <Select
+        id={telephonyServerSelectId}
+        disabled={!isTelephonyEnabled}
+        options={options}
+        value={telephonyPreferredServer ?? 'auto'}
+        onChange={handleChange}
+      />
+    </SettingField>
   );
 };

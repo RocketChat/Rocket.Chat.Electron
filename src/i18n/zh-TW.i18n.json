@@ -94,6 +94,16 @@
     },
     "back": "返回"
   },
+  "downloads": {
+    "empty": {
+      "title": "尚無下載項目",
+      "subtitle": "您下載的檔案將會顯示在這裡。"
+    },
+    "noResults": {
+      "title": "無符合的下載項目",
+      "subtitle": "請嘗試調整篩選條件或搜尋關鍵字。"
+    }
+  },
   "settings": {
     "title": "設定",
     "general": "一般",

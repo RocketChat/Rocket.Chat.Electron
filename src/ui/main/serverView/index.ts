@@ -9,7 +9,6 @@ import type {
   MediaAccessPermissionRequest,
   MenuItemConstructorOptions,
   OpenExternalPermissionRequest,
-  Session,
   UploadFile,
   UploadRawData,
   WebContents,
@@ -48,6 +47,7 @@ import {
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
+import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);
@@ -121,6 +121,53 @@ export const getServerUrlByWebContentsId = (
   )?.[0];
 };
 
+export const setupServerViewPermissionHandler = (
+  guestWebContents: WebContents,
+  rootWindow: BrowserWindow
+): void => {
+  guestWebContents.session.setPermissionRequestHandler(
+    async (_webContents, permission, callback, details) => {
+      console.log('Permission request', permission, details);
+      switch (permission) {
+        case 'media': {
+          const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
+          await handleMediaPermissionRequest(
+            mediaTypes as ReadonlyArray<'audio' | 'video'>,
+            rootWindow,
+            'recordMessage',
+            callback
+          );
+          return;
+        }
+
+        case 'geolocation':
+        case 'notifications':
+        case 'midiSysex':
+        case 'pointerLock':
+        case 'fullscreen':
+          callback(true);
+          return;
+
+        case 'openExternal': {
+          if (!(details as OpenExternalPermissionRequest).externalURL) {
+            callback(false);
+            return;
+          }
+
+          const allowed = await isProtocolAllowed(
+            (details as OpenExternalPermissionRequest).externalURL as string
+          );
+          callback(allowed);
+          return;
+        }
+
+        default:
+          callback(false);
+      }
+    }
+  );
+};
+
 const initializeServerWebContentsAfterReady = (
   _serverUrl: string,
   guestWebContents: WebContents,
@@ -174,18 +221,17 @@ const initializeServerWebContentsAfterAttach = (
 
   // Intercept markdown file downloads and open in document viewer
   webviewSession.on('will-download', (_event, item) => {
-    if (item.getFilename().endsWith('.md')) {
-      const downloadUrl = item.getURL();
-      item.cancel();
-      dispatch({
-        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-        payload: {
-          server: serverUrl,
-          documentUrl: downloadUrl,
-          documentFormat: 'markdown',
-        },
-      });
-    }
+    const downloadUrl = item.getURL();
+    if (!isMarkdownViewerDownloadUrl(downloadUrl, item.getFilename())) return;
+    item.cancel();
+    dispatch({
+      type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
+      payload: {
+        server: serverUrl,
+        documentUrl: downloadUrl,
+        documentFormat: 'markdown',
+      },
+    });
   });
 
   guestWebContents.addListener('destroyed', () => {
@@ -402,48 +448,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     );
   };
 
-  const handlePermissionRequest: Parameters<
-    Session['setPermissionRequestHandler']
-  >[0] = async (_webContents, permission, callback, details) => {
-    console.log('Permission request', permission, details);
-    switch (permission) {
-      case 'media': {
-        const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-        await handleMediaPermissionRequest(
-          mediaTypes as ReadonlyArray<'audio' | 'video'>,
-          rootWindow,
-          'recordMessage',
-          callback
-        );
-        return;
-      }
-
-      case 'geolocation':
-      case 'notifications':
-      case 'midiSysex':
-      case 'pointerLock':
-      case 'fullscreen':
-        callback(true);
-        return;
-
-      case 'openExternal': {
-        if (!(details as OpenExternalPermissionRequest).externalURL) {
-          callback(false);
-          return;
-        }
-
-        const allowed = await isProtocolAllowed(
-          (details as OpenExternalPermissionRequest).externalURL as string
-        );
-        callback(allowed);
-        return;
-      }
-
-      default:
-        callback(false);
-    }
-  };
-
   listen(WEBVIEW_READY, (action) => {
     const guestWebContents = webContents.fromId(
       action.payload.webContentsId
@@ -454,9 +458,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       rootWindow
     );
 
-    guestWebContents.session.setPermissionRequestHandler(
-      handlePermissionRequest
-    );
+    setupServerViewPermissionHandler(guestWebContents, rootWindow);
 
     setupServerViewDisplayMedia(guestWebContents);
 

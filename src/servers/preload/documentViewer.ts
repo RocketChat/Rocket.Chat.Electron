@@ -7,3 +7,8 @@ export const openDocumentViewer = (
 ): void => {
   ipcRenderer.invoke('document-viewer/open-window', url, format, options);
 };
+
+export const supportedDocumentViewerFormats = (): string[] => [
+  'pdf',
+  'markdown',
+];

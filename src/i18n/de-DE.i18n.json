@@ -225,7 +225,15 @@
       "retry": "Wiederholen",
       "showInFolder": "Im Ordner anzeigen"
     },
-    "showingResults": "Ergebnisse anzeigen {{first}} - {{last}} von {{count}}"
+    "showingResults": "Ergebnisse anzeigen {{first}} - {{last}} von {{count}}",
+    "empty": {
+      "title": "Noch keine Downloads",
+      "subtitle": "Dateien, die Sie herunterladen, werden hier angezeigt."
+    },
+    "noResults": {
+      "title": "Keine passenden Downloads",
+      "subtitle": "Versuchen Sie, Ihre Filter oder Suche anzupassen."
+    }
   },
   "certificatesManager": {
     "title": "Zertifikatsmanager",

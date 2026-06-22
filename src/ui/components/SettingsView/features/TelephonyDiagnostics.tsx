@@ -1,5 +1,6 @@
 import {
   Accordion,
+  AccordionItem,
   Box,
   Button,
   ButtonGroup,
@@ -159,7 +160,7 @@ export const TelephonyDiagnostics = () => {
 
   return (
     <Accordion marginBlock='x16'>
-      <Accordion.Item title={accordionTitle}>
+      <AccordionItem title={accordionTitle}>
         <Box
           display='flex'
           flexDirection='row'
@@ -274,7 +275,7 @@ export const TelephonyDiagnostics = () => {
             </Box>
           </Box>
         )}
-      </Accordion.Item>
+      </AccordionItem>
     </Accordion>
   );
 };

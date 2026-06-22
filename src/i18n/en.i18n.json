@@ -225,7 +225,15 @@
       "retry": "Retry",
       "showInFolder": "Show in Folder"
     },
-    "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
+    "showingResults": "Showing results {{first}} - {{last}} of {{count}}",
+    "empty": {
+      "title": "No downloads yet",
+      "subtitle": "Files you download will appear here."
+    },
+    "noResults": {
+      "title": "No matching downloads",
+      "subtitle": "Try adjusting your filters or search."
+    }
   },
   "certificatesManager": {
     "title": "Certificates manager",
@@ -363,6 +371,10 @@
       "debugLogging": {
         "title": "Verbose Logging",
         "description": "Writes all console output to the log file. When disabled, only errors and important messages are saved, keeping logs smaller and focused."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF preview size limit in encrypted rooms (MB)",
+        "description": "Encrypted files are loaded into memory for previews. Files larger than this limit will be downloaded directly."
       }
     }
   },

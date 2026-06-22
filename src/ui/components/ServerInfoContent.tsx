@@ -124,7 +124,7 @@ const ServerInfoContent = ({
         <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
           <Box>
             <Box fontWeight='bold'>{t('serverInfo.urlLabel')}</Box>
-            <Box fontSize='x12' color='hint' style={textWrapStyle}>
+            <Box fontSize='x12' color='font-hint' style={textWrapStyle}>
               {url}
             </Box>
           </Box>
@@ -135,7 +135,7 @@ const ServerInfoContent = ({
         <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
           <Box>
             <Box fontWeight='bold'>{t('serverInfo.versionLabel')}</Box>
-            <Box fontSize='x12' color='hint' style={textWrapStyle}>
+            <Box fontSize='x12' color='font-hint' style={textWrapStyle}>
               {version || t('serverInfo.unknown')}
             </Box>
           </Box>
@@ -147,7 +147,7 @@ const ServerInfoContent = ({
           <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
             <Box>
               <Box fontWeight='bold'>{t('serverInfo.exchangeUrlLabel')}</Box>
-              <Box fontSize='x12' color='hint' style={textWrapStyle}>
+              <Box fontSize='x12' color='font-hint' style={textWrapStyle}>
                 {exchangeUrl}
               </Box>
             </Box>
@@ -181,7 +181,7 @@ const ServerInfoContent = ({
                   color={
                     supportedVersionsFetchState === 'error'
                       ? 'status-font-on-danger'
-                      : 'hint'
+                      : 'font-hint'
                   }
                   style={textWrapStyle}
                 >
@@ -257,7 +257,7 @@ const ServerInfoContent = ({
             <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
               <Box>
                 <Box fontWeight='bold'>Timestamp:</Box>
-                <Box fontSize='x12' color='hint' style={textWrapStyle}>
+                <Box fontSize='x12' color='font-hint' style={textWrapStyle}>
                   {new Date(supportedVersions.timestamp).toLocaleString()}
                 </Box>
               </Box>
@@ -270,7 +270,7 @@ const ServerInfoContent = ({
                 <Box fontWeight='bold'>Exceptions:</Box>
                 {supportedVersions.exceptions?.versions &&
                 supportedVersions.exceptions.versions.length > 0 ? (
-                  <Box fontSize='x12' color='hint' marginBlockStart='x4'>
+                  <Box fontSize='x12' color='font-hint' marginBlockStart='x4'>
                     <Box fontWeight='bold'>Exception Versions:</Box>
                     {supportedVersions.exceptions.versions
                       .slice(0, 3)
@@ -279,7 +279,7 @@ const ServerInfoContent = ({
                           <Box style={textWrapStyle}>• {version.version}</Box>
                           <Box
                             fontSize='x10'
-                            color='annotation'
+                            color='font-annotation'
                             style={textWrapStyle}
                           >
                             Expires:{' '}
@@ -290,7 +290,7 @@ const ServerInfoContent = ({
                     {supportedVersions.exceptions.versions.length > 3 && (
                       <Box
                         fontSize='x10'
-                        color='annotation'
+                        color='font-annotation'
                         marginInlineStart='x8'
                         style={textWrapStyle}
                       >
@@ -300,7 +300,7 @@ const ServerInfoContent = ({
                     )}
                   </Box>
                 ) : (
-                  <Box fontSize='x12' color='hint' style={textWrapStyle}>
+                  <Box fontSize='x12' color='font-hint' style={textWrapStyle}>
                     No version exceptions configured
                   </Box>
                 )}
@@ -325,7 +325,7 @@ const ServerInfoContent = ({
                   {expirationData.message && (
                     <Box
                       fontSize='x10'
-                      color='annotation'
+                      color='font-annotation'
                       marginBlockStart='x4'
                     >
                       {expirationData.message.title && (
@@ -345,7 +345,11 @@ const ServerInfoContent = ({
                       )}
                     </Box>
                   )}
-                  <Box fontSize='x10' color='annotation' style={textWrapStyle}>
+                  <Box
+                    fontSize='x10'
+                    color='font-annotation'
+                    style={textWrapStyle}
+                  >
                     {(() => {
                       const expirationDate = new Date(
                         expirationData.expiration

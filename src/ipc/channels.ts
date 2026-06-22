@@ -46,6 +46,7 @@ type ChannelToArgsMap = {
     success: boolean;
     url: string | null;
     autoOpenDevtools: boolean;
+    partition?: string;
   };
   'video-call-window/url-received': () => { success: boolean };
   'video-call-window/webview-created': () => { success: boolean };

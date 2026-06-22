@@ -148,7 +148,15 @@
       "retry": "重试",
       "showInFolder": "在文件夹中显示"
     },
-    "showingResults": "显示{{count}}个中的第{{first}} - {{last}}个"
+    "showingResults": "显示{{count}}个中的第{{first}} - {{last}}个",
+    "empty": {
+      "title": "暂无下载",
+      "subtitle": "您下载的文件将显示在这里。"
+    },
+    "noResults": {
+      "title": "没有匹配的下载",
+      "subtitle": "请尝试调整筛选条件或搜索词。"
+    }
   },
   "settings": {
     "title": "设置",

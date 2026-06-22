@@ -218,7 +218,15 @@
       "retry": "Försök igen",
       "showInFolder": "Visa i mapp"
     },
-    "showingResults": "Visar resultat {{first}} - {{last}} av {{count}}"
+    "showingResults": "Visar resultat {{first}} - {{last}} av {{count}}",
+    "empty": {
+      "title": "Inga nedladdningar ännu",
+      "subtitle": "Filer du laddar ner visas här."
+    },
+    "noResults": {
+      "title": "Inga matchande nedladdningar",
+      "subtitle": "Försök att justera dina filter eller sökning."
+    }
   },
   "certificatesManager": {
     "title": "Certifikatsansvarig",

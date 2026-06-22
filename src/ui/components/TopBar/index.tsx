@@ -25,7 +25,7 @@ export const TopBar = () => {
       flexDirection='row'
       justifyContent='center'
       alignItems='center'
-      color='default'
+      color='font-default'
       bg={sidebarBg}
       width='100%'
     >

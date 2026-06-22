@@ -197,7 +197,15 @@
       "retry": "Réessayer",
       "showInFolder": "Afficher dans le dossier"
     },
-    "showingResults": "Affichage des résultats {{first}} - {{last}} de {{count}}"
+    "showingResults": "Affichage des résultats {{first}} - {{last}} de {{count}}",
+    "empty": {
+      "title": "Aucun téléchargement pour l'instant",
+      "subtitle": "Les fichiers que vous téléchargez apparaîtront ici."
+    },
+    "noResults": {
+      "title": "Aucun téléchargement correspondant",
+      "subtitle": "Essayez d'ajuster vos filtres ou votre recherche."
+    }
   },
   "certificatesManager": {
     "title": "Gestionnaire de certificats",

@@ -130,6 +130,8 @@ export const SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED =
   'settings/set-detailed-events-logging-changed';
 export const SETTINGS_SET_DEBUG_LOGGING_CHANGED =
   'settings/set-debug-logging-changed';
+export const SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED =
+  'settings/set-e2e-pdf-preview-size-limit-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -277,6 +279,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED]: boolean;
   [SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED]: boolean;
   [SETTINGS_SET_DEBUG_LOGGING_CHANGED]: boolean;
+  [SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED]: number;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;
@@ -302,6 +305,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SERVER_VERSION_UPDATED]: {
     url: Server['url'];
     version: Server['version'];
+    gitCommitHash?: Server['gitCommitHash'];
   };
   [SUPPORTED_VERSION_DIALOG_DISMISS]: { url: Server['url'] };
   [WEBVIEW_SERVER_RELOADED]: {

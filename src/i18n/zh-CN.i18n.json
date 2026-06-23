@@ -155,6 +155,7 @@
   },
   "settings": {
     "title": "应用设置",
+    "general": "常规",
     "sections": {
       "appUi": "应用界面",
       "systemUi": "系统界面",

@@ -332,6 +332,27 @@
       "verboseOutlookLogging": {
         "title": "Részletes Outlook naptár naplózás",
         "description": "Részletes Exchange/NTLM hibakeresési naplók engedélyezése az Outlook naptár integrációs problémáinak elhárításához."
+      },
+      "telephonyServer": {
+        "title": "Telefonos munkaterület",
+        "description": "Annak kiválasztása, hogy melyik munkaterület kezelje a bejövő telefonhívásokat (tel: és callto: hivatkozások).",
+        "auto": "Automatikus (minden alkalommal megkérdezi)"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook naptár szinkronizálási időköz",
+        "description": "A naptáresemények frissítési ellenőrzésének gyakorisága percben megadva (1–60)."
+      },
+      "detailedEventsLogging": {
+        "title": "Részletes eseménynaplózás",
+        "description": "Az Outlook és a Rocket.Chat között a naptár-szinkronizálás során kicserélt teljes eseményadatok naplózása. Hasznos a szinkronizálási problémák elhárításához."
+      },
+      "debugLogging": {
+        "title": "Részletes naplózás",
+        "description": "Az összes konzolkimenet naplófájlba írása. Ha le van tiltva, csak a hibák és a fontos üzenetek kerülnek mentésre, így a naplók kisebbek és áttekinthetőbbek maradnak."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF előnézet méretkorlátja titkosított szobákban (MB)",
+        "description": "A titkosított fájlok az előnézetek megjelenítéséhez a memóriába töltődnek. Az ennél a korlátnál nagyobb fájlok közvetlenül letöltődnek."
       }
     }
   },

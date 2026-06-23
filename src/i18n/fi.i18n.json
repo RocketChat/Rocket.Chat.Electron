@@ -293,6 +293,44 @@
         "auto": "Seuraa järjestelmää",
         "light": "Vaalea",
         "dark": "Tumma"
+      },
+      "telephonyServer": {
+        "title": "Puhelintyötila",
+        "description": "Valitse työtila, joka käsittelee saapuvat puhelut (tel:- ja callto:-linkit).",
+        "auto": "Automaattinen (kysy aina)"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Salli näyttökaappaus videopuheluissa",
+        "description": "Sallii näyttökaappauksen videopuheluissa. Pyytää luvan jokaisen videopuhelun yhteydessä."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-tunnistautumistiedot",
+        "description": "Sallii NTLM-tunnistautumistietojen käytön työtilaan yhdistettäessä.",
+        "domains": "Toimialueet, joita käytetään tunnistautumistietoina. Pilkulla erotettu. Käytä * kaikkien palvelimien vastaamiseen."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Säilytä videopuheluikkunan sijainti",
+        "description": "Muistaa videopuheluikkunan sijainnin ja koon istuntojen välillä."
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook-kalenterin synkronointiväli",
+        "description": "Kalenteritapahtumien päivitystarkistusten tiheys minuuteissa (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Yksityiskohtainen Outlook-kalenterin lokikirjaus",
+        "description": "Ottaa käyttöön yksityiskohtaiset Exchange/NTLM-virheenkorjauslokit Outlook-kalenterin integraatio-ongelmien selvittämiseksi."
+      },
+      "detailedEventsLogging": {
+        "title": "Yksityiskohtainen tapahtumalokikirjaus",
+        "description": "Kirjaa kaikki tapahtumatiedot, joita vaihdetaan Outlookin ja Rocket.Chatin välillä kalenterin synkronoinnin aikana. Hyödyllinen synkronointiongelmien diagnosoinnissa."
+      },
+      "debugLogging": {
+        "title": "Yksityiskohtainen lokikirjaus",
+        "description": "Kirjoittaa kaiken konsolitulosteen lokitiedostoon. Kun ei käytössä, vain virheet ja tärkeät viestit tallennetaan, pitäen lokit pienempinä ja kohdennetumpina."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF-esikatselun kokoraja salatuissa huoneissa (Mt)",
+        "description": "Salatut tiedostot ladataan muistiin esikatselua varten. Tätä rajaa suuremmat tiedostot ladataan suoraan."
       }
     }
   },

@@ -327,6 +327,31 @@
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
+      },
+      "telephonyServer": {
+        "title": "Telefonarbetsyta",
+        "description": "Välj vilken arbetsyta som hanterar inkommande telefonsamtal (tel:- och callto:-länkar).",
+        "auto": "Automatisk (fråga varje gång)"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Synkroniseringsintervall för Outlook-kalender",
+        "description": "Hur ofta kalender­händelser kontrolleras efter uppdateringar, angivet i minuter (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Detaljerad loggning för Outlook-kalender",
+        "description": "Aktivera detaljerade Exchange/NTLM-felsökningsloggar för att felsöka problem med Outlook-kalenderintegration."
+      },
+      "detailedEventsLogging": {
+        "title": "Detaljerad händelseloggning",
+        "description": "Logga fullständig händelsedata som utbyts mellan Outlook och Rocket.Chat under kalendersynkronisering. Användbart för att diagnostisera synkroniseringsproblem."
+      },
+      "debugLogging": {
+        "title": "Utförlig loggning",
+        "description": "Skriver all konsolutdata till loggfilen. När inaktiverat sparas endast fel och viktiga meddelanden, vilket håller loggarna mindre och mer fokuserade."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Storleksgräns för PDF-förhandsgranskning i krypterade rum (MB)",
+        "description": "Krypterade filer läses in i minnet för förhandsgranskning. Filer som är större än denna gräns laddas ned direkt."
       }
     }
   },

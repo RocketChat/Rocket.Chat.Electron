@@ -295,6 +295,35 @@
         "auto": "System folgen",
         "light": "Hell",
         "dark": "Dunkel"
+      },
+      "telephonyServer": {
+        "title": "Telefonie-Workspace",
+        "description": "Wählen Sie, welcher Workspace eingehende Telefonanrufe (tel:- und callto:-Links) übernimmt.",
+        "auto": "Automatisch (jedes Mal fragen)"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Bildschirmaufnahme bei Videoanrufen erlauben",
+        "description": "Bildschirmaufnahme bei Videoanrufen erlauben. Bei jedem Videoanruf wird eine Berechtigungsanfrage angezeigt."
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook-Kalender-Synchronisierungsintervall",
+        "description": "Häufigkeit der Aktualisierungsprüfungen für Kalenderereignisse in Minuten (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Ausführliche Outlook-Kalender-Protokollierung",
+        "description": "Detaillierte Exchange/NTLM-Debug-Protokolle zur Fehlersuche bei Problemen mit der Outlook-Kalender-Integration aktivieren."
+      },
+      "detailedEventsLogging": {
+        "title": "Detaillierte Ereignisprotokollierung",
+        "description": "Vollständige Ereignisdaten protokollieren, die zwischen Outlook und Rocket.Chat während der Kalendersynchronisierung ausgetauscht werden. Hilfreich bei der Diagnose von Synchronisierungsproblemen."
+      },
+      "debugLogging": {
+        "title": "Ausführliche Protokollierung",
+        "description": "Schreibt alle Konsolenausgaben in die Protokolldatei. Wenn deaktiviert, werden nur Fehler und wichtige Meldungen gespeichert, was die Protokolle kleiner und übersichtlicher hält."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF-Vorschau-Größenlimit in verschlüsselten Räumen (MB)",
+        "description": "Verschlüsselte Dateien werden für Vorschauen in den Arbeitsspeicher geladen. Dateien, die größer als dieses Limit sind, werden direkt heruntergeladen."
       }
     }
   },

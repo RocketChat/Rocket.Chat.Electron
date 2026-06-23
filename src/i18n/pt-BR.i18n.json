@@ -313,6 +313,31 @@
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Escuro"
+      },
+      "telephonyServer": {
+        "title": "Workspace de telefonia",
+        "description": "Escolha qual workspace gerencia as chamadas telefônicas recebidas (links tel: e callto:).",
+        "auto": "Automático (perguntar sempre)"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Intervalo de sincronização do Outlook Calendar",
+        "description": "Frequência de verificação de atualizações dos eventos do calendário, em minutos (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Log detalhado do Outlook Calendar",
+        "description": "Ativa logs de depuração detalhados de Exchange/NTLM para solucionar problemas de integração com o Outlook Calendar."
+      },
+      "detailedEventsLogging": {
+        "title": "Log detalhado de eventos",
+        "description": "Registra os dados completos dos eventos trocados entre o Outlook e o Rocket.Chat durante a sincronização do calendário. Útil para diagnosticar problemas de sincronização."
+      },
+      "debugLogging": {
+        "title": "Log detalhado",
+        "description": "Grava toda a saída do console no arquivo de log. Quando desativado, apenas erros e mensagens importantes são salvos, mantendo os logs menores e objetivos."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Limite de tamanho para pré-visualização de PDF em salas criptografadas (MB)",
+        "description": "Arquivos criptografados são carregados na memória para pré-visualização. Arquivos maiores que este limite serão baixados diretamente."
       }
     }
   },

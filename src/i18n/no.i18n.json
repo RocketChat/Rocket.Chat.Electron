@@ -242,7 +242,7 @@
   },
   "settings": {
     "title": "App-innstillinger",
-    "general": "General",
+    "general": "Generelt",
     "certificates": "Sertifikater",
     "developer": "Utvikler",
     "sections": {
@@ -347,6 +347,19 @@
       "detailedEventsLogging": {
         "title": "Detaljert hendelseslogging",
         "description": "Logg fullstendige hendelsesdata utvekslet mellom Outlook og Rocket.Chat under kalendersynkronisering. Nyttig for å diagnostisere synkroniseringsproblemer."
+      },
+      "telephonyServer": {
+        "title": "Telefoni-arbeidsområde",
+        "description": "Velg hvilket arbeidsområde som håndterer innkommende telefonsamtaler (tel:- og callto:-lenker).",
+        "auto": "Automatisk (spør hver gang)"
+      },
+      "debugLogging": {
+        "title": "Detaljert logging",
+        "description": "Skriver all konsollutdata til loggfilen. Når deaktivert lagres kun feil og viktige meldinger, noe som holder loggene mindre og mer oversiktlige."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Størstegren for PDF-forhåndsvisning i krypterte rom (MB)",
+        "description": "Krypterte filer lastes inn i minnet for forhåndsvisning. Filer som er større enn denne grensen lastes ned direkte."
       }
     }
   },

@@ -122,6 +122,7 @@
   },
   "settings": {
     "title": "アプリの設定",
+    "general": "一般",
     "sections": {
       "appUi": "アプリUI",
       "systemUi": "システムUI",

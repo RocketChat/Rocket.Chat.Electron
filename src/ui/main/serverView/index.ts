@@ -127,7 +127,9 @@ export const setupServerViewPermissionHandler = (
 ): void => {
   guestWebContents.session.setPermissionRequestHandler(
     async (_webContents, permission, callback, details) => {
-      console.log('Permission request', permission, details);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Permission request', permission, details);
+      }
       switch (permission) {
         case 'media': {
           const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
@@ -149,15 +151,22 @@ export const setupServerViewPermissionHandler = (
           return;
 
         case 'openExternal': {
-          if (!(details as OpenExternalPermissionRequest).externalURL) {
+          const { externalURL } = details as OpenExternalPermissionRequest;
+          if (!externalURL) {
             callback(false);
             return;
           }
 
-          const allowed = await isProtocolAllowed(
-            (details as OpenExternalPermissionRequest).externalURL as string
-          );
-          callback(allowed);
+          try {
+            const allowed = await isProtocolAllowed(externalURL);
+            callback(allowed);
+          } catch (error) {
+            console.error(
+              'Failed to validate external protocol request:',
+              error
+            );
+            callback(false);
+          }
           return;
         }
 

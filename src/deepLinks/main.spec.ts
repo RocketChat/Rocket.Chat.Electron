@@ -190,6 +190,7 @@ describe('deepLinks/main.ts', () => {
   describe('performTelephonyCall', () => {
     const mockWebContents = {
       send: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     };
 
     const mockLink: TelephonyLink = {
@@ -500,6 +501,7 @@ describe('deepLinks/main.ts', () => {
 
     const mockWebContents = {
       send: jest.fn(),
+      isDestroyed: jest.fn(() => false),
       loadURL: jest.fn(),
     };
 
@@ -655,6 +657,7 @@ describe('deepLinks/main.ts', () => {
 
     const mockWebContents = {
       send: jest.fn(),
+      isDestroyed: jest.fn(() => false),
       loadURL: jest.fn(),
     };
 

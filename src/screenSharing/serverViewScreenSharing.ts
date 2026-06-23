@@ -55,7 +55,12 @@ const initializeProvider = (): Promise<void> => {
 
     providerReady = true;
     console.log(`Server view screen sharing: using ${provider.type} provider`);
-  })();
+  })().catch((error) => {
+    initPromise = null;
+    providerReady = false;
+    provider = null;
+    throw error;
+  });
 
   return initPromise;
 };

@@ -32,7 +32,8 @@
         "save": "حفظ",
         "clear": "مسح",
         "registered": "تم تسجيل الاختصار",
-        "reservedAccelerator": "{{accelerator}} محجوز بواسطة Rocket.Chat أو نظام التشغيل لديك."
+        "reservedByApp": "{{accelerator}} مستخدم بالفعل بواسطة Rocket.Chat. اختر تركيبة أخرى.",
+        "reservedByOS": "{{accelerator}} محجوز بواسطة نظام التشغيل لديك. اختر تركيبة أخرى."
       }
     }
   },

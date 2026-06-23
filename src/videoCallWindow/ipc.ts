@@ -134,10 +134,20 @@ const restoreServerViewHandler = async (
 
   // The shared-session teardown reset the permission handler to deny-all,
   // which also kills permission prompts on the live main webview. Restore it.
-  const rootWindow = await getRootWindow();
-  // Re-check after the await: getRootWindow yields the event loop.
-  if (serverWc && !serverWc.isDestroyed() && rootWindow) {
-    setupServerViewPermissionHandler(serverWc, rootWindow);
+  // getRootWindow() can reject during teardown/before-quit (root window not
+  // initialized or already destroyed); only the permission-handler restore is
+  // skipped on failure — the display-media restore above always runs.
+  try {
+    const rootWindow = await getRootWindow();
+    // Re-check after the await: getRootWindow yields the event loop.
+    if (serverWc && !serverWc.isDestroyed() && rootWindow) {
+      setupServerViewPermissionHandler(serverWc, rootWindow);
+    }
+  } catch (error) {
+    console.warn(
+      'Video call window: could not restore server-view permission handler',
+      error
+    );
   }
 };
 
@@ -441,14 +451,26 @@ const openVideoCallWindow = async (
     validUrl.protocol
   );
 
-  if (validUrl.hostname.match(/(\.)?g\.co$/)) {
+  // Validate the protocol up front (fail closed). This must run BEFORE the
+  // g.co external-open special-case so a disallowed protocol (e.g. ftp://)
+  // can never reach openExternal.
+  if (!allowedProtocols.includes(validUrl.protocol)) {
+    throw new Error(
+      `Invalid video call URL protocol: ${validUrl.protocol}. Only http: and https: are allowed.`
+    );
+  }
+
+  // Exact host match (or a true subdomain of g.co) — avoids overmatching
+  // hostnames like `evilg.co` that a `(\.)?g\.co$` regex would accept.
+  if (validUrl.hostname === 'g.co' || validUrl.hostname.endsWith('.g.co')) {
     console.log(
       'Video call window: Google URL detected, opening externally instead of internal window'
     );
     openExternal(validUrl.toString());
     return;
   }
-  if (allowedProtocols.includes(validUrl.protocol)) {
+
+  {
     const mainWindow = await getRootWindow();
     const winBounds = await mainWindow.getNormalBounds();
 

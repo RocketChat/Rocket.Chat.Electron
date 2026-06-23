@@ -52,7 +52,7 @@ const errors = [];
 
 const parseFlow = (filePath) => {
   const content = fs.readFileSync(filePath, 'utf8');
-  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  const frontmatterMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 
   if (!frontmatterMatch) {
     throw new Error('missing YAML frontmatter');
@@ -153,6 +153,10 @@ if (!fs.existsSync(flowsPath)) {
           if (!frontmatter.qase[field]) {
             errors.push(`${file}: frontmatter.qase.${field} is required`);
           }
+        }
+        // qase_id must be present but may be null for not-yet-imported flows.
+        if (!('qase_id' in frontmatter.qase)) {
+          errors.push(`${file}: frontmatter.qase.qase_id is required`);
         }
       }
 

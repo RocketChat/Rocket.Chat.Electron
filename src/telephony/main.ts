@@ -330,12 +330,10 @@ const buildWindowsDefaultAppsUri = (): string => {
 
 const openSystemDefaultAppsSettings = (): void => {
   if (process.platform === 'win32') {
-    try {
-      void shell.openExternal(buildWindowsDefaultAppsUri());
-    } catch (error) {
+    void shell.openExternal(buildWindowsDefaultAppsUri()).catch((error) => {
       logger.warn('Failed to open Windows default apps settings');
       logger.warn(error);
-    }
+    });
   } else if (process.platform === 'darwin') {
     // macOS: Launch Services already claimed tel: via app.setAsDefaultProtocolClient;
     // no System Settings pane exists for default tel handler.
@@ -350,10 +348,15 @@ const openSystemDefaultAppsSettings = (): void => {
         desktop.includes('UNITY') ||
         desktop.includes('CINNAMON')
       ) {
-        spawn('gnome-control-center', ['default-apps'], {
+        const child = spawn('gnome-control-center', ['default-apps'], {
           detached: true,
           stdio: 'ignore',
-        }).unref();
+        });
+        child.on('error', (error: NodeJS.ErrnoException) => {
+          logger.warn('Failed to open Linux default apps settings');
+          logger.warn(error);
+        });
+        child.unref();
       } else if (desktop.includes('KDE') || desktop.includes('PLASMA')) {
         const child = spawn('kcmshell5', ['componentchooser'], {
           detached: true,
@@ -361,10 +364,15 @@ const openSystemDefaultAppsSettings = (): void => {
         });
         child.on('error', (error: NodeJS.ErrnoException) => {
           if (error.code === 'ENOENT') {
-            spawn('kcmshell6', ['componentchooser'], {
+            const fallback = spawn('kcmshell6', ['componentchooser'], {
               detached: true,
               stdio: 'ignore',
-            }).unref();
+            });
+            fallback.on('error', (fallbackError: NodeJS.ErrnoException) => {
+              logger.warn('Failed to open Linux default apps settings');
+              logger.warn(fallbackError);
+            });
+            fallback.unref();
           }
         });
         child.unref();

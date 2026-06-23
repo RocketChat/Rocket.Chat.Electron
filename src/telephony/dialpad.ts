@@ -125,6 +125,10 @@ export const openTelephonyDialpad = async (
       return;
     }
 
+    if (webContents.isDestroyed()) {
+      return;
+    }
+
     webContents.send('telephony/call-requested', {
       phoneNumber: link.phoneNumber,
       rawUri: link.rawUri,

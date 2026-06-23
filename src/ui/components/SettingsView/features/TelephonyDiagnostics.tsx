@@ -70,6 +70,8 @@ export const TelephonyDiagnostics = () => {
     try {
       const result = await invoke('telephony/get-diagnostics');
       setDiagnostics(result);
+    } catch {
+      setDiagnostics(null);
     } finally {
       setLoading(false);
     }

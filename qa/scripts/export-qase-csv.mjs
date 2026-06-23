@@ -78,7 +78,7 @@ const extractSection = (content, heading) => {
 };
 
 const parseFlow = (filePath) => {
-  const content = fs.readFileSync(filePath, 'utf8');
+  const content = fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
   const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 
   if (!frontmatterMatch) {

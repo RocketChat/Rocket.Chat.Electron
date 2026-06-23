@@ -210,7 +210,7 @@ exports.default = async function msiProjectCreated(projectFile) {
       Return="check">
       <![CDATA[
         On Error Resume Next
-        Dim shell, installDir, exePath
+        Dim shell, installDir, exePath, writeErr
 
         Set shell = CreateObject("WScript.Shell")
         installDir = Session.Property("CustomActionData")
@@ -224,6 +224,11 @@ exports.default = async function msiProjectCreated(projectFile) {
         exePath = Chr(34) & installDir & "Rocket.Chat.exe" & Chr(34) & " " & Chr(34) & "%1" & Chr(34)
 
         shell.RegWrite "HKLM\\SOFTWARE\\Classes\\RocketChat.tel\\", "URL:Rocket.Chat Telephony", "REG_SZ"
+        If Err.Number <> 0 Then
+          writeErr = Err.Description
+          Err.Clear
+          Err.Raise 1, "WriteTelephonyCapabilities", "Failed to write HKLM\\SOFTWARE\\Classes\\RocketChat.tel: " & writeErr
+        End If
         shell.RegWrite "HKLM\\SOFTWARE\\Classes\\RocketChat.tel\\URL Protocol", "", "REG_SZ"
         shell.RegWrite "HKLM\\SOFTWARE\\Classes\\RocketChat.tel\\DefaultIcon\\", installDir & "Rocket.Chat.exe,0", "REG_SZ"
         shell.RegWrite "HKLM\\SOFTWARE\\Classes\\RocketChat.tel\\shell\\open\\command\\", exePath, "REG_SZ"
@@ -239,6 +244,11 @@ exports.default = async function msiProjectCreated(projectFile) {
         shell.RegWrite "HKLM\\SOFTWARE\\Rocket.Chat\\Capabilities\\URLAssociations\\tel", "RocketChat.tel", "REG_SZ"
         shell.RegWrite "HKLM\\SOFTWARE\\Rocket.Chat\\Capabilities\\URLAssociations\\callto", "RocketChat.callto", "REG_SZ"
         shell.RegWrite "HKLM\\SOFTWARE\\RegisteredApplications\\Rocket.Chat", "Software\\Rocket.Chat\\Capabilities", "REG_SZ"
+        If Err.Number <> 0 Then
+          writeErr = Err.Description
+          Err.Clear
+          Err.Raise 1, "WriteTelephonyCapabilities", "Failed to write HKLM\\SOFTWARE\\RegisteredApplications\\Rocket.Chat: " & writeErr
+        End If
       ]]>
     </CustomAction>
 

@@ -56,7 +56,7 @@ jest.mock('electron', () => {
       isSupported: jest.fn(() => true),
     }),
     shell: {
-      openExternal: jest.fn(),
+      openExternal: jest.fn().mockResolvedValue(undefined),
     },
   };
 });

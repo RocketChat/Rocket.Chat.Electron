@@ -46,7 +46,8 @@ const mockState = (state: {
 
 const stubWebContents = () => {
   const send = jest.fn();
-  getWebContentsByServerUrlMock.mockReturnValue({ send } as any);
+  const isDestroyed = jest.fn(() => false);
+  getWebContentsByServerUrlMock.mockReturnValue({ send, isDestroyed } as any);
   return { send };
 };
 

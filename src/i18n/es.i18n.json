@@ -298,7 +298,8 @@
         "save": "Guardar",
         "clear": "Borrar",
         "registered": "Atajo registrado",
-        "reservedAccelerator": "{{accelerator}} está reservado por Rocket.Chat o por tu sistema operativo."
+        "reservedByApp": "{{accelerator}} ya está en uso por Rocket.Chat. Elige otra combinación.",
+        "reservedByOS": "{{accelerator}} está reservado por tu sistema operativo. Elige otra combinación."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Borrar permisos de captura de pantalla",

@@ -79,11 +79,17 @@ const originalPlatform = process.platform;
 
 describe('TelephonyGlobalShortcut', () => {
   beforeAll(() => {
-    Object.defineProperty(process, 'platform', { value: 'linux' });
+    Object.defineProperty(process, 'platform', {
+      value: 'linux',
+      configurable: true,
+    });
   });
 
   afterAll(() => {
-    Object.defineProperty(process, 'platform', { value: originalPlatform });
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      configurable: true,
+    });
   });
 
   it('saves an accelerator captured from a key chord', () => {

@@ -221,8 +221,12 @@ export const migrations = {
       (before as Partial<PersistableValues_4_14_0>).telephonyPreferredServer ??
       null,
     telephonyGlobalShortcutConfig: {
-      enabled: false,
-      accelerator: null,
+      enabled:
+        (before as Partial<PersistableValues_4_14_0>)
+          .telephonyGlobalShortcutConfig?.enabled ?? false,
+      accelerator:
+        (before as Partial<PersistableValues_4_14_0>)
+          .telephonyGlobalShortcutConfig?.accelerator ?? null,
     },
   }),
   '>=4.15.0': (before: PersistableValues_4_14_0): PersistableValues_4_15_0 => ({

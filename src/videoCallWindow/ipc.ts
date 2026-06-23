@@ -909,6 +909,65 @@ export const startVideoCallWindowHandler = (): void => {
     await openExternal(url);
   });
 
+  // Bring the main app window to the front and ask the active server's web
+  // client to navigate to an in-app route. Used by the standalone video-chat
+  // window, which has no window.opener and therefore can't reach the main
+  // window via the web app's window.open trick.
+  handle(
+    'video-call-window/open-in-main-window',
+    async (callerWebContents, path) => {
+      // Defense in depth (the preload validates too): only accept in-app
+      // relative routes — reject absolute/protocol-relative/scheme URLs.
+      if (
+        typeof path !== 'string' ||
+        !path.startsWith('/') ||
+        path.startsWith('//') ||
+        path.startsWith('/\\')
+      ) {
+        console.warn(
+          'Video call window: open-in-main-window rejected non-relative path:',
+          path
+        );
+        return;
+      }
+
+      // Resolve the target server webview: prefer the caller's own server,
+      // otherwise the server currently active in the main window.
+      let serverUrl = getServerUrlByWebContentsId(callerWebContents.id);
+      if (!serverUrl) {
+        const currentView = select((state) => state.currentView);
+        if (typeof currentView === 'object' && currentView.url) {
+          serverUrl = currentView.url;
+        }
+      }
+
+      const serverWebContents = serverUrl
+        ? getWebContentsByServerUrl(serverUrl)
+        : undefined;
+      if (!serverWebContents || serverWebContents.isDestroyed()) {
+        console.warn(
+          'Video call window: open-in-main-window could not find a target server webview for',
+          serverUrl
+        );
+        return;
+      }
+
+      // Bring the main window to the foreground.
+      const rootWindow = await getRootWindow();
+      if (rootWindow && !rootWindow.isDestroyed()) {
+        if (rootWindow.isMinimized()) {
+          rootWindow.restore();
+        }
+        rootWindow.show();
+        rootWindow.focus();
+      }
+
+      // Client-side route change. NOT a loadURL — that would hard-reload the
+      // SPA. The web client listens for this event and calls its router.
+      serverWebContents.send('navigate-to-route', path);
+    }
+  );
+
   handle('video-call-window/open-screen-picker', async (callerWebContents) => {
     if (!videoCallWindow || videoCallWindow.isDestroyed()) {
       console.warn(

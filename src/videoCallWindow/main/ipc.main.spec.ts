@@ -94,6 +94,11 @@ const makeDeferred = () => {
 };
 const fakeRootWindow = {
   getNormalBounds: jest.fn(() => ({ x: 0, y: 0, width: 1200, height: 800 })),
+  isDestroyed: jest.fn(() => false),
+  isMinimized: jest.fn(() => false),
+  restore: jest.fn(),
+  show: jest.fn(),
+  focus: jest.fn(),
 };
 const getRootWindow = jest.fn((..._a: any[]) => {
   // Default: resolve immediately. Tests can swap in a deferred to gate it.
@@ -341,6 +346,10 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         ? rootWindowDeferred.promise
         : Promise.resolve(fakeRootWindow)
     );
+    // clearAllMocks() keeps mockReturnValue impls, so reset the root-window
+    // window-state methods to deterministic defaults for each test.
+    fakeRootWindow.isDestroyed.mockReturnValue(false);
+    fakeRootWindow.isMinimized.mockReturnValue(false);
   });
 
   // -------------------------------------------------------------------------
@@ -598,5 +607,121 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
     await flushPromises();
 
     expect(setupServerViewDisplayMedia).toHaveBeenCalledWith(serverWc);
+  });
+
+  // -------------------------------------------------------------------------
+  // open-in-main-window: focus the main window + emit 'navigate-to-route'
+  // -------------------------------------------------------------------------
+  describe('open-in-main-window', () => {
+    const loadHandler = async () => {
+      await loadModule();
+      const handler = handleRegistry.get(
+        'video-call-window/open-in-main-window'
+      );
+      if (!handler)
+        throw new Error('open-in-main-window handler not registered');
+      return handler;
+    };
+
+    const makeServerWc = () => ({
+      isDestroyed: jest.fn(() => false),
+      send: jest.fn(),
+    });
+
+    it("caller's server resolves -> focuses main window and emits navigate-to-route", async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const serverWc = makeServerWc();
+      getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(42), '/channel/general');
+
+      expect(getServerUrlByWebContentsId).toHaveBeenCalledWith(42);
+      expect(getWebContentsByServerUrl).toHaveBeenCalledWith(
+        'https://chat.example'
+      );
+      expect(fakeRootWindow.show).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.focus).toHaveBeenCalledTimes(1);
+      expect(serverWc.send).toHaveBeenCalledWith(
+        'navigate-to-route',
+        '/channel/general'
+      );
+    });
+
+    it('falls back to the active server when the caller is unresolved', async () => {
+      getServerUrlByWebContentsId.mockReturnValue(undefined);
+      select.mockImplementation((sel: any) =>
+        sel({ currentView: { url: 'https://active.example' } })
+      );
+      const serverWc = makeServerWc();
+      getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(99), '/admin/rooms');
+
+      expect(getWebContentsByServerUrl).toHaveBeenCalledWith(
+        'https://active.example'
+      );
+      expect(serverWc.send).toHaveBeenCalledWith(
+        'navigate-to-route',
+        '/admin/rooms'
+      );
+    });
+
+    it('restores the main window when minimized', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      getWebContentsByServerUrl.mockReturnValue(makeServerWc());
+      fakeRootWindow.isMinimized.mockReturnValue(true);
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(1), '/channel/general');
+
+      expect(fakeRootWindow.restore).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      '//evil.example',
+      'https://evil.example',
+      '/\\evil.example',
+      'channel/general',
+    ])(
+      'rejects non-relative path %p -> no focus, no navigate',
+      async (badPath) => {
+        getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+        const serverWc = makeServerWc();
+        getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+        const handler = await loadHandler();
+        await handler(makeCallerWc(1), badPath);
+
+        expect(serverWc.send).not.toHaveBeenCalled();
+        expect(fakeRootWindow.focus).not.toHaveBeenCalled();
+      }
+    );
+
+    it('no-ops safely when the target server webview is missing', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      getWebContentsByServerUrl.mockReturnValue(undefined);
+
+      const handler = await loadHandler();
+      await expect(
+        handler(makeCallerWc(1), '/channel/general')
+      ).resolves.toBeUndefined();
+
+      expect(fakeRootWindow.focus).not.toHaveBeenCalled();
+    });
+
+    it('no-ops safely when the target server webview is destroyed', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      getWebContentsByServerUrl.mockReturnValue({
+        isDestroyed: jest.fn(() => true),
+        send: jest.fn(),
+      });
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(1), '/channel/general');
+
+      expect(fakeRootWindow.focus).not.toHaveBeenCalled();
+    });
   });
 });

@@ -889,15 +889,20 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
   // external links from the conference webview -> system browser
   // -------------------------------------------------------------------------
   describe('conference webview external links', () => {
-    const attachGuest = async () => {
-      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+    const attachGuest = async (sharedSession = true) => {
+      getServerUrlByWebContentsId.mockReturnValue(
+        sharedSession ? 'https://chat.example' : undefined
+      );
       const { openWindow } = await loadModule();
       await open(openWindow, makeCallerWc(1), 'https://meet.example/room');
 
       const guest = {
         setWindowOpenHandler: jest.fn(),
         on: jest.fn(),
-        session: { setDisplayMediaRequestHandler: jest.fn() },
+        session: {
+          setDisplayMediaRequestHandler: jest.fn(),
+          setPermissionRequestHandler: jest.fn(),
+        },
         isDestroyed: jest.fn(() => false),
       };
       // did-attach-webview is registered on the host window's webContents.
@@ -929,6 +934,25 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       const handler = guest.setWindowOpenHandler.mock.calls[0][0];
 
       expect(handler({ url: 'about:blank' })).toEqual({ action: 'allow' });
+      expect(handler({ url: 'blob:https://meet.example/abc' })).toEqual({
+        action: 'allow',
+      });
+    });
+
+    it('denies dangerous popup schemes', async () => {
+      const guest = await attachGuest();
+      const handler = guest.setWindowOpenHandler.mock.calls[0][0];
+
+      expect(handler({ url: 'javascript:alert(1)' })).toEqual({
+        action: 'deny',
+      });
+      expect(handler({ url: 'file:///etc/passwd' })).toEqual({
+        action: 'deny',
+      });
+      expect(handler({ url: 'data:text/html,<script>1</script>' })).toEqual({
+        action: 'deny',
+      });
+      expect(handler({ url: 'smb://share/path' })).toEqual({ action: 'deny' });
     });
 
     it('registers a will-navigate handler on the guest webview', async () => {
@@ -937,6 +961,34 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         'will-navigate',
         expect.any(Function)
       );
+    });
+
+    it('installs a media permission handler on the fallback (isolated) webview session', async () => {
+      const { handleMediaPermissionRequest } = (await import(
+        '../../ui/main/mediaPermissions'
+      )) as any;
+      const guest = await attachGuest(false);
+
+      expect(guest.session.setPermissionRequestHandler).toHaveBeenCalledTimes(
+        1
+      );
+      const permissionHandler =
+        guest.session.setPermissionRequestHandler.mock.calls[0][0];
+      const callback = jest.fn();
+      await permissionHandler({}, 'media', callback, {
+        mediaTypes: ['audio', 'video'],
+      });
+      expect(handleMediaPermissionRequest).toHaveBeenCalledWith(
+        ['audio', 'video'],
+        expect.anything(),
+        'initiateCall',
+        callback
+      );
+    });
+
+    it('does NOT install a webview permission handler on a shared session', async () => {
+      const guest = await attachGuest(true);
+      expect(guest.session.setPermissionRequestHandler).not.toHaveBeenCalled();
     });
   });
 });

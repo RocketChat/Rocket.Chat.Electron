@@ -257,23 +257,31 @@ const createInternalPickerHandler =
     });
   };
 
+// Schemes a conference page legitimately opens as an in-app popup (device
+// pickers, transient PDF/export blobs). Everything else that isn't external
+// http(s) is denied so a compromised conference frame can't spawn an Electron
+// window pointed at `javascript:`, `data:`, `file:`, etc.
+const ALLOWED_POPUP_SCHEMES = ['about:', 'blob:'];
+
 // Window-open policy shared by the video call window's host page and its
 // conference webview: route external http(s) links (target="_blank" /
-// window.open) to the system browser and deny the Electron popup, deny smb://,
-// and allow anything else (in-app). Mirrors the main app window's behavior.
+// window.open) to the system browser and deny the Electron popup, allow the
+// in-app popup schemes above, and deny everything else. Mirrors the main app
+// window's intent while keeping the popup surface closed by default.
 const handleVideoCallWindowOpen = ({
   url,
 }: {
   url: string;
 }): { action: 'deny' } | { action: 'allow' } => {
-  if (url.toLowerCase().startsWith('smb://')) {
-    return { action: 'deny' };
-  }
   if (url.startsWith('http://') || url.startsWith('https://')) {
     openExternal(url);
     return { action: 'deny' };
   }
-  return { action: 'allow' };
+  const lower = url.toLowerCase();
+  if (ALLOWED_POPUP_SCHEMES.some((scheme) => lower.startsWith(scheme))) {
+    return { action: 'allow' };
+  }
+  return { action: 'deny' };
 };
 
 const setupWebviewHandlers = (webContents: WebContents) => {
@@ -360,6 +368,55 @@ const setupWebviewHandlers = (webContents: WebContents) => {
       }
     });
 
+    // Media (mic/cam) permission requests from the conference originate in the
+    // webview's session, NOT the host window's, so the handler must live on the
+    // webview partition. On a SHARED session that partition already carries the
+    // server view's permission handler (installed for the main webview) — leave
+    // it untouched so we don't clobber it. Only the isolated FALLBACK partition
+    // (`persist:jitsi-session`) has no handler of its own; install one there so
+    // the call still routes through the app's `handleMediaPermissionRequest`
+    // flow instead of relying on Electron's silent default-grant.
+    const call = activeCall;
+    if (!call?.isSharedSession) {
+      webviewWebContents.session.setPermissionRequestHandler(
+        async (_webContents, permission, callback, details) => {
+          if (permission === 'media') {
+            const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
+            try {
+              await handleMediaPermissionRequest(
+                mediaTypes as ReadonlyArray<'audio' | 'video'>,
+                videoCallWindow,
+                'initiateCall',
+                callback
+              );
+            } catch (error) {
+              console.error(
+                'Error handling media permission request in video call webview:',
+                error
+              );
+              callback(false);
+            }
+            return;
+          }
+
+          switch (permission) {
+            case 'geolocation':
+            case 'notifications':
+            case 'midiSysex':
+            case 'pointerLock':
+            case 'fullscreen':
+              callback(true);
+              return;
+            case 'openExternal':
+              callback(true);
+              return;
+            default:
+              callback(false);
+          }
+        }
+      );
+    }
+
     if (screenPickerReady && provider) {
       setupDisplayMediaHandler(webviewWebContents);
     } else {
@@ -444,30 +501,6 @@ const openVideoCallWindow = async (
     }
   }
 
-  // Always load the call webview in the originating server's partition so it
-  // shares the main webview's session (cookies + localStorage). When the
-  // server can't be resolved, fall back to an isolated jitsi-session partition.
-  const serverUrl = getServerUrlByWebContentsId(_wc.id);
-  const partition = serverUrl ? `persist:${serverUrl}` : FALLBACK_PARTITION;
-  activeCall = {
-    url,
-    partition,
-    isSharedSession: Boolean(serverUrl),
-    serverWebContentsId: serverUrl ? _wc.id : null,
-  };
-  pendingVideoCallPartition = partition; // handshake global only
-  if (activeCall.isSharedSession) {
-    console.log(
-      'Video call window: sharing server session via partition',
-      partition
-    );
-  } else {
-    console.warn(
-      'Video call window: could not resolve originating server; opening with isolated fallback partition',
-      partition
-    );
-  }
-
   if (isVideoCallWindowDestroying) {
     console.log('Waiting for video call window destruction to complete...');
     await new Promise<void>((resolve) => {
@@ -518,8 +551,37 @@ const openVideoCallWindow = async (
     return;
   }
   if (allowedProtocols.includes(validUrl.protocol)) {
+    // Resolve the partition only once we know a window will actually be created
+    // (URL parsed, not a g.co external redirect, protocol allowed). Setting it
+    // earlier would leave stale `activeCall` state behind for opens that bail
+    // out before `new BrowserWindow`, which a later teardown could misread.
+    //
+    // Always load the call webview in the originating server's partition so it
+    // shares the main webview's session (cookies + localStorage). When the
+    // server can't be resolved, fall back to an isolated jitsi-session partition.
+    const serverUrl = getServerUrlByWebContentsId(_wc.id);
+    const partition = serverUrl ? `persist:${serverUrl}` : FALLBACK_PARTITION;
+    activeCall = {
+      url,
+      partition,
+      isSharedSession: Boolean(serverUrl),
+      serverWebContentsId: serverUrl ? _wc.id : null,
+    };
+    pendingVideoCallPartition = partition; // handshake global only
+    if (activeCall.isSharedSession) {
+      console.log(
+        'Video call window: sharing server session via partition',
+        partition
+      );
+    } else {
+      console.warn(
+        'Video call window: could not resolve originating server; opening with isolated fallback partition',
+        partition
+      );
+    }
+
     const mainWindow = await getRootWindow();
-    const winBounds = await mainWindow.getNormalBounds();
+    const winBounds = mainWindow.getNormalBounds();
 
     const centeredWindowPosition = {
       x: winBounds.x + winBounds.width / 2,

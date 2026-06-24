@@ -16,7 +16,11 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
   // `path` is a server-relative route, e.g. "/channel/general".
   openInMainWindow: (path: string) => {
     if (isRelativeRoute(path)) {
-      ipcRenderer.invoke('video-call-window/open-in-main-window', path);
+      ipcRenderer
+        .invoke('video-call-window/open-in-main-window', path)
+        .catch((error) =>
+          console.warn('Video call window: open-in-main-window failed:', error)
+        );
       return;
     }
     console.warn(

@@ -668,6 +668,44 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       );
     });
 
+    it("prefers the active call's origin server over the active view when the caller is unresolved", async () => {
+      // Open a call from server A so `activeCall.serverWebContentsId` is set.
+      getServerUrlByWebContentsId.mockReturnValue('https://origin.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(50));
+
+      // The open-in-main-window caller (the standalone video window) does not
+      // resolve to a server; the active view is a *different* server. The
+      // handler must target the call's origin server, not the active view.
+      const handler = handleRegistry.get(
+        'video-call-window/open-in-main-window'
+      );
+      if (!handler)
+        throw new Error('open-in-main-window handler not registered');
+
+      getServerUrlByWebContentsId.mockImplementation((id: number) =>
+        id === 50 ? 'https://origin.example' : undefined
+      );
+      select.mockImplementation((sel: any) =>
+        sel({ currentView: { url: 'https://other.example' } })
+      );
+      const serverWc = makeServerWc();
+      getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+      await handler(makeCallerWc(999), '/channel/general');
+
+      expect(getWebContentsByServerUrl).toHaveBeenCalledWith(
+        'https://origin.example'
+      );
+      expect(getWebContentsByServerUrl).not.toHaveBeenCalledWith(
+        'https://other.example'
+      );
+      expect(serverWc.send).toHaveBeenCalledWith(
+        'navigate-to-route',
+        '/channel/general'
+      );
+    });
+
     it('restores the main window when minimized', async () => {
       getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
       getWebContentsByServerUrl.mockReturnValue(makeServerWc());

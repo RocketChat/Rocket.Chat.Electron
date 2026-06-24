@@ -17,7 +17,12 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
   openInMainWindow: (path: string) => {
     if (isRelativeRoute(path)) {
       ipcRenderer.invoke('video-call-window/open-in-main-window', path);
+      return;
     }
+    console.warn(
+      'Video call window: openInMainWindow rejected non-relative path:',
+      path
+    );
   },
   // Add methods here if needed for communication with the main process
   requestScreenSharing: async () => {

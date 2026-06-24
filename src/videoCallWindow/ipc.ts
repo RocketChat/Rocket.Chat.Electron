@@ -931,13 +931,23 @@ export const startVideoCallWindowHandler = (): void => {
         return;
       }
 
-      // Resolve the target server webview: prefer the caller's own server,
-      // otherwise the server currently active in the main window.
+      // Resolve the target server webview in priority order:
+      // 1. the caller's own server (the conference webview, when resolvable);
+      // 2. the server the active call actually belongs to — authoritative, and
+      //    avoids navigating a *different* server in a multi-workspace setup;
+      // 3. the server currently active in the main window (last-resort guess).
       let serverUrl = getServerUrlByWebContentsId(callerWebContents.id);
+      if (!serverUrl && activeCall?.serverWebContentsId != null) {
+        serverUrl = getServerUrlByWebContentsId(activeCall.serverWebContentsId);
+      }
       if (!serverUrl) {
         const currentView = select((state) => state.currentView);
         if (typeof currentView === 'object' && currentView.url) {
           serverUrl = currentView.url;
+          console.warn(
+            'Video call window: open-in-main-window could not resolve the call’s origin server; falling back to the active view',
+            serverUrl
+          );
         }
       }
 

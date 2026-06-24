@@ -39,7 +39,12 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   });
 
   return (next) => (action) => {
-    if (!isFSA(action) || isLocallyScoped(action)) {
+    if (!isFSA(action)) {
+      return next(action);
+    }
+
+    const locallyScoped = isLocallyScoped(action);
+    if (locallyScoped) {
       return next(action);
     }
     const rendererAction = {
@@ -51,15 +56,13 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     };
     if (isSingleScoped(action)) {
       const { webContentsId, viewInstanceId } = action.ipcMeta;
-      [...renderers]
-        .filter(
-          (w) =>
-            w.id === webContentsId ||
-            (viewInstanceId && w.id === viewInstanceId)
-        )
-        .forEach((w) =>
-          invokeFromMain(w, 'redux/action-dispatched', rendererAction)
-        );
+      const targets = [...renderers].filter(
+        (w) =>
+          w.id === webContentsId || (viewInstanceId && w.id === viewInstanceId)
+      );
+      targets.forEach((w) =>
+        invokeFromMain(w, 'redux/action-dispatched', rendererAction)
+      );
       return next(action);
     }
     renderers.forEach((webContents) => {

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Default app associations for Rocket.Chat Desktop on Windows 10/11.
+
+  Apply via one of:
+    - Group Policy: Computer Configuration -> Administrative Templates ->
+      Windows Components -> File Explorer -> "Set a default associations
+      configuration file", pointing at this file.
+    - Intune: ApplicationDefaults CSP with the Base64-encoded contents of
+      this file.
+    - DISM (image deployment): dism /Online /Import-DefaultAppAssociations:
+      <path-to-this-file>
+    - MSI public property: install with SET_DEFAULT_ASSOCIATIONS=1 to have
+      the installer wire the policy registry value at this path.
+
+  ProgIds below MUST stay in sync with build/installer.nsh
+  (registerTelephonyCapabilities) and the MSI Capabilities registration.
+-->
+<DefaultAssociations>
+  <Association Identifier="tel"    ProgId="RocketChat.tel"    ApplicationName="Rocket.Chat" />
+  <Association Identifier="callto" ProgId="RocketChat.callto" ApplicationName="Rocket.Chat" />
+</DefaultAssociations>

@@ -10,6 +10,14 @@ import type { RootState } from '../../../../store/rootReducer';
 import { TELEPHONY_PREFERRED_SERVER_SET } from '../../../../telephony/actions';
 import { SettingField } from './SettingField';
 
+const safeHostname = (url: string): string => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};
+
 type TelephonyServerProps = {
   className?: string;
 };
@@ -18,6 +26,9 @@ export const TelephonyServer = (props: TelephonyServerProps) => {
   const servers = useSelector(({ servers }: RootState) => servers);
   const telephonyPreferredServer = useSelector(
     ({ telephonyPreferredServer }: RootState) => telephonyPreferredServer
+  );
+  const isTelephonyEnabled = useSelector(
+    ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
@@ -39,7 +50,7 @@ export const TelephonyServer = (props: TelephonyServerProps) => {
       ['auto', t('settings.options.telephonyServer.auto')],
       ...servers.map((s): [string, string] => [
         s.url,
-        s.title ?? new URL(s.url).hostname,
+        s.title ?? safeHostname(s.url),
       ]),
     ],
     [servers, t]
@@ -58,6 +69,7 @@ export const TelephonyServer = (props: TelephonyServerProps) => {
     >
       <Select
         id={telephonyServerSelectId}
+        disabled={!isTelephonyEnabled}
         options={options}
         value={telephonyPreferredServer ?? 'auto'}
         onChange={handleChange}

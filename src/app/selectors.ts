@@ -87,4 +87,8 @@ export const selectPersistableValues = createStructuredSelector({
     e2ePdfPreviewSizeLimit,
   telephonyPreferredServer: ({ telephonyPreferredServer }: RootState) =>
     telephonyPreferredServer,
+  telephonyGlobalShortcutConfig: ({
+    telephonyGlobalShortcutConfig,
+  }: RootState) => telephonyGlobalShortcutConfig,
+  isTelephonyEnabled: ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled,
 });

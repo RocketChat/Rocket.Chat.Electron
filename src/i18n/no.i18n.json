@@ -165,6 +165,11 @@
     "supportedVersion": {
       "title": "Workspace-versjonen støttes ikke"
     },
+    "telephonySelectServer": {
+      "title": "Velg server",
+      "message": "Hvilken server skal håndtere denne samtalen?",
+      "rememberChoice": "Husk dette valget"
+    },
     "clearLogs": {
       "title": "Tøm logger",
       "message": "Er du sikker på at du vil slette loggfilen?",
@@ -299,6 +304,21 @@
         "systemDefault": "Systemstandard",
         "loading": "Laster inn nettlesere ...",
         "current": "Bruker for øyeblikket:"
+      },
+      "telephonyServer": {
+        "title": "Telefoniserver",
+        "description": "Velg hvilket arbeidsområde som åpnes når du bruker telefonisnarveien eller en tel:- eller callto:-lenke.",
+        "auto": "Automatisk (spør hver gang)"
+      },
+      "telephonyShortcut": {
+        "title": "Global telefonisnarvei",
+        "description": "Bruk denne snarveien hvor som helst for å hente Rocket.Chat frem og åpne telefonitastaturet. Hvis utklippstavlen inneholder tekst som ser ut som et telefonnummer, fyller Rocket.Chat det ut på forhånd.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Trykk på taster...",
+        "save": "Lagre",
+        "clear": "Tøm",
+        "registered": "Snarvei registrert",
+        "reservedAccelerator": "{{accelerator}} er reservert av Rocket.Chat eller operativsystemet ditt."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Fjern skjermopptakstillatelser",

@@ -1,6 +1,13 @@
 {
   "files": ["app/**/*", "package.json"],
-  "extraResources": ["build/icon.ico", "servers.json"],
+  "extraResources": [
+    "build/icon.ico",
+    {
+      "from": "build/RocketChatDefaultAppAssociations.xml",
+      "to": "RocketChatDefaultAppAssociations.xml"
+    },
+    "servers.json"
+  ],
   "appId": "chat.rocket",
   "protocols": [
     { "name": "Rocket.Chat", "schemes": ["rocketchat"] },

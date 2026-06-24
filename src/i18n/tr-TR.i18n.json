@@ -101,6 +101,11 @@
         "answerCall": "aramaları yanıtlamak",
         "recordMessage": "mesaj kaydetmek"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Sunucu Seç",
+      "message": "Bu aramayı hangi sunucu yönetmeli?",
+      "rememberChoice": "Bu seçimi hatırla"
     }
   },
   "documentViewer": {
@@ -134,6 +139,21 @@
         "systemDefault": "Sistem Varsayılanı",
         "loading": "Tarayıcılar yükleniyor...",
         "current": "Şu anda kullanılan:"
+      },
+      "telephonyServer": {
+        "title": "Telefon sunucusu",
+        "description": "Telefon kısayolunu veya tel: ya da callto: bağlantısını kullandığınızda hangi çalışma alanının açılacağını seçin.",
+        "auto": "Otomatik (her seferinde sor)"
+      },
+      "telephonyShortcut": {
+        "title": "Genel telefon kısayolu",
+        "description": "Rocket.Chat'i öne getirmek ve telefon arama tuş takımını açmak için bu kısayolu her yerden kullanın. Panonuzda telefon numarasına benzeyen bir metin varsa Rocket.Chat bunu otomatik olarak doldurur.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Tuşlara basın...",
+        "save": "Kaydet",
+        "clear": "Temizle",
+        "registered": "Kısayol kaydedildi",
+        "reservedAccelerator": "{{accelerator}}, Rocket.Chat veya işletim sisteminiz tarafından ayrılmıştır."
       },
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",

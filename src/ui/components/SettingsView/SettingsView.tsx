@@ -10,6 +10,7 @@ import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import { CertificatesTab } from './CertificatesTab';
 import { DeveloperTab } from './DeveloperTab';
 import { GeneralTab } from './GeneralTab';
+import { VoiceVideoTab } from './VoiceVideoTab';
 
 export const SettingsView = () => {
   const isVisible = useSelector(
@@ -84,6 +85,12 @@ export const SettingsView = () => {
         >
           {t('settings.certificates')}
         </Tabs.Item>
+        <Tabs.Item
+          selected={currentTab === 'voiceVideo'}
+          onClick={() => setCurrentTab('voiceVideo')}
+        >
+          {t('settings.voiceVideo')}
+        </Tabs.Item>
         {isDeveloperModeEnabled && (
           <Tabs.Item
             selected={currentTab === 'developer'}
@@ -97,6 +104,7 @@ export const SettingsView = () => {
         <Box m='x24'>
           {(currentTab === 'general' && <GeneralTab />) ||
             (currentTab === 'certificates' && <CertificatesTab />) ||
+            (currentTab === 'voiceVideo' && <VoiceVideoTab />) ||
             (currentTab === 'developer' && <DeveloperTab />)}
         </Box>
       </Scrollable>

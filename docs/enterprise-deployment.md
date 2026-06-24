@@ -47,6 +47,24 @@ updates on its own.
 The property is applied during install. On uninstall, `update.json` is removed
 together with the rest of the installation directory.
 
+### `SET_DEFAULT_ASSOCIATIONS`
+
+Makes Rocket.Chat the default `tel:` / `callto:` handler on
+unmanaged machines by writing the GPO-equivalent policy registry
+value at install time.
+
+```cmd
+msiexec /i rocketchat-<version>-win-x64.msi SET_DEFAULT_ASSOCIATIONS=1 /qn
+```
+
+Full details — including the bundled XML, GPO / Intune / DISM
+alternatives, precedence rules, and client-side verification — live in
+[`windows-default-app-associations.md`](./windows-default-app-associations.md).
+
+`SET_DEFAULT_ASSOCIATIONS` only wires Windows protocol defaults for
+`tel:`/`callto:`. It does not enable Rocket.Chat telephony by itself;
+admins must still enable telephony via overridden Rocket.Chat settings.
+
 ## SCCM / MECM deployment
 
 The MSI runs correctly under `NT AUTHORITY\SYSTEM`. Typical deployment
@@ -89,3 +107,21 @@ It should contain:
   "autoUpdate": false
 }
 ```
+
+## Default app associations (tel:/callto:)
+
+Windows blocks programmatic per-user default-handler registration, so
+making Rocket.Chat the default for `tel:` and `callto:` requires a
+policy-channel rollout (GPO, Intune, DISM) or the
+`SET_DEFAULT_ASSOCIATIONS=1` MSI flag above for unmanaged machines.
+
+After deployment, users or support staff can verify the effective
+handler in **Settings → Voice & Video → Telephony → Diagnostics**.
+The diagnostics distinguish between install registration problems and
+per-user default-app choices; when the user choice is missing or points
+to another app, the affected row includes an action to open Windows
+Default Apps.
+
+See [`windows-default-app-associations.md`](./windows-default-app-associations.md)
+for the bundled XML, every supported channel, precedence rules, and
+verification steps.

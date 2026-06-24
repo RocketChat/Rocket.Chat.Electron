@@ -47,6 +47,8 @@ export const electronBuilderJsonInformation = {
   ).flatMap((p) => p.schemes),
 };
 
+export const TELEPHONY_SCHEMES = ['tel', 'callto'] as const;
+
 let isScreenCaptureFallbackForced = false;
 
 export const getPlatformName = (): string => {
@@ -88,6 +90,9 @@ export const relaunchApp = (...args: string[]): void => {
 
 export const performElectronStartup = (): void => {
   for (const scheme of electronBuilderJsonInformation.protocols) {
+    if ((TELEPHONY_SCHEMES as readonly string[]).includes(scheme)) {
+      continue;
+    }
     app.setAsDefaultProtocolClient(scheme);
   }
   app.setAppUserModelId(electronBuilderJsonInformation.appId);

@@ -605,7 +605,11 @@ const createHelpMenu = createSelector(
         label: t('menus.toggleDevTools'),
         accelerator: 'CommandOrControl+Shift+D',
         click: async () => {
-          const browserWindow = await getRootWindow();
+          // Target the focused window (e.g. the video call window) so DevTools
+          // open where the user is looking; fall back to the main window when
+          // nothing is focused.
+          const browserWindow =
+            BrowserWindow.getFocusedWindow() ?? (await getRootWindow());
 
           if (!browserWindow.isVisible()) {
             browserWindow.showInactive();

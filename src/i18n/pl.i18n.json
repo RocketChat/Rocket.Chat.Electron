@@ -113,6 +113,11 @@
         "answerCall": "odbierania połączeń",
         "recordMessage": "nagrywania wiadomości"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Wybierz serwer",
+      "message": "Który serwer ma obsłużyć to połączenie?",
+      "rememberChoice": "Zapamiętaj ten wybór"
     }
   },
   "documentViewer": {
@@ -146,6 +151,21 @@
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
+      },
+      "telephonyServer": {
+        "title": "Serwer telefonii",
+        "description": "Wybierz, który obszar roboczy otwiera się po użyciu skrótu telefonii albo linku tel: lub callto:.",
+        "auto": "Automatycznie (pytaj za każdym razem)"
+      },
+      "telephonyShortcut": {
+        "title": "Globalny skrót telefonii",
+        "description": "Użyj tego skrótu z dowolnego miejsca, aby przenieść Rocket.Chat na pierwszy plan i otworzyć klawiaturę wybierania. Jeśli schowek zawiera tekst wyglądający jak numer telefonu, Rocket.Chat wypełni go automatycznie.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Naciśnij klawisze...",
+        "save": "Zapisz",
+        "clear": "Wyczyść",
+        "registered": "Skrót zarejestrowany",
+        "reservedAccelerator": "{{accelerator}} jest zarezerwowany przez Rocket.Chat lub system operacyjny."
       },
       "transparentWindow": {
         "title": "Efekt przezroczystego okna",

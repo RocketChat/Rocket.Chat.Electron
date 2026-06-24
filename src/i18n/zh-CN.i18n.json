@@ -102,6 +102,11 @@
         "answerCall": "接听电话",
         "recordMessage": "录制消息"
       }
+    },
+    "telephonySelectServer": {
+      "title": "选择服务器",
+      "message": "哪个服务器应该处理此通话？",
+      "rememberChoice": "记住此选择"
     }
   },
   "documentViewer": {
@@ -180,6 +185,21 @@
         "auto": "跟随系统",
         "light": "浅色",
         "dark": "深色"
+      },
+      "telephonyServer": {
+        "title": "语音通话服务器",
+        "description": "选择使用语音通话快捷键或 tel:、callto: 链接时要打开的工作区。",
+        "auto": "自动（每次询问）"
+      },
+      "telephonyShortcut": {
+        "title": "语音通话全局快捷键",
+        "description": "在任何地方使用此快捷键，将 Rocket.Chat 置于前台并打开语音通话拨号盘。如果剪贴板中包含看起来像电话号码的文本，Rocket.Chat 会自动预填。",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "按下按键...",
+        "save": "保存",
+        "clear": "清除",
+        "registered": "快捷键已注册",
+        "reservedAccelerator": "{{accelerator}} 已被 Rocket.Chat 或您的操作系统保留。"
       }
     }
   },

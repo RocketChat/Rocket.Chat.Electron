@@ -1,0 +1,327 @@
+v2.id,suite_id,suite,suite_without_cases,title,description,preconditions,postconditions,severity,priority,status,automation,steps_type,tags,steps_actions,steps_data,steps_results
+"","1","Telephony deeplinks","1","","","","","","","","","","","","",""
+"","1","Telephony deeplinks","","Telephony settings discovery","Source flow: TEL-QA-001
+
+Telephony settings are visible under Voice & Video and start disabled unless already configured.","installed_or_running_branch_build
+at_least_one_workspace","- Screenshot of Voice & Video showing Telephony.
+- Note whether this is a fresh or reused profile.","major","high","actual","manual","classic","TEL-QA-001,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_or_running_branch_build,requires:at_least_one_workspace","1. ""Launch Rocket.Chat.""
+2. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, then click `Settings` in the menu that opens.""
+3. ""Click the `Voice & Video` tab.""
+4. ""Find Telephony.""
+5. ""Check initial state.""","1. ""Agent: Start app and wait for main window.""
+2. ""Alternate path: app menu item `Settings` when the desktop menu bar is visible.
+Agent: Navigate to Settings view.""
+3. ""Agent: Select Voice & Video settings tab.""
+4. ""Agent: Search visible text for Telephony.""
+5. ""Agent: Read the telephony toggle state.""","1. ""Main window is visible.""
+2. ""Settings screen opens.""
+3. ""Voice & Video options are visible.""
+4. ""Telephony section is present.""
+5. ""Toggle is off unless this profile was previously configured."""
+"","1","Telephony deeplinks","","Enable and disable telephony protocol handling","Source flow: TEL-QA-002
+
+Disabled telephony ignores phone links; enabled telephony handles them.","test-links-html
+at_least_one_workspace","- Screenshot or screen recording showing disabled vs enabled behavior.
+- Note any OS prompt shown by the browser.
+- Optional code-path proof: targeted test output for startup registration showing
+  `rocketchat` registers at startup while `tel` and `callto` do not.","major","high","actual","manual","classic","TEL-QA-002,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:test-links-html,requires:at_least_one_workspace","1. ""Start from a fresh app launch before enabling Telephony. Open `test-links.html` in a browser and click `tel:+15551234567`.""
+2. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, then find the `Telephony` section heading.""
+3. ""Switch the Telephony toggle off if it is on.""
+4. ""Click `callto:+15551234567` from `test-links.html`.""
+5. ""Switch the Telephony toggle on.""
+6. ""Click `tel:+15551234567` again.""
+7. ""Click `callto:+15551234567`.""","1. ""Telephony has not been enabled in this profile.
+Agent: Trigger the link before enabling Telephony.""
+2. ""Agent: Navigate to Telephony settings.""
+3. ""Agent: Set telephony toggle to off.""
+4. ""Agent: Trigger the same link.""
+5. ""Agent: Set telephony toggle to on.""
+6. ""Agent: Trigger the same link.""
+7. ""Agent: Trigger the same link.""","1. ""Rocket.Chat does not place a telephony call request or steal the link as a newly registered phone handler.""
+2. ""Toggle is visible.""
+3. ""Diagnostics section is hidden or inactive.""
+4. ""Rocket.Chat does not place a telephony call request.""
+5. ""Default-handler prompt or diagnostics can appear.""
+6. ""Rocket.Chat opens the telephony dialpad flow.""
+7. ""Rocket.Chat opens the telephony dialpad flow."""
+"","1","Telephony deeplinks","","Default handler prompt","Source flow: TEL-QA-003
+
+Enabling telephony shows a clear default-handler prompt with working actions where supported.","telephony_toggle","- Screenshot of the prompt.
+- On Windows/Linux, screenshot the opened settings page. On macOS, note that no
+  settings page is expected.","major","high","actual","manual","classic","TEL-QA-003,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:telephony_toggle","1. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony off.""
+2. ""Switch the Telephony toggle on.""
+3. ""Read prompt copy.""
+4. ""In the visible default-handler prompt modal, click the prompt button labeled `Open Settings` if present.""
+5. ""Close the prompt.""
+6. ""Switch Telephony off, then switch it on again.""","1. ""Agent: Ensure toggle is off.""
+2. ""Agent: Set toggle to on.""
+3. ""Agent: Capture prompt title/body/buttons.""
+4. ""Agent: Activate Open Settings action.""
+5. ""Agent: Dismiss modal.""
+6. ""Agent: Repeat state transition.""","1. ""Prompt is not visible.""
+2. ""Prompt opens once for the enable transition.""
+3. ""Copy mentions handling phone links/default app behavior.""
+4. ""Windows/Linux opens default-app settings; macOS action is absent or no-op by design.""
+5. ""Modal closes and app remains usable.""
+6. ""Prompt can appear again on a new off-to-on transition."""
+"","1","Telephony deeplinks","","Telephony diagnostics panel","Source flow: TEL-QA-004
+
+Diagnostics can be expanded, refreshed, copied, and interpreted.","telephony_enabled","- Paste copied diagnostics JSON into the result note.
+- Screenshot any failed row.","major","high","actual","manual","classic","TEL-QA-004,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:telephony_enabled","1. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, then find the `Telephony` section heading.""
+2. ""Expand Diagnostics.""
+3. ""Click Refresh.""
+4. ""Click Copy.""
+5. ""Review `isDefault.tel` and `isDefault.callto`.""
+6. ""If a diagnostics row has a button labeled `Open Settings`, click it.""","1. ""Agent: Navigate to Telephony settings.""
+2. ""Agent: Expand diagnostics panel.""
+3. ""Agent: Activate Refresh.""
+4. ""Agent: Activate Copy.""
+5. ""Agent: Parse copied JSON checks.""
+6. ""Agent: Activate row action.""","1. ""Diagnostics accordion is visible.""
+2. ""Checks list appears.""
+3. ""Generated timestamp or statuses update.""
+4. ""Clipboard contains diagnostics JSON.""
+5. ""Statuses reflect current OS default-handler state.""
+6. ""OS settings opens where supported."""
+"","1","Telephony deeplinks","","Single workspace tel and callto links","Source flow: TEL-QA-005
+
+Clicking valid phone links opens the dialpad in the only configured workspace.","telephony_enabled
+exactly_one_workspace
+test-links-html","- Record each link clicked and observed number.
+- Screenshot the dialpad state for at least one `tel:` link and one `callto:`
+  link.","major","high","actual","manual","classic","TEL-QA-005,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:telephony_enabled,requires:exactly_one_workspace,requires:test-links-html","1. ""Confirm only one workspace is configured.""
+2. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony on.""
+3. ""Open `test-links.html` in a browser.""
+4. ""Click each valid `tel:` link.""
+5. ""Click each valid `callto:` link.""
+6. ""Return to Rocket.Chat after each click.""","1. ""Agent: Count configured servers.""
+2. ""Agent: Set telephony toggle on.""
+3. ""Agent: Open local HTML file.""
+4. ""Agent: Trigger each valid `tel:` URI.""
+5. ""Agent: Trigger each valid `callto:` URI.""
+6. ""Agent: Observe app focus and workspace.""","1. ""Exactly one workspace exists.""
+2. ""Telephony is enabled.""
+3. ""Link page is visible.""
+4. ""Dialpad receives the normalized number.""
+5. ""Dialpad receives the normalized number.""
+6. ""The only workspace is used; no server picker appears."""
+"","1","Telephony deeplinks","","Multi-workspace server picker","Source flow: TEL-QA-006
+
+The server picker opens, routes to the chosen workspace, and supports cancel.","telephony_enabled
+two_or_more_workspaces
+test-links-html","- Screenshot of server picker.
+- Note selected workspace and final dialpad workspace.","major","high","actual","manual","classic","TEL-QA-006,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:telephony_enabled,requires:two_or_more_workspaces,requires:test-links-html","1. ""Configure at least two workspaces.""
+2. ""Click `tel:+15551234567`.""
+3. ""Review modal contents.""
+4. ""Click a workspace without Remember checked.""
+5. ""Click another link.""
+6. ""Close/cancel the modal.""","1. ""Agent: Ensure server list length is at least two.""
+2. ""Agent: Trigger the link.""
+3. ""Agent: Read server rows.""
+4. ""Agent: Select a server with remember false.""
+5. ""Agent: Trigger another phone link.""
+6. ""Agent: Dismiss modal.""","1. ""Multiple workspace choices are available.""
+2. ""Server picker modal opens.""
+3. ""Each workspace has readable title/host and selectable row.""
+4. ""Dialpad opens in selected workspace.""
+5. ""Picker opens again.""
+6. ""No call request is placed."""
+"","1","Telephony deeplinks","","Preferred server persistence","Source flow: TEL-QA-007
+
+Remembering a workspace skips the picker on later calls and survives restart.","telephony_enabled
+two_or_more_workspaces
+test-links-html","- Note chosen workspace URL/title.
+- Record whether restart preserved the choice.","major","high","actual","manual","classic","TEL-QA-007,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:telephony_enabled,requires:two_or_more_workspaces,requires:test-links-html","1. ""Start with a fresh profile or clear persisted app settings before launching Rocket.Chat.""
+2. ""Click `tel:+15551234567`.""
+3. ""Check Remember choice and select workspace A.""
+4. ""Click the same link again.""
+5. ""Quit and relaunch Rocket.Chat.""
+6. ""Click the same link again.""
+7. ""Remove or make workspace A unavailable.""","1. ""Agent: Start from no preferred server.""
+2. ""Agent: Trigger link.""
+3. ""Agent: Select server with remember true.""
+4. ""Agent: Trigger link again.""
+5. ""Agent: Restart app.""
+6. ""Agent: Trigger link again.""
+7. ""Agent: Simulate stale preferred server if practical.""","1. ""First link opens picker.""
+2. ""Server picker opens.""
+3. ""Dialpad opens in workspace A.""
+4. ""Picker is skipped; workspace A is used.""
+5. ""App starts normally.""
+6. ""Picker is still skipped; workspace A is used.""
+7. ""Picker opens instead of silently failing."""
+"","1","Telephony deeplinks","","Telephony global shortcut","Source flow: TEL-QA-008
+
+Configured shortcut reads clipboard on trigger and opens the telephony flow.","telephony_enabled
+clipboard_access
+at_least_one_workspace","- Screenshot shortcut configuration and any error state.
+- Record accelerator used.","major","high","actual","manual","classic","TEL-QA-008,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:telephony_enabled,requires:clipboard_access,requires:at_least_one_workspace","1. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, then find the `Telephony` section heading.""
+2. ""Enable shortcut and set a non-conflicting accelerator.""
+3. ""Copy `+15551234567` to clipboard.""
+4. ""Press the shortcut.""
+5. ""Copy `tel:+55 11 99999-1234`.""
+6. ""Press the shortcut.""
+7. ""Copy invalid text.""
+8. ""Press the shortcut.""
+9. ""Try a reserved/conflicting shortcut.""
+10. ""Switch Telephony off from the same Telephony settings section.""
+11. ""Press the previously configured shortcut again.""","1. ""Agent: Navigate to Telephony settings.""
+2. ""Agent: Configure shortcut.""
+3. ""Agent: Set clipboard text.""
+4. ""Agent: Dispatch accelerator.""
+5. ""Agent: Set clipboard text.""
+6. ""Agent: Dispatch accelerator.""
+7. ""Agent: Set clipboard text to `not a phone`.""
+8. ""Agent: Dispatch accelerator.""
+9. ""Agent: Configure known conflict if safe.""
+10. ""Agent: Set telephony toggle to off.""
+11. ""Clipboard still contains the last valid phone number.
+Agent: Dispatch the same accelerator after disabling Telephony.""","1. ""Global shortcut controls are visible.""
+2. ""Registration status shows success or no error.""
+3. ""Clipboard contains phone number.""
+4. ""Dialpad opens with `+15551234567`.""
+5. ""Clipboard contains URI.""
+6. ""Dialpad opens with `+5511999991234`.""
+7. ""Clipboard contains invalid text.""
+8. ""Dialpad opens with empty input; no malformed number is sent.""
+9. ""UI reports failure without crashing.""
+10. ""Shortcut controls become inactive or the configured shortcut is no longer active.""
+11. ""Dialpad does not open and no call request is created while Telephony is disabled."""
+"","1","Telephony deeplinks","","macOS cold launch from tel and callto links","Source flow: TEL-QA-009
+
+Clicking a phone link while Rocket.Chat is closed launches the app and routes the link.","telephony_enabled
+app_registered_for_protocols
+test-links-html","- Screen recording is preferred because this tests app launch timing.
+- Note browser used.","critical","high","actual","manual","classic","TEL-QA-009,source:repo-qa,platform:macos,requires:telephony_enabled,requires:app_registered_for_protocols,requires:test-links-html","1. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony on.""
+2. ""Quit Rocket.Chat completely.""
+3. ""Open `test-links.html` in Safari or Chrome.""
+4. ""Click `tel:+15551234567`.""
+5. ""Quit Rocket.Chat again.""
+6. ""Click `callto:+15551234567`.""
+7. ""Repeat while Rocket.Chat is already running.""","1. ""Agent: Set telephony toggle on.""
+2. ""Agent: Ensure no Rocket.Chat process remains.""
+3. ""Agent: Open local HTML in browser.""
+4. ""Agent: Trigger link.""
+5. ""Agent: Ensure no process remains.""
+6. ""Agent: Trigger link.""
+7. ""Agent: Trigger link with running app.""","1. ""App is registered for phone protocols.""
+2. ""App is closed.""
+3. ""Link page is visible.""
+4. ""Rocket.Chat launches and opens telephony flow.""
+5. ""App is closed.""
+6. ""Rocket.Chat launches and opens telephony flow.""
+7. ""Existing app window focuses and routes link."""
+"","1","Telephony deeplinks","","Windows Default Apps for tel and callto","Source flow: TEL-QA-010
+
+Rocket.Chat appears in Windows Default Apps and can own both tel and callto.","telephony_enabled
+installed_windows_build
+test-links-html","- Screenshot Default Apps assignment.
+- Copied diagnostics JSON.","critical","high","actual","manual","classic","TEL-QA-010,source:repo-qa,platform:windows,requires:telephony_enabled,requires:installed_windows_build,requires:test-links-html","1. ""Install the branch Windows build.""
+2. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony on.""
+3. ""Open Windows Settings -> Apps -> Default apps.""
+4. ""Search or open Rocket.Chat.""
+5. ""Assign `tel` to Rocket.Chat.""
+6. ""Assign `callto` to Rocket.Chat.""
+7. ""Open Rocket.Chat diagnostics.""
+8. ""Click valid links in `test-links.html`.""","1. ""Agent: Install app.""
+2. ""Agent: Set telephony toggle on.""
+3. ""Agent: Open Default Apps settings.""
+4. ""Agent: Locate registered app entry.""
+5. ""Agent: Set `tel` protocol default.""
+6. ""Agent: Set `callto` protocol default.""
+7. ""Agent: Read checks.""
+8. ""Agent: Trigger `tel` and `callto`.""","1. ""Rocket.Chat appears in Start menu/apps.""
+2. ""Prompt or diagnostics is available.""
+3. ""Default Apps window opens.""
+4. ""Rocket.Chat appears as a candidate.""
+5. ""Windows accepts Rocket.Chat.""
+6. ""Windows accepts Rocket.Chat.""
+7. ""`isDefault.tel` and `isDefault.callto` pass.""
+8. ""Rocket.Chat opens telephony flow for both."""
+"","1","Telephony deeplinks","","Windows MSI SET_DEFAULT_ASSOCIATIONS policy","Source flow: TEL-QA-011
+
+MSI policy points to an existing XML and diagnostics pass after Windows applies defaults.","msi_artifact
+administrator_or_system_install_context","- MSI install log.
+- `reg query` output.
+- Screenshot or command output proving XML exists.
+- Diagnostics JSON.","critical","high","actual","manual","classic","TEL-QA-011,source:repo-qa,platform:windows,requires:msi_artifact,requires:administrator_or_system_install_context","1. ""Install MSI with `SET_DEFAULT_ASSOCIATIONS=1`.""
+2. ""Query policy registry value.""
+3. ""Check the XML path exists.""
+4. ""Sign out and sign back in after install.""
+5. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony on.""
+6. ""Open diagnostics.""
+7. ""Click valid links.""
+8. ""Uninstall.""","1. ""Agent: Run `msiexec /i <msi> SET_DEFAULT_ASSOCIATIONS=1 /qn`.""
+2. ""Agent: Run `reg query """"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System"""" /v DefaultAssociationsConfiguration`.""
+3. ""Agent: Test file existence.""
+4. ""Agent: Reapply Windows default associations through a logon cycle.""
+5. ""Agent: Set telephony toggle on.""
+6. ""Agent: Read checks.""
+7. ""Agent: Trigger `tel` and `callto`.""
+8. ""Agent: Remove MSI.""","1. ""Install succeeds.""
+2. ""Value points to Rocket.Chat XML under install `resources`.""
+3. ""`RocketChatDefaultAppAssociations.xml` exists at the registry path.""
+4. ""Windows applies defaults.""
+5. ""Diagnostics are available.""
+6. ""`isDefault.tel` and `isDefault.callto` pass when policy applied.""
+7. ""Rocket.Chat handles both protocols.""
+8. ""Installer removes policy only if it owns the sentinel."""
+"","1","Telephony deeplinks","","Linux protocol handling","Source flow: TEL-QA-012
+
+Linux desktop protocol defaults can route tel and callto links to Rocket.Chat.","telephony_enabled
+installed_linux_build
+test-links-html","- Diagnostics JSON.
+- Desktop environment name.
+- Command output from `xdg-mime` if used.","major","high","actual","manual","classic","TEL-QA-012,source:repo-qa,platform:linux,requires:telephony_enabled,requires:installed_linux_build,requires:test-links-html","1. ""Install Linux package or run packaged build.""
+2. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony on.""
+3. ""Open diagnostics.""
+4. ""If a visible diagnostics row shows a button labeled `Open Settings`, click it.""
+5. ""Set `tel` and `callto` to Rocket.Chat when diagnostics report another handler.""
+6. ""Click valid links in `test-links.html`.""","1. ""Agent: Install app package.""
+2. ""Agent: Set telephony toggle on.""
+3. ""Agent: Read checks.""
+4. ""Agent: Activate Open Settings action.""
+5. ""Agent: Use desktop settings first; use xdg tools only when desktop settings are unavailable.""
+6. ""Agent: Trigger `tel` and `callto`.""","1. ""Desktop file is available.""
+2. ""App attempts protocol registration.""
+3. ""`linux.xdg.tel` and `linux.xdg.callto` reflect current defaults.""
+4. ""GNOME/KDE default-app settings opens when supported.""
+5. ""Rocket.Chat owns both handlers.""
+6. ""Rocket.Chat opens telephony flow."""
+"","1","Telephony deeplinks","","Localization and layout smoke","Source flow: TEL-QA-013
+
+Telephony UI is readable without clipping in key locales.","telephony_enabled","- Screenshots for each locale and UI surface.","minor","medium","actual","manual","classic","TEL-QA-013,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:telephony_enabled","1. ""Set app/system locale to English.""
+2. ""Check prompt, diagnostics, server picker, shortcut controls.""
+3. ""Repeat in Brazilian Portuguese.""
+4. ""Repeat in German.""
+5. ""Resize window to a narrow supported width.""","1. ""Agent: Launch with English locale or record that locale switching is unavailable.""
+2. ""Agent: Capture each UI surface.""
+3. ""Agent: Launch with pt-BR or record that locale switching is unavailable.""
+4. ""Agent: Launch with de-DE or record that locale switching is unavailable.""
+5. ""Agent: Set smaller viewport/window.""","1. ""Telephony settings copy is readable.""
+2. ""No clipping or overlap.""
+3. ""Copy remains readable.""
+4. ""Long labels remain readable.""
+5. ""Text wraps or truncates cleanly."""
+"","1","Telephony deeplinks","","Negative and edge cases","Source flow: TEL-QA-014
+
+Invalid or unsupported inputs fail safely without crashes or wrong calls.","test-links-html","- Notes for each edge input and observed result.
+- Screenshots for any unexpected modal or error.","major","high","actual","manual","classic","TEL-QA-014,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:test-links-html","1. ""Disable Telephony and click a valid phone link.""
+2. ""In a fresh profile with zero workspaces, use the left vertical server list and click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top of Settings, find the `Telephony` section heading, then switch Telephony on.""
+3. ""Click `tel:` from `test-links.html`.""
+4. ""Click `callto:?subject=empty`.""
+5. ""With multiple workspaces, open picker and cancel.""
+6. ""Trigger two phone links quickly.""
+7. ""Create a stale remembered workspace by remembering a server, then removing that server from the profile.""","1. ""Agent: Trigger `tel:+15551234567`.""
+2. ""Agent: Use a fresh profile with zero workspaces.""
+3. ""Agent: Trigger empty `tel`.""
+4. ""Agent: Trigger query-only `callto`.""
+5. ""Agent: Trigger link then dismiss modal.""
+6. ""Agent: Fire links in quick succession.""
+7. ""Agent: Remove remembered server from server list.""","1. ""No call request is placed.""
+2. ""Phone link does not crash; no call is placed.""
+3. ""No call request is placed.""
+4. ""No call request is placed.""
+5. ""No call request is placed.""
+6. ""App avoids duplicate/concurrent modal failures.""
+7. ""Picker opens instead of silently failing."""

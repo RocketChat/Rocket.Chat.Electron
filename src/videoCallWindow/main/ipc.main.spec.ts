@@ -94,6 +94,11 @@ const makeDeferred = () => {
 };
 const fakeRootWindow = {
   getNormalBounds: jest.fn(() => ({ x: 0, y: 0, width: 1200, height: 800 })),
+  isDestroyed: jest.fn(() => false),
+  isMinimized: jest.fn(() => false),
+  restore: jest.fn(),
+  show: jest.fn(),
+  focus: jest.fn(),
 };
 const getRootWindow = jest.fn((..._a: any[]) => {
   // Default: resolve immediately. Tests can swap in a deferred to gate it.
@@ -239,6 +244,12 @@ class FakeBrowserWindow {
 
   show = jest.fn();
 
+  focus = jest.fn();
+
+  isMinimized = jest.fn(() => false);
+
+  restore = jest.fn();
+
   isFocused = jest.fn(() => true);
 
   isVisible = jest.fn(() => true);
@@ -259,7 +270,10 @@ const screen = {
 
 jest.mock('electron', () => ({
   app: { getAppPath: jest.fn(() => '/app') },
-  BrowserWindow: jest.fn().mockImplementation(() => new FakeBrowserWindow()),
+  BrowserWindow: Object.assign(
+    jest.fn().mockImplementation(() => new FakeBrowserWindow()),
+    { fromWebContents: jest.fn(() => null) }
+  ),
   ipcMain: {
     on: jest.fn(),
     once: jest.fn(),
@@ -341,6 +355,10 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         ? rootWindowDeferred.promise
         : Promise.resolve(fakeRootWindow)
     );
+    // clearAllMocks() keeps mockReturnValue impls, so reset the root-window
+    // window-state methods to deterministic defaults for each test.
+    fakeRootWindow.isDestroyed.mockReturnValue(false);
+    fakeRootWindow.isMinimized.mockReturnValue(false);
   });
 
   // -------------------------------------------------------------------------
@@ -513,13 +531,14 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
     // First open -> server A
     getServerUrlByWebContentsId.mockReturnValue('https://first.example');
     const { openWindow } = await loadModule();
-    await open(openWindow, makeCallerWc(1));
+    await open(openWindow, makeCallerWc(1), 'https://meet.example/a');
     const firstWindow = createdWindows[0];
 
-    // Second open -> server B (fresh activeCall = B). The existing-window guard
-    // in openVideoCallWindow closes the first window synchronously.
+    // Second open -> server B (fresh activeCall = B). A DIFFERENT conference URL
+    // so the same-conference focus short-circuit is not taken; the existing-
+    // window guard in openVideoCallWindow closes the first window synchronously.
     getServerUrlByWebContentsId.mockReturnValue('https://second.example');
-    await open(openWindow, makeCallerWc(2));
+    await open(openWindow, makeCallerWc(2), 'https://meet.example/b');
     expect(createdWindows).toHaveLength(2);
     const secondWindow = createdWindows[1];
 
@@ -598,5 +617,378 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
     await flushPromises();
 
     expect(setupServerViewDisplayMedia).toHaveBeenCalledWith(serverWc);
+  });
+
+  // -------------------------------------------------------------------------
+  // open-in-main-window: focus the main window + emit 'navigate-to-route'
+  // -------------------------------------------------------------------------
+  describe('open-in-main-window', () => {
+    const loadHandler = async () => {
+      await loadModule();
+      const handler = handleRegistry.get(
+        'video-call-window/open-in-main-window'
+      );
+      if (!handler)
+        throw new Error('open-in-main-window handler not registered');
+      return handler;
+    };
+
+    const makeServerWc = () => ({
+      isDestroyed: jest.fn(() => false),
+      send: jest.fn(),
+    });
+
+    it("caller's server resolves -> focuses main window and emits navigate-to-route", async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const serverWc = makeServerWc();
+      getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(42), '/channel/general');
+
+      expect(getServerUrlByWebContentsId).toHaveBeenCalledWith(42);
+      expect(getWebContentsByServerUrl).toHaveBeenCalledWith(
+        'https://chat.example'
+      );
+      expect(fakeRootWindow.show).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.focus).toHaveBeenCalledTimes(1);
+      expect(serverWc.send).toHaveBeenCalledWith(
+        'navigate-to-route',
+        '/channel/general'
+      );
+    });
+
+    it('falls back to the active server when the caller is unresolved', async () => {
+      getServerUrlByWebContentsId.mockReturnValue(undefined);
+      select.mockImplementation((sel: any) =>
+        sel({ currentView: { url: 'https://active.example' } })
+      );
+      const serverWc = makeServerWc();
+      getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(99), '/admin/rooms');
+
+      expect(getWebContentsByServerUrl).toHaveBeenCalledWith(
+        'https://active.example'
+      );
+      expect(serverWc.send).toHaveBeenCalledWith(
+        'navigate-to-route',
+        '/admin/rooms'
+      );
+    });
+
+    it("prefers the active call's origin server over the active view when the caller is unresolved", async () => {
+      // Open a call from server A so `activeCall.serverWebContentsId` is set.
+      getServerUrlByWebContentsId.mockReturnValue('https://origin.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(50));
+
+      // The open-in-main-window caller (the standalone video window) does not
+      // resolve to a server; the active view is a *different* server. The
+      // handler must target the call's origin server, not the active view.
+      const handler = handleRegistry.get(
+        'video-call-window/open-in-main-window'
+      );
+      if (!handler)
+        throw new Error('open-in-main-window handler not registered');
+
+      getServerUrlByWebContentsId.mockImplementation((id: number) =>
+        id === 50 ? 'https://origin.example' : undefined
+      );
+      select.mockImplementation((sel: any) =>
+        sel({ currentView: { url: 'https://other.example' } })
+      );
+      const serverWc = makeServerWc();
+      getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+      await handler(makeCallerWc(999), '/channel/general');
+
+      expect(getWebContentsByServerUrl).toHaveBeenCalledWith(
+        'https://origin.example'
+      );
+      expect(getWebContentsByServerUrl).not.toHaveBeenCalledWith(
+        'https://other.example'
+      );
+      expect(serverWc.send).toHaveBeenCalledWith(
+        'navigate-to-route',
+        '/channel/general'
+      );
+    });
+
+    it('restores the main window when minimized', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      getWebContentsByServerUrl.mockReturnValue(makeServerWc());
+      fakeRootWindow.isMinimized.mockReturnValue(true);
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(1), '/channel/general');
+
+      expect(fakeRootWindow.restore).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      '//evil.example',
+      'https://evil.example',
+      '/\\evil.example',
+      'channel/general',
+    ])(
+      'rejects non-relative path %p -> no focus, no navigate',
+      async (badPath) => {
+        getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+        const serverWc = makeServerWc();
+        getWebContentsByServerUrl.mockReturnValue(serverWc);
+
+        const handler = await loadHandler();
+        await handler(makeCallerWc(1), badPath);
+
+        expect(serverWc.send).not.toHaveBeenCalled();
+        expect(fakeRootWindow.focus).not.toHaveBeenCalled();
+      }
+    );
+
+    it('no-ops safely when the target server webview is missing', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      getWebContentsByServerUrl.mockReturnValue(undefined);
+
+      const handler = await loadHandler();
+      await expect(
+        handler(makeCallerWc(1), '/channel/general')
+      ).resolves.toBeUndefined();
+
+      expect(fakeRootWindow.focus).not.toHaveBeenCalled();
+    });
+
+    it('no-ops safely when the target server webview is destroyed', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      getWebContentsByServerUrl.mockReturnValue({
+        isDestroyed: jest.fn(() => true),
+        send: jest.fn(),
+      });
+
+      const handler = await loadHandler();
+      await handler(makeCallerWc(1), '/channel/general');
+
+      expect(fakeRootWindow.focus).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // close: 'video-call-window/close' (ipcMain.on) closes the sender's window
+  // -------------------------------------------------------------------------
+  describe('close', () => {
+    const getCloseHandler = async () => {
+      await loadModule();
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) => channel === 'video-call-window/close'
+      );
+      if (!call) throw new Error('close listener not registered');
+      const fromWebContents = electron.BrowserWindow
+        .fromWebContents as jest.Mock;
+      fromWebContents.mockReset();
+      return {
+        listener: call[1] as (event: { sender: any }) => void,
+        fromWebContents,
+      };
+    };
+
+    it('closes the window resolved from the sender', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const win = { isDestroyed: jest.fn(() => false), close: jest.fn() };
+      fromWebContents.mockReturnValue(win);
+
+      listener({ sender: { hostWebContents: null } });
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to the host window for a webview-guest sender', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const hostWebContents = { id: 5 };
+      const win = { isDestroyed: jest.fn(() => false), close: jest.fn() };
+      // Guest sender resolves to null; the hostWebContents resolves to the window.
+      fromWebContents.mockReturnValueOnce(null).mockReturnValueOnce(win);
+
+      listener({ sender: { hostWebContents } });
+
+      expect(fromWebContents).toHaveBeenNthCalledWith(2, hostWebContents);
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close an already-destroyed window', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const win = { isDestroyed: jest.fn(() => true), close: jest.fn() };
+      fromWebContents.mockReturnValue(win);
+
+      listener({ sender: { hostWebContents: null } });
+
+      expect(win.close).not.toHaveBeenCalled();
+    });
+
+    it('no-ops safely when no window resolves', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      fromWebContents.mockReturnValue(null);
+
+      expect(() =>
+        listener({ sender: { hostWebContents: null } })
+      ).not.toThrow();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // same-conference reopen: focus the existing window instead of recreating
+  // -------------------------------------------------------------------------
+  describe('same-conference reopen', () => {
+    it('focuses the existing window (no recreate, no close) for the same URL', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-x');
+      expect(createdWindows).toHaveLength(1);
+      const win = createdWindows[0] as any;
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-x');
+
+      expect(createdWindows).toHaveLength(1); // not recreated
+      expect(win.close).not.toHaveBeenCalled();
+      expect(win.show).toHaveBeenCalledTimes(1);
+      expect(win.focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('restores first when the existing window is minimized', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-y');
+      const win = createdWindows[0] as any;
+      win.isMinimized.mockReturnValue(true);
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-y');
+
+      expect(win.restore).toHaveBeenCalledTimes(1);
+      expect(win.focus).toHaveBeenCalledTimes(1);
+      expect(createdWindows).toHaveLength(1);
+    });
+
+    it('recreates the window for a different conference URL', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-1');
+      const first = createdWindows[0] as any;
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-2');
+
+      expect(createdWindows).toHaveLength(2);
+      expect(first.close).toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // external links from the conference webview -> system browser
+  // -------------------------------------------------------------------------
+  describe('conference webview external links', () => {
+    const attachGuest = async (sharedSession = true) => {
+      getServerUrlByWebContentsId.mockReturnValue(
+        sharedSession ? 'https://chat.example' : undefined
+      );
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room');
+
+      const guest = {
+        setWindowOpenHandler: jest.fn(),
+        on: jest.fn(),
+        session: {
+          setDisplayMediaRequestHandler: jest.fn(),
+          setPermissionRequestHandler: jest.fn(),
+        },
+        isDestroyed: jest.fn(() => false),
+      };
+      // did-attach-webview is registered on the host window's webContents.
+      fire(
+        createdWindows[0].webContents.listeners,
+        'did-attach-webview',
+        {},
+        guest
+      );
+      return guest;
+    };
+
+    it('routes http(s) popups to the system browser and denies the Electron window', async () => {
+      const guest = await attachGuest();
+      expect(guest.setWindowOpenHandler).toHaveBeenCalledTimes(1);
+      const handler = guest.setWindowOpenHandler.mock.calls[0][0];
+
+      expect(handler({ url: 'https://example.com/page' })).toEqual({
+        action: 'deny',
+      });
+      const { openExternal } = (await import(
+        '../../utils/browserLauncher'
+      )) as any;
+      expect(openExternal).toHaveBeenCalledWith('https://example.com/page');
+    });
+
+    it('allows in-app (non-external) popups', async () => {
+      const guest = await attachGuest();
+      const handler = guest.setWindowOpenHandler.mock.calls[0][0];
+
+      expect(handler({ url: 'about:blank' })).toEqual({ action: 'allow' });
+      expect(handler({ url: 'blob:https://meet.example/abc' })).toEqual({
+        action: 'allow',
+      });
+    });
+
+    it('denies dangerous popup schemes', async () => {
+      const guest = await attachGuest();
+      const handler = guest.setWindowOpenHandler.mock.calls[0][0];
+
+      expect(handler({ url: 'javascript:alert(1)' })).toEqual({
+        action: 'deny',
+      });
+      expect(handler({ url: 'file:///etc/passwd' })).toEqual({
+        action: 'deny',
+      });
+      expect(handler({ url: 'data:text/html,<script>1</script>' })).toEqual({
+        action: 'deny',
+      });
+      expect(handler({ url: 'smb://share/path' })).toEqual({ action: 'deny' });
+    });
+
+    it('registers a will-navigate handler on the guest webview', async () => {
+      const guest = await attachGuest();
+      expect(guest.on).toHaveBeenCalledWith(
+        'will-navigate',
+        expect.any(Function)
+      );
+    });
+
+    it('installs a media permission handler on the fallback (isolated) webview session', async () => {
+      const { handleMediaPermissionRequest } = (await import(
+        '../../ui/main/mediaPermissions'
+      )) as any;
+      const guest = await attachGuest(false);
+
+      expect(guest.session.setPermissionRequestHandler).toHaveBeenCalledTimes(
+        1
+      );
+      const permissionHandler =
+        guest.session.setPermissionRequestHandler.mock.calls[0][0];
+      const callback = jest.fn();
+      await permissionHandler({}, 'media', callback, {
+        mediaTypes: ['audio', 'video'],
+      });
+      expect(handleMediaPermissionRequest).toHaveBeenCalledWith(
+        ['audio', 'video'],
+        expect.anything(),
+        'initiateCall',
+        callback
+      );
+    });
+
+    it('does NOT install a webview permission handler on a shared session', async () => {
+      const guest = await attachGuest(true);
+      expect(guest.session.setPermissionRequestHandler).not.toHaveBeenCalled();
+    });
   });
 });

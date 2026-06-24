@@ -133,12 +133,20 @@ export const setupServerViewPermissionHandler = (
       switch (permission) {
         case 'media': {
           const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-          await handleMediaPermissionRequest(
-            mediaTypes as ReadonlyArray<'audio' | 'video'>,
-            rootWindow,
-            'recordMessage',
-            callback
-          );
+          try {
+            await handleMediaPermissionRequest(
+              mediaTypes as ReadonlyArray<'audio' | 'video'>,
+              rootWindow,
+              'recordMessage',
+              callback
+            );
+          } catch (error) {
+            console.error(
+              'Error handling media permission request in server view:',
+              error
+            );
+            callback(false);
+          }
           return;
         }
 
@@ -518,7 +526,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(SIDE_BAR_SERVER_COPY_URL, async (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload);
-    const currentUrl = await guestWebContents?.getURL();
+    const currentUrl = guestWebContents?.getURL();
     clipboard.writeText(currentUrl || '');
   });
 
@@ -588,7 +596,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.copyCurrentUrl'),
         click: async () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          const currentUrl = await guestWebContents?.getURL();
+          const currentUrl = guestWebContents?.getURL();
           clipboard.writeText(currentUrl || '');
         },
       },

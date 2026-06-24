@@ -59,6 +59,7 @@ let pendingVideoCallPartition: string | null = null;
 
 const FALLBACK_PARTITION = 'persist:jitsi-session';
 type ActiveCall = {
+  url: string; // the conference URL this window was opened for
   partition: string; // 'persist:<serverUrl>' OR the fallback — always truthy
   isSharedSession: boolean; // true only when a real server URL resolved
   serverWebContentsId: number | null;
@@ -266,6 +267,33 @@ const createInternalPickerHandler =
     });
   };
 
+// Schemes a conference page legitimately opens as an in-app popup (device
+// pickers, transient PDF/export blobs). Everything else that isn't external
+// http(s) is denied so a compromised conference frame can't spawn an Electron
+// window pointed at `javascript:`, `data:`, `file:`, etc.
+const ALLOWED_POPUP_SCHEMES = ['about:', 'blob:'];
+
+// Window-open policy shared by the video call window's host page and its
+// conference webview: route external http(s) links (target="_blank" /
+// window.open) to the system browser and deny the Electron popup, allow the
+// in-app popup schemes above, and deny everything else. Mirrors the main app
+// window's intent while keeping the popup surface closed by default.
+const handleVideoCallWindowOpen = ({
+  url,
+}: {
+  url: string;
+}): { action: 'deny' } | { action: 'allow' } => {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    openExternal(url);
+    return { action: 'deny' };
+  }
+  const lower = url.toLowerCase();
+  if (ALLOWED_POPUP_SCHEMES.some((scheme) => lower.startsWith(scheme))) {
+    return { action: 'allow' };
+  }
+  return { action: 'deny' };
+};
+
 const setupWebviewHandlers = (webContents: WebContents) => {
   // Track attached webviews that need handler setup
   const pendingWebviews: WebContents[] = [];
@@ -322,6 +350,83 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     _event: Event,
     webviewWebContents: WebContents
   ): void => {
+    // Route external links opened from the conference (target="_blank" /
+    // window.open) to the system browser instead of spawning a new Electron
+    // window, mirroring the main app window.
+    webviewWebContents.setWindowOpenHandler(handleVideoCallWindowOpen);
+
+    // Send external-protocol target="_self" navigations (mailto:, tel:, custom
+    // schemes) to the browser too; http(s) self-navigations stay in the webview
+    // so the conference's own flows (auth redirects, etc.) keep working.
+    webviewWebContents.on('will-navigate', (event: Event, navUrl: string) => {
+      try {
+        const { protocol } = new URL(navUrl);
+        if (
+          !['http:', 'https:', 'file:', 'data:', 'about:', 'blob:'].includes(
+            protocol
+          )
+        ) {
+          event.preventDefault();
+          isProtocolAllowed(navUrl).then((allowed) => {
+            if (allowed) {
+              openExternal(navUrl);
+            }
+          });
+        }
+      } catch {
+        // Ignore unparseable URLs.
+      }
+    });
+
+    // Media (mic/cam) permission requests from the conference originate in the
+    // webview's session, NOT the host window's, so the handler must live on the
+    // webview partition. On a SHARED session that partition already carries the
+    // server view's permission handler (installed for the main webview) — leave
+    // it untouched so we don't clobber it. Only the isolated FALLBACK partition
+    // (`persist:jitsi-session`) has no handler of its own; install one there so
+    // the call still routes through the app's `handleMediaPermissionRequest`
+    // flow instead of relying on Electron's silent default-grant.
+    const call = activeCall;
+    if (!call?.isSharedSession) {
+      webviewWebContents.session.setPermissionRequestHandler(
+        async (_webContents, permission, callback, details) => {
+          if (permission === 'media') {
+            const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
+            try {
+              await handleMediaPermissionRequest(
+                mediaTypes as ReadonlyArray<'audio' | 'video'>,
+                videoCallWindow,
+                'initiateCall',
+                callback
+              );
+            } catch (error) {
+              console.error(
+                'Error handling media permission request in video call webview:',
+                error
+              );
+              callback(false);
+            }
+            return;
+          }
+
+          switch (permission) {
+            case 'geolocation':
+            case 'notifications':
+            case 'midiSysex':
+            case 'pointerLock':
+            case 'fullscreen':
+              callback(true);
+              return;
+            case 'openExternal':
+              callback(true);
+              return;
+            default:
+              callback(false);
+          }
+        }
+      );
+    }
+
     if (screenPickerReady && provider) {
       setupDisplayMediaHandler(webviewWebContents);
     } else {
@@ -369,6 +474,26 @@ const openVideoCallWindow = async (
 ): Promise<void> => {
   console.log('Video call window: Open-window handler called with URL:', url);
 
+  // If a window for the same conference is already open, just focus it instead
+  // of tearing it down and recreating it. (`activeCall` still holds the current
+  // call here — it's only reassigned for the new call further below.)
+  if (
+    videoCallWindow &&
+    !videoCallWindow.isDestroyed() &&
+    !isVideoCallWindowDestroying &&
+    activeCall?.url === url
+  ) {
+    console.log(
+      'Video call window: same conference already open, focusing existing window'
+    );
+    if (videoCallWindow.isMinimized()) {
+      videoCallWindow.restore();
+    }
+    videoCallWindow.show();
+    videoCallWindow.focus();
+    return;
+  }
+
   // Store provider name and credentials
   videoCallProviderName = options?.providerName ?? null;
   videoCallCredentials = null;
@@ -384,29 +509,6 @@ const openVideoCallWindow = async (
       // _wc.getURL() may not be a valid URL in edge cases
       videoCallCredentials = null;
     }
-  }
-
-  // Always load the call webview in the originating server's partition so it
-  // shares the main webview's session (cookies + localStorage). When the
-  // server can't be resolved, fall back to an isolated jitsi-session partition.
-  const serverUrl = getServerUrlByWebContentsId(_wc.id);
-  const partition = serverUrl ? `persist:${serverUrl}` : FALLBACK_PARTITION;
-  activeCall = {
-    partition,
-    isSharedSession: Boolean(serverUrl),
-    serverWebContentsId: serverUrl ? _wc.id : null,
-  };
-  pendingVideoCallPartition = partition; // handshake global only
-  if (activeCall.isSharedSession) {
-    console.log(
-      'Video call window: sharing server session via partition',
-      partition
-    );
-  } else {
-    console.warn(
-      'Video call window: could not resolve originating server; opening with isolated fallback partition',
-      partition
-    );
   }
 
   if (isVideoCallWindowDestroying) {
@@ -469,10 +571,39 @@ const openVideoCallWindow = async (
     openExternal(validUrl.toString());
     return;
   }
-
+  // The protocol is already validated above (fail-closed throw) and the g.co
+  // external-open case has returned, so by here a window WILL be created.
+  // Resolve the partition and set `activeCall` now — doing it earlier would
+  // leave stale state behind for opens that bail out before `new BrowserWindow`,
+  // which a later teardown could misread.
+  //
+  // Always load the call webview in the originating server's partition so it
+  // shares the main webview's session (cookies + localStorage). When the
+  // server can't be resolved, fall back to an isolated jitsi-session partition.
   {
+    const serverUrl = getServerUrlByWebContentsId(_wc.id);
+    const partition = serverUrl ? `persist:${serverUrl}` : FALLBACK_PARTITION;
+    activeCall = {
+      url,
+      partition,
+      isSharedSession: Boolean(serverUrl),
+      serverWebContentsId: serverUrl ? _wc.id : null,
+    };
+    pendingVideoCallPartition = partition; // handshake global only
+    if (activeCall.isSharedSession) {
+      console.log(
+        'Video call window: sharing server session via partition',
+        partition
+      );
+    } else {
+      console.warn(
+        'Video call window: could not resolve originating server; opening with isolated fallback partition',
+        partition
+      );
+    }
+
     const mainWindow = await getRootWindow();
-    const winBounds = await mainWindow.getNormalBounds();
+    const winBounds = mainWindow.getNormalBounds();
 
     const centeredWindowPosition = {
       x: winBounds.x + winBounds.width / 2,
@@ -810,19 +941,9 @@ const openVideoCallWindow = async (
       url
     );
 
-    webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-      console.log('Video call window - new window requested:', url);
-
-      if (url.toLowerCase().startsWith('smb://')) {
-        return { action: 'deny' };
-      }
-
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        openExternal(url);
-        return { action: 'deny' };
-      }
-
-      return { action: 'allow' };
+    webContents.setWindowOpenHandler((details: { url: string }) => {
+      console.log('Video call window - new window requested:', details.url);
+      return handleVideoCallWindowOpen(details);
     });
 
     webContents.on('will-navigate', (event: any, url: string) => {
@@ -923,6 +1044,23 @@ export const startVideoCallWindowHandler = (): void => {
     event.returnValue = videoCallProviderName;
   });
 
+  // Close the video call window on request from its own renderer. The
+  // renderer's window.close() can't close a window the main process created, so
+  // it asks via this fire-and-forget channel. We resolve the window from the
+  // sender (the webview guest's host window), so a renderer can only close its
+  // own window.
+  ipcMain.on('video-call-window/close', (event) => {
+    const { sender } = event;
+    const win =
+      BrowserWindow.fromWebContents(sender) ??
+      (sender.hostWebContents
+        ? BrowserWindow.fromWebContents(sender.hostWebContents)
+        : null);
+    if (win && !win.isDestroyed()) {
+      win.close();
+    }
+  });
+
   handle('video-call-window/screen-recording-is-permission-granted', async () =>
     checkScreenRecordingPermission()
   );
@@ -930,6 +1068,75 @@ export const startVideoCallWindowHandler = (): void => {
   handle('video-call-window/open-url', async (_webContents, url) => {
     await openExternal(url);
   });
+
+  // Bring the main app window to the front and ask the active server's web
+  // client to navigate to an in-app route. Used by the standalone video-chat
+  // window, which has no window.opener and therefore can't reach the main
+  // window via the web app's window.open trick.
+  handle(
+    'video-call-window/open-in-main-window',
+    async (callerWebContents, path) => {
+      // Defense in depth (the preload validates too): only accept in-app
+      // relative routes — reject absolute/protocol-relative/scheme URLs.
+      if (
+        typeof path !== 'string' ||
+        !path.startsWith('/') ||
+        path.startsWith('//') ||
+        path.startsWith('/\\')
+      ) {
+        console.warn(
+          'Video call window: open-in-main-window rejected non-relative path:',
+          path
+        );
+        return;
+      }
+
+      // Resolve the target server webview in priority order:
+      // 1. the caller's own server (the conference webview, when resolvable);
+      // 2. the server the active call actually belongs to — authoritative, and
+      //    avoids navigating a *different* server in a multi-workspace setup;
+      // 3. the server currently active in the main window (last-resort guess).
+      let serverUrl = getServerUrlByWebContentsId(callerWebContents.id);
+      if (!serverUrl && activeCall?.serverWebContentsId != null) {
+        serverUrl = getServerUrlByWebContentsId(activeCall.serverWebContentsId);
+      }
+      if (!serverUrl) {
+        const currentView = select((state) => state.currentView);
+        if (typeof currentView === 'object' && currentView.url) {
+          serverUrl = currentView.url;
+          console.warn(
+            'Video call window: open-in-main-window could not resolve the call’s origin server; falling back to the active view',
+            serverUrl
+          );
+        }
+      }
+
+      const serverWebContents = serverUrl
+        ? getWebContentsByServerUrl(serverUrl)
+        : undefined;
+      if (!serverWebContents || serverWebContents.isDestroyed()) {
+        console.warn(
+          'Video call window: open-in-main-window could not find a target server webview for',
+          serverUrl
+        );
+        return;
+      }
+
+      // Bring the main window to the foreground.
+      const rootWindow = await getRootWindow();
+      if (rootWindow && !rootWindow.isDestroyed()) {
+        if (rootWindow.isMinimized()) {
+          rootWindow.restore();
+        }
+        rootWindow.show();
+        rootWindow.focus();
+      }
+
+      // Client-side route change. NOT a loadURL — that would hard-reload the
+      // SPA. The web client listens for this event and calls its router.
+      serverWebContents.send('navigate-to-route', path);
+    }
+  );
 
   handle('video-call-window/open-screen-picker', async (callerWebContents) => {
     if (!videoCallWindow || videoCallWindow.isDestroyed()) {

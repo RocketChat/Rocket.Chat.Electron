@@ -29,6 +29,7 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
+import { onNavigateToRoute } from './navigateToRoute';
 import { openInBrowser } from './openInBrowser';
 import { reloadServer } from './reloadServer';
 import {
@@ -59,6 +60,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
     callback: (payload: { phoneNumber: string; rawUri: string }) => void
   ) => void;
   supportedDocumentViewerFormats: () => string[];
+  onNavigateToRoute: (callback: (path: string) => void) => void;
 };
 
 declare global {
@@ -108,4 +110,5 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   reloadServer,
   getE2ePdfPreviewSizeLimit,
   onTelephonyCallRequested,
+  onNavigateToRoute,
 };

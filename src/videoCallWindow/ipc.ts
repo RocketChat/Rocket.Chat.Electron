@@ -59,6 +59,7 @@ let pendingVideoCallPartition: string | null = null;
 
 const FALLBACK_PARTITION = 'persist:jitsi-session';
 type ActiveCall = {
+  url: string; // the conference URL this window was opened for
   partition: string; // 'persist:<serverUrl>' OR the fallback — always truthy
   isSharedSession: boolean; // true only when a real server URL resolved
   serverWebContentsId: number | null;
@@ -359,6 +360,26 @@ const openVideoCallWindow = async (
 ): Promise<void> => {
   console.log('Video call window: Open-window handler called with URL:', url);
 
+  // If a window for the same conference is already open, just focus it instead
+  // of tearing it down and recreating it. (`activeCall` still holds the current
+  // call here — it's only reassigned for the new call further below.)
+  if (
+    videoCallWindow &&
+    !videoCallWindow.isDestroyed() &&
+    !isVideoCallWindowDestroying &&
+    activeCall?.url === url
+  ) {
+    console.log(
+      'Video call window: same conference already open, focusing existing window'
+    );
+    if (videoCallWindow.isMinimized()) {
+      videoCallWindow.restore();
+    }
+    videoCallWindow.show();
+    videoCallWindow.focus();
+    return;
+  }
+
   // Store provider name and credentials
   videoCallProviderName = options?.providerName ?? null;
   videoCallCredentials = null;
@@ -382,6 +403,7 @@ const openVideoCallWindow = async (
   const serverUrl = getServerUrlByWebContentsId(_wc.id);
   const partition = serverUrl ? `persist:${serverUrl}` : FALLBACK_PARTITION;
   activeCall = {
+    url,
     partition,
     isSharedSession: Boolean(serverUrl),
     serverWebContentsId: serverUrl ? _wc.id : null,

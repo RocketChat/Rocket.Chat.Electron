@@ -244,6 +244,12 @@ class FakeBrowserWindow {
 
   show = jest.fn();
 
+  focus = jest.fn();
+
+  isMinimized = jest.fn(() => false);
+
+  restore = jest.fn();
+
   isFocused = jest.fn(() => true);
 
   isVisible = jest.fn(() => true);
@@ -525,13 +531,14 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
     // First open -> server A
     getServerUrlByWebContentsId.mockReturnValue('https://first.example');
     const { openWindow } = await loadModule();
-    await open(openWindow, makeCallerWc(1));
+    await open(openWindow, makeCallerWc(1), 'https://meet.example/a');
     const firstWindow = createdWindows[0];
 
-    // Second open -> server B (fresh activeCall = B). The existing-window guard
-    // in openVideoCallWindow closes the first window synchronously.
+    // Second open -> server B (fresh activeCall = B). A DIFFERENT conference URL
+    // so the same-conference focus short-circuit is not taken; the existing-
+    // window guard in openVideoCallWindow closes the first window synchronously.
     getServerUrlByWebContentsId.mockReturnValue('https://second.example');
-    await open(openWindow, makeCallerWc(2));
+    await open(openWindow, makeCallerWc(2), 'https://meet.example/b');
     expect(createdWindows).toHaveLength(2);
     const secondWindow = createdWindows[1];
 
@@ -826,6 +833,55 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(() =>
         listener({ sender: { hostWebContents: null } })
       ).not.toThrow();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // same-conference reopen: focus the existing window instead of recreating
+  // -------------------------------------------------------------------------
+  describe('same-conference reopen', () => {
+    it('focuses the existing window (no recreate, no close) for the same URL', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-x');
+      expect(createdWindows).toHaveLength(1);
+      const win = createdWindows[0] as any;
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-x');
+
+      expect(createdWindows).toHaveLength(1); // not recreated
+      expect(win.close).not.toHaveBeenCalled();
+      expect(win.show).toHaveBeenCalledTimes(1);
+      expect(win.focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('restores first when the existing window is minimized', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-y');
+      const win = createdWindows[0] as any;
+      win.isMinimized.mockReturnValue(true);
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-y');
+
+      expect(win.restore).toHaveBeenCalledTimes(1);
+      expect(win.focus).toHaveBeenCalledTimes(1);
+      expect(createdWindows).toHaveLength(1);
+    });
+
+    it('recreates the window for a different conference URL', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-1');
+      const first = createdWindows[0] as any;
+
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room-2');
+
+      expect(createdWindows).toHaveLength(2);
+      expect(first.close).toHaveBeenCalled();
     });
   });
 });

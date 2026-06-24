@@ -264,7 +264,10 @@ const screen = {
 
 jest.mock('electron', () => ({
   app: { getAppPath: jest.fn(() => '/app') },
-  BrowserWindow: jest.fn().mockImplementation(() => new FakeBrowserWindow()),
+  BrowserWindow: Object.assign(
+    jest.fn().mockImplementation(() => new FakeBrowserWindow()),
+    { fromWebContents: jest.fn(() => null) }
+  ),
   ipcMain: {
     on: jest.fn(),
     once: jest.fn(),
@@ -760,6 +763,69 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       await handler(makeCallerWc(1), '/channel/general');
 
       expect(fakeRootWindow.focus).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // close: 'video-call-window/close' (ipcMain.on) closes the sender's window
+  // -------------------------------------------------------------------------
+  describe('close', () => {
+    const getCloseHandler = async () => {
+      await loadModule();
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) => channel === 'video-call-window/close'
+      );
+      if (!call) throw new Error('close listener not registered');
+      const fromWebContents = electron.BrowserWindow
+        .fromWebContents as jest.Mock;
+      fromWebContents.mockReset();
+      return {
+        listener: call[1] as (event: { sender: any }) => void,
+        fromWebContents,
+      };
+    };
+
+    it('closes the window resolved from the sender', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const win = { isDestroyed: jest.fn(() => false), close: jest.fn() };
+      fromWebContents.mockReturnValue(win);
+
+      listener({ sender: { hostWebContents: null } });
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to the host window for a webview-guest sender', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const hostWebContents = { id: 5 };
+      const win = { isDestroyed: jest.fn(() => false), close: jest.fn() };
+      // Guest sender resolves to null; the hostWebContents resolves to the window.
+      fromWebContents.mockReturnValueOnce(null).mockReturnValueOnce(win);
+
+      listener({ sender: { hostWebContents } });
+
+      expect(fromWebContents).toHaveBeenNthCalledWith(2, hostWebContents);
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close an already-destroyed window', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const win = { isDestroyed: jest.fn(() => true), close: jest.fn() };
+      fromWebContents.mockReturnValue(win);
+
+      listener({ sender: { hostWebContents: null } });
+
+      expect(win.close).not.toHaveBeenCalled();
+    });
+
+    it('no-ops safely when no window resolves', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      fromWebContents.mockReturnValue(null);
+
+      expect(() =>
+        listener({ sender: { hostWebContents: null } })
+      ).not.toThrow();
     });
   });
 });

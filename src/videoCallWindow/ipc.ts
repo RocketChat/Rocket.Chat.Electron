@@ -901,6 +901,23 @@ export const startVideoCallWindowHandler = (): void => {
     event.returnValue = videoCallProviderName;
   });
 
+  // Close the video call window on request from its own renderer. The
+  // renderer's window.close() can't close a window the main process created, so
+  // it asks via this fire-and-forget channel. We resolve the window from the
+  // sender (the webview guest's host window), so a renderer can only close its
+  // own window.
+  ipcMain.on('video-call-window/close', (event) => {
+    const { sender } = event;
+    const win =
+      BrowserWindow.fromWebContents(sender) ??
+      (sender.hostWebContents
+        ? BrowserWindow.fromWebContents(sender.hostWebContents)
+        : null);
+    if (win && !win.isDestroyed()) {
+      win.close();
+    }
+  });
+
   handle('video-call-window/screen-recording-is-permission-granted', async () =>
     checkScreenRecordingPermission()
   );

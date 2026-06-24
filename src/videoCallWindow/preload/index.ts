@@ -24,6 +24,9 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
       path
     );
   },
+  // Close the video call window. The renderer can't close a window the main
+  // process created, so the main process does it.
+  close: () => ipcRenderer.send('video-call-window/close'),
   // Add methods here if needed for communication with the main process
   requestScreenSharing: async () => {
     // Directly invoke the screen picker

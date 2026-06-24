@@ -257,6 +257,25 @@ const createInternalPickerHandler =
     });
   };
 
+// Window-open policy shared by the video call window's host page and its
+// conference webview: route external http(s) links (target="_blank" /
+// window.open) to the system browser and deny the Electron popup, deny smb://,
+// and allow anything else (in-app). Mirrors the main app window's behavior.
+const handleVideoCallWindowOpen = ({
+  url,
+}: {
+  url: string;
+}): { action: 'deny' } | { action: 'allow' } => {
+  if (url.toLowerCase().startsWith('smb://')) {
+    return { action: 'deny' };
+  }
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    openExternal(url);
+    return { action: 'deny' };
+  }
+  return { action: 'allow' };
+};
+
 const setupWebviewHandlers = (webContents: WebContents) => {
   // Track attached webviews that need handler setup
   const pendingWebviews: WebContents[] = [];
@@ -313,6 +332,34 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     _event: Event,
     webviewWebContents: WebContents
   ): void => {
+    // Route external links opened from the conference (target="_blank" /
+    // window.open) to the system browser instead of spawning a new Electron
+    // window, mirroring the main app window.
+    webviewWebContents.setWindowOpenHandler(handleVideoCallWindowOpen);
+
+    // Send external-protocol target="_self" navigations (mailto:, tel:, custom
+    // schemes) to the browser too; http(s) self-navigations stay in the webview
+    // so the conference's own flows (auth redirects, etc.) keep working.
+    webviewWebContents.on('will-navigate', (event: Event, navUrl: string) => {
+      try {
+        const { protocol } = new URL(navUrl);
+        if (
+          !['http:', 'https:', 'file:', 'data:', 'about:', 'blob:'].includes(
+            protocol
+          )
+        ) {
+          event.preventDefault();
+          isProtocolAllowed(navUrl).then((allowed) => {
+            if (allowed) {
+              openExternal(navUrl);
+            }
+          });
+        }
+      } catch {
+        // Ignore unparseable URLs.
+      }
+    });
+
     if (screenPickerReady && provider) {
       setupDisplayMediaHandler(webviewWebContents);
     } else {
@@ -810,19 +857,9 @@ const openVideoCallWindow = async (
       url
     );
 
-    webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-      console.log('Video call window - new window requested:', url);
-
-      if (url.toLowerCase().startsWith('smb://')) {
-        return { action: 'deny' };
-      }
-
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        openExternal(url);
-        return { action: 'deny' };
-      }
-
-      return { action: 'allow' };
+    webContents.setWindowOpenHandler((details: { url: string }) => {
+      console.log('Video call window - new window requested:', details.url);
+      return handleVideoCallWindowOpen(details);
     });
 
     webContents.on('will-navigate', (event: any, url: string) => {

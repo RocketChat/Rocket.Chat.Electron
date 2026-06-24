@@ -884,4 +884,59 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(first.close).toHaveBeenCalled();
     });
   });
+
+  // -------------------------------------------------------------------------
+  // external links from the conference webview -> system browser
+  // -------------------------------------------------------------------------
+  describe('conference webview external links', () => {
+    const attachGuest = async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room');
+
+      const guest = {
+        setWindowOpenHandler: jest.fn(),
+        on: jest.fn(),
+        session: { setDisplayMediaRequestHandler: jest.fn() },
+        isDestroyed: jest.fn(() => false),
+      };
+      // did-attach-webview is registered on the host window's webContents.
+      fire(
+        createdWindows[0].webContents.listeners,
+        'did-attach-webview',
+        {},
+        guest
+      );
+      return guest;
+    };
+
+    it('routes http(s) popups to the system browser and denies the Electron window', async () => {
+      const guest = await attachGuest();
+      expect(guest.setWindowOpenHandler).toHaveBeenCalledTimes(1);
+      const handler = guest.setWindowOpenHandler.mock.calls[0][0];
+
+      expect(handler({ url: 'https://example.com/page' })).toEqual({
+        action: 'deny',
+      });
+      const { openExternal } = (await import(
+        '../../utils/browserLauncher'
+      )) as any;
+      expect(openExternal).toHaveBeenCalledWith('https://example.com/page');
+    });
+
+    it('allows in-app (non-external) popups', async () => {
+      const guest = await attachGuest();
+      const handler = guest.setWindowOpenHandler.mock.calls[0][0];
+
+      expect(handler({ url: 'about:blank' })).toEqual({ action: 'allow' });
+    });
+
+    it('registers a will-navigate handler on the guest webview', async () => {
+      const guest = await attachGuest();
+      expect(guest.on).toHaveBeenCalledWith(
+        'will-navigate',
+        expect.any(Function)
+      );
+    });
+  });
 });

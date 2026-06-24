@@ -25,6 +25,7 @@ supportedVersions.jwt
 localdev/
 
 # caches and temp
+/coverage
 jest_dx/
 node-compile-cache/
 coderabbit-update-*/

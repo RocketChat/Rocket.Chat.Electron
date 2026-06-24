@@ -38,7 +38,7 @@ const loadUserTrustedCertificates = async (): Promise<
   }
 };
 
-const serializeCertificate = (certificate: Certificate): string =>
+export const serializeCertificate = (certificate: Certificate): string =>
   `${certificate.issuerName}\n${certificate.data.toString()}`;
 
 const queuedTrustRequests = new Map<

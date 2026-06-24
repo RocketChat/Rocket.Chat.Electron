@@ -4584,6 +4584,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@testing-library/user-event@npm:~14.5.2":
+  version: 14.5.2
+  resolution: "@testing-library/user-event@npm:14.5.2"
+  peerDependencies:
+    "@testing-library/dom": ">=7.21.4"
+  checksum: 10/49821459d81c6bc435d97128d6386ca24f1e4b3ba8e46cb5a96fe3643efa6e002d88c1b02b7f2ec58da593e805c59b78d7fdf0db565c1f02ba782f63ee984040
+  languageName: node
+  linkType: hard
+
 "@tokenizer/token@npm:^0.3.0":
   version: 0.3.0
   resolution: "@tokenizer/token@npm:0.3.0"
@@ -14614,6 +14623,7 @@ __metadata:
     "@testing-library/dom": "npm:~10.4.1"
     "@testing-library/jest-dom": "npm:~6.9.1"
     "@testing-library/react": "npm:~16.3.2"
+    "@testing-library/user-event": "npm:~14.5.2"
     "@types/archiver": "npm:~7.0.0"
     "@types/dompurify": "npm:~3.2.0"
     "@types/electron-devtools-installer": "npm:~2.2.5"
@@ -14681,6 +14691,7 @@ __metadata:
     ts-node: "npm:~10.9.2"
     typescript: "npm:~5.7.3"
     xvfb-maybe: "npm:~0.2.1"
+    yaml: "npm:^1.10.2"
   dependenciesMeta:
     fsevents:
       optional: true
@@ -16977,6 +16988,13 @@ __metadata:
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
   checksum: 10/e088b37b4d4885b70b50c9fa1b7e54bd2e27f5c87205f9deaffd1fb293ab263d9c964feadb9817a7b129a5bf30a06582cb08750f810568ecc14f3cdbabb79cb3
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^1.10.2":
+  version: 1.10.3
+  resolution: "yaml@npm:1.10.3"
+  checksum: 10/e2ef2feb92c708138f016c69777a0f1e45f6d3c5e7cbcda30807a98a37eda2e008bd4fa57352b043c65245a4c799d0c99d1f9b3425de40e70929e26d2ea38215
   languageName: node
   linkType: hard
 

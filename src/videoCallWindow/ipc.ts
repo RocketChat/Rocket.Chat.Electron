@@ -23,12 +23,25 @@ import type {
   ScreenPickerProvider,
 } from '../screenSharing/screenPicker/types';
 import { checkScreenRecordingPermission } from '../screenSharing/screenRecordingPermission';
+import {
+  handleServerViewDisplayMediaRequest,
+  setupServerViewDisplayMedia,
+} from '../screenSharing/serverViewScreenSharing';
 import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
+import {
+  getServerUrlByWebContentsId,
+  getWebContentsByServerUrl,
+  setupServerViewPermissionHandler,
+} from '../ui/main/serverView';
 import { openExternal } from '../utils/browserLauncher';
+
+// Alias to reach the WebContents static methods (e.g. fromFrame) from inside
+// functions that shadow `webContents` with a parameter of the same name.
+const electronWebContents = webContents;
 
 const DESTRUCTION_CHECK_INTERVAL = 50;
 const DEVTOOLS_TIMEOUT = 2000;
@@ -37,6 +50,24 @@ const WEBVIEW_CHECK_INTERVAL = 100;
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
 let pendingVideoCallUrl: string | null = null;
+// READ ONLY by the renderer handshake (the BrowserWindow `loadFile` query
+// payload, and the `video-call-window/request-url` IPC response). It carries
+// the originating server's partition (`persist:<serverUrl>`) so the call shares
+// the main webview's cookies + localStorage. Do NOT read it for any lifecycle
+// decision — those go through `activeCall` instead.
+let pendingVideoCallPartition: string | null = null;
+
+const FALLBACK_PARTITION = 'persist:jitsi-session';
+type ActiveCall = {
+  url: string; // the conference URL this window was opened for
+  partition: string; // 'persist:<serverUrl>' OR the fallback — always truthy
+  isSharedSession: boolean; // true only when a real server URL resolved
+  serverWebContentsId: number | null;
+};
+let activeCall: ActiveCall | null = null;
+// Serializes open-window requests so two near-simultaneous opens can't both pass
+// the destruction/existing-window guards and race into `new BrowserWindow`.
+let openWindowQueue: Promise<unknown> = Promise.resolve();
 let videoCallCredentials: {
   userId: string;
   authToken: string;
@@ -87,7 +118,32 @@ const fetchVideoCallWindowState = async (browserWindow: BrowserWindow) => {
   };
 };
 
+// Restore the plain server-view display-media handler on the originating
+// server's session after a call window's unified handler took it over. Safe to
+// call from every teardown path: it re-resolves the live server webContents and
+// is idempotent (last-writer-wins, app-singleton provider). It must NOT null
+// `activeCall` — each teardown path re-resolves the live server webContents.
+const restoreServerViewHandler = async (
+  call: ActiveCall | null
+): Promise<void> => {
+  if (!call?.isSharedSession) return; // isolated/fallback sessions: nothing to restore
+  const serverUrl = call.partition.replace(/^persist:/, '');
+  const serverWc = getWebContentsByServerUrl(serverUrl);
+  if (serverWc && !serverWc.isDestroyed()) {
+    setupServerViewDisplayMedia(serverWc);
+  }
+
+  // The shared-session teardown reset the permission handler to deny-all,
+  // which also kills permission prompts on the live main webview. Restore it.
+  const rootWindow = await getRootWindow();
+  // Re-check after the await: getRootWindow yields the event loop.
+  if (serverWc && !serverWc.isDestroyed() && rootWindow) {
+    setupServerViewPermissionHandler(serverWc, rootWindow);
+  }
+};
+
 const cleanupVideoCallWindow = () => {
+  const capturedCall = activeCall;
   if (
     videoCallWindow &&
     !videoCallWindow.isDestroyed() &&
@@ -121,7 +177,11 @@ const cleanupVideoCallWindow = () => {
           console.log(
             'Stopping webview JavaScript execution before window cleanup'
           );
-          webviewContents.session.setPermissionRequestHandler(() => false);
+          // Don't reset the permission handler when sharing the server's
+          // session — it would disable permissions on the live main webview.
+          if (!capturedCall?.isSharedSession) {
+            webviewContents.session.setPermissionRequestHandler(() => false);
+          }
           webviewContents.loadURL('about:blank').catch(() => {});
         }
       } catch (error) {
@@ -129,6 +189,10 @@ const cleanupVideoCallWindow = () => {
           'Could not clean webview contents, continuing with window cleanup'
         );
       }
+
+      // Restore the server-view display-media handler that this call's unified
+      // handler took over (no-op on isolated/fallback sessions).
+      void restoreServerViewHandler(capturedCall);
 
       // Clean up screen sharing listener before removing window listeners
       videoCallScreenSharingTracker.cleanup();
@@ -167,6 +231,9 @@ const cleanupVideoCallWindow = () => {
     videoCallWindow = null;
     isVideoCallWindowDestroying = false;
     videoCallWindowDestructionCount++;
+    // Only clear `activeCall` if it still belongs to this teardown — a stale
+    // prior-window teardown firing later must not wipe a freshly-set newer call.
+    if (activeCall === capturedCall) activeCall = null;
 
     console.log('Video call window cleanup completed');
     logVideoCallWindowStats();
@@ -190,6 +257,33 @@ const createInternalPickerHandler =
     });
   };
 
+// Schemes a conference page legitimately opens as an in-app popup (device
+// pickers, transient PDF/export blobs). Everything else that isn't external
+// http(s) is denied so a compromised conference frame can't spawn an Electron
+// window pointed at `javascript:`, `data:`, `file:`, etc.
+const ALLOWED_POPUP_SCHEMES = ['about:', 'blob:'];
+
+// Window-open policy shared by the video call window's host page and its
+// conference webview: route external http(s) links (target="_blank" /
+// window.open) to the system browser and deny the Electron popup, allow the
+// in-app popup schemes above, and deny everything else. Mirrors the main app
+// window's intent while keeping the popup surface closed by default.
+const handleVideoCallWindowOpen = ({
+  url,
+}: {
+  url: string;
+}): { action: 'deny' } | { action: 'allow' } => {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    openExternal(url);
+    return { action: 'deny' };
+  }
+  const lower = url.toLowerCase();
+  if (ALLOWED_POPUP_SCHEMES.some((scheme) => lower.startsWith(scheme))) {
+    return { action: 'allow' };
+  }
+  return { action: 'deny' };
+};
+
 const setupWebviewHandlers = (webContents: WebContents) => {
   // Track attached webviews that need handler setup
   const pendingWebviews: WebContents[] = [];
@@ -200,13 +294,34 @@ const setupWebviewHandlers = (webContents: WebContents) => {
   const setupDisplayMediaHandler = (webviewWebContents: WebContents): void => {
     if (!provider) return;
     const currentProvider = provider; // Capture for closure
+    // When the call shares the server's session, this single per-session handler
+    // also serves the main server webview, so it must route by origin. Snapshot
+    // the active call at attach time; the routing decision reads it at request
+    // time via `call?.isSharedSession`.
+    const call = activeCall;
     try {
       // useSystemPicker is an experimental macOS 15+ option; not available on other platforms.
       // We set it to false unconditionally and use the callback handler on all platforms to
       // enable custom source selection (including PipeWire on Wayland via XDG portal).
       webviewWebContents.session.setDisplayMediaRequestHandler(
-        (_request, cb) => {
+        (request, cb) => {
           try {
+            // On a shared session, route by originating frame: in-call requests
+            // use the call window's picker; anything else (the main server
+            // webview) falls back to the server-view picker in the root window.
+            if (call?.isSharedSession) {
+              const originWebContents = request.frame
+                ? electronWebContents.fromFrame(request.frame)
+                : null;
+              const fromCallWindow =
+                !!originWebContents &&
+                originWebContents.hostWebContents?.id ===
+                  videoCallWindow?.webContents.id;
+              if (!fromCallWindow) {
+                handleServerViewDisplayMediaRequest(cb);
+                return;
+              }
+            }
             currentProvider.handleDisplayMediaRequest(cb);
           } catch (error) {
             console.error('Error in screen picker handler:', error);
@@ -225,6 +340,83 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     _event: Event,
     webviewWebContents: WebContents
   ): void => {
+    // Route external links opened from the conference (target="_blank" /
+    // window.open) to the system browser instead of spawning a new Electron
+    // window, mirroring the main app window.
+    webviewWebContents.setWindowOpenHandler(handleVideoCallWindowOpen);
+
+    // Send external-protocol target="_self" navigations (mailto:, tel:, custom
+    // schemes) to the browser too; http(s) self-navigations stay in the webview
+    // so the conference's own flows (auth redirects, etc.) keep working.
+    webviewWebContents.on('will-navigate', (event: Event, navUrl: string) => {
+      try {
+        const { protocol } = new URL(navUrl);
+        if (
+          !['http:', 'https:', 'file:', 'data:', 'about:', 'blob:'].includes(
+            protocol
+          )
+        ) {
+          event.preventDefault();
+          isProtocolAllowed(navUrl).then((allowed) => {
+            if (allowed) {
+              openExternal(navUrl);
+            }
+          });
+        }
+      } catch {
+        // Ignore unparseable URLs.
+      }
+    });
+
+    // Media (mic/cam) permission requests from the conference originate in the
+    // webview's session, NOT the host window's, so the handler must live on the
+    // webview partition. On a SHARED session that partition already carries the
+    // server view's permission handler (installed for the main webview) — leave
+    // it untouched so we don't clobber it. Only the isolated FALLBACK partition
+    // (`persist:jitsi-session`) has no handler of its own; install one there so
+    // the call still routes through the app's `handleMediaPermissionRequest`
+    // flow instead of relying on Electron's silent default-grant.
+    const call = activeCall;
+    if (!call?.isSharedSession) {
+      webviewWebContents.session.setPermissionRequestHandler(
+        async (_webContents, permission, callback, details) => {
+          if (permission === 'media') {
+            const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
+            try {
+              await handleMediaPermissionRequest(
+                mediaTypes as ReadonlyArray<'audio' | 'video'>,
+                videoCallWindow,
+                'initiateCall',
+                callback
+              );
+            } catch (error) {
+              console.error(
+                'Error handling media permission request in video call webview:',
+                error
+              );
+              callback(false);
+            }
+            return;
+          }
+
+          switch (permission) {
+            case 'geolocation':
+            case 'notifications':
+            case 'midiSysex':
+            case 'pointerLock':
+            case 'fullscreen':
+              callback(true);
+              return;
+            case 'openExternal':
+              callback(true);
+              return;
+            default:
+              callback(false);
+          }
+        }
+      );
+    }
+
     if (screenPickerReady && provider) {
       setupDisplayMediaHandler(webviewWebContents);
     } else {
@@ -261,11 +453,590 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     });
 };
 
+// eslint-disable-next-line complexity
+const openVideoCallWindow = async (
+  _wc: WebContents,
+  url: string,
+  options?: {
+    providerName?: string;
+    credentials?: { userId: string; authToken: string };
+  }
+): Promise<void> => {
+  console.log('Video call window: Open-window handler called with URL:', url);
+
+  // If a window for the same conference is already open, just focus it instead
+  // of tearing it down and recreating it. (`activeCall` still holds the current
+  // call here — it's only reassigned for the new call further below.)
+  if (
+    videoCallWindow &&
+    !videoCallWindow.isDestroyed() &&
+    !isVideoCallWindowDestroying &&
+    activeCall?.url === url
+  ) {
+    console.log(
+      'Video call window: same conference already open, focusing existing window'
+    );
+    if (videoCallWindow.isMinimized()) {
+      videoCallWindow.restore();
+    }
+    videoCallWindow.show();
+    videoCallWindow.focus();
+    return;
+  }
+
+  // Store provider name and credentials
+  videoCallProviderName = options?.providerName ?? null;
+  videoCallCredentials = null;
+  if (options?.providerName === 'pexip' && options?.credentials) {
+    try {
+      const serverOrigin = new URL(_wc.getURL()).origin;
+      videoCallCredentials = {
+        userId: options.credentials.userId,
+        authToken: options.credentials.authToken,
+        serverUrl: serverOrigin,
+      };
+    } catch {
+      // _wc.getURL() may not be a valid URL in edge cases
+      videoCallCredentials = null;
+    }
+  }
+
+  if (isVideoCallWindowDestroying) {
+    console.log('Waiting for video call window destruction to complete...');
+    await new Promise<void>((resolve) => {
+      const checkDestructionComplete = () => {
+        if (!isVideoCallWindowDestroying) {
+          resolve();
+        } else {
+          setTimeout(checkDestructionComplete, DESTRUCTION_CHECK_INTERVAL);
+        }
+      };
+      checkDestructionComplete();
+    });
+  }
+
+  if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+    console.log('Closing existing video call window to create fresh one');
+    videoCallWindow.close();
+    videoCallWindow = null;
+
+    if (isVideoCallWindowDestroying) {
+      await new Promise<void>((resolve) => {
+        const checkClosed = () => {
+          if (!isVideoCallWindowDestroying) {
+            resolve();
+          } else {
+            setTimeout(checkClosed, DESTRUCTION_CHECK_INTERVAL);
+          }
+        };
+        checkClosed();
+      });
+    }
+  }
+
+  const validUrl = new URL(url);
+  const allowedProtocols = ['http:', 'https:'];
+  console.log(
+    'Video call window: URL validation - hostname:',
+    validUrl.hostname,
+    'protocol:',
+    validUrl.protocol
+  );
+
+  if (validUrl.hostname.match(/(\.)?g\.co$/)) {
+    console.log(
+      'Video call window: Google URL detected, opening externally instead of internal window'
+    );
+    openExternal(validUrl.toString());
+    return;
+  }
+  if (allowedProtocols.includes(validUrl.protocol)) {
+    // Resolve the partition only once we know a window will actually be created
+    // (URL parsed, not a g.co external redirect, protocol allowed). Setting it
+    // earlier would leave stale `activeCall` state behind for opens that bail
+    // out before `new BrowserWindow`, which a later teardown could misread.
+    //
+    // Always load the call webview in the originating server's partition so it
+    // shares the main webview's session (cookies + localStorage). When the
+    // server can't be resolved, fall back to an isolated jitsi-session partition.
+    const serverUrl = getServerUrlByWebContentsId(_wc.id);
+    const partition = serverUrl ? `persist:${serverUrl}` : FALLBACK_PARTITION;
+    activeCall = {
+      url,
+      partition,
+      isSharedSession: Boolean(serverUrl),
+      serverWebContentsId: serverUrl ? _wc.id : null,
+    };
+    pendingVideoCallPartition = partition; // handshake global only
+    if (activeCall.isSharedSession) {
+      console.log(
+        'Video call window: sharing server session via partition',
+        partition
+      );
+    } else {
+      console.warn(
+        'Video call window: could not resolve originating server; opening with isolated fallback partition',
+        partition
+      );
+    }
+
+    const mainWindow = await getRootWindow();
+    const winBounds = mainWindow.getNormalBounds();
+
+    const centeredWindowPosition = {
+      x: winBounds.x + winBounds.width / 2,
+      y: winBounds.y + winBounds.height / 2,
+    };
+
+    const actualScreen = screen.getDisplayNearestPoint({
+      x: centeredWindowPosition.x,
+      y: centeredWindowPosition.y,
+    });
+
+    const state = select((state) => ({
+      videoCallWindowState: state.videoCallWindowState,
+      isVideoCallWindowPersistenceEnabled:
+        state.isVideoCallWindowPersistenceEnabled,
+      isAutoOpenEnabled: state.isVideoCallDevtoolsAutoOpenEnabled,
+    }));
+
+    let { x, y, width, height } = state.videoCallWindowState.bounds;
+
+    if (
+      !state.isVideoCallWindowPersistenceEnabled ||
+      !x ||
+      !y ||
+      width === 0 ||
+      height === 0 ||
+      !isInsideSomeScreen({ x, y, width, height })
+    ) {
+      width = Math.round(actualScreen.workAreaSize.width * 0.8);
+      height = Math.round(actualScreen.workAreaSize.height * 0.8);
+      x = Math.round(
+        (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
+      );
+      y = Math.round(
+        (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
+      );
+    }
+
+    console.log('Creating new video call window');
+    videoCallWindowCreationCount++;
+
+    logVideoCallWindowStats();
+
+    const additionalArgs: string[] = [];
+
+    if (process.platform === 'win32') {
+      const sessionName = process.env.SESSIONNAME;
+      const isRdpSession =
+        typeof sessionName === 'string' && sessionName !== 'Console';
+      const { readSetting } = await import('../store/readSetting');
+      const isScreenCaptureFallbackEnabled = readSetting(
+        'isVideoCallScreenCaptureFallbackEnabled'
+      );
+
+      if (isScreenCaptureFallbackEnabled || isRdpSession) {
+        additionalArgs.push(
+          '--disable-features=WebRtcAllowWgcDesktopCapturer,WebRtcAllowWgcScreenCapturer'
+        );
+        console.log(
+          'Video call window: Explicitly passing WGC disable flags to webview via additionalArguments',
+          { isRdpSession, isScreenCaptureFallbackEnabled }
+        );
+      }
+    }
+
+    videoCallWindow = new BrowserWindow({
+      width,
+      height,
+      x,
+      y,
+      webPreferences: {
+        nodeIntegration: true,
+        nodeIntegrationInSubFrames: true,
+        contextIsolation: false,
+        webviewTag: true,
+        experimentalFeatures: false,
+        offscreen: false,
+        disableHtmlFullscreenWindowResize: true,
+        backgroundThrottling: true,
+        v8CacheOptions: 'bypassHeatCheck',
+        spellcheck: false,
+        ...(additionalArgs.length > 0 && {
+          additionalArguments: additionalArgs,
+        }),
+      },
+      show: false,
+      frame: true,
+      transparent: false,
+      skipTaskbar: false,
+    });
+
+    // Capture per-window so a later call opening (which resets the module
+    // state) can't change which server's handlers this window restores.
+    const capturedCall = activeCall;
+
+    videoCallWindow.webContents.on(
+      'will-navigate',
+      (event: Event, url: string) => {
+        if (url.toLowerCase().startsWith('smb://')) {
+          event.preventDefault();
+        }
+      }
+    );
+    videoCallWindow.webContents.setWindowOpenHandler(
+      ({ url }: { url: string }) => {
+        if (url.toLowerCase().startsWith('smb://')) {
+          return { action: 'deny' };
+        }
+        return { action: 'allow' };
+      }
+    );
+
+    if (state.isVideoCallWindowPersistenceEnabled) {
+      const fetchAndDispatchWindowState = debounce(async () => {
+        if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+          dispatchLocal({
+            type: VIDEO_CALL_WINDOW_STATE_CHANGED,
+            payload: await fetchVideoCallWindowState(videoCallWindow),
+          });
+        }
+      }, 1000);
+
+      videoCallWindow.addListener('show', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('hide', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('focus', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('blur', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('maximize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('unmaximize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('minimize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('restore', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('resize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('move', fetchAndDispatchWindowState);
+    }
+
+    videoCallWindow.on('closed', () => {
+      console.log('Video call window closed - destroying completely');
+
+      // Clean up screen sharing listener
+      videoCallScreenSharingTracker.cleanup();
+
+      // This call's unified handler took over the shared session's
+      // display-media handler. Restore the plain server-view handler so
+      // main-app screen sharing keeps working (no-op on isolated sessions).
+      void restoreServerViewHandler(capturedCall);
+
+      // Clear credentials and provider on close
+      videoCallCredentials = null;
+      videoCallProviderName = null;
+
+      // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
+      // This prevents crashes during first launch when timing is critical
+      setTimeout(() => {
+        try {
+          videoCallWindow = null;
+          isVideoCallWindowDestroying = false;
+          videoCallWindowDestructionCount++;
+          // Only clear `activeCall` if it still belongs to this window — a
+          // stale prior-window teardown must not wipe a freshly-set newer call.
+          if (activeCall === capturedCall) activeCall = null;
+
+          logVideoCallWindowStats();
+        } catch (error) {
+          console.error(
+            'Error during video call window closed event handling:',
+            error
+          );
+        }
+      }, 50); // Small delay to let app state stabilize
+    });
+
+    videoCallWindow.on('close', (_event) => {
+      if (!isVideoCallWindowDestroying) {
+        isVideoCallWindowDestroying = true;
+        console.log(
+          'Video call window close initiated - preventing JS execution'
+        );
+
+        // Clean up screen sharing listener
+        videoCallScreenSharingTracker.cleanup();
+
+        try {
+          if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+            videoCallWindow.webContents.session.setPermissionRequestHandler(
+              () => false
+            );
+            videoCallWindow.webContents
+              .executeJavaScript('void 0')
+              .catch(() => {});
+          }
+        } catch (error) {
+          console.log('Error during close preparation:', error);
+        }
+      }
+    });
+
+    videoCallWindow.webContents.on(
+      'did-fail-load',
+      (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+        console.error('Video call window failed to load:', {
+          errorCode,
+          errorDescription,
+          validatedURL,
+          isMainFrame,
+        });
+
+        if (isMainFrame) {
+          console.error(
+            'Main frame failed to load, this may indicate issues on low-power devices'
+          );
+        }
+      }
+    );
+
+    videoCallWindow.webContents.on('dom-ready', () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Video call window DOM ready');
+      }
+
+      videoCallWindow?.webContents
+        .executeJavaScript(
+          `
+          if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+            console.log('Video call window: JavaScript execution test successful');
+          }
+          window.videoCallWindowJSWorking = true;
+          setTimeout(() => {
+            const rootElement = document.getElementById('root');
+            const hasReactContent = rootElement && (
+              rootElement.hasChildNodes() || 
+              rootElement.innerHTML.trim() !== ''
+            );
+            
+            if (!hasReactContent) {
+              console.warn('Video call window: React may not have rendered - possible initialization issue');
+            } else if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+              console.log('Video call window: React content detected successfully');
+            }
+          }, 5000);
+        `
+        )
+        .catch((error) => {
+          console.error(
+            'Video call window: JavaScript execution test failed:',
+            error
+          );
+        });
+    });
+
+    videoCallWindow.webContents.on(
+      'console-message',
+      (_event, level, message, line, sourceId) => {
+        const logPrefix = 'Video call window console:';
+        switch (level) {
+          case 0:
+            console.log(
+              `${logPrefix} [INFO]`,
+              message,
+              `(${sourceId}:${line})`
+            );
+            break;
+          case 1:
+            console.warn(
+              `${logPrefix} [WARN]`,
+              message,
+              `(${sourceId}:${line})`
+            );
+            break;
+          case 2:
+            console.error(
+              `${logPrefix} [ERROR]`,
+              message,
+              `(${sourceId}:${line})`
+            );
+            break;
+          default:
+            console.log(
+              `${logPrefix} [${level}]`,
+              message,
+              `(${sourceId}:${line})`
+            );
+        }
+      }
+    );
+
+    const htmlPath = path.join(app.getAppPath(), 'app/video-call-window.html');
+    console.log('Video call window: Loading HTML file from:', htmlPath);
+
+    videoCallWindow
+      .loadFile(htmlPath, {
+        query: {
+          url,
+          autoOpenDevtools: String(state.isAutoOpenEnabled),
+          ...(pendingVideoCallPartition && {
+            partition: pendingVideoCallPartition,
+          }),
+        },
+      })
+      .catch((error) => {
+        console.error('Video call window: Failed to load HTML file:', error);
+        console.error(
+          'This may indicate build issues or file system problems on low-power devices'
+        );
+      });
+
+    videoCallWindow.once('ready-to-show', () => {
+      if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+        videoCallWindow.setTitle(packageJsonInformation.productName);
+
+        console.log(
+          'Video call window: Window ready, waiting for renderer to signal ready state'
+        );
+        console.log(
+          'Video call window: Current pending URL:',
+          pendingVideoCallUrl
+        );
+        videoCallWindow.show();
+      }
+    });
+
+    const { webContents } = videoCallWindow;
+
+    // Setup webview handlers (listener registered synchronously, module loads async)
+    setupWebviewHandlers(webContents);
+
+    // If the call window's host process crashes, the graceful 'closed' restore
+    // never fires — restore the server-view handler here too (idempotent).
+    webContents.on('render-process-gone', () => {
+      void restoreServerViewHandler(capturedCall);
+    });
+
+    // Set the pending URL after window is created to prevent race condition with cleanup
+    setPendingVideoCallUrl(url, 'open-window-after-creation');
+    console.log(
+      'Video call window: Set pending URL after window creation:',
+      url
+    );
+
+    webContents.setWindowOpenHandler((details: { url: string }) => {
+      console.log('Video call window - new window requested:', details.url);
+      return handleVideoCallWindowOpen(details);
+    });
+
+    webContents.on('will-navigate', (event: any, url: string) => {
+      console.log('Video call window will-navigate:', url);
+
+      // Check for close pages and handle them specially to prevent crashes
+      if (url.includes('/close.html') || url.includes('/close2.html')) {
+        console.log(
+          'Video call window: Navigation to close page detected, will handle gracefully'
+        );
+        // Don't prevent navigation, but note it for safer handling
+      }
+
+      try {
+        const parsedUrl = new URL(url);
+
+        if (
+          !['http:', 'https:', 'file:', 'data:', 'about:'].includes(
+            parsedUrl.protocol
+          )
+        ) {
+          console.log(
+            'External protocol detected in video call window:',
+            parsedUrl.protocol
+          );
+          event.preventDefault();
+
+          isProtocolAllowed(url).then((allowed) => {
+            if (allowed) {
+              openExternal(url);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to parse URL in video call window:', url, e);
+      }
+    });
+
+    webContents.session.setPermissionRequestHandler(
+      async (
+        _webContents: any,
+        permission: any,
+        callback: any,
+        details: any
+      ) => {
+        console.log(
+          'Video call window permission request',
+          permission,
+          details
+        );
+        switch (permission) {
+          case 'media': {
+            const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
+            try {
+              await handleMediaPermissionRequest(
+                mediaTypes as ReadonlyArray<'audio' | 'video'>,
+                videoCallWindow,
+                'initiateCall',
+                callback
+              );
+            } catch (error) {
+              console.error(
+                'Error handling media permission request in video call window:',
+                error
+              );
+              callback(false);
+            }
+            return;
+          }
+
+          case 'geolocation':
+          case 'notifications':
+          case 'midiSysex':
+          case 'pointerLock':
+          case 'fullscreen':
+          case 'screen-wake-lock':
+          case 'system-wake-lock':
+            callback(true);
+            return;
+
+          case 'openExternal': {
+            callback(true);
+            return;
+          }
+
+          default:
+            callback(false);
+        }
+      }
+    );
+  }
+};
+
 export const startVideoCallWindowHandler = (): void => {
   // Sync IPC handler for provider name - used by jitsiBridge preload
   // to skip initialization for non-Jitsi providers without async delay
   ipcMain.on('video-call-window/get-provider-sync', (event) => {
     event.returnValue = videoCallProviderName;
+  });
+
+  // Close the video call window on request from its own renderer. The
+  // renderer's window.close() can't close a window the main process created, so
+  // it asks via this fire-and-forget channel. We resolve the window from the
+  // sender (the webview guest's host window), so a renderer can only close its
+  // own window.
+  ipcMain.on('video-call-window/close', (event) => {
+    const { sender } = event;
+    const win =
+      BrowserWindow.fromWebContents(sender) ??
+      (sender.hostWebContents
+        ? BrowserWindow.fromWebContents(sender.hostWebContents)
+        : null);
+    if (win && !win.isDestroyed()) {
+      win.close();
+    }
   });
 
   handle('video-call-window/screen-recording-is-permission-granted', async () =>
@@ -275,6 +1046,75 @@ export const startVideoCallWindowHandler = (): void => {
   handle('video-call-window/open-url', async (_webContents, url) => {
     await openExternal(url);
   });
+
+  // Bring the main app window to the front and ask the active server's web
+  // client to navigate to an in-app route. Used by the standalone video-chat
+  // window, which has no window.opener and therefore can't reach the main
+  // window via the web app's window.open trick.
+  handle(
+    'video-call-window/open-in-main-window',
+    async (callerWebContents, path) => {
+      // Defense in depth (the preload validates too): only accept in-app
+      // relative routes — reject absolute/protocol-relative/scheme URLs.
+      if (
+        typeof path !== 'string' ||
+        !path.startsWith('/') ||
+        path.startsWith('//') ||
+        path.startsWith('/\\')
+      ) {
+        console.warn(
+          'Video call window: open-in-main-window rejected non-relative path:',
+          path
+        );
+        return;
+      }
+
+      // Resolve the target server webview in priority order:
+      // 1. the caller's own server (the conference webview, when resolvable);
+      // 2. the server the active call actually belongs to — authoritative, and
+      //    avoids navigating a *different* server in a multi-workspace setup;
+      // 3. the server currently active in the main window (last-resort guess).
+      let serverUrl = getServerUrlByWebContentsId(callerWebContents.id);
+      if (!serverUrl && activeCall?.serverWebContentsId != null) {
+        serverUrl = getServerUrlByWebContentsId(activeCall.serverWebContentsId);
+      }
+      if (!serverUrl) {
+        const currentView = select((state) => state.currentView);
+        if (typeof currentView === 'object' && currentView.url) {
+          serverUrl = currentView.url;
+          console.warn(
+            'Video call window: open-in-main-window could not resolve the call’s origin server; falling back to the active view',
+            serverUrl
+          );
+        }
+      }
+
+      const serverWebContents = serverUrl
+        ? getWebContentsByServerUrl(serverUrl)
+        : undefined;
+      if (!serverWebContents || serverWebContents.isDestroyed()) {
+        console.warn(
+          'Video call window: open-in-main-window could not find a target server webview for',
+          serverUrl
+        );
+        return;
+      }
+
+      // Bring the main window to the foreground.
+      const rootWindow = await getRootWindow();
+      if (rootWindow && !rootWindow.isDestroyed()) {
+        if (rootWindow.isMinimized()) {
+          rootWindow.restore();
+        }
+        rootWindow.show();
+        rootWindow.focus();
+      }
+
+      // Client-side route change. NOT a loadURL — that would hard-reload the
+      // SPA. The web client listens for this event and calls its router.
+      serverWebContents.send('navigate-to-route', path);
+    }
+  );
 
   handle('video-call-window/open-screen-picker', async (callerWebContents) => {
     if (!videoCallWindow || videoCallWindow.isDestroyed()) {
@@ -309,503 +1149,12 @@ export const startVideoCallWindowHandler = (): void => {
     return { success: true };
   });
 
-  // eslint-disable-next-line complexity
-  handle('video-call-window/open-window', async (_wc, url, options) => {
-    console.log('Video call window: Open-window handler called with URL:', url);
-
-    // Store provider name and credentials
-    videoCallProviderName = options?.providerName ?? null;
-    videoCallCredentials = null;
-    if (options?.providerName === 'pexip' && options?.credentials) {
-      try {
-        const serverOrigin = new URL(_wc.getURL()).origin;
-        videoCallCredentials = {
-          userId: options.credentials.userId,
-          authToken: options.credentials.authToken,
-          serverUrl: serverOrigin,
-        };
-      } catch {
-        // _wc.getURL() may not be a valid URL in edge cases
-        videoCallCredentials = null;
-      }
-    }
-
-    if (isVideoCallWindowDestroying) {
-      console.log('Waiting for video call window destruction to complete...');
-      await new Promise<void>((resolve) => {
-        const checkDestructionComplete = () => {
-          if (!isVideoCallWindowDestroying) {
-            resolve();
-          } else {
-            setTimeout(checkDestructionComplete, DESTRUCTION_CHECK_INTERVAL);
-          }
-        };
-        checkDestructionComplete();
-      });
-    }
-
-    if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-      console.log('Closing existing video call window to create fresh one');
-      videoCallWindow.close();
-      videoCallWindow = null;
-
-      if (isVideoCallWindowDestroying) {
-        await new Promise<void>((resolve) => {
-          const checkClosed = () => {
-            if (!isVideoCallWindowDestroying) {
-              resolve();
-            } else {
-              setTimeout(checkClosed, DESTRUCTION_CHECK_INTERVAL);
-            }
-          };
-          checkClosed();
-        });
-      }
-    }
-
-    const validUrl = new URL(url);
-    const allowedProtocols = ['http:', 'https:'];
-    console.log(
-      'Video call window: URL validation - hostname:',
-      validUrl.hostname,
-      'protocol:',
-      validUrl.protocol
+  handle('video-call-window/open-window', (_wc, url, options) => {
+    const run = openWindowQueue.then(() =>
+      openVideoCallWindow(_wc, url, options)
     );
-
-    if (validUrl.hostname.match(/(\.)?g\.co$/)) {
-      console.log(
-        'Video call window: Google URL detected, opening externally instead of internal window'
-      );
-      openExternal(validUrl.toString());
-      return;
-    }
-    if (allowedProtocols.includes(validUrl.protocol)) {
-      const mainWindow = await getRootWindow();
-      const winBounds = await mainWindow.getNormalBounds();
-
-      const centeredWindowPosition = {
-        x: winBounds.x + winBounds.width / 2,
-        y: winBounds.y + winBounds.height / 2,
-      };
-
-      const actualScreen = screen.getDisplayNearestPoint({
-        x: centeredWindowPosition.x,
-        y: centeredWindowPosition.y,
-      });
-
-      const state = select((state) => ({
-        videoCallWindowState: state.videoCallWindowState,
-        isVideoCallWindowPersistenceEnabled:
-          state.isVideoCallWindowPersistenceEnabled,
-        isAutoOpenEnabled: state.isVideoCallDevtoolsAutoOpenEnabled,
-      }));
-
-      let { x, y, width, height } = state.videoCallWindowState.bounds;
-
-      if (
-        !state.isVideoCallWindowPersistenceEnabled ||
-        !x ||
-        !y ||
-        width === 0 ||
-        height === 0 ||
-        !isInsideSomeScreen({ x, y, width, height })
-      ) {
-        width = Math.round(actualScreen.workAreaSize.width * 0.8);
-        height = Math.round(actualScreen.workAreaSize.height * 0.8);
-        x = Math.round(
-          (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
-        );
-        y = Math.round(
-          (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
-        );
-      }
-
-      console.log('Creating new video call window');
-      videoCallWindowCreationCount++;
-
-      logVideoCallWindowStats();
-
-      const additionalArgs: string[] = [];
-
-      if (process.platform === 'win32') {
-        const sessionName = process.env.SESSIONNAME;
-        const isRdpSession =
-          typeof sessionName === 'string' && sessionName !== 'Console';
-        const { readSetting } = await import('../store/readSetting');
-        const isScreenCaptureFallbackEnabled = readSetting(
-          'isVideoCallScreenCaptureFallbackEnabled'
-        );
-
-        if (isScreenCaptureFallbackEnabled || isRdpSession) {
-          additionalArgs.push(
-            '--disable-features=WebRtcAllowWgcDesktopCapturer,WebRtcAllowWgcScreenCapturer'
-          );
-          console.log(
-            'Video call window: Explicitly passing WGC disable flags to webview via additionalArguments',
-            { isRdpSession, isScreenCaptureFallbackEnabled }
-          );
-        }
-      }
-
-      videoCallWindow = new BrowserWindow({
-        width,
-        height,
-        x,
-        y,
-        webPreferences: {
-          nodeIntegration: true,
-          nodeIntegrationInSubFrames: true,
-          contextIsolation: false,
-          webviewTag: true,
-          experimentalFeatures: false,
-          offscreen: false,
-          disableHtmlFullscreenWindowResize: true,
-          backgroundThrottling: true,
-          v8CacheOptions: 'bypassHeatCheck',
-          spellcheck: false,
-          ...(additionalArgs.length > 0 && {
-            additionalArguments: additionalArgs,
-          }),
-        },
-        show: false,
-        frame: true,
-        transparent: false,
-        skipTaskbar: false,
-      });
-
-      videoCallWindow.webContents.on(
-        'will-navigate',
-        (event: Event, url: string) => {
-          if (url.toLowerCase().startsWith('smb://')) {
-            event.preventDefault();
-          }
-        }
-      );
-      videoCallWindow.webContents.setWindowOpenHandler(
-        ({ url }: { url: string }) => {
-          if (url.toLowerCase().startsWith('smb://')) {
-            return { action: 'deny' };
-          }
-          return { action: 'allow' };
-        }
-      );
-
-      if (state.isVideoCallWindowPersistenceEnabled) {
-        const fetchAndDispatchWindowState = debounce(async () => {
-          if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-            dispatchLocal({
-              type: VIDEO_CALL_WINDOW_STATE_CHANGED,
-              payload: await fetchVideoCallWindowState(videoCallWindow),
-            });
-          }
-        }, 1000);
-
-        videoCallWindow.addListener('show', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('hide', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('focus', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('blur', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('maximize', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('unmaximize', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('minimize', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('restore', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('resize', fetchAndDispatchWindowState);
-        videoCallWindow.addListener('move', fetchAndDispatchWindowState);
-      }
-
-      videoCallWindow.on('closed', () => {
-        console.log('Video call window closed - destroying completely');
-
-        // Clean up screen sharing listener
-        videoCallScreenSharingTracker.cleanup();
-
-        // Clear credentials and provider on close
-        videoCallCredentials = null;
-        videoCallProviderName = null;
-
-        // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
-        // This prevents crashes during first launch when timing is critical
-        setTimeout(() => {
-          try {
-            videoCallWindow = null;
-            isVideoCallWindowDestroying = false;
-            videoCallWindowDestructionCount++;
-
-            logVideoCallWindowStats();
-          } catch (error) {
-            console.error(
-              'Error during video call window closed event handling:',
-              error
-            );
-          }
-        }, 50); // Small delay to let app state stabilize
-      });
-
-      videoCallWindow.on('close', (_event) => {
-        if (!isVideoCallWindowDestroying) {
-          isVideoCallWindowDestroying = true;
-          console.log(
-            'Video call window close initiated - preventing JS execution'
-          );
-
-          // Clean up screen sharing listener
-          videoCallScreenSharingTracker.cleanup();
-
-          try {
-            if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-              videoCallWindow.webContents.session.setPermissionRequestHandler(
-                () => false
-              );
-              videoCallWindow.webContents
-                .executeJavaScript('void 0')
-                .catch(() => {});
-            }
-          } catch (error) {
-            console.log('Error during close preparation:', error);
-          }
-        }
-      });
-
-      videoCallWindow.webContents.on(
-        'did-fail-load',
-        (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
-          console.error('Video call window failed to load:', {
-            errorCode,
-            errorDescription,
-            validatedURL,
-            isMainFrame,
-          });
-
-          if (isMainFrame) {
-            console.error(
-              'Main frame failed to load, this may indicate issues on low-power devices'
-            );
-          }
-        }
-      );
-
-      videoCallWindow.webContents.on('dom-ready', () => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Video call window DOM ready');
-        }
-
-        videoCallWindow?.webContents
-          .executeJavaScript(
-            `
-          if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
-            console.log('Video call window: JavaScript execution test successful');
-          }
-          window.videoCallWindowJSWorking = true;
-          setTimeout(() => {
-            const rootElement = document.getElementById('root');
-            const hasReactContent = rootElement && (
-              rootElement.hasChildNodes() || 
-              rootElement.innerHTML.trim() !== ''
-            );
-            
-            if (!hasReactContent) {
-              console.warn('Video call window: React may not have rendered - possible initialization issue');
-            } else if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
-              console.log('Video call window: React content detected successfully');
-            }
-          }, 5000);
-        `
-          )
-          .catch((error) => {
-            console.error(
-              'Video call window: JavaScript execution test failed:',
-              error
-            );
-          });
-      });
-
-      videoCallWindow.webContents.on(
-        'console-message',
-        (_event, level, message, line, sourceId) => {
-          const logPrefix = 'Video call window console:';
-          switch (level) {
-            case 0:
-              console.log(
-                `${logPrefix} [INFO]`,
-                message,
-                `(${sourceId}:${line})`
-              );
-              break;
-            case 1:
-              console.warn(
-                `${logPrefix} [WARN]`,
-                message,
-                `(${sourceId}:${line})`
-              );
-              break;
-            case 2:
-              console.error(
-                `${logPrefix} [ERROR]`,
-                message,
-                `(${sourceId}:${line})`
-              );
-              break;
-            default:
-              console.log(
-                `${logPrefix} [${level}]`,
-                message,
-                `(${sourceId}:${line})`
-              );
-          }
-        }
-      );
-
-      const htmlPath = path.join(
-        app.getAppPath(),
-        'app/video-call-window.html'
-      );
-      console.log('Video call window: Loading HTML file from:', htmlPath);
-
-      videoCallWindow
-        .loadFile(htmlPath, {
-          query: {
-            url,
-            autoOpenDevtools: String(state.isAutoOpenEnabled),
-          },
-        })
-        .catch((error) => {
-          console.error('Video call window: Failed to load HTML file:', error);
-          console.error(
-            'This may indicate build issues or file system problems on low-power devices'
-          );
-        });
-
-      videoCallWindow.once('ready-to-show', () => {
-        if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-          videoCallWindow.setTitle(packageJsonInformation.productName);
-
-          console.log(
-            'Video call window: Window ready, waiting for renderer to signal ready state'
-          );
-          console.log(
-            'Video call window: Current pending URL:',
-            pendingVideoCallUrl
-          );
-          videoCallWindow.show();
-        }
-      });
-
-      const { webContents } = videoCallWindow;
-
-      // Setup webview handlers (listener registered synchronously, module loads async)
-      setupWebviewHandlers(webContents);
-
-      // Set the pending URL after window is created to prevent race condition with cleanup
-      setPendingVideoCallUrl(url, 'open-window-after-creation');
-      console.log(
-        'Video call window: Set pending URL after window creation:',
-        url
-      );
-
-      webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-        console.log('Video call window - new window requested:', url);
-
-        if (url.toLowerCase().startsWith('smb://')) {
-          return { action: 'deny' };
-        }
-
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-          openExternal(url);
-          return { action: 'deny' };
-        }
-
-        return { action: 'allow' };
-      });
-
-      webContents.on('will-navigate', (event: any, url: string) => {
-        console.log('Video call window will-navigate:', url);
-
-        // Check for close pages and handle them specially to prevent crashes
-        if (url.includes('/close.html') || url.includes('/close2.html')) {
-          console.log(
-            'Video call window: Navigation to close page detected, will handle gracefully'
-          );
-          // Don't prevent navigation, but note it for safer handling
-        }
-
-        try {
-          const parsedUrl = new URL(url);
-
-          if (
-            !['http:', 'https:', 'file:', 'data:', 'about:'].includes(
-              parsedUrl.protocol
-            )
-          ) {
-            console.log(
-              'External protocol detected in video call window:',
-              parsedUrl.protocol
-            );
-            event.preventDefault();
-
-            isProtocolAllowed(url).then((allowed) => {
-              if (allowed) {
-                openExternal(url);
-              }
-            });
-          }
-        } catch (e) {
-          console.warn('Failed to parse URL in video call window:', url, e);
-        }
-      });
-
-      webContents.session.setPermissionRequestHandler(
-        async (
-          _webContents: any,
-          permission: any,
-          callback: any,
-          details: any
-        ) => {
-          console.log(
-            'Video call window permission request',
-            permission,
-            details
-          );
-          switch (permission) {
-            case 'media': {
-              const { mediaTypes = [] } =
-                details as MediaAccessPermissionRequest;
-              try {
-                await handleMediaPermissionRequest(
-                  mediaTypes as ReadonlyArray<'audio' | 'video'>,
-                  videoCallWindow,
-                  'initiateCall',
-                  callback
-                );
-              } catch (error) {
-                console.error(
-                  'Error handling media permission request in video call window:',
-                  error
-                );
-                callback(false);
-              }
-              return;
-            }
-
-            case 'geolocation':
-            case 'notifications':
-            case 'midiSysex':
-            case 'pointerLock':
-            case 'fullscreen':
-            case 'screen-wake-lock':
-            case 'system-wake-lock':
-              callback(true);
-              return;
-
-            case 'openExternal': {
-              callback(true);
-              return;
-            }
-
-            default:
-              callback(false);
-          }
-        }
-      );
-    }
+    openWindowQueue = run.catch(() => {}); // keep chain alive on failure
+    return run;
   });
 
   handle('video-call-window/close-requested', async () => {
@@ -992,6 +1341,7 @@ handle('video-call-window/request-url', async () => {
     success: true,
     url: pendingVideoCallUrl,
     autoOpenDevtools: state.isAutoOpenEnabled,
+    partition: pendingVideoCallPartition ?? undefined,
   };
 });
 

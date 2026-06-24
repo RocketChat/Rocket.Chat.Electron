@@ -32,6 +32,7 @@ type ChannelToArgsMap = {
     }
   ) => void;
   'video-call-window/open-url': (url: string) => void;
+  'video-call-window/open-in-main-window': (path: string) => void;
   'video-call-window/web-contents-id': (webContentsId: number) => void;
   'video-call-window/open-screen-picker': () => { success: boolean };
   'video-call-window/screen-sharing-source-responded': (source: string) => void;
@@ -45,6 +46,7 @@ type ChannelToArgsMap = {
     success: boolean;
     url: string | null;
     autoOpenDevtools: boolean;
+    partition?: string;
   };
   'video-call-window/url-received': () => { success: boolean };
   'video-call-window/webview-created': () => { success: boolean };

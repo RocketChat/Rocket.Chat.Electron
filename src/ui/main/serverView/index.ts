@@ -9,7 +9,6 @@ import type {
   MediaAccessPermissionRequest,
   MenuItemConstructorOptions,
   OpenExternalPermissionRequest,
-  Session,
   UploadFile,
   UploadRawData,
   WebContents,
@@ -120,6 +119,69 @@ export const getServerUrlByWebContentsId = (
   return Array.from(webContentsByServerUrl.entries()).find(
     ([, wc]) => wc === targetWebContents
   )?.[0];
+};
+
+export const setupServerViewPermissionHandler = (
+  guestWebContents: WebContents,
+  rootWindow: BrowserWindow
+): void => {
+  guestWebContents.session.setPermissionRequestHandler(
+    async (_webContents, permission, callback, details) => {
+      console.log('Permission request', permission, details);
+      switch (permission) {
+        case 'media': {
+          const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
+          try {
+            await handleMediaPermissionRequest(
+              mediaTypes as ReadonlyArray<'audio' | 'video'>,
+              rootWindow,
+              'recordMessage',
+              callback
+            );
+          } catch (error) {
+            console.error(
+              'Error handling media permission request in server view:',
+              error
+            );
+            callback(false);
+          }
+          return;
+        }
+
+        case 'geolocation':
+        case 'notifications':
+        case 'midiSysex':
+        case 'pointerLock':
+        case 'fullscreen':
+          callback(true);
+          return;
+
+        case 'openExternal': {
+          if (!(details as OpenExternalPermissionRequest).externalURL) {
+            callback(false);
+            return;
+          }
+
+          try {
+            const allowed = await isProtocolAllowed(
+              (details as OpenExternalPermissionRequest).externalURL as string
+            );
+            callback(allowed);
+          } catch (error) {
+            console.error(
+              'Error resolving openExternal permission in server view:',
+              error
+            );
+            callback(false);
+          }
+          return;
+        }
+
+        default:
+          callback(false);
+      }
+    }
+  );
 };
 
 const initializeServerWebContentsAfterReady = (
@@ -402,48 +464,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     );
   };
 
-  const handlePermissionRequest: Parameters<
-    Session['setPermissionRequestHandler']
-  >[0] = async (_webContents, permission, callback, details) => {
-    console.log('Permission request', permission, details);
-    switch (permission) {
-      case 'media': {
-        const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-        await handleMediaPermissionRequest(
-          mediaTypes as ReadonlyArray<'audio' | 'video'>,
-          rootWindow,
-          'recordMessage',
-          callback
-        );
-        return;
-      }
-
-      case 'geolocation':
-      case 'notifications':
-      case 'midiSysex':
-      case 'pointerLock':
-      case 'fullscreen':
-        callback(true);
-        return;
-
-      case 'openExternal': {
-        if (!(details as OpenExternalPermissionRequest).externalURL) {
-          callback(false);
-          return;
-        }
-
-        const allowed = await isProtocolAllowed(
-          (details as OpenExternalPermissionRequest).externalURL as string
-        );
-        callback(allowed);
-        return;
-      }
-
-      default:
-        callback(false);
-    }
-  };
-
   listen(WEBVIEW_READY, (action) => {
     const guestWebContents = webContents.fromId(
       action.payload.webContentsId
@@ -454,9 +474,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       rootWindow
     );
 
-    guestWebContents.session.setPermissionRequestHandler(
-      handlePermissionRequest
-    );
+    setupServerViewPermissionHandler(guestWebContents, rootWindow);
 
     setupServerViewDisplayMedia(guestWebContents);
 
@@ -507,7 +525,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(SIDE_BAR_SERVER_COPY_URL, async (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload);
-    const currentUrl = await guestWebContents?.getURL();
+    const currentUrl = guestWebContents?.getURL();
     clipboard.writeText(currentUrl || '');
   });
 
@@ -577,7 +595,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.copyCurrentUrl'),
         click: async () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          const currentUrl = await guestWebContents?.getURL();
+          const currentUrl = guestWebContents?.getURL();
           clipboard.writeText(currentUrl || '');
         },
       },

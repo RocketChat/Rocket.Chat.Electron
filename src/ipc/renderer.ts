@@ -17,14 +17,21 @@ export const handle = <N extends Channel>(
 
       ipcRenderer.send(`${channel}@${id}`, { resolved });
     } catch (error) {
-      error instanceof Error &&
-        ipcRenderer.send(`${channel}@${id}`, {
-          rejected: {
-            name: (error as Error).name,
-            message: (error as Error).message,
-            stack: (error as Error).stack,
-          },
-        });
+      const serializedError =
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+            }
+          : {
+              name: 'Error',
+              message: typeof error === 'string' ? error : String(error),
+            };
+
+      ipcRenderer.send(`${channel}@${id}`, {
+        rejected: serializedError,
+      });
     }
   };
 

@@ -9,9 +9,24 @@ export const invoke = <N extends Channel>(
   ...args: Parameters<Handler<N>>
 ): Promise<ReturnType<Handler<N>>> =>
   new Promise<ReturnType<Handler<N>>>((resolve, reject) => {
-    const id = Math.random().toString(16).slice(2);
+    if (webContents.isDestroyed()) {
+      reject(new Error('WebContents is already destroyed.'));
+      return;
+    }
 
-    ipcMain.once(`${channel}@${id}`, (_, { resolved, rejected }) => {
+    const id = Math.random().toString(16).slice(2);
+    const responseChannel = `${channel}@${id}`;
+
+    const cleanup = () => {
+      ipcMain.removeListener(responseChannel, listener);
+      webContents.removeListener('destroyed', onDestroyed);
+    };
+
+    const listener = (
+      _: any,
+      { resolved, rejected }: { resolved?: any; rejected?: any }
+    ) => {
+      cleanup();
       if (rejected) {
         const error = new Error(rejected.message);
         error.name = rejected.name;
@@ -21,9 +36,26 @@ export const invoke = <N extends Channel>(
       }
 
       resolve(resolved);
-    });
+    };
 
-    webContents.send(channel, id, ...args);
+    const onDestroyed = () => {
+      cleanup();
+      reject(
+        new Error(
+          `WebContents was destroyed while waiting for IPC response on ${channel}`
+        )
+      );
+    };
+
+    ipcMain.on(responseChannel, listener);
+    webContents.once('destroyed', onDestroyed);
+
+    try {
+      webContents.send(channel, id, ...args);
+    } catch (error) {
+      cleanup();
+      reject(error);
+    }
   });
 
 export const handle = <N extends Channel>(

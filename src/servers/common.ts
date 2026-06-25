@@ -17,6 +17,7 @@ export type Server = {
   failed?: boolean;
   webContentsId?: number;
   userLoggedIn?: boolean;
+  userRoles?: string[];
   gitCommitHash?: string;
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;

@@ -16,6 +16,7 @@ import {
   WEBVIEW_TITLE_CHANGED,
   WEBVIEW_UNREAD_CHANGED,
   WEBVIEW_USER_LOGGED_IN,
+  WEBVIEW_USER_ROLES_CHANGED,
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
@@ -56,6 +57,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
   | ActionOf<typeof WEBVIEW_USER_LOGGED_IN>
+  | ActionOf<typeof WEBVIEW_USER_ROLES_CHANGED>
   | ActionOf<typeof WEBVIEW_ALLOWED_REDIRECTS_CHANGED>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
@@ -193,6 +195,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_USER_LOGGED_IN: {
       const { url, userLoggedIn } = action.payload;
       return upsert(state, { url, userLoggedIn });
+    }
+
+    case WEBVIEW_USER_ROLES_CHANGED: {
+      const { url, userRoles } = action.payload;
+      return upsert(state, { url, userRoles });
     }
 
     case WEBVIEW_ALLOWED_REDIRECTS_CHANGED: {

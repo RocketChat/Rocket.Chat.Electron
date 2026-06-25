@@ -492,10 +492,6 @@ describe('logging/index', () => {
         'log-viewer-window/get-server-tag',
         expect.any(Function)
       );
-      expect(ipcMainOn).toHaveBeenCalledWith(
-        'console-log',
-        expect.any(Function)
-      );
       expect(appOn).toHaveBeenCalledWith(
         'web-contents-created',
         expect.any(Function)
@@ -544,92 +540,6 @@ describe('logging/index', () => {
       });
     });
 
-    describe('console-log IPC handler', () => {
-      const getHandler = (mod: typeof LoggingModule) => {
-        mod.setupWebContentsLogging();
-        const call = ipcMainOn.mock.calls.find(
-          ([channel]) => channel === 'console-log'
-        );
-        return call![1] as (
-          event: any,
-          level: string,
-          id: number,
-          url: string,
-          ...args: any[]
-        ) => void;
-      };
-
-      const makeSender = (type = 'window', url = '') => ({
-        id: 42,
-        getType: () => type,
-        getURL: () => url,
-      });
-
-      it('routes each level to the matching electron-log method', () => {
-        setProcessType('browser');
-        const mod = loadModule();
-        const handler = getHandler(mod);
-        const event = { sender: makeSender() };
-
-        handler(event, 'debug', 1, 'u', 'd');
-        handler(event, 'info', 1, 'u', 'i');
-        handler(event, 'warn', 1, 'u', 'w');
-        handler(event, 'error', 1, 'u', 'e');
-        handler(event, 'verbose', 1, 'u', 'v');
-        handler(event, 'unknownLevel', 1, 'u', 'x');
-
-        expect(fakeLog.debug).toHaveBeenCalledWith('[main]', 'd');
-        expect(fakeLog.info).toHaveBeenCalledWith('[main]', 'i');
-        expect(fakeLog.warn).toHaveBeenCalledWith('[main]', 'w');
-        expect(fakeLog.error).toHaveBeenCalledWith('[main]', 'e');
-        // verbose maps to debug
-        expect(fakeLog.debug).toHaveBeenCalledWith('[main]', 'v');
-        // unknown maps to info
-        expect(fakeLog.info).toHaveBeenCalledWith('[main]', 'x');
-      });
-
-      it('enforces the per-sender rate limit', () => {
-        setProcessType('browser');
-        const mod = loadModule();
-        const handler = getHandler(mod);
-        const event = { sender: makeSender() };
-
-        for (let i = 0; i < 105; i++) {
-          handler(event, 'info', 1, 'u', `msg ${i}`);
-        }
-        // Only the first 100 messages within the window reach electron-log.
-        expect(fakeLog.info).toHaveBeenCalledTimes(100);
-      });
-
-      it('registers the sender server mapping for webview senders', () => {
-        setProcessType('browser');
-        selectImpl = jest.fn(() => [{ url: 'https://chat.example.com' }]);
-        const mod = loadModule();
-        const handler = getHandler(mod);
-        const event = {
-          sender: makeSender('webview', 'https://chat.example.com/channel'),
-        };
-        handler(event, 'info', 1, 'u', 'hello');
-        // The matched server is registered; logging proceeds with context.
-        expect(fakeLog.info).toHaveBeenCalled();
-      });
-
-      it('swallows errors raised inside the handler', () => {
-        setProcessType('browser');
-        const mod = loadModule();
-        const handler = getHandler(mod);
-        const event = {
-          sender: {
-            get id() {
-              throw new Error('boom');
-            },
-            getType: () => 'window',
-          },
-        };
-        expect(() => handler(event, 'info', 1, 'u', 'x')).not.toThrow();
-      });
-    });
-
     describe('web-contents-created listener', () => {
       const getListener = (mod: typeof LoggingModule) => {
         mod.setupWebContentsLogging();
@@ -665,17 +575,15 @@ describe('logging/index', () => {
         expect(wc._handlers['dom-ready']).toBeUndefined();
       });
 
-      it('injects the console override into webview dom-ready', () => {
+      it('registers server context on dom-ready without calling executeJavaScript', () => {
         setProcessType('browser');
         selectImpl = jest.fn(() => [{ url: 'https://chat.example.com' }]);
         const mod = loadModule();
         const listener = getListener(mod);
         const wc = makeWebContents('webview');
         listener({}, wc);
-        wc._handlers['dom-ready']();
-        expect(wc.executeJavaScript).toHaveBeenCalledTimes(1);
-        const script = wc.executeJavaScript.mock.calls[0][0];
-        expect(script).toContain("ipcRenderer.send('console-log'");
+        expect(() => wc._handlers['dom-ready']()).not.toThrow();
+        expect(wc.executeJavaScript).not.toHaveBeenCalled();
       });
 
       it('cleans up on destroyed', () => {

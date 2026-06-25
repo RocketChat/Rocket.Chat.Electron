@@ -58,10 +58,15 @@ const electronRunner = (() => {
         electronArgs.push('--no-sandbox');
       }
 
-      proc = spawn(electron, electronArgs, { stdio: 'inherit' });
+      const child = spawn(electron, electronArgs, { stdio: 'inherit' });
+      proc = child;
 
-      proc.once('close', () => {
-        proc = null;
+      // Guard against a stale `close` from a process that hit the kill timeout
+      // firing after a newer child has already been assigned to `proc`.
+      child.once('close', () => {
+        if (proc === child) {
+          proc = null;
+        }
       });
     } finally {
       starting = false;
@@ -75,9 +80,7 @@ const electronRunner = (() => {
       }
       restartTimer = setTimeout(() => {
         restartTimer = null;
-        start().catch((err) =>
-          console.error('Electron restart failed:', err)
-        );
+        start().catch((err) => console.error('Electron restart failed:', err));
       }, 300); // debounce: coalesce a multi-bundle rebuild batch into one restart
     },
   };

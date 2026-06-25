@@ -16,23 +16,40 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const canRun =
   process.env.ROLLUP_WATCH === 'true' && process.env.NO_RUN !== 'true';
 
-const run = () => {
-  if (!canRun) {
-    return;
-  }
-
+// Single shared controller across all bundle configs. Because `rollup -c -w`
+// rebuilds multiple bundles on one file save, the restart is debounced so the
+// whole save-batch finishes writing, then the app restarts exactly once.
+const electronRunner = (() => {
   let proc = null;
+  let restartTimer = null;
+  let starting = false;
+  let hasStarted = false;
 
-  return {
-    writeBundle: async () => {
-      if (proc) {
-        proc.kill();
-        await new Promise((resolve) => proc.on('close', resolve));
-      }
+  const killProc = async () => {
+    if (!proc) {
+      return;
+    }
+    const current = proc;
+    proc = null;
+    const closed = new Promise((resolve) => current.once('close', resolve));
+    current.kill('SIGKILL'); // SIGKILL bypasses the app's tray/before-quit guards
+    await Promise.race([
+      closed,
+      new Promise((resolve) => setTimeout(resolve, 3000)), // never hang the watcher
+    ]);
+  };
 
+  const start = async () => {
+    if (starting) {
+      return;
+    }
+    starting = true;
+    try {
+      await killProc();
       console.log(
-        proc ? 'Restarting main process...' : 'Starting main process...'
+        hasStarted ? 'Restarting main process...' : 'Starting main process...'
       );
+      hasStarted = true;
 
       const electronArgs = ['.'];
 
@@ -43,9 +60,38 @@ const run = () => {
 
       proc = spawn(electron, electronArgs, { stdio: 'inherit' });
 
-      proc.on('close', () => {
+      proc.once('close', () => {
         proc = null;
       });
+    } finally {
+      starting = false;
+    }
+  };
+
+  return {
+    schedule: () => {
+      if (restartTimer) {
+        clearTimeout(restartTimer);
+      }
+      restartTimer = setTimeout(() => {
+        restartTimer = null;
+        start().catch((err) =>
+          console.error('Electron restart failed:', err)
+        );
+      }, 300); // debounce: coalesce a multi-bundle rebuild batch into one restart
+    },
+  };
+})();
+
+const run = () => {
+  if (!canRun) {
+    return { name: 'run-electron-noop' };
+  }
+
+  return {
+    name: 'run-electron',
+    writeBundle() {
+      electronRunner.schedule();
     },
   };
 };
@@ -105,6 +151,7 @@ export default [
         extensions,
       }),
       commonjs(),
+      run(),
     ],
     output: [
       {
@@ -138,6 +185,7 @@ export default [
         extensions,
       }),
       commonjs(),
+      run(),
     ],
     output: [
       {
@@ -171,6 +219,7 @@ export default [
         extensions,
       }),
       commonjs(),
+      run(),
     ],
     output: [
       {
@@ -217,6 +266,7 @@ export default [
         extensions,
       }),
       commonjs(),
+      run(),
     ],
     output: {
       dir: 'app',
@@ -250,6 +300,7 @@ export default [
         extensions,
       }),
       commonjs(),
+      run(),
     ],
     output: [
       {
@@ -277,6 +328,7 @@ export default [
         extensions,
       }),
       commonjs(),
+      run(),
     ],
     output: [
       {

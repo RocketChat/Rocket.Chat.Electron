@@ -412,7 +412,16 @@ const start = async () => {
       setupFlags.urlResolver = true;
     }
 
-    if (Tracker && Session && !setupFlags.badgeUpdates) {
+    // Pre-7.8.0 only: those servers still publish the badge through the Meteor
+    // Session reactive dict. On 7.8.0+ this key is gone (Session.get('unread')
+    // resolves to undefined) and the global-event path below owns the badge, so
+    // running this autorun there would clear the badge with setBadge(undefined).
+    if (
+      !versionIsGreaterOrEqualsTo(serverInfo.version, '7.8.0') &&
+      Tracker &&
+      Session &&
+      !setupFlags.badgeUpdates
+    ) {
       Tracker.autorun(() => {
         const unread = Session.get('unread');
         window.RocketChatDesktop.setBadge(unread);
@@ -421,8 +430,8 @@ const start = async () => {
     }
 
     // Servers >= 7.x removed `unread` from the Meteor Session reactive dict
-    // (RocketChat/Rocket.Chat#36001), so the Tracker.autorun above reads
-    // `undefined` there. Those servers no longer expose the badge through
+    // (RocketChat/Rocket.Chat#36001), which is why the Session autorun above is
+    // gated to pre-7.8.0. Those servers no longer expose the badge through
     // Meteor at all, but they still broadcast it through two global
     // CustomEvents on window, mirroring the server's own `useUnread` hook:
     //   - `unread-changed-by-subscription`: fires per subscription whenever its
@@ -438,7 +447,12 @@ const start = async () => {
     // Registered independently of the Meteor modules so it works even when they
     // never load.
     if (!setupFlags.unreadChangedEvent) {
-      const resolveBadge = (): void => {
+      // `aggregateCount`, when provided, is the authoritative total carried by
+      // the `unread-changed` event. The per-subscription map is incremental and
+      // only sees rooms that changed after the listener attached, so it can
+      // undercount; we prefer the aggregate for the numeric total and use the
+      // map solely to rebuild the alert-only "•" indicator.
+      const resolveBadge = (aggregateCount?: number): void => {
         let unreadCount = 0;
         let alertIndicator: '•' | undefined;
 
@@ -463,8 +477,13 @@ const start = async () => {
           }
         }
 
-        if (unreadCount > 0) {
-          window.RocketChatDesktop.setBadge(unreadCount);
+        const total =
+          aggregateCount !== undefined && aggregateCount > unreadCount
+            ? aggregateCount
+            : unreadCount;
+
+        if (total > 0) {
+          window.RocketChatDesktop.setBadge(total);
           return;
         }
         window.RocketChatDesktop.setBadge(alertIndicator ?? 0);
@@ -490,8 +509,13 @@ const start = async () => {
         resolveBadge();
       });
 
-      window.addEventListener('unread-changed', () => {
-        resolveBadge();
+      window.addEventListener('unread-changed', (event) => {
+        const detail = (event as CustomEvent<number | undefined>).detail;
+        const aggregateCount =
+          typeof detail === 'number' && Number.isFinite(detail)
+            ? detail
+            : undefined;
+        resolveBadge(aggregateCount);
       });
 
       setupFlags.unreadChangedEvent = true;

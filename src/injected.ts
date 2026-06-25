@@ -510,7 +510,7 @@ const start = async () => {
       });
 
       window.addEventListener('unread-changed', (event) => {
-        const detail = (event as CustomEvent<number | undefined>).detail;
+        const { detail } = event as CustomEvent<number | undefined>;
         const aggregateCount =
           typeof detail === 'number' && Number.isFinite(detail)
             ? detail

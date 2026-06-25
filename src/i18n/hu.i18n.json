@@ -261,7 +261,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hardveres gyorsítás",
-        "description": "Javítja a vizuális megjelenítést és a teljesítményt. Tiltsa le, ha vizuális hibákat vagy instabilitást tapasztal. A módosításkor az alkalmazás újratöltődik."
+        "description": "Javítja a vizuális megjelenítést és a teljesítményt. Tiltsa le, ha vizuális hibákat vagy instabilitást tapasztal.",
+        "hint": "A módosításkor az alkalmazás újratöltődik."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Tartalék képernyőrögzítés a videohívásokhoz",
@@ -270,7 +271,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videohívások az alkalmazáson belül",
-        "description": "Videohívások megnyitása az alkalmazásablakban, böngésző helyett. A <strong>Google Meet</strong> és a <strong>Jitsi</strong> hívások csak böngészőben nyithatók meg.",
+        "description": "Videohívások megnyitása az alkalmazásablakban, böngésző helyett. A Google Meet és a Jitsi hívások csak böngészőben nyithatók meg.",
         "masDescription": "Ez a beállítás le van tiltva a Mac App Store-ból történő telepítéskor. Biztonsági okokból a videóhívások alapértelmezetten mindig a böngészőben nyílnak meg."
       },
       "minimizeOnClose": {
@@ -296,7 +297,7 @@
       },
       "availableBrowsers": {
         "title": "Alapértelmezett böngésző",
-        "description": "Annak kiválasztása, hogy melyik böngésző nyissa meg a külső hivatkozásokat az alkalmazásból. A rendszer alapértelmezettje az operációs rendszer beállításait használja.",
+        "description": "Annak kiválasztása, hogy melyik böngésző nyissa meg a külső hivatkozásokat az alkalmazásból.",
         "systemDefault": "Rendszer alapértelmezettje",
         "loading": "Böngészők betöltése…",
         "current": "Jelenleg használt:"
@@ -320,7 +321,8 @@
       },
       "transparentWindow": {
         "title": "Átlátszó ablak hatás",
-        "description": "Natív vibrálás vagy átlátszóság hatás engedélyezése az ablakhoz. Újraindítást igényel az alkalmazáshoz."
+        "description": "Natív vibrálás vagy átlátszóság hatás engedélyezése az ablakhoz.",
+        "hint": "Újraindítást igényel az alkalmazáshoz."
       },
       "themeAppearance": {
         "title": "Téma",

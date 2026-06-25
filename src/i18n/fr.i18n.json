@@ -239,7 +239,8 @@
       },
       "hardwareAcceleration": {
         "title": "Accélération matérielle",
-        "description": "Améliore le rendu visuel et les performances. Désactivez en cas de problèmes visuels ou d'instabilité. Recharge l'application lors du changement."
+        "description": "Améliore le rendu visuel et les performances. Désactivez en cas de problèmes visuels ou d'instabilité.",
+        "hint": "Recharge l'application lors du changement."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Solution de capture d'écran pour les appels vidéo",
@@ -248,7 +249,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Appels vidéo dans l'application",
-        "description": "Ouvrir les appels vidéo dans la fenêtre de l'application plutôt que dans le navigateur. Les appels <strong>Google Meet</strong> et <strong>Jitsi</strong> ne peuvent s'ouvrir que dans le navigateur.",
+        "description": "Ouvrir les appels vidéo dans la fenêtre de l'application plutôt que dans le navigateur. Les appels Google Meet et Jitsi ne peuvent s'ouvrir que dans le navigateur.",
         "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store. Pour des raisons de sécurité, les appels vidéo s'ouvrent toujours dans le navigateur par défaut."
       },
       "minimizeOnClose": {
@@ -274,7 +275,7 @@
       },
       "availableBrowsers": {
         "title": "Navigateur par défaut",
-        "description": "Choisissez quel navigateur ouvrira les liens externes de cette application. La valeur par défaut du système utilise les paramètres de votre système d'exploitation.",
+        "description": "Choisissez quel navigateur ouvrira les liens externes de cette application.",
         "systemDefault": "Par défaut du système",
         "loading": "Chargement des navigateurs...",
         "current": "Actuellement utilisé:"
@@ -303,7 +304,8 @@
       },
       "transparentWindow": {
         "title": "Effet de fenêtre transparente",
-        "description": "Activer l'effet natif de vibrance sur la fenêtre de l'application. Nécessite un redémarrage."
+        "description": "Activer l'effet natif de vibrance sur la fenêtre de l'application.",
+        "hint": "Nécessite un redémarrage."
       },
       "themeAppearance": {
         "title": "Thème",

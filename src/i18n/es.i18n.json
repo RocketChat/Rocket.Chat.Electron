@@ -251,7 +251,8 @@
       },
       "hardwareAcceleration": {
         "title": "Aceleración de hardware",
-        "description": "Mejora el renderizado visual y el rendimiento. Desactívala si experimentas fallos visuales o inestabilidad. Recarga la app al cambiar."
+        "description": "Mejora el renderizado visual y el rendimiento. Desactívala si experimentas fallos visuales o inestabilidad.",
+        "hint": "Recarga la app al cambiar."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Modo alternativo de captura en videollamadas",
@@ -260,7 +261,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videollamadas dentro de la app",
-        "description": "Abrir videollamadas en la ventana de la app en lugar del navegador. Las llamadas de <strong>Google Meet</strong> y <strong>Jitsi</strong> solo pueden abrirse en el navegador.",
+        "description": "Abrir videollamadas en la ventana de la app en lugar del navegador. Las llamadas de Google Meet y Jitsi solo pueden abrirse en el navegador.",
         "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store. Por razones de seguridad, las videollamadas siempre se abren en el navegador de forma predeterminada."
       },
       "minimizeOnClose": {
@@ -286,7 +287,7 @@
       },
       "availableBrowsers": {
         "title": "Navegador predeterminado",
-        "description": "Elige qué navegador abrirá los enlaces externos. El predeterminado del sistema usa la configuración de tu sistema operativo.",
+        "description": "Elige qué navegador abrirá los enlaces externos.",
         "systemDefault": "Predeterminado del sistema",
         "loading": "Cargando navegadores...",
         "current": "Usando actualmente:"
@@ -315,7 +316,8 @@
       },
       "transparentWindow": {
         "title": "Efecto de ventana transparente",
-        "description": "Activar el efecto nativo de vibración en la ventana de la app. Requiere reinicio."
+        "description": "Activar el efecto nativo de vibración en la ventana de la app.",
+        "hint": "Requiere reinicio."
       },
       "themeAppearance": {
         "title": "Tema",

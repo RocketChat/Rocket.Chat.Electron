@@ -246,7 +246,8 @@
       },
       "hardwareAcceleration": {
         "title": "Aceleração de hardware",
-        "description": "Melhora a renderização visual e o desempenho. Desative se houver falhas visuais ou instabilidade. Reinicia o app ao alterar."
+        "description": "Melhora a renderização visual e o desempenho. Desative se houver falhas visuais ou instabilidade.",
+        "hint": "Reinicia o app ao alterar."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternativa de captura de tela para videochamadas",
@@ -255,7 +256,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videochamadas dentro do app",
-        "description": "Abrir videochamadas na janela do app em vez do navegador. Chamadas do <strong>Google Meet</strong> e <strong>Jitsi</strong> só podem ser abertas no navegador.",
+        "description": "Abrir videochamadas na janela do app em vez do navegador. Chamadas do Google Meet e Jitsi só podem ser abertas no navegador.",
         "masDescription": "Esta opção está desativada quando instalado pela Mac App Store. Por motivos de segurança, videochamadas sempre são abertas no navegador por padrão."
       },
       "minimizeOnClose": {
@@ -281,14 +282,14 @@
       },
       "availableBrowsers": {
         "title": "Navegador padrão",
-        "description": "Escolha qual navegador abrirá os links externos. O padrão do sistema usa as configurações do seu sistema operacional.",
+        "description": "Escolha qual navegador abrirá os links externos.",
         "systemDefault": "Padrão do sistema",
         "loading": "Carregando navegadores...",
         "current": "Usando atualmente:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar permissões de captura de tela",
-        "description": "Limpa as permissões mesmo que \"não perguntar novamente\" tenha sido selecionado anteriormente para chamadas."
+        "description": "Limpa as permissões mesmo que “não perguntar novamente” tenha sido selecionado anteriormente para chamadas."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Permitir captura de tela em videochamadas",
@@ -305,7 +306,8 @@
       },
       "transparentWindow": {
         "title": "Efeito de janela transparente",
-        "description": "Ativa a vibração nativa na janela do app. Requer reinicialização do app."
+        "description": "Ativa a vibração nativa na janela do app.",
+        "hint": "Requer reinicialização do app."
       },
       "themeAppearance": {
         "title": "Tema",

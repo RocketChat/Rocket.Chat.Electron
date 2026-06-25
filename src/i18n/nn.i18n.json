@@ -10,7 +10,8 @@
     "options": {
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
-        "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
+        "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet.",
+        "hint": "Krever omstart for å bruke."
       },
       "themeAppearance": {
         "title": "Tema",

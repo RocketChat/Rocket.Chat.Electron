@@ -1,5 +1,4 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
-import { useTranslation } from 'react-i18next';
 
 import { AvailableBrowsers } from './features/AvailableBrowsers';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
@@ -20,8 +19,6 @@ import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
 
 export const GeneralTab = () => {
-  const { t } = useTranslation();
-
   const isDarwin = process.platform === 'darwin';
   const isWin32 = process.platform === 'win32';
 
@@ -29,17 +26,11 @@ export const GeneralTab = () => {
     <Box display='flex' justifyContent='center' p='x24'>
       <Box is='form' width='x600' maxWidth='full'>
         <FieldGroup>
-          <Box fontScale='h4' mbe='x16' color='default'>
-            {t('settings.sections.appUi')}
-          </Box>
           <SideBar />
           <ThemeAppearance />
         </FieldGroup>
 
         <FieldGroup mbs='x24'>
-          <Box fontScale='h4' mbe='x16' color='default'>
-            {t('settings.sections.systemUi')}
-          </Box>
           {isDarwin && <TransparentWindow />}
           <TrayIcon />
           {isWin32 && <MinimizeOnClose />}
@@ -48,31 +39,22 @@ export const GeneralTab = () => {
         </FieldGroup>
 
         <FieldGroup mbs='x24'>
-          <Box fontScale='h4' mbe='x16' color='default'>
-            {t('settings.sections.systemBehavior')}
-          </Box>
           <AvailableBrowsers />
           <InternalVideoChatWindow />
           <VideoCallWindowPersistence />
         </FieldGroup>
 
         <FieldGroup mbs='x24'>
-          <Box fontScale='h4' mbe='x16' color='default'>
-            {t('settings.sections.calling')}
-          </Box>
           {!process.mas && <ClearPermittedScreenCaptureServers />}
           {isWin32 && <ScreenCaptureFallback />}
           <OutlookCalendarSyncInterval />
         </FieldGroup>
 
         <FieldGroup mbs='x24'>
-          <Box fontScale='h4' mbe='x16' color='default'>
-            {t('settings.sections.other')}
-          </Box>
           <HardwareAcceleration />
+          <E2ePdfPreviewSizeLimit />
           <ReportErrors />
           {isWin32 && <NTLMCredentials />}
-          <E2ePdfPreviewSizeLimit />
         </FieldGroup>
       </Box>
     </Box>

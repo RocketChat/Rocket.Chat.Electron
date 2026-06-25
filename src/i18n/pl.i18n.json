@@ -158,7 +158,8 @@
       },
       "hardwareAcceleration": {
         "title": "Akceleracja sprzętowa",
-        "description": "Poprawia renderowanie grafiki i wydajność. Wyłącz, jeśli występują błędy wizualne lub niestabilność. Ponownie ładuje aplikację po zmianie."
+        "description": "Poprawia renderowanie grafiki i wydajność. Wyłącz, jeśli występują błędy wizualne lub niestabilność.",
+        "hint": "Ponownie ładuje aplikację po zmianie."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternatywne przechwytywanie ekranu dla połączeń wideo",
@@ -167,7 +168,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Połączenia wideo wewnątrz aplikacji",
-        "description": "Otwieraj połączenia wideo w oknie aplikacji zamiast w przeglądarce. Połączenia <strong>Google Meet</strong> i <strong>Jitsi</strong> można otwierać tylko w przeglądarce.",
+        "description": "Otwieraj połączenia wideo w oknie aplikacji zamiast w przeglądarce. Połączenia Google Meet i Jitsi można otwierać tylko w przeglądarce.",
         "masDescription": "Ta opcja jest wyłączona w przypadku instalacji z Mac App Store. Ze względów bezpieczeństwa połączenia wideo są domyślnie zawsze otwierane w przeglądarce."
       },
       "minimizeOnClose": {
@@ -193,7 +194,7 @@
       },
       "availableBrowsers": {
         "title": "Domyślna przeglądarka",
-        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne. Domyślna systemu używa ustawień systemu operacyjnego.",
+        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne.",
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
@@ -222,7 +223,8 @@
       },
       "transparentWindow": {
         "title": "Efekt przezroczystego okna",
-        "description": "Włącz natywny efekt przezroczystości w oknie aplikacji. Wymaga ponownego uruchomienia."
+        "description": "Włącz natywny efekt przezroczystości w oknie aplikacji.",
+        "hint": "Wymaga ponownego uruchomienia."
       },
       "themeAppearance": {
         "title": "Motyw",

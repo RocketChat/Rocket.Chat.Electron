@@ -4,6 +4,7 @@ import {
   FieldRow,
   FieldLabel,
   FieldHint,
+  Box,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
@@ -54,6 +55,11 @@ export const TransparentWindow = (props: TransparentWindowProps) => {
         <FieldHint>
           {t('settings.options.transparentWindow.description')}
         </FieldHint>
+      </FieldRow>
+      <FieldRow>
+        <Box fontScale='c1' color='hint'>
+          {t('settings.options.transparentWindow.hint')}
+        </Box>
       </FieldRow>
     </Field>
   );

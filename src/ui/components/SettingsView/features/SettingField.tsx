@@ -6,14 +6,14 @@ type SettingFieldProps = {
   htmlFor?: string;
   label: ReactNode;
   hint: ReactNode;
-  /** the control rendered on the right (Select, InputBox, etc.) */
+  /** the control rendered below the description */
   children: ReactNode;
 } & Pick<ComponentProps<typeof Field>, 'className' | 'marginBlock'>;
 
 /**
- * Shared layout for a settings row that pairs a label + description on the
- * left with a fixed-width control on the right. Centralizes the column
- * widths and optical alignment so every row stays consistent.
+ * Shared layout for a settings row that stacks a label, then a description,
+ * then the control below it in a single left-aligned column. Centralizes the
+ * vertical rhythm so every row stays consistent.
  */
 export const SettingField = ({
   htmlFor,
@@ -24,24 +24,10 @@ export const SettingField = ({
   marginBlock,
 }: SettingFieldProps) => (
   <Field className={className} marginBlock={marginBlock}>
-    <Box
-      display='flex'
-      flexDirection='row'
-      justifyContent='space-between'
-      alignItems='flex-start'
-    >
-      <Box display='flex' flexDirection='column'>
-        <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
-        <FieldHint>{hint}</FieldHint>
-      </Box>
-      <Box
-        display='flex'
-        alignItems='center'
-        justifyContent='flex-end'
-        flexShrink={0}
-        width='x220'
-        paddingBlockStart='x4'
-      >
+    <Box display='flex' flexDirection='column' alignItems='stretch'>
+      <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
+      <FieldHint>{hint}</FieldHint>
+      <Box display='flex' width='full' paddingBlockStart='x4'>
         {children}
       </Box>
     </Box>

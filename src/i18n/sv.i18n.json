@@ -260,7 +260,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hårdvaruacceleration",
-        "description": "Förbättrar visuell rendering och prestanda. Inaktivera om du upplever grafiska fel eller instabilitet. Laddar om appen vid ändring."
+        "description": "Förbättrar visuell rendering och prestanda. Inaktivera om du upplever grafiska fel eller instabilitet.",
+        "hint": "Laddar om appen vid ändring."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Reservläge för skärmdumpning vid videosamtal",
@@ -269,7 +270,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videosamtal i appen",
-        "description": "Öppna videosamtal i appfönstret i stället för i webbläsaren. <strong>Google Meet</strong> och <strong>Jitsi</strong>-samtal kan bara öppnas i webbläsaren.",
+        "description": "Öppna videosamtal i appfönstret i stället för i webbläsaren. Google Meet och Jitsi-samtal kan bara öppnas i webbläsaren.",
         "masDescription": "Detta alternativ är inaktiverat när det installeras från Mac App Store. Av säkerhetsskäl öppnas videosamtal alltid i webbläsaren som standard."
       },
       "minimizeOnClose": {
@@ -295,14 +296,14 @@
       },
       "availableBrowsers": {
         "title": "Standardwebbläsare",
-        "description": "Välj vilken webbläsare som ska öppna externa länkar. Systemstandard använder inställningarna för ditt operativsystem.",
+        "description": "Välj vilken webbläsare som ska öppna externa länkar.",
         "systemDefault": "Systemstandard",
         "loading": "Laddar webbläsare...",
         "current": "Använder för närvarande:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Rensa behörigheter för skärmdumpning",
-        "description": "Rensa behörigheter även om \"fråga inte igen\" valdes tidigare vid samtal."
+        "description": "Rensa behörigheter även om “fråga inte igen” valdes tidigare vid samtal."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Tillåt skärmdumpning vid videosamtal",
@@ -319,7 +320,8 @@
       },
       "transparentWindow": {
         "title": "Transparent fönstereffekt",
-        "description": "Aktivera inbyggd vibranseffekt för appfönstret. Kräver omstart av appen."
+        "description": "Aktivera inbyggd vibranseffekt för appfönstret.",
+        "hint": "Kräver omstart av appen."
       },
       "themeAppearance": {
         "title": "Tema",

@@ -146,7 +146,8 @@
       },
       "hardwareAcceleration": {
         "title": "ハードウェアアクセラレーション",
-        "description": "映像レンダリングとパフォーマンスを向上させます。画面の乱れや不安定さが生じる場合は無効にしてください。変更するとアプリが再起動します。"
+        "description": "映像レンダリングとパフォーマンスを向上させます。画面の乱れや不安定さが生じる場合は無効にしてください。",
+        "hint": "変更するとアプリが再起動します。"
       },
       "videoCallScreenCaptureFallback": {
         "title": "ビデオ通話の画面キャプチャーフォールバック",
@@ -155,7 +156,7 @@
       },
       "internalVideoChatWindow": {
         "title": "アプリ内でビデオ通話",
-        "description": "ブラウザーではなくアプリウィンドウ内でビデオ通話を開きます。<strong>Google Meet</strong> と <strong>Jitsi</strong> の通話はブラウザーでのみ開くことができます。",
+        "description": "ブラウザーではなくアプリウィンドウ内でビデオ通話を開きます。Google Meet と Jitsi の通話はブラウザーでのみ開くことができます。",
         "masDescription": "Mac App Storeからインストールされている場合、このオプションは無効です。セキュリティ上の理由から、ビデオ通話は既定でブラウザーで開きます。"
       },
       "minimizeOnClose": {
@@ -181,7 +182,7 @@
       },
       "availableBrowsers": {
         "title": "既定のブラウザー",
-        "description": "外部リンクを開くブラウザーを選択します。システムの既定はOSの設定を使用します。",
+        "description": "外部リンクを開くブラウザーを選択します。",
         "systemDefault": "システムの既定",
         "loading": "ブラウザーを読み込み中...",
         "current": "現在使用中:"
@@ -210,7 +211,8 @@
       },
       "transparentWindow": {
         "title": "透明ウィンドウ効果",
-        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
+        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。",
+        "hint": "適用するには再起動が必要です。"
       },
       "themeAppearance": {
         "title": "テーマ",

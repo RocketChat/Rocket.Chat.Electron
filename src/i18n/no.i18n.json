@@ -268,7 +268,8 @@
       },
       "hardwareAcceleration": {
         "title": "Maskinvareakselerasjon",
-        "description": "Forbedrer visuell gjengivelse og ytelse. Deaktiver hvis du opplever visuelle feil eller ustabilitet. Laster appen på nytt ved endring."
+        "description": "Forbedrer visuell gjengivelse og ytelse. Deaktiver hvis du opplever visuelle feil eller ustabilitet.",
+        "hint": "Laster appen på nytt ved endring."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Reserveopptak for videosamtaler",
@@ -277,7 +278,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videosamtaler inne i appen",
-        "description": "Åpne videosamtaler i appvinduet i stedet for nettleseren. <strong>Google Meet</strong> og <strong>Jitsi</strong>-samtaler kan bare åpnes i nettleseren.",
+        "description": "Åpne videosamtaler i appvinduet i stedet for nettleseren. Google Meet og Jitsi-samtaler kan bare åpnes i nettleseren.",
         "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store. Av sikkerhetsgrunner åpnes videosamtaler alltid i nettleseren som standard."
       },
       "minimizeOnClose": {
@@ -303,7 +304,7 @@
       },
       "availableBrowsers": {
         "title": "Standard nettleser",
-        "description": "Velg hvilken nettleser som skal åpne eksterne lenker fra denne appen. Systemstandard bruker operativsysteminnstillingene dine.",
+        "description": "Velg hvilken nettleser som skal åpne eksterne lenker fra denne appen.",
         "systemDefault": "Systemstandard",
         "loading": "Laster inn nettlesere ...",
         "current": "Bruker for øyeblikket:"
@@ -327,7 +328,8 @@
       },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
-        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet. Krever omstart for å brukes."
+        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet.",
+        "hint": "Krever omstart for å brukes."
       },
       "themeAppearance": {
         "title": "Tema",

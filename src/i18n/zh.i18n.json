@@ -10,7 +10,8 @@
     "options": {
       "transparentWindow": {
         "title": "透明窗口效果",
-        "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
+        "description": "启用窗口的原生模糊/透明效果。",
+        "hint": "需要重启才能应用。"
       },
       "themeAppearance": {
         "title": "主题",

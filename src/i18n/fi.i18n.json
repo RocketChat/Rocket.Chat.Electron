@@ -239,7 +239,8 @@
       },
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
-        "description": "Parantaa visuaalista renderöintiä ja suorituskykyä. Poista käytöstä, jos koet visuaalisia häiriöitä tai epävakautta. Lataa sovelluksen uudelleen muutoksen yhteydessä."
+        "description": "Parantaa visuaalista renderöintiä ja suorituskykyä. Poista käytöstä, jos koet visuaalisia häiriöitä tai epävakautta.",
+        "hint": "Lataa sovelluksen uudelleen muutoksen yhteydessä."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Videopuhelujen varanäyttökaappaus",
@@ -248,7 +249,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videopuhelut sovelluksessa",
-        "description": "Avaa videopuhelut sovelluksen ikkunassa selaimen sijaan. <strong>Google Meet</strong>- ja <strong>Jitsi</strong>-puhelut voidaan avata vain selaimessa.",
+        "description": "Avaa videopuhelut sovelluksen ikkunassa selaimen sijaan. Google Meet- ja Jitsi-puhelut voidaan avata vain selaimessa.",
         "masDescription": "Asetus ei ole käytössä, kun asennus on tehty Macin App Storesta. Suojaussyistä videopuhelut avautuvat oletusarvoisesti selaimeen."
       },
       "minimizeOnClose": {
@@ -274,18 +275,19 @@
       },
       "availableBrowsers": {
         "title": "Oletusselain",
-        "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta. Järjestelmän oletus käyttää käyttöjärjestelmäsi asetuksia.",
+        "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta.",
         "systemDefault": "Järjestelmän oletus",
         "loading": "Ladataan selaimia...",
         "current": "Käytössä nyt:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökaappausoikeudet",
-        "description": "Tyhjennä oikeudet, vaikka \"älä kysy uudelleen\" olisi aiemmin valittu puheluiden yhteydessä."
+        "description": "Tyhjennä oikeudet, vaikka “älä kysy uudelleen” olisi aiemmin valittu puheluiden yhteydessä."
       },
       "transparentWindow": {
         "title": "Läpinäkyvä ikkuna-efekti",
-        "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle. Vaatii sovelluksen uudelleenkäynnistyksen."
+        "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle.",
+        "hint": "Vaatii sovelluksen uudelleenkäynnistyksen."
       },
       "themeAppearance": {
         "title": "Teema",

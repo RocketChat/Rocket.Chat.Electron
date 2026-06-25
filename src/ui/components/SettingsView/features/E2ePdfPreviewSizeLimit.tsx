@@ -1,10 +1,4 @@
-import {
-  Field,
-  FieldLabel,
-  FieldHint,
-  InputBox,
-  Box,
-} from '@rocket.chat/fuselage';
+import { InputBox } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +8,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED } from '../../../actions';
+import { SettingField } from './SettingField';
 
 type E2ePdfPreviewSizeLimitProps = {
   className?: string;
@@ -42,34 +37,22 @@ export const E2ePdfPreviewSizeLimit = (props: E2ePdfPreviewSizeLimitProps) => {
   const id = useId();
 
   return (
-    <Field className={props.className} marginBlock='x16'>
-      <Box
-        display='flex'
-        flexDirection='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
-      >
-        <Box display='flex' flexDirection='column'>
-          <FieldLabel htmlFor={id}>
-            {t('settings.options.e2ePdfPreviewSizeLimit.title')}
-          </FieldLabel>
-          <FieldHint>
-            {t('settings.options.e2ePdfPreviewSizeLimit.description')}
-          </FieldHint>
-        </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
-          <InputBox
-            id={id}
-            type='number'
-            min={1}
-            max={500}
-            step={1}
-            value={e2ePdfPreviewSizeLimit}
-            onChange={handleChange}
-            style={{ maxWidth: '5rem' }}
-          />
-        </Box>
-      </Box>
-    </Field>
+    <SettingField
+      className={props.className}
+      marginBlock='x16'
+      htmlFor={id}
+      label={t('settings.options.e2ePdfPreviewSizeLimit.title')}
+      hint={t('settings.options.e2ePdfPreviewSizeLimit.description')}
+    >
+      <InputBox
+        id={id}
+        type='number'
+        min={1}
+        max={500}
+        step={1}
+        value={e2ePdfPreviewSizeLimit}
+        onChange={handleChange}
+      />
+    </SettingField>
   );
 };

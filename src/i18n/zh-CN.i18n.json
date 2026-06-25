@@ -179,7 +179,8 @@
       },
       "hardwareAcceleration": {
         "title": "硬件加速",
-        "description": "改善视觉渲染和性能。如出现画面异常或不稳定，请禁用此选项。更改后将重载应用。"
+        "description": "改善视觉渲染和性能。如出现画面异常或不稳定，请禁用此选项。",
+        "hint": "更改后将重载应用。"
       },
       "videoCallScreenCaptureFallback": {
         "title": "视频通话屏幕捕获备用方案",
@@ -188,7 +189,7 @@
       },
       "internalVideoChatWindow": {
         "title": "在应用内打开视频通话",
-        "description": "在应用窗口内打开视频通话，而非浏览器。<strong>Google Meet</strong> 和 <strong>Jitsi</strong> 通话只能在浏览器中打开。",
+        "description": "在应用窗口内打开视频通话，而非浏览器。Google Meet 和 Jitsi 通话只能在浏览器中打开。",
         "masDescription": "从 Mac App Store 安装时此选项被禁用。出于安全原因，视频通话将始终默认在浏览器中打开。"
       },
       "minimizeOnClose": {
@@ -214,7 +215,7 @@
       },
       "availableBrowsers": {
         "title": "默认浏览器",
-        "description": "选择打开外部链接所用的浏览器。系统默认使用操作系统设置。",
+        "description": "选择打开外部链接所用的浏览器。",
         "systemDefault": "系统默认",
         "loading": "正在加载浏览器...",
         "current": "当前使用："
@@ -243,7 +244,8 @@
       },
       "transparentWindow": {
         "title": "透明窗口效果",
-        "description": "启用窗口的原生毛玻璃效果。需要重启应用才能应用。"
+        "description": "启用窗口的原生毛玻璃效果。",
+        "hint": "需要重启应用才能应用。"
       },
       "themeAppearance": {
         "title": "主题",

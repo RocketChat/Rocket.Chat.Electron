@@ -58,7 +58,6 @@ export const OutlookCalendarSyncInterval = (
         max={60}
         value={intervalMinutes}
         onChange={handleChange}
-        maxWidth='x80'
       />
     </SettingField>
   );

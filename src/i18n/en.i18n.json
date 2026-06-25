@@ -268,7 +268,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hardware acceleration",
-        "description": "Improves visual rendering and performance. Disable if you experience visual glitches or instability. Reloads app on change."
+        "description": "Improves visual rendering and performance. Disable if you experience visual glitches or instability.",
+        "hint": "Reloads app on change."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Video call screen capture fallback",
@@ -277,7 +278,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Video calls inside app",
-        "description": "Open video calls inside app window instead of browser. <strong>Google Meet</strong> and <strong>Jitsi</strong> calls can only open in browser.",
+        "description": "Open video calls inside app window instead of browser. Google Meet and Jitsi calls can only open in browser.",
         "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, video calls always open in the browser by default."
       },
       "minimizeOnClose": {
@@ -303,7 +304,7 @@
       },
       "availableBrowsers": {
         "title": "Default browser",
-        "description": "Choose which browser to open external links in. System default uses your operating system settings.",
+        "description": "Choose which browser to open external links in.",
         "systemDefault": "System default",
         "loading": "Loading browsers...",
         "current": "Currently using:"
@@ -315,7 +316,7 @@
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear screen capture permissions",
-        "description": "Clear permissions even if \"do not ask again\" was previously selected for calling."
+        "description": "Clear permissions even if “do not ask again” was previously selected for calling."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Allow screen capture on video calls",
@@ -332,7 +333,8 @@
       },
       "transparentWindow": {
         "title": "Transparent window effect",
-        "description": "Enable native vibrancy on app window. Requires app restart."
+        "description": "Enable native vibrancy on app window.",
+        "hint": "Requires app restart."
       },
       "themeAppearance": {
         "title": "Theme",

@@ -232,7 +232,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hardware-Beschleunigung",
-        "description": "Verbessert die Darstellung und Leistung. Deaktivieren, wenn grafische Fehler oder Instabilität auftreten. Die App wird bei Änderung neu geladen."
+        "description": "Verbessert die Darstellung und Leistung. Deaktivieren, wenn grafische Fehler oder Instabilität auftreten.",
+        "hint": "Die App wird bei Änderung neu geladen."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
@@ -241,7 +242,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videoanrufe innerhalb der App",
-        "description": "Videoanrufe im App-Fenster anstatt im Browser öffnen. <strong>Google Meet</strong>- und <strong>Jitsi</strong>-Anrufe können nur im Browser geöffnet werden.",
+        "description": "Videoanrufe im App-Fenster anstatt im Browser öffnen. Google Meet- und Jitsi-Anrufe können nur im Browser geöffnet werden.",
         "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen werden Videoanrufe standardmäßig im Browser geöffnet."
       },
       "minimizeOnClose": {
@@ -267,14 +268,14 @@
       },
       "availableBrowsers": {
         "title": "Standard-Browser",
-        "description": "Wählen Sie, welcher Browser externe Links aus dieser App öffnen soll. Systemstandard verwendet die Einstellungen Ihres Betriebssystems.",
+        "description": "Wählen Sie, welcher Browser externe Links aus dieser App öffnen soll.",
         "systemDefault": "Systemstandard",
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Bildschirmaufnahme-Berechtigungen löschen",
-        "description": "Berechtigungen löschen, auch wenn zuvor 'Nicht mehr fragen' für Anrufe ausgewählt wurde."
+        "description": "Berechtigungen löschen, auch wenn zuvor „Nicht mehr fragen“ für Anrufe ausgewählt wurde."
       },
       "ntlmCredentials": {
         "title": "NTLM-Anmeldeinformationen",
@@ -287,7 +288,8 @@
       },
       "transparentWindow": {
         "title": "Transparenter Fenstereffekt",
-        "description": "Natives Vibrancy-Effekt für das App-Fenster aktivieren. Erfordert App-Neustart."
+        "description": "Natives Vibrancy-Effekt für das App-Fenster aktivieren.",
+        "hint": "Erfordert App-Neustart."
       },
       "themeAppearance": {
         "title": "Design",

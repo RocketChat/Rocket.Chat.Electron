@@ -125,7 +125,8 @@
       },
       "hardwareAcceleration": {
         "title": "硬體加速",
-        "description": "改善視覺渲染和效能。若遇到視覺異常或不穩定的情況，請停用此選項。變更後將重新載入應用程式。"
+        "description": "改善視覺渲染和效能。若遇到視覺異常或不穩定的情況，請停用此選項。",
+        "hint": "變更後將重新載入應用程式。"
       },
       "videoCallScreenCaptureFallback": {
         "title": "視訊通話螢幕擷取備援",
@@ -134,7 +135,7 @@
       },
       "internalVideoChatWindow": {
         "title": "在應用程式內進行視訊通話",
-        "description": "在應用程式視窗內開啟視訊通話，而非在瀏覽器中開啟。<strong>Google Meet</strong> 和 <strong>Jitsi</strong> 通話只能在瀏覽器中開啟。",
+        "description": "在應用程式視窗內開啟視訊通話，而非在瀏覽器中開啟。Google Meet 和 Jitsi 通話只能在瀏覽器中開啟。",
         "masDescription": "從 Mac App Store 安裝時，此選項將被停用。基於安全考量，視訊通話預設一律在瀏覽器中開啟。"
       },
       "minimizeOnClose": {
@@ -160,7 +161,7 @@
       },
       "availableBrowsers": {
         "title": "預設瀏覽器",
-        "description": "選擇哪個瀏覽器將開啟此應用程式的外部連結。系統預設使用您操作系統的設定。",
+        "description": "選擇哪個瀏覽器將開啟此應用程式的外部連結。",
         "systemDefault": "系統預設",
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
@@ -189,7 +190,8 @@
       },
       "transparentWindow": {
         "title": "透明視窗效果",
-        "description": "啟用應用程式視窗的原生活力效果。需要重新啟動應用程式。"
+        "description": "啟用應用程式視窗的原生活力效果。",
+        "hint": "需要重新啟動應用程式。"
       },
       "themeAppearance": {
         "title": "主題",

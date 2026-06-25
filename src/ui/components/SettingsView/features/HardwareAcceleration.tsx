@@ -4,6 +4,7 @@ import {
   FieldRow,
   FieldLabel,
   FieldHint,
+  Box,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
@@ -55,6 +56,11 @@ export const HardwareAcceleration = (props: HardwareAccelerationProps) => {
         <FieldHint>
           {t('settings.options.hardwareAcceleration.description')}
         </FieldHint>
+      </FieldRow>
+      <FieldRow>
+        <Box fontScale='c1' color='hint'>
+          {t('settings.options.hardwareAcceleration.hint')}
+        </Box>
       </FieldRow>
     </Field>
   );

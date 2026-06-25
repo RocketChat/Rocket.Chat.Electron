@@ -146,7 +146,8 @@
       },
       "hardwareAcceleration": {
         "title": "Donanım hızlandırma",
-        "description": "Görsel işlemeyi ve performansı artırır. Görsel hatalar veya kararsızlık yaşıyorsanız devre dışı bırakın. Değişiklik uygulamayı yeniden yükler."
+        "description": "Görsel işlemeyi ve performansı artırır. Görsel hatalar veya kararsızlık yaşıyorsanız devre dışı bırakın.",
+        "hint": "Değişiklik uygulamayı yeniden yükler."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Video arama ekran yakalama geri dönüşü",
@@ -155,7 +156,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Video aramalar uygulama içinde",
-        "description": "Video aramalarını tarayıcı yerine uygulama penceresinde açın. <strong>Google Meet</strong> ve <strong>Jitsi</strong> aramaları yalnızca tarayıcıda açılabilir.",
+        "description": "Video aramalarını tarayıcı yerine uygulama penceresinde açın. Google Meet ve Jitsi aramaları yalnızca tarayıcıda açılabilir.",
         "masDescription": "Mac App Store'dan yüklendiğinde bu seçenek devre dışı kalır. Güvenlik nedeniyle video aramalar varsayılan olarak her zaman tarayıcıda açılır."
       },
       "minimizeOnClose": {
@@ -181,7 +182,7 @@
       },
       "availableBrowsers": {
         "title": "Varsayılan tarayıcı",
-        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin. Sistem varsayılanı, işletim sisteminizin ayarlarını kullanır.",
+        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin.",
         "systemDefault": "Sistem varsayılanı",
         "loading": "Tarayıcılar yükleniyor...",
         "current": "Şu anda kullanılan:"
@@ -193,7 +194,7 @@
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Ekran yakalama izinlerini temizle",
-        "description": "Arama için daha önce \"bir daha sorma\" seçilmiş olsa bile izinleri temizle."
+        "description": "Arama için daha önce “bir daha sorma” seçilmiş olsa bile izinleri temizle."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Video aramalarda ekran yakalamaya izin ver",
@@ -210,7 +211,8 @@
       },
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",
-        "description": "Uygulama penceresinde yerel titreşim/şeffaflık efektini etkinleştir. Uygulama yeniden başlatması gerektirir."
+        "description": "Uygulama penceresinde yerel titreşim/şeffaflık efektini etkinleştir.",
+        "hint": "Uygulama yeniden başlatması gerektirir."
       },
       "themeAppearance": {
         "title": "Tema",

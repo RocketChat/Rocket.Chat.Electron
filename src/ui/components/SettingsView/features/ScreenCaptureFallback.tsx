@@ -1,12 +1,5 @@
-import {
-  Field,
-  FieldHint,
-  FieldLabel,
-  FieldRow,
-  ToggleSwitch,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -14,6 +7,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type ScreenCaptureFallbackProps = {
   className?: string;
@@ -41,10 +35,7 @@ export const ScreenCaptureFallback = (props: ScreenCaptureFallbackProps) => {
     [dispatch]
   );
 
-  const fallbackToggleId = useMemo(
-    () => `screen-capture-fallback-${Math.random().toString(36).substr(2, 9)}`,
-    []
-  );
+  const fallbackToggleId = useId();
 
   const description = useMemo(() => {
     if (isFallbackForced) {
@@ -56,21 +47,15 @@ export const ScreenCaptureFallback = (props: ScreenCaptureFallbackProps) => {
   }, [isFallbackForced, t]);
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={fallbackToggleId}>
-          {t('settings.options.videoCallScreenCaptureFallback.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={fallbackToggleId}
-          checked={isFallbackEnabled || isFallbackForced}
-          onChange={handleChange}
-          disabled={isFallbackForced}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>{description}</FieldHint>
-      </FieldRow>
-    </Field>
+    <ToggleField
+      id={fallbackToggleId}
+      label={t('settings.options.videoCallScreenCaptureFallback.title')}
+      description={description}
+      hint={t('settings.options.videoCallScreenCaptureFallback.hint')}
+      checked={isFallbackEnabled || isFallbackForced}
+      onChange={handleChange}
+      disabled={isFallbackForced}
+      className={props.className}
+    />
   );
 };

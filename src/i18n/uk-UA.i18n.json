@@ -158,7 +158,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Резервний режим захоплення екрана для відеодзвінків",
-        "description": "Вимикає Windows Graphics Capture, щоб демонстрація екрана працювала в сеансах Remote Desktop. Застосунок перезапускається при зміненні цього параметра.",
+        "description": "Вимикає Windows Graphics Capture, щоб демонстрація екрана працювала в сеансах Remote Desktop.",
+        "hint": "Застосунок перезапускається при зміненні цього параметра.",
         "forcedDescription": "Наразі примусово ввімкнено, оскільки застосунок виявив сеанс Remote Desktop. Перемикач тепер керує майбутніми запусками при локальній роботі."
       },
       "internalVideoChatWindow": {

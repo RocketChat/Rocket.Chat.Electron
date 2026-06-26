@@ -42,7 +42,7 @@ export const E2ePdfPreviewSizeLimit = (props: E2ePdfPreviewSizeLimitProps) => {
       marginBlock='x16'
       htmlFor={id}
       label={t('settings.options.e2ePdfPreviewSizeLimit.title')}
-      hint={t('settings.options.e2ePdfPreviewSizeLimit.description')}
+      description={t('settings.options.e2ePdfPreviewSizeLimit.description')}
     >
       <InputBox
         id={id}

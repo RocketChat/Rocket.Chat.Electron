@@ -237,7 +237,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
-        "description": "Deaktiviert Windows Graphics Capture, damit die Bildschirmfreigabe in Remote-Desktop-Sitzungen funktioniert. Die App startet neu, wenn diese Option geändert wird.",
+        "description": "Deaktiviert Windows Graphics Capture, damit die Bildschirmfreigabe in Remote-Desktop-Sitzungen funktioniert.",
+        "hint": "Die App startet neu, wenn diese Option geändert wird.",
         "forcedDescription": "Derzeit erzwungen, weil die App eine Remote-Desktop-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
       },
       "internalVideoChatWindow": {

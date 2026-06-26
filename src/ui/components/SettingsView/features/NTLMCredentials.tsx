@@ -1,11 +1,4 @@
-import {
-  Field,
-  FieldHint,
-  FieldLabel,
-  FieldRow,
-  InputBox,
-  ToggleSwitch,
-} from '@rocket.chat/fuselage';
+import { FieldHint, FieldRow, InputBox } from '@rocket.chat/fuselage';
 import type { FocusEvent } from 'react';
 import { useCallback, type ChangeEvent, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +9,7 @@ import { APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET } from '../../../../app/action
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_NTLM_CREDENTIALS_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type NTLMCredentialsProps = {
   className?: string;
@@ -57,22 +51,14 @@ export const NTLMCredentials = (props: NTLMCredentialsProps) => {
   const isNTLMCredentialsEnabledId = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isNTLMCredentialsEnabledId}>
-          {t('settings.options.ntlmCredentials.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isNTLMCredentialsEnabledId}
-          checked={isNTLMCredentialsEnabled}
-          onChange={handleToggleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>
-          {t('settings.options.ntlmCredentials.description')}
-        </FieldHint>
-      </FieldRow>
+    <ToggleField
+      id={isNTLMCredentialsEnabledId}
+      label={t('settings.options.ntlmCredentials.title')}
+      description={t('settings.options.ntlmCredentials.description')}
+      checked={isNTLMCredentialsEnabled}
+      onChange={handleToggleChange}
+      className={props.className}
+    >
       <FieldRow>
         <FieldRow size='100%'>
           <InputBox
@@ -84,9 +70,7 @@ export const NTLMCredentials = (props: NTLMCredentialsProps) => {
           />
         </FieldRow>
       </FieldRow>
-      <FieldRow>
-        <FieldHint>{t('settings.options.ntlmCredentials.domains')}</FieldHint>
-      </FieldRow>
-    </Field>
+      <FieldHint>{t('settings.options.ntlmCredentials.domains')}</FieldHint>
+    </ToggleField>
   );
 };

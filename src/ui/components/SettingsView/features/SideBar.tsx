@@ -1,10 +1,3 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +7,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type SideBarProps = {
   className?: string;
@@ -43,25 +37,18 @@ export const SideBar = (props: SideBarProps) => {
   const canToggle = !isSideBarEnabled || isMenuBarEnabled;
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isSideBarEnabledId}>
-          {t('settings.options.sidebar.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isSideBarEnabledId}
-          checked={isSideBarEnabled}
-          onChange={handleChange}
-          disabled={!canToggle}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>
-          {!isMenuBarEnabled && isSideBarEnabled
-            ? t('settings.options.sidebar.disabledHint')
-            : t('settings.options.sidebar.description')}
-        </FieldHint>
-      </FieldRow>
-    </Field>
+    <ToggleField
+      id={isSideBarEnabledId}
+      label={t('settings.options.sidebar.title')}
+      description={
+        !isMenuBarEnabled && isSideBarEnabled
+          ? t('settings.options.sidebar.disabledHint')
+          : t('settings.options.sidebar.description')
+      }
+      checked={isSideBarEnabled}
+      onChange={handleChange}
+      disabled={!canToggle}
+      className={props.className}
+    />
   );
 };

@@ -8,6 +8,84 @@
   },
   "settings": {
     "options": {
+      "report": {
+        "title": "Rapporter feil til Rocket.Chat",
+        "description": "Rapporter problem anonymt til apputviklarane. Delt informasjon inkluderer appversjonsnummer, operativsystemtype, arbeidsområde-URL, einingsspråk og feiltype. Ikkje noko innhald eller brukarnamn vert delt.",
+        "masDescription": "Dette valet er deaktivert ved installasjon frå Mac App Store. Feil vert rapporterte gjennom Mac App Store sin feilrapporteringsprosess."
+      },
+      "flashFrame": {
+        "title": "Blink i vindauget",
+        "titleDarwin": "Spretthopp i dokk-ikonet",
+        "description": "Blink i vindauget når ei ny melding kjem.",
+        "onLinux": "Nokre Linux-distribusjonar støttar ikkje denne funksjonen.",
+        "descriptionDarwin": "Dokk-ikonet sprett når ei ny melding kjem."
+      },
+      "hardwareAcceleration": {
+        "title": "Maskinvareakselerasjon",
+        "description": "Betrar visuell gjengjeving og yting. Deaktiver dersom du opplever visuelle feil eller ustabilitet.",
+        "hint": "Lastar appen på nytt ved endring."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Reserveval for skjermopptak i videosamtalar",
+        "description": "Deaktiver Windows Graphics Capture slik at skjermdeling fungerer i økter med eksternt skrivebord.",
+        "hint": "Appen startar på nytt når dette valet vert endra.",
+        "forcedDescription": "For augneblinken påtvinga fordi appen oppdaga ei økt med eksternt skrivebord. Brytaren styrer framtidige oppstartar når han køyrer lokalt."
+      },
+      "internalVideoChatWindow": {
+        "title": "Videosamtalar i appen",
+        "description": "Opne videosamtalar i appvindauget i staden for nettlesaren. Google Meet- og Jitsi-samtalar kan berre opnast i nettlesaren.",
+        "masDescription": "Dette valet er deaktivert ved installasjon frå Mac App Store. Av tryggleiksgrunnar vert videosamtalar alltid opna i nettlesaren som standard."
+      },
+      "minimizeOnClose": {
+        "title": "Minimer ved lukking",
+        "description": "Minimer og ikkje avslutt appen når vindauget vert lukka.",
+        "disabledHint": "Systemkurv-ikonet må vere deaktivert."
+      },
+      "menubar": {
+        "title": "Menylinje",
+        "description": "Vis menylinja øvst i vindauget.",
+        "disabledHint": "Kan ikkje deaktivere menylinja når arbeidsområdelinja er deaktivert. Appinnstillingane ville blitt utilgjengelege."
+      },
+      "sidebar": {
+        "title": "Arbeidsområdelinje",
+        "description": "Vis arbeidsområdelista med knappar for nedlastingar og innstillingar.",
+        "disabledHint": "Kan ikkje deaktivere arbeidsområdelinja når menylinja er deaktivert. Appinnstillingane ville blitt utilgjengelege."
+      },
+      "trayIcon": {
+        "title": "Systemkurv-ikon",
+        "titleDarwin": "Ekstra i menylinja",
+        "description": "Vis systemkurv-ikon i systemkurven. I staden for å avslutte vert appen gøymd i systemkurven ved lukking når dette er aktivert.",
+        "descriptionDarwin": "Vis app-ikonet i menylinja."
+      },
+      "availableBrowsers": {
+        "title": "Standard nettlesar",
+        "description": "Vel kva for nettlesar eksterne lenkjer skal opnast i.",
+        "systemDefault": "Systemstandard",
+        "loading": "Lastar nettlesarar...",
+        "current": "Brukar for augneblinken:"
+      },
+      "telephonyServer": {
+        "title": "Telefoniarbeidsområde",
+        "description": "Vel kva for arbeidsområde som handterer innkomande anrop (tel:- og callto:-lenkjer).",
+        "auto": "Automatisk (spør kvar gong)"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Fjern løyve for skjermopptak",
+        "description": "Fjern løyve sjølv om «ikkje spør igjen» tidlegare vart valt for anrop."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Tillat skjermopptak i videosamtalar",
+        "description": "Tillat skjermopptak i videosamtalar. Spør om løyve i kvar videosamtale."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-legitimasjon",
+        "description": "Tillat at NTLM-legitimasjon vert brukt ved tilkopling til eit arbeidsområde.",
+        "domains": "Domene som vil bli brukte som legitimasjon. Skilde med komma. Bruk * for å samsvare med alle tenarar."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Behald posisjonen til videosamtalevindauget",
+        "description": "Hugs posisjonen og storleiken på videosamtalevindauget mellom økter."
+      },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
         "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet.",
@@ -19,6 +97,26 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Synkroniseringsintervall for Outlook-kalender",
+        "description": "Kor ofte det vert sjekka etter kalenderoppdateringar, i minutt (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Detaljert logging for Outlook-kalender",
+        "description": "Aktiver detaljerte Exchange/NTLM-feilsøkingsloggar for å feilsøke problem med integrasjon av Outlook-kalender."
+      },
+      "detailedEventsLogging": {
+        "title": "Detaljert hendingslogging",
+        "description": "Logg fullstendige hendingsdata som vert utveksla mellom Outlook og Rocket.Chat under kalendersynkronisering. Nyttig for å diagnostisere synkroniseringsproblem."
+      },
+      "debugLogging": {
+        "title": "Detaljert logging",
+        "description": "Skriv all konsollutskrift til loggfila. Når dette er deaktivert, vert berre feil og viktige meldingar lagra, slik at loggane held seg mindre og meir fokuserte."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Storleiksgrense for PDF-førehandsvising i krypterte rom (MB)",
+        "description": "Krypterte filer vert lasta inn i minnet for førehandsvisingar. Filer større enn denne grensa vert lasta ned direkte."
       }
     }
   },

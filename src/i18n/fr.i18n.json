@@ -244,7 +244,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Solution de capture d'écran pour les appels vidéo",
-        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions Bureau à distance. L'application redémarre lorsque vous modifiez cette option.",
+        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions Bureau à distance.",
+        "hint": "L'application redémarre lorsque vous modifiez cette option.",
         "forcedDescription": "Actuellement appliqué car l'application a détecté une session Bureau à distance. Le commutateur contrôle le comportement lors des prochains démarrages locaux."
       },
       "internalVideoChatWindow": {

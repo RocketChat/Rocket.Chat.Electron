@@ -163,7 +163,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternatywne przechwytywanie ekranu dla połączeń wideo",
-        "description": "Wyłącz funkcję Windows Graphics Capture, aby udostępnianie ekranu działało w sesjach Pulpitu zdalnego. Aplikacja uruchamia się ponownie po zmianie tej opcji.",
+        "description": "Wyłącz funkcję Windows Graphics Capture, aby udostępnianie ekranu działało w sesjach Pulpitu zdalnego.",
+        "hint": "Aplikacja uruchamia się ponownie po zmianie tej opcji.",
         "forcedDescription": "Obecnie wymuszone, ponieważ aplikacja wykryła sesję Pulpitu zdalnego. Przełącznik kontroluje teraz przyszłe uruchomienia przy pracy lokalnej."
       },
       "internalVideoChatWindow": {

@@ -184,7 +184,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "视频通话屏幕捕获备用方案",
-        "description": "禁用 Windows 图形捕获，使屏幕共享在远程桌面会话中正常工作。更改此选项后应用将重启。",
+        "description": "禁用 Windows 图形捕获，使屏幕共享在远程桌面会话中正常工作。",
+        "hint": "更改此选项后应用将重启。",
         "forcedDescription": "当前已强制启用，因为应用检测到远程桌面会话。切换开关控制在本地运行时未来启动的行为。"
       },
       "internalVideoChatWindow": {

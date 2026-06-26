@@ -8,6 +8,84 @@
   },
   "settings": {
     "options": {
+      "report": {
+        "title": "向 Rocket.Chat 报告错误",
+        "description": "匿名向开发者报告错误。会发送包括程序版本号、操作系统类型、工作区地址、设备语言和错误类型。不会发送聊天内容和用户名等信息。",
+        "masDescription": "从 Mac App Store 安装时此选项被禁用。错误将通过 Mac App Store 错误报告流程提交。"
+      },
+      "flashFrame": {
+        "title": "闪烁窗口",
+        "titleDarwin": "弹跳 Dock 图标",
+        "description": "收到新消息时闪烁窗口。",
+        "onLinux": "在一些Linux系统上这个功能不可用。",
+        "descriptionDarwin": "收到新消息时 Dock 图标弹跳提示。"
+      },
+      "hardwareAcceleration": {
+        "title": "硬件加速",
+        "description": "改善视觉渲染和性能。如出现画面异常或不稳定，请禁用此选项。",
+        "hint": "更改后将重载应用。"
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "视频通话屏幕捕获备用方案",
+        "description": "禁用 Windows 图形捕获，使屏幕共享在远程桌面会话中正常工作。",
+        "hint": "更改此选项后应用将重启。",
+        "forcedDescription": "当前已强制启用，因为应用检测到远程桌面会话。切换开关控制在本地运行时未来启动的行为。"
+      },
+      "internalVideoChatWindow": {
+        "title": "在应用内打开视频通话",
+        "description": "在应用窗口内打开视频通话，而非浏览器。Google Meet 和 Jitsi 通话只能在浏览器中打开。",
+        "masDescription": "从 Mac App Store 安装时此选项被禁用。出于安全原因，视频通话将始终默认在浏览器中打开。"
+      },
+      "minimizeOnClose": {
+        "title": "关闭时最小化",
+        "description": "关闭窗口时最小化而不退出应用。",
+        "disabledHint": "必须先禁用托盘图标。"
+      },
+      "menubar": {
+        "title": "菜单栏",
+        "description": "在窗口顶部显示菜单栏。",
+        "disabledHint": "禁用工作区栏后无法禁用菜单栏。否则应用设置将无法访问。"
+      },
+      "sidebar": {
+        "title": "工作区栏",
+        "description": "显示包含下载和设置按钮的工作区列表。",
+        "disabledHint": "禁用菜单栏后无法禁用工作区栏。否则应用设置将无法访问。"
+      },
+      "trayIcon": {
+        "title": "托盘图标",
+        "titleDarwin": "菜单栏附加图标",
+        "description": "在系统托盘中显示托盘图标。启用后关闭窗口时应用将隐藏到托盘而非退出。",
+        "descriptionDarwin": "在菜单栏中显示应用图标。"
+      },
+      "availableBrowsers": {
+        "title": "默认浏览器",
+        "description": "选择打开外部链接所用的浏览器。",
+        "systemDefault": "系统默认",
+        "loading": "正在加载浏览器...",
+        "current": "当前使用："
+      },
+      "telephonyServer": {
+        "title": "电话工作区",
+        "description": "选择处理来电（tel: 和 callto: 链接）的工作区。",
+        "auto": "自动（每次询问）"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "清除屏幕捕获权限",
+        "description": "清除之前已选择「不再询问」的通话屏幕捕获权限。"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "允许视频通话中的屏幕捕获",
+        "description": "允许在视频通话中进行屏幕捕获。每次视频通话时将请求权限。"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM 凭据",
+        "description": "允许在连接到工作区时使用 NTLM 凭据。",
+        "domains": "将使用该凭据的域名，以逗号分隔。使用 * 匹配所有服务器。"
+      },
+      "videoCallWindowPersistence": {
+        "title": "保留视频通话窗口位置",
+        "description": "在会话间记住视频通话窗口的位置和大小。"
+      },
       "transparentWindow": {
         "title": "透明窗口效果",
         "description": "启用窗口的原生模糊/透明效果。",
@@ -19,6 +97,26 @@
         "auto": "跟随系统",
         "light": "浅色",
         "dark": "深色"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook 日历同步间隔",
+        "description": "日历事件更新检查的频率，单位为分钟（1–60）。"
+      },
+      "verboseOutlookLogging": {
+        "title": "详细 Outlook 日历日志",
+        "description": "启用详细的 Exchange/NTLM 调试日志，用于排查 Outlook 日历集成问题。"
+      },
+      "detailedEventsLogging": {
+        "title": "详细事件日志",
+        "description": "记录日历同步期间 Outlook 与 Rocket.Chat 之间交换的完整事件数据。有助于诊断同步问题。"
+      },
+      "debugLogging": {
+        "title": "详细日志记录",
+        "description": "将所有控制台输出写入日志文件。禁用后仅保存错误和重要消息，保持日志简洁。"
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "加密房间中 PDF 预览大小限制（MB）",
+        "description": "加密文件将加载到内存中以生成预览。超过此限制的文件将直接下载。"
       }
     }
   },

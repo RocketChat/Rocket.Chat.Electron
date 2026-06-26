@@ -49,7 +49,9 @@ export const OutlookCalendarSyncInterval = (
       className={props.className}
       htmlFor={fieldId}
       label={t('settings.options.outlookCalendarSyncInterval.title')}
-      hint={t('settings.options.outlookCalendarSyncInterval.description')}
+      description={t(
+        'settings.options.outlookCalendarSyncInterval.description'
+      )}
     >
       <InputBox
         id={fieldId}

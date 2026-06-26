@@ -251,7 +251,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternativa de captura de tela para videochamadas",
-        "description": "Desativa o Windows Graphics Capture para que o compartilhamento de tela funcione em sessões de Área de Trabalho Remota. O app reinicia ao alterar esta opção.",
+        "description": "Desativa o Windows Graphics Capture para que o compartilhamento de tela funcione em sessões de Área de Trabalho Remota.",
+        "hint": "O app reinicia ao alterar esta opção.",
         "forcedDescription": "Atualmente aplicado porque o app detectou uma sessão de Área de Trabalho Remota. O alternador controla o comportamento das próximas execuções locais."
       },
       "internalVideoChatWindow": {

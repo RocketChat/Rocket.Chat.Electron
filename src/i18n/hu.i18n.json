@@ -266,7 +266,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Tartalék képernyőrögzítés a videohívásokhoz",
-        "description": "A Windows Graphics Capture funkció letiltása, hogy a képernyőmegosztás működjön a távoli asztal munkameneteiben. Az alkalmazás újraindul, ha megváltoztatja ezt a beállítást.",
+        "description": "A Windows Graphics Capture funkció letiltása, hogy a képernyőmegosztás működjön a távoli asztal munkameneteiben.",
+        "hint": "Az alkalmazás újraindul, ha megváltoztatja ezt a beállítást.",
         "forcedDescription": "Jelenleg érvényben van, mert az alkalmazás távoli asztali munkamenetet észlelt. A kapcsoló mostantól a jövőbeli indításokat vezérli, amikor helyileg fut."
       },
       "internalVideoChatWindow": {

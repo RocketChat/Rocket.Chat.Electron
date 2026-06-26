@@ -265,7 +265,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Reservläge för skärmdumpning vid videosamtal",
-        "description": "Stänger av Windows Graphics Capture så att skärmdelning fungerar i fjärrskrivbordssessioner. Appen startas om när du ändrar valet.",
+        "description": "Stänger av Windows Graphics Capture så att skärmdelning fungerar i fjärrskrivbordssessioner.",
+        "hint": "Appen startas om när du ändrar valet.",
         "forcedDescription": "Redan aktiverat eftersom appen upptäckte en fjärrskrivbordssession. Vippbrytaren anger beteendet vid kommande lokala starter."
       },
       "internalVideoChatWindow": {

@@ -151,7 +151,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Video arama ekran yakalama geri dönüşü",
-        "description": "Uzak Masaüstü oturumlarında ekran paylaşımının çalışması için Windows Grafik Yakalamayı devre dışı bırakın. Bu seçenek değiştirildiğinde uygulama yeniden başlar.",
+        "description": "Uzak Masaüstü oturumlarında ekran paylaşımının çalışması için Windows Grafik Yakalamayı devre dışı bırakın.",
+        "hint": "Bu seçenek değiştirildiğinde uygulama yeniden başlar.",
         "forcedDescription": "Uygulama bir Uzak Masaüstü oturumu algıladığından şu anda zorunlu kılınmaktadır. Geçiş artık yerel olarak çalışırken gelecekteki başlatmaları kontrol eder."
       },
       "internalVideoChatWindow": {

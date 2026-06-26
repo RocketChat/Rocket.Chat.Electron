@@ -244,7 +244,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Videopuhelujen varanäyttökaappaus",
-        "description": "Poistaa Windows Graphics Capture -tilan käytöstä, jotta näytön jakaminen toimii etätyöpöytäistunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
+        "description": "Poistaa Windows Graphics Capture -tilan käytöstä, jotta näytön jakaminen toimii etätyöpöytäistunnoissa.",
+        "hint": "Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
         "forcedDescription": "Tällä hetkellä pakotettu, koska sovellus havaitsi etätyöpöytäistunnon. Valitsin määrittää seuraavien paikallisten käynnistysten toiminnan."
       },
       "internalVideoChatWindow": {

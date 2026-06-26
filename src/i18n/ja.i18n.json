@@ -151,7 +151,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "ビデオ通話の画面キャプチャーフォールバック",
-        "description": "リモートデスクトップセッションで画面共有が機能するようにWindows Graphics Captureを無効にします。このオプションを変更するとアプリが再起動します。",
+        "description": "リモートデスクトップセッションで画面共有が機能するようにWindows Graphics Captureを無効にします。",
+        "hint": "このオプションを変更するとアプリが再起動します。",
         "forcedDescription": "アプリがリモートデスクトップセッションを検出したため、現在強制適用されています。このトグルはローカルで実行する際の将来の起動を制御します。"
       },
       "internalVideoChatWindow": {

@@ -204,7 +204,9 @@ const ServerButton = ({
               transform: translate(30%, -30%);
             `}
           >
-            {mentionCount && <Badge variant='secondary'>{mentionCount}</Badge>}
+            {!!mentionCount && (
+              <Badge variant='secondary'>{mentionCount}</Badge>
+            )}
             {!userLoggedIn && <Badge variant='warning'>!</Badge>}
           </Box>
         </IconButton>

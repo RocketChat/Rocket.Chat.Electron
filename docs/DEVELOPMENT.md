@@ -149,7 +149,7 @@ writes `C:\Program Files\Rocket.Chat\resources\update.json` with `{"canUpdate":f
 
 - macOS host with `sshpass`, `ssh`, `scp` in PATH
 - Windows 10 VM with OpenSSH on port 22. Configure `VM_HOST`, `VM_PORT`, `VM_USER`, and `VM_PASS` in your shell before running these scripts. Example:
-  ```
+  ```bash
   export VM_HOST=192.168.13.87 VM_USER=jean VM_PASS='<your password>'
   bash scripts/msi-test/run-msi-tests.sh
   ```

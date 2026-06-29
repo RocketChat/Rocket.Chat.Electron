@@ -44,6 +44,7 @@ export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
 export const OPEN_NEW_TAB = 'tab-pane/open-new-tab';
 export const CLOSE_TAB = 'tab-pane/close-tab';
 export const ACTIVE_TAB = 'tab-pane/active-tab';
+export const TAB_TITLE_CHANGED = 'tab-pane/title-changed';
 export const TAB_WEBVIEW_ATTACHED = 'tab-pane/webview-attached';
 export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED =
   'side-bar/downloads-button-clicked';
@@ -345,6 +346,7 @@ export type UiActionTypeToPayloadMap = {
   [OPEN_NEW_TAB]: { url: string; text: string; serverUrl: string };
   [CLOSE_TAB]: { url: string };
   [ACTIVE_TAB]: { url: string };
+  [TAB_TITLE_CHANGED]: { url: string; text: string };
   [TAB_WEBVIEW_ATTACHED]: {
     url: string;
     serverUrl: string;

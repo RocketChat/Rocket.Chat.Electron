@@ -86,6 +86,7 @@ export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
+export const WEBVIEW_USER_ROLES_CHANGED = 'webview/user-roles-changed';
 export const WEBVIEW_ALLOWED_REDIRECTS_CHANGED =
   'webview/allowed-redirects-changed';
 export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
@@ -237,6 +238,10 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_USER_LOGGED_IN]: {
     url: Server['url'];
     userLoggedIn: Server['userLoggedIn'];
+  };
+  [WEBVIEW_USER_ROLES_CHANGED]: {
+    url: Server['url'];
+    userRoles: Server['userRoles'];
   };
   [WEBVIEW_GIT_COMMIT_HASH_CHECK]: {
     url: Server['url'];

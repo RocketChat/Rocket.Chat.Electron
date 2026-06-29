@@ -184,12 +184,30 @@ const getUniqueId = async (
   }
 };
 
+const messageMatchesUserRoles = (
+  message: Message,
+  userRoles?: string[]
+): boolean => {
+  // No targeting set on the message → show to everyone (default behavior).
+  if (!message.roles?.length) {
+    return true;
+  }
+  // Targeting set but we don't know the user's roles → don't show, to honor
+  // the intent of restricting the message.
+  if (!userRoles?.length) {
+    return false;
+  }
+  return message.roles.some((role) => userRoles.includes(role));
+};
+
 const getExpirationMessage = ({
   messages,
   expiration,
+  userRoles,
 }: {
   messages?: Message[];
   expiration?: Date;
+  userRoles?: string[];
 }): Message | undefined => {
   if (
     !messages?.length ||
@@ -199,7 +217,10 @@ const getExpirationMessage = ({
   ) {
     return;
   }
-  const sortedMessages = messages.sort(
+  const eligibleMessages = messages.filter((message) =>
+    messageMatchesUserRoles(message, userRoles)
+  );
+  const sortedMessages = eligibleMessages.sort(
     (a, b) => a.remainingDays - b.remainingDays
   );
   const message = sortedMessages.find(
@@ -362,6 +383,7 @@ export const isServerVersionSupported = async (
       const selectedExpirationMessage = getExpirationMessage({
         messages,
         expiration: exception.expiration,
+        userRoles: server.userRoles,
       }) as Message;
 
       return {
@@ -387,6 +409,7 @@ export const isServerVersionSupported = async (
       const selectedExpirationMessage = getExpirationMessage({
         messages,
         expiration: supportedVersion.expiration,
+        userRoles: server.userRoles,
       }) as Message;
 
       return {
@@ -407,6 +430,7 @@ export const isServerVersionSupported = async (
     const selectedExpirationMessage = getExpirationMessage({
       messages: supportedVersionsData.messages,
       expiration: enforcementStartDate,
+      userRoles: server.userRoles,
     }) as Message;
 
     return {

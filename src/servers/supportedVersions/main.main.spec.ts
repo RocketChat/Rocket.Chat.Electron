@@ -910,6 +910,72 @@ describe('supportedVersions/main.ts', () => {
 
       expect(result.supported).toBe(false);
     });
+
+    describe('message role targeting', () => {
+      const futureDate = new Date(Date.now() + 86400000);
+      const buildSupportedVersions = (roles?: string[]): SupportedVersions =>
+        ({
+          enforcementStartDate: new Date(Date.now() + 172800000).toISOString(),
+          timestamp: new Date().toISOString(),
+          versions: [
+            {
+              version: '5.4.0',
+              expiration: futureDate,
+            },
+          ],
+          messages: [
+            {
+              remainingDays: 30,
+              title: 'targeted',
+              subtitle: 'sub',
+              description: 'desc',
+              type: 'info',
+              ...(roles ? { roles } : {}),
+              params: {},
+              link: '',
+            },
+          ],
+          i18n: { en: {} },
+        }) as any;
+
+      it('shows a message with no roles to every user', async () => {
+        const result = await isServerVersionSupported(
+          { ...mockServer, userRoles: ['user'] } as any,
+          buildSupportedVersions()
+        );
+
+        expect(result.message?.title).toBe('targeted');
+      });
+
+      it('shows a role-targeted message when the user has the role', async () => {
+        const result = await isServerVersionSupported(
+          { ...mockServer, userRoles: ['admin', 'user'] } as any,
+          buildSupportedVersions(['admin'])
+        );
+
+        expect(result.message?.title).toBe('targeted');
+      });
+
+      it('hides a role-targeted message from users without the role', async () => {
+        const result = await isServerVersionSupported(
+          { ...mockServer, userRoles: ['user'] } as any,
+          buildSupportedVersions(['admin'])
+        );
+
+        expect(result.supported).toBe(true);
+        expect(result.message).toBeUndefined();
+      });
+
+      it('hides a role-targeted message when user roles are unknown', async () => {
+        const result = await isServerVersionSupported(
+          mockServer as any,
+          buildSupportedVersions(['admin'])
+        );
+
+        expect(result.supported).toBe(true);
+        expect(result.message).toBeUndefined();
+      });
+    });
   });
 
   describe('Cache and Retry Integration', () => {

@@ -1,4 +1,15 @@
 module.exports = {
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    '!src/**/*.spec.{ts,tsx}',
+    '!src/**/*.test.{ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/.jest/**',
+    '!src/public/**',
+  ],
+  coverageReporters: ['text-summary', 'lcov', 'json-summary'],
+  coverageDirectory: 'coverage',
+  coveragePathIgnorePatterns: ['/node_modules/', '/app/', '/dist/'],
   projects: [
     {
       preset: 'ts-jest',

@@ -46,6 +46,7 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
   TAB_WEBVIEW_ATTACHED,
+  TAB_TITLE_CHANGED,
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
@@ -493,6 +494,18 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       return;
     }
 
+    const handleDidNavigateInPage = (_e: Event, pageUrl: string): void => {
+      const match = pageUrl.match(/\/(?:channel|group|direct)\/([^/?#]+)/);
+      if (!match) return;
+      dispatch({
+        type: TAB_TITLE_CHANGED,
+        payload: {
+          url: action.payload.url,
+          text: decodeURIComponent(match[1]),
+        },
+      });
+    };
+
     const handleContextMenu = async (
       event: Event,
       params: ContextMenuParams
@@ -506,6 +519,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       menu.popup({ window: rootWindow });
     };
     guestWebContents.addListener('context-menu', handleContextMenu);
+    guestWebContents.addListener(
+      'did-navigate-in-page',
+      handleDidNavigateInPage
+    );
   });
 
   listen(WEBVIEW_ATTACHED, (action) => {

@@ -1,12 +1,18 @@
 import type { Reducer } from 'redux';
 
 import type { ActionOf } from '../../store/actions';
-import { ACTIVE_TAB, CLOSE_TAB, OPEN_NEW_TAB } from '../actions';
+import {
+  ACTIVE_TAB,
+  CLOSE_TAB,
+  OPEN_NEW_TAB,
+  TAB_TITLE_CHANGED,
+} from '../actions';
 
 type TabPaneAction =
   | ActionOf<typeof OPEN_NEW_TAB>
   | ActionOf<typeof CLOSE_TAB>
-  | ActionOf<typeof ACTIVE_TAB>;
+  | ActionOf<typeof ACTIVE_TAB>
+  | ActionOf<typeof TAB_TITLE_CHANGED>;
 
 type Tab = {
   url: string;
@@ -50,6 +56,15 @@ export const tabs: Reducer<TabPaneState, TabPaneAction> = (
     case ACTIVE_TAB: {
       return { ...state, activeTabUrl: action.payload.url };
     }
+    case TAB_TITLE_CHANGED: {
+      return {
+        ...state,
+        tabs: state.tabs.map((t) =>
+          t.url === action.payload.url ? { ...t, text: action.payload.text } : t
+        ),
+      };
+    }
+
     default:
       return state as TabPaneState;
   }

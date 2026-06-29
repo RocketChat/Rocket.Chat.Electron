@@ -43,6 +43,18 @@ const start = async () => {
       console.error(
         `[Rocket.Chat Desktop] Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available.`
       );
+
+      // Only trigger a force reload if the page appears to be a RocketChat
+      // instance. A missing `__meteor_runtime_config__` global indicates we
+      // are on an external page (e.g. a SAML/SSO IdP), where a force reload
+      // would interrupt the authentication flow.
+      if (typeof window.__meteor_runtime_config__ === 'undefined') {
+        console.log(
+          '[Rocket.Chat Desktop] External page detected (no Meteor runtime). Skipping force reload.'
+        );
+        return;
+      }
+          
       console.log(
         '[Rocket.Chat Desktop] Triggering force reload with cache clear to recover...'
       );

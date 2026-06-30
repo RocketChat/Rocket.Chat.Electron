@@ -204,7 +204,9 @@ const updateNotification = async (
     }
   }
 
-  notification.show();
+  if (_renotify) {
+    notification.show();
+  }
 
   if (changedToVoice) {
     attentionDrawing.drawAttention(id);

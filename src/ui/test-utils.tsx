@@ -34,7 +34,7 @@ type RenderWithStoreOptions = Omit<RenderOptions, 'wrapper'> & {
 };
 
 export const renderWithStore = (
-  ui: ReactElement,
+  ui: ReactElement<any>,
   {
     preloadedState,
     store = createStore(rootReducer, preloadedState as any),

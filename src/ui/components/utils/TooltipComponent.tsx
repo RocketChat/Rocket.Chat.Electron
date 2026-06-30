@@ -14,7 +14,7 @@ type TooltipComponentProps = {
 export const TooltipComponent = ({
   title,
   anchor,
-}: TooltipComponentProps): ReactElement => {
+}: TooltipComponentProps): ReactElement<any> => {
   const ref = useRef(anchor);
 
   return (

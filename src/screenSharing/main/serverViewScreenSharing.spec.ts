@@ -157,3 +157,46 @@ describe('setupServerViewDisplayMedia — cache warming gate', () => {
     expect(prewarmMock).not.toHaveBeenCalled();
   });
 });
+
+describe('setupServerViewDisplayMedia — user gesture gate', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+  });
+
+  it('denies getDisplayMedia requests that have no user gesture (startup probe)', async () => {
+    detectPickerType.mockReturnValue('internal');
+    const { setupServerViewDisplayMedia } = await loadModule();
+
+    const guest = createGuestWebContents();
+    setupServerViewDisplayMedia(guest.webContents);
+
+    await flushPromises();
+    await flushPromises();
+
+    const handler = guest.setDisplayMediaRequestHandler.mock.calls[0][0];
+    const cb = jest.fn();
+    handler({ userGesture: false }, cb);
+
+    expect(cb).toHaveBeenCalledWith({ video: false });
+    expect(internalProvider.handleDisplayMediaRequest).not.toHaveBeenCalled();
+  });
+
+  it('delegates to the provider when the request has a user gesture', async () => {
+    detectPickerType.mockReturnValue('internal');
+    const { setupServerViewDisplayMedia } = await loadModule();
+
+    const guest = createGuestWebContents();
+    setupServerViewDisplayMedia(guest.webContents);
+
+    await flushPromises();
+    await flushPromises();
+
+    const handler = guest.setDisplayMediaRequestHandler.mock.calls[0][0];
+    const cb = jest.fn();
+    handler({ userGesture: true }, cb);
+
+    expect(internalProvider.handleDisplayMediaRequest).toHaveBeenCalledWith(cb);
+    expect(cb).not.toHaveBeenCalled();
+  });
+});

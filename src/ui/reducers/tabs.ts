@@ -8,18 +8,21 @@ import {
   TAB_TITLE_CHANGED,
 } from '../actions';
 
+import { APP_SETTINGS_LOADED } from '../../app/actions';
+
 type TabPaneAction =
   | ActionOf<typeof OPEN_NEW_TAB>
   | ActionOf<typeof CLOSE_TAB>
   | ActionOf<typeof ACTIVE_TAB>
-  | ActionOf<typeof TAB_TITLE_CHANGED>;
+  | ActionOf<typeof TAB_TITLE_CHANGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>;
 
-type Tab = {
+export type Tab = {
   url: string;
   text: string;
   serverUrl: string;
 };
-type TabPaneState = {
+export type TabPaneState = {
   tabs: Tab[];
   activeTabUrl: string | null;
 };
@@ -62,6 +65,26 @@ export const tabs: Reducer<TabPaneState, TabPaneAction> = (
         tabs: state.tabs.map((t) =>
           t.url === action.payload.url ? { ...t, text: action.payload.text } : t
         ),
+      };
+    }
+    case APP_SETTINGS_LOADED: {
+      const persistedTabs = action.payload.tabs;
+
+      if (!persistedTabs || !Array.isArray(persistedTabs.tabs)) {
+        return state;
+      }
+
+      return {
+        tabs: persistedTabs.tabs.filter(
+          (tab) =>
+            typeof tab.url === 'string' &&
+            typeof tab.text === 'string' &&
+            typeof tab.serverUrl === 'string'
+        ),
+        activeTabUrl:
+          typeof persistedTabs.activeTabUrl === 'string'
+            ? persistedTabs.activeTabUrl
+            : persistedTabs.tabs[0]?.url ?? null,
       };
     }
 

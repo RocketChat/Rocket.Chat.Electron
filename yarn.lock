@@ -4205,14 +4205,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocket.chat/fuselage-hooks@npm:~0.41.0":
-  version: 0.41.0
-  resolution: "@rocket.chat/fuselage-hooks@npm:0.41.0"
+"@rocket.chat/fuselage-hooks@npm:~0.42.0":
+  version: 0.42.0
+  resolution: "@rocket.chat/fuselage-hooks@npm:0.42.0"
   peerDependencies:
     "@rocket.chat/emitter": "*"
     "@rocket.chat/fuselage-tokens": "*"
     react: "*"
-  checksum: 10/eb38c4baaa4a62333beadfcb867c734113edd07918565da65338ed538a5f8991f01be55e5c36567e562771862e85cca3d833715a614ed109a1a44e67847c6078
+  checksum: 10/ccda7dfc29f1930e9d62017ceeb6f04545f0941b14124857c24725564698d251604c21910fa4f6075db50aa9e8f49652eb304c144dd8aee0c589342717ddadae
   languageName: node
   linkType: hard
 
@@ -4237,9 +4237,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocket.chat/fuselage@npm:0.78.0":
-  version: 0.78.0
-  resolution: "@rocket.chat/fuselage@npm:0.78.0"
+"@rocket.chat/fuselage@npm:0.80.0":
+  version: 0.80.0
+  resolution: "@rocket.chat/fuselage@npm:0.80.0"
   dependencies:
     "@rocket.chat/css-in-js": "npm:^0.32.0"
     "@rocket.chat/css-supports": "npm:^0.31.25"
@@ -4247,7 +4247,8 @@ __metadata:
     "@rocket.chat/memo": "npm:^0.31.25"
     invariant: "npm:^2.2.4"
     react-aria: "npm:~3.37.0"
-    react-keyed-flatten-children: "npm:^1.3.0"
+    react-is: "npm:~19.2.7"
+    react-keyed-flatten-children: "npm:~5.1.2"
     react-stately: "npm:~3.35.0"
   peerDependencies:
     "@rocket.chat/fuselage-hooks": "*"
@@ -4255,7 +4256,7 @@ __metadata:
     react: "*"
     react-dom: "*"
     react-virtuoso: "*"
-  checksum: 10/135670f1b74496bca2827504fe5ed415d4d21071f556019e04b936428f406466680cf9c000e3938ab07b56dddd8b8831e4b9e26438ac1d31c615364ac41635bf
+  checksum: 10/1026ad667a843fa018ba4cd01055bad8070cfb7ca8c86eff551a0364c0c0d4343f2b1b40326660202d0364033b9d26e0f2d5fc27eca7730b4d7a7d5a7ff057de
   languageName: node
   linkType: hard
 
@@ -14082,7 +14083,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^16.13.1, react-is@npm:^16.7.0, react-is@npm:^16.8.6":
+"react-is@npm:^16.13.1, react-is@npm:^16.7.0":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: 10/5aa564a1cde7d391ac980bedee21202fc90bdea3b399952117f54fb71a932af1e5902020144fb354b4690b2414a0c7aafe798eb617b76a3d441d956db7726fdf
@@ -14103,14 +14104,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-keyed-flatten-children@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "react-keyed-flatten-children@npm:1.3.0"
-  dependencies:
-    react-is: "npm:^16.8.6"
-  peerDependencies:
-    react: ">=15.0.0"
-  checksum: 10/3bb042bb7cd48909491a5f92b8e7b2fb0417d69ad24bf04dbe1ed7a308cc7dfe6e3c9b5550e7b9016ee6bef61829b92e7f3a355ed1b867affd251bd518bcdd90
+"react-is@npm:~19.2.7":
+  version: 19.2.7
+  resolution: "react-is@npm:19.2.7"
+  checksum: 10/ae0d3ae7638aa2fa2a82a78a817daf2806e57fa0aef357d07e1e8d1e9a301902e5967168e9334b5816db0df8fa980a725cd57569ba5a9e6e76a71e117b18be04
   languageName: node
   linkType: hard
 
@@ -14122,6 +14119,16 @@ __metadata:
   peerDependencies:
     react: ">=15.0.0"
   checksum: 10/58b53ccc707543b3b2f3615a6efe890b1302bf38d68df9239cb4d1ca4e8d8d9c05d670039c08e77befd27b1210c61290d6308a2f8439363e6699fecb94b69ebd
+  languageName: node
+  linkType: hard
+
+"react-keyed-flatten-children@npm:~5.1.2":
+  version: 5.1.3
+  resolution: "react-keyed-flatten-children@npm:5.1.3"
+  peerDependencies:
+    react: ">=18.0.0"
+    react-is: ">=18.0.0"
+  checksum: 10/bffb3f8dfcfee23c9eef34cc18b75dde94adf7b1c2a0deec4e77b69035ea8ce4285407ded18a9f2691b3c27536b633e9de8fbe9ce44a9102ca5ba1d20d19f848
   languageName: node
   linkType: hard
 
@@ -14723,8 +14730,8 @@ __metadata:
     "@rocket.chat/css-in-js": "npm:~0.32.0"
     "@rocket.chat/desktop-api": "npm:~1.1.0"
     "@rocket.chat/eslint-config": "npm:~0.7.0"
-    "@rocket.chat/fuselage": "npm:0.78.0"
-    "@rocket.chat/fuselage-hooks": "npm:~0.41.0"
+    "@rocket.chat/fuselage": "npm:0.80.0"
+    "@rocket.chat/fuselage-hooks": "npm:~0.42.0"
     "@rocket.chat/fuselage-polyfills": "npm:~0.31.25"
     "@rocket.chat/icons": "npm:0.37.0"
     "@rocket.chat/prettier-config": "npm:~0.31.25"

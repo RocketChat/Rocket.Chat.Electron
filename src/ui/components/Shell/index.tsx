@@ -14,9 +14,11 @@ import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { ServerInfoModal } from '../ServerInfoModal';
 import { ServersView } from '../ServersView';
+import { TabContentView } from '../ServersView/TabContentView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
+import { TabPane } from '../TabsView/TabPane';
 import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
 import TooltipProvider from '../utils/TooltipProvider';
@@ -82,14 +84,19 @@ export const Shell = () => {
           <SideBar />
           <Box
             width='100%'
-            position='relative'
+            display='flex'
+            flexDirection='column'
             alignSelf='stretch'
             flexBasis='1 1 auto'
           >
-            <ServersView />
-            <AddServerView />
-            <DownloadsManagerView />
-            <SettingsView />
+            <TabPane />
+            <Box position='relative' flexGrow={1}>
+              <ServersView />
+              <TabContentView />
+              <AddServerView />
+              <DownloadsManagerView />
+              <SettingsView />
+            </Box>
           </Box>
         </Box>
       </Box>

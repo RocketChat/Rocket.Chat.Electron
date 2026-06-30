@@ -14,9 +14,9 @@ export const ReparentingContainer = forwardRef<
 >(function ReparentingContainer({ children, ...props }, ref) {
   const innerRef = useRef<HTMLDivElement>(null);
 
-  const childrenArray = flattenChildren(children) as ReactElement[];
+  const childrenArray = flattenChildren(children) as ReactElement<any>[];
 
-  const prevChildrenArrayRef = useRef<ReactElement[]>([]);
+  const prevChildrenArrayRef = useRef<ReactElement<any>[]>([]);
   useLayoutEffect(() => {
     prevChildrenArrayRef.current = childrenArray;
   }, [childrenArray]);

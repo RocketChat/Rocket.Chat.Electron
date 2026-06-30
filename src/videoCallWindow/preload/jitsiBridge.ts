@@ -1,4 +1,8 @@
 import { ipcRenderer } from 'electron';
+type ScreenSharingSelectionPayload = {
+  sourceId: string | null;
+  shareAudio?: boolean;
+};
 
 /**
  * Jitsi Meet External API Interface
@@ -404,8 +408,17 @@ class JitsiBridgeImpl implements JitsiBridge {
 
       ipcRenderer.on(
         'video-call-window/screen-sharing-source-responded',
-        (_event, sourceId: string | null) => {
+        (_event, payload: string | null | ScreenSharingSelectionPayload) => {
           cleanup();
+
+          const sourceId =
+            typeof payload === 'object' && payload !== null
+              ? payload.sourceId
+              : payload;
+          const shareAudio =
+            typeof payload === 'object' && payload !== null
+              ? payload.shareAudio === true
+              : false;
 
           if (!sourceId) {
             console.log('JitsiBridge: Screen sharing cancelled by user');
@@ -417,7 +430,7 @@ class JitsiBridgeImpl implements JitsiBridge {
           const sourceType = sourceId.startsWith('window:')
             ? 'window'
             : 'screen';
-          successCb(sourceId, sourceType);
+          successCb(sourceId, sourceType, shareAudio);
         }
       );
 

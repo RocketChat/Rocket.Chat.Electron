@@ -4,10 +4,17 @@ import { desktopCapturer, ipcMain } from 'electron';
 import type { DisplayMediaCallback } from './screenPicker/types';
 
 const DEFAULT_TIMEOUT = 60000;
+type ScreenSharingSelectionPayload = {
+  sourceId: string | null;
+  shareAudio?: boolean;
+};
 
 export class ScreenSharingRequestTracker {
   private activeListener:
-    | ((event: Event, sourceId: string | null) => void)
+    | ((
+        event: Event,
+        payload: string | null | ScreenSharingSelectionPayload
+      ) => void)
     | null = null;
 
   private activeRequestId: string | null = null;
@@ -73,7 +80,10 @@ export class ScreenSharingRequestTracker {
 
     let callbackInvoked = false;
 
-    const listener = async (_event: Event, sourceId: string | null) => {
+    const listener = async (
+      _event: Event,
+      payload: string | null | ScreenSharingSelectionPayload
+    ) => {
       if (this.activeRequestId !== requestId) {
         return;
       }
@@ -85,6 +95,15 @@ export class ScreenSharingRequestTracker {
 
       this.removeListenerOnly();
       this.markComplete();
+
+      const sourceId =
+        typeof payload === 'object' && payload !== null
+          ? payload.sourceId
+          : payload;
+      const shareAudio =
+        typeof payload === 'object' && payload !== null
+          ? payload.shareAudio === true
+          : false;
 
       if (!sourceId) {
         cb({ video: false } as any);
@@ -107,7 +126,11 @@ export class ScreenSharingRequestTracker {
           return;
         }
 
-        cb({ video: selectedSource });
+        cb(
+          shareAudio
+            ? ({ video: selectedSource, audio: 'loopback' } as any)
+            : { video: selectedSource }
+        );
       } catch (error) {
         console.error(`${this.label}: error validating source:`, error);
         cb({ video: false } as any);

@@ -18,6 +18,10 @@ import {
   getDesktopCapturerCacheStatus,
   prewarmDesktopCapturerCache,
 } from '../screenSharing/desktopCapturerCache';
+type ScreenSharingSelectionPayload = {
+  sourceId: string | null;
+  shareAudio?: boolean;
+};
 import type {
   DisplayMediaCallback,
   ScreenPickerProvider,
@@ -296,11 +300,11 @@ export const startVideoCallWindowHandler = (): void => {
     // jitsiBridge's ipcRenderer.on listener fires correctly.
     ipcMain.once(
       'video-call-window/screen-sharing-source-responded',
-      (_event, sourceId: string | null) => {
+      (_event, payload: string | null | ScreenSharingSelectionPayload) => {
         if (!callerWebContents.isDestroyed()) {
           callerWebContents.send(
             'video-call-window/screen-sharing-source-responded',
-            sourceId
+            payload
           );
         }
       }

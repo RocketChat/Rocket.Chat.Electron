@@ -1,6 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import './jitsiBridge';
 
+type ScreenSharingSelectionPayload = {
+  sourceId: string | null;
+  shareAudio?: boolean;
+};
+
 // Expose any necessary APIs to the webview content
 contextBridge.exposeInMainWorld('videoCallWindow', {
   // Add methods here if needed for communication with the main process
@@ -10,8 +15,12 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
     return new Promise<string | null>((resolve) => {
       ipcRenderer.once(
         'video-call-window/screen-sharing-source-responded',
-        (_event, id) => {
-          resolve(id);
+        (_event, payload: string | null | ScreenSharingSelectionPayload) => {
+          if (typeof payload === 'object' && payload !== null) {
+            resolve(payload.sourceId);
+            return;
+          }
+          resolve(payload);
         }
       );
     });

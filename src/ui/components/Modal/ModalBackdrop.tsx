@@ -23,7 +23,7 @@ const useEscapeKey = (onDismiss: (() => void) | undefined): void => {
 
 const isAtBackdropChildren = (
   e: MouseEvent,
-  ref: RefObject<HTMLElement>
+  ref: RefObject<HTMLElement | null>
 ): boolean => {
   const backdrop = ref.current;
   const { parentElement } = e.target as HTMLElement;
@@ -32,7 +32,7 @@ const isAtBackdropChildren = (
 };
 
 const useOutsideClick = (
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   onDismiss: (() => void) | undefined
 ): {
   onMouseDown: (e: MouseEvent) => void;
@@ -84,7 +84,7 @@ type ModalBackdropProps = {
 const ModalBackdrop = ({
   children,
   onDismiss,
-}: ModalBackdropProps): ReactElement => {
+}: ModalBackdropProps): ReactElement<any> => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEscapeKey(onDismiss);

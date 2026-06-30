@@ -45,7 +45,7 @@ export const OutlookCredentialsDialog = () => {
   const isVisible = openDialog === 'outlook-credentials';
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
-  const requestIdRef = useRef<unknown>();
+  const requestIdRef = useRef<unknown>(undefined);
 
   const [server, setServer] = useState<Server | undefined>();
   const [userId, setUserId] = useState<string>('');
@@ -174,7 +174,9 @@ export const OutlookCredentialsDialog = () => {
               <Controller
                 control={control}
                 name='rememberCredentials'
-                render={({ field: { onChange, value, ref } }): ReactElement => (
+                render={({
+                  field: { onChange, value, ref },
+                }): ReactElement<any> => (
                   <CheckBox
                     ref={ref}
                     onChange={onChange}

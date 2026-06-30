@@ -4,6 +4,7 @@ import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../constants';
 import type { Download } from '../downloads/common';
 import type { Server } from '../servers/common';
 import type { WindowState } from '../ui/common';
+import type { TabPaneState } from '../ui/reducers/tabs';
 
 type PersistableValues_0_0_0 = {
   currentServerUrl: string;
@@ -109,6 +110,7 @@ type PersistableValues_4_13_0 = PersistableValues_4_11_0 & {
 
 type PersistableValues_4_15_0 = PersistableValues_4_13_0 & {
   e2ePdfPreviewSizeLimit: number;
+  tabs: TabPaneState;
 };
 
 export type PersistableValues = Pick<
@@ -209,5 +211,9 @@ export const migrations = {
   '>=4.15.0': (before: PersistableValues_4_13_0): PersistableValues_4_15_0 => ({
     ...before,
     e2ePdfPreviewSizeLimit: DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB,
+    tabs: {
+      tabs: [],
+      activeTabUrl: null,
+    },
   }),
 };

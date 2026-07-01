@@ -56,7 +56,6 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
 
 let _rootWindow: BrowserWindow;
 let tempWindow: BrowserWindow;
-let isAppQuitting = false;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
@@ -351,16 +350,21 @@ export const setupRootWindow = (): void => {
       rootWindow.flashFrame(false);
     });
 
-    rootWindow.addListener('close', (event) => {
-      // Let Electron destroy the window when the app is quitting; never
-      // preventDefault or hide here or the quit wedges into an ANR.
-      if (isAppQuitting) {
-        return;
-      }
-
+    rootWindow.addListener('close', async (event) => {
       try {
         if (rootWindow.isDestroyed()) {
           return;
+        }
+
+        if (rootWindow.isFullScreen()) {
+          await new Promise<void>((resolve) =>
+            rootWindow.once('leave-full-screen', () => resolve())
+          );
+          rootWindow.setFullScreen(false);
+        }
+
+        if (process.platform !== 'linux' && !rootWindow.isDestroyed()) {
+          rootWindow.blur();
         }
 
         let isTrayIconEnabled: boolean;
@@ -383,20 +387,16 @@ export const setupRootWindow = (): void => {
         }
 
         if (process.platform === 'darwin' || isTrayIconEnabled) {
-          event.preventDefault();
-          if (rootWindow.isFullScreen()) {
-            rootWindow.setFullScreen(false);
+          if (!rootWindow.isDestroyed()) {
+            rootWindow.hide();
           }
-          if (process.platform !== 'linux') {
-            rootWindow.blur();
-          }
-          rootWindow.hide();
           return;
         }
 
         if (process.platform === 'win32' && isMinimizeOnCloseEnabled) {
-          event.preventDefault();
-          rootWindow.minimize();
+          if (!rootWindow.isDestroyed()) {
+            rootWindow.minimize();
+          }
           return;
         }
 
@@ -523,7 +523,6 @@ export const setupRootWindow = (): void => {
   }
 
   app.addListener('before-quit', () => {
-    isAppQuitting = true;
     unsubscribers.forEach((unsubscriber) => {
       try {
         unsubscriber();

@@ -54,7 +54,7 @@ export const ThemeAppearance = (props: ThemeAppearanceProps) => {
       htmlFor={themeSelectId}
       className={props.className}
       label={t('settings.options.themeAppearance.title')}
-      hint={t('settings.options.themeAppearance.description')}
+      description={t('settings.options.themeAppearance.description')}
     >
       <Select
         id={themeSelectId}

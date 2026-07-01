@@ -53,10 +53,12 @@ const DownloadsManagerView = () => {
 
   const { t } = useTranslation();
 
-  const serverFilterOptions = useSelector<RootState, [string, string][]>(
-    ({ downloads }) => [
+  const downloadsState = useSelector(({ downloads }: RootState) => downloads);
+
+  const serverFilterOptions = useMemo<[string, string][]>(
+    () => [
       ['*', t('downloads.filters.all')],
-      ...Object.values(downloads)
+      ...Object.values(downloadsState)
         .filter(({ serverUrl, serverTitle }) => serverUrl && serverTitle)
         .map<[string, string]>(({ serverUrl, serverTitle }) => [
           serverUrl,
@@ -66,7 +68,8 @@ const DownloadsManagerView = () => {
           (value, index, array) =>
             array.findIndex((valueTwo) => valueTwo[0] === value[0]) === index
         ),
-    ]
+    ],
+    [downloadsState, t]
   );
 
   const [serverFilter, setServerFilter] = useLocalStorage<
@@ -157,7 +160,7 @@ const DownloadsManagerView = () => {
     (mimeTypeFilter !== '' && mimeTypeFilter !== '*') ||
     (statusFilter !== '' && statusFilter !== DownloadStatus.ALL);
 
-  const downloads = useSelector(({ downloads }: RootState) => {
+  const downloads = useMemo(() => {
     type Predicate = (download: Download) => boolean;
     const searchPredicate: Predicate = searchFilter
       ? ({ fileName }) => fileName.indexOf(searchFilter) > -1
@@ -174,13 +177,19 @@ const DownloadsManagerView = () => {
       statusFilter !== '' && statusFilter !== DownloadStatus.ALL
         ? ({ status }) => status === statusFilter
         : () => true;
-    return Object.values(downloads)
+    return Object.values(downloadsState)
       .filter(searchPredicate)
       .filter(serverPredicate)
       .filter(mimeTypePredicate)
       .filter(statusPredicate)
       .sort((a, b) => b.itemId - a.itemId);
-  });
+  }, [
+    downloadsState,
+    searchFilter,
+    serverFilter,
+    mimeTypeFilter,
+    statusFilter,
+  ]);
 
   // Reset to the first page whenever the current offset falls outside the
   // (filtered) result set — e.g. after narrowing a filter or removing items —
@@ -219,7 +228,12 @@ const DownloadsManagerView = () => {
         alignItems='center'
       >
         {!isSideBarEnabled && (
-          <IconButton icon='arrow-back' onClick={handleBackButton} mie='x8' />
+          <IconButton
+            icon='arrow-back'
+            onClick={handleBackButton}
+            mie='x8'
+            aria-label={t('documentViewer.back')}
+          />
         )}
         <Box is='div' color='default' fontScale='h1'>
           {t('downloads.title')}

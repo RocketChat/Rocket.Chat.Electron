@@ -69,7 +69,7 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
       htmlFor={browserSelectId}
       className={props.className}
       label={t('settings.options.availableBrowsers.title')}
-      hint={t('settings.options.availableBrowsers.description')}
+      description={t('settings.options.availableBrowsers.description')}
     >
       <Select
         id={browserSelectId}

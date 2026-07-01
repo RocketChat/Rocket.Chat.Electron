@@ -206,84 +206,127 @@
     }
   },
   "settings": {
-    "title": "Einstellungen",
+    "title": "App-Einstellungen",
     "general": "Allgemein",
     "certificates": "Zertifikate",
+    "sections": {
+      "appUi": "App-Oberfläche",
+      "systemUi": "System-Oberfläche",
+      "systemBehavior": "Systemverhalten",
+      "calling": "Anrufe",
+      "other": "Sonstiges & Technik",
+      "logging": "Protokollierung"
+    },
     "options": {
       "report": {
-        "title": "Fehler an Entwickler melden",
-        "description": "Melden Sie Fehler anonym an die Entwickler. Zu den freigegebenen Informationen gehören App-Versionsnummer, Betriebssystemtyp, Server-URL, Gerätesprache und Fehlertyp. Es werden keine Inhalte oder Benutzernamen geteilt.",
-        "masDescription": "Diese Option ist bei der Installation aus dem Mac App Store deaktiviert, die Fehler werden über den Fehlerberichtsprozess des Mac App Store gemeldet."
+        "title": "Fehler an Rocket.Chat melden",
+        "description": "Fehler anonym an die App-Entwickler melden. Zu den freigegebenen Informationen gehören App-Versionsnummer, Betriebssystemtyp, Workspace-URL, Gerätesprache und Fehlertyp. Es werden keine Inhalte oder Benutzernamen geteilt.",
+        "masDescription": "Diese Option ist bei der Installation aus dem Mac App Store deaktiviert. Fehler werden über den Fehlerberichtsprozess des Mac App Store gemeldet."
       },
       "flashFrame": {
-        "title": "Flashframe aktivieren",
-        "titleDarwin": "Schalten Sie Dock Bounce bei Alarm um",
-        "description": "Lässt das Fenster blinken, um die Aufmerksamkeit des Benutzers zu erregen.",
+        "title": "Fenster aufblinken lassen",
+        "titleDarwin": "Dock-Symbol animieren",
+        "description": "Fenster aufblinken lassen, wenn eine neue Nachricht empfangen wird.",
         "onLinux": "Einige Linux-Distributionen unterstützen diese Funktion nicht.",
-        "descriptionDarwin": "Lässt das App-Symbol im Dock hüpfen, um die Aufmerksamkeit des Benutzers zu erregen."
+        "descriptionDarwin": "Das Dock-Symbol springt auf, wenn eine neue Nachricht empfangen wird."
       },
       "hardwareAcceleration": {
         "title": "Hardware-Beschleunigung",
-        "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
+        "description": "Verbessert die Darstellung und Leistung. Deaktivieren, wenn grafische Fehler oder Instabilität auftreten.",
+        "hint": "Die App wird bei Änderung neu geladen."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
-        "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
-        "forcedDescription": "Bereits aktiv, weil die Anwendung eine RDP-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
+        "description": "Deaktiviert Windows Graphics Capture, damit die Bildschirmfreigabe in Remote-Desktop-Sitzungen funktioniert.",
+        "hint": "Die App startet neu, wenn diese Option geändert wird.",
+        "forcedDescription": "Derzeit erzwungen, weil die App eine Remote-Desktop-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
       },
       "internalVideoChatWindow": {
-        "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
-        "description": "Wenn diese Option aktiviert ist, wird der Video-Chat im Anwendungsfenster anstelle des Standardbrowsers geöffnet. Allerdings wird für <strong>Google Meet</strong> und <strong>Jitsi</strong> die Bildschirmaufzeichnung in Electron-Anwendungen nicht unterstützt, daher werden sie unabhängig von dieser Einstellung immer im Browser geöffnet.",
-        "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen wird der Video-Chat standardmäßig über den Browser geöffnet."
+        "title": "Videoanrufe innerhalb der App",
+        "description": "Videoanrufe im App-Fenster anstatt im Browser öffnen. Google Meet- und Jitsi-Anrufe können nur im Browser geöffnet werden.",
+        "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen werden Videoanrufe standardmäßig im Browser geöffnet."
       },
       "minimizeOnClose": {
         "title": "Beim Schließen minimieren",
-        "description": "Beim Schließen wird die App minimiert, andernfalls wird die Anwendung beendet. Das Taskleistensymbol muss deaktiviert werden, damit dies wirksam wird."
+        "description": "App beim Schließen minimieren, anstatt sie zu beenden.",
+        "disabledHint": "Das Tray-Symbol muss deaktiviert sein."
       },
       "menubar": {
         "title": "Menüleiste",
         "description": "Menüleiste oben im Fenster anzeigen.",
-        "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Seitenleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
+        "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Workspace-Leiste deaktiviert ist. Die App-Einstellungen wären sonst nicht erreichbar."
       },
       "sidebar": {
-        "title": "Seitenleiste",
-        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen.",
-        "disabledHint": "Die Seitenleiste kann nicht deaktiviert werden, wenn die Menüleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
+        "title": "Workspace-Leiste",
+        "description": "Workspace-Liste mit Download- und Einstellungsschaltflächen anzeigen.",
+        "disabledHint": "Die Workspace-Leiste kann nicht deaktiviert werden, wenn die Menüleiste deaktiviert ist. Die App-Einstellungen wären sonst nicht erreichbar."
       },
       "trayIcon": {
         "title": "Taskleistensymbol",
-        "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
+        "titleDarwin": "Menüleisten-Extra",
+        "description": "Symbol in der Systemleiste anzeigen. Wenn aktiviert, wird die App beim Schließen in die Taskleiste minimiert anstatt beendet.",
+        "descriptionDarwin": "App-Symbol in der Menüleiste anzeigen."
       },
       "availableBrowsers": {
         "title": "Standard-Browser",
-        "description": "Wählen Sie aus, welcher Browser externe Links aus dieser App öffnen soll. Systemstandard verwendet die Einstellungen Ihres Betriebssystems.",
+        "description": "Wählen Sie, welcher Browser externe Links aus dieser App öffnen soll.",
         "systemDefault": "Systemstandard",
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Erlaubte Bildschirmaufnahmeserver löschen",
-        "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"
+        "title": "Bildschirmaufnahme-Berechtigungen löschen",
+        "description": "Berechtigungen löschen, auch wenn zuvor „Nicht mehr fragen“ für Anrufe ausgewählt wurde."
       },
       "ntlmCredentials": {
         "title": "NTLM-Anmeldeinformationen",
-        "description": "Erlauben Sie die Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Server.",
-        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Domänen abzugleichen."
+        "description": "Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Workspace erlauben.",
+        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Server abzugleichen."
       },
       "videoCallWindowPersistence": {
-        "title": "Videoanruf-Fensterposition speichern",
-        "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
+        "title": "Videoanruf-Fensterposition beibehalten",
+        "description": "Position und Größe des Videoanruf-Fensters zwischen Sitzungen speichern."
       },
       "transparentWindow": {
-        "title": "Transparentes Fenstereffekt",
-        "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
+        "title": "Transparenter Fenstereffekt",
+        "description": "Natives Vibrancy-Effekt für das App-Fenster aktivieren.",
+        "hint": "Erfordert App-Neustart."
       },
       "themeAppearance": {
         "title": "Design",
-        "description": "Wählen Sie das Farbschema für die Anwendung.",
+        "description": "Farbschema der App.",
         "auto": "System folgen",
         "light": "Hell",
         "dark": "Dunkel"
+      },
+      "telephonyServer": {
+        "title": "Telefonie-Workspace",
+        "description": "Wählen Sie, welcher Workspace eingehende Telefonanrufe (tel:- und callto:-Links) übernimmt.",
+        "auto": "Automatisch (jedes Mal fragen)"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Bildschirmaufnahme bei Videoanrufen erlauben",
+        "description": "Bildschirmaufnahme bei Videoanrufen erlauben. Bei jedem Videoanruf wird eine Berechtigungsanfrage angezeigt."
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook-Kalender-Synchronisierungsintervall",
+        "description": "Häufigkeit der Aktualisierungsprüfungen für Kalenderereignisse in Minuten (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Ausführliche Outlook-Kalender-Protokollierung",
+        "description": "Detaillierte Exchange/NTLM-Debug-Protokolle zur Fehlersuche bei Problemen mit der Outlook-Kalender-Integration aktivieren."
+      },
+      "detailedEventsLogging": {
+        "title": "Detaillierte Ereignisprotokollierung",
+        "description": "Vollständige Ereignisdaten protokollieren, die zwischen Outlook und Rocket.Chat während der Kalendersynchronisierung ausgetauscht werden. Hilfreich bei der Diagnose von Synchronisierungsproblemen."
+      },
+      "debugLogging": {
+        "title": "Ausführliche Protokollierung",
+        "description": "Schreibt alle Konsolenausgaben in die Protokolldatei. Wenn deaktiviert, werden nur Fehler und wichtige Meldungen gespeichert, was die Protokolle kleiner und übersichtlicher hält."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF-Vorschau-Größenlimit in verschlüsselten Räumen (MB)",
+        "description": "Verschlüsselte Dateien werden für Vorschauen in den Arbeitsspeicher geladen. Dateien, die größer als dieses Limit sind, werden direkt heruntergeladen."
       }
     }
   },
@@ -312,7 +355,7 @@
     "disableGpu": "GPU deaktivieren",
     "documentation": "Dokumentation",
     "downloads": "Downloads",
-    "settings": "Einstellungen",
+    "settings": "App-Einstellungen",
     "editMenu": "&Bearbeiten",
     "fileMenu": "&Datei",
     "forward": "&Nach vorne",
@@ -372,7 +415,7 @@
   "sidebar": {
     "addNewServer": "Neuen Server hinzufügen",
     "downloads": "Downloads",
-    "settings": "Einstellungen",
+    "settings": "App-Einstellungen",
     "item": {
       "reload": "Server neu laden",
       "remove": "Server entfernen",

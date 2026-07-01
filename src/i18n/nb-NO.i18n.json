@@ -8,9 +8,88 @@
   },
   "settings": {
     "options": {
+      "report": {
+        "title": "Rapporter feil til Rocket.Chat",
+        "description": "Rapporter problemer anonymt til apputviklerne. Delt informasjon inkluderer appversjonsnummer, operativsystemtype, arbeidsområde-URL, enhetsspråk og feiltype. Ingen innhold eller brukernavn deles.",
+        "masDescription": "Dette alternativet er deaktivert ved installasjon fra Mac App Store. Feil rapporteres gjennom Mac App Store sin feilrapporteringsprosess."
+      },
+      "flashFrame": {
+        "title": "Blink i vinduet",
+        "titleDarwin": "Spretthopp i dokk-ikonet",
+        "description": "Blink i vinduet når en ny melding mottas.",
+        "onLinux": "Noen Linux-distribusjoner støtter ikke denne funksjonen.",
+        "descriptionDarwin": "Dokk-ikonet spretter når en ny melding mottas."
+      },
+      "hardwareAcceleration": {
+        "title": "Maskinvareakselerasjon",
+        "description": "Forbedrer visuell gjengivelse og ytelse. Deaktiver hvis du opplever visuelle feil eller ustabilitet.",
+        "hint": "Laster appen på nytt ved endring."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Reservevalg for skjermopptak i videosamtaler",
+        "description": "Deaktiver Windows Graphics Capture slik at skjermdeling fungerer i økter med eksternt skrivebord.",
+        "hint": "Appen starter på nytt når dette alternativet endres.",
+        "forcedDescription": "For øyeblikket påtvunget fordi appen oppdaget en økt med eksternt skrivebord. Bryteren styrer fremtidige oppstarter når den kjøres lokalt."
+      },
+      "internalVideoChatWindow": {
+        "title": "Videosamtaler i appen",
+        "description": "Åpne videosamtaler i appvinduet i stedet for nettleseren. Google Meet- og Jitsi-samtaler kan bare åpnes i nettleseren.",
+        "masDescription": "Dette alternativet er deaktivert ved installasjon fra Mac App Store. Av sikkerhetsgrunner åpnes videosamtaler alltid i nettleseren som standard."
+      },
+      "minimizeOnClose": {
+        "title": "Minimer ved lukking",
+        "description": "Minimer og ikke avslutt appen når vinduet lukkes.",
+        "disabledHint": "Systemkurv-ikonet må være deaktivert."
+      },
+      "menubar": {
+        "title": "Menylinje",
+        "description": "Vis menylinjen øverst i vinduet.",
+        "disabledHint": "Kan ikke deaktivere menylinjen når arbeidsområdelinjen er deaktivert. Appinnstillingene ville blitt utilgjengelige."
+      },
+      "sidebar": {
+        "title": "Arbeidsområdelinje",
+        "description": "Vis arbeidsområdelisten med knapper for nedlastinger og innstillinger.",
+        "disabledHint": "Kan ikke deaktivere arbeidsområdelinjen når menylinjen er deaktivert. Appinnstillingene ville blitt utilgjengelige."
+      },
+      "trayIcon": {
+        "title": "Systemkurv-ikon",
+        "titleDarwin": "Ekstra i menylinjen",
+        "description": "Vis systemkurv-ikon i systemkurven. I stedet for å avslutte skjules appen i systemkurven ved lukking når dette er aktivert.",
+        "descriptionDarwin": "Vis app-ikonet i menylinjen."
+      },
+      "availableBrowsers": {
+        "title": "Standard nettleser",
+        "description": "Velg hvilken nettleser eksterne lenker skal åpnes i.",
+        "systemDefault": "Systemstandard",
+        "loading": "Laster nettlesere...",
+        "current": "Bruker for øyeblikket:"
+      },
+      "telephonyServer": {
+        "title": "Telefoniarbeidsområde",
+        "description": "Velg hvilket arbeidsområde som håndterer innkommende anrop (tel:- og callto:-lenker).",
+        "auto": "Automatisk (spør hver gang)"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Fjern tillatelser for skjermopptak",
+        "description": "Fjern tillatelser selv om «ikke spør igjen» tidligere ble valgt for anrop."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Tillat skjermopptak i videosamtaler",
+        "description": "Tillat skjermopptak i videosamtaler. Ber om tillatelse i hver videosamtale."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-legitimasjon",
+        "description": "Tillat at NTLM-legitimasjon brukes ved tilkobling til et arbeidsområde.",
+        "domains": "Domener som vil bli brukt som legitimasjon. Atskilt med komma. Bruk * for å samsvare med alle servere."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Behold posisjonen til videosamtalevinduet",
+        "description": "Husk posisjonen og størrelsen på videosamtalevinduet mellom økter."
+      },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
-        "description": "Aktiver innfødt vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
+        "description": "Aktiver innfødt vibrasjon/gjennomsiktighetseffekt for vinduet.",
+        "hint": "Krever omstart for å bruke."
       },
       "themeAppearance": {
         "title": "Tema",
@@ -18,6 +97,26 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Synkroniseringsintervall for Outlook-kalender",
+        "description": "Hvor ofte det sjekkes etter kalenderoppdateringer, i minutter (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Detaljert logging for Outlook-kalender",
+        "description": "Aktiver detaljerte Exchange/NTLM-feilsøkingslogger for å feilsøke problemer med integrasjon av Outlook-kalender."
+      },
+      "detailedEventsLogging": {
+        "title": "Detaljert hendelseslogging",
+        "description": "Logg fullstendige hendelsesdata som utveksles mellom Outlook og Rocket.Chat under kalendersynkronisering. Nyttig for å diagnostisere synkroniseringsproblemer."
+      },
+      "debugLogging": {
+        "title": "Detaljert logging",
+        "description": "Skriver all konsollutskrift til loggfilen. Når dette er deaktivert, lagres bare feil og viktige meldinger, slik at loggene holdes mindre og mer fokuserte."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Størrelsesgrense for PDF-forhåndsvisning i krypterte rom (MB)",
+        "description": "Krypterte filer lastes inn i minnet for forhåndsvisninger. Filer større enn denne grensen lastes ned direkte."
       }
     }
   },

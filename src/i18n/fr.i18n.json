@@ -213,75 +213,127 @@
     }
   },
   "settings": {
-    "title": "Paramètres",
+    "title": "Paramètres de l'app",
     "general": "Général",
     "certificates": "Certificats",
+    "sections": {
+      "appUi": "Interface de l'app",
+      "systemUi": "Interface système",
+      "systemBehavior": "Comportement système",
+      "calling": "Appels",
+      "other": "Autre & technique",
+      "logging": "Journalisation"
+    },
     "options": {
       "report": {
-        "title": "Signaler les erreurs aux développeurs",
-        "description": "Signaler les erreurs de manière anonyme aux développeurs. Les informations partagées incluent le numéro de version de l'application, le type de système d'exploitation, l'URL du serveur, la langue de l'appareil et le type d'erreur. Aucun contenu ou nom d'utilisateur n'est partagé.",
-        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, les erreurs seront signalisées via le processus de rapport d'erreur du Mac App Store."
+        "title": "Signaler les erreurs à Rocket.Chat",
+        "description": "Signaler les erreurs de manière anonyme aux développeurs. Les informations partagées incluent le numéro de version de l'application, le type de système d'exploitation, l'URL de l'espace de travail, la langue de l'appareil et le type d'erreur. Aucun contenu ou nom d'utilisateur n'est partagé.",
+        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store. Les erreurs sont signalées via le processus de rapport d'erreur du Mac App Store."
       },
       "flashFrame": {
-        "title": "Activer le cadre Flash",
-        "titleDarwin": "Basculer le Dock Bounce en cas d'alerte",
-        "description": "Clignote la fenêtre pour attirer l'attention de l'utilisateur.",
+        "title": "Clignotement de la fenêtre",
+        "titleDarwin": "Rebond de l'icône du Dock",
+        "description": "Faire clignoter la fenêtre lors de la réception d'un nouveau message.",
         "onLinux": "Certaines distributions Linux ne prennent pas en charge cette fonctionnalité.",
-        "descriptionDarwin": "Fait rebondir l'icône de l'application dans le dock pour attirer l'attention de l'utilisateur."
+        "descriptionDarwin": "L'icône du Dock rebondit lors de la réception d'un nouveau message."
       },
       "hardwareAcceleration": {
         "title": "Accélération matérielle",
-        "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
+        "description": "Améliore le rendu visuel et les performances. Désactivez en cas de problèmes visuels ou d'instabilité.",
+        "hint": "Recharge l'application lors du changement."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Solution de capture d'écran pour les appels vidéo",
-        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option.",
-        "forcedDescription": "Actuellement appliqué car l'application a détecté une session RDP. Le commutateur contrôle le comportement lors des prochains démarrages locaux."
+        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions Bureau à distance.",
+        "hint": "L'application redémarre lorsque vous modifiez cette option.",
+        "forcedDescription": "Actuellement appliqué car l'application a détecté une session Bureau à distance. Le commutateur contrôle le comportement lors des prochains démarrages locaux."
       },
       "internalVideoChatWindow": {
-        "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
-        "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc ils s'ouvriront toujours dans le navigateur, quel que soit ce paramètre.",
-        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, pour des raisons de sécurité, elle ouvrira le chat vidéo en utilisant le navigateur par défaut."
+        "title": "Appels vidéo dans l'application",
+        "description": "Ouvrir les appels vidéo dans la fenêtre de l'application plutôt que dans le navigateur. Les appels Google Meet et Jitsi ne peuvent s'ouvrir que dans le navigateur.",
+        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store. Pour des raisons de sécurité, les appels vidéo s'ouvrent toujours dans le navigateur par défaut."
       },
       "minimizeOnClose": {
         "title": "Minimiser à la fermeture",
-        "description": "Une fois fermée, l'application sera minimisée, sinon elle quittera l'application. L'icône de la barre d'état doit être désactivée pour que cela prenne effet."
+        "description": "Minimiser l'application sans la quitter lors de la fermeture.",
+        "disabledHint": "L'icône de la barre d'état système doit être désactivée."
       },
       "menubar": {
         "title": "Barre de menu",
         "description": "Afficher la barre de menus en haut de la fenêtre.",
-        "disabledHint": "Impossible de désactiver la barre de menu quand la barre latérale est désactivée. Les paramètres deviendraient inaccessibles."
+        "disabledHint": "Impossible de désactiver la barre de menu quand la barre des espaces de travail est désactivée. Les paramètres de l'app deviendraient inaccessibles."
       },
       "sidebar": {
-        "title": "Barre latérale",
-        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres.",
-        "disabledHint": "Impossible de désactiver la barre latérale quand la barre de menu est désactivée. Les paramètres deviendraient inaccessibles."
+        "title": "Barre des espaces de travail",
+        "description": "Afficher la liste des espaces de travail avec les boutons de téléchargements et paramètres.",
+        "disabledHint": "Impossible de désactiver la barre des espaces de travail quand la barre de menu est désactivée. Les paramètres de l'app deviendraient inaccessibles."
       },
       "trayIcon": {
         "title": "Icône de la barre d'état système",
-        "description": "Afficher l'icône dans la barre d'état système. Si l'icône est active, l'application sera masquée dans la barre d'état lors de la fermeture. Sinon, elle sera complètement fermée."
+        "titleDarwin": "Extra de la barre de menu",
+        "description": "Afficher l'icône dans la barre d'état système. Si l'icône est active, l'application est masquée dans la barre d'état lors de la fermeture plutôt que quittée.",
+        "descriptionDarwin": "Afficher l'icône de l'application dans la barre de menu."
       },
       "availableBrowsers": {
         "title": "Navigateur par défaut",
-        "description": "Choisissez quel navigateur ouvrira les liens externes de cette application. La valeur par défaut du système utilise les paramètres de votre système d'exploitation.",
+        "description": "Choisissez quel navigateur ouvrira les liens externes de cette application.",
         "systemDefault": "Par défaut du système",
         "loading": "Chargement des navigateurs...",
         "current": "Actuellement utilisé:"
       },
+      "telephonyServer": {
+        "title": "Espace de travail téléphonie",
+        "description": "Choisissez quel espace de travail gère les appels téléphoniques entrants (liens tel: et callto:).",
+        "auto": "Auto (demander à chaque fois)"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
-        "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."
+        "description": "Effacer les autorisations même si « ne plus demander » avait été sélectionné précédemment pour les appels."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Autoriser la capture d'écran lors des appels vidéo",
+        "description": "Autoriser la capture d'écran lors des appels vidéo. Demande une autorisation à chaque appel vidéo."
+      },
+      "ntlmCredentials": {
+        "title": "Identifiants NTLM",
+        "description": "Autoriser l'utilisation des identifiants NTLM lors de la connexion à un espace de travail.",
+        "domains": "Domaines qui seront utilisés pour les identifiants. Séparés par des virgules. Utilisez * pour correspondre à tous les serveurs."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Conserver la position de la fenêtre d'appel vidéo",
+        "description": "Mémoriser la position et la taille de la fenêtre d'appel vidéo entre les sessions."
       },
       "transparentWindow": {
         "title": "Effet de fenêtre transparente",
-        "description": "Activer l'effet natif de vibrance/transparence pour la fenêtre. Nécessite un redémarrage pour s'appliquer."
+        "description": "Activer l'effet natif de vibrance sur la fenêtre de l'application.",
+        "hint": "Nécessite un redémarrage."
       },
       "themeAppearance": {
         "title": "Thème",
-        "description": "Choisissez le thème de couleur pour l'application.",
+        "description": "Thème de couleur de l'application.",
         "auto": "Suivre le système",
         "light": "Clair",
         "dark": "Sombre"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Intervalle de synchronisation du calendrier Outlook",
+        "description": "Fréquence des vérifications de mise à jour des événements du calendrier en minutes (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Journalisation détaillée du calendrier Outlook",
+        "description": "Activer les journaux de débogage Exchange/NTLM détaillés pour résoudre les problèmes d'intégration du calendrier Outlook."
+      },
+      "detailedEventsLogging": {
+        "title": "Journalisation détaillée des événements",
+        "description": "Enregistrer les données complètes des événements échangés entre Outlook et Rocket.Chat lors de la synchronisation du calendrier. Utile pour diagnostiquer les problèmes de synchronisation."
+      },
+      "debugLogging": {
+        "title": "Journalisation détaillée",
+        "description": "Enregistre toutes les sorties de la console dans le fichier journal. Lorsque désactivé, seuls les erreurs et messages importants sont sauvegardés, maintenant des journaux plus compacts et ciblés."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Limite de taille de prévisualisation PDF dans les salons chiffrés (Mo)",
+        "description": "Les fichiers chiffrés sont chargés en mémoire pour les prévisualisations. Les fichiers dépassant cette limite seront téléchargés directement."
       }
     }
   },
@@ -310,7 +362,7 @@
     "disableGpu": "Désactiver le GPU",
     "documentation": "Documentation",
     "downloads": "Téléchargements",
-    "settings": "Paramètres",
+    "settings": "Paramètres de l'app",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
     "forward": "&Suivant",
@@ -371,7 +423,7 @@
   "sidebar": {
     "addNewServer": "Ajouter un nouveau serveur",
     "downloads": "Téléchargements",
-    "settings": "Paramètres",
+    "settings": "Paramètres de l'app",
     "item": {
       "reload": "Recharger le serveur",
       "remove": "Retirer le serveur",

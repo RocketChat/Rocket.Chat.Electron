@@ -1,19 +1,13 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type InternalVideoChatWindowProps = {
   className?: string;
@@ -42,38 +36,18 @@ export const InternalVideoChatWindow = (
   const isInternalVideoChatWindowEnabledId = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isInternalVideoChatWindowEnabledId}>
-          {t('settings.options.internalVideoChatWindow.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isInternalVideoChatWindowEnabledId}
-          disabled={process.mas}
-          checked={isInternalVideoChatWindowEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        {process.mas ? (
-          <FieldHint>
-            {t('settings.options.internalVideoChatWindow.masDescription')}
-          </FieldHint>
-        ) : (
-          <FieldHint>
-            <Trans
-              i18nKey='settings.options.internalVideoChatWindow.description'
-              t={t}
-            >
-              When set Video Chat will be opened using an application's window,
-              otherwise the default browser will be used.
-              <strong>Google Meet</strong> share screen is not supported in
-              Electron applications, so this configuration don't change Meet
-              calls behavior, that will open on browser.
-            </Trans>
-          </FieldHint>
-        )}
-      </FieldRow>
-    </Field>
+    <ToggleField
+      id={isInternalVideoChatWindowEnabledId}
+      label={t('settings.options.internalVideoChatWindow.title')}
+      description={
+        process.mas
+          ? t('settings.options.internalVideoChatWindow.masDescription')
+          : t('settings.options.internalVideoChatWindow.description')
+      }
+      checked={isInternalVideoChatWindowEnabled}
+      onChange={handleChange}
+      disabled={process.mas}
+      className={props.className}
+    />
   );
 };

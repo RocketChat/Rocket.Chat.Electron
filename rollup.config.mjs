@@ -21,36 +21,55 @@ const canRun =
 // whole save-batch finishes writing, then the app restarts exactly once.
 const DEV_INSPECT_PORT = 9339;
 
+const GRACEFUL_QUIT_REQUEST_TIMEOUT_MS = 2000;
+
 // OS signals don't reach Electron's app.quit() on macOS (SIGTERM is a no-op
 // there), so a graceful shutdown has to go through the Node inspector
-// protocol instead. Returns true once app.quit() was successfully requested.
-const requestGracefulQuit = async () => {
-  try {
-    const res = await fetch(`http://127.0.0.1:${DEV_INSPECT_PORT}/json/list`);
-    const [{ webSocketDebuggerUrl }] = await res.json();
-    const ws = new WebSocket(webSocketDebuggerUrl);
-    await new Promise((resolve, reject) => {
-      ws.onopen = resolve;
-      ws.onerror = reject;
-    });
-    ws.send(
-      JSON.stringify({
-        id: 1,
-        method: 'Runtime.evaluate',
-        params: {
-          expression: "process.mainModule.require('electron').app.quit()",
-        },
-      })
-    );
-    await new Promise((resolve) => {
-      ws.onmessage = resolve;
-    });
-    ws.close();
-    return true;
-  } catch {
-    return false; // inspector unreachable — process likely never finished booting
-  }
-};
+// protocol instead. Bounded by its own timeout so a hung fetch/WebSocket
+// handshake can't block killProc() from ever reaching its SIGKILL fallback.
+// Resolves true once app.quit() was acknowledged by the process.
+const requestGracefulQuit = () =>
+  new Promise((resolve) => {
+    let settled = false;
+    let ws;
+    let timer;
+    const finish = (result) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      ws?.close();
+      resolve(result);
+    };
+
+    timer = setTimeout(() => finish(false), GRACEFUL_QUIT_REQUEST_TIMEOUT_MS);
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `http://127.0.0.1:${DEV_INSPECT_PORT}/json/list`
+        );
+        const [{ webSocketDebuggerUrl }] = await res.json();
+        ws = new WebSocket(webSocketDebuggerUrl);
+        ws.onerror = () => finish(false);
+        ws.onopen = () => {
+          ws.send(
+            JSON.stringify({
+              id: 1,
+              method: 'Runtime.evaluate',
+              params: {
+                expression: "process.mainModule.require('electron').app.quit()",
+              },
+            })
+          );
+        };
+        ws.onmessage = () => finish(true);
+      } catch {
+        finish(false); // inspector unreachable — process likely never finished booting
+      }
+    })();
+  });
 
 const electronRunner = (() => {
   let proc = null;

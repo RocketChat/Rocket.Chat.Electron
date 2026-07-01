@@ -102,6 +102,36 @@ const buildEwsPathname = (url: URL): void => {
 };
 
 /**
+ * Converts URL to string, preserving explicit default ports
+ * Uses url.port to detect if a non-default port was explicitly set
+ */
+const buildFinalUrl = (url: URL, originalUrl: string): string => {
+  const baseUrl = url.toString();
+
+  // If URL already has a non-default port, it's preserved by toString()
+  if (url.port) {
+    return baseUrl;
+  }
+
+  // Check if original URL had an explicit default port that was normalized away
+  // Match port in authority section (after //) or at start (for URLs without protocol)
+  // Supports both regular hosts and IPv6 addresses in brackets
+  const portMatch = originalUrl.match(/(?:\/\/|^)(?:\[[^\]]+\]|[^/:]+):(\d+)/);
+  if (portMatch) {
+    const explicitPort = portMatch[1];
+    // Only restore if it's a default port that was dropped
+    const isDefaultPort =
+      (url.protocol === 'https:' && explicitPort === '443') ||
+      (url.protocol === 'http:' && explicitPort === '80');
+    if (isDefaultPort) {
+      return baseUrl.replace(url.host, `${url.hostname}:${explicitPort}`);
+    }
+  }
+
+  return baseUrl;
+};
+
+/**
  * Sanitizes and constructs a proper Exchange Web Services (EWS) URL
  * Handles various input formats and edge cases to prevent URL construction errors
  *
@@ -156,7 +186,7 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
     // Normalize and construct EWS path using URL properties
     buildEwsPathname(url);
 
-    const sanitizedUrl = url.toString();
+    const sanitizedUrl = buildFinalUrl(url, serverUrl);
 
     outlookLog('URL sanitization completed:', {
       input: serverUrl,
@@ -172,10 +202,24 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
 
     return sanitizedUrl;
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Re-throw validation errors without attempting fallback, except for cases
+    // where the URL looks like it's missing a protocol (e.g., "domain.com:443", "localhost:443")
+    // Match IPv4 addresses, hostnames (with optional dots), or single-label names with ports
+    const hostnameWithPortPattern =
+      /^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-z0-9-]+(?:\.[a-z0-9.-]+)?):\d+/i;
+    if (
+      errorMessage.includes('Invalid protocol') &&
+      !serverUrl.match(hostnameWithPortPattern)
+    ) {
+      throw error;
+    }
+
     // Enhanced fallback using URL constructor more intelligently
     outlookWarn('URL parsing failed, attempting fallback method:', {
       originalUrl: serverUrl,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
     });
 
     // Try to fix common URL issues
@@ -198,10 +242,17 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
         throw new Error('URL must have a valid hostname');
       }
 
+      // Validate protocol
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error(
+          `Invalid protocol "${url.protocol}". Only HTTP and HTTPS are supported`
+        );
+      }
+
       // Use the same clean path construction as main logic
       buildEwsPathname(url);
 
-      const finalUrl = url.toString();
+      const finalUrl = buildFinalUrl(url, serverUrl);
 
       outlookLog('Fallback URL construction successful:', {
         input: serverUrl,
@@ -214,21 +265,39 @@ export const sanitizeExchangeUrl = (serverUrl: string): string => {
 
       return finalUrl;
     } catch (fallbackError) {
-      const errorMessage = `Failed to create valid Exchange URL from "${serverUrl}". 
-        Original error: ${error instanceof Error ? error.message : String(error)}. 
-        Fallback error: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}. 
+      const fallbackErrorMsg =
+        fallbackError instanceof Error
+          ? fallbackError.message
+          : String(fallbackError);
+
+      // Re-throw validation errors directly
+      if (
+        fallbackErrorMsg.includes('URL must have a valid hostname') ||
+        fallbackErrorMsg.includes('Invalid protocol')
+      ) {
+        throw fallbackError;
+      }
+
+      // Handle "Invalid URL" for empty hostname case (both http:// and https://)
+      if (
+        fallbackErrorMsg.includes('Invalid URL') &&
+        fallbackUrl.match(/^https?:\/\/$/)
+      ) {
+        throw new Error('URL must have a valid hostname');
+      }
+
+      const fallbackErrorMessage = `Failed to create valid Exchange URL from "${serverUrl}".
+        Original error: ${errorMessage}.
+        Fallback error: ${fallbackErrorMsg}.
         Please ensure the URL includes a valid protocol (http:// or https://) and hostname.`;
 
       outlookError('URL sanitization failed completely:', {
         input: serverUrl,
-        originalError: error instanceof Error ? error.message : String(error),
-        fallbackError:
-          fallbackError instanceof Error
-            ? fallbackError.message
-            : String(fallbackError),
+        originalError: errorMessage,
+        fallbackError: fallbackErrorMsg,
       });
 
-      throw new Error(errorMessage);
+      throw new Error(fallbackErrorMessage);
     }
   }
 };

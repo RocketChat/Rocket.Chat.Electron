@@ -2,6 +2,7 @@ import type { Resource } from 'i18next';
 
 export default {
   'de-DE': (): Promise<Resource> => import('./de-DE.i18n.json'),
+  'ta': (): Promise<Resource> => import('./ta.json'),
   'en': (): Promise<Resource> => import('./en.i18n.json'),
   'es': (): Promise<Resource> => import('./es.i18n.json'),
   'fi': (): Promise<Resource> => import('./fi.i18n.json'),

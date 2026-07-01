@@ -65,6 +65,21 @@ const createAppMenu = createSelector(
         },
         { type: 'separator' },
         {
+          id: 'preferences',
+          label: t('menus.preferences'),
+          accelerator: 'Command+,',
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
+          },
+        },
+        { type: 'separator' },
+        {
           id: 'services',
           label: t('menus.services'),
           role: 'services',

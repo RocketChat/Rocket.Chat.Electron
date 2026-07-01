@@ -409,6 +409,7 @@
     "toggleDevTools": "Toggle &DevTools",
     "openConfigFolder": "Open &Configuration Folder",
     "openLogViewer": "Open &Log Viewer",
+    "preferences": "Preferences",
     "videoCallDevTools": "Open Video Call &DevTools",
     "videoCallTools": "Video Call Tools",
     "videoCallDevToolsAutoOpen": "Auto-open DevTools",

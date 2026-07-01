@@ -19,6 +19,39 @@ const canRun =
 // Single shared controller across all bundle configs. Because `rollup -c -w`
 // rebuilds multiple bundles on one file save, the restart is debounced so the
 // whole save-batch finishes writing, then the app restarts exactly once.
+const DEV_INSPECT_PORT = 9339;
+
+// OS signals don't reach Electron's app.quit() on macOS (SIGTERM is a no-op
+// there), so a graceful shutdown has to go through the Node inspector
+// protocol instead. Returns true once app.quit() was successfully requested.
+const requestGracefulQuit = async () => {
+  try {
+    const res = await fetch(`http://127.0.0.1:${DEV_INSPECT_PORT}/json/list`);
+    const [{ webSocketDebuggerUrl }] = await res.json();
+    const ws = new WebSocket(webSocketDebuggerUrl);
+    await new Promise((resolve, reject) => {
+      ws.onopen = resolve;
+      ws.onerror = reject;
+    });
+    ws.send(
+      JSON.stringify({
+        id: 1,
+        method: 'Runtime.evaluate',
+        params: {
+          expression: "process.mainModule.require('electron').app.quit()",
+        },
+      })
+    );
+    await new Promise((resolve) => {
+      ws.onmessage = resolve;
+    });
+    ws.close();
+    return true;
+  } catch {
+    return false; // inspector unreachable — process likely never finished booting
+  }
+};
+
 const electronRunner = (() => {
   let proc = null;
   let restartTimer = null;
@@ -32,7 +65,23 @@ const electronRunner = (() => {
     const current = proc;
     proc = null;
     const closed = new Promise((resolve) => current.once('close', resolve));
-    current.kill('SIGKILL'); // SIGKILL bypasses the app's tray/before-quit guards
+
+    // Try a graceful app.quit() first so Electron closes windows through its
+    // normal lifecycle. Skipping straight to SIGKILL leaves a stale
+    // composited frame on screen — the OS window compositor never gets the
+    // close/orderOut call, so the old window appears frozen/white while the
+    // new one is either hidden behind it or never gets focus.
+    if (await requestGracefulQuit()) {
+      const result = await Promise.race([
+        closed.then(() => 'closed'),
+        new Promise((resolve) => setTimeout(() => resolve('timeout'), 2500)),
+      ]);
+      if (result === 'closed') {
+        return;
+      }
+    }
+
+    current.kill('SIGKILL'); // fallback: never hang the watcher
     await Promise.race([
       closed,
       new Promise((resolve) => setTimeout(resolve, 3000)), // never hang the watcher
@@ -51,7 +100,7 @@ const electronRunner = (() => {
       );
       hasStarted = true;
 
-      const electronArgs = ['.'];
+      const electronArgs = [`--inspect=${DEV_INSPECT_PORT}`, '.'];
 
       // Linux-specific flags for development
       if (process.platform === 'linux') {

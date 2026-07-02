@@ -1,10 +1,3 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +7,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type ReportErrorsProps = {
   className?: string;
@@ -39,25 +33,18 @@ export const ReportErrors = (props: ReportErrorsProps) => {
   const isReportEnabledId = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isReportEnabledId}>
-          {t('settings.options.report.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isReportEnabledId}
-          disabled={process.mas}
-          checked={isReportEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        {process.mas ? (
-          <FieldHint>{t('settings.options.report.masDescription')}</FieldHint>
-        ) : (
-          <FieldHint>{t('settings.options.report.description')}</FieldHint>
-        )}
-      </FieldRow>
-    </Field>
+    <ToggleField
+      id={isReportEnabledId}
+      label={t('settings.options.report.title')}
+      description={
+        process.mas
+          ? t('settings.options.report.masDescription')
+          : t('settings.options.report.description')
+      }
+      checked={isReportEnabled}
+      onChange={handleChange}
+      disabled={process.mas}
+      className={props.className}
+    />
   );
 };

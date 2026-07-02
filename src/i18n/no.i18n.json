@@ -246,61 +246,71 @@
     }
   },
   "settings": {
-    "title": "Innstillinger",
-    "general": "General",
+    "title": "App-innstillinger",
+    "general": "Generelt",
     "certificates": "Sertifikater",
     "developer": "Utvikler",
     "sections": {
+      "appUi": "App-grensesnitt",
+      "systemUi": "Systemgrensesnitt",
+      "systemBehavior": "Systemoppførsel",
+      "calling": "Samtaler",
+      "other": "Annet og teknisk",
       "logging": "Logging"
     },
     "options": {
       "report": {
-        "title": "Rapporter feil til utviklere",
-        "description": "Rapporter feil anonymt til utviklerne. Delt informasjon inkluderer appversjonsnummer, operativsystemtype, server-URL, enhetsspråk og feiltype. Ingen innhold eller brukernavn deles.",
-        "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, feilene vil bli rapportert gjennom Mac App Store feilrapporteringsprosessen."
+        "title": "Rapporter feil til Rocket.Chat",
+        "description": "Rapporter feil anonymt til apputviklerne. Delt informasjon inkluderer appversjonsnummer, operativsystemtype, arbeidsområde-URL, enhetsspråk og feiltype. Ingen innhold eller brukernavn deles.",
+        "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store. Feil rapporteres via Mac App Store sin feilrapporteringsprosess."
       },
       "flashFrame": {
-        "title": "Aktiver Flash Frame",
-        "titleDarwin": "Slå av/på Dock Bounce på varsel",
-        "description": "Blinker vinduet for å tiltrekke brukerens oppmerksomhet.",
+        "title": "Blink vindu",
+        "titleDarwin": "Sprett dock-ikon",
+        "description": "Blinker vinduet når en ny melding mottas.",
         "onLinux": "Noen Linux-distroer har ikke støtte for denne funksjonen.",
-        "descriptionDarwin": "Spretter appikonet i dokken for å tiltrekke brukerens oppmerksomhet."
+        "descriptionDarwin": "Dock-ikonet spretter når en ny melding mottas."
       },
       "hardwareAcceleration": {
         "title": "Maskinvareakselerasjon",
-        "description": "Muliggjør maskinvareakselerasjon når tilgjengelig. Applikasjonen vil lastes inn på nytt ved endring."
+        "description": "Forbedrer visuell gjengivelse og ytelse. Deaktiver hvis du opplever visuelle feil eller ustabilitet.",
+        "hint": "Laster appen på nytt ved endring."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Reserveopptak for videosamtaler",
-        "description": "Deaktiverer Windows Graphics Capture slik at deling virker i RDP-økter. Appen starter på nytt når du endrer dette valget.",
+        "description": "Deaktiverer Windows Graphics Capture slik at deling virker i RDP-økter.",
+        "hint": "Appen starter på nytt når du endrer dette valget.",
         "forcedDescription": "Allerede aktivert fordi appen oppdaget en RDP-økt. Bytt til for å bestemme oppførsel ved fremtidige lokale oppstarter."
       },
       "internalVideoChatWindow": {
-        "title": "Åpne videochat ved hjelp av applikasjonsvinduet",
-        "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> og <strong>Jitsi</strong> skjermopptak støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke anropsadferd, som åpnes i nettleseren.",
-        "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, av sikkerhetsgrunner vil det åpne Video Chat ved å bruke nettleseren som standard."
+        "title": "Videosamtaler inne i appen",
+        "description": "Åpne videosamtaler i appvinduet i stedet for nettleseren. Google Meet og Jitsi-samtaler kan bare åpnes i nettleseren.",
+        "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store. Av sikkerhetsgrunner åpnes videosamtaler alltid i nettleseren som standard."
       },
       "minimizeOnClose": {
-        "title": "Minimer på nært hold",
-        "description": "Når den er lukket, vil appen minimeres, ellers avsluttes applikasjonen. Systemstatusikon må deaktiveres for at dette skal tre i kraft."
+        "title": "Minimer ved lukking",
+        "description": "Minimer og ikke avslutt appen ved lukking.",
+        "disabledHint": "Systemstatusikonet må være deaktivert."
       },
       "menubar": {
         "title": "Menylinje",
         "description": "Vis menylinjen øverst i vinduet.",
-        "disabledHint": "Kan ikke deaktivere menylinjen når sidefeltet er deaktivert. Innstillinger ville bli utilgjengelige."
+        "disabledHint": "Kan ikke deaktivere menylinjen når arbeidsområdelinjen er deaktivert. App-innstillinger ville bli utilgjengelige."
       },
       "sidebar": {
-        "title": "Sidefelt",
-        "description": "Vis sidefeltet til venstre i vinduet med serverlisten, nedlastinger og innstillinger.",
-        "disabledHint": "Kan ikke deaktivere sidefeltet når menylinjen er deaktivert. Innstillinger ville bli utilgjengelige."
+        "title": "Arbeidsområdelinje",
+        "description": "Vis liste over arbeidsområder med knapper for nedlastinger og innstillinger.",
+        "disabledHint": "Kan ikke deaktivere arbeidsområdelinjen når menylinjen er deaktivert. App-innstillinger ville bli utilgjengelige."
       },
       "trayIcon": {
         "title": "Systemstatusikon",
-        "description": "Vis ikonet på systemstatusfeltet. Hvis systemstatusikonet er aktivt, vil appen være skjult ved lukke. Ellers avsluttes programmet."
+        "titleDarwin": "Menylinje-ekstra",
+        "description": "Vis ikonet på systemstatusfeltet. Når aktivert skjules appen i statusfeltet ved lukking i stedet for å avslutte.",
+        "descriptionDarwin": "Vis app-ikon i menylinjen."
       },
       "availableBrowsers": {
         "title": "Standard nettleser",
-        "description": "Velg hvilken nettleser som skal åpne eksterne lenker fra denne appen. Systemstandard bruker operativsysteminnstillingene dine.",
+        "description": "Velg hvilken nettleser som skal åpne eksterne lenker fra denne appen.",
         "systemDefault": "Systemstandard",
         "loading": "Laster inn nettlesere ...",
         "current": "Bruker for øyeblikket:"
@@ -322,15 +332,15 @@
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Fjern skjermopptakstillatelser",
-        "description": "Fjern skjermopptakstillatelsene på videosamtaler som ble valgt for ikke å spørre igjen."
+        "description": "Fjern tillatelser selv om «ikke spør igjen» ble valgt tidligere for samtaler."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Tillat skjermopptak på videosamtaler",
-        "description": "Tillat skjermfangst på videosamtaler. Dette vil be om tillatelse for hver videosamtale."
+        "description": "Tillat skjermfangst på videosamtaler. Ber om tillatelse for hver videosamtale."
       },
       "ntlmCredentials": {
         "title": "NTLM-påloggingsinformasjon",
-        "description": "Tillat at NTLM-påloggingsinformasjon brukes når du kobler til en server.",
+        "description": "Tillat at NTLM-påloggingsinformasjon brukes når du kobler til et arbeidsområde.",
         "domains": "Domener som vil bruke påloggingsinformasjonen. Atskilt med komma. Bruk * for å matche alle domener."
       },
       "videoCallWindowPersistence": {
@@ -339,25 +349,40 @@
       },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
-        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet. Krever omstart for å brukes."
+        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet.",
+        "hint": "Krever omstart for å brukes."
       },
       "themeAppearance": {
         "title": "Tema",
-        "description": "Velg fargtemaet for applikasjonen.",
+        "description": "App-fargetema.",
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
       },
       "outlookCalendarSyncInterval": {
         "title": "Synkroniseringsintervall for Outlook-kalender",
-        "description": "Hvor ofte skal Outlook-kalenderhendelser synkroniseres, i minutter (1–60)."
+        "description": "Frekvens for oppdateringssjekk av kalenderhendelser i minutter (1–60)."
       },
       "verboseOutlookLogging": {
-        "title": "Utførlig logging av Outlook-kalenderen",
-        "description": "Aktiver detaljerte feilsøkingslogger for Exchange/NTLM for feilsøking av problemer med integrering av Outlook-kalender."
+        "title": "Utførlig logging av Outlook-kalender",
+        "description": "Aktiver detaljerte Exchange/NTLM-feilsøkingslogger for feilsøking av problemer med Outlook-kalenderintegrasjon."
       },
       "detailedEventsLogging": {
-        "title": "Detaljert hendelseslogging"
+        "title": "Detaljert hendelseslogging",
+        "description": "Logg fullstendige hendelsesdata utvekslet mellom Outlook og Rocket.Chat under kalendersynkronisering. Nyttig for å diagnostisere synkroniseringsproblemer."
+      },
+      "telephonyServer": {
+        "title": "Telefoni-arbeidsområde",
+        "description": "Velg hvilket arbeidsområde som håndterer innkommende telefonsamtaler (tel:- og callto:-lenker).",
+        "auto": "Automatisk (spør hver gang)"
+      },
+      "debugLogging": {
+        "title": "Detaljert logging",
+        "description": "Skriver all konsollutdata til loggfilen. Når deaktivert lagres kun feil og viktige meldinger, noe som holder loggene mindre og mer oversiktlige."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Størstegren for PDF-forhåndsvisning i krypterte rom (MB)",
+        "description": "Krypterte filer lastes inn i minnet for forhåndsvisning. Filer som er større enn denne grensen lastes ned direkte."
       }
     }
   },
@@ -386,7 +411,7 @@
     "disableGpu": "Deaktiver GPU",
     "documentation": "Dokumentasjon",
     "downloads": "Nedlastinger",
-    "settings": "Innstillinger",
+    "settings": "App-innstillinger",
     "editMenu": "Redigere",
     "fileMenu": "Fil",
     "forward": "Framover",
@@ -457,7 +482,7 @@
   "sidebar": {
     "addNewServer": "Legg til ny server",
     "downloads": "Nedlastinger",
-    "settings": "Innstillinger",
+    "settings": "App-innstillinger",
     "menuTitle": "Tilpass og kontroller appen",
     "item": {
       "reload": "Last inn på nytt",

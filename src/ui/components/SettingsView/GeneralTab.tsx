@@ -14,24 +14,38 @@ import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
 
-export const GeneralTab = () => (
-  <Box display='flex' justifyContent='center' p='x24'>
-    <Box is='form' width='x600' maxWidth='full'>
-      <FieldGroup>
-        <ReportErrors />
-        <FlashFrame />
-        <HardwareAcceleration />
-        {process.platform === 'darwin' && <TransparentWindow />}
-        <TrayIcon />
-        {process.platform === 'win32' && <MinimizeOnClose />}
-        <SideBar />
-        {process.platform !== 'darwin' && <MenuBar />}
-        {process.platform === 'win32' && <NTLMCredentials />}
-        <ThemeAppearance />
-        <AvailableBrowsers />
-        <OutlookCalendarSyncInterval />
-        <E2ePdfPreviewSizeLimit />
-      </FieldGroup>
+export const GeneralTab = () => {
+  const isDarwin = process.platform === 'darwin';
+  const isWin32 = process.platform === 'win32';
+
+  return (
+    <Box display='flex' justifyContent='center' p='x24'>
+      <Box is='form' width='x600' maxWidth='full'>
+        <FieldGroup>
+          <SideBar />
+          <ThemeAppearance />
+        </FieldGroup>
+
+        <FieldGroup mbs='x24'>
+          {isDarwin && <TransparentWindow />}
+          <TrayIcon />
+          {isWin32 && <MinimizeOnClose />}
+          {!isDarwin && <MenuBar />}
+          <FlashFrame />
+        </FieldGroup>
+
+        <FieldGroup mbs='x24'>
+          <AvailableBrowsers />
+          <OutlookCalendarSyncInterval />
+        </FieldGroup>
+
+        <FieldGroup mbs='x24'>
+          <HardwareAcceleration />
+          <E2ePdfPreviewSizeLimit />
+          <ReportErrors />
+          {isWin32 && <NTLMCredentials />}
+        </FieldGroup>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};

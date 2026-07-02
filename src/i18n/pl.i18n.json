@@ -113,11 +113,6 @@
         "answerCall": "odbierania połączeń",
         "recordMessage": "nagrywania wiadomości"
       }
-    },
-    "telephonySelectServer": {
-      "title": "Wybierz serwer",
-      "message": "Który serwer ma obsłużyć to połączenie?",
-      "rememberChoice": "Zapamiętaj ten wybór"
     }
   },
   "documentViewer": {
@@ -138,24 +133,126 @@
     }
   },
   "settings": {
-    "title": "Ustawienia",
+    "title": "Ustawienia aplikacji",
     "general": "Ogólne",
+    "sections": {
+      "appUi": "Interfejs aplikacji",
+      "systemUi": "Interfejs systemowy",
+      "systemBehavior": "Zachowanie systemu",
+      "calling": "Połączenia",
+      "other": "Inne i techniczne",
+      "logging": "Rejestrowanie"
+    },
     "options": {
+      "report": {
+        "title": "Zgłaszaj błędy do Rocket.Chat",
+        "description": "Anonimowo zgłaszaj problemy do deweloperów aplikacji. Udostępniane informacje obejmują numer wersji aplikacji, typ systemu operacyjnego, adres URL obszaru roboczego, język urządzenia i rodzaj błędu. Żadne treści ani nazwy użytkowników nie są udostępniane.",
+        "masDescription": "Ta opcja jest wyłączona w przypadku instalacji z Mac App Store. Błędy są zgłaszane za pośrednictwem procesu raportowania błędów Mac App Store."
+      },
+      "flashFrame": {
+        "title": "Miganie ramki okna",
+        "titleDarwin": "Odbijanie ikony w docku",
+        "description": "Migaj oknem po otrzymaniu nowej wiadomości.",
+        "onLinux": "Niektóre dystrybucje Linuksa nie obsługują tej funkcji.",
+        "descriptionDarwin": "Ikona w docku odbija się po otrzymaniu nowej wiadomości."
+      },
+      "hardwareAcceleration": {
+        "title": "Akceleracja sprzętowa",
+        "description": "Poprawia renderowanie grafiki i wydajność. Wyłącz, jeśli występują błędy wizualne lub niestabilność.",
+        "hint": "Ponownie ładuje aplikację po zmianie."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Alternatywne przechwytywanie ekranu dla połączeń wideo",
+        "description": "Wyłącz funkcję Windows Graphics Capture, aby udostępnianie ekranu działało w sesjach Pulpitu zdalnego.",
+        "hint": "Aplikacja uruchamia się ponownie po zmianie tej opcji.",
+        "forcedDescription": "Obecnie wymuszone, ponieważ aplikacja wykryła sesję Pulpitu zdalnego. Przełącznik kontroluje teraz przyszłe uruchomienia przy pracy lokalnej."
+      },
+      "internalVideoChatWindow": {
+        "title": "Połączenia wideo wewnątrz aplikacji",
+        "description": "Otwieraj połączenia wideo w oknie aplikacji zamiast w przeglądarce. Połączenia Google Meet i Jitsi można otwierać tylko w przeglądarce.",
+        "masDescription": "Ta opcja jest wyłączona w przypadku instalacji z Mac App Store. Ze względów bezpieczeństwa połączenia wideo są domyślnie zawsze otwierane w przeglądarce."
+      },
+      "minimizeOnClose": {
+        "title": "Minimalizuj przy zamykaniu",
+        "description": "Minimalizuj aplikację zamiast zamykać ją przy kliknięciu przycisku zamknięcia.",
+        "disabledHint": "Ikona zasobnika musi być wyłączona."
+      },
+      "menubar": {
+        "title": "Pasek menu",
+        "description": "Pokazuj pasek menu u góry okna.",
+        "disabledHint": "Nie można wyłączyć paska menu, gdy pasek obszarów roboczych jest wyłączony. Ustawienia aplikacji stałyby się niedostępne."
+      },
+      "sidebar": {
+        "title": "Pasek obszarów roboczych",
+        "description": "Pokazuj listę obszarów roboczych z przyciskami pobrań i ustawień.",
+        "disabledHint": "Nie można wyłączyć paska obszarów roboczych, gdy pasek menu jest wyłączony. Ustawienia aplikacji stałyby się niedostępne."
+      },
       "trayIcon": {
         "title": "Ikona zasobnika",
-        "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
+        "titleDarwin": "Dodatkowa ikona paska menu",
+        "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu.",
+        "descriptionDarwin": "Pokazuje ikonę aplikacji na pasku menu."
       },
       "availableBrowsers": {
         "title": "Domyślna przeglądarka",
-        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne z tej aplikacji. Ustawienie domyślne systemu używa ustawień Twojego systemu operacyjnego.",
+        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne.",
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
       },
       "telephonyServer": {
-        "title": "Serwer telefonii",
-        "description": "Wybierz, który obszar roboczy otwiera się po użyciu skrótu telefonii albo linku tel: lub callto:.",
+        "title": "Obszar roboczy telefonii",
+        "description": "Wybierz, który obszar roboczy obsługuje przychodzące połączenia telefoniczne (łącza tel: i callto:).",
         "auto": "Automatycznie (pytaj za każdym razem)"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Wyczyść uprawnienia przechwytywania ekranu",
+        "description": "Wyczyść uprawnienia, nawet jeśli wcześniej wybrano opcję „nie pytaj ponownie” dla połączeń."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Zezwalaj na przechwytywanie ekranu podczas połączeń wideo",
+        "description": "Zezwalaj na przechwytywanie ekranu podczas połączeń wideo. Prosi o uprawnienie przy każdym połączeniu wideo."
+      },
+      "ntlmCredentials": {
+        "title": "Poświadczenia NTLM",
+        "description": "Zezwalaj na używanie poświadczeń NTLM podczas łączenia się z obszarem roboczym.",
+        "domains": "Domeny, dla których będą używane poświadczenia. Oddzielone przecinkami. Użyj *, aby dopasować wszystkie serwery."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Zachowaj pozycję okna połączenia wideo",
+        "description": "Pamiętaj pozycję i rozmiar okna połączenia wideo między sesjami."
+      },
+      "transparentWindow": {
+        "title": "Efekt przezroczystego okna",
+        "description": "Włącz natywny efekt przezroczystości w oknie aplikacji.",
+        "hint": "Wymaga ponownego uruchomienia."
+      },
+      "themeAppearance": {
+        "title": "Motyw",
+        "description": "Motyw kolorystyczny aplikacji.",
+        "auto": "Zgodnie z systemem",
+        "light": "Jasny",
+        "dark": "Ciemny"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Interwał synchronizacji kalendarza Outlook",
+        "description": "Częstotliwość sprawdzania aktualizacji wydarzeń kalendarza w minutach (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Szczegółowe rejestrowanie kalendarza Outlook",
+        "description": "Włącz szczegółowe dzienniki debugowania Exchange/NTLM do rozwiązywania problemów z integracją kalendarza Outlook."
+      },
+      "detailedEventsLogging": {
+        "title": "Szczegółowe rejestrowanie wydarzeń",
+        "description": "Rejestruj pełne dane wydarzeń wymienianych między Outlook a Rocket.Chat podczas synchronizacji kalendarza. Przydatne do diagnozowania problemów z synchronizacją."
+      },
+      "debugLogging": {
+        "title": "Szczegółowe rejestrowanie",
+        "description": "Zapisuje wszystkie dane wyjściowe konsoli do pliku dziennika. Gdy wyłączone, zapisywane są tylko błędy i ważne komunikaty, dzięki czemu dzienniki są mniejsze i bardziej skupione."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Limit rozmiaru podglądu PDF w zaszyfrowanych pokojach (MB)",
+        "description": "Zaszyfrowane pliki są ładowane do pamięci na potrzeby podglądu. Pliki większe niż ten limit będą pobierane bezpośrednio."
       },
       "telephonyShortcut": {
         "title": "Globalny skrót telefonii",
@@ -166,17 +263,6 @@
         "clear": "Wyczyść",
         "registered": "Skrót zarejestrowany",
         "reservedAccelerator": "{{accelerator}} jest zarezerwowany przez Rocket.Chat lub system operacyjny."
-      },
-      "transparentWindow": {
-        "title": "Efekt przezroczystego okna",
-        "description": "Włącz natywny efekt wibracji/przezroczystości dla okna. Wymaga ponownego uruchomienia, aby zastosować."
-      },
-      "themeAppearance": {
-        "title": "Motyw",
-        "description": "Wybierz motyw kolorystyczny aplikacji.",
-        "auto": "Zgodnie z systemem",
-        "light": "Jasny",
-        "dark": "Ciemny"
       }
     }
   },
@@ -203,6 +289,7 @@
     "cut": "&Wytnij",
     "developerMode": "Tryb programisty",
     "documentation": "Dokumentacja",
+    "settings": "Ustawienia aplikacji",
     "editMenu": "&Edycja",
     "fileMenu": "&Plik",
     "forward": "&Do przodu",
@@ -261,6 +348,7 @@
   },
   "sidebar": {
     "addNewServer": "Dodaj nowy serwer",
+    "settings": "Ustawienia aplikacji",
     "item": {
       "reload": "Przeładuj serwer",
       "remove": "Usuń serwer",

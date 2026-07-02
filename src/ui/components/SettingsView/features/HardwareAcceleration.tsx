@@ -1,10 +1,3 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +7,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type HardwareAccelerationProps = {
   className?: string;
@@ -40,22 +34,14 @@ export const HardwareAcceleration = (props: HardwareAccelerationProps) => {
   const isHardwareAccelerationEnabledId = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isHardwareAccelerationEnabledId}>
-          {t('settings.options.hardwareAcceleration.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isHardwareAccelerationEnabledId}
-          checked={isHardwareAccelerationEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>
-          {t('settings.options.hardwareAcceleration.description')}
-        </FieldHint>
-      </FieldRow>
-    </Field>
+    <ToggleField
+      id={isHardwareAccelerationEnabledId}
+      label={t('settings.options.hardwareAcceleration.title')}
+      description={t('settings.options.hardwareAcceleration.description')}
+      hint={t('settings.options.hardwareAcceleration.hint')}
+      checked={isHardwareAccelerationEnabled}
+      onChange={handleChange}
+      className={props.className}
+    />
   );
 };

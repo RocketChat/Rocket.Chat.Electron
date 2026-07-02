@@ -65,7 +65,7 @@ export const TelephonyServer = (props: TelephonyServerProps) => {
       className={props.className}
       htmlFor={telephonyServerSelectId}
       label={t('settings.options.telephonyServer.title')}
-      hint={t('settings.options.telephonyServer.description')}
+      description={t('settings.options.telephonyServer.description')}
     >
       <Select
         id={telephonyServerSelectId}

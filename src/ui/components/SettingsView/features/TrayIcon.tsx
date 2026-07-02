@@ -1,10 +1,3 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +7,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type TrayIconProps = {
   className?: string;
@@ -39,20 +33,21 @@ export const TrayIcon = (props: TrayIconProps) => {
   const isTrayIconEnabledId = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isTrayIconEnabledId}>
-          {t('settings.options.trayIcon.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isTrayIconEnabledId}
-          checked={isTrayIconEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>{t('settings.options.trayIcon.description')}</FieldHint>
-      </FieldRow>
-    </Field>
+    <ToggleField
+      id={isTrayIconEnabledId}
+      label={
+        process.platform === 'darwin'
+          ? t('settings.options.trayIcon.titleDarwin')
+          : t('settings.options.trayIcon.title')
+      }
+      description={
+        process.platform === 'darwin'
+          ? t('settings.options.trayIcon.descriptionDarwin')
+          : t('settings.options.trayIcon.description')
+      }
+      checked={isTrayIconEnabled}
+      onChange={handleChange}
+      className={props.className}
+    />
   );
 };

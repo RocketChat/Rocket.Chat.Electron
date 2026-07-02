@@ -1,11 +1,4 @@
-import {
-  ToggleSwitch,
-  Field,
-  Callout,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
+import { Callout } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +8,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type FlashFrameProps = {
   className?: string;
@@ -40,32 +34,28 @@ export const FlashFrame = (props: FlashFrameProps) => {
   const isFlashFrameEnabledId = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isFlashFrameEnabledId}>
-          {process.platform !== 'darwin'
-            ? t('settings.options.flashFrame.title')
-            : t('settings.options.flashFrame.titleDarwin')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isFlashFrameEnabledId}
-          checked={isFlashFrameEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
+    <ToggleField
+      id={isFlashFrameEnabledId}
+      label={
+        process.platform !== 'darwin'
+          ? t('settings.options.flashFrame.title')
+          : t('settings.options.flashFrame.titleDarwin')
+      }
+      description={
+        process.platform !== 'darwin'
+          ? t('settings.options.flashFrame.description')
+          : t('settings.options.flashFrame.descriptionDarwin')
+      }
+      checked={isFlashFrameEnabled}
+      onChange={handleChange}
+      className={props.className}
+    >
       {process.platform === 'linux' && (
         <Callout
           title={t('settings.options.flashFrame.onLinux')}
           type='warning'
         />
       )}
-      <FieldRow>
-        <FieldHint>
-          {process.platform !== 'darwin'
-            ? t('settings.options.flashFrame.description')
-            : t('settings.options.flashFrame.descriptionDarwin')}
-        </FieldHint>
-      </FieldRow>
-    </Field>
+    </ToggleField>
   );
 };

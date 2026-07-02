@@ -90,6 +90,13 @@ const logRequestError =
 const getCacheKey = (serverUrl: string): string =>
   `supportedVersions:${serverUrl}`;
 
+// Missing/malformed timestamps sort as the oldest possible value, so a source
+// with no usable timestamp never wins a freshness comparison it shouldn't.
+const parseTimestamp = (value?: string): number => {
+  const time = value ? Date.parse(value) : NaN;
+  return Number.isNaN(time) ? 0 : time;
+};
+
 const loadFromCache = (serverUrl: string): SupportedVersions | undefined => {
   try {
     const cached = supportedVersionsStore.get(getCacheKey(serverUrl));
@@ -184,12 +191,30 @@ const getUniqueId = async (
   }
 };
 
+const messageMatchesUserRoles = (
+  message: Message,
+  userRoles?: string[]
+): boolean => {
+  // No targeting set on the message → show to everyone (default behavior).
+  if (!message.roles?.length) {
+    return true;
+  }
+  // Targeting set but we don't know the user's roles → don't show, to honor
+  // the intent of restricting the message.
+  if (!userRoles?.length) {
+    return false;
+  }
+  return message.roles.some((role) => userRoles.includes(role));
+};
+
 const getExpirationMessage = ({
   messages,
   expiration,
+  userRoles,
 }: {
   messages?: Message[];
   expiration?: Date;
+  userRoles?: string[];
 }): Message | undefined => {
   if (
     !messages?.length ||
@@ -199,7 +224,10 @@ const getExpirationMessage = ({
   ) {
     return;
   }
-  const sortedMessages = messages.sort(
+  const eligibleMessages = messages.filter((message) =>
+    messageMatchesUserRoles(message, userRoles)
+  );
+  const sortedMessages = eligibleMessages.sort(
     (a, b) => a.remainingDays - b.remainingDays
   );
   const message = sortedMessages.find(
@@ -362,6 +390,7 @@ export const isServerVersionSupported = async (
       const selectedExpirationMessage = getExpirationMessage({
         messages,
         expiration: exception.expiration,
+        userRoles: server.userRoles,
       }) as Message;
 
       return {
@@ -387,6 +416,7 @@ export const isServerVersionSupported = async (
       const selectedExpirationMessage = getExpirationMessage({
         messages,
         expiration: supportedVersion.expiration,
+        userRoles: server.userRoles,
       }) as Message;
 
       return {
@@ -407,6 +437,7 @@ export const isServerVersionSupported = async (
     const selectedExpirationMessage = getExpirationMessage({
       messages: supportedVersionsData.messages,
       expiration: enforcementStartDate,
+      userRoles: server.userRoles,
     }) as Message;
 
     return {
@@ -620,40 +651,31 @@ export const updateSupportedVersionsData = async (
     }
   }
 
-  // Try to load from cache
+  // Neither the server nor the cloud could be reached. Pick the freshest of
+  // the two remaining sources by `timestamp` instead of always trusting the
+  // cache: a persisted cache entry can predate the app's own bundled builtin
+  // data (e.g. right after an app update ships a refreshed builtin list), in
+  // which case trusting the stale cache indefinitely blocks servers the new
+  // builtin already recognizes as supported.
   const cachedVersions = loadFromCache(serverUrl);
-  if (cachedVersions) {
-    if (isStale()) return;
-    const cachedSupported = await isServerVersionSupported(
-      serverWithFreshIdentity,
-      cachedVersions,
-      freshCommitHash
-    );
-    if (isStale()) return;
-    dispatch({
-      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
-      payload: {
-        url: server.url,
-        isSupportedVersion: cachedSupported.supported,
-      },
-    });
-    dispatchSupportedVersionsUpdated(server.url, cachedVersions, {
-      source: 'cloud',
-    });
-    dispatch({
-      type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
-      payload: { url: serverUrl },
-    });
-    return;
-  }
+  const useBuiltinOverCache =
+    !!builtinSupportedVersions &&
+    (!cachedVersions ||
+      parseTimestamp(builtinSupportedVersions.timestamp) >
+        parseTimestamp(cachedVersions.timestamp));
+  const fallbackVersions = useBuiltinOverCache
+    ? builtinSupportedVersions
+    : cachedVersions;
+  const fallbackSource: 'cloud' | 'builtin' = useBuiltinOverCache
+    ? 'builtin'
+    : 'cloud';
 
-  // Fall back to builtin (always available)
-  if (builtinSupportedVersions) {
+  if (fallbackVersions) {
     if (isStale()) return;
-    saveToCache(serverUrl, builtinSupportedVersions);
-    const builtinSupported = await isServerVersionSupported(
+    saveToCache(serverUrl, fallbackVersions);
+    const fallbackSupported = await isServerVersionSupported(
       serverWithFreshIdentity,
-      builtinSupportedVersions,
+      fallbackVersions,
       freshCommitHash
     );
     if (isStale()) return;
@@ -661,11 +683,11 @@ export const updateSupportedVersionsData = async (
       type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
       payload: {
         url: server.url,
-        isSupportedVersion: builtinSupported.supported,
+        isSupportedVersion: fallbackSupported.supported,
       },
     });
-    dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
-      source: 'builtin',
+    dispatchSupportedVersionsUpdated(server.url, fallbackVersions, {
+      source: fallbackSource,
     });
     dispatch({
       type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,

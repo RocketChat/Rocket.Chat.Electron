@@ -284,19 +284,13 @@ export const setupWebContentsLogging = () => {
       event.returnValue = '';
     });
 
-    // Rate limiting for console-log IPC to prevent flooding from compromised webviews
-    const ipcRateLimit = new Map<
-      number,
-      { count: number; resetTime: number }
-    >();
-    const MAX_IPC_MESSAGES_PER_SECOND = 100;
-
     // Listen for new webContents creation
     app.on('web-contents-created', (_event, webContents) => {
       // Skip if this is the main renderer process (it already has logging)
       if (webContents.getType() === 'window') return;
 
-      // For webviews and other renderer processes, inject console override
+      // Tag this webContents with its server context so logs forwarded by the
+      // webview preload (src/logging/preload.ts) are attributed to the server.
       webContents.on('dom-ready', () => {
         try {
           // Get server URL for this webContents
@@ -328,69 +322,6 @@ export const setupWebContentsLogging = () => {
           if (serverUrl !== 'unknown') {
             registerWebContentsServer(webContents.id, serverUrl);
           }
-
-          // TODO: Replace executeJavaScript injection with a preload script for
-          // better maintainability and debuggability (see src/logging/preload.ts)
-          // Inject enhanced console override directly into the webContents
-          const consoleOverrideScript = `
-            (function() {
-              try {
-                const { ipcRenderer } = require('electron');
-                
-                // Store original console methods
-                const originalConsole = {
-                  log: console.log,
-                  info: console.info,
-                  warn: console.warn,
-                  error: console.error,
-                  debug: console.debug,
-                };
-
-                 // Get webContents ID and server URL for context
-                 const webContentsId = ${webContents.id};
-                 const serverUrl = ${JSON.stringify(serverUrl)};
-
-
-                // Override console methods to send to main process with context
-                console.log = (...args) => {
-                  originalConsole.log(...args);
-                  ipcRenderer.send('console-log', 'debug', webContentsId, serverUrl, ...args);
-                };
-                
-                console.info = (...args) => {
-                  originalConsole.info(...args);
-                  ipcRenderer.send('console-log', 'info', webContentsId, serverUrl, ...args);
-                };
-                
-                console.warn = (...args) => {
-                  originalConsole.warn(...args);
-                  ipcRenderer.send('console-log', 'warn', webContentsId, serverUrl, ...args);
-                };
-                
-                console.error = (...args) => {
-                  originalConsole.error(...args);
-                  ipcRenderer.send('console-log', 'error', webContentsId, serverUrl, ...args);
-                };
-                
-                console.debug = (...args) => {
-                  originalConsole.debug(...args);
-                  ipcRenderer.send('console-log', 'debug', webContentsId, serverUrl, ...args);
-                };
-
-                // Add marker to know console override is active
-                console.original = originalConsole;
-               } catch (error) {
-                 console.error('[logging] Failed to override console in webContents:', error);
-               }
-            })();
-          `;
-
-          webContents.executeJavaScript(consoleOverrideScript).catch((err) => {
-            log.warn(
-              `[logging] Failed to inject console override into webContents ${webContents.id}:`,
-              err
-            );
-          });
         } catch (error) {
           logLoggingFailure(
             error,
@@ -399,99 +330,11 @@ export const setupWebContentsLogging = () => {
         }
       });
 
-      // Clean up context and rate limit state when webContents is destroyed
+      // Clean up server context when webContents is destroyed
       webContents.on('destroyed', () => {
         cleanupServerContext(webContents.id);
-        ipcRateLimit.delete(webContents.id);
       });
     });
-
-    // Handle console messages from renderer processes with enhanced context
-    ipcMain.on(
-      'console-log',
-      (event, level, _webContentsId, _serverUrl, ...args) => {
-        try {
-          // Use authenticated sender identity — never trust renderer-supplied IDs
-          const senderWebContents = event.sender;
-          const senderId = senderWebContents.id;
-
-          const now = Date.now();
-          let rateState = ipcRateLimit.get(senderId);
-          if (!rateState || now > rateState.resetTime) {
-            rateState = { count: 0, resetTime: now + 1000 };
-            ipcRateLimit.set(senderId, rateState);
-          }
-          rateState.count++;
-          if (rateState.count > MAX_IPC_MESSAGES_PER_SECOND) {
-            return;
-          }
-
-          // Register webContents → server URL mapping using the authenticated
-          // sender's URL — never trust renderer-supplied values.
-          if (selectFunction && senderWebContents.getType() === 'webview') {
-            try {
-              const currentUrl = senderWebContents.getURL();
-              if (currentUrl) {
-                const currentOrigin = new URL(currentUrl).origin;
-                const servers = selectFunction(
-                  (state: RootState) => state.servers
-                );
-                const matchedServer = servers.find((s: any) => {
-                  try {
-                    return s.url && new URL(s.url).origin === currentOrigin;
-                  } catch {
-                    return false;
-                  }
-                });
-                if (matchedServer?.url) {
-                  registerWebContentsServer(
-                    senderWebContents.id,
-                    matchedServer.url
-                  );
-                }
-              }
-            } catch {
-              // Non-critical: server URL registration failed
-            }
-          }
-
-          // Create enhanced context string with server info
-          const context = getLogContext(senderWebContents);
-          const contextStr = formatLogContext(context);
-
-          // Dedup non-error IPC messages before they reach electron-log
-          if (
-            logDeduplicator &&
-            !logDeduplicator.shouldLog(level, contextStr, args)
-          ) {
-            return;
-          }
-
-          // Log with enhanced context
-          switch (level) {
-            case 'debug':
-            case 'verbose':
-            case 'silly':
-              log.debug(contextStr, ...args);
-              break;
-            case 'info':
-              log.info(contextStr, ...args);
-              break;
-            case 'warn':
-              log.warn(contextStr, ...args);
-              break;
-            case 'error':
-              log.error(contextStr, ...args);
-              break;
-            default:
-              log.info(contextStr, ...args);
-              break;
-          }
-        } catch (error) {
-          logLoggingFailure(error, 'console-log IPC handler');
-        }
-      }
-    );
   } catch (error) {
     console.warn('[main] [app] Failed to setup webContents logging:', error);
   }

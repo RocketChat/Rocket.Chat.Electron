@@ -349,9 +349,8 @@ export const setupUpdates = async (): Promise<void> => {
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {
       isUserInitiatedCheck = true;
-      setTimeout(() => {
-        autoUpdater.checkForUpdates();
-      }, 100);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      await autoUpdater.checkForUpdates();
     } catch (error) {
       error instanceof Error &&
         dispatch({
@@ -377,7 +376,7 @@ export const setupUpdates = async (): Promise<void> => {
     await warnAboutUpdateDownload();
 
     try {
-      autoUpdater.downloadUpdate();
+      await autoUpdater.downloadUpdate();
     } catch (error) {
       error instanceof Error &&
         dispatch({

@@ -910,6 +910,72 @@ describe('supportedVersions/main.ts', () => {
 
       expect(result.supported).toBe(false);
     });
+
+    describe('message role targeting', () => {
+      const futureDate = new Date(Date.now() + 86400000);
+      const buildSupportedVersions = (roles?: string[]): SupportedVersions =>
+        ({
+          enforcementStartDate: new Date(Date.now() + 172800000).toISOString(),
+          timestamp: new Date().toISOString(),
+          versions: [
+            {
+              version: '5.4.0',
+              expiration: futureDate,
+            },
+          ],
+          messages: [
+            {
+              remainingDays: 30,
+              title: 'targeted',
+              subtitle: 'sub',
+              description: 'desc',
+              type: 'info',
+              ...(roles ? { roles } : {}),
+              params: {},
+              link: '',
+            },
+          ],
+          i18n: { en: {} },
+        }) as any;
+
+      it('shows a message with no roles to every user', async () => {
+        const result = await isServerVersionSupported(
+          { ...mockServer, userRoles: ['user'] } as any,
+          buildSupportedVersions()
+        );
+
+        expect(result.message?.title).toBe('targeted');
+      });
+
+      it('shows a role-targeted message when the user has the role', async () => {
+        const result = await isServerVersionSupported(
+          { ...mockServer, userRoles: ['admin', 'user'] } as any,
+          buildSupportedVersions(['admin'])
+        );
+
+        expect(result.message?.title).toBe('targeted');
+      });
+
+      it('hides a role-targeted message from users without the role', async () => {
+        const result = await isServerVersionSupported(
+          { ...mockServer, userRoles: ['user'] } as any,
+          buildSupportedVersions(['admin'])
+        );
+
+        expect(result.supported).toBe(true);
+        expect(result.message).toBeUndefined();
+      });
+
+      it('hides a role-targeted message when user roles are unknown', async () => {
+        const result = await isServerVersionSupported(
+          mockServer as any,
+          buildSupportedVersions(['admin'])
+        );
+
+        expect(result.supported).toBe(true);
+        expect(result.message).toBeUndefined();
+      });
+    });
   });
 
   describe('Cache and Retry Integration', () => {
@@ -1271,6 +1337,98 @@ describe('supportedVersions/main.ts', () => {
           (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
       );
       expect(errorDispatch).toBeDefined();
+    });
+
+    it('prefers builtin over cache when cache is older than builtin (stale-cache-after-update guard)', async () => {
+      // Regression test for #3385: a cache entry written by an older app
+      // version (before the server's version was added to the supported
+      // list) must not permanently outrank a freshly-bundled builtin list
+      // that already supports it. Uses jest.isolateModules for a fresh
+      // builtinSupportedVersions singleton, same as the no-data-anywhere test.
+      await jest.isolateModulesAsync(async () => {
+        jest.mock('../../store');
+        jest.mock('axios');
+        jest.mock('jsonwebtoken');
+        jest.mock('electron-store');
+        jest.mock('node:fs/promises');
+        jest.mock('electron', () => ({
+          ipcMain: { handle: jest.fn() },
+        }));
+
+        const { dispatch: isolatedDispatch, select: isolatedSelect } =
+          await import('../../store');
+        const isolatedAxios = (await import('axios')).default;
+        const isolatedJwt = await import('jsonwebtoken');
+        const { updateSupportedVersionsData: isolatedUpdate } = await import(
+          './main'
+        );
+        const isolatedFs = await import('node:fs/promises');
+
+        const isolatedDispatchMock = isolatedDispatch as jest.MockedFunction<
+          typeof isolatedDispatch
+        >;
+        const isolatedSelectMock = isolatedSelect as jest.MockedFunction<
+          typeof isolatedSelect
+        >;
+        const isolatedAxiosMock = isolatedAxios as jest.Mocked<
+          typeof isolatedAxios
+        >;
+
+        const IsolatedElectronStoreMock = jest.requireMock('electron-store');
+        const isolatedStoreGetMock = jest.spyOn(
+          IsolatedElectronStoreMock.prototype,
+          'get'
+        ) as jest.Mock;
+
+        const mockServer = createMockServer({ version: '8.5.1' });
+        isolatedSelectMock.mockReturnValue(mockServer);
+        isolatedAxiosMock.get = jest
+          .fn()
+          .mockRejectedValue(new Error('Network error'));
+
+        const futureExpiry = new Date(Date.now() + 86400000 * 365);
+
+        // Stale cache: written long ago, does not know about 8.5 -> unsupported.
+        const staleCachedVersions = createMockSupportedVersions({
+          versions: [{ version: '7.0.0', expiration: futureExpiry }],
+          enforcementStartDate: '2023-01-01T00:00:00Z',
+          timestamp: '2020-01-01T00:00:00Z',
+        });
+        isolatedStoreGetMock.mockReturnValue(staleCachedVersions);
+
+        // Fresh builtin: bundled with the current app version, knows 8.5 is supported.
+        const freshBuiltinVersions = createMockSupportedVersions({
+          versions: [{ version: '8.5.0', expiration: futureExpiry }],
+          enforcementStartDate: '2023-01-01T00:00:00Z',
+          timestamp: new Date().toISOString(),
+        });
+        (isolatedFs.readFile as jest.Mock).mockResolvedValue(
+          'builtin-jwt-token'
+        );
+        (isolatedJwt.verify as jest.Mock).mockReturnValue(freshBuiltinVersions);
+
+        jest.useFakeTimers();
+        const promise = isolatedUpdate(mockServer.url);
+        await jest.advanceTimersByTimeAsync(4000);
+        await promise;
+        jest.useRealTimers();
+
+        const isSupportedDispatch = isolatedDispatchMock.mock.calls.find(
+          ([action]) =>
+            (action as any).type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+        );
+        expect(isSupportedDispatch).toBeDefined();
+        // Must be true — proves the fresher builtin data won over the stale cache.
+        expect(
+          (isSupportedDispatch?.[0] as any)?.payload?.isSupportedVersion
+        ).toBe(true);
+
+        const updatedDispatch = isolatedDispatchMock.mock.calls.find(
+          ([action]) =>
+            (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED
+        );
+        expect((updatedDispatch?.[0] as any)?.payload?.source).toBe('builtin');
+      });
     });
 
     it('cache fallback uses freshly-fetched server version, not stale persisted version', async () => {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { app } from 'electron';
+import { app, screen } from 'electron';
 
 jest.mock('electron', () => ({
   app: {
@@ -19,6 +19,7 @@ jest.mock('electron', () => ({
     getPrimaryDisplay: jest.fn(() => ({
       workAreaSize: { width: 1920, height: 1080 },
     })),
+    getAllDisplays: jest.fn(() => []),
   },
 }));
 
@@ -472,5 +473,46 @@ describe('rootWindow close event handler', () => {
 
       expect(() => setupRootWindow()).not.toThrow();
     });
+  });
+});
+
+describe('isInsideSomeScreen', () => {
+  const { isInsideSomeScreen } = require('./rootWindow');
+
+  const setDisplays = (
+    displays: {
+      bounds: { x: number; y: number; width: number; height: number };
+    }[]
+  ) => (screen.getAllDisplays as jest.Mock).mockReturnValue(displays);
+
+  it('returns true when the window is fully inside a display', () => {
+    setDisplays([{ bounds: { x: 0, y: 0, width: 1920, height: 1080 } }]);
+    expect(
+      isInsideSomeScreen({ x: 100, y: 100, width: 800, height: 600 })
+    ).toBe(true);
+  });
+
+  it('returns true when the window is only partially visible at a screen edge', () => {
+    setDisplays([{ bounds: { x: 0, y: 0, width: 1920, height: 1080 } }]);
+    expect(
+      isInsideSomeScreen({ x: 1800, y: 1000, width: 800, height: 600 })
+    ).toBe(true);
+  });
+
+  it('returns true when the window spans two displays', () => {
+    setDisplays([
+      { bounds: { x: 0, y: 0, width: 1920, height: 1080 } },
+      { bounds: { x: 1920, y: 0, width: 1920, height: 1080 } },
+    ]);
+    expect(
+      isInsideSomeScreen({ x: 1800, y: 100, width: 400, height: 600 })
+    ).toBe(true);
+  });
+
+  it('returns false when the window is entirely off every display', () => {
+    setDisplays([{ bounds: { x: 0, y: 0, width: 1920, height: 1080 } }]);
+    expect(
+      isInsideSomeScreen({ x: 3000, y: 2000, width: 800, height: 600 })
+    ).toBe(false);
   });
 });

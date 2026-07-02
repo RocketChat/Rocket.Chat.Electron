@@ -41,6 +41,7 @@ import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
+import { setUserRoles } from './userRoles';
 
 type ServerInfo = {
   version: string;
@@ -61,6 +62,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   ) => void;
   supportedDocumentViewerFormats: () => string[];
   onNavigateToRoute: (callback: (path: string) => void) => void;
+  setUserRoles: (roles: string[]) => void;
 };
 
 declare global {
@@ -89,6 +91,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setTitle,
   setUserPresenceDetection,
   setUserLoggedIn,
+  setUserRoles,
   setUserThemeAppearance,
   createNotification,
   destroyNotification,

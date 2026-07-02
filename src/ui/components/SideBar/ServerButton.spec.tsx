@@ -99,6 +99,12 @@ describe('ServerButton', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
+  it('does not render a literal "0" badge when the mention count is zero', () => {
+    renderButton({ mentionCount: 0, hasUnreadMessages: true });
+
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
+  });
+
   it('shows a warning badge when the user is not logged in', () => {
     renderButton({ userLoggedIn: false });
 

@@ -44,6 +44,12 @@ import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
 import { applySystemCertificates } from './systemCertificates';
+import { setupTelephonyIpc } from './telephony/ipc';
+import {
+  setupTelephonyDefaultHandlerPrompt,
+  setupTelephonyGlobalShortcut,
+  setupTelephonyProtocolHandlers,
+} from './telephony/main';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -72,6 +78,7 @@ const start = async (): Promise<void> => {
   setupWebContentsLogging();
 
   performElectronStartup();
+  setupDeepLinks();
 
   // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
   setupGpuCrashHandler();
@@ -119,7 +126,10 @@ const start = async (): Promise<void> => {
 
   await setupSpellChecking();
 
-  setupDeepLinks();
+  setupTelephonyGlobalShortcut();
+  setupTelephonyProtocolHandlers();
+  setupTelephonyDefaultHandlerPrompt();
+  setupTelephonyIpc();
   await setupNavigation();
   setupPowerMonitor();
   await setupUpdates();

@@ -1,14 +1,19 @@
-import { dialog } from 'electron';
+import { app } from 'electron';
 
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
-import { select, dispatch } from '../store';
+import { select, dispatch, listen } from '../store';
 import { TELEPHONY_PREFERRED_SERVER_SET } from '../telephony/actions';
 import { telephonyPreferredServer } from '../telephony/reducers';
+import {
+  TELEPHONY_SERVER_SELECT_OPEN,
+  TELEPHONY_SERVER_SELECT_CLOSE,
+} from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import {
   parseTelephonyLink,
+  getDeepLinkArgs,
   performTelephonyCall,
   setupDeepLinks,
   processDeepLinksInArgs,
@@ -22,7 +27,6 @@ jest.mock('electron', () => ({
     getPath: jest.fn(),
     getName: jest.fn(() => 'Rocket.Chat'),
   },
-  dialog: { showMessageBox: jest.fn() },
 }));
 jest.mock('../store');
 jest.mock('../ui/main/serverView');
@@ -36,17 +40,18 @@ jest.mock('../app/main/app', () => ({
 
 const selectMock = select as jest.MockedFunction<typeof select>;
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
+const listenMock = listen as jest.MockedFunction<typeof listen>;
 const getWebContentsByServerUrlMock =
   getWebContentsByServerUrl as jest.MockedFunction<
     typeof getWebContentsByServerUrl
   >;
-const dialogMock = dialog as jest.Mocked<typeof dialog>;
 const resolveServerUrlMock = resolveServerUrl as jest.MockedFunction<
   typeof resolveServerUrl
 >;
 const getRootWindowMock = getRootWindow as jest.MockedFunction<
   typeof getRootWindow
 >;
+const appMock = app as jest.Mocked<typeof app>;
 
 describe('deepLinks/main.ts', () => {
   const mockRootWindow = {} as any;
@@ -54,6 +59,41 @@ describe('deepLinks/main.ts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     getRootWindowMock.mockResolvedValue(mockRootWindow);
+  });
+
+  const simulateModalResponse = (
+    payload: { serverUrl: string; rememberChoice: boolean } | null
+  ) => {
+    listenMock.mockImplementation((_type: any, callback: any) => {
+      setTimeout(
+        () => callback({ type: TELEPHONY_SERVER_SELECT_CLOSE, payload }),
+        0
+      );
+      return jest.fn();
+    });
+  };
+
+  describe('getDeepLinkArgs', () => {
+    it('keeps only supported deep link arguments', () => {
+      expect(
+        getDeepLinkArgs([
+          'electron',
+          '.',
+          '--force-renderer-accessibility',
+          'tel:+491234567890',
+          '--source-app-id',
+          'callto:+15551234567',
+          'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+          'https://go.rocket.chat/invite?host=https://chat.example.com',
+          'https://example.com/not-a-deep-link',
+        ])
+      ).toEqual([
+        'tel:+491234567890',
+        'callto:+15551234567',
+        'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+        'https://go.rocket.chat/invite?host=https://chat.example.com',
+      ]);
+    });
   });
 
   describe('parseTelephonyLink', () => {
@@ -122,6 +162,22 @@ describe('deepLinks/main.ts', () => {
       });
     });
 
+    it('should ignore query strings in callto:// authority format', () => {
+      const result = parseTelephonyLink('callto://+491234567890?source=crm');
+      expect(result).toEqual({
+        phoneNumber: '+491234567890',
+        rawUri: 'callto://+491234567890?source=crm',
+      });
+    });
+
+    it('should ignore fragments in callto:// authority format', () => {
+      const result = parseTelephonyLink('callto://+491234567890#details');
+      expect(result).toEqual({
+        phoneNumber: '+491234567890',
+        rawUri: 'callto://+491234567890#details',
+      });
+    });
+
     it('should preserve callto: with extension syntax', () => {
       const result = parseTelephonyLink('callto:+1234;ext=5678');
       expect(result).toEqual({
@@ -134,6 +190,7 @@ describe('deepLinks/main.ts', () => {
   describe('performTelephonyCall', () => {
     const mockWebContents = {
       send: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     };
 
     const mockLink: TelephonyLink = {
@@ -152,7 +209,7 @@ describe('deepLinks/main.ts', () => {
       await performTelephonyCall(mockLink);
 
       expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
-      expect(dialogMock.showMessageBox).not.toHaveBeenCalled();
+      expect(dispatchMock).not.toHaveBeenCalled();
     });
 
     it('should auto-select when there is 1 server', async () => {
@@ -172,7 +229,23 @@ describe('deepLinks/main.ts', () => {
           rawUri: 'tel:+491234567890',
         }
       );
-      expect(dialogMock.showMessageBox).not.toHaveBeenCalled();
+      expect(listenMock).not.toHaveBeenCalled();
+    });
+
+    it('should open dialpad path with empty input when requested', async () => {
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      await performTelephonyCall({ phoneNumber: '', rawUri: '' });
+
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '',
+          rawUri: '',
+        }
+      );
     });
 
     it('should show dialog when there are 2+ servers and no preference', async () => {
@@ -183,20 +256,16 @@ describe('deepLinks/main.ts', () => {
         ])
         .mockReturnValueOnce(null);
 
-      dialogMock.showMessageBox.mockResolvedValue({
-        response: 0,
-        checkboxChecked: false,
-      } as any);
+      simulateModalResponse({
+        serverUrl: 'https://server1.com',
+        rememberChoice: false,
+      });
 
       await performTelephonyCall(mockLink);
 
-      expect(dialogMock.showMessageBox).toHaveBeenCalledWith(mockRootWindow, {
-        type: 'question',
-        title: 'Select Server',
-        message: 'Which server should handle this call?',
-        buttons: ['Server 1', 'Server 2'],
-        checkboxLabel: 'Remember this choice',
-        checkboxChecked: false,
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: TELEPHONY_SERVER_SELECT_OPEN,
+        payload: { phoneNumber: '+491234567890', rawUri: 'tel:+491234567890' },
       });
 
       expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
@@ -218,7 +287,7 @@ describe('deepLinks/main.ts', () => {
 
       await performTelephonyCall(mockLink);
 
-      expect(dialogMock.showMessageBox).not.toHaveBeenCalled();
+      expect(listenMock).not.toHaveBeenCalled();
       expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
         'https://server2.com'
       );
@@ -236,14 +305,16 @@ describe('deepLinks/main.ts', () => {
         ])
         .mockReturnValueOnce('https://stale-server.com');
 
-      dialogMock.showMessageBox.mockResolvedValue({
-        response: 1,
-        checkboxChecked: false,
-      } as any);
+      simulateModalResponse({
+        serverUrl: 'https://server2.com',
+        rememberChoice: false,
+      });
 
       await performTelephonyCall(mockLink);
 
-      expect(dialogMock.showMessageBox).toHaveBeenCalled();
+      expect(dispatchMock).toHaveBeenCalledWith(
+        expect.objectContaining({ type: TELEPHONY_SERVER_SELECT_OPEN })
+      );
       expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
         'https://server2.com'
       );
@@ -257,10 +328,10 @@ describe('deepLinks/main.ts', () => {
         ])
         .mockReturnValueOnce(null);
 
-      dialogMock.showMessageBox.mockResolvedValue({
-        response: 0,
-        checkboxChecked: true,
-      } as any);
+      simulateModalResponse({
+        serverUrl: 'https://server1.com',
+        rememberChoice: true,
+      });
 
       await performTelephonyCall(mockLink);
 
@@ -278,17 +349,19 @@ describe('deepLinks/main.ts', () => {
         ])
         .mockReturnValueOnce(null);
 
-      dialogMock.showMessageBox.mockResolvedValue({
-        response: 1,
-        checkboxChecked: false,
-      } as any);
+      simulateModalResponse({
+        serverUrl: 'https://server2.com',
+        rememberChoice: false,
+      });
 
       await performTelephonyCall(mockLink);
 
-      expect(dispatchMock).not.toHaveBeenCalled();
+      expect(dispatchMock).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: TELEPHONY_PREFERRED_SERVER_SET })
+      );
     });
 
-    it('should use hostname as button label when server title is missing', async () => {
+    it('should dispatch open action even when server titles are missing', async () => {
       selectMock
         .mockReturnValueOnce([
           { url: 'https://server1.com' },
@@ -296,19 +369,17 @@ describe('deepLinks/main.ts', () => {
         ])
         .mockReturnValueOnce(null);
 
-      dialogMock.showMessageBox.mockResolvedValue({
-        response: 0,
-        checkboxChecked: false,
-      } as any);
+      simulateModalResponse({
+        serverUrl: 'https://server1.com',
+        rememberChoice: false,
+      });
 
       await performTelephonyCall(mockLink);
 
-      expect(dialogMock.showMessageBox).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          buttons: ['server1.com', 'server2.com'],
-        })
-      );
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: TELEPHONY_SERVER_SELECT_OPEN,
+        payload: { phoneNumber: '+491234567890', rawUri: 'tel:+491234567890' },
+      });
     });
 
     it('should poll for webContents when not immediately available', async () => {
@@ -337,6 +408,88 @@ describe('deepLinks/main.ts', () => {
         mockLink
       );
     });
+
+    it('should not proceed when modal is cancelled (null response)', async () => {
+      selectMock
+        .mockReturnValueOnce([
+          { url: 'https://server1.com', title: 'Server 1' },
+          { url: 'https://server2.com', title: 'Server 2' },
+        ])
+        .mockReturnValueOnce(null);
+
+      simulateModalResponse(null);
+
+      await performTelephonyCall(mockLink);
+
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+      expect(mockWebContents.send).not.toHaveBeenCalled();
+    });
+
+    it('should reject concurrent calls while modal is open', async () => {
+      selectMock.mockReturnValue([
+        { url: 'https://server1.com', title: 'Server 1' },
+        { url: 'https://server2.com', title: 'Server 2' },
+      ]);
+
+      // First call: modal stays open (listen never fires)
+      listenMock.mockImplementation(() => {
+        // Never call the callback — modal stays open
+        return jest.fn();
+      });
+
+      selectMock
+        .mockReturnValueOnce([
+          { url: 'https://server1.com', title: 'Server 1' },
+          { url: 'https://server2.com', title: 'Server 2' },
+        ])
+        .mockReturnValueOnce(null);
+
+      const firstCall = performTelephonyCall(mockLink);
+
+      // Yield so first call reaches the listen/promise
+      await new Promise((r) => {
+        setTimeout(r, 0);
+      });
+
+      // Second call should be rejected
+      const secondLink: TelephonyLink = {
+        phoneNumber: '+1999',
+        rawUri: 'tel:+1999',
+      };
+      await performTelephonyCall(secondLink);
+
+      // Only one OPEN dispatch (from first call)
+      expect(dispatchMock).toHaveBeenCalledTimes(1);
+      expect(dispatchMock).toHaveBeenCalledWith(
+        expect.objectContaining({ type: TELEPHONY_SERVER_SELECT_OPEN })
+      );
+
+      // Clean up: force-close the modal so firstCall resolves
+      const listenCallback = listenMock.mock.calls[0][1];
+      listenCallback({
+        type: TELEPHONY_SERVER_SELECT_CLOSE,
+        payload: null,
+      });
+      await firstCall;
+    });
+
+    it('should not send when webContents times out', async () => {
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      // webContents never becomes available
+      getWebContentsByServerUrlMock.mockReturnValue(null as any);
+
+      jest.useFakeTimers();
+      const promise = performTelephonyCall(mockLink);
+      // Advance past the 10s webContents timeout
+      await jest.advanceTimersByTimeAsync(11_000);
+      await promise;
+      jest.useRealTimers();
+
+      expect(mockWebContents.send).not.toHaveBeenCalled();
+    });
   });
 
   describe('processDeepLink telephony routing', () => {
@@ -348,6 +501,7 @@ describe('deepLinks/main.ts', () => {
 
     const mockWebContents = {
       send: jest.fn(),
+      isDestroyed: jest.fn(() => false),
       loadURL: jest.fn(),
     };
 
@@ -385,6 +539,84 @@ describe('deepLinks/main.ts', () => {
       expect(resolveServerUrlMock).not.toHaveBeenCalled();
     });
 
+    it('queues macOS open-url events until startup processing is ready', async () => {
+      setupDeepLinks();
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const openUrlHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'open-url'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!openUrlHandler) {
+        throw new Error('open-url listener was not registered');
+      }
+
+      openUrlHandler(event, 'tel:+491234567890');
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+
+      await processDeepLinksInArgs();
+
+      expect(mockBrowserWindow.focus).toHaveBeenCalled();
+      expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+    });
+
+    it('processes second-instance argv immediately', async () => {
+      setupDeepLinks();
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const secondInstanceHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'second-instance'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!secondInstanceHandler) {
+        throw new Error('second-instance listener was not registered');
+      }
+
+      await secondInstanceHandler(event, [
+        'electron',
+        '.',
+        'tel:+491234567890',
+      ]);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(mockBrowserWindow.focus).toHaveBeenCalled();
+      expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+    });
+
     it('should route rocketchat:// URL to normal deep link path, not telephony', async () => {
       setupDeepLinks();
 
@@ -411,8 +643,129 @@ describe('deepLinks/main.ts', () => {
 
       // Normal deep link path taken
       expect(resolveServerUrlMock).toHaveBeenCalled();
-      // Telephony dialog NOT shown (telephony branch skipped)
-      expect(dialogMock.showMessageBox).not.toHaveBeenCalled();
+      // Telephony modal NOT opened (telephony branch skipped)
+      expect(listenMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isTelephonyEnabled gate for tel: deep links', () => {
+    const mockBrowserWindow = {
+      isVisible: jest.fn(() => true),
+      focus: jest.fn(),
+      showInactive: jest.fn(),
+    };
+
+    const mockWebContents = {
+      send: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+      loadURL: jest.fn(),
+    };
+
+    beforeEach(() => {
+      getRootWindowMock.mockResolvedValue(mockBrowserWindow as any);
+      getWebContentsByServerUrlMock.mockReturnValue(mockWebContents as any);
+    });
+
+    it('does NOT open dialpad for tel: link when isTelephonyEnabled=false', async () => {
+      setupDeepLinks();
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: false,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = ['electron', '.', 'tel:+491234567890'];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+      expect(mockWebContents.send).not.toHaveBeenCalled();
+      expect(resolveServerUrlMock).not.toHaveBeenCalled();
+    });
+
+    it('does NOT open dialpad for callto: link when isTelephonyEnabled=false', async () => {
+      setupDeepLinks();
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: false,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = ['electron', '.', 'callto:+491234567890'];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+      expect(mockWebContents.send).not.toHaveBeenCalled();
+    });
+
+    it('opens dialpad for tel: link when isTelephonyEnabled=true', async () => {
+      setupDeepLinks();
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: true,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = ['electron', '.', 'tel:+491234567890'];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(getWebContentsByServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+    });
+
+    it('does not gate non-telephony deep links on isTelephonyEnabled', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: false,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(resolveServerUrlMock).toHaveBeenCalled();
     });
   });
 });

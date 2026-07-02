@@ -8,9 +8,88 @@
   },
   "settings": {
     "options": {
+      "report": {
+        "title": "Segnala errori a Rocket.Chat",
+        "description": "Segnala in modo anonimo i problemi agli sviluppatori dell'app. Le informazioni condivise includono il numero di versione dell'app, il tipo di sistema operativo, l'URL dello spazio di lavoro, la lingua del dispositivo e il tipo di errore. Nessun contenuto o nome utente viene condiviso.",
+        "masDescription": "Questa opzione è disabilitata quando installata dal Mac App Store. Gli errori vengono segnalati tramite il processo di segnalazione errori del Mac App Store."
+      },
+      "flashFrame": {
+        "title": "Lampeggia finestra",
+        "titleDarwin": "Rimbalza icona del dock",
+        "description": "Fai lampeggiare la finestra quando arriva un nuovo messaggio.",
+        "onLinux": "Alcune distribuzioni Linux non supportano questa funzione.",
+        "descriptionDarwin": "L'icona del dock rimbalza quando arriva un nuovo messaggio."
+      },
+      "hardwareAcceleration": {
+        "title": "Accelerazione hardware",
+        "description": "Migliora il rendering visivo e le prestazioni. Disabilitala se riscontri problemi grafici o instabilità.",
+        "hint": "Ricarica l'app al cambiamento."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Ripiego per la cattura schermo nelle videochiamate",
+        "description": "Disabilita Windows Graphics Capture in modo che la condivisione dello schermo funzioni nelle sessioni di Desktop remoto.",
+        "hint": "L'app si riavvia quando questa opzione viene modificata.",
+        "forcedDescription": "Attualmente applicato perché l'app ha rilevato una sessione di Desktop remoto. L'interruttore controlla gli avvii futuri quando l'esecuzione avviene in locale."
+      },
+      "internalVideoChatWindow": {
+        "title": "Videochiamate nell'app",
+        "description": "Apri le videochiamate nella finestra dell'app invece che nel browser. Le chiamate Google Meet e Jitsi possono aprirsi solo nel browser.",
+        "masDescription": "Questa opzione è disabilitata quando installata dal Mac App Store. Per motivi di sicurezza, le videochiamate si aprono sempre nel browser per impostazione predefinita."
+      },
+      "minimizeOnClose": {
+        "title": "Riduci a icona alla chiusura",
+        "description": "Riduci a icona senza chiudere l'app quando si chiude la finestra.",
+        "disabledHint": "L'icona nella barra delle applicazioni deve essere disabilitata."
+      },
+      "menubar": {
+        "title": "Barra dei menu",
+        "description": "Mostra la barra dei menu nella parte superiore della finestra.",
+        "disabledHint": "Impossibile disabilitare la barra dei menu quando la barra dello spazio di lavoro è disabilitata. Le impostazioni dell'app diventerebbero inaccessibili."
+      },
+      "sidebar": {
+        "title": "Barra dello spazio di lavoro",
+        "description": "Mostra l'elenco degli spazi di lavoro con i pulsanti per download e impostazioni.",
+        "disabledHint": "Impossibile disabilitare la barra dello spazio di lavoro quando la barra dei menu è disabilitata. Le impostazioni dell'app diventerebbero inaccessibili."
+      },
+      "trayIcon": {
+        "title": "Icona nella barra delle applicazioni",
+        "titleDarwin": "Elemento extra nella barra dei menu",
+        "description": "Mostra l'icona nella barra delle applicazioni del sistema. Invece di chiudersi, alla chiusura l'app viene nascosta nella barra delle applicazioni quando è abilitata.",
+        "descriptionDarwin": "Mostra l'icona dell'app nella barra dei menu."
+      },
+      "availableBrowsers": {
+        "title": "Browser predefinito",
+        "description": "Scegli in quale browser aprire i collegamenti esterni.",
+        "systemDefault": "Predefinito di sistema",
+        "loading": "Caricamento browser...",
+        "current": "Attualmente in uso:"
+      },
+      "telephonyServer": {
+        "title": "Spazio di lavoro per telefonia",
+        "description": "Scegli quale spazio di lavoro gestisce le chiamate in arrivo (collegamenti tel: e callto:).",
+        "auto": "Automatico (chiedi ogni volta)"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Cancella autorizzazioni cattura schermo",
+        "description": "Cancella le autorizzazioni anche se in precedenza era stato selezionato “non chiedere più” per le chiamate."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Consenti cattura schermo nelle videochiamate",
+        "description": "Consenti la cattura dello schermo nelle videochiamate. Richiede l'autorizzazione a ogni videochiamata."
+      },
+      "ntlmCredentials": {
+        "title": "Credenziali NTLM",
+        "description": "Consenti l'uso delle credenziali NTLM durante la connessione a uno spazio di lavoro.",
+        "domains": "Domini che verranno usati come credenziali. Separati da virgola. Usa * per corrispondere a tutti i server."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Mantieni la posizione della finestra delle videochiamate",
+        "description": "Ricorda la posizione e la dimensione della finestra delle videochiamate tra le sessioni."
+      },
       "transparentWindow": {
         "title": "Effetto finestra trasparente",
-        "description": "Abilita l'effetto nativo di vibrazione/trasparenza per la finestra. Richiede il riavvio per applicare."
+        "description": "Abilita l'effetto nativo di vibrazione/trasparenza per la finestra.",
+        "hint": "Richiede il riavvio per applicare."
       },
       "themeAppearance": {
         "title": "Tema",
@@ -18,7 +97,49 @@
         "auto": "Segui sistema",
         "light": "Chiaro",
         "dark": "Scuro"
+      },
+      "telephonyServer": {
+        "title": "Server telefonia",
+        "description": "Scegli quale spazio di lavoro si apre quando usi la scorciatoia di telefonia o un link tel: o callto:.",
+        "auto": "Automatico (chiedi ogni volta)"
+      },
+      "telephonyShortcut": {
+        "title": "Scorciatoia globale di telefonia",
+        "description": "Usa questa scorciatoia da qualsiasi punto per portare Rocket.Chat in primo piano e aprire il tastierino di telefonia. Se gli appunti contengono testo che sembra un numero di telefono, Rocket.Chat lo precompila.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Premi i tasti...",
+        "save": "Salva",
+        "clear": "Cancella",
+        "registered": "Scorciatoia registrata",
+        "reservedAccelerator": "{{accelerator}} è riservata da Rocket.Chat o dal tuo sistema operativo."
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Intervallo di sincronizzazione del calendario di Outlook",
+        "description": "Frequenza dei controlli di aggiornamento degli eventi del calendario in minuti (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Registrazione dettagliata del calendario di Outlook",
+        "description": "Abilita registri di debug Exchange/NTLM dettagliati per risolvere i problemi di integrazione del calendario di Outlook."
+      },
+      "detailedEventsLogging": {
+        "title": "Registrazione dettagliata degli eventi",
+        "description": "Registra i dati completi degli eventi scambiati tra Outlook e Rocket.Chat durante la sincronizzazione del calendario. Utile per diagnosticare i problemi di sincronizzazione."
+      },
+      "debugLogging": {
+        "title": "Registrazione dettagliata",
+        "description": "Scrive tutto l'output della console nel file di registro. Quando è disabilitata, vengono salvati solo gli errori e i messaggi importanti, mantenendo i registri più piccoli e mirati."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Limite di dimensione dell'anteprima PDF nelle stanze crittografate (MB)",
+        "description": "I file crittografati vengono caricati in memoria per le anteprime. I file più grandi di questo limite verranno scaricati direttamente."
       }
+    }
+  },
+  "dialog": {
+    "telephonySelectServer": {
+      "title": "Seleziona server",
+      "message": "Quale server deve gestire questa chiamata?",
+      "rememberChoice": "Ricorda questa scelta"
     }
   },
   "serverInfo": {

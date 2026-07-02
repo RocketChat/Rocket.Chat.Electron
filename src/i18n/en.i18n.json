@@ -165,6 +165,11 @@
     "supportedVersion": {
       "title": "Workspace version unsupported"
     },
+    "telephonySelectServer": {
+      "title": "Choose a workspace for this call",
+      "message": "Which workspace should take this call?",
+      "rememberChoice": "Remember for future calls"
+    },
     "clearLogs": {
       "title": "Clear Logs",
       "message": "Are you sure you want to clear the log file?",
@@ -241,112 +246,141 @@
     }
   },
   "settings": {
-    "title": "Settings",
+    "title": "App settings",
     "general": "General",
     "certificates": "Certificates",
     "developer": "Developer",
+    "voiceVideo": "Voice & Video",
     "sections": {
-      "logging": "Logging"
+      "appUi": "App UI",
+      "systemUi": "System UI",
+      "systemBehavior": "System behavior",
+      "calling": "Calling",
+      "other": "Other & technical",
+      "logging": "Logging",
+      "telephony": "Telephony",
+      "videoCalls": "Video calls"
     },
     "options": {
       "report": {
-        "title": "Report errors to developers",
-        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared.",
-        "masDescription": "This option is disabled when installed from the Mac App Store, the errors will be reported through the Mac App Store error report process."
+        "title": "Report errors to Rocket.Chat",
+        "description": "Anonymously report issues to app developers. Shared information includes app version number, operating system type, workspace URL, device language and error type. No content or usernames are shared.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. Errors are reported through the Mac App Store error report process."
       },
       "flashFrame": {
-        "title": "Enable Flash Frame",
-        "titleDarwin": "Toggle Dock Bounce on alert",
-        "description": "Flashes the window to attract user's attention.",
+        "title": "Flash frame",
+        "titleDarwin": "Bounce dock icon",
+        "description": "Flash window when a new message is received.",
         "onLinux": "Some Linux distros don't have support for this feature.",
-        "descriptionDarwin": "Bounces the app icon in the dock to attract user's attention."
+        "descriptionDarwin": "Dock icon bounces when a new message is received."
       },
       "hardwareAcceleration": {
-        "title": "Hardware Acceleration",
-        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
+        "title": "Hardware acceleration",
+        "description": "Improves visual rendering and performance. Disable if you experience visual glitches or instability.",
+        "hint": "Reloads app on change."
       },
       "videoCallScreenCaptureFallback": {
-        "title": "Fallback Screen Capture for Video Calls",
-        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option.",
+        "title": "Video call screen capture fallback",
+        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions.",
+        "hint": "App restarts when this option is changed.",
         "forcedDescription": "Currently enforced because the app detected a Remote Desktop session. Toggle now controls future launches when running locally."
       },
       "internalVideoChatWindow": {
-        "title": "Open Video Chat in Application Window",
-        "description": "If enabled, the Video Chat will open in the application's window instead of the default browser. However, for <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen recording is not supported in Electron applications, so they will always open in the browser regardless of this setting.",
-        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, Video Chat will always open in the browser by default."
+        "title": "Video calls inside app",
+        "description": "Open video calls inside app window instead of browser. Google Meet and Jitsi calls can only open in browser.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, video calls always open in the browser by default."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",
-        "description": "When closed the app will be minimized, otherwise it will quit the application. Tray Icon need to be disabled to this take effect."
+        "description": "Minimize and do not quit app when closing.",
+        "disabledHint": "Tray icon must be disabled."
       },
       "menubar": {
         "title": "Menu bar",
         "description": "Show menu bar on the top of the window.",
-        "disabledHint": "Cannot disable menu bar when sidebar is disabled. Settings would become inaccessible."
+        "disabledHint": "Cannot disable menu bar when the workspace bar is disabled. App settings would become inaccessible."
       },
       "sidebar": {
-        "title": "Sidebar",
-        "description": "Show sidebar on the left of the window with the Server List, Downloads and Settings.",
-        "disabledHint": "Cannot disable sidebar when menu bar is disabled. Settings would become inaccessible."
+        "title": "Workspace bar",
+        "description": "Show workspace list with downloads and settings buttons.",
+        "disabledHint": "Cannot disable workspace bar when the menu bar is disabled. App settings would become inaccessible."
       },
       "trayIcon": {
-        "title": "Tray Icon",
-        "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
+        "title": "Tray icon",
+        "titleDarwin": "Menu bar extra",
+        "description": "Show tray icon on system tray. Instead of quitting, app is hidden to tray on close when enabled.",
+        "descriptionDarwin": "Show app icon in menu bar."
       },
       "availableBrowsers": {
-        "title": "Default Browser",
-        "description": "Choose which browser will open external links from this app. System Default uses your operating system settings.",
-        "systemDefault": "System Default",
+        "title": "Default browser",
+        "description": "Choose which browser to open external links in.",
+        "systemDefault": "System default",
         "loading": "Loading browsers...",
         "current": "Currently using:"
       },
+      "telephony": {
+        "title": "Telephony",
+        "description": "Let Rocket.Chat handle phone-call shortcuts and tel: or callto: links. Turn off to disable the shortcut, ignore phone-link clicks, and hide the settings below."
+      },
       "telephonyServer": {
-        "title": "Telephony Server",
-        "description": "Choose which server handles incoming phone calls (tel: and callto: links).",
+        "title": "Telephony workspace",
+        "description": "Choose which workspace handles incoming phone calls (tel: and callto: links).",
         "auto": "Auto (ask each time)"
       },
+      "telephonyShortcut": {
+        "title": "Global call shortcut",
+        "description": "Press this shortcut from any app to bring Rocket.Chat to the front and open the dial pad. If a phone number is on your clipboard, it gets pre-filled.",
+        "placeholder": "Not set — click Save to record",
+        "capturePlaceholder": "Press shortcut keys…",
+        "save": "Save",
+        "clear": "Clear",
+        "registered": "Shortcut registered",
+        "reservedByApp": "{{accelerator}} is already used by Rocket.Chat. Pick a different combination.",
+        "reservedByOS": "{{accelerator}} is reserved by your operating system. Pick a different combination."
+      },
       "clearPermittedScreenCaptureServers": {
-        "title": "Clear Screen Capture Permissions",
-        "description": "Clear the screen capture permissions that was selected to not ask again on video calls."
+        "title": "Clear screen capture permissions",
+        "description": "Clear permissions even if “do not ask again” was previously selected for calling."
       },
       "allowScreenCaptureOnVideoCalls": {
-        "title": "Allow Screen Capture on Video Calls",
-        "description": "Allow screen capture on video calls. This will ask for permission on each video call."
+        "title": "Allow screen capture on video calls",
+        "description": "Allow screen capture on video calls. Asks for permission on each video call."
       },
       "ntlmCredentials": {
-        "title": "NTLM Credentials",
-        "description": "Allow NTLM Credentials to be used when connecting to a server.",
-        "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
+        "title": "NTLM credentials",
+        "description": "Allow NTLM credentials to be used when connecting to a workspace.",
+        "domains": "Domains that will be used as the credentials. Separated by comma. Use * for match all servers."
       },
       "videoCallWindowPersistence": {
-        "title": "Remember video call window position",
-        "description": "Save and restore the position and size of video call windows between sessions"
+        "title": "Retain video call window position",
+        "description": "Remember position and size of video call window between sessions."
       },
       "transparentWindow": {
         "title": "Transparent window effect",
-        "description": "Enable native vibrancy/transparency effect for the window. Requires restart to apply."
+        "description": "Enable native vibrancy on app window.",
+        "hint": "Requires app restart."
       },
       "themeAppearance": {
         "title": "Theme",
-        "description": "Choose the color theme for the application.",
-        "auto": "Follow system",
+        "description": "App color theme.",
+        "auto": "Match system",
         "light": "Light",
         "dark": "Dark"
       },
       "outlookCalendarSyncInterval": {
-        "title": "Outlook Calendar Sync Interval",
-        "description": "How often to sync Outlook calendar events, in minutes (1-60)."
+        "title": "Outlook Calendar sync interval",
+        "description": "Frequency of calendar events update checks in minutes (1–60)."
       },
       "verboseOutlookLogging": {
-        "title": "Verbose Outlook Calendar Logging",
+        "title": "Verbose Outlook Calendar logging",
         "description": "Enable detailed Exchange/NTLM debug logs for troubleshooting Outlook Calendar integration issues."
       },
       "detailedEventsLogging": {
-        "title": "Detailed Events Logging",
+        "title": "Detailed events logging",
         "description": "Log full event data exchanged between Outlook and Rocket.Chat during calendar sync. Useful for diagnosing sync issues."
       },
       "debugLogging": {
-        "title": "Verbose Logging",
+        "title": "Verbose logging",
         "description": "Writes all console output to the log file. When disabled, only errors and important messages are saved, keeping logs smaller and focused."
       },
       "e2ePdfPreviewSizeLimit": {
@@ -380,7 +414,7 @@
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",
-    "settings": "Settings",
+    "settings": "App settings",
     "editMenu": "&Edit",
     "fileMenu": "&File",
     "forward": "&Forward",
@@ -452,7 +486,7 @@
   "sidebar": {
     "addNewServer": "Add new server",
     "downloads": "Downloads",
-    "settings": "Settings",
+    "settings": "App settings",
     "menuTitle": "Customize and control app",
     "item": {
       "reload": "Reload",
@@ -666,6 +700,53 @@
     "expiration": {
       "label": "Expiration:",
       "expiresOn": "Expires on {{date}}"
+    }
+  },
+  "telephony": {
+    "defaultHandlerPrompt": {
+      "title": "Rocket.Chat now opens phone links",
+      "body": "tel: and callto: links from your browser or other apps can now open Rocket.Chat.",
+      "bodyWindows": "Windows still needs your confirmation. On the Default Apps page, tap each link type (tel and callto) and pick Rocket.Chat. You do this once per link type, and Windows prevents apps from setting it for you.",
+      "bodyLinux": "Other apps may still claim phone links on your system. Open default applications and set Rocket.Chat for tel: and callto: to finish.",
+      "openSettingsWindows": "Open Rocket.Chat default apps",
+      "openSettingsLinux": "Open default applications",
+      "dismiss": "Got it"
+    },
+    "diagnostics": {
+      "title": "Phone-link handler diagnostics",
+      "subtitle": "Check whether your system routes tel: and callto: links to Rocket.Chat.",
+      "refresh": "Refresh",
+      "copy": "Copy diagnostics",
+      "copied": "Copied",
+      "openSettingsAction": "Open settings",
+      "platform": "Platform",
+      "lastChecked": "Last checked",
+      "summary": {
+        "checking": "Checking…",
+        "issues_one": "{{count}} issue",
+        "issues_other": "{{count}} issues",
+        "warnings_one": "{{count}} warning",
+        "warnings_other": "{{count}} warnings",
+        "healthy": "All checks pass"
+      },
+      "status": {
+        "pass": "Pass",
+        "fail": "Fail",
+        "unknown": "Unknown"
+      },
+      "checks": {
+        "isDefault.tel": "System default for click-to-call (tel:): Rocket.Chat",
+        "isDefault.callto": "System default for click-to-conference (callto:): Rocket.Chat",
+        "windows.registeredApp": "Rocket.Chat listed in Windows Registered Applications",
+        "windows.capabilities.tel": "Windows Capabilities map click-to-call (tel:) to Rocket.Chat",
+        "windows.capabilities.callto": "Windows Capabilities map click-to-conference (callto:) to Rocket.Chat",
+        "windows.progid.tel": "Windows ProgID for click-to-call (tel:) launches Rocket.Chat",
+        "windows.progid.callto": "Windows ProgID for click-to-conference (callto:) launches Rocket.Chat",
+        "darwin.handler.tel": "macOS confirms Rocket.Chat handles click-to-call (tel:)",
+        "darwin.handler.callto": "macOS confirms Rocket.Chat handles click-to-conference (callto:)",
+        "linux.xdg.tel": "Linux xdg-mime points click-to-call (tel:) at Rocket.Chat",
+        "linux.xdg.callto": "Linux xdg-mime points click-to-conference (callto:) at Rocket.Chat"
+      }
     }
   }
 }

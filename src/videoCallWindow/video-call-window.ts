@@ -616,7 +616,7 @@ const validateVideoCallUrl = (url: string): string => {
   }
 };
 
-const createWebview = (url: string): void => {
+const createWebview = (url: string, partition?: string | null): void => {
   const container = document.getElementById('webview-container');
   if (!container) {
     throw new Error('Webview container not found');
@@ -647,7 +647,10 @@ const createWebview = (url: string): void => {
     'nodeIntegration,nativeWindowOpen=true'
   );
   webview.setAttribute('allowpopups', 'true');
-  webview.setAttribute('partition', 'persist:jitsi-session');
+  // Partition is supplied by the main process (which owns the default).
+  if (partition) {
+    webview.setAttribute('partition', partition);
+  }
   webview.src = validatedUrl;
 
   webview.style.cssText = `
@@ -784,6 +787,7 @@ const start = async (): Promise<void> => {
 
     const params = new URLSearchParams(window.location.search);
     let url = params.get('url');
+    let partition = params.get('partition');
     const autoOpenDevtools = params.get('autoOpenDevtools') === 'true';
 
     state.shouldAutoOpenDevtools = autoOpenDevtools;
@@ -803,6 +807,9 @@ const start = async (): Promise<void> => {
           url = urlResult.url;
           if (urlResult.autoOpenDevtools !== undefined) {
             state.shouldAutoOpenDevtools = urlResult.autoOpenDevtools;
+          }
+          if (urlResult.partition) {
+            partition = urlResult.partition;
           }
         }
       } catch (error) {
@@ -825,7 +832,7 @@ const start = async (): Promise<void> => {
       return;
     }
 
-    createWebview(url);
+    createWebview(url, partition);
 
     await invokeWithRetry('video-call-window/url-received', {
       maxAttempts: 2,

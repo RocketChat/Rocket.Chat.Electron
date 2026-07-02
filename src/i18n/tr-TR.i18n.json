@@ -121,30 +121,136 @@
     }
   },
   "settings": {
-    "title": "Ayarlar",
+    "title": "Uygulama ayarları",
     "general": "Genel",
+    "sections": {
+      "appUi": "Uygulama arayüzü",
+      "systemUi": "Sistem arayüzü",
+      "systemBehavior": "Sistem davranışı",
+      "calling": "Arama",
+      "other": "Diğer ve teknik",
+      "logging": "Günlük kaydı"
+    },
     "options": {
+      "report": {
+        "title": "Hataları Rocket.Chat'e bildir",
+        "description": "Sorunları uygulama geliştiricilerine anonim olarak bildirin. Paylaşılan bilgiler arasında uygulama sürüm numarası, işletim sistemi türü, çalışma alanı URL'si, cihaz dili ve hata türü yer alır. İçerik veya kullanıcı adları paylaşılmaz.",
+        "masDescription": "Mac App Store'dan yüklendiğinde bu seçenek devre dışı kalır. Hatalar Mac App Store hata raporlama süreci aracılığıyla iletilir."
+      },
+      "flashFrame": {
+        "title": "Pencere yanıp sönsün",
+        "titleDarwin": "Dock simgesini zıplat",
+        "description": "Yeni bir mesaj alındığında pencere yanıp söner.",
+        "onLinux": "Bazı Linux dağıtımları bu özelliği desteklememektedir.",
+        "descriptionDarwin": "Yeni bir mesaj alındığında Dock simgesi zıplar."
+      },
+      "hardwareAcceleration": {
+        "title": "Donanım hızlandırma",
+        "description": "Görsel işlemeyi ve performansı artırır. Görsel hatalar veya kararsızlık yaşıyorsanız devre dışı bırakın.",
+        "hint": "Değişiklik uygulamayı yeniden yükler."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Video arama ekran yakalama geri dönüşü",
+        "description": "Uzak Masaüstü oturumlarında ekran paylaşımının çalışması için Windows Grafik Yakalamayı devre dışı bırakın.",
+        "hint": "Bu seçenek değiştirildiğinde uygulama yeniden başlar.",
+        "forcedDescription": "Uygulama bir Uzak Masaüstü oturumu algıladığından şu anda zorunlu kılınmaktadır. Geçiş artık yerel olarak çalışırken gelecekteki başlatmaları kontrol eder."
+      },
+      "internalVideoChatWindow": {
+        "title": "Video aramalar uygulama içinde",
+        "description": "Video aramalarını tarayıcı yerine uygulama penceresinde açın. Google Meet ve Jitsi aramaları yalnızca tarayıcıda açılabilir.",
+        "masDescription": "Mac App Store'dan yüklendiğinde bu seçenek devre dışı kalır. Güvenlik nedeniyle video aramalar varsayılan olarak her zaman tarayıcıda açılır."
+      },
+      "minimizeOnClose": {
+        "title": "Kapatırken küçült",
+        "description": "Kapatırken uygulamadan çıkmak yerine küçültün.",
+        "disabledHint": "Tepsi simgesi devre dışı bırakılmalıdır."
+      },
+      "menubar": {
+        "title": "Menü çubuğu",
+        "description": "Pencerenin üstünde menü çubuğunu göster.",
+        "disabledHint": "Çalışma alanı çubuğu devre dışıyken menü çubuğu devre dışı bırakılamaz. Uygulama ayarlarına erişilemez hale gelirdi."
+      },
+      "sidebar": {
+        "title": "Çalışma alanı çubuğu",
+        "description": "İndirmeler ve ayarlar düğmeleriyle birlikte çalışma alanı listesini göster.",
+        "disabledHint": "Menü çubuğu devre dışıyken çalışma alanı çubuğu devre dışı bırakılamaz. Uygulama ayarlarına erişilemez hale gelirdi."
+      },
       "trayIcon": {
-        "title": "Görev çubuğu ikonu",
-        "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
+        "title": "Tepsi simgesi",
+        "titleDarwin": "Menü çubuğu ek öğesi",
+        "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır.",
+        "descriptionDarwin": "Uygulama simgesini menü çubuğunda göster."
       },
       "availableBrowsers": {
-        "title": "Varsayılan Tarayıcı",
-        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin. Sistem Varsayılanı, işletim sisteminizin ayarlarını kullanır.",
-        "systemDefault": "Sistem Varsayılanı",
+        "title": "Varsayılan tarayıcı",
+        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin.",
+        "systemDefault": "Sistem varsayılanı",
         "loading": "Tarayıcılar yükleniyor...",
         "current": "Şu anda kullanılan:"
       },
+      "telephonyServer": {
+        "title": "Telefoni çalışma alanı",
+        "description": "Gelen telefon aramalarını (tel: ve callto: bağlantıları) hangi çalışma alanının yöneteceğini seçin.",
+        "auto": "Otomatik (her seferinde sor)"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Ekran yakalama izinlerini temizle",
+        "description": "Arama için daha önce “bir daha sorma” seçilmiş olsa bile izinleri temizle."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Video aramalarda ekran yakalamaya izin ver",
+        "description": "Video aramalarda ekran yakalamaya izin ver. Her video aramada izin ister."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM kimlik bilgileri",
+        "description": "Bir çalışma alanına bağlanırken NTLM kimlik bilgilerinin kullanılmasına izin ver.",
+        "domains": "Kimlik bilgileri için kullanılacak alan adları. Virgülle ayrılır. Tüm sunucularla eşleştirmek için * kullanın."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Video arama penceresi konumunu koru",
+        "description": "Oturumlar arasında video arama penceresinin konum ve boyutunu hatırla."
+      },
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",
-        "description": "Pencere için yerel titreşim/şeffaflık efektini etkinleştir. Uygulamak için yeniden başlatma gerektirir."
+        "description": "Uygulama penceresinde yerel titreşim/şeffaflık efektini etkinleştir.",
+        "hint": "Uygulama yeniden başlatması gerektirir."
       },
       "themeAppearance": {
         "title": "Tema",
-        "description": "Uygulama için renk temasını seçin.",
+        "description": "Uygulama renk teması.",
         "auto": "Sistemi takip et",
         "light": "Açık",
         "dark": "Koyu"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook Takvimi eşitleme aralığı",
+        "description": "Takvim etkinlikleri güncelleme kontrollerinin dakika cinsinden sıklığı (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Ayrıntılı Outlook Takvimi günlük kaydı",
+        "description": "Outlook Takvimi entegrasyon sorunlarını gidermek için ayrıntılı Exchange/NTLM hata ayıklama günlüklerini etkinleştir."
+      },
+      "detailedEventsLogging": {
+        "title": "Ayrıntılı olay günlük kaydı",
+        "description": "Takvim eşitlemesi sırasında Outlook ile Rocket.Chat arasında değiş tokuş edilen tam olay verilerini kaydet. Eşitleme sorunlarının teşhisinde kullanışlıdır."
+      },
+      "debugLogging": {
+        "title": "Ayrıntılı günlük kaydı",
+        "description": "Tüm konsol çıktısını günlük dosyasına yazar. Devre dışı bırakıldığında yalnızca hatalar ve önemli mesajlar kaydedilir; bu da günlükleri daha küçük ve odaklı tutar."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Şifrelenmiş odalarda PDF önizleme boyutu sınırı (MB)",
+        "description": "Şifrelenmiş dosyalar önizlemeler için belleğe yüklenir. Bu sınırdan büyük dosyalar doğrudan indirilir."
+      },
+      "telephonyShortcut": {
+        "title": "Genel telefon kısayolu",
+        "description": "Rocket.Chat'i öne getirmek ve telefon arama tuş takımını açmak için bu kısayolu her yerden kullanın. Panonuzda telefon numarasına benzeyen bir metin varsa Rocket.Chat bunu otomatik olarak doldurur.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Tuşlara basın...",
+        "save": "Kaydet",
+        "clear": "Temizle",
+        "registered": "Kısayol kaydedildi",
+        "reservedAccelerator": "{{accelerator}}, Rocket.Chat veya işletim sisteminiz tarafından ayrılmıştır."
       }
     }
   },
@@ -182,6 +288,7 @@
     "quit": "&Çıkış yap {{- appName}}",
     "redo": "&Yinele",
     "reload": "&Yeniden yükle",
+    "settings": "Uygulama ayarları",
     "reportIssue": "Hata bildir",
     "resetAppData": "Uygulama verisini sıfırla",
     "resetZoom": "Görünümü sıfırla",
@@ -225,6 +332,7 @@
   },
   "sidebar": {
     "addNewServer": "Yeni sunucu ekle",
+    "settings": "Uygulama ayarları",
     "item": {
       "reload": "Sunucuyu yeniden yükle",
       "remove": "Sunucuyu sil",

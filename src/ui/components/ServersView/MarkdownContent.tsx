@@ -205,7 +205,7 @@ const MarkdownContent = ({
         alignItems='center'
         height='100%'
         width='100%'
-        color='font-default'
+        color='default'
       >
         <Throbber size='x16' inheritColor />
       </Box>
@@ -234,7 +234,7 @@ const MarkdownContent = ({
         ref={containerRef}
         className='markdown-body'
         style={{ maxWidth: 980, margin: '0 auto', padding: '48px 40px 64px' }}
-        color='font-default'
+        color='default'
         dangerouslySetInnerHTML={{ __html: htmlContent }}
       />
     </Box>

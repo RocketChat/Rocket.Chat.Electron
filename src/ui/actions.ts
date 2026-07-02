@@ -97,6 +97,8 @@ export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
 export const SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED =
   'settings/set-is-tray-icon-enabled-changed';
+export const SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED =
+  'settings/set-is-telephony-enabled-changed';
 export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
   'settings/set-is-side-bar-enabled-changed';
 export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
@@ -159,6 +161,14 @@ export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
 export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
 export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
+export const TELEPHONY_SERVER_SELECT_OPEN = 'telephony-server-select/open';
+export const TELEPHONY_SERVER_SELECT_CLOSE = 'telephony-server-select/close';
+export const TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN =
+  'telephony-default-handler-prompt/open';
+export const TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE =
+  'telephony-default-handler-prompt/close';
+export const TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED =
+  'telephony-default-handler-prompt/open-settings-clicked';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -257,6 +267,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
@@ -316,4 +327,15 @@ export type UiActionTypeToPayloadMap = {
     supportedVersions?: Server['supportedVersions'];
   };
   [CLOSE_SERVER_INFO_MODAL]: void;
+  [TELEPHONY_SERVER_SELECT_OPEN]: {
+    phoneNumber: string;
+    rawUri: string;
+  };
+  [TELEPHONY_SERVER_SELECT_CLOSE]: {
+    serverUrl: string;
+    rememberChoice: boolean;
+  } | null;
+  [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN]: void;
+  [TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE]: void;
+  [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED]: void;
 };

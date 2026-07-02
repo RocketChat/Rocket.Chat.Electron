@@ -1,10 +1,3 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +7,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type TransparentWindowProps = {
   className?: string;
@@ -39,22 +33,14 @@ export const TransparentWindow = (props: TransparentWindowProps) => {
   const id = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={id}>
-          {t('settings.options.transparentWindow.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={id}
-          checked={isTransparentWindowEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>
-          {t('settings.options.transparentWindow.description')}
-        </FieldHint>
-      </FieldRow>
-    </Field>
+    <ToggleField
+      id={id}
+      label={t('settings.options.transparentWindow.title')}
+      description={t('settings.options.transparentWindow.description')}
+      hint={t('settings.options.transparentWindow.hint')}
+      checked={isTransparentWindowEnabled}
+      onChange={handleChange}
+      className={props.className}
+    />
   );
 };

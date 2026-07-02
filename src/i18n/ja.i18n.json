@@ -101,6 +101,11 @@
         "answerCall": "通話に応答する",
         "recordMessage": "メッセージを録音する"
       }
+    },
+    "telephonySelectServer": {
+      "title": "サーバーを選択",
+      "message": "この通話をどのサーバーで処理しますか？",
+      "rememberChoice": "この選択を記憶する"
     }
   },
   "documentViewer": {
@@ -121,10 +126,99 @@
     }
   },
   "settings": {
+    "title": "アプリの設定",
+    "general": "一般",
+    "sections": {
+      "appUi": "アプリUI",
+      "systemUi": "システムUI",
+      "systemBehavior": "システムの動作",
+      "calling": "通話",
+      "other": "その他・技術",
+      "logging": "ログ"
+    },
     "options": {
+      "report": {
+        "title": "エラーをRocket.Chatに報告する",
+        "description": "アプリの問題を匿名で開発者に報告します。共有される情報にはアプリのバージョン番号、OSの種類、ワークスペースのURL、端末の言語、エラーの種類が含まれます。コンテンツやユーザー名は共有されません。",
+        "masDescription": "Mac App Storeからインストールされている場合、このオプションは無効です。エラーはMac App Storeのエラー報告プロセスを通じて報告されます。"
+      },
+      "flashFrame": {
+        "title": "フラッシュフレーム",
+        "titleDarwin": "Dockアイコンをバウンス",
+        "description": "新しいメッセージを受信したときにウィンドウをフラッシュします。",
+        "onLinux": "一部のLinuxディストリビューションではこの機能をサポートしていません。",
+        "descriptionDarwin": "新しいメッセージを受信したときにDockアイコンがバウンスします。"
+      },
+      "hardwareAcceleration": {
+        "title": "ハードウェアアクセラレーション",
+        "description": "映像レンダリングとパフォーマンスを向上させます。画面の乱れや不安定さが生じる場合は無効にしてください。",
+        "hint": "変更するとアプリが再起動します。"
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "ビデオ通話の画面キャプチャーフォールバック",
+        "description": "リモートデスクトップセッションで画面共有が機能するようにWindows Graphics Captureを無効にします。",
+        "hint": "このオプションを変更するとアプリが再起動します。",
+        "forcedDescription": "アプリがリモートデスクトップセッションを検出したため、現在強制適用されています。このトグルはローカルで実行する際の将来の起動を制御します。"
+      },
+      "internalVideoChatWindow": {
+        "title": "アプリ内でビデオ通話",
+        "description": "ブラウザーではなくアプリウィンドウ内でビデオ通話を開きます。Google Meet と Jitsi の通話はブラウザーでのみ開くことができます。",
+        "masDescription": "Mac App Storeからインストールされている場合、このオプションは無効です。セキュリティ上の理由から、ビデオ通話は既定でブラウザーで開きます。"
+      },
+      "minimizeOnClose": {
+        "title": "閉じるときに最小化",
+        "description": "閉じるときにアプリを終了せずに最小化します。",
+        "disabledHint": "トレイアイコンを無効にする必要があります。"
+      },
+      "menubar": {
+        "title": "メニューバー",
+        "description": "ウィンドウ上部にメニューバーを表示します。",
+        "disabledHint": "ワークスペースバーが無効になっている場合はメニューバーを無効にできません。アプリの設定にアクセスできなくなります。"
+      },
+      "sidebar": {
+        "title": "ワークスペースバー",
+        "description": "ダウンロードと設定ボタン付きのワークスペース一覧を表示します。",
+        "disabledHint": "メニューバーが無効になっている場合はワークスペースバーを無効にできません。アプリの設定にアクセスできなくなります。"
+      },
+      "trayIcon": {
+        "title": "トレイアイコン",
+        "titleDarwin": "メニューバーエクストラ",
+        "description": "システムトレイにトレイアイコンを表示します。有効にすると、閉じるときにアプリが終了せずにトレイに格納されます。",
+        "descriptionDarwin": "メニューバーにアプリアイコンを表示します。"
+      },
+      "availableBrowsers": {
+        "title": "既定のブラウザー",
+        "description": "外部リンクを開くブラウザーを選択します。",
+        "systemDefault": "システムの既定",
+        "loading": "ブラウザーを読み込み中...",
+        "current": "現在使用中:"
+      },
+      "telephonyServer": {
+        "title": "電話ワークスペース",
+        "description": "着信通話（tel:、callto: リンク）を処理するワークスペースを選択します。",
+        "auto": "自動（毎回確認）"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "画面キャプチャーの権限をクリア",
+        "description": "通話で「今後確認しない」を選択済みの場合でも権限をクリアします。"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "ビデオ通話での画面キャプチャーを許可",
+        "description": "ビデオ通話での画面キャプチャーを許可します。ビデオ通話ごとに権限を確認します。"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM認証情報",
+        "description": "ワークスペースへの接続時にNTLM認証情報の使用を許可します。",
+        "domains": "認証情報として使用するドメイン。カンマ区切りで入力してください。* を使用するとすべてのサーバーに一致します。"
+      },
+      "videoCallWindowPersistence": {
+        "title": "ビデオ通話ウィンドウの位置を保持",
+        "description": "セッション間でビデオ通話ウィンドウの位置とサイズを記憶します。"
+      },
       "transparentWindow": {
         "title": "透明ウィンドウ効果",
-        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
+        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。",
+        "hint": "適用するには再起動が必要です。"
       },
       "themeAppearance": {
         "title": "テーマ",
@@ -132,6 +226,41 @@
         "auto": "システムに従う",
         "light": "ライト",
         "dark": "ダーク"
+      },
+      "telephonyServer": {
+        "title": "テレフォニーサーバー",
+        "description": "テレフォニーショートカットまたは tel: / callto: リンクを使用したときに開くワークスペースを選択します。",
+        "auto": "自動（毎回確認）"
+      },
+      "telephonyShortcut": {
+        "title": "テレフォニーのグローバルショートカット",
+        "description": "このショートカットをどこからでも使用して Rocket.Chat を前面に表示し、テレフォニーのダイヤルパッドを開きます。クリップボードに電話番号のようなテキストがある場合、Rocket.Chat が自動的に入力します。",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "キーを押してください...",
+        "save": "保存",
+        "clear": "クリア",
+        "registered": "ショートカットを登録しました",
+        "reservedAccelerator": "{{accelerator}} は Rocket.Chat またはオペレーティングシステムによって予約されています。"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlookカレンダーの同期間隔",
+        "description": "カレンダーイベントの更新確認頻度（分単位、1〜60）。"
+      },
+      "verboseOutlookLogging": {
+        "title": "Outlookカレンダーの詳細ログ",
+        "description": "Outlookカレンダー連携の問題解決のためにExchange/NTLMデバッグログを有効にします。"
+      },
+      "detailedEventsLogging": {
+        "title": "イベントの詳細ログ",
+        "description": "カレンダー同期時にOutlookとRocket.Chat間でやり取りされるイベントデータ全体をログに記録します。同期の問題の診断に役立ちます。"
+      },
+      "debugLogging": {
+        "title": "詳細ログ",
+        "description": "すべてのコンソール出力をログファイルに書き込みます。無効にすると、エラーと重要なメッセージのみが保存され、ログが小さくまとまります。"
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "暗号化ルームでのPDFプレビューサイズ制限（MB）",
+        "description": "暗号化されたファイルはプレビューのためにメモリーに読み込まれます。この制限を超えるファイルは直接ダウンロードされます。"
       }
     }
   },
@@ -158,6 +287,7 @@
     "cut": "切り取り (&T)",
     "developerMode": "開発者モード",
     "documentation": "ドキュメント",
+    "settings": "アプリの設定",
     "editMenu": "編集 (&E)",
     "fileMenu": "ファイル (&F)",
     "forward": "進む(&F)",
@@ -207,6 +337,7 @@
   },
   "sidebar": {
     "addNewServer": "新しいサーバーを追加",
+    "settings": "アプリの設定",
     "item": {
       "reload": "サーバーを再読み込み",
       "remove": "サーバーを削除",

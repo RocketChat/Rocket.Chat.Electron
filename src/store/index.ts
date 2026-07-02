@@ -91,9 +91,10 @@ export const watch = <T>(
       return;
     }
 
-    watcher(curr, prev);
-
+    const previous = prev;
     prev = curr;
+
+    watcher(curr, previous);
   });
 };
 

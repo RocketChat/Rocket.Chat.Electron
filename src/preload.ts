@@ -6,6 +6,7 @@ import { JitsiMeetElectron } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop } from './servers/preload/api';
+import { listenToNavigateToRouteRequests } from './servers/preload/navigateToRoute';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
 import { listenToTelephonyRequests } from './telephony/preload';
@@ -66,6 +67,7 @@ const start = async (): Promise<void> => {
   await invoke('server-view/ready');
 
   listenToTelephonyRequests();
+  listenToNavigateToRouteRequests();
 
   console.log('[Rocket.Chat Desktop] waiting for RocketChatDesktop.onReady');
   RocketChatDesktop.onReady(() => {

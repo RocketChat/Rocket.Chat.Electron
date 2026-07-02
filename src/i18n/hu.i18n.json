@@ -164,6 +164,11 @@
     },
     "supportedVersion": {
       "title": "A munkaterület verziója nem támogatott"
+    },
+    "telephonySelectServer": {
+      "title": "Szerver kiválasztása",
+      "message": "Melyik szerver kezelje ezt a hívást?",
+      "rememberChoice": "Választás megjegyzése"
     }
   },
   "documentViewer": {
@@ -234,64 +239,89 @@
     }
   },
   "settings": {
-    "title": "Beállítások",
+    "title": "Alkalmazásbeállítások",
     "general": "Általános",
     "certificates": "Tanúsítványok",
     "developer": "Fejlesztő",
     "sections": {
+      "appUi": "Alkalmazás felülete",
+      "systemUi": "Rendszer felülete",
+      "systemBehavior": "Rendszerviselkedés",
+      "calling": "Hívások",
+      "other": "Egyéb és technikai",
       "logging": "Naplózás"
     },
     "options": {
       "report": {
-        "title": "Hibák jelentése a fejlesztőknek",
-        "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra.",
+        "title": "Hibák jelentése a Rocket.Chat-nek",
+        "description": "A hibák névtelenül történő jelentése az alkalmazás fejlesztőinek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a munkaterület URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra.",
         "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. A hibák a Mac alkalmazásbolt hibajelentési folyamatán keresztül lesznek bejelentve."
       },
       "flashFrame": {
-        "title": "Keret villogtatásának engedélyezése",
-        "titleDarwin": "A dokk pattogásának be- és kikapcsolása riasztáskor",
-        "description": "Villogtatja az ablakot, hogy felhívja a felhasználó figyelmét.",
+        "title": "Keret villogtatása",
+        "titleDarwin": "Dokk ikon pattogtatása",
+        "description": "Villogtatja az ablakot, ha új üzenet érkezik.",
         "onLinux": "Egyes Linux disztribúciók nem támogatják ezt a funkciót.",
-        "descriptionDarwin": "Pattogtatja az alkalmazás ikonját a dokkban, hogy felhívja a felhasználó figyelmét."
+        "descriptionDarwin": "A dokk ikon pattog, ha új üzenet érkezik."
       },
       "hardwareAcceleration": {
         "title": "Hardveres gyorsítás",
-        "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
+        "description": "Javítja a vizuális megjelenítést és a teljesítményt. Tiltsa le, ha vizuális hibákat vagy instabilitást tapasztal.",
+        "hint": "A módosításkor az alkalmazás újratöltődik."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Tartalék képernyőrögzítés a videohívásokhoz",
-        "description": "A Windows Graphics Capture funkció letiltása, hogy a képernyőmegosztás működjön a távoli asztal munkameneteiben. Az alkalmazás újraindul, ha megváltoztatja ezt a beállítást.",
+        "description": "A Windows Graphics Capture funkció letiltása, hogy a képernyőmegosztás működjön a távoli asztal munkameneteiben.",
+        "hint": "Az alkalmazás újraindul, ha megváltoztatja ezt a beállítást.",
         "forcedDescription": "Jelenleg érvényben van, mert az alkalmazás távoli asztali munkamenetet észlelt. A kapcsoló mostantól a jövőbeli indításokat vezérli, amikor helyileg fut."
       },
       "internalVideoChatWindow": {
-        "title": "Videocsevegés megnyitása az alkalmazásablakban",
-        "description": "Ha engedélyezve van, akkor a videócsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyő rögzítése nem támogatott az Electron alkalmazásokban, így azok ettől a beállítástól függetlenül mindig a böngészőben nyílnak meg.",
-        "masDescription": "Ez a beállítás le van tiltva a Mac App Store-ból történő telepítéskor. Biztonsági okokból a videócsevegés alapértelmezetten mindig a böngészőben nyílik meg."
+        "title": "Videohívások az alkalmazáson belül",
+        "description": "Videohívások megnyitása az alkalmazásablakban, böngésző helyett. A Google Meet és a Jitsi hívások csak böngészőben nyithatók meg.",
+        "masDescription": "Ez a beállítás le van tiltva a Mac App Store-ból történő telepítéskor. Biztonsági okokból a videóhívások alapértelmezetten mindig a böngészőben nyílnak meg."
       },
       "minimizeOnClose": {
         "title": "Kis méret bezáráskor",
-        "description": "Bezáráskor az alkalmazás kis méretű lesz, egyébként kilép az alkalmazásból. A tálca ikonját le kell tiltani, hogy ez érvényesüljön."
+        "description": "Bezáráskor az alkalmazás kis méretű lesz, nem lép ki.",
+        "disabledHint": "A tálcaikon letiltása szükséges."
       },
       "menubar": {
         "title": "Menüsáv",
         "description": "Menüsáv megjelenítése az ablak tetején.",
-        "disabledHint": "Nem lehet letiltani a menüsort, ha az oldalsáv le van tiltva. A beállítások elérhetetlenné válnának."
+        "disabledHint": "Nem lehet letiltani a menüsort, ha a munkaterületsáv le van tiltva. Az alkalmazásbeállítások elérhetetlenné válnának."
       },
       "sidebar": {
-        "title": "Oldalsáv",
-        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal.",
-        "disabledHint": "Nem lehet letiltani az oldalsávot, ha a menüsor le van tiltva. A beállítások elérhetetlenné válnának."
+        "title": "Munkaterületsáv",
+        "description": "Munkaterületek listájának megjelenítése a letöltések és beállítások gombjaival.",
+        "disabledHint": "Nem lehet letiltani a munkaterületsávot, ha a menüsor le van tiltva. Az alkalmazásbeállítások elérhetetlenné válnának."
       },
       "trayIcon": {
         "title": "Tálcaikon",
-        "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
+        "titleDarwin": "Menüsáv extra",
+        "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból.",
+        "descriptionDarwin": "Az alkalmazás ikonjának megjelenítése a menüsávon."
       },
       "availableBrowsers": {
         "title": "Alapértelmezett böngésző",
-        "description": "Annak kiválasztása, hogy melyik böngésző nyissa meg a külső hivatkozásokat az alkalmazásból. A rendszer alapértelmezettje az operációs rendszer beállításait használja.",
+        "description": "Annak kiválasztása, hogy melyik böngésző nyissa meg a külső hivatkozásokat az alkalmazásból.",
         "systemDefault": "Rendszer alapértelmezettje",
         "loading": "Böngészők betöltése…",
         "current": "Jelenleg használt:"
+      },
+      "telephonyServer": {
+        "title": "Telefonos kiszolgáló",
+        "description": "Válaszd ki, melyik munkaterület nyíljon meg, amikor a telefonos gyorsbillentyűt vagy egy tel: vagy callto: hivatkozást használsz.",
+        "auto": "Automatikus (mindig kérdezzen)"
+      },
+      "telephonyShortcut": {
+        "title": "Globális telefonos gyorsbillentyű",
+        "description": "Ezzel a gyorsbillentyűvel bárhonnan előtérbe hozhatod a Rocket.Chatet, és megnyithatod a telefonos tárcsázót. Ha a vágólapodon telefonszámnak tűnő szöveg van, a Rocket.Chat előre kitölti.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Nyomd meg a billentyűket...",
+        "save": "Mentés",
+        "clear": "Törlés",
+        "registered": "Gyorsbillentyű regisztrálva",
+        "reservedAccelerator": "{{accelerator}} a Rocket.Chat vagy az operációs rendszer által fenntartott."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Képernyőfelvételi engedélyek törlése",
@@ -312,7 +342,8 @@
       },
       "transparentWindow": {
         "title": "Átlátszó ablak hatás",
-        "description": "Natív vibrálás vagy átlátszóság hatás engedélyezése az ablakhoz. Újraindítást igényel az alkalmazáshoz."
+        "description": "Natív vibrálás vagy átlátszóság hatás engedélyezése az ablakhoz.",
+        "hint": "Újraindítást igényel az alkalmazáshoz."
       },
       "themeAppearance": {
         "title": "Téma",
@@ -324,6 +355,27 @@
       "verboseOutlookLogging": {
         "title": "Részletes Outlook naptár naplózás",
         "description": "Részletes Exchange/NTLM hibakeresési naplók engedélyezése az Outlook naptár integrációs problémáinak elhárításához."
+      },
+      "telephonyServer": {
+        "title": "Telefonos munkaterület",
+        "description": "Annak kiválasztása, hogy melyik munkaterület kezelje a bejövő telefonhívásokat (tel: és callto: hivatkozások).",
+        "auto": "Automatikus (minden alkalommal megkérdezi)"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook naptár szinkronizálási időköz",
+        "description": "A naptáresemények frissítési ellenőrzésének gyakorisága percben megadva (1–60)."
+      },
+      "detailedEventsLogging": {
+        "title": "Részletes eseménynaplózás",
+        "description": "Az Outlook és a Rocket.Chat között a naptár-szinkronizálás során kicserélt teljes eseményadatok naplózása. Hasznos a szinkronizálási problémák elhárításához."
+      },
+      "debugLogging": {
+        "title": "Részletes naplózás",
+        "description": "Az összes konzolkimenet naplófájlba írása. Ha le van tiltva, csak a hibák és a fontos üzenetek kerülnek mentésre, így a naplók kisebbek és áttekinthetőbbek maradnak."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF előnézet méretkorlátja titkosított szobákban (MB)",
+        "description": "A titkosított fájlok az előnézetek megjelenítéséhez a memóriába töltődnek. Az ennél a korlátnál nagyobb fájlok közvetlenül letöltődnek."
       }
     }
   },
@@ -352,7 +404,7 @@
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",
-    "settings": "Beállítások",
+    "settings": "Alkalmazásbeállítások",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
     "forward": "&Előre",
@@ -424,7 +476,7 @@
   "sidebar": {
     "addNewServer": "Új kiszolgáló hozzáadása",
     "downloads": "Letöltések",
-    "settings": "Beállítások",
+    "settings": "Alkalmazásbeállítások",
     "menuTitle": "Az alkalmazás személyre szabása és vezérlése",
     "item": {
       "reload": "Újratöltés",

@@ -1,5 +1,5 @@
 import type { WebContents } from 'electron';
-import { app, dialog } from 'electron';
+import { app } from 'electron';
 
 import {
   electronBuilderJsonInformation,
@@ -8,7 +8,8 @@ import {
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
-import { TELEPHONY_PREFERRED_SERVER_SET } from '../telephony/actions';
+import { openTelephonyDialpad } from '../telephony/dialpad';
+import { parseTelephonyLink } from '../telephony/links';
 import {
   askForServerAddition,
   warnAboutInvalidServerUrl,
@@ -16,6 +17,13 @@ import {
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
+
+export type { TelephonyLink } from '../telephony/common';
+export { openTelephonyDialpad as performTelephonyCall } from '../telephony/dialpad';
+export { parseTelephonyLink } from '../telephony/links';
+
+const pendingOpenUrls: string[] = [];
+let isOpenUrlProcessingReady = false;
 
 const isDefinedProtocol = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === `${electronBuilderJsonInformation.protocol}:`;
@@ -55,89 +63,21 @@ const parseDeepLink = (
   return null;
 };
 
-const TELEPHONY_PROTOCOLS = ['tel:', 'callto:'];
-
-export type TelephonyLink = { phoneNumber: string; rawUri: string };
-
-export const parseTelephonyLink = (input: string): TelephonyLink | null => {
-  if (/^--/.test(input)) {
-    return null;
-  }
-
-  let url: URL;
-
-  try {
-    url = new URL(input);
-  } catch {
-    return null;
-  }
-
-  if (!TELEPHONY_PROTOCOLS.includes(url.protocol)) {
-    return null;
-  }
-
-  const raw = url.pathname || url.href.slice(url.protocol.length);
-  const phoneNumber = raw.replace(/^\/+/, '').replace(/[\s\-().]/g, '');
-
-  if (!phoneNumber) {
-    return null;
-  }
-
-  return { phoneNumber, rawUri: input };
-};
-
-export const performTelephonyCall = async (
-  link: TelephonyLink
-): Promise<void> => {
-  const servers = select(({ servers }) => servers);
-
-  if (servers.length === 0) {
-    return;
-  }
-
-  let serverUrl: string;
-
-  if (servers.length === 1) {
-    serverUrl = servers[0].url;
-  } else {
-    const preferredServer = select(
-      ({ telephonyPreferredServer }) => telephonyPreferredServer
-    );
-
-    if (preferredServer && servers.some((s) => s.url === preferredServer)) {
-      serverUrl = preferredServer;
-    } else {
-      const { response, checkboxChecked } = await dialog.showMessageBox(
-        await getRootWindow(),
-        {
-          type: 'question',
-          title: 'Select Server',
-          message: 'Which server should handle this call?',
-          buttons: servers.map((s) => s.title ?? new URL(s.url).hostname),
-          checkboxLabel: 'Remember this choice',
-          checkboxChecked: false,
-        }
-      );
-
-      serverUrl = servers[response].url;
-
-      if (checkboxChecked) {
-        dispatch({
-          type: TELEPHONY_PREFERRED_SERVER_SET,
-          payload: serverUrl,
-        });
-      }
-    }
-  }
-
-  const webContents = await getWebContents(serverUrl);
-  webContents.send('telephony/call-requested', {
-    phoneNumber: link.phoneNumber,
-    rawUri: link.rawUri,
-  });
-};
+export const getDeepLinkArgs = (argv: string[]): string[] =>
+  argv
+    .slice(app.isPackaged ? 1 : 2)
+    .filter((arg) => parseTelephonyLink(arg) || parseDeepLink(arg));
 
 export let processDeepLinksInArgs = async (): Promise<void> => undefined;
+
+const focusRootWindow = async (): Promise<void> => {
+  const browserWindow = await getRootWindow();
+
+  if (!browserWindow.isVisible()) {
+    browserWindow.showInactive();
+  }
+  browserWindow.focus();
+};
 
 type AuthenticationParams = {
   host: string;
@@ -191,12 +131,28 @@ const performOnServer = async (
   await action(serverUrl);
 };
 
-const getWebContents = (serverUrl: string): Promise<WebContents> =>
-  new Promise((resolve) => {
+function getWebContents(serverUrl: string): Promise<WebContents>;
+function getWebContents(
+  serverUrl: string,
+  timeoutMs: number
+): Promise<WebContents | null>;
+function getWebContents(
+  serverUrl: string,
+  timeoutMs?: number
+): Promise<WebContents | null> {
+  return new Promise((resolve) => {
+    const deadline =
+      timeoutMs !== undefined ? Date.now() + timeoutMs : undefined;
+
     const poll = (): void => {
       const webContents = getWebContentsByServerUrl(serverUrl);
       if (webContents) {
         resolve(webContents);
+        return;
+      }
+
+      if (deadline !== undefined && Date.now() >= deadline) {
+        resolve(null);
         return;
       }
 
@@ -205,6 +161,7 @@ const getWebContents = (serverUrl: string): Promise<WebContents> =>
 
     poll();
   });
+}
 
 const performAuthentication = async ({
   host,
@@ -265,7 +222,13 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
 const processDeepLink = async (deepLink: string): Promise<void> => {
   const telephonyLink = parseTelephonyLink(deepLink);
   if (telephonyLink) {
-    await performTelephonyCall(telephonyLink);
+    const isTelephonyEnabled = select(
+      ({ isTelephonyEnabled }) => isTelephonyEnabled
+    );
+    if (!isTelephonyEnabled) {
+      return;
+    }
+    await openTelephonyDialpad(telephonyLink);
     return;
   }
 
@@ -320,18 +283,31 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
 };
 
 export const setupDeepLinks = (): void => {
+  pendingOpenUrls.length = 0;
+  isOpenUrlProcessingReady = false;
+
   app.addListener('open-url', async (event, url): Promise<void> => {
     event.preventDefault();
 
-    const browserWindow = await getRootWindow();
-
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
+    if (!isOpenUrlProcessingReady) {
+      pendingOpenUrls.push(url);
+      return;
     }
-    browserWindow.focus();
 
+    await focusRootWindow();
     await processDeepLink(url);
   });
+
+  const processQueuedOpenUrls = async (): Promise<void> => {
+    const urls = pendingOpenUrls.splice(0);
+
+    for (const url of urls) {
+      // eslint-disable-next-line no-await-in-loop
+      await focusRootWindow();
+      // eslint-disable-next-line no-await-in-loop
+      await processDeepLink(url);
+    }
+  };
 
   app.addListener('second-instance', async (event, argv): Promise<void> => {
     event.preventDefault();
@@ -343,7 +319,7 @@ export const setupDeepLinks = (): void => {
     }
     if (browserWindow) browserWindow.focus();
 
-    const args = argv.slice(app.isPackaged ? 1 : 2);
+    const args = getDeepLinkArgs(argv);
 
     for (const arg of args) {
       // eslint-disable-next-line no-await-in-loop
@@ -352,7 +328,11 @@ export const setupDeepLinks = (): void => {
   });
 
   processDeepLinksInArgs = async (): Promise<void> => {
-    const args = process.argv.slice(app.isPackaged ? 1 : 2);
+    isOpenUrlProcessingReady = true;
+
+    await processQueuedOpenUrls();
+
+    const args = getDeepLinkArgs(process.argv);
 
     for (const arg of args) {
       // eslint-disable-next-line no-await-in-loop

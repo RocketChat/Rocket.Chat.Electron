@@ -8,9 +8,88 @@
   },
   "settings": {
     "options": {
+      "report": {
+        "title": "Report errors to Rocket.Chat",
+        "description": "Anonymously report issues to app developers. Shared information includes app version number, operating system type, workspace URL, device language and error type. No content or usernames are shared.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. Errors are reported through the Mac App Store error report process."
+      },
+      "flashFrame": {
+        "title": "Flash frame",
+        "titleDarwin": "Bounce dock icon",
+        "description": "Flash window when a new message is received.",
+        "onLinux": "Some Linux distros don't have support for this feature.",
+        "descriptionDarwin": "Dock icon bounces when a new message is received."
+      },
+      "hardwareAcceleration": {
+        "title": "Hardware acceleration",
+        "description": "Improves visual rendering and performance. Disable if you experience visual glitches or instability.",
+        "hint": "Reloads app on change."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Video call screen capture fallback",
+        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions.",
+        "hint": "App restarts when this option is changed.",
+        "forcedDescription": "Currently enforced because the app detected a Remote Desktop session. Toggle now controls future launches when running locally."
+      },
+      "internalVideoChatWindow": {
+        "title": "Video calls inside app",
+        "description": "Open video calls inside app window instead of browser. Google Meet and Jitsi calls can only open in browser.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, video calls always open in the browser by default."
+      },
+      "minimizeOnClose": {
+        "title": "Minimize on close",
+        "description": "Minimize and do not quit app when closing.",
+        "disabledHint": "Tray icon must be disabled."
+      },
+      "menubar": {
+        "title": "Menu bar",
+        "description": "Show menu bar on the top of the window.",
+        "disabledHint": "Cannot disable menu bar when the workspace bar is disabled. App settings would become inaccessible."
+      },
+      "sidebar": {
+        "title": "Workspace bar",
+        "description": "Show workspace list with downloads and settings buttons.",
+        "disabledHint": "Cannot disable workspace bar when the menu bar is disabled. App settings would become inaccessible."
+      },
+      "trayIcon": {
+        "title": "Tray icon",
+        "titleDarwin": "Menu bar extra",
+        "description": "Show tray icon on system tray. Instead of quitting, app is hidden to tray on close when enabled.",
+        "descriptionDarwin": "Show app icon in menu bar."
+      },
+      "availableBrowsers": {
+        "title": "Default browser",
+        "description": "Choose which browser to open external links in.",
+        "systemDefault": "System default",
+        "loading": "Loading browsers...",
+        "current": "Currently using:"
+      },
+      "telephonyServer": {
+        "title": "Telephony workspace",
+        "description": "Choose which workspace handles incoming phone calls (tel: and callto: links).",
+        "auto": "Auto (ask each time)"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Clear screen capture permissions",
+        "description": "Clear permissions even if “do not ask again” was previously selected for calling."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Allow screen capture on video calls",
+        "description": "Allow screen capture on video calls. Asks for permission on each video call."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM credentials",
+        "description": "Allow NTLM credentials to be used when connecting to a workspace.",
+        "domains": "Domains that will be used as the credentials. Separated by comma. Use * for match all servers."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Retain video call window position",
+        "description": "Remember position and size of video call window between sessions."
+      },
       "transparentWindow": {
         "title": "Genomskinlig fönstereffekt",
-        "description": "Aktivera inbyggd vibrans/genomskinlighetseffekt för fönstret. Kräver omstart för att tillämpa."
+        "description": "Aktivera inbyggd vibrans/genomskinlighetseffekt för fönstret.",
+        "hint": "Kräver omstart för att tillämpa."
       },
       "themeAppearance": {
         "title": "Tema",
@@ -18,7 +97,49 @@
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
+      },
+      "telephonyServer": {
+        "title": "Telefoniabálvá",
+        "description": "Vállje guđe bargosadji rahpasa go geavahat telefoniija oanehisboalu dahje tel: dahje callto: liŋkka.",
+        "auto": "Automáhtalaš (jeara juohke háve)"
+      },
+      "telephonyShortcut": {
+        "title": "Telefoniija globála oanehisboallu",
+        "description": "Geavat dán oanehisboalu gos fal vai Rocket.Chat boahtá ovdii ja telefoniija numerboallu rahpasa. Jus čuohpusis lea teaksta mii orru telefonnummirin, de Rocket.Chat deavdá dan ovdagihtii.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Deaddil boaluid...",
+        "save": "Vurke",
+        "clear": "Sálke",
+        "registered": "Oanehisboallu lea registrerejuvvon",
+        "reservedAccelerator": "{{accelerator}} lea Rocket.Chat dahje du operatiivavuogádaga várrejuvvon."
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook Calendar sync interval",
+        "description": "Frequency of calendar events update checks in minutes (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Verbose Outlook Calendar logging",
+        "description": "Enable detailed Exchange/NTLM debug logs for troubleshooting Outlook Calendar integration issues."
+      },
+      "detailedEventsLogging": {
+        "title": "Detailed events logging",
+        "description": "Log full event data exchanged between Outlook and Rocket.Chat during calendar sync. Useful for diagnosing sync issues."
+      },
+      "debugLogging": {
+        "title": "Verbose logging",
+        "description": "Writes all console output to the log file. When disabled, only errors and important messages are saved, keeping logs smaller and focused."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF preview size limit in encrypted rooms (MB)",
+        "description": "Encrypted files are loaded into memory for previews. Files larger than this limit will be downloaded directly."
       }
+    }
+  },
+  "dialog": {
+    "telephonySelectServer": {
+      "title": "Vállje bálvá",
+      "message": "Guđe bálvá galgá meannudit dán riŋgema?",
+      "rememberChoice": "Muitte dán válljema"
     }
   },
   "serverInfo": {

@@ -143,6 +143,11 @@
         "answerCall": "vastata puheluun",
         "recordMessage": "tallentaa viestin"
       }
+    },
+    "telephonySelectServer": {
+      "title": "Valitse palvelin",
+      "message": "Mikä palvelin käsittelee tämän puhelun?",
+      "rememberChoice": "Muista tämä valinta"
     }
   },
   "documentViewer": {
@@ -213,75 +218,142 @@
     }
   },
   "settings": {
-    "title": "Asetukset",
+    "title": "Sovelluksen asetukset",
     "general": "Yleiset",
     "certificates": "Varmenteet",
+    "sections": {
+      "appUi": "Sovelluksen käyttöliittymä",
+      "systemUi": "Järjestelmän käyttöliittymä",
+      "systemBehavior": "Järjestelmän toiminta",
+      "calling": "Puhelut",
+      "other": "Muut ja tekniset",
+      "logging": "Lokikirjaus"
+    },
     "options": {
       "report": {
-        "title": "Ilmoita virheistä kehittäjille",
-        "description": "Ilmoita virheistä kehittäjille nimettömästi. Jaettuja tietoja ovat mm. sovelluksen versionumero, käyttöjärjestelmän tyyppi, palvelimen URL-osoite, laitteen kieli ja virheen tyyppi. Sisältöä tai käyttäjätunnuksia ei jaeta.",
-        "masDescription": "Tämä ei ole käytössä, kun asennus on tehty Macin App Storesta. Virheistä ilmoitetaan Macin App Storen virheilmotusprosessilla."
+        "title": "Ilmoita virheistä Rocket.Chatille",
+        "description": "Ilmoita virheistä sovelluskehittäjille nimettömästi. Jaettuja tietoja ovat mm. sovelluksen versionumero, käyttöjärjestelmän tyyppi, työtilan URL-osoite, laitteen kieli ja virheen tyyppi. Sisältöä tai käyttäjätunnuksia ei jaeta.",
+        "masDescription": "Tämä ei ole käytössä, kun asennus on tehty Macin App Storesta. Virheistä ilmoitetaan Macin App Storen virheilmoitusprosessilla."
       },
       "flashFrame": {
-        "title": "Ota käyttöön Flash-kehys",
-        "titleDarwin": "Vaihda Dockin ponnahdusta hälytyksen yhteydessä",
-        "description": "Herättää käyttäjän huomion väläyttämällä ikkunaa.",
+        "title": "Väläytä kehys",
+        "titleDarwin": "Pompputa Dock-kuvaketta",
+        "description": "Väläyttää ikkunaa, kun uusi viesti saapuu.",
         "onLinux": "Jotkin Linux-jakelut eivät tue tätä ominaisuutta.",
-        "descriptionDarwin": "Herättää käyttäjän huomion ponnauttamalla sovelluskuvaketta Dockissa."
+        "descriptionDarwin": "Dock-kuvake pomppaa, kun uusi viesti saapuu."
       },
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
-        "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
+        "description": "Parantaa visuaalista renderöintiä ja suorituskykyä. Poista käytöstä, jos koet visuaalisia häiriöitä tai epävakautta.",
+        "hint": "Lataa sovelluksen uudelleen muutoksen yhteydessä."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Videopuhelujen varanäyttökaappaus",
-        "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
-        "forcedDescription": "Tällä hetkellä pakotettu, koska sovellus havaitsi RDP-istunnon. Vaihtoehto määrittää seuraavien paikallisten käynnistysten käytöksen."
+        "description": "Poistaa Windows Graphics Capture -tilan käytöstä, jotta näytön jakaminen toimii etätyöpöytäistunnoissa.",
+        "hint": "Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
+        "forcedDescription": "Tällä hetkellä pakotettu, koska sovellus havaitsi etätyöpöytäistunnon. Valitsin määrittää seuraavien paikallisten käynnistysten toiminnan."
       },
       "internalVideoChatWindow": {
-        "title": "Avaa videokeskustelu sovellusikkunaan",
-        "description": "Jos käytössä, videokeskustelu avautuu sovelluksen ikkunaan oletusselaimen sijaan. Kuitenkin <strong>Google Meet</strong> ja <strong>Jitsi</strong> -palveluissa ruuduntallennus ei ole tuettu Electron-sovelluksissa, joten ne avautuvat aina selaimessa tästä asetuksesta riippumatta.",
-        "masDescription": "Asetus ei ole käytössä, kun asennus on tehty Macin App Storesta. Suojaussyistä videokeskustelu avautuu oletusarvoisesti selaimeen."
+        "title": "Videopuhelut sovelluksessa",
+        "description": "Avaa videopuhelut sovelluksen ikkunassa selaimen sijaan. Google Meet- ja Jitsi-puhelut voidaan avata vain selaimessa.",
+        "masDescription": "Asetus ei ole käytössä, kun asennus on tehty Macin App Storesta. Suojaussyistä videopuhelut avautuvat oletusarvoisesti selaimeen."
       },
       "minimizeOnClose": {
         "title": "Pienennä suljettaessa",
-        "description": "Sovellus pienennetään suljettaessa, muutoin sovellus suljetaan. Ilmaisinalueen kuvakkeen on oltava poissa käytöstä, jotta tämä onnistuu."
+        "description": "Pienennä sovellus sulkematta sitä, kun sulkupainike painetaan.",
+        "disabledHint": "Ilmaisinalueen kuvake on poistettava käytöstä."
       },
       "menubar": {
         "title": "Valikkopalkki",
         "description": "Näytä valikkopalkki ikkunan yläreunassa.",
-        "disabledHint": "Valikkopalkkinsa poisto ei ole mahdollista, kun sivupalkki on pois käytöstä. Asetukset tulisivat saavuttamattomiksi."
+        "disabledHint": "Valikkopalkki ei voi olla pois käytöstä, kun työtilabalkki on pois käytöstä. Sovelluksen asetukset muuttuisivat saavuttamattomiksi."
       },
       "sidebar": {
-        "title": "Sivupalkki",
-        "description": "Näytä ikkunan vasemmassa reunassa sivupalkki, jossa näkyvät palvelinluettelo, lataukset ja asetukset.",
-        "disabledHint": "Sivupalkin poisto ei ole mahdollista, kun valikkopalkki on pois käytöstä. Asetukset tulisivat saavuttamattomiksi."
+        "title": "Työtilabalkki",
+        "description": "Näytä työtila­luettelo lataukset- ja asetukset-painikkeilla.",
+        "disabledHint": "Työtilabalkki ei voi olla pois käytöstä, kun valikkopalkki on pois käytöstä. Sovelluksen asetukset muuttuisivat saavuttamattomiksi."
       },
       "trayIcon": {
         "title": "Ilmaisinalueen kuvake",
-        "description": "Näytä ilmaisinalueen kuvake ilmaisinalueella. Jos ilmaisinalueen kuvake on käytössä, sovellus piilotetaan suljettaessa ilmaisinalueelle. Muutoin sovellus suljetaan."
+        "titleDarwin": "Valikkorivin lisäkuvake",
+        "description": "Näytä kuvake järjestelmän ilmaisinalueella. Kun käytössä, sovellus piilotetaan ilmaisinalueelle suljettaessa eikä sammuteta.",
+        "descriptionDarwin": "Näytä sovelluksen kuvake valikkorivissä."
       },
       "availableBrowsers": {
         "title": "Oletusselain",
-        "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta. Järjestelmän oletus käyttää käyttöjärjestelmäsi asetuksia.",
+        "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta.",
         "systemDefault": "Järjestelmän oletus",
         "loading": "Ladataan selaimia...",
         "current": "Käytössä nyt:"
       },
+      "telephonyServer": {
+        "title": "Puhelinpalvelin",
+        "description": "Valitse, mikä työtila avataan, kun käytät puhelutoiminnon pikanäppäintä tai tel:- tai callto:-linkkiä.",
+        "auto": "Automaattinen (kysy joka kerta)"
+      },
+      "telephonyShortcut": {
+        "title": "Puhelutoiminnon yleinen pikanäppäin",
+        "description": "Käytä tätä pikanäppäintä mistä tahansa tuodaksesi Rocket.Chatin etualalle ja avataksesi puhelutoiminnon numeronäppäimistön. Jos leikepöydälläsi on tekstiä, joka näyttää puhelinnumerolta, Rocket.Chat täyttää sen valmiiksi.",
+        "placeholder": "CommandOrControl+Shift+D",
+        "capturePlaceholder": "Paina näppäimiä...",
+        "save": "Tallenna",
+        "clear": "Tyhjennä",
+        "registered": "Pikanäppäin rekisteröity",
+        "reservedAccelerator": "{{accelerator}} on Rocket.Chatin tai käyttöjärjestelmäsi varaama."
+      },
       "clearPermittedScreenCaptureServers": {
-        "title": "Tyhjennä näyttökuvaoikeudet",
-        "description": "Tyhjennä valitut näyttökuvaoikeudet, joilla estettiin kysyminen uudelleen videopuheluissa."
+        "title": "Tyhjennä näyttökaappausoikeudet",
+        "description": "Tyhjennä oikeudet, vaikka “älä kysy uudelleen” olisi aiemmin valittu puheluiden yhteydessä."
       },
       "transparentWindow": {
         "title": "Läpinäkyvä ikkuna-efekti",
-        "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle. Vaatii uudelleenkäynnistyksen toimiakseen."
+        "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle.",
+        "hint": "Vaatii sovelluksen uudelleenkäynnistyksen."
       },
       "themeAppearance": {
         "title": "Teema",
-        "description": "Valitse sovelluksen väriteema.",
+        "description": "Sovelluksen väriteema.",
         "auto": "Seuraa järjestelmää",
         "light": "Vaalea",
         "dark": "Tumma"
+      },
+      "telephonyServer": {
+        "title": "Puhelintyötila",
+        "description": "Valitse työtila, joka käsittelee saapuvat puhelut (tel:- ja callto:-linkit).",
+        "auto": "Automaattinen (kysy aina)"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Salli näyttökaappaus videopuheluissa",
+        "description": "Sallii näyttökaappauksen videopuheluissa. Pyytää luvan jokaisen videopuhelun yhteydessä."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-tunnistautumistiedot",
+        "description": "Sallii NTLM-tunnistautumistietojen käytön työtilaan yhdistettäessä.",
+        "domains": "Toimialueet, joita käytetään tunnistautumistietoina. Pilkulla erotettu. Käytä * kaikkien palvelimien vastaamiseen."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Säilytä videopuheluikkunan sijainti",
+        "description": "Muistaa videopuheluikkunan sijainnin ja koon istuntojen välillä."
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Outlook-kalenterin synkronointiväli",
+        "description": "Kalenteritapahtumien päivitystarkistusten tiheys minuuteissa (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Yksityiskohtainen Outlook-kalenterin lokikirjaus",
+        "description": "Ottaa käyttöön yksityiskohtaiset Exchange/NTLM-virheenkorjauslokit Outlook-kalenterin integraatio-ongelmien selvittämiseksi."
+      },
+      "detailedEventsLogging": {
+        "title": "Yksityiskohtainen tapahtumalokikirjaus",
+        "description": "Kirjaa kaikki tapahtumatiedot, joita vaihdetaan Outlookin ja Rocket.Chatin välillä kalenterin synkronoinnin aikana. Hyödyllinen synkronointiongelmien diagnosoinnissa."
+      },
+      "debugLogging": {
+        "title": "Yksityiskohtainen lokikirjaus",
+        "description": "Kirjoittaa kaiken konsolitulosteen lokitiedostoon. Kun ei käytössä, vain virheet ja tärkeät viestit tallennetaan, pitäen lokit pienempinä ja kohdennetumpina."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "PDF-esikatselun kokoraja salatuissa huoneissa (Mt)",
+        "description": "Salatut tiedostot ladataan muistiin esikatselua varten. Tätä rajaa suuremmat tiedostot ladataan suoraan."
       }
     }
   },
@@ -309,7 +381,7 @@
     "disableGpu": "Poista grafiikkasuoritin käytöstä",
     "documentation": "Oppaat",
     "downloads": "Lataukset",
-    "settings": "Asetukset",
+    "settings": "Sovelluksen asetukset",
     "editMenu": "M&uokkaa",
     "fileMenu": "Tie&dosto",
     "forward": "V&älitä",
@@ -370,7 +442,7 @@
   "sidebar": {
     "addNewServer": "Lisää uusi palvelin",
     "downloads": "Lataukset",
-    "settings": "Asetukset",
+    "settings": "Sovelluksen asetukset",
     "item": {
       "reload": "Lataa palvelin uudelleen",
       "remove": "Poista palvelin",

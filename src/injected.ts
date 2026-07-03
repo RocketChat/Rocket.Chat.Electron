@@ -591,8 +591,16 @@ const start = async () => {
     console.log(
       '[Rocket.Chat Desktop] All modules finished loading attempts. Performing final setup and clearing backup interval.'
     );
-    setupReactiveFeatures();
-    clearInterval(setupInterval);
+    try {
+      setupReactiveFeatures();
+    } catch (error) {
+      console.error(
+        '[Rocket.Chat Desktop] Error during final setup:',
+        error
+      );
+    } finally {
+      clearInterval(setupInterval);
+    }
   });
 
   console.log('[Rocket.Chat Desktop] Injected');

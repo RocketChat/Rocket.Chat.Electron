@@ -155,11 +155,6 @@
     },
     "supportedVersion": {
       "title": "Versión de espacio de trabajo no admitida"
-    },
-    "telephonySelectServer": {
-      "title": "Seleccionar servidor",
-      "message": "¿Qué servidor debe gestionar esta llamada?",
-      "rememberChoice": "Recordar esta elección"
     }
   },
   "documentViewer": {
@@ -230,138 +225,88 @@
     }
   },
   "settings": {
-    "title": "Ajustes de la app",
+    "title": "Configuración",
     "general": "General",
     "certificates": "Certificados",
-    "sections": {
-      "appUi": "Interfaz de la app",
-      "systemUi": "Interfaz del sistema",
-      "systemBehavior": "Comportamiento del sistema",
-      "calling": "Llamadas",
-      "other": "Otros y técnico",
-      "logging": "Registros"
-    },
     "options": {
       "report": {
-        "title": "Informar errores a Rocket.Chat",
-        "description": "Informar errores de forma anónima a los desarrolladores. La información compartida incluye el número de versión de la aplicación, el tipo de sistema operativo, la URL del espacio de trabajo, el idioma del dispositivo y el tipo de error. No se comparten contenidos ni nombres de usuario.",
-        "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store. Los errores se informan a través del proceso de informe de errores de la Mac App Store."
+        "title": "Informar errores a los desarrolladores",
+        "description": "Informar errores de forma anónima a los desarrolladores. La información compartida incluye el número de versión de la aplicación, el tipo de sistema operativo, la URL del servidor, el idioma del dispositivo y el tipo de error. No se comparten contenidos ni nombres de usuario.",
+        "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store; los errores se informarán a través del proceso de informe de errores de la Mac App Store."
       },
       "flashFrame": {
-        "title": "Destello de ventana",
-        "titleDarwin": "Rebotar icono del Dock",
-        "description": "Hace destellar la ventana cuando se recibe un nuevo mensaje.",
+        "title": "Habilitar destello de ventana",
+        "titleDarwin": "Alternar rebote del Dock en alerta",
+        "description": "Hace destellar la ventana para atraer la atención del usuario.",
         "onLinux": "Algunas distribuciones de Linux no admiten esta función.",
-        "descriptionDarwin": "El icono del Dock rebota cuando se recibe un nuevo mensaje."
+        "descriptionDarwin": "Hace rebotar el icono de la aplicación en el dock para atraer la atención del usuario."
       },
       "hardwareAcceleration": {
         "title": "Aceleración de hardware",
-        "description": "Mejora el renderizado visual y el rendimiento. Desactívala si experimentas fallos visuales o inestabilidad.",
-        "hint": "Recarga la app al cambiar."
+        "description": "Habilita el uso de la aceleración de hardware cuando esté disponible. La aplicación se reiniciará al realizar cambios."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Modo alternativo de captura en videollamadas",
-        "description": "Desactiva Windows Graphics Capture para que el uso compartido de pantalla funcione en sesiones de Escritorio Remoto.",
-        "hint": "La app se reinicia cuando se cambia esta opción.",
-        "forcedDescription": "Actualmente está aplicado porque la app detectó una sesión de Escritorio Remoto. El interruptor controla el comportamiento en siguientes arranques locales."
+        "description": "Desactiva Windows Graphics Capture para que el uso compartido funcione en sesiones RDP. La app se reinicia cuando cambias esta opción.",
+        "forcedDescription": "Actualmente está aplicado porque la app detectó una sesión RDP. El interruptor controla el comportamiento en siguientes arranques locales."
       },
       "internalVideoChatWindow": {
-        "title": "Videollamadas dentro de la app",
-        "description": "Abrir videollamadas en la ventana de la app en lugar del navegador. Las llamadas de Google Meet y Jitsi solo pueden abrirse en el navegador.",
-        "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store. Por razones de seguridad, las videollamadas siempre se abren en el navegador de forma predeterminada."
+        "title": "Abrir videollamada en la ventana de la aplicación",
+        "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong> y <strong>Jitsi</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirán en el navegador independientemente de esta configuración.",
+        "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store; por razones de seguridad, las videollamadas se abrirán en el navegador de forma predeterminada."
       },
       "minimizeOnClose": {
         "title": "Minimizar al cerrar",
-        "description": "Minimizar la app y no cerrarla al hacer clic en el botón de cerrar.",
-        "disabledHint": "El icono de la bandeja debe estar desactivado."
+        "description": "Cuando se cierra la aplicación, se minimiza en lugar de cerrarse por completo. El icono de la bandeja debe estar desactivado para que esto surta efecto."
       },
       "menubar": {
         "title": "Barra de menú",
         "description": "Mostrar la barra de menú en la parte superior de la ventana.",
-        "disabledHint": "No se puede desactivar la barra de menú cuando la barra de espacios de trabajo está desactivada. Los ajustes de la app serían inaccesibles."
+        "disabledHint": "No se puede desactivar la barra de menú cuando la barra lateral está desactivada. La configuración sería inaccesible."
       },
       "sidebar": {
-        "title": "Barra de espacios de trabajo",
-        "description": "Mostrar la lista de espacios de trabajo con botones de descargas y ajustes.",
-        "disabledHint": "No se puede desactivar la barra de espacios de trabajo cuando la barra de menú está desactivada. Los ajustes de la app serían inaccesibles."
+        "title": "Barra lateral",
+        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración.",
+        "disabledHint": "No se puede desactivar la barra lateral cuando la barra de menú está desactivada. La configuración sería inaccesible."
       },
       "trayIcon": {
         "title": "Icono de la bandeja",
-        "titleDarwin": "Extra en la barra de menú",
-        "description": "Mostrar el icono de la app en la bandeja del sistema. Al cerrarse, la app se oculta a la bandeja en lugar de salir cuando está activado.",
-        "descriptionDarwin": "Mostrar el icono de la app en la barra de menú."
+        "description": "Muestra un icono en la bandeja del sistema. Si el icono de la bandeja está activo, la aplicación se minimizará a la bandeja al cerrarla. De lo contrario, cerrará la aplicación."
       },
       "availableBrowsers": {
-        "title": "Navegador predeterminado",
-        "description": "Elige qué navegador abrirá los enlaces externos.",
-        "systemDefault": "Predeterminado del sistema",
+        "title": "Navegador Predeterminado",
+        "description": "Elija qué navegador abrirá los enlaces externos de esta aplicación. Predeterminado del Sistema usa la configuración de su sistema operativo.",
+        "systemDefault": "Predeterminado del Sistema",
         "loading": "Cargando navegadores...",
         "current": "Usando actualmente:"
       },
-      "telephonyServer": {
-        "title": "Espacio de trabajo de telefonía",
-        "description": "Elige qué espacio de trabajo gestiona las llamadas telefónicas entrantes (enlaces tel: y callto:).",
-        "auto": "Automático (preguntar cada vez)"
-      },
-      "telephonyShortcut": {
-        "title": "Atajo global de telefonía",
-        "description": "Usa este atajo desde cualquier lugar para traer Rocket.Chat al frente y abrir el teclado de marcado de telefonía. Si tu portapapeles contiene texto que parece un número de teléfono, Rocket.Chat lo completará automáticamente.",
-        "placeholder": "CommandOrControl+Shift+D",
-        "capturePlaceholder": "Presiona las teclas...",
-        "save": "Guardar",
-        "clear": "Borrar",
-        "registered": "Atajo registrado",
-        "reservedByApp": "{{accelerator}} ya está en uso por Rocket.Chat. Elige otra combinación.",
-        "reservedByOS": "{{accelerator}} está reservado por tu sistema operativo. Elige otra combinación."
-      },
       "clearPermittedScreenCaptureServers": {
         "title": "Borrar permisos de captura de pantalla",
-        "description": "Borrar los permisos aunque se haya seleccionado «no volver a preguntar» anteriormente para las llamadas."
+        "description": "Borrar los permisos de captura de pantalla que se seleccionaron para no volver a preguntar en las videollamadas."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Permitir captura de pantalla en videollamadas",
-        "description": "Permitir la captura de pantalla en videollamadas. Solicita permiso en cada videollamada."
+        "description": "Permitir la captura de pantalla en videollamadas. Esto solicitará permiso en cada videollamada."
       },
       "ntlmCredentials": {
         "title": "Credenciales NTLM",
-        "description": "Permitir que se utilicen las credenciales NTLM al conectarse a un espacio de trabajo.",
-        "domains": "Dominios que utilizarán las credenciales. Separados por coma. Use * para coincidir con todos los servidores."
+        "description": "Permitir que se utilicen las credenciales NTLM al conectarse a un servidor.",
+        "domains": "Dominios que utilizarán las credenciales. Separados por coma. Use * para coincidir con todos los dominios."
       },
       "videoCallWindowPersistence": {
-        "title": "Conservar posición de la ventana de videollamada",
-        "description": "Recordar la posición y el tamaño de la ventana de videollamada entre sesiones."
+        "title": "Recordar posición de la ventana de videollamada",
+        "description": "Guardar y restaurar la posición y el tamaño de las ventanas de videollamada entre sesiones"
       },
       "transparentWindow": {
         "title": "Efecto de ventana transparente",
-        "description": "Activar el efecto nativo de vibración en la ventana de la app.",
-        "hint": "Requiere reinicio."
+        "description": "Habilitar efecto nativo de vibración/transparencia para la ventana. Requiere reinicio para aplicar."
       },
       "themeAppearance": {
         "title": "Tema",
-        "description": "Tema de color de la app.",
+        "description": "Elige el tema de color para la aplicación.",
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Oscuro"
-      },
-      "outlookCalendarSyncInterval": {
-        "title": "Intervalo de sincronización del Calendario de Outlook",
-        "description": "Frecuencia de comprobación de actualizaciones de eventos del calendario en minutos (1–60)."
-      },
-      "verboseOutlookLogging": {
-        "title": "Registro detallado del Calendario de Outlook",
-        "description": "Activar registros de depuración detallados de Exchange/NTLM para diagnosticar problemas de integración con el Calendario de Outlook."
-      },
-      "detailedEventsLogging": {
-        "title": "Registro detallado de eventos",
-        "description": "Registrar los datos completos de eventos intercambiados entre Outlook y Rocket.Chat durante la sincronización del calendario. Útil para diagnosticar problemas de sincronización."
-      },
-      "debugLogging": {
-        "title": "Registro detallado",
-        "description": "Escribe toda la salida de consola en el archivo de registro. Cuando está desactivado, solo se guardan los errores y mensajes importantes, manteniendo los registros más pequeños y enfocados."
-      },
-      "e2ePdfPreviewSizeLimit": {
-        "title": "Límite de tamaño de vista previa de PDF en salas cifradas (MB)",
-        "description": "Los archivos cifrados se cargan en memoria para las vistas previas. Los archivos que superen este límite se descargarán directamente."
       }
     }
   },
@@ -390,7 +335,7 @@
     "disableGpu": "Deshabilitar GPU",
     "documentation": "Documentación",
     "downloads": "Descargas",
-    "settings": "Ajustes de la app",
+    "settings": "Configuración",
     "editMenu": "&Editar",
     "fileMenu": "&Archivo",
     "forward": "&Avanzar",
@@ -456,7 +401,7 @@
   "sidebar": {
     "addNewServer": "Agregar nuevo servidor",
     "downloads": "Descargas",
-    "settings": "Ajustes de la app",
+    "settings": "Configuración",
     "item": {
       "reload": "Recargar servidor",
       "remove": "Eliminar servidor",

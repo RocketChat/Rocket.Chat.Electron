@@ -101,6 +101,19 @@ describe('mergePersistableValues', () => {
 
       await mergePersistableValues(localStorage);
 
+      // eslint-disable-next-line no-console
+      console.error(
+        'DIAG select.mock.results[0]:',
+        JSON.stringify(mockSelect.mock.results[0])
+      );
+      // eslint-disable-next-line no-console
+      console.error('DIAG process.platform:', process.platform);
+      // eslint-disable-next-line no-console
+      console.error(
+        'DIAG dispatch payload:',
+        JSON.stringify(mockDispatch.mock.calls[0]?.[0]?.payload)
+      );
+
       expect(mockDispatch).toHaveBeenCalledWith({
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({

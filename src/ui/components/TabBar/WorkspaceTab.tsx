@@ -10,6 +10,7 @@ import {
 } from '../../actions';
 import { isDarwin } from '../../utils/platform';
 import { TooltipContext } from '../utils/TooltipContext';
+import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
 import { Favicon, Initials, Label, ShortcutChip, Tab } from './styles';
 
@@ -110,8 +111,10 @@ const WorkspaceTab = ({
   return (
     <Tab
       ref={ref}
+      id={getServerTabId(url)}
       role='tab'
       aria-selected={isSelected}
+      aria-controls={getServerPanelId(url)}
       tabIndex={tabIndex}
       isSelected={isSelected}
       title={tooltipText}

@@ -92,6 +92,36 @@ const createQuitMenuItem = (): MenuItemConstructorOptions => ({
   },
 });
 
+const selectAdjacentServer = async (
+  servers: RootState['servers'],
+  currentView: RootState['currentView'],
+  direction: 1 | -1
+): Promise<void> => {
+  if (servers.length === 0) {
+    return;
+  }
+
+  const currentIndex =
+    typeof currentView === 'object'
+      ? servers.findIndex((server) => server.url === currentView.url)
+      : -1;
+  const nextIndex =
+    currentIndex === -1
+      ? 0
+      : (currentIndex + direction + servers.length) % servers.length;
+
+  const browserWindow = await getRootWindow();
+
+  if (!browserWindow.isVisible()) {
+    browserWindow.showInactive();
+  }
+  browserWindow.focus();
+  dispatch({
+    type: MENU_BAR_SELECT_SERVER_CLICKED,
+    payload: servers[nextIndex].url,
+  });
+};
+
 export const createAppMenu = createSelector(
   selectAddServersDeps,
   ({ isAddNewServersEnabled }): MenuItemConstructorOptions => ({
@@ -512,6 +542,24 @@ export const createWindowMenu = createSelector(
             },
           })
         ),
+        {
+          id: 'nextWorkspace',
+          label: t('menus.nextWorkspace'),
+          visible: false,
+          accelerator: 'CommandOrControl+Tab',
+          click: async () => {
+            await selectAdjacentServer(servers, currentView, 1);
+          },
+        },
+        {
+          id: 'previousWorkspace',
+          label: t('menus.previousWorkspace'),
+          visible: false,
+          accelerator: 'CommandOrControl+Shift+Tab',
+          click: async () => {
+            await selectAdjacentServer(servers, currentView, -1);
+          },
+        },
         { type: 'separator' },
       ]),
       {

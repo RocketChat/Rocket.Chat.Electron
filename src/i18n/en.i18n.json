@@ -451,6 +451,8 @@
     "toggleDevTools": "Toggle &DevTools",
     "workspaceTabs": "Workspace Tabs",
     "workspaceBar": "Workspace Bar",
+    "nextWorkspace": "Next Workspace",
+    "previousWorkspace": "Previous Workspace",
     "openConfigFolder": "Open &Configuration Folder",
     "openLogViewer": "Open &Log Viewer",
     "videoCallDevTools": "Open Video Call &DevTools",

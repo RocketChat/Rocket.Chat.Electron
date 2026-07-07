@@ -54,4 +54,39 @@ describe('MeatballMenuButton', () => {
     const button = screen.getByRole('button', { name: 'tabBar.meatballMenu' });
     expect(button).toHaveAttribute('aria-haspopup', 'menu');
   });
+
+  it('opens the menu on a solo Alt key press', () => {
+    renderWithStore(<MeatballMenuButton />);
+
+    const button = screen.getByRole('button', { name: 'tabBar.meatballMenu' });
+    jest.spyOn(button, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      bottom: 32,
+      top: 0,
+      right: 0,
+      width: 0,
+      height: 0,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: APP_MENU_TRIGGERED,
+      payload: { x: 0, y: 32 },
+    });
+  });
+
+  it('does not open the menu when Alt is used as a modifier for another key', () => {
+    renderWithStore(<MeatballMenuButton />);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
 });

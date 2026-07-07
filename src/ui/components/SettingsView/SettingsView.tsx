@@ -1,12 +1,10 @@
-import { Box, IconButton, Scrollable, Tabs } from '@rocket.chat/fuselage';
+import { Box, Scrollable, Tabs } from '@rocket.chat/fuselage';
 import '@rocket.chat/fuselage-polyfills';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
-import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import { CertificatesTab } from './CertificatesTab';
 import { DeveloperTab } from './DeveloperTab';
 import { GeneralTab } from './GeneralTab';
@@ -20,14 +18,6 @@ export const SettingsView = () => {
 
   const [currentTab, setCurrentTab] = useState('general');
 
-  const isSideBarEnabled = useSelector(
-    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
-  );
-
-  const lastSelectedServerUrl = useSelector(
-    ({ lastSelectedServerUrl }: RootState) => lastSelectedServerUrl
-  );
-
   const isDeveloperModeEnabled = useSelector(
     ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
   );
@@ -38,12 +28,6 @@ export const SettingsView = () => {
     }
   }, [isDeveloperModeEnabled, currentTab]);
 
-  const handleBackButton = function (): void {
-    dispatch({
-      type: DOWNLOADS_BACK_BUTTON_CLICKED,
-      payload: lastSelectedServerUrl,
-    });
-  };
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
@@ -66,14 +50,6 @@ export const SettingsView = () => {
         fontScale='h1'
         color='default'
       >
-        {!isSideBarEnabled && (
-          <IconButton
-            icon='arrow-back'
-            onClick={handleBackButton}
-            mie='x8'
-            aria-label={t('documentViewer.back')}
-          />
-        )}
         {t('settings.title')}
       </Box>
 

@@ -1,6 +1,5 @@
 import DownloadsManagerView from '.';
 import type { Download } from '../../../downloads/common';
-import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import { renderWithStore, screen, userEvent } from '../../test-utils';
 
 // The filter values are persisted through fuselage's `useLocalStorage`, which
@@ -64,8 +63,6 @@ const makeDownload = (overrides: Partial<Download>): Download => ({
 
 const visibleState = {
   currentView: 'downloads',
-  isSideBarEnabled: false,
-  lastSelectedServerUrl: 'https://chat.example.com',
   downloads: {},
 } as any;
 
@@ -168,42 +165,6 @@ describe('DownloadsManagerView', () => {
       expect(search.value).toBe('');
       expect(screen.getByTestId('download-item-1')).toBeInTheDocument();
       expect(screen.getByTestId('download-item-2')).toBeInTheDocument();
-    });
-  });
-
-  describe('back button', () => {
-    // The back IconButton renders only its `arrow-back` icon with no `title` /
-    // `aria-label`, so it has no accessible name and cannot be queried by role
-    // name. It is located through the rendered icon's button ancestor instead.
-    // (Component a11y gap: the back button should expose an accessible label —
-    // flagged, not changed here.)
-    const getBackButton = (container: HTMLElement): HTMLButtonElement | null =>
-      container
-        .querySelector('.rcx-icon--name-arrow-back')
-        ?.closest('button') ?? null;
-
-    it('renders the back button and dispatches on click when the sidebar is disabled', async () => {
-      const user = userEvent.setup();
-      const { container } = renderWithStore(<DownloadsManagerView />, {
-        preloadedState: { ...visibleState, isSideBarEnabled: false },
-      });
-
-      const backButton = getBackButton(container);
-      expect(backButton).not.toBeNull();
-      await user.click(backButton as HTMLButtonElement);
-
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: DOWNLOADS_BACK_BUTTON_CLICKED,
-        payload: 'https://chat.example.com',
-      });
-    });
-
-    it('hides the back button when the sidebar is enabled', () => {
-      const { container } = renderWithStore(<DownloadsManagerView />, {
-        preloadedState: { ...visibleState, isSideBarEnabled: true },
-      });
-
-      expect(getBackButton(container)).toBeNull();
     });
   });
 });

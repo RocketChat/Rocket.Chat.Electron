@@ -25,6 +25,7 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   OPEN_SERVER_INFO_MODAL,
 } from '../../actions';
+import { getServerInitials } from '../utils/getServerInitials';
 import ServerInfoDropdown from './ServerInfoDropdown';
 import { Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
@@ -101,16 +102,7 @@ const ServerButton = ({
       target: serverInfoTarget,
     });
 
-  const initials = useMemo(
-    () =>
-      title
-        ?.replace(url, new URL(url).hostname ?? '')
-        ?.split(/[^A-Za-z0-9]+/g)
-        ?.slice(0, 2)
-        ?.map((text) => text.slice(0, 1).toUpperCase())
-        ?.join(''),
-    [title, url]
-  );
+  const initials = useMemo(() => getServerInitials(title, url), [title, url]);
 
   const handleActionDropdownClick = (
     action: ServerActionType,

@@ -17,6 +17,7 @@ describe('mergePersistableValues', () => {
   const mockInitialValues = {
     isMenuBarEnabled: true,
     isSideBarEnabled: true,
+    navigationLayout: 'tabs' as const,
     rootWindowState: {
       focused: true,
       visible: true,
@@ -49,34 +50,29 @@ describe('mergePersistableValues', () => {
     }));
   });
 
-  describe('menubar and sidebar recovery mechanism', () => {
-    it('should enable sidebar when both menubar and sidebar are disabled', async () => {
+  describe('menubar recovery mechanism', () => {
+    const originalPlatform = process.platform;
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', {
+        value: originalPlatform,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('should enable menubar on Linux when in tabs layout with menubar disabled', async () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        writable: true,
+        configurable: true,
+      });
       const localStorage = {};
 
       mockSelect.mockReturnValueOnce({
         ...mockInitialValues,
         isMenuBarEnabled: false,
-        isSideBarEnabled: false,
-      });
-
-      await mergePersistableValues(localStorage);
-
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: APP_SETTINGS_LOADED,
-        payload: expect.objectContaining({
-          isMenuBarEnabled: false,
-          isSideBarEnabled: true,
-        }),
-      });
-    });
-
-    it('should not modify settings when menubar is enabled and sidebar is disabled', async () => {
-      const localStorage = {};
-
-      mockSelect.mockReturnValueOnce({
-        ...mockInitialValues,
-        isMenuBarEnabled: true,
-        isSideBarEnabled: false,
+        navigationLayout: 'tabs',
       });
 
       await mergePersistableValues(localStorage);
@@ -85,18 +81,22 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isMenuBarEnabled: true,
-          isSideBarEnabled: false,
         }),
       });
     });
 
-    it('should not modify settings when sidebar is enabled and menubar is disabled', async () => {
+    it('should not modify settings on Linux when in sidebar layout with menubar disabled', async () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        writable: true,
+        configurable: true,
+      });
       const localStorage = {};
 
       mockSelect.mockReturnValueOnce({
         ...mockInitialValues,
         isMenuBarEnabled: false,
-        isSideBarEnabled: true,
+        navigationLayout: 'sidebar',
       });
 
       await mergePersistableValues(localStorage);
@@ -105,18 +105,46 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isMenuBarEnabled: false,
-          isSideBarEnabled: true,
         }),
       });
     });
 
-    it('should not modify settings when both menubar and sidebar are enabled', async () => {
+    it('should not modify settings on non-Linux platforms when in tabs layout with menubar disabled', async () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        writable: true,
+        configurable: true,
+      });
+      const localStorage = {};
+
+      mockSelect.mockReturnValueOnce({
+        ...mockInitialValues,
+        isMenuBarEnabled: false,
+        navigationLayout: 'tabs',
+      });
+
+      await mergePersistableValues(localStorage);
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isMenuBarEnabled: false,
+        }),
+      });
+    });
+
+    it('should not modify settings when menubar is already enabled', async () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        writable: true,
+        configurable: true,
+      });
       const localStorage = {};
 
       mockSelect.mockReturnValueOnce({
         ...mockInitialValues,
         isMenuBarEnabled: true,
-        isSideBarEnabled: true,
+        navigationLayout: 'sidebar',
       });
 
       await mergePersistableValues(localStorage);
@@ -125,7 +153,6 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isMenuBarEnabled: true,
-          isSideBarEnabled: true,
         }),
       });
     });
@@ -149,7 +176,7 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isMenuBarEnabled: false,
-          isSideBarEnabled: true,
+          isSideBarEnabled: false,
         }),
       });
     });
@@ -172,7 +199,7 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isMenuBarEnabled: false,
-          isSideBarEnabled: true,
+          isSideBarEnabled: false,
         }),
       });
     });

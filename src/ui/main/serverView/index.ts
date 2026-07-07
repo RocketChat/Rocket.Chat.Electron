@@ -28,6 +28,7 @@ import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_READY,
@@ -555,6 +556,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
     const { payload: serverUrl } = action;
+    const isAddNewServersEnabled = select(
+      ({ isAddNewServersEnabled }) => isAddNewServersEnabled
+    );
 
     const menuTemplate: MenuItemConstructorOptions[] = [
       {
@@ -613,6 +617,17 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           });
         },
       },
+      ...(isAddNewServersEnabled
+        ? [
+            { type: 'separator' as const },
+            {
+              label: t('sidebar.item.addWorkspace'),
+              click: () => {
+                dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
+              },
+            },
+          ]
+        : []),
     ];
     const menu = Menu.buildFromTemplate(menuTemplate);
     menu.popup({

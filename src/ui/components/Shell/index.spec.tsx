@@ -52,6 +52,37 @@ jest.mock('../TopBar', () => ({
   TopBar: () => <div data-testid='top-bar' />,
 }));
 
+jest.mock('../TabBar', () => ({
+  __esModule: true,
+  TabBar: ({
+    leadingSlot,
+    trailingSlot,
+  }: {
+    leadingSlot?: React.ReactNode;
+    trailingSlot?: React.ReactNode;
+  }) => (
+    <div data-testid='tab-bar'>
+      {leadingSlot}
+      {trailingSlot}
+    </div>
+  ),
+}));
+
+jest.mock('../TabBar/MeatballMenuButton', () => ({
+  __esModule: true,
+  MeatballMenuButton: () => <div data-testid='meatball-menu-button' />,
+}));
+
+jest.mock('../TabBar/WindowControls', () => ({
+  __esModule: true,
+  WindowControls: () => <div data-testid='window-controls' />,
+}));
+
+jest.mock('../TabBar/WindowsTitleBar', () => ({
+  __esModule: true,
+  WindowsTitleBar: () => <div data-testid='windows-title-bar' />,
+}));
+
 jest.mock('../AboutDialog', () => ({
   __esModule: true,
   AboutDialog: () => <div data-testid='about-dialog' />,
@@ -135,8 +166,22 @@ const buildState = (overrides: Record<string, unknown> = {}) =>
     machineTheme: 'light',
     userThemePreference: 'auto',
     isTransparentWindowEnabled: false,
+    navigationLayout: 'sidebar',
     ...overrides,
   }) as any;
+
+const setPlatform = (platform: NodeJS.Platform): (() => void) => {
+  const original = process.platform;
+  Object.defineProperty(process, 'platform', {
+    value: platform,
+    configurable: true,
+  });
+  return () =>
+    Object.defineProperty(process, 'platform', {
+      value: original,
+      configurable: true,
+    });
+};
 
 describe('Shell', () => {
   it('renders the layout and its primary views without crashing', () => {
@@ -220,5 +265,76 @@ describe('Shell', () => {
       'link[href$="/app/icons/rocketchat.css"]'
     );
     expect(link).not.toBeInTheDocument();
+  });
+
+  it('renders the sidebar layout (SideBar + TopBar, no TabBar) when navigationLayout is sidebar', () => {
+    renderWithStore(<Shell />, {
+      preloadedState: buildState({ navigationLayout: 'sidebar' }),
+    });
+
+    expect(screen.getByTestId('side-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+  });
+
+  it('renders the tabs layout (TabBar, no TopBar/WindowDragBar) when navigationLayout is tabs', () => {
+    renderWithStore(<Shell />, {
+      preloadedState: buildState({ navigationLayout: 'tabs' }),
+    });
+
+    expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('top-bar')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('window-drag-bar')).not.toBeInTheDocument();
+  });
+
+  describe('win32 chrome', () => {
+    let restorePlatform: () => void;
+
+    afterEach(() => {
+      restorePlatform?.();
+    });
+
+    it('mounts the meatball menu and window controls as TabBar slots when navigationLayout is tabs', () => {
+      restorePlatform = setPlatform('win32');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'tabs' }),
+      });
+
+      expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+      expect(screen.queryByTestId('windows-title-bar')).not.toBeInTheDocument();
+    });
+
+    it('renders WindowsTitleBar (no meatball/window-controls slots, no TopBar) when navigationLayout is sidebar', () => {
+      restorePlatform = setPlatform('win32');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'sidebar' }),
+      });
+
+      expect(screen.getByTestId('windows-title-bar')).toBeInTheDocument();
+      expect(screen.queryByTestId('top-bar')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('meatball-menu-button')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+    });
+
+    it('does not mount win32 chrome on darwin', () => {
+      restorePlatform = setPlatform('darwin');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'tabs' }),
+      });
+
+      expect(
+        screen.queryByTestId('meatball-menu-button')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('windows-title-bar')).not.toBeInTheDocument();
+    });
   });
 });

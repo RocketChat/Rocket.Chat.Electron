@@ -7,9 +7,9 @@ import { HardwareAcceleration } from './features/HardwareAcceleration';
 import { MenuBar } from './features/MenuBar';
 import { MinimizeOnClose } from './features/MinimizeOnClose';
 import { NTLMCredentials } from './features/NTLMCredentials';
+import { NavigationLayout } from './features/NavigationLayout';
 import { OutlookCalendarSyncInterval } from './features/OutlookCalendarSyncInterval';
 import { ReportErrors } from './features/ReportErrors';
-import { SideBar } from './features/SideBar';
 import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
@@ -22,7 +22,7 @@ export const GeneralTab = () => {
     <Box display='flex' justifyContent='center' p='x24'>
       <Box is='form' width='x600' maxWidth='full'>
         <FieldGroup>
-          <SideBar />
+          <NavigationLayout />
           <ThemeAppearance />
         </FieldGroup>
 
@@ -30,7 +30,7 @@ export const GeneralTab = () => {
           {isDarwin && <TransparentWindow />}
           <TrayIcon />
           {isWin32 && <MinimizeOnClose />}
-          {!isDarwin && <MenuBar />}
+          {!isDarwin && !isWin32 && <MenuBar />}
           <FlashFrame />
         </FieldGroup>
 

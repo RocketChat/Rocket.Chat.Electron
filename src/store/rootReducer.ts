@@ -50,6 +50,7 @@ import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDe
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
 import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
+import { navigationLayout } from '../ui/reducers/navigationLayout';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
@@ -88,6 +89,7 @@ export const rootReducer = combineReducers({
   isMessageBoxFocused,
   isShowWindowOnUnreadChangedEnabled,
   isSideBarEnabled,
+  navigationLayout,
   isTrayIconEnabled,
   isMinimizeOnCloseEnabled,
   isUpdatingAllowed,

@@ -21,9 +21,7 @@ import { useSelector } from 'react-redux';
 
 import type { Download } from '../../../downloads/common';
 import { DownloadStatus } from '../../../downloads/common';
-import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
-import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView = () => {
@@ -34,14 +32,6 @@ const DownloadsManagerView = () => {
   const [searchFilter, setSearchFilter] = useLocalStorage(
     'download-search',
     ''
-  );
-
-  const isSideBarEnabled = useSelector(
-    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
-  );
-
-  const lastSelectedServerUrl = useSelector(
-    ({ lastSelectedServerUrl }: RootState) => lastSelectedServerUrl
   );
 
   const handleSearchFilterChange = useCallback(
@@ -200,13 +190,6 @@ const DownloadsManagerView = () => {
     }
   }, [currentPagination, downloads.length]);
 
-  const handleBackButton = function (): void {
-    dispatch({
-      type: DOWNLOADS_BACK_BUTTON_CLICKED,
-      payload: lastSelectedServerUrl,
-    });
-  };
-
   return (
     <Box
       className='rcx-sidebar--main'
@@ -227,14 +210,6 @@ const DownloadsManagerView = () => {
         flexWrap='nowrap'
         alignItems='center'
       >
-        {!isSideBarEnabled && (
-          <IconButton
-            icon='arrow-back'
-            onClick={handleBackButton}
-            mie='x8'
-            aria-label={t('documentViewer.back')}
-          />
-        )}
         <Box is='div' color='default' fontScale='h1'>
           {t('downloads.title')}
         </Box>

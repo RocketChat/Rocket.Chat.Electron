@@ -15,4 +15,24 @@ describe('PersistableValues migrations', () => {
       },
     });
   });
+
+  it('preserves a persisted navigationLayout value', () => {
+    const before = {
+      navigationLayout: 'sidebar',
+    } as unknown as Parameters<(typeof migrations)['>=4.16.0']>[0];
+
+    expect(migrations['>=4.16.0'](before)).toEqual(
+      expect.objectContaining({ navigationLayout: 'sidebar' })
+    );
+  });
+
+  it('defaults navigationLayout to tabs when absent', () => {
+    const before = {} as unknown as Parameters<
+      (typeof migrations)['>=4.16.0']
+    >[0];
+
+    expect(migrations['>=4.16.0'](before)).toEqual(
+      expect.objectContaining({ navigationLayout: 'tabs' })
+    );
+  });
 });

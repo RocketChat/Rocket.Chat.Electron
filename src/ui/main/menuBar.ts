@@ -9,17 +9,19 @@ import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
+import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../updates/actions';
 import * as urls from '../../urls';
 import { openExternal } from '../../utils/browserLauncher';
 import { openVideoCallWebviewDevTools } from '../../videoCallWindow/ipc';
 import {
+  APP_MENU_TRIGGERED,
   CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
+  MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
@@ -43,26 +45,61 @@ const selectAddServersDeps = createStructuredSelector({
     isAddNewServersEnabled,
 });
 
-const createAppMenu = createSelector(
+const createAboutMenuItem = (): MenuItemConstructorOptions => ({
+  id: 'about',
+  label: t('menus.about', { appName: app.name }),
+  click: async () => {
+    const browserWindow = await getRootWindow();
+
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
+    }
+    browserWindow.focus();
+    dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+  },
+});
+
+const createAddNewServerMenuItem = (): MenuItemConstructorOptions => ({
+  id: 'addNewServer',
+  label: t('menus.addNewServer'),
+  accelerator: 'CommandOrControl+N',
+  click: async () => {
+    const browserWindow = await getRootWindow();
+
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
+    }
+    browserWindow.focus();
+    dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
+  },
+});
+
+const createDisableGpuMenuItem = (): MenuItemConstructorOptions => ({
+  id: 'disableGpu',
+  label: t('menus.disableGpu'),
+  enabled: !app.commandLine.hasSwitch('disable-gpu'),
+  click: () => {
+    relaunchApp('--disable-gpu');
+  },
+});
+
+const createQuitMenuItem = (): MenuItemConstructorOptions => ({
+  id: 'quit',
+  label: t('menus.quit', { appName: app.name }),
+  accelerator: 'CommandOrControl+Q',
+  click: () => {
+    app.quit();
+  },
+});
+
+export const createAppMenu = createSelector(
   selectAddServersDeps,
   ({ isAddNewServersEnabled }): MenuItemConstructorOptions => ({
     id: 'appMenu',
     label: process.platform === 'darwin' ? app.name : t('menus.fileMenu'),
     submenu: [
       ...on(process.platform === 'darwin', () => [
-        {
-          id: 'about',
-          label: t('menus.about', { appName: app.name }),
-          click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
-            dispatch({ type: MENU_BAR_ABOUT_CLICKED });
-          },
-        },
+        createAboutMenuItem(),
         { type: 'separator' },
         {
           id: 'services',
@@ -88,44 +125,17 @@ const createAppMenu = createSelector(
         { type: 'separator' },
       ]),
       ...on(process.platform !== 'darwin' && isAddNewServersEnabled, () => [
-        {
-          id: 'addNewServer',
-          label: t('menus.addNewServer'),
-          accelerator: 'CommandOrControl+N',
-          click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
-            dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
-          },
-        },
+        createAddNewServerMenuItem(),
         { type: 'separator' },
       ]),
-      {
-        id: 'disableGpu',
-        label: t('menus.disableGpu'),
-        enabled: !app.commandLine.hasSwitch('disable-gpu'),
-        click: () => {
-          relaunchApp('--disable-gpu');
-        },
-      },
+      createDisableGpuMenuItem(),
       { type: 'separator' },
-      {
-        id: 'quit',
-        label: t('menus.quit', { appName: app.name }),
-        accelerator: 'CommandOrControl+Q',
-        click: () => {
-          app.quit();
-        },
-      },
+      createQuitMenuItem(),
     ],
   })
 );
 
-const createEditMenu = createSelector(
+export const createEditMenu = createSelector(
   (_: RootState) => undefined,
   (): MenuItemConstructorOptions => ({
     id: 'editMenu',
@@ -168,10 +178,10 @@ const createEditMenu = createSelector(
 
 const selectViewDeps = createStructuredSelector({
   currentView: ({ currentView }: RootState) => currentView,
-  isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
   isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
   isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
   rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
+  navigationLayout: ({ navigationLayout }: RootState) => navigationLayout,
 });
 
 const getCurrentView = async () => {
@@ -193,14 +203,14 @@ const getCurrentViewWebcontents = async () => {
   return getWebContentsByServerUrl(url);
 };
 
-const createViewMenu = createSelector(
+export const createViewMenu = createSelector(
   selectViewDeps,
   ({
     currentView,
-    isSideBarEnabled,
     isTrayIconEnabled,
     isMenuBarEnabled,
     rootWindowState,
+    navigationLayout,
   }): MenuItemConstructorOptions => ({
     id: 'viewMenu',
     label: t('menus.viewMenu'),
@@ -322,13 +332,13 @@ const createViewMenu = createSelector(
           },
         },
       ]),
-      ...on(process.platform !== 'darwin', () => [
+      ...on(process.platform === 'linux', () => [
         {
           id: 'showMenuBar',
           label: t('menus.showMenuBar'),
           type: 'checkbox',
           checked: isMenuBarEnabled,
-          enabled: !isMenuBarEnabled || isSideBarEnabled,
+          enabled: !isMenuBarEnabled || navigationLayout === 'sidebar',
           accelerator:
             process.platform === 'darwin' ? 'Shift+Command+M' : 'Ctrl+Shift+M',
           click: async ({ checked }) => {
@@ -346,14 +356,15 @@ const createViewMenu = createSelector(
         },
       ]),
       {
-        id: 'showServerList',
-        label: t('menus.showServerList'),
-        type: 'checkbox',
-        checked: isSideBarEnabled,
-        enabled: !isSideBarEnabled || isMenuBarEnabled,
-        accelerator:
-          process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
-        click: async ({ checked }) => {
+        id: 'workspaceTabs',
+        label: t('menus.workspaceTabs'),
+        type: 'radio',
+        checked: navigationLayout === 'tabs',
+        enabled:
+          process.platform !== 'linux' ||
+          isMenuBarEnabled ||
+          navigationLayout === 'tabs',
+        click: async () => {
           const browserWindow = await getRootWindow();
 
           if (!browserWindow.isVisible()) {
@@ -361,8 +372,28 @@ const createViewMenu = createSelector(
           }
           browserWindow.focus();
           dispatch({
-            type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-            payload: checked,
+            type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+            payload: 'tabs',
+          });
+        },
+      },
+      {
+        id: 'workspaceBar',
+        label: t('menus.workspaceBar'),
+        type: 'radio',
+        checked: navigationLayout === 'sidebar',
+        accelerator:
+          process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          dispatch({
+            type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+            payload: 'sidebar',
           });
         },
       },
@@ -424,7 +455,7 @@ const selectWindowDeps = createStructuredSelector({
     isAddNewServersEnabled,
 });
 
-const createWindowMenu = createSelector(
+export const createWindowMenu = createSelector(
   selectWindowDeps,
   ({
     servers,
@@ -502,6 +533,7 @@ const createWindowMenu = createSelector(
         id: 'settings',
         label: t('menus.settings'),
         checked: currentView === 'settings',
+        accelerator: 'CommandOrControl+,',
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -555,7 +587,7 @@ const selectHelpDeps = createStructuredSelector({
   }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
 });
 
-const createHelpMenu = createSelector(
+export const createHelpMenu = createSelector(
   selectHelpDeps,
   ({
     isDeveloperModeEnabled,
@@ -787,6 +819,87 @@ const selectMenuBarTemplateAsJson = createSelector(
   (template: unknown) => JSON.stringify(template)
 );
 
+const createRocketChatMenu = createSelector(
+  (_: RootState) => undefined,
+  (): MenuItemConstructorOptions => ({
+    id: 'rocketChatMenu',
+    label: app.name,
+    submenu: [
+      createAboutMenuItem(),
+      { type: 'separator' },
+      createDisableGpuMenuItem(),
+    ],
+  })
+);
+
+const createFileMenu = createSelector(
+  selectAddServersDeps,
+  ({ isAddNewServersEnabled }): MenuItemConstructorOptions => ({
+    id: 'fileMenu',
+    label: t('menus.fileMenu'),
+    submenu: [
+      ...on(isAddNewServersEnabled, () => [createAddNewServerMenuItem()]),
+    ],
+  })
+);
+
+export const selectAppMenuPopupTemplate = createSelector(
+  [
+    createRocketChatMenu,
+    createFileMenu,
+    createEditMenu,
+    createViewMenu,
+    createWindowMenu,
+    createHelpMenu,
+  ],
+  (
+    rocketChatMenu,
+    fileMenu,
+    editMenu,
+    viewMenu,
+    windowMenu,
+    helpMenu
+  ): MenuItemConstructorOptions[] => [
+    rocketChatMenu,
+    fileMenu,
+    editMenu,
+    viewMenu,
+    {
+      ...windowMenu,
+      submenu: (windowMenu.submenu as MenuItemConstructorOptions[]).filter(
+        (item) => item.id !== 'settings' && item.id !== 'downloads'
+      ),
+    },
+    helpMenu,
+    { type: 'separator' },
+    {
+      id: 'settings',
+      label: t('menus.settings'),
+      accelerator: 'CommandOrControl+,',
+      click: () => {
+        dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
+      },
+    },
+    {
+      id: 'downloads',
+      label: t('menus.downloads'),
+      accelerator: 'CommandOrControl+D',
+      click: () => {
+        dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+      },
+    },
+    {
+      id: 'checkForUpdates',
+      label: t('menus.checkForUpdates'),
+      click: () => {
+        dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
+      },
+    },
+    { type: 'separator' },
+    createQuitMenuItem(),
+  ]
+);
+
 class MenuBarService extends Service {
   protected initialize(): void {
     this.watch(selectMenuBarTemplateAsJson, async () => {
@@ -798,8 +911,27 @@ class MenuBarService extends Service {
         return;
       }
 
+      const browserWindow = await getRootWindow();
+
+      if (process.platform === 'win32') {
+        Menu.setApplicationMenu(null);
+        browserWindow.setMenu(menu);
+        browserWindow.setMenuBarVisibility(false);
+        browserWindow.autoHideMenuBar = false;
+        return;
+      }
+
       Menu.setApplicationMenu(null);
-      (await getRootWindow()).setMenu(menu);
+      browserWindow.setMenu(menu);
+    });
+
+    this.listen(APP_MENU_TRIGGERED, async (action) => {
+      const menu = Menu.buildFromTemplate(select(selectAppMenuPopupTemplate));
+      menu.popup({
+        window: await getRootWindow(),
+        x: Math.round(action.payload.x),
+        y: Math.round(action.payload.y),
+      });
     });
   }
 }

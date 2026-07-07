@@ -1,7 +1,7 @@
 import type { WebContents } from 'electron';
 
 import type { Server } from '../servers/common';
-import type { RootWindowIcon, WindowState } from './common';
+import type { NavigationLayout, RootWindowIcon, WindowState } from './common';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
@@ -33,6 +33,8 @@ export const MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED =
   'menu-bar/toggle-is-developer-mode-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED =
   'menu-bar/toggle-is-video-call-devtools-auto-open-enabled-clicked';
+export const MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED =
+  'menu-bar/set-navigation-layout-clicked';
 export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
 export const VIDEO_CALL_WINDOW_STATE_CHANGED =
@@ -133,10 +135,11 @@ export const SETTINGS_SET_DEBUG_LOGGING_CHANGED =
   'settings/set-debug-logging-changed';
 export const SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED =
   'settings/set-e2e-pdf-preview-size-limit-changed';
+export const SETTINGS_SET_NAVIGATION_LAYOUT_CHANGED =
+  'settings/set-navigation-layout-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
-export const DOWNLOADS_BACK_BUTTON_CLICKED = 'downloads/back-button-clicked';
 export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED =
   'webview/server-supported-versions-updated';
 export const WEBVIEW_SERVER_UNIQUE_ID_UPDATED =
@@ -169,6 +172,12 @@ export const TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE =
   'telephony-default-handler-prompt/close';
 export const TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED =
   'telephony-default-handler-prompt/open-settings-clicked';
+export const APP_MENU_TRIGGERED = 'app-menu/triggered';
+export const WINDOW_CONTROLS_MINIMIZE_CLICKED =
+  'window-controls/minimize-clicked';
+export const WINDOW_CONTROLS_MAXIMIZE_CLICKED =
+  'window-controls/maximize-clicked';
+export const WINDOW_CONTROLS_CLOSE_CLICKED = 'window-controls/close-clicked';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -189,6 +198,7 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED]: boolean;
+  [MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED]: NavigationLayout;
   [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
   [VIDEO_CALL_WINDOW_STATE_CHANGED]: WindowState;
@@ -285,9 +295,9 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED]: boolean;
   [SETTINGS_SET_DEBUG_LOGGING_CHANGED]: boolean;
   [SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED]: number;
+  [SETTINGS_SET_NAVIGATION_LAYOUT_CHANGED]: NavigationLayout;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
-  [DOWNLOADS_BACK_BUTTON_CLICKED]: string;
   [WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED]: {
     url: Server['url'];
     supportedVersions: Server['supportedVersions'];
@@ -338,4 +348,8 @@ export type UiActionTypeToPayloadMap = {
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN]: void;
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE]: void;
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED]: void;
+  [APP_MENU_TRIGGERED]: { x: number; y: number };
+  [WINDOW_CONTROLS_MINIMIZE_CLICKED]: void;
+  [WINDOW_CONTROLS_MAXIMIZE_CLICKED]: void;
+  [WINDOW_CONTROLS_CLOSE_CLICKED]: void;
 };

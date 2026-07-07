@@ -2,6 +2,8 @@ import type { AddRepresentationOptions } from 'electron';
 
 export type IconRepresentation = Omit<AddRepresentationOptions, 'scaleFactor'>;
 
+export type NavigationLayout = 'tabs' | 'sidebar';
+
 export type RootWindowIcon = {
   icon: IconRepresentation[];
   overlay?: IconRepresentation[];

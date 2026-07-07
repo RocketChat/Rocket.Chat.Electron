@@ -1,4 +1,7 @@
+import type { readFileSync as readFileSyncType } from 'fs';
 import path from 'path';
+
+import type * as SystemCertificatesModule from './systemCertificates';
 
 const mockGetCACertificates = jest.fn();
 const mockSetDefaultCACertificates = jest.fn();
@@ -35,10 +38,12 @@ jest.mock('./logging', () => ({
   },
 }));
 
-const { readFileSync } = jest.requireMock<typeof import('fs')>('fs');
+const { readFileSync } = jest.requireMock<{
+  readFileSync: typeof readFileSyncType;
+}>('fs');
 
-const loadSystemCertificates = (): typeof import('./systemCertificates') => {
-  let moduleExports: typeof import('./systemCertificates');
+const loadSystemCertificates = (): typeof SystemCertificatesModule => {
+  let moduleExports: typeof SystemCertificatesModule;
   jest.isolateModules(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     moduleExports = require('./systemCertificates');
@@ -69,7 +74,10 @@ describe('systemCertificates', () => {
     );
     expect(mockGetCACertificates).not.toHaveBeenCalled();
     expect(mockSetDefaultCACertificates).not.toHaveBeenCalled();
-    expect(getSystemCertificateStatus()).toEqual({ applied: false, certCount: 0 });
+    expect(getSystemCertificateStatus()).toEqual({
+      applied: false,
+      certCount: 0,
+    });
   });
 
   it('skips applying certificates when OS CA store is empty', () => {
@@ -91,7 +99,10 @@ describe('systemCertificates', () => {
       'System CA certificates: none found in OS trust store, using bundled CAs only'
     );
     expect(mockGetCACertificates).toHaveBeenCalledWith('system');
-    expect(getSystemCertificateStatus()).toEqual({ applied: false, certCount: 0 });
+    expect(getSystemCertificateStatus()).toEqual({
+      applied: false,
+      certCount: 0,
+    });
   });
 
   it('applies system certificates when available and updates status', () => {
@@ -141,6 +152,7 @@ describe('systemCertificates', () => {
   it('records non-error failures when application fails', () => {
     (readFileSync as jest.Mock).mockReturnValue('{}');
     mockGetCACertificates.mockImplementation(() => {
+      // eslint-disable-next-line no-throw-literal -- verifies non-Error throw handling
       throw 'network failure';
     });
 
@@ -171,7 +183,10 @@ describe('systemCertificates', () => {
       'System CA certificates: disabled by overridden-settings.json'
     );
     expect(mockGetCACertificates).not.toHaveBeenCalled();
-    expect(getSystemCertificateStatus()).toEqual({ applied: false, certCount: 0 });
+    expect(getSystemCertificateStatus()).toEqual({
+      applied: false,
+      certCount: 0,
+    });
   });
 
   it('ignores unparsable setting files and continues with defaults', () => {
@@ -193,7 +208,10 @@ describe('systemCertificates', () => {
     expect(mockLoggerInfo).toHaveBeenCalledWith(
       'System CA certificates: none found in OS trust store, using bundled CAs only'
     );
-    expect(getSystemCertificateStatus()).toEqual({ applied: false, certCount: 0 });
+    expect(getSystemCertificateStatus()).toEqual({
+      applied: false,
+      certCount: 0,
+    });
   });
 
   it('falls back to packaged app path when the first setting file is missing', () => {
@@ -213,7 +231,10 @@ describe('systemCertificates', () => {
       'System CA certificates: disabled by overridden-settings.json'
     );
     expect(mockGetCACertificates).not.toHaveBeenCalled();
-    expect(getSystemCertificateStatus()).toEqual({ applied: false, certCount: 0 });
+    expect(getSystemCertificateStatus()).toEqual({
+      applied: false,
+      certCount: 0,
+    });
   });
 
   it('uses asar app path when building app-level override path', () => {
@@ -224,7 +245,8 @@ describe('systemCertificates', () => {
       }
 
       if (
-        pathToRead === path.join('/tmp/desktop/app.asar', '..', 'overridden-settings.json')
+        pathToRead ===
+        path.join('/tmp/desktop/app.asar', '..', 'overridden-settings.json')
       ) {
         return '{"useSystemCertificates":false}';
       }
@@ -244,6 +266,9 @@ describe('systemCertificates', () => {
       '/tmp/desktop/overridden-settings.json',
       'utf8'
     );
-    expect(getSystemCertificateStatus()).toEqual({ applied: false, certCount: 0 });
+    expect(getSystemCertificateStatus()).toEqual({
+      applied: false,
+      certCount: 0,
+    });
   });
 });

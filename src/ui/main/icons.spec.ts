@@ -1,12 +1,12 @@
 import path from 'path';
 
+import { getAppIconPath, getTrayIconPath } from './icons';
+
 jest.mock('electron', () => ({
   app: {
     getAppPath: jest.fn(() => '/app'),
   },
 }));
-
-import { getAppIconPath, getTrayIconPath } from './icons';
 
 it('getAppIconPath', () => {
   expect(getAppIconPath({ platform: 'win32' })).toBe(
@@ -17,40 +17,124 @@ it('getAppIconPath', () => {
 describe('getTrayIconPath', () => {
   it('matches path for darwin platform', () => {
     expect(getTrayIconPath({ platform: 'darwin' })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'defaultTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'defaultTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: '•' })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 1 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 2 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 3 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 4 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 5 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 6 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 7 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 8 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 9 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'darwin', badge: 10 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'darwin', 'notificationTemplate.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'notificationTemplate.png'
+      )
     );
   });
 
@@ -59,7 +143,14 @@ describe('getTrayIconPath', () => {
       path.join('/app', 'app', 'images', 'tray', 'win32', 'default.ico')
     );
     expect(getTrayIconPath({ platform: 'win32', badge: '•' })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-dot.ico')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'win32',
+        'notification-dot.ico'
+      )
     );
     expect(getTrayIconPath({ platform: 'win32', badge: 1 })).toBe(
       path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-1.ico')
@@ -105,7 +196,14 @@ describe('getTrayIconPath', () => {
       path.join('/app', 'app', 'images', 'tray', 'linux', 'default.png')
     );
     expect(getTrayIconPath({ platform: 'linux', badge: '•' })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-dot.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'linux',
+        'notification-dot.png'
+      )
     );
     expect(getTrayIconPath({ platform: 'linux', badge: 1 })).toBe(
       path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-1.png')
@@ -135,7 +233,14 @@ describe('getTrayIconPath', () => {
       path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-9.png')
     );
     expect(getTrayIconPath({ platform: 'linux', badge: 10 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-plus-9.png')
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'linux',
+        'notification-plus-9.png'
+      )
     );
   });
 });

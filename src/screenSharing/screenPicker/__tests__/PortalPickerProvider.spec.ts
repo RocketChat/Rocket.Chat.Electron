@@ -1,3 +1,6 @@
+import { PortalPickerProvider } from '../providers/PortalPickerProvider';
+import type { DisplayMediaCallback } from '../types';
+
 const getSources = jest.fn();
 
 jest.mock('electron', () => ({
@@ -5,9 +8,6 @@ jest.mock('electron', () => ({
     getSources: (...args: unknown[]) => getSources(...args),
   },
 }));
-
-import { PortalPickerProvider } from '../providers/PortalPickerProvider';
-import type { DisplayMediaCallback } from '../types';
 
 describe('PortalPickerProvider', () => {
   let provider: PortalPickerProvider;
@@ -29,7 +29,9 @@ describe('PortalPickerProvider', () => {
   });
 
   it('returns first source when available', async () => {
-    getSources.mockResolvedValue([{ id: 's1', name: 'screen', toDataURL: () => '' }]);
+    getSources.mockResolvedValue([
+      { id: 's1', name: 'screen', toDataURL: () => '' },
+    ]);
 
     await provider.handleDisplayMediaRequest(callback);
     await Promise.resolve();
@@ -40,7 +42,9 @@ describe('PortalPickerProvider', () => {
 
   it('returns false on desktop capturer error', async () => {
     getSources.mockRejectedValue(new Error('nope'));
-    const errorCallback = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errorCallback = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     await provider.handleDisplayMediaRequest(callback);
     await Promise.resolve();

@@ -1,6 +1,7 @@
+import fs from 'fs';
+
 import type { Certificate } from 'electron';
 import { app } from 'electron';
-import fs from 'fs';
 
 import { select, dispatch, request } from '../store';
 import {
@@ -50,9 +51,8 @@ const askForOpeningExternalProtocolMock =
   askForOpeningExternalProtocol as jest.MockedFunction<
     typeof askForOpeningExternalProtocol
   >;
-const askForCertificateTrustMock = askForCertificateTrust as jest.MockedFunction<
-  typeof askForCertificateTrust
->;
+const askForCertificateTrustMock =
+  askForCertificateTrust as jest.MockedFunction<typeof askForCertificateTrust>;
 const appAddListenerMock = app.addListener as jest.MockedFunction<
   typeof app.addListener
 >;
@@ -254,7 +254,9 @@ describe('navigation/main.ts', () => {
         '/tmp/user-data/certificate.json',
         'utf8'
       );
-      expect(unlinkMock).toHaveBeenCalledWith('/tmp/user-data/certificate.json');
+      expect(unlinkMock).toHaveBeenCalledWith(
+        '/tmp/user-data/certificate.json'
+      );
       expect(dispatchMock).toHaveBeenCalledWith({
         type: CERTIFICATES_LOADED,
         payload: {
@@ -283,7 +285,7 @@ describe('navigation/main.ts', () => {
     });
 
     it('treats non-object certificate files as empty cache', async () => {
-      readFileMock.mockResolvedValue('\"invalid\"');
+      readFileMock.mockResolvedValue('"invalid"');
       setNavigationState({
         trustedCertificates: {
           fromStore: 'certificateFromStore',
@@ -372,7 +374,9 @@ describe('navigation/main.ts', () => {
       askForCertificateTrustMock.mockImplementation(
         () =>
           new Promise((resolve) => {
-            resolver = resolve as (value: AskForCertificateTrustResponse) => void;
+            resolver = resolve as (
+              value: AskForCertificateTrustResponse
+            ) => void;
           })
       );
 
@@ -434,7 +438,9 @@ describe('navigation/main.ts', () => {
           'server.local': 'different-certificate',
         },
       });
-      askForCertificateTrustMock.mockResolvedValue(AskForCertificateTrustResponse.NO);
+      askForCertificateTrustMock.mockResolvedValue(
+        AskForCertificateTrustResponse.NO
+      );
 
       await setup();
       const certificateErrorListener = getListener('certificate-error');

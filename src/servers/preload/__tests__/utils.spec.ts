@@ -1,3 +1,17 @@
+import { clipboard, ipcRenderer } from 'electron';
+
+import { dispatch } from '../../../store';
+import {
+  WEBVIEW_SERVER_VERSION_UPDATED,
+  WEBVIEW_USER_LOGGED_IN,
+} from '../../../ui/actions';
+import { writeTextToClipboard } from '../clipboard';
+import { openInBrowser } from '../openInBrowser';
+import { getServerUrl } from '../urls';
+import { setUserLoggedIn } from '../userLoggedIn';
+import { clearUserRoles, updateUserRoles } from '../userRoles';
+import { setVersion } from '../version';
+
 jest.mock('electron', () => ({
   ipcRenderer: {
     invoke: jest.fn(),
@@ -19,19 +33,6 @@ jest.mock('../userRoles', () => ({
   updateUserRoles: jest.fn(async () => ({ ok: true })),
   clearUserRoles: jest.fn(),
 }));
-
-const { clipboard, ipcRenderer } = require('electron');
-const { dispatch } = require('../../../store');
-const { getServerUrl } = require('../urls');
-const { clearUserRoles, updateUserRoles } = require('../userRoles');
-const { writeTextToClipboard } = require('../clipboard');
-const { setVersion } = require('../version');
-const { setUserLoggedIn } = require('../userLoggedIn');
-const { openInBrowser } = require('../openInBrowser');
-const {
-  WEBVIEW_SERVER_VERSION_UPDATED,
-  WEBVIEW_USER_LOGGED_IN,
-} = require('../../../ui/actions');
 
 describe('servers/preload utils', () => {
   beforeEach(() => {

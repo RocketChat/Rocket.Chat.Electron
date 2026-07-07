@@ -1,19 +1,19 @@
 import { APP_SETTINGS_LOADED } from '../../../app/actions';
+import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../../../constants';
 import { UPDATES_READY } from '../../../updates/actions';
 import * as uiActions from '../../actions';
-import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../../../constants';
+import { e2ePdfPreviewSizeLimit } from '../e2ePdfPreviewSizeLimit';
+import { hasHideOnTrayNotificationShown } from '../hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../isAddNewServersEnabled';
 import { isBugsnagEnabled } from '../isBugsnagEnabled';
 import { isDebugLoggingEnabled } from '../isDebugLoggingEnabled';
 import { isDetailedEventsLoggingEnabled } from '../isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../isDeveloperModeEnabled';
-import { e2ePdfPreviewSizeLimit } from '../e2ePdfPreviewSizeLimit';
 import { isFlashFrameEnabled } from '../isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../isHardwareAccelerationEnabled';
-import { hasHideOnTrayNotificationShown } from '../hasHideOnTrayNotificationShown';
 import { isInternalVideoChatWindowEnabled } from '../isInternalVideoChatWindowEnabled';
-import { isMinimizeOnCloseEnabled } from '../isMinimizeOnCloseEnabled';
 import { isMessageBoxFocused } from '../isMessageBoxFocused';
+import { isMinimizeOnCloseEnabled } from '../isMinimizeOnCloseEnabled';
 import { isNTLMCredentialsEnabled } from '../isNTLMCredentialsEnabled';
 import { isReportEnabled } from '../isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../isShowWindowOnUnreadChangedEnabled';
@@ -26,10 +26,15 @@ import { isVideoCallScreenCaptureFallbackEnabled } from '../isVideoCallScreenCap
 import { isVideoCallWindowPersistenceEnabled } from '../isVideoCallWindowPersistenceEnabled';
 
 describe('isAddNewServersEnabled', () => {
-  const actionPayload = { type: APP_SETTINGS_LOADED, payload: { isAddNewServersEnabled: false } } as const;
+  const actionPayload = {
+    type: APP_SETTINGS_LOADED,
+    payload: { isAddNewServersEnabled: false },
+  } as const;
 
   it('uses default state when no state is passed', () => {
-    expect(isAddNewServersEnabled(undefined, { type: 'UNKNOWN' } as any)).toBe(true);
+    expect(isAddNewServersEnabled(undefined, { type: 'UNKNOWN' } as any)).toBe(
+      true
+    );
   });
 
   it('reads isAddNewServersEnabled from APP_SETTINGS_LOADED', () => {
@@ -68,7 +73,12 @@ describe('isBugsnagEnabled', () => {
 
 describe('isDebugLoggingEnabled', () => {
   it('starts disabled and applies SETTINGS_SET_DEBUG_LOGGING_CHANGED', () => {
-    expect(isDebugLoggingEnabled(false, { type: uiActions.SETTINGS_SET_DEBUG_LOGGING_CHANGED, payload: true } as any)).toBe(true);
+    expect(
+      isDebugLoggingEnabled(false, {
+        type: uiActions.SETTINGS_SET_DEBUG_LOGGING_CHANGED,
+        payload: true,
+      } as any)
+    ).toBe(true);
   });
 
   it('reads APP_SETTINGS_LOADED isDebugLoggingEnabled', () => {
@@ -119,13 +129,10 @@ describe('isDeveloperModeEnabled', () => {
 
   it('reads APP_SETTINGS_LOADED isDeveloperModeEnabled', () => {
     expect(
-      isDeveloperModeEnabled(
-        false,
-        {
-          type: APP_SETTINGS_LOADED,
-          payload: { isDeveloperModeEnabled: true },
-        } as any
-      )
+      isDeveloperModeEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: { isDeveloperModeEnabled: true },
+      } as any)
     ).toBe(true);
   });
 });
@@ -315,7 +322,9 @@ describe('isTransparentWindowEnabled', () => {
   });
 
   it('ignores non-boolean payload and keeps previous state', () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     expect(
       isTransparentWindowEnabled(false, {
         type: uiActions.SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
@@ -338,9 +347,9 @@ describe('isTransparentWindowEnabled', () => {
 
 describe('isTrayIconEnabled', () => {
   it('uses platform default when no action matches', () => {
-    expect(isTrayIconEnabled(undefined, { type: 'UNKNOWN_ACTION' } as any)).toBe(
-      process.platform !== 'linux'
-    );
+    expect(
+      isTrayIconEnabled(undefined, { type: 'UNKNOWN_ACTION' } as any)
+    ).toBe(process.platform !== 'linux');
   });
 
   it('applies settings loaded and action updates', () => {
@@ -453,13 +462,10 @@ describe('e2ePdfPreviewSizeLimit', () => {
       } as any)
     ).toBe(DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB);
     expect(
-      e2ePdfPreviewSizeLimit(
-        DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB,
-        {
-          type: APP_SETTINGS_LOADED,
-          payload: { e2ePdfPreviewSizeLimit: 18 },
-        } as any
-      )
+      e2ePdfPreviewSizeLimit(DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB, {
+        type: APP_SETTINGS_LOADED,
+        payload: { e2ePdfPreviewSizeLimit: 18 },
+      } as any)
     ).toBe(18);
     expect(
       e2ePdfPreviewSizeLimit(18, {
@@ -487,25 +493,19 @@ describe('hasHideOnTrayNotificationShown', () => {
       } as any)
     ).toBe(false);
     expect(
-      hasHideOnTrayNotificationShown(
-        false,
-        {
-          type: APP_SETTINGS_LOADED,
-          payload: { hasHideOnTrayNotificationShown: true },
-        } as any
-      )
+      hasHideOnTrayNotificationShown(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: { hasHideOnTrayNotificationShown: true },
+      } as any)
     ).toBe(true);
   });
 
   it('respects explicit tray notification action updates', () => {
     expect(
-      hasHideOnTrayNotificationShown(
-        true,
-        {
-          type: uiActions.SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN,
-          payload: false,
-        } as any
-      )
+      hasHideOnTrayNotificationShown(true, {
+        type: uiActions.SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN,
+        payload: false,
+      } as any)
     ).toBe(false);
   });
 });
@@ -520,10 +520,14 @@ describe('isMinimizeOnCloseEnabled', () => {
 
   it('defaults to window platform flag and updates from settings/action', () => {
     setPlatform('darwin');
-    expect(isMinimizeOnCloseEnabled(undefined, { type: 'UNKNOWN' as const } as any)).toBe(false);
+    expect(
+      isMinimizeOnCloseEnabled(undefined, { type: 'UNKNOWN' as const } as any)
+    ).toBe(false);
 
     setPlatform('win32');
-    expect(isMinimizeOnCloseEnabled(undefined, { type: 'UNKNOWN' as const } as any)).toBe(true);
+    expect(
+      isMinimizeOnCloseEnabled(undefined, { type: 'UNKNOWN' as const } as any)
+    ).toBe(true);
 
     expect(
       isMinimizeOnCloseEnabled(false, {
@@ -547,28 +551,68 @@ describe('isMinimizeOnCloseEnabled', () => {
   });
 
   it('keeps existing state for unknown actions', () => {
-    expect(isMinimizeOnCloseEnabled(true, { type: 'UNKNOWN_MINIMIZE_ON_CLOSE' } as any)).toBe(
-      true
-    );
+    expect(
+      isMinimizeOnCloseEnabled(true, {
+        type: 'UNKNOWN_MINIMIZE_ON_CLOSE',
+      } as any)
+    ).toBe(true);
   });
 });
 
 describe('reducers keep state on unknown actions', () => {
   it('keeps feature flags unchanged', () => {
-    expect(isBugsnagEnabled(true, { type: 'UNKNOWN_BUGSNAG' } as any)).toBe(true);
-    expect(isDebugLoggingEnabled(true, { type: 'UNKNOWN_DEBUG_LOGGING' } as any)).toBe(true);
-    expect(isDetailedEventsLoggingEnabled(false, { type: 'UNKNOWN_DETAILED_EVENTS' } as any)).toBe(false);
-    expect(isDeveloperModeEnabled(true, { type: 'UNKNOWN_DEVELOPER_MODE' } as any)).toBe(true);
-    expect(isFlashFrameEnabled(true, { type: 'UNKNOWN_FLASH_FRAME' } as any)).toBe(true);
-    expect(isHardwareAccelerationEnabled(false, { type: 'UNKNOWN_HARDWARE_ACCEL' } as any)).toBe(false);
-    expect(isInternalVideoChatWindowEnabled(true, { type: 'UNKNOWN_INTERNAL_VIDEO_CHAT' } as any)).toBe(true);
-    expect(isMessageBoxFocused(true, { type: 'UNKNOWN_MESSAGE_BOX' } as any)).toBe(true);
-    expect(isNTLMCredentialsEnabled(true, { type: 'UNKNOWN_NTLM' } as any)).toBe(true);
+    expect(isBugsnagEnabled(true, { type: 'UNKNOWN_BUGSNAG' } as any)).toBe(
+      true
+    );
+    expect(
+      isDebugLoggingEnabled(true, { type: 'UNKNOWN_DEBUG_LOGGING' } as any)
+    ).toBe(true);
+    expect(
+      isDetailedEventsLoggingEnabled(false, {
+        type: 'UNKNOWN_DETAILED_EVENTS',
+      } as any)
+    ).toBe(false);
+    expect(
+      isDeveloperModeEnabled(true, { type: 'UNKNOWN_DEVELOPER_MODE' } as any)
+    ).toBe(true);
+    expect(
+      isFlashFrameEnabled(true, { type: 'UNKNOWN_FLASH_FRAME' } as any)
+    ).toBe(true);
+    expect(
+      isHardwareAccelerationEnabled(false, {
+        type: 'UNKNOWN_HARDWARE_ACCEL',
+      } as any)
+    ).toBe(false);
+    expect(
+      isInternalVideoChatWindowEnabled(true, {
+        type: 'UNKNOWN_INTERNAL_VIDEO_CHAT',
+      } as any)
+    ).toBe(true);
+    expect(
+      isMessageBoxFocused(true, { type: 'UNKNOWN_MESSAGE_BOX' } as any)
+    ).toBe(true);
+    expect(
+      isNTLMCredentialsEnabled(true, { type: 'UNKNOWN_NTLM' } as any)
+    ).toBe(true);
     expect(isReportEnabled(true, { type: 'UNKNOWN_REPORT' } as any)).toBe(true);
-    expect(isShowWindowOnUnreadChangedEnabled(true, { type: 'UNKNOWN_UNREAD_CHANGED' } as any)).toBe(true);
-    expect(isTelephonyEnabled(false, { type: 'UNKNOWN_TELEPHONY' } as any)).toBe(false);
-    expect(isTransparentWindowEnabled(true, { type: 'UNKNOWN_TRANSPARENT_WINDOW' } as any)).toBe(true);
-    expect(isVerboseOutlookLoggingEnabled(false, { type: 'UNKNOWN_VERBOSE_OUTLOOK' } as any)).toBe(false);
+    expect(
+      isShowWindowOnUnreadChangedEnabled(true, {
+        type: 'UNKNOWN_UNREAD_CHANGED',
+      } as any)
+    ).toBe(true);
+    expect(
+      isTelephonyEnabled(false, { type: 'UNKNOWN_TELEPHONY' } as any)
+    ).toBe(false);
+    expect(
+      isTransparentWindowEnabled(true, {
+        type: 'UNKNOWN_TRANSPARENT_WINDOW',
+      } as any)
+    ).toBe(true);
+    expect(
+      isVerboseOutlookLoggingEnabled(false, {
+        type: 'UNKNOWN_VERBOSE_OUTLOOK',
+      } as any)
+    ).toBe(false);
     expect(
       isVideoCallDevtoolsAutoOpenEnabled(true, {
         type: 'UNKNOWN_VIDEO_CALL_DEVTOOLS_AUTO_OPEN',
@@ -587,50 +631,182 @@ describe('reducers keep state on unknown actions', () => {
   });
 
   it('keeps default state when initial state is undefined', () => {
-    expect(isBugsnagEnabled(undefined, { type: 'UNKNOWN_BUGSNAG' } as any)).toBe(false);
-    expect(isDebugLoggingEnabled(undefined, { type: 'UNKNOWN_DEBUG_LOGGING' } as any)).toBe(false);
-    expect(isDetailedEventsLoggingEnabled(undefined, { type: 'UNKNOWN_DETAILED_EVENTS' } as any)).toBe(false);
-    expect(isDeveloperModeEnabled(undefined, { type: 'UNKNOWN_DEVELOPER_MODE' } as any)).toBe(false);
-    expect(isFlashFrameEnabled(undefined, { type: 'UNKNOWN_FLASH_FRAME' } as any)).toBe(false);
-    expect(isHardwareAccelerationEnabled(undefined, { type: 'UNKNOWN_HARDWARE_ACCEL' } as any)).toBe(false);
-    expect(isInternalVideoChatWindowEnabled(undefined, { type: 'UNKNOWN_INTERNAL_VIDEO_CHAT' } as any)).toBe(false);
-    expect(isMessageBoxFocused(undefined, { type: 'UNKNOWN_MESSAGE_BOX' } as any)).toBe(false);
-    expect(isNTLMCredentialsEnabled(undefined, { type: 'UNKNOWN_NTLM' } as any)).toBe(false);
-    expect(isReportEnabled(undefined, { type: 'UNKNOWN_REPORT' } as any)).toBe(false);
-    expect(isShowWindowOnUnreadChangedEnabled(undefined, { type: 'UNKNOWN_UNREAD_CHANGED' } as any)).toBe(false);
-    expect(isTelephonyEnabled(undefined, { type: 'UNKNOWN_TELEPHONY' } as any)).toBe(false);
-    expect(isTransparentWindowEnabled(undefined, { type: 'UNKNOWN_TRANSPARENT_WINDOW' } as any)).toBe(false);
-    expect(isVerboseOutlookLoggingEnabled(undefined, { type: 'UNKNOWN_VERBOSE_OUTLOOK' } as any)).toBe(false);
-    expect(isVideoCallDevtoolsAutoOpenEnabled(undefined, { type: 'UNKNOWN_VIDEO_CALL_DEVTOOLS_AUTO_OPEN' } as any)).toBe(false);
-    expect(isVideoCallScreenCaptureFallbackEnabled(undefined, { type: 'UNKNOWN_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK' } as any)).toBe(false);
-    expect(isVideoCallWindowPersistenceEnabled(undefined, { type: 'UNKNOWN_VIDEO_CALL_WINDOW_PERSISTENCE' } as any)).toBe(true);
+    expect(
+      isBugsnagEnabled(undefined, { type: 'UNKNOWN_BUGSNAG' } as any)
+    ).toBe(false);
+    expect(
+      isDebugLoggingEnabled(undefined, { type: 'UNKNOWN_DEBUG_LOGGING' } as any)
+    ).toBe(false);
+    expect(
+      isDetailedEventsLoggingEnabled(undefined, {
+        type: 'UNKNOWN_DETAILED_EVENTS',
+      } as any)
+    ).toBe(false);
+    expect(
+      isDeveloperModeEnabled(undefined, {
+        type: 'UNKNOWN_DEVELOPER_MODE',
+      } as any)
+    ).toBe(false);
+    expect(
+      isFlashFrameEnabled(undefined, { type: 'UNKNOWN_FLASH_FRAME' } as any)
+    ).toBe(false);
+    expect(
+      isHardwareAccelerationEnabled(undefined, {
+        type: 'UNKNOWN_HARDWARE_ACCEL',
+      } as any)
+    ).toBe(false);
+    expect(
+      isInternalVideoChatWindowEnabled(undefined, {
+        type: 'UNKNOWN_INTERNAL_VIDEO_CHAT',
+      } as any)
+    ).toBe(false);
+    expect(
+      isMessageBoxFocused(undefined, { type: 'UNKNOWN_MESSAGE_BOX' } as any)
+    ).toBe(false);
+    expect(
+      isNTLMCredentialsEnabled(undefined, { type: 'UNKNOWN_NTLM' } as any)
+    ).toBe(false);
+    expect(isReportEnabled(undefined, { type: 'UNKNOWN_REPORT' } as any)).toBe(
+      false
+    );
+    expect(
+      isShowWindowOnUnreadChangedEnabled(undefined, {
+        type: 'UNKNOWN_UNREAD_CHANGED',
+      } as any)
+    ).toBe(false);
+    expect(
+      isTelephonyEnabled(undefined, { type: 'UNKNOWN_TELEPHONY' } as any)
+    ).toBe(false);
+    expect(
+      isTransparentWindowEnabled(undefined, {
+        type: 'UNKNOWN_TRANSPARENT_WINDOW',
+      } as any)
+    ).toBe(false);
+    expect(
+      isVerboseOutlookLoggingEnabled(undefined, {
+        type: 'UNKNOWN_VERBOSE_OUTLOOK',
+      } as any)
+    ).toBe(false);
+    expect(
+      isVideoCallDevtoolsAutoOpenEnabled(undefined, {
+        type: 'UNKNOWN_VIDEO_CALL_DEVTOOLS_AUTO_OPEN',
+      } as any)
+    ).toBe(false);
+    expect(
+      isVideoCallScreenCaptureFallbackEnabled(undefined, {
+        type: 'UNKNOWN_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK',
+      } as any)
+    ).toBe(false);
+    expect(
+      isVideoCallWindowPersistenceEnabled(undefined, {
+        type: 'UNKNOWN_VIDEO_CALL_WINDOW_PERSISTENCE',
+      } as any)
+    ).toBe(true);
   });
 
   it('falls back to defaults when settings payload values are missing', () => {
-    expect(isBugsnagEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isDebugLoggingEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isDetailedEventsLoggingEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isDeveloperModeEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isFlashFrameEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isHardwareAccelerationEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isInternalVideoChatWindowEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isNTLMCredentialsEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isShowWindowOnUnreadChangedEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isTelephonyEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isTransparentWindowEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isVerboseOutlookLoggingEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isVideoCallDevtoolsAutoOpenEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isVideoCallScreenCaptureFallbackEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
-    expect(isVideoCallWindowPersistenceEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(false);
+    expect(
+      isBugsnagEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)
+    ).toBe(false);
+    expect(
+      isDebugLoggingEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isDetailedEventsLoggingEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isDeveloperModeEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isFlashFrameEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isHardwareAccelerationEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isInternalVideoChatWindowEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isNTLMCredentialsEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isShowWindowOnUnreadChangedEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isTelephonyEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isTransparentWindowEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isVerboseOutlookLoggingEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isVideoCallDevtoolsAutoOpenEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isVideoCallScreenCaptureFallbackEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+    expect(
+      isVideoCallWindowPersistenceEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
   });
 
   it('covers additional fallback branches', () => {
     expect(
-      isVideoCallScreenCaptureFallbackEnabled(false, { type: UPDATES_READY, payload: {} } as any)
+      isVideoCallScreenCaptureFallbackEnabled(false, {
+        type: UPDATES_READY,
+        payload: {},
+      } as any)
     ).toBe(false);
 
     expect(
-      isTrayIconEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)
+      isTrayIconEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
     ).toBe(false);
   });
 });

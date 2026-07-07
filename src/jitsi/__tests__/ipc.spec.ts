@@ -1,16 +1,14 @@
-export {};
+import type { isJitsiServerAllowed as isJitsiServerAllowedType } from '../main';
 
 const mockHandle = jest.fn();
 const mockGetSources = jest.fn();
 
-const isJitsiServerAllowed = jest.fn();
-
 jest.mock('../../ipc/main', () => ({
-  handle: mockHandle,
+  handle: (...args: unknown[]) => mockHandle(...args),
 }));
 
 jest.mock('../main', () => ({
-  isJitsiServerAllowed: (...args: unknown[]) => isJitsiServerAllowed(...args),
+  isJitsiServerAllowed: jest.fn(),
 }));
 
 jest.mock('electron', () => ({
@@ -31,21 +29,26 @@ describe('jitsi/ipc', () => {
     ) => Promise<unknown> | unknown[];
   };
 
-  beforeEach(() => {
+  let isJitsiServerAllowedMock: jest.MockedFunction<
+    typeof isJitsiServerAllowedType
+  >;
+
+  beforeEach(async () => {
     jest.resetModules();
     mockHandle.mockClear();
     mockGetSources.mockReset();
-    isJitsiServerAllowed.mockReset();
-    isJitsiServerAllowed.mockResolvedValue({
+    mockGetSources.mockResolvedValue([{ id: 'a' }, { id: 'b' }]);
+
+    const { isJitsiServerAllowed } = await import('../main');
+    isJitsiServerAllowedMock = isJitsiServerAllowed as jest.MockedFunction<
+      typeof isJitsiServerAllowedType
+    >;
+    isJitsiServerAllowedMock.mockResolvedValue({
       allowed: false,
       dontAskAgain: false,
     });
-    mockGetSources.mockResolvedValue([
-      { id: 'a' },
-      { id: 'b' },
-    ]);
 
-    const { handleJitsiDesktopCapturerGetSources } = require('../ipc');
+    const { handleJitsiDesktopCapturerGetSources } = await import('../ipc');
     handleJitsiDesktopCapturerGetSources();
   });
 
@@ -53,13 +56,15 @@ describe('jitsi/ipc', () => {
     const handler = getHandler();
     const result = await handler({}, [{}, 'https://jitsi.example']);
 
-    expect(isJitsiServerAllowed).toHaveBeenCalledWith('https://jitsi.example');
+    expect(isJitsiServerAllowedMock).toHaveBeenCalledWith(
+      'https://jitsi.example'
+    );
     expect(mockGetSources).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
 
   it('requests sources after first permission allows', async () => {
-    isJitsiServerAllowed.mockResolvedValueOnce({
+    isJitsiServerAllowedMock.mockResolvedValueOnce({
       allowed: true,
       dontAskAgain: false,
     });
@@ -70,12 +75,12 @@ describe('jitsi/ipc', () => {
     const second = getHandler();
     await second({}, [{}, 'https://jitsi.example']);
 
-    expect(isJitsiServerAllowed).toHaveBeenCalledTimes(1);
+    expect(isJitsiServerAllowedMock).toHaveBeenCalledTimes(1);
     expect(mockGetSources).toHaveBeenCalled();
   });
 
   it('stays denied when dontAskAgain was previously set', async () => {
-    isJitsiServerAllowed.mockResolvedValueOnce({
+    isJitsiServerAllowedMock.mockResolvedValueOnce({
       allowed: false,
       dontAskAgain: true,
     });
@@ -86,7 +91,7 @@ describe('jitsi/ipc', () => {
     const second = getHandler();
     await second({}, [{}, 'https://jitsi.example']);
 
-    expect(isJitsiServerAllowed).toHaveBeenCalledTimes(1);
+    expect(isJitsiServerAllowedMock).toHaveBeenCalledTimes(1);
     expect(mockGetSources).not.toHaveBeenCalled();
   });
 });

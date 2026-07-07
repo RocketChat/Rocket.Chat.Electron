@@ -1,51 +1,54 @@
+import { ipcRenderer as mockIpcRenderer } from 'electron';
+
+import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../../../constants';
+import { dispatch, safeSelect } from '../../../store';
+import {
+  WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
+  WEBVIEW_UNREAD_CHANGED,
+  WEBVIEW_GIT_COMMIT_HASH_CHECK,
+  WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+  WEBVIEW_TITLE_CHANGED,
+} from '../../../ui/actions';
+import { setBadge } from '../badge';
+import {
+  openDocumentViewer,
+  supportedDocumentViewerFormats,
+} from '../documentViewer';
+import { getE2ePdfPreviewSizeLimit } from '../e2ePdfPreviewSizeLimit';
+import { setGitCommitHash } from '../gitCommitHash';
+import { reloadServer } from '../reloadServer';
+import { setUserThemeAppearance } from '../themeAppearance';
+import { setTitle } from '../title';
+import { setWorkspaceUID } from '../uniqueID';
+import { getServerUrl } from '../urls';
+
 jest.mock('electron', () => ({
   ipcRenderer: {
     invoke: jest.fn(),
   },
 }));
 
-const mockDispatch = jest.fn();
-const safeSelect = jest.fn();
-const getServerUrlMock = jest.fn(() => 'https://server.local');
-
 jest.mock('../../../store', () => ({
-  dispatch: mockDispatch,
-  safeSelect,
+  dispatch: jest.fn(),
+  safeSelect: jest.fn(),
 }));
 
 jest.mock('../urls', () => ({
   setServerUrl: jest.fn(),
   setUrlResolver: jest.fn(),
-  getServerUrl: getServerUrlMock,
+  getServerUrl: jest.fn(),
   getAbsoluteUrl: (relativePath?: string) =>
     `https://cdn.local/${relativePath}`,
 }));
 
-const { dispatch: mockedDispatch, safeSelect: mockedSafeSelect } =
-  require('../../../store');
-const { getServerUrl: mockedGetServerUrl } = require('../urls');
-const { reloadServer } = require('../reloadServer');
-const { setBadge } = require('../badge');
-const { setGitCommitHash } = require('../gitCommitHash');
-const { setWorkspaceUID } = require('../uniqueID');
-const { setTitle } = require('../title');
-const { setUserThemeAppearance } = require('../themeAppearance');
-const { getE2ePdfPreviewSizeLimit } = require('../e2ePdfPreviewSizeLimit');
-const { openDocumentViewer, supportedDocumentViewerFormats } =
-  require('../documentViewer');
-const { ipcRenderer: mockIpcRenderer } = require('electron');
-const { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } = require('../../../constants');
-const {
-  WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
-  WEBVIEW_UNREAD_CHANGED,
-  WEBVIEW_GIT_COMMIT_HASH_CHECK,
-  WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
-  WEBVIEW_TITLE_CHANGED,
-} = require('../../../ui/actions');
+const mockedDispatch = jest.mocked(dispatch);
+const mockedSafeSelect = jest.mocked(safeSelect);
+const mockedGetServerUrl = jest.mocked(getServerUrl);
 
 describe('servers/preload window helpers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedGetServerUrl.mockReturnValue('https://server.local');
   });
 
   it('dispatches cache clear reload actions', () => {
@@ -97,7 +100,10 @@ describe('servers/preload window helpers', () => {
 
     expect(mockedDispatch).toHaveBeenCalledWith({
       type: WEBVIEW_TITLE_CHANGED,
-      payload: { url: 'https://example.com', title: 'Rocket.Chat - https://example.com' },
+      payload: {
+        url: 'https://example.com',
+        title: 'Rocket.Chat - https://example.com',
+      },
     });
   });
 
@@ -112,7 +118,7 @@ describe('servers/preload window helpers', () => {
   });
 
   it('ignores non-string titles', () => {
-    setTitle((123 as unknown) as string);
+    setTitle(123 as unknown as string);
     expect(mockedDispatch).not.toHaveBeenCalled();
   });
 
@@ -141,6 +147,6 @@ describe('servers/preload window helpers', () => {
   });
 
   it('handles theme appearance updates with no-op API shape', () => {
-    expect(() => setUserThemeAppearance('system' as unknown as string)).not.toThrow();
+    expect(() => setUserThemeAppearance('system' as any)).not.toThrow();
   });
 });

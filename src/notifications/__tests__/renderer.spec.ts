@@ -1,5 +1,4 @@
 import { handle } from '../../ipc/renderer';
-
 import initNotificationsRenderer from '../renderer';
 
 jest.mock('../../ipc/renderer', () => ({
@@ -44,9 +43,13 @@ describe('notifications/renderer', () => {
 
     initNotificationsRenderer();
 
-    const handler = mockHandle.mock.calls[0]?.[1] as (url: string) => Promise<string>;
+    const handler = mockHandle.mock.calls[0]?.[1] as (
+      url: string
+    ) => Promise<string>;
     const response = await handler('https://chat.example/avatar.png');
-    const expectedBase64 = Buffer.from(new Uint8Array(pngBytes)).toString('base64');
+    const expectedBase64 = Buffer.from(new Uint8Array(pngBytes)).toString(
+      'base64'
+    );
 
     expect(mockFetch).toHaveBeenCalledWith('https://chat.example/avatar.png');
     expect(response).toBe(`data:image/png;base64,${expectedBase64}`);
@@ -58,9 +61,13 @@ describe('notifications/renderer', () => {
 
     initNotificationsRenderer();
 
-    const handler = mockHandle.mock.calls[0]?.[1] as (url: string) => Promise<string>;
+    const handler = mockHandle.mock.calls[0]?.[1] as (
+      url: string
+    ) => Promise<string>;
     const response = await handler('https://chat.example/avatar.unknown');
-    const expectedBase64 = Buffer.from(new Uint8Array(bytes)).toString('base64');
+    const expectedBase64 = Buffer.from(new Uint8Array(bytes)).toString(
+      'base64'
+    );
 
     expect(response).toBe(`data:image/jpeg;base64,${expectedBase64}`);
   });
@@ -71,7 +78,9 @@ describe('notifications/renderer', () => {
 
     initNotificationsRenderer();
 
-    const handler = mockHandle.mock.calls[0]?.[1] as (url: string) => Promise<string>;
+    const handler = mockHandle.mock.calls[0]?.[1] as (
+      url: string
+    ) => Promise<string>;
     const url = 'https://chat.example/avatar-cache.png';
     const first = await handler(url);
     const second = await handler(url);

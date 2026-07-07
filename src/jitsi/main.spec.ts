@@ -1,25 +1,23 @@
-export {};
+import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED } from './actions';
+import { isJitsiServerAllowed } from './main';
 
-const mockDispatch = jest.fn();
-const mockSelect = jest.fn((selector: (state: any) => unknown) =>
-  selector({
-    allowedJitsiServers: { 'jitsi.example': true },
-  })
-);
-
-jest.mock('../../store', () => ({
-  dispatch: (...args: unknown[]) => mockDispatch(...args),
-  select: mockSelect as unknown as (...args: unknown[]) => unknown,
+jest.mock('../store', () => ({
+  dispatch: jest.fn(),
+  select: jest.fn(),
 }));
 
-const askForJitsiCaptureScreenPermission = jest.fn();
-jest.mock('../../ui/main/dialogs', () => ({
-  askForJitsiCaptureScreenPermission: (...args: unknown[]) =>
-    askForJitsiCaptureScreenPermission(...args),
+jest.mock('../ui/main/dialogs', () => ({
+  askForJitsiCaptureScreenPermission: jest.fn(),
 }));
 
-const { isJitsiServerAllowed } = require('../main');
-const { JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED } = require('../actions');
+const { dispatch: mockDispatch, select: mockSelect } = jest.requireMock(
+  '../store'
+) as { dispatch: jest.Mock; select: jest.Mock };
+const {
+  askForJitsiCaptureScreenPermission: mockAskForJitsiCaptureScreenPermission,
+} = jest.requireMock('../ui/main/dialogs') as {
+  askForJitsiCaptureScreenPermission: jest.Mock;
+};
 
 describe('jitsi/main', () => {
   beforeEach(() => {
@@ -38,11 +36,11 @@ describe('jitsi/main', () => {
       allowed: true,
       dontAskAgain: true,
     });
-    expect(askForJitsiCaptureScreenPermission).not.toHaveBeenCalled();
+    expect(mockAskForJitsiCaptureScreenPermission).not.toHaveBeenCalled();
   });
 
   it('asks for permission when not persisted and returns response', async () => {
-    askForJitsiCaptureScreenPermission.mockResolvedValue({
+    mockAskForJitsiCaptureScreenPermission.mockResolvedValue({
       allowed: false,
       dontAskAgain: true,
     });
@@ -55,7 +53,7 @@ describe('jitsi/main', () => {
 
     const result = await isJitsiServerAllowed('https://new.example');
 
-    expect(askForJitsiCaptureScreenPermission).toHaveBeenCalledWith(
+    expect(mockAskForJitsiCaptureScreenPermission).toHaveBeenCalledWith(
       expect.any(URL)
     );
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -69,7 +67,7 @@ describe('jitsi/main', () => {
   });
 
   it('does not dispatch when user does not opt to remember', async () => {
-    askForJitsiCaptureScreenPermission.mockResolvedValue({
+    mockAskForJitsiCaptureScreenPermission.mockResolvedValue({
       allowed: true,
       dontAskAgain: false,
     });

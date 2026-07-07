@@ -152,16 +152,14 @@ describe('servers/preload/userRoles', () => {
     localStorage.setItem('Meteor.loginToken', 'token');
     localStorage.setItem('Meteor.userId', 'user-id');
 
-    global.fetch = jest
-      .fn()
-      .mockImplementation(async () => {
-        setUserRoles(['bridge-role']);
+    global.fetch = jest.fn().mockImplementation(async () => {
+      setUserRoles(['bridge-role']);
 
-        return {
-          ok: true,
-          json: async () => ({ roles: ['me-role'] }),
-        } as { ok: boolean; json: () => Promise<{ roles: unknown }> };
-      }) as unknown as typeof global.fetch;
+      return {
+        ok: true,
+        json: async () => ({ roles: ['me-role'] }),
+      } as { ok: boolean; json: () => Promise<{ roles: unknown }> };
+    }) as unknown as typeof global.fetch;
 
     await updateUserRoles();
 

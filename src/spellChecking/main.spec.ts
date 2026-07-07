@@ -1,3 +1,7 @@
+import { createMainReduxStore, dispatch } from '../store';
+import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
+import { setupSpellChecking } from './main';
+
 jest.mock('../store', () => ({
   createMainReduxStore: jest.fn(),
   dispatch: jest.fn(),
@@ -19,10 +23,6 @@ jest.mock('electron', () => ({
     getAllWebContents: jest.fn(() => []),
   },
 }));
-
-import { createMainReduxStore, dispatch } from '../store';
-import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
-import { setupSpellChecking } from './main';
 
 describe('setupSpellChecking', () => {
   beforeAll(() => {

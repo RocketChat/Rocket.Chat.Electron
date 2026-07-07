@@ -26,7 +26,7 @@ describe('screenSharing/preload', () => {
   it('posts the captured source id when request succeeds', async () => {
     mockRequest.mockResolvedValue('source-id-1');
 
-    const { listenToScreenSharingRequests } = require('../preload');
+    const { listenToScreenSharingRequests } = await import('../preload');
     listenToScreenSharingRequests();
 
     window.dispatchEvent(new Event('get-sourceId'));
@@ -41,7 +41,7 @@ describe('screenSharing/preload', () => {
   it('posts a permission error when request fails', async () => {
     mockRequest.mockRejectedValue(new Error('blocked'));
 
-    const { listenToScreenSharingRequests } = require('../preload');
+    const { listenToScreenSharingRequests } = await import('../preload');
     listenToScreenSharingRequests();
     window.dispatchEvent(new Event('get-sourceId'));
 

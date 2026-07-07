@@ -1,6 +1,7 @@
 import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell, webContents } from 'electron';
 
+import { handle as mockHandle } from '../ipc/main';
 import { createMainReduxStore, dispatch, select } from '../store';
 import {
   DOWNLOAD_CREATED,
@@ -11,7 +12,6 @@ import {
 import type { Download } from './common';
 import { DownloadStatus } from './common';
 import { handleWillDownloadEvent, setupDownloads } from './main';
-import { handle as mockHandle } from '../ipc/main';
 
 jest.mock('../store', () => ({
   createMainReduxStore: jest.fn(),
@@ -203,9 +203,7 @@ describe('downloads integration tests', () => {
         savePath: '/downloads/test-file.pdf',
       };
 
-      selectMock.mockReturnValue(
-        mockDownload
-      );
+      selectMock.mockReturnValue(mockDownload);
 
       // Get IPC handlers
       const showInFolderHandler = getHandler('downloads/show-in-folder');

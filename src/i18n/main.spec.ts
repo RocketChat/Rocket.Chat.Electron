@@ -1,75 +1,92 @@
-import type { WebContents } from 'electron';
-import { app } from 'electron';
-import { I18N_LNG_REQUESTED, I18N_LNG_RESPONDED } from '../actions';
-
-const mockI18nextInit = jest.fn();
-const mockI18nextT = jest.fn();
-const mockI18next = {
-  init: mockI18nextInit,
-  t: mockI18nextT,
-  language: undefined as string | undefined,
-};
-
-const mockAppWhenReady = jest.fn();
-const mockAppGetSystemLocale = jest.fn();
-
-const mockDispatch = jest.fn();
-const mockListen = jest.fn();
-
-const mockResources = {
-  en: jest.fn(async () => ({ translation: { hello: 'hello en' } })),
-  'es': jest.fn(async () => ({ translation: { hello: 'hola' } })),
-};
-
-const mockHasMeta = jest.fn();
+import { I18N_LNG_REQUESTED, I18N_LNG_RESPONDED } from './actions';
+import type * as MainModule from './main';
 
 jest.mock('electron', () => ({
   app: {
-    whenReady: (...args: any[]) => mockAppWhenReady(...args),
-    getSystemLocale: (...args: any[]) => mockAppGetSystemLocale(...args),
+    whenReady: jest.fn(),
+    getSystemLocale: jest.fn(),
   },
 }));
 
 jest.mock('i18next', () => ({
   __esModule: true,
-  default: mockI18next,
-}));
-
-jest.mock('../../store', () => ({
-  dispatch: (...args: unknown[]) => mockDispatch(...args),
-  Service: class {
-    private unsubscribers = new Set<() => void>();
-
-    protected listen(typeOrPredicate: unknown, listener: unknown): void {
-      this.unsubscribers.add(mockListen(typeOrPredicate as never, listener as never));
-    }
-
-    public setUp(): void {
-      this.initialize();
-    }
-
-    public tearDown(): void {
-      this.unsubscribers.forEach((unsubscribe) => unsubscribe());
-      this.unsubscribers.clear();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected initialize(): void {}
+  default: {
+    init: jest.fn(),
+    t: jest.fn(),
+    language: undefined as string | undefined,
   },
 }));
 
-jest.mock('../../store/fsa', () => ({
-  hasMeta: (...args: unknown[]) => mockHasMeta(...args),
+jest.mock('../store', () => {
+  const mockListen = jest.fn();
+
+  return {
+    dispatch: jest.fn(),
+    __mockListen: mockListen,
+    Service: class {
+      private unsubscribers = new Set<() => void>();
+
+      protected listen(typeOrPredicate: unknown, listener: unknown): void {
+        this.unsubscribers.add(
+          mockListen(typeOrPredicate as never, listener as never)
+        );
+      }
+
+      public setUp(): void {
+        this.initialize();
+      }
+
+      public tearDown(): void {
+        this.unsubscribers.forEach((unsubscribe) => unsubscribe());
+        this.unsubscribers.clear();
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      protected initialize(): void {}
+    },
+  };
+});
+
+jest.mock('../store/fsa', () => ({
+  hasMeta: jest.fn(),
 }));
 
-jest.mock('../resources', () => mockResources);
+jest.mock('./resources', () => ({
+  en: jest.fn(async () => ({ translation: { hello: 'hello en' } })),
+  es: jest.fn(async () => ({ translation: { hello: 'hola' } })),
+}));
+
+const mockI18next = jest.requireMock('i18next').default as {
+  init: jest.Mock;
+  t: jest.Mock;
+  language: string | undefined;
+};
+const mockI18nextInit = mockI18next.init;
+const mockI18nextT = mockI18next.t;
+
+const mockAppWhenReady = jest.requireMock('electron').app.whenReady;
+const mockAppGetSystemLocale = jest.requireMock('electron').app.getSystemLocale;
+
+const mockStore = jest.requireMock('../store') as {
+  dispatch: jest.Mock;
+  __mockListen: jest.Mock;
+};
+const mockDispatch = mockStore.dispatch;
+const mockListen = mockStore.__mockListen;
+
+const mockResources = jest.requireMock('./resources') as {
+  en: jest.Mock;
+  es: jest.Mock;
+};
+
+const mockHasMeta = jest.requireMock('../store/fsa').hasMeta;
 
 const loadI18n = () => {
-  let exports: typeof import('../main');
+  let exports: typeof MainModule;
 
   jest.isolateModules(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    exports = require('../main');
+    exports = require('./main');
   });
 
   return exports!;
@@ -90,7 +107,7 @@ describe('i18n/main', () => {
     mockI18nextT.mockReturnValue('translated');
 
     mockResources.en.mockClear();
-    mockResources['es'].mockClear();
+    mockResources.es.mockClear();
     mockListen.mockImplementation(() => jest.fn());
 
     mockHasMeta.mockReset();

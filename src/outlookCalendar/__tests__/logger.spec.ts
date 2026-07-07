@@ -1,3 +1,4 @@
+import { select, watch } from '../../store';
 import {
   outlookDebug,
   outlookError,
@@ -5,15 +6,13 @@ import {
   outlookInfo,
   outlookLog,
   outlookWarn,
+  setupOutlookLogger,
 } from '../logger';
-import { setupOutlookLogger } from '../logger';
 
 jest.mock('../../store', () => ({
   select: jest.fn(),
   watch: jest.fn(),
 }));
-
-import { select, watch } from '../../store';
 
 describe('outlook logger', () => {
   let watchCallbacks: Array<(value: boolean) => void>;
@@ -30,11 +29,13 @@ describe('outlook logger', () => {
       return false;
     });
 
-    (watch as jest.Mock).mockImplementation((_: unknown, cb: (enabled: boolean) => void) => {
-      watchCallbacks.push(cb);
-      cb(false);
-      return () => undefined;
-    });
+    (watch as jest.Mock).mockImplementation(
+      (_: unknown, cb: (enabled: boolean) => void) => {
+        watchCallbacks.push(cb);
+        cb(false);
+        return () => undefined;
+      }
+    );
 
     jest.clearAllMocks();
   });
@@ -55,8 +56,12 @@ describe('outlook logger', () => {
     watchCallbacks[0](true);
     watchCallbacks[1](true);
 
-    const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleInfoSpy = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => {});
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
 
     outlookLog('verbose message');
     outlookInfo('verbose info');
@@ -72,9 +77,15 @@ describe('outlook logger', () => {
 
   it('suppresses logs when flags are disabled', () => {
     setupOutlookLogger();
-    const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleInfoSpy = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => {});
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     watchCallbacks[0](false);
     watchCallbacks[1](false);

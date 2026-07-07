@@ -1,3 +1,7 @@
+import { ipcMain } from 'electron';
+
+import { invoke, handle } from './main';
+
 jest.mock('electron', () => ({
   ipcMain: {
     once: jest.fn(),
@@ -5,9 +9,6 @@ jest.mock('electron', () => ({
     removeHandler: jest.fn(),
   },
 }));
-
-import { invoke, handle } from './main';
-import { ipcMain } from 'electron';
 
 describe('ipc main', () => {
   const webContents = {

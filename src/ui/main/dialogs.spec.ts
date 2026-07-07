@@ -1,6 +1,6 @@
 import type { BrowserWindow } from 'electron';
+import { dialog, shell } from 'electron';
 
-import { getRootWindow } from './rootWindow';
 import {
   AskForCertificateTrustResponse,
   AskUpdateInstallResponse,
@@ -18,8 +18,7 @@ import {
   warnAboutInstallUpdateLater,
   showMicrophonePermissionDeniedMessage,
 } from './dialogs';
-
-import { dialog, shell } from 'electron';
+import { getRootWindow } from './rootWindow';
 
 jest.mock('electron', () => ({
   dialog: {
@@ -41,13 +40,15 @@ jest.mock('./rootWindow', () => ({
 const showMessageBox = dialog.showMessageBox as jest.MockedFunction<
   typeof dialog.showMessageBox
 >;
-const getRootWindowMock = getRootWindow as jest.MockedFunction<typeof getRootWindow>;
+const getRootWindowMock = getRootWindow as jest.MockedFunction<
+  typeof getRootWindow
+>;
 const openExternalMock = shell.openExternal as jest.MockedFunction<
   typeof shell.openExternal
 >;
 
 const getMockWindow = (): BrowserWindow =>
-  ({ show: jest.fn() } as unknown as BrowserWindow);
+  ({ show: jest.fn() }) as unknown as BrowserWindow;
 
 describe('ui/main/dialogs', () => {
   beforeEach(() => {
@@ -75,9 +76,9 @@ describe('ui/main/dialogs', () => {
     showMessageBox.mockResolvedValue({ response: 0 } as never);
     const parent = getMockWindow();
 
-    await expect(askForServerAddition('https://example.test', parent)).resolves.toBe(
-      true
-    );
+    await expect(
+      askForServerAddition('https://example.test', parent)
+    ).resolves.toBe(true);
     expect(parent.show).toHaveBeenCalledTimes(1);
     expect(showMessageBox).toHaveBeenCalledWith(
       parent,
@@ -90,9 +91,9 @@ describe('ui/main/dialogs', () => {
     getRootWindowMock.mockResolvedValue(rootWindow);
     showMessageBox.mockResolvedValue({ response: 1 } as never);
 
-    await expect(
-      askForServerAddition('https://example.test')
-    ).resolves.toBe(false);
+    await expect(askForServerAddition('https://example.test')).resolves.toBe(
+      false
+    );
     expect(showMessageBox).toHaveBeenCalledWith(
       rootWindow,
       expect.objectContaining({ message: 'dialog.addServer.message' })
@@ -125,16 +126,24 @@ describe('ui/main/dialogs', () => {
   });
 
   it('warns about invalid server URLs by throwing', async () => {
-    expect(() => warnAboutInvalidServerUrl('x', 'y')).toThrow('not implemented');
+    expect(() => warnAboutInvalidServerUrl('x', 'y')).toThrow(
+      'not implemented'
+    );
   });
 
   it('asks for certificate trust and maps yes/no', async () => {
-    showMessageBox.mockResolvedValue({ response: 0, checkboxChecked: false } as never);
+    showMessageBox.mockResolvedValue({
+      response: 0,
+      checkboxChecked: false,
+    } as never);
     await expect(askForCertificateTrust('CA', 'detail')).resolves.toBe(
       AskForCertificateTrustResponse.YES
     );
 
-    showMessageBox.mockResolvedValue({ response: 1, checkboxChecked: true } as never);
+    showMessageBox.mockResolvedValue({
+      response: 1,
+      checkboxChecked: true,
+    } as never);
     await expect(askForCertificateTrust('CA', 'detail')).resolves.toBe(
       AskForCertificateTrustResponse.NO
     );
@@ -142,7 +151,10 @@ describe('ui/main/dialogs', () => {
 
   it('uses the provided parent window for certificate trust prompt', async () => {
     const parent = getMockWindow();
-    showMessageBox.mockResolvedValue({ response: 1, checkboxChecked: false } as never);
+    showMessageBox.mockResolvedValue({
+      response: 1,
+      checkboxChecked: false,
+    } as never);
 
     await expect(askForCertificateTrust('CA', 'detail', parent)).resolves.toBe(
       AskForCertificateTrustResponse.NO
@@ -159,7 +171,9 @@ describe('ui/main/dialogs', () => {
       checkboxChecked: true,
     } as never);
 
-    const result = await askForOpeningExternalProtocol(new URL('custom://test'));
+    const result = await askForOpeningExternalProtocol(
+      new URL('custom://test')
+    );
     expect(result).toEqual({ allowed: true, dontAskAgain: true });
   });
 
@@ -225,7 +239,9 @@ describe('ui/main/dialogs', () => {
     const parent = getMockWindow();
     showMessageBox.mockResolvedValue({ response: 1 } as never);
 
-    await expect(askForClearScreenCapturePermission(parent)).resolves.toBe(false);
+    await expect(askForClearScreenCapturePermission(parent)).resolves.toBe(
+      false
+    );
     expect(showMessageBox).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
@@ -237,9 +253,9 @@ describe('ui/main/dialogs', () => {
   it('prompts for media permission settings and maps yes/no', async () => {
     showMessageBox.mockResolvedValue({ response: 0 } as never);
 
-    await expect(
-      askForMediaPermissionSettings('microphone')
-    ).resolves.toBe(true);
+    await expect(askForMediaPermissionSettings('microphone')).resolves.toBe(
+      true
+    );
     await expect(
       askForMediaPermissionSettings('both', getMockWindow())
     ).resolves.toBe(true);
@@ -248,13 +264,14 @@ describe('ui/main/dialogs', () => {
   it('maps a negative answer for media permission settings', async () => {
     showMessageBox.mockResolvedValue({ response: 1 } as never);
 
-    await expect(
-      askForMediaPermissionSettings('camera')
-    ).resolves.toBe(false);
+    await expect(askForMediaPermissionSettings('camera')).resolves.toBe(false);
   });
 
   it('opens macOS microphone settings when allowed on darwin', async () => {
-    Object.defineProperty(process, 'platform', { configurable: true, value: 'darwin' });
+    Object.defineProperty(process, 'platform', {
+      configurable: true,
+      value: 'darwin',
+    });
     showMessageBox.mockResolvedValue({ response: 0 } as never);
 
     await showMicrophonePermissionDeniedMessage('initiateCall');
@@ -264,11 +281,16 @@ describe('ui/main/dialogs', () => {
   });
 
   it('opens Windows microphone settings when allowed on win32', async () => {
-    Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' });
+    Object.defineProperty(process, 'platform', {
+      configurable: true,
+      value: 'win32',
+    });
     showMessageBox.mockResolvedValue({ response: 0 } as never);
 
     await showMicrophonePermissionDeniedMessage('answerCall');
-    expect(openExternalMock).toHaveBeenCalledWith('ms-settings:privacy-microphone');
+    expect(openExternalMock).toHaveBeenCalledWith(
+      'ms-settings:privacy-microphone'
+    );
   });
 
   it('does not open settings when microphone permission is denied', async () => {

@@ -1,3 +1,5 @@
+import { logExecutionTime } from './utils';
+
 const debugMock = jest.fn();
 const errorMock = jest.fn();
 
@@ -5,8 +7,6 @@ jest.mock('electron-log', () => ({
   debug: (...args: any[]) => debugMock(...args),
   error: (...args: any[]) => errorMock(...args),
 }));
-
-const { logExecutionTime } = require('./utils');
 
 describe('logging/utils', () => {
   beforeEach(() => {
@@ -34,9 +34,8 @@ describe('logging/utils', () => {
   });
 
   it('logs failures for rejected async functions and rethrows', async () => {
-    const promise = logExecutionTime(
-      'rejecting',
-      () => Promise.reject(new Error('nope'))
+    const promise = logExecutionTime('rejecting', () =>
+      Promise.reject(new Error('nope'))
     );
 
     await expect(promise).rejects.toThrow('nope');

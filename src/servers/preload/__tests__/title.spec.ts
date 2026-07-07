@@ -1,7 +1,7 @@
 import { dispatch } from '../../../store';
 import { WEBVIEW_TITLE_CHANGED } from '../../../ui/actions';
-import { getServerUrl } from '../urls';
 import { setTitle } from '../title';
+import { getServerUrl } from '../urls';
 
 jest.mock('../../../store', () => ({
   dispatch: jest.fn(),
@@ -12,7 +12,9 @@ jest.mock('../urls', () => ({
 }));
 
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
-const getServerUrlMock = getServerUrl as jest.MockedFunction<typeof getServerUrl>;
+const getServerUrlMock = getServerUrl as jest.MockedFunction<
+  typeof getServerUrl
+>;
 
 describe('servers/preload/title', () => {
   beforeEach(() => {

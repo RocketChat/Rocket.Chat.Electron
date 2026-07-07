@@ -1,8 +1,8 @@
+import { SettingsView } from '..';
+
 jest.mock('../SettingsView', () => ({
   SettingsView: 'MockSettingsView',
 }));
-
-const { SettingsView } = require('..');
 
 describe('SettingsView exports', () => {
   it('re-exports SettingsView', () => {

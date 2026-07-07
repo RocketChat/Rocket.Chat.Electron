@@ -1,3 +1,5 @@
+import type * as ScopesModule from './scopes';
+
 const logDebug = jest.fn();
 const logInfo = jest.fn();
 const logWarn = jest.fn();
@@ -17,7 +19,7 @@ jest.mock('./context', () => ({
 
 const loadScopes = (processContext: string) => {
   getProcessContext.mockReturnValue(processContext);
-  let scopesModule: typeof import('./scopes');
+  let scopesModule: typeof ScopesModule;
   jest.isolateModules(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     scopesModule = require('./scopes');
@@ -74,4 +76,3 @@ describe('logging/scopes', () => {
     expect(logInfo).toHaveBeenCalledWith('[worker]', '[main]', 'shared');
   });
 });
-

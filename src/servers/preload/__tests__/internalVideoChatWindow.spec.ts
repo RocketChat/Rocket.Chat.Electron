@@ -1,7 +1,8 @@
 /** @jest-environment jsdom */
+import { ipcRenderer } from 'electron';
+
 import { safeSelect } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
-import { ipcRenderer } from 'electron';
 import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
@@ -22,8 +23,12 @@ jest.mock('electron', () => ({
 }));
 
 const safeSelectMock = safeSelect as jest.MockedFunction<typeof safeSelect>;
-const openExternalMock = openExternal as jest.MockedFunction<typeof openExternal>;
-const invokeMock = ipcRenderer.invoke as jest.MockedFunction<typeof ipcRenderer.invoke>;
+const openExternalMock = openExternal as jest.MockedFunction<
+  typeof openExternal
+>;
+const invokeMock = ipcRenderer.invoke as jest.MockedFunction<
+  typeof ipcRenderer.invoke
+>;
 
 describe('servers/preload/internalVideoChatWindow', () => {
   const processMasDescriptor = Object.getOwnPropertyDescriptor(process, 'mas');
@@ -58,7 +63,9 @@ describe('servers/preload/internalVideoChatWindow', () => {
   it('falls back to external open when internal video chat is disabled', () => {
     safeSelectMock.mockReturnValue(false);
 
-    openInternalVideoChatWindow('https://chat.example', { providerName: 'jitsi' });
+    openInternalVideoChatWindow('https://chat.example', {
+      providerName: 'jitsi',
+    });
 
     expect(openExternalMock).toHaveBeenCalledWith('https://chat.example/');
     expect(invokeMock).not.toHaveBeenCalled();
@@ -68,7 +75,9 @@ describe('servers/preload/internalVideoChatWindow', () => {
     safeSelectMock.mockReturnValue(true);
     setProcessMas(true);
 
-    openInternalVideoChatWindow('https://chat.example', { providerName: 'googlemeet' });
+    openInternalVideoChatWindow('https://chat.example', {
+      providerName: 'googlemeet',
+    });
 
     expect(openExternalMock).toHaveBeenCalledWith('https://chat.example/');
     expect(invokeMock).not.toHaveBeenCalled();
@@ -77,7 +86,9 @@ describe('servers/preload/internalVideoChatWindow', () => {
   it('opens jitsi calls on the dedicated invoke path', () => {
     safeSelectMock.mockReturnValue(true);
 
-    openInternalVideoChatWindow('https://chat.example', { providerName: 'jitsi' });
+    openInternalVideoChatWindow('https://chat.example', {
+      providerName: 'jitsi',
+    });
 
     expect(invokeMock).toHaveBeenCalledWith(
       'video-call-window/open-window',
@@ -90,7 +101,9 @@ describe('servers/preload/internalVideoChatWindow', () => {
   it('falls back to external open for google meet', () => {
     safeSelectMock.mockReturnValue(true);
 
-    openInternalVideoChatWindow('https://chat.example', { providerName: 'googlemeet' });
+    openInternalVideoChatWindow('https://chat.example', {
+      providerName: 'googlemeet',
+    });
 
     expect(openExternalMock).toHaveBeenCalledWith('https://chat.example/');
     expect(invokeMock).not.toHaveBeenCalled();
@@ -115,7 +128,9 @@ describe('servers/preload/internalVideoChatWindow', () => {
   it('returns early for unsupported protocols', () => {
     safeSelectMock.mockReturnValue(true);
 
-    openInternalVideoChatWindow('ftp://chat.example', { providerName: 'jitsi' });
+    openInternalVideoChatWindow('ftp://chat.example', {
+      providerName: 'jitsi',
+    });
 
     expect(openExternalMock).not.toHaveBeenCalled();
     expect(invokeMock).not.toHaveBeenCalled();
@@ -126,7 +141,9 @@ describe('servers/preload/internalVideoChatWindow', () => {
     localStorage.setItem('Meteor.loginToken', 'token-123');
     localStorage.setItem('Meteor.userId', 'user-456');
 
-    openInternalVideoChatWindow('https://chat.example', { providerName: 'pexip' });
+    openInternalVideoChatWindow('https://chat.example', {
+      providerName: 'pexip',
+    });
 
     expect(invokeMock).toHaveBeenCalledWith(
       'video-call-window/open-window',
@@ -146,7 +163,9 @@ describe('servers/preload/internalVideoChatWindow', () => {
     localStorage.removeItem('Meteor.loginToken');
     localStorage.removeItem('Meteor.userId');
 
-    openInternalVideoChatWindow('https://chat.example', { providerName: 'pexip' });
+    openInternalVideoChatWindow('https://chat.example', {
+      providerName: 'pexip',
+    });
 
     expect(invokeMock).toHaveBeenCalledWith(
       'video-call-window/open-window',

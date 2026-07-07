@@ -1,8 +1,8 @@
 /** @jest-environment jsdom */
 import { dispatch } from '../../../store';
 import { WEBVIEW_SERVER_UNIQUE_ID_UPDATED } from '../../../ui/actions';
-import { getServerUrl } from '../urls';
 import { setWorkspaceUID } from '../uniqueID';
+import { getServerUrl } from '../urls';
 
 jest.mock('../../../store', () => ({
   dispatch: jest.fn(),

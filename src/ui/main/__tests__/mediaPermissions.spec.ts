@@ -1,3 +1,5 @@
+import { handleMediaPermissionRequest } from '../mediaPermissions';
+
 const getMediaAccessStatusMock = jest.fn();
 const askForMediaAccessMock = jest.fn();
 const shellOpenExternalMock = jest.fn();
@@ -29,8 +31,6 @@ jest.mock('../dialogs', () => ({
     askForMediaPermissionSettingsMock(...args),
 }));
 
-import { handleMediaPermissionRequest } from '../mediaPermissions';
-
 beforeEach(() => {
   resetPlatform();
   jest.clearAllMocks();
@@ -49,7 +49,12 @@ describe('ui/main/mediaPermissions', () => {
 
     const callback = jest.fn();
 
-    await handleMediaPermissionRequest(['audio', 'video'], null, 'initiateCall', callback);
+    await handleMediaPermissionRequest(
+      ['audio', 'video'],
+      null,
+      'initiateCall',
+      callback
+    );
 
     expect(callback).toHaveBeenCalledWith(true);
     expect(askForMediaPermissionSettingsMock).not.toHaveBeenCalled();
@@ -67,9 +72,17 @@ describe('ui/main/mediaPermissions', () => {
 
     const callback = jest.fn();
 
-    await handleMediaPermissionRequest(['audio', 'video'], parentWindow as any, 'answerCall', callback);
+    await handleMediaPermissionRequest(
+      ['audio', 'video'],
+      parentWindow as any,
+      'answerCall',
+      callback
+    );
 
-    expect(askForMediaPermissionSettingsMock).toHaveBeenCalledWith('both', parentWindow);
+    expect(askForMediaPermissionSettingsMock).toHaveBeenCalledWith(
+      'both',
+      parentWindow
+    );
     expect(shellOpenExternalMock).toHaveBeenCalledWith(
       'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'
     );
@@ -83,7 +96,12 @@ describe('ui/main/mediaPermissions', () => {
 
     const callback = jest.fn();
 
-    await handleMediaPermissionRequest(['audio'], null, 'recordMessage', callback);
+    await handleMediaPermissionRequest(
+      ['audio'],
+      null,
+      'recordMessage',
+      callback
+    );
 
     expect(askForMediaAccessMock).toHaveBeenCalledWith('microphone');
     expect(callback).toHaveBeenCalledWith(true);
@@ -96,7 +114,12 @@ describe('ui/main/mediaPermissions', () => {
 
     const callback = jest.fn();
 
-    await handleMediaPermissionRequest(['video'], null, 'recordMessage', callback);
+    await handleMediaPermissionRequest(
+      ['video'],
+      null,
+      'recordMessage',
+      callback
+    );
 
     expect(askForMediaAccessMock).toHaveBeenCalledWith('camera');
     expect(callback).toHaveBeenCalledWith(true);
@@ -110,7 +133,12 @@ describe('ui/main/mediaPermissions', () => {
 
     const callback = jest.fn();
 
-    await handleMediaPermissionRequest(['audio'], parentWindow as any, 'answerCall', callback);
+    await handleMediaPermissionRequest(
+      ['audio'],
+      parentWindow as any,
+      'answerCall',
+      callback
+    );
 
     expect(askForMediaPermissionSettingsMock).toHaveBeenCalledWith(
       'microphone',
@@ -179,7 +207,12 @@ describe('ui/main/mediaPermissions', () => {
 
     const callback = jest.fn();
 
-    await handleMediaPermissionRequest(['audio', 'video'], null, 'initiateCall', callback);
+    await handleMediaPermissionRequest(
+      ['audio', 'video'],
+      null,
+      'initiateCall',
+      callback
+    );
 
     expect(callback).toHaveBeenCalledWith(true);
     expect(getMediaAccessStatusMock).not.toHaveBeenCalled();

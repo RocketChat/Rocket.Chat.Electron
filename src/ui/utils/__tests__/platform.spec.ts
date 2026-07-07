@@ -1,5 +1,13 @@
-const loadPlatformModule = (processPlatform: string, navigatorPlatform?: string|null) => {
-  const processDescriptor = Object.getOwnPropertyDescriptor(process, 'platform');
+import type * as PlatformModule from '../platform';
+
+const loadPlatformModule = (
+  processPlatform: string,
+  navigatorPlatform?: string | null
+) => {
+  const processDescriptor = Object.getOwnPropertyDescriptor(
+    process,
+    'platform'
+  );
   const navigatorDescriptor = Object.getOwnPropertyDescriptor(
     globalThis as { [k: string]: unknown },
     'navigator'
@@ -18,13 +26,17 @@ const loadPlatformModule = (processPlatform: string, navigatorPlatform?: string|
   } else {
     Object.defineProperty(globalThis, 'navigator', {
       configurable: true,
-      value: navigatorPlatform === null ? undefined : { platform: navigatorPlatform },
+      value:
+        navigatorPlatform === null
+          ? undefined
+          : { platform: navigatorPlatform },
     });
   }
 
   jest.resetModules();
 
-  const mod = require('../platform') as typeof import('../platform');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const mod = require('../platform') as typeof PlatformModule;
 
   return {
     module: mod,

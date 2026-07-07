@@ -1,12 +1,12 @@
 import { Menu, clipboard } from 'electron';
 
 import { isProtocolAllowed } from '../../../navigation/main';
-import { dispatch } from '../../../store';
-import { openExternal } from '../../../utils/browserLauncher';
 import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
 } from '../../../spellChecking/actions';
+import { dispatch } from '../../../store';
+import { openExternal } from '../../../utils/browserLauncher';
 import { createPopupMenuForServerView } from './popupMenu';
 
 jest.mock('electron', () => ({
@@ -43,9 +43,7 @@ type MenuTemplateItem = {
   click?: (event?: { checked?: boolean }) => void | Promise<void>;
 };
 
-const asMenuTemplate = (
-  menu: Menu
-): Array<MenuTemplateItem> =>
+const asMenuTemplate = (menu: Menu): Array<MenuTemplateItem> =>
   (menu as unknown as { template: Array<MenuTemplateItem> }).template;
 
 const setProcessPlatform = (value: NodeJS.Platform): void => {
@@ -60,7 +58,8 @@ const createWebContents = (defaults?: {
   availableSpellCheckerLanguages?: string[];
 }) => ({
   session: {
-    availableSpellCheckerLanguages: defaults?.availableSpellCheckerLanguages ?? [],
+    availableSpellCheckerLanguages:
+      defaults?.availableSpellCheckerLanguages ?? [],
     getSpellCheckerLanguages: jest
       .fn()
       .mockReturnValue(defaults?.spellCheckerLanguages ?? []),
@@ -83,33 +82,36 @@ describe('createPopupMenuForServerView', () => {
       spellCheckerLanguages: ['en-US'],
     });
 
-    const menu = createPopupMenuForServerView(wc as never, {
-      isEditable: true,
-      dictionarySuggestions: [
-        'alpha',
-        'beta',
-        'gamma',
-        'delta',
-        'epsilon',
-        'zeta',
-        'eta',
-        'theta',
-      ],
-      mediaType: 'image',
-      srcURL: 'https://example.test/image.png',
-      x: 12,
-      y: 34,
-      linkURL: 'https://example.test/doc',
-      linkText: 'Example',
-      editFlags: {
-        canUndo: true,
-        canRedo: false,
-        canCut: true,
-        canCopy: true,
-        canPaste: true,
-        canSelectAll: true,
-      },
-    } as never);
+    const menu = createPopupMenuForServerView(
+      wc as never,
+      {
+        isEditable: true,
+        dictionarySuggestions: [
+          'alpha',
+          'beta',
+          'gamma',
+          'delta',
+          'epsilon',
+          'zeta',
+          'eta',
+          'theta',
+        ],
+        mediaType: 'image',
+        srcURL: 'https://example.test/image.png',
+        x: 12,
+        y: 34,
+        linkURL: 'https://example.test/doc',
+        linkText: 'Example',
+        editFlags: {
+          canUndo: true,
+          canRedo: false,
+          canCut: true,
+          canCopy: true,
+          canPaste: true,
+          canSelectAll: true,
+        },
+      } as never
+    );
 
     const template = asMenuTemplate(menu);
 
@@ -130,7 +132,9 @@ describe('createPopupMenuForServerView', () => {
       (entry) => entry.label === 'contextMenu.saveImageAs'
     );
     saveImageItem?.click?.();
-    expect(wc.downloadURL).toHaveBeenCalledWith('https://example.test/image.png');
+    expect(wc.downloadURL).toHaveBeenCalledWith(
+      'https://example.test/image.png'
+    );
 
     const copyImageItem = template.find(
       (entry) => entry.label === 'contextMenu.copyImage'
@@ -185,24 +189,27 @@ describe('createPopupMenuForServerView', () => {
       spellCheckerLanguages: [],
     });
 
-    const menu = createPopupMenuForServerView(wc as never, {
-      isEditable: true,
-      dictionarySuggestions: undefined,
-      mediaType: 'none',
-      srcURL: 'https://example.test/image.png',
-      x: 0,
-      y: 0,
-      linkURL: 'https://example.test',
-      linkText: '',
-      editFlags: {
-        canUndo: false,
-        canRedo: false,
-        canCut: false,
-        canCopy: false,
-        canPaste: false,
-        canSelectAll: false,
-      },
-    } as never);
+    const menu = createPopupMenuForServerView(
+      wc as never,
+      {
+        isEditable: true,
+        dictionarySuggestions: undefined,
+        mediaType: 'none',
+        srcURL: 'https://example.test/image.png',
+        x: 0,
+        y: 0,
+        linkURL: 'https://example.test',
+        linkText: '',
+        editFlags: {
+          canUndo: false,
+          canRedo: false,
+          canCut: false,
+          canCopy: false,
+          canPaste: false,
+          canSelectAll: false,
+        },
+      } as never
+    );
 
     const template = asMenuTemplate(menu);
 
@@ -240,24 +247,27 @@ describe('createPopupMenuForServerView', () => {
       spellCheckerLanguages: ['en-US'],
     });
 
-    const menu = createPopupMenuForServerView(wc as never, {
-      isEditable: true,
-      dictionarySuggestions: [],
-      mediaType: 'none',
-      srcURL: '',
-      x: 0,
-      y: 0,
-      linkURL: 'https://example.test/resource',
-      linkText: 'Example',
-      editFlags: {
-        canUndo: false,
-        canRedo: true,
-        canCut: false,
-        canCopy: false,
-        canPaste: true,
-        canSelectAll: true,
-      },
-    } as never);
+    const menu = createPopupMenuForServerView(
+      wc as never,
+      {
+        isEditable: true,
+        dictionarySuggestions: [],
+        mediaType: 'none',
+        srcURL: '',
+        x: 0,
+        y: 0,
+        linkURL: 'https://example.test/resource',
+        linkText: 'Example',
+        editFlags: {
+          canUndo: false,
+          canRedo: true,
+          canCut: false,
+          canCopy: false,
+          canPaste: true,
+          canSelectAll: true,
+        },
+      } as never
+    );
 
     const template = asMenuTemplate(menu);
     const openLink = template.find(
@@ -271,7 +281,9 @@ describe('createPopupMenuForServerView', () => {
     await openLink();
     copyText();
 
-    expect(isProtocolAllowed).toHaveBeenCalledWith('https://example.test/resource');
+    expect(isProtocolAllowed).toHaveBeenCalledWith(
+      'https://example.test/resource'
+    );
     expect(openExternal).toHaveBeenCalledWith('https://example.test/resource');
     expect(clipboard.write).toHaveBeenCalledWith({
       text: 'Example',
@@ -287,26 +299,29 @@ describe('createPopupMenuForServerView', () => {
       spellCheckerLanguages: ['en-US'],
     });
 
-    const menu = createPopupMenuForServerView(wc as never, {
-      isEditable: true,
-      dictionarySuggestions: [],
-      availableSpellCheckerLanguages: ['en-US'],
-      spellCheckerLanguages: ['en-US'],
-      mediaType: 'none',
-      srcURL: '',
-      x: 0,
-      y: 0,
-      linkURL: undefined,
-      linkText: undefined,
-      editFlags: {
-        canUndo: false,
-        canRedo: false,
-        canCut: false,
-        canCopy: false,
-        canPaste: false,
-        canSelectAll: false,
-      },
-    } as never);
+    const menu = createPopupMenuForServerView(
+      wc as never,
+      {
+        isEditable: true,
+        dictionarySuggestions: [],
+        availableSpellCheckerLanguages: ['en-US'],
+        spellCheckerLanguages: ['en-US'],
+        mediaType: 'none',
+        srcURL: '',
+        x: 0,
+        y: 0,
+        linkURL: undefined,
+        linkText: undefined,
+        editFlags: {
+          canUndo: false,
+          canRedo: false,
+          canCut: false,
+          canCopy: false,
+          canPaste: false,
+          canSelectAll: false,
+        },
+      } as never
+    );
 
     const template = asMenuTemplate(menu);
 
@@ -314,7 +329,10 @@ describe('createPopupMenuForServerView', () => {
       expect.arrayContaining([
         expect.objectContaining({ label: 'contextMenu.noSpellingSuggestions' }),
         expect.objectContaining({ label: 'contextMenu.undo', enabled: false }),
-        expect.objectContaining({ label: 'contextMenu.selectAll', enabled: false }),
+        expect.objectContaining({
+          label: 'contextMenu.selectAll',
+          enabled: false,
+        }),
       ])
     );
     expect(
@@ -333,24 +351,27 @@ describe('createPopupMenuForServerView', () => {
       spellCheckerLanguages: ['en-US'],
     });
 
-    const menu = createPopupMenuForServerView(wc as never, {
-      isEditable: false,
-      dictionarySuggestions: ['alpha'],
-      mediaType: 'none',
-      srcURL: '',
-      x: 0,
-      y: 0,
-      linkURL: undefined,
-      linkText: undefined,
-      editFlags: {
-        canUndo: true,
-        canRedo: true,
-        canCut: true,
-        canCopy: true,
-        canPaste: true,
-        canSelectAll: true,
-      },
-    } as never);
+    const menu = createPopupMenuForServerView(
+      wc as never,
+      {
+        isEditable: false,
+        dictionarySuggestions: ['alpha'],
+        mediaType: 'none',
+        srcURL: '',
+        x: 0,
+        y: 0,
+        linkURL: undefined,
+        linkText: undefined,
+        editFlags: {
+          canUndo: true,
+          canRedo: true,
+          canCut: true,
+          canCopy: true,
+          canPaste: true,
+          canSelectAll: true,
+        },
+      } as never
+    );
 
     const template = asMenuTemplate(menu);
     expect(
@@ -360,7 +381,9 @@ describe('createPopupMenuForServerView', () => {
       template.some((entry) => entry.label === 'contextMenu.spelling')
     ).toBe(false);
     expect(
-      template.some((entry) => entry.label === 'contextMenu.noSpellingSuggestions')
+      template.some(
+        (entry) => entry.label === 'contextMenu.noSpellingSuggestions'
+      )
     ).toBe(false);
   });
 
@@ -372,24 +395,27 @@ describe('createPopupMenuForServerView', () => {
       spellCheckerLanguages: ['en-US'],
     });
 
-    const menu = createPopupMenuForServerView(wc as never, {
-      isEditable: true,
-      dictionarySuggestions: ['alpha', 'beta'],
-      mediaType: 'none',
-      srcURL: '',
-      x: 0,
-      y: 0,
-      linkURL: '',
-      linkText: '',
-      editFlags: {
-        canUndo: true,
-        canRedo: true,
-        canCut: true,
-        canCopy: true,
-        canPaste: true,
-        canSelectAll: true,
-      },
-    } as never);
+    const menu = createPopupMenuForServerView(
+      wc as never,
+      {
+        isEditable: true,
+        dictionarySuggestions: ['alpha', 'beta'],
+        mediaType: 'none',
+        srcURL: '',
+        x: 0,
+        y: 0,
+        linkURL: '',
+        linkText: '',
+        editFlags: {
+          canUndo: true,
+          canRedo: true,
+          canCut: true,
+          canCopy: true,
+          canPaste: true,
+          canSelectAll: true,
+        },
+      } as never
+    );
 
     const template = asMenuTemplate(menu);
     const languageMenu = template.find(
@@ -422,17 +448,20 @@ describe('createPopupMenuForServerView', () => {
       spellCheckerLanguages: [],
     });
 
-    const menu = createPopupMenuForServerView(wc as never, {
-      isEditable: true,
-      dictionarySuggestions: [],
-      mediaType: 'none',
-      srcURL: '',
-      x: 0,
-      y: 0,
-      linkURL: undefined,
-      linkText: undefined,
-      editFlags: {},
-    } as never);
+    const menu = createPopupMenuForServerView(
+      wc as never,
+      {
+        isEditable: true,
+        dictionarySuggestions: [],
+        mediaType: 'none',
+        srcURL: '',
+        x: 0,
+        y: 0,
+        linkURL: undefined,
+        linkText: undefined,
+        editFlags: {},
+      } as never
+    );
 
     const template = asMenuTemplate(menu);
     const redoItem = template.find(

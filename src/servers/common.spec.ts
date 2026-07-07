@@ -1,4 +1,7 @@
-import { isServerUrlResolutionResult, ServerUrlResolutionStatus } from './common';
+import {
+  isServerUrlResolutionResult,
+  ServerUrlResolutionStatus,
+} from './common';
 
 describe('servers/common', () => {
   it('returns false for non-array objects', () => {
@@ -8,7 +11,10 @@ describe('servers/common', () => {
 
   it('returns true for ok resolution result', () => {
     expect(
-      isServerUrlResolutionResult(['https://chat.example', ServerUrlResolutionStatus.OK])
+      isServerUrlResolutionResult([
+        'https://chat.example',
+        ServerUrlResolutionStatus.OK,
+      ])
     ).toBe(true);
   });
 
@@ -24,7 +30,10 @@ describe('servers/common', () => {
 
   it('requires a string url for a successful result', () => {
     expect(
-      isServerUrlResolutionResult([123, ServerUrlResolutionStatus.OK] as [any, any])
+      isServerUrlResolutionResult([123, ServerUrlResolutionStatus.OK] as [
+        any,
+        any,
+      ])
     ).toBe(false);
   });
 

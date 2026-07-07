@@ -1,8 +1,8 @@
 /** @jest-environment jsdom */
 import { dispatch } from '../../../store';
 import { WEBVIEW_UNREAD_CHANGED } from '../../../ui/actions';
-import { getServerUrl } from '../urls';
 import { setBadge } from '../badge';
+import { getServerUrl } from '../urls';
 
 jest.mock('../../../store', () => ({
   dispatch: jest.fn(),

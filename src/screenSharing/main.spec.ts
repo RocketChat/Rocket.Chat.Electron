@@ -1,30 +1,28 @@
-export {};
+import {
+  WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+  WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+} from '../ui/actions';
+import { SCREEN_SHARING_DIALOG_DISMISSED as DIALOG_DISMISSED } from './actions';
+import { setupScreenSharing } from './main';
 
-const mockDispatch = jest.fn();
-const mockListen = jest.fn();
-
-const mockHasMeta = jest.fn((action: { meta?: { id?: string } }) =>
-  Boolean(action?.meta?.id)
-);
-const mockIsResponseTo = jest.fn(
-  (_id: string, _responses: unknown[]) => (_action: { type: string }) =>
-    _action.type !== 'OTHER'
-);
-
-jest.mock('../../store', () => ({
-  dispatch: (...args: unknown[]) => mockDispatch(...args),
-  listen: (...args: unknown[]) => mockListen(...args),
+jest.mock('../store', () => ({
+  dispatch: jest.fn(),
+  listen: jest.fn(),
 }));
 
-jest.mock('../../store/fsa', () => ({
-  hasMeta: mockHasMeta,
-  isResponseTo: mockIsResponseTo,
+jest.mock('../store/fsa', () => ({
+  hasMeta: jest.fn((action: { meta?: { id?: string } }) =>
+    Boolean(action?.meta?.id)
+  ),
+  isResponseTo: jest.fn(
+    (_id: string, _responses: unknown[]) => (_action: { type: string }) =>
+      _action.type !== 'OTHER'
+  ),
 }));
 
-const { setupScreenSharing } = require('../main');
-const { WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED } = require('../../ui/actions');
-const { WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED } = require('../../ui/actions');
-const { SCREEN_SHARING_DIALOG_DISMISSED: DIALOG_DISMISSED } = require('../actions');
+const { dispatch: mockDispatch, listen: mockListen } = jest.requireMock(
+  '../store'
+) as { dispatch: jest.Mock; listen: jest.Mock };
 
 describe('screenSharing/main', () => {
   beforeEach(() => {
@@ -42,7 +40,7 @@ describe('screenSharing/main', () => {
 
   it('dispatches selected source id once response is received', async () => {
     setupScreenSharing();
-    const [_, requestListener] = mockListen.mock.calls[0] as [string, any];
+    const [, requestListener] = mockListen.mock.calls[0] as [string, any];
 
     requestListener({
       type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
@@ -50,7 +48,9 @@ describe('screenSharing/main', () => {
     });
 
     const responseListener = mockListen.mock.calls[1][1] as (
-      action: { type: string; payload: string; meta: { response: boolean } } | { type: string }
+      action:
+        | { type: string; payload: string; meta: { response: boolean } }
+        | { type: string }
     ) => void;
     responseListener({
       type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
@@ -70,15 +70,17 @@ describe('screenSharing/main', () => {
 
   it('dispatches null source id on dialog dismiss', () => {
     setupScreenSharing();
-    const [_, requestListener] = mockListen.mock.calls[0] as [string, any];
+    const [, requestListener] = mockListen.mock.calls[0] as [string, any];
     requestListener({
       type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
       meta: { id: 'dismiss-1' },
     });
 
-    const responseListener = mockListen.mock.calls[1][1] as (
-      action: { type: string; payload?: unknown; meta?: { response: boolean } }
-    ) => void;
+    const responseListener = mockListen.mock.calls[1][1] as (action: {
+      type: string;
+      payload?: unknown;
+      meta?: { response: boolean };
+    }) => void;
     responseListener({
       type: DIALOG_DISMISSED,
       payload: null,

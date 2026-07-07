@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+
 import { openInBrowser } from '../openInBrowser';
 
 jest.mock('electron', () => ({
@@ -7,7 +8,9 @@ jest.mock('electron', () => ({
   },
 }));
 
-const invokeMock = ipcRenderer.invoke as jest.MockedFunction<typeof ipcRenderer.invoke>;
+const invokeMock = ipcRenderer.invoke as jest.MockedFunction<
+  typeof ipcRenderer.invoke
+>;
 const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
 
 describe('servers/preload/openInBrowser', () => {

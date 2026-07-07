@@ -1,3 +1,7 @@
+import { handle } from '../../ipc/main';
+import { openExternal } from '../../utils/browserLauncher';
+import { startBrowserHandler } from '../ipc';
+
 jest.mock('electron', () => ({
   app: {},
 }));
@@ -6,12 +10,9 @@ jest.mock('../../utils/browserLauncher', () => ({
   openExternal: jest.fn(),
 }));
 
-const handle = jest.fn();
-jest.mock('../../ipc/main', () => ({ handle }));
+jest.mock('../../ipc/main', () => ({ handle: jest.fn() }));
 
-const { openExternal } = require('../../utils/browserLauncher');
-const { startBrowserHandler } = require('../ipc');
-const { handle: mockedHandle } = require('../../ipc/main');
+const mockedHandle = jest.mocked(handle);
 
 describe('browser/ipc', () => {
   beforeEach(() => {
@@ -31,7 +32,7 @@ describe('browser/ipc', () => {
     startBrowserHandler();
     const handler = mockedHandle.mock.calls[0][1];
 
-    await handler({}, 'https://example.com/path');
+    await handler({} as any, 'https://example.com/path');
     expect(openExternal).toHaveBeenCalledWith('https://example.com/path');
   });
 
@@ -39,7 +40,7 @@ describe('browser/ipc', () => {
     startBrowserHandler();
     const handler = mockedHandle.mock.calls[0][1];
 
-    await handler({}, 'https://example.org');
+    await handler({} as any, 'https://example.org');
     expect(openExternal).toHaveBeenCalledWith('https://example.org/');
   });
 
@@ -47,7 +48,7 @@ describe('browser/ipc', () => {
     startBrowserHandler();
     const handler = mockedHandle.mock.calls[0][1];
 
-    await handler({}, 'ftp://example.com');
+    await handler({} as any, 'ftp://example.com');
     expect(openExternal).not.toHaveBeenCalled();
   });
 
@@ -55,7 +56,7 @@ describe('browser/ipc', () => {
     startBrowserHandler();
     const handler = mockedHandle.mock.calls[0][1];
 
-    await handler({}, '://bad');
+    await handler({} as any, '://bad');
     expect(openExternal).not.toHaveBeenCalled();
   });
 });

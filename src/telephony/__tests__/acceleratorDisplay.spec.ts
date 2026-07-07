@@ -8,7 +8,9 @@ describe('formatAcceleratorForDisplay', () => {
 
   it('formats modifiers and keys with display labels', () => {
     expect(formatAcceleratorForDisplay('command+shift+p')).toBe('Cmd+Shift+P');
-    expect(formatAcceleratorForDisplay('control+alt+p')).toBe('Ctrl+Option+P');
+    expect(
+      formatAcceleratorForDisplay('control+alt+p', { platform: 'darwin' })
+    ).toBe('Ctrl+Option+P');
     expect(formatAcceleratorForDisplay('meta+option+p')).toBe('Cmd+Option+P');
   });
 
@@ -23,8 +25,8 @@ describe('formatAcceleratorForDisplay', () => {
     expect(
       formatAcceleratorForDisplay('commandorcontrol+q', { platform: 'win32' })
     ).toBe('Ctrl+Q');
-    expect(
-      formatAcceleratorForDisplay('meta+q', { platform: 'win32' })
-    ).toBe('Meta+Q');
+    expect(formatAcceleratorForDisplay('meta+q', { platform: 'win32' })).toBe(
+      'Meta+Q'
+    );
   });
 });

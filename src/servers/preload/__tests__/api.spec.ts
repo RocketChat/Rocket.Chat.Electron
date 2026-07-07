@@ -72,12 +72,10 @@ describe('servers/preload api bridge', () => {
     setUrlResolver: (resolver: (url?: string) => string) => void;
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     jest.resetModules();
-    ({ RocketChatDesktop } = require('../api') as {
-      RocketChatDesktop: typeof RocketChatDesktop;
-    });
+    ({ RocketChatDesktop } = await import('../api'));
     setServerVersionToSidebar.mockClear();
     setServerUrlResolver.mockClear();
   });

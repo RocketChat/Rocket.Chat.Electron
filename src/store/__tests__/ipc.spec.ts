@@ -1,10 +1,7 @@
 import type { WebContents } from 'electron';
 import type { MiddlewareAPI } from 'redux';
-import {
-  forwardToMain,
-  forwardToRenderers,
-  getInitialState,
-} from '../ipc';
+
+import { forwardToMain, forwardToRenderers, getInitialState } from '../ipc';
 
 const mainHandlers: Record<string, (...args: any[]) => any> = {};
 const rendererHandlers: Record<string, (...args: any[]) => any> = {};
@@ -26,16 +23,19 @@ jest.mock('../../ipc/renderer', () => ({
   invoke: (...args: any[]) => invokeFromRendererMock(...args),
 }));
 
-const createApi = (): MiddlewareAPI => ({
-  dispatch: jest.fn(),
-  getState: jest.fn(() => ({})),
-} as unknown as MiddlewareAPI);
+const createApi = (): MiddlewareAPI =>
+  ({
+    dispatch: jest.fn(),
+    getState: jest.fn(() => ({})),
+  }) as unknown as MiddlewareAPI;
 
 describe('store/ipc', () => {
   beforeEach(() => {
-    Object.keys(mainHandlers).forEach((channel) => delete mainHandlers[channel]);
-    Object.keys(rendererHandlers).forEach((channel) =>
-      delete rendererHandlers[channel]
+    Object.keys(mainHandlers).forEach(
+      (channel) => delete mainHandlers[channel]
+    );
+    Object.keys(rendererHandlers).forEach(
+      (channel) => delete rendererHandlers[channel]
     );
     invokeFromMainMock.mockClear();
     invokeFromRendererMock.mockClear();
@@ -100,7 +100,9 @@ describe('store/ipc', () => {
   });
 
   it('forwards non-FSA actions unchanged and skips IPC fan-out', async () => {
-    const middleware = forwardToRenderers(createApi())(jest.fn((_action) => _action));
+    const middleware = forwardToRenderers(createApi())(
+      jest.fn((_action) => _action)
+    );
 
     middleware({ type: 42 } as any);
 
@@ -205,7 +207,9 @@ describe('store/ipc', () => {
   });
 
   it('forwards single-scope actions to view-instance ids', async () => {
-    const middleware = forwardToRenderers(createApi())(jest.fn((_action) => _action));
+    const middleware = forwardToRenderers(createApi())(
+      jest.fn((_action) => _action)
+    );
     const matching = {
       id: 200,
       addListener: jest.fn(),
@@ -239,7 +243,9 @@ describe('store/ipc', () => {
     invokeFromRendererMock.mockResolvedValue({ restored: true });
 
     await expect(getInitialState()).resolves.toEqual({ restored: true });
-    expect(invokeFromRendererMock).toHaveBeenCalledWith('redux/get-initial-state');
+    expect(invokeFromRendererMock).toHaveBeenCalledWith(
+      'redux/get-initial-state'
+    );
   });
 
   it('dispatches renderer actions when handler receives them', async () => {

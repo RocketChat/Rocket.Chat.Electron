@@ -1,10 +1,11 @@
+import type * as fs from 'fs';
+
 import { app } from 'electron';
 
 import { cleanupOldLogs } from './cleanup';
 
-const { existsSync, readdirSync, statSync, unlinkSync } = jest.requireMock<
-  typeof import('fs')
->('fs');
+const { existsSync, readdirSync, statSync, unlinkSync } =
+  jest.requireMock<typeof fs>('fs');
 const nowSpy = jest.spyOn(Date, 'now');
 
 jest.mock('electron', () => ({
@@ -125,7 +126,9 @@ describe('logging/cleanup', () => {
     cleanupOldLogs();
 
     expect(unlinkSync).toHaveBeenCalledWith(`${logsPath}/old.log`);
-    expect(infoMock).toHaveBeenCalledWith('[logging] Cleaned up 1 old log file(s)');
+    expect(infoMock).toHaveBeenCalledWith(
+      '[logging] Cleaned up 1 old log file(s)'
+    );
     infoMock.mockRestore();
   });
 });

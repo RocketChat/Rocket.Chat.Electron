@@ -59,9 +59,6 @@ const loadModule = () => {
     captureStack ? 'ui' : 'general'
   );
   electron.ipcRenderer.sendSync.mockReturnValue('server.example');
-  (global as unknown as { window: { location: { origin: string } } }).window = {
-    location: { origin: 'https://test.example' },
-  };
 
   require('../preload');
 
@@ -82,11 +79,26 @@ describe('logging/preload', () => {
     console.error('error');
     console.debug('debug');
 
-    expect(log.default.debug).toHaveBeenCalledWith('[renderer:webview] [server.example]', 'hello');
-    expect(log.default.info).toHaveBeenCalledWith('[renderer:webview] [server.example]', 'info');
-    expect(log.default.warn).toHaveBeenCalledWith('[renderer:webview] [server.example] [ui]', 'warn');
-    expect(log.default.error).toHaveBeenCalledWith('[renderer:webview] [server.example] [ui]', 'error');
-    expect(log.default.debug).toHaveBeenCalledWith('[renderer:webview] [server.example]', 'debug');
+    expect(log.default.debug).toHaveBeenCalledWith(
+      '[renderer:webview] [server.example]',
+      'hello'
+    );
+    expect(log.default.info).toHaveBeenCalledWith(
+      '[renderer:webview] [server.example]',
+      'info'
+    );
+    expect(log.default.warn).toHaveBeenCalledWith(
+      '[renderer:webview] [server.example] [ui]',
+      'warn'
+    );
+    expect(log.default.error).toHaveBeenCalledWith(
+      '[renderer:webview] [server.example] [ui]',
+      'error'
+    );
+    expect(log.default.debug).toHaveBeenCalledWith(
+      '[renderer:webview] [server.example]',
+      'debug'
+    );
     expect((console as any).original).toBeDefined();
   });
 

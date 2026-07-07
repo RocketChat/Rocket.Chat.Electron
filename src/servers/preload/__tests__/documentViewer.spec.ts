@@ -1,5 +1,10 @@
 /** @jest-environment jsdom */
-import { openDocumentViewer, supportedDocumentViewerFormats } from '../documentViewer';
+import { ipcRenderer } from 'electron';
+
+import {
+  openDocumentViewer,
+  supportedDocumentViewerFormats,
+} from '../documentViewer';
 
 jest.mock('electron', () => ({
   ipcRenderer: {
@@ -9,8 +14,6 @@ jest.mock('electron', () => ({
 
 describe('servers/preload/documentViewer', () => {
   it('forwards openDocumentViewer arguments to ipc invoke', () => {
-    const { ipcRenderer } = require('electron');
-
     openDocumentViewer('https://server.local/file', 'pdf', { width: 10 });
 
     expect(ipcRenderer.invoke).toHaveBeenCalledWith(

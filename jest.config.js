@@ -19,6 +19,7 @@ module.exports = {
       testMatch: [
         '<rootDir>/src/*/!(main)/**/*.(spec|test).{js,ts,tsx}',
         '<rootDir>/src/**/renderer.(spec|test).{js,ts,tsx}',
+        '<rootDir>/src/whenReady.(spec|test).{js,ts,tsx}',
       ],
       setupFilesAfterEnv: ['./src/.jest/setup.ts'],
     },
@@ -30,6 +31,8 @@ module.exports = {
       testMatch: [
         '<rootDir>/src/*/main/**/*.(spec|test).{js,ts,tsx}',
         '<rootDir>/src/**/main.(spec|test).{js,ts,tsx}',
+        '<rootDir>/src/systemCertificates.(spec|test).{js,ts,tsx}',
+        '<rootDir>/src/constants.(spec|test).{js,ts,tsx}',
       ],
       setupFilesAfterEnv: ['./src/.jest/setup.ts'],
     },

@@ -1,3 +1,5 @@
+import type { readSetting as readSettingType } from '../readSetting';
+
 jest.mock('electron', () => ({
   app: {
     getPath: jest.fn(),
@@ -8,7 +10,7 @@ jest.mock('fs', () => ({
 }));
 
 describe('readSetting', () => {
-  let readSetting: typeof import('../readSetting').readSetting;
+  let readSetting: typeof readSettingType;
   let readFileSyncMock: jest.Mock;
   let appGetPathMock: jest.Mock;
 
@@ -19,7 +21,9 @@ describe('readSetting', () => {
     ({ readSetting } = require('../readSetting'));
 
     ({ readFileSync: readFileSyncMock } = require('fs'));
-    ({ app: { getPath: appGetPathMock } } = require('electron'));
+    ({
+      app: { getPath: appGetPathMock },
+    } = require('electron'));
 
     appGetPathMock.mockReturnValue('/tmp/user-data');
     readFileSyncMock.mockReset();

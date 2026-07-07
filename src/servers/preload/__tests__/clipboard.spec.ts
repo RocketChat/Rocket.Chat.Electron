@@ -1,4 +1,6 @@
 /** @jest-environment jsdom */
+import { clipboard } from 'electron';
+
 import { writeTextToClipboard } from '../clipboard';
 
 jest.mock('electron', () => ({
@@ -9,8 +11,6 @@ jest.mock('electron', () => ({
 
 describe('servers/preload/clipboard', () => {
   it('dispatches text to electron clipboard', () => {
-    const { clipboard } = require('electron');
-
     writeTextToClipboard('hello world');
 
     expect(clipboard.writeText).toHaveBeenCalledWith('hello world');

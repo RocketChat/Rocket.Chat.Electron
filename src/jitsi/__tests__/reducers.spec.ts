@@ -1,11 +1,11 @@
-export {};
-
-import { allowedJitsiServers } from '../reducers';
+import { APP_SETTINGS_LOADED } from '../../app/actions';
 import {
   JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED,
   JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED,
 } from '../actions';
-import { APP_SETTINGS_LOADED } from '../../app/actions';
+import { allowedJitsiServers } from '../reducers';
+
+export {};
 
 describe('jitsi/reducers', () => {
   it('loads from app settings payload', () => {
@@ -25,13 +25,10 @@ describe('jitsi/reducers', () => {
   });
 
   it('defaults allowed servers when app settings have no payload', () => {
-    const result = allowedJitsiServers(
-      { 'old.example': true },
-      {
-        type: APP_SETTINGS_LOADED,
-        payload: {},
-      } as never
-    );
+    const result = allowedJitsiServers({ 'old.example': true }, {
+      type: APP_SETTINGS_LOADED,
+      payload: {},
+    } as never);
 
     expect(result).toEqual({});
   });
@@ -67,17 +64,23 @@ describe('jitsi/reducers', () => {
 
   it('returns existing state for unknown actions', () => {
     const state = { 'existing.example': true };
-    const result = allowedJitsiServers(state as Record<string, boolean>, {
-      type: 'UNKNOWN',
-    } as never);
+    const result = allowedJitsiServers(
+      state as Record<string, boolean>,
+      {
+        type: 'UNKNOWN',
+      } as never
+    );
 
     expect(result).toEqual(state);
   });
 
   it('starts from an empty object when state is undefined', () => {
-    const result = allowedJitsiServers(undefined as unknown as Record<string, boolean>, {
-      type: 'UNKNOWN',
-    } as never);
+    const result = allowedJitsiServers(
+      undefined as unknown as Record<string, boolean>,
+      {
+        type: 'UNKNOWN',
+      } as never
+    );
 
     expect(result).toEqual({});
   });

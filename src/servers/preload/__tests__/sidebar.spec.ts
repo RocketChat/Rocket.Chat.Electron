@@ -4,6 +4,7 @@ import {
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
   WEBVIEW_SIDEBAR_STYLE_CHANGED,
 } from '../../../ui/actions';
+import type * as SidebarModule from '../sidebar';
 import { getAbsoluteUrl, getServerUrl } from '../urls';
 
 jest.mock('../../../store', () => ({
@@ -19,10 +20,12 @@ const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
 const getAbsoluteUrlMock = getAbsoluteUrl as jest.MockedFunction<
   typeof getAbsoluteUrl
 >;
-const getServerUrlMock = getServerUrl as jest.MockedFunction<typeof getServerUrl>;
+const getServerUrlMock = getServerUrl as jest.MockedFunction<
+  typeof getServerUrl
+>;
 
-const loadModule = (): typeof import('../sidebar') => {
-  let mod: typeof import('../sidebar');
+const loadModule = (): typeof SidebarModule => {
+  let mod: typeof SidebarModule;
   jest.isolateModules(() => {
     mod = require('../sidebar');
   });
@@ -122,13 +125,11 @@ describe('servers/preload/sidebar', () => {
       return originalCreateElement(tag);
     });
     jest.spyOn(document.body, 'append').mockImplementation();
-    jest
-      .spyOn(window, 'getComputedStyle')
-      .mockReturnValue({
-        background: 'rgb(10, 20, 30)',
-        color: 'rgb(40, 50, 60)',
-        border: '1px solid #123456',
-      } as CSSStyleDeclaration);
+    jest.spyOn(window, 'getComputedStyle').mockReturnValue({
+      background: 'rgb(10, 20, 30)',
+      color: 'rgb(40, 50, 60)',
+      border: '1px solid #123456',
+    } as CSSStyleDeclaration);
     jest
       .spyOn(global, 'setTimeout')
       .mockImplementation(() => 0 as unknown as NodeJS.Timeout);
@@ -160,13 +161,11 @@ describe('servers/preload/sidebar', () => {
       return originalCreateElement(tag);
     });
     jest.spyOn(document.body, 'append').mockImplementation();
-    jest
-      .spyOn(window, 'getComputedStyle')
-      .mockReturnValue({
-        background: 'rgb(10, 20, 30)',
-        color: 'rgb(40, 50, 60)',
-        border: '1px solid #123456',
-      } as CSSStyleDeclaration);
+    jest.spyOn(window, 'getComputedStyle').mockReturnValue({
+      background: 'rgb(10, 20, 30)',
+      color: 'rgb(40, 50, 60)',
+      border: '1px solid #123456',
+    } as CSSStyleDeclaration);
     jest
       .spyOn(global, 'setTimeout')
       .mockImplementation(() => 0 as unknown as NodeJS.Timeout);
@@ -189,17 +188,15 @@ describe('servers/preload/sidebar', () => {
       },
     };
 
-    jest.spyOn(document, 'createElement' as any).mockReturnValue(
-      mockElement as unknown as HTMLElement
-    );
-    jest.spyOn(document.body, 'append').mockImplementation();
     jest
-      .spyOn(window, 'getComputedStyle')
-      .mockReturnValue({
-        background: 'rgb(10, 20, 30)',
-        color: 'rgb(40, 50, 60)',
-        border: '1px solid #123456',
-      } as CSSStyleDeclaration);
+      .spyOn(document, 'createElement' as any)
+      .mockReturnValue(mockElement as unknown as HTMLElement);
+    jest.spyOn(document.body, 'append').mockImplementation();
+    jest.spyOn(window, 'getComputedStyle').mockReturnValue({
+      background: 'rgb(10, 20, 30)',
+      color: 'rgb(40, 50, 60)',
+      border: '1px solid #123456',
+    } as CSSStyleDeclaration);
     jest
       .spyOn(global, 'setTimeout')
       .mockImplementation(() => 0 as unknown as NodeJS.Timeout);
@@ -224,7 +221,7 @@ describe('servers/preload/sidebar', () => {
     const originalMatch = String.prototype.match;
     jest.spyOn(String.prototype, 'match').mockImplementation(function (
       this: string,
-      matcher: Parameters<String['match']>[0]
+      matcher: Parameters<string['match']>[0]
     ) {
       if (this === '6.3.0') {
         return null;
@@ -233,17 +230,15 @@ describe('servers/preload/sidebar', () => {
       return originalMatch.call(this, matcher);
     });
 
-    jest.spyOn(document, 'createElement' as any).mockReturnValue(
-      mockElement as unknown as HTMLElement
-    );
-    jest.spyOn(document.body, 'append').mockImplementation();
     jest
-      .spyOn(window, 'getComputedStyle')
-      .mockReturnValue({
-        background: 'rgb(10, 20, 30)',
-        color: 'rgb(40, 50, 60)',
-        border: '1px solid #123456',
-      } as CSSStyleDeclaration);
+      .spyOn(document, 'createElement' as any)
+      .mockReturnValue(mockElement as unknown as HTMLElement);
+    jest.spyOn(document.body, 'append').mockImplementation();
+    jest.spyOn(window, 'getComputedStyle').mockReturnValue({
+      background: 'rgb(10, 20, 30)',
+      color: 'rgb(40, 50, 60)',
+      border: '1px solid #123456',
+    } as CSSStyleDeclaration);
     jest
       .spyOn(global, 'setTimeout')
       .mockImplementation(() => 0 as unknown as NodeJS.Timeout);
@@ -265,17 +260,15 @@ describe('servers/preload/sidebar', () => {
       },
     };
 
-    jest.spyOn(document, 'createElement' as any).mockReturnValue(
-      mockElement as unknown as HTMLElement
-    );
-    jest.spyOn(document.body, 'append').mockImplementation();
     jest
-      .spyOn(window, 'getComputedStyle')
-      .mockReturnValue({
-        background: 'rgb(11, 22, 33)',
-        color: 'rgb(44, 55, 66)',
-        border: '1px solid #123456',
-      } as CSSStyleDeclaration);
+      .spyOn(document, 'createElement' as any)
+      .mockReturnValue(mockElement as unknown as HTMLElement);
+    jest.spyOn(document.body, 'append').mockImplementation();
+    jest.spyOn(window, 'getComputedStyle').mockReturnValue({
+      background: 'rgb(11, 22, 33)',
+      color: 'rgb(44, 55, 66)',
+      border: '1px solid #123456',
+    } as CSSStyleDeclaration);
     jest.spyOn(global, 'setTimeout').mockImplementation((cb: () => void) => {
       callbacks.push(cb);
       return 0 as unknown as NodeJS.Timeout;
@@ -304,24 +297,26 @@ describe('servers/preload/sidebar', () => {
       },
     };
 
-    jest.spyOn(document, 'createElement' as any).mockReturnValue(
-      mockElement as unknown as HTMLElement
-    );
-    jest.spyOn(document.body, 'append').mockImplementation();
     jest
-      .spyOn(window, 'getComputedStyle')
-      .mockReturnValue({
-        background: 'rgb(11, 22, 33)',
-        color: 'rgb(44, 55, 66)',
-        border: '1px solid #123456',
-      } as CSSStyleDeclaration);
-    jest.spyOn(global, 'setTimeout').mockImplementation(() => 0 as unknown as NodeJS.Timeout);
+      .spyOn(document, 'createElement' as any)
+      .mockReturnValue(mockElement as unknown as HTMLElement);
+    jest.spyOn(document.body, 'append').mockImplementation();
+    jest.spyOn(window, 'getComputedStyle').mockReturnValue({
+      background: 'rgb(11, 22, 33)',
+      color: 'rgb(44, 55, 66)',
+      border: '1px solid #123456',
+    } as CSSStyleDeclaration);
+    jest
+      .spyOn(global, 'setTimeout')
+      .mockImplementation(() => 0 as unknown as NodeJS.Timeout);
 
     const { setServerVersionToSidebar, setBackground } = loadModule();
     setServerVersionToSidebar('6.4.0');
     setBackground('');
 
-    expect((mockElement.style as Record<string, string>).backgroundImage).toBe('none');
+    expect((mockElement.style as Record<string, string>).backgroundImage).toBe(
+      'none'
+    );
   });
 
   it('dispatches custom theme updates', () => {

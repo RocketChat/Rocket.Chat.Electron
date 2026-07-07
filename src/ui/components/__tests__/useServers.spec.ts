@@ -35,6 +35,8 @@ describe('ui/components/hooks/useServers', () => {
     useSelector.mockImplementation((fn: any) => fn(state));
     const servers = useServers();
 
-    expect(servers).toEqual([{ url: 'https://alpha.example/path', id: 'a', selected: false }]);
+    expect(servers).toEqual([
+      { url: 'https://alpha.example/path', id: 'a', selected: false },
+    ]);
   });
 });

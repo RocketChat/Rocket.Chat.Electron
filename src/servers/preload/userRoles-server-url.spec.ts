@@ -1,4 +1,8 @@
 /** @jest-environment jsdom */
+import { dispatch } from '../../store';
+import { getServerUrl } from './urls';
+import { clearUserRoles, updateUserRoles } from './userRoles';
+
 jest.mock('../../store', () => ({
   dispatch: jest.fn(),
 }));
@@ -10,12 +14,10 @@ jest.mock('./urls', () => ({
   getAbsoluteUrl: jest.fn(),
 }));
 
-import { clearUserRoles, updateUserRoles } from './userRoles';
-import { dispatch } from '../../store';
-import { getServerUrl } from './urls';
-
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
-const getServerUrlMock = getServerUrl as jest.MockedFunction<typeof getServerUrl>;
+const getServerUrlMock = getServerUrl as jest.MockedFunction<
+  typeof getServerUrl
+>;
 
 describe('servers/preload/userRoles (missing server URL)', () => {
   const originalFetch = global.fetch;

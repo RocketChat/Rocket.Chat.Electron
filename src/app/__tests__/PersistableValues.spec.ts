@@ -1,5 +1,5 @@
-import { migrations } from '../PersistableValues';
 import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../../constants';
+import { migrations } from '../PersistableValues';
 
 const setProcessPlatform = (value: NodeJS.Platform): void => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -235,8 +235,8 @@ describe('PersistableValues migrations', () => {
     expect(win37.isMinimizeOnCloseEnabled).toBe(true);
 
     setProcessMas(true);
-    const mas38_4 = migrations['>=3.8.4'](win37 as any);
-    expect(mas38_4.isInternalVideoChatWindowEnabled).toBe(false);
+    const mas384 = migrations['>=3.8.4'](win37 as any);
+    expect(mas384.isInternalVideoChatWindowEnabled).toBe(false);
   });
 
   it('applies remaining migration defaults through 4.15.0', () => {
@@ -273,25 +273,25 @@ describe('PersistableValues migrations', () => {
       },
     } as any;
 
-    const from38_0 = migrations['>=3.8.0'](before);
-    const from38_4 = migrations['>=3.8.4'](from38_0 as any);
-    const from38_7 = migrations['>=3.8.7'](from38_4 as any);
-    const from38_9 = migrations['>=3.8.9'](from38_7 as any);
-    const from38_12 = migrations['>=3.8.12'](from38_9 as any);
-    const from3_9_6 = migrations['>=3.9.6'](from38_12 as any);
-    const from4_1_0 = migrations['>=4.1.0'](from3_9_6 as any);
-    const from4_2_0 = migrations['>=4.2.0'](from4_1_0 as any);
-    const from4_4_0 = migrations['>=4.4.0'](from4_2_0 as any);
-    const from4_5_0 = migrations['>=4.5.0'](from4_4_0 as any);
-    const from4_7_2 = migrations['>=4.7.2'](from4_5_0 as any);
-    const from4_9_0 = migrations['>=4.9.0'](from4_7_2 as any);
-    const from4_10_0 = migrations['>=4.10.0'](from4_9_0 as any);
-    const from4_11_0 = migrations['>=4.11.0'](from4_10_0 as any);
-    const from4_13_0 = migrations['>=4.13.0'](from4_11_0 as any);
-    const from4_14_0 = migrations['>=4.14.0'](from4_13_0 as any);
-    const from4_15_0 = migrations['>=4.15.0'](from4_14_0 as any);
+    const from380 = migrations['>=3.8.0'](before);
+    const from384 = migrations['>=3.8.4'](from380 as any);
+    const from387 = migrations['>=3.8.7'](from384 as any);
+    const from389 = migrations['>=3.8.9'](from387 as any);
+    const from3812 = migrations['>=3.8.12'](from389 as any);
+    const from396 = migrations['>=3.9.6'](from3812 as any);
+    const from410 = migrations['>=4.1.0'](from396 as any);
+    const from420 = migrations['>=4.2.0'](from410 as any);
+    const from440 = migrations['>=4.4.0'](from420 as any);
+    const from450 = migrations['>=4.5.0'](from440 as any);
+    const from472 = migrations['>=4.7.2'](from450 as any);
+    const from490 = migrations['>=4.9.0'](from472 as any);
+    const from4100 = migrations['>=4.10.0'](from490 as any);
+    const from4110 = migrations['>=4.11.0'](from4100 as any);
+    const from4130 = migrations['>=4.13.0'](from4110 as any);
+    const from4140 = migrations['>=4.14.0'](from4130 as any);
+    const from4150 = migrations['>=4.15.0'](from4140 as any);
 
-    expect(from4_15_0).toMatchObject({
+    expect(from4150).toMatchObject({
       hasHideOnTrayNotificationShown: false,
       isNTLMCredentialsEnabled: false,
       telephonyGlobalShortcutConfig: {

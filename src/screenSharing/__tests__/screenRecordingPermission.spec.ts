@@ -1,12 +1,13 @@
+import { checkScreenRecordingPermission } from '../screenRecordingPermission';
+
 const getMediaAccessStatusMock = jest.fn();
 
 jest.mock('electron', () => ({
   systemPreferences: {
-    getMediaAccessStatus: (...args: unknown[]) => getMediaAccessStatusMock(...args),
+    getMediaAccessStatus: (...args: unknown[]) =>
+      getMediaAccessStatusMock(...args),
   },
 }));
-
-import { checkScreenRecordingPermission } from '../screenRecordingPermission';
 
 const setProcessPlatform = (platform: NodeJS.Platform): void => {
   Object.defineProperty(process, 'platform', {

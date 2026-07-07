@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-export {};
-
 import { handleTrafficLightsSpacing } from '../sidebar';
+
+export {};
 
 const mockWatch = jest.fn();
 

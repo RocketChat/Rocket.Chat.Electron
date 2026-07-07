@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import { dispatch } from '../../../store';
 import { WEBVIEW_FAVICON_CHANGED } from '../../../ui/actions';
+import type * as FaviconModule from '../favicon';
 import { getAbsoluteUrl, getServerUrl } from '../urls';
 
 jest.mock('../../../store', () => ({
@@ -16,10 +17,12 @@ const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
 const getAbsoluteUrlMock = getAbsoluteUrl as jest.MockedFunction<
   typeof getAbsoluteUrl
 >;
-const getServerUrlMock = getServerUrl as jest.MockedFunction<typeof getServerUrl>;
+const getServerUrlMock = getServerUrl as jest.MockedFunction<
+  typeof getServerUrl
+>;
 
-const loadModule = (): typeof import('../favicon') => {
-  let mod: typeof import('../favicon');
+const loadModule = (): typeof FaviconModule => {
+  let mod: typeof FaviconModule;
   jest.isolateModules(() => {
     mod = require('../favicon');
   });
@@ -105,16 +108,16 @@ describe('servers/preload/favicon', () => {
     (
       jest.spyOn(document, 'createElement' as any) as jest.Mock
     ).mockImplementation((tag: string) => {
-          if (tag === 'canvas') {
-            return {
-              width: 0,
-              height: 0,
-              getContext: jest.fn(() => null),
-            } as unknown as HTMLElement;
-          }
+      if (tag === 'canvas') {
+        return {
+          width: 0,
+          height: 0,
+          getContext: jest.fn(() => null),
+        } as unknown as HTMLElement;
+      }
 
-          return originalCreateElement(tag);
-        });
+      return originalCreateElement(tag);
+    });
 
     const { setFavicon } = loadModule();
 

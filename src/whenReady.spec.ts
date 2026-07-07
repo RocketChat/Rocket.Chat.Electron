@@ -2,9 +2,9 @@
  * @jest-environment jsdom
  */
 
-export {};
-
 import { whenReady } from './whenReady';
+
+export {};
 
 describe('whenReady', () => {
   const defineReadyState = (readyState: DocumentReadyState): void => {

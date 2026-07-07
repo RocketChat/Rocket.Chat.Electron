@@ -1,16 +1,19 @@
+import { handle } from '../../ipc/main';
+import { getTelephonyDiagnostics } from '../diagnostics';
+import { setupTelephonyIpc } from '../ipc';
+
 jest.mock('../../ipc/main', () => ({
   handle: jest.fn(),
 }));
 
-jest.mock('../../telephony/diagnostics', () => ({
+jest.mock('../diagnostics', () => ({
   getTelephonyDiagnostics: jest.fn(async () => ({
     deviceCount: 3,
   })),
 }));
 
-const { handle: mockHandle } = require('../../ipc/main');
-const { getTelephonyDiagnostics } = require('../../telephony/diagnostics');
-const { setupTelephonyIpc } = require('../../telephony/ipc');
+const mockHandle = jest.mocked(handle);
+const mockGetTelephonyDiagnostics = jest.mocked(getTelephonyDiagnostics);
 
 describe('telephony/ipc', () => {
   beforeEach(() => {
@@ -26,9 +29,9 @@ describe('telephony/ipc', () => {
   });
 
   it('delegates diagnostics request to getTelephonyDiagnostics', async () => {
-    const mockHandler = (mockHandle as jest.Mock).mock.calls[0][1];
+    const mockHandler = mockHandle.mock.calls[0][1];
 
-    await expect(mockHandler()).resolves.toEqual({ deviceCount: 3 });
-    expect(getTelephonyDiagnostics).toHaveBeenCalledTimes(1);
+    await expect(mockHandler({} as any)).resolves.toEqual({ deviceCount: 3 });
+    expect(mockGetTelephonyDiagnostics).toHaveBeenCalledTimes(1);
   });
 });

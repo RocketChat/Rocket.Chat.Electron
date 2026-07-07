@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-export {};
-
 import { listenToMessageBoxEvents } from '../messageBox';
+
+export {};
 
 const dispatch = jest.fn();
 const mockListen = jest.fn();
@@ -24,8 +24,16 @@ describe('ui/preload/messageBox', () => {
   it('registers required listeners', () => {
     listenToMessageBoxEvents();
 
-    expect(addEventListener).toHaveBeenCalledWith('focus', expect.any(Function), true);
-    expect(addEventListener).toHaveBeenCalledWith('blur', expect.any(Function), true);
+    expect(addEventListener).toHaveBeenCalledWith(
+      'focus',
+      expect.any(Function),
+      true
+    );
+    expect(addEventListener).toHaveBeenCalledWith(
+      'blur',
+      expect.any(Function),
+      true
+    );
     expect(mockListen).toHaveBeenCalledWith(
       'touch-bar/format-button-touched',
       expect.any(Function)
@@ -34,8 +42,12 @@ describe('ui/preload/messageBox', () => {
 
   it('dispatches focus and blur actions from matching events', () => {
     listenToMessageBoxEvents();
-    const focusHandler = addEventListener.mock.calls.find((call) => call[0] === 'focus')?.[1] as EventListener;
-    const blurHandler = addEventListener.mock.calls.find((call) => call[0] === 'blur')?.[1] as EventListener;
+    const focusHandler = addEventListener.mock.calls.find(
+      (call) => call[0] === 'focus'
+    )?.[1] as EventListener;
+    const blurHandler = addEventListener.mock.calls.find(
+      (call) => call[0] === 'blur'
+    )?.[1] as EventListener;
 
     const input = document.createElement('input');
     input.classList.add('js-input-message');
@@ -68,7 +80,9 @@ describe('ui/preload/messageBox', () => {
     const touchbarAction = mockListen.mock.calls[0]?.[1] as (_action: {
       payload: string;
     }) => void;
-    const focusHandler = addEventListener.mock.calls.find((call) => call[0] === 'focus')?.[1] as EventListener;
+    const focusHandler = addEventListener.mock.calls.find(
+      (call) => call[0] === 'focus'
+    )?.[1] as EventListener;
 
     focusHandler({ target: input } as unknown as FocusEvent);
     touchbarAction({ payload: 'bold' });

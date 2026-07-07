@@ -1,5 +1,7 @@
-import { APP_SETTINGS_LOADED } from '../../actions';
-import { APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET } from '../../actions';
+import {
+  APP_SETTINGS_LOADED,
+  APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET,
+} from '../../actions';
 import { allowedNTLMCredentialsDomains } from '../allowedNTLMCredentialsDomains';
 
 describe('allowedNTLMCredentialsDomains reducer', () => {

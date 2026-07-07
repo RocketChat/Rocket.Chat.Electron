@@ -38,7 +38,9 @@ describe('InternalPickerProvider', () => {
   });
 
   it('initializes by warning if no handler was set', async () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     await provider.initialize();
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('initialize handler not set')

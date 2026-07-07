@@ -1,16 +1,19 @@
 import { APP_SETTINGS_LOADED } from '../../../app/actions';
 import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../../../constants';
-import { DEEP_LINKS_SERVER_ADDED, DEEP_LINKS_SERVER_FOCUSED } from '../../../deepLinks/actions';
+import {
+  DEEP_LINKS_SERVER_ADDED,
+  DEEP_LINKS_SERVER_FOCUSED,
+} from '../../../deepLinks/actions';
+import * as navigationActions from '../../../navigation/actions';
 import * as outlookActions from '../../../outlookCalendar/actions';
+import * as screenSharingActions from '../../../screenSharing/actions';
 import { SERVERS_LOADED } from '../../../servers/actions';
 import { UPDATES_NEW_VERSION_AVAILABLE } from '../../../updates/actions';
-import * as navigationActions from '../../../navigation/actions';
-import * as screenSharingActions from '../../../screenSharing/actions';
 import * as uiActions from '../../actions';
 import { availableBrowsers } from '../availableBrowsers';
 import { currentView } from '../currentView';
-import { dialogs } from '../dialogs';
 import {
+  dialogs,
   serverInfoModal,
   telephonyServerSelect,
   telephonyDefaultHandlerPrompt,
@@ -28,7 +31,9 @@ import { videoCallWindowState } from '../videoCallWindowState';
 
 describe('availableBrowsers reducer', () => {
   it('returns default empty array and updates from action payload', () => {
-    expect(availableBrowsers(undefined, { type: 'unknown' } as any)).toEqual([]);
+    expect(availableBrowsers(undefined, { type: 'unknown' } as any)).toEqual(
+      []
+    );
     expect(
       availableBrowsers([], {
         type: uiActions.SETTINGS_AVAILABLE_BROWSERS_UPDATED,
@@ -154,13 +159,13 @@ describe('currentView reducer', () => {
       } as any)
     ).toEqual({ url: 'https://selected.example' });
 
-    expect(currentView('settings', { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(
-      'settings'
-    );
+    expect(
+      currentView('settings', { type: APP_SETTINGS_LOADED, payload: {} } as any)
+    ).toBe('settings');
 
-    expect(currentView(undefined, { type: 'UNKNOWN_CURRENT_VIEW_ACTION' } as any)).toBe(
-      'add-new-server'
-    );
+    expect(
+      currentView(undefined, { type: 'UNKNOWN_CURRENT_VIEW_ACTION' } as any)
+    ).toBe('add-new-server');
   });
 });
 
@@ -179,7 +184,10 @@ describe('dialogs reducer', () => {
     expect(
       dialogs(
         {
-          serverInfoModal: { isOpen: true, serverData: { url: 'https://server.example' } },
+          serverInfoModal: {
+            isOpen: true,
+            serverData: { url: 'https://server.example' },
+          },
           telephonyServerSelect: null,
           telephonyDefaultHandlerPrompt: null,
         },
@@ -198,7 +206,11 @@ describe('dialogs reducer', () => {
       dialogs(
         {
           serverInfoModal: { isOpen: false, serverData: null },
-          telephonyServerSelect: { isOpen: true, phoneNumber: '111', rawUri: 'sip:111' },
+          telephonyServerSelect: {
+            isOpen: true,
+            phoneNumber: '111',
+            rawUri: 'sip:111',
+          },
           telephonyDefaultHandlerPrompt: null,
         },
         { type: uiActions.TELEPHONY_SERVER_SELECT_CLOSE } as any
@@ -218,7 +230,9 @@ describe('dialogs reducer', () => {
           telephonyServerSelect: null,
           telephonyDefaultHandlerPrompt: { isOpen: true },
         },
-        { type: uiActions.TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED } as any
+        {
+          type: uiActions.TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED,
+        } as any
       ).telephonyDefaultHandlerPrompt
     ).toBe(null);
   });
@@ -233,9 +247,9 @@ describe('dialogs reducer', () => {
       telephonyDefaultHandlerPrompt: null,
     };
 
-    expect(dialogs(existingState, { type: 'unknown-dialog-action' } as any)).toEqual(
-      existingState
-    );
+    expect(
+      dialogs(existingState, { type: 'unknown-dialog-action' } as any)
+    ).toEqual(existingState);
   });
 
   it('keeps subreducers on unknown actions', () => {
@@ -272,14 +286,20 @@ describe('dialogs reducer', () => {
       )
     ).toEqual({ isOpen: true });
 
-    expect(serverInfoModal(undefined, { type: 'UNKNOWN_SERVER_INFO_MODAL_ACTION' } as any)).toEqual({
+    expect(
+      serverInfoModal(undefined, {
+        type: 'UNKNOWN_SERVER_INFO_MODAL_ACTION',
+      } as any)
+    ).toEqual({
       isOpen: false,
       serverData: null,
     });
 
-    expect(telephonyServerSelect(undefined, { type: 'UNKNOWN_TELEPHONY_SERVER_SELECT_ACTION' } as any)).toBe(
-      null
-    );
+    expect(
+      telephonyServerSelect(undefined, {
+        type: 'UNKNOWN_TELEPHONY_SERVER_SELECT_ACTION',
+      } as any)
+    ).toBe(null);
 
     expect(
       telephonyDefaultHandlerPrompt(undefined, {
@@ -288,17 +308,18 @@ describe('dialogs reducer', () => {
     ).toBe(null);
 
     expect(
-      telephonyDefaultHandlerPrompt(
-        { isOpen: true },
-        { type: uiActions.TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE } as any
-      )
+      telephonyDefaultHandlerPrompt({ isOpen: true }, {
+        type: uiActions.TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE,
+      } as any)
     ).toBe(null);
   });
 });
 
 describe('openDialog reducer', () => {
   it('sets and clears open dialog state', () => {
-    expect(openDialog(null, { type: uiActions.MENU_BAR_ABOUT_CLICKED } as any)).toBe('about');
+    expect(
+      openDialog(null, { type: uiActions.MENU_BAR_ABOUT_CLICKED } as any)
+    ).toBe('about');
     expect(
       openDialog('about', {
         type: navigationActions.CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
@@ -309,13 +330,23 @@ describe('openDialog reducer', () => {
         type: screenSharingActions.SCREEN_SHARING_DIALOG_DISMISSED,
       } as any)
     ).toBe(null);
-    expect(openDialog(null, { type: UPDATES_NEW_VERSION_AVAILABLE } as any)).toBe('update');
-    expect(openDialog(null, { type: uiActions.WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED } as any)).toBe('screen-sharing');
+    expect(
+      openDialog(null, { type: UPDATES_NEW_VERSION_AVAILABLE } as any)
+    ).toBe('update');
+    expect(
+      openDialog(null, {
+        type: uiActions.WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+      } as any)
+    ).toBe('screen-sharing');
   });
 
   it('ignores unknown actions', () => {
-    expect(openDialog('about', { type: 'UNKNOWN_DIALOG_ACTION' } as any)).toBe('about');
-    expect(openDialog(undefined, { type: 'UNKNOWN_DIALOG_ACTION' } as any)).toBe(null);
+    expect(openDialog('about', { type: 'UNKNOWN_DIALOG_ACTION' } as any)).toBe(
+      'about'
+    );
+    expect(
+      openDialog(undefined, { type: 'UNKNOWN_DIALOG_ACTION' } as any)
+    ).toBe(null);
   });
 
   it('handles dismiss actions and alternate branches', () => {
@@ -334,7 +365,9 @@ describe('openDialog reducer', () => {
     ).toBe(null);
 
     expect(
-      openDialog(null, { type: outlookActions.OUTLOOK_CALENDAR_ASK_CREDENTIALS } as any)
+      openDialog(null, {
+        type: outlookActions.OUTLOOK_CALENDAR_ASK_CREDENTIALS,
+      } as any)
     ).toBe('outlook-credentials');
   });
 });
@@ -345,7 +378,10 @@ describe('lastSelectedServerUrl', () => {
       lastSelectedServerUrl('', {
         type: APP_SETTINGS_LOADED,
         payload: {
-          servers: [{ url: 'https://first.example' }, { url: 'https://second.example' }],
+          servers: [
+            { url: 'https://first.example' },
+            { url: 'https://second.example' },
+          ],
         },
       } as any)
     ).toBe('https://first.example');
@@ -364,7 +400,12 @@ describe('lastSelectedServerUrl', () => {
       } as any)
     ).toBe('https://clicked.example');
 
-    expect(lastSelectedServerUrl(undefined, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe('');
+    expect(
+      lastSelectedServerUrl(undefined, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe('');
 
     expect(
       lastSelectedServerUrl('https://keep.example', {
@@ -390,7 +431,9 @@ describe('rootWindowIcon', () => {
       } as any)
     ).toEqual({ src: '/tmp/favicon.png', isVector: false });
 
-    expect(rootWindowIcon(undefined, { type: 'unknown-icon-action' } as any)).toBe(null);
+    expect(
+      rootWindowIcon(undefined, { type: 'unknown-icon-action' } as any)
+    ).toBe(null);
   });
 });
 
@@ -411,8 +454,12 @@ describe('rootWindowState and videoCallWindowState', () => {
   };
 
   it('handles updates and settings load', () => {
-    expect(rootWindowState(undefined, { type: uiActions.ROOT_WINDOW_STATE_CHANGED, payload: statePayload } as any))
-      .toEqual(statePayload);
+    expect(
+      rootWindowState(undefined, {
+        type: uiActions.ROOT_WINDOW_STATE_CHANGED,
+        payload: statePayload,
+      } as any)
+    ).toEqual(statePayload);
 
     expect(
       rootWindowState(statePayload, {
@@ -423,8 +470,12 @@ describe('rootWindowState and videoCallWindowState', () => {
   });
 
   it('handles video call window state update and settings load', () => {
-    expect(videoCallWindowState(undefined, { type: uiActions.VIDEO_CALL_WINDOW_STATE_CHANGED, payload: statePayload } as any))
-      .toEqual(statePayload);
+    expect(
+      videoCallWindowState(undefined, {
+        type: uiActions.VIDEO_CALL_WINDOW_STATE_CHANGED,
+        payload: statePayload,
+      } as any)
+    ).toEqual(statePayload);
 
     expect(
       videoCallWindowState(statePayload, {
@@ -434,18 +485,34 @@ describe('rootWindowState and videoCallWindowState', () => {
     ).toEqual(statePayload);
 
     expect(
-      videoCallWindowState(statePayload, { type: 'UNKNOWN_VIDEO_CALL_WINDOW_STATE_ACTION' } as any)
+      videoCallWindowState(statePayload, {
+        type: 'UNKNOWN_VIDEO_CALL_WINDOW_STATE_ACTION',
+      } as any)
     ).toEqual(statePayload);
   });
 
   it('keeps root window state unchanged for unknown action', () => {
     expect(
-      rootWindowState(statePayload, { type: 'UNKNOWN_ROOT_WINDOW_STATE_ACTION' } as any)
+      rootWindowState(statePayload, {
+        type: 'UNKNOWN_ROOT_WINDOW_STATE_ACTION',
+      } as any)
     ).toEqual(statePayload);
   });
 
   it('uses defaults with undefined state', () => {
-    expect(rootWindowState(undefined, { type: 'UNKNOWN_ROOT_WINDOW_STATE_ACTION' } as any)).toBeDefined();
+    expect(
+      rootWindowState(undefined, {
+        type: 'UNKNOWN_ROOT_WINDOW_STATE_ACTION',
+      } as any)
+    ).toEqual({
+      focused: true,
+      visible: true,
+      maximized: false,
+      minimized: false,
+      fullscreen: false,
+      normal: true,
+      bounds: { x: undefined, y: undefined, width: 1000, height: 600 },
+    });
 
     expect(
       rootWindowState(statePayload, {
@@ -455,8 +522,18 @@ describe('rootWindowState and videoCallWindowState', () => {
     ).toEqual(statePayload);
 
     expect(
-      videoCallWindowState(undefined, { type: 'UNKNOWN_VIDEO_CALL_WINDOW_STATE_ACTION' } as any)
-    ).toBeDefined();
+      videoCallWindowState(undefined, {
+        type: 'UNKNOWN_VIDEO_CALL_WINDOW_STATE_ACTION',
+      } as any)
+    ).toEqual({
+      focused: true,
+      visible: true,
+      maximized: false,
+      minimized: false,
+      fullscreen: false,
+      normal: true,
+      bounds: { x: undefined, y: undefined, width: 0, height: 0 },
+    });
 
     expect(
       videoCallWindowState(statePayload, {
@@ -483,12 +560,16 @@ describe('selectedBrowser', () => {
       } as any)
     ).toBe('safari');
 
-    expect(selectedBrowser('firefox', { type: 'UNKNOWN_SELECTED_BROWSER_ACTION' } as any)).toBe(
-      'firefox'
-    );
+    expect(
+      selectedBrowser('firefox', {
+        type: 'UNKNOWN_SELECTED_BROWSER_ACTION',
+      } as any)
+    ).toBe('firefox');
 
     expect(
-      selectedBrowser(undefined, { type: 'UNKNOWN_SELECTED_BROWSER_ACTION' } as any)
+      selectedBrowser(undefined, {
+        type: 'UNKNOWN_SELECTED_BROWSER_ACTION',
+      } as any)
     ).toBe(null);
 
     expect(
@@ -509,7 +590,9 @@ describe('userThemePreference', () => {
       } as any)
     ).toBe('dark');
 
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     expect(
       userThemePreference('dark', {
         type: uiActions.SETTINGS_USER_THEME_PREFERENCE_CHANGED,
@@ -524,7 +607,12 @@ describe('userThemePreference', () => {
       } as any)
     ).toBe('dark');
 
-    expect(userThemePreference('light', { type: APP_SETTINGS_LOADED, payload: {} as any })).toBe('light');
+    expect(
+      userThemePreference('light', {
+        type: APP_SETTINGS_LOADED,
+        payload: {} as any,
+      })
+    ).toBe('light');
 
     expect(warn).toHaveBeenCalledTimes(2);
     warn.mockRestore();
@@ -532,13 +620,17 @@ describe('userThemePreference', () => {
 
   it('returns existing value for unknown actions', () => {
     expect(
-      userThemePreference('light', { type: 'UNKNOWN_THEME_PREFERENCE_ACTION' } as any)
+      userThemePreference('light', {
+        type: 'UNKNOWN_THEME_PREFERENCE_ACTION',
+      } as any)
     ).toBe('light');
   });
 
   it('uses default theme state and handles settings value', () => {
     expect(
-      userThemePreference(undefined, { type: 'UNKNOWN_THEME_PREFERENCE_ACTION' } as any)
+      userThemePreference(undefined, {
+        type: 'UNKNOWN_THEME_PREFERENCE_ACTION',
+      } as any)
     ).toBe('auto');
 
     expect(
@@ -552,9 +644,9 @@ describe('userThemePreference', () => {
 
 describe('isMinimizeOnCloseEnabled', () => {
   it('returns platform default and responds to settings changes', () => {
-    expect(isMinimizeOnCloseEnabled(undefined, { type: 'unknown' } as any)).toBe(
-      process.platform === 'win32'
-    );
+    expect(
+      isMinimizeOnCloseEnabled(undefined, { type: 'unknown' } as any)
+    ).toBe(process.platform === 'win32');
     expect(
       isMinimizeOnCloseEnabled(false, {
         type: uiActions.SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED,
@@ -569,26 +661,28 @@ describe('isMinimizeOnCloseEnabled', () => {
       } as any)
     ).toBe(false);
 
-    expect(isMinimizeOnCloseEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)).toBe(
-      false
-    );
+    expect(
+      isMinimizeOnCloseEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
   });
 });
 
 describe('e2ePdfPreviewSizeLimit', () => {
   it('uses default value and handles settings action', () => {
     expect(
-      e2ePdfPreviewSizeLimit(undefined, { type: 'UNKNOWN_PDF_LIMIT_ACTION' } as any)
+      e2ePdfPreviewSizeLimit(undefined, {
+        type: 'UNKNOWN_PDF_LIMIT_ACTION',
+      } as any)
     ).toBe(DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB);
 
     expect(
-      e2ePdfPreviewSizeLimit(
-        DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB,
-        {
-          type: APP_SETTINGS_LOADED,
-          payload: {},
-        } as any
-      )
+      e2ePdfPreviewSizeLimit(DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
     ).toBe(DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB);
 
     expect(
@@ -624,7 +718,9 @@ describe('hasHideOnTrayNotificationShown', () => {
     ).toBe(true);
 
     expect(
-      hasHideOnTrayNotificationShown(undefined, { type: 'UNKNOWN_HAS_HIDE_ON_TRAY_NOTIFICATION_ACTION' } as any)
+      hasHideOnTrayNotificationShown(undefined, {
+        type: 'UNKNOWN_HAS_HIDE_ON_TRAY_NOTIFICATION_ACTION',
+      } as any)
     ).toBe(false);
   });
 });

@@ -9,8 +9,13 @@ import {
   TELEPHONY_SERVER_SELECT_OPEN,
   TELEPHONY_SERVER_SELECT_CLOSE,
 } from '../ui/actions';
+import {
+  warnAboutInvalidServerUrl,
+  askForServerAddition,
+} from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import { DEEP_LINKS_SERVER_ADDED } from './actions';
 import {
   parseTelephonyLink,
   getDeepLinkArgs,
@@ -18,11 +23,6 @@ import {
   setupDeepLinks,
   processDeepLinksInArgs,
 } from './main';
-import { DEEP_LINKS_SERVER_ADDED } from './actions';
-import {
-  warnAboutInvalidServerUrl,
-  askForServerAddition,
-} from '../ui/main/dialogs';
 import type { TelephonyLink } from './main';
 
 jest.mock('electron', () => ({
@@ -57,8 +57,9 @@ const getRootWindowMock = getRootWindow as jest.MockedFunction<
   typeof getRootWindow
 >;
 const appMock = app as jest.Mocked<typeof app>;
-const askForServerAdditionMock =
-  askForServerAddition as jest.MockedFunction<typeof askForServerAddition>;
+const askForServerAdditionMock = askForServerAddition as jest.MockedFunction<
+  typeof askForServerAddition
+>;
 
 describe('deepLinks/main.ts', () => {
   const mockRootWindow = {} as any;
@@ -673,9 +674,7 @@ describe('deepLinks/main.ts', () => {
 
       setupDeepLinks();
       getRootWindowMock.mockResolvedValue(hiddenWindow as any);
-      getWebContentsByServerUrlMock.mockReturnValue(
-        mockWebContents as any
-      );
+      getWebContentsByServerUrlMock.mockReturnValue(mockWebContents as any);
 
       selectMock.mockReturnValue([
         { url: 'https://chat.example.com', title: 'Chat' },
@@ -874,7 +873,9 @@ describe('deepLinks/main.ts', () => {
         undefined,
       ] as any);
       askForServerAdditionMock.mockResolvedValue(false);
-      selectMock.mockImplementation((selector: any) => selector({ servers: [] }));
+      selectMock.mockImplementation((selector: any) =>
+        selector({ servers: [] })
+      );
 
       const savedArgv = process.argv;
       process.argv = [

@@ -11,7 +11,9 @@ describe('formatAcceleratorForDisplay', () => {
     expect(
       formatAcceleratorForDisplay('control+alt+p', { platform: 'darwin' })
     ).toBe('Ctrl+Option+P');
-    expect(formatAcceleratorForDisplay('meta+option+p')).toBe('Cmd+Option+P');
+    expect(
+      formatAcceleratorForDisplay('meta+option+p', { platform: 'darwin' })
+    ).toBe('Cmd+Option+P');
   });
 
   it('uses mac overrides by default when platform is darwin', () => {

@@ -263,7 +263,7 @@ describe('systemCertificates', () => {
       'System CA certificates: disabled by overridden-settings.json'
     );
     expect(readFileSync).toHaveBeenCalledWith(
-      '/tmp/desktop/overridden-settings.json',
+      path.join('/tmp/desktop/app.asar', '..', 'overridden-settings.json'),
       'utf8'
     );
     expect(getSystemCertificateStatus()).toEqual({

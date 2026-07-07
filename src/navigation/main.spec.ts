@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 import type { Certificate } from 'electron';
 import { app } from 'electron';
@@ -251,11 +252,11 @@ describe('navigation/main.ts', () => {
 
       expect(appGetPathMock).toHaveBeenCalledWith('userData');
       expect(readFileMock).toHaveBeenCalledWith(
-        '/tmp/user-data/certificate.json',
+        path.join('/tmp/user-data', 'certificate.json'),
         'utf8'
       );
       expect(unlinkMock).toHaveBeenCalledWith(
-        '/tmp/user-data/certificate.json'
+        path.join('/tmp/user-data', 'certificate.json')
       );
       expect(dispatchMock).toHaveBeenCalledWith({
         type: CERTIFICATES_LOADED,

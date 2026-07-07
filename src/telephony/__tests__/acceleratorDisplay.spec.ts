@@ -20,7 +20,17 @@ describe('formatAcceleratorForDisplay', () => {
     expect(
       formatAcceleratorForDisplay('commandorcontrol+q', { platform: 'darwin' })
     ).toBe('Cmd+Q');
+
+    const originalPlatform = process.platform;
+    Object.defineProperty(process, 'platform', {
+      value: 'darwin',
+      configurable: true,
+    });
     expect(formatAcceleratorForDisplay('commandorcontrol+q')).toBe('Cmd+Q');
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      configurable: true,
+    });
   });
 
   it('uses non-mac overrides by default on other platforms', () => {

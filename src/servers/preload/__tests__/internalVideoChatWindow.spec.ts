@@ -53,6 +53,8 @@ describe('servers/preload/internalVideoChatWindow', () => {
   afterEach(() => {
     if (processMasDescriptor) {
       Object.defineProperty(process, 'mas', processMasDescriptor);
+    } else {
+      delete (process as { mas?: boolean }).mas;
     }
   });
 

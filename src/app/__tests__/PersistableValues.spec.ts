@@ -1,6 +1,8 @@
 import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../../constants';
 import { migrations } from '../PersistableValues';
 
+const originalPlatform = process.platform;
+
 const setProcessPlatform = (value: NodeJS.Platform): void => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const descriptor = Object.getOwnPropertyDescriptor(process, 'platform');
@@ -15,10 +17,7 @@ const setProcessPlatform = (value: NodeJS.Platform): void => {
 };
 
 const clearProcessPlatform = (): void => {
-  Object.defineProperty(process, 'platform', {
-    value: 'darwin',
-    configurable: true,
-  });
+  setProcessPlatform(originalPlatform);
 };
 
 const setProcessMas = (value: boolean): void => {

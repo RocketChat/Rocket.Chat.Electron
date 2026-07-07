@@ -70,8 +70,14 @@ const createWebContents = (defaults?: {
 });
 
 describe('createPopupMenuForServerView', () => {
+  const originalPlatform = process.platform;
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    setProcessPlatform(originalPlatform);
   });
 
   it('builds editable menu with image/link entries and suggestion actions', async () => {

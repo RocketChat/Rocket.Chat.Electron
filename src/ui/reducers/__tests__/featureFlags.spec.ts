@@ -511,12 +511,18 @@ describe('hasHideOnTrayNotificationShown', () => {
 });
 
 describe('isMinimizeOnCloseEnabled', () => {
+  const originalPlatform = process.platform;
+
   const setPlatform = (platform: NodeJS.Platform): void => {
     Object.defineProperty(process, 'platform', {
       value: platform,
       configurable: true,
     });
   };
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
+  });
 
   it('defaults to window platform flag and updates from settings/action', () => {
     setPlatform('darwin');

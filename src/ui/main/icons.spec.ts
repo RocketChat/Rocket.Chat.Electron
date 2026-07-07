@@ -10,7 +10,7 @@ jest.mock('electron', () => ({
 
 it('getAppIconPath', () => {
   expect(getAppIconPath({ platform: 'win32' })).toBe(
-    path.join('/app', 'app', 'images', 'icon.ico')
+    '/app/app/images/icon.ico'
   );
 });
 

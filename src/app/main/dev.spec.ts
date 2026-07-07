@@ -20,11 +20,6 @@ jest.mock('electron', () => ({
   },
 }));
 
-const watchMock = jest.fn();
-const watchOnMock = jest.fn();
-
-const mockInstallExtension = jest.fn(async () => undefined);
-
 jest.mock('fs', () => ({
   existsSync: jest.fn(),
   mkdirSync: jest.fn(),
@@ -32,19 +27,36 @@ jest.mock('fs', () => ({
   writeFileSync: jest.fn(),
 }));
 
-jest.mock('chokidar', () => ({
-  watch: (..._args: any[]) => {
-    watchMock(..._args);
-    return { on: watchOnMock };
-  },
-}));
+jest.mock('chokidar', () => {
+  const mockWatch = jest.fn();
+  const mockWatchOn = jest.fn();
+  return {
+    __mockWatch: mockWatch,
+    __mockWatchOn: mockWatchOn,
+    watch: (..._args: any[]) => {
+      mockWatch(..._args);
+      return { on: mockWatchOn };
+    },
+  };
+});
 
 jest.mock('electron-devtools-installer', () => ({
   __esModule: true,
-  default: mockInstallExtension,
+  default: jest.fn(async () => undefined),
   REACT_DEVELOPER_TOOLS: 'REACT',
   REDUX_DEVTOOLS: 'REDUX',
 }));
+
+const mockChokidar = jest.requireMock('chokidar') as {
+  __mockWatch: jest.Mock;
+  __mockWatchOn: jest.Mock;
+};
+const watchMock = mockChokidar.__mockWatch;
+const watchOnMock = mockChokidar.__mockWatchOn;
+
+const mockInstallExtension = (
+  jest.requireMock('electron-devtools-installer') as { default: jest.Mock }
+).default;
 
 describe('app/main/dev', () => {
   const originalNodeEnv = process.env.NODE_ENV;

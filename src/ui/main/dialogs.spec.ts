@@ -268,6 +268,7 @@ describe('ui/main/dialogs', () => {
   });
 
   it('opens macOS microphone settings when allowed on darwin', async () => {
+    const originalPlatform = process.platform;
     Object.defineProperty(process, 'platform', {
       configurable: true,
       value: 'darwin',
@@ -278,9 +279,14 @@ describe('ui/main/dialogs', () => {
     expect(openExternalMock).toHaveBeenCalledWith(
       'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'
     );
+    Object.defineProperty(process, 'platform', {
+      configurable: true,
+      value: originalPlatform,
+    });
   });
 
   it('opens Windows microphone settings when allowed on win32', async () => {
+    const originalPlatform = process.platform;
     Object.defineProperty(process, 'platform', {
       configurable: true,
       value: 'win32',
@@ -291,6 +297,10 @@ describe('ui/main/dialogs', () => {
     expect(openExternalMock).toHaveBeenCalledWith(
       'ms-settings:privacy-microphone'
     );
+    Object.defineProperty(process, 'platform', {
+      configurable: true,
+      value: originalPlatform,
+    });
   });
 
   it('does not open settings when microphone permission is denied', async () => {

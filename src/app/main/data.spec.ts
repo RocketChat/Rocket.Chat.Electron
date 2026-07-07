@@ -1,8 +1,32 @@
 import * as store from '../../store';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { mergePersistableValues } from './data';
+import { getPersistedValues } from './persistence';
 
 jest.mock('../../store');
+
+jest.mock('./persistence', () => ({
+  getPersistedValues: jest.fn().mockReturnValue({}),
+  persistValues: jest.fn(),
+}));
+
+jest.mock('fs', () => ({
+  promises: {
+    readFile: jest.fn().mockRejectedValue(new Error('File not found')),
+    unlink: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('electron', () => ({
+  app: {
+    getPath: jest.fn().mockReturnValue('/user/data'),
+    getVersion: jest.fn().mockReturnValue('0.0.0'),
+  },
+}));
+
+jest.mock('../../logging', () => ({
+  logger: { warn: jest.fn(), error: jest.fn(), info: jest.fn() },
+}));
 
 const mockDispatch = jest.fn();
 const mockSelect = jest.fn();
@@ -11,6 +35,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   (store.dispatch as jest.Mock).mockImplementation(mockDispatch);
   (store.select as jest.Mock).mockImplementation(mockSelect);
+  (getPersistedValues as jest.Mock).mockReturnValue({});
 });
 
 describe('mergePersistableValues', () => {
@@ -31,23 +56,6 @@ describe('mergePersistableValues', () => {
 
   beforeEach(() => {
     mockSelect.mockReturnValue(mockInitialValues);
-
-    jest.doMock('./persistence', () => ({
-      getPersistedValues: jest.fn().mockReturnValue({}),
-    }));
-
-    jest.doMock('fs', () => ({
-      promises: {
-        readFile: jest.fn().mockRejectedValue(new Error('File not found')),
-        unlink: jest.fn().mockResolvedValue(undefined),
-      },
-    }));
-
-    jest.doMock('electron', () => ({
-      app: {
-        getPath: jest.fn().mockReturnValue('/user/data'),
-      },
-    }));
   });
 
   describe('menubar recovery mechanism', () => {

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { dispatch } from '../../store';
 import { WEBVIEW_USER_ROLES_CHANGED } from '../../ui/actions';
 import { getServerUrl } from './urls';
@@ -93,5 +96,98 @@ describe('servers/preload/userRoles', () => {
     await updateUserRoles();
 
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch when the server URL is missing', async () => {
+    getServerUrlMock.mockReturnValue(undefined as unknown as string);
+    global.fetch = jest.fn() as unknown as typeof global.fetch;
+
+    await updateUserRoles();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch roles when the REST response is not ok', async () => {
+    localStorage.setItem('Meteor.loginToken', 'token');
+    localStorage.setItem('Meteor.userId', 'user-id');
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+    }) as unknown as typeof global.fetch;
+
+    await updateUserRoles();
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch roles when REST response roles are not an array', async () => {
+    localStorage.setItem('Meteor.loginToken', 'token');
+    localStorage.setItem('Meteor.userId', 'user-id');
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ roles: {} }),
+    }) as unknown as typeof global.fetch;
+
+    await updateUserRoles();
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch when REST payload cannot be read', async () => {
+    localStorage.setItem('Meteor.loginToken', 'token');
+    localStorage.setItem('Meteor.userId', 'user-id');
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => null,
+    }) as unknown as typeof global.fetch;
+
+    await updateUserRoles();
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+  });
+
+  it('keeps authoritative bridge roles when the fallback update runs while roles are available', async () => {
+    localStorage.setItem('Meteor.loginToken', 'token');
+    localStorage.setItem('Meteor.userId', 'user-id');
+
+    global.fetch = jest
+      .fn()
+      .mockImplementation(async () => {
+        setUserRoles(['bridge-role']);
+
+        return {
+          ok: true,
+          json: async () => ({ roles: ['me-role'] }),
+        } as { ok: boolean; json: () => Promise<{ roles: unknown }> };
+      }) as unknown as typeof global.fetch;
+
+    await updateUserRoles();
+
+    expect(dispatchMock).toHaveBeenCalledTimes(1);
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: WEBVIEW_USER_ROLES_CHANGED,
+      payload: { url: 'https://rocket.chat', userRoles: ['bridge-role'] },
+    });
+  });
+
+  it('ignores non-array input from bridge updates', () => {
+    setUserRoles('admin');
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+  });
+
+  it('swallows fetch errors without dispatching roles', async () => {
+    localStorage.setItem('Meteor.loginToken', 'token');
+    localStorage.setItem('Meteor.userId', 'user-id');
+
+    global.fetch = jest.fn(async () => {
+      throw new Error('network down');
+    }) as unknown as typeof global.fetch;
+
+    await expect(updateUserRoles()).resolves.toBeUndefined();
+
+    expect(dispatchMock).not.toHaveBeenCalled();
   });
 });

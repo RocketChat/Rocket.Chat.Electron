@@ -1,0 +1,62 @@
+import { selectPersistableValues } from '../selectors';
+
+describe('selectPersistableValues', () => {
+  it('returns the persistable snapshot with fallback title', () => {
+    const state = {
+      currentView: 'chats',
+      doCheckForUpdatesOnStartup: true,
+      downloads: {},
+      machineTheme: 'dark',
+      isMenuBarEnabled: true,
+      isShowWindowOnUnreadChangedEnabled: false,
+      isSideBarEnabled: false,
+      isTrayIconEnabled: true,
+      rootWindowState: { x: 1, y: 2 },
+      servers: [],
+      skippedUpdateVersion: null,
+      trustedCertificates: {},
+      notTrustedCertificates: {},
+      isEachUpdatesSettingConfigurable: true,
+      isUpdatingEnabled: true,
+      isHardwareAccelerationEnabled: true,
+      externalProtocols: { tel: true },
+      allowedJitsiServers: { 'meet.example.com': true },
+      isReportEnabled: true,
+      isFlashFrameEnabled: false,
+      isInternalVideoChatWindowEnabled: false,
+      isMinimizeOnCloseEnabled: true,
+      isAddNewServersEnabled: true,
+      isDeveloperModeEnabled: false,
+      hasHideOnTrayNotificationShown: false,
+      lastSelectedServerUrl: 'https://chat.example.com',
+      allowedNTLMCredentialsDomains: null,
+      isNTLMCredentialsEnabled: false,
+      mainWindowTitle: null,
+      selectedBrowser: 'chromium',
+      videoCallWindowState: { opened: false },
+      isVideoCallWindowPersistenceEnabled: false,
+      isVideoCallDevtoolsAutoOpenEnabled: false,
+      isTransparentWindowEnabled: false,
+      isVideoCallScreenCaptureFallbackEnabled: false,
+      updateChannel: 'latest',
+      userThemePreference: 'system',
+      outlookCalendarSyncInterval: 15,
+      isVerboseOutlookLoggingEnabled: false,
+      isDetailedEventsLoggingEnabled: true,
+      isDebugLoggingEnabled: true,
+      e2ePdfPreviewSizeLimit: 10,
+      telephonyPreferredServer: null,
+      telephonyGlobalShortcutConfig: { enabled: false, accelerator: null },
+      isTelephonyEnabled: true,
+    };
+
+    expect(selectPersistableValues(state as any)).toMatchObject({
+      currentView: 'chats',
+      machineTheme: 'dark',
+      mainWindowTitle: 'Rocket.Chat',
+      externalProtocols: { tel: true },
+      updateChannel: 'latest',
+      isTelephonyEnabled: true,
+    });
+  });
+});

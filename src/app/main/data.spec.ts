@@ -2,6 +2,20 @@ import * as store from '../../store';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { mergePersistableValues } from './data';
 
+jest.mock('electron', () => ({
+  app: {
+    getPath: jest.fn().mockReturnValue('/user/data'),
+    getVersion: jest.fn().mockReturnValue('1.0.0'),
+  },
+}));
+
+jest.mock('electron-store', () => {
+  return jest.fn(() => ({
+    store: {},
+    set: jest.fn(),
+  }));
+});
+
 jest.mock('../../store');
 
 const mockDispatch = jest.fn();

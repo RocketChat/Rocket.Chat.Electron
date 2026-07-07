@@ -268,13 +268,19 @@ describe('Shell', () => {
   });
 
   it('renders the sidebar layout (SideBar + TopBar, no TabBar) when navigationLayout is sidebar', () => {
-    renderWithStore(<Shell />, {
-      preloadedState: buildState({ navigationLayout: 'sidebar' }),
-    });
+    const restorePlatform = setPlatform('darwin');
 
-    expect(screen.getByTestId('side-bar')).toBeInTheDocument();
-    expect(screen.getByTestId('top-bar')).toBeInTheDocument();
-    expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+    try {
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'sidebar' }),
+      });
+
+      expect(screen.getByTestId('side-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+    } finally {
+      restorePlatform();
+    }
   });
 
   it('renders the tabs layout (TabBar, no TopBar/WindowDragBar) when navigationLayout is tabs', () => {

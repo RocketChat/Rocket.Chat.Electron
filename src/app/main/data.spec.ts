@@ -69,7 +69,7 @@ describe('mergePersistableValues', () => {
       });
       const localStorage = {};
 
-      mockSelect.mockReturnValueOnce({
+      mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: false,
         navigationLayout: 'tabs',
@@ -93,7 +93,7 @@ describe('mergePersistableValues', () => {
       });
       const localStorage = {};
 
-      mockSelect.mockReturnValueOnce({
+      mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: false,
         navigationLayout: 'sidebar',
@@ -117,7 +117,7 @@ describe('mergePersistableValues', () => {
       });
       const localStorage = {};
 
-      mockSelect.mockReturnValueOnce({
+      mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: false,
         navigationLayout: 'tabs',
@@ -141,7 +141,7 @@ describe('mergePersistableValues', () => {
       });
       const localStorage = {};
 
-      mockSelect.mockReturnValueOnce({
+      mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: true,
         navigationLayout: 'sidebar',
@@ -164,10 +164,11 @@ describe('mergePersistableValues', () => {
         autohideMenu: 'true',
       };
 
-      mockSelect.mockReturnValueOnce({
+      mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: false,
         isSideBarEnabled: false,
+        navigationLayout: 'sidebar',
       });
 
       await mergePersistableValues(localStorage);
@@ -187,10 +188,11 @@ describe('mergePersistableValues', () => {
         'autohideMenu': 'true',
       };
 
-      mockSelect.mockReturnValueOnce({
+      mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: false,
         isSideBarEnabled: false,
+        navigationLayout: 'sidebar',
       });
 
       await mergePersistableValues(localStorage);

@@ -484,9 +484,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
     // prevents the webview from navigating because of twitter preview links
     guestWebContents.on('will-navigate', (e, redirectUrl) => {
+      const { protocol, hostname } = new URL(redirectUrl);
+
+      if (protocol !== 'http:' && protocol !== 'https:') {
+        e.preventDefault();
+        return;
+      }
+
       const preventNavigateHosts = ['t.co', 'twitter.com'];
 
-      if (preventNavigateHosts.includes(new URL(redirectUrl).hostname)) {
+      if (preventNavigateHosts.includes(hostname)) {
         e.preventDefault();
         isProtocolAllowed(redirectUrl).then((allowed) => {
           if (!allowed) {

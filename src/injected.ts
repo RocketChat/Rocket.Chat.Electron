@@ -121,16 +121,12 @@ const start = async () => {
     : 'meteor/konecty:user-presence';
 
   const settingsModulePath = (() => {
-    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-    //   return '/app/settings/client';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
       return '/app/settings/client/index.ts';
     return '/app/settings';
   })();
 
   const utilsModulePath = (() => {
-    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-    //   return '/app/utils/client';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
       return '/app/utils/client/index.ts';
     return '/app/utils';

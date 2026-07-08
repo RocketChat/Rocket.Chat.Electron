@@ -141,6 +141,7 @@ type ChannelToArgsMap = {
   'screen-picker/screen-recording-is-permission-granted': () => boolean;
   'screen-picker/open-url': (url: string) => void;
   'telephony/get-diagnostics': () => TelephonyDiagnostics;
+  'secure-keyboard-entry/set': (enabled: boolean) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

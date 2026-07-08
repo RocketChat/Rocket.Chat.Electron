@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { invoke } from '../../../ipc/renderer';
 import {
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
   OUTLOOK_CALENDAR_DIALOG_DISMISSED,
@@ -46,6 +47,7 @@ export const OutlookCredentialsDialog = () => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const requestIdRef = useRef<unknown>();
+  const passwordFieldActiveRef = useRef(false);
 
   const [server, setServer] = useState<Server | undefined>();
   const [userId, setUserId] = useState<string>('');
@@ -101,6 +103,47 @@ export const OutlookCredentialsDialog = () => {
     window.focus();
   }, [isVisible]);
 
+  useEffect(() => {
+    if (isVisible) {
+      return;
+    }
+    if (process.platform !== 'darwin') {
+      return;
+    }
+    if (passwordFieldActiveRef.current) {
+      passwordFieldActiveRef.current = false;
+      invoke('secure-keyboard-entry/set', false);
+    }
+  }, [isVisible]);
+
+  useEffect(
+    () => () => {
+      if (process.platform !== 'darwin') {
+        return;
+      }
+      if (passwordFieldActiveRef.current) {
+        passwordFieldActiveRef.current = false;
+        invoke('secure-keyboard-entry/set', false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (process.platform !== 'darwin') {
+      return undefined;
+    }
+
+    const handleWindowFocus = (): void => {
+      if (passwordFieldActiveRef.current) {
+        invoke('secure-keyboard-entry/set', true);
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
+  }, []);
+
   const handleAuth = async ({
     login,
     password,
@@ -153,7 +196,23 @@ export const OutlookCredentialsDialog = () => {
           <Field>
             <Label>{t('Password')}</Label>
             <FieldRow>
-              <PasswordInput {...register('password', { required: true })} />
+              <PasswordInput
+                {...register('password', {
+                  required: true,
+                  onBlur: () => {
+                    if (process.platform === 'darwin') {
+                      passwordFieldActiveRef.current = false;
+                      invoke('secure-keyboard-entry/set', false);
+                    }
+                  },
+                })}
+                onFocus={() => {
+                  if (process.platform === 'darwin') {
+                    passwordFieldActiveRef.current = true;
+                    invoke('secure-keyboard-entry/set', true);
+                  }
+                }}
+              />
             </FieldRow>
             {errors.password && (
               <FieldError>

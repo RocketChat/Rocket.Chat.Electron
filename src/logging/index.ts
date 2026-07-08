@@ -5,7 +5,7 @@ import type { WebContents } from 'electron';
 import { app, ipcMain } from 'electron';
 import log from 'electron-log';
 
-import { isTrustedSender } from '../ipc/validateSender';
+import { describeSenderForLog, isTrustedSender } from '../ipc/validateSender';
 import { select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
@@ -273,7 +273,7 @@ export const setupWebContentsLogging = () => {
       if (!isTrustedSender(event.sender, ['server-webview'])) {
         console.warn(
           '[ipc] log-viewer-window/get-server-tag: rejected untrusted sender',
-          event.sender.getURL()
+          describeSenderForLog(event.sender)
         );
         event.returnValue = '';
         return;

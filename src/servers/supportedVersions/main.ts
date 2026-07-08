@@ -9,7 +9,10 @@ import moment from 'moment';
 import { coerce, satisfies } from 'semver';
 import semverGte from 'semver/functions/gte';
 
-import { isTrustedSender } from '../../ipc/validateSender';
+import {
+  describeSenderForLog,
+  isTrustedSender,
+} from '../../ipc/validateSender';
 import { dispatch, listen, select } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
@@ -510,7 +513,7 @@ export function checkSupportedVersionServers(): void {
     if (!isTrustedSender(event.sender, ['main-window'])) {
       console.warn(
         '[ipc] refresh-supported-versions: rejected untrusted sender',
-        event.sender.getURL()
+        describeSenderForLog(event.sender)
       );
       return;
     }

@@ -51,6 +51,19 @@ export const isTrustedSender = (
   return false;
 };
 
+/**
+ * Returns a log-safe identifier for a rejected sender: its origin, not the
+ * full URL, so query/fragment data (tokens, session params) never reaches logs.
+ */
+export const describeSenderForLog = (sender: WebContents): string => {
+  try {
+    const url = sender.getURL();
+    return url ? new URL(url).origin : `<sender:${sender.id}>`;
+  } catch {
+    return `<sender:${sender.id}>`;
+  }
+};
+
 const isServerWebview = (sender: WebContents): boolean => {
   if (sender.getType() !== 'webview') return false;
   try {

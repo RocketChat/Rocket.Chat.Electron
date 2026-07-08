@@ -12,7 +12,11 @@ import { app, BrowserWindow, ipcMain, screen, webContents } from 'electron';
 import { packageJsonInformation } from '../app/main/app';
 import { fallbackLng } from '../i18n/common';
 import { handle } from '../ipc/main';
-import { isTrustedSender, registerWindowGetter } from '../ipc/validateSender';
+import {
+  describeSenderForLog,
+  isTrustedSender,
+  registerWindowGetter,
+} from '../ipc/validateSender';
 import { isProtocolAllowed } from '../navigation/main';
 import { ScreenSharingRequestTracker } from '../screenSharing/ScreenSharingRequestTracker';
 import {
@@ -272,7 +276,7 @@ export const startVideoCallWindowHandler = (): void => {
     if (!isTrustedSender(event.sender, ['video-call'])) {
       console.warn(
         '[ipc] video-call-window/get-provider-sync: rejected untrusted sender',
-        event.sender.getURL()
+        describeSenderForLog(event.sender)
       );
       event.returnValue = null;
       return;
@@ -318,7 +322,7 @@ export const startVideoCallWindowHandler = (): void => {
       if (!isTrustedSender(responseEvent.sender, ['video-call'])) {
         console.warn(
           '[ipc] video-call-window/screen-sharing-source-responded: rejected untrusted sender',
-          responseEvent.sender.getURL()
+          describeSenderForLog(responseEvent.sender)
         );
         return; // keep listening — wait for trusted sender
       }

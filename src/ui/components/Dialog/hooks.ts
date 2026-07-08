@@ -6,7 +6,7 @@ export const useDialog = (
   onClose = (): void => undefined
 ): Ref<HTMLDialogElement> => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const onCloseRef = useRef<() => void>();
+  const onCloseRef = useRef<() => void>(undefined);
 
   useEffect(() => {
     onCloseRef.current = onClose;

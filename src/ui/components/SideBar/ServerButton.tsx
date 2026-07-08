@@ -167,7 +167,7 @@ const ServerButton = ({
         hasUnreadMessages={hasUnreadMessages}
         onClick={handleServerClick}
         onContextMenu={handleServerContextMenu}
-        onDragOver={(event) => event.preventDefault()}
+        onDragOver={(event: DragEvent) => event.preventDefault()}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onDragEnter={onDragEnter}

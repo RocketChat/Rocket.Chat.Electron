@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { createContext } from 'react';
 
-type TooltipPayload = ReactElement;
+type TooltipPayload = ReactElement<any>;
 
 export type TooltipContextValue = {
   open: (payload: TooltipPayload, anchor: HTMLElement) => void;

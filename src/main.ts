@@ -38,7 +38,10 @@ import { setupOutlookLogger } from './outlookCalendar/logger';
 import { handleDesktopCapturerGetSources } from './screenSharing/desktopCapturerCache';
 import { setupScreenSharing } from './screenSharing/main';
 import { startServerViewScreenSharingHandler } from './screenSharing/serverViewScreenSharing';
-import { handleClearCacheDialog } from './servers/cache';
+import {
+  handleClearCacheDialog,
+  handleUserLoggedOutDataClearing,
+} from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
@@ -155,6 +158,7 @@ const start = async (): Promise<void> => {
   handleJitsiDesktopCapturerGetSources();
   handleDesktopCapturerGetSources();
   handleClearCacheDialog();
+  handleUserLoggedOutDataClearing();
   startDocumentViewerHandler();
   startBrowserHandler();
   checkSupportedVersionServers();

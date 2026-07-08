@@ -523,8 +523,8 @@
   "tabBar": {
     "workspaces": "Workspaces",
     "addWorkspace": "Add workspace",
-    "unreadMessage": "{{- count}} message",
-    "unreadMessage_plural": "{{- count}} messages",
+    "unreadMessage_one": "{{- count}} message",
+    "unreadMessage_other": "{{- count}} messages",
     "unreadMessages": "Unread messages",
     "meatballMenu": "Application menu",
     "windowControls": {

@@ -56,9 +56,7 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
   return (
     <Field className={props.className}>
       <FieldRow>
-        <FieldLabel htmlFor={workspaceTabsId}>
-          {t('settings.options.navigation.title')}
-        </FieldLabel>
+        <FieldLabel>{t('settings.options.navigation.title')}</FieldLabel>
       </FieldRow>
       <FieldDescription>
         {isWorkspaceTabsDisabled

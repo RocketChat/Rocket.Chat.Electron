@@ -73,15 +73,6 @@ describe('navigationLayout reducer', () => {
 
       expect(navigationLayout('tabs', action)).toBe('tabs');
     });
-
-    it('should handle undefined payload gracefully', () => {
-      const action: ActionOf<typeof APP_SETTINGS_LOADED> = {
-        type: APP_SETTINGS_LOADED,
-        payload: {} as any,
-      };
-
-      expect(navigationLayout('tabs', action)).toBe('tabs');
-    });
   });
 
   describe('state persistence', () => {

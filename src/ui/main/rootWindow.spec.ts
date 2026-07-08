@@ -41,7 +41,7 @@ jest.mock('./icons', () => ({
 }));
 
 jest.mock('./secureKeyboardEntry', () => ({
-  setupSecureKeyboardEntry: jest.fn(() => () => undefined),
+  setupSecureKeyboardEntry: jest.fn(() => jest.fn()),
 }));
 
 describe('rootWindow close event handler', () => {

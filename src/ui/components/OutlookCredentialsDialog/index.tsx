@@ -197,17 +197,19 @@ export const OutlookCredentialsDialog = () => {
             <Label>{t('Password')}</Label>
             <FieldRow>
               <PasswordInput
-                {...register('password', { required: true })}
+                {...register('password', {
+                  required: true,
+                  onBlur: () => {
+                    if (process.platform === 'darwin') {
+                      passwordFieldActiveRef.current = false;
+                      invoke('secure-keyboard-entry/set', false);
+                    }
+                  },
+                })}
                 onFocus={() => {
                   if (process.platform === 'darwin') {
                     passwordFieldActiveRef.current = true;
                     invoke('secure-keyboard-entry/set', true);
-                  }
-                }}
-                onBlur={() => {
-                  if (process.platform === 'darwin') {
-                    passwordFieldActiveRef.current = false;
-                    invoke('secure-keyboard-entry/set', false);
                   }
                 }}
               />

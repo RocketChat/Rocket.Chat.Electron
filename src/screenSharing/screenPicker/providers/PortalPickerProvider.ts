@@ -10,6 +10,8 @@ export class PortalPickerProvider implements ScreenPickerProvider {
   readonly requiresCacheWarming = false;
 
   handleDisplayMediaRequest(callback: DisplayMediaCallback): void {
+    // Portal is an OS-level dialog, not window-scoped — the originating
+    // window (if any) is irrelevant here.
     // On Linux/Wayland, calling getSources() triggers the XDG portal picker.
     // The portal typically returns exactly one source on selection or an empty array
     // on cancellation; we defensively check for > 0 and use only the first source.

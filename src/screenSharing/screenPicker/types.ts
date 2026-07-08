@@ -1,3 +1,5 @@
+import type { BrowserWindow } from 'electron';
+
 export type ScreenPickerType = 'internal' | 'portal';
 
 // DisplayMediaCallback matches Electron's setDisplayMediaRequestHandler callback
@@ -18,8 +20,14 @@ export interface ScreenPickerProvider {
   /**
    * Handle a display media request from the webview.
    * Called by setDisplayMediaRequestHandler in main process.
+   * `originWindow`, when provided, is the standalone BrowserWindow that
+   * originated the request (e.g. a webapp popout), so the picker can be
+   * shown there instead of the root window.
    */
-  handleDisplayMediaRequest(callback: DisplayMediaCallback): void;
+  handleDisplayMediaRequest(
+    callback: DisplayMediaCallback,
+    originWindow?: BrowserWindow
+  ): void;
 
   /**
    * Initialize the picker when video call window is created.

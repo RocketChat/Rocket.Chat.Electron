@@ -159,10 +159,12 @@ jest.mock('../../screenSharing/screenPicker', () => ({
   })),
   InternalPickerProvider: class {},
 }));
-// ScreenSharingRequestTracker only needs to be constructible + .cleanup().
+// ScreenSharingRequestTracker only needs to be constructible + .cleanup()/.cancelAll().
 jest.mock('../../screenSharing/ScreenSharingRequestTracker', () => ({
   ScreenSharingRequestTracker: class {
     cleanup = jest.fn();
+
+    cancelAll = jest.fn();
 
     createRequest = jest.fn();
   },

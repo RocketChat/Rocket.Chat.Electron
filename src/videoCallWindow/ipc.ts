@@ -18,6 +18,7 @@ import {
   getDesktopCapturerCacheStatus,
   prewarmDesktopCapturerCache,
 } from '../screenSharing/desktopCapturerCache';
+import { requestViaPickerWindow } from '../screenSharing/popoutPickerRequest';
 import type {
   DisplayMediaCallback,
   ScreenPickerProvider,
@@ -25,6 +26,7 @@ import type {
 import { checkScreenRecordingPermission } from '../screenSharing/screenRecordingPermission';
 import {
   handleServerViewDisplayMediaRequest,
+  resolveStandaloneOriginWindow,
   setupServerViewDisplayMedia,
 } from '../screenSharing/serverViewScreenSharing';
 import { select, dispatchLocal } from '../store';
@@ -79,6 +81,12 @@ const videoCallScreenSharingTracker = new ScreenSharingRequestTracker(
   'video-call-window/screen-sharing-source-responded',
   'Video call screen sharing'
 );
+
+const VIDEO_CALL_PICKER_CHANNELS = {
+  response: 'video-call-window/screen-sharing-source-responded',
+  permission: 'video-call-window/screen-recording-is-permission-granted',
+  openUrl: 'video-call-window/open-url',
+};
 
 // Helper function to log URL changes
 const setPendingVideoCallUrl = (url: string, reason: string) => {
@@ -204,8 +212,10 @@ const cleanupVideoCallWindow = () => {
       // handler took over (no-op on isolated/fallback sessions).
       void restoreServerViewHandler(capturedCall);
 
-      // Clean up screen sharing listener before removing window listeners
-      videoCallScreenSharingTracker.cleanup();
+      // Tear down screen sharing (active + queued) before removing window
+      // listeners — silent cleanup() would orphan a popout-parented picker
+      // window whose request is still pending.
+      videoCallScreenSharingTracker.cancelAll();
 
       videoCallWindow.removeAllListeners();
 
@@ -252,7 +262,25 @@ const cleanupVideoCallWindow = () => {
 
 // Internal picker handler function - uses shared tracker
 const createInternalPickerHandler =
-  (): ((callback: DisplayMediaCallback) => void) => (cb) => {
+  (): ((
+    callback: DisplayMediaCallback,
+    originWindow?: BrowserWindow
+  ) => void) =>
+  (cb, originWindow) => {
+    if (
+      originWindow &&
+      originWindow !== videoCallWindow &&
+      !originWindow.isDestroyed()
+    ) {
+      requestViaPickerWindow(
+        videoCallScreenSharingTracker,
+        originWindow,
+        VIDEO_CALL_PICKER_CHANNELS,
+        cb
+      );
+      return;
+    }
+
     if (!videoCallWindow || videoCallWindow.isDestroyed()) {
       console.warn(
         'Screen sharing request rejected - video call window not available'
@@ -316,9 +344,20 @@ const setupWebviewHandlers = (webContents: WebContents) => {
       webviewWebContents.session.setDisplayMediaRequestHandler(
         (request, cb) => {
           try {
+            const originWindow = resolveStandaloneOriginWindow(request.frame);
+            // The root window can't originate a request on this session, and
+            // the call window itself is handled by the internal picker path
+            // below — only a genuine popout (e.g. a webapp window.open) needs
+            // its own picker window.
+            const popoutOrigin =
+              originWindow && originWindow !== videoCallWindow
+                ? originWindow
+                : null;
+
             // On a shared session, route by originating frame: in-call requests
             // use the call window's picker; anything else (the main server
-            // webview) falls back to the server-view picker in the root window.
+            // webview, or a popout sharing this session) falls back to the
+            // server-view picker.
             if (call?.isSharedSession) {
               const originWebContents = request.frame
                 ? electronWebContents.fromFrame(request.frame)
@@ -328,11 +367,17 @@ const setupWebviewHandlers = (webContents: WebContents) => {
                 originWebContents.hostWebContents?.id ===
                   videoCallWindow?.webContents.id;
               if (!fromCallWindow) {
-                handleServerViewDisplayMediaRequest(cb);
+                handleServerViewDisplayMediaRequest(
+                  cb,
+                  popoutOrigin ?? undefined
+                );
                 return;
               }
             }
-            currentProvider.handleDisplayMediaRequest(cb);
+            currentProvider.handleDisplayMediaRequest(
+              cb,
+              popoutOrigin ?? undefined
+            );
           } catch (error) {
             console.error('Error in screen picker handler:', error);
             cb({ video: false } as any);
@@ -741,8 +786,8 @@ const openVideoCallWindow = async (
     videoCallWindow.on('closed', () => {
       console.log('Video call window closed - destroying completely');
 
-      // Clean up screen sharing listener
-      videoCallScreenSharingTracker.cleanup();
+      // Tear down screen sharing (active + queued) — see cancelAll() note above.
+      videoCallScreenSharingTracker.cancelAll();
 
       // This call's unified handler took over the shared session's
       // display-media handler. Restore the plain server-view handler so
@@ -781,8 +826,8 @@ const openVideoCallWindow = async (
           'Video call window close initiated - preventing JS execution'
         );
 
-        // Clean up screen sharing listener
-        videoCallScreenSharingTracker.cleanup();
+        // Tear down screen sharing (active + queued) — see cancelAll() note above.
+        videoCallScreenSharingTracker.cancelAll();
 
         try {
           if (videoCallWindow && !videoCallWindow.isDestroyed()) {
@@ -1146,9 +1191,12 @@ export const startVideoCallWindowHandler = (): void => {
       return { success: false };
     }
 
-    // Clean up any stale listener before registering a new one, to ensure only
-    // one ipcMain listener is active at a time (same pattern as createInternalPickerHandler).
-    videoCallScreenSharingTracker.cleanup();
+    // Settle any foreign in-flight or queued request (e.g. a popout-originated
+    // one sharing this tracker) and close its picker window before this
+    // handler's own raw ipcMain.once below claims the response channel —
+    // otherwise that request's callback never fires and its picker window is
+    // never closed.
+    videoCallScreenSharingTracker.cancelAll();
 
     videoCallWindow.webContents.send('video-call-window/open-screen-picker');
 

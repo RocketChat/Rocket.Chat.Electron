@@ -1,4 +1,5 @@
-import type { WebContents } from 'electron';
+import type { WebContents, WebFrameMain } from 'electron';
+import { BrowserWindow, webContents as electronWebContents } from 'electron';
 
 import { handle } from '../ipc/main';
 import { isProtocolAllowed } from '../navigation/main';
@@ -6,6 +7,7 @@ import { getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 import { ScreenSharingRequestTracker } from './ScreenSharingRequestTracker';
 import { prewarmDesktopCapturerCache } from './desktopCapturerCache';
+import { requestViaPickerWindow } from './popoutPickerRequest';
 import type {
   DisplayMediaCallback,
   ScreenPickerProvider,
@@ -17,9 +19,47 @@ const serverViewTracker = new ScreenSharingRequestTracker(
   'Server view screen sharing'
 );
 
-const createRootWindowPickerHandler =
-  (): ((callback: DisplayMediaCallback) => void) => (cb) => {
+const SERVER_VIEW_PICKER_CHANNELS = {
+  response: 'screen-picker/source-responded',
+  permission: 'screen-picker/screen-recording-is-permission-granted',
+  openUrl: 'screen-picker/open-url',
+};
+
+/**
+ * Resolves the standalone BrowserWindow that originated a display-media
+ * request, or null if the request came from a webview guest (the main
+ * server view) rather than a standalone window (e.g. a webapp popout).
+ */
+export const resolveStandaloneOriginWindow = (
+  frame: WebFrameMain | null | undefined
+): BrowserWindow | null => {
+  if (!frame) return null;
+
+  const origin = electronWebContents.fromFrame(frame);
+  if (!origin) return null;
+
+  if (origin.hostWebContents) return null;
+
+  return BrowserWindow.fromWebContents(origin);
+};
+
+const createServerViewPickerHandler =
+  (): ((
+    callback: DisplayMediaCallback,
+    originWindow?: BrowserWindow
+  ) => void) =>
+  (cb, originWindow) => {
     prewarmDesktopCapturerCache();
+
+    if (originWindow && !originWindow.isDestroyed()) {
+      requestViaPickerWindow(
+        serverViewTracker,
+        originWindow,
+        SERVER_VIEW_PICKER_CHANNELS,
+        cb
+      );
+      return;
+    }
 
     serverViewTracker.createRequest(cb, () => {
       getRootWindow().then((rootWindow) => {
@@ -49,7 +89,7 @@ const initializeProvider = (): Promise<void> => {
       provider = new PortalPickerProvider();
     } else {
       const internalProvider = new InternalPickerProvider();
-      internalProvider.setHandleRequestHandler(createRootWindowPickerHandler());
+      internalProvider.setHandleRequestHandler(createServerViewPickerHandler());
       provider = internalProvider;
     }
 
@@ -74,9 +114,13 @@ export const setupServerViewDisplayMedia = (
     const currentProvider = provider;
     try {
       guestWebContents.session.setDisplayMediaRequestHandler(
-        (_request, cb) => {
+        (request, cb) => {
           try {
-            currentProvider.handleDisplayMediaRequest(cb);
+            const originWindow = resolveStandaloneOriginWindow(request.frame);
+            currentProvider.handleDisplayMediaRequest(
+              cb,
+              originWindow ?? undefined
+            );
           } catch (error) {
             console.error(
               'Server view screen sharing: error in handler:',
@@ -117,12 +161,14 @@ export const setupServerViewDisplayMedia = (
 };
 
 /**
- * Routes a display-media request to the server-view screen picker (root window).
+ * Routes a display-media request to the server-view screen picker (root window
+ * by default, or `originWindow` when the request originated from a popout).
  * Used by the video call window's unified handler when it shares the server's
  * session and must dispatch a main-app request back to the server-view picker.
  */
 export const handleServerViewDisplayMediaRequest = (
-  callback: DisplayMediaCallback
+  callback: DisplayMediaCallback,
+  originWindow?: BrowserWindow
 ): void => {
   const dispatch = (): void => {
     if (!provider) {
@@ -130,7 +176,7 @@ export const handleServerViewDisplayMediaRequest = (
       return;
     }
     try {
-      provider.handleDisplayMediaRequest(callback);
+      provider.handleDisplayMediaRequest(callback, originWindow);
     } catch (error) {
       console.error('Server view screen sharing: error in handler:', error);
       callback({ video: false } as any);

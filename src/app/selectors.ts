@@ -3,6 +3,7 @@ import { createStructuredSelector } from 'reselect';
 import type { RootState } from '../store/rootReducer';
 
 export const selectPersistableValues = createStructuredSelector({
+  tabs: ({ tabs }: RootState) => tabs,
   currentView: ({ currentView }: RootState) => currentView,
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }: RootState) =>
     doCheckForUpdatesOnStartup,

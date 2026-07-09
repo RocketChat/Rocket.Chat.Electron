@@ -319,7 +319,8 @@ export const getExpirationMessageTranslated = (
 export const isServerVersionSupported = async (
   server: Server,
   supportedVersionsData?: SupportedVersions,
-  serverCommitHash?: string
+  serverCommitHash?: string,
+  payloadSource?: 'server' | 'cloud' | 'builtin'
 ): Promise<{
   supported: boolean;
   message?: Message | undefined;
@@ -341,17 +342,16 @@ export const isServerVersionSupported = async (
 
   if (!supportedVersionsData) return { supported: true };
 
-  // Exception entries only apply when the payload's exceptions block is scoped
-  // to THIS server. The cloud-source and server-source payloads are inherently
-  // scoped, but the builtin (bundled) and cache payloads can be from a different
-  // tenant, so a PROVEN domain/uniqueId mismatch must disqualify the exceptions
-  // to avoid cross-tenant leakage.
+  // A valid, unexpired exception must never be rejected on a scope
+  // technicality. Server, cloud, and cache payloads are inherently
+  // self-scoped (fetched from/for THIS server), so for them a domain/uniqueId
+  // mismatch is logged for diagnostics but the exception is still honored.
+  // The bundled builtin payload is the only source that could carry another
+  // tenant's exceptions, so it alone keeps the strict scope requirement.
   // An UNKNOWN local uniqueID (e.g. settings.public restricted by enterprise
-  // API ACLs) does NOT disqualify: this gate is client-side UX enforcement,
-  // not a security boundary, and wrongly blocking a paying tenant is the worse
-  // failure mode. Domain equality (checked whenever the payload carries a
-  // domain) remains the primary scope.
-  let exceptionScopeMatches = true;
+  // API ACLs) is never treated as a mismatch: this gate is client-side UX
+  // enforcement, not a security boundary.
+  let exceptionScopeMismatch = false;
   if (exceptions) {
     let hostname: string | undefined;
     try {
@@ -361,15 +361,25 @@ export const isServerVersionSupported = async (
     }
     // DNS names are case-insensitive; URL.hostname is already lowercased.
     if (exceptions.domain && exceptions.domain.toLowerCase() !== hostname) {
-      exceptionScopeMatches = false;
+      exceptionScopeMismatch = true;
     }
     if (
       exceptions.uniqueId &&
       server.uniqueID &&
       exceptions.uniqueId !== server.uniqueID
     ) {
-      exceptionScopeMatches = false;
+      exceptionScopeMismatch = true;
     }
+  }
+  const exceptionScopeMatches =
+    !exceptionScopeMismatch || payloadSource !== 'builtin';
+  if (exceptionScopeMismatch && exceptionScopeMatches) {
+    console.warn(
+      `Supported-versions exception scope mismatch for ${server.url} ` +
+        `(payload domain: ${exceptions?.domain}, uniqueId: ${exceptions?.uniqueId}; ` +
+        `local uniqueID: ${server.uniqueID}) — honoring exception from ` +
+        `${payloadSource ?? 'unspecified'} source anyway`
+    );
   }
 
   // Match against the freshly-fetched commit hash when available, falling
@@ -556,7 +566,8 @@ const validateFallbackAndDispatch = async (
     const fallbackSupported = await isServerVersionSupported(
       server,
       fallbackVersions,
-      freshCommitHash
+      freshCommitHash,
+      fallbackSource
     );
     if (isStale()) return;
     dispatch({
@@ -652,7 +663,8 @@ export const updateSupportedVersionsData = async (
         const supported = await isServerVersionSupported(
           serverForValidation,
           serverSupportedVersions,
-          freshCommitHash
+          freshCommitHash,
+          'server'
         );
         if (isStale()) return;
         // Dispatch verdict BEFORE fetchState='success' so UnsupportedServer
@@ -718,7 +730,8 @@ export const updateSupportedVersionsData = async (
         const supported = await isServerVersionSupported(
           serverWithFreshIdentity,
           cloudSupportedVersions,
-          freshCommitHash
+          freshCommitHash,
+          'cloud'
         );
         if (isStale()) return;
         dispatch({

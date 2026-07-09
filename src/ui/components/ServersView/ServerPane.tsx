@@ -223,6 +223,7 @@ export const ServerPane = ({
         isSupported={isSupported}
         fetchState={supportedVersionsFetchState}
         instanceDomain={new URL(serverUrl).hostname}
+        serverUrl={serverUrl}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
     </Wrapper>

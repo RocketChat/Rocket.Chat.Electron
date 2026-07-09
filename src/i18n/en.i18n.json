@@ -476,7 +476,8 @@
   "unsupportedServer": {
     "title": "{{instanceDomain}} is running an unsupported version of Rocket.Chat",
     "announcement": "An admin needs to update the workspace to a supported version in order to reenable access from mobile and desktop apps.",
-    "moreInformation": "Learn more"
+    "moreInformation": "Learn more",
+    "checkAgain": "Check again"
   },
   "selfxss": {
     "title": "Stop!",

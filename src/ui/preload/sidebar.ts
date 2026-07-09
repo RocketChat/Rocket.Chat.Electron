@@ -1,10 +1,10 @@
 import { watch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 
-const selectIsSideBarVisible = ({
+const selectIsTrafficLightsCovered = ({
   servers,
-  isSideBarEnabled,
-}: RootState): boolean => servers.length > 0 && isSideBarEnabled;
+  navigationLayout,
+}: RootState): boolean => navigationLayout === 'tabs' || servers.length > 0;
 
 export const handleTrafficLightsSpacing = (): void => {
   if (process.platform !== 'darwin') {
@@ -17,10 +17,10 @@ export const handleTrafficLightsSpacing = (): void => {
   style.id = 'sidebar-padding';
   document.head.append(style);
 
-  watch(selectIsSideBarVisible, (isSideBarVisible) => {
+  watch(selectIsTrafficLightsCovered, (isTrafficLightsCovered) => {
     style.innerHTML = `
       .sidebar {
-        padding-top: ${isSideBarVisible ? 0 : '10px'} !important;
+        padding-top: ${isTrafficLightsCovered ? 0 : '10px'} !important;
         transition: padding-top 230ms ease-in-out !important;
       }
     `;

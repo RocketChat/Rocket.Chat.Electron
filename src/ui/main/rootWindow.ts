@@ -25,7 +25,13 @@ import { setupRootWindowReload } from '../../app/main/dev';
 import { getPersistedValues } from '../../app/main/persistence';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
-import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
+import {
+  ROOT_WINDOW_STATE_CHANGED,
+  WEBVIEW_FOCUS_REQUESTED,
+  WINDOW_CONTROLS_CLOSE_CLICKED,
+  WINDOW_CONTROLS_MAXIMIZE_CLICKED,
+  WINDOW_CONTROLS_MINIMIZE_CLICKED,
+} from '../actions';
 import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
@@ -73,7 +79,9 @@ export const getRootWindow = (): Promise<BrowserWindow> =>
   });
 
 const platformTitleBarStyle =
-  process.platform === 'darwin' ? 'hidden' : 'default';
+  process.platform === 'darwin' || process.platform === 'win32'
+    ? 'hidden'
+    : 'default';
 
 const isMac = process.platform === 'darwin';
 const getEnableVibrancy = (): boolean => {
@@ -316,6 +324,43 @@ export const setupRootWindow = (): void => {
         rootWindow.show();
       }, 'Webview focus request');
     }),
+    listen(WINDOW_CONTROLS_MINIMIZE_CLICKED, async () => {
+      await safeWindowOperation((browserWindow) => {
+        browserWindow.minimize();
+      }, 'Window controls minimize');
+    }),
+    listen(WINDOW_CONTROLS_MAXIMIZE_CLICKED, async () => {
+      await safeWindowOperation((browserWindow) => {
+        if (browserWindow.isFullScreen()) {
+          browserWindow.setFullScreen(false);
+          return;
+        }
+        if (browserWindow.isMaximized()) {
+          browserWindow.unmaximize();
+          return;
+        }
+        browserWindow.maximize();
+      }, 'Window controls maximize');
+    }),
+    listen(WINDOW_CONTROLS_CLOSE_CLICKED, async () => {
+      await safeWindowOperation((browserWindow) => {
+        browserWindow.close();
+      }, 'Window controls close');
+    }),
+    ...(process.platform === 'darwin'
+      ? [
+          watch(
+            ({ navigationLayout }) => navigationLayout,
+            async (navigationLayout) => {
+              await safeWindowOperation((browserWindow) => {
+                browserWindow.setWindowButtonPosition(
+                  navigationLayout === 'tabs' ? { x: 16, y: 16 } : null
+                );
+              }, 'Window button position update');
+            }
+          ),
+        ]
+      : []),
   ];
 
   const fetchAndDispatchWindowState = debounce(async (): Promise<void> => {
@@ -345,6 +390,25 @@ export const setupRootWindow = (): void => {
     rootWindow.addListener('move', fetchAndDispatchWindowState);
 
     fetchAndDispatchWindowState();
+
+    const dispatchWindowStateImmediately = async (): Promise<void> => {
+      try {
+        const state = await fetchRootWindowState();
+        dispatch({
+          type: ROOT_WINDOW_STATE_CHANGED,
+          payload: state,
+        });
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to fetch window state:', error);
+        }
+      }
+    };
+
+    rootWindow.addListener('maximize', dispatchWindowStateImmediately);
+    rootWindow.addListener('unmaximize', dispatchWindowStateImmediately);
+    rootWindow.addListener('enter-full-screen', dispatchWindowStateImmediately);
+    rootWindow.addListener('leave-full-screen', dispatchWindowStateImmediately);
 
     rootWindow.addListener('focus', async () => {
       rootWindow.flashFrame(false);
@@ -510,15 +574,19 @@ export const setupRootWindow = (): void => {
           }
         }, 'Window icon update');
       }),
-      watch(
-        ({ isMenuBarEnabled }) => isMenuBarEnabled,
-        async (isMenuBarEnabled) => {
-          await safeWindowOperation((browserWindow) => {
-            browserWindow.autoHideMenuBar = !isMenuBarEnabled;
-            browserWindow.setMenuBarVisibility(isMenuBarEnabled);
-          }, 'Menu bar visibility update');
-        }
-      )
+      ...(process.platform === 'linux'
+        ? [
+            watch(
+              ({ isMenuBarEnabled }) => isMenuBarEnabled,
+              async (isMenuBarEnabled) => {
+                await safeWindowOperation((browserWindow) => {
+                  browserWindow.autoHideMenuBar = !isMenuBarEnabled;
+                  browserWindow.setMenuBarVisibility(isMenuBarEnabled);
+                }, 'Menu bar visibility update');
+              }
+            ),
+          ]
+        : [])
     );
   }
 

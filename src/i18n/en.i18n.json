@@ -305,6 +305,13 @@
         "description": "Show workspace list with downloads and settings buttons.",
         "disabledHint": "Cannot disable workspace bar when the menu bar is disabled. App settings would become inaccessible."
       },
+      "navigation": {
+        "title": "Workspace switcher",
+        "description": "Choose how to switch between workspaces",
+        "workspaceTabs": "Workspace Tabs",
+        "workspaceBar": "Workspace Bar",
+        "disabledHint": "Enable the menu bar first to use Workspace Tabs."
+      },
       "trayIcon": {
         "title": "Tray icon",
         "titleDarwin": "Menu bar extra",
@@ -415,6 +422,7 @@
     "documentation": "Documentation",
     "downloads": "Downloads",
     "settings": "App settings",
+    "checkForUpdates": "Check for updates",
     "editMenu": "&Edit",
     "fileMenu": "&File",
     "forward": "&Forward",
@@ -441,6 +449,10 @@
     "showServerList": "Server list",
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
+    "workspaceTabs": "Workspace Tabs",
+    "workspaceBar": "Workspace Bar",
+    "nextWorkspace": "Next Workspace",
+    "previousWorkspace": "Previous Workspace",
     "openConfigFolder": "Open &Configuration Folder",
     "openLogViewer": "Open &Log Viewer",
     "videoCallDevTools": "Open Video Call &DevTools",
@@ -497,7 +509,8 @@
       "copyCurrentUrl": "Copy current URL",
       "reloadClearingCache": "Force reload",
       "serverInfo": "Server Info",
-      "supportedVersionsInfo": "Supported Versions Info"
+      "supportedVersionsInfo": "Supported Versions Info",
+      "addWorkspace": "Add workspace"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} unread message",
@@ -505,6 +518,20 @@
       "userNotLoggedIn": "Not logged in",
       "addWorkspace": "Add workspace ({{shortcut}}+N)",
       "settingsMenu": "Customize and control app"
+    }
+  },
+  "tabBar": {
+    "workspaces": "Workspaces",
+    "addWorkspace": "Add workspace",
+    "unreadMessage_one": "{{- count}} message",
+    "unreadMessage_other": "{{- count}} messages",
+    "unreadMessages": "Unread messages",
+    "meatballMenu": "Application menu",
+    "windowControls": {
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "restore": "Restore",
+      "close": "Close"
     }
   },
   "touchBar": {

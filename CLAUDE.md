@@ -53,6 +53,7 @@ This prevents MSI build failures from KMS CNG provider conflicts.
 - Renderer specs must live in a Jest-matched nested path, e.g. `src/<module>/<subdir>/*.spec.ts(x)` or `src/<module>/renderer.spec.ts(x)`. Flat `src/<module>/*.spec.ts` files are not discovered by current `testMatch`; verify new specs with `yarn test --listTests --runTestsByPath <file>`.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation
 - Tests run on Windows, macOS, AND Linux CI — always verify cross-platform
+- **Screen-capture / WebRTC / portal behavior CANNOT be validated in software-rendered VMs** — Chromium gates the PipeWire capture path on hardware GL (gate moves between Electron versions). Validate on hardware GL (GPU passthrough or physical machine) and prefer dbus-level assertions (`org.freedesktop.portal.ScreenCast` requests) over dialog visibility, which is portal/boot-state flaky. Full story: `docs/postmortem-screen-picker-startup-enumeration.md`
 
 ## QA Flow Authoring
 

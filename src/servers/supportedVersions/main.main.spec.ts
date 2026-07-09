@@ -475,7 +475,7 @@ describe('supportedVersions/main.ts', () => {
       });
     });
 
-    it('should reject the exception when the fetched uniqueID does not match the exception scope', async () => {
+    it('honors the server-source exception with a warning when the fetched uniqueID does not match the scope', async () => {
       const mockServer = createMockServer({ version: '7.13' });
       const mockServerInfo = createMockServerInfo({
         version: '7.13',
@@ -493,7 +493,15 @@ describe('supportedVersions/main.ts', () => {
         tenantSupportedVersions()
       );
 
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       await updateSupportedVersionsData(mockServer.url);
+
+      // Server-source payloads are self-scoped; a mismatch is diagnostic
+      // only and the exception is still honored.
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('exception scope mismatch')
+      );
+      consoleWarnSpy.mockRestore();
 
       const verdictDispatch = dispatchMock.mock.calls.find(
         ([action]) =>
@@ -503,7 +511,7 @@ describe('supportedVersions/main.ts', () => {
         type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
         payload: {
           url: mockServer.url,
-          isSupportedVersion: false,
+          isSupportedVersion: true,
         },
       });
     });
@@ -1965,7 +1973,7 @@ describe('supportedVersions/main.ts', () => {
       i18n: {},
     };
 
-    it('does NOT honor commit-hash exception when payload domain mismatches server', async () => {
+    it('does NOT honor commit-hash exception from the BUILTIN payload when the domain mismatches', async () => {
       const payload = {
         ...baseVersions,
         exceptions: {
@@ -1975,7 +1983,9 @@ describe('supportedVersions/main.ts', () => {
         },
       } as unknown as SupportedVersions;
 
-      // Server B has matching commit hash but different domain.
+      // Server B has matching commit hash but different domain. The builtin
+      // payload is the only source that can carry another tenant's
+      // exceptions, so it keeps the strict scope requirement.
       const serverB = {
         url: 'https://tenant-b.example.com/',
         version: '8.5',
@@ -1986,13 +1996,14 @@ describe('supportedVersions/main.ts', () => {
       const result = await isServerVersionSupported(
         serverB,
         payload,
-        'abc1234567890'
+        'abc1234567890',
+        'builtin'
       );
       // Enforcement falls through (no versions match either) -> unsupported.
       expect(result.supported).toBe(false);
     });
 
-    it('does NOT honor commit-hash exception when payload uniqueId mismatches server', async () => {
+    it('does NOT honor commit-hash exception from the BUILTIN payload when uniqueId mismatches', async () => {
       const payload = {
         ...baseVersions,
         exceptions: {
@@ -2013,9 +2024,41 @@ describe('supportedVersions/main.ts', () => {
       const result = await isServerVersionSupported(
         serverB,
         payload,
-        'abc1234567890'
+        'abc1234567890',
+        'builtin'
       );
       expect(result.supported).toBe(false);
+    });
+
+    it('honors a scope-mismatched exception from a SERVER-source payload with a diagnostic warning', async () => {
+      const payload = {
+        ...baseVersions,
+        exceptions: {
+          domain: 'tenant-a.example.com',
+          uniqueId: 'tenant-a-unique',
+          versions: [{ version: 'sha-abc1234', expiration: futureExpiry }],
+        },
+      } as unknown as SupportedVersions;
+
+      const serverB = {
+        url: 'https://tenant-b.example.com/',
+        version: '8.5',
+        title: 'Tenant B',
+        uniqueID: 'tenant-b-unique',
+      } as any;
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const result = await isServerVersionSupported(
+        serverB,
+        payload,
+        'abc1234567890',
+        'server'
+      );
+      expect(result.supported).toBe(true);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('exception scope mismatch')
+      );
+      consoleWarnSpy.mockRestore();
     });
 
     it('honors commit-hash exception when domain AND uniqueId both match', async () => {
@@ -2055,8 +2098,7 @@ describe('supportedVersions/main.ts', () => {
 
       // Same domain. Same commit hash. Local uniqueID UNKNOWN (e.g.
       // settings.public restricted by enterprise API ACLs). An unprovable
-      // identity must not disqualify a domain-matched exception — wrongly
-      // blocking a legitimate tenant is the worse failure mode.
+      // identity must not disqualify a domain-matched exception.
       const serverWithoutUniqueID = {
         url: 'https://tenant-a.example.com/',
         version: '8.5',
@@ -2072,7 +2114,7 @@ describe('supportedVersions/main.ts', () => {
       expect(result.supported).toBe(true);
     });
 
-    it('rejects scoped exception on a PROVEN uniqueID mismatch even when the domain matches', async () => {
+    it('rejects a BUILTIN-source exception on a PROVEN uniqueID mismatch even when the domain matches', async () => {
       const payload = {
         ...baseVersions,
         exceptions: {
@@ -2092,7 +2134,8 @@ describe('supportedVersions/main.ts', () => {
       const result = await isServerVersionSupported(
         serverWithOtherUniqueID,
         payload,
-        'abc1234567890'
+        'abc1234567890',
+        'builtin'
       );
       expect(result.supported).toBe(false);
     });

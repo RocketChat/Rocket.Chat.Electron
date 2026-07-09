@@ -9,8 +9,13 @@ import {
   TELEPHONY_SERVER_SELECT_OPEN,
   TELEPHONY_SERVER_SELECT_CLOSE,
 } from '../ui/actions';
+import {
+  warnAboutInvalidServerUrl,
+  askForServerAddition,
+} from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import { DEEP_LINKS_SERVER_ADDED } from './actions';
 import {
   parseTelephonyLink,
   getDeepLinkArgs,
@@ -52,6 +57,9 @@ const getRootWindowMock = getRootWindow as jest.MockedFunction<
   typeof getRootWindow
 >;
 const appMock = app as jest.Mocked<typeof app>;
+const askForServerAdditionMock = askForServerAddition as jest.MockedFunction<
+  typeof askForServerAddition
+>;
 
 describe('deepLinks/main.ts', () => {
   const mockRootWindow = {} as any;
@@ -213,9 +221,12 @@ describe('deepLinks/main.ts', () => {
     });
 
     it('should auto-select when there is 1 server', async () => {
-      selectMock.mockReturnValue([
-        { url: 'https://chat.example.com', title: 'Chat' },
-      ]);
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: true,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
 
       await performTelephonyCall(mockLink);
 
@@ -233,9 +244,12 @@ describe('deepLinks/main.ts', () => {
     });
 
     it('should open dialpad path with empty input when requested', async () => {
-      selectMock.mockReturnValue([
-        { url: 'https://chat.example.com', title: 'Chat' },
-      ]);
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: true,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
 
       await performTelephonyCall({ phoneNumber: '', rawUri: '' });
 
@@ -558,7 +572,7 @@ describe('deepLinks/main.ts', () => {
         throw new Error('open-url listener was not registered');
       }
 
-      openUrlHandler(event, 'tel:+491234567890');
+      await openUrlHandler(event, 'tel:+491234567890');
 
       expect(event.preventDefault).toHaveBeenCalled();
       expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
@@ -576,6 +590,40 @@ describe('deepLinks/main.ts', () => {
           rawUri: 'tel:+491234567890',
         }
       );
+    });
+
+    it('processes open-url immediately when ready', async () => {
+      setupDeepLinks();
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const openUrlHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'open-url'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!openUrlHandler) {
+        throw new Error('open-url listener was not registered');
+      }
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      await processDeepLinksInArgs();
+
+      await openUrlHandler(event, 'tel:+491234567890');
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+      expect(mockBrowserWindow.focus).toHaveBeenCalled();
     });
 
     it('processes second-instance argv immediately', async () => {
@@ -617,6 +665,50 @@ describe('deepLinks/main.ts', () => {
       );
     });
 
+    it('shows hidden root window when processing second-instance deep links', async () => {
+      const hiddenWindow = {
+        isVisible: jest.fn(() => false),
+        focus: jest.fn(),
+        showInactive: jest.fn(),
+      };
+
+      setupDeepLinks();
+      getRootWindowMock.mockResolvedValue(hiddenWindow as any);
+      getWebContentsByServerUrlMock.mockReturnValue(mockWebContents as any);
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const secondInstanceHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'second-instance'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!secondInstanceHandler) {
+        throw new Error('second-instance listener was not registered');
+      }
+
+      await secondInstanceHandler(event, [
+        'electron',
+        '.',
+        'tel:+491234567890',
+      ]);
+
+      expect(hiddenWindow.showInactive).toHaveBeenCalled();
+      expect(hiddenWindow.focus).toHaveBeenCalled();
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+    });
+
     it('should route rocketchat:// URL to normal deep link path, not telephony', async () => {
       setupDeepLinks();
 
@@ -645,6 +737,411 @@ describe('deepLinks/main.ts', () => {
       expect(resolveServerUrlMock).toHaveBeenCalled();
       // Telephony modal NOT opened (telephony branch skipped)
       expect(listenMock).not.toHaveBeenCalled();
+    });
+
+    it('processes rocketchat://auth link with valid host/token/userId', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(resolveServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/home?resumeToken=abc&userId=123'
+      );
+    });
+
+    it('does nothing when rocketchat://auth is missing required params', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://auth?host=https://chat.example.com&token=abc',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('processes rocketchat://room link when host and path are valid', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=https://chat.example.com&path=channel/general&token=abc&userId=123',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(resolveServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/channel/general?resumeToken=abc&userId=123'
+      );
+    });
+
+    it('skips room deep links when path is missing', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=https://chat.example.com',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('skips room deep links when path is invalid', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=https://chat.example.com&path=invalid%2Fpath',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('stops when room deep link server is declined from prompt', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      askForServerAdditionMock.mockResolvedValue(false);
+      selectMock.mockImplementation((selector: any) =>
+        selector({ servers: [] })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=https://chat.example.com&path=channel/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(askForServerAdditionMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for unsupported deep link URL', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'https://example.com/non-deep-link?path=channel/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+      expect(resolveServerUrlMock).not.toHaveBeenCalled();
+    });
+
+    it('adds the server when room deep-link server addition is approved', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      askForServerAdditionMock.mockResolvedValue(true);
+      selectMock.mockImplementation((selector: any) =>
+        selector({ servers: [] })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=https://chat.example.com&path=channel/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(askForServerAdditionMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: DEEP_LINKS_SERVER_ADDED,
+        payload: 'https://chat.example.com',
+      });
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/channel/general'
+      );
+    });
+
+    it('does not throw for unsupported open-url links', async () => {
+      setupDeepLinks();
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const openUrlHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'open-url'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!openUrlHandler) {
+        throw new Error('open-url listener was not registered');
+      }
+
+      await processDeepLinksInArgs();
+      await openUrlHandler(event, 'https://example.com/non-deep-link');
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(mockWebContents.send).not.toHaveBeenCalled();
+      expect(getWebContentsByServerUrlMock).not.toHaveBeenCalled();
+    });
+
+    it('processes open-url when root window is hidden', async () => {
+      const hiddenWindow = {
+        isVisible: jest.fn(() => false),
+        focus: jest.fn(),
+        showInactive: jest.fn(),
+      };
+
+      setupDeepLinks();
+      getRootWindowMock.mockResolvedValue(hiddenWindow as any);
+
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          isTelephonyEnabled: true,
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+
+      const listenerCalls = appMock.addListener.mock.calls as Array<
+        [string, (...args: any[]) => Promise<void> | void]
+      >;
+      const openUrlHandler = listenerCalls.find(
+        ([eventName]) => eventName === 'open-url'
+      )?.[1];
+      const event = { preventDefault: jest.fn() };
+
+      if (!openUrlHandler) {
+        throw new Error('open-url listener was not registered');
+      }
+
+      await processDeepLinksInArgs();
+      await openUrlHandler(event, 'tel:+491234567890');
+
+      expect(hiddenWindow.showInactive).toHaveBeenCalled();
+      expect(hiddenWindow.focus).toHaveBeenCalled();
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'telephony/call-requested',
+        {
+          phoneNumber: '+491234567890',
+          rawUri: 'tel:+491234567890',
+        }
+      );
+    });
+
+    it('processes rocketchat://invite link when path is valid', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://invite?host=https://chat.example.com&path=invite/example',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(resolveServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/invite/example'
+      );
+    });
+
+    it('skips invite deep links when path is invalid', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://invite?host=https://chat.example.com&path=channels/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('processes rocketchat://conference link when path is valid', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://conference?host=https://chat.example.com&path=conference/room-1',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(resolveServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/conference/room-1'
+      );
+    });
+
+    it('skips conference deep links when path is invalid', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://conference?host=https://chat.example.com&path=not-conference/room',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('warns when deep link server URL cannot be resolved', async () => {
+      setupDeepLinks();
+
+      const warnAboutInvalidServerUrlMock =
+        warnAboutInvalidServerUrl as jest.MockedFunction<
+          typeof warnAboutInvalidServerUrl
+        >;
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.INVALID_URL,
+        new Error('invalid server'),
+      ] as any);
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=bad-server&path=channel/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(warnAboutInvalidServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com',
+        'invalid server'
+      );
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
     });
   });
 

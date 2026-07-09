@@ -1,7 +1,7 @@
 import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell, webContents } from 'electron';
-import electronDl from 'electron-dl';
 
+import { handle as mockHandle } from '../ipc/main';
 import { createMainReduxStore, dispatch, select } from '../store';
 import {
   DOWNLOAD_CREATED,
@@ -12,6 +12,12 @@ import {
 import type { Download } from './common';
 import { DownloadStatus } from './common';
 import { handleWillDownloadEvent, setupDownloads } from './main';
+
+jest.mock('../store', () => ({
+  createMainReduxStore: jest.fn(),
+  dispatch: jest.fn(),
+  select: jest.fn(),
+}));
 
 // Mock electron modules
 jest.mock('electron', () => ({
@@ -26,12 +32,9 @@ jest.mock('electron', () => ({
   },
 }));
 
-jest.mock('electron-dl', () => jest.fn());
-
 // Mock IPC handler
-const mockHandle = jest.fn();
 jest.mock('../ipc/main', () => ({
-  handle: mockHandle,
+  handle: jest.fn(),
 }));
 
 // Mock notifications
@@ -55,10 +58,16 @@ jest.mock('./main', () => {
 });
 
 describe('downloads integration tests', () => {
+  const mockHandleFn = mockHandle as jest.Mock;
+  const selectMock = select as jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
     createMainReduxStore();
   });
+
+  const getHandler = (channelName: string) =>
+    mockHandleFn.mock.calls.find((call) => call[0] === channelName)?.[1];
 
   const createMockDownloadItem = (
     overrides: Partial<DownloadItem> = {}
@@ -67,6 +76,10 @@ describe('downloads integration tests', () => {
       getFilename: jest.fn(() => 'test-file.pdf'),
       getState: jest.fn(() => 'progressing'),
       isPaused: jest.fn(() => false),
+      pause: jest.fn(),
+      resume: jest.fn(),
+      cancel: jest.fn(),
+      canResume: jest.fn(() => true),
       getReceivedBytes: jest.fn(() => 1024),
       getTotalBytes: jest.fn(() => 2048),
       getStartTime: jest.fn(() => 1640995200),
@@ -90,25 +103,10 @@ describe('downloads integration tests', () => {
     }) as unknown as Event;
 
   describe('end-to-end download flow', () => {
-    it('should handle complete download lifecycle with electron-dl integration', async () => {
-      // Setup electron-dl mock
-      const electronDlMock = electronDl as jest.MockedFunction<
-        typeof electronDl
-      >;
-      let onStartedCallback: (item: DownloadItem) => void;
-      let onCompletedCallback: (file: { filename: string }) => void;
+    it('should handle complete download lifecycle', async () => {
+      const mockEvent = createMockEvent();
 
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-          onCompletedCallback = config.onCompleted! as any;
-        }
-      });
-
-      // Setup downloads system
-      setupDownloads();
-
-      // Mock webContents for electron-dl onStarted callback
+      // Setup webContents for tracking
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
       const mockWC = createMockWebContents();
       webContentsMock.getAllWebContents.mockReturnValue([mockWC] as any);
@@ -144,12 +142,9 @@ describe('downloads integration tests', () => {
         return undefined;
       });
 
-      (select as jest.MockedFunction<typeof select>).mockImplementation(
-        mockSelectImplementation
-      );
+      selectMock.mockImplementation(mockSelectImplementation);
 
-      // Simulate electron-dl onStarted callback
-      onStartedCallback!(mockItem);
+      await handleWillDownloadEvent(mockEvent, mockItem, mockWC);
 
       // Verify download was created
       expect(dispatch).toHaveBeenCalledWith({
@@ -185,10 +180,7 @@ describe('downloads integration tests', () => {
         }),
       });
 
-      // Simulate electron-dl onCompleted callback
-      onCompletedCallback!({ filename: 'test-file.pdf' });
-
-      // Should have triggered notification (tested separately)
+      doneListener!(createMockEvent(), 'completed');
     });
 
     it('should handle download operations via IPC', async () => {
@@ -211,18 +203,12 @@ describe('downloads integration tests', () => {
         savePath: '/downloads/test-file.pdf',
       };
 
-      (select as jest.MockedFunction<typeof select>).mockReturnValue(
-        mockDownload
-      );
+      selectMock.mockReturnValue(mockDownload);
 
       // Get IPC handlers
-      const showInFolderHandler = mockHandle.mock.calls.find(
-        ([channel]) => channel === 'downloads/show-in-folder'
-      )?.[1];
+      const showInFolderHandler = getHandler('downloads/show-in-folder');
 
-      const copyLinkHandler = mockHandle.mock.calls.find(
-        ([channel]) => channel === 'downloads/copy-link'
-      )?.[1];
+      const copyLinkHandler = getHandler('downloads/copy-link');
 
       // Test show in folder
       await showInFolderHandler?.(null, mockDownload.itemId);
@@ -241,13 +227,9 @@ describe('downloads integration tests', () => {
       setupDownloads();
 
       // Get IPC handlers
-      const clearAllHandler = mockHandle.mock.calls.find(
-        ([channel]) => channel === 'downloads/clear-all'
-      )?.[1];
+      const clearAllHandler = getHandler('downloads/clear-all');
 
-      const removeHandler = mockHandle.mock.calls.find(
-        ([channel]) => channel === 'downloads/remove'
-      )?.[1];
+      const removeHandler = getHandler('downloads/remove');
 
       // Test clear all
       await clearAllHandler?.();
@@ -271,7 +253,7 @@ describe('downloads integration tests', () => {
       const mockEvent = createMockEvent();
 
       // Mock store to return no servers
-      (select as jest.MockedFunction<typeof select>).mockReturnValue(undefined);
+      selectMock.mockReturnValue(undefined);
 
       await handleWillDownloadEvent(mockEvent, mockItem, mockWebContents);
 
@@ -288,16 +270,12 @@ describe('downloads integration tests', () => {
       setupDownloads();
 
       // Mock store to return undefined download
-      (select as jest.MockedFunction<typeof select>).mockReturnValue(undefined);
+      selectMock.mockReturnValue(undefined);
 
       // Get IPC handlers
-      const showInFolderHandler = mockHandle.mock.calls.find(
-        ([channel]) => channel === 'downloads/show-in-folder'
-      )?.[1];
+      const showInFolderHandler = getHandler('downloads/show-in-folder');
 
-      const copyLinkHandler = mockHandle.mock.calls.find(
-        ([channel]) => channel === 'downloads/copy-link'
-      )?.[1];
+      const copyLinkHandler = getHandler('downloads/copy-link');
 
       // Test operations on non-existent download
       await showInFolderHandler?.(null, 'non-existent-id');
@@ -307,73 +285,50 @@ describe('downloads integration tests', () => {
       expect(clipboard.writeText).not.toHaveBeenCalled();
     });
 
-    it('should handle electron-dl onStarted when no webContents are available', () => {
-      const electronDlMock = electronDl as jest.MockedFunction<
-        typeof electronDl
-      >;
-      let onStartedCallback: (item: DownloadItem) => void;
-
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-        }
-      });
+    it('should pause, resume, and cancel active downloads through handlers', async () => {
+      const fixedNow = Date.now;
+      const downloadId = 1783398156938;
+      const mockEvent = createMockEvent();
+      Date.now = jest.fn(() => downloadId);
 
       setupDownloads();
 
-      const webContentsMock = webContents as jest.Mocked<typeof webContents>;
-      webContentsMock.getAllWebContents.mockReturnValue([]);
+      const pauseHandler = getHandler('downloads/pause');
+      const resumeHandler = getHandler('downloads/resume');
+      const cancelHandler = getHandler('downloads/cancel');
 
-      const mockItem = createMockDownloadItem();
+      const mockItem = createMockDownloadItem({
+        canResume: jest.fn(() => true),
+      });
+      const mockWC = createMockWebContents(123);
 
-      // Should not throw when no webContents are available
-      expect(() => onStartedCallback!(mockItem)).not.toThrow();
-    });
-
-    it('should handle electron-dl onStarted when webContents are destroyed', () => {
-      const electronDlMock = electronDl as jest.MockedFunction<
-        typeof electronDl
-      >;
-      let onStartedCallback: (item: DownloadItem) => void;
-
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-        }
+      mockItem.on.mockImplementation(() => mockItem);
+      selectMock.mockReturnValue({
+        url: 'https://server1.com',
+        title: 'Server 1',
       });
 
-      setupDownloads();
+      await handleWillDownloadEvent(mockEvent, mockItem, mockWC);
+      mockItem.isPaused.mockReturnValue(false);
+      await pauseHandler?.(null, downloadId);
+      expect(mockItem.pause).toHaveBeenCalledTimes(1);
 
-      const webContentsMock = webContents as jest.Mocked<typeof webContents>;
-      const destroyedWC = {
-        id: 123,
-        isDestroyed: () => true,
-      };
-      webContentsMock.getAllWebContents.mockReturnValue([destroyedWC] as any);
+      mockItem.isPaused.mockReturnValue(true);
+      await resumeHandler?.(null, downloadId);
+      expect(mockItem.resume).toHaveBeenCalledTimes(1);
 
-      const mockItem = createMockDownloadItem();
+      await cancelHandler?.(null, downloadId);
+      expect(mockItem.cancel).toHaveBeenCalledTimes(1);
 
-      // Should not throw when all webContents are destroyed
-      expect(() => onStartedCallback!(mockItem)).not.toThrow();
+      Date.now = fixedNow;
     });
   });
 
   describe('concurrent downloads', () => {
     it('should handle multiple simultaneous downloads', async () => {
-      const electronDlMock = electronDl as jest.MockedFunction<
-        typeof electronDl
-      >;
-      let onStartedCallback: (item: DownloadItem) => void;
+      const mockEvent = createMockEvent();
 
-      electronDlMock.mockImplementation((config) => {
-        if (config) {
-          onStartedCallback = config.onStarted!;
-        }
-      });
-
-      setupDownloads();
-
-      // Mock multiple webContents
+      // Mock webContents for tracking
       const webContentsMock = webContents as jest.Mocked<typeof webContents>;
       const mockWC1 = createMockWebContents(123);
       const mockWC2 = createMockWebContents(456);
@@ -416,8 +371,8 @@ describe('downloads integration tests', () => {
       });
 
       // Simulate simultaneous downloads
-      onStartedCallback!(mockItem1);
-      onStartedCallback!(mockItem2);
+      await handleWillDownloadEvent(mockEvent, mockItem1, mockWC1);
+      await handleWillDownloadEvent(mockEvent, mockItem2, mockWC2);
 
       // Both downloads should be created
       expect(dispatch).toHaveBeenCalledWith({
@@ -450,7 +405,7 @@ describe('downloads integration tests', () => {
         return mockItem;
       }) as any);
 
-      (select as jest.MockedFunction<typeof select>).mockReturnValue({
+      selectMock.mockReturnValue({
         url: 'https://test.com',
         title: 'Test Server',
       });
@@ -460,6 +415,7 @@ describe('downloads integration tests', () => {
       // Verify download was added to items map (internal state)
       // This is tested indirectly through the behavior
 
+      mockItem.getState.mockReturnValue('completed');
       // Simulate completion to trigger cleanup
       doneListener!(mockEvent, 'completed');
 

@@ -3,6 +3,20 @@ import { APP_SETTINGS_LOADED } from '../actions';
 import { mergePersistableValues } from './data';
 import { getPersistedValues } from './persistence';
 
+jest.mock('electron', () => ({
+  app: {
+    getPath: jest.fn().mockReturnValue('/user/data'),
+    getVersion: jest.fn().mockReturnValue('1.0.0'),
+  },
+}));
+
+jest.mock('electron-store', () => {
+  return jest.fn(() => ({
+    store: {},
+    set: jest.fn(),
+  }));
+});
+
 jest.mock('../../store');
 
 jest.mock('./persistence', () => ({

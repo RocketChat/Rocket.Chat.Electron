@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { createAnchor } from './createAnchor';
 import { deleteAnchor, registerAnchor } from './deleteAnchor';
 

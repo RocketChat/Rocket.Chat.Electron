@@ -246,7 +246,7 @@ export const AboutDialog = () => {
               {!checkingForUpdates && (
                 <Button
                   ref={
-                    checkForUpdatesButtonRef as React.RefObject<HTMLButtonElement>
+                    checkForUpdatesButtonRef as React.RefObject<HTMLButtonElement | null>
                   }
                   primary
                   type='button'

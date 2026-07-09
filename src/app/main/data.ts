@@ -164,10 +164,14 @@ export const mergePersistableValues = async (
     },
   };
 
-  if (!values.isMenuBarEnabled && !values.isSideBarEnabled) {
+  if (
+    values.navigationLayout !== 'sidebar' &&
+    !values.isMenuBarEnabled &&
+    process.platform === 'linux'
+  ) {
     values = {
       ...values,
-      isSideBarEnabled: true,
+      isMenuBarEnabled: true,
     };
   }
 

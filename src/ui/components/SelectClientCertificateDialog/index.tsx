@@ -24,7 +24,7 @@ export const SelectClientCertificateDialog = () => {
   const isVisible = openDialog === 'select-client-certificate';
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
-  const requestIdRef = useRef<unknown>();
+  const requestIdRef = useRef<unknown>(undefined);
 
   useEffect(
     () =>

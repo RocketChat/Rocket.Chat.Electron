@@ -43,9 +43,9 @@ const buildState = (overrides: Record<string, unknown> = {}) =>
       { url: 'https://b.rocket.chat/', title: 'Server B' },
     ],
     currentView: { url: 'https://a.rocket.chat/' },
-    isSideBarEnabled: true,
     isAddNewServersEnabled: true,
     isTransparentWindowEnabled: false,
+    navigationLayout: 'sidebar',
     ...overrides,
   }) as any;
 
@@ -113,9 +113,9 @@ describe('SideBar', () => {
     expect(wrapper).toHaveStyle({ display: 'flex' });
   });
 
-  it('collapses the server column when the sidebar is disabled', () => {
+  it('collapses the server column when navigationLayout is tabs', () => {
     renderWithStore(<SideBar />, {
-      preloadedState: buildState({ isSideBarEnabled: false }),
+      preloadedState: buildState({ navigationLayout: 'tabs' }),
     });
 
     const wrapper = document.querySelector('.rcx-sidebar--main')

@@ -39,3 +39,33 @@
 - Affected files: src/ui/components/utils/TooltipProvider.spec.tsx,
   src/ui/components/utils/ReparentingContainer.spec.tsx, src/ui/components/utils/createAnchor.ts,
   src/ui/components/utils/TooltipPortal.tsx, src/.jest/setup.ts.
+
+## No certificate pinning for the auto-updater (CORE-1128) — accepted risk, not a gap
+- Status: Resolved as risk acceptance (2022 pentest finding CORE-1128; no code change).
+- Symptom: N/A — this documents a deliberate decision, not an observed bug.
+- Context: CORE-1128 flagged "Missing Certificate Pinning for Connections and autoUpdater
+  Mechanism." The update feed is GitHub Releases (`electron-builder.json`: provider `github`,
+  owner `RocketChat`, repo `Rocket.Chat.Electron`); update artifacts are served from
+  `objects.githubusercontent.com`, a domain whose TLS certificate GitHub controls and rotates
+  on its own schedule, with no advance notice to Rocket.Chat.
+- Root cause / rationale: electron-updater has no built-in certificate-pinning configuration.
+  The only available hook (`session.setCertificateVerifyProc()` via `getNetSession()`) is not
+  exposed on the public `autoUpdater` singleton, so pinning would require reaching into
+  electron-updater internals and would be fragile across version upgrades. More importantly,
+  electron-updater already verifies the integrity and authenticity of downloaded update
+  artifacts via code-signature verification (Windows: `verifyUpdateCodeSignature`; macOS/AppImage:
+  built-in signature validation), so a network-level MITM attacker cannot get a forged or
+  malicious build installed even without TLS pinning — they would need a validly-signed
+  Rocket.Chat build, a materially higher bar than compromising a CA. GitHub has previously
+  rotated certificates on `objects.githubusercontent.com` in ways that broke clients with
+  pinned certs/CAs (GitHub community discussion #50963 on release downloads failing after a
+  cert rotation; also discussed on Hacker News regarding GitHub User Content certificate expiry
+  incidents). Pinning any cert or CA on this GitHub-hosted domain risks a future GitHub-side
+  rotation silently breaking auto-update for every user, with no fix available on Rocket.Chat's
+  side — a full, RC-unfixable auto-update outage until a new client version ships through some
+  other channel.
+- Decision: Do not implement certificate pinning for the auto-updater. The residual risk pinning
+  would mitigate (CA compromise / MITM on the update channel) is already substantially covered by
+  HTTPS + system trust store + code-signature verification of the downloaded artifact. The blast
+  radius of a stale or broken pin exceeds the risk it would remove.
+- Affected files: electron-builder.json (update feed config); no source changes made.

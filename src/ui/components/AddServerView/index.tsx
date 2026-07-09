@@ -12,7 +12,7 @@ import {
   Tile,
 } from '@rocket.chat/fuselage';
 import { useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import type { FormEvent, ChangeEvent } from 'react';
+import type { SubmitEvent, ChangeEvent } from 'react';
 import { useCallback, useEffect, useState, useMemo, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -113,7 +113,7 @@ export const AddServerView = () => {
   );
 
   const handleFormSubmit = async (
-    event: FormEvent<HTMLFormElement>
+    event: SubmitEvent<HTMLElement>
   ): Promise<void> => {
     event.preventDefault();
 

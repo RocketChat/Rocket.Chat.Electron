@@ -7,7 +7,6 @@ import { SERVERS_LOADED } from '../../servers/actions';
 import type { ActionOf } from '../../store/actions';
 import type { SIDE_BAR_SERVER_REMOVE } from '../actions';
 import {
-  DOWNLOADS_BACK_BUTTON_CLICKED,
   ADD_SERVER_VIEW_SERVER_ADDED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
@@ -35,7 +34,6 @@ type CurrentViewAction =
   | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
   | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
   | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
-  | ActionOf<typeof DOWNLOADS_BACK_BUTTON_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
 type CurrentViewState =
@@ -92,9 +90,6 @@ export const currentView = (
 
     case SIDE_BAR_SETTINGS_BUTTON_CLICKED:
       return 'settings';
-
-    case DOWNLOADS_BACK_BUTTON_CLICKED:
-      return { url: action.payload };
 
     default:
       return state;

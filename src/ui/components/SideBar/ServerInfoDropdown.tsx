@@ -5,8 +5,8 @@ import type { SupportedVersions } from '../../../servers/supportedVersions/types
 import ServerInfoContent from '../ServerInfoContent';
 
 type ServerInfoDropdownProps = {
-  reference: RefObject<HTMLElement>;
-  target: RefObject<HTMLElement>;
+  reference: RefObject<HTMLElement | null>;
+  target: RefObject<HTMLElement | null>;
   url: string;
   version?: string;
   exchangeUrl?: string;

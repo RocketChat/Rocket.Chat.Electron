@@ -18,16 +18,16 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../../actions';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useServers } from '../hooks/useServers';
+import { useSorting } from '../hooks/useSorting';
 import ServerButton from './ServerButton';
-import { useKeyboardShortcuts } from './useKeyboardShortcuts';
-import { useSorting } from './useSorting';
 
 export const SideBar = () => {
   const servers = useServers();
 
-  const isSideBarEnabled = useSelector(
-    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
+  const navigationLayout = useSelector(
+    ({ navigationLayout }: RootState) => navigationLayout
   );
 
   const isAddNewServersEnabled = useSelector(
@@ -38,7 +38,7 @@ export const SideBar = () => {
     ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
   );
 
-  const isVisible = servers.length > 0 && isSideBarEnabled;
+  const isVisible = servers.length > 0 && navigationLayout === 'sidebar';
 
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
@@ -103,7 +103,7 @@ export const SideBar = () => {
                     : server.title ?? server.url
                 }
                 shortcutNumber={
-                  typeof order === 'number' && order <= 9
+                  typeof order === 'number' && order < 9
                     ? String(order + 1)
                     : null
                 }

@@ -17,8 +17,8 @@ export const MenuBar = (props: MenuBarProps) => {
   const isMenuBarEnabled = useSelector(
     ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled
   );
-  const isSideBarEnabled = useSelector(
-    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
+  const navigationLayout = useSelector(
+    ({ navigationLayout }: RootState) => navigationLayout
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
@@ -34,14 +34,14 @@ export const MenuBar = (props: MenuBarProps) => {
   );
 
   const isMenuBarEnabledId = useId();
-  const canToggle = !isMenuBarEnabled || isSideBarEnabled;
+  const canToggle = !isMenuBarEnabled || navigationLayout === 'sidebar';
 
   return (
     <ToggleField
       id={isMenuBarEnabledId}
       label={t('settings.options.menubar.title')}
       description={
-        !isSideBarEnabled && isMenuBarEnabled
+        navigationLayout !== 'sidebar' && isMenuBarEnabled
           ? t('settings.options.menubar.disabledHint')
           : t('settings.options.menubar.description')
       }

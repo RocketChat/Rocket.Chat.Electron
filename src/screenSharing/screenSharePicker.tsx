@@ -100,10 +100,6 @@ export function ScreenSharePicker({
   }, [visible, permissionChannel]);
 
   useEffect(() => {
-    fetchSources();
-  }, [fetchSources]);
-
-  useEffect(() => {
     if (onMounted) {
       onMounted(setVisible);
     }

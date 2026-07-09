@@ -124,7 +124,7 @@ const WorkspaceTab = ({
       onKeyDown={handleKeyDown}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      onDragOver={(event) => event.preventDefault()}
+      onDragOver={(event: DragEvent) => event.preventDefault()}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragEnter={onDragEnter}

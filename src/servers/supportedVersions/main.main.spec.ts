@@ -1016,6 +1016,48 @@ describe('supportedVersions/main.ts', () => {
       expect(result.supported).toBe(true);
     });
 
+    it('does not block when enforcementStartDate is missing (uncertain data must not block)', async () => {
+      const supportedVersions = {
+        versions: [{ version: '9.9.0', expiration: new Date() }],
+        // no enforcementStartDate
+      };
+
+      const result = await isServerVersionSupported(
+        mockServer as any,
+        supportedVersions as any
+      );
+
+      expect(result.supported).toBe(true);
+    });
+
+    it('does not block when enforcementStartDate is malformed', async () => {
+      const supportedVersions = {
+        versions: [{ version: '9.9.0', expiration: new Date() }],
+        enforcementStartDate: 'not-a-date',
+      };
+
+      const result = await isServerVersionSupported(
+        mockServer as any,
+        supportedVersions as any
+      );
+
+      expect(result.supported).toBe(true);
+    });
+
+    it('blocks when a valid past enforcementStartDate is present and nothing matches', async () => {
+      const supportedVersions = {
+        versions: [{ version: '9.9.0', expiration: new Date() }],
+        enforcementStartDate: new Date(Date.now() - 86400000).toISOString(),
+      };
+
+      const result = await isServerVersionSupported(
+        mockServer as any,
+        supportedVersions as any
+      );
+
+      expect(result.supported).toBe(false);
+    });
+
     it('should honor exceptions when exceptions.domain differs only by letter case', async () => {
       const futureDate = new Date(Date.now() + 86400000);
       const supportedVersions: SupportedVersions = {

@@ -16,6 +16,7 @@ import {
 } from '../../ui/actions';
 import {
   checkSupportedVersionServers,
+  getExpirationMessageTranslated,
   isServerVersionSupported,
   updateSupportedVersionsData,
 } from './main';
@@ -29,6 +30,9 @@ jest.mock('node:fs/promises');
 jest.mock('electron', () => ({
   ipcMain: {
     handle: jest.fn(),
+  },
+  powerMonitor: {
+    on: jest.fn(),
   },
 }));
 
@@ -2039,7 +2043,7 @@ describe('supportedVersions/main.ts', () => {
       expect(result.supported).toBe(true);
     });
 
-    it('does NOT honor scoped exception when local server.uniqueID is undefined', async () => {
+    it('honors scoped exception when local server.uniqueID is UNKNOWN and the domain matches', async () => {
       const payload = {
         ...baseVersions,
         exceptions: {
@@ -2049,8 +2053,10 @@ describe('supportedVersions/main.ts', () => {
         },
       } as unknown as SupportedVersions;
 
-      // Same domain. Same commit hash. But local uniqueID UNKNOWN.
-      // Must reject — missing local identity cannot satisfy required scope.
+      // Same domain. Same commit hash. Local uniqueID UNKNOWN (e.g.
+      // settings.public restricted by enterprise API ACLs). An unprovable
+      // identity must not disqualify a domain-matched exception — wrongly
+      // blocking a legitimate tenant is the worse failure mode.
       const serverWithoutUniqueID = {
         url: 'https://tenant-a.example.com/',
         version: '8.5',
@@ -2060,6 +2066,31 @@ describe('supportedVersions/main.ts', () => {
 
       const result = await isServerVersionSupported(
         serverWithoutUniqueID,
+        payload,
+        'abc1234567890'
+      );
+      expect(result.supported).toBe(true);
+    });
+
+    it('rejects scoped exception on a PROVEN uniqueID mismatch even when the domain matches', async () => {
+      const payload = {
+        ...baseVersions,
+        exceptions: {
+          domain: 'tenant-a.example.com',
+          uniqueId: 'tenant-a-unique',
+          versions: [{ version: 'sha-abc1234', expiration: futureExpiry }],
+        },
+      } as unknown as SupportedVersions;
+
+      const serverWithOtherUniqueID = {
+        url: 'https://tenant-a.example.com/',
+        version: '8.5',
+        title: 'Tenant A',
+        uniqueID: 'tenant-b-unique',
+      } as any;
+
+      const result = await isServerVersionSupported(
+        serverWithOtherUniqueID,
         payload,
         'abc1234567890'
       );
@@ -2370,6 +2401,114 @@ describe('supportedVersions/main.ts', () => {
         semverExceptionVersions
       );
       expect(result.supported).toBe(true);
+    });
+  });
+
+  // ========== FIX-1: fallback path validation must not throw unguarded ==========
+  describe('fallback path validation failure (fail-open guard)', () => {
+    it('dispatches ERROR (not a rejection) and no IS_SUPPORTED_VERSION when the fallback payload is malformed', async () => {
+      const mockServer = createMockServer({ version: '7.5.0' });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      // Cache returns a corrupt payload: `versions` is not an array, so
+      // isServerVersionSupported's `versions.find` throws synchronously.
+      const ElectronStoreMock = jest.requireMock('electron-store');
+      const storeGetMock = jest.spyOn(
+        ElectronStoreMock.prototype,
+        'get'
+      ) as jest.Mock;
+      storeGetMock.mockReturnValue({
+        versions: { notAnArray: true },
+        enforcementStartDate: '2023-01-01T00:00:00Z',
+        timestamp: new Date().toISOString(),
+      });
+
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      jest.useFakeTimers();
+      const promise = updateSupportedVersionsData(mockServer.url);
+      await jest.advanceTimersByTimeAsync(4000);
+      // Must resolve, not reject.
+      await expect(promise).resolves.toBeUndefined();
+      jest.useRealTimers();
+
+      const errorDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
+      );
+      expect(errorDispatch).toBeDefined();
+
+      const isSupportedDispatches = dispatchMock.mock.calls.filter(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+      );
+      expect(isSupportedDispatches.length).toBe(0);
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error validating fallback'),
+        expect.anything()
+      );
+
+      consoleErrorSpy.mockRestore();
+      storeGetMock.mockRestore();
+    });
+  });
+
+  // ========== FIX-3: cloud lookup must not skip on persisted uniqueID ==========
+  describe('cloud fetch gate uses persisted uniqueID as fallback', () => {
+    it('fetches cloud endpoint when fresh uniqueID fetch fails but server has a persisted uniqueID', async () => {
+      const mockServer = createMockServer({
+        version: '7.5.0',
+        uniqueID: 'persisted-unique-id',
+      });
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo }) // /api/info
+        .mockRejectedValueOnce(new Error('uniqueID fetch failed')) // getUniqueId
+        .mockResolvedValueOnce({ data: createMockCloudInfo() }); // cloud lookup
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      const cloudCall = axiosMock.get.mock.calls.find(([url]) =>
+        (url as string).includes('releases.rocket.chat')
+      );
+      expect(cloudCall).toBeDefined();
+    });
+  });
+
+  // ========== FIX-5: getExpirationMessageTranslated must not throw ==========
+  describe('getExpirationMessageTranslated i18n guard', () => {
+    it('returns null instead of throwing when i18n has neither the requested language nor "en"', () => {
+      const result = getExpirationMessageTranslated(
+        {},
+        { title: 'title', subtitle: 'sub', description: 'desc' } as any,
+        new Date(Date.now() + 86400000),
+        'en',
+        'My Server',
+        'https://rocket.chat',
+        '7.0.0'
+      );
+
+      expect(result).toBeNull();
+    });
+  });
+
+  // ========== FIX-7: revalidate all servers on wake-from-sleep ==========
+  describe('power resume revalidation', () => {
+    it('registers a powerMonitor resume handler when checkSupportedVersionServers runs', async () => {
+      const electronMock = jest.requireMock('electron');
+
+      checkSupportedVersionServers();
+
+      expect(electronMock.powerMonitor.on).toHaveBeenCalledWith(
+        'resume',
+        expect.any(Function)
+      );
     });
   });
 });

@@ -371,6 +371,173 @@ describe('supportedVersions/main.ts', () => {
     });
   });
 
+  // ========== EXCEPTION UNIQUE ID SCOPE (SERVER-SIGNED PATH) ==========
+  describe('Exception uniqueId scope resolution on server-signed path', () => {
+    const tenantSupportedVersions = (overrides?: Partial<SupportedVersions>) =>
+      createMockSupportedVersions({
+        versions: [
+          {
+            version: '8.6.0',
+            expiration: new Date(Date.now() + 86400000),
+          },
+        ],
+        exceptions: {
+          domain: 'test.rocket.chat',
+          uniqueId: 'tenant-unique-id',
+          versions: [
+            {
+              version: '7.13.9',
+              expiration: new Date(Date.now() + 86400000),
+            },
+          ],
+        },
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+        ...overrides,
+      });
+
+    it('should fetch uniqueID before validating when /api/info omits uniqueId and exception is uniqueId-scoped', async () => {
+      const mockServer = createMockServer({ version: '7.13' });
+      const mockServerInfo = createMockServerInfo({
+        version: '7.13',
+        uniqueId: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'tenant-unique-id' }] },
+        });
+
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        tenantSupportedVersions()
+      );
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      const uniqueIdDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_UNIQUE_ID_UPDATED &&
+          (action as any).payload?.uniqueID === 'tenant-unique-id'
+      );
+      expect(uniqueIdDispatch).toBeDefined();
+
+      const verdictDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+      );
+      expect(verdictDispatch?.[0]).toEqual({
+        type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+        payload: {
+          url: mockServer.url,
+          isSupportedVersion: true,
+        },
+      });
+    });
+
+    it('should re-fetch uniqueID when persisted value is stale and honor the exception', async () => {
+      const mockServer = createMockServer({
+        version: '7.13',
+        uniqueID: 'stale-unique-id',
+      });
+      const mockServerInfo = createMockServerInfo({
+        version: '7.13',
+        uniqueId: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'tenant-unique-id' }] },
+        });
+
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        tenantSupportedVersions()
+      );
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      const verdictDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+      );
+      expect(verdictDispatch?.[0]).toEqual({
+        type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+        payload: {
+          url: mockServer.url,
+          isSupportedVersion: true,
+        },
+      });
+    });
+
+    it('should reject the exception when the fetched uniqueID does not match the exception scope', async () => {
+      const mockServer = createMockServer({ version: '7.13' });
+      const mockServerInfo = createMockServerInfo({
+        version: '7.13',
+        uniqueId: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'other-tenant-id' }] },
+        });
+
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        tenantSupportedVersions()
+      );
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      const verdictDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+      );
+      expect(verdictDispatch?.[0]).toEqual({
+        type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+        payload: {
+          url: mockServer.url,
+          isSupportedVersion: false,
+        },
+      });
+    });
+
+    it('should not fetch uniqueID when the persisted value already matches the exception scope', async () => {
+      const mockServer = createMockServer({
+        version: '7.13',
+        uniqueID: 'tenant-unique-id',
+      });
+      const mockServerInfo = createMockServerInfo({
+        version: '7.13',
+        uniqueId: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest.fn().mockResolvedValueOnce({ data: mockServerInfo });
+
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        tenantSupportedVersions()
+      );
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+
+      const verdictDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+      );
+      expect(verdictDispatch?.[0]).toEqual({
+        type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+        payload: {
+          url: mockServer.url,
+          isSupportedVersion: true,
+        },
+      });
+    });
+  });
+
   // ========== CLOUD FETCH PATH TESTS ==========
   describe('Cloud Fetch Path', () => {
     it('should fetch cloud info with retries when server fails', async () => {
@@ -832,6 +999,42 @@ describe('supportedVersions/main.ts', () => {
       const result = await isServerVersionSupported(
         mockServer as any,
         supportedVersions as any
+      );
+
+      expect(result.supported).toBe(true);
+    });
+
+    it('should honor exceptions when exceptions.domain differs only by letter case', async () => {
+      const futureDate = new Date(Date.now() + 86400000);
+      const supportedVersions: SupportedVersions = {
+        enforcementStartDate: new Date(Date.now() - 86400000).toISOString(),
+        timestamp: new Date().toISOString(),
+        versions: [
+          {
+            version: '8.4.0',
+            expiration: futureDate,
+          },
+        ],
+        exceptions: {
+          domain: 'Open.Rocket.Chat',
+          uniqueId: 'test-unique-id',
+          versions: [
+            {
+              version: '8.5.1',
+              expiration: futureDate,
+            },
+          ],
+        },
+      };
+
+      const result = await isServerVersionSupported(
+        {
+          url: 'https://open.rocket.chat/',
+          version: '8.5',
+          title: 'Rocket.Chat Open',
+          uniqueID: 'test-unique-id',
+        } as any,
+        supportedVersions
       );
 
       expect(result.supported).toBe(true);

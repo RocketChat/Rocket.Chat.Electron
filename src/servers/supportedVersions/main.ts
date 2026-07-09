@@ -451,9 +451,17 @@ export const isServerVersionSupported = async (
     }
   }
 
-  const enforcementStartDate = new Date(
-    supportedVersionsData?.enforcementStartDate
-  );
+  // Only block when the payload proves enforcement is active. A missing or
+  // malformed enforcementStartDate is incomplete data, and an uncertain
+  // verdict must not block — keep the server usable until a payload with a
+  // valid enforcement date proves otherwise.
+  const rawEnforcementStartDate = supportedVersionsData?.enforcementStartDate;
+  const enforcementStartDate = rawEnforcementStartDate
+    ? new Date(rawEnforcementStartDate)
+    : undefined;
+  if (!enforcementStartDate || Number.isNaN(enforcementStartDate.getTime())) {
+    return { supported: true };
+  }
   if (enforcementStartDate > new Date()) {
     const selectedExpirationMessage = getExpirationMessage({
       messages: supportedVersionsData.messages,

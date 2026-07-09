@@ -105,6 +105,36 @@ const resolvePreloadPath = (isVideoCall: boolean): string | null => {
   return null;
 };
 
+/**
+ * Determines if a permission request's origin matches a configured server.
+ * Used to gate permissions (geolocation, notifications, fullscreen) that
+ * Electron would otherwise grant unconditionally, regardless of which
+ * origin — including a compromised or unexpected one — asked for them.
+ */
+export const isRequestFromKnownServer = (
+  requestingUrl: string | undefined,
+  servers: ReadonlyArray<Pick<Server, 'url'>>
+): boolean => {
+  if (!requestingUrl) {
+    return false;
+  }
+  try {
+    const requestingOrigin = new URL(requestingUrl).origin;
+    return servers.some((server) => {
+      if (!server.url) {
+        return false;
+      }
+      try {
+        return new URL(server.url).origin === requestingOrigin;
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return false;
+  }
+};
+
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
@@ -150,13 +180,19 @@ export const setupServerViewPermissionHandler = (
           return;
         }
 
-        case 'geolocation':
-        case 'notifications':
         case 'midiSysex':
         case 'pointerLock':
-        case 'fullscreen':
           callback(true);
           return;
+
+        case 'geolocation':
+        case 'notifications':
+        case 'fullscreen': {
+          const { requestingUrl } = details;
+          const servers = select(({ servers }) => servers);
+          callback(isRequestFromKnownServer(requestingUrl, servers));
+          return;
+        }
 
         case 'openExternal': {
           const { externalURL } = details as OpenExternalPermissionRequest;

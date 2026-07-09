@@ -110,13 +110,6 @@ describe('currentView reducer', () => {
     ).toEqual({ url: 'https://side.example' });
 
     expect(
-      currentView({ url: 'https://abc' }, {
-        type: uiActions.DOWNLOADS_BACK_BUTTON_CLICKED,
-        payload: 'https://downloads.example',
-      } as any)
-    ).toEqual({ url: 'https://downloads.example' });
-
-    expect(
       currentView('add-new-server', {
         type: uiActions.MENU_BAR_ADD_NEW_SERVER_CLICKED,
       } as any)

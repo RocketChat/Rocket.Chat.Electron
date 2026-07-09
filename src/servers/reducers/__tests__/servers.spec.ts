@@ -192,6 +192,17 @@ describe('servers reducer', () => {
 
       expect(newState[0].uniqueID).toBe('abc');
     });
+
+    it('should not resurrect a ghost server for a url not present in state', () => {
+      const state = [existing];
+      const newState = servers(state, {
+        type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+        payload: { url: 'https://deleted.rocket.chat/', uniqueID: 'abc' },
+      } as any);
+
+      expect(newState).toBe(state);
+      expect(newState).toHaveLength(1);
+    });
   });
 
   describe('WEBVIEW_SERVER_IS_SUPPORTED_VERSION', () => {
@@ -226,6 +237,17 @@ describe('servers reducer', () => {
 
       expect(newState[0].version).toBe('7.0.0');
       expect(newState[0].gitCommitHash).toBe('keepme');
+    });
+
+    it('should not resurrect a ghost server for a url not present in state', () => {
+      const state = [existing];
+      const newState = servers(state, {
+        type: WEBVIEW_SERVER_VERSION_UPDATED,
+        payload: { url: 'https://deleted.rocket.chat/', version: '7.0.0' },
+      } as any);
+
+      expect(newState).toBe(state);
+      expect(newState).toHaveLength(1);
     });
   });
 
@@ -293,6 +315,17 @@ describe('servers reducer', () => {
       } as any);
 
       expect(newState[0].gitCommitHash).toBe('abc123');
+    });
+
+    it('should not resurrect a ghost server for a url not present in state', () => {
+      const state = [existing];
+      const newState = servers(state, {
+        type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+        payload: { url: 'https://deleted.rocket.chat/', gitCommitHash: 'x' },
+      } as any);
+
+      expect(newState).toBe(state);
+      expect(newState).toHaveLength(1);
     });
   });
 

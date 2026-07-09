@@ -161,7 +161,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case WEBVIEW_SERVER_UNIQUE_ID_UPDATED: {
       const { url, uniqueID } = action.payload;
-      return upsert(state, { url, uniqueID });
+      return update(state, { url, uniqueID });
     }
 
     case WEBVIEW_SERVER_IS_SUPPORTED_VERSION: {
@@ -184,7 +184,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         gitCommitHash !== undefined
           ? { url, version, gitCommitHash }
           : { url, version };
-      return upsert(state, patch);
+      return update(state, patch);
     }
 
     case WEBVIEW_UNREAD_CHANGED: {
@@ -219,7 +219,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case WEBVIEW_GIT_COMMIT_HASH_CHANGED: {
       const { url, gitCommitHash } = action.payload;
-      return upsert(state, { url, gitCommitHash });
+      return update(state, { url, gitCommitHash });
     }
 
     case WEBVIEW_FAVICON_CHANGED: {

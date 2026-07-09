@@ -135,7 +135,7 @@ const ServerButton = ({
   };
 
   const tooltipContent = `
-  ${title} (${process.platform === 'darwin' ? '⌘' : '^'}+${shortcutNumber})
+ ${title}${shortcutNumber !== null ? ` (${process.platform === 'darwin' ? '⌘' : '^'}+${shortcutNumber})` : ''}
   ${
     hasUnreadMessages
       ? `

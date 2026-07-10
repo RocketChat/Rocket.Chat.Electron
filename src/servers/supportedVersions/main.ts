@@ -353,7 +353,8 @@ export const isServerVersionSupported = async (
     } catch {
       hostname = undefined;
     }
-    if (exceptions.domain && exceptions.domain !== hostname) {
+    // DNS names are case-insensitive; URL.hostname is already lowercased.
+    if (exceptions.domain && exceptions.domain.toLowerCase() !== hostname) {
       exceptionScopeMatches = false;
     }
     if (exceptions.uniqueId && exceptions.uniqueId !== server.uniqueID) {
@@ -502,6 +503,30 @@ const dispatchSupportedVersionsUpdated = (
   });
 };
 
+// When a supported-versions payload carries a uniqueId-scoped exceptions
+// block, the scope check requires server.uniqueID to equal
+// exceptions.uniqueId. The server-signed fast path returns before the general
+// getUniqueId call, and /api/info does not include uniqueId, so a missing or
+// stale persisted uniqueID would permanently disqualify the tenant's own
+// exceptions. Resolve it from the server before validating (and persist it
+// for future runs, including offline cache validation).
+const withExceptionScopeUniqueId = async (
+  serverView: Server,
+  supportedVersionsData: SupportedVersions | undefined,
+  versionForUniqueId: string
+): Promise<Server> => {
+  const exceptionsUniqueId = supportedVersionsData?.exceptions?.uniqueId;
+  if (!exceptionsUniqueId || serverView.uniqueID === exceptionsUniqueId) {
+    return serverView;
+  }
+  const freshUniqueId = await getUniqueId(serverView.url, versionForUniqueId)
+    .then(dispatchUniqueIdUpdated(serverView.url))
+    .catch(logRequestError('unique ID'));
+  return freshUniqueId
+    ? { ...serverView, uniqueID: freshUniqueId }
+    : serverView;
+};
+
 // Per-URL request generation counter. Each call to updateSupportedVersionsData
 // bumps the counter and captures its own generation. Awaited steps inside the
 // call check whether their generation is still current before dispatching, so
@@ -540,9 +565,8 @@ export const updateSupportedVersionsData = async (
   // Build a server view that reflects the freshly-fetched version and
   // uniqueId when available, so every downstream support check
   // (server/cloud/cache/builtin) is evaluated against the same authoritative
-  // identity. /api/info returns `uniqueId`, which is required for exception
-  // scope matching to honor server-source exceptions on first launch (when
-  // persisted server.uniqueID may be undefined).
+  // identity. Current servers do NOT include `uniqueId` in /api/info, so the
+  // fallback to persisted server.uniqueID is the common path.
   const serverWithFreshVersion: Server = serverInfoResult
     ? {
         ...server,
@@ -567,8 +591,14 @@ export const updateSupportedVersionsData = async (
         const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
         if (isStale()) return;
         saveToCache(serverUrl, serverSupportedVersions);
-        const supported = await isServerVersionSupported(
+        const serverForValidation = await withExceptionScopeUniqueId(
           serverWithFreshVersion,
+          serverSupportedVersions,
+          serverInfoResult.version
+        );
+        if (isStale()) return;
+        const supported = await isServerVersionSupported(
+          serverForValidation,
           serverSupportedVersions,
           freshCommitHash
         );

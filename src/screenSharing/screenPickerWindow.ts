@@ -57,14 +57,9 @@ export const openScreenPickerWindow = (
     screenPickerWindow.show();
   });
 
-  screenPickerWindow.webContents.on(
-    'will-navigate',
-    (event: Event, url: string) => {
-      if (!url.startsWith('file://')) {
-        event.preventDefault();
-      }
-    }
-  );
+  screenPickerWindow.webContents.on('will-navigate', (event: Event) => {
+    event.preventDefault();
+  });
 
   screenPickerWindow.webContents.setWindowOpenHandler(() => ({
     action: 'deny',

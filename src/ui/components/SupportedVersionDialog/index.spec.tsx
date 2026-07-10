@@ -1,8 +1,12 @@
+import { act } from '@testing-library/react';
 import { ipcRenderer } from 'electron';
 
 import { SupportedVersionDialog } from '.';
 import * as urls from '../../../urls';
-import { SUPPORTED_VERSION_DIALOG_DISMISS } from '../../actions';
+import {
+  SIDE_BAR_SERVER_SELECTED,
+  SUPPORTED_VERSION_DIALOG_DISMISS,
+} from '../../actions';
 import { renderWithStore, screen, userEvent, waitFor } from '../../test-utils';
 
 jest.mock('react-i18next', () => ({
@@ -163,5 +167,38 @@ describe('SupportedVersionDialog', () => {
 
     await waitFor(() => expect(isServerVersionSupported).toHaveBeenCalled());
     expect(screen.queryByText('Workspace expiring')).not.toBeInTheDocument();
+  });
+
+  it('re-runs the version check when the selected currentView changes', async () => {
+    const OTHER_SERVER_URL = 'https://chat.other.com/';
+    const { store } = renderWithStore(<SupportedVersionDialog />, {
+      preloadedState: {
+        ...preloadedState,
+        servers: [
+          ...preloadedState.servers,
+          {
+            url: OTHER_SERVER_URL,
+            title: 'Other',
+            version: '6.0.0',
+            supportedVersions: { versions: [], messages: [] },
+          },
+        ],
+      },
+    });
+
+    await waitFor(() =>
+      expect(isServerVersionSupported).toHaveBeenCalledTimes(1)
+    );
+
+    act(() => {
+      store.dispatch({
+        type: SIDE_BAR_SERVER_SELECTED,
+        payload: OTHER_SERVER_URL,
+      });
+    });
+
+    await waitFor(() =>
+      expect(isServerVersionSupported).toHaveBeenCalledTimes(2)
+    );
   });
 });

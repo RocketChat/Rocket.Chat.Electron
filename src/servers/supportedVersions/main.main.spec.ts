@@ -16,6 +16,7 @@ import {
 } from '../../ui/actions';
 import {
   checkSupportedVersionServers,
+  getExpirationMessageTranslated,
   isServerVersionSupported,
   updateSupportedVersionsData,
 } from './main';
@@ -29,6 +30,9 @@ jest.mock('node:fs/promises');
 jest.mock('electron', () => ({
   ipcMain: {
     handle: jest.fn(),
+  },
+  powerMonitor: {
+    on: jest.fn(),
   },
 }));
 
@@ -471,7 +475,7 @@ describe('supportedVersions/main.ts', () => {
       });
     });
 
-    it('should reject the exception when the fetched uniqueID does not match the exception scope', async () => {
+    it('honors the server-source exception with a warning when the fetched uniqueID does not match the scope', async () => {
       const mockServer = createMockServer({ version: '7.13' });
       const mockServerInfo = createMockServerInfo({
         version: '7.13',
@@ -489,7 +493,15 @@ describe('supportedVersions/main.ts', () => {
         tenantSupportedVersions()
       );
 
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       await updateSupportedVersionsData(mockServer.url);
+
+      // Server-source payloads are self-scoped; a mismatch is diagnostic
+      // only and the exception is still honored.
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('exception scope mismatch')
+      );
+      consoleWarnSpy.mockRestore();
 
       const verdictDispatch = dispatchMock.mock.calls.find(
         ([action]) =>
@@ -499,7 +511,7 @@ describe('supportedVersions/main.ts', () => {
         type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
         payload: {
           url: mockServer.url,
-          isSupportedVersion: false,
+          isSupportedVersion: true,
         },
       });
     });
@@ -1002,6 +1014,48 @@ describe('supportedVersions/main.ts', () => {
       );
 
       expect(result.supported).toBe(true);
+    });
+
+    it('does not block when enforcementStartDate is missing (uncertain data must not block)', async () => {
+      const supportedVersions = {
+        versions: [{ version: '9.9.0', expiration: new Date() }],
+        // no enforcementStartDate
+      };
+
+      const result = await isServerVersionSupported(
+        mockServer as any,
+        supportedVersions as any
+      );
+
+      expect(result.supported).toBe(true);
+    });
+
+    it('does not block when enforcementStartDate is malformed', async () => {
+      const supportedVersions = {
+        versions: [{ version: '9.9.0', expiration: new Date() }],
+        enforcementStartDate: 'not-a-date',
+      };
+
+      const result = await isServerVersionSupported(
+        mockServer as any,
+        supportedVersions as any
+      );
+
+      expect(result.supported).toBe(true);
+    });
+
+    it('blocks when a valid past enforcementStartDate is present and nothing matches', async () => {
+      const supportedVersions = {
+        versions: [{ version: '9.9.0', expiration: new Date() }],
+        enforcementStartDate: new Date(Date.now() - 86400000).toISOString(),
+      };
+
+      const result = await isServerVersionSupported(
+        mockServer as any,
+        supportedVersions as any
+      );
+
+      expect(result.supported).toBe(false);
     });
 
     it('should honor exceptions when exceptions.domain differs only by letter case', async () => {
@@ -1961,7 +2015,7 @@ describe('supportedVersions/main.ts', () => {
       i18n: {},
     };
 
-    it('does NOT honor commit-hash exception when payload domain mismatches server', async () => {
+    it('does NOT honor commit-hash exception from the BUILTIN payload when the domain mismatches', async () => {
       const payload = {
         ...baseVersions,
         exceptions: {
@@ -1971,7 +2025,9 @@ describe('supportedVersions/main.ts', () => {
         },
       } as unknown as SupportedVersions;
 
-      // Server B has matching commit hash but different domain.
+      // Server B has matching commit hash but different domain. The builtin
+      // payload is the only source that can carry another tenant's
+      // exceptions, so it keeps the strict scope requirement.
       const serverB = {
         url: 'https://tenant-b.example.com/',
         version: '8.5',
@@ -1982,13 +2038,14 @@ describe('supportedVersions/main.ts', () => {
       const result = await isServerVersionSupported(
         serverB,
         payload,
-        'abc1234567890'
+        'abc1234567890',
+        'builtin'
       );
       // Enforcement falls through (no versions match either) -> unsupported.
       expect(result.supported).toBe(false);
     });
 
-    it('does NOT honor commit-hash exception when payload uniqueId mismatches server', async () => {
+    it('does NOT honor commit-hash exception from the BUILTIN payload when uniqueId mismatches', async () => {
       const payload = {
         ...baseVersions,
         exceptions: {
@@ -2009,9 +2066,41 @@ describe('supportedVersions/main.ts', () => {
       const result = await isServerVersionSupported(
         serverB,
         payload,
-        'abc1234567890'
+        'abc1234567890',
+        'builtin'
       );
       expect(result.supported).toBe(false);
+    });
+
+    it('honors a scope-mismatched exception from a SERVER-source payload with a diagnostic warning', async () => {
+      const payload = {
+        ...baseVersions,
+        exceptions: {
+          domain: 'tenant-a.example.com',
+          uniqueId: 'tenant-a-unique',
+          versions: [{ version: 'sha-abc1234', expiration: futureExpiry }],
+        },
+      } as unknown as SupportedVersions;
+
+      const serverB = {
+        url: 'https://tenant-b.example.com/',
+        version: '8.5',
+        title: 'Tenant B',
+        uniqueID: 'tenant-b-unique',
+      } as any;
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const result = await isServerVersionSupported(
+        serverB,
+        payload,
+        'abc1234567890',
+        'server'
+      );
+      expect(result.supported).toBe(true);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('exception scope mismatch')
+      );
+      consoleWarnSpy.mockRestore();
     });
 
     it('honors commit-hash exception when domain AND uniqueId both match', async () => {
@@ -2039,7 +2128,7 @@ describe('supportedVersions/main.ts', () => {
       expect(result.supported).toBe(true);
     });
 
-    it('does NOT honor scoped exception when local server.uniqueID is undefined', async () => {
+    it('honors scoped exception when local server.uniqueID is UNKNOWN and the domain matches', async () => {
       const payload = {
         ...baseVersions,
         exceptions: {
@@ -2049,8 +2138,9 @@ describe('supportedVersions/main.ts', () => {
         },
       } as unknown as SupportedVersions;
 
-      // Same domain. Same commit hash. But local uniqueID UNKNOWN.
-      // Must reject — missing local identity cannot satisfy required scope.
+      // Same domain. Same commit hash. Local uniqueID UNKNOWN (e.g.
+      // settings.public restricted by enterprise API ACLs). An unprovable
+      // identity must not disqualify a domain-matched exception.
       const serverWithoutUniqueID = {
         url: 'https://tenant-a.example.com/',
         version: '8.5',
@@ -2062,6 +2152,32 @@ describe('supportedVersions/main.ts', () => {
         serverWithoutUniqueID,
         payload,
         'abc1234567890'
+      );
+      expect(result.supported).toBe(true);
+    });
+
+    it('rejects a BUILTIN-source exception on a PROVEN uniqueID mismatch even when the domain matches', async () => {
+      const payload = {
+        ...baseVersions,
+        exceptions: {
+          domain: 'tenant-a.example.com',
+          uniqueId: 'tenant-a-unique',
+          versions: [{ version: 'sha-abc1234', expiration: futureExpiry }],
+        },
+      } as unknown as SupportedVersions;
+
+      const serverWithOtherUniqueID = {
+        url: 'https://tenant-a.example.com/',
+        version: '8.5',
+        title: 'Tenant A',
+        uniqueID: 'tenant-b-unique',
+      } as any;
+
+      const result = await isServerVersionSupported(
+        serverWithOtherUniqueID,
+        payload,
+        'abc1234567890',
+        'builtin'
       );
       expect(result.supported).toBe(false);
     });
@@ -2370,6 +2486,114 @@ describe('supportedVersions/main.ts', () => {
         semverExceptionVersions
       );
       expect(result.supported).toBe(true);
+    });
+  });
+
+  // ========== FIX-1: fallback path validation must not throw unguarded ==========
+  describe('fallback path validation failure (fail-open guard)', () => {
+    it('dispatches ERROR (not a rejection) and no IS_SUPPORTED_VERSION when the fallback payload is malformed', async () => {
+      const mockServer = createMockServer({ version: '7.5.0' });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      // Cache returns a corrupt payload: `versions` is not an array, so
+      // isServerVersionSupported's `versions.find` throws synchronously.
+      const ElectronStoreMock = jest.requireMock('electron-store');
+      const storeGetMock = jest.spyOn(
+        ElectronStoreMock.prototype,
+        'get'
+      ) as jest.Mock;
+      storeGetMock.mockReturnValue({
+        versions: { notAnArray: true },
+        enforcementStartDate: '2023-01-01T00:00:00Z',
+        timestamp: new Date().toISOString(),
+      });
+
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      jest.useFakeTimers();
+      const promise = updateSupportedVersionsData(mockServer.url);
+      await jest.advanceTimersByTimeAsync(4000);
+      // Must resolve, not reject.
+      await expect(promise).resolves.toBeUndefined();
+      jest.useRealTimers();
+
+      const errorDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
+      );
+      expect(errorDispatch).toBeDefined();
+
+      const isSupportedDispatches = dispatchMock.mock.calls.filter(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+      );
+      expect(isSupportedDispatches.length).toBe(0);
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error validating fallback'),
+        expect.anything()
+      );
+
+      consoleErrorSpy.mockRestore();
+      storeGetMock.mockRestore();
+    });
+  });
+
+  // ========== FIX-3: cloud lookup must not skip on persisted uniqueID ==========
+  describe('cloud fetch gate uses persisted uniqueID as fallback', () => {
+    it('fetches cloud endpoint when fresh uniqueID fetch fails but server has a persisted uniqueID', async () => {
+      const mockServer = createMockServer({
+        version: '7.5.0',
+        uniqueID: 'persisted-unique-id',
+      });
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo }) // /api/info
+        .mockRejectedValueOnce(new Error('uniqueID fetch failed')) // getUniqueId
+        .mockResolvedValueOnce({ data: createMockCloudInfo() }); // cloud lookup
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      const cloudCall = axiosMock.get.mock.calls.find(([url]) =>
+        (url as string).includes('releases.rocket.chat')
+      );
+      expect(cloudCall).toBeDefined();
+    });
+  });
+
+  // ========== FIX-5: getExpirationMessageTranslated must not throw ==========
+  describe('getExpirationMessageTranslated i18n guard', () => {
+    it('returns null instead of throwing when i18n has neither the requested language nor "en"', () => {
+      const result = getExpirationMessageTranslated(
+        {},
+        { title: 'title', subtitle: 'sub', description: 'desc' } as any,
+        new Date(Date.now() + 86400000),
+        'en',
+        'My Server',
+        'https://rocket.chat',
+        '7.0.0'
+      );
+
+      expect(result).toBeNull();
+    });
+  });
+
+  // ========== FIX-7: revalidate all servers on wake-from-sleep ==========
+  describe('power resume revalidation', () => {
+    it('registers a powerMonitor resume handler when checkSupportedVersionServers runs', async () => {
+      const electronMock = jest.requireMock('electron');
+
+      checkSupportedVersionServers();
+
+      expect(electronMock.powerMonitor.on).toHaveBeenCalledWith(
+        'resume',
+        expect.any(Function)
+      );
     });
   });
 });

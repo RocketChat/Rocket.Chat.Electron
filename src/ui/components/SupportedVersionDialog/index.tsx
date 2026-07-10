@@ -15,7 +15,7 @@ import { ipcRenderer } from 'electron';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
 import { getLanguage } from '../../../i18n/main';
@@ -25,9 +25,9 @@ import {
 } from '../../../servers/supportedVersions/main';
 import type { MessageTranslated } from '../../../servers/supportedVersions/types';
 import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
 import * as urls from '../../../urls';
 import { SUPPORTED_VERSION_DIALOG_DISMISS } from '../../actions';
-import { currentView } from '../../reducers/currentView';
 import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
 import { Wrapper } from './styles';
@@ -35,6 +35,7 @@ import { Wrapper } from './styles';
 export const SupportedVersionDialog = () => {
   const [isVisible, setIsVisible] = useState(false);
   const dispatch = useDispatch<Dispatch<RootAction>>();
+  const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   const servers = useServers();
   const server = servers.find((server) => server.selected === true);
@@ -140,8 +141,7 @@ export const SupportedVersionDialog = () => {
 
   useEffect(() => {
     checkServerVersion();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [server?.supportedVersions, server?.lastPath, currentView]);
+  }, [checkServerVersion, currentView]);
 
   const handleMoreInfoButtonClick = (): void => {
     if (expirationMessage?.link && expirationMessage?.link !== '') {

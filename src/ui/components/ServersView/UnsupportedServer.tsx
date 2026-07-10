@@ -16,12 +16,14 @@ type UnsupportedServerProps = {
   isSupported: boolean | undefined;
   fetchState?: 'idle' | 'loading' | 'success' | 'error';
   instanceDomain: string;
+  serverUrl: string;
 };
 
 const UnsupportedServer = ({
   isSupported,
   fetchState,
   instanceDomain,
+  serverUrl,
 }: UnsupportedServerProps) => {
   const { t } = useTranslation();
 
@@ -30,6 +32,10 @@ const UnsupportedServer = ({
       'server-view/open-url-on-browser',
       urls.docs.supportedVersions
     );
+  };
+
+  const handleCheckAgainButtonClick = (): void => {
+    ipcRenderer.invoke('refresh-supported-versions', serverUrl);
   };
 
   // Block whenever a definitive `false` verdict exists, except while a fresh
@@ -66,6 +72,9 @@ const UnsupportedServer = ({
             <StatesActions>
               <Button secondary onClick={handleMoreInfoButtonClick}>
                 {t('unsupportedServer.moreInformation')}
+              </Button>
+              <Button onClick={handleCheckAgainButtonClick}>
+                {t('unsupportedServer.checkAgain')}
               </Button>
             </StatesActions>
           </States>

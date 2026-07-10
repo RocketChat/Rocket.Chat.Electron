@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import axios from 'axios';
-import { ipcMain } from 'electron';
+import { ipcMain, powerMonitor } from 'electron';
 import ElectronStore from 'electron-store';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
@@ -82,7 +82,7 @@ const logRequestError =
         console.error(`Couldn't load ${description}: ${error.message}`);
       }
     } else {
-      console.error('Fetching ${description} error:', error);
+      console.error(`Fetching ${description} error:`, error);
     }
     return undefined;
   };
@@ -299,6 +299,9 @@ export const getExpirationMessageTranslated = (
   }
 
   const i18nLang = i18n[language] ?? i18n.en;
+  if (!i18nLang) {
+    return null;
+  }
 
   const getTranslation = (key: string) =>
     key && i18nLang[key] ? applyParams(i18nLang[key], params) : undefined;
@@ -316,7 +319,8 @@ export const getExpirationMessageTranslated = (
 export const isServerVersionSupported = async (
   server: Server,
   supportedVersionsData?: SupportedVersions,
-  serverCommitHash?: string
+  serverCommitHash?: string,
+  payloadSource?: 'server' | 'cloud' | 'builtin'
 ): Promise<{
   supported: boolean;
   message?: Message | undefined;
@@ -338,14 +342,16 @@ export const isServerVersionSupported = async (
 
   if (!supportedVersionsData) return { supported: true };
 
-  // Exception entries only apply when the payload's exceptions block is scoped
-  // to THIS server. The cloud-source and server-source payloads are inherently
-  // scoped, but the builtin (bundled) and cache payloads can be from a different
-  // tenant, so a domain/uniqueId mismatch must disqualify the exceptions to
-  // avoid cross-tenant bypass.
-  // Treat present scope fields as REQUIRED equality. Missing local identity
-  // (e.g. server.uniqueID undefined) does NOT relax the check — it must reject.
-  let exceptionScopeMatches = true;
+  // A valid, unexpired exception must never be rejected on a scope
+  // technicality. Server, cloud, and cache payloads are inherently
+  // self-scoped (fetched from/for THIS server), so for them a domain/uniqueId
+  // mismatch is logged for diagnostics but the exception is still honored.
+  // The bundled builtin payload is the only source that could carry another
+  // tenant's exceptions, so it alone keeps the strict scope requirement.
+  // An UNKNOWN local uniqueID (e.g. settings.public restricted by enterprise
+  // API ACLs) is never treated as a mismatch: this gate is client-side UX
+  // enforcement, not a security boundary.
+  let exceptionScopeMismatch = false;
   if (exceptions) {
     let hostname: string | undefined;
     try {
@@ -355,11 +361,25 @@ export const isServerVersionSupported = async (
     }
     // DNS names are case-insensitive; URL.hostname is already lowercased.
     if (exceptions.domain && exceptions.domain.toLowerCase() !== hostname) {
-      exceptionScopeMatches = false;
+      exceptionScopeMismatch = true;
     }
-    if (exceptions.uniqueId && exceptions.uniqueId !== server.uniqueID) {
-      exceptionScopeMatches = false;
+    if (
+      exceptions.uniqueId &&
+      server.uniqueID &&
+      exceptions.uniqueId !== server.uniqueID
+    ) {
+      exceptionScopeMismatch = true;
     }
+  }
+  const exceptionScopeMatches =
+    !exceptionScopeMismatch || payloadSource !== 'builtin';
+  if (exceptionScopeMismatch && exceptionScopeMatches) {
+    console.warn(
+      `Supported-versions exception scope mismatch for ${server.url} ` +
+        `(payload domain: ${exceptions?.domain}, uniqueId: ${exceptions?.uniqueId}; ` +
+        `local uniqueID: ${server.uniqueID}) — honoring exception from ` +
+        `${payloadSource ?? 'unspecified'} source anyway`
+    );
   }
 
   // Match against the freshly-fetched commit hash when available, falling
@@ -431,9 +451,17 @@ export const isServerVersionSupported = async (
     }
   }
 
-  const enforcementStartDate = new Date(
-    supportedVersionsData?.enforcementStartDate
-  );
+  // Only block when the payload proves enforcement is active. A missing or
+  // malformed enforcementStartDate is incomplete data, and an uncertain
+  // verdict must not block — keep the server usable until a payload with a
+  // valid enforcement date proves otherwise.
+  const rawEnforcementStartDate = supportedVersionsData?.enforcementStartDate;
+  const enforcementStartDate = rawEnforcementStartDate
+    ? new Date(rawEnforcementStartDate)
+    : undefined;
+  if (!enforcementStartDate || Number.isNaN(enforcementStartDate.getTime())) {
+    return { supported: true };
+  }
   if (enforcementStartDate > new Date()) {
     const selectedExpirationMessage = getExpirationMessage({
       messages: supportedVersionsData.messages,
@@ -527,6 +555,49 @@ const withExceptionScopeUniqueId = async (
     : serverView;
 };
 
+// Validates the fallback (cache/builtin) payload and dispatches the verdict.
+// isServerVersionSupported can throw on a malformed cached/builtin payload
+// (e.g. `versions` not an array). Left unguarded, that throw would reject
+// updateSupportedVersionsData before WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
+// is dispatched, leaving supportedVersionsFetchState stuck at 'loading' —
+// which suppresses the UnsupportedServer block gate (fail-open). On failure,
+// only the error state is dispatched; the prior verdict is left untouched.
+const validateFallbackAndDispatch = async (
+  server: Server,
+  serverUrl: string,
+  fallbackVersions: SupportedVersions,
+  fallbackSource: 'cloud' | 'builtin',
+  freshCommitHash: string | undefined,
+  isStale: () => boolean
+): Promise<void> => {
+  try {
+    const fallbackSupported = await isServerVersionSupported(
+      server,
+      fallbackVersions,
+      freshCommitHash,
+      fallbackSource
+    );
+    if (isStale()) return;
+    dispatch({
+      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+      payload: {
+        url: server.url,
+        isSupportedVersion: fallbackSupported.supported,
+      },
+    });
+    dispatchSupportedVersionsUpdated(server.url, fallbackVersions, {
+      source: fallbackSource,
+    });
+  } catch (error) {
+    console.error('Error validating fallback supported versions:', error);
+  }
+  if (isStale()) return;
+  dispatch({
+    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
+    payload: { url: serverUrl },
+  });
+};
+
 // Per-URL request generation counter. Each call to updateSupportedVersionsData
 // bumps the counter and captures its own generation. Awaited steps inside the
 // call check whether their generation is still current before dispatching, so
@@ -600,7 +671,8 @@ export const updateSupportedVersionsData = async (
         const supported = await isServerVersionSupported(
           serverForValidation,
           serverSupportedVersions,
-          freshCommitHash
+          freshCommitHash,
+          'server'
         );
         if (isStale()) return;
         // Dispatch verdict BEFORE fetchState='success' so UnsupportedServer
@@ -643,10 +715,15 @@ export const updateSupportedVersionsData = async (
     uniqueID: uniqueID ?? serverWithFreshVersion.uniqueID,
   };
 
+  // Fall back to the persisted uniqueID when the fresh fetch failed, so a
+  // prior session's identity still enables the cloud lookup instead of
+  // skipping it outright.
+  const effectiveUniqueId = uniqueID ?? server.uniqueID;
+
   // Try Cloud with retries (3x with 2s delays) if unique ID available
-  if (!serverEncoded && uniqueID) {
+  if (!serverEncoded && effectiveUniqueId) {
     const cloudVersionsWithRetry = await withRetries(
-      () => getCloudInfo(server.url, uniqueID),
+      () => getCloudInfo(server.url, effectiveUniqueId),
       3,
       2000
     );
@@ -661,7 +738,8 @@ export const updateSupportedVersionsData = async (
         const supported = await isServerVersionSupported(
           serverWithFreshIdentity,
           cloudSupportedVersions,
-          freshCommitHash
+          freshCommitHash,
+          'cloud'
         );
         if (isStale()) return;
         dispatch({
@@ -703,26 +781,15 @@ export const updateSupportedVersionsData = async (
   if (fallbackVersions) {
     if (isStale()) return;
     saveToCache(serverUrl, fallbackVersions);
-    const fallbackSupported = await isServerVersionSupported(
-      serverWithFreshIdentity,
-      fallbackVersions,
-      freshCommitHash
-    );
     if (isStale()) return;
-    dispatch({
-      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
-      payload: {
-        url: server.url,
-        isSupportedVersion: fallbackSupported.supported,
-      },
-    });
-    dispatchSupportedVersionsUpdated(server.url, fallbackVersions, {
-      source: fallbackSource,
-    });
-    dispatch({
-      type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
-      payload: { url: serverUrl },
-    });
+    await validateFallbackAndDispatch(
+      serverWithFreshIdentity,
+      serverUrl,
+      fallbackVersions,
+      fallbackSource,
+      freshCommitHash,
+      isStale
+    );
     return;
   }
 
@@ -739,20 +806,46 @@ export const updateSupportedVersionsData = async (
   });
 };
 
+const logUpdateError =
+  (serverUrl: string) =>
+  (error: unknown): void => {
+    console.error(
+      `Error updating supported versions data for ${serverUrl}:`,
+      error
+    );
+  };
+
 export function checkSupportedVersionServers(): void {
   listen(WEBVIEW_READY, async (action) => {
-    updateSupportedVersionsData(action.payload.url);
+    updateSupportedVersionsData(action.payload.url).catch(
+      logUpdateError(action.payload.url)
+    );
   });
 
   listen(SUPPORTED_VERSION_DIALOG_DISMISS, async (action) => {
-    updateSupportedVersionsData(action.payload.url);
+    updateSupportedVersionsData(action.payload.url).catch(
+      logUpdateError(action.payload.url)
+    );
   });
 
   listen(WEBVIEW_SERVER_RELOADED, async (action) => {
-    updateSupportedVersionsData(action.payload.url);
+    updateSupportedVersionsData(action.payload.url).catch(
+      logUpdateError(action.payload.url)
+    );
   });
 
   ipcMain.handle('refresh-supported-versions', async (_event, serverUrl) => {
-    updateSupportedVersionsData(serverUrl);
+    updateSupportedVersionsData(serverUrl).catch(logUpdateError(serverUrl));
+  });
+
+  // 'online' only fires on real network transitions, not on wake-from-sleep
+  // (e.g. laptop resumes with the same network already connected). Without
+  // this, a server's supported-versions verdict can go stale for the entire
+  // duration of a sleep period until the next WEBVIEW_READY/reload/dismiss.
+  powerMonitor.on('resume', () => {
+    const servers = select(({ servers }) => servers);
+    servers.forEach((server) => {
+      updateSupportedVersionsData(server.url).catch(logUpdateError(server.url));
+    });
   });
 }

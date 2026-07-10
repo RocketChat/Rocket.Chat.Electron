@@ -28,6 +28,7 @@ import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_READY,
@@ -105,6 +106,36 @@ const resolvePreloadPath = (isVideoCall: boolean): string | null => {
   return null;
 };
 
+/**
+ * Determines if a permission request's origin matches a configured server.
+ * Used to gate permissions (geolocation, notifications, fullscreen) that
+ * Electron would otherwise grant unconditionally, regardless of which
+ * origin — including a compromised or unexpected one — asked for them.
+ */
+export const isRequestFromKnownServer = (
+  requestingUrl: string | undefined,
+  servers: ReadonlyArray<Pick<Server, 'url'>>
+): boolean => {
+  if (!requestingUrl) {
+    return false;
+  }
+  try {
+    const requestingOrigin = new URL(requestingUrl).origin;
+    return servers.some((server) => {
+      if (!server.url) {
+        return false;
+      }
+      try {
+        return new URL(server.url).origin === requestingOrigin;
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return false;
+  }
+};
+
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
@@ -150,13 +181,19 @@ export const setupServerViewPermissionHandler = (
           return;
         }
 
-        case 'geolocation':
-        case 'notifications':
         case 'midiSysex':
         case 'pointerLock':
-        case 'fullscreen':
           callback(true);
           return;
+
+        case 'geolocation':
+        case 'notifications':
+        case 'fullscreen': {
+          const { requestingUrl } = details;
+          const servers = select(({ servers }) => servers);
+          callback(isRequestFromKnownServer(requestingUrl, servers));
+          return;
+        }
 
         case 'openExternal': {
           const { externalURL } = details as OpenExternalPermissionRequest;
@@ -484,9 +521,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
     // prevents the webview from navigating because of twitter preview links
     guestWebContents.on('will-navigate', (e, redirectUrl) => {
+      const { protocol, hostname } = new URL(redirectUrl);
+
+      if (protocol !== 'http:' && protocol !== 'https:') {
+        e.preventDefault();
+        return;
+      }
+
       const preventNavigateHosts = ['t.co', 'twitter.com'];
 
-      if (preventNavigateHosts.includes(new URL(redirectUrl).hostname)) {
+      if (preventNavigateHosts.includes(hostname)) {
         e.preventDefault();
         isProtocolAllowed(redirectUrl).then((allowed) => {
           if (!allowed) {
@@ -555,6 +599,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
     const { payload: serverUrl } = action;
+    const isAddNewServersEnabled = select(
+      ({ isAddNewServersEnabled }) => isAddNewServersEnabled
+    );
 
     const menuTemplate: MenuItemConstructorOptions[] = [
       {
@@ -613,6 +660,17 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           });
         },
       },
+      ...(isAddNewServersEnabled
+        ? [
+            { type: 'separator' as const },
+            {
+              label: t('sidebar.item.addWorkspace'),
+              click: () => {
+                dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
+              },
+            },
+          ]
+        : []),
     ];
     const menu = Menu.buildFromTemplate(menuTemplate);
     menu.popup({

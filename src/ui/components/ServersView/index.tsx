@@ -1,9 +1,15 @@
+import { useSelector } from 'react-redux';
+
+import type { RootState } from '../../../store/rootReducer';
 import { useServers } from '../hooks/useServers';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
 import { ServerPane } from './ServerPane';
 
 export const ServersView = () => {
   const servers = useServers();
+  const navigationLayout = useSelector(
+    ({ navigationLayout }: RootState) => navigationLayout
+  );
 
   return (
     <ReparentingContainer>
@@ -20,6 +26,7 @@ export const ServersView = () => {
           documentViewerOpenUrl={server.documentViewerOpenUrl}
           documentViewerFormat={server.documentViewerFormat}
           userLoggedIn={server.userLoggedIn}
+          isTabPanel={navigationLayout === 'tabs'}
         />
       ))}
     </ReparentingContainer>

@@ -1,4 +1,7 @@
 /**
+ * @jest-environment jsdom
+ */
+/**
  * Unit tests for the store helpers in src/store/index.ts.
  *
  * The store module keeps a module-level `reduxStore` singleton, so each test

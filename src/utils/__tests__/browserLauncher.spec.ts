@@ -179,6 +179,25 @@ describe('openExternal', () => {
     );
     expect(mockOpenExternal).not.toHaveBeenCalled();
   });
+
+  it('falls back to system default when launching the selected browser throws synchronously', async () => {
+    mockReadSetting.mockReturnValue('chrome');
+    mockGetAvailableBrowsers.mockResolvedValue([chromeBrowser]);
+    mockLaunchBrowser.mockImplementation(() => {
+      throw new Error('launch sync failed');
+    });
+    const { openExternal } = loadModule();
+
+    const promise = openExternal('https://example.com');
+    await jest.advanceTimersByTimeAsync(2000);
+    await promise;
+
+    expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com');
+    expect(console.error).toHaveBeenCalledWith(
+      'Error launching browser:',
+      expect.any(Error)
+    );
+  });
 });
 
 describe('preloadBrowsersList', () => {

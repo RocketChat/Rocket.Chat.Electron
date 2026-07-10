@@ -48,15 +48,6 @@
       "yes": "Ja",
       "no": "Nein"
     },
-    "clearCache": {
-      "announcement": "Neu laden erzwingen",
-      "title": "Anmeldesitzung behalten?",
-      "message": "Wenn Sie Ihre Anmeldesitzung löschen, werden Sie abgemeldet und müssen Ihre Anmeldedaten erneut eingeben.",
-      "keepLoginData": "Anmeldesitzung behalten",
-      "deleteLoginData": "Anmeldesitzung löschen",
-      "clearingWait": "Bitte warten",
-      "cancel": "Abbrechen"
-    },
     "downloadRemoval": {
       "title": "Bist du dir sicher?",
       "message": "Diesen Download entfernen?",
@@ -65,13 +56,6 @@
     },
     "resetAppData": {
       "title": "Bist du dir sicher?",
-      "message": "Dadurch werden Sie von allen Teams abgemeldet und die App wird auf ihre ursprünglichen Einstellungen zurückgesetzt. Dies kann nicht rückgängig gemacht werden.",
-      "yes": "Ja",
-      "cancel": "Abbrechen"
-    },
-    "clearPermittedScreenCaptureServers": {
-      "title": "Erlaubte Bildschirmaufnahmeserver löschen",
-      "message": "Dadurch werden alle Berechtigungen für Bildschirmaufnahmeserver gelöscht, sodass sie erneut um Erlaubnis fragen müssen. Dies kann nicht rückgängig gemacht werden.",
       "yes": "Ja",
       "cancel": "Abbrechen"
     },
@@ -152,30 +136,6 @@
         "answerCall": "Anrufe entgegennehmen",
         "recordMessage": "Nachrichten aufnehmen"
       }
-    },
-    "outlookCalendar": {
-      "title": "Outlook-Kalender",
-      "encryptionUnavailableTitle": "Verschlüsselung nicht verfügbar",
-      "encryptionUnavailable": "Ihr Betriebssystem unterstützt keine Verschlüsselung.\nIhre Anmeldedaten werden im Klartext gespeichert.",
-      "field_required": "Dieses Feld ist erforderlich",
-      "remember_credentials": "Meine Anmeldedaten merken",
-      "cancel": " Abbrechen",
-      "submit": "Anmelden"
-    },
-    "supportedVersion": {
-      "title": "Workspace-Version wird nicht unterstützt"
-    },
-    "telephonySelectServer": {
-      "title": "Workspace für diesen Anruf auswählen",
-      "message": "Welcher Workspace soll diesen Anruf übernehmen?",
-      "rememberChoice": "Für zukünftige Anrufe merken"
-    },
-    "clearLogs": {
-      "title": "Logs löschen",
-      "message": "Möchten Sie die Logdatei wirklich löschen?",
-      "detail": "Diese Aktion kann nicht rückgängig gemacht werden. Alle aktuellen Logeinträge werden dauerhaft gelöscht.",
-      "yes": "Löschen",
-      "cancel": "Abbrechen"
     }
   },
   "documentViewer": {
@@ -246,166 +206,84 @@
     }
   },
   "settings": {
-    "title": "App-Einstellungen",
+    "title": "Einstellungen",
     "general": "Allgemein",
     "certificates": "Zertifikate",
-    "developer": "Entwickler",
-    "voiceVideo": "Sprache & Video",
-    "sections": {
-      "appUi": "App-Oberfläche",
-      "systemUi": "System-Oberfläche",
-      "systemBehavior": "Systemverhalten",
-      "calling": "Anrufe",
-      "other": "Sonstiges & Technik",
-      "logging": "Protokollierung",
-      "telephony": "Telefonie",
-      "videoCalls": "Videoanrufe"
-    },
     "options": {
       "report": {
-        "title": "Fehler an Rocket.Chat melden",
-        "description": "Fehler anonym an die App-Entwickler melden. Zu den freigegebenen Informationen gehören App-Versionsnummer, Betriebssystemtyp, Workspace-URL, Gerätesprache und Fehlertyp. Es werden keine Inhalte oder Benutzernamen geteilt.",
-        "masDescription": "Diese Option ist bei der Installation aus dem Mac App Store deaktiviert. Fehler werden über den Fehlerberichtsprozess des Mac App Store gemeldet."
+        "title": "Fehler an Entwickler melden",
+        "description": "Melden Sie Fehler anonym an die Entwickler. Zu den freigegebenen Informationen gehören App-Versionsnummer, Betriebssystemtyp, Server-URL, Gerätesprache und Fehlertyp. Es werden keine Inhalte oder Benutzernamen geteilt.",
+        "masDescription": "Diese Option ist bei der Installation aus dem Mac App Store deaktiviert, die Fehler werden über den Fehlerberichtsprozess des Mac App Store gemeldet."
       },
       "flashFrame": {
-        "title": "Fenster aufblinken lassen",
-        "titleDarwin": "Dock-Symbol animieren",
-        "description": "Fenster aufblinken lassen, wenn eine neue Nachricht empfangen wird.",
+        "title": "Flashframe aktivieren",
+        "titleDarwin": "Schalten Sie Dock Bounce bei Alarm um",
+        "description": "Lässt das Fenster blinken, um die Aufmerksamkeit des Benutzers zu erregen.",
         "onLinux": "Einige Linux-Distributionen unterstützen diese Funktion nicht.",
-        "descriptionDarwin": "Das Dock-Symbol springt auf, wenn eine neue Nachricht empfangen wird."
+        "descriptionDarwin": "Lässt das App-Symbol im Dock hüpfen, um die Aufmerksamkeit des Benutzers zu erregen."
       },
       "hardwareAcceleration": {
         "title": "Hardware-Beschleunigung",
-        "description": "Verbessert die Darstellung und Leistung. Deaktivieren, wenn grafische Fehler oder Instabilität auftreten.",
-        "hint": "Die App wird bei Änderung neu geladen."
+        "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
-        "description": "Deaktiviert Windows Graphics Capture, damit die Bildschirmfreigabe in Remote-Desktop-Sitzungen funktioniert.",
-        "hint": "Die App startet neu, wenn diese Option geändert wird.",
-        "forcedDescription": "Derzeit erzwungen, weil die App eine Remote-Desktop-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
+        "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
+        "forcedDescription": "Bereits aktiv, weil die Anwendung eine RDP-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
       },
       "internalVideoChatWindow": {
-        "title": "Videoanrufe innerhalb der App",
-        "description": "Videoanrufe im App-Fenster anstatt im Browser öffnen. Google Meet- und Jitsi-Anrufe können nur im Browser geöffnet werden.",
-        "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen werden Videoanrufe standardmäßig im Browser geöffnet."
+        "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
+        "description": "Wenn diese Option aktiviert ist, wird der Video-Chat im Anwendungsfenster anstelle des Standardbrowsers geöffnet. Allerdings wird für <strong>Google Meet</strong> und <strong>Jitsi</strong> die Bildschirmaufzeichnung in Electron-Anwendungen nicht unterstützt, daher werden sie unabhängig von dieser Einstellung immer im Browser geöffnet.",
+        "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen wird der Video-Chat standardmäßig über den Browser geöffnet."
       },
       "minimizeOnClose": {
         "title": "Beim Schließen minimieren",
-        "description": "App beim Schließen minimieren, anstatt sie zu beenden.",
-        "disabledHint": "Das Tray-Symbol muss deaktiviert sein."
+        "description": "Beim Schließen wird die App minimiert, andernfalls wird die Anwendung beendet. Das Taskleistensymbol muss deaktiviert werden, damit dies wirksam wird."
       },
       "menubar": {
         "title": "Menüleiste",
         "description": "Menüleiste oben im Fenster anzeigen.",
-        "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Workspace-Leiste deaktiviert ist. Die App-Einstellungen wären sonst nicht erreichbar."
+        "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Seitenleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "sidebar": {
-        "title": "Workspace-Leiste",
-        "description": "Workspace-Liste mit Download- und Einstellungsschaltflächen anzeigen.",
-        "disabledHint": "Die Workspace-Leiste kann nicht deaktiviert werden, wenn die Menüleiste deaktiviert ist. Die App-Einstellungen wären sonst nicht erreichbar."
+        "title": "Seitenleiste",
+        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen.",
+        "disabledHint": "Die Seitenleiste kann nicht deaktiviert werden, wenn die Menüleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "trayIcon": {
         "title": "Taskleistensymbol",
-        "titleDarwin": "Menüleisten-Extra",
-        "description": "Symbol in der Systemleiste anzeigen. Wenn aktiviert, wird die App beim Schließen in die Taskleiste minimiert anstatt beendet.",
-        "descriptionDarwin": "App-Symbol in der Menüleiste anzeigen."
+        "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
       },
       "availableBrowsers": {
         "title": "Standard-Browser",
-        "description": "Wählen Sie, welcher Browser externe Links aus dieser App öffnen soll.",
+        "description": "Wählen Sie aus, welcher Browser externe Links aus dieser App öffnen soll. Systemstandard verwendet die Einstellungen Ihres Betriebssystems.",
         "systemDefault": "Systemstandard",
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
-      "telephony": {
-        "title": "Telefonie",
-        "description": "Rocket.Chat kann Tastenkombinationen für Telefonanrufe sowie tel:- oder callto:-Links verarbeiten. Deaktivieren Sie diese Option, um die Tastenkombination zu deaktivieren, Klicks auf Telefonlinks zu ignorieren und die folgenden Einstellungen auszublenden."
-      },
-      "telephonyServer": {
-        "title": "Telefonie-Server",
-        "description": "Wählen Sie aus, welcher Workspace geöffnet wird, wenn Sie die Telefonie-Tastenkombination oder einen tel:- bzw. callto:-Link verwenden.",
-        "auto": "Jedes Mal fragen"
-      },
-      "telephonyShortcut": {
-        "title": "Globale Telefonie-Tastenkombination",
-        "description": "Verwenden Sie diese Tastenkombination von überall aus, um Rocket.Chat in den Vordergrund zu bringen und das Telefonie-Wählfeld zu öffnen. Wenn Ihre Zwischenablage Text enthält, der wie eine Telefonnummer aussieht, füllt Rocket.Chat ihn vorab aus.",
-        "placeholder": "Nicht festgelegt - zum Aufzeichnen auf Speichern klicken",
-        "capturePlaceholder": "Tasten drücken...",
-        "save": "Speichern",
-        "clear": "Löschen",
-        "registered": "Tastenkombination registriert",
-        "reservedByApp": "{{accelerator}} wird bereits von Rocket.Chat verwendet. Wählen Sie eine andere Kombination.",
-        "reservedByOS": "{{accelerator}} ist von Ihrem Betriebssystem reserviert. Wählen Sie eine andere Kombination."
-      },
       "clearPermittedScreenCaptureServers": {
-        "title": "Bildschirmaufnahme-Berechtigungen löschen",
-        "description": "Berechtigungen löschen, auch wenn zuvor „Nicht mehr fragen“ für Anrufe ausgewählt wurde."
-      },
-      "allowScreenCaptureOnVideoCalls": {
-        "title": "Bildschirmaufnahme bei Videoanrufen erlauben",
-        "description": "Bildschirmaufnahme bei Videoanrufen erlauben. Bei jedem Videoanruf wird um Erlaubnis gefragt."
+        "title": "Erlaubte Bildschirmaufnahmeserver löschen",
+        "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"
       },
       "ntlmCredentials": {
         "title": "NTLM-Anmeldeinformationen",
-        "description": "Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Workspace erlauben.",
-        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Server abzugleichen."
+        "description": "Erlauben Sie die Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Server.",
+        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Domänen abzugleichen."
       },
       "videoCallWindowPersistence": {
-        "title": "Videoanruf-Fensterposition beibehalten",
-        "description": "Position und Größe des Videoanruf-Fensters zwischen Sitzungen speichern."
+        "title": "Videoanruf-Fensterposition speichern",
+        "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
       },
       "transparentWindow": {
-        "title": "Transparenter Fenstereffekt",
-        "description": "Natives Vibrancy-Effekt für das App-Fenster aktivieren.",
-        "hint": "Erfordert App-Neustart."
+        "title": "Transparentes Fenstereffekt",
+        "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
       },
       "themeAppearance": {
         "title": "Design",
-        "description": "Farbschema der App.",
+        "description": "Wählen Sie das Farbschema für die Anwendung.",
         "auto": "System folgen",
         "light": "Hell",
         "dark": "Dunkel"
-      },
-      "telephonyServer": {
-        "title": "Telefonie-Workspace",
-        "description": "Wählen Sie, welcher Workspace eingehende Telefonanrufe (tel:- und callto:-Links) übernimmt.",
-        "auto": "Automatisch (jedes Mal fragen)"
-      },
-      "telephonyShortcut": {
-        "title": "Globale Telefonie-Tastenkombination",
-        "description": "Verwenden Sie diese Tastenkombination von überall aus, um Rocket.Chat in den Vordergrund zu bringen und das Telefonie-Wählfeld zu öffnen. Wenn Ihre Zwischenablage Text enthält, der wie eine Telefonnummer aussieht, füllt Rocket.Chat ihn vorab aus.",
-        "placeholder": "Nicht festgelegt - zum Aufzeichnen auf Speichern klicken",
-        "capturePlaceholder": "Tasten drücken...",
-        "save": "Speichern",
-        "clear": "Löschen",
-        "registered": "Tastenkombination registriert",
-        "reservedByApp": "{{accelerator}} wird bereits von Rocket.Chat verwendet. Wählen Sie eine andere Kombination.",
-        "reservedByOS": "{{accelerator}} ist von Ihrem Betriebssystem reserviert. Wählen Sie eine andere Kombination."
-      },
-      "allowScreenCaptureOnVideoCalls": {
-        "title": "Bildschirmaufnahme bei Videoanrufen erlauben",
-        "description": "Bildschirmaufnahme bei Videoanrufen erlauben. Bei jedem Videoanruf wird eine Berechtigungsanfrage angezeigt."
-      },
-      "outlookCalendarSyncInterval": {
-        "title": "Outlook-Kalender-Synchronisierungsintervall",
-        "description": "Häufigkeit der Aktualisierungsprüfungen für Kalenderereignisse in Minuten (1–60)."
-      },
-      "verboseOutlookLogging": {
-        "title": "Ausführliche Outlook-Kalender-Protokollierung",
-        "description": "Detaillierte Exchange/NTLM-Debug-Protokolle zur Fehlersuche bei Problemen mit der Outlook-Kalender-Integration aktivieren."
-      },
-      "detailedEventsLogging": {
-        "title": "Detaillierte Ereignisprotokollierung",
-        "description": "Vollständige Ereignisdaten protokollieren, die zwischen Outlook und Rocket.Chat während der Kalendersynchronisierung ausgetauscht werden. Hilfreich bei der Diagnose von Synchronisierungsproblemen."
-      },
-      "debugLogging": {
-        "title": "Ausführliche Protokollierung",
-        "description": "Schreibt alle Konsolenausgaben in die Protokolldatei. Wenn deaktiviert, werden nur Fehler und wichtige Meldungen gespeichert, was die Protokolle kleiner und übersichtlicher hält."
-      },
-      "e2ePdfPreviewSizeLimit": {
-        "title": "PDF-Vorschau-Größenlimit in verschlüsselten Räumen (MB)",
-        "description": "Verschlüsselte Dateien werden für Vorschauen in den Arbeitsspeicher geladen. Dateien, die größer als dieses Limit sind, werden direkt heruntergeladen."
       }
     }
   },
@@ -434,13 +312,12 @@
     "disableGpu": "GPU deaktivieren",
     "documentation": "Dokumentation",
     "downloads": "Downloads",
-    "settings": "App-Einstellungen",
+    "settings": "Einstellungen",
     "editMenu": "&Bearbeiten",
     "fileMenu": "&Datei",
     "forward": "&Nach vorne",
     "helpMenu": "&Hilfe",
     "hide": "Ausblenden {{- appName}}",
-    "hideOthers": "Andere ausblenden",
     "learnMore": "Mehr erfahren",
     "minimize": "Minimieren",
     "openDevTools": "&DevTools öffnen",
@@ -449,7 +326,6 @@
     "quit": "{{- appName}} &beenden",
     "redo": "Wieder&holen",
     "reload": "&Neu laden",
-    "reloadClearingCache": "Neu laden erzwingen",
     "reportIssue": "Problem melden",
     "resetAppData": "Appdaten löschen",
     "resetZoom": "Originalgröße",
@@ -461,11 +337,6 @@
     "showServerList": "Server liste",
     "showTrayIcon": "Symbole in menüleiste",
     "toggleDevTools": "&DevTools ein-/ausblenden",
-    "openConfigFolder": "&Konfigurationsordner öffnen",
-    "openLogViewer": "&Loganzeige öffnen",
-    "videoCallDevTools": "Videoanruf-&DevTools öffnen",
-    "videoCallTools": "Videoanruf-Tools",
-    "videoCallDevToolsAutoOpen": "DevTools automatisch öffnen",
     "undo": "Wider&rufen",
     "unhide": "Zeige alles",
     "viewMenu": "Darstellung",
@@ -493,11 +364,6 @@
       "reload": "Videoanruf neu laden"
     }
   },
-  "unsupportedServer": {
-    "title": "{{instanceDomain}} verwendet eine nicht unterstützte Version von Rocket.Chat",
-    "announcement": "Ein Administrator muss den Workspace auf eine unterstützte Version aktualisieren, damit der Zugriff über mobile und Desktop-Apps wieder aktiviert wird.",
-    "moreInformation": "Mehr erfahren"
-  },
   "selfxss": {
     "title": "Halt!",
     "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren oder um das Konto einer anderen Person zu \"hacken\", ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
@@ -506,24 +372,13 @@
   "sidebar": {
     "addNewServer": "Neuen Server hinzufügen",
     "downloads": "Downloads",
-    "settings": "App-Einstellungen",
+    "settings": "Einstellungen",
     "item": {
       "reload": "Server neu laden",
       "remove": "Server entfernen",
       "openDevTools": "DevTools öffnen",
       "clearCache": "Cache leeren",
-      "clearStorageData": "Speicherdaten löschen",
-      "copyCurrentUrl": "Aktuelle URL kopieren",
-      "reloadClearingCache": "Neu laden erzwingen",
-      "serverInfo": "Serverinformationen",
-      "supportedVersionsInfo": "Informationen zu unterstützten Versionen"
-    },
-    "tooltips": {
-      "unreadMessage": "{{- count}} ungelesene Nachricht",
-      "unreadMessages": "{{- count}} ungelesene Nachrichten",
-      "userNotLoggedIn": "Nicht angemeldet",
-      "addWorkspace": "Workspace hinzufügen ({{shortcut}}+N)",
-      "settingsMenu": "App anpassen und steuern"
+      "clearStorageData": "Speicherdaten löschen"
     }
   },
   "touchBar": {
@@ -558,7 +413,6 @@
     "permissionDenied": "Bildschirmaufnahme-Berechtigung verweigert",
     "permissionRequired": "Die Bildschirmaufnahme-Berechtigung ist erforderlich, um Ihren Bildschirm zu teilen.",
     "permissionInstructions": "Bitte aktivieren Sie diese in den Systemeinstellungen und versuchen Sie es erneut.",
-    "openSystemPreferences": "Systemeinstellungen öffnen",
     "title": "Bildschirm teilen",
     "entireScreen": "Ihr gesamter Bildschirm",
     "applicationWindow": "Anwendungsfenster",
@@ -566,134 +420,6 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
-  },
-  "logging": {
-    "context": {
-      "processTypes": {
-        "main": "Hauptprozess",
-        "renderer": "Renderer-Prozess",
-        "preload": "Preload-Prozess",
-        "rendererRoot": "Hauptfenster",
-        "webview": "Server-Webview",
-        "videoCall": "Videoanruf-Fenster"
-      },
-      "components": {
-        "auth": "Authentifizierung",
-        "connection": "Verbindung",
-        "notification": "Benachrichtigung",
-        "outlook": "Outlook-Kalender",
-        "videoCall": "Videoanruf",
-        "download": "Download",
-        "spellCheck": "Rechtschreibprüfung",
-        "general": "Allgemein"
-      },
-      "serverInfo": {
-        "anonymous": "Anonymer Server",
-        "local": "Lokaler Prozess",
-        "unknown": "Unbekannter Server"
-      }
-    },
-    "status": {
-      "moduleNotAvailable": "Speichermodul für Serverkontext-Zuordnung nicht verfügbar",
-      "importFailed": "Import des Speichers fehlgeschlagen"
-    },
-    "errors": {
-      "configurationFailed": "electron-log konnte nicht konfiguriert werden",
-      "storeUnavailable": "Speichermodul für Serverkontext-Zuordnung nicht verfügbar",
-      "webContentsLoggingFailed": "Logging für webContents konnte nicht eingerichtet werden",
-      "rendererLogFailed": "Logging aus dem Renderer fehlgeschlagen",
-      "consoleOverrideFailed": "Konsolenmethoden konnten nicht überschrieben werden"
-    },
-    "messages": {
-      "serverContext": "Server {{- serverNumber}}",
-      "logContext": "Logkontext: {{- context}}"
-    }
-  },
-  "logViewer": {
-    "title": "Loganzeige",
-    "aria": {
-      "logIcon": "Symbol der Loganzeige",
-      "entriesCount": "{{count}} Logeinträge angezeigt"
-    },
-    "fileInfo": {
-      "custom": "Benutzerdefiniert",
-      "entries": "{{count}} Einträge",
-      "entriesOfTotal": "{{count}} von {{total}} Einträgen",
-      "noEntries": "Keine Einträge"
-    },
-    "buttons": {
-      "openLogFile": "Logdatei öffnen",
-      "defaultLog": "Standard-Log",
-      "refresh": "Aktualisieren",
-      "autoRefresh": "Automatisch aktualisieren",
-      "stopAutoRefresh": "Automatische Aktualisierung stoppen",
-      "copy": "Kopieren",
-      "save": "Speichern",
-      "clear": "Löschen",
-      "close": "Schließen",
-      "clearFilters": "Filter löschen"
-    },
-    "controls": {
-      "showContext": "Kontext anzeigen",
-      "showServer": "Server anzeigen",
-      "autoScrollToTop": "Automatisch nach oben scrollen"
-    },
-    "placeholders": {
-      "loadAmount": "Zu ladende Anzahl",
-      "searchLogs": "Logs suchen...",
-      "level": "Stufe",
-      "context": "Kontext",
-      "exchangeDebug": "Exchange-Debug-Filter"
-    },
-    "filters": {
-      "entryLimit": {
-        "last100": "Letzte 100 Einträge",
-        "last500": "Letzte 500 Einträge",
-        "last1000": "Letzte 1000 Einträge",
-        "last5000": "Letzte 5000 Einträge",
-        "all": "Alle Einträge"
-      },
-      "level": {
-        "all": "Alle Stufen",
-        "debug": "Debug",
-        "info": "Info",
-        "warn": "Warnung",
-        "error": "Fehler",
-        "verbose": "Ausführlich"
-      },
-      "context": {
-        "all": "Alle Kontexte",
-        "main": "Hauptprozess",
-        "renderer": "Renderer",
-        "webview": "Webview",
-        "videocall": "Videoanruf",
-        "outlook": "Outlook-Kalender",
-        "auth": "Authentifizierung",
-        "updates": "Updates",
-        "notifications": "Benachrichtigungen",
-        "servers": "Server",
-        "ipc": "IPC-Kommunikation"
-      },
-      "server": {
-        "all": "Alle Server",
-        "label": "Server"
-      },
-      "exchangeDebug": {
-        "all": "Alle Logs",
-        "success": "Nur Erfolge",
-        "failure": "Nur Fehler",
-        "ntlmFlow": "NTLM-Authentifizierung",
-        "exchangeComm": "Exchange-Kommunikation",
-        "sslCerts": "SSL-/Zertifikatsprobleme",
-        "networkErrors": "Netzwerkprobleme",
-        "successFactors": "Erfolgsfaktoren",
-        "outlookCalendar": "Outlook-Kalender"
-      }
-    },
-    "messages": {
-      "noLogsFound": "Keine Logs gefunden",
-      "adjustFilters": "Passen Sie die Filter an oder aktualisieren Sie die Logs"
-    }
   },
   "serverInfo": {
     "title": "Serverinformationen",
@@ -719,53 +445,6 @@
     "expiration": {
       "label": "Ablauf:",
       "expiresOn": "Läuft ab am {{date}}"
-    }
-  },
-  "telephony": {
-    "defaultHandlerPrompt": {
-      "title": "Rocket.Chat öffnet jetzt Telefonlinks",
-      "body": "tel:- und callto:-Links aus Ihrem Browser oder anderen Apps können jetzt Rocket.Chat öffnen.",
-      "bodyWindows": "Windows benötigt noch Ihre Bestätigung. Wählen Sie auf der Seite Standard-Apps jeden Linktyp (tel und callto) aus und wählen Sie Rocket.Chat. Dies ist einmal pro Linktyp erforderlich, und Windows verhindert, dass Apps dies automatisch für Sie festlegen.",
-      "bodyLinux": "Andere Apps können Telefonlinks auf Ihrem System weiterhin für sich beanspruchen. Öffnen Sie die Standardanwendungen und legen Sie Rocket.Chat für tel: und callto: fest, um die Einrichtung abzuschließen.",
-      "openSettingsWindows": "Rocket.Chat-Standard-Apps öffnen",
-      "openSettingsLinux": "Standardanwendungen öffnen",
-      "dismiss": "Verstanden"
-    },
-    "diagnostics": {
-      "title": "Diagnose für Telefonlink-Handler",
-      "subtitle": "Prüfen Sie, ob Ihr System tel:- und callto:-Links an Rocket.Chat weiterleitet.",
-      "refresh": "Aktualisieren",
-      "copy": "Diagnose kopieren",
-      "copied": "Kopiert",
-      "openSettingsAction": "Einstellungen öffnen",
-      "platform": "Plattform",
-      "lastChecked": "Zuletzt geprüft",
-      "summary": {
-        "checking": "Wird geprüft...",
-        "issues_one": "{{count}} Problem",
-        "issues_other": "{{count}} Probleme",
-        "warnings_one": "{{count}} Warnung",
-        "warnings_other": "{{count}} Warnungen",
-        "healthy": "Alle Prüfungen bestanden"
-      },
-      "status": {
-        "pass": "Bestanden",
-        "fail": "Fehlgeschlagen",
-        "unknown": "Unbekannt"
-      },
-      "checks": {
-        "isDefault.tel": "Systemstandard für Click-to-Call (tel:): Rocket.Chat",
-        "isDefault.callto": "Systemstandard für Click-to-Conference (callto:): Rocket.Chat",
-        "windows.registeredApp": "Rocket.Chat ist in den registrierten Windows-Anwendungen aufgeführt",
-        "windows.capabilities.tel": "Windows Capabilities ordnen Click-to-Call (tel:) Rocket.Chat zu",
-        "windows.capabilities.callto": "Windows Capabilities ordnen Click-to-Conference (callto:) Rocket.Chat zu",
-        "windows.progid.tel": "Windows-ProgID für Click-to-Call (tel:) startet Rocket.Chat",
-        "windows.progid.callto": "Windows-ProgID für Click-to-Conference (callto:) startet Rocket.Chat",
-        "darwin.handler.tel": "macOS bestätigt, dass Rocket.Chat Click-to-Call (tel:) verarbeitet",
-        "darwin.handler.callto": "macOS bestätigt, dass Rocket.Chat Click-to-Conference (callto:) verarbeitet",
-        "linux.xdg.tel": "Linux xdg-mime zeigt für Click-to-Call (tel:) auf Rocket.Chat",
-        "linux.xdg.callto": "Linux xdg-mime zeigt für Click-to-Conference (callto:) auf Rocket.Chat"
-      }
     }
   }
 }

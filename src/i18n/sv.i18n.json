@@ -164,11 +164,6 @@
     },
     "supportedVersion": {
       "title": "Versionen av arbetsytan stöds inte"
-    },
-    "telephonySelectServer": {
-      "title": "Välj server",
-      "message": "Vilken server ska hantera detta samtal?",
-      "rememberChoice": "Kom ihåg detta val"
     }
   },
   "documentViewer": {
@@ -239,142 +234,88 @@
     }
   },
   "settings": {
-    "title": "Appinställningar",
+    "title": "Inställningar",
     "general": "Allmänt",
     "certificates": "Certifikat",
-    "sections": {
-      "appUi": "App-gränssnitt",
-      "systemUi": "Systemgränssnitt",
-      "systemBehavior": "Systembeteende",
-      "calling": "Samtal",
-      "other": "Övrigt & tekniskt",
-      "logging": "Loggning"
-    },
     "options": {
       "report": {
-        "title": "Rapportera fel till Rocket.Chat",
-        "description": "Rapportera fel anonymt till appens utvecklare. Delad information inkluderar appens versionsnummer, operativsystemstyp, arbetsytans URL, enhetsspråk och feltyp. Inget innehåll eller användarnamn delas.",
-        "masDescription": "Detta alternativ är inaktiverat när det installeras från Mac App Store. Fel rapporteras via Mac App Stores felrapporteringsprocess."
+        "title": "Rapportera fel till utvecklare",
+        "description": "Rapportera fel anonymt till utvecklarna. Delad information inkluderar appens versionsnummer, typ av operativsystem, server-URL, enhetsspråk och feltyp. Inget innehåll eller användarnamn delas.",
+        "masDescription": "Detta alternativ är inaktiverat när det installeras från Mac App Store, felen kommer att rapporteras via Mac App Stores felrapporteringsprocess."
       },
       "flashFrame": {
-        "title": "Blinka fönster",
-        "titleDarwin": "Studsa dockikon",
-        "description": "Blinkar fönstret när ett nytt meddelande tas emot.",
+        "title": "Aktivera Flash Frame",
+        "titleDarwin": "Toggle Dock Bounce vid varning",
+        "description": "Blinkar fönstret för att dra till sig användarens uppmärksamhet.",
         "onLinux": "Vissa Linux-distributioner har inte stöd för den här funktionen.",
-        "descriptionDarwin": "Dockikonen studsar när ett nytt meddelande tas emot."
+        "descriptionDarwin": "Appikonen studsar i dockan för att dra till sig användarens uppmärksamhet."
       },
       "hardwareAcceleration": {
         "title": "Hårdvaruacceleration",
-        "description": "Förbättrar visuell rendering och prestanda. Inaktivera om du upplever grafiska fel eller instabilitet.",
-        "hint": "Laddar om appen vid ändring."
+        "description": "Aktiverar användning av hårdvaruacceleration när sådan finns tillgänglig. Programmet laddas om vid ändring."
       },
       "videoCallScreenCaptureFallback": {
-        "title": "Reservläge för skärmdumpning vid videosamtal",
-        "description": "Stänger av Windows Graphics Capture så att skärmdelning fungerar i fjärrskrivbordssessioner.",
-        "hint": "Appen startas om när du ändrar valet.",
-        "forcedDescription": "Redan aktiverat eftersom appen upptäckte en fjärrskrivbordssession. Vippbrytaren anger beteendet vid kommande lokala starter."
+        "title": "Reservläge för videosamtal",
+        "description": "Stänger av Windows Graphics Capture så att delning fungerar i RDP-sessioner. Appen startas om när du ändrar valet.",
+        "forcedDescription": "Redan aktiverat eftersom appen upptäckte en RDP-session. Vippbrytaren anger beteendet vid kommande lokala starter."
       },
       "internalVideoChatWindow": {
-        "title": "Videosamtal i appen",
-        "description": "Öppna videosamtal i appfönstret i stället för i webbläsaren. Google Meet och Jitsi-samtal kan bara öppnas i webbläsaren.",
-        "masDescription": "Detta alternativ är inaktiverat när det installeras från Mac App Store. Av säkerhetsskäl öppnas videosamtal alltid i webbläsaren som standard."
+        "title": "Öppna videochatt i programfönstret",
+        "description": "Om den är aktiverad öppnas videochatten i programmets fönster i stället för i standardwebbläsaren. För <strong>Google Meet</strong> och <strong>Jitsi</strong> stöds dock inte skärminspelning i Electron-applikationer, så de kommer alltid att öppnas i webbläsaren oavsett denna inställning.",
+        "masDescription": "Detta alternativ är inaktiverat när det installeras från Mac App Store. Av säkerhetsskäl öppnas Video Chat alltid i webbläsaren som standard."
       },
       "minimizeOnClose": {
         "title": "Minimera vid stängning",
-        "description": "Minimera och avsluta inte appen vid stängning.",
-        "disabledHint": "Facket-ikonen måste vara inaktiverad."
+        "description": "När appen stängs kommer den att minimeras, annars kommer applikationen avslutas. Tray Icon måste inaktiveras för att detta ska gälla."
       },
       "menubar": {
         "title": "Menyfält",
         "description": "Visa menyfältet högst upp i fönstret.",
-        "disabledHint": "Kan inte inaktivera menyfältet när arbetsytefältet är inaktiverat. Appinställningar skulle bli otillgängliga."
+        "disabledHint": "Kan inte inaktivera menyfältet när sidofältet är inaktiverat. Inställningar skulle bli otillgängliga."
       },
       "sidebar": {
-        "title": "Arbetsytefält",
-        "description": "Visa arbetsytelistan med knappar för nedladdningar och inställningar.",
-        "disabledHint": "Kan inte inaktivera arbetsytefältet när menyfältet är inaktiverat. Appinställningar skulle bli otillgängliga."
+        "title": "Sidofält",
+        "description": "Visa sidofältet till vänster i fönstret med serverlistan, nedladdningar och inställningar.",
+        "disabledHint": "Kan inte inaktivera sidofältet när menyfältet är inaktiverat. Inställningar skulle bli otillgängliga."
       },
       "trayIcon": {
-        "title": "Facket-ikon",
-        "titleDarwin": "Menyradens extra ikon",
-        "description": "Visa ikon i systemfältet. I stället för att avslutas döljs appen i facket vid stängning när aktiverad.",
-        "descriptionDarwin": "Visa appikonen i menyraden."
+        "title": "Ikon för brickan",
+        "description": "Visa ikonen i systemfältet. Om ikonen är aktiv kommer appen att döljas i facket när den stängs. Annars avslutas programmet."
       },
       "availableBrowsers": {
         "title": "Standardwebbläsare",
-        "description": "Välj vilken webbläsare som ska öppna externa länkar.",
+        "description": "Välj vilken webbläsare som ska öppna externa länkar från den här appen. Systemstandard använder inställningarna för ditt operativsystem.",
         "systemDefault": "Systemstandard",
         "loading": "Laddar webbläsare...",
         "current": "Använder för närvarande:"
       },
-      "telephonyServer": {
-        "title": "Telefoniserver",
-        "description": "Välj vilken arbetsyta som öppnas när du använder telefonigenvägen eller en tel:- eller callto:-länk.",
-        "auto": "Automatiskt (fråga varje gång)"
-      },
-      "telephonyShortcut": {
-        "title": "Global telefonigenväg",
-        "description": "Använd den här genvägen var som helst för att ta Rocket.Chat till förgrunden och öppna telefonins knappsats. Om urklippet innehåller text som ser ut som ett telefonnummer fyller Rocket.Chat i den i förväg.",
-        "placeholder": "CommandOrControl+Shift+D",
-        "capturePlaceholder": "Tryck på tangenter...",
-        "save": "Spara",
-        "clear": "Rensa",
-        "registered": "Genväg registrerad",
-        "reservedAccelerator": "{{accelerator}} är reserverad av Rocket.Chat eller ditt operativsystem."
-      },
       "clearPermittedScreenCaptureServers": {
         "title": "Rensa behörigheter för skärmdumpning",
-        "description": "Rensa behörigheter även om “fråga inte igen” valdes tidigare vid samtal."
+        "description": "Ta bort skärmdumpstillstånden som valts för att inte fråga igen vid videosamtal."
       },
       "allowScreenCaptureOnVideoCalls": {
-        "title": "Tillåt skärmdumpning vid videosamtal",
-        "description": "Tillåt skärmdumpning vid videosamtal. Förfrågan om tillstånd ges vid varje videosamtal."
+        "title": "Tillåt skärmdump under videosamtal",
+        "description": "Tillåt skärmdump vid videosamtal. Förfrågan om tillstånd kommer vid varje videosamtal."
       },
       "ntlmCredentials": {
         "title": "NTLM-autentiseringsuppgifter",
-        "description": "Tillåt att NTLM-autentiseringsuppgifter används vid anslutning till en arbetsyta.",
-        "domains": "Domäner som kommer använda autentiseringsuppgifterna. Separerade med kommatecken. Använd * för att matcha alla servrar."
+        "description": "Tillåt att NTLM-autentiseringsuppgifter används vid anslutning till en server.",
+        "domains": "Domäner som kommer använda autentiseringsuppgifterna. Separerade med kommatecken. Använd * för att matcha alla domäner."
       },
       "videoCallWindowPersistence": {
-        "title": "Behåll videosamtalsfönstrets position",
-        "description": "Kom ihåg position och storlek för videosamtalsfönstret mellan sessioner."
+        "title": "Kom ihåg fönstrets position för videosamtal",
+        "description": "Spara och återställ position och storlek för videosamtalsfönster mellan sessioner"
       },
       "transparentWindow": {
         "title": "Transparent fönstereffekt",
-        "description": "Aktivera inbyggd vibranseffekt för appfönstret.",
-        "hint": "Kräver omstart av appen."
+        "description": "Aktivera inbyggd vibrans/transparenseffekt för fönstret. Kräver omstart för att tillämpas."
       },
       "themeAppearance": {
         "title": "Tema",
-        "description": "Appens färgtema.",
+        "description": "Välj färgtemat för applikationen.",
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
-      },
-      "telephonyServer": {
-        "title": "Telefonarbetsyta",
-        "description": "Välj vilken arbetsyta som hanterar inkommande telefonsamtal (tel:- och callto:-länkar).",
-        "auto": "Automatisk (fråga varje gång)"
-      },
-      "outlookCalendarSyncInterval": {
-        "title": "Synkroniseringsintervall för Outlook-kalender",
-        "description": "Hur ofta kalender­händelser kontrolleras efter uppdateringar, angivet i minuter (1–60)."
-      },
-      "verboseOutlookLogging": {
-        "title": "Detaljerad loggning för Outlook-kalender",
-        "description": "Aktivera detaljerade Exchange/NTLM-felsökningsloggar för att felsöka problem med Outlook-kalenderintegration."
-      },
-      "detailedEventsLogging": {
-        "title": "Detaljerad händelseloggning",
-        "description": "Logga fullständig händelsedata som utbyts mellan Outlook och Rocket.Chat under kalendersynkronisering. Användbart för att diagnostisera synkroniseringsproblem."
-      },
-      "debugLogging": {
-        "title": "Utförlig loggning",
-        "description": "Skriver all konsolutdata till loggfilen. När inaktiverat sparas endast fel och viktiga meddelanden, vilket håller loggarna mindre och mer fokuserade."
-      },
-      "e2ePdfPreviewSizeLimit": {
-        "title": "Storleksgräns för PDF-förhandsgranskning i krypterade rum (MB)",
-        "description": "Krypterade filer läses in i minnet för förhandsgranskning. Filer som är större än denna gräns laddas ned direkt."
       }
     }
   },
@@ -403,7 +344,7 @@
     "disableGpu": "Avaktivera GPU",
     "documentation": "Dokumentation",
     "downloads": "Nedladdningar",
-    "settings": "Appinställningar",
+    "settings": "Inställningar",
     "editMenu": "&Editera",
     "fileMenu": "&Fil",
     "forward": "&Framåt",
@@ -474,7 +415,7 @@
   "sidebar": {
     "addNewServer": "Lägg till ny server",
     "downloads": "Nedladdningar",
-    "settings": "Appinställningar",
+    "settings": "Inställningar",
     "menuTitle": "Anpassa och kontrollera appen",
     "item": {
       "reload": "Ladda om",

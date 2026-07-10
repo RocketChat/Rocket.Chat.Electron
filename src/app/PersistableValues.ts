@@ -118,9 +118,13 @@ type PersistableValues_4_15_0 = PersistableValues_4_14_0 & {
   e2ePdfPreviewSizeLimit: number;
 };
 
+type PersistableValues_4_16_0 = PersistableValues_4_15_0 & {
+  navigationLayout: 'tabs' | 'sidebar';
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_15_0,
-  keyof PersistableValues_4_15_0
+  PersistableValues_4_16_0,
+  keyof PersistableValues_4_16_0
 >;
 
 export const migrations = {
@@ -232,5 +236,10 @@ export const migrations = {
   '>=4.15.0': (before: PersistableValues_4_14_0): PersistableValues_4_15_0 => ({
     ...before,
     e2ePdfPreviewSizeLimit: DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB,
+  }),
+  '>=4.16.0': (before: PersistableValues_4_15_0): PersistableValues_4_16_0 => ({
+    ...before,
+    navigationLayout:
+      (before as Partial<PersistableValues_4_16_0>).navigationLayout ?? 'tabs',
   }),
 };

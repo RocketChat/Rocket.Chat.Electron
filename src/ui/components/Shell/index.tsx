@@ -17,6 +17,10 @@ import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
+import { TabBar } from '../TabBar';
+import { MeatballMenuButton } from '../TabBar/MeatballMenuButton';
+import { WindowControls } from '../TabBar/WindowControls';
+import { WindowsTitleBar } from '../TabBar/WindowsTitleBar';
 import { TelephonyDefaultHandlerPromptModal } from '../TelephonyDefaultHandlerPromptModal';
 import { TelephonyServerSelectModal } from '../TelephonyServerSelectModal';
 import { TopBar } from '../TopBar';
@@ -34,6 +38,9 @@ export const Shell = () => {
   );
   const isTransparentWindowEnabled = useSelector(
     ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  );
+  const navigationLayout = useSelector(
+    ({ navigationLayout }: RootState) => navigationLayout
   );
 
   const [currentTheme, setCurrentTheme] = useState<Themes | undefined>(
@@ -71,7 +78,9 @@ export const Shell = () => {
         // tagId='sidebar-palette'
       />
       <GlobalStyles isTransparentWindowEnabled={isTransparentWindowEnabled} />
-      {process.platform === 'darwin' && <WindowDragBar />}
+      {navigationLayout === 'sidebar' && process.platform === 'darwin' && (
+        <WindowDragBar />
+      )}
       <Box
         bg='room'
         display='flex'
@@ -79,7 +88,21 @@ export const Shell = () => {
         height='100vh'
         flexDirection='column'
       >
-        {process.platform === 'darwin' && <TopBar />}
+        {navigationLayout === 'tabs' && process.platform === 'win32' && (
+          <TabBar
+            leadingSlot={<MeatballMenuButton />}
+            trailingSlot={<WindowControls />}
+          />
+        )}
+        {navigationLayout === 'tabs' && process.platform !== 'win32' && (
+          <TabBar />
+        )}
+        {navigationLayout === 'sidebar' && process.platform === 'darwin' && (
+          <TopBar />
+        )}
+        {navigationLayout === 'sidebar' && process.platform === 'win32' && (
+          <WindowsTitleBar />
+        )}
         <Box display='flex' flexDirection='row' flexGrow={1}>
           <SideBar />
           <Box

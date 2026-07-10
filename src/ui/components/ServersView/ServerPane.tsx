@@ -10,6 +10,7 @@ import {
   WEBVIEW_ATTACHED,
   WEBVIEW_READY,
 } from '../../actions';
+import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import DocumentViewer from './DocumentViewer';
 import ErrorView from './ErrorView';
 import UnsupportedServer from './UnsupportedServer';
@@ -26,6 +27,7 @@ type ServerPaneProps = {
   documentViewerOpenUrl: string | undefined;
   documentViewerFormat: string | undefined;
   userLoggedIn?: boolean;
+  isTabPanel?: boolean;
 };
 
 export const ServerPane = ({
@@ -38,6 +40,7 @@ export const ServerPane = ({
   documentViewerOpenUrl,
   documentViewerFormat,
   userLoggedIn,
+  isTabPanel = false,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -204,7 +207,15 @@ export const ServerPane = ({
   }, [serverUrl]);
 
   return (
-    <Wrapper isVisible={isSelected}>
+    <Wrapper
+      isVisible={isSelected}
+      {...(isTabPanel && {
+        'id': getServerPanelId(serverUrl),
+        'role': 'tabpanel',
+        'aria-labelledby': getServerTabId(serverUrl),
+        'hidden': !isSelected,
+      })}
+    >
       <StyledWebView
         ref={webviewRef}
         isFailed={isFailed}

@@ -54,7 +54,7 @@ const initialServerInfoModalState: ServerInfoModalState = {
   serverData: null,
 };
 
-const serverInfoModal: Reducer<ServerInfoModalState, DialogsAction> = (
+export const serverInfoModal: Reducer<ServerInfoModalState, DialogsAction> = (
   state = initialServerInfoModalState,
   action
 ) => {
@@ -73,7 +73,7 @@ const serverInfoModal: Reducer<ServerInfoModalState, DialogsAction> = (
   }
 };
 
-const telephonyServerSelect: Reducer<
+export const telephonyServerSelect: Reducer<
   TelephonyServerSelectState,
   DialogsAction
 > = (state = null, action) => {
@@ -93,7 +93,7 @@ const telephonyServerSelect: Reducer<
   }
 };
 
-const telephonyDefaultHandlerPrompt: Reducer<
+export const telephonyDefaultHandlerPrompt: Reducer<
   TelephonyDefaultHandlerPromptState,
   DialogsAction
 > = (state = null, action) => {

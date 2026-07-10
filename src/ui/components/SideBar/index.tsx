@@ -137,6 +137,7 @@ export const SideBar = () => {
               title={t('sidebar.tooltips.addWorkspace', {
                 shortcut: process.platform === 'darwin' ? '⌘' : '^',
               })}
+              aria-label={t('sidebar.tooltips.addWorkspace')}
             ></IconButton>
           )}
         </ButtonGroup>

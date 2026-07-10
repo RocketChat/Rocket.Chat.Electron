@@ -3,6 +3,7 @@ import process from 'process';
 
 import type {
   Event,
+  IpcMainEvent,
   WebContents,
   MediaAccessPermissionRequest,
 } from 'electron';
@@ -11,6 +12,11 @@ import { app, BrowserWindow, ipcMain, screen, webContents } from 'electron';
 import { packageJsonInformation } from '../app/main/app';
 import { fallbackLng } from '../i18n/common';
 import { handle } from '../ipc/main';
+import {
+  describeSenderForLog,
+  isTrustedSender,
+  registerWindowGetter,
+} from '../ipc/validateSender';
 import { isProtocolAllowed } from '../navigation/main';
 import { ScreenSharingRequestTracker } from '../screenSharing/ScreenSharingRequestTracker';
 import {
@@ -1038,9 +1044,19 @@ const openVideoCallWindow = async (
 };
 
 export const startVideoCallWindowHandler = (): void => {
+  registerWindowGetter('video-call', () => videoCallWindow?.webContents);
+
   // Sync IPC handler for provider name - used by jitsiBridge preload
   // to skip initialization for non-Jitsi providers without async delay
   ipcMain.on('video-call-window/get-provider-sync', (event) => {
+    if (!isTrustedSender(event.sender, ['video-call'])) {
+      console.warn(
+        '[ipc] video-call-window/get-provider-sync: rejected untrusted sender',
+        describeSenderForLog(event.sender)
+      );
+      event.returnValue = null;
+      return;
+    }
     event.returnValue = videoCallProviderName;
   });
 
@@ -1156,16 +1172,36 @@ export const startVideoCallWindowHandler = (): void => {
     // preload that called ipcRenderer.invoke here). The screenSharePicker renderer sends
     // the result via ipcRenderer.send → ipcMain; we relay it to the caller so that
     // jitsiBridge's ipcRenderer.on listener fires correctly.
-    ipcMain.once(
-      'video-call-window/screen-sharing-source-responded',
-      (_event, sourceId: string | null) => {
-        if (!callerWebContents.isDestroyed()) {
-          callerWebContents.send(
-            'video-call-window/screen-sharing-source-responded',
-            sourceId
-          );
-        }
+    //
+    // Use ipcMain.on + manual removeListener instead of ipcMain.once so that an
+    // untrusted sender firing the channel first does NOT consume the listener.
+    // With once(), a malicious renderer could remove the handler before the
+    // legitimate picker reply arrives, leaving the request permanently hung.
+    const pickerResponseHandler = (
+      responseEvent: IpcMainEvent,
+      sourceId: string | null
+    ) => {
+      if (!isTrustedSender(responseEvent.sender, ['video-call'])) {
+        console.warn(
+          '[ipc] video-call-window/screen-sharing-source-responded: rejected untrusted sender',
+          describeSenderForLog(responseEvent.sender)
+        );
+        return; // keep listening — wait for trusted sender
       }
+      ipcMain.removeListener(
+        'video-call-window/screen-sharing-source-responded',
+        pickerResponseHandler
+      );
+      if (!callerWebContents.isDestroyed()) {
+        callerWebContents.send(
+          'video-call-window/screen-sharing-source-responded',
+          sourceId
+        );
+      }
+    };
+    ipcMain.on(
+      'video-call-window/screen-sharing-source-responded',
+      pickerResponseHandler
     );
 
     return { success: true };

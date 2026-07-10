@@ -23,6 +23,7 @@ import {
 } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
 import { getPersistedValues } from '../../app/main/persistence';
+import { registerWindowGetter } from '../../ipc/validateSender';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import {
@@ -121,6 +122,8 @@ export const createRootWindow = (): void => {
         }
       : {}),
   });
+
+  registerWindowGetter('main-window', () => _rootWindow?.webContents ?? null);
 
   // Block navigation to smb:// protocol
   _rootWindow.webContents.on('will-navigate', (event, url) => {

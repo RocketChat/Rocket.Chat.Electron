@@ -9,6 +9,7 @@ import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
+import { registerWindowGetter } from '../ipc/validateSender';
 import { getHost } from '../logging/context';
 import { select } from '../store';
 import type { RootState } from '../store/rootReducer';
@@ -159,6 +160,8 @@ export const openLogViewerWindow = async (): Promise<void> => {
 };
 
 export const startLogViewerWindowHandler = (): void => {
+  registerWindowGetter('log-viewer', () => logViewerWindow?.webContents);
+
   handle('log-viewer-window/open-window', openLogViewerWindow);
 
   handle('log-viewer-window/close-requested', async () => {

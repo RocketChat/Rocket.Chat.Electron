@@ -148,7 +148,7 @@ describe('ScreenSharingRequestTracker', () => {
 
       jest.advanceTimersByTime(1000);
 
-      expect(firstCb).toHaveBeenCalledWith({ video: false });
+      expect(firstCb).toHaveBeenCalledWith(null);
       expect(secondSendOpenPicker).toHaveBeenCalledTimes(1);
       expect(secondCb).not.toHaveBeenCalled();
       expect(tracker.pending).toBe(true);
@@ -158,7 +158,7 @@ describe('ScreenSharingRequestTracker', () => {
       expect(secondCb).not.toHaveBeenCalled();
 
       jest.advanceTimersByTime(1);
-      expect(secondCb).toHaveBeenCalledWith({ video: false });
+      expect(secondCb).toHaveBeenCalledWith(null);
     });
 
     it('skips a queued request whose isStillValid returns false and starts the next one', async () => {
@@ -182,7 +182,7 @@ describe('ScreenSharingRequestTracker', () => {
       firstListener(fakeEvent, 'screen:0');
       await flushPromises();
 
-      expect(staleCb).toHaveBeenCalledWith({ video: false });
+      expect(staleCb).toHaveBeenCalledWith(null);
       expect(staleOnDone).toHaveBeenCalledTimes(1);
       expect(thirdSendOpenPicker).toHaveBeenCalledTimes(1);
       expect(thirdCb).not.toHaveBeenCalled();
@@ -214,6 +214,45 @@ describe('ScreenSharingRequestTracker', () => {
       handle.cancel();
       expect(cancelOnDone).toHaveBeenCalledTimes(1);
     });
+
+    it('queues a request that arrives while the active one is validating its source, and starts it once validation finishes', async () => {
+      let resolveSources: (
+        sources: Awaited<ReturnType<typeof desktopCapturer.getSources>>
+      ) => void;
+      getSourcesMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSources = resolve;
+          })
+      );
+
+      const tracker = new ScreenSharingRequestTracker(CHANNEL, LABEL);
+      const firstCb = jest.fn();
+      tracker.createRequest(firstCb, jest.fn());
+
+      const listener = getRegisteredListener();
+      listener(fakeEvent, 'screen:0');
+      await flushPromises();
+
+      expect(tracker.pending).toBe(true);
+      expect(firstCb).not.toHaveBeenCalled();
+
+      const secondCb = jest.fn();
+      const secondSendOpenPicker = jest.fn();
+      tracker.createRequest(secondCb, secondSendOpenPicker);
+
+      expect(secondSendOpenPicker).not.toHaveBeenCalled();
+      expect(secondCb).not.toHaveBeenCalled();
+      expect(onceMock).toHaveBeenCalledTimes(1);
+
+      resolveSources!([makeSource('screen:0')]);
+      await flushPromises();
+
+      expect(firstCb).toHaveBeenCalledWith({ video: makeSource('screen:0') });
+      expect(secondSendOpenPicker).toHaveBeenCalledTimes(1);
+      expect(secondCb).not.toHaveBeenCalled();
+      expect(tracker.pending).toBe(true);
+    });
   });
 
   describe('cancel', () => {
@@ -231,7 +270,7 @@ describe('ScreenSharingRequestTracker', () => {
 
       handle.cancel();
 
-      expect(firstCb).toHaveBeenCalledWith({ video: false });
+      expect(firstCb).toHaveBeenCalledWith(null);
       expect(firstOnDone).toHaveBeenCalledTimes(1);
       expect(secondSendOpenPicker).toHaveBeenCalledTimes(1);
       expect(secondCb).not.toHaveBeenCalled();
@@ -272,6 +311,37 @@ describe('ScreenSharingRequestTracker', () => {
 
       expect(cb).toHaveBeenCalledTimes(1);
     });
+
+    it('cancelling while source validation is in flight settles once with no video, and the resolved validation does not settle again', async () => {
+      let resolveSources: (
+        sources: Awaited<ReturnType<typeof desktopCapturer.getSources>>
+      ) => void;
+      getSourcesMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSources = resolve;
+          })
+      );
+
+      const tracker = new ScreenSharingRequestTracker(CHANNEL, LABEL);
+      const cb = jest.fn();
+      const handle = tracker.createRequest(cb, jest.fn());
+
+      const listener = getRegisteredListener();
+      listener(fakeEvent, 'screen:0');
+      await flushPromises();
+
+      expect(cb).not.toHaveBeenCalled();
+
+      handle.cancel();
+      expect(cb).toHaveBeenCalledTimes(1);
+      expect(cb).toHaveBeenCalledWith(null);
+
+      resolveSources!([makeSource('screen:0')]);
+      await flushPromises();
+
+      expect(cb).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('response listener', () => {
@@ -307,7 +377,7 @@ describe('ScreenSharingRequestTracker', () => {
       await flushPromises();
 
       expect(getSourcesMock).not.toHaveBeenCalled();
-      expect(cb).toHaveBeenCalledWith({ video: false });
+      expect(cb).toHaveBeenCalledWith(null);
       expect(tracker.pending).toBe(false);
     });
 
@@ -322,7 +392,7 @@ describe('ScreenSharingRequestTracker', () => {
       listener(fakeEvent, 'screen:gone');
       await flushPromises();
 
-      expect(cb).toHaveBeenCalledWith({ video: false });
+      expect(cb).toHaveBeenCalledWith(null);
       expect(tracker.pending).toBe(false);
     });
 
@@ -337,7 +407,7 @@ describe('ScreenSharingRequestTracker', () => {
       listener(fakeEvent, 'screen:0');
       await flushPromises();
 
-      expect(cb).toHaveBeenCalledWith({ video: false });
+      expect(cb).toHaveBeenCalledWith(null);
       expect(tracker.pending).toBe(false);
     });
 
@@ -349,13 +419,15 @@ describe('ScreenSharingRequestTracker', () => {
       tracker.createRequest(cb, jest.fn());
 
       const listener = getRegisteredListener();
-      // cleanup clears activeRequestId, so listener early-returns
+      // cleanup settles the active entry with no video and clears activeRequestId,
+      // so the stale listener call below early-returns without settling again
       tracker.cleanup();
+      expect(cb).toHaveBeenCalledTimes(1);
 
       listener(fakeEvent, 'screen:0');
       await flushPromises();
 
-      expect(cb).not.toHaveBeenCalled();
+      expect(cb).toHaveBeenCalledTimes(1);
       expect(getSourcesMock).not.toHaveBeenCalled();
     });
 
@@ -396,7 +468,7 @@ describe('ScreenSharingRequestTracker', () => {
 
       jest.advanceTimersByTime(1000);
 
-      expect(cb).toHaveBeenCalledWith({ video: false });
+      expect(cb).toHaveBeenCalledWith(null);
       expect(tracker.pending).toBe(false);
       expect(removeListenerMock).toHaveBeenCalledWith(
         CHANNEL,
@@ -420,10 +492,13 @@ describe('ScreenSharingRequestTracker', () => {
       const cb = jest.fn();
       tracker.createRequest(cb, jest.fn());
 
+      // cleanup() settles the active entry synchronously with no video
       tracker.cleanup();
+      expect(cb).toHaveBeenCalledTimes(1);
+
       jest.advanceTimersByTime(1000);
 
-      expect(cb).not.toHaveBeenCalled();
+      expect(cb).toHaveBeenCalledTimes(1);
     });
 
     it('does not double-resolve when the timeout fires after a response was handled', async () => {
@@ -454,7 +529,7 @@ describe('ScreenSharingRequestTracker', () => {
       expect(cb).not.toHaveBeenCalled();
 
       jest.advanceTimersByTime(1);
-      expect(cb).toHaveBeenCalledWith({ video: false });
+      expect(cb).toHaveBeenCalledWith(null);
     });
   });
 
@@ -519,8 +594,21 @@ describe('ScreenSharingRequestTracker', () => {
 
       tracker.cleanup();
 
-      expect(queuedCb).toHaveBeenCalledWith({ video: false });
+      expect(queuedCb).toHaveBeenCalledWith(null);
       expect(queuedOnDone).toHaveBeenCalledTimes(1);
+      expect(tracker.pending).toBe(false);
+    });
+
+    it('settles the active entry with no video and calls its onDone', () => {
+      const tracker = new ScreenSharingRequestTracker(CHANNEL, LABEL);
+      const cb = jest.fn();
+      const onDone = jest.fn();
+      tracker.createRequest(cb, jest.fn(), { onDone });
+
+      tracker.cleanup();
+
+      expect(cb).toHaveBeenCalledWith(null);
+      expect(onDone).toHaveBeenCalledTimes(1);
       expect(tracker.pending).toBe(false);
     });
   });
@@ -534,7 +622,7 @@ describe('ScreenSharingRequestTracker', () => {
 
       tracker.cancelAll();
 
-      expect(cb).toHaveBeenCalledWith({ video: false });
+      expect(cb).toHaveBeenCalledWith(null);
       expect(onDone).toHaveBeenCalledTimes(1);
       expect(tracker.pending).toBe(false);
     });
@@ -550,7 +638,7 @@ describe('ScreenSharingRequestTracker', () => {
 
       tracker.cancelAll();
 
-      expect(queuedCb).toHaveBeenCalledWith({ video: false });
+      expect(queuedCb).toHaveBeenCalledWith(null);
       expect(queuedOnDone).toHaveBeenCalledTimes(1);
     });
 

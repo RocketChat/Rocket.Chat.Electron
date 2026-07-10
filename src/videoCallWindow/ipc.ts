@@ -285,7 +285,7 @@ const createInternalPickerHandler =
       console.warn(
         'Screen sharing request rejected - video call window not available'
       );
-      cb({ video: false } as any);
+      cb(null);
       return;
     }
 
@@ -367,20 +367,24 @@ const setupWebviewHandlers = (webContents: WebContents) => {
                 originWebContents.hostWebContents?.id ===
                   videoCallWindow?.webContents.id;
               if (!fromCallWindow) {
+                // Electron's own callback type omits `null`, but its runtime
+                // accepts (and requires) it for a clean deny — see DisplayMediaCallback.
                 handleServerViewDisplayMediaRequest(
-                  cb,
+                  cb as DisplayMediaCallback,
                   popoutOrigin ?? undefined
                 );
                 return;
               }
             }
             currentProvider.handleDisplayMediaRequest(
-              cb,
+              cb as DisplayMediaCallback,
               popoutOrigin ?? undefined
             );
           } catch (error) {
             console.error('Error in screen picker handler:', error);
-            cb({ video: false } as any);
+            // See boundary-cast note above: Electron's runtime accepts null
+            // for a clean deny even though its callback type omits it.
+            (cb as DisplayMediaCallback)(null);
           }
         },
         { useSystemPicker: false } // Always false - portal handled via callback on Linux

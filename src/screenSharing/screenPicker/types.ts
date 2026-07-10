@@ -1,10 +1,16 @@
-import type { BrowserWindow } from 'electron';
+import type { BrowserWindow, DesktopCapturerSource } from 'electron';
 
 export type ScreenPickerType = 'internal' | 'portal';
 
-// DisplayMediaCallback matches Electron's setDisplayMediaRequestHandler callback
-// We use 'any' to match the existing code pattern that uses 'as any' casts for flexibility
-export type DisplayMediaCallback = (streams: any) => void;
+// Matches Electron's setDisplayMediaRequestHandler callback signature. To
+// deny, the callback must be invoked with `null` — Electron's own .d.ts types
+// the callback as `(streams: Streams) => void` without `null`, but its
+// runtime (DisplayMediaDeviceChosen) explicitly accepts and expects it for a
+// clean deny. Passing `{}` or `{ video: false }` when video was requested
+// throws a TypeError instead.
+export type DisplayMediaCallback = (
+  streams: { video?: DesktopCapturerSource } | null
+) => void;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface ScreenPickerProvider {

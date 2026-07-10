@@ -54,9 +54,16 @@ export class ScreenSharingRequestTracker {
       this.timeout = null;
     }
 
+    const active = this.activeEntry;
     this.activeRequestId = null;
     this.activeEntry = null;
     this.isPending = false;
+
+    if (active && !active.settled) {
+      active.settled = true;
+      active.cb(null);
+      active.options?.onDone?.();
+    }
 
     const drained = this.queue;
     this.queue = [];
@@ -65,7 +72,7 @@ export class ScreenSharingRequestTracker {
         return;
       }
       entry.settled = true;
-      entry.cb({ video: false } as any);
+      entry.cb(null);
       entry.options?.onDone?.();
     });
   }
@@ -93,6 +100,7 @@ export class ScreenSharingRequestTracker {
   }
 
   private finishActive(entry: QueueEntry): void {
+    this.markComplete();
     entry.settled = true;
     entry.options?.onDone?.();
     this.processNext();
@@ -102,7 +110,7 @@ export class ScreenSharingRequestTracker {
     this.removeListenerOnly();
     this.markComplete();
     entry.settled = true;
-    entry.cb({ video: false } as any);
+    entry.cb(null);
     entry.options?.onDone?.();
   }
 
@@ -114,7 +122,7 @@ export class ScreenSharingRequestTracker {
 
     if (entry.options?.isStillValid && !entry.options.isStillValid()) {
       entry.settled = true;
-      entry.cb({ video: false } as any);
+      entry.cb(null);
       entry.options?.onDone?.();
       this.processNext();
       return;
@@ -141,10 +149,9 @@ export class ScreenSharingRequestTracker {
       }
 
       this.removeListenerOnly();
-      this.markComplete();
 
       if (!sourceId) {
-        entry.cb({ video: false } as any);
+        entry.cb(null);
         this.finishActive(entry);
         return;
       }
@@ -154,6 +161,10 @@ export class ScreenSharingRequestTracker {
           types: ['window', 'screen'],
         });
 
+        if (entry.settled) {
+          return;
+        }
+
         const selectedSource = sources.find((s) => s.id === sourceId);
 
         if (!selectedSource) {
@@ -161,7 +172,7 @@ export class ScreenSharingRequestTracker {
             `${this.label}: selected source no longer available:`,
             sourceId
           );
-          entry.cb({ video: false } as any);
+          entry.cb(null);
           this.finishActive(entry);
           return;
         }
@@ -169,8 +180,12 @@ export class ScreenSharingRequestTracker {
         entry.cb({ video: selectedSource });
         this.finishActive(entry);
       } catch (error) {
+        if (entry.settled) {
+          return;
+        }
+
         console.error(`${this.label}: error validating source:`, error);
-        entry.cb({ video: false } as any);
+        entry.cb(null);
         this.finishActive(entry);
       }
     };
@@ -188,8 +203,7 @@ export class ScreenSharingRequestTracker {
 
       console.warn(`${this.label}: request timed out, cleaning up`);
       this.removeListenerOnly();
-      this.markComplete();
-      entry.cb({ video: false } as any);
+      entry.cb(null);
       this.finishActive(entry);
     }, this.timeoutMs);
 
@@ -234,7 +248,7 @@ export class ScreenSharingRequestTracker {
         if (index !== -1) {
           this.queue.splice(index, 1);
           entry.settled = true;
-          entry.cb({ video: false } as any);
+          entry.cb(null);
           entry.options?.onDone?.();
         }
       },
@@ -253,7 +267,7 @@ export class ScreenSharingRequestTracker {
         return;
       }
       entry.settled = true;
-      entry.cb({ video: false } as any);
+      entry.cb(null);
       entry.options?.onDone?.();
     });
   }

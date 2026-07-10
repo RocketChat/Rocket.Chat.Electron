@@ -28,7 +28,7 @@ export class PortalPickerProvider implements ScreenPickerProvider {
         } else {
           // User cancelled or no source available
           console.warn('Screen picker [portal]: No source selected by user');
-          callback({ video: false } as any);
+          callback(null);
         }
       })
       .catch((error) => {
@@ -36,7 +36,7 @@ export class PortalPickerProvider implements ScreenPickerProvider {
           'Screen picker [portal]: Failed to get source from XDG portal:',
           error
         );
-        callback({ video: false } as any);
+        callback(null);
       });
   }
 

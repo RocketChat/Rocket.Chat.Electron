@@ -117,8 +117,10 @@ export const setupServerViewDisplayMedia = (
         (request, cb) => {
           try {
             const originWindow = resolveStandaloneOriginWindow(request.frame);
+            // Electron's own callback type omits `null`, but its runtime
+            // accepts (and requires) it for a clean deny — see DisplayMediaCallback.
             currentProvider.handleDisplayMediaRequest(
-              cb,
+              cb as DisplayMediaCallback,
               originWindow ?? undefined
             );
           } catch (error) {
@@ -126,7 +128,9 @@ export const setupServerViewDisplayMedia = (
               'Server view screen sharing: error in handler:',
               error
             );
-            cb({ video: false } as any);
+            // See boundary-cast note above: Electron's runtime accepts null
+            // for a clean deny even though its callback type omits it.
+            (cb as DisplayMediaCallback)(null);
           }
         },
         { useSystemPicker: false }
@@ -172,14 +176,14 @@ export const handleServerViewDisplayMediaRequest = (
 ): void => {
   const dispatch = (): void => {
     if (!provider) {
-      callback({ video: false } as any);
+      callback(null);
       return;
     }
     try {
       provider.handleDisplayMediaRequest(callback, originWindow);
     } catch (error) {
       console.error('Server view screen sharing: error in handler:', error);
-      callback({ video: false } as any);
+      callback(null);
     }
   };
 
@@ -195,7 +199,7 @@ export const handleServerViewDisplayMediaRequest = (
         'Server view screen sharing: error initializing provider:',
         error
       );
-      callback({ video: false } as any);
+      callback(null);
     });
 };
 

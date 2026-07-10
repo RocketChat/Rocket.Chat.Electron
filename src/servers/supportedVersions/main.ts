@@ -97,6 +97,37 @@ const parseTimestamp = (value?: string): number => {
   return Number.isNaN(time) ? 0 : time;
 };
 
+// Orders the cache and builtin fallback sources by `timestamp` — freshest
+// first — instead of always trusting the cache: a persisted cache entry can
+// predate the app's own bundled builtin data (e.g. right after an app
+// update ships a refreshed builtin list), in which case trusting the stale
+// cache indefinitely blocks servers the new builtin already recognizes as
+// supported. Both sources are included when both exist; the caller tries
+// each in order and only falls through to the second when the first fails
+// to support the server (see validateFallbackAndDispatch).
+const buildFallbackCandidates = (
+  cachedVersions: SupportedVersions | undefined,
+  builtinVersions: SupportedVersions | undefined
+): { versions: SupportedVersions; source: 'cloud' | 'builtin' }[] => {
+  if (!cachedVersions && !builtinVersions) return [];
+  if (!builtinVersions) return [{ versions: cachedVersions!, source: 'cloud' }];
+  if (!cachedVersions)
+    return [{ versions: builtinVersions, source: 'builtin' }];
+
+  const useBuiltinOverCache =
+    parseTimestamp(builtinVersions.timestamp) >
+    parseTimestamp(cachedVersions.timestamp);
+  const first: { versions: SupportedVersions; source: 'cloud' | 'builtin' } =
+    useBuiltinOverCache
+      ? { versions: builtinVersions, source: 'builtin' }
+      : { versions: cachedVersions, source: 'cloud' };
+  const second: { versions: SupportedVersions; source: 'cloud' | 'builtin' } =
+    useBuiltinOverCache
+      ? { versions: cachedVersions, source: 'cloud' }
+      : { versions: builtinVersions, source: 'builtin' };
+  return [first, second];
+};
+
 const loadFromCache = (serverUrl: string): SupportedVersions | undefined => {
   try {
     const cached = supportedVersionsStore.get(getCacheKey(serverUrl));
@@ -555,38 +586,65 @@ const withExceptionScopeUniqueId = async (
     : serverView;
 };
 
-// Validates the fallback (cache/builtin) payload and dispatches the verdict.
-// isServerVersionSupported can throw on a malformed cached/builtin payload
-// (e.g. `versions` not an array). Left unguarded, that throw would reject
-// updateSupportedVersionsData before WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
-// is dispatched, leaving supportedVersionsFetchState stuck at 'loading' —
-// which suppresses the UnsupportedServer block gate (fail-open). On failure,
-// only the error state is dispatched; the prior verdict is left untouched.
+// Validates the fallback (cache/builtin) candidates, in order, and dispatches
+// the verdict. isServerVersionSupported can throw on a malformed
+// cached/builtin payload (e.g. `versions` not an array). Left unguarded, that
+// throw would reject updateSupportedVersionsData before
+// WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR is dispatched, leaving
+// supportedVersionsFetchState stuck at 'loading' — which suppresses the
+// UnsupportedServer block gate (fail-open). On failure, only the error state
+// is dispatched; the prior verdict is left untouched.
+//
+// Blocking on the fallback path is only correct when NO available source
+// supports the server: the builtin payload can rescue a server that a stale
+// cache wrongly blocks, but the cache is the only fallback source that can
+// carry this tenant's own exceptions (the builtin payload never does). So
+// candidates are tried in freshness order and the first one that supports
+// the server wins; only if every candidate fails to support it do we accept
+// the last-checked (freshest) verdict as the block reason.
 const validateFallbackAndDispatch = async (
   server: Server,
   serverUrl: string,
-  fallbackVersions: SupportedVersions,
-  fallbackSource: 'cloud' | 'builtin',
+  candidates: { versions: SupportedVersions; source: 'cloud' | 'builtin' }[],
   freshCommitHash: string | undefined,
   isStale: () => boolean
 ): Promise<void> => {
   try {
-    const fallbackSupported = await isServerVersionSupported(
+    // At most two candidates (cache + builtin) are ever passed. Check the
+    // freshness-preferred one first; only consult the second if the first
+    // fails to support the server, and prefer the second's verdict only
+    // when it succeeds where the first didn't.
+    let chosen = candidates[0];
+    let verdict = await isServerVersionSupported(
       server,
-      fallbackVersions,
+      chosen.versions,
       freshCommitHash,
-      fallbackSource
+      chosen.source
     );
+    const other = candidates[1];
+    if (!verdict.supported && other) {
+      const otherVerdict = await isServerVersionSupported(
+        server,
+        other.versions,
+        freshCommitHash,
+        other.source
+      );
+      if (otherVerdict.supported) {
+        chosen = other;
+        verdict = otherVerdict;
+      }
+    }
     if (isStale()) return;
+    saveToCache(serverUrl, chosen.versions);
     dispatch({
       type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
       payload: {
         url: server.url,
-        isSupportedVersion: fallbackSupported.supported,
+        isSupportedVersion: verdict.supported,
       },
     });
-    dispatchSupportedVersionsUpdated(server.url, fallbackVersions, {
-      source: fallbackSource,
+    dispatchSupportedVersionsUpdated(server.url, chosen.versions, {
+      source: chosen.source,
     });
   } catch (error) {
     console.error('Error validating fallback supported versions:', error);
@@ -633,16 +691,16 @@ export const updateSupportedVersionsData = async (
     2000
   );
 
-  // Build a server view that reflects the freshly-fetched version and
-  // uniqueId when available, so every downstream support check
-  // (server/cloud/cache/builtin) is evaluated against the same authoritative
-  // identity. Current servers do NOT include `uniqueId` in /api/info, so the
-  // fallback to persisted server.uniqueID is the common path.
+  // Build a server view that reflects the freshly-fetched version, so every
+  // downstream support check (server/cloud/cache/builtin) is evaluated
+  // against the same authoritative identity. /api/info carries no workspace
+  // uniqueId, so the persisted server.uniqueID is used as-is here, and
+  // withExceptionScopeUniqueId resolves it on demand when it's missing.
   const serverWithFreshVersion: Server = serverInfoResult
     ? {
         ...server,
         version: serverInfoResult.version,
-        uniqueID: serverInfoResult.uniqueId ?? server.uniqueID,
+        uniqueID: server.uniqueID,
       }
     : server;
   const freshCommitHash = serverInfoResult?.commit?.hash;
@@ -759,34 +817,24 @@ export const updateSupportedVersionsData = async (
     }
   }
 
-  // Neither the server nor the cloud could be reached. Pick the freshest of
-  // the two remaining sources by `timestamp` instead of always trusting the
-  // cache: a persisted cache entry can predate the app's own bundled builtin
-  // data (e.g. right after an app update ships a refreshed builtin list), in
-  // which case trusting the stale cache indefinitely blocks servers the new
-  // builtin already recognizes as supported.
+  // Neither the server nor the cloud could be reached. Order the two
+  // remaining sources by `timestamp` instead of always trusting the cache
+  // (see buildFallbackCandidates): both are still tried (see
+  // validateFallbackAndDispatch) so the cache's tenant exceptions — which
+  // the builtin payload never carries — aren't lost to a fresher builtin
+  // that simply doesn't know about them.
   const cachedVersions = loadFromCache(serverUrl);
-  const useBuiltinOverCache =
-    !!builtinSupportedVersions &&
-    (!cachedVersions ||
-      parseTimestamp(builtinSupportedVersions.timestamp) >
-        parseTimestamp(cachedVersions.timestamp));
-  const fallbackVersions = useBuiltinOverCache
-    ? builtinSupportedVersions
-    : cachedVersions;
-  const fallbackSource: 'cloud' | 'builtin' = useBuiltinOverCache
-    ? 'builtin'
-    : 'cloud';
+  const fallbackCandidates = buildFallbackCandidates(
+    cachedVersions,
+    builtinSupportedVersions
+  );
 
-  if (fallbackVersions) {
-    if (isStale()) return;
-    saveToCache(serverUrl, fallbackVersions);
+  if (fallbackCandidates.length > 0) {
     if (isStale()) return;
     await validateFallbackAndDispatch(
       serverWithFreshIdentity,
       serverUrl,
-      fallbackVersions,
-      fallbackSource,
+      fallbackCandidates,
       freshCommitHash,
       isStale
     );

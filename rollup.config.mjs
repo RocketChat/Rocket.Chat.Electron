@@ -273,6 +273,40 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    input: 'src/screenSharing/screen-picker-window.tsx',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+      run(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
+    external: [
+      ...builtinModules,
+      ...Object.keys(appManifest.dependencies),
+      ...Object.keys(appManifest.devDependencies),
+    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
     input: 'src/videoCallWindow/preload/index.ts',
     preserveEntrySignatures: 'strict',
     plugins: [

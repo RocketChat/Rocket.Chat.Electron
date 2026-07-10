@@ -25,7 +25,7 @@ describe('PortalPickerProvider', () => {
     await provider.initialize();
     await provider.handleDisplayMediaRequest(callback);
 
-    expect(callback).toHaveBeenCalledWith({ video: false } as any);
+    expect(callback).toHaveBeenCalledWith(null);
   });
 
   it('returns first source when available', async () => {
@@ -48,7 +48,7 @@ describe('PortalPickerProvider', () => {
 
     await provider.handleDisplayMediaRequest(callback);
     await Promise.resolve();
-    expect(callback).toHaveBeenCalledWith({ video: false } as any);
+    expect(callback).toHaveBeenCalledWith(null);
     errorCallback.mockRestore();
   });
 

@@ -13,18 +13,18 @@ describe('InternalPickerProvider', () => {
     const callback = jest.fn() as jest.MockedFunction<DisplayMediaCallback>;
     provider.handleDisplayMediaRequest(callback);
 
-    expect(callback).toHaveBeenCalledWith({ video: false });
+    expect(callback).toHaveBeenCalledWith(null);
   });
 
   it('forwards request to provided handler', () => {
     const callback = jest.fn() as jest.MockedFunction<DisplayMediaCallback>;
-    const handle = jest.fn((cb: DisplayMediaCallback) => cb({ video: false }));
+    const handle = jest.fn((cb: DisplayMediaCallback) => cb(null));
 
     provider.setHandleRequestHandler(handle);
     provider.handleDisplayMediaRequest(callback);
 
-    expect(handle).toHaveBeenCalledWith(callback);
-    expect(callback).toHaveBeenCalledWith({ video: false });
+    expect(handle).toHaveBeenCalledWith(callback, undefined);
+    expect(callback).toHaveBeenCalledWith(null);
   });
 
   it('calls initialize only once and keeps initialized state', async () => {

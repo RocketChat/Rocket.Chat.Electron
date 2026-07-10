@@ -1,3 +1,5 @@
+import type { BrowserWindow } from 'electron';
+
 import type { DisplayMediaCallback, ScreenPickerProvider } from '../types';
 
 /**
@@ -18,8 +20,9 @@ export class InternalPickerProvider implements ScreenPickerProvider {
 
   private isInitialized = false;
 
-  private handleRequestFn: ((callback: DisplayMediaCallback) => void) | null =
-    null;
+  private handleRequestFn:
+    | ((callback: DisplayMediaCallback, originWindow?: BrowserWindow) => void)
+    | null = null;
 
   private initializeFn: (() => Promise<void>) | null = null;
 
@@ -28,7 +31,10 @@ export class InternalPickerProvider implements ScreenPickerProvider {
    * This encapsulates all the internal picker logic with access to ipc.ts state
    */
   setHandleRequestHandler(
-    handler: (callback: DisplayMediaCallback) => void
+    handler: (
+      callback: DisplayMediaCallback,
+      originWindow?: BrowserWindow
+    ) => void
   ): void {
     this.handleRequestFn = handler;
   }
@@ -41,14 +47,17 @@ export class InternalPickerProvider implements ScreenPickerProvider {
     this.initializeFn = handler;
   }
 
-  handleDisplayMediaRequest(callback: DisplayMediaCallback): void {
+  handleDisplayMediaRequest(
+    callback: DisplayMediaCallback,
+    originWindow?: BrowserWindow
+  ): void {
     if (this.handleRequestFn) {
-      this.handleRequestFn(callback);
+      this.handleRequestFn(callback, originWindow);
     } else {
       console.error(
         'InternalPickerProvider: handleRequest handler not set. This should be set by ipc.ts'
       );
-      callback({ video: false });
+      callback(null);
     }
   }
 

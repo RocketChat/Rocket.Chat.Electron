@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    />
+    <title>Screen Sharing - Rocket.Chat</title>
+    <link rel="stylesheet" href="./main.css" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #2f343d;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+          'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+          'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      #root {
+        width: 100%;
+        height: 100vh;
+      }
+    </style>
+    <link rel="stylesheet" href="./icons/rocketchat.css" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script src="./screen-picker-window.js"></script>
+  </body>
+</html>

@@ -74,7 +74,11 @@ export const setupServerViewDisplayMedia = (
     const currentProvider = provider;
     try {
       guestWebContents.session.setDisplayMediaRequestHandler(
-        (_request, cb) => {
+        (request, cb) => {
+          if (!request.userGesture) {
+            cb({} as any);
+            return;
+          }
           try {
             currentProvider.handleDisplayMediaRequest(cb);
           } catch (error) {

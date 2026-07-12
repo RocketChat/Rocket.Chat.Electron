@@ -158,6 +158,7 @@ const start = async () => {
       console.log(
         `[Rocket.Chat Desktop] ${moduleName} module loaded successfully`
       );
+      setupReactiveFeatures();
     } catch (error) {
       console.log(
         `[Rocket.Chat Desktop] Failed to load ${moduleName} module:`,
@@ -167,24 +168,26 @@ const start = async () => {
   };
 
   // Start loading all modules in parallel (non-blocking)
-  loadModule('meteor/meteor', 'Meteor', (value) => {
-    Meteor = value.Meteor;
-  });
-  loadModule('meteor/session', 'Session', (value) => {
-    Session = value.Session;
-  });
-  loadModule('meteor/tracker', 'Tracker', (value) => {
-    Tracker = value.Tracker;
-  });
-  loadModule(settingsModulePath, 'Settings', (value) => {
-    settings = value.settings;
-  });
-  loadModule(utilsModulePath, 'Utils', (value) => {
-    getUserPreference = value.getUserPreference;
-  });
-  loadModule(userPresenceModulePath, 'UserPresence', (value) => {
-    UserPresence = value.UserPresence;
-  });
+  const modulesToLoad = [
+    loadModule('meteor/meteor', 'Meteor', (value) => {
+      Meteor = value.Meteor;
+    }),
+    loadModule('meteor/session', 'Session', (value) => {
+      Session = value.Session;
+    }),
+    loadModule('meteor/tracker', 'Tracker', (value) => {
+      Tracker = value.Tracker;
+    }),
+    loadModule(settingsModulePath, 'Settings', (value) => {
+      settings = value.settings;
+    }),
+    loadModule(utilsModulePath, 'Utils', (value) => {
+      getUserPreference = value.getUserPreference;
+    }),
+    loadModule(userPresenceModulePath, 'UserPresence', (value) => {
+      UserPresence = value.UserPresence;
+    }),
+  ];
 
   // Initialize non-module dependent features immediately
   navigator.clipboard.writeText = async (...args) =>
@@ -686,9 +689,30 @@ const start = async () => {
     }
   };
 
-  // Call setupReactiveFeatures immediately and then periodically check for new modules
+  // Call setupReactiveFeatures immediately
   setupReactiveFeatures();
-  setInterval(setupReactiveFeatures, 1000); // Check every second for newly loaded modules
+
+  // Set a backup polling interval (will be cleared once all loading attempts finish)
+  const setupInterval = setInterval(() => {
+    setupReactiveFeatures();
+  }, 1000);
+
+  // Wait for all loading attempts to settle (succeed or fail), then do a final run and clear interval
+  Promise.allSettled(modulesToLoad).then(() => {
+    console.log(
+      '[Rocket.Chat Desktop] All modules finished loading attempts. Performing final setup and clearing backup interval.'
+    );
+    try {
+      setupReactiveFeatures();
+    } catch (error) {
+      console.error(
+        '[Rocket.Chat Desktop] Error during final setup:',
+        error
+      );
+    } finally {
+      clearInterval(setupInterval);
+    }
+  });
 
   console.log('[Rocket.Chat Desktop] Injected');
 };

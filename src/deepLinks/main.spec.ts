@@ -676,7 +676,32 @@ describe('deepLinks/main.ts', () => {
       );
     });
 
-    it('sends conference/open-call-requested and does not loadURL when callUrl is present', async () => {
+    it('conference deep link without callUrl opens the conference page in the video call window', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://conference?host=https://chat.example.com&path=conference%2F80879108%3Fscheduled%3Dtrue',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'conference/open-call-requested',
+        {
+          callUrl:
+            'https://chat.example.com/conference/80879108?scheduled=true',
+          provider: undefined,
+        }
+      );
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('conference deep link with callUrl navigates the webview (unchanged legacy path)', async () => {
       setupDeepLinks();
 
       const savedArgv = process.argv;
@@ -690,33 +715,8 @@ describe('deepLinks/main.ts', () => {
 
       process.argv = savedArgv;
 
-      expect(mockWebContents.send).toHaveBeenCalledWith(
-        'conference/open-call-requested',
-        {
-          callUrl:
-            'https://pexip.example.com/webapp3/conference?conference=v879106',
-          provider: 'Pexip',
-        }
-      );
-      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
-    });
-
-    it('falls back to loadURL when callUrl is absent', async () => {
-      setupDeepLinks();
-
-      const savedArgv = process.argv;
-      process.argv = [
-        'electron',
-        '.',
-        'rocketchat://conference?host=https://chat.example.com&path=conference%2Fv879106',
-      ];
-
-      await processDeepLinksInArgs();
-
-      process.argv = savedArgv;
-
       expect(mockWebContents.loadURL).toHaveBeenCalledWith(
-        'https://chat.example.com/conference/v879106'
+        'https://chat.example.com/conference/v879106?callUrl=https%3A%2F%2Fpexip.example.com%2Fwebapp3%2Fconference%3Fconference%3Dv879106&callProvider=Pexip'
       );
       expect(mockWebContents.send).not.toHaveBeenCalledWith(
         'conference/open-call-requested',

@@ -217,19 +217,24 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
     }
 
     const url = new URL(path, serverUrl);
-    const callUrl = url.searchParams.get('callUrl');
     const webContents = await getWebContents(serverUrl);
 
-    if (callUrl) {
-      const callProvider = url.searchParams.get('callProvider');
-      webContents.send('conference/open-call-requested', {
-        callUrl,
-        provider: callProvider ?? undefined,
-      });
+    // Links carrying an explicit callUrl already work: the workspace webview
+    // loads the conference page, which hands the callUrl to the desktop video
+    // call window itself. Leave that path untouched.
+    if (url.searchParams.has('callUrl')) {
+      webContents.loadURL(url.href);
       return;
     }
 
-    webContents.loadURL(url.href);
+    // Links without a callUrl (conference/<id>) otherwise load the conference
+    // page over the workspace webview with no way back to it. Open the
+    // conference page in the standalone video call window instead, so closing
+    // the window returns the user to an untouched workspace.
+    webContents.send('conference/open-call-requested', {
+      callUrl: url.href,
+      provider: undefined,
+    });
   });
 
 const processDeepLink = async (deepLink: string): Promise<void> => {

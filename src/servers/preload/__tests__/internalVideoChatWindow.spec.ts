@@ -130,4 +130,29 @@ describe('servers/preload/internalVideoChatWindow', () => {
     expect(invoke).not.toHaveBeenCalled();
     expect(openExternal).not.toHaveBeenCalled();
   });
+
+  it('opens the video call window with no options when the request carries no provider', async () => {
+    // This is the dominant real case: a conference page URL (no callUrl in
+    // the deep link) is opened with provider undefined, so no providerName
+    // enrichment can apply regardless of origin.
+    safeSelect.mockImplementation((selector: any) =>
+      selector({ isInternalVideoChatWindowEnabled: true })
+    );
+
+    const mod = await import('../internalVideoChatWindow');
+    mod.listenToConferenceCallRequests();
+    mod.flushPendingConferenceCallRequest();
+
+    emit({
+      callUrl: 'https://chat.example.com/conference/80879108?scheduled=true',
+      provider: undefined,
+    });
+
+    expect(invoke).toHaveBeenCalledTimes(1);
+    expect(invoke).toHaveBeenCalledWith(
+      'video-call-window/open-window',
+      'https://chat.example.com/conference/80879108?scheduled=true',
+      undefined
+    );
+  });
 });

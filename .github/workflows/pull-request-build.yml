@@ -9,6 +9,7 @@ on:
     branches:
       - master
       - dev
+      - 'hotfix/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}

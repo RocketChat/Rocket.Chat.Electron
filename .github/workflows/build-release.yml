@@ -1,5 +1,4 @@
-permissions:
-  contents: read
+permissions: {}
 name: Build release
 
 on:
@@ -15,6 +14,8 @@ concurrency:
 
 jobs:
   build:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:

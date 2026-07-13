@@ -10,10 +10,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+permissions: {}
 jobs:
   check:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:

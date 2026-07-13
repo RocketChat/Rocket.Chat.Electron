@@ -683,7 +683,7 @@ describe('deepLinks/main.ts', () => {
       process.argv = [
         'electron',
         '.',
-        'rocketchat://conference?host=https://chat.example.com&path=conference%2Fv879106%3FcallUrl%3Dhttps%253A%252F%252Frc-pexip1-pen.rc.damovo.lab%252Fwebapp3%252Fconference%253Fconference%253Dv879106%26callProvider%3DPexip',
+        'rocketchat://conference?host=https://chat.example.com&path=conference%2Fv879106%3FcallUrl%3Dhttps%253A%252F%252Fpexip.example.com%252Fwebapp3%252Fconference%253Fconference%253Dv879106%26callProvider%3DPexip',
       ];
 
       await processDeepLinksInArgs();
@@ -694,7 +694,7 @@ describe('deepLinks/main.ts', () => {
         'conference/open-call-requested',
         {
           callUrl:
-            'https://rc-pexip1-pen.rc.damovo.lab/webapp3/conference?conference=v879106',
+            'https://pexip.example.com/webapp3/conference?conference=v879106',
           provider: 'Pexip',
         }
       );

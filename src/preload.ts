@@ -6,6 +6,10 @@ import { JitsiMeetElectron } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop } from './servers/preload/api';
+import {
+  flushPendingConferenceCallRequest,
+  listenToConferenceCallRequests,
+} from './servers/preload/internalVideoChatWindow';
 import { listenToNavigateToRouteRequests } from './servers/preload/navigateToRoute';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
@@ -30,6 +34,11 @@ console.log('[Rocket.Chat Desktop] Preload.ts');
 
 contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
+
+// Attached as early as possible: the main process may deliver a cold-start
+// conference deep link before the store-init handshake below completes, and
+// ipcRenderer does not buffer events sent before a listener exists.
+listenToConferenceCallRequests();
 
 let retryCount = 0;
 let startInProgress = false;
@@ -68,6 +77,7 @@ const start = async (): Promise<void> => {
 
   listenToTelephonyRequests();
   listenToNavigateToRouteRequests();
+  flushPendingConferenceCallRequest();
 
   console.log('[Rocket.Chat Desktop] waiting for RocketChatDesktop.onReady');
   RocketChatDesktop.onReady(() => {

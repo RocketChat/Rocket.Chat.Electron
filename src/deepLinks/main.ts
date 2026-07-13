@@ -215,8 +215,21 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
     if (!/^conference\//.test(path)) {
       return;
     }
+
+    const url = new URL(path, serverUrl);
+    const callUrl = url.searchParams.get('callUrl');
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
+
+    if (callUrl) {
+      const callProvider = url.searchParams.get('callProvider');
+      webContents.send('conference/open-call-requested', {
+        callUrl,
+        provider: callProvider ?? undefined,
+      });
+      return;
+    }
+
+    webContents.loadURL(url.href);
   });
 
 const processDeepLink = async (deepLink: string): Promise<void> => {

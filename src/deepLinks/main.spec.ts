@@ -648,6 +648,83 @@ describe('deepLinks/main.ts', () => {
     });
   });
 
+  describe('processDeepLink conference routing', () => {
+    const mockBrowserWindow = {
+      isVisible: jest.fn(() => true),
+      focus: jest.fn(),
+      showInactive: jest.fn(),
+    };
+
+    const mockWebContents = {
+      send: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+      loadURL: jest.fn(),
+    };
+
+    beforeEach(() => {
+      getRootWindowMock.mockResolvedValue(mockBrowserWindow as any);
+      getWebContentsByServerUrlMock.mockReturnValue(mockWebContents as any);
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+        })
+      );
+    });
+
+    it('sends conference/open-call-requested and does not loadURL when callUrl is present', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://conference?host=https://chat.example.com&path=conference%2Fv879106%3FcallUrl%3Dhttps%253A%252F%252Frc-pexip1-pen.rc.damovo.lab%252Fwebapp3%252Fconference%253Fconference%253Dv879106%26callProvider%3DPexip',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        'conference/open-call-requested',
+        {
+          callUrl:
+            'https://rc-pexip1-pen.rc.damovo.lab/webapp3/conference?conference=v879106',
+          provider: 'Pexip',
+        }
+      );
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('falls back to loadURL when callUrl is absent', async () => {
+      setupDeepLinks();
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://conference?host=https://chat.example.com&path=conference%2Fv879106',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/conference/v879106'
+      );
+      expect(mockWebContents.send).not.toHaveBeenCalledWith(
+        'conference/open-call-requested',
+        expect.anything()
+      );
+    });
+  });
+
   describe('isTelephonyEnabled gate for tel: deep links', () => {
     const mockBrowserWindow = {
       isVisible: jest.fn(() => true),

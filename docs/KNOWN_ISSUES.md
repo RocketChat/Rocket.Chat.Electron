@@ -1,6 +1,30 @@
 # Known Issues
 
+## Electron 42 macOS `desktopCapturer.getSources()` — 3s cap, empty results under repeated calls
+
+- Status: Confirmed (Electron 42.5.0, macOS, hardware measurement 2026-07-14).
+- Symptom: Screen picker intermittently shows "No windows found" / "No screens found"
+  seconds after listing sources; screen share denied with "selected source no longer
+  available" right after the user picks a valid source.
+- Root cause: Electron's macOS ScreenCaptureKit rewrite made `getSources()` unbounded-slow
+  (~24s observed under Electron 41.9), then upstream bounded it at ~3s returning whatever
+  arrived (hang fix, electron/electron#51128 lineage; DCHECK crash fix electron/electron#50960
+  shipped in 42.0.1). Under Electron 42.5.0, back-to-back calls return `[]` ~75% of the time
+  and mostly-empty thumbnails otherwise. Combined `types: ['window','screen']` calls always
+  hit the 3s cap; `['screen']`-only completes in ~700ms and never flakes; paced (≥4s gap)
+  alternating per-type calls never return empty.
+- Workaround (implemented in src/screenSharing/desktopCapturerCache.ts): per-type cache
+  buckets, ≥4s cooldown between enumerations, empty result never overwrites a non-empty
+  bucket, per-id thumbnail merge; post-selection validation reads the cache instead of
+  re-enumerating (src/screenSharing/ScreenSharingRequestTracker.ts).
+- Follow-up: adopt `setDisplayMediaRequestHandler(..., { useSystemPicker: true })` (native
+  SCContentSharingPicker) on macOS 15+ — eliminates `getSources` from the flow entirely.
+  Experimental; gate on `isDisplayMediaSystemPickerAvailable()`; audio caveat electron#44685.
+- Affected files: src/screenSharing/desktopCapturerCache.ts,
+  src/screenSharing/ScreenSharingRequestTracker.ts, src/screenSharing/screenSharePicker.tsx.
+
 ## Fuselage modern `Select` portals focus to body — breaks `:hover`/`:focus-within` on parent rows
+
 - Status: Confirmed (fuselage 0.78, react-aria 3.48).
 - Symptom: A CSS row highlight on a Fuselage `Field` using `:hover` or `:focus-within`
   disappears while a child `<Select>` dropdown is open, even with the pointer over the row.
@@ -20,6 +44,7 @@
   Fuselage `Select`.
 
 ## RTL auto-cleanup vs manual `document.body.innerHTML = ''` in `afterEach` orphans portal anchors
+
 - Status: Confirmed (RTL 14.3.1, @kayahr/jest-electron-runner, single shared `src/.jest/setup.ts`).
 - Symptom: A renderer spec that renders a portal/anchor component (e.g. TooltipProvider ->
   TooltipPortal -> createAnchor's `#tooltip-root`) crashes the ENTIRE `yarn test:coverage` run with
@@ -41,6 +66,7 @@
   src/ui/components/utils/TooltipPortal.tsx, src/.jest/setup.ts.
 
 ## No certificate pinning for the auto-updater (CORE-1128) — accepted risk, not a gap
+
 - Status: Resolved as risk acceptance (2022 pentest finding CORE-1128; no code change).
 - Symptom: N/A — this documents a deliberate decision, not an observed bug.
 - Context: CORE-1128 flagged "Missing Certificate Pinning for Connections and autoUpdater

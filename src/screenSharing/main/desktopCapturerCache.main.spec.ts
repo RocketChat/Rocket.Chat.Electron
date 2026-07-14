@@ -3,6 +3,7 @@ import { desktopCapturer } from 'electron';
 import { handle } from '../../ipc/main';
 import {
   clearDesktopCapturerCache,
+  getCachedSources,
   getDesktopCapturerCacheStatus,
   handleDesktopCapturerGetSources,
   prewarmDesktopCapturerCache,
@@ -36,13 +37,14 @@ const makeSource = (id: string, name: string, empty = false): SourceStub => ({
   thumbnail: { isEmpty: () => empty },
 });
 
-const flushPromises = () =>
-  new Promise<void>((resolve) => setImmediate(resolve));
+// Flushes pending microtasks under fake timers (no real time passes).
+const flushMicrotasks = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+};
 
-const OPTIONS = { types: ['window', 'screen'] } as Electron.SourcesOptions;
-
-// Registers the IPC handler and returns the captured callback. Filtered
-// results are only observable through this handler (it returns the cache).
+// Registers the IPC handler and returns the captured callback.
 const getHandler = () => {
   handleDesktopCapturerGetSources();
   const lastCall = handleMock.mock.calls[handleMock.mock.calls.length - 1];
@@ -53,54 +55,189 @@ const getHandler = () => {
 describe('screenSharing/desktopCapturerCache', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useRealTimers();
+    // Fake timers stay on for the whole suite: the module reads Date.now()
+    // directly, and toggling real/fake timers mid-test discards the fake
+    // clock's advance instead of merging it into real time.
+    jest.useFakeTimers();
     clearDesktopCapturerCache();
   });
 
   afterEach(() => {
-    // The module schedules no timers of its own, but two tests opt into fake
-    // timers; clear any pending fake handle before restoring real timers so
-    // nothing survives into the next test or blocks jest --forceExit.
     jest.clearAllTimers();
     jest.useRealTimers();
     clearDesktopCapturerCache();
   });
 
-  describe('refreshDesktopCapturerCache', () => {
-    it('fetches sources and populates the cache with valid sources', async () => {
-      getSourcesMock.mockResolvedValueOnce([
-        makeSource('1', 'Screen 1') as any,
-        makeSource('2', 'Window 2') as any,
-      ]);
+  describe('handleDesktopCapturerGetSources — first-ever call', () => {
+    it('awaits a screens refresh and kicks a background windows refresh', async () => {
+      getSourcesMock.mockImplementation(async (options) => {
+        if (options?.types?.[0] === 'screen') {
+          return [makeSource('screen:0', 'Screen 1') as any];
+        }
+        return [makeSource('window:1', 'Window 1') as any];
+      });
 
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+      const handler = getHandler();
+      const resultPromise = handler({ id: 1 }, undefined);
+      await flushMicrotasks();
+      const result = await resultPromise;
 
-      expect(getSourcesMock).toHaveBeenCalledWith(OPTIONS);
-      const status = getDesktopCapturerCacheStatus();
-      expect(status.cached).toBe(true);
-      expect(status.pending).toBe(false);
+      // Screens content is present immediately (awaited).
+      expect(result.map((s: SourceStub) => s.id)).toContain('screen:0');
+      expect(getSourcesMock).toHaveBeenCalledWith({ types: ['screen'] });
+
+      await flushMicrotasks();
+
+      // Windows refresh was kicked off in the background.
+      expect(getSourcesMock).toHaveBeenCalledWith({ types: ['window'] });
+      expect(getCachedSources().map((s) => s.id)).toEqual(
+        expect.arrayContaining(['screen:0', 'window:1'])
+      );
     });
 
-    it('does not start a second fetch while one is pending', async () => {
-      let resolveFetch: (value: any) => void = () => undefined;
-      getSourcesMock.mockReturnValueOnce(
-        new Promise((resolve) => {
-          resolveFetch = resolve;
-        }) as any
+    it('populates both buckets on cold start without waiting out the cooldown, but still gates the next steady-state refresh', async () => {
+      getSourcesMock.mockImplementation(async (options) => {
+        if (options?.types?.[0] === 'screen') {
+          return [makeSource('screen:0', 'Screen 1') as any];
+        }
+        return [makeSource('window:1', 'Window 1') as any];
+      });
+
+      const handler = getHandler();
+      const resultPromise = handler({ id: 1 }, undefined);
+      await flushMicrotasks();
+      await resultPromise;
+      await flushMicrotasks();
+
+      // No time was advanced between the screens and windows legs, yet both
+      // buckets are populated: the cold-start windows kick bypassed the
+      // cooldown gate.
+      expect(getCachedSources().map((s) => s.id)).toEqual(
+        expect.arrayContaining(['screen:0', 'window:1'])
       );
+      expect(getSourcesMock).toHaveBeenCalledTimes(2);
 
-      refreshDesktopCapturerCache(OPTIONS);
-      // Second call should short-circuit because a promise is in flight.
-      refreshDesktopCapturerCache(OPTIONS);
+      // Immediately after, a steady-state refresh is still cooldown-gated.
+      getSourcesMock.mockClear();
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
+      expect(getSourcesMock).not.toHaveBeenCalled();
 
+      jest.advanceTimersByTime(4001);
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
       expect(getSourcesMock).toHaveBeenCalledTimes(1);
-      expect(getDesktopCapturerCacheStatus().pending).toBe(true);
+    });
 
-      resolveFetch([makeSource('1', 'Screen 1') as any]);
-      await flushPromises();
+    it('only ever calls getSources with a single type per enumeration', async () => {
+      getSourcesMock.mockResolvedValue([]);
 
-      expect(getDesktopCapturerCacheStatus().pending).toBe(false);
+      const handler = getHandler();
+      await handler({ id: 1 }, undefined);
+      await flushMicrotasks();
+
+      getSourcesMock.mock.calls.forEach(([options]) => {
+        expect(options?.types).toHaveLength(1);
+      });
+    });
+  });
+
+  describe('empty results never clobber a populated bucket', () => {
+    it('keeps existing screens bucket when a later enumeration returns empty', async () => {
+      getSourcesMock.mockResolvedValueOnce([
+        makeSource('screen:0', 'Screen 1') as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
+
+      expect(getCachedSources().map((s) => s.id)).toEqual(['screen:0']);
+
+      // Advance past cooldown so a second enumeration is allowed.
+      jest.advanceTimersByTime(4001);
+
+      getSourcesMock.mockResolvedValueOnce([]);
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
+
+      expect(getCachedSources().map((s) => s.id)).toEqual(['screen:0']);
+    });
+
+    it('warns only once per occurrence of an empty result on a populated bucket', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      getSourcesMock.mockResolvedValueOnce([
+        makeSource('screen:0', 'Screen 1') as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
+
+      jest.advanceTimersByTime(4001);
+
+      getSourcesMock.mockResolvedValueOnce([]);
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
+
+      const emptyWarnings = warnSpy.mock.calls.filter(([msg]) =>
+        String(msg).includes('keeping previous cache')
+      );
+      expect(emptyWarnings).toHaveLength(1);
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('thumbnail merge by id', () => {
+    it('keeps the last good thumbnail for a source whose new thumbnail is empty', async () => {
+      const goodThumbnail = { isEmpty: () => false };
+      getSourcesMock.mockResolvedValueOnce([
+        { id: 'window:1', name: 'Window 1', thumbnail: goodThumbnail } as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['window'] });
+      await flushMicrotasks();
+
+      jest.advanceTimersByTime(4001);
+
+      getSourcesMock.mockResolvedValueOnce([
+        {
+          id: 'window:1',
+          name: 'Window 1',
+          thumbnail: { isEmpty: () => true },
+          appIcon: 'icon-data',
+        } as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['window'] });
+      await flushMicrotasks();
+
+      const merged = getCachedSources().find((s) => s.id === 'window:1');
+      expect(merged?.thumbnail).toBe(goodThumbnail);
+      expect((merged as any)?.appIcon).toBe('icon-data');
+    });
+
+    it('drops a source with an empty thumbnail and no cached fallback', async () => {
+      getSourcesMock.mockResolvedValueOnce([
+        makeSource('window:1', 'Window 1', true) as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['window'] });
+      await flushMicrotasks();
+
+      expect(getCachedSources()).toEqual([]);
+    });
+
+    it('drops an id absent from a non-empty result (window really closed)', async () => {
+      getSourcesMock.mockResolvedValueOnce([
+        makeSource('window:1', 'Window 1') as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['window'] });
+      await flushMicrotasks();
+
+      jest.advanceTimersByTime(4001);
+
+      getSourcesMock.mockResolvedValueOnce([
+        makeSource('window:2', 'Window 2') as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['window'] });
+      await flushMicrotasks();
+
+      expect(getCachedSources().map((s) => s.id)).toEqual(['window:2']);
     });
 
     it('filters out sources with empty or whitespace names', async () => {
@@ -109,76 +246,76 @@ describe('screenSharing/desktopCapturerCache', () => {
         makeSource('2', '   ') as any,
         makeSource('3', 'Valid') as any,
       ]);
+      refreshDesktopCapturerCache({ types: ['window'] });
+      await flushMicrotasks();
 
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
-
-      // Filtered results are observable through the cache via the handler.
-      const handler = getHandler();
-      const result = (await handler({ id: 1 }, OPTIONS)) as any[];
-
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('3');
+      expect(getCachedSources().map((s) => s.id)).toEqual(['3']);
     });
+  });
 
-    it('filters out sources with an empty thumbnail', async () => {
-      getSourcesMock.mockResolvedValueOnce([
-        makeSource('1', 'Empty thumb', true) as any,
-        makeSource('2', 'Good thumb', false) as any,
+  describe('cooldown', () => {
+    it('prevents a second enumeration within 4s of the previous completion', async () => {
+      getSourcesMock.mockResolvedValue([
+        makeSource('screen:0', 'Screen 1') as any,
       ]);
 
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+      refreshDesktopCapturerCache();
+      await flushMicrotasks();
+      expect(getSourcesMock).toHaveBeenCalledTimes(1);
 
-      const handler = getHandler();
-      const result = (await handler({ id: 1 }, OPTIONS)) as any[];
+      jest.advanceTimersByTime(2000);
+      refreshDesktopCapturerCache();
+      await flushMicrotasks();
+      // Still within cooldown: no second call.
+      expect(getSourcesMock).toHaveBeenCalledTimes(1);
 
-      expect(result.map((s) => s.id)).toEqual(['2']);
+      jest.advanceTimersByTime(2001);
+      refreshDesktopCapturerCache();
+      await flushMicrotasks();
+      // Cooldown elapsed: second enumeration allowed.
+      expect(getSourcesMock).toHaveBeenCalledTimes(2);
     });
 
-    it('serves a cached validation hit without re-checking the thumbnail', async () => {
-      // First refresh caches source "2" as valid.
-      getSourcesMock.mockResolvedValueOnce([
-        makeSource('2', 'Good thumb', false) as any,
-      ]);
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+    it('never runs two enumerations concurrently (single-flight)', async () => {
+      let resolveFetch: (value: any) => void = () => undefined;
+      getSourcesMock.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }) as any
+      );
 
-      // Second refresh: same id, now reports an empty thumbnail, but the
-      // validation cache should still treat it as valid (within TTL).
-      const emptyThumbSource = makeSource('2', 'Good thumb', true);
-      const isEmptySpy = jest.spyOn(emptyThumbSource.thumbnail, 'isEmpty');
-      getSourcesMock.mockResolvedValueOnce([emptyThumbSource as any]);
+      refreshDesktopCapturerCache();
+      refreshDesktopCapturerCache();
 
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+      expect(getSourcesMock).toHaveBeenCalledTimes(1);
+      expect(getDesktopCapturerCacheStatus().pending).toBe(true);
 
-      const handler = getHandler();
-      const result = (await handler({ id: 1 }, OPTIONS)) as any[];
+      resolveFetch([makeSource('screen:0', 'Screen 1') as any]);
+      await flushMicrotasks();
 
-      expect(result.map((s) => s.id)).toEqual(['2']);
-      expect(isEmptySpy).not.toHaveBeenCalled();
+      expect(getDesktopCapturerCacheStatus().pending).toBe(false);
     });
+  });
 
+  describe('error handling', () => {
     it('keeps the previous cached sources when a background fetch rejects', async () => {
-      // Seed a cache first.
-      getSourcesMock.mockResolvedValueOnce([makeSource('1', 'Seeded') as any]);
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+      getSourcesMock.mockResolvedValueOnce([
+        makeSource('screen:0', 'Seeded') as any,
+      ]);
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
+
+      jest.advanceTimersByTime(4001);
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       getSourcesMock.mockRejectedValueOnce(new Error('boom'));
 
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+      refreshDesktopCapturerCache({ types: ['screen'] });
+      await flushMicrotasks();
 
-      // Cache untouched: handler still serves the seeded source.
-      const handler = getHandler();
-      const result = (await handler({ id: 1 }, OPTIONS)) as any[];
-
-      expect(result.map((s) => s.id)).toEqual(['1']);
+      expect(getCachedSources().map((s) => s.id)).toEqual(['screen:0']);
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Background cache refresh failed:',
+        expect.stringContaining('Background cache refresh failed'),
         expect.any(Error)
       );
       consoleSpy.mockRestore();
@@ -188,15 +325,12 @@ describe('screenSharing/desktopCapturerCache', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       getSourcesMock.mockRejectedValueOnce(new Error('boom'));
 
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+      refreshDesktopCapturerCache();
+      await flushMicrotasks();
 
-      expect(getDesktopCapturerCacheStatus()).toEqual({
-        cached: false,
-        pending: false,
-      });
+      expect(getDesktopCapturerCacheStatus().cached).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Background cache refresh failed:',
+        expect.stringContaining('Background cache refresh failed'),
         expect.any(Error)
       );
       consoleSpy.mockRestore();
@@ -204,24 +338,22 @@ describe('screenSharing/desktopCapturerCache', () => {
   });
 
   describe('prewarmDesktopCapturerCache', () => {
-    it('refreshes with window and screen source types', async () => {
-      getSourcesMock.mockResolvedValueOnce([]);
+    it('refreshes screens first when both buckets are empty', async () => {
+      getSourcesMock.mockResolvedValue([]);
       prewarmDesktopCapturerCache();
-      await flushPromises();
+      await flushMicrotasks();
 
-      expect(getSourcesMock).toHaveBeenCalledWith({
-        types: ['window', 'screen'],
-      });
+      expect(getSourcesMock).toHaveBeenCalledWith({ types: ['screen'] });
     });
   });
 
   describe('clearDesktopCapturerCache', () => {
     it('resets cache and pending state', async () => {
       getSourcesMock.mockResolvedValueOnce([
-        makeSource('1', 'Screen 1') as any,
+        makeSource('screen:0', 'Screen 1') as any,
       ]);
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+      refreshDesktopCapturerCache();
+      await flushMicrotasks();
       expect(getDesktopCapturerCacheStatus().cached).toBe(true);
 
       clearDesktopCapturerCache();
@@ -230,6 +362,7 @@ describe('screenSharing/desktopCapturerCache', () => {
         cached: false,
         pending: false,
       });
+      expect(getCachedSources()).toEqual([]);
     });
   });
 
@@ -242,96 +375,82 @@ describe('screenSharing/desktopCapturerCache', () => {
     });
   });
 
+  describe('getCachedSources', () => {
+    it('returns merged screens + windows sources, screens first', async () => {
+      getSourcesMock.mockImplementation(async (options) => {
+        if (options?.types?.[0] === 'screen') {
+          return [makeSource('screen:0', 'Screen 1') as any];
+        }
+        return [makeSource('window:1', 'Window 1') as any];
+      });
+
+      const handler = getHandler();
+      const resultPromise = handler({ id: 1 }, undefined);
+      await flushMicrotasks();
+      await resultPromise;
+      await flushMicrotasks();
+
+      expect(getCachedSources().map((s) => s.id)).toEqual([
+        'screen:0',
+        'window:1',
+      ]);
+    });
+
+    it('returns an empty array when no bucket has been populated', () => {
+      expect(getCachedSources()).toEqual([]);
+    });
+  });
+
   describe('handleDesktopCapturerGetSources', () => {
     it('registers the IPC handler on the expected channel', () => {
       getHandler();
     });
 
-    it('returns cached sources immediately when a fresh cache exists', async () => {
-      getSourcesMock.mockResolvedValueOnce([makeSource('1', 'Cached') as any]);
-      refreshDesktopCapturerCache(OPTIONS);
-      await flushPromises();
+    it('serves merged cached sources immediately on subsequent calls', async () => {
+      getSourcesMock.mockImplementation(async (options) => {
+        if (options?.types?.[0] === 'screen') {
+          return [makeSource('screen:0', 'Screen 1') as any];
+        }
+        return [makeSource('window:1', 'Window 1') as any];
+      });
 
       const handler = getHandler();
-      const result = await handler({ id: 1 }, OPTIONS);
+      const firstCall = handler({ id: 1 }, undefined);
+      await flushMicrotasks();
+      await firstCall;
+      await flushMicrotasks();
 
-      expect(result.map((s: SourceStub) => s.id)).toEqual(['1']);
-    });
+      getSourcesMock.mockClear();
+      const result = await handler({ id: 1 }, undefined);
 
-    it('unwraps an array-wrapped options argument', async () => {
-      const handler = getHandler();
-      getSourcesMock.mockResolvedValueOnce([makeSource('1', 'Cached') as any]);
-
-      await handler({ id: 1 }, [OPTIONS]);
-
-      expect(getSourcesMock).toHaveBeenCalledWith(OPTIONS);
-    });
-
-    it('triggers a background refresh when the cache is stale', async () => {
-      jest.useFakeTimers();
-      getSourcesMock.mockResolvedValue([makeSource('1', 'Cached') as any]);
-
-      refreshDesktopCapturerCache(OPTIONS);
-      // Allow the initial fetch to settle under fake timers.
-      await Promise.resolve();
-      await Promise.resolve();
-
-      // Advance beyond the 3000ms stale threshold.
-      jest.advanceTimersByTime(3001);
-
-      const handler = getHandler();
-      const result = await handler({ id: 1 }, OPTIONS);
-
-      // Still returns the (stale) cached sources synchronously.
-      expect(result.map((s: SourceStub) => s.id)).toEqual(['1']);
-      // A background refresh was kicked off (second getSources call).
-      expect(getSourcesMock).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not refresh when a fresh cache is within the stale threshold', async () => {
-      jest.useFakeTimers();
-      getSourcesMock.mockResolvedValue([makeSource('1', 'Cached') as any]);
-
-      refreshDesktopCapturerCache(OPTIONS);
-      await Promise.resolve();
-      await Promise.resolve();
-
-      jest.advanceTimersByTime(1000);
-
-      const handler = getHandler();
-      await handler({ id: 1 }, OPTIONS);
-
-      expect(getSourcesMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('awaits the in-flight promise when one is pending and no cache exists', async () => {
-      let resolveFetch: (value: any) => void = () => undefined;
-      getSourcesMock.mockReturnValueOnce(
-        new Promise((resolve) => {
-          resolveFetch = resolve;
-        }) as any
+      expect(result.map((s: SourceStub) => s.id)).toEqual(
+        expect.arrayContaining(['screen:0', 'window:1'])
       );
-
-      // Start a fetch so a promise is pending but cache is still null.
-      refreshDesktopCapturerCache(OPTIONS);
-
-      const handler = getHandler();
-      const handlerPromise = handler({ id: 1 }, OPTIONS);
-
-      resolveFetch([makeSource('9', 'Pending') as any]);
-      const result = await handlerPromise;
-
-      expect(result.map((s: SourceStub) => s.id)).toEqual(['9']);
     });
 
-    it('refreshes then awaits when there is neither cache nor pending promise', async () => {
-      getSourcesMock.mockResolvedValueOnce([makeSource('5', 'Fresh') as any]);
+    it('kicks a background refresh of the stalest bucket when stale and cooldown elapsed', async () => {
+      getSourcesMock.mockImplementation(async (options) => {
+        if (options?.types?.[0] === 'screen') {
+          return [makeSource('screen:0', 'Screen 1') as any];
+        }
+        return [makeSource('window:1', 'Window 1') as any];
+      });
 
       const handler = getHandler();
-      const result = await handler({ id: 1 }, OPTIONS);
+      const firstCall = handler({ id: 1 }, undefined);
+      await flushMicrotasks();
+      await firstCall;
+      await flushMicrotasks();
 
-      expect(getSourcesMock).toHaveBeenCalledWith(OPTIONS);
-      expect(result.map((s: SourceStub) => s.id)).toEqual(['5']);
+      const callsAfterFirst = getSourcesMock.mock.calls.length;
+
+      // Advance beyond stale threshold (5000ms) and cooldown (4000ms).
+      jest.advanceTimersByTime(5001);
+
+      await handler({ id: 1 }, undefined);
+      await flushMicrotasks();
+
+      expect(getSourcesMock.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
   });
 });

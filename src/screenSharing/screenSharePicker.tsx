@@ -86,7 +86,8 @@ export function ScreenSharePicker({
       }
     } catch (error) {
       console.error('Error fetching screen sharing sources:', error);
-      setSources([]);
+      // Keep the previous sources list instead of clearing it — a transient
+      // enumeration failure shouldn't blank out an otherwise valid picker.
     }
   }, [selectedSourceId]);
 

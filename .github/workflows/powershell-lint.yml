@@ -1,7 +1,6 @@
 name: PowerShell Lint
 
-permissions:
-  contents: read
+permissions: {}
 
 on:
   pull_request:
@@ -22,6 +21,8 @@ on:
 
 jobs:
   lint:
+    permissions:
+      contents: read
     runs-on: windows-latest
     
     steps:

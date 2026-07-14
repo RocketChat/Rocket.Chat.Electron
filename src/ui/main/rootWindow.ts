@@ -99,7 +99,7 @@ const getEnableVibrancy = (): boolean => {
 
 const getInitialBackgroundColor = (enableVibrancy: boolean): string => {
   if (enableVibrancy) return '#00000000';
-  return nativeTheme.shouldUseDarkColors ? '#2f343d' : '#ffffff';
+  return '#2f343d';
 };
 
 export const createRootWindow = (): void => {

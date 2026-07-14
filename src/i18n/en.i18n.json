@@ -503,15 +503,14 @@
     "settings": "App settings",
     "menuTitle": "Customize and control app",
     "item": {
-      "workspace": "Workspace",
       "reload": "Reload",
       "remove": "Remove",
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
-      "copyCurrentUrl": "Copy current URL",
+      "copyCurrentUrl": "Copy URL",
       "reloadClearingCache": "Force reload",
-      "serverInfo": "Server Info",
+      "serverInfo": "Server info",
       "supportedVersionsInfo": "Supported Versions Info",
       "addWorkspace": "Add workspace"
     },

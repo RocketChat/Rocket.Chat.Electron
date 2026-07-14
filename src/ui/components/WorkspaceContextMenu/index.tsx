@@ -1,13 +1,11 @@
 import {
-  Box,
   Dropdown,
   Option,
-  OptionIcon,
   OptionContent,
   OptionDivider,
 } from '@rocket.chat/fuselage';
 import type { RefObject } from 'react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { SupportedVersions } from '../../../servers/supportedVersions/types';
@@ -23,6 +21,7 @@ import {
 } from '../../actions';
 import ServerInfoDropdown from '../SideBar/ServerInfoDropdown';
 import { useDropdownVisibility } from '../SideBar/useDropdownVisibility';
+import { Backdrop } from './styles';
 
 type ServerActionType =
   | typeof SIDE_BAR_SERVER_RELOAD
@@ -101,24 +100,42 @@ const WorkspaceContextMenu = ({
     onClose();
   };
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') onClose();
+    };
+    const handleBlur = (): void => onClose();
+
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [onClose]);
+
   return (
     <>
+      <Backdrop role='presentation' onMouseDown={onClose} />
       <Dropdown reference={reference} ref={target} placement={placement}>
-        <Box display='flex' className='rcx-option__title'>
-          {t('sidebar.item.workspace')}
-        </Box>
         <Option
           onClick={() => handleActionDropdownClick(SIDE_BAR_SERVER_RELOAD, url)}
         >
-          <OptionIcon name='refresh' />
           <OptionContent>{t('sidebar.item.reload')}</OptionContent>
+        </Option>
+        <Option
+          onClick={() =>
+            handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
+          }
+        >
+          <OptionContent>{t('sidebar.item.reloadClearingCache')}</OptionContent>
         </Option>
         <Option
           onClick={() =>
             handleActionDropdownClick(SIDE_BAR_SERVER_COPY_URL, url)
           }
         >
-          <OptionIcon name='copy' />
           <OptionContent>{t('sidebar.item.copyCurrentUrl')}</OptionContent>
         </Option>
         <Option
@@ -126,7 +143,6 @@ const WorkspaceContextMenu = ({
             handleActionDropdownClick(SIDE_BAR_SERVER_OPEN_DEV_TOOLS, url)
           }
         >
-          <OptionIcon name='code-block' />
           <OptionContent>{t('sidebar.item.openDevTools')}</OptionContent>
         </Option>
         <Option
@@ -135,18 +151,8 @@ const WorkspaceContextMenu = ({
           onMouseLeave={() => toggleServerInfo(false)}
           onClick={handleOpenServerInfoModal}
         >
-          <OptionIcon name='info' />
           <OptionContent>{t('sidebar.item.serverInfo')}</OptionContent>
         </Option>
-        <Option
-          onClick={() =>
-            handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
-          }
-        >
-          <OptionIcon name='refresh' />
-          <OptionContent>{t('sidebar.item.reloadClearingCache')}</OptionContent>
-        </Option>
-        <OptionDivider />
         <Option
           onClick={(event) => {
             event?.stopPropagation();
@@ -154,14 +160,12 @@ const WorkspaceContextMenu = ({
           }}
           variant='danger'
         >
-          <OptionIcon name='trash' />
           <OptionContent>{t('sidebar.item.remove')}</OptionContent>
         </Option>
         {showAddWorkspace && (
           <>
             <OptionDivider />
             <Option onClick={handleAddWorkspaceClick}>
-              <OptionIcon name='plus' />
               <OptionContent>{t('sidebar.item.addWorkspace')}</OptionContent>
             </Option>
           </>

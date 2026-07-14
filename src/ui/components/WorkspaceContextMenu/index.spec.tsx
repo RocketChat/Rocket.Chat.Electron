@@ -10,7 +10,7 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   OPEN_SERVER_INFO_MODAL,
 } from '../../actions';
-import { render, screen, userEvent } from '../../test-utils';
+import { fireEvent, render, screen, userEvent } from '../../test-utils';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -69,18 +69,49 @@ describe('WorkspaceContextMenu', () => {
     mockDispatch.mockClear();
   });
 
-  it('renders the workspace title and the standard action items', () => {
+  it('does not render the workspace title', () => {
     render(<Wrapper />);
 
-    expect(screen.getByText('sidebar.item.workspace')).toBeInTheDocument();
+    expect(
+      screen.queryByText('sidebar.item.workspace')
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the standard action items in the redesigned order', () => {
+    render(<Wrapper />);
+
     expect(screen.getByText('sidebar.item.reload')).toBeInTheDocument();
-    expect(screen.getByText('sidebar.item.copyCurrentUrl')).toBeInTheDocument();
-    expect(screen.getByText('sidebar.item.openDevTools')).toBeInTheDocument();
-    expect(screen.getByText('sidebar.item.serverInfo')).toBeInTheDocument();
     expect(
       screen.getByText('sidebar.item.reloadClearingCache')
     ).toBeInTheDocument();
+    expect(screen.getByText('sidebar.item.copyCurrentUrl')).toBeInTheDocument();
+    expect(screen.getByText('sidebar.item.openDevTools')).toBeInTheDocument();
+    expect(screen.getByText('sidebar.item.serverInfo')).toBeInTheDocument();
     expect(screen.getByText('sidebar.item.remove')).toBeInTheDocument();
+
+    const labels = [
+      'sidebar.item.reload',
+      'sidebar.item.reloadClearingCache',
+      'sidebar.item.copyCurrentUrl',
+      'sidebar.item.openDevTools',
+      'sidebar.item.serverInfo',
+      'sidebar.item.remove',
+    ];
+    for (let i = 0; i < labels.length - 1; i += 1) {
+      const current = screen.getByText(labels[i]);
+      const next = screen.getByText(labels[i + 1]);
+      expect(
+        current.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+    }
+  });
+
+  it('does not render option icons', () => {
+    const { container } = render(<Wrapper showAddWorkspace />);
+
+    expect(
+      container.querySelector('.rcx-option__icon')
+    ).not.toBeInTheDocument();
   });
 
   it('does not render the Add workspace option by default', () => {
@@ -113,6 +144,50 @@ describe('WorkspaceContextMenu', () => {
 
     const removeOption = screen.getByText('sidebar.item.remove').closest('li');
     expect(removeOption).toHaveClass('rcx-option--danger');
+  });
+
+  it('does not render a divider immediately before Remove', () => {
+    const { container } = render(<Wrapper />);
+
+    const removeOption = screen.getByText('sidebar.item.remove').closest('li');
+    expect(removeOption?.previousElementSibling?.tagName).not.toBe('HR');
+    expect(container.querySelectorAll('hr')).toHaveLength(0);
+  });
+
+  it('renders a divider before Add workspace when shown', () => {
+    const { container } = render(<Wrapper showAddWorkspace />);
+
+    expect(container.querySelectorAll('hr')).toHaveLength(1);
+  });
+
+  it('calls onClose when clicking the backdrop', () => {
+    const onClose = jest.fn();
+    const { container } = render(<Wrapper onClose={onClose} />);
+
+    const backdrop = container.querySelector('[role="presentation"]');
+    expect(backdrop).not.toBeNull();
+
+    fireEvent.mouseDown(backdrop as Element);
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onClose when pressing Escape', () => {
+    const onClose = jest.fn();
+    render(<Wrapper onClose={onClose} />);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onClose on window blur', () => {
+    const onClose = jest.fn();
+    render(<Wrapper onClose={onClose} />);
+
+    fireEvent(window, new Event('blur'));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('dispatches reload with the url when Reload is clicked', async () => {

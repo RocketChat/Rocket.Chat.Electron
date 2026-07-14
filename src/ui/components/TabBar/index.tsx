@@ -150,7 +150,7 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
           <AddButtonWrapper>
             <IconButton
               small
-              icon='plus'
+              icon='plus-small'
               title={t('tabBar.addWorkspace')}
               onClick={handleAddServerButtonClicked}
             />

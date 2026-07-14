@@ -199,7 +199,6 @@ describe('TabBar', () => {
 
     await user.pointer({ keys: '[MouseRight]', target: tab });
 
-    expect(screen.getByText('sidebar.item.workspace')).toBeInTheDocument();
     expect(screen.getByText('sidebar.item.serverInfo')).toBeInTheDocument();
     expect(mockDispatch).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'side-bar/context-menu-triggered' })

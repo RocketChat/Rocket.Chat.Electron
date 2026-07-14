@@ -1,5 +1,5 @@
 import type { Server } from '../../../servers/common';
-import { computeVisibleServers } from './useTabBarLayout';
+import { computeIsCompact, computeVisibleServers } from './useTabBarLayout';
 
 const buildServer = (url: string): Server => ({ url, title: url });
 
@@ -76,5 +76,25 @@ describe('computeVisibleServers', () => {
       buildServer('b'),
       buildServer('c'),
     ]);
+  });
+});
+
+describe('computeIsCompact', () => {
+  it('returns false for a wide strip with few tabs', () => {
+    expect(computeIsCompact(1000, 2)).toBe(false);
+  });
+
+  it('returns true when the average width per tab is at or below the compact threshold', () => {
+    // 200 / 3 tabs = 66.67px avg, below the (64 + gap) per-tab threshold.
+    expect(computeIsCompact(200, 3)).toBe(true);
+  });
+
+  it('returns false when width is not yet measured (zero or negative)', () => {
+    expect(computeIsCompact(0, 3)).toBe(false);
+    expect(computeIsCompact(-50, 3)).toBe(false);
+  });
+
+  it('returns false when there are no visible servers', () => {
+    expect(computeIsCompact(500, 0)).toBe(false);
   });
 });

@@ -5,6 +5,7 @@ import type { Server } from '../../../servers/common';
 const TAB_MIN_WIDTH = 52;
 const TAB_GAP = 8;
 const ADD_BUTTON_WIDTH = 36;
+const COMPACT_AVG_WIDTH_THRESHOLD = 64;
 
 export const computeVisibleServers = <S extends Server>(
   availableWidth: number,
@@ -41,12 +42,27 @@ export const computeVisibleServers = <S extends Server>(
   return visible;
 };
 
+export const computeIsCompact = (
+  availableWidth: number,
+  visibleServerCount: number
+): boolean => {
+  if (availableWidth <= 0 || visibleServerCount <= 0) {
+    return false;
+  }
+
+  return (
+    availableWidth <
+    visibleServerCount * (COMPACT_AVG_WIDTH_THRESHOLD + TAB_GAP)
+  );
+};
+
 export const useTabBarLayout = <S extends Server>(
   servers: S[],
   activeUrl: string | undefined,
   hasAddButton: boolean
 ): {
   visibleServers: S[];
+  compact: boolean;
   tabListRef: (node: HTMLElement | null) => void;
 } => {
   const [availableWidth, setAvailableWidth] = useState(0);
@@ -109,5 +125,7 @@ export const useTabBarLayout = <S extends Server>(
     activeUrl
   );
 
-  return { visibleServers, tabListRef };
+  const compact = computeIsCompact(availableWidth, visibleServers.length);
+
+  return { visibleServers, compact, tabListRef };
 };

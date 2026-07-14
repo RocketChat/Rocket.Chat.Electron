@@ -35,6 +35,7 @@ type WorkspaceTabProps = {
   isSelected: boolean;
   badge?: '•' | number;
   userLoggedIn?: boolean;
+  compact: boolean;
   shortcutNumber: string | null;
   isShortcutVisible: boolean;
   tabIndex: 0 | -1;
@@ -51,6 +52,7 @@ const WorkspaceTab = ({
   isSelected,
   badge,
   userLoggedIn,
+  compact,
   shortcutNumber,
   isShortcutVisible,
   tabIndex,
@@ -123,6 +125,7 @@ const WorkspaceTab = ({
       aria-controls={getServerPanelId(url)}
       tabIndex={tabIndex}
       isSelected={isSelected}
+      isCompact={compact}
       title={tooltipText}
       draggable='true'
       onClick={handleClick}
@@ -138,8 +141,8 @@ const WorkspaceTab = ({
     >
       <Initials visible={!favicon}>{initials}</Initials>
       <Favicon visible={!!favicon} src={favicon ?? ''} draggable='false' />
-      <Label>{title}</Label>
-      {isShortcutVisible && shortcutNumber && (
+      {!compact && <Label>{title}</Label>}
+      {!compact && isShortcutVisible && shortcutNumber && (
         <ShortcutChip>{shortcutNumber}</ShortcutChip>
       )}
       {displayCount && <TabBadge variant='secondary'>{displayCount}</TabBadge>}

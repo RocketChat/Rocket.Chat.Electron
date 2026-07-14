@@ -60,6 +60,7 @@ export const AddButtonWrapper = styled.div`
 
 type TabProps = {
   isSelected: boolean;
+  isCompact: boolean;
 };
 
 export const Tab = styled.button<TabProps>`
@@ -77,8 +78,7 @@ export const Tab = styled.button<TabProps>`
   height: 34px;
   align-self: flex-end;
   position: relative;
-  container-type: inline-size;
-  padding: 0 10px;
+  padding: ${({ isCompact }) => (isCompact ? '0 6px' : '0 10px')};
   cursor: pointer;
   -webkit-app-region: no-drag;
   color: var(--rcx-color-font-default, #1f2329);
@@ -168,20 +168,12 @@ export const Label = styled.span`
   font-size: 10px;
   font-weight: 700;
   line-height: 12px;
-
-  @container (max-width: 56px) {
-    display: none;
-  }
 `;
 
 export const ShortcutChip = styled.span`
   flex: 0 0 auto;
   font-size: 11px;
   opacity: 0.7;
-
-  @container (max-width: 56px) {
-    display: none;
-  }
 `;
 
 export const TabBadge = styled(Badge)`

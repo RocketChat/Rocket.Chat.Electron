@@ -272,25 +272,36 @@ describe('TabBar', () => {
     });
   });
 
-  it('drops the label only at the 52px minimum tab width, not at 75px', () => {
+  it('shows the workspace name label when the strip has room', () => {
     renderTabBar(<TabBar />, {
       preloadedState: buildState({
         servers: [{ url: 'https://a.rocket.chat/', title: 'Server A' }],
       }),
     });
 
-    const styleTags = Array.from(document.querySelectorAll('style'))
-      .map((style) =>
-        style.sheet
-          ? Array.from(style.sheet.cssRules)
-              .map((rule) => rule.cssText)
-              .join('\n')
-          : style.textContent ?? ''
-      )
-      .join('\n');
+    expect(screen.getByText('Server A')).toBeInTheDocument();
+  });
 
-    expect(styleTags).toMatch(/@container[^{]*max-width:\s*56px/);
-    expect(styleTags).not.toMatch(/@container[^{]*max-width:\s*75px/);
+  it('hides the label and shortcut chip when the strip is crowded (compact mode)', () => {
+    // 190px fits all 3 tabs at their 52px minimum (no slicing by
+    // computeVisibleServers) but sits below the 3 * (64 + gap) compact threshold.
+    mockTabListWidth = 190;
+
+    renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [
+          { url: 'https://a.rocket.chat/', title: 'Server A' },
+          { url: 'https://b.rocket.chat/', title: 'Server B' },
+          { url: 'https://c.rocket.chat/', title: 'Server C' },
+        ],
+        isAddNewServersEnabled: false,
+      }),
+    });
+
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
+    expect(screen.queryByText('Server A')).not.toBeInTheDocument();
+    expect(screen.queryByText('Server B')).not.toBeInTheDocument();
+    expect(screen.queryByText('Server C')).not.toBeInTheDocument();
   });
 
   it('aligns the add button with the 34px tab row instead of stretching over the 44px strip', async () => {

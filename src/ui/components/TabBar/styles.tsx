@@ -12,7 +12,7 @@ export const Strip = styled.div<StripProps>`
   align-items: stretch;
   flex: 0 0 auto;
   width: 100%;
-  height: 32px;
+  height: 36px;
   -webkit-app-region: drag;
   user-select: none;
   background-color: ${({ isTransparentWindowEnabled }) =>
@@ -38,8 +38,8 @@ export const TabList = styled.div`
   align-items: flex-end;
   flex: 1 1 auto;
   min-width: 0;
-  gap: 8px;
-  padding-left: 8px;
+  gap: 4px;
+  padding-left: 4px;
   overflow: hidden;
   -webkit-app-region: drag;
 `;
@@ -51,9 +51,9 @@ export const DragSpacer = styled.div`
 
 export const AddButtonWrapper = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   align-self: flex-end;
-  height: 28px;
+  height: 32px;
   flex: 0 0 auto;
   -webkit-app-region: no-drag;
 `;
@@ -76,7 +76,7 @@ export const Tab = styled.button<TabProps>`
   flex: 0 1 auto;
   min-width: 52px;
   max-width: 180px;
-  height: 28px;
+  height: 32px;
   align-self: flex-end;
   position: relative;
   padding: ${({ isCompact }) => (isCompact ? '0 6px' : '0 10px')};
@@ -194,10 +194,10 @@ export const MeatballButton = styled.button`
   height: 100%;
   cursor: pointer;
   -webkit-app-region: no-drag;
-  color: var(--rcx-color-font-default, #1f2329);
+  color: #ffffff;
 
   &:hover {
-    background-color: var(--rcx-color-surface-neutral, #e4e7ea);
+    background-color: rgba(255, 255, 255, 0.12);
   }
 
   &:focus-visible {
@@ -231,12 +231,12 @@ export const WindowControlButton = styled.button<WindowControlButtonProps>`
   height: 100%;
   cursor: pointer;
   -webkit-app-region: no-drag;
-  color: var(--rcx-color-font-default, #1f2329);
+  color: #ffffff;
 
   &:hover {
     background-color: ${({ isCloseButton }) =>
-      isCloseButton ? '#c42b1c' : 'var(--rcx-color-surface-neutral, #e4e7ea)'};
-    color: ${({ isCloseButton }) => (isCloseButton ? '#ffffff' : 'inherit')};
+      isCloseButton ? '#c42b1c' : 'rgba(255, 255, 255, 0.12)'};
+    color: #ffffff;
   }
 
   &:focus-visible {

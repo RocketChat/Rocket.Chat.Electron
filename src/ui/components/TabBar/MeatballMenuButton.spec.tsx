@@ -48,6 +48,13 @@ describe('MeatballMenuButton', () => {
     });
   });
 
+  it('renders with white text color', () => {
+    renderWithStore(<MeatballMenuButton />);
+
+    const button = screen.getByRole('button', { name: 'tabBar.meatballMenu' });
+    expect(button).toHaveStyle({ color: '#ffffff' });
+  });
+
   it('exposes menu affordance attributes for accessibility', () => {
     renderWithStore(<MeatballMenuButton />);
 

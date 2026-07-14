@@ -322,14 +322,18 @@ describe('TabBar', () => {
     expect(screen.queryByText('Server C')).not.toBeInTheDocument();
   });
 
-  it('aligns the add button with the 28px tab row instead of stretching over the 32px strip', async () => {
+  it('aligns the add button with the 32px tab row instead of stretching over the 36px strip', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTabBar(<TabBar />, { preloadedState: buildState() });
 
     const addButton = screen.getByTitle('tabBar.addWorkspace');
     const wrapper = addButton.closest('div');
 
-    expect(wrapper).toHaveStyle({ alignSelf: 'flex-end', height: '28px' });
+    expect(wrapper).toHaveStyle({
+      alignSelf: 'flex-end',
+      alignItems: 'flex-start',
+      height: '32px',
+    });
     // sanity check the button is still reachable/clickable after the alignment change
     await user.click(addButton);
     expect(mockDispatch).toHaveBeenCalled();

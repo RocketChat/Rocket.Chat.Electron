@@ -6,7 +6,7 @@ export const Wrapper = styled.section`
   top: 0;
   right: 0;
   bottom: 0;
-  background-color: #2f343d;
+  background-color: var(--rcx-color-surface-sidebar, #2f343d);
 
   overflow-y: auto;
   align-items: center;

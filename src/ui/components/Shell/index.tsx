@@ -63,7 +63,7 @@ export const Shell = () => {
         <WindowDragBar />
       )}
       <Box
-        bg='room'
+        bg='sidebar'
         display='flex'
         flexWrap='wrap'
         height='100vh'

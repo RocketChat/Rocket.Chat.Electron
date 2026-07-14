@@ -136,7 +136,11 @@ const assertContains = (entry, needle) => {
 assertContains('rootWindow.js', "require('react')");
 assertContains('rootWindow.js', "require('react-dom/client')");
 assertContains('screen-picker-window.js', "require('react')");
+assertContains('screen-picker-window.js', "require('react-dom/client')");
 assertContains('log-viewer-window.js', "require('react')");
+assertContains('log-viewer-window.js', "require('react-dom/client')");
+assertContains('video-call-window.js', "require('react')");
+assertContains('video-call-window.js', "require('react-dom/client')");
 
 console.log(
   `bundle externals check passed (${allReachable.size} chunks scanned)`

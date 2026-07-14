@@ -1,4 +1,3 @@
-import { Badge } from '@rocket.chat/fuselage';
 import type { DragEvent, FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useContext, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +11,14 @@ import { isDarwin } from '../../utils/platform';
 import { TooltipContext } from '../utils/TooltipContext';
 import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
-import { Favicon, Initials, Label, ShortcutChip, Tab } from './styles';
+import {
+  Favicon,
+  Initials,
+  Label,
+  ShortcutChip,
+  Tab,
+  TabBadge,
+} from './styles';
 
 const formatMentionCount = (count: number | undefined): string | undefined => {
   if (count === undefined) {
@@ -136,8 +142,8 @@ const WorkspaceTab = ({
       {isShortcutVisible && shortcutNumber && (
         <ShortcutChip>{shortcutNumber}</ShortcutChip>
       )}
-      {displayCount && <Badge variant='secondary'>{displayCount}</Badge>}
-      {!userLoggedIn && <Badge variant='warning'>!</Badge>}
+      {displayCount && <TabBadge variant='secondary'>{displayCount}</TabBadge>}
+      {!userLoggedIn && <TabBadge variant='warning'>!</TabBadge>}
     </Tab>
   );
 };

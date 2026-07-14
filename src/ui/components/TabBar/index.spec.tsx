@@ -256,4 +256,66 @@ describe('TabBar', () => {
 
     expect(screen.getAllByRole('tab')).toHaveLength(2);
   });
+
+  it('hugs tab content instead of stretching to fill the strip', () => {
+    renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [{ url: 'https://a.rocket.chat/', title: 'Server A' }],
+      }),
+    });
+
+    const tab = screen.getByText('Server A').closest('[role="tab"]');
+    expect(tab).toHaveStyle({
+      flex: '0 1 auto',
+      minWidth: '52px',
+      maxWidth: '180px',
+    });
+  });
+
+  it('drops the label only at the 52px minimum tab width, not at 75px', () => {
+    renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [{ url: 'https://a.rocket.chat/', title: 'Server A' }],
+      }),
+    });
+
+    const styleTags = Array.from(document.querySelectorAll('style'))
+      .map((style) =>
+        style.sheet
+          ? Array.from(style.sheet.cssRules)
+              .map((rule) => rule.cssText)
+              .join('\n')
+          : style.textContent ?? ''
+      )
+      .join('\n');
+
+    expect(styleTags).toMatch(/@container[^{]*max-width:\s*56px/);
+    expect(styleTags).not.toMatch(/@container[^{]*max-width:\s*75px/);
+  });
+
+  it('aligns the add button with the 34px tab row instead of stretching over the 44px strip', async () => {
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    renderTabBar(<TabBar />, { preloadedState: buildState() });
+
+    const addButton = screen.getByTitle('tabBar.addWorkspace');
+    const wrapper = addButton.closest('div');
+
+    expect(wrapper).toHaveStyle({ alignSelf: 'flex-end', height: '34px' });
+    // sanity check the button is still reachable/clickable after the alignment change
+    await user.click(addButton);
+    expect(mockDispatch).toHaveBeenCalled();
+  });
+
+  it('renders a non-shrinking, pill-shaped badge for two-digit mention counts', () => {
+    renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [
+          { url: 'https://a.rocket.chat/', title: 'Server A', badge: 97 },
+        ],
+      }),
+    });
+
+    const badge = screen.getByText('97');
+    expect(badge).toHaveStyle({ flexShrink: '0' });
+  });
 });

@@ -1,5 +1,6 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
+import { Badge } from '@rocket.chat/fuselage';
 
 type StripProps = {
   isTransparentWindowEnabled: boolean;
@@ -51,7 +52,8 @@ export const DragSpacer = styled.div`
 export const AddButtonWrapper = styled.div`
   display: flex;
   align-items: center;
-  align-self: stretch;
+  align-self: flex-end;
+  height: 34px;
   flex: 0 0 auto;
   -webkit-app-region: no-drag;
 `;
@@ -69,7 +71,7 @@ export const Tab = styled.button<TabProps>`
   flex-direction: row;
   align-items: center;
   gap: 6px;
-  flex: 1 1 180px;
+  flex: 0 1 auto;
   min-width: 52px;
   max-width: 180px;
   height: 34px;
@@ -163,10 +165,11 @@ export const Label = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 12px;
 
-  @container (max-width: 75px) {
+  @container (max-width: 56px) {
     display: none;
   }
 `;
@@ -176,9 +179,13 @@ export const ShortcutChip = styled.span`
   font-size: 11px;
   opacity: 0.7;
 
-  @container (max-width: 75px) {
+  @container (max-width: 56px) {
     display: none;
   }
+`;
+
+export const TabBadge = styled(Badge)`
+  flex-shrink: 0;
 `;
 
 export const MeatballButton = styled.button`

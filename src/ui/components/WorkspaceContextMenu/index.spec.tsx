@@ -72,7 +72,7 @@ describe('WorkspaceContextMenu', () => {
   it('renders the workspace title and the standard action items', () => {
     render(<Wrapper />);
 
-    expect(screen.getByText('Workspace')).toBeInTheDocument();
+    expect(screen.getByText('sidebar.item.workspace')).toBeInTheDocument();
     expect(screen.getByText('sidebar.item.reload')).toBeInTheDocument();
     expect(screen.getByText('sidebar.item.copyCurrentUrl')).toBeInTheDocument();
     expect(screen.getByText('sidebar.item.openDevTools')).toBeInTheDocument();

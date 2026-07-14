@@ -503,6 +503,7 @@
     "settings": "App settings",
     "menuTitle": "Customize and control app",
     "item": {
+      "workspace": "Workspace",
       "reload": "Reload",
       "remove": "Remove",
       "openDevTools": "Open DevTools",

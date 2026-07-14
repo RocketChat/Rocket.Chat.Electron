@@ -105,7 +105,7 @@ const WorkspaceContextMenu = ({
     <>
       <Dropdown reference={reference} ref={target} placement={placement}>
         <Box display='flex' className='rcx-option__title'>
-          Workspace
+          {t('sidebar.item.workspace')}
         </Box>
         <Option
           onClick={() => handleActionDropdownClick(SIDE_BAR_SERVER_RELOAD, url)}

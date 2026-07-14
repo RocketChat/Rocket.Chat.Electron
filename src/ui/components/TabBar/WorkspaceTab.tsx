@@ -148,6 +148,7 @@ const WorkspaceTab = ({
         isSelected={isSelected}
         isCompact={compact}
         title={tooltipText}
+        aria-label={tooltipText}
         draggable='true'
         onClick={handleClick}
         onContextMenu={handleContextMenu}

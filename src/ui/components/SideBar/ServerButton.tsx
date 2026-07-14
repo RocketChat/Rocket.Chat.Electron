@@ -1,32 +1,14 @@
 import { css } from '@rocket.chat/css-in-js';
-import {
-  Avatar,
-  IconButton,
-  Badge,
-  Box,
-  Dropdown,
-  Option,
-  OptionIcon,
-  OptionContent,
-  OptionDivider,
-} from '@rocket.chat/fuselage';
+import { Avatar, IconButton, Badge, Box } from '@rocket.chat/fuselage';
 import type { DragEvent, MouseEvent } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { SupportedVersions } from '../../../servers/supportedVersions/types';
 import { dispatch } from '../../../store';
-import {
-  SIDE_BAR_SERVER_SELECTED,
-  SIDE_BAR_SERVER_RELOAD,
-  SIDE_BAR_SERVER_COPY_URL,
-  SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
-  SIDE_BAR_SERVER_FORCE_RELOAD,
-  SIDE_BAR_SERVER_REMOVE,
-  OPEN_SERVER_INFO_MODAL,
-} from '../../actions';
+import { SIDE_BAR_SERVER_SELECTED } from '../../actions';
+import WorkspaceContextMenu from '../WorkspaceContextMenu';
 import { getServerInitials } from '../utils/getServerInitials';
-import ServerInfoDropdown from './ServerInfoDropdown';
 import { Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
 
@@ -53,14 +35,6 @@ type ServerButtonProps = {
   onDrop: (event: DragEvent) => void;
   exchangeUrl?: string;
 };
-
-type ServerActionType =
-  | typeof SIDE_BAR_SERVER_SELECTED
-  | typeof SIDE_BAR_SERVER_RELOAD
-  | typeof SIDE_BAR_SERVER_COPY_URL
-  | typeof SIDE_BAR_SERVER_OPEN_DEV_TOOLS
-  | typeof SIDE_BAR_SERVER_FORCE_RELOAD
-  | typeof SIDE_BAR_SERVER_REMOVE;
 
 const ServerButton = ({
   url,
@@ -90,44 +64,12 @@ const ServerButton = ({
 
   const reference = useRef(null);
   const target = useRef(null);
-  const serverInfoReference = useRef(null);
-  const serverInfoTarget = useRef(null);
 
   const { t } = useTranslation();
 
   const { isVisible, toggle } = useDropdownVisibility({ reference, target });
-  const { isVisible: isServerInfoVisible, toggle: toggleServerInfo } =
-    useDropdownVisibility({
-      reference: serverInfoReference,
-      target: serverInfoTarget,
-    });
 
   const initials = useMemo(() => getServerInitials(title, url), [title, url]);
-
-  const handleActionDropdownClick = (
-    action: ServerActionType,
-    serverUrl: string
-  ): void => {
-    if (action) dispatch({ type: action, payload: serverUrl });
-    toggle();
-  };
-
-  const handleOpenServerInfoModal = (): void => {
-    dispatch({
-      type: OPEN_SERVER_INFO_MODAL,
-      payload: {
-        url,
-        version,
-        exchangeUrl,
-        isSupportedVersion,
-        supportedVersionsSource,
-        supportedVersionsFetchState,
-        supportedVersions,
-      },
-    });
-    toggle();
-    toggleServerInfo(false);
-  };
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
@@ -204,77 +146,18 @@ const ServerButton = ({
         </IconButton>
       </ServerButtonWrapper>
       {isVisible && (
-        <Dropdown reference={reference} ref={target} placement='right-start'>
-          <Box display='flex' className='rcx-option__title'>
-            Workspace
-          </Box>
-          <Option
-            onClick={() =>
-              handleActionDropdownClick(SIDE_BAR_SERVER_RELOAD, url)
-            }
-          >
-            <OptionIcon name='refresh' />
-            <OptionContent>{t('sidebar.item.reload')}</OptionContent>
-          </Option>
-          <Option
-            onClick={() =>
-              handleActionDropdownClick(SIDE_BAR_SERVER_COPY_URL, url)
-            }
-          >
-            <OptionIcon name='copy' />
-            <OptionContent>{t('sidebar.item.copyCurrentUrl')}</OptionContent>
-          </Option>
-          <Option
-            onClick={() =>
-              handleActionDropdownClick(SIDE_BAR_SERVER_OPEN_DEV_TOOLS, url)
-            }
-          >
-            <OptionIcon name='code-block' />
-            <OptionContent>{t('sidebar.item.openDevTools')}</OptionContent>
-          </Option>
-          <Option
-            ref={serverInfoReference}
-            onMouseEnter={() => toggleServerInfo(true)}
-            onMouseLeave={() => toggleServerInfo(false)}
-            onClick={handleOpenServerInfoModal}
-          >
-            <OptionIcon name='info' />
-            <OptionContent>{t('sidebar.item.serverInfo')}</OptionContent>
-          </Option>
-          <Option
-            onClick={() =>
-              handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
-            }
-          >
-            <OptionIcon name='refresh' />
-            <OptionContent>
-              {t('sidebar.item.reloadClearingCache')}
-            </OptionContent>
-          </Option>
-          <OptionDivider />
-          <Option
-            onClick={(event) => {
-              event?.stopPropagation();
-              handleActionDropdownClick(SIDE_BAR_SERVER_REMOVE, url);
-            }}
-            variant='danger'
-          >
-            <OptionIcon name='trash' />
-            <OptionContent>{t('sidebar.item.remove')}</OptionContent>
-          </Option>
-        </Dropdown>
-      )}
-      {isServerInfoVisible && (
-        <ServerInfoDropdown
-          reference={serverInfoReference}
-          target={serverInfoTarget}
+        <WorkspaceContextMenu
+          reference={reference}
+          target={target}
           url={url}
           version={version}
           exchangeUrl={exchangeUrl}
-          supportedVersions={supportedVersions}
           isSupportedVersion={isSupportedVersion}
           supportedVersionsSource={supportedVersionsSource}
           supportedVersionsFetchState={supportedVersionsFetchState}
+          supportedVersions={supportedVersions}
+          onClose={() => toggle(false)}
+          placement='right-start'
         />
       )}
     </>

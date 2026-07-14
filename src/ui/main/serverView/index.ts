@@ -7,15 +7,13 @@ import type {
   Event,
   Input,
   MediaAccessPermissionRequest,
-  MenuItemConstructorOptions,
   OpenExternalPermissionRequest,
   UploadFile,
   UploadRawData,
   WebContents,
   WebPreferences,
 } from 'electron';
-import { app, clipboard, Menu, webContents } from 'electron';
-import i18next from 'i18next';
+import { app, clipboard, webContents } from 'electron';
 
 import { setupPreloadReload } from '../../../app/main/dev';
 import { handle } from '../../../ipc/main';
@@ -28,8 +26,6 @@ import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
-  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_READY,
   WEBVIEW_DID_FAIL_LOAD,
@@ -50,8 +46,6 @@ import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
-
-const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
@@ -594,87 +588,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     dispatch({
       type: SIDE_BAR_REMOVE_SERVER_CLICKED,
       payload: action.payload,
-    });
-  });
-
-  listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
-    const { payload: serverUrl } = action;
-    const isAddNewServersEnabled = select(
-      ({ isAddNewServersEnabled }) => isAddNewServersEnabled
-    );
-
-    const menuTemplate: MenuItemConstructorOptions[] = [
-      {
-        label: t('sidebar.item.reload'),
-        click: () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          if (!guestWebContents) {
-            return;
-          }
-          guestWebContents.loadURL(serverUrl).catch((error) => {
-            console.error('Failed to load URL for guestWebContents:', error);
-          });
-          if (serverUrl) {
-            dispatch({
-              type: WEBVIEW_SERVER_RELOADED,
-              payload: { url: serverUrl },
-            });
-          }
-        },
-      },
-      {
-        label: t('sidebar.item.remove'),
-        click: () => {
-          dispatch({
-            type: SIDE_BAR_REMOVE_SERVER_CLICKED,
-            payload: serverUrl,
-          });
-        },
-      },
-      { type: 'separator' },
-      {
-        label: t('sidebar.item.openDevTools'),
-        click: () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.openDevTools();
-        },
-      },
-      {
-        label: t('sidebar.item.copyCurrentUrl'),
-        click: async () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          const currentUrl = guestWebContents?.getURL();
-          clipboard.writeText(currentUrl || '');
-        },
-      },
-      {
-        label: t('sidebar.item.reloadClearingCache'),
-        click: async () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          if (!guestWebContents) {
-            return;
-          }
-          dispatch({
-            type: CLEAR_CACHE_TRIGGERED,
-            payload: guestWebContents.id,
-          });
-        },
-      },
-      ...(isAddNewServersEnabled
-        ? [
-            { type: 'separator' as const },
-            {
-              label: t('sidebar.item.addWorkspace'),
-              click: () => {
-                dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
-              },
-            },
-          ]
-        : []),
-    ];
-    const menu = Menu.buildFromTemplate(menuTemplate);
-    menu.popup({
-      window: rootWindow,
     });
   });
 

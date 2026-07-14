@@ -3,7 +3,6 @@ import { act } from '@testing-library/react';
 import { TabBar } from '.';
 import {
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_SERVER_SELECTED,
 } from '../../actions';
 import { renderWithStore, screen, userEvent } from '../../test-utils';
@@ -36,6 +35,26 @@ const mockDispatch = jest.fn();
 jest.mock('../../../store', () => ({
   dispatch: (action: unknown) => mockDispatch(action),
 }));
+
+jest.mock('../SideBar/ServerInfoDropdown', () => ({
+  __esModule: true,
+  default: () => <div data-testid='server-info-dropdown' />,
+}));
+
+// Fuselage's <Dropdown> resolves to its mobile variant under jsdom (matchMedia
+// has no real layout) and renders its children into an unreachable portal/tile.
+// Replace only that component with an inline passthrough so the menu Options
+// render in the tree; every other Fuselage component stays real.
+jest.mock('@rocket.chat/fuselage', () => {
+  const actual = jest.requireActual('@rocket.chat/fuselage');
+  return {
+    __esModule: true,
+    ...actual,
+    Dropdown: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid='dropdown'>{children}</div>
+    ),
+  };
+});
 
 let mockTabListWidth = 1000;
 
@@ -169,22 +188,22 @@ describe('TabBar', () => {
     expect(screen.getByText('SA')).toBeInTheDocument();
   });
 
-  it('dispatches SIDE_BAR_CONTEXT_MENU_TRIGGERED on context menu', () => {
+  it('opens the custom workspace context menu instead of the native menu on context menu', async () => {
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTabBar(<TabBar />, { preloadedState: buildState() });
 
-    const tab = screen.getByText('Server A').closest('[role="tab"]');
+    const tab = screen
+      .getByText('Server A')
+      .closest('[role="tab"]') as HTMLElement;
     expect(tab).not.toBeNull();
 
-    const event = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-    tab?.dispatchEvent(event);
+    await user.pointer({ keys: '[MouseRight]', target: tab });
 
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-      payload: 'https://a.rocket.chat/',
-    });
+    expect(screen.getByText('Workspace')).toBeInTheDocument();
+    expect(screen.getByText('sidebar.item.serverInfo')).toBeInTheDocument();
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'side-bar/context-menu-triggered' })
+    );
   });
 
   it('renders with zero servers without crashing', () => {

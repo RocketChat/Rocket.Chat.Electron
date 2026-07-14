@@ -121,6 +121,13 @@ const electronRunner = (() => {
 
       const electronArgs = [`--inspect=${DEV_INSPECT_PORT}`, '.'];
 
+      // Extra Chromium/Electron switches for dev tooling, e.g.
+      // ELECTRON_EXTRA_LAUNCH_ARGS='--remote-debugging-port=9222' yarn start
+      const extraArgs = (process.env.ELECTRON_EXTRA_LAUNCH_ARGS ?? '')
+        .split(' ')
+        .filter(Boolean);
+      electronArgs.unshift(...extraArgs);
+
       // Linux-specific flags for development
       if (process.platform === 'linux') {
         electronArgs.push('--no-sandbox');

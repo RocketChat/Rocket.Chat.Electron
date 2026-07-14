@@ -12,7 +12,7 @@ export const Strip = styled.div<StripProps>`
   align-items: stretch;
   flex: 0 0 auto;
   width: 100%;
-  height: 44px;
+  height: 32px;
   -webkit-app-region: drag;
   user-select: none;
   background-color: ${({ isTransparentWindowEnabled }) =>
@@ -39,7 +39,7 @@ export const TabList = styled.div`
   flex: 1 1 auto;
   min-width: 0;
   gap: 8px;
-  padding-left: 10px;
+  padding-left: 8px;
   overflow: hidden;
   -webkit-app-region: drag;
 `;
@@ -53,7 +53,7 @@ export const AddButtonWrapper = styled.div`
   display: flex;
   align-items: center;
   align-self: flex-end;
-  height: 34px;
+  height: 28px;
   flex: 0 0 auto;
   -webkit-app-region: no-drag;
 `;
@@ -68,6 +68,7 @@ export const Tab = styled.button<TabProps>`
   border: none;
   outline: none;
   background: transparent;
+  font-family: inherit;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -75,7 +76,7 @@ export const Tab = styled.button<TabProps>`
   flex: 0 1 auto;
   min-width: 52px;
   max-width: 180px;
-  height: 34px;
+  height: 28px;
   align-self: flex-end;
   position: relative;
   padding: ${({ isCompact }) => (isCompact ? '0 6px' : '0 10px')};

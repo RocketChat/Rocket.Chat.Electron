@@ -99,7 +99,7 @@ const getEnableVibrancy = (): boolean => {
 
 const getInitialBackgroundColor = (enableVibrancy: boolean): string => {
   if (enableVibrancy) return '#00000000';
-  return nativeTheme.shouldUseDarkColors ? '#2f343d' : '#ffffff';
+  return '#2f343d';
 };
 
 export const createRootWindow = (): void => {
@@ -110,6 +110,7 @@ export const createRootWindow = (): void => {
     minWidth: 400,
     minHeight: 400,
     titleBarStyle: platformTitleBarStyle,
+    ...(isMac ? { trafficLightPosition: { x: 16, y: 11 } } : {}),
     backgroundColor: getInitialBackgroundColor(enableVibrancy),
     show: false,
     webPreferences,
@@ -354,7 +355,7 @@ export const setupRootWindow = (): void => {
             async (navigationLayout) => {
               await safeWindowOperation((browserWindow) => {
                 browserWindow.setWindowButtonPosition(
-                  navigationLayout === 'tabs' ? { x: 16, y: 16 } : null
+                  navigationLayout === 'tabs' ? { x: 16, y: 11 } : null
                 );
               }, 'Window button position update');
             }

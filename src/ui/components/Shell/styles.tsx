@@ -13,7 +13,7 @@ export const GlobalStyles = ({
   const backgroundColor =
     isDarwin && isTransparentWindowEnabled
       ? 'transparent'
-      : 'var(--rcx-color-surface-room, #2f343d)';
+      : 'var(--rcx-color-surface-sidebar, #2f343d)';
 
   return (
     <Global
@@ -75,7 +75,7 @@ export const Wrapper = styled.div<WrapperProps>`
   background-color: ${({ isTransparentWindowEnabled }) =>
     isDarwin && isTransparentWindowEnabled
       ? 'transparent'
-      : 'var(--rcx-color-surface-room, #2f343d)'};
+      : 'var(--rcx-color-surface-sidebar, #2f343d)'};
   display: flex;
   flex-flow: row nowrap;
 `;

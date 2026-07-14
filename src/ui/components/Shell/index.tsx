@@ -1,6 +1,5 @@
 import { Box, PaletteStyleTag } from '@rocket.chat/fuselage';
-import type { Themes } from '@rocket.chat/fuselage/dist/components/PaletteStyleTag/types/themes';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
@@ -30,30 +29,12 @@ import { GlobalStyles, WindowDragBar } from './styles';
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
-  const machineTheme = useSelector(
-    ({ machineTheme }: RootState) => machineTheme
-  );
-  const userThemePreference = useSelector(
-    ({ userThemePreference }: RootState) => userThemePreference
-  );
   const isTransparentWindowEnabled = useSelector(
     ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
   );
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
-
-  const [currentTheme, setCurrentTheme] = useState<Themes | undefined>(
-    machineTheme as Themes
-  );
-
-  useEffect(() => {
-    if (userThemePreference === 'auto') {
-      setCurrentTheme(machineTheme as Themes);
-    } else {
-      setCurrentTheme(userThemePreference as Themes);
-    }
-  }, [machineTheme, userThemePreference]);
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -73,7 +54,7 @@ export const Shell = () => {
   return (
     <TooltipProvider>
       <PaletteStyleTag
-        theme={currentTheme}
+        theme='dark'
         selector=':root'
         // tagId='sidebar-palette'
       />
@@ -82,7 +63,7 @@ export const Shell = () => {
         <WindowDragBar />
       )}
       <Box
-        bg='room'
+        bg='sidebar'
         display='flex'
         flexWrap='wrap'
         height='100vh'

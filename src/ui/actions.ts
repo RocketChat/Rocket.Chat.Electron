@@ -41,8 +41,6 @@ export const VIDEO_CALL_WINDOW_STATE_CHANGED =
   'video-call-window/state-changed';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED =
   'side-bar/add-new-server-clicked';
-export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
-  'side-bar/context-menu-triggered';
 export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED =
   'side-bar/downloads-button-clicked';
 export const SIDE_BAR_SETTINGS_BUTTON_CLICKED =
@@ -203,7 +201,6 @@ export type UiActionTypeToPayloadMap = {
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
   [VIDEO_CALL_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;
-  [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;
   [SIDE_BAR_SETTINGS_BUTTON_CLICKED]: void;
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];

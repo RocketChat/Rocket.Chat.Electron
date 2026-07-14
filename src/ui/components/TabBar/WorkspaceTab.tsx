@@ -1,18 +1,24 @@
-import { Badge } from '@rocket.chat/fuselage';
 import type { DragEvent, FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useContext, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { SupportedVersions } from '../../../servers/supportedVersions/types';
 import { dispatch } from '../../../store';
-import {
-  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-  SIDE_BAR_SERVER_SELECTED,
-} from '../../actions';
+import { SIDE_BAR_SERVER_SELECTED } from '../../actions';
 import { isDarwin } from '../../utils/platform';
+import { useDropdownVisibility } from '../SideBar/useDropdownVisibility';
+import WorkspaceContextMenu from '../WorkspaceContextMenu';
 import { TooltipContext } from '../utils/TooltipContext';
 import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
-import { Favicon, Initials, Label, ShortcutChip, Tab } from './styles';
+import {
+  Favicon,
+  Initials,
+  Label,
+  ShortcutChip,
+  Tab,
+  TabBadge,
+} from './styles';
 
 const formatMentionCount = (count: number | undefined): string | undefined => {
   if (count === undefined) {
@@ -29,9 +35,17 @@ type WorkspaceTabProps = {
   isSelected: boolean;
   badge?: '•' | number;
   userLoggedIn?: boolean;
+  compact: boolean;
   shortcutNumber: string | null;
   isShortcutVisible: boolean;
   tabIndex: 0 | -1;
+  version?: string;
+  isSupportedVersion?: boolean;
+  supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+  supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
+  supportedVersions?: SupportedVersions;
+  exchangeUrl?: string;
+  showAddWorkspace?: boolean;
   onDragStart: (event: DragEvent) => void;
   onDragEnd: (event: DragEvent) => void;
   onDragEnter: (event: DragEvent) => void;
@@ -45,9 +59,17 @@ const WorkspaceTab = ({
   isSelected,
   badge,
   userLoggedIn,
+  compact,
   shortcutNumber,
   isShortcutVisible,
   tabIndex,
+  version,
+  isSupportedVersion,
+  supportedVersionsSource,
+  supportedVersionsFetchState,
+  supportedVersions,
+  exchangeUrl,
+  showAddWorkspace,
   onDragStart,
   onDragEnd,
   onDragEnter,
@@ -56,6 +78,12 @@ const WorkspaceTab = ({
   const { t } = useTranslation();
   const tooltip = useContext(TooltipContext);
   const ref = useRef<HTMLButtonElement>(null);
+  const target = useRef(null);
+
+  const { isVisible, toggle } = useDropdownVisibility({
+    reference: ref,
+    target,
+  });
 
   const initials = useMemo(() => getServerInitials(title, url), [title, url]);
 
@@ -90,7 +118,7 @@ const WorkspaceTab = ({
 
   const handleContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
-    dispatch({ type: SIDE_BAR_CONTEXT_MENU_TRIGGERED, payload: url });
+    toggle();
   };
 
   const handleKeyDown = (event: KeyboardEvent): void => {
@@ -109,36 +137,58 @@ const WorkspaceTab = ({
   };
 
   return (
-    <Tab
-      ref={ref}
-      id={getServerTabId(url)}
-      role='tab'
-      aria-selected={isSelected}
-      aria-controls={getServerPanelId(url)}
-      tabIndex={tabIndex}
-      isSelected={isSelected}
-      title={tooltipText}
-      draggable='true'
-      onClick={handleClick}
-      onContextMenu={handleContextMenu}
-      onKeyDown={handleKeyDown}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onDragOver={(event: DragEvent) => event.preventDefault()}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onDragEnter={onDragEnter}
-      onDrop={onDrop}
-    >
-      <Initials visible={!favicon}>{initials}</Initials>
-      <Favicon visible={!!favicon} src={favicon ?? ''} draggable='false' />
-      <Label>{title}</Label>
-      {isShortcutVisible && shortcutNumber && (
-        <ShortcutChip>{shortcutNumber}</ShortcutChip>
+    <>
+      <Tab
+        ref={ref}
+        id={getServerTabId(url)}
+        role='tab'
+        aria-selected={isSelected}
+        aria-controls={getServerPanelId(url)}
+        tabIndex={tabIndex}
+        isSelected={isSelected}
+        isCompact={compact}
+        title={tooltipText}
+        aria-label={tooltipText}
+        draggable='true'
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onDragOver={(event: DragEvent) => event.preventDefault()}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragEnter={onDragEnter}
+        onDrop={onDrop}
+      >
+        <Initials visible={!favicon}>{initials}</Initials>
+        <Favicon visible={!!favicon} src={favicon ?? ''} draggable='false' />
+        {!compact && <Label>{title}</Label>}
+        {!compact && isShortcutVisible && shortcutNumber && (
+          <ShortcutChip>{shortcutNumber}</ShortcutChip>
+        )}
+        {displayCount && (
+          <TabBadge variant='secondary'>{displayCount}</TabBadge>
+        )}
+        {!userLoggedIn && <TabBadge variant='warning'>!</TabBadge>}
+      </Tab>
+      {isVisible && (
+        <WorkspaceContextMenu
+          reference={ref}
+          target={target}
+          url={url}
+          version={version}
+          exchangeUrl={exchangeUrl}
+          isSupportedVersion={isSupportedVersion}
+          supportedVersionsSource={supportedVersionsSource}
+          supportedVersionsFetchState={supportedVersionsFetchState}
+          supportedVersions={supportedVersions}
+          onClose={() => toggle(false)}
+          showAddWorkspace={showAddWorkspace}
+          placement='bottom-start'
+        />
       )}
-      {displayCount && <Badge variant='secondary'>{displayCount}</Badge>}
-      {!userLoggedIn && <Badge variant='warning'>!</Badge>}
-    </Tab>
+    </>
   );
 };
 

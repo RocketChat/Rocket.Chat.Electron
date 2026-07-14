@@ -208,10 +208,10 @@ describe('Shell', () => {
     ).toBeInTheDocument();
   });
 
-  it('applies the machine theme when the user preference is auto', () => {
+  it('forces the dark theme regardless of the machine theme', () => {
     renderWithStore(<Shell />, {
       preloadedState: buildState({
-        machineTheme: 'dark',
+        machineTheme: 'light',
         userThemePreference: 'auto',
       }),
     });
@@ -222,17 +222,17 @@ describe('Shell', () => {
     );
   });
 
-  it('applies the explicit user theme preference when it is not auto', () => {
+  it('forces the dark theme regardless of the user theme preference', () => {
     renderWithStore(<Shell />, {
       preloadedState: buildState({
-        machineTheme: 'dark',
+        machineTheme: 'light',
         userThemePreference: 'light',
       }),
     });
 
     expect(screen.getByTestId('palette-style-tag')).toHaveAttribute(
       'data-theme',
-      'light'
+      'dark'
     );
   });
 

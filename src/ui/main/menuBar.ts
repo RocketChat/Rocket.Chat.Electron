@@ -866,7 +866,7 @@ export const createHelpMenu = createSelector(
   })
 );
 
-const selectMenuBarTemplate = createSelector(
+export const selectMenuBarTemplate = createSelector(
   [
     createAppMenu,
     createEditMenu,
@@ -877,9 +877,9 @@ const selectMenuBarTemplate = createSelector(
   (...menus) => menus
 );
 
-const selectMenuBarTemplateAsJson = createSelector(
-  (_state: any) => selectMenuBarTemplate,
-  (template: unknown) => JSON.stringify(template)
+export const selectMenuBarTemplateAsJson = createSelector(
+  selectMenuBarTemplate,
+  (template) => JSON.stringify(template)
 );
 
 const createRocketChatMenu = createSelector(

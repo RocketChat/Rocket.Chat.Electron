@@ -75,6 +75,16 @@ describe('WindowControls', () => {
     });
   });
 
+  it('renders window control buttons with white text color', () => {
+    renderWithStore(<WindowControls />, { preloadedState: buildState() });
+
+    const minimizeButton = screen.getByRole('button', {
+      name: 'tabBar.windowControls.minimize',
+    });
+
+    expect(minimizeButton).toHaveStyle({ color: '#ffffff' });
+  });
+
   it('shows the maximize label and glyph when the window is not maximized', () => {
     renderWithStore(<WindowControls />, {
       preloadedState: buildState({

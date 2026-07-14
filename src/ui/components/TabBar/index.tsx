@@ -53,7 +53,7 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
 
   const activeServer = sortedServers.find((server) => server.selected);
 
-  const { visibleServers, tabListRef } = useTabBarLayout(
+  const { visibleServers, compact, tabListRef } = useTabBarLayout(
     sortedServers,
     activeServer?.url,
     isAddNewServersEnabled
@@ -126,11 +126,19 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
               isSelected={server.selected}
               badge={server.badge}
               userLoggedIn={server.userLoggedIn}
+              compact={compact}
               shortcutNumber={shortcutNumber}
               isShortcutVisible={isEachShortcutVisible}
               tabIndex={
                 server.selected || (!hasSelectedServer && index === 0) ? 0 : -1
               }
+              version={server.version}
+              isSupportedVersion={server.isSupportedVersion}
+              supportedVersionsSource={server.supportedVersionsSource}
+              supportedVersionsFetchState={server.supportedVersionsFetchState}
+              supportedVersions={server.supportedVersions}
+              exchangeUrl={server.outlookCredentials?.serverUrl}
+              showAddWorkspace={isAddNewServersEnabled}
               onDragStart={handleDragStart(server.url)}
               onDragEnd={handleDragEnd}
               onDragEnter={handleDragEnter(server.url)}
@@ -142,7 +150,7 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
           <AddButtonWrapper>
             <IconButton
               small
-              icon='plus'
+              icon='plus-small'
               title={t('tabBar.addWorkspace')}
               onClick={handleAddServerButtonClicked}
             />

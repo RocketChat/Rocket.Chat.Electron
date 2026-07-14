@@ -1,5 +1,6 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
+import { Badge } from '@rocket.chat/fuselage';
 
 type StripProps = {
   isTransparentWindowEnabled: boolean;
@@ -11,7 +12,7 @@ export const Strip = styled.div<StripProps>`
   align-items: stretch;
   flex: 0 0 auto;
   width: 100%;
-  height: 44px;
+  height: 36px;
   -webkit-app-region: drag;
   user-select: none;
   background-color: ${({ isTransparentWindowEnabled }) =>
@@ -37,8 +38,8 @@ export const TabList = styled.div`
   align-items: flex-end;
   flex: 1 1 auto;
   min-width: 0;
-  gap: 8px;
-  padding-left: 10px;
+  gap: 4px;
+  padding-left: 4px;
   overflow: hidden;
   -webkit-app-region: drag;
 `;
@@ -50,14 +51,16 @@ export const DragSpacer = styled.div`
 
 export const AddButtonWrapper = styled.div`
   display: flex;
-  align-items: center;
-  align-self: stretch;
+  align-items: flex-start;
+  align-self: flex-end;
+  height: 32px;
   flex: 0 0 auto;
   -webkit-app-region: no-drag;
 `;
 
 type TabProps = {
   isSelected: boolean;
+  isCompact: boolean;
 };
 
 export const Tab = styled.button<TabProps>`
@@ -65,18 +68,18 @@ export const Tab = styled.button<TabProps>`
   border: none;
   outline: none;
   background: transparent;
+  font-family: inherit;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 6px;
-  flex: 1 1 180px;
+  flex: 0 1 auto;
   min-width: 52px;
   max-width: 180px;
-  height: 34px;
+  height: 32px;
   align-self: flex-end;
   position: relative;
-  container-type: inline-size;
-  padding: 0 10px;
+  padding: ${({ isCompact }) => (isCompact ? '0 6px' : '0 10px')};
   cursor: pointer;
   -webkit-app-region: no-drag;
   color: var(--rcx-color-font-default, #1f2329);
@@ -163,22 +166,19 @@ export const Label = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
-  font-weight: 500;
-
-  @container (max-width: 75px) {
-    display: none;
-  }
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 12px;
 `;
 
 export const ShortcutChip = styled.span`
   flex: 0 0 auto;
   font-size: 11px;
   opacity: 0.7;
+`;
 
-  @container (max-width: 75px) {
-    display: none;
-  }
+export const TabBadge = styled(Badge)`
+  flex-shrink: 0;
 `;
 
 export const MeatballButton = styled.button`
@@ -194,10 +194,10 @@ export const MeatballButton = styled.button`
   height: 100%;
   cursor: pointer;
   -webkit-app-region: no-drag;
-  color: var(--rcx-color-font-default, #1f2329);
+  color: #ffffff;
 
   &:hover {
-    background-color: var(--rcx-color-surface-neutral, #e4e7ea);
+    background-color: rgba(255, 255, 255, 0.12);
   }
 
   &:focus-visible {
@@ -231,12 +231,12 @@ export const WindowControlButton = styled.button<WindowControlButtonProps>`
   height: 100%;
   cursor: pointer;
   -webkit-app-region: no-drag;
-  color: var(--rcx-color-font-default, #1f2329);
+  color: #ffffff;
 
   &:hover {
     background-color: ${({ isCloseButton }) =>
-      isCloseButton ? '#c42b1c' : 'var(--rcx-color-surface-neutral, #e4e7ea)'};
-    color: ${({ isCloseButton }) => (isCloseButton ? '#ffffff' : 'inherit')};
+      isCloseButton ? '#c42b1c' : 'rgba(255, 255, 255, 0.12)'};
+    color: #ffffff;
   }
 
   &:focus-visible {

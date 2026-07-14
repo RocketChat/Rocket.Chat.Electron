@@ -308,9 +308,9 @@
       "navigation": {
         "title": "Workspace switcher",
         "description": "Choose how to switch between workspaces",
-        "workspaceTabs": "Workspace Tabs",
-        "workspaceBar": "Workspace Bar",
-        "disabledHint": "Enable the menu bar first to use Workspace Tabs."
+        "workspaceTabs": "Workspace tabs",
+        "workspaceBar": "Workspace bar",
+        "disabledHint": "Enable the menu bar first to use Workspace tabs."
       },
       "trayIcon": {
         "title": "Tray icon",
@@ -449,8 +449,8 @@
     "showServerList": "Server list",
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
-    "workspaceTabs": "Workspace Tabs",
-    "workspaceBar": "Workspace Bar",
+    "workspaceTabs": "Workspace tabs",
+    "workspaceBar": "Workspace bar",
     "nextWorkspace": "Next Workspace",
     "previousWorkspace": "Previous Workspace",
     "openConfigFolder": "Open &Configuration Folder",

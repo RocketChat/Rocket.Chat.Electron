@@ -103,13 +103,11 @@ export class ScreenSharingRequestTracker {
               `${this.label}: selected source no longer available:`,
               sourceId
             );
-            entry.cb(null);
-            this.finishActive(entry);
+            cb({ video: false } as any);
             return;
           }
 
-          entry.cb({ video: selectedSource });
-          this.finishActive(entry);
+          cb({ video: selectedSource });
           return;
         }
 

@@ -141,7 +141,7 @@ describe('ScreenSharingRequestTracker', () => {
       await flushPromises();
 
       expect(getSourcesMock).not.toHaveBeenCalled();
-      expect(cb).toHaveBeenCalledWith(null);
+      expect(cb).toHaveBeenCalledWith({ video: false });
       expect(tracker.pending).toBe(false);
     });
 

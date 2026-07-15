@@ -61,6 +61,9 @@ let loadingTimeout: NodeJS.Timeout | null = null;
 let recoveryTimeout: NodeJS.Timeout | null = null;
 let loadingDisplayTimeout: NodeJS.Timeout | null = null;
 let errorDisplayTimeout: NodeJS.Timeout | null = null;
+// True while recovery attempt 2's about:blank placeholder hop is in flight,
+// so its dom-ready doesn't reset recoveryAttempt before the real URL commits.
+let isAboutBlankRecoveryHop = false;
 
 const initializeI18n = async (): Promise<void> => {
   try {
@@ -235,11 +238,9 @@ const showErrorWithDelay = (
 
 const attemptAutoRecovery = (): void => {
   if (state.recoveryAttempt >= MAX_RECOVERY_ATTEMPTS) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        'Video call window: Max recovery attempts reached, showing error'
-      );
-    }
+    console.warn(
+      'Video call window: Max recovery attempts reached, showing error'
+    );
     state.status = 'error';
     state.errorMessage = t(
       'videoCall.error.maxRetriesReached',
@@ -274,18 +275,35 @@ const attemptAutoRecovery = (): void => {
       return;
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(
-      `Video call window: Auto-recovery attempt ${currentAttempt}/${MAX_RECOVERY_ATTEMPTS} - ${strategy}`
-    );
-  }
+  console.warn(
+    `Video call window: Auto-recovery attempt ${currentAttempt}/${MAX_RECOVERY_ATTEMPTS} - ${strategy}`
+  );
 
   recoveryTimeout = setTimeout(() => {
     const webview = state.webview as any;
 
     switch (currentAttempt) {
       case 1:
-        if (webview) {
+        if (webview && state.url) {
+          try {
+            webview.src = validateVideoCallUrl(state.url);
+          } catch (error) {
+            console.error(
+              'Video call window: URL validation failed during recovery:',
+              error
+            );
+            console.error(
+              'Video call window: Skipping webview reload recovery step, proceeding to next recovery attempt'
+            );
+            if (recoveryTimeout) {
+              clearTimeout(recoveryTimeout);
+              recoveryTimeout = null;
+            }
+            state.recoveryAttempt = currentAttempt;
+            attemptAutoRecovery();
+            return;
+          }
+        } else if (webview) {
           webview.reload();
         }
         break;
@@ -293,8 +311,10 @@ const attemptAutoRecovery = (): void => {
         if (webview && state.url) {
           try {
             const validatedUrl = validateVideoCallUrl(state.url);
+            isAboutBlankRecoveryHop = true;
             webview.src = 'about:blank';
             setTimeout(() => {
+              isAboutBlankRecoveryHop = false;
               if (webview) {
                 webview.src = validatedUrl;
               }
@@ -402,11 +422,9 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
     });
 
     loadingTimeout = setTimeout(() => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(
-          'Video call window: Loading timeout reached - starting auto-recovery'
-        );
-      }
+      console.warn(
+        'Video call window: Loading timeout reached - starting auto-recovery'
+      );
       loadingTimeout = null;
       attemptAutoRecovery();
     }, LOADING_TIMEOUT_MS);
@@ -419,6 +437,22 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
 
   const handleDomReady = (): void => {
     console.log('Video call window: Webview DOM ready');
+
+    // Page has committed and consumed the URL (Jitsi strips the jwt via
+    // history.replaceState here); auto-recovery reloading now would abort
+    // in-flight subresource loads, so disarm the "navigation never
+    // committed" timeout and stop counting this as a failed attempt.
+    // Skip this for the `about:blank` placeholder hop used by recovery
+    // attempt 2 (URL refresh) - it commits instantly but isn't real
+    // content, so resetting the counter here would defeat the bounded
+    // 3-attempt escalation ladder.
+    if (!isAboutBlankRecoveryHop) {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
+      state.recoveryAttempt = 0;
+    }
 
     if (state.shouldAutoOpenDevtools) {
       console.log('Video call window: Auto-opening devtools for webview');
@@ -500,6 +534,13 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
     };
 
     console.error('Video call window: Webview failed to load:', errorInfo);
+
+    if (event.errorCode === -3) {
+      console.warn(
+        'Video call window: Ignoring ERR_ABORTED (-3) - self-inflicted navigation abort'
+      );
+      return;
+    }
 
     if (event.isMainFrame) {
       clearAllTimeouts();

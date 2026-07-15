@@ -1,6 +1,7 @@
 import type { Event } from 'electron';
 import { desktopCapturer, ipcMain } from 'electron';
 
+import { getCachedSources } from './desktopCapturerCache';
 import type { DisplayMediaCallback } from './screenPicker/types';
 
 const DEFAULT_TIMEOUT = 60000;
@@ -92,6 +93,25 @@ export class ScreenSharingRequestTracker {
       }
 
       try {
+        const cachedSources = getCachedSources();
+
+        if (cachedSources.length > 0) {
+          const selectedSource = cachedSources.find((s) => s.id === sourceId);
+
+          if (!selectedSource) {
+            console.warn(
+              `${this.label}: selected source no longer available:`,
+              sourceId
+            );
+            cb({ video: false } as any);
+            return;
+          }
+
+          cb({ video: selectedSource });
+          return;
+        }
+
+        // Cache is empty: fall back to a single direct enumeration attempt.
         const sources = await desktopCapturer.getSources({
           types: ['window', 'screen'],
         });

@@ -2,6 +2,7 @@ import type { Event } from 'electron';
 import { desktopCapturer, ipcMain } from 'electron';
 
 import { ScreenSharingRequestTracker } from '../ScreenSharingRequestTracker';
+import { getCachedSources } from '../desktopCapturerCache';
 
 jest.mock('electron', () => ({
   ipcMain: {
@@ -13,12 +14,19 @@ jest.mock('electron', () => ({
   },
 }));
 
+jest.mock('../desktopCapturerCache', () => ({
+  getCachedSources: jest.fn(),
+}));
+
 const onceMock = ipcMain.once as jest.MockedFunction<typeof ipcMain.once>;
 const removeListenerMock = ipcMain.removeListener as jest.MockedFunction<
   typeof ipcMain.removeListener
 >;
 const getSourcesMock = desktopCapturer.getSources as jest.MockedFunction<
   typeof desktopCapturer.getSources
+>;
+const getCachedSourcesMock = getCachedSources as jest.MockedFunction<
+  typeof getCachedSources
 >;
 
 const CHANNEL = 'screen-share:response';
@@ -50,6 +58,9 @@ beforeEach(() => {
   jest.useFakeTimers({ doNotFake: ['setImmediate'] });
   jest.spyOn(console, 'warn').mockImplementation(() => undefined);
   jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  // Default: empty cache, so pre-existing tests that don't care about the
+  // cache path exercise the same direct-getSources fallback they did before.
+  getCachedSourcesMock.mockReturnValue([]);
 });
 
 afterEach(() => {
@@ -98,7 +109,44 @@ describe('ScreenSharingRequestTracker', () => {
   });
 
   describe('response listener', () => {
-    it('resolves with the selected source when a valid sourceId is received', async () => {
+    it('resolves from the cache without calling getSources when the cache is non-empty', async () => {
+      getCachedSourcesMock.mockReturnValue([
+        makeSource('window:1'),
+        makeSource('screen:0'),
+      ]);
+
+      const tracker = new ScreenSharingRequestTracker(CHANNEL, LABEL);
+      const cb = jest.fn();
+      tracker.createRequest(cb, jest.fn());
+
+      const listener = getRegisteredListener();
+      listener(fakeEvent, 'screen:0');
+      await flushPromises();
+
+      expect(getSourcesMock).not.toHaveBeenCalled();
+      expect(cb).toHaveBeenCalledWith({ video: makeSource('screen:0') });
+      expect(tracker.pending).toBe(false);
+      expect(removeListenerMock).toHaveBeenCalledWith(CHANNEL, listener);
+    });
+
+    it('denies when the sourceId is missing from a non-empty cache, without calling getSources', async () => {
+      getCachedSourcesMock.mockReturnValue([makeSource('window:1')]);
+
+      const tracker = new ScreenSharingRequestTracker(CHANNEL, LABEL);
+      const cb = jest.fn();
+      tracker.createRequest(cb, jest.fn());
+
+      const listener = getRegisteredListener();
+      listener(fakeEvent, 'screen:gone');
+      await flushPromises();
+
+      expect(getSourcesMock).not.toHaveBeenCalled();
+      expect(cb).toHaveBeenCalledWith({ video: false });
+      expect(tracker.pending).toBe(false);
+    });
+
+    it('falls back to a single direct getSources call when the cache is empty', async () => {
+      getCachedSourcesMock.mockReturnValue([]);
       getSourcesMock.mockResolvedValue([
         makeSource('window:1'),
         makeSource('screen:0'),
@@ -112,6 +160,7 @@ describe('ScreenSharingRequestTracker', () => {
       listener(fakeEvent, 'screen:0');
       await flushPromises();
 
+      expect(getSourcesMock).toHaveBeenCalledTimes(1);
       expect(getSourcesMock).toHaveBeenCalledWith({
         types: ['window', 'screen'],
       });
@@ -134,7 +183,7 @@ describe('ScreenSharingRequestTracker', () => {
       expect(tracker.pending).toBe(false);
     });
 
-    it('resolves with no video when the selected source is no longer available', async () => {
+    it('resolves with no video via the fallback getSources call when the selected source is no longer available', async () => {
       getSourcesMock.mockResolvedValue([makeSource('window:1')]);
 
       const tracker = new ScreenSharingRequestTracker(CHANNEL, LABEL);

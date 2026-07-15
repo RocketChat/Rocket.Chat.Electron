@@ -30,7 +30,7 @@
     "patch-package": "patch-package",
     "start": "run-s build:watch",
     "clean": "rimraf app dist",
-    "build": "rollup -c",
+    "build": "rollup -c && node scripts/check-bundle-externals.mjs",
     "build:watch": "rollup -c -w",
     "build-mac": "yarn build && yarn electron-builder --publish never --mac --universal",
     "build-mas": "yarn build && yarn electron-builder --publish never --mac mas --universal",

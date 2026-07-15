@@ -198,13 +198,25 @@ const downloadSupportedVersions = () => {
 
 const extensions = ['.js', '.ts', '.tsx'];
 
+// Match dependency subpaths (e.g. `react-dom/client`) as external too. An
+// exact-name list leaves subpath entrypoints to be bundled at build-time
+// NODE_ENV while the base package resolves from the asar at runtime, which
+// can mix development and production React internals and crash the renderer.
+const makeExternal = (bundledModules = []) => {
+  const externalModules = [
+    ...builtinModules,
+    ...Object.keys(appManifest.dependencies),
+    ...Object.keys(appManifest.devDependencies),
+  ].filter((moduleName) => !bundledModules.includes(moduleName));
+  return (id) =>
+    externalModules.some(
+      (moduleName) => id === moduleName || id.startsWith(`${moduleName}/`)
+    );
+};
+
 export default [
   {
-    external: [
-      ...builtinModules,
-      ...Object.keys(appManifest.dependencies),
-      ...Object.keys(appManifest.devDependencies),
-    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    external: makeExternal(['@bugsnag/js']),
     input: 'src/videoCallWindow/video-call-window.ts',
     preserveEntrySignatures: 'strict',
     plugins: [
@@ -234,11 +246,7 @@ export default [
     ],
   },
   {
-    external: [
-      ...builtinModules,
-      ...Object.keys(appManifest.dependencies),
-      ...Object.keys(appManifest.devDependencies),
-    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    external: makeExternal(['@bugsnag/js']),
     input: 'src/logViewerWindow/log-viewer-window.tsx',
     preserveEntrySignatures: 'strict',
     plugins: [
@@ -268,11 +276,7 @@ export default [
     ],
   },
   {
-    external: [
-      ...builtinModules,
-      ...Object.keys(appManifest.dependencies),
-      ...Object.keys(appManifest.devDependencies),
-    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    external: makeExternal(['@bugsnag/js']),
     input: 'src/videoCallWindow/preload/index.ts',
     preserveEntrySignatures: 'strict',
     plugins: [
@@ -303,20 +307,13 @@ export default [
     ],
   },
   {
-    external: [
-      ...builtinModules,
-      ...Object.keys(appManifest.dependencies),
-      ...Object.keys(appManifest.devDependencies),
-    ].filter(
-      (moduleName) =>
-        ![
-          '@bugsnag/js',
-          'marked',
-          'marked-highlight',
-          'highlight.js',
-          'dompurify',
-        ].includes(moduleName)
-    ),
+    external: makeExternal([
+      '@bugsnag/js',
+      'marked',
+      'marked-highlight',
+      'highlight.js',
+      'dompurify',
+    ]),
     input: 'src/rootWindow.ts',
     preserveEntrySignatures: 'strict',
     plugins: [
@@ -347,11 +344,7 @@ export default [
     },
   },
   {
-    external: [
-      ...builtinModules,
-      ...Object.keys(appManifest.dependencies),
-      ...Object.keys(appManifest.devDependencies),
-    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    external: makeExternal(['@bugsnag/js']),
     input: 'src/preload.ts',
     plugins: [
       json(),
@@ -410,11 +403,7 @@ export default [
     ],
   },
   {
-    external: [
-      ...builtinModules,
-      ...Object.keys(appManifest.dependencies),
-      ...Object.keys(appManifest.devDependencies),
-    ],
+    external: makeExternal(),
     input: 'src/main.ts',
     plugins: [
       copy({

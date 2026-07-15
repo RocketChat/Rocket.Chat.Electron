@@ -27,7 +27,7 @@ type TrafficLightSpacerProps = {
 
 export const TrafficLightSpacer = styled.div<TrafficLightSpacerProps>`
   flex: 0 0 auto;
-  width: ${({ collapsed }) => (collapsed ? '0px' : '78px')};
+  width: ${({ collapsed }) => (collapsed ? '0px' : '82px')};
   -webkit-app-region: drag;
   transition: width var(--transitions-duration, 100ms);
 `;

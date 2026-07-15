@@ -95,4 +95,3 @@
   HTTPS + system trust store + code-signature verification of the downloaded artifact. The blast
   radius of a stale or broken pin exceeds the risk it would remove.
 - Affected files: electron-builder.json (update feed config); no source changes made.
-  > > > > > > > dddd2ccd6 (fix: keep screen picker sources stable under Electron 42 macOS capture stack (#3414))

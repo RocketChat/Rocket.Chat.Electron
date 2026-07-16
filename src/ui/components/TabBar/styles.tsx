@@ -12,7 +12,7 @@ export const Strip = styled.div<StripProps>`
   align-items: stretch;
   flex: 0 0 auto;
   width: 100%;
-  height: 36px;
+  height: 38px;
   -webkit-app-region: drag;
   user-select: none;
   background-color: ${({ isTransparentWindowEnabled }) =>
@@ -27,7 +27,7 @@ type TrafficLightSpacerProps = {
 
 export const TrafficLightSpacer = styled.div<TrafficLightSpacerProps>`
   flex: 0 0 auto;
-  width: ${({ collapsed }) => (collapsed ? '0px' : '78px')};
+  width: ${({ collapsed }) => (collapsed ? '0px' : '82px')};
   -webkit-app-region: drag;
   transition: width var(--transitions-duration, 100ms);
 `;
@@ -39,7 +39,7 @@ export const TabList = styled.div`
   flex: 1 1 auto;
   min-width: 0;
   gap: 4px;
-  padding-left: 4px;
+  padding-left: 8px;
   overflow: hidden;
   -webkit-app-region: drag;
 `;

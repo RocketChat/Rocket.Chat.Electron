@@ -110,7 +110,7 @@ export const createRootWindow = (): void => {
     minWidth: 400,
     minHeight: 400,
     titleBarStyle: platformTitleBarStyle,
-    ...(isMac ? { trafficLightPosition: { x: 16, y: 11 } } : {}),
+    ...(isMac ? { trafficLightPosition: { x: 12, y: 13 } } : {}),
     backgroundColor: getInitialBackgroundColor(enableVibrancy),
     show: false,
     webPreferences,
@@ -355,7 +355,7 @@ export const setupRootWindow = (): void => {
             async (navigationLayout) => {
               await safeWindowOperation((browserWindow) => {
                 browserWindow.setWindowButtonPosition(
-                  navigationLayout === 'tabs' ? { x: 16, y: 11 } : null
+                  navigationLayout === 'tabs' ? { x: 12, y: 13 } : null
                 );
               }, 'Window button position update');
             }

@@ -48,6 +48,7 @@ const resolveIcon = async (
 const notifications = new Map();
 const notificationTypes = new Map<string, 'voice' | 'text'>();
 const notificationCategories = new Map<string, 'DOWNLOADS' | 'SERVER'>();
+const repliedNotifications = new Set<string>();
 
 const createNotification = async (
   id: string,
@@ -79,6 +80,8 @@ const createNotification = async (
   });
 
   notification.addListener('show', () => {
+    repliedNotifications.delete(id);
+
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_SHOWN,
       payload: { id },
@@ -126,6 +129,12 @@ const createNotification = async (
   });
 
   notification.addListener('reply', (_event, reply) => {
+    // Electron 42 on Windows can dispatch a single toast reply twice (WinRT+COM activation paths)
+    if (repliedNotifications.has(id)) {
+      return;
+    }
+    repliedNotifications.add(id);
+
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_REPLIED,
       payload: { id, reply },

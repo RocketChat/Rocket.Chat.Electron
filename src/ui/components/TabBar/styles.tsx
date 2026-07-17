@@ -91,6 +91,10 @@ export const AddButtonWrapper = styled.div<AddButtonWrapperProps>`
   flex: 0 0 auto;
   -webkit-app-region: no-drag;
 
+  & button {
+    border-radius: 8px;
+  }
+
   /* Over a transparent window, match the add button's hover to the tab hover
      fill instead of the opaque fuselage default. The '& button:hover' selector
      outranks fuselage's '.rcx-button--icon:hover'. */
@@ -126,12 +130,12 @@ export const Tab = styled.button<TabProps>`
   height: 28px;
   align-self: flex-end;
   position: relative;
-  padding: ${({ isCompact }) => (isCompact ? '0 6px' : '0 10px')};
+  padding: ${({ isCompact }) => (isCompact ? '0 6px' : '0 6px')};
   margin-bottom: 4px;
   cursor: pointer;
   -webkit-app-region: no-drag;
   color: var(--rcx-color-font-default, #1f2329);
-  border-radius: 8px 8px 0 0;
+  border-radius: 8px;
 
   ${({ isSelected }) =>
     isSelected
@@ -139,6 +143,8 @@ export const Tab = styled.button<TabProps>`
           background-color: var(--tab-chrome-fill);
           margin-bottom: 0px;
           padding-bottom: 4px;
+          border-bottom-right-radius: 0px;
+          border-bottom-left-radius: 0px;
           height: 32px;
           z-index: 1;
 
@@ -190,6 +196,7 @@ export const Divider = styled.div`
   border-radius: 4px;
   margin-bottom: 10px;
   background-color: var(--tab-chrome-fill);
+  opacity: 0.5;
   transition: opacity 150ms ease;
 
   /* Each tab renders a trailing divider, so one sits between the last tab and
@@ -197,12 +204,15 @@ export const Divider = styled.div`
      trailing edge (no add button) and the ones flanking the active or hovered
      tab (its previous sibling via :has, its next sibling via +). Targets
      aria-selected / role='tab' rather than the Tab component selector, which
-     needs @emotion/babel-plugin (not enabled). */
+     needs @emotion/babel-plugin (not enabled). The '+ div button:hover' rule
+     hides the divider before the add button (wrapped in a div) when that button
+     is hovered. */
   &:last-child,
   &:has(+ [aria-selected='true']),
   [aria-selected='true'] + &,
   &:has(+ [role='tab']:hover),
-  [role='tab']:hover + & {
+  [role='tab']:hover + &,
+  &:has(+ div button:hover) {
     opacity: 0;
   }
 `;

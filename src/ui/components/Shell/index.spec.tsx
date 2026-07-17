@@ -208,11 +208,12 @@ describe('Shell', () => {
     ).toBeInTheDocument();
   });
 
-  it('forces the dark theme regardless of the machine theme', () => {
+  it('forces the dark theme when transparency is disabled, regardless of the machine theme', () => {
     renderWithStore(<Shell />, {
       preloadedState: buildState({
         machineTheme: 'light',
         userThemePreference: 'auto',
+        isTransparentWindowEnabled: false,
       }),
     });
 
@@ -222,11 +223,57 @@ describe('Shell', () => {
     );
   });
 
-  it('forces the dark theme regardless of the user theme preference', () => {
+  it('forces the dark theme when transparency is disabled, regardless of the user theme preference', () => {
     renderWithStore(<Shell />, {
       preloadedState: buildState({
         machineTheme: 'light',
         userThemePreference: 'light',
+        isTransparentWindowEnabled: false,
+      }),
+    });
+
+    expect(screen.getByTestId('palette-style-tag')).toHaveAttribute(
+      'data-theme',
+      'dark'
+    );
+  });
+
+  it('follows the machine theme when transparency is enabled and preference is auto', () => {
+    renderWithStore(<Shell />, {
+      preloadedState: buildState({
+        machineTheme: 'light',
+        userThemePreference: 'auto',
+        isTransparentWindowEnabled: true,
+      }),
+    });
+
+    expect(screen.getByTestId('palette-style-tag')).toHaveAttribute(
+      'data-theme',
+      'light'
+    );
+  });
+
+  it('follows the explicit user theme preference when transparency is enabled', () => {
+    renderWithStore(<Shell />, {
+      preloadedState: buildState({
+        machineTheme: 'dark',
+        userThemePreference: 'light',
+        isTransparentWindowEnabled: true,
+      }),
+    });
+
+    expect(screen.getByTestId('palette-style-tag')).toHaveAttribute(
+      'data-theme',
+      'light'
+    );
+  });
+
+  it('keeps the dark theme with transparency enabled when the resolved theme is dark', () => {
+    renderWithStore(<Shell />, {
+      preloadedState: buildState({
+        machineTheme: 'dark',
+        userThemePreference: 'auto',
+        isTransparentWindowEnabled: true,
       }),
     });
 

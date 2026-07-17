@@ -12,6 +12,7 @@ import { TooltipContext } from '../utils/TooltipContext';
 import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
 import {
+  Divider,
   Favicon,
   Initials,
   Label,
@@ -26,6 +27,22 @@ const formatMentionCount = (count: number | undefined): string | undefined => {
   }
 
   return count > 99 ? '99+' : String(count);
+};
+
+// Some servers embed their address in the title (e.g.
+// "Rocket.Chat - https://stable.rocket.chat/"). Strip it out so the tooltip can
+// show the name on its own line. Returns '' when the title is only the address.
+const removeServerAddress = (title: string, serverAddress: string): string => {
+  const index = title.toLowerCase().indexOf(serverAddress.toLowerCase());
+
+  if (index === -1) {
+    return title.trim();
+  }
+
+  const before = title.slice(0, index);
+  const after = title.slice(index + serverAddress.length).replace(/^\/+/, '');
+
+  return `${before}${after}`.replace(/^[\s\-–—|·:]+|[\s\-–—|·:]+$/g, '').trim();
 };
 
 type WorkspaceTabProps = {
@@ -110,7 +127,26 @@ const WorkspaceTab = ({
 
   const unreadSuffix = getUnreadSuffix();
 
-  const tooltipText = `${title}${unreadSuffix}${shortcutSuffix}`;
+  const serverAddress = url.replace(/\/+$/, '');
+  const tooltipName = removeServerAddress(title, serverAddress);
+  const tooltipPrimaryLine = `${
+    tooltipName || serverAddress
+  }${unreadSuffix}${shortcutSuffix}`;
+  // Show the name on the first line and the address on a second line. When the
+  // title is only the address, the primary line already is it, so skip line two.
+  const tooltipLines = tooltipName
+    ? [tooltipPrimaryLine, serverAddress]
+    : [tooltipPrimaryLine];
+  // The TooltipProvider renders each '\n'-separated line on its own row, so the
+  // native title, the custom hover tooltip and the aria-label all stay in sync.
+  const tooltipText = tooltipLines.join('\n');
+  const tooltipNode = (
+    <>
+      {tooltipLines.map((line, index) => (
+        <div key={index}>{line}</div>
+      ))}
+    </>
+  );
 
   const handleClick = (): void => {
     dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
@@ -129,7 +165,7 @@ const WorkspaceTab = ({
   };
 
   const handleFocus = (event: FocusEvent<HTMLButtonElement>): void => {
-    tooltip.open(<>{tooltipText}</>, event.currentTarget);
+    tooltip.open(tooltipNode, event.currentTarget);
   };
 
   const handleBlur = (): void => {
@@ -163,7 +199,11 @@ const WorkspaceTab = ({
       >
         <Initials visible={!favicon}>{initials}</Initials>
         <Favicon visible={!!favicon} src={favicon ?? ''} draggable='false' />
-        {!compact && <Label>{title}</Label>}
+        {!compact && (
+          <Label>
+            {title.replace(/(^|\s)(https?:\/\/)/, '$1').replace(/\/+$/, '')}
+          </Label>
+        )}
         {!compact && isShortcutVisible && shortcutNumber && (
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}
@@ -172,6 +212,7 @@ const WorkspaceTab = ({
         )}
         {!userLoggedIn && <TabBadge variant='warning'>!</TabBadge>}
       </Tab>
+      <Divider></Divider>
       {isVisible && (
         <WorkspaceContextMenu
           reference={ref}

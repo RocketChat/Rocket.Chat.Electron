@@ -24,6 +24,7 @@ import { TelephonyDefaultHandlerPromptModal } from '../TelephonyDefaultHandlerPr
 import { TelephonyServerSelectModal } from '../TelephonyServerSelectModal';
 import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
+import { useShellTheme } from '../hooks/useShellTheme';
 import TooltipProvider from '../utils/TooltipProvider';
 import { GlobalStyles, WindowDragBar } from './styles';
 
@@ -35,6 +36,8 @@ export const Shell = () => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
+
+  const shellTheme = useShellTheme();
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -54,7 +57,7 @@ export const Shell = () => {
   return (
     <TooltipProvider>
       <PaletteStyleTag
-        theme='dark'
+        theme={shellTheme}
         selector=':root'
         // tagId='sidebar-palette'
       />
@@ -63,7 +66,7 @@ export const Shell = () => {
         <WindowDragBar />
       )}
       <Box
-        bg='sidebar'
+        bg={isTransparentWindowEnabled ? 'transparent' : 'sidebar'}
         display='flex'
         flexWrap='wrap'
         height='100vh'

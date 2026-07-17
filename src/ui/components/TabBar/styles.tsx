@@ -2,19 +2,49 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Badge } from '@rocket.chat/fuselage';
 
+/**
+ * Fill shared by the selected tab, tab hover, dividers and the strip border.
+ *
+ * Over the opaque window it uses the solid sidebar surface. Over a transparent
+ * window it becomes a translucent overlay that inverts with the palette — a
+ * subtle darkening in light mode and a subtle brightening in dark mode — so the
+ * selected tab always contrasts with whatever shows through.
+ */
+const CHROME_FILL_OPAQUE = 'var(--rcx-color-surface-sidebar, #2f343d)';
+const CHROME_FILL_OVERLAY_LIGHT = 'rgba(0, 0, 0, 0.125)';
+const CHROME_FILL_OVERLAY_DARK = 'rgba(255, 255, 255, 0.125)';
+
+const resolveChromeFill = (
+  paletteTheme: 'light' | 'dark',
+  isTransparentWindowEnabled: boolean
+): string => {
+  if (!isTransparentWindowEnabled) {
+    return CHROME_FILL_OPAQUE;
+  }
+
+  return paletteTheme === 'dark'
+    ? CHROME_FILL_OVERLAY_DARK
+    : CHROME_FILL_OVERLAY_LIGHT;
+};
+
 type StripProps = {
   isTransparentWindowEnabled: boolean;
+  paletteTheme: 'light' | 'dark';
 };
 
 export const Strip = styled.div<StripProps>`
+  --tab-chrome-fill: ${({ paletteTheme, isTransparentWindowEnabled }) =>
+    resolveChromeFill(paletteTheme, isTransparentWindowEnabled)};
+
   display: flex;
   flex-direction: row;
   align-items: stretch;
   flex: 0 0 auto;
   width: 100%;
-  height: 38px;
+  height: 40px;
   -webkit-app-region: drag;
   user-select: none;
+  border-bottom: 1px solid var(--tab-chrome-fill);
   background-color: ${({ isTransparentWindowEnabled }) =>
     isTransparentWindowEnabled
       ? 'transparent'
@@ -27,7 +57,7 @@ type TrafficLightSpacerProps = {
 
 export const TrafficLightSpacer = styled.div<TrafficLightSpacerProps>`
   flex: 0 0 auto;
-  width: ${({ collapsed }) => (collapsed ? '0px' : '82px')};
+  width: ${({ collapsed }) => (collapsed ? '0px' : '76px')};
   -webkit-app-region: drag;
   transition: width var(--transitions-duration, 100ms);
 `;
@@ -38,7 +68,7 @@ export const TabList = styled.div`
   align-items: flex-end;
   flex: 1 1 auto;
   min-width: 0;
-  gap: 4px;
+  gap: 1px;
   padding-left: 8px;
   overflow: hidden;
   -webkit-app-region: drag;
@@ -49,13 +79,29 @@ export const DragSpacer = styled.div`
   -webkit-app-region: drag;
 `;
 
-export const AddButtonWrapper = styled.div`
+type AddButtonWrapperProps = {
+  isTransparentWindowEnabled: boolean;
+};
+
+export const AddButtonWrapper = styled.div<AddButtonWrapperProps>`
   display: flex;
   align-items: flex-start;
   align-self: flex-end;
   height: 32px;
   flex: 0 0 auto;
   -webkit-app-region: no-drag;
+
+  /* Over a transparent window, match the add button's hover to the tab hover
+     fill instead of the opaque fuselage default. The '& button:hover' selector
+     outranks fuselage's '.rcx-button--icon:hover'. */
+  ${({ isTransparentWindowEnabled }) =>
+    isTransparentWindowEnabled &&
+    css`
+      & button:hover {
+        background-color: var(--tab-chrome-fill);
+        border-color: var(--tab-chrome-fill);
+      }
+    `}
 `;
 
 type TabProps = {
@@ -74,21 +120,26 @@ export const Tab = styled.button<TabProps>`
   align-items: center;
   gap: 6px;
   flex: 0 1 auto;
+  width: 230px;
   min-width: 52px;
-  max-width: 180px;
-  height: 32px;
+  max-width: 230px;
+  height: 28px;
   align-self: flex-end;
   position: relative;
   padding: ${({ isCompact }) => (isCompact ? '0 6px' : '0 10px')};
+  margin-bottom: 4px;
   cursor: pointer;
   -webkit-app-region: no-drag;
   color: var(--rcx-color-font-default, #1f2329);
-  border-radius: 10px 10px 0 0;
+  border-radius: 8px 8px 0 0;
 
   ${({ isSelected }) =>
     isSelected
       ? css`
-          background-color: var(--rcx-color-surface-sidebar, #2f343d);
+          background-color: var(--tab-chrome-fill);
+          margin-bottom: 0px;
+          padding-bottom: 4px;
+          height: 32px;
           z-index: 1;
 
           /* Chrome-style concave fillets where the tab meets the strip */
@@ -107,7 +158,7 @@ export const Tab = styled.button<TabProps>`
             background: radial-gradient(
               circle at 0 0,
               transparent 10px,
-              var(--rcx-color-surface-sidebar, #2f343d) 10.5px
+              var(--tab-chrome-fill) 10.5px
             );
           }
 
@@ -116,18 +167,43 @@ export const Tab = styled.button<TabProps>`
             background: radial-gradient(
               circle at 100% 0,
               transparent 10px,
-              var(--rcx-color-surface-sidebar, #2f343d) 10.5px
+              var(--tab-chrome-fill) 10.5px
             );
           }
         `
       : css`
           &:hover {
-            background-color: var(--rcx-color-surface-neutral, #2d3039);
+            transition: background-color 150ms ease;
+            background-color: var(--tab-chrome-fill);
+            border-radius: 8px;
           }
         `}
 
   &:focus-visible {
     box-shadow: inset 0 0 0 2px var(--rcx-color-stroke-highlight, #1d74f5);
+  }
+`;
+
+export const Divider = styled.div`
+  width: 2px;
+  height: 16px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background-color: var(--tab-chrome-fill);
+  transition: opacity 150ms ease;
+
+  /* Each tab renders a trailing divider, so one sits between the last tab and
+     the add button automatically. Hide the dangling divider at the strip's
+     trailing edge (no add button) and the ones flanking the active or hovered
+     tab (its previous sibling via :has, its next sibling via +). Targets
+     aria-selected / role='tab' rather than the Tab component selector, which
+     needs @emotion/babel-plugin (not enabled). */
+  &:last-child,
+  &:has(+ [aria-selected='true']),
+  [aria-selected='true'] + &,
+  &:has(+ [role='tab']:hover),
+  [role='tab']:hover + & {
+    opacity: 0;
   }
 `;
 
@@ -166,9 +242,10 @@ export const Label = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 12px;
+  text-align: left;
 `;
 
 export const ShortcutChip = styled.span`

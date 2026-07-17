@@ -286,7 +286,7 @@ describe('TabBar', () => {
     expect(tab).toHaveStyle({
       flex: '0 1 auto',
       minWidth: '52px',
-      maxWidth: '180px',
+      maxWidth: '230px',
     });
   });
 

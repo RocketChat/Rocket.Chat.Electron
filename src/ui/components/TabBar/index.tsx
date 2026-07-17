@@ -9,6 +9,7 @@ import { SIDE_BAR_ADD_NEW_SERVER_CLICKED } from '../../actions';
 import { isDarwin } from '../../utils/platform';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useServers } from '../hooks/useServers';
+import { useShellTheme } from '../hooks/useShellTheme';
 import { useSorting } from '../hooks/useSorting';
 import WorkspaceTab from './WorkspaceTab';
 import {
@@ -37,6 +38,8 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
   const isTransparentWindowEnabled = useSelector(
     ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
   );
+
+  const paletteTheme = useShellTheme();
 
   const isFullscreen = useSelector(
     ({ rootWindowState }: RootState) => rootWindowState.fullscreen
@@ -103,7 +106,10 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
   };
 
   return (
-    <Strip isTransparentWindowEnabled={isTransparentWindowEnabled}>
+    <Strip
+      isTransparentWindowEnabled={isTransparentWindowEnabled}
+      paletteTheme={paletteTheme}
+    >
       {leadingSlot}
       {isDarwin && <TrafficLightSpacer collapsed={isFullscreen} />}
       <TabList
@@ -147,7 +153,9 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
           );
         })}
         {isAddNewServersEnabled && (
-          <AddButtonWrapper>
+          <AddButtonWrapper
+            isTransparentWindowEnabled={isTransparentWindowEnabled}
+          >
             <IconButton
               small
               icon='plus-small'

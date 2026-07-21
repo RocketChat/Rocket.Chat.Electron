@@ -66,7 +66,7 @@ export const Shell = () => {
         <WindowDragBar />
       )}
       <Box
-        bg={isTransparentWindowEnabled ? 'transparent' : 'sidebar'}
+        bg={isTransparentWindowEnabled ? 'transparent' : 'surface-hover'}
         display='flex'
         flexWrap='wrap'
         height='100vh'
@@ -94,6 +94,19 @@ export const Shell = () => {
             position='relative'
             alignSelf='stretch'
             flexBasis='1 1 auto'
+            style={{
+              boxShadow: '0 0 20px 0px #00000010',
+              border: '1px solid #00000010',
+              overflow: 'hidden',
+              borderRadius: '14px',
+              margin: '4px',
+              marginTop: '0px',
+              ...(navigationLayout === 'sidebar'
+                ? {
+                    marginLeft: '0px',
+                  }
+                : {}),
+            }}
           >
             <ServersView />
             <AddServerView />

@@ -34,9 +34,9 @@ export const SideBar = () => {
     ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
   );
 
-  const isTransparentWindowEnabled = useSelector(
-    ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
-  );
+  // const isTransparentWindowEnabled = useSelector(
+  //   ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  // );
 
   const isVisible = servers.length > 0 && navigationLayout === 'sidebar';
 
@@ -73,13 +73,8 @@ export const SideBar = () => {
 
   const { t } = useTranslation();
 
-  const sidebarBg =
-    process.platform === 'darwin' && isTransparentWindowEnabled
-      ? undefined
-      : 'tint';
-
   return (
-    <Box className='rcx-sidebar--main' bg={sidebarBg}>
+    <Box className='rcx-sidebar--main'>
       <Box
         width='x44'
         display={isVisible ? 'flex' : 'none'}

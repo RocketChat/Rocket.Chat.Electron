@@ -12,9 +12,9 @@ import type { RootState } from '../../../store/rootReducer';
  * text legible over a light background.
  */
 export const useShellTheme = (): 'light' | 'dark' => {
-  const isTransparentWindowEnabled = useSelector(
-    ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
-  );
+  // const isTransparentWindowEnabled = useSelector(
+  //   ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  // );
   const machineTheme = useSelector(
     ({ machineTheme }: RootState) => machineTheme
   );
@@ -25,7 +25,5 @@ export const useShellTheme = (): 'light' | 'dark' => {
   const resolvedTheme =
     userThemePreference === 'auto' ? machineTheme : userThemePreference;
 
-  return isTransparentWindowEnabled && resolvedTheme === 'light'
-    ? 'light'
-    : 'dark';
+  return resolvedTheme === 'light' ? 'light' : 'dark';
 };

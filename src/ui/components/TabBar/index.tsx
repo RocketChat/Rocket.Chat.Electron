@@ -157,7 +157,7 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
             isTransparentWindowEnabled={isTransparentWindowEnabled}
           >
             <IconButton
-              small
+              medium
               icon='plus-small'
               title={t('tabBar.addWorkspace')}
               onClick={handleAddServerButtonClicked}

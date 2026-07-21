@@ -95,8 +95,8 @@ export const Shell = () => {
             alignSelf='stretch'
             flexBasis='1 1 auto'
             style={{
-              boxShadow: '0 0 20px 0px #00000010',
-              border: '1px solid #00000010',
+              boxShadow: '0 0 8px 0px rgba(0,0,0,0.1)',
+              border: '1px solid rgba(0,0,0,0.1)',
               overflow: 'hidden',
               borderRadius: '14px',
               margin: '4px',

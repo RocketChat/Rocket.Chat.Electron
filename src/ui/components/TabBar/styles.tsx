@@ -171,7 +171,8 @@ export const Tab = styled.button<TabProps>`
   color: var(--rcx-color-font-titles-labels, #f2f3f5);
   border-radius: 8px;
   opacity: 0.6;
-  outline: 0px solid color-mix(in srgb, var(--tab-divider-fill) 30%, transparent);
+  outline: 0px solid
+    color-mix(in srgb, var(--tab-divider-fill) 30%, transparent);
   outline-offset: 1px;
   transition:
     background-color 150ms ease,

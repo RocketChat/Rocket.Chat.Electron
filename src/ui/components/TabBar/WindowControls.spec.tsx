@@ -75,14 +75,16 @@ describe('WindowControls', () => {
     });
   });
 
-  it('renders window control buttons with white text color', () => {
+  it('renders window control buttons with the theme-aware title color', () => {
     renderWithStore(<WindowControls />, { preloadedState: buildState() });
 
     const minimizeButton = screen.getByRole('button', {
       name: 'tabBar.windowControls.minimize',
     });
 
-    expect(minimizeButton).toHaveStyle({ color: '#ffffff' });
+    // Icons follow the palette (--rcx-color-font-titles-labels); with no
+    // palette applied in the test the fallback resolves.
+    expect(minimizeButton).toHaveStyle({ color: '#f2f3f5' });
   });
 
   it('shows the maximize label and glyph when the window is not maximized', () => {

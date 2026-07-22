@@ -42,11 +42,6 @@ jest.mock('../SettingsView', () => ({
   SettingsView: () => <div data-testid='settings-view' />,
 }));
 
-jest.mock('../SideBar', () => ({
-  __esModule: true,
-  SideBar: () => <div data-testid='side-bar' />,
-}));
-
 jest.mock('../TopBar', () => ({
   __esModule: true,
   TopBar: () => <div data-testid='top-bar' />,
@@ -57,11 +52,13 @@ jest.mock('../TabBar', () => ({
   TabBar: ({
     leadingSlot,
     trailingSlot,
+    orientation = 'horizontal',
   }: {
     leadingSlot?: React.ReactNode;
     trailingSlot?: React.ReactNode;
+    orientation?: 'horizontal' | 'vertical';
   }) => (
-    <div data-testid='tab-bar'>
+    <div data-testid='tab-bar' data-orientation={orientation}>
       {leadingSlot}
       {trailingSlot}
     </div>
@@ -188,7 +185,7 @@ describe('Shell', () => {
     renderWithStore(<Shell />, { preloadedState: buildState() });
 
     expect(screen.getByTestId('tooltip-provider')).toBeInTheDocument();
-    expect(screen.getByTestId('side-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
     expect(screen.getByTestId('servers-view')).toBeInTheDocument();
     expect(screen.getByTestId('add-server-view')).toBeInTheDocument();
     expect(screen.getByTestId('downloads-manager-view')).toBeInTheDocument();
@@ -296,7 +293,7 @@ describe('Shell', () => {
     expect(link).not.toBeInTheDocument();
   });
 
-  it('renders the sidebar layout (SideBar + TopBar, no TabBar) when navigationLayout is sidebar', () => {
+  it('renders the sidebar layout (vertical TabBar + meatball menu + TopBar) when navigationLayout is sidebar', () => {
     const restorePlatform = setPlatform('darwin');
 
     try {
@@ -304,20 +301,26 @@ describe('Shell', () => {
         preloadedState: buildState({ navigationLayout: 'sidebar' }),
       });
 
-      expect(screen.getByTestId('side-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('tab-bar')).toHaveAttribute(
+        'data-orientation',
+        'vertical'
+      );
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
       expect(screen.getByTestId('top-bar')).toBeInTheDocument();
-      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
     } finally {
       restorePlatform();
     }
   });
 
-  it('renders the tabs layout (TabBar, no TopBar/WindowDragBar) when navigationLayout is tabs', () => {
+  it('renders the tabs layout (horizontal TabBar, no TopBar/WindowDragBar) when navigationLayout is tabs', () => {
     renderWithStore(<Shell />, {
       preloadedState: buildState({ navigationLayout: 'tabs' }),
     });
 
-    expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('tab-bar')).toHaveAttribute(
+      'data-orientation',
+      'horizontal'
+    );
     expect(screen.queryByTestId('top-bar')).not.toBeInTheDocument();
     expect(screen.queryByTestId('window-drag-bar')).not.toBeInTheDocument();
   });
@@ -342,7 +345,7 @@ describe('Shell', () => {
       expect(screen.queryByTestId('windows-title-bar')).not.toBeInTheDocument();
     });
 
-    it('renders WindowsTitleBar (no meatball/window-controls slots, no TopBar) when navigationLayout is sidebar', () => {
+    it('renders WindowsTitleBar plus the vertical TabBar with its meatball menu (no window-controls slot) when navigationLayout is sidebar', () => {
       restorePlatform = setPlatform('win32');
 
       renderWithStore(<Shell />, {
@@ -351,10 +354,11 @@ describe('Shell', () => {
 
       expect(screen.getByTestId('windows-title-bar')).toBeInTheDocument();
       expect(screen.queryByTestId('top-bar')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId('meatball-menu-button')
-      ).not.toBeInTheDocument();
+      expect(screen.getByTestId('tab-bar')).toHaveAttribute(
+        'data-orientation',
+        'vertical'
+      );
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
       expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
     });
 
@@ -365,11 +369,11 @@ describe('Shell', () => {
         preloadedState: buildState({ navigationLayout: 'tabs' }),
       });
 
-      expect(
-        screen.queryByTestId('meatball-menu-button')
-      ).not.toBeInTheDocument();
+      // win32-only chrome (native window controls + title bar) stays off; the
+      // meatball menu is the darwin tabs trailing slot, so it is expected.
       expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
       expect(screen.queryByTestId('windows-title-bar')).not.toBeInTheDocument();
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
     });
   });
 });

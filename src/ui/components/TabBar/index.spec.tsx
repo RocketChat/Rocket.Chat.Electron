@@ -345,4 +345,49 @@ describe('TabBar', () => {
     const badge = screen.getByText('97');
     expect(badge).toHaveStyle({ flexShrink: '0' });
   });
+
+  describe('vertical orientation', () => {
+    it('stacks every server without labels even in a narrow column', () => {
+      // A width that would slice the horizontal strip down to a single tab must
+      // not affect the fixed-width vertical column.
+      mockTabListWidth = 44;
+
+      renderTabBar(<TabBar orientation='vertical' />, {
+        preloadedState: buildState({
+          servers: [
+            { url: 'https://a.rocket.chat/', title: 'Server A' },
+            { url: 'https://b.rocket.chat/', title: 'Server B' },
+            { url: 'https://c.rocket.chat/', title: 'Server C' },
+          ],
+        }),
+      });
+
+      expect(screen.getAllByRole('tab')).toHaveLength(3);
+      expect(screen.queryByText('Server A')).not.toBeInTheDocument();
+      expect(screen.queryByText('Server B')).not.toBeInTheDocument();
+    });
+
+    it('marks the tablist as vertically oriented', () => {
+      renderTabBar(<TabBar orientation='vertical' />, {
+        preloadedState: buildState(),
+      });
+
+      expect(screen.getByRole('tablist')).toHaveAttribute(
+        'aria-orientation',
+        'vertical'
+      );
+    });
+
+    it('still renders the mention badge (floated) in vertical mode', () => {
+      renderTabBar(<TabBar orientation='vertical' />, {
+        preloadedState: buildState({
+          servers: [
+            { url: 'https://a.rocket.chat/', title: 'Server A', badge: 5 },
+          ],
+        }),
+      });
+
+      expect(screen.getByText('5')).toBeInTheDocument();
+    });
+  });
 });

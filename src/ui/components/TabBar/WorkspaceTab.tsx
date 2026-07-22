@@ -12,6 +12,7 @@ import { TooltipContext } from '../utils/TooltipContext';
 import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
 import {
+  BadgeWrapper,
   Divider,
   Favicon,
   Initials,
@@ -19,7 +20,9 @@ import {
   ShortcutChip,
   Tab,
   TabBadge,
+  UnreadDot,
 } from './styles';
+import type { TabOrientation } from './styles';
 
 const formatMentionCount = (count: number | undefined): string | undefined => {
   if (count === undefined) {
@@ -53,6 +56,7 @@ type WorkspaceTabProps = {
   badge?: '•' | number;
   userLoggedIn?: boolean;
   compact: boolean;
+  orientation?: TabOrientation;
   shortcutNumber: string | null;
   isShortcutVisible: boolean;
   tabIndex: 0 | -1;
@@ -77,6 +81,7 @@ const WorkspaceTab = ({
   badge,
   userLoggedIn,
   compact,
+  orientation = 'horizontal',
   shortcutNumber,
   isShortcutVisible,
   tabIndex,
@@ -172,6 +177,17 @@ const WorkspaceTab = ({
     tooltip.close();
   };
 
+  const isVertical = orientation === 'vertical';
+  const showLabel = !compact && !isVertical;
+
+  const badges = (
+    <>
+      {displayCount && <TabBadge variant='secondary'>{displayCount}</TabBadge>}
+      {isVertical && !displayCount && badge === '•' && <UnreadDot />}
+      {!userLoggedIn && <TabBadge variant='warning'>!</TabBadge>}
+    </>
+  );
+
   return (
     <>
       <Tab
@@ -183,7 +199,9 @@ const WorkspaceTab = ({
         tabIndex={tabIndex}
         isSelected={isSelected}
         isCompact={compact}
+        orientation={orientation}
         title={tooltipText}
+        data-tooltip-placement={isVertical ? 'right' : undefined}
         aria-label={tooltipText}
         draggable='true'
         onClick={handleClick}
@@ -197,22 +215,26 @@ const WorkspaceTab = ({
         onDragEnter={onDragEnter}
         onDrop={onDrop}
       >
-        <Initials visible={!favicon}>{initials}</Initials>
-        <Favicon visible={!!favicon} src={favicon ?? ''} draggable='false' />
-        {!compact && (
+        <Initials visible={!favicon} orientation={orientation}>
+          {initials}
+        </Initials>
+        <Favicon
+          visible={!!favicon}
+          src={favicon ?? ''}
+          draggable='false'
+          orientation={orientation}
+        />
+        {showLabel && (
           <Label>
             {title.replace(/(^|\s)(https?:\/\/)/, '$1').replace(/\/+$/, '')}
           </Label>
         )}
-        {!compact && isShortcutVisible && shortcutNumber && (
+        {showLabel && isShortcutVisible && shortcutNumber && (
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}
-        {displayCount && (
-          <TabBadge variant='secondary'>{displayCount}</TabBadge>
-        )}
-        {!userLoggedIn && <TabBadge variant='warning'>!</TabBadge>}
+        {isVertical ? <BadgeWrapper>{badges}</BadgeWrapper> : badges}
       </Tab>
-      <Divider></Divider>
+      <Divider orientation={orientation}></Divider>
       {isVisible && (
         <WorkspaceContextMenu
           reference={ref}
@@ -226,7 +248,7 @@ const WorkspaceTab = ({
           supportedVersions={supportedVersions}
           onClose={() => toggle(false)}
           showAddWorkspace={showAddWorkspace}
-          placement='bottom-start'
+          placement={isVertical ? 'right-start' : 'bottom-start'}
         />
       )}
     </>

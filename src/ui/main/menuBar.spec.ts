@@ -2,6 +2,7 @@ import type { MenuItemConstructorOptions } from 'electron';
 
 import type { Server } from '../../servers/common';
 import type { RootState } from '../../store/rootReducer';
+import { MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED } from '../actions';
 import { selectMenuBarTemplate, selectMenuBarTemplateAsJson } from './menuBar';
 
 jest.mock('electron', () => ({
@@ -190,6 +191,52 @@ describe('ui/main/menuBar', () => {
       );
       expect(workspaceTabsInSidebarState?.checked).toBe(false);
       expect(workspaceBarInSidebarState?.checked).toBe(true);
+    });
+
+    it('alternates the layout when the workspaceBar shortcut item is triggered', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { dispatch } = require('../../store');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getRootWindow } = require('./rootWindow');
+      const fakeWindow = {
+        isVisible: () => true,
+        showInactive: jest.fn(),
+        focus: jest.fn(),
+      };
+      (getRootWindow as jest.Mock).mockResolvedValue(fakeWindow);
+
+      const getWorkspaceBarItem = (
+        layout: 'tabs' | 'sidebar'
+      ): MenuItemConstructorOptions => {
+        const template = selectMenuBarTemplate(
+          createState({ navigationLayout: layout })
+        );
+        const viewMenu = findMenu(
+          template as MenuItemConstructorOptions[],
+          'viewMenu'
+        );
+        const item = (viewMenu.submenu as MenuItemConstructorOptions[]).find(
+          (entry) => entry.id === 'workspaceBar'
+        );
+        if (!item) {
+          throw new Error('workspaceBar item not found');
+        }
+        return item;
+      };
+
+      (dispatch as jest.Mock).mockClear();
+      await (getWorkspaceBarItem('sidebar').click as any)();
+      expect(dispatch).toHaveBeenLastCalledWith({
+        type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+        payload: 'tabs',
+      });
+
+      (dispatch as jest.Mock).mockClear();
+      await (getWorkspaceBarItem('tabs').click as any)();
+      expect(dispatch).toHaveBeenLastCalledWith({
+        type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+        payload: 'sidebar',
+      });
     });
   });
 });

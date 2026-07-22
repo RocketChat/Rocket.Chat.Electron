@@ -14,7 +14,6 @@ import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog'
 import { ServerInfoModal } from '../ServerInfoModal';
 import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
-import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TabBar } from '../TabBar';
 import { MeatballMenuButton } from '../TabBar/MeatballMenuButton';
@@ -66,7 +65,7 @@ export const Shell = () => {
         <WindowDragBar />
       )}
       <Box
-        bg={isTransparentWindowEnabled ? 'transparent' : 'surface-hover'}
+        bg={isTransparentWindowEnabled ? 'transparent' : 'surface-neutral'}
         display='flex'
         flexWrap='wrap'
         height='100vh'
@@ -79,7 +78,7 @@ export const Shell = () => {
           />
         )}
         {navigationLayout === 'tabs' && process.platform !== 'win32' && (
-          <TabBar />
+          <TabBar trailingSlot={<MeatballMenuButton />} />
         )}
         {navigationLayout === 'sidebar' && process.platform === 'darwin' && (
           <TopBar />
@@ -88,7 +87,12 @@ export const Shell = () => {
           <WindowsTitleBar />
         )}
         <Box display='flex' flexDirection='row' flexGrow={1}>
-          <SideBar />
+          {navigationLayout === 'sidebar' && (
+            <TabBar
+              orientation='vertical'
+              trailingSlot={<MeatballMenuButton />}
+            />
+          )}
           <Box
             width='100%'
             position='relative'
@@ -101,11 +105,10 @@ export const Shell = () => {
               borderRadius: '14px',
               margin: '4px',
               marginTop: '0px',
-              ...(navigationLayout === 'sidebar'
-                ? {
-                    marginLeft: '0px',
-                  }
-                : {}),
+              // Always set marginLeft explicitly: toggling it via a conditional
+              // spread leaves React unable to restore the '4px' shorthand value
+              // when the key is removed, so it would stick at 0 after switching.
+              marginLeft: navigationLayout === 'sidebar' ? '0px' : '4px',
             }}
           >
             <ServersView />

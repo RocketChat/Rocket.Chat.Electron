@@ -22,7 +22,6 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
 } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
-import { getPersistedValues } from '../../app/main/persistence';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import {
@@ -84,26 +83,8 @@ const platformTitleBarStyle =
     : 'default';
 
 const isMac = process.platform === 'darwin';
-const getEnableVibrancy = (): boolean => {
-  if (!isMac) {
-    return false;
-  }
-  try {
-    const persistedValues: { isTransparentWindowEnabled?: boolean } =
-      getPersistedValues();
-    return persistedValues?.isTransparentWindowEnabled === true;
-  } catch (error) {
-    return false;
-  }
-};
-
-const getInitialBackgroundColor = (enableVibrancy: boolean): string => {
-  if (enableVibrancy) return '#00000000';
-  return '#2f343d';
-};
 
 export const createRootWindow = (): void => {
-  const enableVibrancy = getEnableVibrancy();
   _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,
@@ -111,10 +92,9 @@ export const createRootWindow = (): void => {
     minHeight: 400,
     titleBarStyle: platformTitleBarStyle,
     ...(isMac ? { trafficLightPosition: { x: 12, y: 13 } } : {}),
-    backgroundColor: getInitialBackgroundColor(enableVibrancy),
     show: false,
     webPreferences,
-    ...(enableVibrancy
+    ...(isMac
       ? {
           transparent: true,
           vibrancy: 'sidebar',

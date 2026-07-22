@@ -62,20 +62,12 @@ export const WindowDragBar = styled.div`
   user-select: none;
 `;
 
-type WrapperProps = {
-  isTransparentWindowEnabled: boolean;
-};
-
-export const Wrapper = styled.div<WrapperProps>`
+export const Wrapper = styled.div`
   overflow: hidden;
   width: 100vw;
   height: 100vh;
   cursor: default;
   user-select: none;
-  background-color: ${({ isTransparentWindowEnabled }) =>
-    isDarwin && isTransparentWindowEnabled
-      ? 'transparent'
-      : 'var(--rcx-color-surface-sidebar, #2f343d)'};
   display: flex;
   flex-flow: row nowrap;
 `;

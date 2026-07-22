@@ -19,14 +19,21 @@ import {
   TabList,
   TrafficLightSpacer,
 } from './styles';
+import type { TabOrientation } from './styles';
 import { useTabBarLayout } from './useTabBarLayout';
 
 type TabBarProps = {
   leadingSlot?: ReactNode;
   trailingSlot?: ReactNode;
+  orientation?: TabOrientation;
 };
 
-export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
+export const TabBar = ({
+  leadingSlot,
+  trailingSlot,
+  orientation = 'horizontal',
+}: TabBarProps) => {
+  const isVertical = orientation === 'vertical';
   const { t } = useTranslation();
 
   const servers = useServers();
@@ -56,11 +63,17 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
 
   const activeServer = sortedServers.find((server) => server.selected);
 
-  const { visibleServers, compact, tabListRef } = useTabBarLayout(
+  const layout = useTabBarLayout(
     sortedServers,
     activeServer?.url,
     isAddNewServersEnabled
   );
+
+  // The width-based layout is meaningless for a fixed-width vertical column, so
+  // show every server stacked (the column scrolls) with labels hidden.
+  const { tabListRef } = layout;
+  const visibleServers = isVertical ? sortedServers : layout.visibleServers;
+  const compact = isVertical ? false : layout.compact;
 
   const hasSelectedServer = visibleServers.some((server) => server.selected);
 
@@ -83,9 +96,11 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
 
     switch (event.key) {
       case 'ArrowLeft':
+      case 'ArrowUp':
         nextIndex = currentIndex <= 0 ? tabs.length - 1 : currentIndex - 1;
         break;
       case 'ArrowRight':
+      case 'ArrowDown':
         nextIndex =
           currentIndex === -1 || currentIndex === tabs.length - 1
             ? 0
@@ -109,13 +124,18 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
     <Strip
       isTransparentWindowEnabled={isTransparentWindowEnabled}
       paletteTheme={paletteTheme}
+      orientation={orientation}
     >
       {leadingSlot}
-      {isDarwin && <TrafficLightSpacer collapsed={isFullscreen} />}
+      {isDarwin && !isVertical && (
+        <TrafficLightSpacer collapsed={isFullscreen} />
+      )}
       <TabList
         ref={tabListRef}
         role='tablist'
         aria-label={t('tabBar.workspaces')}
+        aria-orientation={isVertical ? 'vertical' : 'horizontal'}
+        orientation={orientation}
         onKeyDown={handleTabListKeyDown}
       >
         {visibleServers.map((server, index) => {
@@ -133,6 +153,7 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
               badge={server.badge}
               userLoggedIn={server.userLoggedIn}
               compact={compact}
+              orientation={orientation}
               shortcutNumber={shortcutNumber}
               isShortcutVisible={isEachShortcutVisible}
               tabIndex={
@@ -153,9 +174,7 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
           );
         })}
         {isAddNewServersEnabled && (
-          <AddButtonWrapper
-            isTransparentWindowEnabled={isTransparentWindowEnabled}
-          >
+          <AddButtonWrapper>
             <IconButton
               medium
               icon='plus-small'
@@ -165,7 +184,7 @@ export const TabBar = ({ leadingSlot, trailingSlot }: TabBarProps) => {
           </AddButtonWrapper>
         )}
       </TabList>
-      <DragSpacer />
+      <DragSpacer orientation={orientation} />
       {trailingSlot}
     </Strip>
   );

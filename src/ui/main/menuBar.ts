@@ -429,6 +429,8 @@ export const createViewMenu = createSelector(
         checked: navigationLayout === 'sidebar',
         accelerator:
           process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
+        // The shortcut alternates between the two layouts, so pressing it while
+        // the sidebar is active switches to tabs and vice versa.
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -438,7 +440,7 @@ export const createViewMenu = createSelector(
           browserWindow.focus();
           dispatch({
             type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
-            payload: 'sidebar',
+            payload: navigationLayout === 'sidebar' ? 'tabs' : 'sidebar',
           });
         },
       },
@@ -922,45 +924,58 @@ export const selectAppMenuPopupTemplate = createSelector(
     viewMenu,
     windowMenu,
     helpMenu
-  ): MenuItemConstructorOptions[] => [
-    rocketChatMenu,
-    fileMenu,
-    editMenu,
-    viewMenu,
-    {
-      ...windowMenu,
-      submenu: (windowMenu.submenu as MenuItemConstructorOptions[]).filter(
-        (item) => item.id !== 'settings' && item.id !== 'downloads'
-      ),
-    },
-    helpMenu,
-    { type: 'separator' },
-    {
+  ): MenuItemConstructorOptions[] => {
+    const settingsItem: MenuItemConstructorOptions = {
       id: 'settings',
       label: t('menus.settings'),
       accelerator: 'CommandOrControl+,',
       click: () => {
         dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
       },
-    },
-    {
+    };
+    const downloadsItem: MenuItemConstructorOptions = {
       id: 'downloads',
       label: t('menus.downloads'),
       accelerator: 'CommandOrControl+D',
       click: () => {
         dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
       },
-    },
-    {
+    };
+    const checkForUpdatesItem: MenuItemConstructorOptions = {
       id: 'checkForUpdates',
       label: t('menus.checkForUpdates'),
       click: () => {
         dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
       },
-    },
-    { type: 'separator' },
-    createQuitMenuItem(),
-  ]
+    };
+
+    // On macOS the full menu bar (Rocket.Chat, File, Edit, View, Window, Help)
+    // already lives in the system menu bar and quitting is available there, so
+    // the meatball popup only needs the desktop-app extras.
+    if (process.platform === 'darwin') {
+      return [settingsItem, downloadsItem, checkForUpdatesItem];
+    }
+
+    return [
+      rocketChatMenu,
+      fileMenu,
+      editMenu,
+      viewMenu,
+      {
+        ...windowMenu,
+        submenu: (windowMenu.submenu as MenuItemConstructorOptions[]).filter(
+          (item) => item.id !== 'settings' && item.id !== 'downloads'
+        ),
+      },
+      helpMenu,
+      { type: 'separator' },
+      settingsItem,
+      downloadsItem,
+      checkForUpdatesItem,
+      { type: 'separator' },
+      createQuitMenuItem(),
+    ];
+  }
 );
 
 class MenuBarService extends Service {

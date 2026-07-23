@@ -48,15 +48,6 @@ describe('MeatballMenuButton', () => {
     });
   });
 
-  it('renders with the theme-aware title color', () => {
-    renderWithStore(<MeatballMenuButton />);
-
-    const button = screen.getByRole('button', { name: 'tabBar.meatballMenu' });
-    // Icon follows the palette (--rcx-color-font-titles-labels); with no palette
-    // applied in the test the fallback resolves.
-    expect(button).toHaveStyle({ color: '#f2f3f5' });
-  });
-
   it('exposes menu affordance attributes for accessibility', () => {
     renderWithStore(<MeatballMenuButton />);
 

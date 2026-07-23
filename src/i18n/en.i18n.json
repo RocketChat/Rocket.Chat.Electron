@@ -364,8 +364,7 @@
       },
       "transparentWindow": {
         "title": "Transparent window effect",
-        "description": "Enable native vibrancy on app window.",
-        "hint": "Requires app restart."
+        "description": "Enable native vibrancy on app window."
       },
       "themeAppearance": {
         "title": "Theme",

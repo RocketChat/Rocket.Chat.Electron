@@ -10,6 +10,7 @@ import { NTLMCredentials } from './features/NTLMCredentials';
 import { NavigationLayout } from './features/NavigationLayout';
 import { OutlookCalendarSyncInterval } from './features/OutlookCalendarSyncInterval';
 import { ReportErrors } from './features/ReportErrors';
+import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
 
@@ -21,6 +22,7 @@ export const GeneralTab = () => {
     <Box display='flex' justifyContent='center' p='x24'>
       <Box is='form' width='x600' maxWidth='full'>
         <FieldGroup>
+          <ThemeAppearance />
           <NavigationLayout />
         </FieldGroup>
 

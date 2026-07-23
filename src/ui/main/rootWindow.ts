@@ -675,6 +675,20 @@ export const watchMachineTheme = (): void => {
   nativeTheme.on('updated', () => {
     dispatchMachineTheme();
   });
+
+  // Drive Electron's themeSource from the user's preference so the whole app —
+  // secondary windows (screen picker, log viewer) and any prefers-color-scheme
+  // styles, plus native menus/dialogs — follows the setting, not just the shell
+  // chrome palette. 'auto' defers to the OS ('system').
+  watch(
+    ({ userThemePreference }: RootState) => userThemePreference,
+    (userThemePreference) => {
+      nativeTheme.themeSource =
+        userThemePreference === 'light' || userThemePreference === 'dark'
+          ? userThemePreference
+          : 'system';
+    }
+  );
 };
 
 const dispatchMachineTheme = (): void => {

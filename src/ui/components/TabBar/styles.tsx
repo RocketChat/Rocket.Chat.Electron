@@ -52,11 +52,12 @@ export const Strip = styled.div<StripProps>`
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 0 8px;
+  padding: ${process.platform === 'darwin' ? '0px 8px' : '0 0 0 4px'};
   padding-top: ${process.platform === 'darwin' ? '2px' : '0px'};
   flex: 0 0 auto;
   width: 100%;
   height: 40px;
+  gap: 3px;
   -webkit-app-region: drag;
   user-select: none;
 
@@ -67,7 +68,7 @@ export const Strip = styled.div<StripProps>`
       align-items: center;
       width: 48px;
       height: 100%;
-      padding: 8px 0;
+      padding: ${process.platform === 'darwin' ? '8px 0px' : '0 0 8px 0'};
       padding-left: 2px;
     `}
 `;
@@ -132,7 +133,7 @@ export const AddButtonWrapper = styled.div`
 
   & button {
     opacity: 0.6;
-    border-radius: 8px;
+    border-radius: ${process.platform === 'darwin' ? '8px' : '4px'};
     transition: background-color 150ms ease;
   }
 
@@ -169,7 +170,7 @@ export const Tab = styled.button<TabProps>`
   cursor: pointer;
   -webkit-app-region: no-drag;
   color: var(--rcx-color-font-titles-labels, #f2f3f5);
-  border-radius: 8px;
+  border-radius: ${process.platform === 'darwin' ? '8px' : '4px'};
   opacity: 0.6;
   outline: 0px solid
     color-mix(in srgb, var(--tab-divider-fill) 30%, transparent);
@@ -375,7 +376,7 @@ export const MeatballButton = styled.button`
   flex: 0 0 auto;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: ${process.platform === 'darwin' ? '8px' : '4px'};
   cursor: pointer;
   -webkit-app-region: no-drag;
   color: var(--rcx-color-font-titles-labels, #f2f3f5);
@@ -448,7 +449,6 @@ export const TitleBarStrip = styled.div`
   height: 32px;
   -webkit-app-region: drag;
   user-select: none;
-  background-color: var(--rcx-color-surface-tint, #ffffff);
 `;
 
 export const TitleBarDragRegion = styled.div`
@@ -456,14 +456,8 @@ export const TitleBarDragRegion = styled.div`
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   -webkit-app-region: drag;
   overflow: hidden;
-`;
-
-export const TitleBarText = styled.span`
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
+  padding: 0px 10px;
 `;

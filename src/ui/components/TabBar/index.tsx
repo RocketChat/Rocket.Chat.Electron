@@ -126,10 +126,10 @@ export const TabBar = ({
       paletteTheme={paletteTheme}
       orientation={orientation}
     >
-      {leadingSlot}
       {isDarwin && !isVertical && (
         <TrafficLightSpacer collapsed={isFullscreen} />
       )}
+      {leadingSlot}
       <TabList
         ref={tabListRef}
         role='tablist'

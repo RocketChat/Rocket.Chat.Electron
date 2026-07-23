@@ -1,9 +1,9 @@
+import { Box } from '@rocket.chat/fuselage';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
-import { MeatballMenuButton } from './MeatballMenuButton';
 import { WindowControls } from './WindowControls';
-import { TitleBarDragRegion, TitleBarStrip, TitleBarText } from './styles';
+import { TitleBarDragRegion, TitleBarStrip } from './styles';
 
 export const WindowsTitleBar = () => {
   const mainWindowTitle = useSelector(
@@ -12,9 +12,8 @@ export const WindowsTitleBar = () => {
 
   return (
     <TitleBarStrip>
-      <MeatballMenuButton />
       <TitleBarDragRegion>
-        <TitleBarText>{mainWindowTitle}</TitleBarText>
+        <Box fontScale='p2'>{mainWindowTitle}</Box>
       </TitleBarDragRegion>
       <WindowControls />
     </TitleBarStrip>

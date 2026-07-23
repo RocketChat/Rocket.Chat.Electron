@@ -99,10 +99,10 @@ export const Shell = () => {
             alignSelf='stretch'
             flexBasis='1 1 auto'
             style={{
-              boxShadow: '0 0 8px 0px rgba(0,0,0,0.1)',
+              boxShadow: '0 0 3px 0px rgba(0,0,0,0.1)',
               border: '1px solid rgba(0,0,0,0.1)',
               overflow: 'hidden',
-              borderRadius: '14px',
+              borderRadius: process.platform === 'darwin' ? '14px' : '8px',
               margin: '4px',
               marginTop: '0px',
               // Always set marginLeft explicitly: toggling it via a conditional

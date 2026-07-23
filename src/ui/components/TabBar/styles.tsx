@@ -95,7 +95,6 @@ export const TabList = styled.div<TabListProps>`
   flex: 1 1 auto;
   min-width: 0;
   gap: 1px;
-  overflow: hidden;
   -webkit-app-region: drag;
 
   ${({ orientation }) =>
@@ -128,7 +127,7 @@ export const DragSpacer = styled.div<DragSpacerProps>`
     `}
 `;
 
-export const AddButtonWrapper = styled.div`
+export const TabBarButtonWrapper = styled.div`
   -webkit-app-region: no-drag;
 
   & button {
@@ -141,6 +140,11 @@ export const AddButtonWrapper = styled.div`
     background-color: var(--tab-chrome-fill);
     border: none;
     opacity: 1;
+  }
+
+  & button:focus-visible {
+    opacity: 1;
+    background-color: var(--tab-chrome-fill);
   }
 `;
 
@@ -233,7 +237,26 @@ export const Tab = styled.button<TabProps>`
     `}
 
   &:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--rcx-color-stroke-highlight, #1d74f5);
+    opacity: 1;
+    border: 1px solid
+      var(
+        --rcx-color-button-icon-focus-border-color,
+        var(
+          --rcx-button-secondary-focus-border-color,
+          var(
+            --rcx-color-stroke-extra-dark,
+            var(--rcx-color-neutral-800, #2f343d)
+          )
+        )
+      );
+    box-shadow: 0 0 0 2px
+      var(
+        --rcx-color-button-icon-focus-shadow-color,
+        var(
+          --rcx-button-secondary-focus-shadow-color,
+          var(--rcx-color-shadow-highlight, var(--rcx-color-blue-200, #d1ebfe))
+        )
+      );
   }
 `;
 
@@ -363,34 +386,6 @@ export const UnreadDot = styled.span`
   height: 8px;
   border-radius: 50%;
   background-color: var(--rcx-color-badge-background-level-2, #f38c39);
-`;
-
-export const MeatballButton = styled.button`
-  appearance: none;
-  border: none;
-  outline: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  border-radius: ${process.platform === 'darwin' ? '8px' : '4px'};
-  cursor: pointer;
-  -webkit-app-region: no-drag;
-  color: var(--rcx-color-font-titles-labels, #f2f3f5);
-
-  &:hover {
-    background-color: var(
-      --tab-chrome-fill,
-      var(--rcx-color-surface-hover, rgba(0, 0, 0, 0.06))
-    );
-  }
-
-  &:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--rcx-color-stroke-highlight, #1d74f5);
-  }
 `;
 
 export const WindowControlsGroup = styled.div`

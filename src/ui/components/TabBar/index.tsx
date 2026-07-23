@@ -13,7 +13,7 @@ import { useShellTheme } from '../hooks/useShellTheme';
 import { useSorting } from '../hooks/useSorting';
 import WorkspaceTab from './WorkspaceTab';
 import {
-  AddButtonWrapper,
+  TabBarButtonWrapper,
   DragSpacer,
   Strip,
   TabList,
@@ -174,14 +174,14 @@ export const TabBar = ({
           );
         })}
         {isAddNewServersEnabled && (
-          <AddButtonWrapper>
+          <TabBarButtonWrapper>
             <IconButton
               medium
               icon='plus-small'
               title={t('tabBar.addWorkspace')}
               onClick={handleAddServerButtonClicked}
             />
-          </AddButtonWrapper>
+          </TabBarButtonWrapper>
         )}
       </TabList>
       <DragSpacer orientation={orientation} />

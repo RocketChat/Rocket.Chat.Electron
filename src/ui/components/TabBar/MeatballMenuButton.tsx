@@ -1,11 +1,11 @@
-import { Icon } from '@rocket.chat/fuselage';
+import { IconButton } from '@rocket.chat/fuselage';
 import type { MouseEvent } from 'react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { dispatch } from '../../../store';
 import { APP_MENU_TRIGGERED } from '../../actions';
-import { MeatballButton } from './styles';
+import { TabBarButtonWrapper } from './styles';
 
 export const MeatballMenuButton = () => {
   const { t } = useTranslation();
@@ -51,16 +51,17 @@ export const MeatballMenuButton = () => {
   }, []);
 
   return (
-    <MeatballButton
-      ref={buttonRef}
-      type='button'
-      aria-haspopup='menu'
-      aria-label={t('tabBar.meatballMenu')}
-      title={t('tabBar.meatballMenu')}
-      onClick={handleClick}
-    >
-      <Icon name='kebab' size='x20' />
-    </MeatballButton>
+    <TabBarButtonWrapper>
+      <IconButton
+        medium
+        ref={buttonRef}
+        icon='kebab'
+        aria-haspopup='menu'
+        aria-label={t('tabBar.meatballMenu')}
+        title={t('tabBar.meatballMenu')}
+        onClick={handleClick}
+      />
+    </TabBarButtonWrapper>
   );
 };
 

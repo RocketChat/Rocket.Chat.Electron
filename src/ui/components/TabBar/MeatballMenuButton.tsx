@@ -7,7 +7,7 @@ import { dispatch } from '../../../store';
 import { APP_MENU_TRIGGERED } from '../../actions';
 import { TabBarButtonWrapper } from './styles';
 
-export const MeatballMenuButton = () => {
+export const MeatballMenuButton = ({ orientation = 'horizontal' }) => {
   const { t } = useTranslation();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -55,7 +55,7 @@ export const MeatballMenuButton = () => {
       <IconButton
         medium
         ref={buttonRef}
-        icon='kebab'
+        icon={orientation === 'horizontal' ? 'meatballs' : 'kebab'}
         aria-haspopup='menu'
         aria-label={t('tabBar.meatballMenu')}
         title={t('tabBar.meatballMenu')}

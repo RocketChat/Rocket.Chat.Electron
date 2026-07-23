@@ -44,7 +44,9 @@ jest.mock('../SettingsView', () => ({
 
 jest.mock('../TopBar', () => ({
   __esModule: true,
-  TopBar: () => <div data-testid='top-bar' />,
+  TopBar: ({ trailingSlot }: { trailingSlot?: React.ReactNode }) => (
+    <div data-testid='top-bar'>{trailingSlot}</div>
+  ),
 }));
 
 jest.mock('../TabBar', () => ({
@@ -73,11 +75,6 @@ jest.mock('../TabBar/MeatballMenuButton', () => ({
 jest.mock('../TabBar/WindowControls', () => ({
   __esModule: true,
   WindowControls: () => <div data-testid='window-controls' />,
-}));
-
-jest.mock('../TabBar/WindowsTitleBar', () => ({
-  __esModule: true,
-  WindowsTitleBar: () => <div data-testid='windows-title-bar' />,
 }));
 
 jest.mock('../AboutDialog', () => ({
@@ -342,37 +339,34 @@ describe('Shell', () => {
       expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
       expect(screen.getByTestId('window-controls')).toBeInTheDocument();
-      expect(screen.queryByTestId('windows-title-bar')).not.toBeInTheDocument();
     });
 
-    it('renders WindowsTitleBar plus the vertical TabBar with its meatball menu (no window-controls slot) when navigationLayout is sidebar', () => {
+    it('renders the TopBar carrying the window controls plus the vertical TabBar meatball menu when navigationLayout is sidebar', () => {
       restorePlatform = setPlatform('win32');
 
       renderWithStore(<Shell />, {
         preloadedState: buildState({ navigationLayout: 'sidebar' }),
       });
 
-      expect(screen.getByTestId('windows-title-bar')).toBeInTheDocument();
-      expect(screen.queryByTestId('top-bar')).not.toBeInTheDocument();
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
       expect(screen.getByTestId('tab-bar')).toHaveAttribute(
         'data-orientation',
         'vertical'
       );
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
-      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
     });
 
-    it('does not mount win32 chrome on darwin', () => {
+    it('does not mount win32 window controls on darwin', () => {
       restorePlatform = setPlatform('darwin');
 
       renderWithStore(<Shell />, {
         preloadedState: buildState({ navigationLayout: 'tabs' }),
       });
 
-      // win32-only chrome (native window controls + title bar) stays off; the
-      // meatball menu is the darwin tabs trailing slot, so it is expected.
+      // win32-only native window controls stay off; the meatball menu is the
+      // darwin tabs trailing slot, so it is expected.
       expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('windows-title-bar')).not.toBeInTheDocument();
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
     });
   });

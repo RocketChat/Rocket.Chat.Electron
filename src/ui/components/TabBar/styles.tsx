@@ -52,7 +52,7 @@ export const Strip = styled.div<StripProps>`
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: ${process.platform === 'darwin' ? '0px 8px' : '0 0 0 4px'};
+  padding: ${process.platform === 'darwin' ? '0px 6px' : '0 0 0 4px'};
   padding-top: ${process.platform === 'darwin' ? '2px' : '0px'};
   flex: 0 0 auto;
   width: 100%;
@@ -433,26 +433,4 @@ export const WindowControlButton = styled.button<WindowControlButtonProps>`
   &:focus-visible {
     box-shadow: inset 0 0 0 2px var(--rcx-color-stroke-highlight, #1d74f5);
   }
-`;
-
-export const TitleBarStrip = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  flex: 0 0 auto;
-  width: 100%;
-  height: 32px;
-  -webkit-app-region: drag;
-  user-select: none;
-`;
-
-export const TitleBarDragRegion = styled.div`
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  -webkit-app-region: drag;
-  overflow: hidden;
-  padding: 0px 10px;
 `;

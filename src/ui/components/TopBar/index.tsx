@@ -1,9 +1,20 @@
 import { Box } from '@rocket.chat/fuselage';
+import type { ReactNode } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
 
-export const TopBar = () => {
+type TopBarProps = {
+  leadingSlot?: ReactNode;
+  trailingSlot?: ReactNode;
+  textAlignment?: 'left' | 'center' | 'right';
+};
+
+export const TopBar = ({
+  leadingSlot,
+  trailingSlot,
+  textAlignment = 'center',
+}: TopBarProps) => {
   const mainWindowTitle = useSelector(
     ({ mainWindowTitle }: RootState) => mainWindowTitle
   );
@@ -11,7 +22,7 @@ export const TopBar = () => {
   return (
     <Box
       className='rcx-sidebar--main'
-      height='x28'
+      height={process.platform === 'darwin' ? 'x28' : 'x32'}
       display='flex'
       flexDirection='row'
       justifyContent='center'
@@ -19,7 +30,18 @@ export const TopBar = () => {
       color='default'
       width='100%'
     >
-      <Box fontScale='p2'>{mainWindowTitle}</Box>
+      {leadingSlot}
+      <Box
+        fontScale='p2'
+        flexGrow={1}
+        textAlign={textAlignment}
+        overflow='hidden'
+        padding='0 8px'
+        style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+      >
+        {mainWindowTitle}
+      </Box>
+      {trailingSlot}
     </Box>
   );
 };

@@ -18,7 +18,6 @@ import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TabBar } from '../TabBar';
 import { MeatballMenuButton } from '../TabBar/MeatballMenuButton';
 import { WindowControls } from '../TabBar/WindowControls';
-import { WindowsTitleBar } from '../TabBar/WindowsTitleBar';
 import { TelephonyDefaultHandlerPromptModal } from '../TelephonyDefaultHandlerPromptModal';
 import { TelephonyServerSelectModal } from '../TelephonyServerSelectModal';
 import { TopBar } from '../TopBar';
@@ -84,13 +83,13 @@ export const Shell = () => {
           <TopBar />
         )}
         {navigationLayout === 'sidebar' && process.platform === 'win32' && (
-          <WindowsTitleBar />
+          <TopBar trailingSlot={<WindowControls />} textAlignment='left' />
         )}
         <Box display='flex' flexDirection='row' flexGrow={1}>
           {navigationLayout === 'sidebar' && (
             <TabBar
               orientation='vertical'
-              trailingSlot={<MeatballMenuButton />}
+              trailingSlot={<MeatballMenuButton orientation='vertical' />}
             />
           )}
           <Box

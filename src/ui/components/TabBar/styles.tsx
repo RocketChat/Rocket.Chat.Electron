@@ -53,8 +53,8 @@ export const Strip = styled.div<StripProps>`
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: ${process.platform === 'darwin' ? '0px 6px' : '0 0 0 4px'};
-  padding-top: ${process.platform === 'darwin' ? '2px' : '0px'};
+  padding: ${process.platform === 'darwin' ? '0px 6px' : '1px 0 0 4px'};
+  padding-top: ${process.platform === 'darwin' ? '2px' : '1px'};
   flex: 0 0 auto;
   width: 100%;
   height: ${({ height = '40px' }) => height};

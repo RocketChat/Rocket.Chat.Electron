@@ -9,6 +9,7 @@ import { isDarwin } from '../../utils/platform';
 import { useDropdownVisibility } from '../SideBar/useDropdownVisibility';
 import WorkspaceContextMenu from '../WorkspaceContextMenu';
 import { TooltipContext } from '../utils/TooltipContext';
+import { formatServerTitle } from '../utils/formatServerTitle';
 import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
 import {
@@ -224,11 +225,7 @@ const WorkspaceTab = ({
           draggable='false'
           orientation={orientation}
         />
-        {showLabel && (
-          <Label>
-            {title.replace(/(^|\s)(https?:\/\/)/, '$1').replace(/\/+$/, '')}
-          </Label>
-        )}
+        {showLabel && <Label>{formatServerTitle(title)}</Label>}
         {showLabel && isShortcutVisible && shortcutNumber && (
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}

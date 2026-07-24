@@ -310,6 +310,7 @@
         "description": "Choose how to switch between workspaces",
         "workspaceTabs": "Workspace tabs",
         "workspaceBar": "Workspace bar",
+        "workspaceHidden": "Hidden",
         "disabledHint": "Enable the menu bar first to use Workspace tabs."
       },
       "trayIcon": {
@@ -450,6 +451,7 @@
     "toggleDevTools": "Toggle &DevTools",
     "workspaceTabs": "Workspace tabs",
     "workspaceBar": "Workspace bar",
+    "workspaceHidden": "Hidden",
     "nextWorkspace": "Next Workspace",
     "previousWorkspace": "Previous Workspace",
     "openConfigFolder": "Open &Configuration Folder",

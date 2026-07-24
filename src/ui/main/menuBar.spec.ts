@@ -193,7 +193,7 @@ describe('ui/main/menuBar', () => {
       expect(workspaceBarInSidebarState?.checked).toBe(true);
     });
 
-    it('alternates the layout when the workspaceBar shortcut item is triggered', async () => {
+    it('cycles the layout (tabs → sidebar → hidden → tabs) when the workspaceBar shortcut item is triggered', async () => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { dispatch } = require('../../store');
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -206,7 +206,7 @@ describe('ui/main/menuBar', () => {
       (getRootWindow as jest.Mock).mockResolvedValue(fakeWindow);
 
       const getWorkspaceBarItem = (
-        layout: 'tabs' | 'sidebar'
+        layout: 'tabs' | 'sidebar' | 'hidden'
       ): MenuItemConstructorOptions => {
         const template = selectMenuBarTemplate(
           createState({ navigationLayout: layout })
@@ -224,19 +224,21 @@ describe('ui/main/menuBar', () => {
         return item;
       };
 
-      (dispatch as jest.Mock).mockClear();
-      await (getWorkspaceBarItem('sidebar').click as any)();
-      expect(dispatch).toHaveBeenLastCalledWith({
-        type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
-        payload: 'tabs',
-      });
+      const expectNext = async (
+        current: 'tabs' | 'sidebar' | 'hidden',
+        next: 'tabs' | 'sidebar' | 'hidden'
+      ): Promise<void> => {
+        (dispatch as jest.Mock).mockClear();
+        await (getWorkspaceBarItem(current).click as any)();
+        expect(dispatch).toHaveBeenLastCalledWith({
+          type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+          payload: next,
+        });
+      };
 
-      (dispatch as jest.Mock).mockClear();
-      await (getWorkspaceBarItem('tabs').click as any)();
-      expect(dispatch).toHaveBeenLastCalledWith({
-        type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
-        payload: 'sidebar',
-      });
+      await expectNext('tabs', 'sidebar');
+      await expectNext('sidebar', 'hidden');
+      await expectNext('hidden', 'tabs');
     });
   });
 });

@@ -6,8 +6,17 @@ import { useTranslation } from 'react-i18next';
 import { dispatch } from '../../../store';
 import { APP_MENU_TRIGGERED } from '../../actions';
 import { TabBarButtonWrapper } from './styles';
+import type { TabOrientation } from './styles';
 
-export const MeatballMenuButton = ({ orientation = 'horizontal' }) => {
+type MeatballMenuButtonProps = {
+  orientation?: TabOrientation;
+  tiny?: boolean;
+};
+
+export const MeatballMenuButton = ({
+  orientation = 'horizontal',
+  tiny = false,
+}: MeatballMenuButtonProps) => {
   const { t } = useTranslation();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -53,7 +62,7 @@ export const MeatballMenuButton = ({ orientation = 'horizontal' }) => {
   return (
     <TabBarButtonWrapper>
       <IconButton
-        medium
+        {...(tiny ? { tiny: true } : { medium: true })}
         ref={buttonRef}
         icon={orientation === 'horizontal' ? 'meatballs' : 'kebab'}
         aria-haspopup='menu'

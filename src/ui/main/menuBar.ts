@@ -429,8 +429,35 @@ export const createViewMenu = createSelector(
         checked: navigationLayout === 'sidebar',
         accelerator:
           process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
-        // The shortcut alternates between the two layouts, so pressing it while
-        // the sidebar is active switches to tabs and vice versa.
+        // The shortcut cycles through the layouts: tabs → sidebar → hidden →
+        // tabs.
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          const layoutCycle = ['tabs', 'sidebar', 'hidden'] as const;
+          const nextLayout =
+            layoutCycle[
+              (layoutCycle.indexOf(navigationLayout) + 1) % layoutCycle.length
+            ];
+          dispatch({
+            type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+            payload: nextLayout,
+          });
+        },
+      },
+      {
+        id: 'workspaceHidden',
+        label: t('menus.workspaceHidden'),
+        type: 'radio',
+        checked: navigationLayout === 'hidden',
+        enabled:
+          process.platform !== 'linux' ||
+          isMenuBarEnabled ||
+          navigationLayout === 'hidden',
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -440,7 +467,7 @@ export const createViewMenu = createSelector(
           browserWindow.focus();
           dispatch({
             type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
-            payload: navigationLayout === 'sidebar' ? 'tabs' : 'sidebar',
+            payload: 'hidden',
           });
         },
       },

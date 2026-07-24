@@ -21,6 +21,7 @@ import { WindowControls } from '../TabBar/WindowControls';
 import { TelephonyDefaultHandlerPromptModal } from '../TelephonyDefaultHandlerPromptModal';
 import { TelephonyServerSelectModal } from '../TelephonyServerSelectModal';
 import { TopBar } from '../TopBar';
+import { ServerSwitcher } from '../TopBar/ServerSwitcher';
 import { UpdateDialog } from '../UpdateDialog';
 import { useShellTheme } from '../hooks/useShellTheme';
 import TooltipProvider from '../utils/TooltipProvider';
@@ -60,7 +61,7 @@ export const Shell = () => {
         // tagId='sidebar-palette'
       />
       <GlobalStyles isTransparentWindowEnabled={isTransparentWindowEnabled} />
-      {navigationLayout === 'sidebar' && process.platform === 'darwin' && (
+      {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
         <WindowDragBar />
       )}
       <Box
@@ -79,11 +80,26 @@ export const Shell = () => {
         {navigationLayout === 'tabs' && process.platform !== 'win32' && (
           <TabBar trailingSlot={<MeatballMenuButton />} />
         )}
-        {navigationLayout === 'sidebar' && process.platform === 'darwin' && (
-          <TopBar />
+        {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
+          <TopBar
+            centerSlot={
+              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+            }
+          />
         )}
-        {navigationLayout === 'sidebar' && process.platform === 'win32' && (
-          <TopBar trailingSlot={<WindowControls />} textAlignment='left' />
+        {navigationLayout !== 'tabs' && process.platform === 'win32' && (
+          <TopBar
+            leadingSlot={
+              navigationLayout === 'hidden' ? (
+                <MeatballMenuButton tiny />
+              ) : undefined
+            }
+            centerSlot={
+              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+            }
+            trailingSlot={<WindowControls />}
+            textAlignment='left'
+          />
         )}
         <Box display='flex' flexDirection='row' flexGrow={1}>
           {navigationLayout === 'sidebar' && (

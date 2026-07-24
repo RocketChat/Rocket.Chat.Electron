@@ -40,6 +40,7 @@ type StripProps = {
   isTransparentWindowEnabled: boolean;
   paletteTheme: 'light' | 'dark';
   orientation?: TabOrientation;
+  height: string;
 };
 
 export const Strip = styled.div<StripProps>`
@@ -56,7 +57,7 @@ export const Strip = styled.div<StripProps>`
   padding-top: ${process.platform === 'darwin' ? '2px' : '0px'};
   flex: 0 0 auto;
   width: 100%;
-  height: 40px;
+  height: ${({ height = '40px' }) => height};
   gap: 3px;
   -webkit-app-region: drag;
   user-select: none;

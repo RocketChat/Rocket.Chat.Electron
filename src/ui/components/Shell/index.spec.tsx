@@ -44,8 +44,17 @@ jest.mock('../SettingsView', () => ({
 
 jest.mock('../TopBar', () => ({
   __esModule: true,
-  TopBar: ({ trailingSlot }: { trailingSlot?: React.ReactNode }) => (
-    <div data-testid='top-bar'>{trailingSlot}</div>
+  TopBar: ({
+    leadingSlot,
+    trailingSlot,
+  }: {
+    leadingSlot?: React.ReactNode;
+    trailingSlot?: React.ReactNode;
+  }) => (
+    <div data-testid='top-bar'>
+      {leadingSlot}
+      {trailingSlot}
+    </div>
   ),
 }));
 
@@ -309,6 +318,22 @@ describe('Shell', () => {
     }
   });
 
+  it('renders the hidden layout (TopBar only, no TabBar) when navigationLayout is hidden', () => {
+    const restorePlatform = setPlatform('darwin');
+
+    try {
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'hidden' }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+      expect(screen.getByTestId('servers-view')).toBeInTheDocument();
+    } finally {
+      restorePlatform();
+    }
+  });
+
   it('renders the tabs layout (horizontal TabBar, no TopBar/WindowDragBar) when navigationLayout is tabs', () => {
     renderWithStore(<Shell />, {
       preloadedState: buildState({ navigationLayout: 'tabs' }),
@@ -355,6 +380,19 @@ describe('Shell', () => {
         'vertical'
       );
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+    });
+
+    it('puts the meatball menu on the TopBar (far left) with window controls and no TabBar when navigationLayout is hidden', () => {
+      restorePlatform = setPlatform('win32');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'hidden' }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
     });
 
     it('does not mount win32 window controls on darwin', () => {

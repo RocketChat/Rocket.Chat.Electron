@@ -2,6 +2,7 @@ import { act } from '@testing-library/react';
 
 import { TabBar } from '.';
 import {
+  SERVER_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_SERVER_SELECTED,
 } from '../../actions';
@@ -35,26 +36,6 @@ const mockDispatch = jest.fn();
 jest.mock('../../../store', () => ({
   dispatch: (action: unknown) => mockDispatch(action),
 }));
-
-jest.mock('../SideBar/ServerInfoDropdown', () => ({
-  __esModule: true,
-  default: () => <div data-testid='server-info-dropdown' />,
-}));
-
-// Fuselage's <Dropdown> resolves to its mobile variant under jsdom (matchMedia
-// has no real layout) and renders its children into an unreachable portal/tile.
-// Replace only that component with an inline passthrough so the menu Options
-// render in the tree; every other Fuselage component stays real.
-jest.mock('@rocket.chat/fuselage', () => {
-  const actual = jest.requireActual('@rocket.chat/fuselage');
-  return {
-    __esModule: true,
-    ...actual,
-    Dropdown: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid='dropdown'>{children}</div>
-    ),
-  };
-});
 
 let mockTabListWidth = 1000;
 
@@ -188,7 +169,7 @@ describe('TabBar', () => {
     expect(screen.getByText('SA')).toBeInTheDocument();
   });
 
-  it('opens the custom workspace context menu instead of the native menu on context menu', async () => {
+  it('triggers the native server context menu on right click', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTabBar(<TabBar />, { preloadedState: buildState() });
 
@@ -199,9 +180,11 @@ describe('TabBar', () => {
 
     await user.pointer({ keys: '[MouseRight]', target: tab });
 
-    expect(screen.getByText('sidebar.item.serverInfo')).toBeInTheDocument();
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'side-bar/context-menu-triggered' })
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SERVER_CONTEXT_MENU_TRIGGERED,
+        payload: expect.objectContaining({ url: 'https://a.rocket.chat/' }),
+      })
     );
   });
 
@@ -286,7 +269,7 @@ describe('TabBar', () => {
     expect(tab).toHaveStyle({
       flex: '0 1 auto',
       minWidth: '52px',
-      maxWidth: '180px',
+      maxWidth: '235px',
     });
   });
 
@@ -322,19 +305,13 @@ describe('TabBar', () => {
     expect(screen.queryByText('Server C')).not.toBeInTheDocument();
   });
 
-  it('aligns the add button with the 32px tab row instead of stretching over the 36px strip', async () => {
+  it('keeps the add button reachable and clickable within the draggable strip', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTabBar(<TabBar />, { preloadedState: buildState() });
 
     const addButton = screen.getByTitle('tabBar.addWorkspace');
-    const wrapper = addButton.closest('div');
+    expect(addButton).toBeInTheDocument();
 
-    expect(wrapper).toHaveStyle({
-      alignSelf: 'flex-end',
-      alignItems: 'flex-start',
-      height: '32px',
-    });
-    // sanity check the button is still reachable/clickable after the alignment change
     await user.click(addButton);
     expect(mockDispatch).toHaveBeenCalled();
   });
@@ -350,5 +327,50 @@ describe('TabBar', () => {
 
     const badge = screen.getByText('97');
     expect(badge).toHaveStyle({ flexShrink: '0' });
+  });
+
+  describe('vertical orientation', () => {
+    it('stacks every server without labels even in a narrow column', () => {
+      // A width that would slice the horizontal strip down to a single tab must
+      // not affect the fixed-width vertical column.
+      mockTabListWidth = 44;
+
+      renderTabBar(<TabBar orientation='vertical' />, {
+        preloadedState: buildState({
+          servers: [
+            { url: 'https://a.rocket.chat/', title: 'Server A' },
+            { url: 'https://b.rocket.chat/', title: 'Server B' },
+            { url: 'https://c.rocket.chat/', title: 'Server C' },
+          ],
+        }),
+      });
+
+      expect(screen.getAllByRole('tab')).toHaveLength(3);
+      expect(screen.queryByText('Server A')).not.toBeInTheDocument();
+      expect(screen.queryByText('Server B')).not.toBeInTheDocument();
+    });
+
+    it('marks the tablist as vertically oriented', () => {
+      renderTabBar(<TabBar orientation='vertical' />, {
+        preloadedState: buildState(),
+      });
+
+      expect(screen.getByRole('tablist')).toHaveAttribute(
+        'aria-orientation',
+        'vertical'
+      );
+    });
+
+    it('still renders the mention badge (floated) in vertical mode', () => {
+      renderTabBar(<TabBar orientation='vertical' />, {
+        preloadedState: buildState({
+          servers: [
+            { url: 'https://a.rocket.chat/', title: 'Server A', badge: 5 },
+          ],
+        }),
+      });
+
+      expect(screen.getByText('5')).toBeInTheDocument();
+    });
   });
 });

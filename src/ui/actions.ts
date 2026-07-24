@@ -171,6 +171,8 @@ export const TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE =
 export const TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED =
   'telephony-default-handler-prompt/open-settings-clicked';
 export const APP_MENU_TRIGGERED = 'app-menu/triggered';
+export const SERVER_SWITCHER_MENU_TRIGGERED = 'server-switcher/menu-triggered';
+export const SERVER_CONTEXT_MENU_TRIGGERED = 'server-context-menu/triggered';
 export const WINDOW_CONTROLS_MINIMIZE_CLICKED =
   'window-controls/minimize-clicked';
 export const WINDOW_CONTROLS_MAXIMIZE_CLICKED =
@@ -346,6 +348,8 @@ export type UiActionTypeToPayloadMap = {
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_CLOSE]: void;
   [TELEPHONY_DEFAULT_HANDLER_PROMPT_OPEN_SETTINGS_CLICKED]: void;
   [APP_MENU_TRIGGERED]: { x: number; y: number };
+  [SERVER_SWITCHER_MENU_TRIGGERED]: { x: number; y: number };
+  [SERVER_CONTEXT_MENU_TRIGGERED]: { x: number; y: number; url: string };
   [WINDOW_CONTROLS_MINIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_MAXIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_CLOSE_CLICKED]: void;

@@ -2,7 +2,13 @@ import type { MenuItemConstructorOptions } from 'electron';
 
 import type { Server } from '../../servers/common';
 import type { RootState } from '../../store/rootReducer';
-import { selectMenuBarTemplate, selectMenuBarTemplateAsJson } from './menuBar';
+import { MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED } from '../actions';
+import {
+  getServerContextMenuTemplate,
+  selectMenuBarTemplate,
+  selectMenuBarTemplateAsJson,
+  selectServerSwitcherMenuTemplate,
+} from './menuBar';
 
 jest.mock('electron', () => ({
   app: {
@@ -190,6 +196,139 @@ describe('ui/main/menuBar', () => {
       );
       expect(workspaceTabsInSidebarState?.checked).toBe(false);
       expect(workspaceBarInSidebarState?.checked).toBe(true);
+    });
+
+    it('cycles the layout (tabs → sidebar → hidden → tabs) when the workspaceBar shortcut item is triggered', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { dispatch } = require('../../store');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getRootWindow } = require('./rootWindow');
+      const fakeWindow = {
+        isVisible: () => true,
+        showInactive: jest.fn(),
+        focus: jest.fn(),
+      };
+      (getRootWindow as jest.Mock).mockResolvedValue(fakeWindow);
+
+      const getWorkspaceBarItem = (
+        layout: 'tabs' | 'sidebar' | 'hidden'
+      ): MenuItemConstructorOptions => {
+        const template = selectMenuBarTemplate(
+          createState({ navigationLayout: layout })
+        );
+        const viewMenu = findMenu(
+          template as MenuItemConstructorOptions[],
+          'viewMenu'
+        );
+        const item = (viewMenu.submenu as MenuItemConstructorOptions[]).find(
+          (entry) => entry.id === 'workspaceBar'
+        );
+        if (!item) {
+          throw new Error('workspaceBar item not found');
+        }
+        return item;
+      };
+
+      const expectNext = async (
+        current: 'tabs' | 'sidebar' | 'hidden',
+        next: 'tabs' | 'sidebar' | 'hidden'
+      ): Promise<void> => {
+        (dispatch as jest.Mock).mockClear();
+        await (getWorkspaceBarItem(current).click as any)();
+        expect(dispatch).toHaveBeenLastCalledWith({
+          type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+          payload: next,
+        });
+      };
+
+      await expectNext('tabs', 'sidebar');
+      await expectNext('sidebar', 'hidden');
+      await expectNext('hidden', 'tabs');
+    });
+  });
+
+  describe('server switcher menu', () => {
+    it('lists servers with accelerators plus settings/downloads/add-server', () => {
+      const state = createState({
+        servers: [
+          createServer('https://a.rocket.chat/', 'Server A'),
+          createServer('https://b.rocket.chat/', 'Server B'),
+        ],
+        currentView: { url: 'https://a.rocket.chat/' },
+        isAddNewServersEnabled: true,
+      });
+
+      const template = selectServerSwitcherMenuTemplate(state);
+      const ids = template.map((item) => item.id);
+
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          'https://a.rocket.chat/',
+          'https://b.rocket.chat/',
+          'settings',
+          'downloads',
+          'addNewServer',
+        ])
+      );
+
+      const serverA = template.find(
+        (item) => item.id === 'https://a.rocket.chat/'
+      );
+      expect(serverA?.accelerator).toBe('CommandOrControl+1');
+      expect(serverA?.checked).toBe(true);
+
+      const serverB = template.find(
+        (item) => item.id === 'https://b.rocket.chat/'
+      );
+      expect(serverB?.accelerator).toBe('CommandOrControl+2');
+      expect(serverB?.checked).toBe(false);
+    });
+  });
+
+  describe('server context menu', () => {
+    const servers = [createServer('https://a.rocket.chat/', 'Server A')];
+
+    it('offers the per-server actions with shortcuts on the ones that have them', () => {
+      const template = getServerContextMenuTemplate(
+        'https://a.rocket.chat/',
+        servers,
+        true
+      );
+      const ids = template.map((item) => item.id);
+
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          'reload',
+          'reloadClearingCache',
+          'copyCurrentUrl',
+          'openDevTools',
+          'serverInfo',
+          'remove',
+          'addWorkspace',
+        ])
+      );
+
+      const byId = (id: string) => template.find((item) => item.id === id);
+      expect(byId('reload')?.accelerator).toBe('CommandOrControl+R');
+      expect(byId('openDevTools')?.accelerator).toBeDefined();
+      expect(byId('addWorkspace')?.accelerator).toBe('CommandOrControl+N');
+      // Actions without an app-level shortcut stay bare.
+      expect(byId('copyCurrentUrl')?.accelerator).toBeUndefined();
+      expect(byId('serverInfo')?.accelerator).toBeUndefined();
+    });
+
+    it('isolates Remove with a separator and omits Add workspace when disabled', () => {
+      const template = getServerContextMenuTemplate(
+        'https://a.rocket.chat/',
+        servers,
+        false
+      );
+      const ids = template.map((item) => item.id);
+
+      expect(ids).not.toContain('addWorkspace');
+
+      const removeIndex = template.findIndex((item) => item.id === 'remove');
+      expect(template[removeIndex - 1]?.type).toBe('separator');
     });
   });
 });

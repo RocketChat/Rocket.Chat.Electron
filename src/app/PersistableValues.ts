@@ -119,7 +119,7 @@ type PersistableValues_4_15_0 = PersistableValues_4_14_0 & {
 };
 
 type PersistableValues_4_16_0 = PersistableValues_4_15_0 & {
-  navigationLayout: 'tabs' | 'sidebar';
+  navigationLayout: 'tabs' | 'sidebar' | 'hidden';
 };
 
 export type PersistableValues = Pick<

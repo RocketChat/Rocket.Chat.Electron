@@ -50,6 +50,26 @@ const on = (
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
+// The layout shortcut advances through tabs → sidebar → hidden → tabs. It is
+// shown on whichever radio is the *next* step, so pressing it (or clicking that
+// item) moves the cycle forward one place.
+const NAVIGATION_LAYOUT_CYCLE = ['tabs', 'sidebar', 'hidden'] as const;
+
+const nextNavigationLayoutAccelerator = (
+  current: RootState['navigationLayout'],
+  layout: (typeof NAVIGATION_LAYOUT_CYCLE)[number]
+): string | undefined => {
+  const nextLayout =
+    NAVIGATION_LAYOUT_CYCLE[
+      (NAVIGATION_LAYOUT_CYCLE.indexOf(current) + 1) %
+        NAVIGATION_LAYOUT_CYCLE.length
+    ];
+  if (layout !== nextLayout) {
+    return undefined;
+  }
+  return process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S';
+};
+
 const selectAddServersDeps = createStructuredSelector({
   isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
@@ -421,6 +441,7 @@ export const createViewMenu = createSelector(
         label: t('menus.workspaceTabs'),
         type: 'radio',
         checked: navigationLayout === 'tabs',
+        accelerator: nextNavigationLayoutAccelerator(navigationLayout, 'tabs'),
         enabled:
           process.platform !== 'linux' ||
           isMenuBarEnabled ||
@@ -443,10 +464,14 @@ export const createViewMenu = createSelector(
         label: t('menus.workspaceBar'),
         type: 'radio',
         checked: navigationLayout === 'sidebar',
-        accelerator:
-          process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
-        // The shortcut cycles through the layouts: tabs → sidebar → hidden →
-        // tabs.
+        accelerator: nextNavigationLayoutAccelerator(
+          navigationLayout,
+          'sidebar'
+        ),
+        enabled:
+          process.platform !== 'linux' ||
+          isMenuBarEnabled ||
+          navigationLayout === 'sidebar',
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -454,14 +479,9 @@ export const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const layoutCycle = ['tabs', 'sidebar', 'hidden'] as const;
-          const nextLayout =
-            layoutCycle[
-              (layoutCycle.indexOf(navigationLayout) + 1) % layoutCycle.length
-            ];
           dispatch({
             type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
-            payload: nextLayout,
+            payload: 'sidebar',
           });
         },
       },
@@ -470,6 +490,10 @@ export const createViewMenu = createSelector(
         label: t('menus.workspaceHidden'),
         type: 'radio',
         checked: navigationLayout === 'hidden',
+        accelerator: nextNavigationLayoutAccelerator(
+          navigationLayout,
+          'hidden'
+        ),
         enabled:
           process.platform !== 'linux' ||
           isMenuBarEnabled ||

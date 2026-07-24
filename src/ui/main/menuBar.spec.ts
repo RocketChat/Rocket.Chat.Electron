@@ -198,43 +198,57 @@ describe('ui/main/menuBar', () => {
       expect(workspaceBarInSidebarState?.checked).toBe(true);
     });
 
-    it('cycles the layout (tabs → sidebar → hidden → tabs) when the workspaceBar shortcut item is triggered', async () => {
+    it('puts the layout shortcut on the next step of the cycle, and clicking it advances the cycle', async () => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { dispatch } = require('../../store');
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { getRootWindow } = require('./rootWindow');
-      const fakeWindow = {
+      (getRootWindow as jest.Mock).mockResolvedValue({
         isVisible: () => true,
         showInactive: jest.fn(),
         focus: jest.fn(),
-      };
-      (getRootWindow as jest.Mock).mockResolvedValue(fakeWindow);
+      });
 
-      const getWorkspaceBarItem = (
-        layout: 'tabs' | 'sidebar' | 'hidden'
-      ): MenuItemConstructorOptions => {
+      const layoutRadios: Record<
+        'tabs' | 'sidebar' | 'hidden',
+        'workspaceTabs' | 'workspaceBar' | 'workspaceHidden'
+      > = {
+        tabs: 'workspaceTabs',
+        sidebar: 'workspaceBar',
+        hidden: 'workspaceHidden',
+      };
+
+      const getRadios = (
+        current: 'tabs' | 'sidebar' | 'hidden'
+      ): MenuItemConstructorOptions[] => {
         const template = selectMenuBarTemplate(
-          createState({ navigationLayout: layout })
+          createState({ navigationLayout: current })
         );
         const viewMenu = findMenu(
           template as MenuItemConstructorOptions[],
           'viewMenu'
         );
-        const item = (viewMenu.submenu as MenuItemConstructorOptions[]).find(
-          (entry) => entry.id === 'workspaceBar'
-        );
-        if (!item) {
-          throw new Error('workspaceBar item not found');
-        }
-        return item;
+        return viewMenu.submenu as MenuItemConstructorOptions[];
       };
 
       const expectNext = async (
         current: 'tabs' | 'sidebar' | 'hidden',
         next: 'tabs' | 'sidebar' | 'hidden'
       ): Promise<void> => {
+        const submenu = getRadios(current);
+        const byId = (id: string) => submenu.find((item) => item.id === id);
+
+        // Only the next-step radio carries the shortcut; the others are bare.
+        expect(byId(layoutRadios[next])?.accelerator).toBeDefined();
+        (['tabs', 'sidebar', 'hidden'] as const)
+          .filter((layout) => layout !== next)
+          .forEach((layout) => {
+            expect(byId(layoutRadios[layout])?.accelerator).toBeUndefined();
+          });
+
+        // Triggering the shortcut-bearing radio moves the cycle forward.
         (dispatch as jest.Mock).mockClear();
-        await (getWorkspaceBarItem(current).click as any)();
+        await (byId(layoutRadios[next])?.click as any)();
         expect(dispatch).toHaveBeenLastCalledWith({
           type: MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
           payload: next,

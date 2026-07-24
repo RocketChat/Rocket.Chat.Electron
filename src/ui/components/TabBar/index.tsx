@@ -159,13 +159,6 @@ export const TabBar = ({
               tabIndex={
                 server.selected || (!hasSelectedServer && index === 0) ? 0 : -1
               }
-              version={server.version}
-              isSupportedVersion={server.isSupportedVersion}
-              supportedVersionsSource={server.supportedVersionsSource}
-              supportedVersionsFetchState={server.supportedVersionsFetchState}
-              supportedVersions={server.supportedVersions}
-              exchangeUrl={server.outlookCredentials?.serverUrl}
-              showAddWorkspace={isAddNewServersEnabled}
               onDragStart={handleDragStart(server.url)}
               onDragEnd={handleDragEnd}
               onDragEnter={handleDragEnter(server.url)}

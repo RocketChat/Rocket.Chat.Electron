@@ -2,6 +2,7 @@ import { act } from '@testing-library/react';
 
 import { TabBar } from '.';
 import {
+  SERVER_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_SERVER_SELECTED,
 } from '../../actions';
@@ -35,26 +36,6 @@ const mockDispatch = jest.fn();
 jest.mock('../../../store', () => ({
   dispatch: (action: unknown) => mockDispatch(action),
 }));
-
-jest.mock('../SideBar/ServerInfoDropdown', () => ({
-  __esModule: true,
-  default: () => <div data-testid='server-info-dropdown' />,
-}));
-
-// Fuselage's <Dropdown> resolves to its mobile variant under jsdom (matchMedia
-// has no real layout) and renders its children into an unreachable portal/tile.
-// Replace only that component with an inline passthrough so the menu Options
-// render in the tree; every other Fuselage component stays real.
-jest.mock('@rocket.chat/fuselage', () => {
-  const actual = jest.requireActual('@rocket.chat/fuselage');
-  return {
-    __esModule: true,
-    ...actual,
-    Dropdown: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid='dropdown'>{children}</div>
-    ),
-  };
-});
 
 let mockTabListWidth = 1000;
 
@@ -188,7 +169,7 @@ describe('TabBar', () => {
     expect(screen.getByText('SA')).toBeInTheDocument();
   });
 
-  it('opens the custom workspace context menu instead of the native menu on context menu', async () => {
+  it('triggers the native server context menu on right click', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTabBar(<TabBar />, { preloadedState: buildState() });
 
@@ -199,9 +180,11 @@ describe('TabBar', () => {
 
     await user.pointer({ keys: '[MouseRight]', target: tab });
 
-    expect(screen.getByText('sidebar.item.serverInfo')).toBeInTheDocument();
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'side-bar/context-menu-triggered' })
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SERVER_CONTEXT_MENU_TRIGGERED,
+        payload: expect.objectContaining({ url: 'https://a.rocket.chat/' }),
+      })
     );
   });
 

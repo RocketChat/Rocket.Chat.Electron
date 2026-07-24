@@ -25,10 +25,20 @@ import {
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
+  OPEN_SERVER_INFO_MODAL,
+  SERVER_CONTEXT_MENU_TRIGGERED,
+  SERVER_SWITCHER_MENU_TRIGGERED,
+  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SIDE_BAR_SERVER_COPY_URL,
+  SIDE_BAR_SERVER_FORCE_RELOAD,
+  SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
+  SIDE_BAR_SERVER_RELOAD,
+  SIDE_BAR_SERVER_REMOVE,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
 } from '../actions';
+import { formatServerTitle } from '../components/utils/formatServerTitle';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
@@ -400,6 +410,12 @@ export const createViewMenu = createSelector(
           },
         },
       ]),
+      { type: 'separator' },
+      {
+        id: 'workspaceSwitcherHeader',
+        label: t('menus.workspaceSwitcher'),
+        enabled: false,
+      },
       {
         id: 'workspaceTabs',
         label: t('menus.workspaceTabs'),
@@ -1005,6 +1021,168 @@ export const selectAppMenuPopupTemplate = createSelector(
   }
 );
 
+// Native popup used by the server switcher (hidden layout). Lists servers with
+// their ⌘/Ctrl+N shortcuts, then the desktop-app extras — no icons, matching
+// the platform's native menus.
+export const selectServerSwitcherMenuTemplate = createSelector(
+  selectWindowDeps,
+  ({
+    servers,
+    currentView,
+    isAddNewServersEnabled,
+  }): MenuItemConstructorOptions[] => {
+    const serverItems = servers.map((server, i): MenuItemConstructorOptions => {
+      const isActive =
+        typeof currentView === 'object' && currentView.url === server.url;
+      const mentionCount =
+        typeof server.badge === 'number' && server.badge > 0
+          ? server.badge
+          : undefined;
+
+      let label = formatServerTitle(server.title ?? server.url).replace(
+        /&/g,
+        '&&'
+      );
+      if (mentionCount !== undefined) {
+        label += ` (${mentionCount})`;
+      } else if (server.badge === '•') {
+        label += ' •';
+      }
+
+      return {
+        id: server.url,
+        type: isActive ? 'checkbox' : 'normal',
+        checked: isActive,
+        label,
+        accelerator: i < 9 ? `CommandOrControl+${i + 1}` : undefined,
+        click: () => {
+          dispatch({
+            type: MENU_BAR_SELECT_SERVER_CLICKED,
+            payload: server.url,
+          });
+        },
+      };
+    });
+
+    return [
+      ...serverItems,
+      ...on(serverItems.length > 0, () => [
+        { type: 'separator' } as MenuItemConstructorOptions,
+      ]),
+      {
+        id: 'settings',
+        label: t('menus.settings'),
+        accelerator: 'CommandOrControl+,',
+        click: () => {
+          dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
+        },
+      },
+      {
+        id: 'downloads',
+        label: t('menus.downloads'),
+        accelerator: 'CommandOrControl+D',
+        click: () => {
+          dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+        },
+      },
+      ...on(isAddNewServersEnabled, () => [
+        {
+          id: 'addNewServer',
+          label: t('menus.addNewServer'),
+          accelerator: 'CommandOrControl+N',
+          click: () => {
+            dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
+          },
+        } as MenuItemConstructorOptions,
+      ]),
+    ];
+  }
+);
+
+// Native per-server actions (reload, remove, …) shown when a server tab or the
+// titlebar switcher is right-clicked. Reads the server from state by url so the
+// caller only needs to pass the url + coordinates.
+export const getServerContextMenuTemplate = (
+  url: string,
+  servers: RootState['servers'],
+  isAddNewServersEnabled: boolean
+): MenuItemConstructorOptions[] => {
+  const server = servers.find((candidate) => candidate.url === url);
+
+  return [
+    {
+      id: 'reload',
+      label: t('sidebar.item.reload'),
+      accelerator: 'CommandOrControl+R',
+      click: () => {
+        dispatch({ type: SIDE_BAR_SERVER_RELOAD, payload: url });
+      },
+    },
+    {
+      id: 'reloadClearingCache',
+      label: t('sidebar.item.reloadClearingCache'),
+      click: () => {
+        dispatch({ type: SIDE_BAR_SERVER_FORCE_RELOAD, payload: url });
+      },
+    },
+    {
+      id: 'copyCurrentUrl',
+      label: t('sidebar.item.copyCurrentUrl'),
+      click: () => {
+        dispatch({ type: SIDE_BAR_SERVER_COPY_URL, payload: url });
+      },
+    },
+    {
+      id: 'openDevTools',
+      label: t('sidebar.item.openDevTools'),
+      accelerator:
+        process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
+      click: () => {
+        dispatch({ type: SIDE_BAR_SERVER_OPEN_DEV_TOOLS, payload: url });
+      },
+    },
+    {
+      id: 'serverInfo',
+      label: t('sidebar.item.serverInfo'),
+      click: () => {
+        dispatch({
+          type: OPEN_SERVER_INFO_MODAL,
+          payload: {
+            url,
+            version: server?.version,
+            exchangeUrl: server?.outlookCredentials?.serverUrl,
+            isSupportedVersion: server?.isSupportedVersion,
+            supportedVersionsSource: server?.supportedVersionsSource,
+            supportedVersionsFetchState: server?.supportedVersionsFetchState,
+            supportedVersions: server?.supportedVersions,
+          },
+        });
+      },
+    },
+    // Isolate the destructive action in its own section. Native menus can't
+    // color an item, so a separator is the only available emphasis.
+    { type: 'separator' },
+    {
+      id: 'remove',
+      label: t('sidebar.item.remove'),
+      click: () => {
+        dispatch({ type: SIDE_BAR_SERVER_REMOVE, payload: url });
+      },
+    },
+    ...on(isAddNewServersEnabled, () => [
+      { type: 'separator' } as MenuItemConstructorOptions,
+      {
+        id: 'addWorkspace',
+        label: t('sidebar.item.addWorkspace'),
+        accelerator: 'CommandOrControl+N',
+        click: () => {
+          dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
+        },
+      } as MenuItemConstructorOptions,
+    ]),
+  ];
+};
+
 class MenuBarService extends Service {
   protected initialize(): void {
     this.watch(selectMenuBarTemplateAsJson, async () => {
@@ -1032,6 +1210,36 @@ class MenuBarService extends Service {
 
     this.listen(APP_MENU_TRIGGERED, async (action) => {
       const menu = Menu.buildFromTemplate(select(selectAppMenuPopupTemplate));
+      menu.popup({
+        window: await getRootWindow(),
+        x: Math.round(action.payload.x),
+        y: Math.round(action.payload.y),
+      });
+    });
+
+    this.listen(SERVER_SWITCHER_MENU_TRIGGERED, async (action) => {
+      const menu = Menu.buildFromTemplate(
+        select(selectServerSwitcherMenuTemplate)
+      );
+      menu.popup({
+        window: await getRootWindow(),
+        x: Math.round(action.payload.x),
+        y: Math.round(action.payload.y),
+      });
+    });
+
+    this.listen(SERVER_CONTEXT_MENU_TRIGGERED, async (action) => {
+      const servers = select(({ servers }) => servers);
+      const isAddNewServersEnabled = select(
+        ({ isAddNewServersEnabled }) => isAddNewServersEnabled
+      );
+      const menu = Menu.buildFromTemplate(
+        getServerContextMenuTemplate(
+          action.payload.url,
+          servers,
+          isAddNewServersEnabled
+        )
+      );
       menu.popup({
         window: await getRootWindow(),
         x: Math.round(action.payload.x),

@@ -1,10 +1,13 @@
 import {
-  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-  SIDE_BAR_SERVER_SELECTED,
-  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
+  SERVER_CONTEXT_MENU_TRIGGERED,
+  SERVER_SWITCHER_MENU_TRIGGERED,
 } from '../../actions';
-import { renderWithStore, screen, userEvent } from '../../test-utils';
+import {
+  fireEvent,
+  renderWithStore,
+  screen,
+  userEvent,
+} from '../../test-utils';
 import { ServerSwitcher } from './ServerSwitcher';
 
 jest.mock('react-i18next', () => ({
@@ -22,19 +25,6 @@ jest.mock('../../../store', () => ({
   dispatch: (action: unknown) => mockDispatch(action),
 }));
 
-// Fuselage's <Dropdown> renders into an unreachable portal/tile under jsdom;
-// replace it with an inline passthrough so the options render in the tree.
-jest.mock('@rocket.chat/fuselage', () => {
-  const actual = jest.requireActual('@rocket.chat/fuselage');
-  return {
-    __esModule: true,
-    ...actual,
-    Dropdown: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid='dropdown'>{children}</div>
-    ),
-  };
-});
-
 const buildState = (overrides: Record<string, unknown> = {}) =>
   ({
     servers: [
@@ -42,6 +32,7 @@ const buildState = (overrides: Record<string, unknown> = {}) =>
       { url: 'https://b.rocket.chat/', title: 'Server B' },
     ],
     currentView: { url: 'https://a.rocket.chat/' },
+    isAddNewServersEnabled: true,
     ...overrides,
   }) as any;
 
@@ -56,7 +47,7 @@ describe('ServerSwitcher', () => {
     expect(screen.getByRole('button')).toHaveTextContent('Server A');
   });
 
-  it('shows a notification indicator when another server has a badge', () => {
+  it('flags the trigger when another server has a badge', () => {
     renderWithStore(<ServerSwitcher />, {
       preloadedState: buildState({
         servers: [
@@ -66,12 +57,13 @@ describe('ServerSwitcher', () => {
       }),
     });
 
-    expect(
-      screen.getByTestId('server-switcher-notification')
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'data-has-notification',
+      'true'
+    );
   });
 
-  it('does not show a notification indicator when only the active server has a badge', () => {
+  it('does not flag the trigger when only the active server has a badge', () => {
     renderWithStore(<ServerSwitcher />, {
       preloadedState: buildState({
         servers: [
@@ -81,24 +73,34 @@ describe('ServerSwitcher', () => {
       }),
     });
 
-    expect(
-      screen.queryByTestId('server-switcher-notification')
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'data-has-notification',
+      'false'
+    );
   });
 
-  it('lists servers and dispatches selection when one is clicked', async () => {
+  it('opens the native switcher menu on click', async () => {
     const user = userEvent.setup();
     renderWithStore(<ServerSwitcher />, { preloadedState: buildState() });
 
     await user.click(screen.getByRole('button'));
 
-    const optionB = screen.getByText('Server B');
-    await user.click(optionB);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: SERVER_SWITCHER_MENU_TRIGGERED })
+    );
+  });
 
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: SIDE_BAR_SERVER_SELECTED,
-      payload: 'https://b.rocket.chat/',
-    });
+  it('triggers the native server context menu on right click', () => {
+    renderWithStore(<ServerSwitcher />, { preloadedState: buildState() });
+
+    fireEvent.contextMenu(screen.getByRole('button'));
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SERVER_CONTEXT_MENU_TRIGGERED,
+        payload: expect.objectContaining({ url: 'https://a.rocket.chat/' }),
+      })
+    );
   });
 
   it('strips the protocol and trailing slash from address-like names', () => {
@@ -125,28 +127,5 @@ describe('ServerSwitcher', () => {
     });
 
     expect(screen.getByRole('button')).toHaveTextContent('sidebar.settings');
-  });
-
-  it('offers settings, downloads and add-server options that dispatch', async () => {
-    const user = userEvent.setup();
-    renderWithStore(<ServerSwitcher />, { preloadedState: buildState() });
-
-    await user.click(screen.getByRole('button'));
-    await user.click(screen.getByText('sidebar.settings'));
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: SIDE_BAR_SETTINGS_BUTTON_CLICKED,
-    });
-
-    await user.click(screen.getByRole('button'));
-    await user.click(screen.getByText('sidebar.downloads'));
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-    });
-
-    await user.click(screen.getByRole('button'));
-    await user.click(screen.getByText('sidebar.addNewServer'));
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-    });
   });
 });

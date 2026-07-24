@@ -2,12 +2,12 @@ import type { DragEvent, FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useContext, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { SupportedVersions } from '../../../servers/supportedVersions/types';
 import { dispatch } from '../../../store';
-import { SIDE_BAR_SERVER_SELECTED } from '../../actions';
+import {
+  SERVER_CONTEXT_MENU_TRIGGERED,
+  SIDE_BAR_SERVER_SELECTED,
+} from '../../actions';
 import { isDarwin } from '../../utils/platform';
-import { useDropdownVisibility } from '../SideBar/useDropdownVisibility';
-import WorkspaceContextMenu from '../WorkspaceContextMenu';
 import { TooltipContext } from '../utils/TooltipContext';
 import { formatServerTitle } from '../utils/formatServerTitle';
 import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
@@ -61,13 +61,6 @@ type WorkspaceTabProps = {
   shortcutNumber: string | null;
   isShortcutVisible: boolean;
   tabIndex: 0 | -1;
-  version?: string;
-  isSupportedVersion?: boolean;
-  supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
-  supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
-  supportedVersions?: SupportedVersions;
-  exchangeUrl?: string;
-  showAddWorkspace?: boolean;
   onDragStart: (event: DragEvent) => void;
   onDragEnd: (event: DragEvent) => void;
   onDragEnter: (event: DragEvent) => void;
@@ -86,13 +79,6 @@ const WorkspaceTab = ({
   shortcutNumber,
   isShortcutVisible,
   tabIndex,
-  version,
-  isSupportedVersion,
-  supportedVersionsSource,
-  supportedVersionsFetchState,
-  supportedVersions,
-  exchangeUrl,
-  showAddWorkspace,
   onDragStart,
   onDragEnd,
   onDragEnter,
@@ -101,12 +87,6 @@ const WorkspaceTab = ({
   const { t } = useTranslation();
   const tooltip = useContext(TooltipContext);
   const ref = useRef<HTMLButtonElement>(null);
-  const target = useRef(null);
-
-  const { isVisible, toggle } = useDropdownVisibility({
-    reference: ref,
-    target,
-  });
 
   const initials = useMemo(() => getServerInitials(title, url), [title, url]);
 
@@ -160,7 +140,10 @@ const WorkspaceTab = ({
 
   const handleContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
-    toggle();
+    dispatch({
+      type: SERVER_CONTEXT_MENU_TRIGGERED,
+      payload: { x: event.clientX, y: event.clientY, url },
+    });
   };
 
   const handleKeyDown = (event: KeyboardEvent): void => {
@@ -232,22 +215,6 @@ const WorkspaceTab = ({
         {isVertical ? <BadgeWrapper>{badges}</BadgeWrapper> : badges}
       </Tab>
       <Divider orientation={orientation}></Divider>
-      {isVisible && (
-        <WorkspaceContextMenu
-          reference={ref}
-          target={target}
-          url={url}
-          version={version}
-          exchangeUrl={exchangeUrl}
-          isSupportedVersion={isSupportedVersion}
-          supportedVersionsSource={supportedVersionsSource}
-          supportedVersionsFetchState={supportedVersionsFetchState}
-          supportedVersions={supportedVersions}
-          onClose={() => toggle(false)}
-          showAddWorkspace={showAddWorkspace}
-          placement={isVertical ? 'right-start' : 'bottom-start'}
-        />
-      )}
     </>
   );
 };

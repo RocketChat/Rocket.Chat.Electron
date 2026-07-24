@@ -166,8 +166,8 @@ const WorkspaceTab = ({
 
   const badges = (
     <>
-      {displayCount && <TabBadge variant='secondary'>{displayCount}</TabBadge>}
-      {isVertical && !displayCount && badge === '•' && <UnreadDot />}
+      {displayCount && <TabBadge variant='ghost'>{displayCount}</TabBadge>}
+      {!displayCount && badge === '•' && <UnreadDot variant='ghost' />}
       {!userLoggedIn && <TabBadge variant='warning'>!</TabBadge>}
     </>
   );

@@ -52,8 +52,11 @@ const Trigger = styled.button<{ hasNotification: boolean }>`
     ${({ hasNotification }) =>
       hasNotification &&
       css`
-        background: var(--rcx-color-button-background-primary-default);
-        color: var(--rcx-color-button-font-on-primary);
+        background: var(
+          --rcx-badge-colors-ghost-background-color,
+          var(--rcx-color-stroke-dark, var(--rcx-color-neutral-700))
+        );
+        color: var(--rcx-color-font-white);
       `};
   }
 `;

@@ -366,6 +366,8 @@ export const ShortcutChip = styled.span`
 
 export const TabBadge = styled(Badge)`
   flex-shrink: 0;
+  color: var(--rcx-color-font-white);
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.2);
 `;
 
 /* Floats the mention/warning badges over the top-right corner of a vertical
@@ -376,17 +378,15 @@ export const BadgeWrapper = styled.div`
   right: 0;
   display: flex;
   gap: 2px;
-  transform: translate(20%, -20%);
+  transform: translate(30%, -30%);
   pointer-events: none;
 `;
 
-/* Small unread indicator for vertical tabs that have unread messages but no
-   mention count (badge === '•'). */
-export const UnreadDot = styled.span`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--rcx-color-badge-background-level-2, #f38c39);
+/* Small unread indicator for tabs that have unread messages but no mention
+   count (badge === '•'), in both horizontal and vertical layouts. */
+export const UnreadDot = styled(TabBadge)`
+  min-width: 8px;
+  min-height: 8px;
 `;
 
 export const WindowControlsGroup = styled.div`

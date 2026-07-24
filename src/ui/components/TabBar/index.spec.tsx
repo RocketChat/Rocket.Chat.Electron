@@ -159,6 +159,25 @@ describe('TabBar', () => {
     expect(screen.getByText('99+')).toBeInTheDocument();
   });
 
+  it('shows the unread dot for a server with unread messages but no mention count', () => {
+    const { container } = renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [
+          {
+            url: 'https://a.rocket.chat/',
+            title: 'Server A',
+            badge: '•',
+            userLoggedIn: true,
+          },
+        ],
+      }),
+    });
+
+    const badges = container.querySelectorAll('.rcx-badge');
+    expect(badges).toHaveLength(1);
+    expect(badges[0]).toHaveTextContent('');
+  });
+
   it('renders initials as a fallback when there is no favicon', () => {
     renderTabBar(<TabBar />, {
       preloadedState: buildState({

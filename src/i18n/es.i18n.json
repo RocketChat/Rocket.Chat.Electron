@@ -71,19 +71,12 @@
       "announcement": "Selecciona una pantalla para compartir"
     },
     "update": {
-      "title": "Actualización disponible",
       "announcement": "Nueva actualización disponible",
       "message": "¡Hay una nueva versión de la aplicación de Rocket.Chat Desktop disponible!",
-      "currentVersion": "Versión actual:",
-      "newVersion": "Nueva versión:",
+      "currentVersion": "Versión actual",
+      "newVersion": "Nueva versión",
       "install": "Instalar actualización",
-      "remindLater": "Recordarme más tarde",
       "skip": "Saltar esta versión"
-    },
-    "updateDownloading": {
-      "title": "Descargando actualización",
-      "message": "Serás notificado cuando la actualización esté lista para ser instalada",
-      "ok": "Aceptar"
     },
     "updateInstallLater": {
       "title": "Instalar más tarde",

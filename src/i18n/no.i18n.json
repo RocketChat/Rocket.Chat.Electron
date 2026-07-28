@@ -80,19 +80,12 @@
       "announcement": "Velg en skjerm du vil dele"
     },
     "update": {
-      "title": "Oppdatering tilgjengelig",
       "announcement": "Ny oppdatering er tilgjengelig",
       "message": "En ny versjon av Rocket.Chat Desktop App er tilgjengelig!",
-      "currentVersion": "Gjeldende versjon:",
-      "newVersion": "Ny versjon:",
+      "currentVersion": "Gjeldende versjon",
+      "newVersion": "Ny versjon",
       "install": "Installer oppdatering",
-      "remindLater": "Påminn meg senere",
       "skip": "Hopp over denne versjonen"
-    },
-    "updateDownloading": {
-      "title": "Laster ned oppdatering",
-      "message": "Du vil bli varslet når oppdateringen er klar til å installeres",
-      "ok": "OK"
     },
     "updateInstallLater": {
       "title": "Installerer senere",

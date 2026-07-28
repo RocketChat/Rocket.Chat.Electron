@@ -80,19 +80,12 @@
       "announcement": "Megosztandó képernyő kiválasztása"
     },
     "update": {
-      "title": "Frissítés érhető el",
       "announcement": "Új frissítés érhető el",
       "message": "Elérhető a Rocket.Chat asztali alkalmazás új verziója!",
-      "currentVersion": "Jelenlegi verzió:",
-      "newVersion": "Új verzió:",
+      "currentVersion": "Jelenlegi verzió",
+      "newVersion": "Új verzió",
       "install": "Frissítés telepítése",
-      "remindLater": "Emlékeztessen később",
       "skip": "A verzió kihagyása"
-    },
-    "updateDownloading": {
-      "title": "Frissítés letöltése",
-      "message": "Értesítést fog kapni, ha a frissítés készen áll a telepítésre",
-      "ok": "Rendben"
     },
     "updateInstallLater": {
       "title": "Telepítés később",

@@ -71,19 +71,12 @@
       "announcement": "Valitse jaettava näyttö"
     },
     "update": {
-      "title": "Päivitys saatavilla",
       "announcement": "Uusi päivitys on saatavilla",
       "message": "Rocket.Chat-tietokonesovelluksen uusi versio on saatavilla!",
-      "currentVersion": "Nykyinen versio:",
-      "newVersion": "Uusi versio:",
+      "currentVersion": "Nykyinen versio",
+      "newVersion": "Uusi versio",
       "install": "Asenna päivitys",
-      "remindLater": "Muistuta myöhemmin",
       "skip": "Ohita tämä versio"
-    },
-    "updateDownloading": {
-      "title": "Ladataan päivitystä",
-      "message": "Saat ilmoituksen, kun päivitys on valmis asennettavaksi",
-      "ok": "OK"
     },
     "updateInstallLater": {
       "title": "Asennetaan myöhemmin",

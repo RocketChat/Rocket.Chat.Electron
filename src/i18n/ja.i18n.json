@@ -50,19 +50,12 @@
       "announcement": "共有する画面を選択"
     },
     "update": {
-      "title": "利用可能な更新",
       "announcement": "新しい更新が利用可能です",
       "message": "Rocket.Chat デスクトップアプリの新しいバージョンが利用可能です!",
-      "currentVersion": "現在のバージョン:",
-      "newVersion": "新しいバージョン:",
+      "currentVersion": "現在のバージョン",
+      "newVersion": "新しいバージョン",
       "install": "更新プログラムをインストール",
-      "remindLater": "後で知らせる",
       "skip": "このバージョンをスキップ"
-    },
-    "updateDownloading": {
-      "title": "更新プログラムをダウンロード中",
-      "message": "更新プログラムのインストール準備が整うと通知されます",
-      "ok": "OK"
     },
     "updateInstallLater": {
       "title": "後でインストール",

@@ -50,19 +50,12 @@
       "announcement": "Paylaşılacak ekran seçin"
     },
     "update": {
-      "title": "Güncelleme kullanılabilir",
       "announcement": "Yeni bir sürüm kullanılabilir",
       "message": "Rocket.Chat için yeni bir masaüstü sürümü mevcut!",
-      "currentVersion": "Mevcut versiyon:",
-      "newVersion": "Yeni versiyon:",
+      "currentVersion": "Mevcut versiyon",
+      "newVersion": "Yeni versiyon",
       "install": "Güncellemeyi yükle",
-      "remindLater": "Daha sonra hatırlat",
       "skip": "Bu sürümü atla"
-    },
-    "updateDownloading": {
-      "title": "Güncelleme indiriliyor",
-      "message": "Güncelleme yüklenmeye hazır olduğunda size bildirilecek.",
-      "ok": "TAMAM"
     },
     "updateInstallLater": {
       "title": "Installing Later",

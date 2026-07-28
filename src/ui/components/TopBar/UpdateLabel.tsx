@@ -6,7 +6,7 @@ import {
   Chevron,
   Dropdown,
 } from '@rocket.chat/fuselage';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -15,9 +15,9 @@ import type { RootState } from '../../../store/rootReducer';
 import {
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
+  UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
-import { useDropdownVisibility } from '../SideBar/useDropdownVisibility';
 
 /**
  * Blue pill in the window chrome announcing an available update.
@@ -81,6 +81,26 @@ const Label = styled.button<{ progress: number }>`
 `;
 
 /**
+ * Invisible full-viewport layer that closes the panel on any click outside it.
+ *
+ * A document-level listener is not enough: the workspace content is a
+ * <webview>, and clicks inside it never reach the host document. This layer
+ * sits over the webview so those clicks are caught too.
+ */
+const Backdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  -webkit-app-region: no-drag;
+`;
+
+/** Holds the panel above the backdrop that closes it. */
+const PanelLayer = styled.div`
+  position: relative;
+  z-index: 11;
+`;
+
+/**
  * Monospaced, right-aligned percentage sized to hold two digits plus the percent
  * sign, so the pill keeps a constant width as the number climbs (1% → 47%)
  * instead of nudging the surrounding chrome on every progress tick.
@@ -117,11 +137,34 @@ export const UpdateLabel = () => {
 
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
-  // Widened to HTMLElement so the button anchor and the panel share one generic.
-  const { isVisible, toggle } = useDropdownVisibility<HTMLElement>({
-    reference,
-    target,
-  });
+
+  // Visibility lives in the store so the About dialog can open the panel after
+  // a manual check finds an update.
+  const isVisible = useSelector(
+    ({ isUpdatePanelOpen }: RootState) => isUpdatePanelOpen
+  );
+
+  const toggle = (next?: boolean): void => {
+    dispatch({ type: UPDATES_PANEL_TOGGLED, payload: next ?? !isVisible });
+  };
+
+  useEffect(() => {
+    if (!isVisible) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        dispatch({ type: UPDATES_PANEL_TOGGLED, payload: false });
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isVisible]);
 
   if (!newUpdateVersion) {
     return null;
@@ -197,55 +240,76 @@ export const UpdateLabel = () => {
         )}
       </Label>
       {isVisible && (
-        <Dropdown reference={reference} ref={target} placement='bottom-end'>
-          <Box
-            display='flex'
-            flexDirection='column'
-            paddingInline='x12'
-            width='x280'
-            style={{ WebkitAppRegion: 'no-drag' } as never}
-          >
-            <Box fontScale='h4'>{t('dialog.update.announcement')}</Box>
-            <Box fontScale='p2' color='hint' paddingBlock='x8'>
-              {t('dialog.update.message')}
-            </Box>
+        <>
+          <Backdrop
+            data-testid='update-panel-backdrop'
+            onMouseDown={() => toggle(false)}
+          />
+          <PanelLayer>
+            <Dropdown reference={reference} ref={target} placement='bottom-end'>
+              <Box
+                display='flex'
+                flexDirection='column'
+                paddingInline='x12'
+                width='x280'
+                style={{ WebkitAppRegion: 'no-drag' } as never}
+              >
+                <Box fontScale='h4'>{t('dialog.update.announcement')}</Box>
+                <Box fontScale='p2' color='hint' paddingBlock='x8'>
+                  {t('dialog.update.message')}
+                </Box>
 
-            <Box
-              display='flex'
-              alignItems='center'
-              justifyContent='space-between'
-              paddingBlock='x12'
-              paddingInline='x12'
-              marginBlockEnd='x12'
-              bg='tint'
-            >
-              <Box display='flex' flexDirection='column' alignItems='center'>
-                <Box fontScale='c1' color='hint'>
-                  {t('dialog.update.currentVersion')}
+                <Box
+                  display='flex'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  paddingBlock='x12'
+                  paddingInline='x12'
+                  marginBlockEnd='x12'
+                  bg='tint'
+                >
+                  <Box
+                    display='flex'
+                    flexDirection='column'
+                    alignItems='center'
+                  >
+                    <Box fontScale='c1' color='hint'>
+                      {t('dialog.update.currentVersion')}
+                    </Box>
+                    <Box fontScale='p2'>{currentVersion}</Box>
+                  </Box>
+                  <Chevron right size='x24' />
+                  <Box
+                    display='flex'
+                    flexDirection='column'
+                    alignItems='center'
+                  >
+                    <Box fontScale='c1' color='hint'>
+                      {t('dialog.update.newVersion')}
+                    </Box>
+                    <Box fontScale='p2' color='info'>
+                      {newUpdateVersion}
+                    </Box>
+                  </Box>
                 </Box>
-                <Box fontScale='p2'>{currentVersion}</Box>
-              </Box>
-              <Chevron right size='x24' />
-              <Box display='flex' flexDirection='column' alignItems='center'>
-                <Box fontScale='c1' color='hint'>
-                  {t('dialog.update.newVersion')}
-                </Box>
-                <Box fontScale='p2' color='info'>
-                  {newUpdateVersion}
-                </Box>
-              </Box>
-            </Box>
 
-            <ButtonGroup stretch>
-              <Button type='button' small onClick={handleSkipClick}>
-                {t('dialog.update.skip')}
-              </Button>
-              <Button type='button' small primary onClick={handleInstallClick}>
-                {t('dialog.update.install')}
-              </Button>
-            </ButtonGroup>
-          </Box>
-        </Dropdown>
+                <ButtonGroup stretch>
+                  <Button type='button' small onClick={handleSkipClick}>
+                    {t('dialog.update.skip')}
+                  </Button>
+                  <Button
+                    type='button'
+                    small
+                    primary
+                    onClick={handleInstallClick}
+                  >
+                    {t('dialog.update.install')}
+                  </Button>
+                </ButtonGroup>
+              </Box>
+            </Dropdown>
+          </PanelLayer>
+        </>
       )}
     </>
   );

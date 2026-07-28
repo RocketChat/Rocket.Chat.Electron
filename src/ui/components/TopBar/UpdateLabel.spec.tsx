@@ -1,9 +1,15 @@
 import {
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
+  UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
-import { renderWithStore, screen, userEvent } from '../../test-utils';
+import {
+  fireEvent,
+  renderWithStore,
+  screen,
+  userEvent,
+} from '../../test-utils';
 import { UpdateLabel } from './UpdateLabel';
 
 jest.mock('react-i18next', () => ({
@@ -43,11 +49,13 @@ const buildState = (overrides: Record<string, unknown> = {}) =>
     newUpdateVersion: '4.9.0',
     updateDownloadStatus: 'idle',
     updateDownloadProgress: 0,
+    isUpdatePanelOpen: false,
     ...overrides,
   }) as any;
 
-const getLabel = (): HTMLElement =>
-  screen.getByRole('button', { name: 'tabBar.update.available' });
+/** State with the panel already open, as the store would have it. */
+const openState = (overrides: Record<string, unknown> = {}) =>
+  buildState({ isUpdatePanelOpen: true, ...overrides });
 
 describe('UpdateLabel', () => {
   beforeEach(() => {
@@ -70,7 +78,7 @@ describe('UpdateLabel', () => {
     expect(label).toHaveAttribute('data-update-status', 'idle');
   });
 
-  it('opens a panel with the version change when clicked', async () => {
+  it('requests the panel when clicked while available', async () => {
     const user = userEvent.setup();
     renderWithStore(<UpdateLabel />, { preloadedState: buildState() });
 
@@ -78,20 +86,26 @@ describe('UpdateLabel', () => {
       screen.queryByText('dialog.update.announcement')
     ).not.toBeInTheDocument();
 
-    await user.click(getLabel());
+    await user.click(screen.getByRole('button'));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: UPDATES_PANEL_TOGGLED,
+      payload: true,
+    });
+  });
+
+  it('shows the version change while the panel is open', () => {
+    renderWithStore(<UpdateLabel />, { preloadedState: openState() });
 
     expect(screen.getByText('dialog.update.announcement')).toBeInTheDocument();
     expect(screen.getByText('4.8.0')).toBeInTheDocument();
     expect(screen.getByText('4.9.0')).toBeInTheDocument();
-    // Opening the panel alone must not kick off the download.
-    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('starts the download from the panel install action', async () => {
     const user = userEvent.setup();
-    renderWithStore(<UpdateLabel />, { preloadedState: buildState() });
+    renderWithStore(<UpdateLabel />, { preloadedState: openState() });
 
-    await user.click(getLabel());
     await user.click(screen.getByText('dialog.update.install'));
 
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -101,9 +115,8 @@ describe('UpdateLabel', () => {
 
   it('skips the version from the panel skip action', async () => {
     const user = userEvent.setup();
-    renderWithStore(<UpdateLabel />, { preloadedState: buildState() });
+    renderWithStore(<UpdateLabel />, { preloadedState: openState() });
 
-    await user.click(getLabel());
     await user.click(screen.getByText('dialog.update.skip'));
 
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -112,14 +125,43 @@ describe('UpdateLabel', () => {
     });
   });
 
-  it('does not offer remind-me-later in the panel', async () => {
-    const user = userEvent.setup();
-    renderWithStore(<UpdateLabel />, { preloadedState: buildState() });
-
-    await user.click(getLabel());
+  it('does not offer remind-me-later in the panel', () => {
+    renderWithStore(<UpdateLabel />, { preloadedState: openState() });
 
     expect(
       screen.queryByText('dialog.update.remindLater')
+    ).not.toBeInTheDocument();
+  });
+
+  it('closes the panel when clicking outside it', () => {
+    renderWithStore(<UpdateLabel />, { preloadedState: openState() });
+
+    // The backdrop covers the whole viewport, including the <webview> whose
+    // clicks never reach the host document.
+    fireEvent.mouseDown(screen.getByTestId('update-panel-backdrop'));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: UPDATES_PANEL_TOGGLED,
+      payload: false,
+    });
+  });
+
+  it('closes the panel on Escape', () => {
+    renderWithStore(<UpdateLabel />, { preloadedState: openState() });
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: UPDATES_PANEL_TOGGLED,
+      payload: false,
+    });
+  });
+
+  it('has no backdrop while the panel is closed', () => {
+    renderWithStore(<UpdateLabel />, { preloadedState: buildState() });
+
+    expect(
+      screen.queryByTestId('update-panel-backdrop')
     ).not.toBeInTheDocument();
   });
 

@@ -13,7 +13,9 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_PANEL_TOGGLED,
   UPDATES_READY,
+  UPDATES_SKIP_REQUESTED,
   UPDATES_UPDATE_DOWNLOADED,
   UPDATE_SKIPPED,
   UPDATES_CHANNEL_CHANGED,
@@ -277,6 +279,35 @@ export const updateDownloadProgress: Reducer<number, UpdateDownloadAction> = (
     case UPDATES_ERROR_THROWN:
     case UPDATE_SKIPPED:
       return 0;
+
+    default:
+      return state;
+  }
+};
+
+type IsUpdatePanelOpenAction =
+  | ActionOf<typeof UPDATES_PANEL_TOGGLED>
+  | ActionOf<typeof UPDATES_DOWNLOAD_REQUESTED>
+  | ActionOf<typeof UPDATES_SKIP_REQUESTED>
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
+  | ActionOf<typeof UPDATES_ERROR_THROWN>
+  | ActionOf<typeof UPDATE_SKIPPED>;
+
+export const isUpdatePanelOpen: Reducer<boolean, IsUpdatePanelOpenAction> = (
+  state = false,
+  action
+) => {
+  switch (action.type) {
+    case UPDATES_PANEL_TOGGLED:
+      return action.payload;
+
+    // Acting on the panel, or the update going away, dismisses it.
+    case UPDATES_DOWNLOAD_REQUESTED:
+    case UPDATES_SKIP_REQUESTED:
+    case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+    case UPDATES_ERROR_THROWN:
+    case UPDATE_SKIPPED:
+      return false;
 
     default:
       return state;

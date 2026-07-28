@@ -10,7 +10,9 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_PANEL_TOGGLED,
   UPDATES_READY,
+  UPDATES_SKIP_REQUESTED,
   UPDATES_UPDATE_DOWNLOADED,
   UPDATE_SKIPPED,
   UPDATES_CHANNEL_CHANGED,
@@ -19,6 +21,7 @@ import {
   doCheckForUpdatesOnStartup,
   isCheckingForUpdates,
   isEachUpdatesSettingConfigurable,
+  isUpdatePanelOpen,
   isUpdatingAllowed,
   isUpdatingEnabled,
   newUpdateVersion,
@@ -438,5 +441,40 @@ describe('updateDownloadProgress reducer', () => {
         type: UPDATES_NEW_VERSION_NOT_AVAILABLE,
       } as any)
     ).toBe(0);
+  });
+});
+
+describe('isUpdatePanelOpen reducer', () => {
+  it('should default to closed', () => {
+    expect(isUpdatePanelOpen(undefined, unknown)).toBe(false);
+  });
+
+  it('should follow UPDATES_PANEL_TOGGLED', () => {
+    expect(
+      isUpdatePanelOpen(false, {
+        type: UPDATES_PANEL_TOGGLED,
+        payload: true,
+      } as any)
+    ).toBe(true);
+    expect(
+      isUpdatePanelOpen(true, {
+        type: UPDATES_PANEL_TOGGLED,
+        payload: false,
+      } as any)
+    ).toBe(false);
+  });
+
+  it.each([
+    UPDATES_DOWNLOAD_REQUESTED,
+    UPDATES_SKIP_REQUESTED,
+    UPDATES_NEW_VERSION_NOT_AVAILABLE,
+    UPDATES_ERROR_THROWN,
+    UPDATE_SKIPPED,
+  ])('should close on %s', (type) => {
+    expect(isUpdatePanelOpen(true, { type } as any)).toBe(false);
+  });
+
+  it('should stay open while the panel is merely re-rendered', () => {
+    expect(isUpdatePanelOpen(true, unknown)).toBe(true);
   });
 });

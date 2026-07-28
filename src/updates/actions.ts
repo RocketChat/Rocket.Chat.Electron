@@ -18,6 +18,12 @@ export const UPDATES_DOWNLOAD_REQUESTED = 'updates/download-requested';
 export const UPDATES_INSTALL_REQUESTED = 'updates/install-requested';
 /** "Skip this version" was chosen in the titlebar update panel. */
 export const UPDATES_SKIP_REQUESTED = 'updates/skip-requested';
+/**
+ * Visibility of the titlebar update panel. Kept in the store rather than as
+ * local component state so other surfaces — the About dialog after a manual
+ * check — can open it.
+ */
+export const UPDATES_PANEL_TOGGLED = 'updates/panel-toggled';
 /** Developer-mode entry point that walks the whole flow without a real update. */
 export const UPDATES_SIMULATION_REQUESTED = 'updates/simulation-requested';
 
@@ -35,5 +41,6 @@ export type UpdatesActionTypeToPayloadMap = {
   [UPDATES_DOWNLOAD_REQUESTED]: void;
   [UPDATES_INSTALL_REQUESTED]: void;
   [UPDATES_SKIP_REQUESTED]: string | null;
+  [UPDATES_PANEL_TOGGLED]: boolean;
   [UPDATES_SIMULATION_REQUESTED]: void;
 };

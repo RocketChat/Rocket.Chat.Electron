@@ -9,7 +9,10 @@ import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
-import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../updates/actions';
+import {
+  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+  UPDATES_SIMULATION_REQUESTED,
+} from '../../updates/actions';
 import * as urls from '../../urls';
 import { openExternal } from '../../utils/browserLauncher';
 import { openVideoCallWebviewDevTools } from '../../videoCallWindow/ipc';
@@ -822,6 +825,21 @@ export const createHelpMenu = createSelector(
           });
         },
       },
+      ...on(isDeveloperModeEnabled, () => [
+        {
+          id: 'simulateUpdate',
+          label: t('menus.simulateUpdate'),
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            dispatch({ type: UPDATES_SIMULATION_REQUESTED });
+          },
+        },
+      ]),
       {
         id: 'videoCallToolsSubmenu',
         label: t('menus.videoCallTools'),

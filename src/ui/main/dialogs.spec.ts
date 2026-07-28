@@ -13,7 +13,6 @@ import {
   askForClearScreenCapturePermission,
   askForMediaPermissionSettings,
   warnAboutInvalidServerUrl,
-  warnAboutUpdateDownload,
   warnAboutUpdateSkipped,
   warnAboutInstallUpdateLater,
   showMicrophonePermissionDeniedMessage,
@@ -328,26 +327,20 @@ describe('ui/main/dialogs', () => {
     });
   });
 
-  it('shows update download and skip informational dialogs', async () => {
+  it('shows skip informational dialogs', async () => {
     showMessageBox.mockResolvedValue({ response: 0 } as never);
 
-    await warnAboutUpdateDownload();
     await warnAboutUpdateSkipped();
     await warnAboutInstallUpdateLater();
-    expect(showMessageBox).toHaveBeenCalledTimes(3);
+    expect(showMessageBox).toHaveBeenCalledTimes(2);
   });
 
   it('uses parent window for informational update dialogs', async () => {
     const parent = getMockWindow();
     showMessageBox.mockResolvedValue({ response: 0 } as never);
 
-    await warnAboutUpdateDownload(parent);
     await warnAboutUpdateSkipped(parent);
     await warnAboutInstallUpdateLater(parent);
-    expect(showMessageBox).toHaveBeenCalledWith(
-      parent,
-      expect.objectContaining({ buttons: ['dialog.updateDownloading.ok'] })
-    );
     expect(showMessageBox).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({ buttons: ['dialog.updateSkip.ok'] })

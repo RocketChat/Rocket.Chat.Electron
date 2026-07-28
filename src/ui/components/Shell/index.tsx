@@ -22,7 +22,7 @@ import { TelephonyDefaultHandlerPromptModal } from '../TelephonyDefaultHandlerPr
 import { TelephonyServerSelectModal } from '../TelephonyServerSelectModal';
 import { TopBar } from '../TopBar';
 import { ServerSwitcher } from '../TopBar/ServerSwitcher';
-import { UpdateDialog } from '../UpdateDialog';
+import { UpdateLabel } from '../TopBar/UpdateLabel';
 import { useShellTheme } from '../hooks/useShellTheme';
 import TooltipProvider from '../utils/TooltipProvider';
 import { GlobalStyles, WindowDragBar } from './styles';
@@ -74,17 +74,30 @@ export const Shell = () => {
         {navigationLayout === 'tabs' && process.platform === 'win32' && (
           <TabBar
             leadingSlot={<MeatballMenuButton />}
-            trailingSlot={<WindowControls />}
+            trailingSlot={
+              <>
+                <UpdateLabel />
+                <WindowControls />
+              </>
+            }
           />
         )}
         {navigationLayout === 'tabs' && process.platform !== 'win32' && (
-          <TabBar trailingSlot={<MeatballMenuButton />} />
+          <TabBar
+            trailingSlot={
+              <>
+                <UpdateLabel />
+                <MeatballMenuButton />
+              </>
+            }
+          />
         )}
         {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
           <TopBar
             centerSlot={
               navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
             }
+            trailingSlot={<UpdateLabel />}
           />
         )}
         {navigationLayout !== 'tabs' && process.platform === 'win32' && (
@@ -97,7 +110,12 @@ export const Shell = () => {
             centerSlot={
               navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
             }
-            trailingSlot={<WindowControls />}
+            trailingSlot={
+              <>
+                <UpdateLabel />
+                <WindowControls />
+              </>
+            }
             textAlignment='left'
           />
         )}
@@ -139,7 +157,6 @@ export const Shell = () => {
       <ScreenSharingDialog />
       <RootScreenSharePicker />
       <SelectClientCertificateDialog />
-      <UpdateDialog />
       <ClearCacheDialog />
       <OutlookCredentialsDialog />
       <TelephonyServerSelectModal />

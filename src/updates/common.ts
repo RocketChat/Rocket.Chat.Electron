@@ -28,3 +28,9 @@ export type UserLevelUpdateConfiguration = {
 
 export const UPDATE_CHANNELS = ['latest', 'beta', 'alpha'] as const;
 export type UpdateChannel = (typeof UPDATE_CHANNELS)[number];
+
+/**
+ * Download phase of an available update, driving the titlebar update label:
+ * `idle` (available, not downloading yet) → `downloading` → `downloaded`.
+ */
+export type UpdateDownloadStatus = 'idle' | 'downloading' | 'downloaded';

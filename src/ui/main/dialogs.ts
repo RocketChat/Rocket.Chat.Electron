@@ -128,18 +128,6 @@ export const askForCertificateTrust = async (
   return AskForCertificateTrustResponse.NO;
 };
 
-export const warnAboutUpdateDownload = async (
-  parentWindow?: BrowserWindow
-): Promise<void> => {
-  await dialog.showMessageBox(parentWindow ?? (await getRootWindow()), {
-    type: 'info',
-    title: t('dialog.updateDownloading.title'),
-    message: t('dialog.updateDownloading.message'),
-    buttons: [t('dialog.updateDownloading.ok')],
-    defaultId: 0,
-  });
-};
-
 export const warnAboutUpdateSkipped = async (
   parentWindow?: BrowserWindow
 ): Promise<void> => {

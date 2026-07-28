@@ -8,13 +8,17 @@ import {
 } from '../ui/actions';
 import {
   UPDATES_CHECKING_FOR_UPDATE,
+  UPDATES_DOWNLOAD_PROGRESSED,
+  UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
+  UPDATES_UPDATE_DOWNLOADED,
   UPDATE_SKIPPED,
   UPDATES_CHANNEL_CHANGED,
 } from './actions';
+import type { UpdateDownloadStatus } from './common';
 
 type DoCheckForUpdatesOnStartupAction =
   | ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
@@ -216,6 +220,63 @@ export const updateError: Reducer<Error | null, UpdateErrorAction> = (
 
     case UPDATES_NEW_VERSION_AVAILABLE:
       return null;
+
+    default:
+      return state;
+  }
+};
+
+type UpdateDownloadAction =
+  | ActionOf<typeof UPDATES_DOWNLOAD_REQUESTED>
+  | ActionOf<typeof UPDATES_DOWNLOAD_PROGRESSED>
+  | ActionOf<typeof UPDATES_UPDATE_DOWNLOADED>
+  | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
+  | ActionOf<typeof UPDATES_ERROR_THROWN>
+  | ActionOf<typeof UPDATE_SKIPPED>;
+
+export const updateDownloadStatus: Reducer<
+  UpdateDownloadStatus,
+  UpdateDownloadAction
+> = (state = 'idle', action) => {
+  switch (action.type) {
+    case UPDATES_DOWNLOAD_REQUESTED:
+    case UPDATES_DOWNLOAD_PROGRESSED:
+      return 'downloading';
+
+    case UPDATES_UPDATE_DOWNLOADED:
+      return 'downloaded';
+
+    // A new version, a dismissed one, or a failed download all send the label
+    // back to its "available" resting state.
+    case UPDATES_NEW_VERSION_AVAILABLE:
+    case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+    case UPDATES_ERROR_THROWN:
+    case UPDATE_SKIPPED:
+      return 'idle';
+
+    default:
+      return state;
+  }
+};
+
+export const updateDownloadProgress: Reducer<number, UpdateDownloadAction> = (
+  state = 0,
+  action
+) => {
+  switch (action.type) {
+    case UPDATES_DOWNLOAD_PROGRESSED:
+      return action.payload;
+
+    case UPDATES_UPDATE_DOWNLOADED:
+      return 100;
+
+    case UPDATES_DOWNLOAD_REQUESTED:
+    case UPDATES_NEW_VERSION_AVAILABLE:
+    case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+    case UPDATES_ERROR_THROWN:
+    case UPDATE_SKIPPED:
+      return 0;
 
     default:
       return state;

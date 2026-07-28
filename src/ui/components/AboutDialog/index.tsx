@@ -146,9 +146,20 @@ export const AboutDialog = () => {
       return undefined;
     }
 
+    // The titlebar update label owns the install flow from here on, so report
+    // the finding inline instead of handing over to a modal.
     if (newUpdateVersion) {
-      setCheckingForUpdates([false, null]);
-      return undefined;
+      setCheckingForUpdates([
+        true,
+        t('dialog.about.updateAvailable', { version: newUpdateVersion }),
+      ]);
+      const messageTimer = setTimeout(() => {
+        setCheckingForUpdates([false, null]);
+      }, 5000);
+
+      return () => {
+        clearTimeout(messageTimer);
+      };
     }
 
     setCheckingForUpdates([true, t('dialog.about.noUpdatesAvailable')]);

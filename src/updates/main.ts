@@ -3,30 +3,31 @@ import path from 'path';
 
 import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { gt as semverGt } from 'semver';
+import { gt as semverGt, inc as semverInc } from 'semver';
 
 import { listen, dispatch, select } from '../store';
 import type { RootState } from '../store/rootReducer';
-import {
-  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
-} from '../ui/actions';
+import { ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED } from '../ui/actions';
 import {
   askUpdateInstall,
   AskUpdateInstallResponse,
   warnAboutInstallUpdateLater,
-  warnAboutUpdateDownload,
   warnAboutUpdateSkipped,
 } from '../ui/main/dialogs';
 import {
   UPDATE_SKIPPED,
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
   UPDATES_CHECKING_FOR_UPDATE,
+  UPDATES_DOWNLOAD_PROGRESSED,
+  UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_ERROR_THROWN,
+  UPDATES_INSTALL_REQUESTED,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
+  UPDATES_SIMULATION_REQUESTED,
+  UPDATES_SKIP_REQUESTED,
+  UPDATES_UPDATE_DOWNLOADED,
   UPDATES_CHANNEL_CHANGED,
 } from './actions';
 import type {
@@ -164,6 +165,149 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
 
 let isUserInitiatedCheck = false;
 
+/**
+ * Set while the download was started from the titlebar update label. The label
+ * reports progress and offers the restart itself, so the legacy modal prompts
+ * are skipped for that path.
+ */
+let isLabelInitiatedDownload = false;
+
+/** Developer-mode flow that never contacts the update server nor restarts. */
+let isSimulatingUpdate = false;
+let simulatedDownloadTimer: ReturnType<typeof setInterval> | null = null;
+
+const stopSimulatedDownload = (): void => {
+  if (simulatedDownloadTimer) {
+    clearInterval(simulatedDownloadTimer);
+    simulatedDownloadTimer = null;
+  }
+};
+
+const startSimulatedDownload = (): void => {
+  stopSimulatedDownload();
+
+  let percent = 0;
+  simulatedDownloadTimer = setInterval(() => {
+    percent += 7;
+
+    if (percent >= 100) {
+      stopSimulatedDownload();
+      dispatch({ type: UPDATES_UPDATE_DOWNLOADED });
+      return;
+    }
+
+    dispatch({ type: UPDATES_DOWNLOAD_PROGRESSED, payload: percent });
+  }, 250);
+};
+
+const endSimulatedUpdate = (): void => {
+  stopSimulatedDownload();
+  isSimulatingUpdate = false;
+  isLabelInitiatedDownload = false;
+  dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+};
+
+const nativeUpdateDownloadedCallback = (): void => {
+  nativeUpdater.removeListener(
+    'update-downloaded',
+    nativeUpdateDownloadedCallback
+  );
+  nativeUpdater.quitAndInstall();
+};
+
+/** Quits and relaunches into the freshly downloaded update. */
+const installDownloadedUpdate = (): void => {
+  setImmediate(() => {
+    app.removeAllListeners('window-all-closed');
+    if (process.platform === 'darwin') {
+      const allBrowserWindows = BrowserWindow.getAllWindows();
+      allBrowserWindows.forEach((browserWindow) => {
+        browserWindow.removeAllListeners('close');
+        browserWindow.destroy();
+      });
+      nativeUpdater.checkForUpdates();
+      nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);
+    } else {
+      autoUpdater.quitAndInstall(true, true);
+    }
+  });
+};
+
+const dispatchUpdateError = (error: unknown): void => {
+  if (error instanceof Error) {
+    dispatch({
+      type: UPDATES_ERROR_THROWN,
+      payload: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
+    });
+  }
+};
+
+/**
+ * Wires the titlebar update label to the updater. Registered before the
+ * "updating not allowed/enabled" bail-out so the simulated flow stays available
+ * in builds that cannot self-update (e.g. unpackaged development runs).
+ */
+export const setupUpdateLabelFlow = (): void => {
+  listen(UPDATES_SIMULATION_REQUESTED, async () => {
+    stopSimulatedDownload();
+    isSimulatingUpdate = true;
+    isLabelInitiatedDownload = true;
+
+    const currentVersion = app.getVersion();
+    const simulatedVersion =
+      semverInc(currentVersion, 'minor') ?? `${currentVersion}-simulated`;
+
+    dispatch({
+      type: UPDATES_NEW_VERSION_AVAILABLE,
+      payload: simulatedVersion,
+    });
+  });
+
+  listen(UPDATES_DOWNLOAD_REQUESTED, async () => {
+    isLabelInitiatedDownload = true;
+
+    if (isSimulatingUpdate) {
+      startSimulatedDownload();
+      return;
+    }
+
+    try {
+      await autoUpdater.downloadUpdate();
+    } catch (error) {
+      dispatchUpdateError(error);
+    }
+  });
+
+  listen(UPDATES_INSTALL_REQUESTED, async () => {
+    if (isSimulatingUpdate) {
+      // Nothing to install — unwind the simulation instead of restarting.
+      endSimulatedUpdate();
+      return;
+    }
+
+    try {
+      installDownloadedUpdate();
+    } catch (error) {
+      dispatchUpdateError(error);
+    }
+  });
+
+  listen(UPDATES_SKIP_REQUESTED, async (action) => {
+    if (isSimulatingUpdate) {
+      // Skipping a fake version must not persist into the real settings.
+      endSimulatedUpdate();
+      return;
+    }
+
+    await warnAboutUpdateSkipped();
+    dispatch({ type: UPDATE_SKIPPED, payload: action.payload });
+  });
+};
+
 export const setupUpdates = async (): Promise<void> => {
   // This is necessary to make the updater work in development mode
   if (process.env.NODE_ENV === 'development') {
@@ -210,6 +354,10 @@ export const setupUpdates = async (): Promise<void> => {
       updateChannel,
     },
   });
+
+  // Registered first so the simulated flow (and the label's own actions) stay
+  // reachable even when this build cannot self-update.
+  setupUpdateLabelFlow();
 
   if (!isUpdatingAllowed || !isUpdatingEnabled) {
     return;
@@ -274,15 +422,23 @@ export const setupUpdates = async (): Promise<void> => {
     dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
   });
 
-  const nativeUpdateDownloadedCallback = () => {
-    nativeUpdater.removeListener(
-      'update-downloaded',
-      nativeUpdateDownloadedCallback
-    );
-    nativeUpdater.quitAndInstall();
-  };
+  autoUpdater.addListener('download-progress', ({ percent }) => {
+    dispatch({
+      type: UPDATES_DOWNLOAD_PROGRESSED,
+      payload: Math.max(0, Math.min(100, Math.round(percent))),
+    });
+  });
 
   autoUpdater.addListener('update-downloaded', async () => {
+    dispatch({ type: UPDATES_UPDATE_DOWNLOADED });
+
+    // Downloads started from the titlebar label surface the restart action in
+    // the label itself, so the modal prompt would be redundant.
+    if (isLabelInitiatedDownload) {
+      isLabelInitiatedDownload = false;
+      return;
+    }
+
     const response = await askUpdateInstall();
 
     if (response === AskUpdateInstallResponse.INSTALL_LATER) {
@@ -291,30 +447,9 @@ export const setupUpdates = async (): Promise<void> => {
     }
 
     try {
-      setImmediate(() => {
-        app.removeAllListeners('window-all-closed');
-        if (process.platform === 'darwin') {
-          const allBrowserWindows = BrowserWindow.getAllWindows();
-          allBrowserWindows.forEach((browserWindow) => {
-            browserWindow.removeAllListeners('close');
-            browserWindow.destroy();
-          });
-          nativeUpdater.checkForUpdates();
-          nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);
-        } else {
-          autoUpdater.quitAndInstall(true, true);
-        }
-      });
+      installDownloadedUpdate();
     } catch (error) {
-      error instanceof Error &&
-        dispatch({
-          type: UPDATES_ERROR_THROWN,
-          payload: {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-          },
-        });
+      dispatchUpdateError(error);
     }
   });
 
@@ -351,32 +486,6 @@ export const setupUpdates = async (): Promise<void> => {
       isUserInitiatedCheck = true;
       await new Promise((resolve) => setTimeout(resolve, 100));
       await autoUpdater.checkForUpdates();
-    } catch (error) {
-      error instanceof Error &&
-        dispatch({
-          type: UPDATES_ERROR_THROWN,
-          payload: {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-          },
-        });
-    }
-  });
-
-  listen(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, async (action) => {
-    await warnAboutUpdateSkipped();
-    dispatch({
-      type: UPDATE_SKIPPED,
-      payload: action.payload,
-    });
-  });
-
-  listen(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, async () => {
-    await warnAboutUpdateDownload();
-
-    try {
-      await autoUpdater.downloadUpdate();
     } catch (error) {
       error instanceof Error &&
         dispatch({

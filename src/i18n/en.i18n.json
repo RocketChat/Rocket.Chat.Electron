@@ -23,6 +23,7 @@
       "checkUpdates": "Check for Updates",
       "checkUpdatesOnStart": "Check for Updates on Start",
       "noUpdatesAvailable": "No updates are available.",
+      "updateAvailable": "Version {{- version}} is available",
       "copyright": "Copyright {{copyright}}",
       "errorWhenLookingForUpdates": "An error has occurred when looking for updates",
       "updateChannel": {
@@ -80,19 +81,12 @@
       "announcement": "Select a screen to share"
     },
     "update": {
-      "title": "Update Available",
-      "announcement": "New Update is Available",
-      "message": "A new version of the Rocket.Chat Desktop App is available!",
-      "currentVersion": "Current Version:",
-      "newVersion": "New Version:",
-      "install": "Install Update",
-      "remindLater": "Remind Me Later",
-      "skip": "Skip This Version"
-    },
-    "updateDownloading": {
-      "title": "Downloading Update",
-      "message": "You will be notified when the update is ready to be installed",
-      "ok": "OK"
+      "announcement": "New version is available",
+      "message": "A new version of the Rocket.Chat desktop app is available!",
+      "currentVersion": "Current version",
+      "newVersion": "New version",
+      "install": "Install update",
+      "skip": "Skip this version"
     },
     "updateInstallLater": {
       "title": "Installing Later",
@@ -418,6 +412,7 @@
     "copy": "&Copy",
     "cut": "Cu&t",
     "developerMode": "Developer Mode",
+    "simulateUpdate": "Simulate Update Flow",
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",
@@ -531,6 +526,13 @@
     "unreadMessage_other": "{{- count}} messages",
     "unreadMessages": "Unread messages",
     "meatballMenu": "Application menu",
+    "update": {
+      "available": "Update",
+      "updating": "Updating…",
+      "percent": "{{- percent}}%",
+      "restart": "Restart to update",
+      "tooltip": "New desktop app version is available, click to see details"
+    },
     "windowControls": {
       "minimize": "Minimize",
       "maximize": "Maximize",

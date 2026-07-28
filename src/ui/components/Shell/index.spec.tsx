@@ -118,11 +118,6 @@ jest.mock('../SelectClientCertificateDialog', () => ({
   ),
 }));
 
-jest.mock('../UpdateDialog', () => ({
-  __esModule: true,
-  UpdateDialog: () => <div data-testid='update-dialog' />,
-}));
-
 jest.mock('../ClearCacheDialog', () => ({
   __esModule: true,
   ClearCacheDialog: () => <div data-testid='clear-cache-dialog' />,
@@ -204,7 +199,6 @@ describe('Shell', () => {
     expect(screen.getByTestId('about-dialog')).toBeInTheDocument();
     expect(screen.getByTestId('server-info-modal')).toBeInTheDocument();
     expect(screen.getByTestId('supported-version-dialog')).toBeInTheDocument();
-    expect(screen.getByTestId('update-dialog')).toBeInTheDocument();
     expect(screen.getByTestId('clear-cache-dialog')).toBeInTheDocument();
     expect(
       screen.getByTestId('outlook-credentials-dialog')

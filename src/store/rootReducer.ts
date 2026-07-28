@@ -65,6 +65,8 @@ import {
   isUpdatingEnabled,
   newUpdateVersion,
   skippedUpdateVersion,
+  updateDownloadProgress,
+  updateDownloadStatus,
   updateError,
   updateChannel,
 } from '../updates/reducers';
@@ -106,6 +108,8 @@ export const rootReducer = combineReducers({
   skippedUpdateVersion,
   trustedCertificates,
   notTrustedCertificates,
+  updateDownloadProgress,
+  updateDownloadStatus,
   updateError,
   isReportEnabled,
   isFlashFrameEnabled,

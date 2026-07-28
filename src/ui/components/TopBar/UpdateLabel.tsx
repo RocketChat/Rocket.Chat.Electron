@@ -138,6 +138,12 @@ export const UpdateLabel = () => {
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
 
+  // The pill leads the title bar on Windows (right after the meatball) and
+  // trails it elsewhere, so anchor the panel to the matching edge and let it
+  // open inward rather than off the side of the window.
+  const placement =
+    process.platform === 'win32' ? 'bottom-start' : 'bottom-end';
+
   // Visibility lives in the store so the About dialog can open the panel after
   // a manual check finds an update.
   const isVisible = useSelector(
@@ -246,7 +252,7 @@ export const UpdateLabel = () => {
             onMouseDown={() => toggle(false)}
           />
           <PanelLayer>
-            <Dropdown reference={reference} ref={target} placement='bottom-end'>
+            <Dropdown reference={reference} ref={target} placement={placement}>
               <Box
                 display='flex'
                 flexDirection='column'

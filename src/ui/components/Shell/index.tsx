@@ -73,13 +73,13 @@ export const Shell = () => {
       >
         {navigationLayout === 'tabs' && process.platform === 'win32' && (
           <TabBar
-            leadingSlot={<MeatballMenuButton />}
-            trailingSlot={
+            leadingSlot={
               <>
+                <MeatballMenuButton />
                 <UpdateLabel />
-                <WindowControls />
               </>
             }
+            trailingSlot={<WindowControls />}
           />
         )}
         {navigationLayout === 'tabs' && process.platform !== 'win32' && (
@@ -103,19 +103,15 @@ export const Shell = () => {
         {navigationLayout !== 'tabs' && process.platform === 'win32' && (
           <TopBar
             leadingSlot={
-              navigationLayout === 'hidden' ? (
-                <MeatballMenuButton tiny />
-              ) : undefined
+              <>
+                {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
+                <UpdateLabel />
+              </>
             }
             centerSlot={
               navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
             }
-            trailingSlot={
-              <>
-                <UpdateLabel />
-                <WindowControls />
-              </>
-            }
+            trailingSlot={<WindowControls />}
             textAlignment='left'
           />
         )}

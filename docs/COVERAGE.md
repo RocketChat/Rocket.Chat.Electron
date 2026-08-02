@@ -25,12 +25,14 @@ Running log of test-coverage milestones for Rocket.Chat.Electron. Append a new r
 | 2026-06-22 | Phase 2 — extract-and-test moderate modules (#3364) | 26.34% | 26.76% | 23.61% | 19.17% | 802 | navigation cert utils, ScreenSharingRequestTracker, browserLauncher, ipc/renderer, logging factory; relocated a silently-never-running getOutlookEvents spec (0%→~95%). |
 | 2026-06-22 | Phase 3 — React Testing Library + renderer component tests (#3365) | 33.29% | 33.65% | 29.33% | 27.31% | 912 | Added RTL infra (`src/ui/test-utils.tsx`) + 14 component specs (dialogs, containers, leaf, ui/utils). 3 specs held back (see Known gaps). |
 | 2026-06-22 | RC-style Codecov reporting (#3366) | 33.29% | 33.65% | 29.33% | 27.31% | 912 | No coverage change — switched CI to Codecov (informational, no hard gate) to match the main monorepo. |
+| 2026-08-02 | Pre-wave snapshot (local, full `src/**` collect) | 46.72% | 46.94% | 44.28% | 41.36% | ~1600 | Intermediate baseline before the quick-win wave; includes post–Phase-3 growth already on master. |
+| 2026-08-02 | Quick-win wave (`chore/test-coverage-quick-wins`) | 70.14% | 70.35% | 60.54% | 67.63% | 1842 | Full `src/**` collectCoverageFrom (no denominator gaming). Orphan specs nested for discovery; settings/UI/dialog RTL; main IPC (video call, Outlook, log viewer, notifications, downloads); preload coverage via main/node project under `--coverage`; ErrorView render short-circuit fix; pure helpers extracted (`validateVideoCallUrl`, `logFormatters`). |
 
 ## Known gaps / next steps
 
-- **Goal:** 50% lines. At 33.29% as of the last row — reachable via the renderer (`ui/`) layer alone; no need to test webview/Electron-integration files.
-- **Quarantined specs** (written but held back — they leak async/DOM teardown that the strict `uncaughtException` handler in `src/.jest/setup.ts` turns into a suite-killing `process.exit(1)`): `ServersView/ErrorView`, `ServerInfoContent`, `AboutDialog`. Re-enabling these (with proper fake-timer / async cleanup) is the cheapest next win. See `docs/KNOWN_ISSUES.md`.
-- **Remaining headroom:** the rest of `ui/components` dialogs/containers, and non-webview `ui/main` logic.
+- **Goal met:** 70% lines on the **full** `src/**` collectCoverageFrom surface (same denominator as the baseline row).
+- **Still large residual 0% / low modules:** `videoCallWindow/video-call-window.ts`, `injected.ts`, `main.ts`, `buildAssets.ts` (CLI asset pipeline), parts of `ui/main/rootWindow` / `serverView`, residual `videoCallWindow/ipc` window-lifecycle branches.
+- **Coverage gotcha:** renderer preload specs remain in `COVERAGE_INCOMPATIBLE_SPECS` (Istanbul `EvalError` under electron runner). Prefer main/node harnesses that `require()` preloads so lines still count under `yarn test:coverage`.
 
 ## Testing notes (gotchas worth knowing before adding specs)
 

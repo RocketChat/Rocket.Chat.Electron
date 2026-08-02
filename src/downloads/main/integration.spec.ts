@@ -1,19 +1,19 @@
 import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell, webContents } from 'electron';
 
-import { handle as mockHandle } from '../ipc/main';
-import { createMainReduxStore, dispatch, select } from '../store';
+import { handle as mockHandle } from '../../ipc/main';
+import { createMainReduxStore, dispatch, select } from '../../store';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
   DOWNLOADS_CLEARED,
-} from './actions';
-import type { Download } from './common';
-import { DownloadStatus } from './common';
-import { handleWillDownloadEvent, setupDownloads } from './main';
+} from '../actions';
+import type { Download } from '../common';
+import { DownloadStatus } from '../common';
+import { handleWillDownloadEvent, setupDownloads } from '../main';
 
-jest.mock('../store', () => ({
+jest.mock('../../store', () => ({
   createMainReduxStore: jest.fn(),
   dispatch: jest.fn(),
   select: jest.fn(),
@@ -33,12 +33,12 @@ jest.mock('electron', () => ({
 }));
 
 // Mock IPC handler
-jest.mock('../ipc/main', () => ({
+jest.mock('../../ipc/main', () => ({
   handle: jest.fn(),
 }));
 
 // Mock notifications
-jest.mock('../notifications/preload', () => ({
+jest.mock('../../notifications/preload', () => ({
   createNotification: jest.fn(),
 }));
 
@@ -48,8 +48,8 @@ jest.mock('i18next', () => ({
 }));
 
 // Mock main.ts to avoid circular dependencies
-jest.mock('./main', () => {
-  const actual = jest.requireActual('./main');
+jest.mock('../main', () => {
+  const actual = jest.requireActual('../main');
   return {
     ...actual,
     setupDownloads: actual.setupDownloads,

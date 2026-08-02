@@ -1,4 +1,4 @@
-import type * as ScopesModule from './scopes';
+import type * as ScopesModule from '../scopes';
 
 const logDebug = jest.fn();
 const logInfo = jest.fn();
@@ -13,7 +13,7 @@ jest.mock('electron-log', () => ({
 }));
 
 const getProcessContext = jest.fn();
-jest.mock('./context', () => ({
+jest.mock('../context', () => ({
   getProcessContext,
 }));
 
@@ -22,7 +22,7 @@ const loadScopes = (processContext: string) => {
   let scopesModule: typeof ScopesModule;
   jest.isolateModules(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    scopesModule = require('./scopes');
+    scopesModule = require('../scopes');
   });
   return scopesModule!;
 };

@@ -2,7 +2,7 @@ import type * as fs from 'fs';
 
 import { app } from 'electron';
 
-import { cleanupOldLogs } from './cleanup';
+import { cleanupOldLogs } from '../cleanup';
 
 const { existsSync, readdirSync, statSync, unlinkSync } =
   jest.requireMock<typeof fs>('fs');

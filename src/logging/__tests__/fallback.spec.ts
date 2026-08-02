@@ -1,4 +1,4 @@
-import { fallbackLog, logLoggingFailure } from './fallback';
+import { fallbackLog, logLoggingFailure } from '../fallback';
 
 describe('logging/fallback', () => {
   const writeSpy = jest.spyOn(process.stderr, 'write');

@@ -1,4 +1,4 @@
-import { logExecutionTime } from './utils';
+import { logExecutionTime } from '../utils';
 
 const debugMock = jest.fn();
 const errorMock = jest.fn();

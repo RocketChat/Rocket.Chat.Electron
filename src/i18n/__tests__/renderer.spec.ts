@@ -1,3 +1,7 @@
+import i18next from 'i18next';
+
+import { setupI18n } from '../renderer';
+
 jest.mock('i18next', () => {
   const init = jest.fn().mockResolvedValue(undefined);
   const use = jest.fn(() => ({ init }));
@@ -28,10 +32,6 @@ jest.mock('../common', () => ({
   interpolation: {},
   fallbackLng: 'en',
 }));
-
-import i18next from 'i18next';
-
-import { setupI18n } from '../renderer';
 
 describe('i18n/renderer setupI18n', () => {
   it('initializes i18next with requested language resources', async () => {

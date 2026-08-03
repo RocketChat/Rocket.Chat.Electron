@@ -1,15 +1,14 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 
 import { TooltipContext } from './TooltipContext';
 import TooltipProvider from './TooltipProvider';
 
 jest.mock('@rocket.chat/fuselage-hooks', () => {
-  const React = require('react');
   return {
     useDebouncedState: (initial: unknown) => {
-      const [state, setState] = React.useState(initial);
+      const [state, setState] = useState(initial);
       const set = Object.assign(
         (value: unknown) => {
           setState(value);
@@ -78,9 +77,14 @@ describe('TooltipProvider', () => {
       </TooltipProvider>
     );
     fireEvent.click(screen.getByText('hover-me'));
+    expect(screen.getByText('Hello tip')).toBeInTheDocument();
+
     fireEvent.doubleClick(screen.getByText('hover-me'));
     act(() => {
       jest.advanceTimersByTime(200);
     });
+
+    expect(screen.queryByTestId('tooltip-portal')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hello tip')).not.toBeInTheDocument();
   });
 });

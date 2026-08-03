@@ -1,8 +1,10 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { Key } from 'react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
+import { APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET } from '../../../../app/actions';
 import {
   SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED,
   SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
@@ -10,7 +12,6 @@ import {
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SELECTED_BROWSER_CHANGED,
 } from '../../../actions';
-import { APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET } from '../../../../app/actions';
 import { AvailableBrowsers } from './AvailableBrowsers';
 import { E2ePdfPreviewSizeLimit } from './E2ePdfPreviewSizeLimit';
 import { NTLMCredentials } from './NTLMCredentials';
@@ -21,6 +22,39 @@ import { ThemeAppearance } from './ThemeAppearance';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
+
+// Fuselage Select is a custom ARIA dropdown — mock it to a native <select>
+// so tests can drive onChange without user-event or ARIA interaction complexity.
+jest.mock('@rocket.chat/fuselage', () => {
+  const actual = jest.requireActual('@rocket.chat/fuselage');
+  return {
+    ...actual,
+    Select: ({
+      options,
+      value,
+      onChange,
+      disabled,
+    }: {
+      options: [string, string][];
+      value: string;
+      onChange: (key: Key) => void;
+      disabled?: boolean;
+    }) => (
+      <select
+        data-testid='available-browsers-select'
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map(([val, label]) => (
+          <option key={val} value={val}>
+            {label}
+          </option>
+        ))}
+      </select>
+    ),
+  };
+});
 
 const makeStore = (partial: Record<string, unknown>) => {
   const reducer = (state = partial) => state;
@@ -151,8 +185,7 @@ describe('more settings features', () => {
       expect(
         screen.getByText('settings.options.availableBrowsers.description')
       ).toBeInTheDocument();
-      // Fuselage Select uses aria disabled via class when empty
-      expect(screen.getByRole('button').className).toMatch(/disabled/);
+      expect(screen.getByTestId('available-browsers-select')).toBeDisabled();
     });
 
     it('enables select when browsers are available', () => {
@@ -160,12 +193,40 @@ describe('more settings features', () => {
         availableBrowsers: ['Chrome', 'Firefox'],
         selectedBrowser: null,
       });
-      expect(screen.getByRole('button').className).not.toMatch(/disabled/);
+      expect(
+        screen.getByTestId('available-browsers-select')
+      ).not.toBeDisabled();
       expect(
         screen.getByText('settings.options.availableBrowsers.title')
       ).toBeInTheDocument();
-      // Keep import used for type-level linkage to action constant
-      expect(SETTINGS_SELECTED_BROWSER_CHANGED).toBeDefined();
+    });
+
+    it('dispatches SETTINGS_SELECTED_BROWSER_CHANGED when a browser is selected', () => {
+      const { dispatchSpy } = renderWith(<AvailableBrowsers />, {
+        availableBrowsers: ['Chrome', 'Firefox'],
+        selectedBrowser: null,
+      });
+      const select = screen.getByTestId('available-browsers-select');
+      fireEvent.change(select, { target: { value: 'Firefox' } });
+
+      expect(dispatchSpy).toHaveBeenCalledWith({
+        type: SETTINGS_SELECTED_BROWSER_CHANGED,
+        payload: 'Firefox',
+      });
+    });
+
+    it('dispatches null payload when system default is selected', () => {
+      const { dispatchSpy } = renderWith(<AvailableBrowsers />, {
+        availableBrowsers: ['Chrome', 'Firefox'],
+        selectedBrowser: 'Chrome',
+      });
+      const select = screen.getByTestId('available-browsers-select');
+      fireEvent.change(select, { target: { value: 'system' } });
+
+      expect(dispatchSpy).toHaveBeenCalledWith({
+        type: SETTINGS_SELECTED_BROWSER_CHANGED,
+        payload: null,
+      });
     });
   });
 

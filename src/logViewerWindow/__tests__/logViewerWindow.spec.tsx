@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
+// eslint-disable-next-line import/first
+import LogViewerWindow from '../logViewerWindow';
+
 const invoke = jest.fn();
 const on = jest.fn();
 const removeListener = jest.fn();
@@ -21,6 +24,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('@rocket.chat/fuselage-hooks', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const React = require('react');
   return {
     useLocalStorage: (_key: string, initial: any) => React.useState(initial),
@@ -35,6 +39,7 @@ jest.mock('@rocket.chat/fuselage-hooks', () => {
 
 // Light fuselage stubs so Select/SearchInput don't need full hooks
 jest.mock('@rocket.chat/fuselage', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const React = require('react');
   const passthrough =
     (tag = 'div') =>
@@ -53,14 +58,18 @@ jest.mock('@rocket.chat/fuselage', () => {
       }),
     Icon: () => null,
     Button: ({ children, onClick, ...rest }: any) =>
-      React.createElement('button', { type: 'button', onClick, ...rest }, children),
+      React.createElement(
+        'button',
+        { type: 'button', onClick, ...rest },
+        children
+      ),
     ButtonGroup: passthrough('div'),
     Select: ({ value, onChange, options = [] }: any) =>
       React.createElement(
         'select',
         {
           value,
-          onChange: (e: any) => onChange?.(e.target.value),
+          'onChange': (e: any) => onChange?.(e.target.value),
           'aria-label': 'select',
         },
         options.map(([val, label]: [string, string]) =>
@@ -95,11 +104,9 @@ jest.mock('../LogEntry', () => ({
   ),
 }));
 
-import LogViewerWindow from '../logViewerWindow';
-
 const sampleLog = [
-  'info: first message {"t":{"$date":"2026-01-01T00:00:00.000Z"}}',
-  'error: boom {"t":{"$date":"2026-01-01T00:01:00.000Z"}}',
+  '[2026-01-01T00:00:00.000Z] [info] first message',
+  '[2026-01-01T00:01:00.000Z] [error] boom',
 ].join('\n');
 
 describe('LogViewerWindow', () => {
@@ -151,27 +158,32 @@ describe('LogViewerWindow', () => {
     });
   });
 
-  it('updates search filter without crashing', async () => {
+  it('filters rendered entries by the search term', async () => {
     render(<LogViewerWindow />);
     await waitFor(() => expect(invoke).toHaveBeenCalled());
-    const inputs = screen.queryAllByRole('textbox');
-    if (inputs[0]) {
-      fireEvent.change(inputs[0], { target: { value: 'boom' } });
-    }
-    expect(true).toBe(true);
+    await waitFor(() => expect(screen.getAllByTestId(/^log-/)).toHaveLength(2));
+
+    const searchInput = screen.getByRole('textbox', { name: /search/i });
+    fireEvent.change(searchInput, { target: { value: 'boom' } });
+
+    await waitFor(() => expect(screen.getAllByTestId(/^log-/)).toHaveLength(1));
+    expect(screen.getByTestId(/^log-/)).toHaveTextContent('boom');
   });
 
-  it('invokes actions when buttons are clicked', async () => {
+  it('invokes the refresh IPC channel when the refresh button is clicked', async () => {
     render(<LogViewerWindow />);
     await waitFor(() => expect(invoke).toHaveBeenCalled());
-    const buttons = screen.getAllByRole('button');
-    for (const button of buttons.slice(0, 12)) {
-      try {
-        fireEvent.click(button);
-      } catch {
-        // some buttons may require confirm
-      }
-    }
-    expect(buttons.length).toBeGreaterThan(0);
+    invoke.mockClear();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'logViewer.buttons.refresh' })
+    );
+
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith(
+        'log-viewer-window/read-logs',
+        expect.any(Object)
+      )
+    );
   });
 });

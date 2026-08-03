@@ -23,22 +23,20 @@ jest.mock('fs', () => {
   };
 });
 
+// puppeteer resolves its own cosmiconfig-based configuration at require time,
+// which fails outside a real project root; mock it so the module load itself
+// (not puppeteer's config discovery) is what this test verifies.
+jest.mock('puppeteer', () => ({
+  __esModule: true,
+  default: { launch: jest.fn() },
+}));
+
 describe('buildAssets module load', () => {
   it('is a TypeScript module that can be required under mocks', () => {
-    // Avoid executing the CLI main by not invoking default export if present.
-    // Importing for coverage of top-level constants/helpers when the module
-    // is structured that way; if it self-runs, the fs mocks keep it safe.
-    expect(() => {
-      jest.isolateModules(() => {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          require('../../buildAssets');
-        } catch (error) {
-          // Missing native image tooling is acceptable; we still load what we can
-          expect(error).toBeDefined();
-        }
-      });
-    }).not.toThrow();
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      expect(() => require('../../buildAssets')).not.toThrow();
+    });
     expect(path.join('a', 'b')).toContain('a');
     expect(fs.existsSync).toBeDefined();
   });

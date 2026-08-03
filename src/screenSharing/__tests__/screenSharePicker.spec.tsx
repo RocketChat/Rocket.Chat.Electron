@@ -1,5 +1,13 @@
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
+
+import { ScreenSharePicker } from '../screenSharePicker';
 
 const invoke = jest.fn();
 const send = jest.fn();
@@ -28,6 +36,7 @@ jest.mock('../../ui/components/Dialog', () => ({
 }));
 
 jest.mock('@rocket.chat/fuselage', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const React = require('react');
   const passthrough =
     (tag = 'div') =>
@@ -58,8 +67,6 @@ jest.mock('@rocket.chat/fuselage', () => {
     PaletteStyleTag: () => null,
   };
 });
-
-import { ScreenSharePicker } from '../screenSharePicker';
 
 const sources = [
   {
@@ -121,14 +128,13 @@ describe('ScreenSharePicker', () => {
     const screenTile = await screen.findByText('Entire Screen');
     fireEvent.click(screenTile);
 
-    // Prefer share button by translation key text
-    const share = screen
-      .getAllByRole('button')
-      .find((b) => /screenSharing\.share|Share/i.test(b.textContent || ''));
-    if (share && !(share as HTMLButtonElement).disabled) {
-      fireEvent.click(share);
-      expect(send).toHaveBeenCalled();
-    }
+    const share = screen.getByRole('button', { name: 'screenSharing.share' });
+    expect(share).toBeEnabled();
+    fireEvent.click(share);
+    expect(send).toHaveBeenCalledWith(
+      'video-call-window/screen-sharing-source-responded',
+      'screen:0:0'
+    );
 
     // Always close to exercise cancel path cleanup
     await act(async () => {
@@ -201,8 +207,15 @@ describe('ScreenSharePicker', () => {
       setVisible?.(true);
     });
     await waitFor(() => expect(invoke).toHaveBeenCalled());
+    expect(screen.getByTestId('dialog')).toBeInTheDocument();
+    expect(send).not.toHaveBeenCalled();
+
     await act(async () => {
       setVisible?.(false);
     });
+    expect(send).toHaveBeenCalledWith(
+      'video-call-window/screen-sharing-source-responded',
+      null
+    );
   });
 });

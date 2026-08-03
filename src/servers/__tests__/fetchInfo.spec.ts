@@ -23,7 +23,7 @@ describe('servers/renderer fetchInfo', () => {
 
     const [url, version] = await fetchInfo('https://open.rocket.chat');
     expect(version).toBe('6.5.0');
-    expect(url).toContain('open.rocket.chat');
+    expect(url).toBe('https://open.rocket.chat/');
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
@@ -42,7 +42,7 @@ describe('servers/renderer fetchInfo', () => {
 
     await fetchInfo('https://user:pass@open.rocket.chat');
     const firstCall = (global.fetch as jest.Mock).mock.calls[0];
-    const headers: Headers = firstCall[1].headers;
+    const { headers }: { headers: Headers } = firstCall[1];
     expect(headers.get('Authorization')).toMatch(/^Basic /);
   });
 

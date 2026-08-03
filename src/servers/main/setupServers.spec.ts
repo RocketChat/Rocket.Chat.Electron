@@ -1,4 +1,11 @@
-import fs from 'fs';
+import {
+  WEBVIEW_GIT_COMMIT_HASH_CHECK,
+  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+} from '../../ui/actions';
+import {
+  SERVER_URL_RESOLUTION_REQUESTED,
+  SERVER_URL_RESOLVED,
+} from '../actions';
 
 const listenHandlers = new Map<string | Function, Function>();
 const dispatch = jest.fn();
@@ -115,13 +122,21 @@ describe('setupServers', () => {
         currentView: 'downloads',
       })
     );
-    (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const freshFs = require('fs');
+    (freshFs.promises.readFile as jest.Mock).mockResolvedValueOnce(
       JSON.stringify({ Community: 'https://open.rocket.chat' })
     );
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setupServers } = require('../main');
     await setupServers({});
-    expect(dispatch).toHaveBeenCalled();
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          servers: [{ url: 'https://open.rocket.chat', title: 'Community' }],
+        }),
+      })
+    );
   });
 
   it('handles SERVER_URL_RESOLUTION_REQUESTED with meta', async () => {
@@ -129,25 +144,20 @@ describe('setupServers', () => {
     const { setupServers } = require('../main');
     await setupServers({});
 
-    const handler = [...listenHandlers.entries()].find(
-      ([k]) =>
-        typeof k === 'string' && k.includes('SERVER_URL_RESOLUTION')
-    )?.[1];
+    const handler = listenHandlers.get(SERVER_URL_RESOLUTION_REQUESTED);
+    expect(handler).toBeDefined();
 
-    // try all string keys
-    for (const [key, h] of listenHandlers.entries()) {
-      if (typeof key !== 'string') continue;
-      try {
-        await h({
-          type: key,
-          payload: 'https://open.rocket.chat',
-          meta: { id: '1', response: false },
-        });
-      } catch {
-        // ignore
-      }
-    }
-    expect(handler || listenHandlers.size).toBeTruthy();
+    await handler?.({
+      type: SERVER_URL_RESOLUTION_REQUESTED,
+      payload: 'https://open.rocket.chat',
+      meta: { id: '1', response: false },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SERVER_URL_RESOLVED,
+      payload: ['https://open.rocket.chat/', 'ok'],
+      meta: { response: true, id: '1' },
+    });
   });
 
   it('handles git commit hash change by clearing guest storage', async () => {
@@ -155,21 +165,30 @@ describe('setupServers', () => {
     const { setupServers } = require('../main');
     await setupServers({});
 
-    for (const [key, h] of listenHandlers.entries()) {
-      if (typeof key !== 'string') continue;
-      try {
-        await h({
-          type: key,
-          payload: {
-            url: 'https://open.rocket.chat',
-            gitCommitHash: 'def',
-          },
-        });
-      } catch {
-        // ignore
-      }
-    }
-    expect(getWebContentsByServerUrl).toHaveBeenCalled();
+    const handler = listenHandlers.get(WEBVIEW_GIT_COMMIT_HASH_CHECK);
+    expect(handler).toBeDefined();
+
+    const session = getWebContentsByServerUrl();
+    await handler?.({
+      type: WEBVIEW_GIT_COMMIT_HASH_CHECK,
+      payload: {
+        url: 'https://open.rocket.chat',
+        gitCommitHash: 'def',
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+      payload: { url: 'https://open.rocket.chat', gitCommitHash: 'def' },
+    });
+    expect(getWebContentsByServerUrl).toHaveBeenCalledWith(
+      'https://open.rocket.chat'
+    );
+    expect(session.session.clearStorageData).toHaveBeenCalledWith({
+      storages: ['indexdb'],
+    });
+    expect(session.session.clearCache).toHaveBeenCalled();
+    expect(session.reload).toHaveBeenCalled();
   });
 
   it('ignores malformed hosts JSON', async () => {

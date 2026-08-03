@@ -17,5 +17,7 @@ describe('FailureImage', () => {
     );
     const svg = container.querySelector('svg');
     expect(svg).toHaveStyle({ opacity: '0.5' });
+    const strokedPath = container.querySelector('path[stroke]');
+    expect(strokedPath).toHaveAttribute('stroke', '#000000');
   });
 });

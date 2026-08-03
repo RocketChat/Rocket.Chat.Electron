@@ -2,6 +2,7 @@ import { session, webContents } from 'electron';
 
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../servers/actions';
 import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../ui/actions';
+import { startDocumentViewerHandler } from '../ipc';
 
 const handlers = new Map<string, Function>();
 const listeners = new Map<string, Function>();
@@ -37,8 +38,6 @@ jest.mock('../../utils/browserLauncher', () => ({
   openExternal: (...args: unknown[]) => openExternal(...args),
 }));
 
-import { startDocumentViewerHandler } from '../ipc';
-
 describe('documentViewer/ipc', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,7 +53,9 @@ describe('documentViewer/ipc', () => {
           servers: [{ url: 'https://open.rocket.chat' }],
         })
       );
-      const event = { getURL: () => 'https://open.rocket.chat/channel/general' };
+      const event = {
+        getURL: () => 'https://open.rocket.chat/channel/general',
+      };
       await handlers.get('document-viewer/open-window')?.(
         event,
         'https://open.rocket.chat/file.pdf',
@@ -152,22 +153,29 @@ describe('documentViewer/ipc', () => {
 
   describe('WEBVIEW_PDF_VIEWER_ATTACHED', () => {
     it('intercepts navigation on pdf viewer webContents', async () => {
-      const on = jest.fn();
-      const getURL = jest.fn(() => 'https://open.rocket.chat/pdf-viewer');
-      (webContents.fromId as jest.Mock).mockReturnValue({ on, getURL });
+      jest.useFakeTimers();
+      try {
+        const on = jest.fn();
+        const getURL = jest.fn(() => 'https://open.rocket.chat/pdf-viewer');
+        (webContents.fromId as jest.Mock).mockReturnValue({ on, getURL });
 
-      await listeners.get(WEBVIEW_PDF_VIEWER_ATTACHED)?.({
-        type: WEBVIEW_PDF_VIEWER_ATTACHED,
-        payload: { WebContentsId: 42 },
-      });
+        await listeners.get(WEBVIEW_PDF_VIEWER_ATTACHED)?.({
+          type: WEBVIEW_PDF_VIEWER_ATTACHED,
+          payload: { WebContentsId: 42 },
+        });
 
-      expect(on).toHaveBeenCalledWith('will-navigate', expect.any(Function));
-      const handler = on.mock.calls[0][1];
-      const event = { preventDefault: jest.fn() };
-      handler(event, 'https://external.example/doc');
-      expect(event.preventDefault).toHaveBeenCalled();
-      await new Promise((resolve) => setTimeout(resolve, 20));
-      expect(openExternal).toHaveBeenCalledWith('https://external.example/doc');
+        expect(on).toHaveBeenCalledWith('will-navigate', expect.any(Function));
+        const handler = on.mock.calls[0][1];
+        const event = { preventDefault: jest.fn() };
+        handler(event, 'https://external.example/doc');
+        expect(event.preventDefault).toHaveBeenCalled();
+        await jest.advanceTimersByTimeAsync(20);
+        expect(openExternal).toHaveBeenCalledWith(
+          'https://external.example/doc'
+        );
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('skips video call windows', async () => {

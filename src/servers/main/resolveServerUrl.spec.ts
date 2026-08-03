@@ -50,7 +50,9 @@ describe('resolveServerUrl', () => {
 
   it('returns INVALID for incompatible server version', async () => {
     invoke.mockResolvedValue(['https://open.rocket.chat/', '1.0.0']);
-    const [, status, error] = await resolveServerUrl('https://open.rocket.chat');
+    const [, status, error] = await resolveServerUrl(
+      'https://open.rocket.chat'
+    );
     expect(status).toBe(ServerUrlResolutionStatus.INVALID);
     expect(String(error?.message || error)).toMatch(/incompatible/i);
   });
@@ -71,5 +73,16 @@ describe('resolveServerUrl', () => {
 
   it('convertToURL is used for bare hostnames', () => {
     expect(convertToURL('chat.example').hostname).toBe('chat.example');
+  });
+
+  it('retries as a rocket.chat subdomain for bare-word input and returns INVALID on failure', async () => {
+    invoke.mockRejectedValue(new Error('network'));
+    const [, status] = await resolveServerUrl('myworkspace');
+    expect(status).toBe(ServerUrlResolutionStatus.INVALID);
+    expect(invoke).toHaveBeenCalledWith(
+      expect.anything(),
+      'servers/fetch-info',
+      'https://myworkspace.rocket.chat/'
+    );
   });
 });

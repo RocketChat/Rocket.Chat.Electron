@@ -2,7 +2,9 @@ const handlers = new Map<string, Function>();
 const watchFns: Array<(curr: any, prev: any) => void> = [];
 const dispatch = jest.fn();
 const request = jest.fn();
-const getOutlookEvents = jest.fn(async (..._args: any[]) => [] as any[]) as jest.Mock;
+const getOutlookEvents = jest.fn(
+  async (..._args: any[]) => [] as any[]
+) as jest.Mock;
 
 const servers = [
   {
@@ -109,7 +111,9 @@ jest.mock('axios', () => {
   return { __esModule: true, default: axios, ...axios };
 });
 
-const encryptString = jest.fn((s: string) => Buffer.from(`enc:${s}`)) as jest.Mock;
+const encryptString = jest.fn((s: string) =>
+  Buffer.from(`enc:${s}`)
+) as jest.Mock;
 const decryptString = jest.fn((b: Buffer) =>
   b.toString().replace(/^enc:/, '')
 ) as jest.Mock;
@@ -197,6 +201,9 @@ describe('outlookCalendar/ipc', () => {
       'token',
       'other-user'
     );
+
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(getOutlookEvents).not.toHaveBeenCalled();
   });
 
   it('set-user-token starts recurring sync and initial debounce', async () => {
@@ -233,7 +240,7 @@ describe('outlookCalendar/ipc', () => {
     // use missing server path
     await expect(
       handlers.get('outlook-calendar/get-events')?.({ id: 999 }, new Date())
-    ).rejects.toThrow();
+    ).rejects.toThrow('No credentials');
   });
 
   it('get-events syncs when token already set via set-user-token', async () => {
@@ -318,8 +325,10 @@ describe('outlookCalendar/ipc', () => {
         ],
       },
     });
+    axiosPost.mockClear();
     axiosPost.mockResolvedValue({ status: 200, data: {} });
-    // update uses post in this module - either post or a dedicated method
+    // Deletes are performed via axios.post to the delete endpoint in this
+    // module — there is no dedicated axios.delete call.
     axiosDelete.mockResolvedValue({ status: 200, data: {} });
 
     const result = await handlers.get('outlook-calendar/get-events')?.(
@@ -327,6 +336,40 @@ describe('outlookCalendar/ipc', () => {
       new Date()
     );
     expect(result).toEqual({ status: 'success' });
+
+    expect(axiosPost).toHaveBeenCalledWith(
+      'https://open.rocket.chat/api/v1/calendar-events.import',
+      expect.objectContaining({
+        externalId: 'new',
+        subject: 'New',
+        startTime: now,
+        description: '',
+        reminderMinutesBeforeStart: 0,
+        endTime: now,
+        busy: true,
+      }),
+      expect.anything()
+    );
+
+    expect(axiosPost).toHaveBeenCalledWith(
+      'https://open.rocket.chat/api/v1/calendar-events.update',
+      expect.objectContaining({
+        eventId: 'rc-keep',
+        subject: 'Updated',
+        startTime: now,
+        description: 'd',
+        reminderMinutesBeforeStart: 10,
+        endTime: now,
+        busy: false,
+      }),
+      expect.anything()
+    );
+
+    expect(axiosPost).toHaveBeenCalledWith(
+      'https://open.rocket.chat/api/v1/calendar-events.delete',
+      { eventId: 'rc-gone' },
+      expect.anything()
+    );
   });
 
   it('get-events fetches token from webContents when missing', async () => {
@@ -391,14 +434,20 @@ describe('outlookCalendar/ipc', () => {
   });
 
   it('interval watch reschedules when value changes', async () => {
+    await handlers.get('outlook-calendar/set-user-token')?.(
+      { id: 7 },
+      'user-token',
+      'u1'
+    );
+    await jest.advanceTimersByTimeAsync(200);
+    getOutlookEvents.mockClear();
+
     expect(watchFns.length).toBeGreaterThan(0);
     for (const fn of watchFns) {
-      try {
-        fn(30, 60);
-      } catch {
-        // ignore
-      }
+      fn(30, 60);
     }
     await jest.advanceTimersByTimeAsync(11000);
+
+    expect(getOutlookEvents).toHaveBeenCalled();
   });
 });

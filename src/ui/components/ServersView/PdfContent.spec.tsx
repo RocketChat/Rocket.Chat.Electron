@@ -1,13 +1,13 @@
 import '@testing-library/jest-dom';
-import { act, render, screen } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
+
+import PdfContent from './PdfContent';
 
 const dispatch = jest.fn();
 
 jest.mock('../../../store', () => ({
   dispatch: (...args: any[]) => dispatch(...args),
 }));
-
-import PdfContent from './PdfContent';
 
 describe('PdfContent', () => {
   beforeEach(() => {
@@ -26,18 +26,20 @@ describe('PdfContent', () => {
     act(() => {
       jest.advanceTimersByTime(150);
     });
-    // webview may be custom element; ensure component mounted
-    expect(container.firstChild).toBeTruthy();
+    const webview = container.querySelector('webview');
+    expect(webview).not.toBeNull();
+    expect(webview?.getAttribute('src')).toBe('file:///doc.pdf');
   });
 
   it('clears document when url becomes empty', () => {
-    const { rerender } = render(
+    const { container, rerender } = render(
       <PdfContent url='file:///doc.pdf' partition='persist:server' />
     );
     act(() => {
       jest.advanceTimersByTime(150);
     });
     rerender(<PdfContent url='' partition='persist:server' />);
-    expect(screen.queryByRole('progressbar')).toBeFalsy();
+    // The webview element itself stays mounted; only its src is cleared.
+    expect(container.querySelector('webview')?.getAttribute('src')).toBeFalsy();
   });
 });

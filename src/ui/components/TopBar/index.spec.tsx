@@ -30,4 +30,29 @@ describe('TopBar', () => {
     });
     expect(screen.getByText('Title')).toBeInTheDocument();
   });
+
+  it('omits the tint background on darwin when transparent window is enabled', () => {
+    const originalPlatform = process.platform;
+    Object.defineProperty(process, 'platform', {
+      value: 'darwin',
+      configurable: true,
+    });
+
+    try {
+      renderTopBar({
+        mainWindowTitle: 'Title',
+        isTransparentWindowEnabled: true,
+      });
+      const title = screen.getByText('Title');
+      const sidebar = title.closest('.rcx-sidebar--main') as HTMLElement;
+      expect(getComputedStyle(sidebar).backgroundColor).toBe(
+        'rgba(0, 0, 0, 0)'
+      );
+    } finally {
+      Object.defineProperty(process, 'platform', {
+        value: originalPlatform,
+        configurable: true,
+      });
+    }
+  });
 });

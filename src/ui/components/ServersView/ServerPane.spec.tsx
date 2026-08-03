@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
+import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED } from '../../actions';
 import { ServerPane } from './ServerPane';
 
 jest.mock('electron', () => ({
@@ -86,7 +87,10 @@ describe('ServerPane', () => {
       </Provider>
     );
     fireEvent.click(screen.getByText('error-reload'));
-    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith({
+      type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+      payload: { url: 'https://open.rocket.chat' },
+    });
   });
 
   it('shows unsupported server when not supported', () => {

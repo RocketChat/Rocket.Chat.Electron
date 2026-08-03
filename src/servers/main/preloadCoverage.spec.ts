@@ -3,6 +3,9 @@
  * coverage counts them under `yarn test:coverage` (renderer preload specs are
  * skipped when --coverage is set due to EvalError).
  */
+/* eslint-disable @typescript-eslint/no-var-requires -- modules are required
+   inline per-test, after jest.resetModules(), rather than statically imported */
+import { NOTIFICATIONS_NOTIFICATION_CLICKED } from '../../notifications/actions';
 import {
   WEBVIEW_UNREAD_CHANGED,
   WEBVIEW_SERVER_VERSION_UPDATED,
@@ -11,6 +14,8 @@ import {
   WEBVIEW_GIT_COMMIT_HASH_CHECK,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
   WEBVIEW_USER_LOGGED_IN,
+  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  WEBVIEW_FOCUS_REQUESTED,
 } from '../../ui/actions';
 
 const dispatch = jest.fn();
@@ -217,7 +222,9 @@ const installDomGlobals = (): void => {
   };
   (global as any).MutationObserver = class {
     observe = jest.fn();
+
     disconnect = jest.fn();
+
     constructor(public cb: Function) {}
   };
   (global as any).fetch = jest.fn(async () => ({
@@ -238,7 +245,6 @@ describe('preload modules coverage (node env)', () => {
   it('covers small servers/preload setters', () => {
     const SERVER_URL = 'https://open.rocket.chat';
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setBadge } = require('../preload/badge');
     setBadge(3);
     expect(dispatch).toHaveBeenLastCalledWith({
@@ -256,14 +262,11 @@ describe('preload modules coverage (node env)', () => {
       payload: { url: SERVER_URL, badge: undefined },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { writeTextToClipboard } = require('../preload/clipboard');
     writeTextToClipboard('hello');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { clipboard } = require('electron');
     expect(clipboard.writeText).toHaveBeenCalledWith('hello');
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setVersion } = require('../preload/version');
     setVersion('6.5.0');
     expect(dispatch).toHaveBeenLastCalledWith({
@@ -271,7 +274,6 @@ describe('preload modules coverage (node env)', () => {
       payload: { url: SERVER_URL, version: '6.5.0' },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setWorkspaceUID } = require('../preload/uniqueID');
     setWorkspaceUID('uid-1');
     expect(dispatch).toHaveBeenLastCalledWith({
@@ -279,7 +281,6 @@ describe('preload modules coverage (node env)', () => {
       payload: { url: SERVER_URL, uniqueID: 'uid-1' },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setTitle } = require('../preload/title');
     setTitle('Community');
     expect(dispatch).toHaveBeenLastCalledWith({
@@ -291,7 +292,6 @@ describe('preload modules coverage (node env)', () => {
     setTitle(undefined as unknown as string);
     expect(dispatch).not.toHaveBeenCalled();
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setGitCommitHash } = require('../preload/gitCommitHash');
     setGitCommitHash('deadbeef');
     expect(dispatch).toHaveBeenLastCalledWith({
@@ -299,7 +299,6 @@ describe('preload modules coverage (node env)', () => {
       payload: { url: SERVER_URL, gitCommitHash: 'deadbeef' },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { reloadServer } = require('../preload/reloadServer');
     reloadServer();
     expect(dispatch).toHaveBeenLastCalledWith({
@@ -307,7 +306,6 @@ describe('preload modules coverage (node env)', () => {
       payload: SERVER_URL,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { openInBrowser } = require('../preload/openInBrowser');
     openInBrowser('https://example.com');
     expect(ipcInvoke).toHaveBeenCalledWith(
@@ -318,7 +316,6 @@ describe('preload modules coverage (node env)', () => {
     openInBrowser('javascript:alert(1)');
     expect(ipcInvoke).not.toHaveBeenCalled();
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setUserLoggedIn } = require('../preload/userLoggedIn');
     dispatch.mockClear();
     setUserLoggedIn(true);
@@ -337,20 +334,17 @@ describe('preload modules coverage (node env)', () => {
       payload: { url: SERVER_URL, userLoggedIn: false },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setUserThemeAppearance } = require('../preload/themeAppearance');
     // No-op kept for desktop-api backwards compatibility: must not throw or dispatch.
     dispatch.mockClear();
     expect(() => setUserThemeAppearance('dark' as any)).not.toThrow();
     expect(dispatch).not.toHaveBeenCalled();
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       getE2ePdfPreviewSizeLimit,
     } = require('../preload/e2ePdfPreviewSizeLimit');
     expect(getE2ePdfPreviewSizeLimit()).toBe(10);
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       openDocumentViewer,
       supportedDocumentViewerFormats,
@@ -368,12 +362,10 @@ describe('preload modules coverage (node env)', () => {
   });
 
   it('covers favicon and sidebar with DOM mocks', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setFavicon } = require('../preload/favicon');
     setFavicon('https://open.rocket.chat/favicon.ico');
     setFavicon(null as any);
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       setServerVersionToSidebar,
       setBackground,
@@ -389,7 +381,6 @@ describe('preload modules coverage (node env)', () => {
   });
 
   it('covers userRoles bridge and REST fallback', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       setUserRoles,
       updateUserRoles,
@@ -407,7 +398,6 @@ describe('preload modules coverage (node env)', () => {
   });
 
   it('covers internal video chat window open paths', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       openInternalVideoChatWindow,
       getInternalVideoChatWindowEnabled,
@@ -442,7 +432,6 @@ describe('preload modules coverage (node env)', () => {
   });
 
   it('covers notifications/preload createNotification paths', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       createNotification,
       destroyNotification,
@@ -489,49 +478,40 @@ describe('preload modules coverage (node env)', () => {
     closeCustomNotification(id);
     listenToNotificationsRequests();
 
-    // Fire each listen callback registered
-    for (const call of listen.mock.calls as any[]) {
-      const matcher = call[0];
-      const handler = call[1] as Function | undefined;
-      if (!handler) continue;
-      const payloadBase = { id, serverUrl: 'https://open.rocket.chat' };
-      try {
-        if (typeof matcher === 'string') {
-          handler({
-            type: matcher,
-            payload: {
-              ...payloadBase,
-              category: 'SERVER',
-              reply: 'hi',
-              index: 0,
-            },
-          });
-          handler({
-            type: matcher,
-            payload: { ...payloadBase, category: 'DOWNLOADS' },
-          });
-        } else if (typeof matcher !== 'function') {
-          handler({
-            type: matcher?.type || 'test',
-            payload: {
-              ...payloadBase,
-              category: 'SERVER',
-              reply: 'hi',
-              index: 0,
-            },
-          });
-        }
-      } catch {
-        // ignore handler shape mismatches
-      }
-    }
+    const clickedHandler = (listen.mock.calls as any[]).find(
+      ([matcher]) => matcher === NOTIFICATIONS_NOTIFICATION_CLICKED
+    )?.[1] as Function;
+    expect(clickedHandler).toBeDefined();
+
+    dispatch.mockClear();
+    clickedHandler({
+      payload: {
+        id,
+        serverUrl: 'https://open.rocket.chat',
+        category: 'DOWNLOADS',
+      },
+    });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+    });
+
+    dispatch.mockClear();
+    clickedHandler({
+      payload: {
+        id,
+        serverUrl: 'https://open.rocket.chat',
+        category: 'SERVER',
+      },
+    });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: WEBVIEW_FOCUS_REQUESTED,
+      payload: { url: 'https://open.rocket.chat', view: 'server' },
+    });
 
     expect(request).toHaveBeenCalled();
-    expect(listen).toHaveBeenCalled();
   });
 
   it('covers navigateToRoute buffering and delivery', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       onNavigateToRoute,
       listenToNavigateToRouteRequests,
@@ -559,8 +539,7 @@ describe('preload modules coverage (node env)', () => {
     expect(cb).toHaveBeenCalledWith('/group/ops');
   });
 
-  it('covers outlook, userPresence, messageBox, ui sidebar, screenSharing preloads', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+  it('covers outlookCalendar preload success, failure, and fire-and-forget paths', async () => {
     const outlook = require('../../outlookCalendar/preload');
     ipcInvoke.mockResolvedValueOnce({ status: 'success', events: [] });
     await outlook.getOutlookEvents(new Date('2026-01-01'));
@@ -580,59 +559,73 @@ describe('preload modules coverage (node env)', () => {
     outlook.clearOutlookCredentials();
     ipcInvoke.mockRejectedValueOnce(new Error('x'));
     outlook.setUserToken('tok', 'u1');
+  });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { setUserPresenceDetection } = require('../../userPresence/preload');
-    jest.useFakeTimers();
-    setUserPresenceDetection({
-      isAutoAwayEnabled: true,
-      idleThreshold: 60,
-      setUserOnline: jest.fn(),
+  describe('userPresence preload', () => {
+    afterEach(() => {
+      jest.useRealTimers();
     });
-    setUserPresenceDetection({
-      isAutoAwayEnabled: false,
-      idleThreshold: null,
-      setUserOnline: jest.fn(),
-    });
-    // fire power-monitor listen handlers
-    for (const call of listen.mock.calls as any[]) {
-      const matcher = call[0];
-      const handler = call[1] as Function | undefined;
-      try {
-        if (typeof matcher === 'function' && handler) {
-          handler({ type: 'SYSTEM_SUSPENDING' });
+
+    it('covers setUserPresenceDetection and power-monitor handlers', () => {
+      const {
+        setUserPresenceDetection,
+      } = require('../../userPresence/preload');
+      jest.useFakeTimers();
+      setUserPresenceDetection({
+        isAutoAwayEnabled: true,
+        idleThreshold: 60,
+        setUserOnline: jest.fn(),
+      });
+      setUserPresenceDetection({
+        isAutoAwayEnabled: false,
+        idleThreshold: null,
+        setUserOnline: jest.fn(),
+      });
+      // fire power-monitor listen handlers
+      for (const call of listen.mock.calls as any[]) {
+        const matcher = call[0];
+        const handler = call[1] as Function | undefined;
+        try {
+          if (typeof matcher === 'function' && handler) {
+            handler({ type: 'SYSTEM_SUSPENDING' });
+          }
+        } catch {
+          // ignore
         }
-      } catch {
-        // ignore
       }
-    }
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+      jest.runOnlyPendingTimers();
+    });
+  });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+  it('covers listenToMessageBoxEvents registering a DOM listener', () => {
     const { listenToMessageBoxEvents } = require('../../ui/preload/messageBox');
     listenToMessageBoxEvents();
     expect(document.addEventListener).toHaveBeenCalled();
+  });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+  it('covers handleTrafficLightsSpacing on darwin and non-darwin platforms', () => {
     const { handleTrafficLightsSpacing } = require('../../ui/preload/sidebar');
     const originalPlatform = process.platform;
-    Object.defineProperty(process, 'platform', {
-      value: 'darwin',
-      configurable: true,
-    });
-    handleTrafficLightsSpacing();
-    Object.defineProperty(process, 'platform', {
-      value: 'linux',
-      configurable: true,
-    });
-    handleTrafficLightsSpacing();
-    Object.defineProperty(process, 'platform', {
-      value: originalPlatform,
-      configurable: true,
-    });
+    try {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        configurable: true,
+      });
+      handleTrafficLightsSpacing();
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        configurable: true,
+      });
+      handleTrafficLightsSpacing();
+    } finally {
+      Object.defineProperty(process, 'platform', {
+        value: originalPlatform,
+        configurable: true,
+      });
+    }
+  });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+  it('covers listenToScreenSharingRequests registering a window listener', () => {
     const {
       listenToScreenSharingRequests,
     } = require('../../screenSharing/preload');
@@ -644,7 +637,6 @@ describe('preload modules coverage (node env)', () => {
   });
 
   it('covers jitsi preload and video-call preload index', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const jitsi = require('../../jitsi/preload');
     expect(jitsi.desktopCapturer).toBeDefined();
     expect(jitsi.JitsiMeetElectron).toBeDefined();
@@ -675,7 +667,6 @@ describe('preload modules coverage (node env)', () => {
         queueMicrotask(() => handler({}, 'source-1'));
       }
     });
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('../../videoCallWindow/preload/index');
     const api = exposeInMainWorld.mock.calls.find(
       ([name]) => name === 'videoCallWindow'
@@ -692,7 +683,6 @@ describe('preload modules coverage (node env)', () => {
 
   it('covers jitsiBridge initialize and helpers', async () => {
     ipcSendSync.mockReturnValue('jitsi');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('../../videoCallWindow/preload/jitsiBridge');
     const b = (window as any).jitsiBridge;
     expect(b).toBeTruthy();
@@ -736,7 +726,6 @@ describe('preload modules coverage (node env)', () => {
 
   it('skips jitsiBridge when provider is not jitsi', () => {
     ipcSendSync.mockReturnValue('pexip');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod = require('../../videoCallWindow/preload/jitsiBridge');
     expect(mod.default).toBeNull();
   });

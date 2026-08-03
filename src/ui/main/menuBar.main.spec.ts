@@ -591,7 +591,9 @@ describe('ui/main/menuBar', () => {
         },
       });
 
-      const template = selectMenuBarTemplate(state) as MenuItemConstructorOptions[];
+      const template = selectMenuBarTemplate(
+        state
+      ) as MenuItemConstructorOptions[];
       expect(template.map((item) => item.id)).toEqual(
         expect.arrayContaining([
           'appMenu',
@@ -617,19 +619,30 @@ describe('ui/main/menuBar', () => {
         isDeveloperModeEnabled: true,
       });
 
-      const template = selectMenuBarTemplate(state) as MenuItemConstructorOptions[];
+      const template = selectMenuBarTemplate(
+        state
+      ) as MenuItemConstructorOptions[];
       const clickables = collectClickableItems(template);
 
+      const errors: Array<{ id: unknown; error: unknown }> = [];
       for (const item of clickables) {
         try {
+          // Handlers must run sequentially to avoid overlapping shared mock
+          // state (e.g. mockBrowserWindow.isVisible toggling mid-iteration).
+          // eslint-disable-next-line no-await-in-loop
           await Promise.resolve(
             item.click?.({} as any, mockBrowserWindow as any, {} as any)
           );
-        } catch {
-          // Some handlers reach optional platform APIs; exercise still counts.
+        } catch (error) {
+          // All handlers are backed by fully mocked dependencies
+          // (getRootWindow, dispatch, shell, app, BrowserWindow,
+          // openExternal, relaunchApp, askForAppDataReset,
+          // getWebContentsByServerUrl); none are expected to throw here.
+          errors.push({ id: item.id, error });
         }
       }
 
+      expect(errors).toEqual([]);
       expect(dispatch).toHaveBeenCalled();
       expect(getRootWindow).toHaveBeenCalled();
     });
@@ -642,19 +655,28 @@ describe('ui/main/menuBar', () => {
       const template = selectAppMenuPopupTemplate(state);
       expect(template.find((item) => item.id === 'settings')).toBeDefined();
       expect(template.find((item) => item.id === 'downloads')).toBeDefined();
-      expect(template.find((item) => item.id === 'checkForUpdates')).toBeDefined();
+      expect(
+        template.find((item) => item.id === 'checkForUpdates')
+      ).toBeDefined();
 
       const clickables = collectClickableItems(template);
+      const errors: Array<{ id: unknown; error: unknown }> = [];
       for (const item of clickables) {
         try {
+          // Handlers must run sequentially to avoid overlapping shared mock
+          // state (see note in the previous test).
+          // eslint-disable-next-line no-await-in-loop
           await Promise.resolve(
             item.click?.({} as any, mockBrowserWindow as any, {} as any)
           );
-        } catch {
-          // ignore optional platform failures
+        } catch (error) {
+          // All handlers are backed by fully mocked dependencies; none are
+          // expected to throw here (see note in the previous test).
+          errors.push({ id: item.id, error });
         }
       }
 
+      expect(errors).toEqual([]);
       expect(dispatch).toHaveBeenCalled();
     });
 
@@ -663,7 +685,9 @@ describe('ui/main/menuBar', () => {
       const state = createState({
         isAddNewServersEnabled: true,
       });
-      const template = selectMenuBarTemplate(state) as MenuItemConstructorOptions[];
+      const template = selectMenuBarTemplate(
+        state
+      ) as MenuItemConstructorOptions[];
       const appMenu = findMenu(template, 'appMenu');
       const about = (appMenu.submenu as MenuItemConstructorOptions[]).find(
         (item) => item.id === 'about'

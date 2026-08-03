@@ -32,6 +32,14 @@ describe('attentionDrawing', () => {
     isDestroyed: jest.fn(() => false),
     flashFrame,
   };
+  const originalPlatform = process.platform;
+
+  const setPlatform = (value: NodeJS.Platform) => {
+    Object.defineProperty(process, 'platform', {
+      value,
+      configurable: true,
+    });
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -39,7 +47,10 @@ describe('attentionDrawing', () => {
     select.mockImplementation((selector: (s: any) => any) =>
       selector({ isFlashFrameEnabled: true })
     );
-    // reset internal set via stopAttention if needed
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
   });
 
   it('no-ops when flash frame disabled', async () => {
@@ -51,29 +62,17 @@ describe('attentionDrawing', () => {
   });
 
   it('flashes frame on non-darwin platforms', async () => {
-    const original = process.platform;
-    Object.defineProperty(process, 'platform', {
-      value: 'linux',
-      configurable: true,
-    });
+    setPlatform('linux');
 
     await attentionDrawing.drawAttention('n-linux');
     expect(flashFrame).toHaveBeenCalledWith(true);
 
     await attentionDrawing.stopAttention('n-linux');
     expect(flashFrame).toHaveBeenCalledWith(false);
-
-    Object.defineProperty(process, 'platform', {
-      value: original,
-      configurable: true,
-    });
   });
 
   it('ignores duplicate drawAttention for same notification id', async () => {
-    Object.defineProperty(process, 'platform', {
-      value: 'linux',
-      configurable: true,
-    });
+    setPlatform('linux');
     await attentionDrawing.drawAttention('dup');
     flashFrame.mockClear();
     await attentionDrawing.drawAttention('dup');
@@ -82,10 +81,7 @@ describe('attentionDrawing', () => {
   });
 
   it('keeps attention while other notifications remain active', async () => {
-    Object.defineProperty(process, 'platform', {
-      value: 'linux',
-      configurable: true,
-    });
+    setPlatform('linux');
     await attentionDrawing.drawAttention('a');
     await attentionDrawing.drawAttention('b');
     flashFrame.mockClear();

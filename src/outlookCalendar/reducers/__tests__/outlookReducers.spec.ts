@@ -37,7 +37,7 @@ describe('outlookCalendar reducers', () => {
         } as any)
       ).toBe(20);
       expect(
-        outlookCalendarSyncIntervalOverride(null, {
+        outlookCalendarSyncIntervalOverride(20, {
           type: APP_SETTINGS_LOADED,
           payload: { outlookCalendarSyncIntervalOverride: null },
         } as any)

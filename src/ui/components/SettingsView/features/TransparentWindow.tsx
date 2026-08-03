@@ -37,7 +37,6 @@ export const TransparentWindow = (props: TransparentWindowProps) => {
       id={id}
       label={t('settings.options.transparentWindow.title')}
       description={t('settings.options.transparentWindow.description')}
-      hint={t('settings.options.transparentWindow.hint')}
       checked={isTransparentWindowEnabled}
       onChange={handleChange}
       className={props.className}

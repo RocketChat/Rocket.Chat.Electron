@@ -47,6 +47,7 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
 
   const workspaceTabsId = useId();
   const workspaceBarId = useId();
+  const workspaceHiddenId = useId();
 
   const isWorkspaceTabsDisabled =
     process.platform === 'linux' &&
@@ -75,7 +76,7 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
             {t('settings.options.navigation.workspaceTabs')}
           </FieldLabel>
         </Box>
-        <Box display='flex' alignItems='center'>
+        <Box display='flex' alignItems='center' mbe='x8'>
           <RadioButton
             id={workspaceBarId}
             checked={navigationLayout === 'sidebar'}
@@ -83,6 +84,16 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
           />
           <FieldLabel htmlFor={workspaceBarId} mis='x8'>
             {t('settings.options.navigation.workspaceBar')}
+          </FieldLabel>
+        </Box>
+        <Box display='flex' alignItems='center'>
+          <RadioButton
+            id={workspaceHiddenId}
+            checked={navigationLayout === 'hidden'}
+            onChange={handleChange('hidden')}
+          />
+          <FieldLabel htmlFor={workspaceHiddenId} mis='x8'>
+            {t('settings.options.navigation.workspaceHidden')}
           </FieldLabel>
         </Box>
       </Box>

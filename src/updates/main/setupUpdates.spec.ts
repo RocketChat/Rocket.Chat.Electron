@@ -1,5 +1,16 @@
 import fs from 'fs';
 
+import {
+  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
+  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
+  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+} from '../../ui/actions';
+// eslint-disable-next-line import/order
+import {
+  UPDATE_SKIPPED,
+  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+} from '../actions';
+
 const listeners = new Map<string, Function>();
 const select = jest.fn();
 const dispatch = jest.fn();
@@ -62,15 +73,10 @@ jest.mock('../../ui/main/dialogs', () => ({
   warnAboutUpdateSkipped: jest.fn(),
 }));
 
-import {
-  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
-  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-} from '../../ui/actions';
-import {
-  UPDATE_SKIPPED,
-  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
-} from '../actions';
+// Must stay below the `autoUpdater` const and jest.mock('electron-updater', ...)
+// above: importing '../main' pulls in electron-updater, whose mock factory
+// closes over `autoUpdater` — hoisting this import breaks that initialization order.
+// eslint-disable-next-line import/first
 import { setupUpdates } from '../main';
 
 describe('updates/setupUpdates', () => {

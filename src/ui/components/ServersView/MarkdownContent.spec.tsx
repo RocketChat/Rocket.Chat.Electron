@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 
+import MarkdownContent from './MarkdownContent';
+
 const invoke = jest.fn();
 
 jest.mock('electron', () => ({
@@ -47,8 +49,6 @@ jest.mock('marked', () => {
 jest.mock('marked-highlight', () => ({
   markedHighlight: () => ({}),
 }));
-
-import MarkdownContent from './MarkdownContent';
 
 describe('MarkdownContent', () => {
   beforeEach(() => {

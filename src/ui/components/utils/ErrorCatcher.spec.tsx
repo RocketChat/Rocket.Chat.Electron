@@ -1,13 +1,13 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 
+import { ErrorCatcher } from './ErrorCatcher';
+
 const dispatch = jest.fn();
 
 jest.mock('../../../store', () => ({
   dispatch: (...args: any[]) => dispatch(...args),
 }));
-
-import { ErrorCatcher } from './ErrorCatcher';
 
 describe('ErrorCatcher', () => {
   it('renders children when no error', () => {

@@ -2,7 +2,9 @@ import { getServerInitials } from './getServerInitials';
 
 describe('getServerInitials', () => {
   it('returns undefined when title is undefined', () => {
-    expect(getServerInitials(undefined, 'https://chat.example')).toBeUndefined();
+    expect(
+      getServerInitials(undefined, 'https://chat.example')
+    ).toBeUndefined();
   });
 
   it('uses hostname when title contains the full URL', () => {

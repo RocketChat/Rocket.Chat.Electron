@@ -36,7 +36,9 @@ describe('ErrorView', () => {
   it('calls onReload when reload button is clicked', () => {
     const onReload = jest.fn();
     render(<ErrorView isFailed onReload={onReload} />);
-    fireEvent.click(screen.getByRole('button', { name: /loadingError\.reload/ }));
+    fireEvent.click(
+      screen.getByRole('button', { name: /loadingError\.reload/ })
+    );
     expect(onReload).toHaveBeenCalledTimes(1);
   });
 

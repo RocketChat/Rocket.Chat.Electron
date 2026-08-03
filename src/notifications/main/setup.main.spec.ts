@@ -1,3 +1,15 @@
+import {
+  NOTIFICATIONS_CREATE_REQUESTED,
+  NOTIFICATIONS_CREATE_RESPONDED,
+  NOTIFICATIONS_NOTIFICATION_ACTIONED,
+  NOTIFICATIONS_NOTIFICATION_CLICKED,
+  NOTIFICATIONS_NOTIFICATION_CLOSED,
+  NOTIFICATIONS_NOTIFICATION_DISMISSED,
+  NOTIFICATIONS_NOTIFICATION_REPLIED,
+  NOTIFICATIONS_NOTIFICATION_SHOWN,
+} from '../actions';
+import { setupNotifications } from '../main';
+
 const listeners = new Map<string, Function>();
 const dispatch = jest.fn();
 const dispatchSingle = jest.fn();
@@ -85,18 +97,6 @@ jest.mock('../attentionDrawing', () => ({
     stopAttention: (...args: unknown[]) => stopAttention(...args),
   },
 }));
-
-import {
-  NOTIFICATIONS_CREATE_REQUESTED,
-  NOTIFICATIONS_CREATE_RESPONDED,
-  NOTIFICATIONS_NOTIFICATION_ACTIONED,
-  NOTIFICATIONS_NOTIFICATION_CLICKED,
-  NOTIFICATIONS_NOTIFICATION_CLOSED,
-  NOTIFICATIONS_NOTIFICATION_DISMISSED,
-  NOTIFICATIONS_NOTIFICATION_REPLIED,
-  NOTIFICATIONS_NOTIFICATION_SHOWN,
-} from '../actions';
-import { setupNotifications } from '../main';
 
 describe('notifications/main setupNotifications', () => {
   beforeEach(() => {

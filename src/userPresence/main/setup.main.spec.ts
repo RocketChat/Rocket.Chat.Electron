@@ -1,3 +1,5 @@
+export {};
+
 const handlers = new Map<string, Function>();
 const dispatch = jest.fn();
 const powerListeners = new Map<string, Function>();

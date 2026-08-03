@@ -53,9 +53,8 @@ describe('servers/main convertToURL', () => {
   });
 
   it('ensures trailing slash on pathname', () => {
-    expect(convertToURL('https://open.rocket.chat/channel/general').pathname).toBe(
-      '/channel/general/'
-    );
+    expect(
+      convertToURL('https://open.rocket.chat/channel/general').pathname
+    ).toBe('/channel/general/');
   });
 });
-

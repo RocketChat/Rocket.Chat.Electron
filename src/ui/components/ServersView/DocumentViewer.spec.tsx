@@ -30,7 +30,9 @@ describe('DocumentViewer', () => {
         closeDocumentViewer={close}
       />
     );
-    expect(screen.getByText('documentViewer.title.markdown')).toBeInTheDocument();
+    expect(
+      screen.getByText('documentViewer.title.markdown')
+    ).toBeInTheDocument();
     expect(screen.getByTestId('markdown')).toHaveTextContent('file:///doc.md');
   });
 
@@ -45,7 +47,9 @@ describe('DocumentViewer', () => {
     );
     expect(screen.getByText('documentViewer.title.pdf')).toBeInTheDocument();
     expect(screen.getByTestId('pdf')).toHaveTextContent('file:///doc.pdf');
-    fireEvent.click(screen.getByRole('button', { name: 'documentViewer.back' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'documentViewer.back' })
+    );
     expect(close).toHaveBeenCalled();
   });
 });

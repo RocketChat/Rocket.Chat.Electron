@@ -3,9 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
-import { CertificatesManager } from './CertificatesManager';
-import CertificateItem from './CertificateItem';
 import ActionButton from './ActionButton';
+import CertificateItem from './CertificateItem';
+import { CertificatesManager } from './CertificatesManager';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),

@@ -3,8 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
-import { CLOSE_SERVER_INFO_MODAL } from '../../actions';
 import { ServerInfoModal } from '.';
+import { CLOSE_SERVER_INFO_MODAL } from '../../actions';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),

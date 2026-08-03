@@ -154,5 +154,3 @@ describe('rootWindow geometry helpers', () => {
     });
   });
 });
-
-

@@ -2,6 +2,8 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import { createStore } from 'redux';
 
+import { App } from './App';
+
 jest.mock('react-i18next', () => ({
   I18nextProvider: ({ children }: any) => children,
   useTranslation: () => ({ t: (k: string) => k }),
@@ -20,8 +22,6 @@ jest.mock('./Shell', () => ({
 jest.mock('./utils/ErrorCatcher', () => ({
   ErrorCatcher: ({ children }: any) => <>{children}</>,
 }));
-
-import { App } from './App';
 
 describe('App', () => {
   it('wraps Shell with store provider', () => {

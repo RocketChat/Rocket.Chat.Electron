@@ -33,7 +33,7 @@ jest.mock('react-i18next', () => ({
 
 type ToggleCase = {
   name: string;
-  Component: ComponentType;
+  component: ComponentType;
   stateKey: string;
   actionType: string;
   extraState?: Record<string, unknown>;
@@ -45,9 +45,10 @@ const makeStore = (partial: Record<string, unknown>) => {
 };
 
 const renderWithState = (
-  Component: ComponentType,
+  component: ComponentType,
   state: Record<string, unknown>
 ) => {
+  const Component = component;
   const store = makeStore(state);
   const dispatchSpy = jest.spyOn(store, 'dispatch');
   const view = render(
@@ -61,61 +62,61 @@ const renderWithState = (
 const simpleToggles: ToggleCase[] = [
   {
     name: 'DebugLogging',
-    Component: DebugLogging,
+    component: DebugLogging,
     stateKey: 'isDebugLoggingEnabled',
     actionType: SETTINGS_SET_DEBUG_LOGGING_CHANGED,
   },
   {
     name: 'DetailedEventsLogging',
-    Component: DetailedEventsLogging,
+    component: DetailedEventsLogging,
     stateKey: 'isDetailedEventsLoggingEnabled',
     actionType: SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED,
   },
   {
     name: 'HardwareAcceleration',
-    Component: HardwareAcceleration,
+    component: HardwareAcceleration,
     stateKey: 'isHardwareAccelerationEnabled',
     actionType: SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
   },
   {
     name: 'ReportErrors',
-    Component: ReportErrors,
+    component: ReportErrors,
     stateKey: 'isReportEnabled',
     actionType: SETTINGS_SET_REPORT_OPT_IN_CHANGED,
   },
   {
     name: 'TrayIcon',
-    Component: TrayIcon,
+    component: TrayIcon,
     stateKey: 'isTrayIconEnabled',
     actionType: SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED,
   },
   {
     name: 'TransparentWindow',
-    Component: TransparentWindow,
+    component: TransparentWindow,
     stateKey: 'isTransparentWindowEnabled',
     actionType: SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
   },
   {
     name: 'VerboseOutlookLogging',
-    Component: VerboseOutlookLogging,
+    component: VerboseOutlookLogging,
     stateKey: 'isVerboseOutlookLoggingEnabled',
     actionType: SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED,
   },
   {
     name: 'VideoCallWindowPersistence',
-    Component: VideoCallWindowPersistence,
+    component: VideoCallWindowPersistence,
     stateKey: 'isVideoCallWindowPersistenceEnabled',
     actionType: SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED,
   },
   {
     name: 'InternalVideoChatWindow',
-    Component: InternalVideoChatWindow,
+    component: InternalVideoChatWindow,
     stateKey: 'isInternalVideoChatWindowEnabled',
     actionType: SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED,
   },
   {
     name: 'FlashFrame',
-    Component: FlashFrame,
+    component: FlashFrame,
     stateKey: 'isFlashFrameEnabled',
     actionType: SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED,
   },
@@ -123,19 +124,19 @@ const simpleToggles: ToggleCase[] = [
 
 describe.each(simpleToggles)(
   '$name',
-  ({ Component, stateKey, actionType, extraState = {} }) => {
+  ({ component, stateKey, actionType, extraState = {} }) => {
     it('renders unchecked when setting is false', () => {
-      renderWithState(Component, { [stateKey]: false, ...extraState });
+      renderWithState(component, { [stateKey]: false, ...extraState });
       expect(screen.getByRole('checkbox')).not.toBeChecked();
     });
 
     it('renders checked when setting is true', () => {
-      renderWithState(Component, { [stateKey]: true, ...extraState });
+      renderWithState(component, { [stateKey]: true, ...extraState });
       expect(screen.getByRole('checkbox')).toBeChecked();
     });
 
     it('dispatches change action on toggle', () => {
-      const { dispatchSpy } = renderWithState(Component, {
+      const { dispatchSpy } = renderWithState(component, {
         [stateKey]: false,
         ...extraState,
       });

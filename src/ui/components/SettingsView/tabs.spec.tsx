@@ -110,7 +110,9 @@ describe('Settings tabs', () => {
   it('VoiceVideoTab mounts telephony and video sections', () => {
     render(<VoiceVideoTab />);
     expect(screen.getByText('settings.sections.telephony')).toBeInTheDocument();
-    expect(screen.getByText('settings.sections.videoCalls')).toBeInTheDocument();
+    expect(
+      screen.getByText('settings.sections.videoCalls')
+    ).toBeInTheDocument();
     expect(screen.getByTestId('telephony')).toBeInTheDocument();
     expect(screen.getByTestId('internal-video')).toBeInTheDocument();
   });

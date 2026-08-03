@@ -1,5 +1,7 @@
 import fs from 'fs';
 
+import { openLogViewerWindow, startLogViewerWindowHandler } from '../ipc';
+
 const handlers = new Map<string, Function>();
 const select = jest.fn();
 const getRootWindow = jest.fn();
@@ -44,8 +46,8 @@ jest.mock('fs', () => {
         }
       }
     ),
-    writeFile: jest.fn(
-      (_p: string, _data: string, cb?: (err: null) => void) => cb?.(null)
+    writeFile: jest.fn((_p: string, _data: string, cb?: (err: null) => void) =>
+      cb?.(null)
     ),
   };
 });
@@ -128,8 +130,6 @@ jest.mock('../../ui/main/rootWindow', () => ({
   getRootWindow: (...args: unknown[]) => getRootWindow(...args),
 }));
 
-import { openLogViewerWindow, startLogViewerWindowHandler } from '../ipc';
-
 describe('logViewerWindow/ipc', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -157,9 +157,12 @@ describe('logViewerWindow/ipc', () => {
     startLogViewerWindowHandler();
     expect(handlers.has('log-viewer-window/read-logs')).toBe(true);
 
-    const result = await handlers.get('log-viewer-window/read-logs')?.({}, {
-      limit: 2,
-    });
+    const result = await handlers.get('log-viewer-window/read-logs')?.(
+      {},
+      {
+        limit: 2,
+      }
+    );
     expect(result.success).toBe(true);
     expect(result.logs).toEqual(expect.any(String));
     expect(result.fileName).toBe('main.log');
@@ -187,9 +190,9 @@ describe('logViewerWindow/ipc', () => {
 
   it('returns server mapping', async () => {
     startLogViewerWindowHandler();
-    const result = await handlers.get(
-      'log-viewer-window/get-server-mapping'
-    )?.({});
+    const result = await handlers.get('log-viewer-window/get-server-mapping')?.(
+      {}
+    );
     expect(result.success).toBe(true);
     expect(result.mapping['open.rocket.chat']).toBe('Community');
   });
@@ -202,9 +205,12 @@ describe('logViewerWindow/ipc', () => {
 
   it('reads all logs when limit is all', async () => {
     startLogViewerWindowHandler();
-    const result = await handlers.get('log-viewer-window/read-logs')?.({}, {
-      limit: 'all',
-    });
+    const result = await handlers.get('log-viewer-window/read-logs')?.(
+      {},
+      {
+        limit: 'all',
+      }
+    );
     expect(result.success).toBe(true);
     expect(result.logs).toContain('first');
     expect(result.logs).toContain('third');
@@ -222,7 +228,9 @@ describe('logViewerWindow/ipc', () => {
     dialog.showOpenDialog.mockResolvedValue({ canceled: true, filePaths: [] });
     await openLogViewerWindow();
     startLogViewerWindowHandler();
-    const result = await handlers.get('log-viewer-window/select-log-file')?.({});
+    const result = await handlers.get('log-viewer-window/select-log-file')?.(
+      {}
+    );
     expect(result.canceled || result.success === false).toBe(true);
   });
 
@@ -240,9 +248,9 @@ describe('logViewerWindow/ipc', () => {
     dialog.showMessageBox.mockResolvedValue({ response: 1 });
     await openLogViewerWindow();
     startLogViewerWindowHandler();
-    const result = await handlers.get(
-      'log-viewer-window/confirm-clear-logs'
-    )?.({});
+    const result = await handlers.get('log-viewer-window/confirm-clear-logs')?.(
+      {}
+    );
     expect(typeof result === 'boolean' || result === undefined).toBe(true);
   });
 });

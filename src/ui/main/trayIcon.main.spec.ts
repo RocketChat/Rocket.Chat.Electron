@@ -1,3 +1,5 @@
+export {};
+
 const select = jest.fn();
 const dispatch = jest.fn();
 const watchCallbacks = new Map<unknown, Function>();

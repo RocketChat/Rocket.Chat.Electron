@@ -1,3 +1,5 @@
+export {};
+
 const handlers = new Map<string, Function>();
 const watchFns: Array<(curr: any, prev: any) => void> = [];
 const dispatch = jest.fn();

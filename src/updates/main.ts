@@ -217,25 +217,39 @@ const endSimulatedUpdate = (): void => {
   dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 };
 
+// Thrown values are not guaranteed to be Errors, and the dispatched payload
+// crosses the IPC boundary, so it has to be a plain serializable object.
+const normalizeUpdateError = (
+  error: unknown
+): Pick<Error, 'message' | 'stack' | 'name'> =>
+  error instanceof Error
+    ? { message: error.message, stack: error.stack, name: error.name }
+    : { message: String(error), stack: undefined, name: 'Error' };
+
 /** Quits and relaunches into the freshly downloaded update. */
 const installDownloadedUpdate = (): void => {
   // The try/catch must live inside the setImmediate callback: a throw from a
   // later tick escapes a catch wrapping only the scheduling call, which is how
   // macOS install failures went unreported for years (see #955).
   setImmediate(() => {
+    // Detached so the pending quit isn't cancelled by the app's own
+    // window-all-closed handler. If the install fails we never quit, so the
+    // listeners have to go back or closing every window would no longer
+    // reach that handler for the rest of the session.
+    const windowAllClosedListeners = app.listeners('window-all-closed');
+    app.removeAllListeners('window-all-closed');
+
     try {
-      app.removeAllListeners('window-all-closed');
       autoUpdater.quitAndInstall(true, true);
     } catch (error) {
-      error instanceof Error &&
-        dispatch({
-          type: UPDATES_ERROR_THROWN,
-          payload: {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-          },
-        });
+      for (const listener of windowAllClosedListeners) {
+        app.addListener('window-all-closed', listener as () => void);
+      }
+
+      dispatch({
+        type: UPDATES_ERROR_THROWN,
+        payload: normalizeUpdateError(error),
+      });
     }
   });
 };

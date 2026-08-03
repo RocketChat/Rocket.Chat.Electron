@@ -80,9 +80,24 @@ jest.mock('../../ui/main/dialogs', () => ({
 import { setupUpdates } from '../main';
 
 describe('updates/setupUpdates', () => {
+  // `isUpdatingAllowed` is computed by the real loadConfiguration() selector
+  // straight from process.platform/process.mas/process.windowsStore — never
+  // from the mocked store state — so it varies by CI runner OS unless pinned
+  // here. Force the win32-without-windowsStore branch deterministically.
+  const originalPlatform = process.platform;
+  const originalWindowsStore = process.windowsStore;
+
   beforeEach(() => {
     jest.clearAllMocks();
     listeners.clear();
+    Object.defineProperty(process, 'platform', {
+      value: 'win32',
+      configurable: true,
+    });
+    Object.defineProperty(process, 'windowsStore', {
+      value: false,
+      configurable: true,
+    });
     select.mockImplementation((selector: any) =>
       selector({
         isUpdatingEnabled: true,
@@ -100,6 +115,17 @@ describe('updates/setupUpdates', () => {
       })
     );
     (fs.promises.readFile as jest.Mock).mockResolvedValue('{}');
+  });
+
+  afterEach(() => {
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      configurable: true,
+    });
+    Object.defineProperty(process, 'windowsStore', {
+      value: originalWindowsStore,
+      configurable: true,
+    });
   });
 
   it('wires autoUpdater and action listeners', async () => {

@@ -1,4 +1,5 @@
 import type * as fs from 'fs';
+import path from 'path';
 
 import { app } from 'electron';
 
@@ -81,7 +82,7 @@ describe('logging/cleanup', () => {
     cleanupOldLogs(1);
 
     expect(unlinkSync).toHaveBeenCalledTimes(1);
-    expect(unlinkSync).toHaveBeenCalledWith(`${logsPath}/old.log`);
+    expect(unlinkSync).toHaveBeenCalledWith(path.join(logsPath, 'old.log'));
     expect(infoMock).toHaveBeenCalledWith(
       '[logging] Cleaned up 1 old log file(s)'
     );
@@ -125,7 +126,7 @@ describe('logging/cleanup', () => {
 
     cleanupOldLogs();
 
-    expect(unlinkSync).toHaveBeenCalledWith(`${logsPath}/old.log`);
+    expect(unlinkSync).toHaveBeenCalledWith(path.join(logsPath, 'old.log'));
     expect(infoMock).toHaveBeenCalledWith(
       '[logging] Cleaned up 1 old log file(s)'
     );

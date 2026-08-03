@@ -681,6 +681,12 @@ describe('ui/main/menuBar', () => {
     });
 
     it('shows inactive root window before focusing when hidden', async () => {
+      // Use windowMenu's 'settings' item: it carries the same
+      // show-if-hidden-then-focus behavior as the darwin-only 'about'/
+      // 'preferences' items, but unlike those, it is registered on every
+      // platform — selectMenuBarTemplate is memoized per createSelector, so a
+      // test-local process.platform override can't force recomputation of a
+      // platform-gated item already cached under the runner's real platform.
       mockBrowserWindow.isVisible.mockReturnValue(false);
       const state = createState({
         isAddNewServersEnabled: true,
@@ -688,11 +694,12 @@ describe('ui/main/menuBar', () => {
       const template = selectMenuBarTemplate(
         state
       ) as MenuItemConstructorOptions[];
-      const appMenu = findMenu(template, 'appMenu');
-      const about = (appMenu.submenu as MenuItemConstructorOptions[]).find(
-        (item) => item.id === 'about'
-      );
-      await about?.click?.({} as any, mockBrowserWindow as any, {} as any);
+      const windowMenu = findMenu(template, 'windowMenu');
+      const settings = (
+        windowMenu.submenu as MenuItemConstructorOptions[]
+      ).find((item) => item.id === 'settings');
+      expect(settings).toBeDefined();
+      await settings?.click?.({} as any, mockBrowserWindow as any, {} as any);
       expect(mockBrowserWindow.showInactive).toHaveBeenCalled();
       expect(mockBrowserWindow.focus).toHaveBeenCalled();
     });

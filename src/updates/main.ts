@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
+import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { gt as semverGt, inc as semverInc } from 'semver';
 
@@ -217,28 +217,25 @@ const endSimulatedUpdate = (): void => {
   dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 };
 
-const nativeUpdateDownloadedCallback = (): void => {
-  nativeUpdater.removeListener(
-    'update-downloaded',
-    nativeUpdateDownloadedCallback
-  );
-  nativeUpdater.quitAndInstall();
-};
-
 /** Quits and relaunches into the freshly downloaded update. */
 const installDownloadedUpdate = (): void => {
+  // The try/catch must live inside the setImmediate callback: a throw from a
+  // later tick escapes a catch wrapping only the scheduling call, which is how
+  // macOS install failures went unreported for years (see #955).
   setImmediate(() => {
-    app.removeAllListeners('window-all-closed');
-    if (process.platform === 'darwin') {
-      const allBrowserWindows = BrowserWindow.getAllWindows();
-      allBrowserWindows.forEach((browserWindow) => {
-        browserWindow.removeAllListeners('close');
-        browserWindow.destroy();
-      });
-      nativeUpdater.checkForUpdates();
-      nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);
-    } else {
+    try {
+      app.removeAllListeners('window-all-closed');
       autoUpdater.quitAndInstall(true, true);
+    } catch (error) {
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   });
 };

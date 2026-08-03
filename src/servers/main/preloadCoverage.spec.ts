@@ -3,6 +3,15 @@
  * coverage counts them under `yarn test:coverage` (renderer preload specs are
  * skipped when --coverage is set due to EvalError).
  */
+import {
+  WEBVIEW_UNREAD_CHANGED,
+  WEBVIEW_SERVER_VERSION_UPDATED,
+  WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+  WEBVIEW_TITLE_CHANGED,
+  WEBVIEW_GIT_COMMIT_HASH_CHECK,
+  WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
+  WEBVIEW_USER_LOGGED_IN,
+} from '../../ui/actions';
 
 const dispatch = jest.fn();
 const request = jest.fn();
@@ -227,64 +236,135 @@ describe('preload modules coverage (node env)', () => {
   });
 
   it('covers small servers/preload setters', () => {
+    const SERVER_URL = 'https://open.rocket.chat';
+
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setBadge } = require('../preload/badge');
     setBadge(3);
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_UNREAD_CHANGED,
+      payload: { url: SERVER_URL, badge: 3 },
+    });
     setBadge('•');
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_UNREAD_CHANGED,
+      payload: { url: SERVER_URL, badge: '•' },
+    });
     setBadge(undefined);
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_UNREAD_CHANGED,
+      payload: { url: SERVER_URL, badge: undefined },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { writeTextToClipboard } = require('../preload/clipboard');
     writeTextToClipboard('hello');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { clipboard } = require('electron');
+    expect(clipboard.writeText).toHaveBeenCalledWith('hello');
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setVersion } = require('../preload/version');
     setVersion('6.5.0');
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_SERVER_VERSION_UPDATED,
+      payload: { url: SERVER_URL, version: '6.5.0' },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setWorkspaceUID } = require('../preload/uniqueID');
     setWorkspaceUID('uid-1');
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+      payload: { url: SERVER_URL, uniqueID: 'uid-1' },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setTitle } = require('../preload/title');
     setTitle('Community');
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_TITLE_CHANGED,
+      payload: { url: SERVER_URL, title: 'Community' },
+    });
+    // non-string titles are ignored
+    dispatch.mockClear();
+    setTitle(undefined as unknown as string);
+    expect(dispatch).not.toHaveBeenCalled();
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setGitCommitHash } = require('../preload/gitCommitHash');
     setGitCommitHash('deadbeef');
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_GIT_COMMIT_HASH_CHECK,
+      payload: { url: SERVER_URL, gitCommitHash: 'deadbeef' },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { reloadServer } = require('../preload/reloadServer');
     reloadServer();
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
+      payload: SERVER_URL,
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { openInBrowser } = require('../preload/openInBrowser');
     openInBrowser('https://example.com');
+    expect(ipcInvoke).toHaveBeenCalledWith(
+      'browser/open-url',
+      'https://example.com/'
+    );
+    ipcInvoke.mockClear();
+    openInBrowser('javascript:alert(1)');
+    expect(ipcInvoke).not.toHaveBeenCalled();
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setUserLoggedIn } = require('../preload/userLoggedIn');
+    dispatch.mockClear();
     setUserLoggedIn(true);
+    // userLoggedIn=true also kicks off the async updateUserRoles() REST
+    // fallback (fire-and-forget), so only the synchronous dispatch is asserted here.
+    expect(dispatch).toHaveBeenCalledWith({
+      type: WEBVIEW_USER_LOGGED_IN,
+      payload: { url: SERVER_URL, userLoggedIn: true },
+    });
+    dispatch.mockClear();
     setUserLoggedIn(false);
+    // userLoggedIn=false also synchronously calls clearUserRoles(), which
+    // dispatches a second WEBVIEW_USER_ROLES_CHANGED action right after.
+    expect(dispatch).toHaveBeenNthCalledWith(1, {
+      type: WEBVIEW_USER_LOGGED_IN,
+      payload: { url: SERVER_URL, userLoggedIn: false },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setUserThemeAppearance } = require('../preload/themeAppearance');
-    setUserThemeAppearance('dark');
+    // No-op kept for desktop-api backwards compatibility: must not throw or dispatch.
+    dispatch.mockClear();
+    expect(() => setUserThemeAppearance('dark' as any)).not.toThrow();
+    expect(dispatch).not.toHaveBeenCalled();
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       getE2ePdfPreviewSizeLimit,
     } = require('../preload/e2ePdfPreviewSizeLimit');
-    expect(getE2ePdfPreviewSizeLimit()).toEqual(expect.any(Number));
+    expect(getE2ePdfPreviewSizeLimit()).toBe(10);
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const {
       openDocumentViewer,
       supportedDocumentViewerFormats,
     } = require('../preload/documentViewer');
-    expect(supportedDocumentViewerFormats().length).toBeGreaterThan(0);
-    openDocumentViewer('https://open.rocket.chat/file.pdf', 'pdf', {});
-
-    expect(dispatch).toHaveBeenCalled();
+    expect(supportedDocumentViewerFormats()).toEqual(['pdf', 'markdown']);
+    openDocumentViewer('https://open.rocket.chat/file.pdf', 'pdf', {
+      page: 1,
+    });
+    expect(ipcInvoke).toHaveBeenCalledWith(
+      'document-viewer/open-window',
+      'https://open.rocket.chat/file.pdf',
+      'pdf',
+      { page: 1 }
+    );
   });
 
   it('covers favicon and sidebar with DOM mocks', () => {
@@ -578,17 +658,13 @@ describe('preload modules coverage (node env)', () => {
         appIcon: { toDataURL: () => 'data:icon' },
       },
     ]);
-    await jitsi.JitsiMeetElectron.obtainDesktopStreams(
-      jest.fn(),
-      jest.fn(),
-      { types: ['screen'] }
-    );
+    await jitsi.JitsiMeetElectron.obtainDesktopStreams(jest.fn(), jest.fn(), {
+      types: ['screen'],
+    });
     ipcInvoke.mockRejectedValueOnce(new Error('denied'));
-    await jitsi.JitsiMeetElectron.obtainDesktopStreams(
-      jest.fn(),
-      jest.fn(),
-      { types: ['window'] }
-    );
+    await jitsi.JitsiMeetElectron.obtainDesktopStreams(jest.fn(), jest.fn(), {
+      types: ['window'],
+    });
 
     jest.resetModules();
     installDomGlobals();

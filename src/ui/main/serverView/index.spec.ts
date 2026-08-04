@@ -346,6 +346,20 @@ describe('serverView before-input-event fullscreen handling', () => {
     });
   });
 
+  it('leaves HTML5 fullscreen to Chromium on other platforms', async () => {
+    setPlatform('linux');
+    await attachGuest();
+    enterHtmlFullscreen();
+
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput());
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(guestWebContents.executeJavaScript).not.toHaveBeenCalled();
+    expect(guestWebContents.sendInputEvent).not.toHaveBeenCalled();
+    expect(rootWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
+  });
+
   it('leaves Escape alone on other platforms', async () => {
     setPlatform('linux');
     await attachGuest();

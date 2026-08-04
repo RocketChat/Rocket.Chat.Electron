@@ -481,6 +481,138 @@ describe('rootWindow close event handler', () => {
   });
 });
 
+describe('rootWindow Escape fullscreen guard', () => {
+  const originalPlatform = process.platform;
+
+  let mockWindow: any;
+
+  const setPlatform = (platform: NodeJS.Platform): void => {
+    Object.defineProperty(process, 'platform', {
+      value: platform,
+      configurable: true,
+    });
+  };
+
+  const createInput = (overrides: Record<string, unknown> = {}): any => ({
+    type: 'keyDown',
+    key: 'Escape',
+    code: 'Escape',
+    isAutoRepeat: false,
+    isComposing: false,
+    shift: false,
+    control: false,
+    alt: false,
+    meta: false,
+    location: 0,
+    modifiers: [],
+    ...overrides,
+  });
+
+  const setupAndGetHandler = async (): Promise<any> => {
+    const { setupRootWindow } = require('./rootWindow');
+    require('./rootWindow').getRootWindow = jest
+      .fn()
+      .mockResolvedValue(mockWindow);
+
+    setupRootWindow();
+    await Promise.resolve();
+
+    const call = mockWindow.webContents.addListener.mock.calls.find(
+      ([event]: any[]) => event === 'before-input-event'
+    );
+
+    expect(call).toBeDefined();
+
+    return call[1];
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setPlatform('darwin');
+
+    (require('../../store').select as jest.Mock).mockImplementation(
+      (selector: any) => selector({ isTrayIconEnabled: false })
+    );
+
+    mockWindow = {
+      addListener: jest.fn(),
+      removeAllListeners: jest.fn(),
+      close: jest.fn(),
+      hide: jest.fn(),
+      minimize: jest.fn(),
+      blur: jest.fn(),
+      isFullScreen: jest.fn(() => true),
+      isSimpleFullScreen: jest.fn(() => false),
+      isDestroyed: jest.fn(() => false),
+      setFullScreen: jest.fn(),
+      once: jest.fn(),
+      flashFrame: jest.fn(),
+      setIcon: jest.fn(),
+      setTitle: jest.fn(),
+      setOverlayIcon: jest.fn(),
+      autoHideMenuBar: false,
+      setMenuBarVisibility: jest.fn(),
+      webContents: {
+        addListener: jest.fn(),
+        sendInputEvent: jest.fn(),
+      },
+    };
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
+  });
+
+  it('swallows Escape so it cannot reach the native window while in fullscreen', async () => {
+    const handler = await setupAndGetHandler();
+    const event = { preventDefault: jest.fn() };
+
+    handler(event, createInput());
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(mockWindow.webContents.sendInputEvent).toHaveBeenCalledWith({
+      type: 'keyDown',
+      keyCode: 'Escape',
+      modifiers: [],
+    });
+    expect(mockWindow.setFullScreen).not.toHaveBeenCalled();
+  });
+
+  it('lets the replayed Escape reach the renderer', async () => {
+    const handler = await setupAndGetHandler();
+    handler({ preventDefault: jest.fn() }, createInput());
+    mockWindow.webContents.sendInputEvent.mockClear();
+
+    const event = { preventDefault: jest.fn() };
+    handler(event, createInput());
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
+  });
+
+  it('leaves Escape untouched when the window is not in fullscreen', async () => {
+    mockWindow.isFullScreen.mockReturnValue(false);
+    const handler = await setupAndGetHandler();
+    const event = { preventDefault: jest.fn() };
+
+    handler(event, createInput());
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
+  });
+
+  it('leaves Escape untouched on other platforms', async () => {
+    setPlatform('win32');
+    const handler = await setupAndGetHandler();
+    const event = { preventDefault: jest.fn() };
+
+    handler(event, createInput());
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
+  });
+});
+
 describe('isInsideSomeScreen', () => {
   const { isInsideSomeScreen } = require('./rootWindow');
 

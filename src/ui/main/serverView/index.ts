@@ -385,12 +385,17 @@ const initializeServerWebContentsAfterAttach = (
     }
 
     if (key === 'Escape') {
-      // While the guest is in HTML5 fullscreen (e.g. a video player) ESC must
-      // only leave the video fullscreen, like Chrome does: swallow the native
-      // key event so it cannot reach the native window and exit its fullscreen,
-      // and drive the fullscreen exit explicitly. Calling it on the guest's main
-      // frame also covers a fullscreen element inside a nested frame.
-      if (isGuestInHtmlFullscreen && type === 'keyDown') {
+      // On macOS, while the guest is in HTML5 fullscreen (e.g. a video player)
+      // ESC must only leave the video fullscreen, like Chrome does: swallow the
+      // native key event so it cannot reach the native window and exit its
+      // fullscreen, and drive the fullscreen exit explicitly. Calling it on the
+      // guest's main frame also covers a fullscreen element inside a nested
+      // frame. Windows and Linux keep leaving this to Chromium.
+      if (
+        process.platform === 'darwin' &&
+        isGuestInHtmlFullscreen &&
+        type === 'keyDown'
+      ) {
         event.preventDefault();
         exitGuestHtmlFullscreen();
         return;
@@ -404,6 +409,10 @@ const initializeServerWebContentsAfterAttach = (
       // The root window only reacts to ESC on key down; forwarding the key up as
       // well would leak an unguarded ESC once the guest left HTML5 fullscreen.
       if (type !== 'keyDown') {
+        return;
+      }
+
+      if (isGuestInHtmlFullscreen) {
         return;
       }
     }

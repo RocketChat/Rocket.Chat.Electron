@@ -151,7 +151,12 @@ describe('TabBar', () => {
     renderTabBar(<TabBar />, {
       preloadedState: buildState({
         servers: [
-          { url: 'https://a.rocket.chat/', title: 'Server A', badge: 150 },
+          {
+            url: 'https://a.rocket.chat/',
+            title: 'Server A',
+            badge: 150,
+            userLoggedIn: true,
+          },
         ],
       }),
     });
@@ -176,6 +181,44 @@ describe('TabBar', () => {
     const badges = container.querySelectorAll('.rcx-badge');
     expect(badges).toHaveLength(1);
     expect(badges[0]).toHaveTextContent('');
+  });
+
+  it('shows only the login warning when a logged-out server also has unread messages', () => {
+    const { container } = renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [
+          {
+            url: 'https://a.rocket.chat/',
+            title: 'Server A',
+            badge: '•',
+            userLoggedIn: false,
+          },
+        ],
+      }),
+    });
+
+    const badges = container.querySelectorAll('.rcx-badge');
+    expect(badges).toHaveLength(1);
+    expect(badges[0]).toHaveTextContent('!');
+  });
+
+  it('shows the mention count instead of the unread dot when the badge is a number', () => {
+    const { container } = renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [
+          {
+            url: 'https://a.rocket.chat/',
+            title: 'Server A',
+            badge: 3,
+            userLoggedIn: true,
+          },
+        ],
+      }),
+    });
+
+    const badges = container.querySelectorAll('.rcx-badge');
+    expect(badges).toHaveLength(1);
+    expect(badges[0]).toHaveTextContent('3');
   });
 
   it('renders initials as a fallback when there is no favicon', () => {
@@ -339,7 +382,12 @@ describe('TabBar', () => {
     renderTabBar(<TabBar />, {
       preloadedState: buildState({
         servers: [
-          { url: 'https://a.rocket.chat/', title: 'Server A', badge: 97 },
+          {
+            url: 'https://a.rocket.chat/',
+            title: 'Server A',
+            badge: 97,
+            userLoggedIn: true,
+          },
         ],
       }),
     });
@@ -384,12 +432,61 @@ describe('TabBar', () => {
       renderTabBar(<TabBar orientation='vertical' />, {
         preloadedState: buildState({
           servers: [
-            { url: 'https://a.rocket.chat/', title: 'Server A', badge: 5 },
+            {
+              url: 'https://a.rocket.chat/',
+              title: 'Server A',
+              badge: 5,
+              userLoggedIn: true,
+            },
           ],
         }),
       });
 
       expect(screen.getByText('5')).toBeInTheDocument();
+    });
+
+    // Every badge — the unread '•' dot, the '!' warning, a wider mention
+    // count — must share one centre point so size and variant never change
+    // where the badge appears. An edge-anchored wrapper would let width leak
+    // into placement and shift narrower badges off the others' centre.
+    it('centres every badge on the same point regardless of size or variant', () => {
+      const getWrapperOffsets = (badgeProps: Record<string, unknown>) => {
+        const { unmount } = renderTabBar(<TabBar orientation='vertical' />, {
+          preloadedState: buildState({
+            servers: [
+              {
+                url: 'https://a.rocket.chat/',
+                title: 'Server A',
+                ...badgeProps,
+              },
+            ],
+          }),
+        });
+
+        const tab = screen.getByRole('tab');
+        const wrapper = tab.querySelector('div');
+        const style = wrapper ? getComputedStyle(wrapper) : null;
+        const offsets = {
+          top: style?.top,
+          left: style?.left,
+        };
+
+        unmount();
+        return offsets;
+      };
+
+      const dot = getWrapperOffsets({ badge: '•', userLoggedIn: true });
+      const warning = getWrapperOffsets({ userLoggedIn: false });
+      const mentionCount = getWrapperOffsets({ badge: 42, userLoggedIn: true });
+
+      // The anchor is declared in px and paired with translate(-50%, -50%), so
+      // an identical top/left across variants means an identical centre. (jsdom
+      // resolves the percentage transform against each badge's measured box, so
+      // the declared anchor — not the computed matrix — is what to compare.)
+      expect(dot.top).toBe('4px');
+      expect(dot.left).toBe('28px');
+      expect(warning).toEqual(dot);
+      expect(mentionCount).toEqual(dot);
     });
   });
 });

@@ -1,4 +1,10 @@
-import type { DragEvent, FocusEvent, KeyboardEvent, MouseEvent } from 'react';
+import type {
+  DragEvent,
+  FocusEvent,
+  KeyboardEvent,
+  MouseEvent,
+  ReactNode,
+} from 'react';
 import { useContext, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -93,6 +99,7 @@ const WorkspaceTab = ({
   const mentionCount =
     typeof badge === 'number' && badge > 0 ? badge : undefined;
   const displayCount = formatMentionCount(mentionCount);
+  const hasUnreadMessages = badge !== undefined && typeof badge !== 'number';
 
   const shortcutSuffix =
     shortcutNumber && Number(shortcutNumber) >= 1 && Number(shortcutNumber) <= 9
@@ -104,7 +111,7 @@ const WorkspaceTab = ({
       return ` — ${t('tabBar.unreadMessage', { count: mentionCount })}`;
     }
 
-    if (badge === '•') {
+    if (hasUnreadMessages) {
       return ` — ${t('tabBar.unreadMessages')}`;
     }
 
@@ -164,13 +171,21 @@ const WorkspaceTab = ({
   const isVertical = orientation === 'vertical';
   const showLabel = !compact && !isVertical;
 
-  const badges = (
-    <>
-      {displayCount && <TabBadge variant='ghost'>{displayCount}</TabBadge>}
-      {!displayCount && badge === '•' && <UnreadDot variant='ghost' />}
-      {!userLoggedIn && <TabBadge variant='warning'>!</TabBadge>}
-    </>
-  );
+  // Exactly one badge at a time: a logged-out server's unread state is stale,
+  // so the login warning wins; otherwise a mention count beats the plain
+  // unread dot.
+  const badgeElement = ((): ReactNode => {
+    if (!userLoggedIn) {
+      return <TabBadge variant='warning'>!</TabBadge>;
+    }
+    if (displayCount) {
+      return <TabBadge variant='ghost'>{displayCount}</TabBadge>;
+    }
+    if (hasUnreadMessages) {
+      return <UnreadDot variant='ghost' />;
+    }
+    return null;
+  })();
 
   return (
     <>
@@ -212,7 +227,11 @@ const WorkspaceTab = ({
         {showLabel && isShortcutVisible && shortcutNumber && (
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}
-        {isVertical ? <BadgeWrapper>{badges}</BadgeWrapper> : badges}
+        {isVertical ? (
+          <BadgeWrapper>{badgeElement}</BadgeWrapper>
+        ) : (
+          badgeElement
+        )}
       </Tab>
       <Divider orientation={orientation}></Divider>
     </>

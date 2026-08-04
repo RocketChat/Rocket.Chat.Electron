@@ -34,6 +34,7 @@ import {
 import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
+import { createEscapeFullscreenGuard } from './escapeFullscreenGuard';
 import { getTrayIconPath } from './icons';
 
 const webPreferences: WebPreferences = {
@@ -407,6 +408,17 @@ export const setupRootWindow = (): void => {
 
     rootWindow.addListener('focus', async () => {
       rootWindow.flashFrame(false);
+    });
+
+    const escapeFullscreenGuard = createEscapeFullscreenGuard(
+      rootWindow.webContents,
+      () => rootWindow.isFullScreen() || rootWindow.isSimpleFullScreen()
+    );
+
+    rootWindow.webContents.addListener('before-input-event', (event, input) => {
+      if (escapeFullscreenGuard.handleInput(input)) {
+        event.preventDefault();
+      }
     });
 
     rootWindow.addListener('close', async (event) => {

@@ -54,8 +54,13 @@ describe('rootWindow close event handler', () => {
       minimize: jest.fn(),
       blur: jest.fn(),
       isFullScreen: jest.fn(() => false),
+      isSimpleFullScreen: jest.fn(() => false),
       isDestroyed: jest.fn(() => false),
       setFullScreen: jest.fn(),
+      webContents: {
+        addListener: jest.fn(),
+        sendInputEvent: jest.fn(),
+      },
       once: jest.fn(),
       flashFrame: jest.fn(),
       setIcon: jest.fn(),

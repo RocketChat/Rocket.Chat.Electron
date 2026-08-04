@@ -43,6 +43,7 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
 } from '../../actions';
+import { createEscapeFullscreenGuard } from '../escapeFullscreenGuard';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
@@ -354,10 +355,25 @@ const initializeServerWebContentsAfterAttach = (
     isGuestInHtmlFullscreen = false;
   });
 
-  const handleBeforeInputEvent = (
-    _event: Event,
-    { type, key }: Input
-  ): void => {
+  const escapeFullscreenGuard = createEscapeFullscreenGuard(
+    guestWebContents,
+    () => rootWindow.isFullScreen() || rootWindow.isSimpleFullScreen()
+  );
+
+  const exitGuestHtmlFullscreen = (): void => {
+    guestWebContents
+      .executeJavaScript('document.exitFullscreen && document.exitFullscreen()')
+      .catch((error) => {
+        console.error(
+          'Failed to exit HTML5 fullscreen on the server view:',
+          error
+        );
+      });
+  };
+
+  const handleBeforeInputEvent = (event: Event, input: Input): void => {
+    const { type, key } = input;
+
     if (type !== 'keyUp' && type !== 'keyDown') {
       return;
     }
@@ -368,11 +384,28 @@ const initializeServerWebContentsAfterAttach = (
       return;
     }
 
-    // On macOS, forwarding ESC to the root window while the guest is in
-    // HTML5 fullscreen (e.g. a video player) causes the native window to
-    // also exit fullscreen. This does not occur on Windows/Linux.
-    if (key === 'Escape' && isGuestInHtmlFullscreen) {
-      return;
+    if (key === 'Escape') {
+      // While the guest is in HTML5 fullscreen (e.g. a video player) ESC must
+      // only leave the video fullscreen, like Chrome does: swallow the native
+      // key event so it cannot reach the native window and exit its fullscreen,
+      // and drive the fullscreen exit explicitly. Calling it on the guest's main
+      // frame also covers a fullscreen element inside a nested frame.
+      if (isGuestInHtmlFullscreen && type === 'keyDown') {
+        event.preventDefault();
+        exitGuestHtmlFullscreen();
+        return;
+      }
+
+      if (escapeFullscreenGuard.handleInput(input)) {
+        event.preventDefault();
+        return;
+      }
+
+      // The root window only reacts to ESC on key down; forwarding the key up as
+      // well would leak an unguarded ESC once the guest left HTML5 fullscreen.
+      if (type !== 'keyDown') {
+        return;
+      }
     }
 
     rootWindow.webContents.sendInputEvent({

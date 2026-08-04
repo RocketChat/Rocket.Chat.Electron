@@ -1,9 +1,10 @@
-import type { Event, WebContents } from 'electron';
+import type { Event, Input, WebContents } from 'electron';
 
 import { isProtocolAllowed } from '../../../navigation/main';
 import { listen } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
-import { WEBVIEW_READY } from '../../actions';
+import { WEBVIEW_ATTACHED, WEBVIEW_READY } from '../../actions';
+import { getRootWindow } from '../rootWindow';
 import { attachGuestWebContentsEvents } from './index';
 
 jest.mock('electron', () => ({
@@ -152,5 +153,212 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
     await Promise.resolve();
 
     expect(mockOpenExternal).not.toHaveBeenCalled();
+  });
+});
+
+describe('serverView before-input-event fullscreen handling', () => {
+  const mockListen = listen as unknown as jest.Mock;
+  const mockGetRootWindow = getRootWindow as jest.MockedFunction<
+    typeof getRootWindow
+  >;
+  const originalPlatform = process.platform;
+
+  let beforeInputEventHandler: (event: Event, input: Input) => void;
+  let guestListeners: Map<string, (...args: any[]) => void>;
+  let guestWebContents: {
+    sendInputEvent: jest.Mock;
+    executeJavaScript: jest.Mock;
+  };
+  let rootWindow: {
+    isFullScreen: jest.Mock;
+    isSimpleFullScreen: jest.Mock;
+    webContents: { sendInputEvent: jest.Mock; addListener: jest.Mock };
+  };
+
+  const setPlatform = (platform: NodeJS.Platform): void => {
+    Object.defineProperty(process, 'platform', {
+      value: platform,
+      configurable: true,
+    });
+  };
+
+  const createInput = (overrides: Partial<Input> = {}): Input =>
+    ({
+      type: 'keyDown',
+      key: 'Escape',
+      code: 'Escape',
+      isAutoRepeat: false,
+      isComposing: false,
+      shift: false,
+      control: false,
+      alt: false,
+      meta: false,
+      location: 0,
+      modifiers: [],
+      ...overrides,
+    }) as Input;
+
+  const createEvent = (): Event =>
+    ({ preventDefault: jest.fn() }) as unknown as Event;
+
+  const attachGuest = async (): Promise<void> => {
+    await attachGuestWebContentsEvents();
+
+    const webviewAttachedCall = mockListen.mock.calls.find(
+      ([actionType]) => actionType === WEBVIEW_ATTACHED
+    );
+    const webviewAttachedCallback = webviewAttachedCall?.[1] as (
+      action: unknown
+    ) => void;
+
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockReturnValue(guestWebContents);
+
+    webviewAttachedCallback({
+      payload: { webContentsId: 1, url: 'https://open.rocket.chat' },
+    });
+
+    beforeInputEventHandler = guestListeners.get('before-input-event') as (
+      event: Event,
+      input: Input
+    ) => void;
+  };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    setPlatform('darwin');
+
+    guestListeners = new Map();
+    rootWindow = {
+      isFullScreen: jest.fn(() => true),
+      isSimpleFullScreen: jest.fn(() => false),
+      webContents: { sendInputEvent: jest.fn(), addListener: jest.fn() },
+    };
+    mockGetRootWindow.mockResolvedValue(rootWindow as any);
+
+    guestWebContents = {
+      sendInputEvent: jest.fn(),
+      executeJavaScript: jest.fn(() => Promise.resolve()),
+    };
+
+    Object.assign(guestWebContents, {
+      addListener: jest.fn((event: string, handler: any) => {
+        guestListeners.set(event, handler);
+      }),
+      on: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      session: { on: jest.fn(), setPermissionRequestHandler: jest.fn() },
+    });
+
+    await attachGuest();
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
+  });
+
+  const enterHtmlFullscreen = (): void => {
+    guestListeners.get('enter-html-full-screen')?.();
+  };
+
+  it('exits only the HTML5 fullscreen when Escape is pressed while a video is fullscreen', () => {
+    enterHtmlFullscreen();
+
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput());
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(guestWebContents.executeJavaScript).toHaveBeenCalledWith(
+      expect.stringContaining('exitFullscreen')
+    );
+    expect(rootWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
+  });
+
+  it('replays Escape into the guest instead of letting it reach the native window', () => {
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput());
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(guestWebContents.sendInputEvent).toHaveBeenCalledWith({
+      type: 'keyDown',
+      keyCode: 'Escape',
+      modifiers: [],
+    });
+    expect(guestWebContents.executeJavaScript).not.toHaveBeenCalled();
+  });
+
+  it('forwards the replayed Escape to the root window', () => {
+    beforeInputEventHandler(createEvent(), createInput());
+    guestWebContents.sendInputEvent.mockClear();
+
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput());
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(guestWebContents.sendInputEvent).not.toHaveBeenCalled();
+    expect(rootWindow.webContents.sendInputEvent).toHaveBeenCalledWith({
+      type: 'keyDown',
+      keyCode: 'Escape',
+      modifiers: [],
+    });
+  });
+
+  it('forwards Escape untouched when the window is not in fullscreen', () => {
+    rootWindow.isFullScreen.mockReturnValue(false);
+
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput());
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(guestWebContents.sendInputEvent).not.toHaveBeenCalled();
+    expect(rootWindow.webContents.sendInputEvent).toHaveBeenCalledWith({
+      type: 'keyDown',
+      keyCode: 'Escape',
+      modifiers: [],
+    });
+  });
+
+  it('does not forward the Escape key up to the root window', () => {
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput({ type: 'keyUp' }));
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(rootWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
+  });
+
+  it('keeps forwarding both key down and key up of the shortcut key', () => {
+    beforeInputEventHandler(createEvent(), createInput({ key: 'Meta' }));
+    beforeInputEventHandler(
+      createEvent(),
+      createInput({ key: 'Meta', type: 'keyUp' })
+    );
+
+    expect(rootWindow.webContents.sendInputEvent).toHaveBeenNthCalledWith(1, {
+      type: 'keyDown',
+      keyCode: 'Meta',
+      modifiers: [],
+    });
+    expect(rootWindow.webContents.sendInputEvent).toHaveBeenNthCalledWith(2, {
+      type: 'keyUp',
+      keyCode: 'Meta',
+      modifiers: [],
+    });
+  });
+
+  it('leaves Escape alone on other platforms', async () => {
+    setPlatform('linux');
+    await attachGuest();
+
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput());
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(guestWebContents.sendInputEvent).not.toHaveBeenCalled();
+    expect(rootWindow.webContents.sendInputEvent).toHaveBeenCalledWith({
+      type: 'keyDown',
+      keyCode: 'Escape',
+      modifiers: [],
+    });
   });
 });

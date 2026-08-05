@@ -375,12 +375,12 @@ export const TabBadge = styled(Badge)`
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.2);
 `;
 
-/* Unread-without-mentions badge: same footprint as the count badge, with a
-   drawn dot instead of a text glyph. The dot matches the macOS dock badge
-   (dock.setBadge('•') renders its bullet at ~1/8 of the badge diameter →
-   2px inside the 16px badge) and uses currentColor so it follows the
-   variant's font token. */
-export const UnreadDot = styled(TabBadge)`
+/* Unread-without-mentions indicator for vertical (sidebar) tabs: same
+   footprint as the count badge, with a drawn dot instead of a text glyph.
+   The dot matches the macOS dock badge (dock.setBadge('•') renders its
+   bullet at ~1/8 of the badge diameter → 2px inside the 16px badge) and
+   uses currentColor so it follows the variant's font token. */
+export const UnreadDotBadge = styled(TabBadge)`
   align-items: center;
 
   &::before {
@@ -391,6 +391,18 @@ export const UnreadDot = styled(TabBadge)`
     border-radius: 50%;
     background: currentColor;
   }
+`;
+
+/* Unread-without-mentions indicator for horizontal tabs: a plain 8px ball.
+   Badge ships min-width/min-height of 1rem plus 2px/4px padding; without
+   resetting the padding and the fixed box, an 8px dot renders as a 16x8
+   pill. */
+export const UnreadDot = styled(TabBadge)`
+  width: 8px;
+  min-width: 8px;
+  height: 8px;
+  min-height: 8px;
+  padding: 0;
 `;
 
 /* Floats the mention/warning badges over the top-right corner of a vertical

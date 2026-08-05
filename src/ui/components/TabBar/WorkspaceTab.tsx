@@ -28,6 +28,7 @@ import {
   Tab,
   TabBadge,
   UnreadDot,
+  UnreadDotBadge,
 } from './styles';
 import type { TabOrientation } from './styles';
 
@@ -173,7 +174,9 @@ const WorkspaceTab = ({
 
   // Exactly one badge at a time: a logged-out server's unread state is stale,
   // so the login warning wins; otherwise a mention count beats the plain
-  // unread dot.
+  // unread dot. The unread indicator itself depends on the layout: the
+  // sidebar (vertical) gets the badge with the drawn dot, the tab strip
+  // keeps the plain 8px ball.
   const badgeElement = ((): ReactNode => {
     if (!userLoggedIn) {
       return <TabBadge variant='warning'>!</TabBadge>;
@@ -182,7 +185,11 @@ const WorkspaceTab = ({
       return <TabBadge variant='ghost'>{displayCount}</TabBadge>;
     }
     if (hasUnreadMessages) {
-      return <UnreadDot variant='ghost' />;
+      return isVertical ? (
+        <UnreadDotBadge variant='ghost' />
+      ) : (
+        <UnreadDot variant='ghost' />
+      );
     }
     return null;
   })();

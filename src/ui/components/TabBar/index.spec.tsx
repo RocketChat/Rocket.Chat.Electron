@@ -183,6 +183,32 @@ describe('TabBar', () => {
     expect(badges[0]).toHaveTextContent('');
   });
 
+  it('renders the unread indicator as the 8px ball in horizontal mode and the full badge in vertical mode', () => {
+    const server = {
+      url: 'https://a.rocket.chat/',
+      title: 'Server A',
+      badge: '•' as const,
+      userLoggedIn: true,
+    };
+
+    const horizontal = renderTabBar(<TabBar />, {
+      preloadedState: buildState({ servers: [server] }),
+    });
+    const horizontalBadge = horizontal.container.querySelector('.rcx-badge');
+    expect(horizontalBadge).not.toBeNull();
+    expect(getComputedStyle(horizontalBadge as Element).width).toBe('8px');
+    horizontal.unmount();
+
+    const vertical = renderTabBar(<TabBar orientation='vertical' />, {
+      preloadedState: buildState({ servers: [server] }),
+    });
+    const verticalBadge = vertical.container.querySelector('.rcx-badge');
+    expect(verticalBadge).not.toBeNull();
+    // The vertical indicator keeps the standard badge box (Fuselage's own
+    // 1rem minimum, not loaded in this environment) instead of the 8px ball.
+    expect(getComputedStyle(verticalBadge as Element).width).not.toBe('8px');
+  });
+
   it('shows only the login warning when a logged-out server also has unread messages', () => {
     const { container } = renderTabBar(<TabBar />, {
       preloadedState: buildState({

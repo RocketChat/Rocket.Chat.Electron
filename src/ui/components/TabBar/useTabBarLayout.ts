@@ -98,9 +98,15 @@ export const useTabBarLayout = <S extends Server>(
       }
 
       rafRef.current = requestAnimationFrame(() => {
-        const width =
-          entry.contentRect.width - (hasAddButton ? ADD_BUTTON_WIDTH : 0);
-        setAvailableWidth(Math.max(0, width));
+        const width = Math.max(
+          0,
+          Math.round(
+            entry.contentRect.width - (hasAddButton ? ADD_BUTTON_WIDTH : 0)
+          )
+        );
+        setAvailableWidth((previous) =>
+          previous === width ? previous : width
+        );
       });
     });
 

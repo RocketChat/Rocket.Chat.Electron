@@ -1,24 +1,24 @@
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import type { Server } from '../../../servers/common';
 import type { RootState } from '../../../store/rootReducer';
+
 // TODO: change currentView.url string to URL type
+const selectServersWithSelection = createSelector(
+  ({ currentView }: RootState) => currentView,
+  ({ servers }: RootState) => servers,
+  (currentView, servers): (Server & { selected: boolean })[] => {
+    const currentViewHref =
+      typeof currentView === 'object' ? new URL(currentView.url).href : null;
+    return servers.map((server) => ({
+      ...server,
+      selected:
+        currentViewHref !== null &&
+        currentViewHref === new URL(server.url).href,
+    }));
+  }
+);
+
 export const useServers = (): (Server & { selected: boolean })[] =>
-  useSelector(
-    createSelector(
-      ({ currentView }: RootState) => currentView,
-      ({ servers }: RootState) => servers,
-      (currentView, servers) => {
-        const currentViewUrl =
-          typeof currentView === 'object' ? new URL(currentView.url) : false;
-        return servers.map((server) =>
-          Object.assign(server, {
-            selected:
-              currentViewUrl &&
-              currentViewUrl.href === new URL(server.url).href,
-          })
-        );
-      }
-    )
-  );
+  useSelector(selectServersWithSelection, shallowEqual);

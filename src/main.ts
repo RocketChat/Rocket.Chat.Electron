@@ -38,6 +38,7 @@ import { setupOutlookLogger } from './outlookCalendar/logger';
 import { handleDesktopCapturerGetSources } from './screenSharing/desktopCapturerCache';
 import { setupScreenSharing } from './screenSharing/main';
 import { startServerViewScreenSharingHandler } from './screenSharing/serverViewScreenSharing';
+import { setupBootWatchdog } from './servers/bootWatchdog';
 import {
   handleClearCacheDialog,
   handleUserLoggedOutDataClearing,
@@ -159,6 +160,7 @@ const start = async (): Promise<void> => {
   handleDesktopCapturerGetSources();
   handleClearCacheDialog();
   handleUserLoggedOutDataClearing();
+  setupBootWatchdog();
   startDocumentViewerHandler();
   startBrowserHandler();
   checkSupportedVersionServers();

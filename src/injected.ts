@@ -62,7 +62,12 @@ const attemptBootRecovery = (reason: string): void => {
       String(attempts + 1)
     );
   } catch (error) {
-    // sessionStorage unavailable; still attempt a single recovery
+    // Without a persisted counter every reload would read zero attempts and
+    // recover again, forever — safer to not recover at all.
+    console.error(
+      `[Rocket.Chat Desktop] ${reason}. Boot recovery is disabled because sessionStorage is unavailable.`
+    );
+    return;
   }
 
   console.error(
@@ -143,7 +148,9 @@ const start = async () => {
   }
 
   if (!serverInfo.version) {
-    console.log('[Rocket.Chat Desktop] serverInfo.version is not defined');
+    attemptBootRecovery(
+      "Required '/app/utils/rocketchat.info' returned no server version"
+    );
     return;
   }
 

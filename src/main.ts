@@ -93,6 +93,10 @@ const start = async (): Promise<void> => {
 
   createMainReduxStore();
 
+  // Must be listening before any server view can boot and dispatch
+  // WEBVIEW_SERVER_VERSION_UPDATED — listen() does not replay actions.
+  setupBootWatchdog();
+
   setupOutlookLogger();
   setupDebugLoggingWatch();
 
@@ -160,7 +164,6 @@ const start = async (): Promise<void> => {
   handleDesktopCapturerGetSources();
   handleClearCacheDialog();
   handleUserLoggedOutDataClearing();
-  setupBootWatchdog();
   startDocumentViewerHandler();
   startBrowserHandler();
   checkSupportedVersionServers();

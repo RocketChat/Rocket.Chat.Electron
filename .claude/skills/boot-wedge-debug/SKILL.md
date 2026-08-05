@@ -29,8 +29,14 @@ The dev-only boot watchdog (`src/servers/bootWatchdog.ts`, enabled when
 line per incident to:
 
 ```
-~/Library/Logs/Rocket.Chat/boot-watchdog.jsonl   (macOS)
+macOS:   ~/Library/Logs/Rocket.Chat/boot-watchdog.jsonl
+Windows: %USERPROFILE%\AppData\Roaming\Rocket.Chat\logs\boot-watchdog.jsonl
+Linux:   ~/.config/Rocket.Chat/logs/boot-watchdog.jsonl
 ```
+
+(The directory is Electron's `app.getPath('logs')`; in dev the app name may be
+`Electron` instead of `Rocket.Chat`. The watchdog prints the exact path at
+startup: `[bootWatchdog] enabled — … appended to <path>`.)
 
 Summarize incidents:
 

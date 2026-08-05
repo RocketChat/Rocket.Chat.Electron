@@ -28,6 +28,59 @@ const resolveWithExponentialBackoff = <T>(
 const tryRequire = <T = any>(path: string) =>
   resolveWithExponentialBackoff<T>(() => window.require(path));
 
+const BOOT_RECOVERY_ATTEMPTS_KEY = 'rocketChatDesktopBootRecoveryAttempts';
+const MAX_BOOT_RECOVERY_ATTEMPTS = 2;
+
+const getBootRecoveryAttempts = (): number => {
+  try {
+    return (
+      Number(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)) || 0
+    );
+  } catch (error) {
+    return 0;
+  }
+};
+
+// Reloading in place never recovers a wedged webview (stale service worker or
+// cache keeps serving a broken bundle), so recovery goes through
+// reloadServer(), which clears the service worker and cache storage before
+// reloading. The sessionStorage counter survives those reloads and caps the
+// attempts, so a genuinely broken server degrades instead of reload-looping.
+const attemptBootRecovery = (reason: string): void => {
+  const attempts = getBootRecoveryAttempts();
+
+  if (attempts >= MAX_BOOT_RECOVERY_ATTEMPTS) {
+    console.error(
+      `[Rocket.Chat Desktop] ${reason}. Boot recovery attempts exhausted (${attempts}); giving up. Restart the app or use "Reload Clearing Cache" to retry.`
+    );
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      BOOT_RECOVERY_ATTEMPTS_KEY,
+      String(attempts + 1)
+    );
+  } catch (error) {
+    // sessionStorage unavailable; still attempt a single recovery
+  }
+
+  console.error(
+    `[Rocket.Chat Desktop] ${reason}. Triggering force reload with cache clear to recover (attempt ${
+      attempts + 1
+    } of ${MAX_BOOT_RECOVERY_ATTEMPTS})...`
+  );
+  window.RocketChatDesktop.reloadServer();
+};
+
+const resetBootRecovery = (): void => {
+  try {
+    window.sessionStorage.removeItem(BOOT_RECOVERY_ATTEMPTS_KEY);
+  } catch (error) {
+    // sessionStorage unavailable; nothing to reset
+  }
+};
+
 let startRetryCount = 0;
 let totalRetryTime = 0;
 const MAX_RETRY_TIME = 30000; // Maximum 30 seconds total retry time
@@ -40,14 +93,9 @@ const start = async () => {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
 
     if (totalRetryTime >= MAX_RETRY_TIME) {
-      console.error(
-        `[Rocket.Chat Desktop] Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available.`
+      attemptBootRecovery(
+        `Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available`
       );
-      console.log(
-        '[Rocket.Chat Desktop] Triggering force reload with cache clear to recover...'
-      );
-      // Trigger force reload with cache clear to recover
-      window.RocketChatDesktop.reloadServer();
       return;
     }
 
@@ -64,7 +112,14 @@ const start = async () => {
     console.log(
       `[Rocket.Chat Desktop] Inject start - retry ${startRetryCount} in ${actualDelay}ms (total time: ${totalRetryTime}ms)`
     );
-    setTimeout(start, actualDelay);
+    setTimeout(() => {
+      start().catch((error) => {
+        console.error(
+          '[Rocket.Chat Desktop] Injected.ts failed to start:',
+          error
+        );
+      });
+    }, actualDelay);
     return;
   }
 
@@ -72,14 +127,27 @@ const start = async () => {
   startRetryCount = 0;
   totalRetryTime = 0;
 
-  const { Info: serverInfo = {} } = await tryRequire(
-    '/app/utils/rocketchat.info'
-  );
+  let serverInfo: any = {};
+  try {
+    ({ Info: serverInfo = {} } = await tryRequire(
+      '/app/utils/rocketchat.info'
+    ));
+  } catch (error) {
+    // window.require exists but the module registry is incomplete — the
+    // webapp boot is wedged (stuck throbber) and only a cache-clearing
+    // reload recovers it.
+    attemptBootRecovery(
+      "Failed to require '/app/utils/rocketchat.info' after retries"
+    );
+    return;
+  }
 
   if (!serverInfo.version) {
     console.log('[Rocket.Chat Desktop] serverInfo.version is not defined');
     return;
   }
+
+  resetBootRecovery();
 
   console.log('[Rocket.Chat Desktop] Injected.ts serverInfo', serverInfo);
 
@@ -693,4 +761,6 @@ const start = async () => {
   console.log('[Rocket.Chat Desktop] Injected');
 };
 
-start();
+start().catch((error) => {
+  console.error('[Rocket.Chat Desktop] Injected.ts failed to start:', error);
+});

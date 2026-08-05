@@ -278,6 +278,7 @@ export const setupUpdateLabelFlow = (): void => {
     try {
       await autoUpdater.downloadUpdate();
     } catch (error) {
+      isLabelInitiatedDownload = false;
       dispatchUpdateError(error);
     }
   });

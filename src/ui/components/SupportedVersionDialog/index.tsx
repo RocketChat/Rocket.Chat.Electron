@@ -55,6 +55,21 @@ export const SupportedVersionDialog = () => {
     });
   };
 
+  const setExpirationMessageIfChanged = useCallback(
+    (translatedMessage: MessageTranslated) => {
+      setExpirationMessage((previous) =>
+        previous &&
+        previous.title === translatedMessage.title &&
+        previous.subtitle === translatedMessage.subtitle &&
+        previous.description === translatedMessage.description &&
+        previous.link === translatedMessage.link
+          ? previous
+          : translatedMessage
+      );
+    },
+    []
+  );
+
   const checkServerVersion = useCallback(async () => {
     if (
       !server?.supportedVersions ||
@@ -101,7 +116,7 @@ export const SupportedVersionDialog = () => {
           ) as MessageTranslated;
 
           if (translatedMessage) {
-            setExpirationMessage(translatedMessage);
+            setExpirationMessageIfChanged(translatedMessage);
             setIsVisible(supported.supported);
           }
         }
@@ -134,10 +149,10 @@ export const SupportedVersionDialog = () => {
     ) as MessageTranslated;
 
     if (translatedMessage) {
-      setExpirationMessage(translatedMessage);
+      setExpirationMessageIfChanged(translatedMessage);
       setIsVisible(supported.supported);
     }
-  }, [server, setExpirationMessage, setIsVisible]);
+  }, [server, setExpirationMessageIfChanged, setIsVisible]);
 
   useEffect(() => {
     checkServerVersion();

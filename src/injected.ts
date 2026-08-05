@@ -527,6 +527,19 @@ const start = async () => {
       // only sees rooms that changed after the listener attached, so it can
       // undercount; we prefer the aggregate for the numeric total and use the
       // map solely to rebuild the alert-only "•" indicator.
+      // Server boot floods this path: the webapp fires one
+      // `unread-changed-by-subscription` event per room when it starts, and
+      // dispatching a badge update for each one storms the root window's
+      // Redux store hard enough that React aborts with "Maximum update depth
+      // exceeded". Recomputes are therefore coalesced into a single
+      // trailing-edge call, and the dispatch is skipped entirely when the
+      // resolved badge value did not change.
+      const BADGE_COALESCE_MS = 100;
+      let resolveBadgeTimer: ReturnType<typeof setTimeout> | null = null;
+      let pendingAggregateCount: number | undefined;
+      let lastSentBadge: number | '•' | undefined;
+      let hasSentBadge = false;
+
       const resolveBadge = (aggregateCount?: number): void => {
         let unreadCount = 0;
         let alertIndicator: '•' | undefined;
@@ -557,11 +570,28 @@ const start = async () => {
             ? aggregateCount
             : unreadCount;
 
-        if (total > 0) {
-          window.RocketChatDesktop.setBadge(total);
+        const badge = total > 0 ? total : alertIndicator ?? 0;
+        if (hasSentBadge && badge === lastSentBadge) {
           return;
         }
-        window.RocketChatDesktop.setBadge(alertIndicator ?? 0);
+        hasSentBadge = true;
+        lastSentBadge = badge;
+        window.RocketChatDesktop.setBadge(badge);
+      };
+
+      const scheduleResolveBadge = (aggregateCount?: number): void => {
+        if (aggregateCount !== undefined) {
+          pendingAggregateCount = aggregateCount;
+        }
+        if (resolveBadgeTimer !== null) {
+          return;
+        }
+        resolveBadgeTimer = setTimeout(() => {
+          resolveBadgeTimer = null;
+          const aggregate = pendingAggregateCount;
+          pendingAggregateCount = undefined;
+          resolveBadge(aggregate);
+        }, BADGE_COALESCE_MS);
       };
 
       window.addEventListener('unread-changed-by-subscription', (event) => {
@@ -581,7 +611,7 @@ const start = async () => {
           alert: subscription.alert,
           unreadAlert: subscription.unreadAlert,
         });
-        resolveBadge();
+        scheduleResolveBadge();
       });
 
       window.addEventListener('unread-changed', (event) => {
@@ -590,7 +620,7 @@ const start = async () => {
           typeof detail === 'number' && Number.isFinite(detail)
             ? detail
             : undefined;
-        resolveBadge(aggregateCount);
+        scheduleResolveBadge(aggregateCount);
       });
 
       setupFlags.unreadChangedEvent = true;

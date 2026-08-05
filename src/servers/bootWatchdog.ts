@@ -209,9 +209,11 @@ export const attachBootWatchdog = (
     booted: false,
     reportedForCurrentLoad: false,
   };
+  // The deadline is armed by the first committed navigation (did-navigate),
+  // not here: webviews can attach and legitimately never navigate (lazy or
+  // error-view panes), and reporting those is pure noise.
   watchStates.set(serverUrl, state);
   record(state, 'attached');
-  startDeadline(state);
 
   webContents.on('console-message', (event) => {
     const message = String(event.message ?? '').slice(0, MESSAGE_LENGTH_LIMIT);

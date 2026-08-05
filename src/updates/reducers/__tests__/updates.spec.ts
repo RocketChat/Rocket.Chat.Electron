@@ -5,10 +5,15 @@ import {
 } from '../../../ui/actions';
 import {
   UPDATES_CHECKING_FOR_UPDATE,
+  UPDATES_DOWNLOAD_PROGRESSED,
+  UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_PANEL_TOGGLED,
   UPDATES_READY,
+  UPDATES_SKIP_REQUESTED,
+  UPDATES_UPDATE_DOWNLOADED,
   UPDATE_SKIPPED,
   UPDATES_CHANNEL_CHANGED,
 } from '../../actions';
@@ -16,10 +21,13 @@ import {
   doCheckForUpdatesOnStartup,
   isCheckingForUpdates,
   isEachUpdatesSettingConfigurable,
+  isUpdatePanelOpen,
   isUpdatingAllowed,
   isUpdatingEnabled,
   newUpdateVersion,
   skippedUpdateVersion,
+  updateDownloadProgress,
+  updateDownloadStatus,
   updateError,
   updateChannel,
 } from '../../reducers';
@@ -358,5 +366,115 @@ describe('updateChannel reducer', () => {
     expect(
       updateChannel('beta', { type: APP_SETTINGS_LOADED, payload: {} } as any)
     ).toBe('beta');
+  });
+});
+
+describe('updateDownloadStatus reducer', () => {
+  it('should default to idle', () => {
+    expect(updateDownloadStatus(undefined, unknown)).toBe('idle');
+  });
+
+  it('should enter downloading when a download is requested', () => {
+    expect(
+      updateDownloadStatus('idle', {
+        type: UPDATES_DOWNLOAD_REQUESTED,
+      } as any)
+    ).toBe('downloading');
+  });
+
+  it('should stay downloading while progress arrives', () => {
+    expect(
+      updateDownloadStatus('idle', {
+        type: UPDATES_DOWNLOAD_PROGRESSED,
+        payload: 42,
+      } as any)
+    ).toBe('downloading');
+  });
+
+  it('should become downloaded when the update is ready', () => {
+    expect(
+      updateDownloadStatus('downloading', {
+        type: UPDATES_UPDATE_DOWNLOADED,
+      } as any)
+    ).toBe('downloaded');
+  });
+
+  it.each([
+    UPDATES_NEW_VERSION_AVAILABLE,
+    UPDATES_NEW_VERSION_NOT_AVAILABLE,
+    UPDATES_ERROR_THROWN,
+    UPDATE_SKIPPED,
+  ])('should reset to idle on %s', (type) => {
+    expect(updateDownloadStatus('downloaded', { type } as any)).toBe('idle');
+  });
+});
+
+describe('updateDownloadProgress reducer', () => {
+  it('should default to 0', () => {
+    expect(updateDownloadProgress(undefined, unknown)).toBe(0);
+  });
+
+  it('should track the reported percentage', () => {
+    expect(
+      updateDownloadProgress(0, {
+        type: UPDATES_DOWNLOAD_PROGRESSED,
+        payload: 73,
+      } as any)
+    ).toBe(73);
+  });
+
+  it('should pin to 100 once downloaded', () => {
+    expect(
+      updateDownloadProgress(91, { type: UPDATES_UPDATE_DOWNLOADED } as any)
+    ).toBe(100);
+  });
+
+  it('should restart from 0 on a fresh download request', () => {
+    expect(
+      updateDownloadProgress(100, { type: UPDATES_DOWNLOAD_REQUESTED } as any)
+    ).toBe(0);
+  });
+
+  it('should reset to 0 when the update goes away', () => {
+    expect(
+      updateDownloadProgress(50, {
+        type: UPDATES_NEW_VERSION_NOT_AVAILABLE,
+      } as any)
+    ).toBe(0);
+  });
+});
+
+describe('isUpdatePanelOpen reducer', () => {
+  it('should default to closed', () => {
+    expect(isUpdatePanelOpen(undefined, unknown)).toBe(false);
+  });
+
+  it('should follow UPDATES_PANEL_TOGGLED', () => {
+    expect(
+      isUpdatePanelOpen(false, {
+        type: UPDATES_PANEL_TOGGLED,
+        payload: true,
+      } as any)
+    ).toBe(true);
+    expect(
+      isUpdatePanelOpen(true, {
+        type: UPDATES_PANEL_TOGGLED,
+        payload: false,
+      } as any)
+    ).toBe(false);
+  });
+
+  it.each([
+    UPDATES_DOWNLOAD_REQUESTED,
+    UPDATES_SKIP_REQUESTED,
+    UPDATES_NEW_VERSION_NOT_AVAILABLE,
+    UPDATES_ERROR_THROWN,
+    UPDATE_SKIPPED,
+  ])('should close on %s', (type) => {
+    expect(isUpdatePanelOpen(true, { type } as any)).toBe(false);
+  });
+
+  it('should stay open while the panel is merely re-rendered', () => {
+    expect(isUpdatePanelOpen(true, unknown)).toBe(true);
   });
 });

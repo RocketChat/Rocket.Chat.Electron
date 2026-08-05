@@ -64,19 +64,12 @@
       "announcement": "Wählen Sie den zu teilenden Bildschirm aus"
     },
     "update": {
-      "title": "Aktualisierung verfügbar",
       "announcement": "Neue Aktualisierung verfügbar",
       "message": "Eine neue Version der Rocket.Chat Desktop App ist verfügbar!",
-      "currentVersion": "Aktuelle Version:",
-      "newVersion": "Neue Version:",
+      "currentVersion": "Aktuelle Version",
+      "newVersion": "Neue Version",
       "install": "Update installieren",
-      "remindLater": "Später erinnern",
       "skip": "Diese Version überspringen"
-    },
-    "updateDownloading": {
-      "title": "Aktualisierung wird heruntergeladen",
-      "message": "Sie werden benachrichtigt, wenn die Aktualisierung bereit zur Installation ist",
-      "ok": "OK"
     },
     "updateInstallLater": {
       "title": "Wird später installiert",

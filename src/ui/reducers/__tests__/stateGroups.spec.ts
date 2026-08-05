@@ -323,9 +323,10 @@ describe('openDialog reducer', () => {
         type: screenSharingActions.SCREEN_SHARING_DIALOG_DISMISSED,
       } as any)
     ).toBe(null);
+    // An available update is surfaced by the titlebar label, not a modal.
     expect(
       openDialog(null, { type: UPDATES_NEW_VERSION_AVAILABLE } as any)
-    ).toBe('update');
+    ).toBe(null);
     expect(
       openDialog(null, {
         type: uiActions.WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,

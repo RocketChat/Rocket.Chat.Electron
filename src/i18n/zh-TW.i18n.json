@@ -51,19 +51,12 @@
       "announcement": "選擇要分享的畫面"
     },
     "update": {
-      "title": "可用的更新",
       "announcement": "有新的更新程式",
       "message": "有新版本的 Rocket.Chat 桌面應用程式！",
-      "currentVersion": "目前版本:",
-      "newVersion": "最新版本:",
+      "currentVersion": "目前版本",
+      "newVersion": "最新版本",
       "install": "安裝更新",
-      "remindLater": "稍後再提醒我",
       "skip": "略過這個版本"
-    },
-    "updateDownloading": {
-      "title": "正在下載更新",
-      "message": "當準備好可以安裝更新程式的時候，您將會收到通知。",
-      "ok": "好"
     },
     "updateInstallLater": {
       "title": "稍後再安裝",

@@ -52,13 +52,6 @@ export const TOUCH_BAR_FORMAT_BUTTON_TOUCHED =
   'touch-bar/format-button-touched';
 export const TOUCH_BAR_SELECT_SERVER_TOUCHED =
   'touch-bar/select-server-touched';
-export const UPDATE_DIALOG_DISMISSED = 'update-dialog/dismissed';
-export const UPDATE_DIALOG_INSTALL_BUTTON_CLICKED =
-  'update-dialog/install-button-clicked';
-export const UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED =
-  'update-dialog/remind-update-later-clicked';
-export const UPDATE_DIALOG_SKIP_UPDATE_CLICKED =
-  'update-dialog/skip-update-clicked';
 export const WEBVIEW_READY = 'webview/ready';
 export const WEBVIEW_ATTACHED = 'webview/attached';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
@@ -221,10 +214,6 @@ export type UiActionTypeToPayloadMap = {
     | 'inline_code'
     | 'multi_line';
   [TOUCH_BAR_SELECT_SERVER_TOUCHED]: string;
-  [UPDATE_DIALOG_DISMISSED]: void;
-  [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: void;
-  [UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED]: void;
-  [UPDATE_DIALOG_SKIP_UPDATE_CLICKED]: string | null;
   [WEBVIEW_READY]: { url: Server['url']; webContentsId: number };
   [WEBVIEW_ATTACHED]: { url: Server['url']; webContentsId: number };
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };

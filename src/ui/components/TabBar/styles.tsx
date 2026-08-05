@@ -69,7 +69,7 @@ export const Strip = styled.div<StripProps>`
       align-items: center;
       width: 48px;
       height: 100%;
-      padding: ${process.platform === 'darwin' ? '8px 0px' : '0 0 8px 0'};
+      padding: ${process.platform === 'darwin' ? '8px 0px' : '4px 0 8px 0'};
       padding-left: 2px;
     `}
 `;

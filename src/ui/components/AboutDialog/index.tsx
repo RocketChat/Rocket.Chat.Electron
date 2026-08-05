@@ -20,7 +20,10 @@ import type { Dispatch } from 'redux';
 import { packageJsonInformation } from '../../../app/main/app';
 import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
-import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../updates/actions';
+import {
+  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+  UPDATES_PANEL_TOGGLED,
+} from '../../../updates/actions';
 import { UPDATE_CHANNELS } from '../../../updates/common';
 import {
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
@@ -146,9 +149,20 @@ export const AboutDialog = () => {
       return undefined;
     }
 
+    // The titlebar update label owns the install flow from here on, so report
+    // the finding inline instead of handing over to a modal.
     if (newUpdateVersion) {
-      setCheckingForUpdates([false, null]);
-      return undefined;
+      setCheckingForUpdates([
+        true,
+        t('dialog.about.updateAvailable', { version: newUpdateVersion }),
+      ]);
+      const messageTimer = setTimeout(() => {
+        setCheckingForUpdates([false, null]);
+      }, 5000);
+
+      return () => {
+        clearTimeout(messageTimer);
+      };
     }
 
     setCheckingForUpdates([true, t('dialog.about.noUpdatesAvailable')]);
@@ -161,7 +175,31 @@ export const AboutDialog = () => {
     };
   }, [updateError, isCheckingForUpdates, newUpdateVersion, t]);
 
+  // Set while a check started from this dialog is in flight, so only a manual
+  // check hands over to the titlebar panel.
+  const [hasRequestedCheck, setHasRequestedCheck] = useState(false);
+
+  useEffect(() => {
+    if (!isVisible) {
+      setHasRequestedCheck(false);
+    }
+  }, [isVisible]);
+
+  // A manual check that finds an update hands over to the titlebar update
+  // panel: close this dialog and open the panel, so the version details and the
+  // install action live in exactly one place.
+  useEffect(() => {
+    if (!hasRequestedCheck || isCheckingForUpdates || !newUpdateVersion) {
+      return;
+    }
+
+    setHasRequestedCheck(false);
+    dispatch({ type: ABOUT_DIALOG_DISMISSED });
+    dispatch({ type: UPDATES_PANEL_TOGGLED, payload: true });
+  }, [hasRequestedCheck, isCheckingForUpdates, newUpdateVersion, dispatch]);
+
   const handleCheckForUpdatesButtonClick = (): void => {
+    setHasRequestedCheck(true);
     dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
   };
 

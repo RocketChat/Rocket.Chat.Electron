@@ -28,6 +28,64 @@ const resolveWithExponentialBackoff = <T>(
 const tryRequire = <T = any>(path: string) =>
   resolveWithExponentialBackoff<T>(() => window.require(path));
 
+const BOOT_RECOVERY_ATTEMPTS_KEY = 'rocketChatDesktopBootRecoveryAttempts';
+const MAX_BOOT_RECOVERY_ATTEMPTS = 2;
+
+const getBootRecoveryAttempts = (): number => {
+  try {
+    return (
+      Number(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)) || 0
+    );
+  } catch (error) {
+    return 0;
+  }
+};
+
+// Reloading in place never recovers a wedged webview (stale service worker or
+// cache keeps serving a broken bundle), so recovery goes through
+// reloadServer(), which clears the service worker and cache storage before
+// reloading. The sessionStorage counter survives those reloads and caps the
+// attempts, so a genuinely broken server degrades instead of reload-looping.
+const attemptBootRecovery = (reason: string): void => {
+  const attempts = getBootRecoveryAttempts();
+
+  if (attempts >= MAX_BOOT_RECOVERY_ATTEMPTS) {
+    console.error(
+      `[Rocket.Chat Desktop] ${reason}. Boot recovery attempts exhausted (${attempts}); giving up. Restart the app or use "Reload Clearing Cache" to retry.`
+    );
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      BOOT_RECOVERY_ATTEMPTS_KEY,
+      String(attempts + 1)
+    );
+  } catch (error) {
+    // Without a persisted counter every reload would read zero attempts and
+    // recover again, forever — safer to not recover at all.
+    console.error(
+      `[Rocket.Chat Desktop] ${reason}. Boot recovery is disabled because sessionStorage is unavailable.`
+    );
+    return;
+  }
+
+  console.error(
+    `[Rocket.Chat Desktop] ${reason}. Triggering force reload with cache clear to recover (attempt ${
+      attempts + 1
+    } of ${MAX_BOOT_RECOVERY_ATTEMPTS})...`
+  );
+  window.RocketChatDesktop.reloadServer();
+};
+
+const resetBootRecovery = (): void => {
+  try {
+    window.sessionStorage.removeItem(BOOT_RECOVERY_ATTEMPTS_KEY);
+  } catch (error) {
+    // sessionStorage unavailable; nothing to reset
+  }
+};
+
 let startRetryCount = 0;
 let totalRetryTime = 0;
 const MAX_RETRY_TIME = 30000; // Maximum 30 seconds total retry time
@@ -40,14 +98,9 @@ const start = async () => {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
 
     if (totalRetryTime >= MAX_RETRY_TIME) {
-      console.error(
-        `[Rocket.Chat Desktop] Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available.`
+      attemptBootRecovery(
+        `Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available`
       );
-      console.log(
-        '[Rocket.Chat Desktop] Triggering force reload with cache clear to recover...'
-      );
-      // Trigger force reload with cache clear to recover
-      window.RocketChatDesktop.reloadServer();
       return;
     }
 
@@ -64,7 +117,14 @@ const start = async () => {
     console.log(
       `[Rocket.Chat Desktop] Inject start - retry ${startRetryCount} in ${actualDelay}ms (total time: ${totalRetryTime}ms)`
     );
-    setTimeout(start, actualDelay);
+    setTimeout(() => {
+      start().catch((error) => {
+        console.error(
+          '[Rocket.Chat Desktop] Injected.ts failed to start:',
+          error
+        );
+      });
+    }, actualDelay);
     return;
   }
 
@@ -72,14 +132,29 @@ const start = async () => {
   startRetryCount = 0;
   totalRetryTime = 0;
 
-  const { Info: serverInfo = {} } = await tryRequire(
-    '/app/utils/rocketchat.info'
-  );
-
-  if (!serverInfo.version) {
-    console.log('[Rocket.Chat Desktop] serverInfo.version is not defined');
+  let serverInfo: any = {};
+  try {
+    ({ Info: serverInfo = {} } = await tryRequire(
+      '/app/utils/rocketchat.info'
+    ));
+  } catch (error) {
+    // window.require exists but the module registry is incomplete — the
+    // webapp boot is wedged (stuck throbber) and only a cache-clearing
+    // reload recovers it.
+    attemptBootRecovery(
+      "Failed to require '/app/utils/rocketchat.info' after retries"
+    );
     return;
   }
+
+  if (!serverInfo.version) {
+    attemptBootRecovery(
+      "Required '/app/utils/rocketchat.info' returned no server version"
+    );
+    return;
+  }
+
+  resetBootRecovery();
 
   console.log('[Rocket.Chat Desktop] Injected.ts serverInfo', serverInfo);
 
@@ -452,6 +527,19 @@ const start = async () => {
       // only sees rooms that changed after the listener attached, so it can
       // undercount; we prefer the aggregate for the numeric total and use the
       // map solely to rebuild the alert-only "•" indicator.
+      // Server boot floods this path: the webapp fires one
+      // `unread-changed-by-subscription` event per room when it starts, and
+      // dispatching a badge update for each one storms the root window's
+      // Redux store hard enough that React aborts with "Maximum update depth
+      // exceeded". Recomputes are therefore coalesced into a single
+      // trailing-edge call, and the dispatch is skipped entirely when the
+      // resolved badge value did not change.
+      const BADGE_COALESCE_MS = 100;
+      let resolveBadgeTimer: ReturnType<typeof setTimeout> | null = null;
+      let pendingAggregateCount: number | undefined;
+      let lastSentBadge: number | '•' | undefined;
+      let hasSentBadge = false;
+
       const resolveBadge = (aggregateCount?: number): void => {
         let unreadCount = 0;
         let alertIndicator: '•' | undefined;
@@ -482,11 +570,28 @@ const start = async () => {
             ? aggregateCount
             : unreadCount;
 
-        if (total > 0) {
-          window.RocketChatDesktop.setBadge(total);
+        const badge = total > 0 ? total : alertIndicator ?? 0;
+        if (hasSentBadge && badge === lastSentBadge) {
           return;
         }
-        window.RocketChatDesktop.setBadge(alertIndicator ?? 0);
+        hasSentBadge = true;
+        lastSentBadge = badge;
+        window.RocketChatDesktop.setBadge(badge);
+      };
+
+      const scheduleResolveBadge = (aggregateCount?: number): void => {
+        if (aggregateCount !== undefined) {
+          pendingAggregateCount = aggregateCount;
+        }
+        if (resolveBadgeTimer !== null) {
+          return;
+        }
+        resolveBadgeTimer = setTimeout(() => {
+          resolveBadgeTimer = null;
+          const aggregate = pendingAggregateCount;
+          pendingAggregateCount = undefined;
+          resolveBadge(aggregate);
+        }, BADGE_COALESCE_MS);
       };
 
       window.addEventListener('unread-changed-by-subscription', (event) => {
@@ -506,7 +611,7 @@ const start = async () => {
           alert: subscription.alert,
           unreadAlert: subscription.unreadAlert,
         });
-        resolveBadge();
+        scheduleResolveBadge();
       });
 
       window.addEventListener('unread-changed', (event) => {
@@ -515,7 +620,7 @@ const start = async () => {
           typeof detail === 'number' && Number.isFinite(detail)
             ? detail
             : undefined;
-        resolveBadge(aggregateCount);
+        scheduleResolveBadge(aggregateCount);
       });
 
       setupFlags.unreadChangedEvent = true;
@@ -693,4 +798,6 @@ const start = async () => {
   console.log('[Rocket.Chat Desktop] Injected');
 };
 
-start();
+start().catch((error) => {
+  console.error('[Rocket.Chat Desktop] Injected.ts failed to start:', error);
+});

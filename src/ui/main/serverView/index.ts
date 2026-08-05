@@ -21,6 +21,7 @@ import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewScreenSharing';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
+import { attachBootWatchdog } from '../../../servers/bootWatchdog';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
@@ -264,6 +265,7 @@ const initializeServerWebContentsAfterAttach = (
   rootWindow: BrowserWindow
 ): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
+  attachBootWatchdog(serverUrl, guestWebContents);
 
   const webviewSession = guestWebContents.session;
 

@@ -73,7 +73,7 @@ export const useSorting = <S extends Server>(
   };
 
   const sortedServers = serversSorting
-    ? servers.sort(
+    ? [...servers].sort(
         ({ url: a }, { url: b }) =>
           serversSorting.indexOf(a) - serversSorting.indexOf(b)
       )

@@ -56,7 +56,10 @@ const Trigger = styled.button<{ hasNotification: boolean }>`
           --rcx-badge-colors-ghost-background-color,
           var(--rcx-color-stroke-dark, var(--rcx-color-neutral-700))
         );
-        color: var(--rcx-color-font-white);
+        color: var(
+          --rcx-badge-colors-ghost-color,
+          var(--rcx-color-font-pure-white, #ffffff)
+        );
       `};
   }
 `;

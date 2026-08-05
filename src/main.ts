@@ -38,6 +38,7 @@ import { setupOutlookLogger } from './outlookCalendar/logger';
 import { handleDesktopCapturerGetSources } from './screenSharing/desktopCapturerCache';
 import { setupScreenSharing } from './screenSharing/main';
 import { startServerViewScreenSharingHandler } from './screenSharing/serverViewScreenSharing';
+import { setupBootWatchdog } from './servers/bootWatchdog';
 import {
   handleClearCacheDialog,
   handleUserLoggedOutDataClearing,
@@ -91,6 +92,10 @@ const start = async (): Promise<void> => {
   cleanupOldLogs();
 
   createMainReduxStore();
+
+  // Must be listening before any server view can boot and dispatch
+  // WEBVIEW_SERVER_VERSION_UPDATED — listen() does not replay actions.
+  setupBootWatchdog();
 
   setupOutlookLogger();
   setupDebugLoggingWatch();

@@ -42,6 +42,7 @@ import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
+import { setVersion } from './version';
 
 type ServerInfo = {
   version: string;
@@ -83,6 +84,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
     serverInfo = _serverInfo;
     cb(_serverInfo);
     setServerVersionToSidebar(_serverInfo.version);
+    setVersion(_serverInfo.version);
   },
   setUrlResolver,
   setBadge,

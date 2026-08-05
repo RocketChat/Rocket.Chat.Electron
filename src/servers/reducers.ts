@@ -77,6 +77,16 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
+// Returns the original object (preserving identity) when the patch would not
+// change any field — a new array identity here re-renders every
+// server-subscribed component, so no-op actions must not mint one.
+const patchServer = (server: Server, patch: Server): Server => {
+  const changed = Object.entries(patch).some(
+    ([key, value]) => !Object.is(server[key as keyof Server], value)
+  );
+  return changed ? { ...server, ...patch } : server;
+};
+
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
 
@@ -84,9 +94,10 @@ const upsert = (state: Server[], server: Server): Server[] => {
     return [...state, server];
   }
 
-  return state.map((_server, i) =>
-    i === index ? { ..._server, ...server } : _server
-  );
+  const patched = patchServer(state[index], server);
+  return patched === state[index]
+    ? state
+    : state.map((_server, i) => (i === index ? patched : _server));
 };
 
 const update = (state: Server[], server: Server): Server[] => {
@@ -96,9 +107,10 @@ const update = (state: Server[], server: Server): Server[] => {
     return state;
   }
 
-  return state.map((_server, i) =>
-    i === index ? { ..._server, ...server } : _server
-  );
+  const patched = patchServer(state[index], server);
+  return patched === state[index]
+    ? state
+    : state.map((_server, i) => (i === index ? patched : _server));
 };
 
 export const servers: Reducer<Server[], ServersActionTypes> = (

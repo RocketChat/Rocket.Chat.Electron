@@ -364,29 +364,72 @@ export const ShortcutChip = styled.span`
   opacity: 0.7;
 `;
 
+/* Colors come from the Fuselage Badge variant tokens. The ghost variant is
+   deliberate: its background (stroke-dark) flips to a light gray in the dark
+   palette, keeping the badge visible on the dark tab strip, where the
+   server's secondary/level-1 badge color would blend in. Overriding the text
+   color here once broke the badge by referencing a token that does not
+   exist. */
 export const TabBadge = styled(Badge)`
   flex-shrink: 0;
-  color: var(--rcx-color-font-white);
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.2);
 `;
 
-/* Floats the mention/warning badges over the top-right corner of a vertical
-   tab, matching the sidebar's ServerButton badge placement. */
-export const BadgeWrapper = styled.div`
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-  gap: 2px;
-  transform: translate(30%, -30%);
-  pointer-events: none;
+/* Unread-without-mentions indicator for vertical (sidebar) tabs: same
+   footprint as the count badge, with a drawn dot instead of a text glyph.
+   The dot matches the macOS dock badge (dock.setBadge('•') renders its
+   bullet at ~1/8 of the badge diameter → 2px inside the 16px badge) and
+   uses currentColor so it follows the variant's font token. */
+export const UnreadDotBadge = styled(TabBadge)`
+  align-items: center;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: currentColor;
+  }
 `;
 
-/* Small unread indicator for tabs that have unread messages but no mention
-   count (badge === '•'), in both horizontal and vertical layouts. */
+/* Unread-without-mentions indicator for horizontal tabs: a plain 8px ball.
+   Badge ships min-width/min-height of 1rem plus 2px/4px padding; without
+   resetting the padding and the fixed box, an 8px dot renders as a 16x8
+   pill. */
 export const UnreadDot = styled(TabBadge)`
+  width: 8px;
   min-width: 8px;
+  height: 8px;
   min-height: 8px;
+  padding: 0;
+`;
+
+/* Floats the mention/warning badges over the top-right corner of a vertical
+   tab, matching the sidebar's ServerButton badge placement.
+
+   Anchors the badge's CENTRE to a fixed point on the tab, so a badge of any
+   size or variant lands in the same visual spot. The anchor is the centre of
+   the standard 16px badge sitting on the corner, which is the reference
+   placement; a wider mention count then grows outward from that same centre
+   rather than shifting position.
+
+   Anchoring an edge instead (e.g. right: 0) pins the wrapper's right edge and
+   lets content grow leftward, so badge width leaks into placement and a
+   narrower badge lands off-centre from a wider one. */
+const BADGE_ANCHOR_X = '28px';
+const BADGE_ANCHOR_Y = '4px';
+
+export const BadgeWrapper = styled.div`
+  position: absolute;
+  top: ${BADGE_ANCHOR_Y};
+  left: ${BADGE_ANCHOR_X};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 `;
 
 export const WindowControlsGroup = styled.div`

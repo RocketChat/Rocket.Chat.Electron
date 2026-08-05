@@ -8,12 +8,10 @@ type ReparentingContainerProps = {
   children?: ReactNode;
 };
 
-const KEY_SEPARATOR = '\u0000';
-
-const joinKeys = (keys: string[]): string => keys.join(KEY_SEPARATOR);
+const joinKeys = (keys: string[]): string => JSON.stringify(keys);
 
 const splitKeys = (joinedKeys: string): string[] =>
-  joinedKeys === '' ? [] : joinedKeys.split(KEY_SEPARATOR);
+  joinedKeys === '' ? [] : JSON.parse(joinedKeys);
 
 export const ReparentingContainer = forwardRef<
   HTMLDivElement,

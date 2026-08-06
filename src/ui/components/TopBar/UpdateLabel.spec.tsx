@@ -256,13 +256,16 @@ describe('UpdateLabel', () => {
       expect(label).toHaveAttribute('data-update-check-status', 'checking');
     });
 
-    it('does nothing when the checking pill is clicked', async () => {
+    it('disables the pill while checking so it cannot be operated', async () => {
       const user = userEvent.setup();
       renderWithStore(<UpdateLabel />, {
         preloadedState: checkState('checking'),
       });
 
-      await user.click(screen.getByRole('button'));
+      const label = screen.getByRole('button');
+      expect(label).toBeDisabled();
+
+      await user.click(label);
 
       expect(mockDispatch).not.toHaveBeenCalled();
     });

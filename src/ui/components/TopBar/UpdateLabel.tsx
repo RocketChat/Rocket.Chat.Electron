@@ -113,14 +113,18 @@ const Label = styled.button<{
       animation: ${pulse} 1.2s ease-in-out infinite;
     `}
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: ${({ variant = 'primary' }: { variant?: LabelVariant }) =>
       variantColors[variant].hover};
   }
 
-  &:active {
+  &:active:not(:disabled) {
     background-color: ${({ variant = 'primary' }: { variant?: LabelVariant }) =>
       variantColors[variant].press};
+  }
+
+  &:disabled {
+    cursor: default;
   }
 
   &:focus-visible {
@@ -258,11 +262,13 @@ export const UpdateLabel = () => {
     }
 
     if (updateCheckStatus === 'checking') {
+      // Disabled: it reports progress and offers no action yet.
       return (
         <Label
           type='button'
           progress={0}
           pulsing
+          disabled
           aria-live='polite'
           data-update-check-status='checking'
         >

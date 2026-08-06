@@ -881,7 +881,7 @@ function LogViewerWindow() {
           {serverFilterOptions.length > 1 && (
             <Box marginInlineEnd='x12'>
               <Select
-                aria-label={t('logViewer.filters.server.all')}
+                aria-label={t('logViewer.filters.server.label')}
                 placeholder={t('logViewer.filters.server.all')}
                 value={serverFilter}
                 options={serverFilterOptions}

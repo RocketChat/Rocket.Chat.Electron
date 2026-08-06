@@ -273,6 +273,23 @@ const checkForUpdatesWithRetry = async (attempt = 0): Promise<void> => {
   }
 };
 
+let pendingUpdateCheck: Promise<void> | null = null;
+
+/**
+ * Starts a retried update check, or joins the one already running — a manual
+ * check requested during the startup ladder's backoff window must not race a
+ * second ladder (and its error-suppression flag) against the first.
+ */
+const requestUpdateCheck = (): Promise<void> => {
+  if (!pendingUpdateCheck) {
+    pendingUpdateCheck = checkForUpdatesWithRetry().finally(() => {
+      pendingUpdateCheck = null;
+    });
+  }
+
+  return pendingUpdateCheck;
+};
+
 const dispatchUpdateError = (error: unknown): void => {
   if (error instanceof Error) {
     dispatch({
@@ -527,7 +544,7 @@ export const setupUpdates = async (): Promise<void> => {
     // Deliberately not awaited: the rest of the app setup must not wait on
     // GitHub, especially while failed attempts back off and retry.
     isUserInitiatedCheck = false;
-    checkForUpdatesWithRetry().catch((error) => {
+    requestUpdateCheck().catch((error) => {
       // An automatic check failing is nothing a user can act on — keep the UI
       // quiet, settle the "checking" state, and leave a note in the log.
       console.warn(
@@ -542,7 +559,7 @@ export const setupUpdates = async (): Promise<void> => {
     try {
       isUserInitiatedCheck = true;
       await new Promise((resolve) => setTimeout(resolve, 100));
-      await checkForUpdatesWithRetry();
+      await requestUpdateCheck();
     } catch (error) {
       // A failed check isn't actionable for the user either: resolve to the
       // benign "no update available" outcome and keep the details in the log.

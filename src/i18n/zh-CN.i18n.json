@@ -343,6 +343,19 @@
       "maximize": "最大化",
       "restore": "还原",
       "close": "关闭"
+    },
+    "downloads": {
+      "tooltip": "正在下载文件，点击查看详情",
+      "title": "下载",
+      "showAll": "显示所有下载",
+      "pause": "暂停",
+      "resume": "继续",
+      "cancel": "取消",
+      "showInFolder": "在文件夹中显示",
+      "percent": "{{- percent}}%",
+      "canceled": "已取消",
+      "failed": "失败",
+      "dismiss": "关闭"
     }
   }
 }

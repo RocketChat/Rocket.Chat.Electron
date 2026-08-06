@@ -307,6 +307,19 @@
       "maximize": "Ekranı kapla",
       "restore": "Geri yükle",
       "close": "Kapat"
+    },
+    "downloads": {
+      "tooltip": "Dosyalar indiriliyor, ayrıntılar için tıklayın",
+      "title": "İndirmeler",
+      "showAll": "Tüm indirmeleri göster",
+      "pause": "Duraklat",
+      "resume": "Devam Et",
+      "cancel": "İptal",
+      "showInFolder": "Klasörde göster",
+      "percent": "{{- percent}}%",
+      "canceled": "İptal",
+      "failed": "Başarısız",
+      "dismiss": "Kapat"
     }
   }
 }

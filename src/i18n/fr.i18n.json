@@ -462,6 +462,19 @@
       "maximize": "Agrandir",
       "restore": "Restaurer",
       "close": "Fermer"
+    },
+    "downloads": {
+      "tooltip": "Téléchargement des fichiers, cliquez pour plus de détails",
+      "title": "Téléchargements",
+      "showAll": "Afficher tous les téléchargements",
+      "pause": "Pause",
+      "resume": "Reprendre",
+      "cancel": "Annuler",
+      "showInFolder": "Afficher dans le dossier",
+      "percent": "{{- percent}}%",
+      "canceled": "Annulé",
+      "failed": "Échoué",
+      "dismiss": "Fermer"
     }
   }
 }

@@ -56,9 +56,12 @@ describe('interpolation', () => {
       expect(format(huge, 'byteSize')).toMatch(/PB/i);
     });
 
-    it('returns the ??? sentinel for 0 bytes (log(0) yields no valid unit)', () => {
-      // Math.log(0) === -Infinity → order === -Infinity → byteUnits[order] undefined
-      expect(format(0, 'byteSize')).toBe('???');
+    it('formats 0 bytes using the base unit instead of the ??? sentinel', () => {
+      // Math.log(0) === -Infinity, which previously produced an out-of-range
+      // order and the '???' sentinel; 0 is now special-cased to the base unit.
+      const out = format(0, 'byteSize');
+      expect(out).not.toBe('???');
+      expect(out).toMatch(/0\s*(byte|B)/i);
     });
 
     it('returns the ??? sentinel for non-finite input', () => {

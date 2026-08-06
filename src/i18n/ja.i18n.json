@@ -288,6 +288,19 @@
       "maximize": "最大化",
       "restore": "元に戻す",
       "close": "閉じる"
+    },
+    "downloads": {
+      "tooltip": "ファイルをダウンロード中、詳細はクリック",
+      "title": "ダウンロード",
+      "showAll": "すべてのダウンロードを表示",
+      "pause": "一時停止",
+      "resume": "再開",
+      "cancel": "キャンセル",
+      "showInFolder": "フォルダに表示",
+      "percent": "{{- percent}}%",
+      "canceled": "キャンセル済み",
+      "failed": "失敗",
+      "dismiss": "閉じる"
     }
   }
 }

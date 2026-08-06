@@ -70,6 +70,19 @@
       "maximize": "Ingrandisci",
       "restore": "Ripristina",
       "close": "Chiudi"
+    },
+    "downloads": {
+      "tooltip": "Scaricamento file in corso, fai clic per i dettagli",
+      "title": "Download",
+      "showAll": "Mostra tutti i download",
+      "pause": "Pausa",
+      "resume": "Riprendi",
+      "cancel": "Annulla",
+      "showInFolder": "Mostra in cartella",
+      "percent": "{{- percent}}%",
+      "canceled": "Annullato",
+      "failed": "Non riuscito",
+      "dismiss": "Chiudi"
     }
   }
 }

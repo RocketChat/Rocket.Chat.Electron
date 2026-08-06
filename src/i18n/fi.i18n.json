@@ -437,5 +437,30 @@
       "label": "Vanheneminen:",
       "expiresOn": "Vanhenee {{date}}"
     }
+  },
+  "tabBar": {
+    "workspaces": "Työtilat",
+    "addWorkspace": "Lisää työtila",
+    "unreadMessage_one": "{{- count}} viesti",
+    "unreadMessage_other": "{{- count}} viestiä",
+    "unreadMessages": "Lukemattomat viestit",
+    "meatballMenu": "Sovellusvalikko",
+    "update": {
+      "available": "Päivitys",
+      "updating": "Päivitetään…",
+      "percent": "{{- percent}}%",
+      "restart": "Käynnistä uudelleen päivittääksesi",
+      "tooltip": "Uusi työpöytäsovelluksen versio on saatavilla, katso lisätiedot napsauttamalla",
+      "checking": "Tarkistetaan päivityksiä…",
+      "upToDate": "Sovellus on ajan tasalla",
+      "upToDateTooltip": "{{- version}} on uusin versio",
+      "checkFailed": "Päivitysten tarkistus epäonnistui"
+    },
+    "windowControls": {
+      "minimize": "Pienennä",
+      "maximize": "Suurenna",
+      "restore": "Palauta",
+      "close": "Sulje"
+    }
   }
 }

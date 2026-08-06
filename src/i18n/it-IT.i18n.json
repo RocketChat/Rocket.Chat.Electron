@@ -46,5 +46,30 @@
       "label": "Scadenza:",
       "expiresOn": "Scade il {{date}}"
     }
+  },
+  "tabBar": {
+    "workspaces": "Aree di lavoro",
+    "addWorkspace": "Aggiungi area di lavoro",
+    "unreadMessage_one": "{{- count}} messaggio",
+    "unreadMessage_other": "{{- count}} messaggi",
+    "unreadMessages": "Messaggi non letti",
+    "meatballMenu": "Menu dell'applicazione",
+    "update": {
+      "available": "Aggiornamento",
+      "updating": "Aggiornamento…",
+      "percent": "{{- percent}}%",
+      "restart": "Riavvia per aggiornare",
+      "tooltip": "È disponibile una nuova versione dell'app desktop, fai clic per i dettagli",
+      "checking": "Ricerca aggiornamenti…",
+      "upToDate": "Sei aggiornato",
+      "upToDateTooltip": "{{- version}} è l'ultima versione",
+      "checkFailed": "Impossibile verificare gli aggiornamenti"
+    },
+    "windowControls": {
+      "minimize": "Riduci a icona",
+      "maximize": "Ingrandisci",
+      "restore": "Ripristina",
+      "close": "Chiudi"
+    }
   }
 }

@@ -305,5 +305,32 @@
       "label": "Wygaśnięcie:",
       "expiresOn": "Wygasa {{date}}"
     }
+  },
+  "tabBar": {
+    "workspaces": "Przestrzenie robocze",
+    "addWorkspace": "Dodaj przestrzeń roboczą",
+    "unreadMessage_one": "{{- count}} wiadomość",
+    "unreadMessage_few": "{{- count}} wiadomości",
+    "unreadMessage_many": "{{- count}} wiadomości",
+    "unreadMessage_other": "{{- count}} wiadomości",
+    "unreadMessages": "Nieprzeczytane wiadomości",
+    "meatballMenu": "Menu aplikacji",
+    "update": {
+      "available": "Aktualizacja",
+      "updating": "Aktualizowanie…",
+      "percent": "{{- percent}}%",
+      "restart": "Uruchom ponownie, aby zaktualizować",
+      "tooltip": "Dostępna jest nowa wersja aplikacji desktopowej, kliknij, aby zobaczyć szczegóły",
+      "checking": "Sprawdzanie aktualizacji…",
+      "upToDate": "Masz najnowszą wersję",
+      "upToDateTooltip": "{{- version}} to najnowsza wersja",
+      "checkFailed": "Nie udało się sprawdzić aktualizacji"
+    },
+    "windowControls": {
+      "minimize": "Minimalizuj",
+      "maximize": "Maksymalizuj",
+      "restore": "Przywróć",
+      "close": "Zamknij"
+    }
   }
 }

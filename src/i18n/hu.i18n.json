@@ -626,5 +626,30 @@
       "label": "Lejárat:",
       "expiresOn": "Lejár ekkor: {{date}}"
     }
+  },
+  "tabBar": {
+    "workspaces": "Munkaterületek",
+    "addWorkspace": "Munkaterület hozzáadása",
+    "unreadMessage_one": "{{- count}} üzenet",
+    "unreadMessage_other": "{{- count}} üzenet",
+    "unreadMessages": "Olvasatlan üzenetek",
+    "meatballMenu": "Alkalmazásmenü",
+    "update": {
+      "available": "Frissítés",
+      "updating": "Frissítés…",
+      "percent": "{{- percent}}%",
+      "restart": "Újraindítás a frissítéshez",
+      "tooltip": "Az asztali alkalmazás új verziója érhető el, kattintson a részletekért",
+      "checking": "Frissítések keresése…",
+      "upToDate": "Az alkalmazás naprakész",
+      "upToDateTooltip": "A(z) {{- version}} a legújabb verzió",
+      "checkFailed": "A frissítések keresése nem sikerült"
+    },
+    "windowControls": {
+      "minimize": "Kis méret",
+      "maximize": "Teljes méret",
+      "restore": "Visszaállítás",
+      "close": "Bezárás"
+    }
   }
 }

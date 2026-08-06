@@ -242,5 +242,29 @@
       "label": "過期時間:",
       "expiresOn": "將於 {{date}} 過期"
     }
+  },
+  "tabBar": {
+    "workspaces": "工作區",
+    "addWorkspace": "新增工作區",
+    "unreadMessage_other": "{{- count}} 則訊息",
+    "unreadMessages": "未讀訊息",
+    "meatballMenu": "應用程式選單",
+    "update": {
+      "available": "更新",
+      "updating": "更新中…",
+      "percent": "{{- percent}}%",
+      "restart": "重新啟動以更新",
+      "tooltip": "桌面應用程式有新版本可用，點擊查看詳細資訊",
+      "checking": "正在檢查更新…",
+      "upToDate": "已是最新版本",
+      "upToDateTooltip": "{{- version}} 已是最新版本",
+      "checkFailed": "無法檢查更新"
+    },
+    "windowControls": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "restore": "還原",
+      "close": "關閉"
+    }
   }
 }

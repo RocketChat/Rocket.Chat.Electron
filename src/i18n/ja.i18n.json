@@ -298,7 +298,7 @@
       "cancel": "キャンセル",
       "showInFolder": "フォルダに表示",
       "percent": "{{- percent}}%",
-      "canceled": "キャンセル",
+      "canceled": "キャンセル済み",
       "failed": "失敗",
       "dismiss": "閉じる"
     }

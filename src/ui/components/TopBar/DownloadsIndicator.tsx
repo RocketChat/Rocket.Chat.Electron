@@ -245,6 +245,8 @@ export const DownloadsIndicator = () => {
           <PanelLayer>
             <Dropdown reference={reference} ref={target} placement={placement}>
               <Box
+                role='dialog'
+                aria-label={t('tabBar.downloads.title')}
                 display='flex'
                 flexDirection='column'
                 paddingInline='x12'

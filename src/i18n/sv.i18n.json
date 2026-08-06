@@ -520,9 +520,9 @@
       "close": "Stäng"
     },
     "downloads": {
-      "tooltip": "Hämtar filer, klicka för detaljer",
-      "title": "Hämtningar",
-      "showAll": "Visa alla hämtningar",
+      "tooltip": "Laddar ned filer, klicka för detaljer",
+      "title": "Nedladdningar",
+      "showAll": "Visa alla nedladdningar",
       "pause": "Pausa",
       "resume": "Återuppta",
       "cancel": "Avbryt",

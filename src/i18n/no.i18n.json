@@ -547,10 +547,10 @@
       "showAll": "Vis alle nedlastinger",
       "pause": "Pause",
       "resume": "Gjenoppta",
-      "cancel": "Avbryt",
+      "cancel": "Kanseller",
       "showInFolder": "Vis i mappe",
       "percent": "{{- percent}}%",
-      "canceled": "Avbrutt",
+      "canceled": "Kansellert",
       "failed": "Mislyktes",
       "dismiss": "Lukk"
     }

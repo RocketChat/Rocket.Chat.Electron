@@ -341,8 +341,8 @@
       "cancel": "Anuluj",
       "showInFolder": "Pokaż w folderze",
       "percent": "{{- percent}}%",
-      "canceled": "Anulowana",
-      "failed": "Nieudana",
+      "canceled": "Anulowano",
+      "failed": "Nie udało się",
       "dismiss": "Zamknij"
     }
   }

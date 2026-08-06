@@ -45,12 +45,16 @@ export const DownloadsIndicatorItem = ({
   }, [state, t]);
 
   const sizeLabel = useMemo(() => {
-    if (isTerminalError || !totalBytes) {
+    if (isTerminalError) {
       return undefined;
     }
 
     if (state === 'completed') {
       return i18n.format(totalBytes, 'byteSize');
+    }
+
+    if (!totalBytes) {
+      return undefined;
     }
 
     return t('downloads.item.progressSize', {

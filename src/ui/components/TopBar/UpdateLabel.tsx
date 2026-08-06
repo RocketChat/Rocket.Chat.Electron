@@ -1,3 +1,4 @@
+import { css, keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import {
   Box,
@@ -13,11 +14,41 @@ import { useSelector } from 'react-redux';
 import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import {
+  UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
+
+type LabelVariant = 'primary' | 'success' | 'danger';
+
+const variantColors: Record<
+  LabelVariant,
+  { default: string; hover: string; press: string }
+> = {
+  primary: {
+    default: 'var(--rcx-color-button-background-primary-default, #095ad2)',
+    hover: 'var(--rcx-color-button-background-primary-hover, #10529e)',
+    press: 'var(--rcx-color-button-background-primary-press, #10529e)',
+  },
+  success: {
+    default: 'var(--rcx-color-button-background-success-default, #158d65)',
+    hover: 'var(--rcx-color-button-background-success-hover, #106d4f)',
+    press: 'var(--rcx-color-button-background-success-press, #106d4f)',
+  },
+  danger: {
+    default: 'var(--rcx-color-button-background-danger-default, #ec0d2a)',
+    hover: 'var(--rcx-color-button-background-danger-hover, #bb0b21)',
+    press: 'var(--rcx-color-button-background-danger-press, #bb0b21)',
+  },
+};
+
+const pulse = keyframes`
+  50% {
+    opacity: 0.55;
+  }
+`;
 
 /**
  * Blue pill in the window chrome announcing an available update.
@@ -27,8 +58,16 @@ import {
  * when it completes it becomes the button that restarts into the new version.
  * `progress` paints a brighter fill across the pill so the percentage reads as a
  * progress bar rather than plain text.
+ *
+ * It doubles as the transient feedback for a user-initiated update check:
+ * `variant` recolors it (success for "up to date", danger for a failed check)
+ * and `pulsing` animates it while the check is in flight.
  */
-const Label = styled.button<{ progress: number }>`
+const Label = styled.button<{
+  progress: number;
+  variant?: LabelVariant;
+  pulsing?: boolean;
+}>`
   appearance: none;
   box-sizing: border-box;
   border: none;
@@ -57,7 +96,8 @@ const Label = styled.button<{ progress: number }>`
   z-index: 1;
 
   /* The fill is a hard-stop gradient so it doubles as the progress bar. */
-  background-color: var(--rcx-color-button-background-primary-default, #095ad2);
+  background-color: ${({ variant = 'primary' }: { variant?: LabelVariant }) =>
+    variantColors[variant].default};
   background-image: linear-gradient(
     to right,
     rgba(255, 255, 255, 0.32) 0%,
@@ -67,12 +107,20 @@ const Label = styled.button<{ progress: number }>`
   );
   transition: background-image 150ms ease-out;
 
+  ${({ pulsing }) =>
+    pulsing &&
+    css`
+      animation: ${pulse} 1.2s ease-in-out infinite;
+    `}
+
   &:hover {
-    background-color: var(--rcx-color-button-background-primary-hover, #10529e);
+    background-color: ${({ variant = 'primary' }: { variant?: LabelVariant }) =>
+      variantColors[variant].hover};
   }
 
   &:active {
-    background-color: var(--rcx-color-button-background-primary-press, #10529e);
+    background-color: ${({ variant = 'primary' }: { variant?: LabelVariant }) =>
+      variantColors[variant].press};
   }
 
   &:focus-visible {
@@ -134,6 +182,15 @@ export const UpdateLabel = () => {
   const updateDownloadProgress = useSelector(
     ({ updateDownloadProgress }: RootState) => updateDownloadProgress
   );
+  const updateCheckStatus = useSelector(
+    ({ updateCheckStatus }: RootState) => updateCheckStatus
+  );
+  const isUpdatingAllowed = useSelector(
+    ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed
+  );
+  const isUpdatingEnabled = useSelector(
+    ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled
+  );
 
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
@@ -172,8 +229,69 @@ export const UpdateLabel = () => {
     };
   }, [isVisible]);
 
+  // The check outcome is transient feedback, not a state the user must act on,
+  // so it dismisses itself after a few seconds.
+  useEffect(() => {
+    if (updateCheckStatus !== 'upToDate' && updateCheckStatus !== 'failed') {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      dispatch({ type: UPDATES_CHECK_FEEDBACK_DISMISSED });
+    }, 6000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [updateCheckStatus]);
+
   if (!newUpdateVersion) {
-    return null;
+    // In builds that cannot self-update the check listener is never
+    // registered, so a requested check would sit at "checking" forever —
+    // show nothing instead.
+    if (
+      !isUpdatingAllowed ||
+      !isUpdatingEnabled ||
+      updateCheckStatus === 'idle'
+    ) {
+      return null;
+    }
+
+    if (updateCheckStatus === 'checking') {
+      return (
+        <Label
+          type='button'
+          progress={0}
+          pulsing
+          aria-live='polite'
+          data-update-check-status='checking'
+        >
+          {t('tabBar.update.checking')}
+        </Label>
+      );
+    }
+
+    const isFailed = updateCheckStatus === 'failed';
+
+    return (
+      <Label
+        type='button'
+        progress={0}
+        variant={isFailed ? 'danger' : 'success'}
+        aria-live='polite'
+        title={
+          isFailed
+            ? undefined
+            : t('tabBar.update.upToDateTooltip', { version: currentVersion })
+        }
+        data-update-check-status={updateCheckStatus}
+        onClick={() => dispatch({ type: UPDATES_CHECK_FEEDBACK_DISMISSED })}
+      >
+        {isFailed
+          ? t('tabBar.update.checkFailed')
+          : t('tabBar.update.upToDate')}
+      </Label>
+    );
   }
 
   const isDownloading = updateDownloadStatus === 'downloading';

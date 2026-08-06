@@ -1,4 +1,5 @@
 import {
+  UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
   UPDATES_PANEL_TOGGLED,
@@ -50,8 +51,17 @@ const buildState = (overrides: Record<string, unknown> = {}) =>
     updateDownloadStatus: 'idle',
     updateDownloadProgress: 0,
     isUpdatePanelOpen: false,
+    updateCheckStatus: 'idle',
+    isUpdatingAllowed: true,
+    isUpdatingEnabled: true,
     ...overrides,
   }) as any;
+
+/** State with no update available, as during a manual check. */
+const checkState = (
+  updateCheckStatus: string,
+  overrides: Record<string, unknown> = {}
+) => buildState({ newUpdateVersion: null, updateCheckStatus, ...overrides });
 
 /** State with the panel already open, as the store would have it. */
 const openState = (overrides: Record<string, unknown> = {}) =>
@@ -232,6 +242,121 @@ describe('UpdateLabel', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: UPDATES_INSTALL_REQUESTED,
+    });
+  });
+
+  describe('manual check feedback', () => {
+    it('shows the checking state while a manual check is in flight', () => {
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: checkState('checking'),
+      });
+
+      const label = screen.getByRole('button');
+      expect(label).toHaveTextContent('tabBar.update.checking');
+      expect(label).toHaveAttribute('data-update-check-status', 'checking');
+    });
+
+    it('does nothing when the checking pill is clicked', async () => {
+      const user = userEvent.setup();
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: checkState('checking'),
+      });
+
+      await user.click(screen.getByRole('button'));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('announces the app is up to date after the check', () => {
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: checkState('upToDate'),
+      });
+
+      const label = screen.getByRole('button');
+      expect(label).toHaveTextContent('tabBar.update.upToDate');
+      expect(label).toHaveAttribute('data-update-check-status', 'upToDate');
+    });
+
+    it('announces a failed check', () => {
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: checkState('failed'),
+      });
+
+      const label = screen.getByRole('button');
+      expect(label).toHaveTextContent('tabBar.update.checkFailed');
+      expect(label).toHaveAttribute('data-update-check-status', 'failed');
+    });
+
+    it('dismisses the outcome when clicked', async () => {
+      const user = userEvent.setup();
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: checkState('upToDate'),
+      });
+
+      await user.click(screen.getByRole('button'));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UPDATES_CHECK_FEEDBACK_DISMISSED,
+      });
+    });
+
+    it('auto-dismisses the outcome after a few seconds', () => {
+      jest.useFakeTimers();
+      try {
+        renderWithStore(<UpdateLabel />, {
+          preloadedState: checkState('upToDate'),
+        });
+
+        expect(mockDispatch).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(6000);
+
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: UPDATES_CHECK_FEEDBACK_DISMISSED,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not auto-dismiss while still checking', () => {
+      jest.useFakeTimers();
+      try {
+        renderWithStore(<UpdateLabel />, {
+          preloadedState: checkState('checking'),
+        });
+
+        jest.advanceTimersByTime(60000);
+
+        expect(mockDispatch).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('shows nothing when updates are not allowed in this build', () => {
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: checkState('checking', { isUpdatingAllowed: false }),
+      });
+
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('shows nothing when updates are disabled', () => {
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: checkState('checking', { isUpdatingEnabled: false }),
+      });
+
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('prefers the available-update pill over check feedback', () => {
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: buildState({ updateCheckStatus: 'checking' }),
+      });
+
+      const label = screen.getByRole('button');
+      expect(label).toHaveTextContent('tabBar.update.available');
     });
   });
 });

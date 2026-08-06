@@ -233,6 +233,46 @@ const installDownloadedUpdate = (): void => {
   });
 };
 
+/**
+ * GitHub intermittently answers the release-metadata request with an empty
+ * body, which electron-updater surfaces as ERR_UPDATER_NO_PUBLISHED_VERSIONS
+ * ("No published versions on GitHub") even though releases exist, and slow or
+ * flaky networks produce similar one-off failures. A short retry ladder rides
+ * those out.
+ *
+ * While a ladder is in flight it owns error reporting: the autoUpdater `error`
+ * listener stays quiet and the ladder's caller decides what the final failure
+ * means (a manual check reports to the UI, an automatic one only logs).
+ */
+const UPDATE_CHECK_RETRY_DELAYS_MS = [2_000, 5_000];
+
+let isUpdateCheckInFlight = false;
+
+const checkForUpdatesWithRetry = async (attempt = 0): Promise<void> => {
+  isUpdateCheckInFlight = true;
+
+  try {
+    await autoUpdater.checkForUpdates();
+    isUpdateCheckInFlight = false;
+  } catch (error) {
+    if (attempt >= UPDATE_CHECK_RETRY_DELAYS_MS.length) {
+      isUpdateCheckInFlight = false;
+      throw error;
+    }
+
+    console.warn(
+      `Update check failed (attempt ${attempt + 1} of ${
+        UPDATE_CHECK_RETRY_DELAYS_MS.length + 1
+      }), retrying:`,
+      error instanceof Error ? error.message : error
+    );
+    await new Promise((resolve) => {
+      setTimeout(resolve, UPDATE_CHECK_RETRY_DELAYS_MS[attempt]);
+    });
+    return checkForUpdatesWithRetry(attempt + 1);
+  }
+};
+
 const dispatchUpdateError = (error: unknown): void => {
   if (error instanceof Error) {
     dispatch({
@@ -324,6 +364,18 @@ export const setupUpdates = async (): Promise<void> => {
   }
 
   autoUpdater.autoDownload = false;
+
+  // electron-updater logs transient check failures (flaky GitHub metadata
+  // responses, offline machines) at error level, which reads as an app fault
+  // in user-shared logs even though the user can do nothing about it. Route
+  // its logging through warn and below — failures that matter to the user
+  // reach the UI through the store, not the log.
+  autoUpdater.logger = {
+    info: (message) => console.log(message),
+    warn: (message) => console.warn(message),
+    error: (message) => console.warn(message),
+    debug: (message) => console.debug(message),
+  };
 
   const {
     isUpdatingAllowed,
@@ -455,6 +507,12 @@ export const setupUpdates = async (): Promise<void> => {
   });
 
   autoUpdater.addListener('error', (error) => {
+    // A check ladder owns error reporting for its final outcome; this listener
+    // only covers failures outside a check (e.g. downloads).
+    if (isUpdateCheckInFlight) {
+      return;
+    }
+
     dispatch({
       type: UPDATES_ERROR_THROWN,
       payload: {
@@ -466,37 +524,33 @@ export const setupUpdates = async (): Promise<void> => {
   });
 
   if (doCheckForUpdatesOnStartup) {
-    try {
-      isUserInitiatedCheck = false;
-      await autoUpdater.checkForUpdates();
-    } catch (error) {
-      error instanceof Error &&
-        dispatch({
-          type: UPDATES_ERROR_THROWN,
-          payload: {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-          },
-        });
-    }
+    // Deliberately not awaited: the rest of the app setup must not wait on
+    // GitHub, especially while failed attempts back off and retry.
+    isUserInitiatedCheck = false;
+    checkForUpdatesWithRetry().catch((error) => {
+      // An automatic check failing is nothing a user can act on — keep the UI
+      // quiet, settle the "checking" state, and leave a note in the log.
+      console.warn(
+        'Automatic update check failed:',
+        error instanceof Error ? error.message : error
+      );
+      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+    });
   }
 
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {
       isUserInitiatedCheck = true;
       await new Promise((resolve) => setTimeout(resolve, 100));
-      await autoUpdater.checkForUpdates();
+      await checkForUpdatesWithRetry();
     } catch (error) {
-      error instanceof Error &&
-        dispatch({
-          type: UPDATES_ERROR_THROWN,
-          payload: {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-          },
-        });
+      // A failed check isn't actionable for the user either: resolve to the
+      // benign "no update available" outcome and keep the details in the log.
+      console.warn(
+        'Update check failed:',
+        error instanceof Error ? error.message : error
+      );
+      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
     }
   });
 };

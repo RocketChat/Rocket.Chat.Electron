@@ -34,3 +34,11 @@ export type UpdateChannel = (typeof UPDATE_CHANNELS)[number];
  * `idle` (available, not downloading yet) → `downloading` → `downloaded`.
  */
 export type UpdateDownloadStatus = 'idle' | 'downloading' | 'downloaded';
+
+/**
+ * Outcome of a user-initiated update check, driving the transient titlebar
+ * feedback label: `idle` (nothing to show) → `checking` → `upToDate` |
+ * `failed`. Startup auto-checks never dispatch the requested action, so they
+ * stay at `idle` and produce no titlebar feedback.
+ */
+export type UpdateCheckStatus = 'idle' | 'checking' | 'upToDate' | 'failed';

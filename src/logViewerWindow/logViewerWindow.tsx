@@ -842,6 +842,7 @@ function LogViewerWindow() {
         <Box display='flex' alignItems='center' flexWrap='wrap'>
           <Box marginInlineEnd='x12'>
             <Select
+              aria-label={t('logViewer.placeholders.loadAmount')}
               placeholder={t('logViewer.placeholders.loadAmount')}
               value={entryLimit}
               options={entryLimitOptions}
@@ -859,6 +860,7 @@ function LogViewerWindow() {
           </Box>
           <Box marginInlineEnd='x12'>
             <Select
+              aria-label={t('logViewer.placeholders.level')}
               placeholder={t('logViewer.placeholders.level')}
               value={levelFilter}
               options={levelFilterOptions}
@@ -868,6 +870,7 @@ function LogViewerWindow() {
           </Box>
           <Box marginInlineEnd='x12'>
             <Select
+              aria-label={t('logViewer.placeholders.context')}
               placeholder={t('logViewer.placeholders.context')}
               value={contextFilter}
               options={contextFilterOptions}
@@ -878,6 +881,7 @@ function LogViewerWindow() {
           {serverFilterOptions.length > 1 && (
             <Box marginInlineEnd='x12'>
               <Select
+                aria-label={t('logViewer.filters.server.all')}
                 placeholder={t('logViewer.filters.server.all')}
                 value={serverFilter}
                 options={serverFilterOptions}

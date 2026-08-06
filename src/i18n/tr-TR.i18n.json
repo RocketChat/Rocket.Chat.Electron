@@ -283,5 +283,30 @@
       "label": "Son Kullanma:",
       "expiresOn": "{{date}} tarihinde sona eriyor"
     }
+  },
+  "tabBar": {
+    "workspaces": "Çalışma alanları",
+    "addWorkspace": "Çalışma alanı ekle",
+    "unreadMessage_one": "{{- count}} mesaj",
+    "unreadMessage_other": "{{- count}} mesaj",
+    "unreadMessages": "Okunmamış mesajlar",
+    "meatballMenu": "Uygulama menüsü",
+    "update": {
+      "available": "Güncelleme",
+      "updating": "Güncelleniyor…",
+      "percent": "{{- percent}}%",
+      "restart": "Güncellemek için yeniden başlat",
+      "tooltip": "Masaüstü uygulamasının yeni bir sürümü mevcut, ayrıntılar için tıklayın",
+      "checking": "Güncellemeler denetleniyor…",
+      "upToDate": "Uygulamanız güncel",
+      "upToDateTooltip": "{{- version}} en son sürümdür",
+      "checkFailed": "Güncellemeler denetlenemedi"
+    },
+    "windowControls": {
+      "minimize": "Simge durumuna küçült",
+      "maximize": "Ekranı kapla",
+      "restore": "Geri yükle",
+      "close": "Kapat"
+    }
   }
 }

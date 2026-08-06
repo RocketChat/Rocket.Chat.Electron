@@ -73,6 +73,7 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
     >
       <Select
         id={browserSelectId}
+        aria-label={t('settings.options.availableBrowsers.title')}
         options={options}
         value={selectedBrowser ?? 'system'}
         onChange={handleChangeBrowser}

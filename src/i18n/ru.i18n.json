@@ -441,5 +441,32 @@
       "label": "Истечение срока:",
       "expiresOn": "Истекает {{date}}"
     }
+  },
+  "tabBar": {
+    "workspaces": "Рабочие пространства",
+    "addWorkspace": "Добавить рабочее пространство",
+    "unreadMessage_one": "{{- count}} сообщение",
+    "unreadMessage_few": "{{- count}} сообщения",
+    "unreadMessage_many": "{{- count}} сообщений",
+    "unreadMessage_other": "{{- count}} сообщения",
+    "unreadMessages": "Непрочитанные сообщения",
+    "meatballMenu": "Меню приложения",
+    "update": {
+      "available": "Обновление",
+      "updating": "Обновление…",
+      "percent": "{{- percent}}%",
+      "restart": "Перезапустить для обновления",
+      "tooltip": "Доступна новая версия настольного приложения, нажмите для подробностей",
+      "checking": "Проверка обновлений…",
+      "upToDate": "У вас последняя версия",
+      "upToDateTooltip": "{{- version}} — последняя версия",
+      "checkFailed": "Не удалось проверить обновления"
+    },
+    "windowControls": {
+      "minimize": "Свернуть",
+      "maximize": "Развернуть",
+      "restore": "Восстановить",
+      "close": "Закрыть"
+    }
   }
 }

@@ -274,5 +274,32 @@
       "label": "Термін дії:",
       "expiresOn": "Закінчується {{date}}"
     }
+  },
+  "tabBar": {
+    "workspaces": "Робочі простори",
+    "addWorkspace": "Додати робочий простір",
+    "unreadMessage_one": "{{- count}} повідомлення",
+    "unreadMessage_few": "{{- count}} повідомлення",
+    "unreadMessage_many": "{{- count}} повідомлень",
+    "unreadMessage_other": "{{- count}} повідомлення",
+    "unreadMessages": "Непрочитані повідомлення",
+    "meatballMenu": "Меню застосунку",
+    "update": {
+      "available": "Оновлення",
+      "updating": "Оновлення…",
+      "percent": "{{- percent}}%",
+      "restart": "Перезапустити для оновлення",
+      "tooltip": "Доступна нова версія настільного застосунку, натисніть, щоб переглянути деталі",
+      "checking": "Перевірка оновлень…",
+      "upToDate": "У вас остання версія",
+      "upToDateTooltip": "{{- version}} — остання версія",
+      "checkFailed": "Не вдалося перевірити оновлення"
+    },
+    "windowControls": {
+      "minimize": "Згорнути",
+      "maximize": "Розгорнути",
+      "restore": "Відновити",
+      "close": "Закрити"
+    }
   }
 }

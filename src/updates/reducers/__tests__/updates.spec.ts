@@ -4,6 +4,8 @@ import {
   ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
 } from '../../../ui/actions';
 import {
+  UPDATES_CHECK_FEEDBACK_DISMISSED,
+  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
   UPDATES_CHECKING_FOR_UPDATE,
   UPDATES_DOWNLOAD_PROGRESSED,
   UPDATES_DOWNLOAD_REQUESTED,
@@ -26,6 +28,7 @@ import {
   isUpdatingEnabled,
   newUpdateVersion,
   skippedUpdateVersion,
+  updateCheckStatus,
   updateDownloadProgress,
   updateDownloadStatus,
   updateError,
@@ -476,5 +479,75 @@ describe('isUpdatePanelOpen reducer', () => {
 
   it('should stay open while the panel is merely re-rendered', () => {
     expect(isUpdatePanelOpen(true, unknown)).toBe(true);
+  });
+});
+
+describe('updateCheckStatus reducer', () => {
+  it('should default to idle', () => {
+    expect(updateCheckStatus(undefined, unknown)).toBe('idle');
+  });
+
+  it('should enter checking when a check is requested', () => {
+    expect(
+      updateCheckStatus('idle', {
+        type: UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+      } as any)
+    ).toBe('checking');
+  });
+
+  it('should resolve to upToDate when a requested check finds nothing', () => {
+    expect(
+      updateCheckStatus('checking', {
+        type: UPDATES_NEW_VERSION_NOT_AVAILABLE,
+      } as any)
+    ).toBe('upToDate');
+  });
+
+  it('should stay idle when a startup check finds nothing', () => {
+    expect(
+      updateCheckStatus('idle', {
+        type: UPDATES_NEW_VERSION_NOT_AVAILABLE,
+      } as any)
+    ).toBe('idle');
+  });
+
+  it('should resolve to failed when a requested check errors', () => {
+    expect(
+      updateCheckStatus('checking', {
+        type: UPDATES_ERROR_THROWN,
+      } as any)
+    ).toBe('failed');
+  });
+
+  it('should ignore errors outside a requested check', () => {
+    expect(
+      updateCheckStatus('idle', {
+        type: UPDATES_ERROR_THROWN,
+      } as any)
+    ).toBe('idle');
+  });
+
+  it('should yield to the available-update pill', () => {
+    expect(
+      updateCheckStatus('checking', {
+        type: UPDATES_NEW_VERSION_AVAILABLE,
+        payload: '4.9.0',
+      } as any)
+    ).toBe('idle');
+  });
+
+  it.each(['upToDate', 'failed'] as const)(
+    'should dismiss %s feedback',
+    (state) => {
+      expect(
+        updateCheckStatus(state, {
+          type: UPDATES_CHECK_FEEDBACK_DISMISSED,
+        } as any)
+      ).toBe('idle');
+    }
+  );
+
+  it('should keep showing the outcome while unrelated actions pass', () => {
+    expect(updateCheckStatus('upToDate', unknown)).toBe('upToDate');
   });
 });

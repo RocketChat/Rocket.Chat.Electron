@@ -265,5 +265,29 @@
       "label": "有効期限:",
       "expiresOn": "{{date}}に期限切れ"
     }
+  },
+  "tabBar": {
+    "workspaces": "ワークスペース",
+    "addWorkspace": "ワークスペースを追加",
+    "unreadMessage_other": "{{- count}}件のメッセージ",
+    "unreadMessages": "未読メッセージ",
+    "meatballMenu": "アプリケーションメニュー",
+    "update": {
+      "available": "アップデート",
+      "updating": "更新中…",
+      "percent": "{{- percent}}%",
+      "restart": "再起動して更新",
+      "tooltip": "デスクトップアプリの新しいバージョンが利用可能です。クリックして詳細を表示",
+      "checking": "アップデートを確認しています…",
+      "upToDate": "最新の状態です",
+      "upToDateTooltip": "{{- version}} は最新バージョンです",
+      "checkFailed": "アップデートを確認できませんでした"
+    },
+    "windowControls": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "restore": "元に戻す",
+      "close": "閉じる"
+    }
   }
 }

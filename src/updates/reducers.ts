@@ -7,6 +7,8 @@ import {
   ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
 } from '../ui/actions';
 import {
+  UPDATES_CHECK_FEEDBACK_DISMISSED,
+  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
   UPDATES_CHECKING_FOR_UPDATE,
   UPDATES_DOWNLOAD_PROGRESSED,
   UPDATES_DOWNLOAD_REQUESTED,
@@ -20,7 +22,7 @@ import {
   UPDATE_SKIPPED,
   UPDATES_CHANNEL_CHANGED,
 } from './actions';
-import type { UpdateDownloadStatus } from './common';
+import type { UpdateCheckStatus, UpdateDownloadStatus } from './common';
 
 type DoCheckForUpdatesOnStartupAction =
   | ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
@@ -279,6 +281,47 @@ export const updateDownloadProgress: Reducer<number, UpdateDownloadAction> = (
     case UPDATES_ERROR_THROWN:
     case UPDATE_SKIPPED:
       return 0;
+
+    default:
+      return state;
+  }
+};
+
+type UpdateCheckStatusAction =
+  | ActionOf<typeof UPDATES_CHECK_FEEDBACK_DISMISSED>
+  | ActionOf<typeof UPDATES_CHECK_FOR_UPDATES_REQUESTED>
+  | ActionOf<typeof UPDATES_ERROR_THROWN>
+  | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>;
+
+/**
+ * Feedback for user-initiated update checks (menu bar / meatball menu / About
+ * dialog), surfaced by the titlebar update label. Keyed on the requested
+ * action rather than the autoUpdater's `checking-for-update` event so startup
+ * auto-checks stay at `idle` and never flash the titlebar; the outcome
+ * transitions only apply while a user-initiated check is in flight for the
+ * same reason.
+ */
+export const updateCheckStatus: Reducer<
+  UpdateCheckStatus,
+  UpdateCheckStatusAction
+> = (state = 'idle', action) => {
+  switch (action.type) {
+    case UPDATES_CHECK_FOR_UPDATES_REQUESTED:
+      return 'checking';
+
+    case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+      return state === 'checking' ? 'upToDate' : state;
+
+    case UPDATES_ERROR_THROWN:
+      return state === 'checking' ? 'failed' : state;
+
+    // The available-update pill takes over the titlebar.
+    case UPDATES_NEW_VERSION_AVAILABLE:
+      return 'idle';
+
+    case UPDATES_CHECK_FEEDBACK_DISMISSED:
+      return 'idle';
 
     default:
       return state;

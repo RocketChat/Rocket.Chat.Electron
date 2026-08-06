@@ -26,6 +26,12 @@ export const UPDATES_SKIP_REQUESTED = 'updates/skip-requested';
 export const UPDATES_PANEL_TOGGLED = 'updates/panel-toggled';
 /** Developer-mode entry point that walks the whole flow without a real update. */
 export const UPDATES_SIMULATION_REQUESTED = 'updates/simulation-requested';
+/**
+ * Dismisses the transient "up to date" / "check failed" titlebar feedback,
+ * either by clicking it or by its auto-hide timer.
+ */
+export const UPDATES_CHECK_FEEDBACK_DISMISSED =
+  'updates/check-feedback-dismissed';
 
 export type UpdatesActionTypeToPayloadMap = {
   [UPDATE_SKIPPED]: string | null;
@@ -43,4 +49,5 @@ export type UpdatesActionTypeToPayloadMap = {
   [UPDATES_SKIP_REQUESTED]: string | null;
   [UPDATES_PANEL_TOGGLED]: boolean;
   [UPDATES_SIMULATION_REQUESTED]: void;
+  [UPDATES_CHECK_FEEDBACK_DISMISSED]: void;
 };

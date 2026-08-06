@@ -531,7 +531,11 @@
       "updating": "Updating…",
       "percent": "{{- percent}}%",
       "restart": "Restart to update",
-      "tooltip": "New desktop app version is available, click to see details"
+      "tooltip": "New desktop app version is available, click to see details",
+      "checking": "Checking for updates…",
+      "upToDate": "You're up to date",
+      "upToDateTooltip": "{{- version}} is the latest version",
+      "checkFailed": "Could not check for updates"
     },
     "windowControls": {
       "minimize": "Minimize",

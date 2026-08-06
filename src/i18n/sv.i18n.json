@@ -518,6 +518,19 @@
       "maximize": "Maximera",
       "restore": "Återställ",
       "close": "Stäng"
+    },
+    "downloads": {
+      "tooltip": "Hämtar filer, klicka för detaljer",
+      "title": "Hämtningar",
+      "showAll": "Visa alla hämtningar",
+      "pause": "Pausa",
+      "resume": "Återuppta",
+      "cancel": "Avbryt",
+      "showInFolder": "Visa i mapp",
+      "percent": "{{- percent}}%",
+      "canceled": "Avbruten",
+      "failed": "Misslyckades",
+      "dismiss": "Stäng"
     }
   }
 }

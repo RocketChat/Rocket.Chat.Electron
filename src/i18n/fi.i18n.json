@@ -461,6 +461,19 @@
       "maximize": "Suurenna",
       "restore": "Palauta",
       "close": "Sulje"
+    },
+    "downloads": {
+      "tooltip": "Tiedostoja ladataan, napsauta nähdäksesi tiedot",
+      "title": "Lataukset",
+      "showAll": "Näytä kaikki lataukset",
+      "pause": "Keskeytä",
+      "resume": "Jatka",
+      "cancel": "Peruuta",
+      "showInFolder": "Näytä kansiossa",
+      "percent": "{{- percent}}%",
+      "canceled": "Peruutettu",
+      "failed": "Epäonnistui",
+      "dismiss": "Sulje"
     }
   }
 }

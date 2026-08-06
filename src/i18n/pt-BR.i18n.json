@@ -498,6 +498,19 @@
       "maximize": "Maximizar",
       "restore": "Restaurar",
       "close": "Fechar"
+    },
+    "downloads": {
+      "tooltip": "Baixando arquivos, clique para ver detalhes",
+      "title": "Downloads",
+      "showAll": "Mostrar todos os downloads",
+      "pause": "Pausar",
+      "resume": "Retomar",
+      "cancel": "Cancelar",
+      "showInFolder": "Mostrar na pasta",
+      "percent": "{{- percent}}%",
+      "canceled": "Cancelado",
+      "failed": "Falhou",
+      "dismiss": "Fechar"
     }
   }
 }

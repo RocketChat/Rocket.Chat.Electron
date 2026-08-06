@@ -540,6 +540,19 @@
       "maximize": "Maksimer",
       "restore": "Gjenopprett",
       "close": "Lukk"
+    },
+    "downloads": {
+      "tooltip": "Laster ned filer, klikk for detaljer",
+      "title": "Nedlastinger",
+      "showAll": "Vis alle nedlastinger",
+      "pause": "Pause",
+      "resume": "Gjenoppta",
+      "cancel": "Avbryt",
+      "showInFolder": "Vis i mappe",
+      "percent": "{{- percent}}%",
+      "canceled": "Avbrutt",
+      "failed": "Mislyktes",
+      "dismiss": "Lukk"
     }
   }
 }

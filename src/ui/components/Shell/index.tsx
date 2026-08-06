@@ -21,6 +21,7 @@ import { WindowControls } from '../TabBar/WindowControls';
 import { TelephonyDefaultHandlerPromptModal } from '../TelephonyDefaultHandlerPromptModal';
 import { TelephonyServerSelectModal } from '../TelephonyServerSelectModal';
 import { TopBar } from '../TopBar';
+import { DownloadsIndicator } from '../TopBar/DownloadsIndicator';
 import { ServerSwitcher } from '../TopBar/ServerSwitcher';
 import { UpdateLabel } from '../TopBar/UpdateLabel';
 import { useShellTheme } from '../hooks/useShellTheme';
@@ -77,6 +78,7 @@ export const Shell = () => {
               <>
                 <MeatballMenuButton />
                 <UpdateLabel />
+                <DownloadsIndicator />
               </>
             }
             trailingSlot={<WindowControls />}
@@ -86,6 +88,7 @@ export const Shell = () => {
           <TabBar
             trailingSlot={
               <>
+                <DownloadsIndicator />
                 <UpdateLabel />
                 <MeatballMenuButton />
               </>
@@ -97,7 +100,12 @@ export const Shell = () => {
             centerSlot={
               navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
             }
-            trailingSlot={<UpdateLabel />}
+            trailingSlot={
+              <>
+                <DownloadsIndicator />
+                <UpdateLabel />
+              </>
+            }
           />
         )}
         {navigationLayout !== 'tabs' && process.platform === 'win32' && (
@@ -106,6 +114,7 @@ export const Shell = () => {
               <>
                 {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
                 <UpdateLabel />
+                <DownloadsIndicator />
               </>
             }
             centerSlot={

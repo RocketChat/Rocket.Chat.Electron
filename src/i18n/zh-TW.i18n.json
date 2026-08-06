@@ -265,6 +265,19 @@
       "maximize": "最大化",
       "restore": "還原",
       "close": "關閉"
+    },
+    "downloads": {
+      "tooltip": "正在下載檔案，按一下以查看詳情",
+      "title": "下載",
+      "showAll": "顯示所有下載",
+      "pause": "暫停",
+      "resume": "繼續",
+      "cancel": "取消",
+      "showInFolder": "在資料夾中顯示",
+      "percent": "{{- percent}}%",
+      "canceled": "已取消",
+      "failed": "失敗",
+      "dismiss": "關閉"
     }
   }
 }

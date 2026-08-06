@@ -650,6 +650,19 @@
       "maximize": "Teljes méret",
       "restore": "Visszaállítás",
       "close": "Bezárás"
+    },
+    "downloads": {
+      "tooltip": "Fájlok letöltése, kattintson a részletekhez",
+      "title": "Letöltések",
+      "showAll": "Összes letöltés megjelenítése",
+      "pause": "Szünet",
+      "resume": "Folytatás",
+      "cancel": "Mégse",
+      "showInFolder": "Megjelenítés mappában",
+      "percent": "{{- percent}}%",
+      "canceled": "Megszakítva",
+      "failed": "Sikertelen",
+      "dismiss": "Bezárás"
     }
   }
 }

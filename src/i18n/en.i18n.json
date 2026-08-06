@@ -542,6 +542,19 @@
       "maximize": "Maximize",
       "restore": "Restore",
       "close": "Close"
+    },
+    "downloads": {
+      "tooltip": "Downloading files, click to see details",
+      "title": "Downloads",
+      "showAll": "Show all downloads",
+      "pause": "Pause",
+      "resume": "Resume",
+      "cancel": "Cancel",
+      "showInFolder": "Show in folder",
+      "percent": "{{- percent}}%",
+      "canceled": "Canceled",
+      "failed": "Failed",
+      "dismiss": "Dismiss"
     }
   },
   "touchBar": {

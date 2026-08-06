@@ -12,6 +12,14 @@ const byteUnits = [
 ];
 
 const formatBytes = (bytes: number): string => {
+  if (bytes === 0) {
+    return new Intl.NumberFormat(undefined, {
+      style: 'unit',
+      unit: byteUnits[0],
+      maximumFractionDigits: 1,
+    }).format(0);
+  }
+
   const order = Math.min(
     Math.floor(Math.log(bytes) / Math.log(1024)),
     byteUnits.length - 1

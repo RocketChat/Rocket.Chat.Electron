@@ -553,6 +553,8 @@ describe('DownloadsIndicator', () => {
   describe('variant="chrome"', () => {
     const RING_RADIUS = 12;
     const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+    const TRAY_PATH = 'M5 20h14v-2H5v2z';
+    const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
 
     it('renders the chrome glyph svg while downloading', () => {
       renderWithStore(<DownloadsIndicator variant='chrome' />, {
@@ -564,15 +566,15 @@ describe('DownloadsIndicator', () => {
       expect(screen.getByTestId('downloads-chrome-glyph')).toBeInTheDocument();
     });
 
-    it('sets the ring arc stroke-dashoffset to reflect the determinate progress', () => {
+    it('renders the shared progress ring overlay while downloading, with the arc dashoffset reflecting determinate progress', () => {
       renderWithStore(<DownloadsIndicator variant='chrome' />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
-      const glyph = screen.getByTestId('downloads-chrome-glyph');
-      const [, progressArc] = glyph.querySelectorAll('circle');
+      const ring = screen.getByTestId('downloads-progress-ring');
+      const [, progressArc] = ring.querySelectorAll('circle');
       const expectedOffset = RING_CIRCUMFERENCE * (1 - 50 / 100);
 
       expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
@@ -583,7 +585,7 @@ describe('DownloadsIndicator', () => {
       );
     });
 
-    it('renders no ring circles while idle', () => {
+    it('does not render the progress ring overlay while idle', () => {
       renderWithStore(<DownloadsIndicator variant='chrome' />, {
         preloadedState: buildState({
           1: {
@@ -592,6 +594,18 @@ describe('DownloadsIndicator', () => {
             receivedBytes: 1000,
             startTime: SESSION_START + 1000,
           },
+        }),
+      });
+
+      expect(
+        screen.queryByTestId('downloads-progress-ring')
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders no circles inside the glyph svg itself (the ring lives in the shared overlay)', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
@@ -599,19 +613,20 @@ describe('DownloadsIndicator', () => {
       expect(glyph.querySelectorAll('circle')).toHaveLength(0);
     });
 
-    it('hides the tray path while downloading', () => {
+    it('renders only the arrow path (no tray) while downloading', () => {
       renderWithStore(<DownloadsIndicator variant='chrome' />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
-      const TRAY_PATH = 'M5 20h14v-2H5v2z';
       const glyph = screen.getByTestId('downloads-chrome-glyph');
+      expect(glyph.querySelectorAll('path')).toHaveLength(1);
       expect(glyph.querySelector(`path[d="${TRAY_PATH}"]`)).toBeNull();
+      expect(glyph.querySelector(`path[d="${ARROW_PATH}"]`)).not.toBeNull();
     });
 
-    it('shows the tray path alongside the arrow while idle', () => {
+    it('renders both the arrow and tray paths while idle', () => {
       renderWithStore(<DownloadsIndicator variant='chrome' />, {
         preloadedState: buildState({
           1: {
@@ -623,10 +638,8 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
-      const TRAY_PATH = 'M5 20h14v-2H5v2z';
-      const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
       const glyph = screen.getByTestId('downloads-chrome-glyph');
-
+      expect(glyph.querySelectorAll('path')).toHaveLength(2);
       expect(glyph.querySelector(`path[d="${TRAY_PATH}"]`)).not.toBeNull();
       expect(glyph.querySelector(`path[d="${ARROW_PATH}"]`)).not.toBeNull();
     });
@@ -638,7 +651,6 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
-      const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
       const glyph = screen.getByTestId('downloads-chrome-glyph');
       const arrowPath = glyph.querySelector(`path[d="${ARROW_PATH}"]`);
 

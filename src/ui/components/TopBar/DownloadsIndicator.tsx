@@ -110,9 +110,6 @@ const UnseenDot = styled.span`
   pointer-events: none;
 `;
 
-const CHROME_GLYPH_ACCENT = 'var(--rcx-color-font-info, #095ad2)';
-const CHROME_SIZE = 28;
-
 const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
 const TRAY_PATH = 'M5 20h14v-2H5v2z';
 
@@ -138,30 +135,6 @@ const ChromeGlyphButton = styled.button`
       )
     )
   );
-`;
-
-/* No unconditional transform-origin here: the SVG 'transform' attribute maps
-   to the CSS transform property, so a CSS transform-origin stacks onto the
-   origin already baked into rotate(-90 14 14) and displaces the ring out of
-   the viewBox. fill-box + center self-centers the spin without conflicting. */
-const ChromeRingGroup = styled.g<{ spin: boolean }>`
-  ${({ spin }) =>
-    spin
-      ? `
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: downloads-chrome-ring-spin 1s linear infinite;
-  `
-      : ''}
-
-  @keyframes downloads-chrome-ring-spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
 `;
 
 const isActive = (download: Download): boolean =>
@@ -320,49 +293,20 @@ export const DownloadsIndicator = ({
               onClick={handleToggle}
             >
               <svg
-                viewBox={`0 0 ${CHROME_SIZE} ${CHROME_SIZE}`}
-                width={CHROME_SIZE}
-                height={CHROME_SIZE}
+                viewBox='0 0 24 24'
+                width={24}
+                height={24}
                 data-testid='downloads-chrome-glyph'
               >
                 {isDownloading ? (
-                  <>
-                    <ChromeRingGroup spin={isIndeterminate}>
-                      <circle
-                        cx={14}
-                        cy={14}
-                        r={RING_RADIUS}
-                        fill='none'
-                        strokeWidth={RING_STROKE_WIDTH}
-                        stroke='currentColor'
-                        strokeOpacity={0.2}
-                      />
-                      <circle
-                        cx={14}
-                        cy={14}
-                        r={RING_RADIUS}
-                        fill='none'
-                        strokeWidth={RING_STROKE_WIDTH}
-                        strokeLinecap='round'
-                        stroke={CHROME_GLYPH_ACCENT}
-                        strokeDasharray={RING_CIRCUMFERENCE}
-                        strokeDashoffset={
-                          isIndeterminate
-                            ? RING_CIRCUMFERENCE * 0.75
-                            : RING_CIRCUMFERENCE * (1 - progress / 100)
-                        }
-                        transform='rotate(-90 14 14)'
-                      />
-                    </ChromeRingGroup>
-                    <g transform='translate(2 4.5)'>
-                      <path d={ARROW_PATH} fill='currentColor' />
-                    </g>
-                  </>
+                  <g transform='translate(0 2.5)'>
+                    <path d={ARROW_PATH} fill='currentColor' />
+                  </g>
                 ) : (
-                  <g transform='translate(2 2)'>
+                  <>
                     <path d={ARROW_PATH} fill='currentColor' />
                     <path d={TRAY_PATH} fill='currentColor' />
-                  </g>
+                  </>
                 )}
               </svg>
             </ChromeGlyphButton>
@@ -379,7 +323,7 @@ export const DownloadsIndicator = ({
               onClick={handleToggle}
             />
           )}
-          {variant === 'ring' && isDownloading && (
+          {isDownloading && (
             <ProgressRing
               viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
               indeterminate={isIndeterminate}

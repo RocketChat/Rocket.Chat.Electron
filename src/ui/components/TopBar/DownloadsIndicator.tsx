@@ -111,8 +111,7 @@ const UnseenDot = styled.span`
 `;
 
 const CHROME_GLYPH_ACCENT = 'var(--rcx-color-font-info, #095ad2)';
-const CHROME_RING_RADIUS = 8;
-const CHROME_RING_CIRCUMFERENCE = 2 * Math.PI * CHROME_RING_RADIUS;
+const CHROME_SIZE = 28;
 
 const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
 const TRAY_PATH = 'M5 20h14v-2H5v2z';
@@ -151,7 +150,7 @@ const ChromeBounceGroup = styled.g<{ animate: boolean }>`
 
 /* No unconditional transform-origin here: the SVG 'transform' attribute maps
    to the CSS transform property, so a CSS transform-origin stacks onto the
-   origin already baked into rotate(-90 12 10) and displaces the ring out of
+   origin already baked into rotate(-90 14 14) and displaces the ring out of
    the viewBox. fill-box + center self-centers the spin without conflicting. */
 const ChromeRingGroup = styled.g<{ spin: boolean }>`
   ${({ spin }) =>
@@ -329,52 +328,51 @@ export const DownloadsIndicator = ({
               onClick={handleToggle}
             >
               <svg
-                viewBox='0 0 24 24'
-                width={24}
-                height={24}
+                viewBox={`0 0 ${CHROME_SIZE} ${CHROME_SIZE}`}
+                width={CHROME_SIZE}
+                height={CHROME_SIZE}
                 data-testid='downloads-chrome-glyph'
               >
-                <path
-                  d={TRAY_PATH}
-                  fill={isDownloading ? CHROME_GLYPH_ACCENT : 'currentColor'}
-                />
                 {isDownloading ? (
                   <>
                     <ChromeRingGroup spin={isIndeterminate}>
                       <circle
-                        cx={12}
-                        cy={10}
-                        r={CHROME_RING_RADIUS}
+                        cx={14}
+                        cy={14}
+                        r={RING_RADIUS}
                         fill='none'
-                        strokeWidth={1.8}
+                        strokeWidth={RING_STROKE_WIDTH}
                         stroke='currentColor'
                         strokeOpacity={0.2}
                       />
                       <circle
-                        cx={12}
-                        cy={10}
-                        r={CHROME_RING_RADIUS}
+                        cx={14}
+                        cy={14}
+                        r={RING_RADIUS}
                         fill='none'
-                        strokeWidth={1.8}
+                        strokeWidth={RING_STROKE_WIDTH}
                         strokeLinecap='round'
                         stroke={CHROME_GLYPH_ACCENT}
-                        strokeDasharray={CHROME_RING_CIRCUMFERENCE}
+                        strokeDasharray={RING_CIRCUMFERENCE}
                         strokeDashoffset={
                           isIndeterminate
-                            ? CHROME_RING_CIRCUMFERENCE * 0.75
-                            : CHROME_RING_CIRCUMFERENCE * (1 - progress / 100)
+                            ? RING_CIRCUMFERENCE * 0.75
+                            : RING_CIRCUMFERENCE * (1 - progress / 100)
                         }
-                        transform='rotate(-90 12 10)'
+                        transform='rotate(-90 14 14)'
                       />
                     </ChromeRingGroup>
-                    <g transform='translate(12 10) scale(0.62) translate(-12 -9.5)'>
+                    <g transform='translate(2 4.5)'>
                       <ChromeBounceGroup animate>
                         <path d={ARROW_PATH} fill='currentColor' />
                       </ChromeBounceGroup>
                     </g>
                   </>
                 ) : (
-                  <path d={ARROW_PATH} fill='currentColor' />
+                  <g transform='translate(2 2)'>
+                    <path d={ARROW_PATH} fill='currentColor' />
+                    <path d={TRAY_PATH} fill='currentColor' />
+                  </g>
                 )}
               </svg>
             </ChromeGlyphButton>

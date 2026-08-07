@@ -551,6 +551,9 @@ describe('DownloadsIndicator', () => {
   });
 
   describe('variant="chrome"', () => {
+    const RING_RADIUS = 12;
+    const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
     it('renders the chrome glyph svg while downloading', () => {
       renderWithStore(<DownloadsIndicator variant='chrome' />, {
         preloadedState: buildState({
@@ -562,9 +565,6 @@ describe('DownloadsIndicator', () => {
     });
 
     it('sets the ring arc stroke-dashoffset to reflect the determinate progress', () => {
-      const RADIUS = 8;
-      const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
       renderWithStore(<DownloadsIndicator variant='chrome' />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
@@ -573,10 +573,13 @@ describe('DownloadsIndicator', () => {
 
       const glyph = screen.getByTestId('downloads-chrome-glyph');
       const [, progressArc] = glyph.querySelectorAll('circle');
-      const expectedOffset = CIRCUMFERENCE * (1 - 50 / 100);
+      const expectedOffset = RING_CIRCUMFERENCE * (1 - 50 / 100);
 
       expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
         expectedOffset
+      );
+      expect(Number(progressArc.getAttribute('stroke-dasharray'))).toBeCloseTo(
+        RING_CIRCUMFERENCE
       );
     });
 
@@ -594,6 +597,60 @@ describe('DownloadsIndicator', () => {
 
       const glyph = screen.getByTestId('downloads-chrome-glyph');
       expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+    });
+
+    it('hides the tray path while downloading', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const TRAY_PATH = 'M5 20h14v-2H5v2z';
+      const glyph = screen.getByTestId('downloads-chrome-glyph');
+      expect(glyph.querySelector(`path[d="${TRAY_PATH}"]`)).toBeNull();
+    });
+
+    it('shows the tray path alongside the arrow while idle', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+          },
+        }),
+      });
+
+      const TRAY_PATH = 'M5 20h14v-2H5v2z';
+      const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
+      const glyph = screen.getByTestId('downloads-chrome-glyph');
+
+      expect(glyph.querySelector(`path[d="${TRAY_PATH}"]`)).not.toBeNull();
+      expect(glyph.querySelector(`path[d="${ARROW_PATH}"]`)).not.toBeNull();
+    });
+
+    it('renders the downloading arrow at full size, with no shrink scale on its wrapping group', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
+      const glyph = screen.getByTestId('downloads-chrome-glyph');
+      const arrowPath = glyph.querySelector(`path[d="${ARROW_PATH}"]`);
+
+      expect(arrowPath).not.toBeNull();
+      let node: Element | null = arrowPath;
+      while (node && node !== glyph) {
+        const transform = node.getAttribute('transform');
+        if (transform) {
+          expect(transform).not.toMatch(/scale/);
+        }
+        node = node.parentElement;
+      }
     });
 
     it('still shows the percentage text and the unseen dot', () => {

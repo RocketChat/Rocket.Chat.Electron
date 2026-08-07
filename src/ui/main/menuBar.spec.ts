@@ -5,6 +5,7 @@ import type { RootState } from '../../store/rootReducer';
 import { MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED } from '../actions';
 import {
   getServerContextMenuTemplate,
+  selectAppMenuPopupTemplate,
   selectMenuBarTemplate,
   selectMenuBarTemplateAsJson,
   selectServerSwitcherMenuTemplate,
@@ -296,6 +297,47 @@ describe('ui/main/menuBar', () => {
       );
       expect(serverB?.accelerator).toBe('CommandOrControl+2');
       expect(serverB?.checked).toBe(false);
+    });
+  });
+
+  describe('selectAppMenuPopupTemplate', () => {
+    const originalPlatform = process.platform;
+
+    const setPlatform = (platform: NodeJS.Platform): void => {
+      Object.defineProperty(process, 'platform', { value: platform });
+    };
+
+    afterEach(() => {
+      setPlatform(originalPlatform);
+    });
+
+    (['darwin', 'win32'] as const).forEach((platform) => {
+      describe(`on ${platform}`, () => {
+        beforeEach(() => {
+          setPlatform(platform);
+        });
+
+        it('omits simulate items and the extra separator when developer mode is off', () => {
+          const state = createState({ isDeveloperModeEnabled: false });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          expect(ids).not.toContain('simulateUpdate');
+          expect(ids).not.toContain('simulateDownload');
+        });
+
+        it('lists simulate items right after checkForUpdates when developer mode is on', () => {
+          const state = createState({ isDeveloperModeEnabled: true });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          const checkForUpdatesIndex = ids.indexOf('checkForUpdates');
+          expect(checkForUpdatesIndex).toBeGreaterThanOrEqual(0);
+          expect(template[checkForUpdatesIndex + 1]?.type).toBe('separator');
+          expect(ids[checkForUpdatesIndex + 2]).toBe('simulateUpdate');
+          expect(ids[checkForUpdatesIndex + 3]).toBe('simulateDownload');
+        });
+      });
     });
   });
 

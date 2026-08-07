@@ -450,6 +450,26 @@ describe('DownloadsIndicator', () => {
     expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
   });
 
+  it('positions the full-size unseen dot tangent on the ring (top/right 1px, not 4px which would sit inside the ring)', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: {
+          ...baseDownload,
+          state: 'completed',
+          receivedBytes: 1000,
+          startTime: SESSION_START + 1000,
+          endTime: Date.now() + 1000,
+        },
+      }),
+    });
+
+    const dot = screen.getByTestId('downloads-unseen-dot');
+    expect(getComputedStyle(dot).top).toBe('1px');
+    expect(getComputedStyle(dot).right).toBe('1px');
+    expect(getComputedStyle(dot).width).toBe('8px');
+    expect(getComputedStyle(dot).height).toBe('8px');
+  });
+
   it('clears the unseen-completed dot once the popup is opened', async () => {
     const user = userEvent.setup();
     renderWithStore(<DownloadsIndicator />, {
@@ -586,6 +606,108 @@ describe('DownloadsIndicator', () => {
       const button = screen.getByRole('button');
       expect(button.querySelector('.rcx-icon--name-download')).toBeNull();
     });
+
+    it('keeps the arc fully filled in the completed-unseen accent color instead of the plain idle glyph', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+            endTime: Date.now() + 1000,
+          },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-glyph');
+
+      const paths = glyph.querySelectorAll('path');
+      expect(paths).toHaveLength(1);
+      expect(paths[0].getAttribute('d')).toBe(ARROW_PATH);
+
+      const circles = glyph.querySelectorAll('circle');
+      expect(circles).toHaveLength(2);
+
+      const [, arc] = circles;
+      expect(Number(arc.getAttribute('stroke-dashoffset'))).toBeCloseTo(0);
+      expect(arc.getAttribute('stroke')).toBe(
+        'var(--rcx-color-font-info, #095ad2)'
+      );
+    });
+
+    it('reverts to the plain idle glyph (no circles) once the unseen download is marked seen by clicking the button', async () => {
+      const user = userEvent.setup();
+      // seenAt is initialized to the mount-time Date.now(); endTime must sit
+      // between that mount time and the later click's own Date.now() call
+      // for the download to start unseen and end up seen after the click.
+      const mountTime = Date.now();
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+            endTime: mountTime + 1,
+          },
+        }),
+      });
+
+      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole('button', { name: 'tabBar.downloads.title' })
+      );
+      await user.click(screen.getByTestId('downloads-panel-backdrop'));
+
+      const glyph = screen.getByTestId('downloads-glyph');
+      const paths = glyph.querySelectorAll('path');
+      expect(paths).toHaveLength(1);
+      expect(paths[0].getAttribute('d')).toContain(TRACK_CIRCLE_D);
+      expect(paths[0].getAttribute('d')).toContain(OUTER_CIRCLE_D);
+      expect(paths[0].getAttribute('d')).toContain(ARROW_PATH);
+
+      expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+    });
+
+    it('does not spin the unseen-completed arc (indeterminate spin only applies while actually downloading)', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+            endTime: Date.now() + 1000,
+          },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-glyph');
+      const arcGroup = glyph.querySelector('g');
+      expect(getComputedStyle(arcGroup as Element).animationName).not.toBe(
+        'downloads-indicator-arc-spin'
+      );
+    });
+
+    it('does not show the percentage text for a completed-unseen download', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+            endTime: Date.now() + 1000,
+          },
+        }),
+      });
+
+      expect(
+        screen.queryByTestId('downloads-progress')
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('percentage renders inside the glyph button', () => {
@@ -638,6 +760,8 @@ describe('DownloadsIndicator', () => {
       const dot = screen.getByTestId('downloads-unseen-dot');
       expect(getComputedStyle(dot).width).toBe('6px');
       expect(getComputedStyle(dot).height).toBe('6px');
+      expect(getComputedStyle(dot).top).toBe('2px');
+      expect(getComputedStyle(dot).right).toBe('2px');
     });
 
     it('still shows the percentage text and the glyph in compact mode', () => {

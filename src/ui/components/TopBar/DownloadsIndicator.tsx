@@ -70,10 +70,17 @@ const GlyphWrapper = styled.span`
   display: flex;
 `;
 
+// Both sizes render the glyph svg at 24px, so the ring's outer edge sits
+// ~9.75px from the glyph center in both cases. A dot centered at (19, 5) is
+// ~9.9px from center — tangent on the ring, sitting on top of it rather than
+// inside it. Compact's 6px dot at top/right 2px already lands there; the
+// full-size 8px dot needs top/right 1px (not 4px, which centers it at (16, 8)
+// — only ~5.7px from center, overlapping the ring's stroke) to land at the
+// same (19, 5) tangent point.
 const UnseenDot = styled.span<{ compact: boolean }>`
   position: absolute;
-  top: ${({ compact }) => (compact ? '2px' : '4px')};
-  right: ${({ compact }) => (compact ? '2px' : '4px')};
+  top: ${({ compact }) => (compact ? '2px' : '1px')};
+  right: ${({ compact }) => (compact ? '2px' : '1px')};
   width: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
   height: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
   border-radius: 50%;
@@ -317,6 +324,21 @@ export const DownloadsIndicator = ({
     });
   };
 
+  // Fully covers the track once downloading is done — the arc stays the
+  // completed accent blue for the 'unseen' state instead of snapping back
+  // to the plain currentColor glyph, until the user marks it seen.
+  const getArcDashoffset = (): number => {
+    if (!isDownloading) {
+      return 0;
+    }
+
+    if (isIndeterminate) {
+      return GLYPH_ARC_CIRCUMFERENCE * 0.75;
+    }
+
+    return GLYPH_ARC_CIRCUMFERENCE * (1 - progress / 100);
+  };
+
   return (
     <>
       <DownloadsButtonWrapper>
@@ -348,7 +370,7 @@ export const DownloadsIndicator = ({
               fill='currentColor'
               data-testid='downloads-glyph'
             >
-              {isDownloading ? (
+              {isDownloading || hasUnseenCompleted ? (
                 <>
                   <circle
                     cx={16}
@@ -359,7 +381,7 @@ export const DownloadsIndicator = ({
                     stroke='currentColor'
                     strokeOpacity={0.2}
                   />
-                  <ArcGroup spin={isIndeterminate}>
+                  <ArcGroup spin={isDownloading && isIndeterminate}>
                     <circle
                       cx={16}
                       cy={16}
@@ -369,11 +391,7 @@ export const DownloadsIndicator = ({
                       strokeLinecap='round'
                       stroke='var(--rcx-color-font-info, #095ad2)'
                       strokeDasharray={GLYPH_ARC_CIRCUMFERENCE}
-                      strokeDashoffset={
-                        isIndeterminate
-                          ? GLYPH_ARC_CIRCUMFERENCE * 0.75
-                          : GLYPH_ARC_CIRCUMFERENCE * (1 - progress / 100)
-                      }
+                      strokeDashoffset={getArcDashoffset()}
                       transform='rotate(-90 16 16)'
                     />
                   </ArcGroup>

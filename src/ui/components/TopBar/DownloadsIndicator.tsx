@@ -126,26 +126,18 @@ const ChromeGlyphButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--rcx-color-font-titles-labels, #f2f3f5);
-`;
-
-const ChromeBounceGroup = styled.g<{ animate: boolean }>`
-  animation: ${({ animate }) =>
-    animate
-      ? 'downloads-chrome-arrow-bounce 1.2s ease-in-out infinite'
-      : 'none'};
-
-  @keyframes downloads-chrome-arrow-bounce {
-    0% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(1.5px);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
+  /* Same color resolution chain Fuselage applies to .rcx-button--icon, so
+     the glyph always matches the sibling IconButton variant's arrow. */
+  color: var(
+    --rcx-color-button-icon-color,
+    var(
+      --rcx-button-secondary-color,
+      var(
+        --rcx-color-button-font-on-secondary,
+        var(--rcx-color-neutral-900, #1f2329)
+      )
+    )
+  );
 `;
 
 /* No unconditional transform-origin here: the SVG 'transform' attribute maps
@@ -363,9 +355,7 @@ export const DownloadsIndicator = ({
                       />
                     </ChromeRingGroup>
                     <g transform='translate(2 4.5)'>
-                      <ChromeBounceGroup animate>
-                        <path d={ARROW_PATH} fill='currentColor' />
-                      </ChromeBounceGroup>
+                      <path d={ARROW_PATH} fill='currentColor' />
                     </g>
                   </>
                 ) : (

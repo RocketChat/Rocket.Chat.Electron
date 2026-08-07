@@ -98,10 +98,17 @@ const ARROW_PATH =
   'M21.6956 17.8553L16.6966 22.7214C16.3083 23.0993 15.6898 23.0993 15.3015 22.7214L10.3025 17.8553C9.90672 17.47 9.89819 16.8369 10.2834 16.4412C10.6686 16.0454 11.3018 16.0369 11.6975 16.4221L14.999 19.6359L14.999 11C14.999 10.4477 15.4468 10 15.999 10C16.5513 10 16.999 10.4477 16.999 11L16.999 19.6359L20.3006 16.4221C20.6963 16.0369 21.3294 16.0454 21.7147 16.4412C22.0999 16.8369 22.0914 17.47 21.6956 17.8553Z';
 const FULL_GLYPH_PATH_D = `${TRACK_CIRCLE_D} ${OUTER_CIRCLE_D} ${ARROW_PATH}`;
 
-// Same technique UpdateLabel's Percentage uses (src/ui/components/TopBar/UpdateLabel.tsx):
-// monospace font + tabular-nums + min-width: 3ch (two digits plus the '%'
-// sign) + text-align right, so the button doesn't jitter width as the
-// percent climbs from 1 digit to 2.
+// Same core technique UpdateLabel's Percentage uses (src/ui/components/TopBar/UpdateLabel.tsx):
+// monospace font + tabular-nums + a fixed width sized for two digits plus the
+// '%' sign, so the digits never jitter the reserved space as the percent
+// climbs from 1 digit to 2. UpdateLabel uses min-width since its text is the
+// last element in the pill; here the width is a fixed 'width' (not
+// min-width) because PercentageSlot animates its OWN box (max-width) around
+// this fixed-width child, and text-align is left (not right) since the
+// percentage now sits to the right of the glyph, not the left.
+const PERCENTAGE_RESERVED_WIDTH = '3ch';
+const PERCENTAGE_GAP = 4;
+
 const Percentage = styled.span<{ compact: boolean }>`
   font-family: var(
     --rcx-font-family-mono,
@@ -115,25 +122,59 @@ const Percentage = styled.span<{ compact: boolean }>`
   font-size: ${({ compact }) =>
     compact ? COMPACT_PERCENTAGE_FONT_SIZE : '0.75rem'};
   font-variant-numeric: tabular-nums;
-  min-width: 3ch;
-  text-align: right;
+  width: ${PERCENTAGE_RESERVED_WIDTH};
+  text-align: left;
   flex: 0 0 auto;
   color: inherit;
 `;
 
+// Always mounted (even when there's nothing to show) so hiding/showing the
+// percentage animates instead of snapping the button's width — max-width
+// (0 <-> the reserved 3ch) transitions together with opacity, and the left
+// margin (0 <-> PERCENTAGE_GAP) collapses the gap to the glyph in the same
+// transition instead of leaving a phantom gap when the text is hidden. Both
+// properties share the timing so the whole collapse/expand reads as one
+// smooth resize rather than a snap plus a slide.
+//
+// 0.18s is Fuselage's own micro-interaction duration, not an invented value:
+// node_modules/@rocket.chat/fuselage/dist/fuselage.css's `.rcx-box--animated`
+// rule is `transition: all .18s`, with a `@media (prefers-reduced-motion)`
+// override to `transition: none` — both mirrored here.
+const PercentageSlot = styled.span<{ expanded: boolean }>`
+  display: inline-flex;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: ${({ expanded }) =>
+    expanded ? PERCENTAGE_RESERVED_WIDTH : '0px'};
+  margin-left: ${({ expanded }) => (expanded ? PERCENTAGE_GAP : 0)}px;
+  opacity: ${({ expanded }) => (expanded ? 1 : 0)};
+  transition:
+    max-width 0.18s ease,
+    margin-left 0.18s ease,
+    opacity 0.18s ease;
+
+  @media (prefers-reduced-motion) {
+    transition: none;
+  }
+`;
+
 // Percentage text and glyph render as ONE control (same button), so their
 // shared hover/click surface covers both — TabBarButtonWrapper's `& button`
-// hover background then paints across text+glyph together.
+// hover background then paints across text+glyph together. Icon-only, the
+// button must land exactly square: compact is a 24px glyph in a 24px button
+// (0 horizontal padding), full-size is a 24px glyph in a 32px button (4px
+// padding each side, 24 + 8 = 32) — so padding is compact-aware rather than
+// a constant. Horizontal breathing room for the expanded percentage comes
+// from PercentageSlot's own margin, not from extra button padding.
 const GlyphButton = styled.button<{ compact: boolean }>`
   width: auto;
   height: ${({ compact }) => (compact ? COMPACT_BUTTON_SIZE : 32)}px;
   background: transparent;
   border: none;
-  padding: 0 4px;
+  padding: ${({ compact }) => (compact ? '0' : '0 4px')};
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   cursor: pointer;
   /* Same color resolution chain Fuselage applies to .rcx-button--icon, so
      the glyph always matches the rest of the tab bar's icon buttons. */
@@ -361,11 +402,6 @@ export const DownloadsIndicator = ({
           }
           onClick={handleToggle}
         >
-          {isDownloading && isDownloadsPercentageEnabled && (
-            <Percentage compact={compact} data-testid='downloads-progress'>
-              {t('tabBar.downloads.percent', { percent: progress })}
-            </Percentage>
-          )}
           <GlyphWrapper>
             <svg
               viewBox='0 0 32 32'
@@ -409,6 +445,14 @@ export const DownloadsIndicator = ({
               <UnseenDot compact={compact} data-testid='downloads-unseen-dot' />
             )}
           </GlyphWrapper>
+          <PercentageSlot
+            expanded={isDownloading && isDownloadsPercentageEnabled}
+            data-testid='downloads-progress-slot'
+          >
+            <Percentage compact={compact} data-testid='downloads-progress'>
+              {t('tabBar.downloads.percent', { percent: progress })}
+            </Percentage>
+          </PercentageSlot>
         </GlyphButton>
       </DownloadsButtonWrapper>
       {isOpen && (

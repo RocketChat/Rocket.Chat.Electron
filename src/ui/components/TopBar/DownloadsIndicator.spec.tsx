@@ -118,7 +118,7 @@ describe('DownloadsIndicator', () => {
     expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
   });
 
-  it('reserves width for two digits plus the percent sign (min-width: 3ch, matching UpdateLabel exactly)', () => {
+  it('reserves width for two digits plus the percent sign (width: 3ch, matching UpdateLabel exactly)', () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
         1: { ...baseDownload, state: 'progressing' },
@@ -128,12 +128,11 @@ describe('DownloadsIndicator', () => {
     const percentage = screen.getByTestId('downloads-progress');
     const style = getComputedStyle(percentage);
 
-    expect(style.textAlign).toBe('right');
     expect(style.fontVariantNumeric).toBe('tabular-nums');
 
     // jsdom resolves 'ch' to a pixel value in getComputedStyle rather than
-    // echoing 'min-width: 3ch' back verbatim, so compare against a same-font
-    // 1ch probe rather than the literal string.
+    // echoing 'width: 3ch' back verbatim, so compare against a same-font 1ch
+    // probe rather than the literal string.
     const chProbe = document.createElement('span');
     chProbe.style.fontFamily = style.fontFamily;
     chProbe.style.fontSize = style.fontSize;
@@ -142,7 +141,7 @@ describe('DownloadsIndicator', () => {
     const oneCh = parseFloat(getComputedStyle(chProbe).width);
     chProbe.remove();
 
-    expect(parseFloat(style.minWidth)).toBeCloseTo(oneCh * 3, 1);
+    expect(parseFloat(style.width)).toBeCloseTo(oneCh * 3, 1);
   });
 
   it('renders progress size text for a 0-byte-received download without the ??? sentinel', async () => {
@@ -449,7 +448,7 @@ describe('DownloadsIndicator', () => {
     expect(screen.queryByText('2')).not.toBeInTheDocument();
   });
 
-  it('hides the percentage text when the setting is disabled', () => {
+  it('collapses the percentage slot (not unmounted, but zero-width and invisible) when the setting is disabled', () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState(
         { 1: { ...baseDownload, state: 'progressing' } },
@@ -458,7 +457,11 @@ describe('DownloadsIndicator', () => {
     });
 
     expect(screen.getByRole('button')).toBeInTheDocument();
-    expect(screen.queryByTestId('downloads-progress')).not.toBeInTheDocument();
+
+    const slot = screen.getByTestId('downloads-progress-slot');
+    expect(getComputedStyle(slot).maxWidth).toBe('0px');
+    expect(getComputedStyle(slot).opacity).toBe('0');
+    expect(getComputedStyle(slot).marginLeft).toBe('0px');
   });
 
   it('shows the unseen-completed dot when a download completes while the popup is closed', () => {
@@ -718,7 +721,7 @@ describe('DownloadsIndicator', () => {
       );
     });
 
-    it('does not show the percentage text for a completed-unseen download', () => {
+    it('keeps the percentage slot collapsed for a completed-unseen download', () => {
       renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: {
@@ -731,13 +734,13 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
-      expect(
-        screen.queryByTestId('downloads-progress')
-      ).not.toBeInTheDocument();
+      const slot = screen.getByTestId('downloads-progress-slot');
+      expect(getComputedStyle(slot).maxWidth).toBe('0px');
+      expect(getComputedStyle(slot).opacity).toBe('0');
     });
   });
 
-  describe('percentage renders inside the glyph button', () => {
+  describe('percentage renders inside the glyph button, to the right of the glyph', () => {
     it('places the percentage element inside the same button as the glyph', () => {
       renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
@@ -751,6 +754,27 @@ describe('DownloadsIndicator', () => {
 
       const glyph = screen.getByTestId('downloads-glyph');
       expect(glyph.closest('button')).toBe(button);
+    });
+
+    it('renders the glyph before the percentage in DOM order (icon left, text right)', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const button = screen.getByRole('button');
+      const glyph = screen.getByTestId('downloads-glyph');
+      const slot = screen.getByTestId('downloads-progress-slot');
+
+      const children = Array.from(button.children);
+      const glyphWrapperIndex = children.findIndex((child) =>
+        child.contains(glyph)
+      );
+      const slotIndex = children.indexOf(slot);
+
+      expect(glyphWrapperIndex).toBeGreaterThanOrEqual(0);
+      expect(slotIndex).toBeGreaterThan(glyphWrapperIndex);
     });
 
     it('hovering/clicking the single button toggles the popup regardless of where inside it the click lands', async () => {
@@ -800,6 +824,140 @@ describe('DownloadsIndicator', () => {
 
       expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
       expect(screen.getByTestId('downloads-glyph')).toBeInTheDocument();
+    });
+  });
+
+  describe('icon-only geometry is exactly square', () => {
+    it('is 24x24 in compact mode when the percentage is not showing', () => {
+      renderWithStore(<DownloadsIndicator compact />, {
+        preloadedState: buildState(
+          {
+            1: {
+              ...baseDownload,
+              state: 'progressing',
+            },
+          },
+          { isDownloadsPercentageEnabled: false }
+        ),
+      });
+
+      const { width, height } = screen
+        .getByRole('button')
+        .getBoundingClientRect();
+      expect(width).toBe(height);
+      expect(width).toBe(24);
+    });
+
+    it('is 32x32 at full size when the percentage is not showing', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState(
+          {
+            1: {
+              ...baseDownload,
+              state: 'progressing',
+            },
+          },
+          { isDownloadsPercentageEnabled: false }
+        ),
+      });
+
+      const { width, height } = screen
+        .getByRole('button')
+        .getBoundingClientRect();
+      expect(width).toBe(height);
+      expect(width).toBe(32);
+    });
+
+    it('is square for the true idle (seen) glyph state at both sizes', () => {
+      const seenTime = Date.now();
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+            endTime: seenTime - 1000,
+          },
+        }),
+      });
+
+      const { width, height } = screen
+        .getByRole('button')
+        .getBoundingClientRect();
+      expect(width).toBe(height);
+      expect(width).toBe(32);
+    });
+  });
+
+  describe('percentage grows/shrinks the button width with an animated transition', () => {
+    it('is collapsed (max-width 0, opacity 0, no left margin) when the setting is off, even while downloading', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState(
+          { 1: { ...baseDownload, state: 'progressing' } },
+          { isDownloadsPercentageEnabled: false }
+        ),
+      });
+
+      const slot = screen.getByTestId('downloads-progress-slot');
+      expect(getComputedStyle(slot).maxWidth).toBe('0px');
+      expect(getComputedStyle(slot).opacity).toBe('0');
+      expect(getComputedStyle(slot).marginLeft).toBe('0px');
+    });
+
+    it('is expanded (opacity 1, non-zero max-width and left margin) once a download with the setting enabled starts', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const slot = screen.getByTestId('downloads-progress-slot');
+      expect(getComputedStyle(slot).opacity).toBe('1');
+      expect(parseFloat(getComputedStyle(slot).maxWidth)).toBeGreaterThan(0);
+      expect(parseFloat(getComputedStyle(slot).marginLeft)).toBeGreaterThan(0);
+    });
+
+    it("applies Fuselage's standard 0.18s micro-interaction duration (matching .rcx-box--animated) on max-width, margin-left and opacity, so the resize is animated, not instant", () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const slot = screen.getByTestId('downloads-progress-slot');
+      const { transition } = getComputedStyle(slot);
+
+      expect(transition).toContain('max-width');
+      expect(transition).toContain('margin-left');
+      expect(transition).toContain('opacity');
+      expect(transition).toContain('0.18s');
+    });
+
+    it('grows the button width when the percentage expands (icon slides left as the group is right-anchored)', () => {
+      const { unmount } = renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState(
+          { 1: { ...baseDownload, state: 'progressing' } },
+          { isDownloadsPercentageEnabled: false }
+        ),
+      });
+
+      const collapsedWidth = screen
+        .getByRole('button')
+        .getBoundingClientRect().width;
+      unmount();
+
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const expandedWidth = screen
+        .getByRole('button')
+        .getBoundingClientRect().width;
+
+      expect(expandedWidth).toBeGreaterThan(collapsedWidth);
     });
   });
 });

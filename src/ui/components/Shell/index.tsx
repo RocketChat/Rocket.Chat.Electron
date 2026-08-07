@@ -36,6 +36,9 @@ export const Shell = () => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
+  const isDeveloperModeEnabled = useSelector(
+    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
+  );
 
   const shellTheme = useShellTheme();
 
@@ -78,6 +81,9 @@ export const Shell = () => {
               <>
                 <MeatballMenuButton />
                 <UpdateLabel />
+                {isDeveloperModeEnabled && (
+                  <DownloadsIndicator variant='chrome' />
+                )}
                 <DownloadsIndicator />
               </>
             }
@@ -89,6 +95,9 @@ export const Shell = () => {
             trailingSlot={
               <>
                 <UpdateLabel />
+                {isDeveloperModeEnabled && (
+                  <DownloadsIndicator variant='chrome' />
+                )}
                 <DownloadsIndicator />
                 <MeatballMenuButton />
               </>
@@ -103,6 +112,9 @@ export const Shell = () => {
             trailingSlot={
               <>
                 <UpdateLabel />
+                {isDeveloperModeEnabled && (
+                  <DownloadsIndicator variant='chrome' />
+                )}
                 <DownloadsIndicator />
               </>
             }
@@ -114,6 +126,9 @@ export const Shell = () => {
               <>
                 {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
                 <UpdateLabel />
+                {isDeveloperModeEnabled && (
+                  <DownloadsIndicator variant='chrome' />
+                )}
                 <DownloadsIndicator />
               </>
             }

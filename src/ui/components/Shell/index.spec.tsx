@@ -86,6 +86,15 @@ jest.mock('../TabBar/WindowControls', () => ({
   WindowControls: () => <div data-testid='window-controls' />,
 }));
 
+jest.mock('../TopBar/DownloadsIndicator', () => ({
+  __esModule: true,
+  DownloadsIndicator: ({
+    variant = 'ring',
+  }: {
+    variant?: 'ring' | 'chrome';
+  }) => <div data-testid='downloads-indicator' data-variant={variant} />,
+}));
+
 jest.mock('../AboutDialog', () => ({
   __esModule: true,
   AboutDialog: () => <div data-testid='about-dialog' />,
@@ -400,6 +409,52 @@ describe('Shell', () => {
       // darwin tabs trailing slot, so it is expected.
       expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+    });
+  });
+
+  describe('experimental chrome downloads glyph', () => {
+    it('does not render the chrome variant instance by default', () => {
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'sidebar' }),
+      });
+
+      const instances = screen.getAllByTestId('downloads-indicator');
+      expect(instances).toHaveLength(1);
+      expect(instances[0]).toHaveAttribute('data-variant', 'ring');
+    });
+
+    it('renders both the chrome and ring instances when developer mode is enabled', () => {
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'sidebar',
+          isDeveloperModeEnabled: true,
+        }),
+      });
+
+      const instances = screen.getAllByTestId('downloads-indicator');
+      expect(instances).toHaveLength(2);
+      expect(instances[0]).toHaveAttribute('data-variant', 'chrome');
+      expect(instances[1]).toHaveAttribute('data-variant', 'ring');
+    });
+
+    it('renders both instances on win32 leading slots when developer mode is enabled', () => {
+      const restorePlatform = setPlatform('win32');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({
+            navigationLayout: 'tabs',
+            isDeveloperModeEnabled: true,
+          }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(2);
+        expect(instances[0]).toHaveAttribute('data-variant', 'chrome');
+        expect(instances[1]).toHaveAttribute('data-variant', 'ring');
+      } finally {
+        restorePlatform();
+      }
     });
   });
 });

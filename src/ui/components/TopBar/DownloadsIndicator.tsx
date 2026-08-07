@@ -110,10 +110,70 @@ const UnseenDot = styled.span`
   pointer-events: none;
 `;
 
+const CHROME_GLYPH_ACCENT = 'var(--rcx-color-font-info, #095ad2)';
+const CHROME_RING_RADIUS = 8;
+const CHROME_RING_CIRCUMFERENCE = 2 * Math.PI * CHROME_RING_RADIUS;
+
+const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
+const TRAY_PATH = 'M5 20h14v-2H5v2z';
+
+const ChromeGlyphButton = styled.button`
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: inherit;
+`;
+
+const ChromeBounceGroup = styled.g<{ animate: boolean }>`
+  animation: ${({ animate }) =>
+    animate
+      ? 'downloads-chrome-arrow-bounce 1.2s ease-in-out infinite'
+      : 'none'};
+
+  @keyframes downloads-chrome-arrow-bounce {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(1.5px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+`;
+
+const ChromeRingGroup = styled.g<{ spin: boolean }>`
+  transform-origin: 12px 10px;
+  animation: ${({ spin }) =>
+    spin ? 'downloads-chrome-ring-spin 1s linear infinite' : 'none'};
+
+  @keyframes downloads-chrome-ring-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 const isActive = (download: Download): boolean =>
   download.state === 'progressing' || download.state === 'paused';
 
-export const DownloadsIndicator = () => {
+type DownloadsIndicatorProps = {
+  variant?: 'ring' | 'chrome';
+};
+
+export const DownloadsIndicator = ({
+  variant = 'ring',
+}: DownloadsIndicatorProps = {}) => {
   const { t, i18n } = useTranslation();
 
   const downloads = useSelector(({ downloads }: RootState) => downloads);
@@ -248,18 +308,83 @@ export const DownloadsIndicator = () => {
           </Percentage>
         )}
         <ButtonWithRing>
-          <IconButton
-            ref={reference}
-            icon='download'
-            medium
-            title={label}
-            aria-label={label}
-            aria-haspopup='dialog'
-            aria-expanded={isOpen}
-            data-downloads-status={isDownloading ? 'downloading' : 'idle'}
-            onClick={handleToggle}
-          />
-          {isDownloading && (
+          {variant === 'chrome' ? (
+            <ChromeGlyphButton
+              ref={reference}
+              type='button'
+              title={label}
+              aria-label={label}
+              aria-haspopup='dialog'
+              aria-expanded={isOpen}
+              data-downloads-status={isDownloading ? 'downloading' : 'idle'}
+              onClick={handleToggle}
+            >
+              <svg
+                viewBox='0 0 24 24'
+                width={24}
+                height={24}
+                data-testid='downloads-chrome-glyph'
+              >
+                <path
+                  d={TRAY_PATH}
+                  fill={isDownloading ? CHROME_GLYPH_ACCENT : 'currentColor'}
+                />
+                {isDownloading ? (
+                  <>
+                    <ChromeRingGroup
+                      spin={isIndeterminate}
+                      transform='rotate(-90 12 10)'
+                    >
+                      <circle
+                        cx={12}
+                        cy={10}
+                        r={CHROME_RING_RADIUS}
+                        fill='none'
+                        strokeWidth={1.8}
+                        stroke='currentColor'
+                        strokeOpacity={0.2}
+                      />
+                      <circle
+                        cx={12}
+                        cy={10}
+                        r={CHROME_RING_RADIUS}
+                        fill='none'
+                        strokeWidth={1.8}
+                        strokeLinecap='round'
+                        stroke={CHROME_GLYPH_ACCENT}
+                        strokeDasharray={CHROME_RING_CIRCUMFERENCE}
+                        strokeDashoffset={
+                          isIndeterminate
+                            ? CHROME_RING_CIRCUMFERENCE * 0.75
+                            : CHROME_RING_CIRCUMFERENCE * (1 - progress / 100)
+                        }
+                      />
+                    </ChromeRingGroup>
+                    <g transform='translate(12 10) scale(0.62) translate(-12 -9.5)'>
+                      <ChromeBounceGroup animate>
+                        <path d={ARROW_PATH} fill={CHROME_GLYPH_ACCENT} />
+                      </ChromeBounceGroup>
+                    </g>
+                  </>
+                ) : (
+                  <path d={ARROW_PATH} fill='currentColor' />
+                )}
+              </svg>
+            </ChromeGlyphButton>
+          ) : (
+            <IconButton
+              ref={reference}
+              icon='download'
+              medium
+              title={label}
+              aria-label={label}
+              aria-haspopup='dialog'
+              aria-expanded={isOpen}
+              data-downloads-status={isDownloading ? 'downloading' : 'idle'}
+              onClick={handleToggle}
+            />
+          )}
+          {variant === 'ring' && isDownloading && (
             <ProgressRing
               viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
               indeterminate={isIndeterminate}

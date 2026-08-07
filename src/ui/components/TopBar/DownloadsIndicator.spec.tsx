@@ -549,4 +549,70 @@ describe('DownloadsIndicator', () => {
       screen.queryByTestId('downloads-unseen-dot')
     ).not.toBeInTheDocument();
   });
+
+  describe('variant="chrome"', () => {
+    it('renders the chrome glyph svg while downloading', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      expect(screen.getByTestId('downloads-chrome-glyph')).toBeInTheDocument();
+    });
+
+    it('sets the ring arc stroke-dashoffset to reflect the determinate progress', () => {
+      const RADIUS = 8;
+      const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-chrome-glyph');
+      const [, progressArc] = glyph.querySelectorAll('circle');
+      const expectedOffset = CIRCUMFERENCE * (1 - 50 / 100);
+
+      expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
+        expectedOffset
+      );
+    });
+
+    it('renders no ring circles while idle', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+          },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-chrome-glyph');
+      expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+    });
+
+    it('still shows the percentage text and the unseen dot', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+          2: {
+            ...baseDownload,
+            itemId: 2,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 2000,
+            endTime: Date.now() + 1000,
+          },
+        }),
+      });
+
+      expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
+      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    });
+  });
 });

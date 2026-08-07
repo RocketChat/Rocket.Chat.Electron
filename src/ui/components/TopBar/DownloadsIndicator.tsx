@@ -40,6 +40,47 @@ const DownloadsButtonWrapper = styled(TabBarButtonWrapper)`
   gap: 4px;
 `;
 
+// Fuselage's `medium` IconButton renders a 32px (x32) square with a 24px
+// (x24) icon glyph; the ring circumscribes the glyph with a couple px of
+// breathing room inside the button's box.
+const RING_SIZE = 28;
+const RING_RADIUS = 12;
+const RING_STROKE_WIDTH = 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+const ButtonWithRing = styled.div`
+  position: relative;
+  display: flex;
+`;
+
+const ProgressRing = styled.svg<{ indeterminate: boolean }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: ${RING_SIZE}px;
+  height: ${RING_SIZE}px;
+  margin-top: -${RING_SIZE / 2}px;
+  margin-left: -${RING_SIZE / 2}px;
+  pointer-events: none;
+  transform: ${({ indeterminate }) =>
+    indeterminate ? 'none' : 'rotate(-90deg)'};
+  animation: ${({ indeterminate }) =>
+    indeterminate ? 'downloads-progress-ring-spin 1s linear infinite' : 'none'};
+
+  @keyframes downloads-progress-ring-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  circle {
+    transition: stroke-dashoffset 200ms ease-out;
+  }
+`;
+
 const Percentage = styled.span`
   font-family: var(
     --rcx-font-family-mono,
@@ -143,6 +184,13 @@ export const DownloadsIndicator = () => {
     return Math.min(100, Math.max(0, Math.floor(mean * 100)));
   }, [activeDownloads]);
 
+  const isIndeterminate = useMemo(
+    () =>
+      activeDownloads.length > 0 &&
+      activeDownloads.every((download) => download.totalBytes <= 0),
+    [activeDownloads]
+  );
+
   const hasUnseenCompleted = useMemo(
     () =>
       allDownloads.some(
@@ -192,17 +240,51 @@ export const DownloadsIndicator = () => {
   return (
     <>
       <DownloadsButtonWrapper>
-        <IconButton
-          ref={reference}
-          icon='download'
-          medium
-          title={label}
-          aria-label={label}
-          aria-haspopup='dialog'
-          aria-expanded={isOpen}
-          data-downloads-status={isDownloading ? 'downloading' : 'idle'}
-          onClick={handleToggle}
-        />
+        <ButtonWithRing>
+          <IconButton
+            ref={reference}
+            icon='download'
+            medium
+            title={label}
+            aria-label={label}
+            aria-haspopup='dialog'
+            aria-expanded={isOpen}
+            data-downloads-status={isDownloading ? 'downloading' : 'idle'}
+            onClick={handleToggle}
+          />
+          {isDownloading && (
+            <ProgressRing
+              viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+              indeterminate={isIndeterminate}
+              data-testid='downloads-progress-ring'
+              aria-hidden='true'
+            >
+              <circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_RADIUS}
+                fill='none'
+                strokeWidth={RING_STROKE_WIDTH}
+                stroke='var(--rcx-color-stroke-extra-light, #ebecef)'
+              />
+              <circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_RADIUS}
+                fill='none'
+                strokeWidth={RING_STROKE_WIDTH}
+                strokeLinecap='round'
+                stroke='var(--rcx-color-font-info, #095ad2)'
+                strokeDasharray={RING_CIRCUMFERENCE}
+                strokeDashoffset={
+                  isIndeterminate
+                    ? RING_CIRCUMFERENCE * 0.75
+                    : RING_CIRCUMFERENCE * (1 - progress / 100)
+                }
+              />
+            </ProgressRing>
+          )}
+        </ButtonWithRing>
         {isDownloading && isDownloadsPercentageEnabled && (
           <Percentage data-testid='downloads-progress'>
             {t('tabBar.downloads.percent', { percent: progress })}

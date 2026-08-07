@@ -427,6 +427,88 @@ describe('DownloadsIndicator', () => {
     expect(screen.queryByTestId('downloads-progress')).not.toBeInTheDocument();
   });
 
+  it('shows the progress ring while a download is active', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: { ...baseDownload, state: 'progressing' },
+      }),
+    });
+
+    expect(screen.getByTestId('downloads-progress-ring')).toBeInTheDocument();
+  });
+
+  it('does not render the progress ring when there is no active download', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: {
+          ...baseDownload,
+          state: 'completed',
+          receivedBytes: 1000,
+          startTime: SESSION_START + 1000,
+        },
+      }),
+    });
+
+    expect(
+      screen.queryByTestId('downloads-progress-ring')
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the progress ring even when the percentage text setting is disabled', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState(
+        { 1: { ...baseDownload, state: 'progressing' } },
+        { isDownloadsPercentageEnabled: false }
+      ),
+    });
+
+    expect(screen.getByTestId('downloads-progress-ring')).toBeInTheDocument();
+    expect(screen.queryByTestId('downloads-progress')).not.toBeInTheDocument();
+  });
+
+  it('sets stroke-dashoffset on the progress arc to reflect the determinate progress', () => {
+    const RING_RADIUS = 12;
+    const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: { ...baseDownload, state: 'progressing' },
+      }),
+    });
+
+    const ring = screen.getByTestId('downloads-progress-ring');
+    const [, progressArc] = ring.querySelectorAll('circle');
+    const expectedOffset = CIRCUMFERENCE * (1 - 50 / 100);
+
+    expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
+      expectedOffset
+    );
+  });
+
+  it('renders the ring in indeterminate mode when no active download has a measurable size', () => {
+    const RING_RADIUS = 12;
+    const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: {
+          ...baseDownload,
+          state: 'progressing',
+          receivedBytes: 0,
+          totalBytes: 0,
+        },
+      }),
+    });
+
+    const ring = screen.getByTestId('downloads-progress-ring');
+    const [, progressArc] = ring.querySelectorAll('circle');
+    const expectedOffset = CIRCUMFERENCE * 0.75;
+
+    expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
+      expectedOffset
+    );
+  });
+
   it('shows the unseen-completed dot when a download completes while the popup is closed', () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({

@@ -140,17 +140,23 @@ const Percentage = styled.span<{ compact: boolean }>`
 // node_modules/@rocket.chat/fuselage/dist/fuselage.css's `.rcx-box--animated`
 // rule is `transition: all .18s`, with a `@media (prefers-reduced-motion)`
 // override to `transition: none` — both mirrored here.
-const PercentageSlot = styled.span<{ expanded: boolean }>`
+const PercentageSlot = styled.span<{ expanded: boolean; compact: boolean }>`
   display: inline-flex;
   overflow: hidden;
   white-space: nowrap;
   max-width: ${({ expanded }) =>
     expanded ? PERCENTAGE_RESERVED_WIDTH : '0px'};
   margin-left: ${({ expanded }) => (expanded ? PERCENTAGE_GAP : 0)}px;
+  /* Compact drops the button's horizontal padding (square icon-only), so
+     the expanded text needs its own trailing breathing room; full size
+     already gets it from the button's 4px padding. Animated with the rest
+     so it collapses to nothing. */
+  margin-right: ${({ expanded, compact }) =>
+    expanded && compact ? PERCENTAGE_GAP : 0}px;
   opacity: ${({ expanded }) => (expanded ? 1 : 0)};
   transition:
     max-width 0.18s ease,
-    margin-left 0.18s ease,
+    margin 0.18s ease,
     opacity 0.18s ease;
 
   @media (prefers-reduced-motion) {
@@ -447,6 +453,7 @@ export const DownloadsIndicator = ({
           </GlyphWrapper>
           <PercentageSlot
             expanded={isDownloading && isDownloadsPercentageEnabled}
+            compact={compact}
             data-testid='downloads-progress-slot'
           >
             <Percentage compact={compact} data-testid='downloads-progress'>

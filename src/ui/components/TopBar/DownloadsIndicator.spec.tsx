@@ -918,7 +918,7 @@ describe('DownloadsIndicator', () => {
       expect(parseFloat(getComputedStyle(slot).marginLeft)).toBeGreaterThan(0);
     });
 
-    it("applies Fuselage's standard 0.18s micro-interaction duration (matching .rcx-box--animated) on max-width, margin-left and opacity, so the resize is animated, not instant", () => {
+    it("applies Fuselage's standard 0.18s micro-interaction duration (matching .rcx-box--animated) on max-width, margin and opacity, so the resize is animated, not instant", () => {
       renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
@@ -929,7 +929,7 @@ describe('DownloadsIndicator', () => {
       const { transition } = getComputedStyle(slot);
 
       expect(transition).toContain('max-width');
-      expect(transition).toContain('margin-left');
+      expect(transition).toContain('margin');
       expect(transition).toContain('opacity');
       expect(transition).toContain('0.18s');
     });

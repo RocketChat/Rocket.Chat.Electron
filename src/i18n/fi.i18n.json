@@ -222,6 +222,10 @@
         "onLinux": "Jotkin Linux-jakelut eivät tue tätä ominaisuutta.",
         "descriptionDarwin": "Herättää käyttäjän huomion ponnauttamalla sovelluskuvaketta Dockissa."
       },
+      "downloadsPercentage": {
+        "title": "Latauksen prosenttiosuus",
+        "description": "Näytä latauksen etenemisprosentti välilehtien palkissa."
+      },
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
         "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."

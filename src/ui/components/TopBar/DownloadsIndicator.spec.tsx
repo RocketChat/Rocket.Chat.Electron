@@ -65,8 +65,10 @@ const baseDownload = {
   mimeType: 'application/pdf',
 };
 
-const buildState = (downloads: Record<string, unknown> = {}) =>
-  ({ downloads }) as any;
+const buildState = (
+  downloads: Record<string, unknown> = {},
+  overrides: Record<string, unknown> = {}
+) => ({ downloads, isDownloadsPercentageEnabled: true, ...overrides }) as any;
 
 describe('DownloadsIndicator', () => {
   beforeEach(() => {
@@ -387,5 +389,82 @@ describe('DownloadsIndicator', () => {
     expect(
       screen.getByRole('button', { name: 'tabBar.downloads.tooltip' })
     ).toBeInTheDocument();
+  });
+
+  it('shows the mean progress across multiple active downloads, not a count', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: {
+          ...baseDownload,
+          itemId: 1,
+          state: 'progressing',
+          receivedBytes: 200,
+          totalBytes: 1000,
+        },
+        2: {
+          ...baseDownload,
+          itemId: 2,
+          state: 'progressing',
+          receivedBytes: 800,
+          totalBytes: 1000,
+        },
+      }),
+    });
+
+    expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
+    expect(screen.queryByText('2')).not.toBeInTheDocument();
+  });
+
+  it('hides the percentage text when the setting is disabled', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState(
+        { 1: { ...baseDownload, state: 'progressing' } },
+        { isDownloadsPercentageEnabled: false }
+      ),
+    });
+
+    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.queryByTestId('downloads-progress')).not.toBeInTheDocument();
+  });
+
+  it('shows the unseen-completed dot when a download completes while the popup is closed', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: {
+          ...baseDownload,
+          state: 'completed',
+          receivedBytes: 1000,
+          startTime: SESSION_START + 1000,
+          endTime: Date.now() + 1000,
+        },
+      }),
+    });
+
+    expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+  });
+
+  it('clears the unseen-completed dot once the popup is opened', async () => {
+    const user = userEvent.setup();
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: {
+          ...baseDownload,
+          state: 'completed',
+          receivedBytes: 1000,
+          startTime: SESSION_START + 1000,
+          endTime: Date.now() + 1000,
+        },
+      }),
+    });
+
+    expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'tabBar.downloads.title' })
+    );
+
+    expect(
+      screen.queryByTestId('downloads-unseen-dot')
+    ).not.toBeInTheDocument();
   });
 });

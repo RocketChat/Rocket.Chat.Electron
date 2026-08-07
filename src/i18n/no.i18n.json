@@ -254,6 +254,10 @@
         "onLinux": "Noen Linux-distroer har ikke støtte for denne funksjonen.",
         "descriptionDarwin": "Spretter appikonet i dokken for å tiltrekke brukerens oppmerksomhet."
       },
+      "downloadsPercentage": {
+        "title": "Nedlastingsprosentasje",
+        "description": "Vis nedlastingsprogressprosenten i fanen."
+      },
       "hardwareAcceleration": {
         "title": "Maskinvareakselerasjon",
         "description": "Muliggjør maskinvareakselerasjon når tilgjengelig. Applikasjonen vil lastes inn på nytt ved endring."

@@ -268,6 +268,10 @@
         "onLinux": "Some Linux distros don't have support for this feature.",
         "descriptionDarwin": "Dock icon bounces when a new message is received."
       },
+      "downloadsPercentage": {
+        "title": "Download percentage",
+        "description": "Show download progress percentage in the tab bar."
+      },
       "hardwareAcceleration": {
         "title": "Hardware acceleration",
         "description": "Improves visual rendering and performance. Disable if you experience visual glitches or instability.",

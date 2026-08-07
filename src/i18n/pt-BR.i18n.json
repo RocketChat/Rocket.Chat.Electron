@@ -229,6 +229,10 @@
         "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade.",
         "descriptionDarwin": "Faz o ícone da aplicação saltar na dock quando recebe notificação."
       },
+      "downloadsPercentage": {
+        "title": "Percentual de download",
+        "description": "Mostrar o percentual de progresso do download na barra de abas."
+      },
       "hardwareAcceleration": {
         "title": "Aceleração de hardware",
         "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."

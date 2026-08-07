@@ -38,6 +38,8 @@ const selectPersistableValuesA = createStructuredSelector({
   isReportEnabled: ({ isReportEnabled }: RootState) => isReportEnabled,
   isFlashFrameEnabled: ({ isFlashFrameEnabled }: RootState) =>
     isFlashFrameEnabled,
+  isDownloadsPercentageEnabled: ({ isDownloadsPercentageEnabled }: RootState) =>
+    isDownloadsPercentageEnabled,
   isInternalVideoChatWindowEnabled: ({
     isInternalVideoChatWindowEnabled,
   }: RootState) => isInternalVideoChatWindowEnabled,

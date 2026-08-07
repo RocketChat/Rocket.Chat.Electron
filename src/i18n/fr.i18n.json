@@ -222,6 +222,10 @@
         "onLinux": "Certaines distributions Linux ne prennent pas en charge cette fonctionnalité.",
         "descriptionDarwin": "Fait rebondir l'icône de l'application dans le dock pour attirer l'attention de l'utilisateur."
       },
+      "downloadsPercentage": {
+        "title": "Pourcentage de téléchargement",
+        "description": "Afficher le pourcentage de progression du téléchargement dans la barre d'onglets."
+      },
       "hardwareAcceleration": {
         "title": "Accélération matérielle",
         "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."

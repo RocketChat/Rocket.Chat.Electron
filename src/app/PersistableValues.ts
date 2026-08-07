@@ -122,9 +122,13 @@ type PersistableValues_4_16_0 = PersistableValues_4_15_0 & {
   navigationLayout: 'tabs' | 'sidebar' | 'hidden';
 };
 
+type PersistableValues_4_16_1 = PersistableValues_4_16_0 & {
+  isDownloadsPercentageEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_16_0,
-  keyof PersistableValues_4_16_0
+  PersistableValues_4_16_1,
+  keyof PersistableValues_4_16_1
 >;
 
 export const migrations = {
@@ -241,5 +245,9 @@ export const migrations = {
     ...before,
     navigationLayout:
       (before as Partial<PersistableValues_4_16_0>).navigationLayout ?? 'tabs',
+  }),
+  '>=4.16.1': (before: PersistableValues_4_16_0): PersistableValues_4_16_1 => ({
+    ...before,
+    isDownloadsPercentageEnabled: true,
   }),
 };

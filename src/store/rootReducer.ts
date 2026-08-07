@@ -32,6 +32,7 @@ import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isDebugLoggingEnabled } from '../ui/reducers/isDebugLoggingEnabled';
 import { isDetailedEventsLoggingEnabled } from '../ui/reducers/isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
+import { isDownloadsPercentageEnabled } from '../ui/reducers/isDownloadsPercentageEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
@@ -117,6 +118,7 @@ export const rootReducer = combineReducers({
   updateError,
   isReportEnabled,
   isFlashFrameEnabled,
+  isDownloadsPercentageEnabled,
   isHardwareAccelerationEnabled,
   isInternalVideoChatWindowEnabled,
   isAddNewServersEnabled,

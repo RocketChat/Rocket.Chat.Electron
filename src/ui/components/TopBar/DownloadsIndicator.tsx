@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Box, Dropdown, Icon, IconButton } from '@rocket.chat/fuselage';
+import { Box, Dropdown, IconButton } from '@rocket.chat/fuselage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -8,6 +8,7 @@ import type { Download } from '../../../downloads/common';
 import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { SIDE_BAR_DOWNLOADS_BUTTON_CLICKED } from '../../actions';
+import { TabBarButtonWrapper } from '../TabBar/styles';
 import { DownloadsIndicatorItem } from './DownloadsIndicatorItem';
 
 // Captured once at module load, this marks the boundary between downloads
@@ -17,64 +18,6 @@ import { DownloadsIndicatorItem } from './DownloadsIndicatorItem';
 const SESSION_START = Date.now();
 
 const MAX_RECENT_DOWNLOADS = 5;
-
-const Pill = styled.button<{ progress: number }>`
-  appearance: none;
-  box-sizing: border-box;
-  border: none;
-  outline: none;
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 4px;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 11px;
-  cursor: pointer;
-  color: var(--rcx-color-button-font-on-primary, #ffffff);
-  -webkit-app-region: no-drag;
-
-  /* Matches UpdateLabel: lifts the pill above the fixed WindowDragBar so the
-     whole pill stays clickable instead of just the part poking out below it. */
-  position: relative;
-  z-index: 1;
-
-  background-color: var(
-    --rcx-color-button-background-secondary-default,
-    #4d5259
-  );
-  background-image: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.32) 0%,
-    rgba(255, 255, 255, 0.32) ${({ progress }) => progress}%,
-    transparent ${({ progress }) => progress}%,
-    transparent 100%
-  );
-  transition: background-image 150ms ease-out;
-
-  &:hover:not(:disabled) {
-    background-color: var(
-      --rcx-color-button-background-secondary-hover,
-      #40444a
-    );
-  }
-
-  &:active:not(:disabled) {
-    background-color: var(
-      --rcx-color-button-background-secondary-press,
-      #40444a
-    );
-  }
-
-  &:focus-visible {
-    box-shadow: 0 0 0 2px var(--rcx-color-stroke-extra-light-highlight, #d1ebfe);
-  }
-`;
 
 const Backdrop = styled.div`
   position: fixed;
@@ -88,6 +31,13 @@ const PanelLayer = styled.div`
   z-index: 11;
 `;
 
+const DownloadsButtonWrapper = styled(TabBarButtonWrapper)`
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
 const Percentage = styled.span`
   font-family: var(
     --rcx-font-family-mono,
@@ -98,10 +48,23 @@ const Percentage = styled.span`
     'Courier New',
     monospace
   );
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   min-width: 2.5ch;
   text-align: right;
   flex: 0 0 auto;
+  color: var(--rcx-color-font-titles-labels, #f2f3f5);
+`;
+
+const UnseenDot = styled.span`
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--rcx-color-status-background-success, #2de0a5);
+  pointer-events: none;
 `;
 
 const isActive = (download: Download): boolean =>
@@ -111,11 +74,16 @@ export const DownloadsIndicator = () => {
   const { t, i18n } = useTranslation();
 
   const downloads = useSelector(({ downloads }: RootState) => downloads);
+  const isDownloadsPercentageEnabled = useSelector(
+    ({ isDownloadsPercentageEnabled }: RootState) =>
+      isDownloadsPercentageEnabled
+  );
 
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [dismissedAt, setDismissedAt] = useState(0);
+  const [seenAt, setSeenAt] = useState(() => Date.now());
 
   const placement =
     process.platform === 'win32' ? 'bottom-start' : 'bottom-end';
@@ -160,29 +128,27 @@ export const DownloadsIndicator = () => {
   );
 
   const progress = useMemo(() => {
-    if (activeDownloads.length === 0) {
+    const ratios = activeDownloads
+      .filter((download) => download.totalBytes > 0)
+      .map((download) => download.receivedBytes / download.totalBytes);
+
+    if (ratios.length === 0) {
       return 0;
     }
 
-    const totalBytes = activeDownloads.reduce(
-      (sum, download) => sum + download.totalBytes,
-      0
-    );
+    const mean = ratios.reduce((sum, ratio) => sum + ratio, 0) / ratios.length;
 
-    if (totalBytes === 0) {
-      return 0;
-    }
-
-    const receivedBytes = activeDownloads.reduce(
-      (sum, download) => sum + download.receivedBytes,
-      0
-    );
-
-    return Math.min(
-      100,
-      Math.max(0, Math.floor((receivedBytes / totalBytes) * 100))
-    );
+    return Math.min(100, Math.max(0, Math.floor(mean * 100)));
   }, [activeDownloads]);
+
+  const hasUnseenCompleted = useMemo(
+    () =>
+      allDownloads.some(
+        (download) =>
+          download.state === 'completed' && (download.endTime ?? 0) > seenAt
+      ),
+    [allDownloads, seenAt]
+  );
 
   const isVisible =
     activeDownloads.length > 0 ||
@@ -211,31 +177,39 @@ export const DownloadsIndicator = () => {
     setDismissedAt(Date.now());
   };
 
+  const handleToggle = (): void => {
+    setIsOpen((current) => {
+      const next = !current;
+      if (next) {
+        setSeenAt(Date.now());
+      }
+      return next;
+    });
+  };
+
   return (
     <>
-      <Pill
-        ref={reference}
-        type='button'
-        progress={isDownloading ? progress : 0}
-        title={label}
-        aria-label={label}
-        aria-haspopup='dialog'
-        aria-expanded={isOpen}
-        data-downloads-status={isDownloading ? 'downloading' : 'idle'}
-        onClick={() => setIsOpen((current) => !current)}
-      >
-        <Icon name='download' size='x16' />
-        {isDownloading && (
-          <>
-            {activeDownloads.length > 1 && (
-              <span>{activeDownloads.length}</span>
-            )}
-            <Percentage data-testid='downloads-progress'>
-              {t('tabBar.downloads.percent', { percent: progress })}
-            </Percentage>
-          </>
+      <DownloadsButtonWrapper>
+        <IconButton
+          ref={reference}
+          icon='download'
+          medium
+          title={label}
+          aria-label={label}
+          aria-haspopup='dialog'
+          aria-expanded={isOpen}
+          data-downloads-status={isDownloading ? 'downloading' : 'idle'}
+          onClick={handleToggle}
+        />
+        {isDownloading && isDownloadsPercentageEnabled && (
+          <Percentage data-testid='downloads-progress'>
+            {t('tabBar.downloads.percent', { percent: progress })}
+          </Percentage>
         )}
-      </Pill>
+        {!isOpen && hasUnseenCompleted && (
+          <UnseenDot data-testid='downloads-unseen-dot' />
+        )}
+      </DownloadsButtonWrapper>
       {isOpen && (
         <>
           <Backdrop

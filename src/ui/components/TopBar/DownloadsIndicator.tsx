@@ -265,7 +265,8 @@ export const DownloadsIndicator = () => {
                 r={RING_RADIUS}
                 fill='none'
                 strokeWidth={RING_STROKE_WIDTH}
-                stroke='var(--rcx-color-stroke-extra-light, #ebecef)'
+                stroke='currentColor'
+                strokeOpacity={0.2}
               />
               <circle
                 cx={RING_SIZE / 2}

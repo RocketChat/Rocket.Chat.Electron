@@ -600,6 +600,8 @@ const selectWindowDeps = createStructuredSelector({
   }: RootState) => isShowWindowOnUnreadChangedEnabled,
   isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
+  isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
+    isDeveloperModeEnabled,
 });
 
 export const createWindowMenu = createSelector(
@@ -1102,6 +1104,7 @@ export const selectServerSwitcherMenuTemplate = createSelector(
     servers,
     currentView,
     isAddNewServersEnabled,
+    isDeveloperModeEnabled,
   }): MenuItemConstructorOptions[] => {
     const serverItems = servers.map((server, i): MenuItemConstructorOptions => {
       const isActive =
@@ -1166,6 +1169,17 @@ export const selectServerSwitcherMenuTemplate = createSelector(
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           },
         } as MenuItemConstructorOptions,
+      ]),
+      {
+        id: 'checkForUpdates',
+        label: t('menus.checkForUpdates'),
+        click: () => {
+          dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
+        },
+      },
+      ...on(isDeveloperModeEnabled, () => [
+        { type: 'separator' } as MenuItemConstructorOptions,
+        ...createSimulationMenuItems(),
       ]),
     ];
   }

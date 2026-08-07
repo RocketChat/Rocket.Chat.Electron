@@ -27,7 +27,9 @@ const Backdrop = styled.div`
 `;
 
 const PanelLayer = styled.div`
-  position: relative;
+  /* Out of the flex flow: as an in-flow sibling inside the tab bar Strip
+     (gap: 3px) it would add a gap on mount and shift the button left. */
+  position: fixed;
   z-index: 11;
 `;
 

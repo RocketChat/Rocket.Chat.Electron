@@ -144,8 +144,12 @@ const GlyphButton = styled.button<{ compact: boolean }>`
      below compiles to the component class doubled plus an attribute
      selector (0-3-0), which beats it — verified by inspecting the emitted
      rule order/specificity in a rendered test. Idle keeps the normal 0.6
-     dimming like every other tab bar button. */
-  &&[data-downloads-status='downloading'] {
+     dimming like every other tab bar button.
+
+     'unseen' (download finished, popup not opened yet) also stays at full
+     brightness, like Chrome, until the user clicks the button. */
+  &&[data-downloads-status='downloading'],
+  &&[data-downloads-status='unseen'] {
     opacity: 1;
   }
 `;
@@ -324,7 +328,11 @@ export const DownloadsIndicator = ({
           aria-label={label}
           aria-haspopup='dialog'
           aria-expanded={isOpen}
-          data-downloads-status={isDownloading ? 'downloading' : 'idle'}
+          data-downloads-status={
+            (isDownloading && 'downloading') ||
+            (hasUnseenCompleted && 'unseen') ||
+            'idle'
+          }
           onClick={handleToggle}
         >
           {isDownloading && isDownloadsPercentageEnabled && (

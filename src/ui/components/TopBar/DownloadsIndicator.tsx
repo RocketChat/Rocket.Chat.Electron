@@ -152,7 +152,12 @@ const UnseenDot = styled.span<{ compact: boolean }>`
   width: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
   height: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
   border-radius: 50%;
-  background-color: var(--rcx-color-status-background-success, #2de0a5);
+  /* status-background-* tokens are pale badge backgrounds (washed out on a
+     light titlebar); the presence-bullet green is made for a solid dot. */
+  background-color: var(
+    --rcx-color-status-bullet-online,
+    var(--rcx-color-green-800, #148660)
+  );
   pointer-events: none;
 `;
 

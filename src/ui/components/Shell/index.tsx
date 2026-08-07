@@ -82,7 +82,10 @@ export const Shell = () => {
                 <MeatballMenuButton />
                 <UpdateLabel />
                 {isDeveloperModeEnabled && (
-                  <DownloadsIndicator variant='chrome' />
+                  <>
+                    <DownloadsIndicator variant='chrome' />
+                    <DownloadsIndicator variant='fuselage' />
+                  </>
                 )}
                 <DownloadsIndicator />
               </>
@@ -96,7 +99,10 @@ export const Shell = () => {
               <>
                 <UpdateLabel />
                 {isDeveloperModeEnabled && (
-                  <DownloadsIndicator variant='chrome' />
+                  <>
+                    <DownloadsIndicator variant='chrome' />
+                    <DownloadsIndicator variant='fuselage' />
+                  </>
                 )}
                 <DownloadsIndicator />
                 <MeatballMenuButton />
@@ -113,7 +119,10 @@ export const Shell = () => {
               <>
                 <UpdateLabel />
                 {isDeveloperModeEnabled && (
-                  <DownloadsIndicator variant='chrome' />
+                  <>
+                    <DownloadsIndicator variant='chrome' />
+                    <DownloadsIndicator variant='fuselage' />
+                  </>
                 )}
                 <DownloadsIndicator />
               </>
@@ -127,7 +136,10 @@ export const Shell = () => {
                 {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
                 <UpdateLabel />
                 {isDeveloperModeEnabled && (
-                  <DownloadsIndicator variant='chrome' />
+                  <>
+                    <DownloadsIndicator variant='chrome' />
+                    <DownloadsIndicator variant='fuselage' />
+                  </>
                 )}
                 <DownloadsIndicator />
               </>

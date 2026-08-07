@@ -684,4 +684,79 @@ describe('DownloadsIndicator', () => {
       expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
     });
   });
+
+  describe('variant="fuselage"', () => {
+    const ICON_RING_RADIUS = 9;
+    const ICON_RING_CIRCUMFERENCE = 2 * Math.PI * ICON_RING_RADIUS;
+
+    it('renders the stock Fuselage download icon, same as the ring variant', () => {
+      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const button = screen.getByRole('button');
+      expect(button.querySelector('.rcx-icon--name-download')).not.toBeNull();
+    });
+
+    it('renders the overlay with exactly one accent arc circle while downloading, with dashoffset reflecting determinate progress', () => {
+      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const ring = screen.getByTestId('downloads-progress-ring');
+      const circles = ring.querySelectorAll('circle');
+      expect(circles).toHaveLength(1);
+
+      const [progressArc] = circles;
+      expect(Number(progressArc.getAttribute('r'))).toBe(ICON_RING_RADIUS);
+
+      const expectedOffset = ICON_RING_CIRCUMFERENCE * (1 - 50 / 100);
+      expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
+        expectedOffset
+      );
+      expect(Number(progressArc.getAttribute('stroke-dasharray'))).toBeCloseTo(
+        ICON_RING_CIRCUMFERENCE
+      );
+    });
+
+    it('does not render the overlay while idle', () => {
+      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+          },
+        }),
+      });
+
+      expect(
+        screen.queryByTestId('downloads-progress-ring')
+      ).not.toBeInTheDocument();
+    });
+
+    it('still shows the percentage text and the unseen dot', () => {
+      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+          2: {
+            ...baseDownload,
+            itemId: 2,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 2000,
+            endTime: Date.now() + 1000,
+          },
+        }),
+      });
+
+      expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
+      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    });
+  });
 });

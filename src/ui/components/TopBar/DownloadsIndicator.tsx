@@ -48,19 +48,31 @@ const RING_RADIUS = 12;
 const RING_STROKE_WIDTH = 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
+// The stock Fuselage `download` icon (node_modules/@rocket.chat/icons/dist/svg/download.svg,
+// viewBox 32) draws its own circle as an annulus between r=11 and r=13 around
+// (16,16) — a mid-radius-12, stroke-2 ring in 32-space. The medium IconButton
+// renders that glyph at 24px (scale 0.75) centered in the 32px button, so in
+// overlay terms (centered on the button, same as ProgressRing) that annulus
+// becomes radius 9, stroke-width 1.5. Drawing our accent arc exactly on top of
+// it makes the icon's own circle double as the arc's track.
+const ICON_RING_SIZE = 24;
+const ICON_RING_RADIUS = 9;
+const ICON_RING_STROKE_WIDTH = 1.5;
+const ICON_RING_CIRCUMFERENCE = 2 * Math.PI * ICON_RING_RADIUS;
+
 const ButtonWithRing = styled.div`
   position: relative;
   display: flex;
 `;
 
-const ProgressRing = styled.svg<{ indeterminate: boolean }>`
+const ProgressRing = styled.svg<{ indeterminate: boolean; size: number }>`
   position: absolute;
   top: 50%;
   left: 50%;
-  width: ${RING_SIZE}px;
-  height: ${RING_SIZE}px;
-  margin-top: -${RING_SIZE / 2}px;
-  margin-left: -${RING_SIZE / 2}px;
+  width: ${({ size }) => size}px;
+  height: ${({ size }) => size}px;
+  margin-top: ${({ size }) => -size / 2}px;
+  margin-left: ${({ size }) => -size / 2}px;
   pointer-events: none;
   transform: ${({ indeterminate }) =>
     indeterminate ? 'none' : 'rotate(-90deg)'};
@@ -141,7 +153,7 @@ const isActive = (download: Download): boolean =>
   download.state === 'progressing' || download.state === 'paused';
 
 type DownloadsIndicatorProps = {
-  variant?: 'ring' | 'chrome';
+  variant?: 'ring' | 'chrome' | 'fuselage';
 };
 
 export const DownloadsIndicator = ({
@@ -323,9 +335,35 @@ export const DownloadsIndicator = ({
               onClick={handleToggle}
             />
           )}
-          {isDownloading && (
+          {isDownloading && variant === 'fuselage' && (
+            <ProgressRing
+              viewBox={`0 0 ${ICON_RING_SIZE} ${ICON_RING_SIZE}`}
+              size={ICON_RING_SIZE}
+              indeterminate={isIndeterminate}
+              data-testid='downloads-progress-ring'
+              aria-hidden='true'
+            >
+              <circle
+                cx={ICON_RING_SIZE / 2}
+                cy={ICON_RING_SIZE / 2}
+                r={ICON_RING_RADIUS}
+                fill='none'
+                strokeWidth={ICON_RING_STROKE_WIDTH}
+                strokeLinecap='round'
+                stroke='var(--rcx-color-font-info, #095ad2)'
+                strokeDasharray={ICON_RING_CIRCUMFERENCE}
+                strokeDashoffset={
+                  isIndeterminate
+                    ? ICON_RING_CIRCUMFERENCE * 0.75
+                    : ICON_RING_CIRCUMFERENCE * (1 - progress / 100)
+                }
+              />
+            </ProgressRing>
+          )}
+          {isDownloading && variant !== 'fuselage' && (
             <ProgressRing
               viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+              size={RING_SIZE}
               indeterminate={isIndeterminate}
               data-testid='downloads-progress-ring'
               aria-hidden='true'

@@ -90,9 +90,17 @@ jest.mock('../TopBar/DownloadsIndicator', () => ({
   __esModule: true,
   DownloadsIndicator: ({
     variant = 'ring',
+    compact = false,
   }: {
     variant?: 'ring' | 'chrome' | 'fuselage' | 'redraw';
-  }) => <div data-testid='downloads-indicator' data-variant={variant} />,
+    compact?: boolean;
+  }) => (
+    <div
+      data-testid='downloads-indicator'
+      data-variant={variant}
+      data-compact={String(compact)}
+    />
+  ),
 }));
 
 jest.mock('../AboutDialog', () => ({
@@ -456,6 +464,97 @@ describe('Shell', () => {
         expect(instances[1]).toHaveAttribute('data-variant', 'fuselage');
         expect(instances[2]).toHaveAttribute('data-variant', 'redraw');
         expect(instances[3]).toHaveAttribute('data-variant', 'ring');
+      } finally {
+        restorePlatform();
+      }
+    });
+  });
+
+  describe('compact sizing in the thin TopBar', () => {
+    it('passes compact on the darwin TopBar (sidebar layout)', () => {
+      const restorePlatform = setPlatform('darwin');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({
+            navigationLayout: 'sidebar',
+            isDeveloperModeEnabled: true,
+          }),
+        });
+
+        for (const instance of screen.getAllByTestId('downloads-indicator')) {
+          expect(instance).toHaveAttribute('data-compact', 'true');
+        }
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('passes compact on the darwin TopBar in the hidden layout', () => {
+      const restorePlatform = setPlatform('darwin');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({
+            navigationLayout: 'hidden',
+            isDeveloperModeEnabled: true,
+          }),
+        });
+
+        for (const instance of screen.getAllByTestId('downloads-indicator')) {
+          expect(instance).toHaveAttribute('data-compact', 'true');
+        }
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('does not pass compact on the darwin TabBar (tabs layout)', () => {
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isDeveloperModeEnabled: true,
+        }),
+      });
+
+      for (const instance of screen.getAllByTestId('downloads-indicator')) {
+        expect(instance).toHaveAttribute('data-compact', 'false');
+      }
+    });
+
+    it('passes compact on the win32 TopBar leading slot but not on the win32 TabBar', () => {
+      const restorePlatform = setPlatform('win32');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({
+            navigationLayout: 'sidebar',
+            isDeveloperModeEnabled: true,
+          }),
+        });
+
+        for (const instance of screen.getAllByTestId('downloads-indicator')) {
+          expect(instance).toHaveAttribute('data-compact', 'true');
+        }
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('does not pass compact on the win32 TabBar (tabs layout)', () => {
+      const restorePlatform = setPlatform('win32');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({
+            navigationLayout: 'tabs',
+            isDeveloperModeEnabled: true,
+          }),
+        });
+
+        for (const instance of screen.getAllByTestId('downloads-indicator')) {
+          expect(instance).toHaveAttribute('data-compact', 'false');
+        }
       } finally {
         restorePlatform();
       }

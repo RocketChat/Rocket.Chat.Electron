@@ -871,4 +871,113 @@ describe('DownloadsIndicator', () => {
       expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
     });
   });
+
+  describe('compact', () => {
+    const COMPACT_BUTTON_SIZE = 24;
+    const COMPACT_RING_SIZE = 21;
+
+    it('shrinks the ring-variant overlay to the compact size while downloading', () => {
+      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const ring = screen.getByTestId('downloads-progress-ring');
+      expect(ring).toHaveAttribute(
+        'viewBox',
+        `0 0 ${COMPACT_RING_SIZE} ${COMPACT_RING_SIZE}`
+      );
+    });
+
+    it('shrinks the fuselage-variant overlay to a compact size derived from the smaller glyph', () => {
+      renderWithStore(<DownloadsIndicator variant='fuselage' compact />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const ring = screen.getByTestId('downloads-progress-ring');
+      const viewBox = ring.getAttribute('viewBox') ?? '';
+      const [, , w, h] = viewBox.split(' ').map(Number);
+      expect(w).toBeLessThan(24);
+      expect(h).toBeLessThan(24);
+      expect(w).toBe(h);
+    });
+
+    it('shrinks the chrome glyph svg while keeping its viewBox', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' compact />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-chrome-glyph');
+      expect(glyph).toHaveAttribute('viewBox', '0 0 24 24');
+      expect(Number(glyph.getAttribute('width'))).toBeLessThan(24);
+      expect(Number(glyph.getAttribute('height'))).toBeLessThan(24);
+    });
+
+    it('renders the redraw glyph svg at the compact rendered size (32 viewBox scaled by 0.75) while keeping its viewBox at 32', () => {
+      renderWithStore(<DownloadsIndicator variant='redraw' compact />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-redraw-glyph');
+      expect(glyph).toHaveAttribute('viewBox', '0 0 32 32');
+      expect(Number(glyph.getAttribute('width'))).toBe(24);
+      expect(Number(glyph.getAttribute('height'))).toBe(24);
+    });
+
+    it('renders the tiny Fuselage IconButton size for the ring/fuselage variants', () => {
+      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('rcx-button--tiny-square');
+    });
+
+    it('shrinks the custom chrome/redraw button box to the compact size', () => {
+      renderWithStore(<DownloadsIndicator variant='chrome' compact />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const button = screen.getByRole('button');
+      expect(getComputedStyle(button).width).toBe(`${COMPACT_BUTTON_SIZE}px`);
+      expect(getComputedStyle(button).height).toBe(`${COMPACT_BUTTON_SIZE}px`);
+    });
+
+    it('still shows the unseen dot in compact mode', () => {
+      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+            endTime: Date.now() + 1000,
+          },
+        }),
+      });
+
+      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    });
+
+    it('still shows the percentage text in compact mode', () => {
+      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
+    });
+  });
 });

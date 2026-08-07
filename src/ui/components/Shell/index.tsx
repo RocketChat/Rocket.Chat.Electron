@@ -122,12 +122,12 @@ export const Shell = () => {
                 <UpdateLabel />
                 {isDeveloperModeEnabled && (
                   <>
-                    <DownloadsIndicator variant='chrome' />
-                    <DownloadsIndicator variant='fuselage' />
-                    <DownloadsIndicator variant='redraw' />
+                    <DownloadsIndicator variant='chrome' compact />
+                    <DownloadsIndicator variant='fuselage' compact />
+                    <DownloadsIndicator variant='redraw' compact />
                   </>
                 )}
-                <DownloadsIndicator />
+                <DownloadsIndicator compact />
               </>
             }
           />
@@ -140,12 +140,12 @@ export const Shell = () => {
                 <UpdateLabel />
                 {isDeveloperModeEnabled && (
                   <>
-                    <DownloadsIndicator variant='chrome' />
-                    <DownloadsIndicator variant='fuselage' />
-                    <DownloadsIndicator variant='redraw' />
+                    <DownloadsIndicator variant='chrome' compact />
+                    <DownloadsIndicator variant='fuselage' compact />
+                    <DownloadsIndicator variant='redraw' compact />
                   </>
                 )}
-                <DownloadsIndicator />
+                <DownloadsIndicator compact />
               </>
             }
             centerSlot={

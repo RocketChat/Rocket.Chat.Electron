@@ -60,6 +60,39 @@ const ICON_RING_RADIUS = 9;
 const ICON_RING_STROKE_WIDTH = 1.5;
 const ICON_RING_CIRCUMFERENCE = 2 * Math.PI * ICON_RING_RADIUS;
 
+// Compact mode targets the TopBar strip (28px tall on macOS, 32px on
+// Windows — src/ui/components/TopBar/index.tsx). Fuselage's `small` square
+// button is 28px (1.75rem, rcx-button--small-square in fuselage.css) — zero
+// clearance on macOS, so any ring/dot overhang still clips. `tiny` is 24px
+// (1.5rem, rcx-button--tiny-square), leaving 4px on macOS / 8px on Windows —
+// the smallest size that actually fits with margin, so it's the one used
+// here. All compact dimensions below scale by 24/32 = 0.75 off their
+// full-size counterparts (or, for the fuselage-traced ring, off the smaller
+// glyph's own annulus) so every variant shrinks by the same proportion.
+const COMPACT_BUTTON_SIZE = 24;
+const COMPACT_SCALE = COMPACT_BUTTON_SIZE / 32;
+
+const COMPACT_RING_SIZE = Math.round(RING_SIZE * COMPACT_SCALE); // 28 * 0.75 = 21
+const COMPACT_RING_RADIUS = RING_RADIUS * COMPACT_SCALE; // 12 * 0.75 = 9
+const COMPACT_RING_STROKE_WIDTH = RING_STROKE_WIDTH * COMPACT_SCALE; // 2 * 0.75 = 1.5
+const COMPACT_RING_CIRCUMFERENCE = 2 * Math.PI * COMPACT_RING_RADIUS;
+
+// fuselage variant: at compact size the icon glyph itself shrinks with the
+// button (24px tiny button -> 18px glyph, same 0.75 IconButton scale Fuselage
+// applies at every size), so the traced annulus radius/stroke are recomputed
+// from that smaller glyph rather than reusing the medium-button numbers.
+const COMPACT_ICON_RING_SIZE = Math.round(ICON_RING_SIZE * COMPACT_SCALE); // 24 * 0.75 = 18
+const COMPACT_ICON_RING_RADIUS = (RING_RADIUS * COMPACT_ICON_RING_SIZE) / 32; // 12 * 18/32 = 6.75
+const COMPACT_ICON_RING_STROKE_WIDTH =
+  (RING_STROKE_WIDTH * COMPACT_ICON_RING_SIZE) / 32; // 2 * 18/32 = 1.125
+const COMPACT_ICON_RING_CIRCUMFERENCE = 2 * Math.PI * COMPACT_ICON_RING_RADIUS;
+
+const COMPACT_CHROME_GLYPH_SIZE = 18; // 24 * 0.75
+const COMPACT_REDRAW_GLYPH_SIZE = 24; // 32 (viewBox) * 0.75, viewBox stays 32
+
+const COMPACT_UNSEEN_DOT_SIZE = 6;
+const COMPACT_PERCENTAGE_FONT_SIZE = '0.6875rem';
+
 const ButtonWithRing = styled.div`
   position: relative;
   display: flex;
@@ -93,7 +126,7 @@ const ProgressRing = styled.svg<{ indeterminate: boolean; size: number }>`
   }
 `;
 
-const Percentage = styled.span`
+const Percentage = styled.span<{ compact: boolean }>`
   font-family: var(
     --rcx-font-family-mono,
     Menlo,
@@ -103,7 +136,8 @@ const Percentage = styled.span`
     'Courier New',
     monospace
   );
-  font-size: 0.75rem;
+  font-size: ${({ compact }) =>
+    compact ? COMPACT_PERCENTAGE_FONT_SIZE : '0.75rem'};
   font-variant-numeric: tabular-nums;
   min-width: 2.5ch;
   text-align: right;
@@ -111,12 +145,12 @@ const Percentage = styled.span`
   color: var(--rcx-color-font-titles-labels, #f2f3f5);
 `;
 
-const UnseenDot = styled.span`
+const UnseenDot = styled.span<{ compact: boolean }>`
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 8px;
-  height: 8px;
+  top: ${({ compact }) => (compact ? '0px' : '2px')};
+  right: ${({ compact }) => (compact ? '0px' : '2px')};
+  width: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
+  height: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
   border-radius: 50%;
   background-color: var(--rcx-color-status-background-success, #2de0a5);
   pointer-events: none;
@@ -125,9 +159,9 @@ const UnseenDot = styled.span`
 const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
 const TRAY_PATH = 'M5 20h14v-2H5v2z';
 
-const ChromeGlyphButton = styled.button`
-  width: 32px;
-  height: 32px;
+const ChromeGlyphButton = styled.button<{ compact: boolean }>`
+  width: ${({ compact }) => (compact ? COMPACT_BUTTON_SIZE : 32)}px;
+  height: ${({ compact }) => (compact ? COMPACT_BUTTON_SIZE : 32)}px;
   background: transparent;
   border: none;
   padding: 0;
@@ -174,6 +208,10 @@ const REDRAW_RING_RADIUS = 12;
 const REDRAW_RING_STROKE_WIDTH = 2;
 const REDRAW_RING_CIRCUMFERENCE = 2 * Math.PI * REDRAW_RING_RADIUS;
 
+// The redraw glyph keeps viewBox 32 at every size (only the rendered
+// width/height shrinks), so its ring geometry — drawn in the same 32-space —
+// does not need separate compact constants; only the rendered svg box does.
+
 /* No unconditional transform-origin here: the SVG 'transform' attribute maps
    to the CSS transform property, so a CSS transform-origin stacks onto the
    origin already baked into rotate(-90 16 16) and displaces the arc out of
@@ -206,12 +244,65 @@ const RedrawArcGroup = styled.g<{ spin: boolean }>`
 const isActive = (download: Download): boolean =>
   download.state === 'progressing' || download.state === 'paused';
 
+type RingDimensions = {
+  size: number;
+  radius: number;
+  strokeWidth: number;
+  circumference: number;
+};
+
+type CompactDimensions = {
+  iconButtonSizeProp: { tiny: true } | { medium: true };
+  chromeGlyphSize: number;
+  redrawGlyphSize: number;
+  fuselageRing: RingDimensions;
+  overlayRing: RingDimensions;
+};
+
+// Single source of truth for every size that changes between the default
+// (medium, 32px button) and compact (tiny, 24px button — see the constants
+// above for why 24px was chosen) presentations, so the render below reads
+// plain values instead of scattering `compact ? … : …` through the JSX.
+const getCompactDimensions = (compact: boolean): CompactDimensions => ({
+  iconButtonSizeProp: compact ? { tiny: true } : { medium: true },
+  chromeGlyphSize: compact ? COMPACT_CHROME_GLYPH_SIZE : 24,
+  redrawGlyphSize: compact ? COMPACT_REDRAW_GLYPH_SIZE : 24,
+  fuselageRing: compact
+    ? {
+        size: COMPACT_ICON_RING_SIZE,
+        radius: COMPACT_ICON_RING_RADIUS,
+        strokeWidth: COMPACT_ICON_RING_STROKE_WIDTH,
+        circumference: COMPACT_ICON_RING_CIRCUMFERENCE,
+      }
+    : {
+        size: ICON_RING_SIZE,
+        radius: ICON_RING_RADIUS,
+        strokeWidth: ICON_RING_STROKE_WIDTH,
+        circumference: ICON_RING_CIRCUMFERENCE,
+      },
+  overlayRing: compact
+    ? {
+        size: COMPACT_RING_SIZE,
+        radius: COMPACT_RING_RADIUS,
+        strokeWidth: COMPACT_RING_STROKE_WIDTH,
+        circumference: COMPACT_RING_CIRCUMFERENCE,
+      }
+    : {
+        size: RING_SIZE,
+        radius: RING_RADIUS,
+        strokeWidth: RING_STROKE_WIDTH,
+        circumference: RING_CIRCUMFERENCE,
+      },
+});
+
 type DownloadsIndicatorProps = {
   variant?: 'ring' | 'chrome' | 'fuselage' | 'redraw';
+  compact?: boolean;
 };
 
 export const DownloadsIndicator = ({
   variant = 'ring',
+  compact = false,
 }: DownloadsIndicatorProps = {}) => {
   const { t, i18n } = useTranslation();
 
@@ -220,6 +311,14 @@ export const DownloadsIndicator = ({
     ({ isDownloadsPercentageEnabled }: RootState) =>
       isDownloadsPercentageEnabled
   );
+
+  const {
+    iconButtonSizeProp,
+    chromeGlyphSize,
+    redrawGlyphSize,
+    fuselageRing,
+    overlayRing,
+  } = getCompactDimensions(compact);
 
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
@@ -342,7 +441,7 @@ export const DownloadsIndicator = ({
         {/* Percentage sits left of the icon: the group is right-anchored in
             the strip, so text there grows leftward without moving the icon. */}
         {isDownloading && isDownloadsPercentageEnabled && (
-          <Percentage data-testid='downloads-progress'>
+          <Percentage compact={compact} data-testid='downloads-progress'>
             {t('tabBar.downloads.percent', { percent: progress })}
           </Percentage>
         )}
@@ -350,6 +449,7 @@ export const DownloadsIndicator = ({
           {variant === 'chrome' && (
             <ChromeGlyphButton
               ref={reference}
+              compact={compact}
               type='button'
               title={label}
               aria-label={label}
@@ -360,8 +460,8 @@ export const DownloadsIndicator = ({
             >
               <svg
                 viewBox='0 0 24 24'
-                width={24}
-                height={24}
+                width={chromeGlyphSize}
+                height={chromeGlyphSize}
                 data-testid='downloads-chrome-glyph'
               >
                 {isDownloading ? (
@@ -380,6 +480,7 @@ export const DownloadsIndicator = ({
           {variant === 'redraw' && (
             <RedrawGlyphButton
               ref={reference}
+              compact={compact}
               type='button'
               title={label}
               aria-label={label}
@@ -390,8 +491,8 @@ export const DownloadsIndicator = ({
             >
               <svg
                 viewBox='0 0 32 32'
-                width={24}
-                height={24}
+                width={redrawGlyphSize}
+                height={redrawGlyphSize}
                 fill='currentColor'
                 data-testid='downloads-redraw-glyph'
               >
@@ -436,7 +537,7 @@ export const DownloadsIndicator = ({
             <IconButton
               ref={reference}
               icon='download'
-              medium
+              {...iconButtonSizeProp}
               title={label}
               aria-label={label}
               aria-haspopup='dialog'
@@ -447,65 +548,65 @@ export const DownloadsIndicator = ({
           )}
           {isDownloading && variant === 'fuselage' && (
             <ProgressRing
-              viewBox={`0 0 ${ICON_RING_SIZE} ${ICON_RING_SIZE}`}
-              size={ICON_RING_SIZE}
+              viewBox={`0 0 ${fuselageRing.size} ${fuselageRing.size}`}
+              size={fuselageRing.size}
               indeterminate={isIndeterminate}
               data-testid='downloads-progress-ring'
               aria-hidden='true'
             >
               <circle
-                cx={ICON_RING_SIZE / 2}
-                cy={ICON_RING_SIZE / 2}
-                r={ICON_RING_RADIUS}
+                cx={fuselageRing.size / 2}
+                cy={fuselageRing.size / 2}
+                r={fuselageRing.radius}
                 fill='none'
-                strokeWidth={ICON_RING_STROKE_WIDTH}
+                strokeWidth={fuselageRing.strokeWidth}
                 strokeLinecap='round'
                 stroke='var(--rcx-color-font-info, #095ad2)'
-                strokeDasharray={ICON_RING_CIRCUMFERENCE}
+                strokeDasharray={fuselageRing.circumference}
                 strokeDashoffset={
                   isIndeterminate
-                    ? ICON_RING_CIRCUMFERENCE * 0.75
-                    : ICON_RING_CIRCUMFERENCE * (1 - progress / 100)
+                    ? fuselageRing.circumference * 0.75
+                    : fuselageRing.circumference * (1 - progress / 100)
                 }
               />
             </ProgressRing>
           )}
           {isDownloading && variant !== 'fuselage' && variant !== 'redraw' && (
             <ProgressRing
-              viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-              size={RING_SIZE}
+              viewBox={`0 0 ${overlayRing.size} ${overlayRing.size}`}
+              size={overlayRing.size}
               indeterminate={isIndeterminate}
               data-testid='downloads-progress-ring'
               aria-hidden='true'
             >
               <circle
-                cx={RING_SIZE / 2}
-                cy={RING_SIZE / 2}
-                r={RING_RADIUS}
+                cx={overlayRing.size / 2}
+                cy={overlayRing.size / 2}
+                r={overlayRing.radius}
                 fill='none'
-                strokeWidth={RING_STROKE_WIDTH}
+                strokeWidth={overlayRing.strokeWidth}
                 stroke='currentColor'
                 strokeOpacity={0.2}
               />
               <circle
-                cx={RING_SIZE / 2}
-                cy={RING_SIZE / 2}
-                r={RING_RADIUS}
+                cx={overlayRing.size / 2}
+                cy={overlayRing.size / 2}
+                r={overlayRing.radius}
                 fill='none'
-                strokeWidth={RING_STROKE_WIDTH}
+                strokeWidth={overlayRing.strokeWidth}
                 strokeLinecap='round'
                 stroke='var(--rcx-color-font-info, #095ad2)'
-                strokeDasharray={RING_CIRCUMFERENCE}
+                strokeDasharray={overlayRing.circumference}
                 strokeDashoffset={
                   isIndeterminate
-                    ? RING_CIRCUMFERENCE * 0.75
-                    : RING_CIRCUMFERENCE * (1 - progress / 100)
+                    ? overlayRing.circumference * 0.75
+                    : overlayRing.circumference * (1 - progress / 100)
                 }
               />
             </ProgressRing>
           )}
           {!isOpen && hasUnseenCompleted && (
-            <UnseenDot data-testid='downloads-unseen-dot' />
+            <UnseenDot compact={compact} data-testid='downloads-unseen-dot' />
           )}
         </ButtonWithRing>
       </DownloadsButtonWrapper>

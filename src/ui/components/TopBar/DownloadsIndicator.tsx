@@ -77,17 +77,9 @@ const UnseenDot = styled.span<{ compact: boolean }>`
   width: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
   height: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
   border-radius: 50%;
-  /* badge-background-level-2 is Fuselage's classic solid blue unread-badge
-     color (blue-500, #156FF5 — verified against
-     node_modules/@rocket.chat/fuselage-tokens/colors.json's b500, resolved
-     through fuselage.development.js's badge['level-2'] token). font-info
-     (blue-600, #095AD2 — the same accent the arc uses) is the fallback if
-     that token is ever unavailable, keeping the dot on-brand blue either
-     way. */
-  background-color: var(
-    --rcx-color-badge-background-level-2,
-    var(--rcx-color-font-info, #095ad2)
-  );
+  /* Same token as the progress arc, so the dot and the downloading circle
+     always share one blue in every theme. */
+  background-color: var(--rcx-color-font-info, #095ad2);
   pointer-events: none;
 `;
 

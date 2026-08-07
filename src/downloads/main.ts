@@ -4,17 +4,129 @@ import { t } from 'i18next';
 
 import { handle } from '../ipc/main';
 import { createNotification } from '../notifications/preload';
-import { dispatch, select } from '../store';
+import { dispatch, listen, select } from '../store';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
   DOWNLOADS_CLEARED,
+  DOWNLOADS_SIMULATION_REQUESTED,
 } from './actions';
 import type { Download } from './common';
 import { DownloadStatus } from './common';
 
 const items = new Map<Download['itemId'], DownloadItem>();
+
+/** Developer-mode flow that fakes two staggered downloads to demo the titlebar indicator. */
+let simulatedItemIds: Download['itemId'][] = [];
+let simulatedDownloadTimers: ReturnType<typeof setInterval>[] = [];
+
+const stopSimulatedDownloads = (): void => {
+  simulatedDownloadTimers.forEach((timer) => clearInterval(timer));
+  simulatedDownloadTimers = [];
+};
+
+const clearPreviousSimulation = (): void => {
+  stopSimulatedDownloads();
+  simulatedItemIds.forEach((itemId) => {
+    dispatch({ type: DOWNLOAD_REMOVED, payload: itemId });
+  });
+  simulatedItemIds = [];
+};
+
+const startSimulatedDownload = (
+  download: Download,
+  bytesPerTick: number
+): void => {
+  let receivedBytes = 0;
+
+  const timer = setInterval(() => {
+    receivedBytes = Math.min(receivedBytes + bytesPerTick, download.totalBytes);
+
+    if (receivedBytes >= download.totalBytes) {
+      clearInterval(timer);
+      simulatedDownloadTimers = simulatedDownloadTimers.filter(
+        (t) => t !== timer
+      );
+
+      dispatch({
+        type: DOWNLOAD_UPDATED,
+        payload: {
+          itemId: download.itemId,
+          state: 'completed',
+          status: DownloadStatus.ALL,
+          receivedBytes: download.totalBytes,
+          endTime: Date.now(),
+        },
+      });
+      return;
+    }
+
+    dispatch({
+      type: DOWNLOAD_UPDATED,
+      payload: {
+        itemId: download.itemId,
+        state: 'progressing',
+        status: DownloadStatus.ALL,
+        receivedBytes,
+      },
+    });
+  }, 250);
+
+  simulatedDownloadTimers.push(timer);
+};
+
+const startDownloadsSimulation = (): void => {
+  clearPreviousSimulation();
+
+  const server = select(({ servers }) => servers[0]);
+  const serverUrl = server?.url || 'https://simulated.rocket.chat';
+  const serverTitle = server?.title || 'Simulated Server';
+
+  const now = Date.now();
+
+  const videoDownload: Download = {
+    itemId: now,
+    state: 'progressing',
+    status: DownloadStatus.ALL,
+    fileName: 'demo-video.mp4',
+    receivedBytes: 0,
+    totalBytes: 256 * 1024 * 1024,
+    startTime: now,
+    endTime: undefined,
+    url: `${serverUrl}/file-upload/demo-video.mp4`,
+    serverUrl,
+    serverTitle,
+    savePath: '/tmp/demo-video.mp4',
+    mimeType: 'video/mp4',
+  };
+
+  const archiveDownload: Download = {
+    itemId: now + 1,
+    state: 'progressing',
+    status: DownloadStatus.ALL,
+    fileName: 'demo-archive.zip',
+    receivedBytes: 0,
+    totalBytes: 64 * 1024 * 1024,
+    startTime: now,
+    endTime: undefined,
+    url: `${serverUrl}/file-upload/demo-archive.zip`,
+    serverUrl,
+    serverTitle,
+    savePath: '/tmp/demo-archive.zip',
+    mimeType: 'application/zip',
+  };
+
+  simulatedItemIds = [videoDownload.itemId, archiveDownload.itemId];
+
+  dispatch({ type: DOWNLOAD_CREATED, payload: videoDownload });
+  dispatch({ type: DOWNLOAD_CREATED, payload: archiveDownload });
+
+  // ~8s to completion at 250ms ticks (32 ticks)
+  startSimulatedDownload(videoDownload, videoDownload.totalBytes / 32);
+  // ~14s to completion at 250ms ticks (56 ticks)
+  startSimulatedDownload(archiveDownload, archiveDownload.totalBytes / 56);
+};
 
 export const handleWillDownloadEvent = async (
   _event: Event,
@@ -100,7 +212,42 @@ export const handleWillDownloadEvent = async (
   });
 };
 
+/**
+ * Persisted downloads left in 'progressing' or 'paused' state across an app
+ * restart have no live DownloadItem backing them (the `items` map starts
+ * empty every launch) — they can never receive another 'updated'/'done'
+ * event, which otherwise freezes the titlebar indicator's ring/percentage
+ * forever. Mirrors how Chrome marks orphaned downloads interrupted on
+ * restart.
+ */
+const interruptOrphanedDownloads = (): void => {
+  const staleDownloads = select(({ downloads }) =>
+    Object.values(downloads ?? {}).filter(
+      (download) =>
+        (download.state === 'progressing' || download.state === 'paused') &&
+        !items.has(download.itemId)
+    )
+  );
+
+  (Array.isArray(staleDownloads) ? staleDownloads : []).forEach((download) => {
+    dispatch({
+      type: DOWNLOAD_UPDATED,
+      payload: {
+        itemId: download.itemId,
+        state: 'interrupted',
+        endTime: Date.now(),
+      },
+    });
+  });
+};
+
 export const setupDownloads = (): void => {
+  interruptOrphanedDownloads();
+
+  listen(DOWNLOADS_SIMULATION_REQUESTED, async () => {
+    startDownloadsSimulation();
+  });
+
   handle('downloads/show-in-folder', async (_webContents, itemId) => {
     const download = select(({ downloads }) => downloads[itemId]);
 

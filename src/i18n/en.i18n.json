@@ -417,6 +417,7 @@
     "cut": "Cu&t",
     "developerMode": "Developer Mode",
     "simulateUpdate": "Simulate Update Flow",
+    "simulateDownload": "Simulate Download",
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",

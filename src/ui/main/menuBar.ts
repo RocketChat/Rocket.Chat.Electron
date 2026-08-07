@@ -6,6 +6,7 @@ import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
+import { DOWNLOADS_SIMULATION_REQUESTED } from '../../downloads/actions';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -837,6 +838,19 @@ export const createHelpMenu = createSelector(
             }
             browserWindow.focus();
             dispatch({ type: UPDATES_SIMULATION_REQUESTED });
+          },
+        },
+        {
+          id: 'simulateDownload',
+          label: t('menus.simulateDownload'),
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            dispatch({ type: DOWNLOADS_SIMULATION_REQUESTED });
           },
         },
       ]),

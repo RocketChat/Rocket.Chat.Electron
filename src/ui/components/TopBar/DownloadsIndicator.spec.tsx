@@ -759,4 +759,116 @@ describe('DownloadsIndicator', () => {
       expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
     });
   });
+
+  describe('variant="redraw"', () => {
+    const REDRAW_RING_RADIUS = 12;
+    const REDRAW_RING_CIRCUMFERENCE = 2 * Math.PI * REDRAW_RING_RADIUS;
+
+    it('renders exactly two circles (track + arc) while downloading, with the arc dashoffset reflecting determinate progress', () => {
+      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-redraw-glyph');
+      const circles = glyph.querySelectorAll('circle');
+      expect(circles).toHaveLength(2);
+
+      for (const circle of circles) {
+        expect(Number(circle.getAttribute('r'))).toBe(REDRAW_RING_RADIUS);
+      }
+
+      const [, arc] = circles;
+      const expectedOffset = REDRAW_RING_CIRCUMFERENCE * (1 - 50 / 100);
+      expect(Number(arc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
+        expectedOffset
+      );
+      expect(Number(arc.getAttribute('stroke-dasharray'))).toBeCloseTo(
+        REDRAW_RING_CIRCUMFERENCE
+      );
+    });
+
+    it('renders only the arrow path while downloading (no annulus subpaths)', () => {
+      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-redraw-glyph');
+      const paths = glyph.querySelectorAll('path');
+      expect(paths).toHaveLength(1);
+
+      const d = paths[0].getAttribute('d') ?? '';
+      expect(d).not.toContain('M27 16');
+      expect(d).not.toContain('M29 16');
+    });
+
+    it('renders one path with the full original d (annulus + arrow) and no circles while idle', () => {
+      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 1000,
+          },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-redraw-glyph');
+      const paths = glyph.querySelectorAll('path');
+      expect(paths).toHaveLength(1);
+
+      const d = paths[0].getAttribute('d') ?? '';
+      expect(d).toContain('M27 16');
+      expect(d).toContain('M29 16');
+      expect(d).toContain('M21.6956 17.8553');
+
+      expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+    });
+
+    it('does not render the stock Fuselage icon for this variant', () => {
+      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      const button = screen.getByRole('button');
+      expect(button.querySelector('.rcx-icon--name-download')).toBeNull();
+    });
+
+    it('does not render the shared progress ring overlay', () => {
+      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+        }),
+      });
+
+      expect(
+        screen.queryByTestId('downloads-progress-ring')
+      ).not.toBeInTheDocument();
+    });
+
+    it('still shows the percentage text and the unseen dot', () => {
+      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+        preloadedState: buildState({
+          1: { ...baseDownload, state: 'progressing' },
+          2: {
+            ...baseDownload,
+            itemId: 2,
+            state: 'completed',
+            receivedBytes: 1000,
+            startTime: SESSION_START + 2000,
+            endTime: Date.now() + 1000,
+          },
+        }),
+      });
+
+      expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
+      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    });
+  });
 });

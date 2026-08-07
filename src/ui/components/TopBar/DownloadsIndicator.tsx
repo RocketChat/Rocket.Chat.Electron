@@ -149,11 +149,65 @@ const ChromeGlyphButton = styled.button`
   );
 `;
 
+// The redraw glyph's own arc/track split already communicates progress, so
+// TabBarButtonWrapper's `& button { opacity: 0.6 }` idle dimming (specificity
+// 0-1-1: one class + one type selector) needs to be overridden while
+// downloading. `&&[data-downloads-status='downloading']` compiles to the
+// component class doubled plus an attribute selector (0-3-0), which beats it —
+// verified by inspecting the emitted rule order/specificity in a rendered
+// test. Idle keeps the normal 0.6 dimming like every other tab bar button.
+const RedrawGlyphButton = styled(ChromeGlyphButton)`
+  &&[data-downloads-status='downloading'] {
+    opacity: 1;
+  }
+`;
+
+const REDRAW_TRACK_CIRCLE_D =
+  'M27 16C27 9.92487 22.0751 5 16 5C9.92487 5 5 9.92487 5 16C5 22.0751 9.92487 27 16 27C22.0751 27 27 22.0751 27 16Z';
+const REDRAW_OUTER_CIRCLE_D =
+  'M29 16C29 23.1797 23.1797 29 16 29C8.8203 29 3 23.1797 3 16C3 8.8203 8.8203 3 16 3C23.1797 3 29 8.8203 29 16Z';
+const REDRAW_ARROW_PATH =
+  'M21.6956 17.8553L16.6966 22.7214C16.3083 23.0993 15.6898 23.0993 15.3015 22.7214L10.3025 17.8553C9.90672 17.47 9.89819 16.8369 10.2834 16.4412C10.6686 16.0454 11.3018 16.0369 11.6975 16.4221L14.999 19.6359L14.999 11C14.999 10.4477 15.4468 10 15.999 10C16.5513 10 16.999 10.4477 16.999 11L16.999 19.6359L20.3006 16.4221C20.6963 16.0369 21.3294 16.0454 21.7147 16.4412C22.0999 16.8369 22.0914 17.47 21.6956 17.8553Z';
+const REDRAW_FULL_PATH_D = `${REDRAW_TRACK_CIRCLE_D} ${REDRAW_OUTER_CIRCLE_D} ${REDRAW_ARROW_PATH}`;
+
+const REDRAW_RING_RADIUS = 12;
+const REDRAW_RING_STROKE_WIDTH = 2;
+const REDRAW_RING_CIRCUMFERENCE = 2 * Math.PI * REDRAW_RING_RADIUS;
+
+/* No unconditional transform-origin here: the SVG 'transform' attribute maps
+   to the CSS transform property, so a CSS transform-origin stacks onto the
+   origin already baked into rotate(-90 16 16) and displaces the arc out of
+   the viewBox. fill-box + center self-centers the spin without conflicting —
+   same pattern (and same bug) as the earlier chrome-variant ring group. */
+const RedrawArcGroup = styled.g<{ spin: boolean }>`
+  ${({ spin }) =>
+    spin
+      ? `
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: downloads-redraw-arc-spin 1s linear infinite;
+  `
+      : ''}
+
+  circle {
+    transition: stroke-dashoffset 200ms ease-out;
+  }
+
+  @keyframes downloads-redraw-arc-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 const isActive = (download: Download): boolean =>
   download.state === 'progressing' || download.state === 'paused';
 
 type DownloadsIndicatorProps = {
-  variant?: 'ring' | 'chrome' | 'fuselage';
+  variant?: 'ring' | 'chrome' | 'fuselage' | 'redraw';
 };
 
 export const DownloadsIndicator = ({
@@ -293,7 +347,7 @@ export const DownloadsIndicator = ({
           </Percentage>
         )}
         <ButtonWithRing>
-          {variant === 'chrome' ? (
+          {variant === 'chrome' && (
             <ChromeGlyphButton
               ref={reference}
               type='button'
@@ -322,7 +376,63 @@ export const DownloadsIndicator = ({
                 )}
               </svg>
             </ChromeGlyphButton>
-          ) : (
+          )}
+          {variant === 'redraw' && (
+            <RedrawGlyphButton
+              ref={reference}
+              type='button'
+              title={label}
+              aria-label={label}
+              aria-haspopup='dialog'
+              aria-expanded={isOpen}
+              data-downloads-status={isDownloading ? 'downloading' : 'idle'}
+              onClick={handleToggle}
+            >
+              <svg
+                viewBox='0 0 32 32'
+                width={24}
+                height={24}
+                fill='currentColor'
+                data-testid='downloads-redraw-glyph'
+              >
+                {isDownloading ? (
+                  <>
+                    <circle
+                      cx={16}
+                      cy={16}
+                      r={REDRAW_RING_RADIUS}
+                      fill='none'
+                      strokeWidth={REDRAW_RING_STROKE_WIDTH}
+                      stroke='currentColor'
+                      strokeOpacity={0.2}
+                    />
+                    <RedrawArcGroup spin={isIndeterminate}>
+                      <circle
+                        cx={16}
+                        cy={16}
+                        r={REDRAW_RING_RADIUS}
+                        fill='none'
+                        strokeWidth={REDRAW_RING_STROKE_WIDTH}
+                        strokeLinecap='round'
+                        stroke='var(--rcx-color-font-info, #095ad2)'
+                        strokeDasharray={REDRAW_RING_CIRCUMFERENCE}
+                        strokeDashoffset={
+                          isIndeterminate
+                            ? REDRAW_RING_CIRCUMFERENCE * 0.75
+                            : REDRAW_RING_CIRCUMFERENCE * (1 - progress / 100)
+                        }
+                        transform='rotate(-90 16 16)'
+                      />
+                    </RedrawArcGroup>
+                    <path d={REDRAW_ARROW_PATH} fill='currentColor' />
+                  </>
+                ) : (
+                  <path d={REDRAW_FULL_PATH_D} fill='currentColor' />
+                )}
+              </svg>
+            </RedrawGlyphButton>
+          )}
+          {variant !== 'chrome' && variant !== 'redraw' && (
             <IconButton
               ref={reference}
               icon='download'
@@ -360,7 +470,7 @@ export const DownloadsIndicator = ({
               />
             </ProgressRing>
           )}
-          {isDownloading && variant !== 'fuselage' && (
+          {isDownloading && variant !== 'fuselage' && variant !== 'redraw' && (
             <ProgressRing
               viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
               size={RING_SIZE}

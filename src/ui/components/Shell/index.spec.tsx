@@ -91,7 +91,7 @@ jest.mock('../TopBar/DownloadsIndicator', () => ({
   DownloadsIndicator: ({
     variant = 'ring',
   }: {
-    variant?: 'ring' | 'chrome' | 'fuselage';
+    variant?: 'ring' | 'chrome' | 'fuselage' | 'redraw';
   }) => <div data-testid='downloads-indicator' data-variant={variant} />,
 }));
 
@@ -423,7 +423,7 @@ describe('Shell', () => {
       expect(instances[0]).toHaveAttribute('data-variant', 'ring');
     });
 
-    it('renders the chrome, fuselage and ring instances (in that order) when developer mode is enabled', () => {
+    it('renders the chrome, fuselage, redraw and ring instances (in that order) when developer mode is enabled', () => {
       renderWithStore(<Shell />, {
         preloadedState: buildState({
           navigationLayout: 'sidebar',
@@ -432,13 +432,14 @@ describe('Shell', () => {
       });
 
       const instances = screen.getAllByTestId('downloads-indicator');
-      expect(instances).toHaveLength(3);
+      expect(instances).toHaveLength(4);
       expect(instances[0]).toHaveAttribute('data-variant', 'chrome');
       expect(instances[1]).toHaveAttribute('data-variant', 'fuselage');
-      expect(instances[2]).toHaveAttribute('data-variant', 'ring');
+      expect(instances[2]).toHaveAttribute('data-variant', 'redraw');
+      expect(instances[3]).toHaveAttribute('data-variant', 'ring');
     });
 
-    it('renders all three instances on win32 leading slots when developer mode is enabled', () => {
+    it('renders all four instances on win32 leading slots when developer mode is enabled', () => {
       const restorePlatform = setPlatform('win32');
 
       try {
@@ -450,10 +451,11 @@ describe('Shell', () => {
         });
 
         const instances = screen.getAllByTestId('downloads-indicator');
-        expect(instances).toHaveLength(3);
+        expect(instances).toHaveLength(4);
         expect(instances[0]).toHaveAttribute('data-variant', 'chrome');
         expect(instances[1]).toHaveAttribute('data-variant', 'fuselage');
-        expect(instances[2]).toHaveAttribute('data-variant', 'ring');
+        expect(instances[2]).toHaveAttribute('data-variant', 'redraw');
+        expect(instances[3]).toHaveAttribute('data-variant', 'ring');
       } finally {
         restorePlatform();
       }

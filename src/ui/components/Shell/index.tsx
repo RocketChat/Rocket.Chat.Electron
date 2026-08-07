@@ -85,6 +85,7 @@ export const Shell = () => {
                   <>
                     <DownloadsIndicator variant='chrome' />
                     <DownloadsIndicator variant='fuselage' />
+                    <DownloadsIndicator variant='redraw' />
                   </>
                 )}
                 <DownloadsIndicator />
@@ -102,6 +103,7 @@ export const Shell = () => {
                   <>
                     <DownloadsIndicator variant='chrome' />
                     <DownloadsIndicator variant='fuselage' />
+                    <DownloadsIndicator variant='redraw' />
                   </>
                 )}
                 <DownloadsIndicator />
@@ -122,6 +124,7 @@ export const Shell = () => {
                   <>
                     <DownloadsIndicator variant='chrome' />
                     <DownloadsIndicator variant='fuselage' />
+                    <DownloadsIndicator variant='redraw' />
                   </>
                 )}
                 <DownloadsIndicator />
@@ -139,6 +142,7 @@ export const Shell = () => {
                   <>
                     <DownloadsIndicator variant='chrome' />
                     <DownloadsIndicator variant='fuselage' />
+                    <DownloadsIndicator variant='redraw' />
                   </>
                 )}
                 <DownloadsIndicator />

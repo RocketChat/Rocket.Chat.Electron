@@ -57,17 +57,7 @@ export const TopBar = ({
         </Box>
       )}
       {trailingSlot && (
-        <Box
-          display='flex'
-          alignItems='center'
-          style={{
-            gap: '6px',
-            // Windows keeps the window controls flush with the edge; macOS
-            // needs breathing room before the rounded corner.
-            paddingInlineEnd:
-              process.platform === 'darwin' ? '10px' : undefined,
-          }}
-        >
+        <Box display='flex' alignItems='center' style={{ gap: '6px' }}>
           {trailingSlot}
         </Box>
       )}

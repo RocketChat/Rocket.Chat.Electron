@@ -88,18 +88,8 @@ jest.mock('../TabBar/WindowControls', () => ({
 
 jest.mock('../TopBar/DownloadsIndicator', () => ({
   __esModule: true,
-  DownloadsIndicator: ({
-    variant = 'ring',
-    compact = false,
-  }: {
-    variant?: 'ring' | 'chrome' | 'fuselage' | 'redraw';
-    compact?: boolean;
-  }) => (
-    <div
-      data-testid='downloads-indicator'
-      data-variant={variant}
-      data-compact={String(compact)}
-    />
+  DownloadsIndicator: ({ compact = false }: { compact?: boolean }) => (
+    <div data-testid='downloads-indicator' data-compact={String(compact)} />
   ),
 }));
 
@@ -420,8 +410,8 @@ describe('Shell', () => {
     });
   });
 
-  describe('downloads indicator: redraw only, compact in the thin TopBar', () => {
-    it('renders exactly one redraw instance on the darwin TopBar (sidebar layout), compact', () => {
+  describe('downloads indicator: exactly one instance, compact in the thin TopBar', () => {
+    it('renders exactly one instance on the darwin TopBar (sidebar layout), compact', () => {
       const restorePlatform = setPlatform('darwin');
 
       try {
@@ -431,14 +421,13 @@ describe('Shell', () => {
 
         const instances = screen.getAllByTestId('downloads-indicator');
         expect(instances).toHaveLength(1);
-        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
         expect(instances[0]).toHaveAttribute('data-compact', 'true');
       } finally {
         restorePlatform();
       }
     });
 
-    it('renders exactly one redraw instance on the darwin TopBar (hidden layout), compact', () => {
+    it('renders exactly one instance on the darwin TopBar (hidden layout), compact', () => {
       const restorePlatform = setPlatform('darwin');
 
       try {
@@ -448,25 +437,23 @@ describe('Shell', () => {
 
         const instances = screen.getAllByTestId('downloads-indicator');
         expect(instances).toHaveLength(1);
-        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
         expect(instances[0]).toHaveAttribute('data-compact', 'true');
       } finally {
         restorePlatform();
       }
     });
 
-    it('renders exactly one redraw instance on the darwin TabBar (tabs layout), not compact', () => {
+    it('renders exactly one instance on the darwin TabBar (tabs layout), not compact', () => {
       renderWithStore(<Shell />, {
         preloadedState: buildState({ navigationLayout: 'tabs' }),
       });
 
       const instances = screen.getAllByTestId('downloads-indicator');
       expect(instances).toHaveLength(1);
-      expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
       expect(instances[0]).toHaveAttribute('data-compact', 'false');
     });
 
-    it('renders exactly one redraw instance on the win32 TopBar leading slot, compact', () => {
+    it('renders exactly one instance on the win32 TopBar leading slot, compact', () => {
       const restorePlatform = setPlatform('win32');
 
       try {
@@ -476,14 +463,13 @@ describe('Shell', () => {
 
         const instances = screen.getAllByTestId('downloads-indicator');
         expect(instances).toHaveLength(1);
-        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
         expect(instances[0]).toHaveAttribute('data-compact', 'true');
       } finally {
         restorePlatform();
       }
     });
 
-    it('renders exactly one redraw instance on the win32 TabBar (tabs layout), not compact', () => {
+    it('renders exactly one instance on the win32 TabBar (tabs layout), not compact', () => {
       const restorePlatform = setPlatform('win32');
 
       try {
@@ -493,7 +479,6 @@ describe('Shell', () => {
 
         const instances = screen.getAllByTestId('downloads-indicator');
         expect(instances).toHaveLength(1);
-        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
         expect(instances[0]).toHaveAttribute('data-compact', 'false');
       } finally {
         restorePlatform();
@@ -510,7 +495,6 @@ describe('Shell', () => {
 
       const instances = screen.getAllByTestId('downloads-indicator');
       expect(instances).toHaveLength(1);
-      expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
     });
   });
 });

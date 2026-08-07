@@ -37,94 +37,67 @@ const DownloadsButtonWrapper = styled(TabBarButtonWrapper)`
   position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
 `;
 
-// Fuselage's `medium` IconButton renders a 32px (x32) square with a 24px
-// (x24) icon glyph; the ring circumscribes the glyph with a couple px of
-// breathing room inside the button's box.
-const RING_SIZE = 28;
-const RING_RADIUS = 12;
-const RING_STROKE_WIDTH = 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-// The stock Fuselage `download` icon (node_modules/@rocket.chat/icons/dist/svg/download.svg,
-// viewBox 32) draws its own circle as an annulus between r=11 and r=13 around
-// (16,16) — a mid-radius-12, stroke-2 ring in 32-space. The medium IconButton
-// renders that glyph at 24px (scale 0.75) centered in the 32px button, so in
-// overlay terms (centered on the button, same as ProgressRing) that annulus
-// becomes radius 9, stroke-width 1.5. Drawing our accent arc exactly on top of
-// it makes the icon's own circle double as the arc's track.
-const ICON_RING_SIZE = 24;
-const ICON_RING_RADIUS = 9;
-const ICON_RING_STROKE_WIDTH = 1.5;
-const ICON_RING_CIRCUMFERENCE = 2 * Math.PI * ICON_RING_RADIUS;
+// The glyph draws its own arc/track split (see GLYPH_ARC_RADIUS below), a
+// mid-radius-12, stroke-2 ring in the glyph's native 32-viewBox space
+// centered on (16,16).
+const GLYPH_ARC_RADIUS = 12;
+const GLYPH_ARC_STROKE_WIDTH = 2;
+const GLYPH_ARC_CIRCUMFERENCE = 2 * Math.PI * GLYPH_ARC_RADIUS;
 
 // Compact mode targets the TopBar strip (28px tall on macOS, 32px on
 // Windows — src/ui/components/TopBar/index.tsx). Fuselage's `small` square
 // button is 28px (1.75rem, rcx-button--small-square in fuselage.css) — zero
-// clearance on macOS, so any ring/dot overhang still clips. `tiny` is 24px
+// clearance on macOS, so any dot overhang still clips. `tiny` is 24px
 // (1.5rem, rcx-button--tiny-square), leaving 4px on macOS / 8px on Windows —
 // the smallest size that actually fits with margin, so it's the one used
-// here. All compact dimensions below scale by 24/32 = 0.75 off their
-// full-size counterparts (or, for the fuselage-traced ring, off the smaller
-// glyph's own annulus) so every variant shrinks by the same proportion.
+// here. The rendered glyph box scales by 24/32 = 0.75 off the full-size
+// button; the arc itself keeps viewBox 32, so only the rendered width/height
+// shrinks — the arc geometry above stays the same in both sizes.
 const COMPACT_BUTTON_SIZE = 24;
-const COMPACT_SCALE = COMPACT_BUTTON_SIZE / 32;
-
-const COMPACT_RING_SIZE = Math.round(RING_SIZE * COMPACT_SCALE); // 28 * 0.75 = 21
-const COMPACT_RING_RADIUS = RING_RADIUS * COMPACT_SCALE; // 12 * 0.75 = 9
-const COMPACT_RING_STROKE_WIDTH = RING_STROKE_WIDTH * COMPACT_SCALE; // 2 * 0.75 = 1.5
-const COMPACT_RING_CIRCUMFERENCE = 2 * Math.PI * COMPACT_RING_RADIUS;
-
-// fuselage variant: at compact size the icon glyph itself shrinks with the
-// button (24px tiny button -> 18px glyph, same 0.75 IconButton scale Fuselage
-// applies at every size), so the traced annulus radius/stroke are recomputed
-// from that smaller glyph rather than reusing the medium-button numbers.
-const COMPACT_ICON_RING_SIZE = Math.round(ICON_RING_SIZE * COMPACT_SCALE); // 24 * 0.75 = 18
-const COMPACT_ICON_RING_RADIUS = (RING_RADIUS * COMPACT_ICON_RING_SIZE) / 32; // 12 * 18/32 = 6.75
-const COMPACT_ICON_RING_STROKE_WIDTH =
-  (RING_STROKE_WIDTH * COMPACT_ICON_RING_SIZE) / 32; // 2 * 18/32 = 1.125
-const COMPACT_ICON_RING_CIRCUMFERENCE = 2 * Math.PI * COMPACT_ICON_RING_RADIUS;
-
-const COMPACT_CHROME_GLYPH_SIZE = 18; // 24 * 0.75
-const COMPACT_REDRAW_GLYPH_SIZE = 24; // 32 (viewBox) * 0.75, viewBox stays 32
+const GLYPH_SIZE = 24;
+const COMPACT_GLYPH_SIZE = 24; // 32 (viewBox) * 0.75, viewBox stays 32
 
 const COMPACT_UNSEEN_DOT_SIZE = 6;
 const COMPACT_PERCENTAGE_FONT_SIZE = '0.6875rem';
 
-const ButtonWithRing = styled.div`
+// The dot anchors to the GLYPH's own box, not the button's — the button also
+// contains the percentage text (to its left), and the button grows leftward
+// as digits are added, which would otherwise drag the dot's anchor with it.
+const GlyphWrapper = styled.span`
   position: relative;
   display: flex;
 `;
 
-const ProgressRing = styled.svg<{ indeterminate: boolean; size: number }>`
+const UnseenDot = styled.span<{ compact: boolean }>`
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: ${({ size }) => size}px;
-  height: ${({ size }) => size}px;
-  margin-top: ${({ size }) => -size / 2}px;
-  margin-left: ${({ size }) => -size / 2}px;
+  top: ${({ compact }) => (compact ? '2px' : '4px')};
+  right: ${({ compact }) => (compact ? '2px' : '4px')};
+  width: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
+  height: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
+  border-radius: 50%;
+  /* badge-background-level-2 is Fuselage's classic solid blue unread-badge
+     color (blue-500, #156FF5 — verified against
+     node_modules/@rocket.chat/fuselage-tokens/colors.json's b500, resolved
+     through fuselage.development.js's badge['level-2'] token). font-info
+     (blue-600, #095AD2 — the same accent the arc uses) is the fallback if
+     that token is ever unavailable, keeping the dot on-brand blue either
+     way. */
+  background-color: var(
+    --rcx-color-badge-background-level-2,
+    var(--rcx-color-font-info, #095ad2)
+  );
   pointer-events: none;
-  transform: ${({ indeterminate }) =>
-    indeterminate ? 'none' : 'rotate(-90deg)'};
-  animation: ${({ indeterminate }) =>
-    indeterminate ? 'downloads-progress-ring-spin 1s linear infinite' : 'none'};
-
-  @keyframes downloads-progress-ring-spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  circle {
-    transition: stroke-dashoffset 200ms ease-out;
-  }
 `;
+
+const TRACK_CIRCLE_D =
+  'M27 16C27 9.92487 22.0751 5 16 5C9.92487 5 5 9.92487 5 16C5 22.0751 9.92487 27 16 27C22.0751 27 27 22.0751 27 16Z';
+const OUTER_CIRCLE_D =
+  'M29 16C29 23.1797 23.1797 29 16 29C8.8203 29 3 23.1797 3 16C3 8.8203 8.8203 3 16 3C23.1797 3 29 8.8203 29 16Z';
+const ARROW_PATH =
+  'M21.6956 17.8553L16.6966 22.7214C16.3083 23.0993 15.6898 23.0993 15.3015 22.7214L10.3025 17.8553C9.90672 17.47 9.89819 16.8369 10.2834 16.4412C10.6686 16.0454 11.3018 16.0369 11.6975 16.4221L14.999 19.6359L14.999 11C14.999 10.4477 15.4468 10 15.999 10C16.5513 10 16.999 10.4477 16.999 11L16.999 19.6359L20.3006 16.4221C20.6963 16.0369 21.3294 16.0454 21.7147 16.4412C22.0999 16.8369 22.0914 17.47 21.6956 17.8553Z';
+const FULL_GLYPH_PATH_D = `${TRACK_CIRCLE_D} ${OUTER_CIRCLE_D} ${ARROW_PATH}`;
 
 const Percentage = styled.span<{ compact: boolean }>`
   font-family: var(
@@ -142,40 +115,25 @@ const Percentage = styled.span<{ compact: boolean }>`
   min-width: 2.5ch;
   text-align: right;
   flex: 0 0 auto;
-  color: var(--rcx-color-font-titles-labels, #f2f3f5);
+  color: inherit;
 `;
 
-const UnseenDot = styled.span<{ compact: boolean }>`
-  position: absolute;
-  top: ${({ compact }) => (compact ? '0px' : '2px')};
-  right: ${({ compact }) => (compact ? '0px' : '2px')};
-  width: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
-  height: ${({ compact }) => (compact ? COMPACT_UNSEEN_DOT_SIZE : 8)}px;
-  border-radius: 50%;
-  /* status-background-* tokens are pale badge backgrounds (washed out on a
-     light titlebar); the presence-bullet green is made for a solid dot. */
-  background-color: var(
-    --rcx-color-status-bullet-online,
-    var(--rcx-color-green-800, #148660)
-  );
-  pointer-events: none;
-`;
-
-const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
-const TRAY_PATH = 'M5 20h14v-2H5v2z';
-
-const ChromeGlyphButton = styled.button<{ compact: boolean }>`
-  width: ${({ compact }) => (compact ? COMPACT_BUTTON_SIZE : 32)}px;
+// Percentage text and glyph render as ONE control (same button), so their
+// shared hover/click surface covers both — TabBarButtonWrapper's `& button`
+// hover background then paints across text+glyph together.
+const GlyphButton = styled.button<{ compact: boolean }>`
+  width: auto;
   height: ${({ compact }) => (compact ? COMPACT_BUTTON_SIZE : 32)}px;
   background: transparent;
   border: none;
-  padding: 0;
+  padding: 0 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   cursor: pointer;
   /* Same color resolution chain Fuselage applies to .rcx-button--icon, so
-     the glyph always matches the sibling IconButton variant's arrow. */
+     the glyph always matches the rest of the tab bar's icon buttons. */
   color: var(
     --rcx-color-button-icon-color,
     var(
@@ -186,49 +144,31 @@ const ChromeGlyphButton = styled.button<{ compact: boolean }>`
       )
     )
   );
-`;
 
-// The redraw glyph's own arc/track split already communicates progress, so
-// TabBarButtonWrapper's `& button { opacity: 0.6 }` idle dimming (specificity
-// 0-1-1: one class + one type selector) needs to be overridden while
-// downloading. `&&[data-downloads-status='downloading']` compiles to the
-// component class doubled plus an attribute selector (0-3-0), which beats it —
-// verified by inspecting the emitted rule order/specificity in a rendered
-// test. Idle keeps the normal 0.6 dimming like every other tab bar button.
-const RedrawGlyphButton = styled(ChromeGlyphButton)`
+  /* The glyph's own arc/track split already communicates progress, so
+     TabBarButtonWrapper's ampersand-button opacity:0.6 idle dimming rule
+     (specificity 0-1-1: one class + one type selector) needs to be
+     overridden while downloading. The doubled-ampersand attribute selector
+     below compiles to the component class doubled plus an attribute
+     selector (0-3-0), which beats it — verified by inspecting the emitted
+     rule order/specificity in a rendered test. Idle keeps the normal 0.6
+     dimming like every other tab bar button. */
   &&[data-downloads-status='downloading'] {
     opacity: 1;
   }
 `;
 
-const REDRAW_TRACK_CIRCLE_D =
-  'M27 16C27 9.92487 22.0751 5 16 5C9.92487 5 5 9.92487 5 16C5 22.0751 9.92487 27 16 27C22.0751 27 27 22.0751 27 16Z';
-const REDRAW_OUTER_CIRCLE_D =
-  'M29 16C29 23.1797 23.1797 29 16 29C8.8203 29 3 23.1797 3 16C3 8.8203 8.8203 3 16 3C23.1797 3 29 8.8203 29 16Z';
-const REDRAW_ARROW_PATH =
-  'M21.6956 17.8553L16.6966 22.7214C16.3083 23.0993 15.6898 23.0993 15.3015 22.7214L10.3025 17.8553C9.90672 17.47 9.89819 16.8369 10.2834 16.4412C10.6686 16.0454 11.3018 16.0369 11.6975 16.4221L14.999 19.6359L14.999 11C14.999 10.4477 15.4468 10 15.999 10C16.5513 10 16.999 10.4477 16.999 11L16.999 19.6359L20.3006 16.4221C20.6963 16.0369 21.3294 16.0454 21.7147 16.4412C22.0999 16.8369 22.0914 17.47 21.6956 17.8553Z';
-const REDRAW_FULL_PATH_D = `${REDRAW_TRACK_CIRCLE_D} ${REDRAW_OUTER_CIRCLE_D} ${REDRAW_ARROW_PATH}`;
-
-const REDRAW_RING_RADIUS = 12;
-const REDRAW_RING_STROKE_WIDTH = 2;
-const REDRAW_RING_CIRCUMFERENCE = 2 * Math.PI * REDRAW_RING_RADIUS;
-
-// The redraw glyph keeps viewBox 32 at every size (only the rendered
-// width/height shrinks), so its ring geometry — drawn in the same 32-space —
-// does not need separate compact constants; only the rendered svg box does.
-
 /* No unconditional transform-origin here: the SVG 'transform' attribute maps
    to the CSS transform property, so a CSS transform-origin stacks onto the
    origin already baked into rotate(-90 16 16) and displaces the arc out of
-   the viewBox. fill-box + center self-centers the spin without conflicting —
-   same pattern (and same bug) as the earlier chrome-variant ring group. */
-const RedrawArcGroup = styled.g<{ spin: boolean }>`
+   the viewBox. fill-box + center self-centers the spin without conflicting. */
+const ArcGroup = styled.g<{ spin: boolean }>`
   ${({ spin }) =>
     spin
       ? `
     transform-box: fill-box;
     transform-origin: center;
-    animation: downloads-redraw-arc-spin 1s linear infinite;
+    animation: downloads-indicator-arc-spin 1s linear infinite;
   `
       : ''}
 
@@ -236,7 +176,7 @@ const RedrawArcGroup = styled.g<{ spin: boolean }>`
     transition: stroke-dashoffset 200ms ease-out;
   }
 
-  @keyframes downloads-redraw-arc-spin {
+  @keyframes downloads-indicator-arc-spin {
     from {
       transform: rotate(0deg);
     }
@@ -249,64 +189,11 @@ const RedrawArcGroup = styled.g<{ spin: boolean }>`
 const isActive = (download: Download): boolean =>
   download.state === 'progressing' || download.state === 'paused';
 
-type RingDimensions = {
-  size: number;
-  radius: number;
-  strokeWidth: number;
-  circumference: number;
-};
-
-type CompactDimensions = {
-  iconButtonSizeProp: { tiny: true } | { medium: true };
-  chromeGlyphSize: number;
-  redrawGlyphSize: number;
-  fuselageRing: RingDimensions;
-  overlayRing: RingDimensions;
-};
-
-// Single source of truth for every size that changes between the default
-// (medium, 32px button) and compact (tiny, 24px button — see the constants
-// above for why 24px was chosen) presentations, so the render below reads
-// plain values instead of scattering `compact ? … : …` through the JSX.
-const getCompactDimensions = (compact: boolean): CompactDimensions => ({
-  iconButtonSizeProp: compact ? { tiny: true } : { medium: true },
-  chromeGlyphSize: compact ? COMPACT_CHROME_GLYPH_SIZE : 24,
-  redrawGlyphSize: compact ? COMPACT_REDRAW_GLYPH_SIZE : 24,
-  fuselageRing: compact
-    ? {
-        size: COMPACT_ICON_RING_SIZE,
-        radius: COMPACT_ICON_RING_RADIUS,
-        strokeWidth: COMPACT_ICON_RING_STROKE_WIDTH,
-        circumference: COMPACT_ICON_RING_CIRCUMFERENCE,
-      }
-    : {
-        size: ICON_RING_SIZE,
-        radius: ICON_RING_RADIUS,
-        strokeWidth: ICON_RING_STROKE_WIDTH,
-        circumference: ICON_RING_CIRCUMFERENCE,
-      },
-  overlayRing: compact
-    ? {
-        size: COMPACT_RING_SIZE,
-        radius: COMPACT_RING_RADIUS,
-        strokeWidth: COMPACT_RING_STROKE_WIDTH,
-        circumference: COMPACT_RING_CIRCUMFERENCE,
-      }
-    : {
-        size: RING_SIZE,
-        radius: RING_RADIUS,
-        strokeWidth: RING_STROKE_WIDTH,
-        circumference: RING_CIRCUMFERENCE,
-      },
-});
-
 type DownloadsIndicatorProps = {
-  variant?: 'ring' | 'chrome' | 'fuselage' | 'redraw';
   compact?: boolean;
 };
 
 export const DownloadsIndicator = ({
-  variant = 'ring',
   compact = false,
 }: DownloadsIndicatorProps = {}) => {
   const { t, i18n } = useTranslation();
@@ -317,13 +204,7 @@ export const DownloadsIndicator = ({
       isDownloadsPercentageEnabled
   );
 
-  const {
-    iconButtonSizeProp,
-    chromeGlyphSize,
-    redrawGlyphSize,
-    fuselageRing,
-    overlayRing,
-  } = getCompactDimensions(compact);
+  const glyphSize = compact ? COMPACT_GLYPH_SIZE : GLYPH_SIZE;
 
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
@@ -443,177 +324,70 @@ export const DownloadsIndicator = ({
   return (
     <>
       <DownloadsButtonWrapper>
-        {/* Percentage sits left of the icon: the group is right-anchored in
-            the strip, so text there grows leftward without moving the icon. */}
-        {isDownloading && isDownloadsPercentageEnabled && (
-          <Percentage compact={compact} data-testid='downloads-progress'>
-            {t('tabBar.downloads.percent', { percent: progress })}
-          </Percentage>
-        )}
-        <ButtonWithRing>
-          {variant === 'chrome' && (
-            <ChromeGlyphButton
-              ref={reference}
-              compact={compact}
-              type='button'
-              title={label}
-              aria-label={label}
-              aria-haspopup='dialog'
-              aria-expanded={isOpen}
-              data-downloads-status={isDownloading ? 'downloading' : 'idle'}
-              onClick={handleToggle}
-            >
-              <svg
-                viewBox='0 0 24 24'
-                width={chromeGlyphSize}
-                height={chromeGlyphSize}
-                data-testid='downloads-chrome-glyph'
-              >
-                {isDownloading ? (
-                  <g transform='translate(0 2.5)'>
-                    <path d={ARROW_PATH} fill='currentColor' />
-                  </g>
-                ) : (
-                  <>
-                    <path d={ARROW_PATH} fill='currentColor' />
-                    <path d={TRAY_PATH} fill='currentColor' />
-                  </>
-                )}
-              </svg>
-            </ChromeGlyphButton>
+        <GlyphButton
+          ref={reference}
+          compact={compact}
+          type='button'
+          title={label}
+          aria-label={label}
+          aria-haspopup='dialog'
+          aria-expanded={isOpen}
+          data-downloads-status={isDownloading ? 'downloading' : 'idle'}
+          onClick={handleToggle}
+        >
+          {isDownloading && isDownloadsPercentageEnabled && (
+            <Percentage compact={compact} data-testid='downloads-progress'>
+              {t('tabBar.downloads.percent', { percent: progress })}
+            </Percentage>
           )}
-          {variant === 'redraw' && (
-            <RedrawGlyphButton
-              ref={reference}
-              compact={compact}
-              type='button'
-              title={label}
-              aria-label={label}
-              aria-haspopup='dialog'
-              aria-expanded={isOpen}
-              data-downloads-status={isDownloading ? 'downloading' : 'idle'}
-              onClick={handleToggle}
+          <GlyphWrapper>
+            <svg
+              viewBox='0 0 32 32'
+              width={glyphSize}
+              height={glyphSize}
+              fill='currentColor'
+              data-testid='downloads-glyph'
             >
-              <svg
-                viewBox='0 0 32 32'
-                width={redrawGlyphSize}
-                height={redrawGlyphSize}
-                fill='currentColor'
-                data-testid='downloads-redraw-glyph'
-              >
-                {isDownloading ? (
-                  <>
+              {isDownloading ? (
+                <>
+                  <circle
+                    cx={16}
+                    cy={16}
+                    r={GLYPH_ARC_RADIUS}
+                    fill='none'
+                    strokeWidth={GLYPH_ARC_STROKE_WIDTH}
+                    stroke='currentColor'
+                    strokeOpacity={0.2}
+                  />
+                  <ArcGroup spin={isIndeterminate}>
                     <circle
                       cx={16}
                       cy={16}
-                      r={REDRAW_RING_RADIUS}
+                      r={GLYPH_ARC_RADIUS}
                       fill='none'
-                      strokeWidth={REDRAW_RING_STROKE_WIDTH}
-                      stroke='currentColor'
-                      strokeOpacity={0.2}
+                      strokeWidth={GLYPH_ARC_STROKE_WIDTH}
+                      strokeLinecap='round'
+                      stroke='var(--rcx-color-font-info, #095ad2)'
+                      strokeDasharray={GLYPH_ARC_CIRCUMFERENCE}
+                      strokeDashoffset={
+                        isIndeterminate
+                          ? GLYPH_ARC_CIRCUMFERENCE * 0.75
+                          : GLYPH_ARC_CIRCUMFERENCE * (1 - progress / 100)
+                      }
+                      transform='rotate(-90 16 16)'
                     />
-                    <RedrawArcGroup spin={isIndeterminate}>
-                      <circle
-                        cx={16}
-                        cy={16}
-                        r={REDRAW_RING_RADIUS}
-                        fill='none'
-                        strokeWidth={REDRAW_RING_STROKE_WIDTH}
-                        strokeLinecap='round'
-                        stroke='var(--rcx-color-font-info, #095ad2)'
-                        strokeDasharray={REDRAW_RING_CIRCUMFERENCE}
-                        strokeDashoffset={
-                          isIndeterminate
-                            ? REDRAW_RING_CIRCUMFERENCE * 0.75
-                            : REDRAW_RING_CIRCUMFERENCE * (1 - progress / 100)
-                        }
-                        transform='rotate(-90 16 16)'
-                      />
-                    </RedrawArcGroup>
-                    <path d={REDRAW_ARROW_PATH} fill='currentColor' />
-                  </>
-                ) : (
-                  <path d={REDRAW_FULL_PATH_D} fill='currentColor' />
-                )}
-              </svg>
-            </RedrawGlyphButton>
-          )}
-          {variant !== 'chrome' && variant !== 'redraw' && (
-            <IconButton
-              ref={reference}
-              icon='download'
-              {...iconButtonSizeProp}
-              title={label}
-              aria-label={label}
-              aria-haspopup='dialog'
-              aria-expanded={isOpen}
-              data-downloads-status={isDownloading ? 'downloading' : 'idle'}
-              onClick={handleToggle}
-            />
-          )}
-          {isDownloading && variant === 'fuselage' && (
-            <ProgressRing
-              viewBox={`0 0 ${fuselageRing.size} ${fuselageRing.size}`}
-              size={fuselageRing.size}
-              indeterminate={isIndeterminate}
-              data-testid='downloads-progress-ring'
-              aria-hidden='true'
-            >
-              <circle
-                cx={fuselageRing.size / 2}
-                cy={fuselageRing.size / 2}
-                r={fuselageRing.radius}
-                fill='none'
-                strokeWidth={fuselageRing.strokeWidth}
-                strokeLinecap='round'
-                stroke='var(--rcx-color-font-info, #095ad2)'
-                strokeDasharray={fuselageRing.circumference}
-                strokeDashoffset={
-                  isIndeterminate
-                    ? fuselageRing.circumference * 0.75
-                    : fuselageRing.circumference * (1 - progress / 100)
-                }
-              />
-            </ProgressRing>
-          )}
-          {isDownloading && variant !== 'fuselage' && variant !== 'redraw' && (
-            <ProgressRing
-              viewBox={`0 0 ${overlayRing.size} ${overlayRing.size}`}
-              size={overlayRing.size}
-              indeterminate={isIndeterminate}
-              data-testid='downloads-progress-ring'
-              aria-hidden='true'
-            >
-              <circle
-                cx={overlayRing.size / 2}
-                cy={overlayRing.size / 2}
-                r={overlayRing.radius}
-                fill='none'
-                strokeWidth={overlayRing.strokeWidth}
-                stroke='currentColor'
-                strokeOpacity={0.2}
-              />
-              <circle
-                cx={overlayRing.size / 2}
-                cy={overlayRing.size / 2}
-                r={overlayRing.radius}
-                fill='none'
-                strokeWidth={overlayRing.strokeWidth}
-                strokeLinecap='round'
-                stroke='var(--rcx-color-font-info, #095ad2)'
-                strokeDasharray={overlayRing.circumference}
-                strokeDashoffset={
-                  isIndeterminate
-                    ? overlayRing.circumference * 0.75
-                    : overlayRing.circumference * (1 - progress / 100)
-                }
-              />
-            </ProgressRing>
-          )}
-          {!isOpen && hasUnseenCompleted && (
-            <UnseenDot compact={compact} data-testid='downloads-unseen-dot' />
-          )}
-        </ButtonWithRing>
+                  </ArcGroup>
+                  <path d={ARROW_PATH} fill='currentColor' />
+                </>
+              ) : (
+                <path d={FULL_GLYPH_PATH_D} fill='currentColor' />
+              )}
+            </svg>
+            {!isOpen && hasUnseenCompleted && (
+              <UnseenDot compact={compact} data-testid='downloads-unseen-dot' />
+            )}
+          </GlyphWrapper>
+        </GlyphButton>
       </DownloadsButtonWrapper>
       {isOpen && (
         <>

@@ -78,7 +78,7 @@ export const Shell = () => {
               <>
                 <MeatballMenuButton />
                 <UpdateLabel />
-                <DownloadsIndicator variant='redraw' />
+                <DownloadsIndicator />
               </>
             }
             trailingSlot={<WindowControls />}
@@ -89,7 +89,7 @@ export const Shell = () => {
             trailingSlot={
               <>
                 <UpdateLabel />
-                <DownloadsIndicator variant='redraw' />
+                <DownloadsIndicator />
                 <MeatballMenuButton />
               </>
             }
@@ -103,7 +103,7 @@ export const Shell = () => {
             trailingSlot={
               <>
                 <UpdateLabel />
-                <DownloadsIndicator variant='redraw' compact />
+                <DownloadsIndicator compact />
               </>
             }
           />
@@ -114,7 +114,7 @@ export const Shell = () => {
               <>
                 {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
                 <UpdateLabel />
-                <DownloadsIndicator variant='redraw' compact />
+                <DownloadsIndicator compact />
               </>
             }
             centerSlot={

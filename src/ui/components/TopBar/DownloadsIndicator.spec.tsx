@@ -70,6 +70,13 @@ const buildState = (
   overrides: Record<string, unknown> = {}
 ) => ({ downloads, isDownloadsPercentageEnabled: true, ...overrides }) as any;
 
+const TRACK_CIRCLE_D =
+  'M27 16C27 9.92487 22.0751 5 16 5C9.92487 5 5 9.92487 5 16C5 22.0751 9.92487 27 16 27C22.0751 27 27 22.0751 27 16Z';
+const OUTER_CIRCLE_D =
+  'M29 16C29 23.1797 23.1797 29 16 29C8.8203 29 3 23.1797 3 16C3 8.8203 8.8203 3 16 3C23.1797 3 29 8.8203 29 16Z';
+const ARROW_PATH =
+  'M21.6956 17.8553L16.6966 22.7214C16.3083 23.0993 15.6898 23.0993 15.3015 22.7214L10.3025 17.8553C9.90672 17.47 9.89819 16.8369 10.2834 16.4412C10.6686 16.0454 11.3018 16.0369 11.6975 16.4221L14.999 19.6359L14.999 11C14.999 10.4477 15.4468 10 15.999 10C16.5513 10 16.999 10.4477 16.999 11L16.999 19.6359L20.3006 16.4221C20.6963 16.0369 21.3294 16.0454 21.7147 16.4412C22.0999 16.8369 22.0914 17.47 21.6956 17.8553Z';
+
 describe('DownloadsIndicator', () => {
   beforeEach(() => {
     mockDispatch.mockClear();
@@ -427,88 +434,6 @@ describe('DownloadsIndicator', () => {
     expect(screen.queryByTestId('downloads-progress')).not.toBeInTheDocument();
   });
 
-  it('shows the progress ring while a download is active', () => {
-    renderWithStore(<DownloadsIndicator />, {
-      preloadedState: buildState({
-        1: { ...baseDownload, state: 'progressing' },
-      }),
-    });
-
-    expect(screen.getByTestId('downloads-progress-ring')).toBeInTheDocument();
-  });
-
-  it('does not render the progress ring when there is no active download', () => {
-    renderWithStore(<DownloadsIndicator />, {
-      preloadedState: buildState({
-        1: {
-          ...baseDownload,
-          state: 'completed',
-          receivedBytes: 1000,
-          startTime: SESSION_START + 1000,
-        },
-      }),
-    });
-
-    expect(
-      screen.queryByTestId('downloads-progress-ring')
-    ).not.toBeInTheDocument();
-  });
-
-  it('shows the progress ring even when the percentage text setting is disabled', () => {
-    renderWithStore(<DownloadsIndicator />, {
-      preloadedState: buildState(
-        { 1: { ...baseDownload, state: 'progressing' } },
-        { isDownloadsPercentageEnabled: false }
-      ),
-    });
-
-    expect(screen.getByTestId('downloads-progress-ring')).toBeInTheDocument();
-    expect(screen.queryByTestId('downloads-progress')).not.toBeInTheDocument();
-  });
-
-  it('sets stroke-dashoffset on the progress arc to reflect the determinate progress', () => {
-    const RING_RADIUS = 12;
-    const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-    renderWithStore(<DownloadsIndicator />, {
-      preloadedState: buildState({
-        1: { ...baseDownload, state: 'progressing' },
-      }),
-    });
-
-    const ring = screen.getByTestId('downloads-progress-ring');
-    const [, progressArc] = ring.querySelectorAll('circle');
-    const expectedOffset = CIRCUMFERENCE * (1 - 50 / 100);
-
-    expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
-      expectedOffset
-    );
-  });
-
-  it('renders the ring in indeterminate mode when no active download has a measurable size', () => {
-    const RING_RADIUS = 12;
-    const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-    renderWithStore(<DownloadsIndicator />, {
-      preloadedState: buildState({
-        1: {
-          ...baseDownload,
-          state: 'progressing',
-          receivedBytes: 0,
-          totalBytes: 0,
-        },
-      }),
-    });
-
-    const ring = screen.getByTestId('downloads-progress-ring');
-    const [, progressArc] = ring.querySelectorAll('circle');
-    const expectedOffset = CIRCUMFERENCE * 0.75;
-
-    expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
-      expectedOffset
-    );
-  });
-
   it('shows the unseen-completed dot when a download completes while the popup is closed', () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
@@ -550,263 +475,85 @@ describe('DownloadsIndicator', () => {
     ).not.toBeInTheDocument();
   });
 
-  describe('variant="chrome"', () => {
-    const RING_RADIUS = 12;
-    const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-    const TRAY_PATH = 'M5 20h14v-2H5v2z';
-    const ARROW_PATH = 'M19 9h-4V3H9v6H5l7 7 7-7z';
+  describe('glyph geometry', () => {
+    const GLYPH_ARC_RADIUS = 12;
+    const GLYPH_ARC_CIRCUMFERENCE = 2 * Math.PI * GLYPH_ARC_RADIUS;
 
-    it('renders the chrome glyph svg while downloading', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
+    it('renders the glyph svg', () => {
+      renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
-      expect(screen.getByTestId('downloads-chrome-glyph')).toBeInTheDocument();
+      expect(screen.getByTestId('downloads-glyph')).toBeInTheDocument();
     });
-
-    it('renders the shared progress ring overlay while downloading, with the arc dashoffset reflecting determinate progress', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const ring = screen.getByTestId('downloads-progress-ring');
-      const [, progressArc] = ring.querySelectorAll('circle');
-      const expectedOffset = RING_CIRCUMFERENCE * (1 - 50 / 100);
-
-      expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
-        expectedOffset
-      );
-      expect(Number(progressArc.getAttribute('stroke-dasharray'))).toBeCloseTo(
-        RING_CIRCUMFERENCE
-      );
-    });
-
-    it('does not render the progress ring overlay while idle', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
-        preloadedState: buildState({
-          1: {
-            ...baseDownload,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 1000,
-          },
-        }),
-      });
-
-      expect(
-        screen.queryByTestId('downloads-progress-ring')
-      ).not.toBeInTheDocument();
-    });
-
-    it('renders no circles inside the glyph svg itself (the ring lives in the shared overlay)', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const glyph = screen.getByTestId('downloads-chrome-glyph');
-      expect(glyph.querySelectorAll('circle')).toHaveLength(0);
-    });
-
-    it('renders only the arrow path (no tray) while downloading', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const glyph = screen.getByTestId('downloads-chrome-glyph');
-      expect(glyph.querySelectorAll('path')).toHaveLength(1);
-      expect(glyph.querySelector(`path[d="${TRAY_PATH}"]`)).toBeNull();
-      expect(glyph.querySelector(`path[d="${ARROW_PATH}"]`)).not.toBeNull();
-    });
-
-    it('renders both the arrow and tray paths while idle', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
-        preloadedState: buildState({
-          1: {
-            ...baseDownload,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 1000,
-          },
-        }),
-      });
-
-      const glyph = screen.getByTestId('downloads-chrome-glyph');
-      expect(glyph.querySelectorAll('path')).toHaveLength(2);
-      expect(glyph.querySelector(`path[d="${TRAY_PATH}"]`)).not.toBeNull();
-      expect(glyph.querySelector(`path[d="${ARROW_PATH}"]`)).not.toBeNull();
-    });
-
-    it('renders the downloading arrow at full size, with no shrink scale on its wrapping group', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const glyph = screen.getByTestId('downloads-chrome-glyph');
-      const arrowPath = glyph.querySelector(`path[d="${ARROW_PATH}"]`);
-
-      expect(arrowPath).not.toBeNull();
-      let node: Element | null = arrowPath;
-      while (node && node !== glyph) {
-        const transform = node.getAttribute('transform');
-        if (transform) {
-          expect(transform).not.toMatch(/scale/);
-        }
-        node = node.parentElement;
-      }
-    });
-
-    it('still shows the percentage text and the unseen dot', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-          2: {
-            ...baseDownload,
-            itemId: 2,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 2000,
-            endTime: Date.now() + 1000,
-          },
-        }),
-      });
-
-      expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
-      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
-    });
-  });
-
-  describe('variant="fuselage"', () => {
-    const ICON_RING_RADIUS = 9;
-    const ICON_RING_CIRCUMFERENCE = 2 * Math.PI * ICON_RING_RADIUS;
-
-    it('renders the stock Fuselage download icon, same as the ring variant', () => {
-      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const button = screen.getByRole('button');
-      expect(button.querySelector('.rcx-icon--name-download')).not.toBeNull();
-    });
-
-    it('renders the overlay with exactly one accent arc circle while downloading, with dashoffset reflecting determinate progress', () => {
-      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const ring = screen.getByTestId('downloads-progress-ring');
-      const circles = ring.querySelectorAll('circle');
-      expect(circles).toHaveLength(1);
-
-      const [progressArc] = circles;
-      expect(Number(progressArc.getAttribute('r'))).toBe(ICON_RING_RADIUS);
-
-      const expectedOffset = ICON_RING_CIRCUMFERENCE * (1 - 50 / 100);
-      expect(Number(progressArc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
-        expectedOffset
-      );
-      expect(Number(progressArc.getAttribute('stroke-dasharray'))).toBeCloseTo(
-        ICON_RING_CIRCUMFERENCE
-      );
-    });
-
-    it('does not render the overlay while idle', () => {
-      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
-        preloadedState: buildState({
-          1: {
-            ...baseDownload,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 1000,
-          },
-        }),
-      });
-
-      expect(
-        screen.queryByTestId('downloads-progress-ring')
-      ).not.toBeInTheDocument();
-    });
-
-    it('still shows the percentage text and the unseen dot', () => {
-      renderWithStore(<DownloadsIndicator variant='fuselage' />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-          2: {
-            ...baseDownload,
-            itemId: 2,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 2000,
-            endTime: Date.now() + 1000,
-          },
-        }),
-      });
-
-      expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
-      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
-    });
-  });
-
-  describe('variant="redraw"', () => {
-    const REDRAW_RING_RADIUS = 12;
-    const REDRAW_RING_CIRCUMFERENCE = 2 * Math.PI * REDRAW_RING_RADIUS;
 
     it('renders exactly two circles (track + arc) while downloading, with the arc dashoffset reflecting determinate progress', () => {
-      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+      renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
-      const glyph = screen.getByTestId('downloads-redraw-glyph');
+      const glyph = screen.getByTestId('downloads-glyph');
       const circles = glyph.querySelectorAll('circle');
       expect(circles).toHaveLength(2);
 
       for (const circle of circles) {
-        expect(Number(circle.getAttribute('r'))).toBe(REDRAW_RING_RADIUS);
+        expect(Number(circle.getAttribute('r'))).toBe(GLYPH_ARC_RADIUS);
       }
 
       const [, arc] = circles;
-      const expectedOffset = REDRAW_RING_CIRCUMFERENCE * (1 - 50 / 100);
+      const expectedOffset = GLYPH_ARC_CIRCUMFERENCE * (1 - 50 / 100);
       expect(Number(arc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
         expectedOffset
       );
       expect(Number(arc.getAttribute('stroke-dasharray'))).toBeCloseTo(
-        REDRAW_RING_CIRCUMFERENCE
+        GLYPH_ARC_CIRCUMFERENCE
+      );
+    });
+
+    it('renders the ring in indeterminate mode (quarter arc) when no active download has a measurable size', () => {
+      renderWithStore(<DownloadsIndicator />, {
+        preloadedState: buildState({
+          1: {
+            ...baseDownload,
+            state: 'progressing',
+            receivedBytes: 0,
+            totalBytes: 0,
+          },
+        }),
+      });
+
+      const glyph = screen.getByTestId('downloads-glyph');
+      const [, arc] = glyph.querySelectorAll('circle');
+      const expectedOffset = GLYPH_ARC_CIRCUMFERENCE * 0.75;
+
+      expect(Number(arc.getAttribute('stroke-dashoffset'))).toBeCloseTo(
+        expectedOffset
       );
     });
 
     it('renders only the arrow path while downloading (no annulus subpaths)', () => {
-      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+      renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
-      const glyph = screen.getByTestId('downloads-redraw-glyph');
+      const glyph = screen.getByTestId('downloads-glyph');
       const paths = glyph.querySelectorAll('path');
       expect(paths).toHaveLength(1);
 
       const d = paths[0].getAttribute('d') ?? '';
-      expect(d).not.toContain('M27 16');
-      expect(d).not.toContain('M29 16');
+      expect(d).not.toContain(TRACK_CIRCLE_D);
+      expect(d).not.toContain(OUTER_CIRCLE_D);
+      expect(d).toContain(ARROW_PATH);
     });
 
     it('renders one path with the full original d (annulus + arrow) and no circles while idle', () => {
-      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+      renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: {
             ...baseDownload,
@@ -817,20 +564,20 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
-      const glyph = screen.getByTestId('downloads-redraw-glyph');
+      const glyph = screen.getByTestId('downloads-glyph');
       const paths = glyph.querySelectorAll('path');
       expect(paths).toHaveLength(1);
 
       const d = paths[0].getAttribute('d') ?? '';
-      expect(d).toContain('M27 16');
-      expect(d).toContain('M29 16');
-      expect(d).toContain('M21.6956 17.8553');
+      expect(d).toContain(TRACK_CIRCLE_D);
+      expect(d).toContain(OUTER_CIRCLE_D);
+      expect(d).toContain(ARROW_PATH);
 
       expect(glyph.querySelectorAll('circle')).toHaveLength(0);
     });
 
-    it('does not render the stock Fuselage icon for this variant', () => {
-      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+    it('does not render the stock Fuselage icon', () => {
+      renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
@@ -839,123 +586,41 @@ describe('DownloadsIndicator', () => {
       const button = screen.getByRole('button');
       expect(button.querySelector('.rcx-icon--name-download')).toBeNull();
     });
+  });
 
-    it('does not render the shared progress ring overlay', () => {
-      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+  describe('percentage renders inside the glyph button', () => {
+    it('places the percentage element inside the same button as the glyph', () => {
+      renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
-      expect(
-        screen.queryByTestId('downloads-progress-ring')
-      ).not.toBeInTheDocument();
+      const percentage = screen.getByTestId('downloads-progress');
+      const button = screen.getByRole('button');
+      expect(percentage.closest('button')).toBe(button);
+
+      const glyph = screen.getByTestId('downloads-glyph');
+      expect(glyph.closest('button')).toBe(button);
     });
 
-    it('still shows the percentage text and the unseen dot', () => {
-      renderWithStore(<DownloadsIndicator variant='redraw' />, {
+    it('hovering/clicking the single button toggles the popup regardless of where inside it the click lands', async () => {
+      const user = userEvent.setup();
+      renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
-          2: {
-            ...baseDownload,
-            itemId: 2,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 2000,
-            endTime: Date.now() + 1000,
-          },
         }),
       });
 
-      expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
-      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+      await user.click(screen.getByTestId('downloads-progress'));
+
+      expect(screen.getByText('report.pdf')).toBeInTheDocument();
     });
   });
 
   describe('compact', () => {
-    const COMPACT_BUTTON_SIZE = 24;
-    const COMPACT_RING_SIZE = 21;
-
-    it('shrinks the ring-variant overlay to the compact size while downloading', () => {
-      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const ring = screen.getByTestId('downloads-progress-ring');
-      expect(ring).toHaveAttribute(
-        'viewBox',
-        `0 0 ${COMPACT_RING_SIZE} ${COMPACT_RING_SIZE}`
-      );
-    });
-
-    it('shrinks the fuselage-variant overlay to a compact size derived from the smaller glyph', () => {
-      renderWithStore(<DownloadsIndicator variant='fuselage' compact />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const ring = screen.getByTestId('downloads-progress-ring');
-      const viewBox = ring.getAttribute('viewBox') ?? '';
-      const [, , w, h] = viewBox.split(' ').map(Number);
-      expect(w).toBeLessThan(24);
-      expect(h).toBeLessThan(24);
-      expect(w).toBe(h);
-    });
-
-    it('shrinks the chrome glyph svg while keeping its viewBox', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' compact />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const glyph = screen.getByTestId('downloads-chrome-glyph');
-      expect(glyph).toHaveAttribute('viewBox', '0 0 24 24');
-      expect(Number(glyph.getAttribute('width'))).toBeLessThan(24);
-      expect(Number(glyph.getAttribute('height'))).toBeLessThan(24);
-    });
-
-    it('renders the redraw glyph svg at the compact rendered size (32 viewBox scaled by 0.75) while keeping its viewBox at 32', () => {
-      renderWithStore(<DownloadsIndicator variant='redraw' compact />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const glyph = screen.getByTestId('downloads-redraw-glyph');
-      expect(glyph).toHaveAttribute('viewBox', '0 0 32 32');
-      expect(Number(glyph.getAttribute('width'))).toBe(24);
-      expect(Number(glyph.getAttribute('height'))).toBe(24);
-    });
-
-    it('renders the tiny Fuselage IconButton size for the ring/fuselage variants', () => {
-      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const button = screen.getByRole('button');
-      expect(button.className).toContain('rcx-button--tiny-square');
-    });
-
-    it('shrinks the custom chrome/redraw button box to the compact size', () => {
-      renderWithStore(<DownloadsIndicator variant='chrome' compact />, {
-        preloadedState: buildState({
-          1: { ...baseDownload, state: 'progressing' },
-        }),
-      });
-
-      const button = screen.getByRole('button');
-      expect(getComputedStyle(button).width).toBe(`${COMPACT_BUTTON_SIZE}px`);
-      expect(getComputedStyle(button).height).toBe(`${COMPACT_BUTTON_SIZE}px`);
-    });
-
-    it('still shows the unseen dot in compact mode', () => {
-      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
+    it('shrinks the button height and the unseen dot in compact mode', () => {
+      renderWithStore(<DownloadsIndicator compact />, {
         preloadedState: buildState({
           1: {
             ...baseDownload,
@@ -967,17 +632,23 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
-      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+      const button = screen.getByRole('button');
+      expect(getComputedStyle(button).height).toBe('24px');
+
+      const dot = screen.getByTestId('downloads-unseen-dot');
+      expect(getComputedStyle(dot).width).toBe('6px');
+      expect(getComputedStyle(dot).height).toBe('6px');
     });
 
-    it('still shows the percentage text in compact mode', () => {
-      renderWithStore(<DownloadsIndicator variant='ring' compact />, {
+    it('still shows the percentage text and the glyph in compact mode', () => {
+      renderWithStore(<DownloadsIndicator compact />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
         }),
       });
 
       expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
+      expect(screen.getByTestId('downloads-glyph')).toBeInTheDocument();
     });
   });
 });

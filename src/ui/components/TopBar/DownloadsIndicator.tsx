@@ -127,7 +127,7 @@ const ChromeGlyphButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: inherit;
+  color: var(--rcx-color-font-titles-labels, #f2f3f5);
 `;
 
 const ChromeBounceGroup = styled.g<{ animate: boolean }>`
@@ -149,10 +149,19 @@ const ChromeBounceGroup = styled.g<{ animate: boolean }>`
   }
 `;
 
+/* No unconditional transform-origin here: the SVG 'transform' attribute maps
+   to the CSS transform property, so a CSS transform-origin stacks onto the
+   origin already baked into rotate(-90 12 10) and displaces the ring out of
+   the viewBox. fill-box + center self-centers the spin without conflicting. */
 const ChromeRingGroup = styled.g<{ spin: boolean }>`
-  transform-origin: 12px 10px;
-  animation: ${({ spin }) =>
-    spin ? 'downloads-chrome-ring-spin 1s linear infinite' : 'none'};
+  ${({ spin }) =>
+    spin
+      ? `
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: downloads-chrome-ring-spin 1s linear infinite;
+  `
+      : ''}
 
   @keyframes downloads-chrome-ring-spin {
     from {
@@ -331,10 +340,7 @@ export const DownloadsIndicator = ({
                 />
                 {isDownloading ? (
                   <>
-                    <ChromeRingGroup
-                      spin={isIndeterminate}
-                      transform='rotate(-90 12 10)'
-                    >
+                    <ChromeRingGroup spin={isIndeterminate}>
                       <circle
                         cx={12}
                         cy={10}
@@ -358,11 +364,12 @@ export const DownloadsIndicator = ({
                             ? CHROME_RING_CIRCUMFERENCE * 0.75
                             : CHROME_RING_CIRCUMFERENCE * (1 - progress / 100)
                         }
+                        transform='rotate(-90 12 10)'
                       />
                     </ChromeRingGroup>
                     <g transform='translate(12 10) scale(0.62) translate(-12 -9.5)'>
                       <ChromeBounceGroup animate>
-                        <path d={ARROW_PATH} fill={CHROME_GLYPH_ACCENT} />
+                        <path d={ARROW_PATH} fill='currentColor' />
                       </ChromeBounceGroup>
                     </g>
                   </>

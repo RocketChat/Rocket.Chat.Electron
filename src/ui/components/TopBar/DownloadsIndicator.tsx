@@ -98,6 +98,10 @@ const ARROW_PATH =
   'M21.6956 17.8553L16.6966 22.7214C16.3083 23.0993 15.6898 23.0993 15.3015 22.7214L10.3025 17.8553C9.90672 17.47 9.89819 16.8369 10.2834 16.4412C10.6686 16.0454 11.3018 16.0369 11.6975 16.4221L14.999 19.6359L14.999 11C14.999 10.4477 15.4468 10 15.999 10C16.5513 10 16.999 10.4477 16.999 11L16.999 19.6359L20.3006 16.4221C20.6963 16.0369 21.3294 16.0454 21.7147 16.4412C22.0999 16.8369 22.0914 17.47 21.6956 17.8553Z';
 const FULL_GLYPH_PATH_D = `${TRACK_CIRCLE_D} ${OUTER_CIRCLE_D} ${ARROW_PATH}`;
 
+// Same technique UpdateLabel's Percentage uses (src/ui/components/TopBar/UpdateLabel.tsx):
+// monospace font + tabular-nums + min-width: 3ch (two digits plus the '%'
+// sign) + text-align right, so the button doesn't jitter width as the
+// percent climbs from 1 digit to 2.
 const Percentage = styled.span<{ compact: boolean }>`
   font-family: var(
     --rcx-font-family-mono,
@@ -111,7 +115,7 @@ const Percentage = styled.span<{ compact: boolean }>`
   font-size: ${({ compact }) =>
     compact ? COMPACT_PERCENTAGE_FONT_SIZE : '0.75rem'};
   font-variant-numeric: tabular-nums;
-  min-width: 2.5ch;
+  min-width: 3ch;
   text-align: right;
   flex: 0 0 auto;
   color: inherit;

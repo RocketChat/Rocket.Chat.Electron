@@ -56,11 +56,7 @@ export const TopBar = ({
           {mainWindowTitle}
         </Box>
       )}
-      {trailingSlot && (
-        <Box display='flex' alignItems='center' style={{ gap: '6px' }}>
-          {trailingSlot}
-        </Box>
-      )}
+      {trailingSlot}
     </Strip>
   );
 };

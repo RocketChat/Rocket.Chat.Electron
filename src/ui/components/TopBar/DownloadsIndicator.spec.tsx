@@ -118,6 +118,33 @@ describe('DownloadsIndicator', () => {
     expect(screen.getByTestId('downloads-progress')).toHaveTextContent('50');
   });
 
+  it('reserves width for two digits plus the percent sign (min-width: 3ch, matching UpdateLabel exactly)', () => {
+    renderWithStore(<DownloadsIndicator />, {
+      preloadedState: buildState({
+        1: { ...baseDownload, state: 'progressing' },
+      }),
+    });
+
+    const percentage = screen.getByTestId('downloads-progress');
+    const style = getComputedStyle(percentage);
+
+    expect(style.textAlign).toBe('right');
+    expect(style.fontVariantNumeric).toBe('tabular-nums');
+
+    // jsdom resolves 'ch' to a pixel value in getComputedStyle rather than
+    // echoing 'min-width: 3ch' back verbatim, so compare against a same-font
+    // 1ch probe rather than the literal string.
+    const chProbe = document.createElement('span');
+    chProbe.style.fontFamily = style.fontFamily;
+    chProbe.style.fontSize = style.fontSize;
+    chProbe.style.width = '1ch';
+    document.body.append(chProbe);
+    const oneCh = parseFloat(getComputedStyle(chProbe).width);
+    chProbe.remove();
+
+    expect(parseFloat(style.minWidth)).toBeCloseTo(oneCh * 3, 1);
+  });
+
   it('renders progress size text for a 0-byte-received download without the ??? sentinel', async () => {
     const user = userEvent.setup();
     renderWithStore(<DownloadsIndicator />, {

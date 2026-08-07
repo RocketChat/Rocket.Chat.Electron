@@ -240,6 +240,13 @@ export const DownloadsIndicator = () => {
   return (
     <>
       <DownloadsButtonWrapper>
+        {/* Percentage sits left of the icon: the group is right-anchored in
+            the strip, so text there grows leftward without moving the icon. */}
+        {isDownloading && isDownloadsPercentageEnabled && (
+          <Percentage data-testid='downloads-progress'>
+            {t('tabBar.downloads.percent', { percent: progress })}
+          </Percentage>
+        )}
         <ButtonWithRing>
           <IconButton
             ref={reference}
@@ -285,15 +292,10 @@ export const DownloadsIndicator = () => {
               />
             </ProgressRing>
           )}
+          {!isOpen && hasUnseenCompleted && (
+            <UnseenDot data-testid='downloads-unseen-dot' />
+          )}
         </ButtonWithRing>
-        {isDownloading && isDownloadsPercentageEnabled && (
-          <Percentage data-testid='downloads-progress'>
-            {t('tabBar.downloads.percent', { percent: progress })}
-          </Percentage>
-        )}
-        {!isOpen && hasUnseenCompleted && (
-          <UnseenDot data-testid='downloads-unseen-dot' />
-        )}
       </DownloadsButtonWrapper>
       {isOpen && (
         <>

@@ -11,7 +11,7 @@ type IsDownloadsPercentageEnabledAction = ActionOf<
 export const isDownloadsPercentageEnabled: Reducer<
   boolean,
   IsDownloadsPercentageEnabledAction | ActionOf<typeof APP_SETTINGS_LOADED>
-> = (state = true, action) => {
+> = (state = false, action) => {
   switch (action.type) {
     case APP_SETTINGS_LOADED:
       return action.payload.isDownloadsPercentageEnabled ?? state;

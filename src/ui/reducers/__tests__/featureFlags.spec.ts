@@ -165,12 +165,12 @@ describe('isFlashFrameEnabled', () => {
 });
 
 describe('isDownloadsPercentageEnabled', () => {
-  it('defaults to true when no state is passed', () => {
+  it('defaults to false when no state is passed', () => {
     expect(
       isDownloadsPercentageEnabled(undefined, {
         type: 'UNKNOWN_DOWNLOADS_PERCENTAGE',
       } as any)
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('reads from APP_SETTINGS_LOADED', () => {

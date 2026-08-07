@@ -248,6 +248,6 @@ export const migrations = {
   }),
   '>=4.16.1': (before: PersistableValues_4_16_0): PersistableValues_4_16_1 => ({
     ...before,
-    isDownloadsPercentageEnabled: true,
+    isDownloadsPercentageEnabled: false,
   }),
 };

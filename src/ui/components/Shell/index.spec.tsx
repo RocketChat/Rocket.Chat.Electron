@@ -420,18 +420,87 @@ describe('Shell', () => {
     });
   });
 
-  describe('experimental chrome downloads glyph', () => {
-    it('does not render the chrome variant instance by default', () => {
+  describe('downloads indicator: redraw only, compact in the thin TopBar', () => {
+    it('renders exactly one redraw instance on the darwin TopBar (sidebar layout), compact', () => {
+      const restorePlatform = setPlatform('darwin');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'sidebar' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
+        expect(instances[0]).toHaveAttribute('data-compact', 'true');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('renders exactly one redraw instance on the darwin TopBar (hidden layout), compact', () => {
+      const restorePlatform = setPlatform('darwin');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'hidden' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
+        expect(instances[0]).toHaveAttribute('data-compact', 'true');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('renders exactly one redraw instance on the darwin TabBar (tabs layout), not compact', () => {
       renderWithStore(<Shell />, {
-        preloadedState: buildState({ navigationLayout: 'sidebar' }),
+        preloadedState: buildState({ navigationLayout: 'tabs' }),
       });
 
       const instances = screen.getAllByTestId('downloads-indicator');
       expect(instances).toHaveLength(1);
-      expect(instances[0]).toHaveAttribute('data-variant', 'ring');
+      expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
+      expect(instances[0]).toHaveAttribute('data-compact', 'false');
     });
 
-    it('renders the chrome, fuselage, redraw and ring instances (in that order) when developer mode is enabled', () => {
+    it('renders exactly one redraw instance on the win32 TopBar leading slot, compact', () => {
+      const restorePlatform = setPlatform('win32');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'sidebar' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
+        expect(instances[0]).toHaveAttribute('data-compact', 'true');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('renders exactly one redraw instance on the win32 TabBar (tabs layout), not compact', () => {
+      const restorePlatform = setPlatform('win32');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'tabs' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
+        expect(instances[0]).toHaveAttribute('data-compact', 'false');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('still renders exactly one instance regardless of developer mode', () => {
       renderWithStore(<Shell />, {
         preloadedState: buildState({
           navigationLayout: 'sidebar',
@@ -440,124 +509,8 @@ describe('Shell', () => {
       });
 
       const instances = screen.getAllByTestId('downloads-indicator');
-      expect(instances).toHaveLength(4);
-      expect(instances[0]).toHaveAttribute('data-variant', 'chrome');
-      expect(instances[1]).toHaveAttribute('data-variant', 'fuselage');
-      expect(instances[2]).toHaveAttribute('data-variant', 'redraw');
-      expect(instances[3]).toHaveAttribute('data-variant', 'ring');
-    });
-
-    it('renders all four instances on win32 leading slots when developer mode is enabled', () => {
-      const restorePlatform = setPlatform('win32');
-
-      try {
-        renderWithStore(<Shell />, {
-          preloadedState: buildState({
-            navigationLayout: 'tabs',
-            isDeveloperModeEnabled: true,
-          }),
-        });
-
-        const instances = screen.getAllByTestId('downloads-indicator');
-        expect(instances).toHaveLength(4);
-        expect(instances[0]).toHaveAttribute('data-variant', 'chrome');
-        expect(instances[1]).toHaveAttribute('data-variant', 'fuselage');
-        expect(instances[2]).toHaveAttribute('data-variant', 'redraw');
-        expect(instances[3]).toHaveAttribute('data-variant', 'ring');
-      } finally {
-        restorePlatform();
-      }
-    });
-  });
-
-  describe('compact sizing in the thin TopBar', () => {
-    it('passes compact on the darwin TopBar (sidebar layout)', () => {
-      const restorePlatform = setPlatform('darwin');
-
-      try {
-        renderWithStore(<Shell />, {
-          preloadedState: buildState({
-            navigationLayout: 'sidebar',
-            isDeveloperModeEnabled: true,
-          }),
-        });
-
-        for (const instance of screen.getAllByTestId('downloads-indicator')) {
-          expect(instance).toHaveAttribute('data-compact', 'true');
-        }
-      } finally {
-        restorePlatform();
-      }
-    });
-
-    it('passes compact on the darwin TopBar in the hidden layout', () => {
-      const restorePlatform = setPlatform('darwin');
-
-      try {
-        renderWithStore(<Shell />, {
-          preloadedState: buildState({
-            navigationLayout: 'hidden',
-            isDeveloperModeEnabled: true,
-          }),
-        });
-
-        for (const instance of screen.getAllByTestId('downloads-indicator')) {
-          expect(instance).toHaveAttribute('data-compact', 'true');
-        }
-      } finally {
-        restorePlatform();
-      }
-    });
-
-    it('does not pass compact on the darwin TabBar (tabs layout)', () => {
-      renderWithStore(<Shell />, {
-        preloadedState: buildState({
-          navigationLayout: 'tabs',
-          isDeveloperModeEnabled: true,
-        }),
-      });
-
-      for (const instance of screen.getAllByTestId('downloads-indicator')) {
-        expect(instance).toHaveAttribute('data-compact', 'false');
-      }
-    });
-
-    it('passes compact on the win32 TopBar leading slot but not on the win32 TabBar', () => {
-      const restorePlatform = setPlatform('win32');
-
-      try {
-        renderWithStore(<Shell />, {
-          preloadedState: buildState({
-            navigationLayout: 'sidebar',
-            isDeveloperModeEnabled: true,
-          }),
-        });
-
-        for (const instance of screen.getAllByTestId('downloads-indicator')) {
-          expect(instance).toHaveAttribute('data-compact', 'true');
-        }
-      } finally {
-        restorePlatform();
-      }
-    });
-
-    it('does not pass compact on the win32 TabBar (tabs layout)', () => {
-      const restorePlatform = setPlatform('win32');
-
-      try {
-        renderWithStore(<Shell />, {
-          preloadedState: buildState({
-            navigationLayout: 'tabs',
-            isDeveloperModeEnabled: true,
-          }),
-        });
-
-        for (const instance of screen.getAllByTestId('downloads-indicator')) {
-          expect(instance).toHaveAttribute('data-compact', 'false');
-        }
-      } finally {
-        restorePlatform();
-      }
+      expect(instances).toHaveLength(1);
+      expect(instances[0]).toHaveAttribute('data-variant', 'redraw');
     });
   });
 });

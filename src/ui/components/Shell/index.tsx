@@ -36,9 +36,6 @@ export const Shell = () => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
-  const isDeveloperModeEnabled = useSelector(
-    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
-  );
 
   const shellTheme = useShellTheme();
 
@@ -81,14 +78,7 @@ export const Shell = () => {
               <>
                 <MeatballMenuButton />
                 <UpdateLabel />
-                {isDeveloperModeEnabled && (
-                  <>
-                    <DownloadsIndicator variant='chrome' />
-                    <DownloadsIndicator variant='fuselage' />
-                    <DownloadsIndicator variant='redraw' />
-                  </>
-                )}
-                <DownloadsIndicator />
+                <DownloadsIndicator variant='redraw' />
               </>
             }
             trailingSlot={<WindowControls />}
@@ -99,14 +89,7 @@ export const Shell = () => {
             trailingSlot={
               <>
                 <UpdateLabel />
-                {isDeveloperModeEnabled && (
-                  <>
-                    <DownloadsIndicator variant='chrome' />
-                    <DownloadsIndicator variant='fuselage' />
-                    <DownloadsIndicator variant='redraw' />
-                  </>
-                )}
-                <DownloadsIndicator />
+                <DownloadsIndicator variant='redraw' />
                 <MeatballMenuButton />
               </>
             }
@@ -120,14 +103,7 @@ export const Shell = () => {
             trailingSlot={
               <>
                 <UpdateLabel />
-                {isDeveloperModeEnabled && (
-                  <>
-                    <DownloadsIndicator variant='chrome' compact />
-                    <DownloadsIndicator variant='fuselage' compact />
-                    <DownloadsIndicator variant='redraw' compact />
-                  </>
-                )}
-                <DownloadsIndicator compact />
+                <DownloadsIndicator variant='redraw' compact />
               </>
             }
           />
@@ -138,14 +114,7 @@ export const Shell = () => {
               <>
                 {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
                 <UpdateLabel />
-                {isDeveloperModeEnabled && (
-                  <>
-                    <DownloadsIndicator variant='chrome' compact />
-                    <DownloadsIndicator variant='fuselage' compact />
-                    <DownloadsIndicator variant='redraw' compact />
-                  </>
-                )}
-                <DownloadsIndicator compact />
+                <DownloadsIndicator variant='redraw' compact />
               </>
             }
             centerSlot={

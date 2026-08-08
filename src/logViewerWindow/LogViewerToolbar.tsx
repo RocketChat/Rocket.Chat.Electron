@@ -1,13 +1,11 @@
 import { Box, ButtonGroup, Icon, IconButton, Tag } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
-import type { Surfaces } from './appearance';
 import { isDarwin } from './appearance';
 import { TOOLBAR_HEIGHT, TRAFFIC_LIGHTS_INSET } from './constants';
 import { DRAG_REGION_CLASS, NO_DRAG_REGION_CLASS } from './styles';
 
 export type LogViewerToolbarProps = {
-  surfaces: Surfaces;
   fileName: string;
   filePath?: string;
   isDefaultLog: boolean;
@@ -25,7 +23,6 @@ export type LogViewerToolbarProps = {
 };
 
 export const LogViewerToolbar = ({
-  surfaces,
   fileName,
   filePath,
   isDefaultLog,
@@ -56,10 +53,10 @@ export const LogViewerToolbar = ({
       paddingInlineStart={isDarwin ? TRAFFIC_LIGHTS_INSET : 12}
       paddingInlineEnd='x12'
       className={isDarwin ? DRAG_REGION_CLASS : undefined}
+      // No background: the window's panel colour shows through, so the toolbar
+      // is part of one continuous surface rather than a bar of its own.
       style={{
         height: `${TOOLBAR_HEIGHT}px`,
-        backgroundColor: surfaces.chrome,
-        borderBlockEnd: `1px solid ${surfaces.divider}`,
         userSelect: 'none',
       }}
     >
@@ -69,10 +66,15 @@ export const LogViewerToolbar = ({
         flexShrink={0}
         className={NO_DRAG_REGION_CLASS}
       >
+        {/*
+          A filters glyph rather than a burger, and ghost rather than `pressed`:
+          the filled pressed state read as a heavy block wedged against the
+          traffic lights, and the sidebar's own presence already shows the state.
+        */}
         <IconButton
           small
-          icon='burger-menu'
-          pressed={isSidebarVisible}
+          icon='customize'
+          aria-pressed={isSidebarVisible}
           title={t('logViewer.buttons.toggleFilters')}
           aria-label={t('logViewer.buttons.toggleFilters')}
           onClick={onToggleSidebar}

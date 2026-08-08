@@ -27,7 +27,13 @@ import { LogTimeline } from './LogTimeline';
 import { LogViewerSidebar } from './LogViewerSidebar';
 import { LogViewerToolbar } from './LogViewerToolbar';
 import type { PaletteTheme } from './appearance';
-import { LOG_LEVELS, isTransparentWindow, resolveSurfaces } from './appearance';
+import {
+  CARD_INSET,
+  CARD_RADIUS,
+  LOG_LEVELS,
+  resolveCardStyle,
+  resolveSurfaces,
+} from './appearance';
 import {
   AUTO_REFRESH_INTERVAL_MS,
   PAGE_SIZE,
@@ -50,6 +56,7 @@ import {
   type SelectFileResponse,
   type ClearLogsResponse,
 } from './types';
+import { useTransparency } from './useTransparency';
 
 /** Context tags that have a friendlier translated name than the raw tag. */
 const CONTEXT_LABEL_KEYS: Record<string, string> = {
@@ -92,8 +99,13 @@ type LogViewerWindowProps = {
 
 function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const { t } = useTranslation();
+  const isTransparent = useTransparency();
   const surfaces = useMemo(
-    () => resolveSurfaces(paletteTheme, isTransparentWindow),
+    () => resolveSurfaces(paletteTheme, isTransparent),
+    [paletteTheme, isTransparent]
+  );
+  const cardStyle = useMemo(
+    () => resolveCardStyle(paletteTheme),
     [paletteTheme]
   );
 
@@ -909,24 +921,15 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   return (
     <TooltipProvider>
-      <LogViewerGlobalStyles
-        isTransparent={isTransparentWindow}
-        paletteTheme={paletteTheme}
-        surfaces={surfaces}
-      />
+      <LogViewerGlobalStyles paletteTheme={paletteTheme} surfaces={surfaces} />
       <Box
         display='flex'
         flexDirection='column'
         height='100vh'
         width='100%'
-        style={{
-          backgroundColor: isTransparentWindow
-            ? 'transparent'
-            : 'var(--rcx-color-surface-light)',
-        }}
+        style={{ backgroundColor: surfaces.panel }}
       >
         <LogViewerToolbar
-          surfaces={surfaces}
           fileName={currentLogFile.fileName}
           filePath={currentLogFile.filePath}
           isDefaultLog={currentLogFile.isDefaultLog}
@@ -991,7 +994,20 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
             flexGrow={1}
             display='flex'
             flexDirection='column'
-            style={{ minWidth: 0, backgroundColor: surfaces.list }}
+            style={{
+              minWidth: 0,
+              minHeight: 0,
+              backgroundColor: surfaces.list,
+              // Inset on all four sides, unlike the main window's flush top
+              // edge: here the panel wraps the card on three sides, and a gap
+              // under the toolbar too is what makes all of it read as one
+              // background rather than as a stack of bars.
+              margin: `${CARD_INSET}px`,
+              borderRadius: `${CARD_RADIUS}px`,
+              border: cardStyle.border,
+              boxShadow: cardStyle.boxShadow,
+              overflow: 'hidden',
+            }}
           >
             {showTimeline && timelineEntries.length > 0 && (
               <LogTimeline
@@ -1056,7 +1072,6 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
         </Box>
 
         <LogStatusBar
-          surfaces={surfaces}
           shownCount={filteredLogs.length}
           loadedCount={logEntries.length}
           fileSize={fileInfo?.size}

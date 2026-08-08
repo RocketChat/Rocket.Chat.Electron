@@ -11,7 +11,6 @@ export const LOG_MARK_CLASS = 'rcx-log-mark';
 export const TIMELINE_SELECTION_CLASS = 'rcx-log-timeline-selection';
 
 type LogViewerGlobalStylesProps = {
-  isTransparent: boolean;
   paletteTheme: PaletteTheme;
   surfaces: Surfaces;
 };
@@ -22,7 +21,6 @@ type LogViewerGlobalStylesProps = {
  * of per-row React state.
  */
 export const LogViewerGlobalStyles = ({
-  isTransparent,
   paletteTheme,
   surfaces,
 }: LogViewerGlobalStylesProps) => (
@@ -38,9 +36,7 @@ export const LogViewerGlobalStyles = ({
       body {
         height: 100%;
         margin: 0;
-        background-color: ${isTransparent
-          ? 'transparent'
-          : 'var(--rcx-color-surface-light)'};
+        background-color: ${surfaces.panel};
       }
 
       .${DRAG_REGION_CLASS} {

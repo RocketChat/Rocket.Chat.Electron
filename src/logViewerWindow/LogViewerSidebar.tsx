@@ -95,8 +95,6 @@ export const LogViewerSidebar = ({
       style={{
         width: `${SIDEBAR_WIDTH}px`,
         flex: `0 0 ${SIDEBAR_WIDTH}px`,
-        backgroundColor: surfaces.chrome,
-        borderInlineEnd: `1px solid ${surfaces.divider}`,
         minHeight: 0,
       }}
     >

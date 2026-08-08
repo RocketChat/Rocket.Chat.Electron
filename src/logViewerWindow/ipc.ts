@@ -10,8 +10,9 @@ import i18next from 'i18next';
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
 import { getHost } from '../logging/context';
-import { select } from '../store';
+import { dispatch, select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
+import { LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
   TRAFFIC_LIGHTS_X,
@@ -30,6 +31,17 @@ const writeFile = promisify(fs.writeFile);
 
 let logViewerWindow: BrowserWindow | null = null;
 const allowedLogPaths = new Set<string>();
+
+/**
+ * Set once quitting starts. The window's `closed` handler fires both when the
+ * reader closes it and when the app tears its windows down on quit; without this
+ * the quit path would record "closed" and defeat restoring it next launch.
+ */
+let isAppQuitting = false;
+
+const selectIsTransparencyEnabled = ({
+  isTransparentWindowEnabled,
+}: RootState): boolean => isTransparentWindowEnabled;
 
 const getLogFilePath = (): string => {
   const logsPath = app.getPath('logs');
@@ -91,7 +103,7 @@ const getLastNEntries = (
   };
 };
 
-export const openLogViewerWindow = async (): Promise<void> => {
+const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
   if (logViewerWindow && !logViewerWindow.isDestroyed()) {
     logViewerWindow.focus();
     return;
@@ -123,14 +135,8 @@ export const openLogViewerWindow = async (): Promise<void> => {
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
 
-  // Vibrancy only reads as a material on macOS, and `transparent` cannot be
-  // toggled after creation — so the setting is sampled once, here, and the
-  // renderer is told what it actually got instead of re-reading the store.
-  const isTransparent =
-    isMac &&
-    select(
-      ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
-    );
+  // Seeds the first paint only; the renderer then follows the setting live.
+  const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
 
   logViewerWindow = new BrowserWindow({
     width,
@@ -148,7 +154,11 @@ export const openLogViewerWindow = async (): Promise<void> => {
           trafficLightPosition: { x: TRAFFIC_LIGHTS_X, y: TRAFFIC_LIGHTS_Y },
         }
       : {}),
-    ...(isTransparent
+    // `transparent` cannot be toggled after creation, so — like the root window —
+    // the window is always transparent with a vibrancy material on macOS and the
+    // setting only decides whether the renderer paints an opaque surface over it.
+    // That is what lets the setting apply without reopening the window.
+    ...(isMac
       ? {
           transparent: true,
           vibrancy: 'sidebar' as const,
@@ -164,19 +174,32 @@ export const openLogViewerWindow = async (): Promise<void> => {
 
   logViewerWindow.loadFile(
     path.join(app.getAppPath(), 'app/log-viewer-window.html'),
-    { query: { transparent: String(isTransparent) } }
+    { query: { transparent: String(isTransparencyEnabled) } }
   );
 
   logViewerWindow.once('ready-to-show', () => {
     logViewerWindow?.setTitle(
       `Log Viewer - ${packageJsonInformation.productName}`
     );
-    logViewerWindow?.show();
+    if (focusOnShow) {
+      logViewerWindow?.show();
+      return;
+    }
+    // Restored at launch: show it without stealing focus from the main window.
+    logViewerWindow?.showInactive();
   });
+
+  dispatch({ type: LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED, payload: true });
 
   logViewerWindow.on('closed', () => {
     logViewerWindow = null;
     allowedLogPaths.clear();
+    if (!isAppQuitting) {
+      dispatch({
+        type: LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED,
+        payload: false,
+      });
+    }
   });
 
   logViewerWindow.webContents.on(
@@ -193,7 +216,37 @@ export const openLogViewerWindow = async (): Promise<void> => {
   });
 };
 
+export const openLogViewerWindow = (): Promise<void> =>
+  createLogViewerWindow(true);
+
+/**
+ * Reopens the window at launch when it was open at shutdown, without taking
+ * focus from the main window.
+ */
+export const restoreLogViewerWindow = async (): Promise<void> => {
+  if (
+    !select(({ isLogViewerWindowOpen }: RootState) => isLogViewerWindowOpen)
+  ) {
+    return;
+  }
+  await createLogViewerWindow(false);
+};
+
 export const startLogViewerWindowHandler = (): void => {
+  app.on('before-quit', () => {
+    isAppQuitting = true;
+  });
+
+  // Transparency is a renderer concern here, so a change only needs pushing to
+  // the open window — no reopen, no restart.
+  watch(selectIsTransparencyEnabled, (isEnabled) => {
+    if (!logViewerWindow || logViewerWindow.isDestroyed()) return;
+    logViewerWindow.webContents.send(
+      'log-viewer-window/transparency-changed',
+      isEnabled
+    );
+  });
+
   handle('log-viewer-window/open-window', openLogViewerWindow);
 
   handle('log-viewer-window/close-requested', async () => {

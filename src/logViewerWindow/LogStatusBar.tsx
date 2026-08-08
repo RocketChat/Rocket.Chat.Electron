@@ -2,10 +2,8 @@ import { Box } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
 import { StatusItem } from './StatusItem';
-import type { Surfaces } from './appearance';
 
 export type LogStatusBarProps = {
-  surfaces: Surfaces;
   shownCount: number;
   loadedCount: number;
   fileSize?: string;
@@ -16,7 +14,6 @@ export type LogStatusBarProps = {
 };
 
 export const LogStatusBar = ({
-  surfaces,
   shownCount,
   loadedCount,
   fileSize,
@@ -37,11 +34,7 @@ export const LogStatusBar = ({
       paddingBlock='x4'
       fontScale='micro'
       color='hint'
-      style={{
-        backgroundColor: surfaces.chrome,
-        borderBlockStart: `1px solid ${surfaces.divider}`,
-        userSelect: 'none',
-      }}
+      style={{ userSelect: 'none' }}
     >
       <StatusItem icon='hash'>
         {shownCount === loadedCount

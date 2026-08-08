@@ -20,7 +20,10 @@ import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
-import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
+import {
+  restoreLogViewerWindow,
+  startLogViewerWindowHandler,
+} from './logViewerWindow/ipc';
 import {
   logger,
   setupWebContentsLogging,
@@ -167,6 +170,8 @@ const start = async (): Promise<void> => {
   startDocumentViewerHandler();
   startBrowserHandler();
   checkSupportedVersionServers();
+
+  await restoreLogViewerWindow();
 
   await processDeepLinksInArgs();
 

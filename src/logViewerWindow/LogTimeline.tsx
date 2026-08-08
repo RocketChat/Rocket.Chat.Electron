@@ -140,7 +140,7 @@ export const LogTimeline = ({
       paddingInline='x12'
       paddingBlock='x8'
       style={{
-        backgroundColor: surfaces.chrome,
+        backgroundColor: surfaces.list,
         borderBlockEnd: `1px solid ${surfaces.divider}`,
         userSelect: 'none',
       }}

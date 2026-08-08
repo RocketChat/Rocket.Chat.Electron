@@ -35,6 +35,7 @@ import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
+import { isLogViewerWindowOpen } from '../ui/reducers/isLogViewerWindowOpen';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
@@ -134,6 +135,7 @@ export const rootReducer = combineReducers({
   updateChannel,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
+  isLogViewerWindowOpen,
   isTransparentWindowEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
   telephonyPreferredServer,

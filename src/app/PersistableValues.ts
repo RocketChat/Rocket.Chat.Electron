@@ -120,6 +120,7 @@ type PersistableValues_4_15_0 = PersistableValues_4_14_0 & {
 
 type PersistableValues_4_16_0 = PersistableValues_4_15_0 & {
   navigationLayout: 'tabs' | 'sidebar' | 'hidden';
+  isLogViewerWindowOpen: boolean;
 };
 
 export type PersistableValues = Pick<
@@ -241,5 +242,8 @@ export const migrations = {
     ...before,
     navigationLayout:
       (before as Partial<PersistableValues_4_16_0>).navigationLayout ?? 'tabs',
+    isLogViewerWindowOpen:
+      (before as Partial<PersistableValues_4_16_0>).isLogViewerWindowOpen ??
+      false,
   }),
 };

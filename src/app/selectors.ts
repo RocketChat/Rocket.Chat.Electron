@@ -97,6 +97,8 @@ const selectPersistableValuesB = createStructuredSelector({
     telephonyGlobalShortcutConfig,
   }: RootState) => telephonyGlobalShortcutConfig,
   isTelephonyEnabled: ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled,
+  isLogViewerWindowOpen: ({ isLogViewerWindowOpen }: RootState) =>
+    isLogViewerWindowOpen,
 });
 
 export const selectPersistableValues = createSelector(

@@ -642,10 +642,6 @@
   },
   "logViewer": {
     "title": "Log Viewer",
-    "aria": {
-      "logIcon": "Log viewer icon",
-      "entriesCount": "{{count}} log entries displayed"
-    },
     "fileInfo": {
       "custom": "Custom",
       "entries": "{{count}} entries",
@@ -661,39 +657,31 @@
       "copy": "Copy",
       "save": "Save",
       "clear": "Clear",
-      "close": "Close",
-      "clearFilters": "Clear Filters"
+      "clearFilters": "Clear Filters",
+      "clearFiltersCount": "Clear {{count}} filters",
+      "toggleFilters": "Toggle filters"
     },
     "controls": {
       "showContext": "Show Context",
       "showServer": "Show Server",
-      "autoScrollToTop": "Auto Scroll to Top"
+      "autoScrollToTop": "Auto Scroll to Top",
+      "wrapLines": "Wrap long lines",
+      "collapseMultiline": "Collapse multi-line entries"
     },
     "placeholders": {
-      "loadAmount": "Load amount",
       "searchLogs": "Search logs...",
-      "level": "Level",
-      "context": "Context",
       "exchangeDebug": "Exchange Debug Filter"
     },
     "filters": {
-      "entryLimit": {
-        "last100": "Last 100 entries",
-        "last500": "Last 500 entries",
-        "last1000": "Last 1000 entries",
-        "last5000": "Last 5000 entries",
-        "all": "All entries"
-      },
       "level": {
-        "all": "All Levels",
         "debug": "Debug",
         "info": "Info",
         "warn": "Warning",
         "error": "Error",
-        "verbose": "Verbose"
+        "verbose": "Verbose",
+        "silly": "Silly"
       },
       "context": {
-        "all": "All Contexts",
         "main": "Main Process",
         "renderer": "Renderer",
         "webview": "Webview",
@@ -704,10 +692,6 @@
         "notifications": "Notifications",
         "servers": "Servers",
         "ipc": "IPC Communication"
-      },
-      "server": {
-        "all": "All Servers",
-        "label": "Server"
       },
       "exchangeDebug": {
         "all": "All Logs",
@@ -724,6 +708,23 @@
     "messages": {
       "noLogsFound": "No logs found",
       "adjustFilters": "Try adjusting your filters or refresh the logs"
+    },
+    "sidebar": {
+      "title": "Log filters",
+      "levels": "Levels",
+      "contexts": "Contexts",
+      "display": "Display",
+      "servers": "Servers"
+    },
+    "entry": {
+      "expand_one": "+{{count}} more line",
+      "expand_other": "+{{count}} more lines",
+      "collapse": "Show less",
+      "copyEntry": "Copy entry"
+    },
+    "status": {
+      "live": "Live",
+      "loading": "Loading…"
     }
   },
   "serverInfo": {

@@ -13,9 +13,17 @@ import { getHost } from '../logging/context';
 import { select } from '../store';
 import type { RootState } from '../store/rootReducer';
 import { getRootWindow } from '../ui/main/rootWindow';
-import { WINDOW_SIZE_MULTIPLIER } from './constants';
+import {
+  TRAFFIC_LIGHTS_X,
+  TRAFFIC_LIGHTS_Y,
+  WINDOW_MIN_HEIGHT,
+  WINDOW_MIN_WIDTH,
+  WINDOW_SIZE_MULTIPLIER,
+} from './constants';
 
 const t = i18next.t.bind(i18next);
+
+const isMac = process.platform === 'darwin';
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -115,12 +123,38 @@ export const openLogViewerWindow = async (): Promise<void> => {
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
 
+  // Vibrancy only reads as a material on macOS, and `transparent` cannot be
+  // toggled after creation — so the setting is sampled once, here, and the
+  // renderer is told what it actually got instead of re-reading the store.
+  const isTransparent =
+    isMac &&
+    select(
+      ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+    );
+
   logViewerWindow = new BrowserWindow({
     width,
     height,
     x,
     y,
+    minWidth: WINDOW_MIN_WIDTH,
+    minHeight: WINDOW_MIN_HEIGHT,
     title: 'Log Viewer - Rocket.Chat',
+    // The toolbar doubles as the title bar on macOS, so the window shows one
+    // header instead of a native title bar stacked on an in-app one.
+    ...(isMac
+      ? {
+          titleBarStyle: 'hiddenInset' as const,
+          trafficLightPosition: { x: TRAFFIC_LIGHTS_X, y: TRAFFIC_LIGHTS_Y },
+        }
+      : {}),
+    ...(isTransparent
+      ? {
+          transparent: true,
+          vibrancy: 'sidebar' as const,
+          visualEffectState: 'active' as const,
+        }
+      : {}),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -129,7 +163,8 @@ export const openLogViewerWindow = async (): Promise<void> => {
   });
 
   logViewerWindow.loadFile(
-    path.join(app.getAppPath(), 'app/log-viewer-window.html')
+    path.join(app.getAppPath(), 'app/log-viewer-window.html'),
+    { query: { transparent: String(isTransparent) } }
   );
 
   logViewerWindow.once('ready-to-show', () => {

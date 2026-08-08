@@ -45,6 +45,8 @@ export type LogViewerSidebarProps = {
   onToggleCollapseMultiline: () => void;
   autoScroll: boolean;
   onToggleAutoScroll: () => void;
+  showTimeline: boolean;
+  onToggleShowTimeline: () => void;
   activeFilterCount: number;
   onClearFilters: () => void;
 };
@@ -77,6 +79,8 @@ export const LogViewerSidebar = ({
   onToggleCollapseMultiline,
   autoScroll,
   onToggleAutoScroll,
+  showTimeline,
+  onToggleShowTimeline,
   activeFilterCount,
   onClearFilters,
 }: LogViewerSidebarProps) => {
@@ -179,6 +183,11 @@ export const LogViewerSidebar = ({
                 label={t('logViewer.controls.autoScrollToTop')}
                 checked={autoScroll}
                 onToggle={onToggleAutoScroll}
+              />
+              <FilterRow
+                label={t('logViewer.controls.showTimeline')}
+                checked={showTimeline}
+                onToggle={onToggleShowTimeline}
               />
             </FilterSection>
           </Box>

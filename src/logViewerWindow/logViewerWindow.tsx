@@ -23,6 +23,7 @@ import TooltipProvider from '../ui/components/utils/TooltipProvider';
 import { DayDivider } from './DayDivider';
 import { LogEntry } from './LogEntry';
 import { LogStatusBar } from './LogStatusBar';
+import { LogTimeline } from './LogTimeline';
 import { LogViewerSidebar } from './LogViewerSidebar';
 import { LogViewerToolbar } from './LogViewerToolbar';
 import type { PaletteTheme } from './appearance';
@@ -38,6 +39,8 @@ import { toggleFacet } from './filters';
 import { advanceVisibleCount } from './pagination';
 import { countBy, getEntryDay, parseLogLines } from './parseLogs';
 import { LogViewerGlobalStyles } from './styles';
+import type { TimeRange } from './timeline';
+import { isWithinRange } from './timeline';
 import {
   type LogLevel,
   type LogEntryType,
@@ -154,6 +157,13 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     'log-viewer/auto-scroll',
     true
   );
+  const [showTimeline, setShowTimeline] = useLocalStorage(
+    'log-viewer/show-timeline',
+    true
+  );
+  // Deliberately not persisted: a time range belongs to the file you are reading
+  // now, and restoring one silently would hide entries on the next open.
+  const [timeRange, setTimeRange] = useState<TimeRange | null>(null);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
 
   // How many matching entries are handed to the list. Scrolling to the end
@@ -223,6 +233,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     setLevelFilters([]);
     setContextFilters([]);
     setServerFilters([]);
+    setTimeRange(null);
   }, [setLevelFilters, setContextFilters, setServerFilters]);
 
   const loadLogs = useCallback(async () => {
@@ -337,6 +348,13 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     [contextFilters]
   );
 
+  const matchesTimeRange = useCallback(
+    (entry: LogEntryType): boolean =>
+      timeRange === null ||
+      isWithinRange(new Date(entry.timestamp).getTime(), timeRange),
+    [timeRange]
+  );
+
   /**
    * Counts are faceted: each list reports what selecting it would yield with the
    * *other* filters applied, so a count is never a number the reader cannot get.
@@ -350,29 +368,44 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     () =>
       countBy(
         searchedEntries.filter(
-          (entry) => matchesContext(entry) && matchesServer(entry)
+          (entry) =>
+            matchesContext(entry) &&
+            matchesServer(entry) &&
+            matchesTimeRange(entry)
         ),
         (entry) => [entry.level]
       ),
-    [searchedEntries, matchesContext, matchesServer]
+    [searchedEntries, matchesContext, matchesServer, matchesTimeRange]
   );
 
   const contextCounts = useMemo(
     () =>
       countBy(
         searchedEntries.filter(
-          (entry) => matchesLevel(entry) && matchesServer(entry)
+          (entry) =>
+            matchesLevel(entry) &&
+            matchesServer(entry) &&
+            matchesTimeRange(entry)
         ),
         (entry) => entry.contextTags.filter((tag) => !(tag in serverMapping))
       ),
-    [searchedEntries, matchesLevel, matchesServer, serverMapping]
+    [
+      searchedEntries,
+      matchesLevel,
+      matchesServer,
+      matchesTimeRange,
+      serverMapping,
+    ]
   );
 
   const serverCounts = useMemo(
     () =>
       countBy(
         searchedEntries.filter(
-          (entry) => matchesLevel(entry) && matchesContext(entry)
+          (entry) =>
+            matchesLevel(entry) &&
+            matchesContext(entry) &&
+            matchesTimeRange(entry)
         ),
         (entry) =>
           serverOptions.filter(
@@ -380,7 +413,13 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
               entry.contextTags.includes(host) || entry.message.includes(host)
           )
       ),
-    [searchedEntries, matchesLevel, matchesContext, serverOptions]
+    [
+      searchedEntries,
+      matchesLevel,
+      matchesContext,
+      matchesTimeRange,
+      serverOptions,
+    ]
   );
 
   /** Levels and context tags that actually occur in the loaded file. */
@@ -407,14 +446,23 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     return labels;
   }, [contextOptions, t]);
 
-  /** Every entry matching the filters — what Copy and Save act on. */
-  const filteredLogs = useMemo(
+  /**
+   * Matches of every filter except the time range — the chart's data, so it can
+   * keep showing the whole span with the selection marked on top of it.
+   */
+  const timelineEntries = useMemo(
     () =>
       searchedEntries.filter(
         (entry) =>
           matchesLevel(entry) && matchesContext(entry) && matchesServer(entry)
       ),
     [searchedEntries, matchesLevel, matchesContext, matchesServer]
+  );
+
+  /** Every entry matching the filters — what Copy and Save act on. */
+  const filteredLogs = useMemo(
+    () => timelineEntries.filter(matchesTimeRange),
+    [timelineEntries, matchesTimeRange]
   );
 
   /** The page of matches currently handed to the list. */
@@ -433,7 +481,13 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   // reader scrolled into history would be yanked back to the first page.
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [debouncedSearchFilter, levelFilters, contextFilters, serverFilters]);
+  }, [
+    debouncedSearchFilter,
+    levelFilters,
+    contextFilters,
+    serverFilters,
+    timeRange,
+  ]);
 
   /**
    * Runs of entries sharing a calendar day. Fed to the list as groups so their
@@ -463,8 +517,15 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
       (debouncedSearchFilter ? 1 : 0) +
       (levelFilters.length > 0 ? 1 : 0) +
       (contextFilters.length > 0 ? 1 : 0) +
-      (serverFilters.length > 0 ? 1 : 0),
-    [debouncedSearchFilter, levelFilters, contextFilters, serverFilters]
+      (serverFilters.length > 0 ? 1 : 0) +
+      (timeRange !== null ? 1 : 0),
+    [
+      debouncedSearchFilter,
+      levelFilters,
+      contextFilters,
+      serverFilters,
+      timeRange,
+    ]
   );
 
   const handleToggleLevel = useCallback(
@@ -919,6 +980,8 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
               }
               autoScroll={autoScroll}
               onToggleAutoScroll={handleToggleAutoScroll}
+              showTimeline={showTimeline}
+              onToggleShowTimeline={() => setShowTimeline(!showTimeline)}
               activeFilterCount={activeFilterCount}
               onClearFilters={handleClearFilters}
             />
@@ -930,6 +993,14 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
             flexDirection='column'
             style={{ minWidth: 0, backgroundColor: surfaces.list }}
           >
+            {showTimeline && timelineEntries.length > 0 && (
+              <LogTimeline
+                entries={timelineEntries}
+                surfaces={surfaces}
+                selectedRange={timeRange}
+                onSelectRange={setTimeRange}
+              />
+            )}
             {isLoading && logEntries.length === 0 && (
               <Box
                 display='flex'

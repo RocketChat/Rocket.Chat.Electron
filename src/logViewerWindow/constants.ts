@@ -48,3 +48,7 @@ export const COLLAPSED_MESSAGE_LINES = 1;
 
 /** Entries handed to the list per page; scrolling to the end adds another */
 export const PAGE_SIZE = 100;
+
+/** Time slices drawn in the distribution timeline, and the plot's height */
+export const TIMELINE_BUCKET_COUNT = 96;
+export const TIMELINE_PLOT_HEIGHT = 40;

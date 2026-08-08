@@ -8,6 +8,7 @@ export const FILTER_ROW_CLASS = 'rcx-log-filter-row';
 export const LOG_ROW_CLASS = 'rcx-log-row';
 export const LOG_ROW_ACTIONS_CLASS = 'rcx-log-row__actions';
 export const LOG_MARK_CLASS = 'rcx-log-mark';
+export const TIMELINE_SELECTION_CLASS = 'rcx-log-timeline-selection';
 
 type LogViewerGlobalStylesProps = {
   isTransparent: boolean;
@@ -71,6 +72,19 @@ export const LogViewerGlobalStyles = ({
         .${LOG_ROW_ACTIONS_CLASS},
         .${LOG_ROW_ACTIONS_CLASS}:focus-within {
         opacity: 1;
+      }
+
+      .${TIMELINE_SELECTION_CLASS} {
+        position: absolute;
+        inset-block: 0;
+        pointer-events: none;
+        border-radius: 2px;
+        border-inline: 1px solid var(--rcx-color-stroke-highlight);
+        background-color: color-mix(
+          in srgb,
+          var(--rcx-color-stroke-highlight) 14%,
+          transparent
+        );
       }
 
       .${LOG_MARK_CLASS} {

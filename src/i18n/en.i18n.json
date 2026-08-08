@@ -644,7 +644,8 @@
     "title": "Log Viewer",
     "fileInfo": {
       "custom": "Custom",
-      "entries": "{{count}} entries",
+      "entries_one": "{{count}} entry",
+      "entries_other": "{{count}} entries",
       "entriesOfTotal": "{{count}} of {{total}} entries",
       "noEntries": "No entries"
     },
@@ -666,7 +667,8 @@
       "showServer": "Show Server",
       "autoScrollToTop": "Auto Scroll to Top",
       "wrapLines": "Wrap long lines",
-      "collapseMultiline": "Collapse multi-line entries"
+      "collapseMultiline": "Collapse multi-line entries",
+      "showTimeline": "Show timeline"
     },
     "placeholders": {
       "searchLogs": "Search logs...",
@@ -725,6 +727,13 @@
     "status": {
       "live": "Live",
       "loading": "Loading…"
+    },
+    "timeline": {
+      "label": "Distribution over time",
+      "peak_one": "peak {{count}} entry",
+      "peak_other": "peak {{count}} entries",
+      "hint": "Drag across the chart to select a time range",
+      "clearRange": "Clear time range"
     }
   },
   "serverInfo": {

@@ -45,6 +45,7 @@ This prevents MSI build failures from KMS CNG provider conflicts.
 - Import from `@rocket.chat/fuselage`
 - Check `Theme.d.ts` for valid color tokens
 - Reference: [Fuselage Storybook](https://rocketchat.github.io/fuselage) and [Rocket.Chat main repo](https://github.com/RocketChat/Rocket.Chat) for usage patterns
+- **Before styling tab bar/titlebar controls, custom SVG artwork, or picking color/animation tokens, read `docs/desktop-ui-guidelines.md`** — token semantics and traps, Fuselage geometry/timing facts, the button-dimming and SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
 
 ## Testing
 
@@ -53,6 +54,7 @@ This prevents MSI build failures from KMS CNG provider conflicts.
 - Renderer specs must live in a Jest-matched nested path, e.g. `src/<module>/<subdir>/*.spec.ts(x)` or `src/<module>/renderer.spec.ts(x)`. Flat `src/<module>/*.spec.ts` files are not discovered by current `testMatch`; verify new specs with `yarn test --listTests --runTestsByPath <file>`.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation
 - Tests run on Windows, macOS, AND Linux CI — always verify cross-platform
+- **UI changes need runtime/visual verification** — component tests cannot see paint (a clipped SVG passes every DOM assertion). Use the `dev-app-verify` skill (`skills/dev-app-verify/SKILL.md`) to drive and screenshot the running `yarn start` app via the port-9339 inspector, and the Developer Mode menu items (`Simulate Update Flow` / `Simulate Download`) to exercise the flows without real downloads/updates.
 - **Screen-capture / WebRTC / portal behavior CANNOT be validated in software-rendered VMs** — Chromium gates the PipeWire capture path on hardware GL (gate moves between Electron versions). Validate on hardware GL (GPU passthrough or physical machine) and prefer dbus-level assertions (`org.freedesktop.portal.ScreenCast` requests) over dialog visibility, which is portal/boot-state flaky. Full story: `docs/postmortem-screen-picker-startup-enumeration.md`
 
 ## QA Flow Authoring

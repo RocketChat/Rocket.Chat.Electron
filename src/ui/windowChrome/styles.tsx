@@ -7,6 +7,7 @@ export const NO_DRAG_REGION_CLASS = 'rcx-window-no-drag';
 export const FILTER_ROW_CLASS = 'rcx-window-filter-row';
 export const TEXT_BUTTON_CLASS = 'rcx-window-text-button';
 export const SEARCH_FIELD_CLASS = 'rcx-window-search-field';
+export const LIST_ROW_CLASS = 'rcx-window-list-row';
 
 type WindowChromeGlobalStylesProps = {
   paletteTheme: PaletteTheme;
@@ -47,7 +48,7 @@ export const WindowChromeGlobalStyles = ({
         -webkit-app-region: no-drag;
       }
 
-      .${FILTER_ROW_CLASS}:hover {
+      .${FILTER_ROW_CLASS}:hover, .${LIST_ROW_CLASS}:hover {
         background-color: ${surfaces.hover};
       }
 

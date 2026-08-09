@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import type { Download } from '../downloads/common';
 import { invoke } from '../ipc/renderer';
-import FileIcon from '../ui/components/DownloadsManagerView/FileIcon';
 import { formatServerTitle } from '../ui/components/utils/formatServerTitle';
 import type { Surfaces } from '../ui/windowChrome/appearance';
 import { isDarwin } from '../ui/windowChrome/appearance';
-import { DOWNLOAD_NAME_CLASS, DOWNLOAD_ROW_CLASS } from './styles';
+import { LIST_ROW_CLASS } from '../ui/windowChrome/styles';
+import { FileTypeIcon } from './FileTypeIcon';
+import { DOWNLOAD_NAME_CLASS } from './styles';
 
 export type DownloadRowProps = {
   download: Download;
@@ -103,7 +104,7 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
 
   return (
     <Box
-      className={DOWNLOAD_ROW_CLASS}
+      className={LIST_ROW_CLASS}
       display='flex'
       flexDirection='row'
       alignItems='center'
@@ -111,9 +112,7 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
       paddingBlock='x8'
       style={{ borderBlockEnd: `1px solid ${surfaces.divider}` }}
     >
-      <Box flexShrink={0} display='flex' alignItems='center'>
-        <FileIcon fileName={fileName} mimeType={mimeType} />
-      </Box>
+      <FileTypeIcon fileName={fileName} mimeType={mimeType} />
 
       <Box flexGrow={1} marginInline='x12' style={{ minWidth: 0 }}>
         <Box

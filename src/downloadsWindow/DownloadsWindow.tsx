@@ -292,7 +292,7 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
         paletteTheme={paletteTheme}
         surfaces={surfaces}
       />
-      <DownloadsGlobalStyles surfaces={surfaces} />
+      <DownloadsGlobalStyles />
       <Box
         display='flex'
         flexDirection='column'

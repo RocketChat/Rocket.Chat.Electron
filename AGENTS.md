@@ -43,6 +43,10 @@ yarn workspaces:build
 - Check `Theme.d.ts` for valid color tokens before using Fuselage colors.
 - Verify library props, APIs, and tokens against official docs or local
   `.d.ts` files instead of assuming.
+- Before styling tab bar/titlebar controls, custom SVG artwork, or picking
+  color/animation tokens, read `docs/desktop-ui-guidelines.md` — token
+  semantics and traps, Fuselage geometry/timing facts, the button-dimming and
+  SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
 
 ## Testing
 
@@ -55,6 +59,11 @@ yarn workspaces:build
 - Verify new specs with `yarn test --listTests --runTestsByPath <file>` when
   discovery is uncertain.
 - Tests run on Windows, macOS, and Linux CI. Keep platform behavior defensive.
+- UI changes need runtime/visual verification — component tests cannot see
+  paint. Use `skills/dev-app-verify/SKILL.md` to drive and screenshot the
+  running `yarn start` app via the port-9339 inspector, and the Developer
+  Mode menu items (`Simulate Update Flow` / `Simulate Download`) to exercise
+  the flows without real downloads or updates.
 - Prefer optional chaining and fallbacks for platform-specific APIs. Only mock
   Linux-only APIs like `process.getuid()` when defensive coding is not enough.
 

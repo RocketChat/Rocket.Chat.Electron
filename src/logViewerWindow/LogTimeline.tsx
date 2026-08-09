@@ -3,8 +3,8 @@ import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { Surfaces } from '../ui/windowChrome/appearance';
 import { TimelineBar } from './TimelineBar';
-import type { Surfaces } from './appearance';
 import { TIMELINE_BUCKET_COUNT, TIMELINE_PLOT_HEIGHT } from './constants';
 import { TIMELINE_SELECTION_CLASS } from './styles';
 import type { TimeRange, TimelineBucket } from './timeline';
@@ -140,7 +140,7 @@ export const LogTimeline = ({
       paddingInline='x12'
       paddingBlock='x8'
       style={{
-        backgroundColor: surfaces.list,
+        backgroundColor: surfaces.card,
         borderBlockEnd: `1px solid ${surfaces.divider}`,
         userSelect: 'none',
       }}

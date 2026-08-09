@@ -1,7 +1,9 @@
 import { Box } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
-import { StatusItem } from './StatusItem';
+import { StatusBar } from '../ui/windowChrome/StatusBar';
+import { StatusItem } from '../ui/windowChrome/StatusItem';
+import { TextButton } from '../ui/windowChrome/TextButton';
 
 export type LogStatusBarProps = {
   shownCount: number;
@@ -11,6 +13,8 @@ export type LogStatusBarProps = {
   filePath?: string;
   isStreaming: boolean;
   isLoading: boolean;
+  canClear: boolean;
+  onClearLogs: () => void;
 };
 
 export const LogStatusBar = ({
@@ -21,20 +25,20 @@ export const LogStatusBar = ({
   filePath,
   isStreaming,
   isLoading,
+  canClear,
+  onClearLogs,
 }: LogStatusBarProps) => {
   const { t } = useTranslation();
 
   return (
-    <Box
-      display='flex'
-      flexDirection='row'
-      alignItems='center'
-      flexShrink={0}
-      paddingInline='x12'
-      paddingBlock='x4'
-      fontScale='micro'
-      color='hint'
-      style={{ userSelect: 'none' }}
+    <StatusBar
+      action={
+        canClear && (
+          <TextButton danger onClick={onClearLogs}>
+            {t('logViewer.buttons.clear')}
+          </TextButton>
+        )
+      }
     >
       <StatusItem icon='hash'>
         {shownCount === loadedCount
@@ -46,7 +50,6 @@ export const LogStatusBar = ({
       </StatusItem>
       {fileSize && <StatusItem icon='file'>{fileSize}</StatusItem>}
       {dateRange && <StatusItem icon='clock'>{dateRange}</StatusItem>}
-      <Box flexGrow={1} />
       {isLoading && (
         <Box marginInlineStart='x8'>{t('logViewer.status.loading')}</Box>
       )}
@@ -70,6 +73,6 @@ export const LogStatusBar = ({
           {t('logViewer.status.live')}
         </Box>
       )}
-    </Box>
+    </StatusBar>
   );
 };

@@ -1,11 +1,10 @@
 /**
  * Facet selections use "empty means everything", so an untouched filter stays
- * valid when new levels or context tags show up in the log.
+ * valid when new options show up in the data.
  *
  * Toggling expands "all" into an explicit list first, then collapses back to
  * "all" once every option is selected again — or once none is, which would
- * otherwise leave the list in a state that shows nothing and cannot be undone
- * from the sidebar.
+ * otherwise leave the list showing nothing with no way back from the sidebar.
  */
 export const toggleFacet = <T extends string>(
   selected: T[],

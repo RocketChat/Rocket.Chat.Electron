@@ -17,6 +17,9 @@ import { getRootWindow } from '../ui/main/rootWindow';
 import {
   TRAFFIC_LIGHTS_X,
   TRAFFIC_LIGHTS_Y,
+} from '../ui/windowChrome/appearance';
+import {
+  TRANSPARENCY_CHANNEL,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
   WINDOW_SIZE_MULTIPLIER,
@@ -241,10 +244,7 @@ export const startLogViewerWindowHandler = (): void => {
   // the open window — no reopen, no restart.
   watch(selectIsTransparencyEnabled, (isEnabled) => {
     if (!logViewerWindow || logViewerWindow.isDestroyed()) return;
-    logViewerWindow.webContents.send(
-      'log-viewer-window/transparency-changed',
-      isEnabled
-    );
+    logViewerWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
   });
 
   handle('log-viewer-window/open-window', openLogViewerWindow);

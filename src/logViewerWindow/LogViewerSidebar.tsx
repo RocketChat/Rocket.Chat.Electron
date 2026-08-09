@@ -1,23 +1,16 @@
-import {
-  Box,
-  Button,
-  Icon,
-  Scrollable,
-  SearchInput,
-} from '@rocket.chat/fuselage';
+import { Box, Icon, Scrollable, SearchInput } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { FilterRow } from './FilterRow';
-import { FilterSection } from './FilterSection';
-import type { Surfaces } from './appearance';
+import { FilterRow } from '../ui/windowChrome/FilterRow';
+import { FilterSection } from '../ui/windowChrome/FilterSection';
+import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
+import { isFacetSelected } from '../ui/windowChrome/filters';
+import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
 import { LEVEL_ACCENT, LOG_LEVELS } from './appearance';
-import { SIDEBAR_WIDTH } from './constants';
-import { isFacetSelected } from './filters';
 import type { LogLevel } from './types';
 
 export type LogViewerSidebarProps = {
-  surfaces: Surfaces;
   searchFilter: string;
   onSearchFilterChange: (event: ChangeEvent<HTMLInputElement>) => void;
   levelFilters: LogLevel[];
@@ -47,12 +40,12 @@ export type LogViewerSidebarProps = {
   onToggleAutoScroll: () => void;
   showTimeline: boolean;
   onToggleShowTimeline: () => void;
-  activeFilterCount: number;
-  onClearFilters: () => void;
+  onSelectAllLevels: () => void;
+  onSelectAllContexts: () => void;
+  onSelectAllServers: () => void;
 };
 
 export const LogViewerSidebar = ({
-  surfaces,
   searchFilter,
   onSearchFilterChange,
   levelFilters,
@@ -81,10 +74,12 @@ export const LogViewerSidebar = ({
   onToggleAutoScroll,
   showTimeline,
   onToggleShowTimeline,
-  activeFilterCount,
-  onClearFilters,
+  onSelectAllLevels,
+  onSelectAllContexts,
+  onSelectAllServers,
 }: LogViewerSidebarProps) => {
   const { t } = useTranslation();
+  const selectAllLabel = t('logViewer.filters.selectAll');
 
   return (
     <Box
@@ -98,7 +93,7 @@ export const LogViewerSidebar = ({
         minHeight: 0,
       }}
     >
-      <Box padding='x12' paddingBlockEnd='x8'>
+      <Box padding='x12' paddingBlockEnd='x8' className={SEARCH_FIELD_CLASS}>
         <SearchInput
           addon={<Icon name='magnifier' size='x20' />}
           aria-label={t('logViewer.placeholders.searchLogs')}
@@ -111,7 +106,12 @@ export const LogViewerSidebar = ({
       <Box flexGrow={1} style={{ minHeight: 0 }}>
         <Scrollable vertical>
           <Box paddingInline='x12' paddingBlockEnd='x12' height='100%'>
-            <FilterSection title={t('logViewer.sidebar.levels')}>
+            <FilterSection
+              title={t('logViewer.sidebar.levels')}
+              selectAllLabel={selectAllLabel}
+              canSelectAll={levelFilters.length > 0}
+              onSelectAll={onSelectAllLevels}
+            >
               {(availableLevels.length > 0 ? availableLevels : LOG_LEVELS).map(
                 (level) => (
                   <FilterRow
@@ -127,7 +127,12 @@ export const LogViewerSidebar = ({
             </FilterSection>
 
             {contextOptions.length > 0 && (
-              <FilterSection title={t('logViewer.sidebar.contexts')}>
+              <FilterSection
+                title={t('logViewer.sidebar.contexts')}
+                selectAllLabel={selectAllLabel}
+                canSelectAll={contextFilters.length > 0}
+                onSelectAll={onSelectAllContexts}
+              >
                 {contextOptions.map((context) => (
                   <FilterRow
                     key={context}
@@ -142,7 +147,12 @@ export const LogViewerSidebar = ({
             )}
 
             {serverOptions.length > 0 && (
-              <FilterSection title={t('logViewer.sidebar.servers')}>
+              <FilterSection
+                title={t('logViewer.sidebar.servers')}
+                selectAllLabel={selectAllLabel}
+                canSelectAll={serverFilters.length > 0}
+                onSelectAll={onSelectAllServers}
+              >
                 {serverOptions.map((server) => (
                   <FilterRow
                     key={server}
@@ -190,24 +200,6 @@ export const LogViewerSidebar = ({
             </FilterSection>
           </Box>
         </Scrollable>
-      </Box>
-
-      <Box
-        padding='x12'
-        style={{ borderBlockStart: `1px solid ${surfaces.divider}` }}
-      >
-        <Button
-          small
-          width='100%'
-          disabled={activeFilterCount === 0}
-          onClick={onClearFilters}
-        >
-          {activeFilterCount > 0
-            ? t('logViewer.buttons.clearFiltersCount', {
-                count: activeFilterCount,
-              })
-            : t('logViewer.buttons.clearFilters')}
-        </Button>
       </Box>
     </Box>
   );

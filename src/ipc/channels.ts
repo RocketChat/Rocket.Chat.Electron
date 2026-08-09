@@ -14,6 +14,8 @@ type ChannelToArgsMap = {
   'power-monitor/get-system-idle-state': (
     idleThreshold: number
   ) => SystemIdleState;
+  'downloads/open-file': (itemId: Download['itemId']) => void;
+  'downloads/preview-file': (itemId: Download['itemId']) => void;
   'downloads/show-in-folder': (itemId: Download['itemId']) => void;
   'downloads/copy-link': (itemId: Download['itemId']) => void;
   'downloads/pause': (itemId: Download['itemId']) => void;
@@ -136,6 +138,8 @@ type ChannelToArgsMap = {
     success: boolean;
     mapping: Record<string, string>;
   };
+  'downloads-window/open-window': () => void;
+  'downloads-window/close-requested': () => void;
   'screen-picker/open': () => void;
   'screen-picker/source-responded': (sourceId: string | null) => void;
   'screen-picker/screen-recording-is-permission-granted': () => boolean;

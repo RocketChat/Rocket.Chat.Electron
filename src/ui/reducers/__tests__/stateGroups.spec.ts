@@ -122,11 +122,12 @@ describe('currentView reducer', () => {
       } as any)
     ).toEqual('add-new-server');
 
+    // Downloads open in their own window, so the root window keeps its view.
     expect(
       currentView('settings', {
         type: uiActions.SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
       } as any)
-    ).toEqual('downloads');
+    ).toEqual('settings');
 
     expect(
       currentView('downloads', {

@@ -1,6 +1,6 @@
 import { isFacetSelected, toggleFacet } from '../filters';
 
-const LEVELS = ['error', 'warn', 'info'];
+const OPTIONS = ['error', 'warn', 'info'];
 
 describe('isFacetSelected', () => {
   it('treats an empty selection as everything selected', () => {
@@ -16,32 +16,32 @@ describe('isFacetSelected', () => {
 
 describe('toggleFacet', () => {
   it('expands "all" into an explicit selection when one option is removed', () => {
-    expect(toggleFacet([], 'warn', LEVELS)).toEqual(['error', 'info']);
+    expect(toggleFacet([], 'warn', OPTIONS)).toEqual(['error', 'info']);
   });
 
   it('collapses back to "all" once every option is selected again', () => {
-    expect(toggleFacet(['error', 'info'], 'warn', LEVELS)).toEqual([]);
+    expect(toggleFacet(['error', 'info'], 'warn', OPTIONS)).toEqual([]);
   });
 
   it('collapses to "all" rather than leaving nothing selected', () => {
-    expect(toggleFacet(['warn'], 'warn', LEVELS)).toEqual([]);
+    expect(toggleFacet(['warn'], 'warn', OPTIONS)).toEqual([]);
   });
 
   it('removes an option from a partial selection', () => {
-    expect(toggleFacet(['error', 'warn'], 'error', LEVELS)).toEqual(['warn']);
+    expect(toggleFacet(['error', 'warn'], 'error', OPTIONS)).toEqual(['warn']);
   });
 
   it('adds an option to a partial selection', () => {
-    expect(toggleFacet(['error'], 'info', LEVELS)).toEqual(['error', 'info']);
+    expect(toggleFacet(['error'], 'info', OPTIONS)).toEqual(['error', 'info']);
   });
 
   it('collapses stale selections that outgrew the option list', () => {
-    expect(toggleFacet(['error', 'warn', 'gone'], 'info', LEVELS)).toEqual([]);
+    expect(toggleFacet(['error', 'warn', 'gone'], 'info', OPTIONS)).toEqual([]);
   });
 
   it('never mutates the incoming selection', () => {
     const selected = ['error'];
-    toggleFacet(selected, 'info', LEVELS);
+    toggleFacet(selected, 'info', OPTIONS);
     expect(selected).toEqual(['error']);
   });
 });

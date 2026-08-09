@@ -1,13 +1,14 @@
 import { Box, Icon } from '@rocket.chat/fuselage';
+import type { Keys as IconName } from '@rocket.chat/icons';
 import type { ReactNode } from 'react';
 
 export type StatusItemProps = {
-  icon: 'hash' | 'file' | 'clock';
+  icon: IconName;
   children: ReactNode;
   title?: string;
 };
 
-/** One icon-and-value cell of the status bar. */
+/** One icon-and-value cell of a window's status bar. */
 export const StatusItem = ({ icon, children, title }: StatusItemProps) => (
   <Box
     display='flex'

@@ -3,7 +3,7 @@ import type { MouseEvent, ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { Surfaces } from './appearance';
+import type { Surfaces } from '../ui/windowChrome/appearance';
 import { LEVEL_ACCENT, LEVEL_BADGE_VARIANT } from './appearance';
 import { getEntryTime } from './parseLogs';
 import { LOG_MARK_CLASS, LOG_ROW_ACTIONS_CLASS, LOG_ROW_CLASS } from './styles';

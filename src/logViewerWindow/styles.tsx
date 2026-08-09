@@ -1,60 +1,28 @@
 import { Global, css } from '@emotion/react';
 
-import type { PaletteTheme, Surfaces } from './appearance';
+import type { Surfaces } from '../ui/windowChrome/appearance';
 
-export const DRAG_REGION_CLASS = 'rcx-log-drag';
-export const NO_DRAG_REGION_CLASS = 'rcx-log-no-drag';
-export const FILTER_ROW_CLASS = 'rcx-log-filter-row';
 export const LOG_ROW_CLASS = 'rcx-log-row';
 export const LOG_ROW_ACTIONS_CLASS = 'rcx-log-row__actions';
 export const LOG_MARK_CLASS = 'rcx-log-mark';
 export const TIMELINE_SELECTION_CLASS = 'rcx-log-timeline-selection';
 
 type LogViewerGlobalStylesProps = {
-  paletteTheme: PaletteTheme;
   surfaces: Surfaces;
 };
 
 /**
- * Hover, selection and scrollbar chrome that has to live in a stylesheet: the
- * log list renders thousands of rows, so hover state is resolved by CSS instead
- * of per-row React state.
+ * Log-specific rules only; the window background, drag regions, filter hover and
+ * scrollbars come from the shared window chrome.
+ *
+ * Row hover lives in a stylesheet rather than React state because the list runs
+ * to thousands of rows and per-row state would re-render on every pointer move.
  */
 export const LogViewerGlobalStyles = ({
-  paletteTheme,
   surfaces,
 }: LogViewerGlobalStylesProps) => (
   <Global
     styles={css`
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        background-color: ${surfaces.panel};
-      }
-
-      .${DRAG_REGION_CLASS} {
-        -webkit-app-region: drag;
-      }
-
-      .${NO_DRAG_REGION_CLASS} {
-        -webkit-app-region: no-drag;
-      }
-
-      .${FILTER_ROW_CLASS}:hover {
-        background-color: ${surfaces.hover};
-      }
-
-      .${FILTER_ROW_CLASS}:focus-visible {
-        background-color: ${surfaces.selected};
-      }
-
       .${LOG_ROW_CLASS}:hover {
         background-color: ${surfaces.hover};
       }
@@ -70,6 +38,13 @@ export const LogViewerGlobalStyles = ({
         opacity: 1;
       }
 
+      .${LOG_MARK_CLASS} {
+        border-radius: 2px;
+        padding: 0 1px;
+        background-color: var(--rcx-color-status-background-warning);
+        color: var(--rcx-color-status-font-on-warning);
+      }
+
       .${TIMELINE_SELECTION_CLASS} {
         position: absolute;
         inset-block: 0;
@@ -81,41 +56,6 @@ export const LogViewerGlobalStyles = ({
           var(--rcx-color-stroke-highlight) 14%,
           transparent
         );
-      }
-
-      .${LOG_MARK_CLASS} {
-        border-radius: 2px;
-        padding: 0 1px;
-        background-color: var(--rcx-color-status-background-warning);
-        color: var(--rcx-color-status-font-on-warning);
-      }
-
-      ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        border: 2px solid transparent;
-        border-radius: 6px;
-        background-clip: content-box;
-        background-color: ${paletteTheme === 'dark'
-          ? 'rgba(255, 255, 255, 0.22)'
-          : 'rgba(0, 0, 0, 0.22)'};
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background-color: ${paletteTheme === 'dark'
-          ? 'rgba(255, 255, 255, 0.34)'
-          : 'rgba(0, 0, 0, 0.34)'};
-      }
-
-      ::-webkit-scrollbar-corner {
-        background: transparent;
       }
     `}
   />

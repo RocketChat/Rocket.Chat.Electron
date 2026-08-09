@@ -290,6 +290,36 @@ export default [
   },
   {
     external: makeExternal(['@bugsnag/js']),
+    input: 'src/downloadsWindow/downloads-window.tsx',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+      run(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
+    external: makeExternal(['@bugsnag/js']),
     input: 'src/screenSharing/screen-picker-window.tsx',
     preserveEntrySignatures: 'strict',
     plugins: [

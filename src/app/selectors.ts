@@ -99,6 +99,8 @@ const selectPersistableValuesB = createStructuredSelector({
   isTelephonyEnabled: ({ isTelephonyEnabled }: RootState) => isTelephonyEnabled,
   isLogViewerWindowOpen: ({ isLogViewerWindowOpen }: RootState) =>
     isLogViewerWindowOpen,
+  isDownloadsWindowOpen: ({ isDownloadsWindowOpen }: RootState) =>
+    isDownloadsWindowOpen,
 });
 
 export const selectPersistableValues = createSelector(

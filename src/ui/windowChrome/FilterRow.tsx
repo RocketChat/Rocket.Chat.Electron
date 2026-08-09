@@ -82,7 +82,7 @@ export const FilterRow = ({
       {count !== undefined && (
         <Box
           fontScale='micro'
-          color='annotation'
+          color='secondary-info'
           marginInlineStart='x4'
           flexShrink={0}
           style={{ fontVariantNumeric: 'tabular-nums' }}

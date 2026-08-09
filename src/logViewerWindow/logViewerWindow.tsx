@@ -20,28 +20,27 @@ import type { VirtuosoHandle } from 'react-virtuoso';
 import { GroupedVirtuoso } from 'react-virtuoso';
 
 import TooltipProvider from '../ui/components/utils/TooltipProvider';
-import { DayDivider } from './DayDivider';
+import { formatServerTitle } from '../ui/components/utils/formatServerTitle';
+import { DayHeader } from '../ui/windowChrome/DayHeader';
+import type { PaletteTheme } from '../ui/windowChrome/appearance';
+import { getCardStyle, resolveSurfaces } from '../ui/windowChrome/appearance';
+import { toggleFacet } from '../ui/windowChrome/filters';
+import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
+import { useTransparency } from '../ui/windowChrome/useTransparency';
 import { LogEntry } from './LogEntry';
 import { LogStatusBar } from './LogStatusBar';
 import { LogTimeline } from './LogTimeline';
 import { LogViewerSidebar } from './LogViewerSidebar';
 import { LogViewerToolbar } from './LogViewerToolbar';
-import type { PaletteTheme } from './appearance';
+import { LOG_LEVELS } from './appearance';
 import {
-  CARD_INSET,
-  CARD_RADIUS,
-  LOG_LEVELS,
-  resolveCardStyle,
-  resolveSurfaces,
-} from './appearance';
-import {
+  TRANSPARENCY_CHANNEL,
   AUTO_REFRESH_INTERVAL_MS,
   PAGE_SIZE,
   SCROLL_DELAY_MS,
   SEARCH_DEBOUNCE_MS,
   VIRTUOSO_OVERSCAN,
 } from './constants';
-import { toggleFacet } from './filters';
 import { advanceVisibleCount } from './pagination';
 import { countBy, getEntryDay, parseLogLines } from './parseLogs';
 import { LogViewerGlobalStyles } from './styles';
@@ -56,7 +55,6 @@ import {
   type SelectFileResponse,
   type ClearLogsResponse,
 } from './types';
-import { useTransparency } from './useTransparency';
 
 /** Context tags that have a friendlier translated name than the raw tag. */
 const CONTEXT_LABEL_KEYS: Record<string, string> = {
@@ -99,14 +97,14 @@ type LogViewerWindowProps = {
 
 function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const { t } = useTranslation();
-  const isTransparent = useTransparency();
+  const isTransparent = useTransparency(TRANSPARENCY_CHANNEL);
   const surfaces = useMemo(
     () => resolveSurfaces(paletteTheme, isTransparent),
     [paletteTheme, isTransparent]
   );
   const cardStyle = useMemo(
-    () => resolveCardStyle(paletteTheme),
-    [paletteTheme]
+    () => getCardStyle(paletteTheme, surfaces),
+    [paletteTheme, surfaces]
   );
 
   const [searchFilter, setSearchFilter] = useState('');
@@ -145,10 +143,6 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     isDefaultLog: true,
   });
 
-  const [isSidebarVisible, setIsSidebarVisible] = useLocalStorage(
-    'log-viewer/sidebar-visible',
-    true
-  );
   const [showContext, setShowContext] = useLocalStorage(
     'log-viewer/show-context',
     true
@@ -603,7 +597,17 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
           'log-viewer-window/get-server-mapping'
         )) as { success: boolean; mapping: Record<string, string> };
         if (response?.success) {
-          setServerMapping(response.mapping);
+          // Workspace titles are often the raw address; strip the scheme and
+          // trailing slashes here so the sidebar labels and the tag on every
+          // row read the same way the workspace tabs do.
+          setServerMapping(
+            Object.fromEntries(
+              Object.entries(response.mapping).map(([host, title]) => [
+                host,
+                formatServerTitle(title || host),
+              ])
+            )
+          );
         }
       } catch {
         // Non-critical: mapping not available yet
@@ -742,8 +746,9 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   const renderDayGroup = useCallback(
     (groupIndex: number) => (
-      <DayDivider
+      <DayHeader
         label={dayGroups[groupIndex]?.label ?? ''}
+        trailing={dayGroups[groupIndex]?.count}
         surfaces={surfaces}
       />
     ),
@@ -892,7 +897,6 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        setIsSidebarVisible(true);
         const searchInput = document.querySelector(
           'input[type="search"]'
         ) as HTMLInputElement;
@@ -902,10 +906,6 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
         e.preventDefault();
         handleSaveLogs();
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        setIsSidebarVisible((previous) => !previous);
-      }
       if (e.key === 'Escape' && searchFilter) {
         setSearchFilter('');
       }
@@ -913,15 +913,15 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [searchFilter, handleSaveLogs, setIsSidebarVisible]);
-
-  const handleToggleSidebar = useCallback(() => {
-    setIsSidebarVisible((previous) => !previous);
-  }, [setIsSidebarVisible]);
+  }, [searchFilter, handleSaveLogs]);
 
   return (
     <TooltipProvider>
-      <LogViewerGlobalStyles paletteTheme={paletteTheme} surfaces={surfaces} />
+      <WindowChromeGlobalStyles
+        paletteTheme={paletteTheme}
+        surfaces={surfaces}
+      />
+      <LogViewerGlobalStyles surfaces={surfaces} />
       <Box
         display='flex'
         flexDirection='column'
@@ -933,8 +933,6 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
           fileName={currentLogFile.fileName}
           filePath={currentLogFile.filePath}
           isDefaultLog={currentLogFile.isDefaultLog}
-          isSidebarVisible={isSidebarVisible}
-          onToggleSidebar={handleToggleSidebar}
           isLoading={isLoading}
           isStreaming={isStreaming}
           onOpenLogFile={handleOpenLogFile}
@@ -943,7 +941,6 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
           onToggleStreaming={handleToggleStreaming}
           onCopy={handleCopyLogs}
           onSave={handleSaveLogs}
-          onClear={handleClearLogs}
         />
 
         <Box
@@ -952,134 +949,135 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
           flexGrow={1}
           style={{ minHeight: 0 }}
         >
-          {isSidebarVisible && (
-            <LogViewerSidebar
-              surfaces={surfaces}
-              searchFilter={searchFilter}
-              onSearchFilterChange={handleSearchFilterChange}
-              levelFilters={levelFilters}
-              availableLevels={availableLevels}
-              levelCounts={levelCounts}
-              onToggleLevel={handleToggleLevel}
-              contextOptions={contextOptions}
-              contextLabels={contextLabels}
-              contextFilters={contextFilters}
-              contextCounts={contextCounts}
-              onToggleContext={handleToggleContext}
-              serverOptions={serverOptions}
-              serverLabels={serverLabels}
-              serverFilters={serverFilters}
-              serverCounts={serverCounts}
-              onToggleServer={handleToggleServer}
-              showContext={showContext}
-              onToggleShowContext={() => setShowContext(!showContext)}
-              showServer={showServer}
-              onToggleShowServer={() => setShowServer(!showServer)}
-              wrapLines={wrapLines}
-              onToggleWrapLines={() => setWrapLines(!wrapLines)}
-              collapseMultiline={collapseMultiline}
-              onToggleCollapseMultiline={() =>
-                setCollapseMultiline(!collapseMultiline)
-              }
-              autoScroll={autoScroll}
-              onToggleAutoScroll={handleToggleAutoScroll}
-              showTimeline={showTimeline}
-              onToggleShowTimeline={() => setShowTimeline(!showTimeline)}
-              activeFilterCount={activeFilterCount}
-              onClearFilters={handleClearFilters}
-            />
-          )}
+          <LogViewerSidebar
+            searchFilter={searchFilter}
+            onSearchFilterChange={handleSearchFilterChange}
+            levelFilters={levelFilters}
+            availableLevels={availableLevels}
+            levelCounts={levelCounts}
+            onToggleLevel={handleToggleLevel}
+            contextOptions={contextOptions}
+            contextLabels={contextLabels}
+            contextFilters={contextFilters}
+            contextCounts={contextCounts}
+            onToggleContext={handleToggleContext}
+            serverOptions={serverOptions}
+            serverLabels={serverLabels}
+            serverFilters={serverFilters}
+            serverCounts={serverCounts}
+            onToggleServer={handleToggleServer}
+            showContext={showContext}
+            onToggleShowContext={() => setShowContext(!showContext)}
+            showServer={showServer}
+            onToggleShowServer={() => setShowServer(!showServer)}
+            wrapLines={wrapLines}
+            onToggleWrapLines={() => setWrapLines(!wrapLines)}
+            collapseMultiline={collapseMultiline}
+            onToggleCollapseMultiline={() =>
+              setCollapseMultiline(!collapseMultiline)
+            }
+            autoScroll={autoScroll}
+            onToggleAutoScroll={handleToggleAutoScroll}
+            showTimeline={showTimeline}
+            onToggleShowTimeline={() => setShowTimeline(!showTimeline)}
+            onSelectAllLevels={() => setLevelFilters([])}
+            onSelectAllContexts={() => setContextFilters([])}
+            onSelectAllServers={() => setServerFilters([])}
+          />
 
           <Box
             flexGrow={1}
             display='flex'
             flexDirection='column'
-            style={{
-              minWidth: 0,
-              minHeight: 0,
-              backgroundColor: surfaces.list,
-              // Inset on all four sides, unlike the main window's flush top
-              // edge: here the panel wraps the card on three sides, and a gap
-              // under the toolbar too is what makes all of it read as one
-              // background rather than as a stack of bars.
-              margin: `${CARD_INSET}px`,
-              borderRadius: `${CARD_RADIUS}px`,
-              border: cardStyle.border,
-              boxShadow: cardStyle.boxShadow,
-              overflow: 'hidden',
-            }}
+            style={{ minWidth: 0, minHeight: 0 }}
           >
-            {showTimeline && timelineEntries.length > 0 && (
-              <LogTimeline
-                entries={timelineEntries}
-                surfaces={surfaces}
-                selectedRange={timeRange}
-                onSelectRange={setTimeRange}
-              />
-            )}
-            {isLoading && logEntries.length === 0 && (
-              <Box
-                display='flex'
-                justifyContent='center'
-                alignItems='center'
-                flexGrow={1}
-              >
-                <Throbber size='x32' />
-              </Box>
-            )}
-            {!isLoading && visibleLogs.length === 0 && (
-              <Box
-                display='flex'
-                justifyContent='center'
-                alignItems='center'
-                flexGrow={1}
-              >
-                <States>
-                  <StatesIcon name='magnifier' />
-                  <StatesTitle>
-                    {t('logViewer.messages.noLogsFound')}
-                  </StatesTitle>
-                  <StatesSubtitle>
-                    {t('logViewer.messages.adjustFilters')}
-                  </StatesSubtitle>
-                  {activeFilterCount > 0 && (
-                    <StatesActions>
-                      <StatesAction onClick={handleClearFilters}>
-                        {t('logViewer.buttons.clearFilters')}
-                      </StatesAction>
-                    </StatesActions>
-                  )}
-                </States>
-              </Box>
-            )}
-            {visibleLogs.length > 0 && (
-              <GroupedVirtuoso
-                ref={virtuosoRef}
-                data={visibleLogs}
-                groupCounts={dayGroupCounts}
-                groupContent={renderDayGroup}
-                // Group header rows share the flat index space with entries but
-                // have no data item, so `entry` is undefined for them.
-                computeItemKey={(index, entry) => entry?.id ?? `day-${index}`}
-                itemContent={renderLogEntry}
-                overscan={VIRTUOSO_OVERSCAN}
-                style={{ height: '100%', width: '100%' }}
-                onScroll={handleScroll}
-                endReached={handleEndReached}
-              />
-            )}
+            <Box
+              flexGrow={1}
+              display='flex'
+              flexDirection='column'
+              style={{
+                minWidth: 0,
+                minHeight: 0,
+                ...cardStyle,
+                // The status bar below supplies this gap, so the card's own
+                // bottom margin would double it.
+                marginBlockEnd: 0,
+              }}
+            >
+              {showTimeline && timelineEntries.length > 0 && (
+                <LogTimeline
+                  entries={timelineEntries}
+                  surfaces={surfaces}
+                  selectedRange={timeRange}
+                  onSelectRange={setTimeRange}
+                />
+              )}
+              {isLoading && logEntries.length === 0 && (
+                <Box
+                  display='flex'
+                  justifyContent='center'
+                  alignItems='center'
+                  flexGrow={1}
+                >
+                  <Throbber size='x32' />
+                </Box>
+              )}
+              {!isLoading && visibleLogs.length === 0 && (
+                <Box
+                  display='flex'
+                  justifyContent='center'
+                  alignItems='center'
+                  flexGrow={1}
+                >
+                  <States>
+                    <StatesIcon name='magnifier' />
+                    <StatesTitle>
+                      {t('logViewer.messages.noLogsFound')}
+                    </StatesTitle>
+                    <StatesSubtitle>
+                      {t('logViewer.messages.adjustFilters')}
+                    </StatesSubtitle>
+                    {activeFilterCount > 0 && (
+                      <StatesActions>
+                        <StatesAction onClick={handleClearFilters}>
+                          {t('logViewer.buttons.clearFilters')}
+                        </StatesAction>
+                      </StatesActions>
+                    )}
+                  </States>
+                </Box>
+              )}
+              {visibleLogs.length > 0 && (
+                <GroupedVirtuoso
+                  ref={virtuosoRef}
+                  data={visibleLogs}
+                  groupCounts={dayGroupCounts}
+                  groupContent={renderDayGroup}
+                  // Group header rows share the flat index space with entries but
+                  // have no data item, so `entry` is undefined for them.
+                  computeItemKey={(index, entry) => entry?.id ?? `day-${index}`}
+                  itemContent={renderLogEntry}
+                  overscan={VIRTUOSO_OVERSCAN}
+                  style={{ height: '100%', width: '100%' }}
+                  onScroll={handleScroll}
+                  endReached={handleEndReached}
+                />
+              )}
+            </Box>
+
+            <LogStatusBar
+              shownCount={filteredLogs.length}
+              loadedCount={logEntries.length}
+              fileSize={fileInfo?.size}
+              dateRange={fileInfo?.dateRange}
+              filePath={currentLogFile.filePath}
+              isStreaming={isStreaming}
+              isLoading={isLoading}
+              canClear={currentLogFile.isDefaultLog && logEntries.length > 0}
+              onClearLogs={handleClearLogs}
+            />
           </Box>
         </Box>
-
-        <LogStatusBar
-          shownCount={filteredLogs.length}
-          loadedCount={logEntries.length}
-          fileSize={fileInfo?.size}
-          dateRange={fileInfo?.dateRange}
-          filePath={currentLogFile.filePath}
-          isStreaming={isStreaming}
-          isLoading={isLoading}
-        />
       </Box>
     </TooltipProvider>
   );

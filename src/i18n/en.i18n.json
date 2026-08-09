@@ -201,12 +201,19 @@
         "videos": "Videos",
         "audios": "Audios",
         "texts": "Texts",
-        "files": "Files"
+        "files": "Files",
+        "image": "Images",
+        "video": "Videos",
+        "audio": "Audio",
+        "text": "Documents",
+        "application": "Files",
+        "other": "Other"
       },
       "statuses": {
         "paused": "Paused",
         "cancelled": "Cancelled"
-      }
+      },
+      "selectAll": "All"
     },
     "item": {
       "cancel": "Cancel",
@@ -217,7 +224,9 @@
       "remove": "Remove from list",
       "resume": "Resume",
       "retry": "Retry",
-      "showInFolder": "Show in Folder"
+      "showInFolder": "Show in Folder",
+      "openFile": "Open {{fileName}}",
+      "preview": "Quick Look"
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}",
     "empty": {
@@ -227,6 +236,20 @@
     "noResults": {
       "title": "No matching downloads",
       "subtitle": "Try adjusting your filters or search."
+    },
+    "clearFilters": "Clear filters",
+    "clearFiltersCount": "Clear {{count}} filters",
+    "count_one": "{{count}} download",
+    "count_other": "{{count}} downloads",
+    "countOfTotal": "{{count}} of {{total}} downloads",
+    "sidebar": {
+      "title": "Download filters"
+    },
+    "clearAll": "Clear all",
+    "day": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "unknown": "Earlier"
     }
   },
   "certificatesManager": {
@@ -657,10 +680,9 @@
       "stopAutoRefresh": "Stop Auto Refresh",
       "copy": "Copy",
       "save": "Save",
-      "clear": "Clear",
+      "clear": "Clear all",
       "clearFilters": "Clear Filters",
-      "clearFiltersCount": "Clear {{count}} filters",
-      "toggleFilters": "Toggle filters"
+      "clearFiltersCount": "Clear {{count}} filters"
     },
     "controls": {
       "showContext": "Show Context",
@@ -705,7 +727,8 @@
         "networkErrors": "Network Issues",
         "successFactors": "Success Factors",
         "outlookCalendar": "Outlook Calendar"
-      }
+      },
+      "selectAll": "All"
     },
     "messages": {
       "noLogsFound": "No logs found",

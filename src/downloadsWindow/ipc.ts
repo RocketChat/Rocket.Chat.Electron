@@ -1,0 +1,182 @@
+import path from 'path';
+
+import type { Event } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
+
+import { packageJsonInformation } from '../app/main/app';
+import { handle } from '../ipc/main';
+import { dispatch, listen, select, watch } from '../store';
+import type { RootState } from '../store/rootReducer';
+import {
+  DOWNLOADS_WINDOW_OPEN_STATE_CHANGED,
+  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+} from '../ui/actions';
+import { getRootWindow } from '../ui/main/rootWindow';
+import {
+  TRAFFIC_LIGHTS_X,
+  TRAFFIC_LIGHTS_Y,
+} from '../ui/windowChrome/appearance';
+import {
+  TRANSPARENCY_CHANNEL,
+  WINDOW_MIN_HEIGHT,
+  WINDOW_MIN_WIDTH,
+  WINDOW_SIZE_MULTIPLIER,
+} from './constants';
+
+const isMac = process.platform === 'darwin';
+
+let downloadsWindow: BrowserWindow | null = null;
+
+/**
+ * Set once quitting starts. The window's `closed` handler fires both when the
+ * reader closes it and when the app tears its windows down on quit; without this
+ * the quit path would record "closed" and defeat restoring it next launch.
+ */
+let isAppQuitting = false;
+
+const selectIsTransparencyEnabled = ({
+  isTransparentWindowEnabled,
+}: RootState): boolean => isTransparentWindowEnabled;
+
+const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
+  if (downloadsWindow && !downloadsWindow.isDestroyed()) {
+    downloadsWindow.focus();
+    return;
+  }
+
+  const mainWindow = await getRootWindow();
+  const winBounds = mainWindow.getNormalBounds();
+
+  const actualScreen = screen.getDisplayNearestPoint({
+    x: winBounds.x + winBounds.width / 2,
+    y: winBounds.y + winBounds.height / 2,
+  });
+
+  const width = Math.round(
+    actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER
+  );
+  const height = Math.round(
+    actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER
+  );
+  const x = Math.round(
+    (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
+  );
+  const y = Math.round(
+    (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
+  );
+
+  // Seeds the first paint only; the renderer then follows the setting live.
+  const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
+
+  downloadsWindow = new BrowserWindow({
+    width,
+    height,
+    x,
+    y,
+    minWidth: WINDOW_MIN_WIDTH,
+    minHeight: WINDOW_MIN_HEIGHT,
+    title: 'Downloads - Rocket.Chat',
+    // The toolbar doubles as the title bar on macOS, so the window shows one
+    // header instead of a native title bar stacked on an in-app one.
+    ...(isMac
+      ? {
+          titleBarStyle: 'hiddenInset' as const,
+          trafficLightPosition: { x: TRAFFIC_LIGHTS_X, y: TRAFFIC_LIGHTS_Y },
+        }
+      : {}),
+    // `transparent` cannot be toggled after creation, so — like the root window —
+    // the window is always transparent with a vibrancy material on macOS and the
+    // setting only decides whether the renderer paints an opaque surface over it.
+    ...(isMac
+      ? {
+          transparent: true,
+          vibrancy: 'sidebar' as const,
+          visualEffectState: 'active' as const,
+        }
+      : {}),
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+    show: false,
+  });
+
+  downloadsWindow.loadFile(
+    path.join(app.getAppPath(), 'app/downloads-window.html'),
+    { query: { transparent: String(isTransparencyEnabled) } }
+  );
+
+  downloadsWindow.once('ready-to-show', () => {
+    downloadsWindow?.setTitle(
+      `Downloads - ${packageJsonInformation.productName}`
+    );
+    if (focusOnShow) {
+      downloadsWindow?.show();
+      return;
+    }
+    // Restored at launch: show it without stealing focus from the main window.
+    downloadsWindow?.showInactive();
+  });
+
+  dispatch({ type: DOWNLOADS_WINDOW_OPEN_STATE_CHANGED, payload: true });
+
+  downloadsWindow.on('closed', () => {
+    downloadsWindow = null;
+    if (!isAppQuitting) {
+      dispatch({ type: DOWNLOADS_WINDOW_OPEN_STATE_CHANGED, payload: false });
+    }
+  });
+
+  downloadsWindow.webContents.on(
+    'will-navigate',
+    (event: Event, url: string) => {
+      if (!url.startsWith('file://')) {
+        event.preventDefault();
+      }
+    }
+  );
+
+  downloadsWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+};
+
+export const openDownloadsWindow = (): Promise<void> =>
+  createDownloadsWindow(true);
+
+/**
+ * Reopens the window at launch when it was open at shutdown, without taking
+ * focus from the main window.
+ */
+export const restoreDownloadsWindow = async (): Promise<void> => {
+  if (
+    !select(({ isDownloadsWindowOpen }: RootState) => isDownloadsWindowOpen)
+  ) {
+    return;
+  }
+  await createDownloadsWindow(false);
+};
+
+export const startDownloadsWindowHandler = (): void => {
+  app.on('before-quit', () => {
+    isAppQuitting = true;
+  });
+
+  handle('downloads-window/open-window', openDownloadsWindow);
+
+  // Every entry point — the menu items, the titlebar indicator and the
+  // download-finished notification — already dispatches this, so hooking it
+  // here redirects all of them at once.
+  listen(SIDE_BAR_DOWNLOADS_BUTTON_CLICKED, () => {
+    openDownloadsWindow();
+  });
+
+  handle('downloads-window/close-requested', async () => {
+    downloadsWindow?.close();
+  });
+
+  // Transparency is a renderer concern here, so a change only needs pushing to
+  // the open window — no reopen, no restart.
+  watch(selectIsTransparencyEnabled, (isEnabled) => {
+    if (!downloadsWindow || downloadsWindow.isDestroyed()) return;
+    downloadsWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  });
+};

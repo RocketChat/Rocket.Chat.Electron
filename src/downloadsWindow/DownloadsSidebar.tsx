@@ -1,0 +1,146 @@
+import { Box, Icon, Scrollable, SearchInput } from '@rocket.chat/fuselage';
+import type { ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { FilterRow } from '../ui/windowChrome/FilterRow';
+import { FilterSection } from '../ui/windowChrome/FilterSection';
+import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
+import { isFacetSelected } from '../ui/windowChrome/filters';
+import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
+
+export type FacetOption = {
+  value: string;
+  label: string;
+  title?: string;
+};
+
+export type DownloadsSidebarProps = {
+  searchFilter: string;
+  onSearchFilterChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  serverOptions: FacetOption[];
+  serverFilters: string[];
+  serverCounts: Record<string, number>;
+  onToggleServer: (server: string) => void;
+  typeOptions: FacetOption[];
+  typeFilters: string[];
+  typeCounts: Record<string, number>;
+  onToggleType: (mimeType: string) => void;
+  statusOptions: FacetOption[];
+  statusFilters: string[];
+  statusCounts: Record<string, number>;
+  onToggleStatus: (status: string) => void;
+  onSelectAllServers: () => void;
+  onSelectAllTypes: () => void;
+  onSelectAllStatuses: () => void;
+};
+
+export const DownloadsSidebar = ({
+  searchFilter,
+  onSearchFilterChange,
+  serverOptions,
+  serverFilters,
+  serverCounts,
+  onToggleServer,
+  typeOptions,
+  typeFilters,
+  typeCounts,
+  onToggleType,
+  statusOptions,
+  statusFilters,
+  statusCounts,
+  onToggleStatus,
+  onSelectAllServers,
+  onSelectAllTypes,
+  onSelectAllStatuses,
+}: DownloadsSidebarProps) => {
+  const { t } = useTranslation();
+  const selectAllLabel = t('downloads.filters.selectAll');
+
+  return (
+    <Box
+      is='aside'
+      display='flex'
+      flexDirection='column'
+      aria-label={t('downloads.sidebar.title')}
+      style={{
+        width: `${SIDEBAR_WIDTH}px`,
+        flex: `0 0 ${SIDEBAR_WIDTH}px`,
+        minHeight: 0,
+      }}
+    >
+      <Box padding='x12' paddingBlockEnd='x8' className={SEARCH_FIELD_CLASS}>
+        <SearchInput
+          addon={<Icon name='magnifier' size='x20' />}
+          aria-label={t('downloads.filters.search')}
+          placeholder={t('downloads.filters.search')}
+          value={searchFilter}
+          onChange={onSearchFilterChange}
+        />
+      </Box>
+
+      <Box flexGrow={1} style={{ minHeight: 0 }}>
+        <Scrollable vertical>
+          <Box paddingInline='x12' paddingBlockEnd='x12' height='100%'>
+            {statusOptions.length > 0 && (
+              <FilterSection
+                title={t('downloads.filters.status')}
+                selectAllLabel={selectAllLabel}
+                canSelectAll={statusFilters.length > 0}
+                onSelectAll={onSelectAllStatuses}
+              >
+                {statusOptions.map((option) => (
+                  <FilterRow
+                    key={option.value}
+                    label={option.label}
+                    count={statusCounts[option.value] ?? 0}
+                    checked={isFacetSelected(statusFilters, option.value)}
+                    onToggle={() => onToggleStatus(option.value)}
+                  />
+                ))}
+              </FilterSection>
+            )}
+
+            {typeOptions.length > 0 && (
+              <FilterSection
+                title={t('downloads.filters.mimeType')}
+                selectAllLabel={selectAllLabel}
+                canSelectAll={typeFilters.length > 0}
+                onSelectAll={onSelectAllTypes}
+              >
+                {typeOptions.map((option) => (
+                  <FilterRow
+                    key={option.value}
+                    label={option.label}
+                    count={typeCounts[option.value] ?? 0}
+                    checked={isFacetSelected(typeFilters, option.value)}
+                    onToggle={() => onToggleType(option.value)}
+                  />
+                ))}
+              </FilterSection>
+            )}
+
+            {serverOptions.length > 0 && (
+              <FilterSection
+                title={t('downloads.filters.server')}
+                selectAllLabel={selectAllLabel}
+                canSelectAll={serverFilters.length > 0}
+                onSelectAll={onSelectAllServers}
+              >
+                {serverOptions.map((option) => (
+                  <FilterRow
+                    key={option.value}
+                    label={option.label}
+                    title={option.title}
+                    count={serverCounts[option.value] ?? 0}
+                    checked={isFacetSelected(serverFilters, option.value)}
+                    onToggle={() => onToggleServer(option.value)}
+                  />
+                ))}
+              </FilterSection>
+            )}
+          </Box>
+        </Scrollable>
+      </Box>
+    </Box>
+  );
+};

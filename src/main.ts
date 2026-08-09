@@ -17,6 +17,10 @@ import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
 import { setupDownloads } from './downloads/main';
 import { setupElectronDlWithTracking } from './downloads/main/setup';
+import {
+  restoreDownloadsWindow,
+  startDownloadsWindowHandler,
+} from './downloadsWindow/ipc';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
@@ -134,6 +138,7 @@ const start = async (): Promise<void> => {
   startServerViewScreenSharingHandler();
   startVideoCallWindowHandler();
   startLogViewerWindowHandler();
+  startDownloadsWindowHandler();
 
   await setupSpellChecking();
 
@@ -172,6 +177,7 @@ const start = async (): Promise<void> => {
   checkSupportedVersionServers();
 
   await restoreLogViewerWindow();
+  await restoreDownloadsWindow();
 
   await processDeepLinksInArgs();
 

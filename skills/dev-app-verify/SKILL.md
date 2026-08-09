@@ -33,6 +33,12 @@ app through that socket: real menus, real Redux, real paint.
    Electron process exists, two instances raced the SingletonLock. Recovery:
    `pkill -9 -f "<worktree-name>"`, wait, single fresh `yarn start`
    (cold boot ≈ 30s).
+4. **Background `gitnexus analyze` interferes.** While it runs it mutates
+   worktree git state and touches watched files — it can restart the app
+   mid-verification (phantom `bundles src/` rebuilds) and silently drop
+   freshly staged files from the git index. Don't reindex during a
+   verification run; when you do reindex, use
+   `node .gitnexus/run.cjs analyze --index-only`.
 
 ## The script
 

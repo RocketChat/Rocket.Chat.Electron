@@ -184,6 +184,12 @@ git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch ma
   impact analysis and affected-scope checks. If it is unavailable, do not
   block progress solely on that tool; compensate with local code search,
   tests, and careful review.
+- Reindex GitNexus with `node .gitnexus/run.cjs analyze --index-only` and
+  only at quiet points: a plain `analyze` rewrites the gitnexus blocks in
+  `AGENTS.md`/`CLAUDE.md` (stats churn in tracked files), and a background
+  analyze mutates worktree git state — it can silently drop freshly staged
+  files from the index and touch watched sources, restarting a running
+  `yarn start` app mid-verification.
 
 ## Writing
 

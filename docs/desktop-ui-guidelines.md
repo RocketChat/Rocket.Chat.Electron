@@ -37,6 +37,10 @@ Semantic guide (hard-won):
 - Percent text that must not jitter: monospace + `font-variant-numeric:
   tabular-nums` + fixed `3ch` width (two digits + `%`) — the `UpdateLabel`
   convention; reuse it, don't invent widths.
+- Fuselage `Select` (and other react-aria-backed inputs) requires a visible
+  label, `aria-label`, or `aria-labelledby` — react-aria's `useSelect` only
+  recognizes those props and throws the accessibility warning otherwise;
+  wrapping the component in a labeled container is not enough.
 
 ## Animation timing
 

@@ -106,6 +106,9 @@ export const LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED =
   'log-viewer-window/open-state-changed';
 export const DOWNLOADS_WINDOW_OPEN_STATE_CHANGED =
   'downloads-window/open-state-changed';
+export const SETTINGS_WINDOW_OPEN_STATE_CHANGED =
+  'settings-window/open-state-changed';
+export const SECONDARY_WINDOW_STATE_CHANGED = 'secondary-window/state-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED =
   'settings/set-is-video-call-devtools-auto-open-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED =
@@ -276,6 +279,11 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED]: boolean;
   [LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED]: boolean;
   [DOWNLOADS_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [SETTINGS_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [SECONDARY_WINDOW_STATE_CHANGED]: {
+    id: string;
+    bounds: { x: number; y: number; width: number; height: number };
+  };
   [SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;

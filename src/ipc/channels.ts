@@ -138,6 +138,8 @@ type ChannelToArgsMap = {
     success: boolean;
     mapping: Record<string, string>;
   };
+  'settings-window/open-window': () => void;
+  'settings-window/close-requested': () => void;
   'downloads-window/open-window': () => void;
   'downloads-window/close-requested': () => void;
   'screen-picker/open': () => void;

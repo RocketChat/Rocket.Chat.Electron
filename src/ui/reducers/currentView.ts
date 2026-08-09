@@ -90,8 +90,10 @@ export const currentView = (
     case SIDE_BAR_DOWNLOADS_BUTTON_CLICKED:
       return state;
 
+    // Settings open in their own window now, so the root window keeps
+    // whatever view it was on.
     case SIDE_BAR_SETTINGS_BUTTON_CLICKED:
-      return 'settings';
+      return state;
 
     default:
       return state;

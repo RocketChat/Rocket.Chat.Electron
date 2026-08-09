@@ -42,6 +42,7 @@ import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
 import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnabled';
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
+import { isSettingsWindowOpen } from '../ui/reducers/isSettingsWindowOpen';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTelephonyEnabled } from '../ui/reducers/isTelephonyEnabled';
@@ -56,6 +57,7 @@ import { navigationLayout } from '../ui/reducers/navigationLayout';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
+import { secondaryWindowStates } from '../ui/reducers/secondaryWindowStates';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
 import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
@@ -94,6 +96,7 @@ export const rootReducer = combineReducers({
   isMenuBarEnabled,
   isMessageBoxFocused,
   isShowWindowOnUnreadChangedEnabled,
+  isSettingsWindowOpen,
   isSideBarEnabled,
   navigationLayout,
   isTrayIconEnabled,
@@ -107,6 +110,7 @@ export const rootReducer = combineReducers({
   openDialog,
   rootWindowIcon,
   rootWindowState,
+  secondaryWindowStates,
   selectedBrowser,
   servers,
   userThemePreference,

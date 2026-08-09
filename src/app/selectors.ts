@@ -101,6 +101,10 @@ const selectPersistableValuesB = createStructuredSelector({
     isLogViewerWindowOpen,
   isDownloadsWindowOpen: ({ isDownloadsWindowOpen }: RootState) =>
     isDownloadsWindowOpen,
+  isSettingsWindowOpen: ({ isSettingsWindowOpen }: RootState) =>
+    isSettingsWindowOpen,
+  secondaryWindowStates: ({ secondaryWindowStates }: RootState) =>
+    secondaryWindowStates,
 });
 
 export const selectPersistableValues = createSelector(

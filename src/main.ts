@@ -52,6 +52,10 @@ import {
 } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
+import {
+  restoreSettingsWindow,
+  startSettingsWindowHandler,
+} from './settingsWindow/ipc';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
 import { applySystemCertificates } from './systemCertificates';
@@ -139,6 +143,7 @@ const start = async (): Promise<void> => {
   startVideoCallWindowHandler();
   startLogViewerWindowHandler();
   startDownloadsWindowHandler();
+  startSettingsWindowHandler();
 
   await setupSpellChecking();
 
@@ -178,6 +183,7 @@ const start = async (): Promise<void> => {
 
   await restoreLogViewerWindow();
   await restoreDownloadsWindow();
+  await restoreSettingsWindow();
 
   await processDeepLinksInArgs();
 

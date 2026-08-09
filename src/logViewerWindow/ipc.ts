@@ -15,6 +15,10 @@ import type { RootState } from '../store/rootReducer';
 import { LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
+  getSavedWindowBounds,
+  watchWindowBounds,
+} from '../ui/main/secondaryWindowState';
+import {
   TRAFFIC_LIGHTS_X,
   TRAFFIC_LIGHTS_Y,
 } from '../ui/windowChrome/appearance';
@@ -138,14 +142,15 @@ const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
 
+  // Where the reader last left this window, falling back to centred on the
+  // display nearest the main window.
+  const savedBounds = getSavedWindowBounds('logViewer');
+
   // Seeds the first paint only; the renderer then follows the setting live.
   const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
 
   logViewerWindow = new BrowserWindow({
-    width,
-    height,
-    x,
-    y,
+    ...(savedBounds ?? { width, height, x, y }),
     minWidth: WINDOW_MIN_WIDTH,
     minHeight: WINDOW_MIN_HEIGHT,
     title: 'Log Viewer - Rocket.Chat',
@@ -213,6 +218,8 @@ const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
       }
     }
   );
+
+  watchWindowBounds('logViewer', logViewerWindow);
 
   logViewerWindow.webContents.setWindowOpenHandler(() => {
     return { action: 'deny' };

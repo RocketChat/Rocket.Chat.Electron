@@ -260,6 +260,21 @@
       "domain": "Domain",
       "actions": "Actions",
       "remove": "Remove"
+    },
+    "filter": "Filter domains",
+    "state": {
+      "trusted": "Trusted",
+      "notTrusted": "Not trusted"
+    },
+    "summary_one": "{{count}} certificate · {{trusted}} trusted",
+    "summary_other": "{{count}} certificates · {{trusted}} trusted",
+    "empty": {
+      "title": "No certificates yet",
+      "subtitle": "Certificates you trust or reject will appear here."
+    },
+    "noResults": {
+      "title": "No matching certificates",
+      "subtitle": "Try a different domain."
     }
   },
   "settings": {
@@ -411,7 +426,10 @@
         "title": "PDF preview size limit in encrypted rooms (MB)",
         "description": "Encrypted files are loaded into memory for previews. Files larger than this limit will be downloaded directly."
       }
-    }
+    },
+    "appearance": "Appearance",
+    "search": "Search settings",
+    "noResults": "No matching settings"
   },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",

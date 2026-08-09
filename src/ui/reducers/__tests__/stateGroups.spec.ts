@@ -129,11 +129,12 @@ describe('currentView reducer', () => {
       } as any)
     ).toEqual('settings');
 
+    // Settings open in their own window now, so the root window stays put.
     expect(
       currentView('downloads', {
         type: uiActions.SIDE_BAR_SETTINGS_BUTTON_CLICKED,
       } as any)
-    ).toEqual('settings');
+    ).toEqual('downloads');
 
     expect(
       currentView('downloads', {

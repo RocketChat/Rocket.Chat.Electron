@@ -122,6 +122,11 @@ type PersistableValues_4_16_0 = PersistableValues_4_15_0 & {
   navigationLayout: 'tabs' | 'sidebar' | 'hidden';
   isLogViewerWindowOpen: boolean;
   isDownloadsWindowOpen: boolean;
+  isSettingsWindowOpen: boolean;
+  secondaryWindowStates: Record<
+    string,
+    { x: number; y: number; width: number; height: number }
+  >;
 };
 
 export type PersistableValues = Pick<
@@ -249,5 +254,10 @@ export const migrations = {
     isDownloadsWindowOpen:
       (before as Partial<PersistableValues_4_16_0>).isDownloadsWindowOpen ??
       false,
+    isSettingsWindowOpen:
+      (before as Partial<PersistableValues_4_16_0>).isSettingsWindowOpen ??
+      false,
+    secondaryWindowStates:
+      (before as Partial<PersistableValues_4_16_0>).secondaryWindowStates ?? {},
   }),
 };

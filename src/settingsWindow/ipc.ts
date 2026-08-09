@@ -8,8 +8,8 @@ import { handle } from '../ipc/main';
 import { dispatch, listen, select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
-  DOWNLOADS_WINDOW_OPEN_STATE_CHANGED,
-  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SETTINGS_WINDOW_OPEN_STATE_CHANGED,
+  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
@@ -24,12 +24,13 @@ import {
   TRANSPARENCY_CHANNEL,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
+  WINDOW_PREFERRED_HEIGHT,
   WINDOW_SIZE_MULTIPLIER,
 } from './constants';
 
 const isMac = process.platform === 'darwin';
 
-let downloadsWindow: BrowserWindow | null = null;
+let settingsWindow: BrowserWindow | null = null;
 
 /**
  * Set once quitting starts. The window's `closed` handler fires both when the
@@ -42,9 +43,9 @@ const selectIsTransparencyEnabled = ({
   isTransparentWindowEnabled,
 }: RootState): boolean => isTransparentWindowEnabled;
 
-const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
-  if (downloadsWindow && !downloadsWindow.isDestroyed()) {
-    downloadsWindow.focus();
+const createSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.focus();
     return;
   }
 
@@ -59,8 +60,14 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
   const width = Math.round(
     actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER
   );
-  const height = Math.round(
-    actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER
+  // Open tall enough for the Appearance section, but never taller than the
+  // screen it opens on.
+  const height = Math.min(
+    actualScreen.workAreaSize.height,
+    Math.max(
+      WINDOW_PREFERRED_HEIGHT,
+      Math.round(actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER)
+    )
   );
   const x = Math.round(
     (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
@@ -71,16 +78,16 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
 
   // Where the reader last left this window, falling back to centred on the
   // display nearest the main window.
-  const savedBounds = getSavedWindowBounds('downloads');
+  const savedBounds = getSavedWindowBounds('settings');
 
   // Seeds the first paint only; the renderer then follows the setting live.
   const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
 
-  downloadsWindow = new BrowserWindow({
+  settingsWindow = new BrowserWindow({
     ...(savedBounds ?? { width, height, x, y }),
     minWidth: WINDOW_MIN_WIDTH,
     minHeight: WINDOW_MIN_HEIGHT,
-    title: 'Downloads - Rocket.Chat',
+    title: 'Settings - Rocket.Chat',
     // The toolbar doubles as the title bar on macOS, so the window shows one
     // header instead of a native title bar stacked on an in-app one.
     ...(isMac
@@ -106,33 +113,33 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
     show: false,
   });
 
-  downloadsWindow.loadFile(
-    path.join(app.getAppPath(), 'app/downloads-window.html'),
+  settingsWindow.loadFile(
+    path.join(app.getAppPath(), 'app/settings-window.html'),
     { query: { transparent: String(isTransparencyEnabled) } }
   );
 
-  downloadsWindow.once('ready-to-show', () => {
-    downloadsWindow?.setTitle(
-      `Downloads - ${packageJsonInformation.productName}`
+  settingsWindow.once('ready-to-show', () => {
+    settingsWindow?.setTitle(
+      `Settings - ${packageJsonInformation.productName}`
     );
     if (focusOnShow) {
-      downloadsWindow?.show();
+      settingsWindow?.show();
       return;
     }
     // Restored at launch: show it without stealing focus from the main window.
-    downloadsWindow?.showInactive();
+    settingsWindow?.showInactive();
   });
 
-  dispatch({ type: DOWNLOADS_WINDOW_OPEN_STATE_CHANGED, payload: true });
+  dispatch({ type: SETTINGS_WINDOW_OPEN_STATE_CHANGED, payload: true });
 
-  downloadsWindow.on('closed', () => {
-    downloadsWindow = null;
+  settingsWindow.on('closed', () => {
+    settingsWindow = null;
     if (!isAppQuitting) {
-      dispatch({ type: DOWNLOADS_WINDOW_OPEN_STATE_CHANGED, payload: false });
+      dispatch({ type: SETTINGS_WINDOW_OPEN_STATE_CHANGED, payload: false });
     }
   });
 
-  downloadsWindow.webContents.on(
+  settingsWindow.webContents.on(
     'will-navigate',
     (event: Event, url: string) => {
       if (!url.startsWith('file://')) {
@@ -141,49 +148,46 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
     }
   );
 
-  watchWindowBounds('downloads', downloadsWindow);
+  watchWindowBounds('settings', settingsWindow);
 
-  downloadsWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  settingsWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 };
 
-export const openDownloadsWindow = (): Promise<void> =>
-  createDownloadsWindow(true);
+export const openSettingsWindow = (): Promise<void> =>
+  createSettingsWindow(true);
 
 /**
  * Reopens the window at launch when it was open at shutdown, without taking
  * focus from the main window.
  */
-export const restoreDownloadsWindow = async (): Promise<void> => {
-  if (
-    !select(({ isDownloadsWindowOpen }: RootState) => isDownloadsWindowOpen)
-  ) {
+export const restoreSettingsWindow = async (): Promise<void> => {
+  if (!select(({ isSettingsWindowOpen }: RootState) => isSettingsWindowOpen)) {
     return;
   }
-  await createDownloadsWindow(false);
+  await createSettingsWindow(false);
 };
 
-export const startDownloadsWindowHandler = (): void => {
+export const startSettingsWindowHandler = (): void => {
   app.on('before-quit', () => {
     isAppQuitting = true;
   });
 
-  handle('downloads-window/open-window', openDownloadsWindow);
+  handle('settings-window/open-window', openSettingsWindow);
 
-  // Every entry point — the menu items, the titlebar indicator and the
-  // download-finished notification — already dispatches this, so hooking it
-  // here redirects all of them at once.
-  listen(SIDE_BAR_DOWNLOADS_BUTTON_CLICKED, () => {
-    openDownloadsWindow();
+  // Every entry point — the app menu, the meatball menu and the telephony
+  // prompt — already dispatches this, so hooking it here redirects all of them.
+  listen(SIDE_BAR_SETTINGS_BUTTON_CLICKED, () => {
+    openSettingsWindow();
   });
 
-  handle('downloads-window/close-requested', async () => {
-    downloadsWindow?.close();
+  handle('settings-window/close-requested', async () => {
+    settingsWindow?.close();
   });
 
   // Transparency is a renderer concern here, so a change only needs pushing to
   // the open window — no reopen, no restart.
   watch(selectIsTransparencyEnabled, (isEnabled) => {
-    if (!downloadsWindow || downloadsWindow.isDestroyed()) return;
-    downloadsWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+    if (!settingsWindow || settingsWindow.isDestroyed()) return;
+    settingsWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
   });
 };

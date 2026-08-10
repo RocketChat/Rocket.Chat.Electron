@@ -1,17 +1,20 @@
 import { Global, css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { isDarwin } from '../../utils/platform';
+import { isDarwin, isLinux } from '../../utils/platform';
 
 type GlobalStylesProps = {
   isTransparentWindowEnabled: boolean;
 };
 
+/** Linux paints the outer window shape in CSS (DWM already rounds Windows). */
+const usesLinuxClientChromeRounding = isLinux;
+
 export const GlobalStyles = ({
   isTransparentWindowEnabled,
 }: GlobalStylesProps) => {
   const backgroundColor =
-    isDarwin && isTransparentWindowEnabled
+    (isDarwin && isTransparentWindowEnabled) || usesLinuxClientChromeRounding
       ? 'transparent'
       : 'var(--rcx-color-surface-sidebar, #2f343d)';
 
@@ -28,6 +31,12 @@ export const GlobalStyles = ({
           outline: 0 !important;
           outline-style: none;
           outline-color: transparent;
+        }
+
+        html,
+        body,
+        #root {
+          height: 100%;
         }
 
         body {
@@ -48,11 +57,15 @@ export const GlobalStyles = ({
           font-size: 0.875rem;
           line-height: 1rem;
           background-color: ${backgroundColor};
+          overflow: hidden;
         }
       `}
     />
   );
 };
+
+/** Outer shell radius for client-decorated windows (not maximized). */
+export const CLIENT_CHROME_CORNER_RADIUS_PX = 10;
 
 export const WindowDragBar = styled.div`
   position: fixed;

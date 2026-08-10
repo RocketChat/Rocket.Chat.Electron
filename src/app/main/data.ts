@@ -8,8 +8,14 @@ import { select, dispatch, watch } from '../../store';
 import { getSystemCertificateStatus } from '../../systemCertificates';
 import { normalizeNumber } from '../../ui/main/rootWindow';
 import { APP_SETTINGS_LOADED } from '../actions';
+import { MENU_BAR_DEFAULT_REVISION } from '../PersistableValues';
 import { selectPersistableValues } from '../selectors';
-import { getPersistedValues, persistValues } from './persistence';
+import {
+  getPersistedMeta,
+  getPersistedValues,
+  persistValues,
+  setPersistedMeta,
+} from './persistence';
 
 const loadUserDataOverriddenSettings = async (): Promise<
   Record<string, string>
@@ -164,15 +170,22 @@ export const mergePersistableValues = async (
     },
   };
 
-  if (
-    values.navigationLayout !== 'sidebar' &&
-    !values.isMenuBarEnabled &&
-    process.platform === 'linux'
-  ) {
-    values = {
-      ...values,
-      isMenuBarEnabled: true,
-    };
+  // One-shot policy: Windows used to force-hide the bar while storing
+  // isMenuBarEnabled=true; Linux defaulted to always-on. Both now auto-hide
+  // (Alt reveals) unless the user pins the bar. The revision is stored as
+  // config meta so later persistValues() snapshots cannot re-apply the force.
+  const appliedMenuBarRevision = getPersistedMeta(
+    'menuBarDefaultRevision',
+    0
+  );
+  if (appliedMenuBarRevision < MENU_BAR_DEFAULT_REVISION) {
+    if (process.platform !== 'darwin') {
+      values = {
+        ...values,
+        isMenuBarEnabled: false,
+      };
+    }
+    setPersistedMeta('menuBarDefaultRevision', MENU_BAR_DEFAULT_REVISION);
   }
 
   const mergedOverrides: Record<string, unknown> = {

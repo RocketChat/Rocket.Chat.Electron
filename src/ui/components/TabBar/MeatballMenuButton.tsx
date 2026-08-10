@@ -33,6 +33,13 @@ export const MeatballMenuButton = ({
   };
 
   useEffect(() => {
+    // On Windows/Linux a solo Alt reveals the native (auto-hidden) menu bar.
+    // Only macOS uses Alt as a meatball accelerator — there is no in-window
+    // native menu bar to toggle.
+    if (process.platform !== 'darwin') {
+      return;
+    }
+
     let isSoloAltPress = false;
 
     const handleKeyDown = (event: KeyboardEvent): void => {

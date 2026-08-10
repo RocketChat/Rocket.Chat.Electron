@@ -25,9 +25,6 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
-  const isMenuBarEnabled = useSelector(
-    ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled
-  );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
 
@@ -49,27 +46,19 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
   const workspaceBarId = useId();
   const workspaceHiddenId = useId();
 
-  const isWorkspaceTabsDisabled =
-    process.platform === 'linux' &&
-    !isMenuBarEnabled &&
-    navigationLayout !== 'tabs';
-
   return (
     <Field className={props.className}>
       <FieldRow>
         <FieldLabel>{t('settings.options.navigation.title')}</FieldLabel>
       </FieldRow>
       <FieldDescription>
-        {isWorkspaceTabsDisabled
-          ? t('settings.options.navigation.disabledHint')
-          : t('settings.options.navigation.description')}
+        {t('settings.options.navigation.description')}
       </FieldDescription>
       <Box display='flex' flexDirection='column' mbs='x8'>
         <Box display='flex' alignItems='center' mbe='x8'>
           <RadioButton
             id={workspaceTabsId}
             checked={navigationLayout === 'tabs'}
-            disabled={isWorkspaceTabsDisabled}
             onChange={handleChange('tabs')}
           />
           <FieldLabel htmlFor={workspaceTabsId} mis='x8'>

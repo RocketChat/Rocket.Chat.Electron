@@ -55,38 +55,85 @@ describe('MeatballMenuButton', () => {
     expect(button).toHaveAttribute('aria-haspopup', 'menu');
   });
 
-  it('opens the menu on a solo Alt key press', () => {
-    renderWithStore(<MeatballMenuButton />);
+  describe('solo Alt key (macOS only — Windows/Linux use Alt for the native menu bar)', () => {
+    const originalPlatform = process.platform;
 
-    const button = screen.getByRole('button', { name: 'tabBar.meatballMenu' });
-    jest.spyOn(button, 'getBoundingClientRect').mockReturnValue({
-      left: 0,
-      bottom: 32,
-      top: 0,
-      right: 0,
-      width: 0,
-      height: 0,
-      x: 0,
-      y: 0,
-      toJSON: () => {},
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', {
+        value: originalPlatform,
+        configurable: true,
+      });
     });
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
-    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+    it('opens the menu on a solo Alt key press on darwin', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        configurable: true,
+      });
+      renderWithStore(<MeatballMenuButton />);
 
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: APP_MENU_TRIGGERED,
-      payload: { x: 0, y: 32 },
+      const button = screen.getByRole('button', {
+        name: 'tabBar.meatballMenu',
+      });
+      jest.spyOn(button, 'getBoundingClientRect').mockReturnValue({
+        left: 0,
+        bottom: 32,
+        top: 0,
+        right: 0,
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      });
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_MENU_TRIGGERED,
+        payload: { x: 0, y: 32 },
+      });
     });
-  });
 
-  it('does not open the menu when Alt is used as a modifier for another key', () => {
-    renderWithStore(<MeatballMenuButton />);
+    it('does not open the menu when Alt is used as a modifier for another key on darwin', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        configurable: true,
+      });
+      renderWithStore(<MeatballMenuButton />);
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
-    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
 
-    expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not open the menu on a solo Alt key press on linux (native bar owns Alt)', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        configurable: true,
+      });
+      renderWithStore(<MeatballMenuButton />);
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not open the menu on a solo Alt key press on win32 (native bar owns Alt)', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'win32',
+        configurable: true,
+      });
+      renderWithStore(<MeatballMenuButton />);
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
   });
 });

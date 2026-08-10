@@ -7,9 +7,10 @@ import {
 import { isMenuBarEnabled } from './isMenuBarEnabled';
 
 describe('isMenuBarEnabled reducer', () => {
-  it('should return initial state as true', () => {
+  it('defaults to on on macOS and off on Windows/Linux', () => {
+    const expected = process.platform === 'darwin';
     expect(isMenuBarEnabled(undefined, { type: 'UNKNOWN_ACTION' } as any)).toBe(
-      true
+      expected
     );
   });
 

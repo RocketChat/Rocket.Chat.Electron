@@ -28,6 +28,21 @@ const getElectronStore = (): ElectronStore<PersistableValues> => {
 export const getPersistedValues = (): PersistableValues =>
   getElectronStore().store;
 
+/** Read a store key that is not necessarily mirrored in Redux. */
+export const getPersistedMeta = <T>(key: string, fallback: T): T => {
+  const value = getElectronStore().get(key as keyof PersistableValues);
+  return (value as T | undefined) ?? fallback;
+};
+
+/** Write a store key without replacing the rest of the config. */
+export const setPersistedMeta = (key: string, value: unknown): void => {
+  try {
+    getElectronStore().set(key as keyof PersistableValues, value as never);
+  } catch (error) {
+    error instanceof Error && console.error(error);
+  }
+};
+
 let lastSavedTime = 0;
 
 export const persistValues = (values: PersistableValues): void => {

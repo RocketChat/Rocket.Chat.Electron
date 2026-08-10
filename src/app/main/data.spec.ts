@@ -1,7 +1,12 @@
 import * as store from '../../store';
 import { APP_SETTINGS_LOADED } from '../actions';
+import { MENU_BAR_DEFAULT_REVISION } from '../PersistableValues';
 import { mergePersistableValues } from './data';
-import { getPersistedValues } from './persistence';
+import {
+  getPersistedMeta,
+  getPersistedValues,
+  setPersistedMeta,
+} from './persistence';
 
 jest.mock('electron', () => ({
   app: {
@@ -22,6 +27,9 @@ jest.mock('../../store');
 jest.mock('./persistence', () => ({
   getPersistedValues: jest.fn().mockReturnValue({}),
   persistValues: jest.fn(),
+  // Literal 1 matches MENU_BAR_DEFAULT_REVISION (jest.mock factories are hoisted).
+  getPersistedMeta: jest.fn().mockReturnValue(1),
+  setPersistedMeta: jest.fn(),
 }));
 
 jest.mock('fs', () => ({
@@ -50,6 +58,7 @@ beforeEach(() => {
   (store.dispatch as jest.Mock).mockImplementation(mockDispatch);
   (store.select as jest.Mock).mockImplementation(mockSelect);
   (getPersistedValues as jest.Mock).mockReturnValue({});
+  (getPersistedMeta as jest.Mock).mockReturnValue(MENU_BAR_DEFAULT_REVISION);
 });
 
 describe('mergePersistableValues', () => {
@@ -72,7 +81,7 @@ describe('mergePersistableValues', () => {
     mockSelect.mockReturnValue(mockInitialValues);
   });
 
-  describe('menubar recovery mechanism', () => {
+  describe('menu bar settings (no layout coupling)', () => {
     const originalPlatform = process.platform;
 
     afterEach(() => {
@@ -83,57 +92,9 @@ describe('mergePersistableValues', () => {
       });
     });
 
-    it('should enable menubar on Linux when in tabs layout with menubar disabled', async () => {
+    it('preserves isMenuBarEnabled=false on Linux with tabs layout (no recovery force-on)', async () => {
       Object.defineProperty(process, 'platform', {
         value: 'linux',
-        writable: true,
-        configurable: true,
-      });
-      const localStorage = {};
-
-      mockSelect.mockReturnValue({
-        ...mockInitialValues,
-        isMenuBarEnabled: false,
-        navigationLayout: 'tabs',
-      });
-
-      await mergePersistableValues(localStorage);
-
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: APP_SETTINGS_LOADED,
-        payload: expect.objectContaining({
-          isMenuBarEnabled: true,
-        }),
-      });
-    });
-
-    it('should not modify settings on Linux when in sidebar layout with menubar disabled', async () => {
-      Object.defineProperty(process, 'platform', {
-        value: 'linux',
-        writable: true,
-        configurable: true,
-      });
-      const localStorage = {};
-
-      mockSelect.mockReturnValue({
-        ...mockInitialValues,
-        isMenuBarEnabled: false,
-        navigationLayout: 'sidebar',
-      });
-
-      await mergePersistableValues(localStorage);
-
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: APP_SETTINGS_LOADED,
-        payload: expect.objectContaining({
-          isMenuBarEnabled: false,
-        }),
-      });
-    });
-
-    it('should not modify settings on non-Linux platforms when in tabs layout with menubar disabled', async () => {
-      Object.defineProperty(process, 'platform', {
-        value: 'darwin',
         writable: true,
         configurable: true,
       });
@@ -155,21 +116,71 @@ describe('mergePersistableValues', () => {
       });
     });
 
-    it('should not modify settings when menubar is already enabled', async () => {
+    it('preserves isMenuBarEnabled=false on Windows with tabs layout', async () => {
       Object.defineProperty(process, 'platform', {
-        value: 'linux',
+        value: 'win32',
         writable: true,
         configurable: true,
       });
       const localStorage = {};
 
+      mockSelect.mockReturnValue({
+        ...mockInitialValues,
+        isMenuBarEnabled: false,
+        navigationLayout: 'tabs',
+      });
+
+      await mergePersistableValues(localStorage);
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isMenuBarEnabled: false,
+        }),
+      });
+    });
+
+    it('one-shot: forces isMenuBarEnabled off on Linux when menuBarDefaultRevision is stale', async () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        writable: true,
+        configurable: true,
+      });
+      (getPersistedMeta as jest.Mock).mockReturnValue(0);
       mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: true,
-        navigationLayout: 'sidebar',
+        navigationLayout: 'tabs',
       });
 
-      await mergePersistableValues(localStorage);
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isMenuBarEnabled: false,
+        }),
+      });
+      expect(setPersistedMeta).toHaveBeenCalledWith(
+        'menuBarDefaultRevision',
+        MENU_BAR_DEFAULT_REVISION
+      );
+    });
+
+    it('one-shot: does not re-force isMenuBarEnabled after revision is applied', async () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        writable: true,
+        configurable: true,
+      });
+      (getPersistedMeta as jest.Mock).mockReturnValue(MENU_BAR_DEFAULT_REVISION);
+      mockSelect.mockReturnValue({
+        ...mockInitialValues,
+        isMenuBarEnabled: true,
+        navigationLayout: 'tabs',
+      });
+
+      await mergePersistableValues({});
 
       expect(mockDispatch).toHaveBeenCalledWith({
         type: APP_SETTINGS_LOADED,
@@ -177,6 +188,7 @@ describe('mergePersistableValues', () => {
           isMenuBarEnabled: true,
         }),
       });
+      expect(setPersistedMeta).not.toHaveBeenCalled();
     });
   });
 

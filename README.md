@@ -223,7 +223,7 @@ a single server mode.
 | `"isFlashFrameEnabled": true`              | Sets if the flash frame will be enabled.                                                               |
 | `"isMinimizeOnCloseEnabled": false`        | Sets if the app will be minimized on close.                                                            |
 | `"doCheckForUpdatesOnStartup": true`       | Sets if the app will check for updates on startup.                                                     |
-| `"isMenuBarEnabled": true`                 | Sets if the menu bar will be enabled.                                                                  |
+| `"isMenuBarEnabled": false`                | Windows/Linux: `true` keeps the menu bar always visible; `false` auto-hides it (Alt shows it temporarily). Unused on macOS. |
 | `"isTrayIconEnabled": true`                | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"` |
 | `"isUpdatingEnabled": true`                | Sets if the app can be updated by the user.                                                            |
 | `"isAddNewServersEnabled": true`           | Sets if the user can add new servers.                                                                  |

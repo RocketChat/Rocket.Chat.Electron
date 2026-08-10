@@ -337,4 +337,58 @@ describe('PersistableValues migrations', () => {
       expect.objectContaining({ navigationLayout: 'tabs' })
     );
   });
+
+  describe('4.16.2 menu bar default (auto-hide on Windows/Linux)', () => {
+    const originalPlatform = process.platform;
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', {
+        value: originalPlatform,
+        configurable: true,
+      });
+    });
+
+    it('forces isMenuBarEnabled off on linux and stamps the revision', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        configurable: true,
+      });
+      const before = {
+        isMenuBarEnabled: true,
+        isDownloadsPercentageEnabled: false,
+      } as unknown as Parameters<(typeof migrations)['>=4.16.2']>[0];
+
+      const after = migrations['>=4.16.2'](before);
+      expect(after.isMenuBarEnabled).toBe(false);
+      expect(after.menuBarDefaultRevision).toBe(1);
+    });
+
+    it('forces isMenuBarEnabled off on win32 (was always hidden while stored true)', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'win32',
+        configurable: true,
+      });
+      const before = {
+        isMenuBarEnabled: true,
+        isDownloadsPercentageEnabled: false,
+      } as unknown as Parameters<(typeof migrations)['>=4.16.2']>[0];
+
+      expect(migrations['>=4.16.2'](before).isMenuBarEnabled).toBe(false);
+    });
+
+    it('preserves isMenuBarEnabled on darwin and still stamps the revision', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        configurable: true,
+      });
+      const before = {
+        isMenuBarEnabled: true,
+        isDownloadsPercentageEnabled: false,
+      } as unknown as Parameters<(typeof migrations)['>=4.16.2']>[0];
+
+      const after = migrations['>=4.16.2'](before);
+      expect(after.isMenuBarEnabled).toBe(true);
+      expect(after.menuBarDefaultRevision).toBe(1);
+    });
+  });
 });

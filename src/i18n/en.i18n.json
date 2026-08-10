@@ -341,8 +341,7 @@
       },
       "menubar": {
         "title": "Menu bar",
-        "description": "Show menu bar on the top of the window.",
-        "disabledHint": "Cannot disable menu bar when the workspace bar is disabled. App settings would become inaccessible."
+        "description": "Keep the menu bar always visible at the top of the window. When off, press Alt to show it temporarily."
       },
       "sidebar": {
         "title": "Workspace bar",
@@ -354,8 +353,7 @@
         "description": "Choose how to switch between workspaces",
         "workspaceTabs": "Tabs",
         "workspaceBar": "Sidebar",
-        "workspaceHidden": "Titlebar",
-        "disabledHint": "Enable the menu bar first to use Workspace tabs."
+        "workspaceHidden": "Titlebar"
       },
       "trayIcon": {
         "title": "Tray icon",

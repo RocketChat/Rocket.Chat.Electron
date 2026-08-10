@@ -26,9 +26,6 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
-  const isMenuBarEnabled = useSelector(
-    ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled
-  );
   const userThemePreference = useSelector(
     ({ userThemePreference }: RootState) => userThemePreference
   );
@@ -54,11 +51,6 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
 
   const groupName = useId();
 
-  const isWorkspaceTabsDisabled =
-    process.platform === 'linux' &&
-    !isMenuBarEnabled &&
-    navigationLayout !== 'tabs';
-
   // Each thumbnail previews the layout it selects, drawn in the theme the user
   // is actually running so the previews match their window. `machineTheme` is
   // loosely typed as a string, so anything that is not dark falls back to light.
@@ -81,9 +73,7 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
         <FieldLabel>{t('settings.options.navigation.title')}</FieldLabel>
       </FieldRow>
       <FieldDescription>
-        {isWorkspaceTabsDisabled
-          ? t('settings.options.navigation.disabledHint')
-          : t('settings.options.navigation.description')}
+        {t('settings.options.navigation.description')}
       </FieldDescription>
       <Box
         display='flex'
@@ -100,12 +90,6 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
             layout={value}
             theme={previewTheme}
             checked={navigationLayout === value}
-            disabled={value === 'tabs' && isWorkspaceTabsDisabled}
-            title={
-              value === 'tabs' && isWorkspaceTabsDisabled
-                ? t('settings.options.navigation.disabledHint')
-                : undefined
-            }
             onChange={handleChange(value)}
           />
         ))}

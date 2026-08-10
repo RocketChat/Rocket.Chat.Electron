@@ -31,7 +31,7 @@ export const GeneralTab = () => {
           {isDarwin && <TransparentWindow />}
           <TrayIcon />
           {isWin32 && <MinimizeOnClose />}
-          {!isDarwin && !isWin32 && <MenuBar />}
+          {!isDarwin && <MenuBar />}
           <FlashFrame />
           <DownloadsPercentage />
         </FieldGroup>

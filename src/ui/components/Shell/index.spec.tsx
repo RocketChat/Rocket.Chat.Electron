@@ -46,13 +46,16 @@ jest.mock('../TopBar', () => ({
   __esModule: true,
   TopBar: ({
     leadingSlot,
+    centerSlot,
     trailingSlot,
   }: {
     leadingSlot?: React.ReactNode;
+    centerSlot?: React.ReactNode;
     trailingSlot?: React.ReactNode;
   }) => (
     <div data-testid='top-bar'>
       {leadingSlot}
+      {centerSlot}
       {trailingSlot}
     </div>
   ),
@@ -407,6 +410,47 @@ describe('Shell', () => {
       // darwin tabs trailing slot, so it is expected.
       expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+    });
+  });
+
+  describe('linux chrome', () => {
+    let restorePlatform: () => void;
+
+    afterEach(() => {
+      restorePlatform?.();
+    });
+
+    it('mounts the TopBar with the downloads indicator, and no window controls, when navigationLayout is sidebar', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'sidebar' }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+      expect(screen.getByTestId('tab-bar')).toHaveAttribute(
+        'data-orientation',
+        'vertical'
+      );
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+    });
+
+    it('mounts the TopBar with the downloads indicator and server switcher, and no window controls or TabBar, when navigationLayout is hidden', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'hidden' }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'tabBar.workspaces' })
+      ).toBeInTheDocument();
     });
   });
 

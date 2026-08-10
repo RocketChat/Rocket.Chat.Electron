@@ -67,6 +67,15 @@ export const getTitleBarOptions = () => {
   return {};
 };
 
+/**
+ * Secondary windows are never full-screen surfaces of their own.
+ *
+ * On macOS a window created while the app is in full screen is otherwise given
+ * full screen itself, which is how opening Downloads from a full-screen
+ * workspace ended up replacing it rather than appearing alongside it.
+ */
+export const NOT_FULL_SCREENABLE = { fullscreenable: false } as const;
+
 /** Width of the filters sidebar. */
 export const SIDEBAR_WIDTH = 248;
 

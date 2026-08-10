@@ -17,7 +17,10 @@ import {
   getSavedWindowBounds,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
-import { getTitleBarOptions } from '../ui/windowChrome/appearance';
+import {
+  NOT_FULL_SCREENABLE,
+  getTitleBarOptions,
+} from '../ui/windowChrome/appearance';
 import {
   TRANSPARENCY_CHANNEL,
   WINDOW_MIN_HEIGHT,
@@ -95,6 +98,7 @@ const createSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
     // the window shows one header instead of a native title bar stacked on an
     // in-app one.
     ...getTitleBarOptions(),
+    ...NOT_FULL_SCREENABLE,
     // `transparent` cannot be toggled after creation, so — like the root window —
     // the window is always transparent with a vibrancy material on macOS and the
     // setting only decides whether the renderer paints an opaque surface over it.

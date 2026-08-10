@@ -22,6 +22,8 @@ import {
   WINDOW_MIN_WIDTH,
   WINDOW_SIZE_MULTIPLIER,
 } from './constants';
+import type { SaveDocumentRequest } from './saveDocument';
+import { saveDocument } from './saveDocument';
 
 const isMac = process.platform === 'darwin';
 
@@ -178,6 +180,17 @@ export const startDocumentViewerWindowHandler = (): void => {
   handle('document-viewer-window/close-requested', async () => {
     documentViewerWindow?.close();
   });
+
+  handle(
+    'document-viewer-window/save-document',
+    async (_webContents, request) => {
+      if (!documentViewerWindow || documentViewerWindow.isDestroyed()) {
+        return { success: false, error: 'The document viewer is not open' };
+      }
+
+      return saveDocument(documentViewerWindow, request as SaveDocumentRequest);
+    }
+  );
 
   // Transparency is a renderer concern here, so a change only needs pushing to
   // the open window — no reopen, no restart.

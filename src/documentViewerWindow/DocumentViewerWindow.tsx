@@ -1,8 +1,9 @@
-import { Box, Icon } from '@rocket.chat/fuselage';
+import { Box, Icon, IconButton } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { invoke } from '../ipc/renderer';
 import MarkdownContent from '../ui/components/ServersView/MarkdownContent';
 import PdfContent from '../ui/components/ServersView/PdfContent';
 import TooltipProvider from '../ui/components/utils/TooltipProvider';
@@ -36,6 +37,7 @@ export const DocumentViewerWindow = ({
 
   const [document, setDocument] =
     useState<DocumentDescriptor>(readInitialDocument);
+  const [isRaw, setIsRaw] = useState(false);
 
   // The window is reused for the next document rather than reopened, so the
   // main process hands it over here.
@@ -45,12 +47,27 @@ export const DocumentViewerWindow = ({
       next: DocumentDescriptor
     ): void => {
       setDocument(next);
+      // A new document is rendered, whatever the previous one was showing.
+      setIsRaw(false);
     };
 
     ipcRenderer.on(DOCUMENT_CHANNEL, handleDocument);
     return () => {
       ipcRenderer.off(DOCUMENT_CHANNEL, handleDocument);
     };
+  }, []);
+
+  const handleDownload = useCallback(() => {
+    invoke('document-viewer-window/save-document', {
+      url: document.url,
+      partition: document.partition,
+      server: document.server,
+      format: document.format,
+    });
+  }, [document]);
+
+  const handleToggleRaw = useCallback(() => {
+    setIsRaw((current) => !current);
   }, []);
 
   const isMarkdown = document.format === 'markdown';
@@ -74,7 +91,37 @@ export const DocumentViewerWindow = ({
         width='100%'
         style={{ backgroundColor: surfaces.panel }}
       >
-        <WindowToolbar>
+        <WindowToolbar
+          actions={
+            <>
+              {isMarkdown && (
+                <IconButton
+                  small
+                  icon={isRaw ? 'eye' : 'code'}
+                  title={
+                    isRaw
+                      ? t('documentViewer.viewRendered')
+                      : t('documentViewer.viewSource')
+                  }
+                  aria-label={
+                    isRaw
+                      ? t('documentViewer.viewRendered')
+                      : t('documentViewer.viewSource')
+                  }
+                  aria-pressed={isRaw}
+                  onClick={handleToggleRaw}
+                />
+              )}
+              <IconButton
+                small
+                icon='download'
+                title={t('documentViewer.download')}
+                aria-label={t('documentViewer.download')}
+                onClick={handleDownload}
+              />
+            </>
+          }
+        >
           <Icon name={isMarkdown ? 'file-document' : 'file-pdf'} size='x16' />
           <Box
             marginInlineStart='x4'
@@ -113,6 +160,7 @@ export const DocumentViewerWindow = ({
                 key={document.url}
                 url={document.url}
                 partition={document.partition}
+                isRaw={isRaw}
               />
             </Box>
           ) : (

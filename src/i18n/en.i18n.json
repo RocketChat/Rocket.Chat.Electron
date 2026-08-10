@@ -180,7 +180,10 @@
       "pdf": "PDF Viewer",
       "markdown": "Markdown Viewer"
     },
-    "back": "Back"
+    "back": "Back",
+    "download": "Download",
+    "viewSource": "View source",
+    "viewRendered": "View rendered"
   },
   "downloads": {
     "title": "Downloads",

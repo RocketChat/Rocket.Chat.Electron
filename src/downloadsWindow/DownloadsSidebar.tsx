@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { FilterRow } from '../ui/windowChrome/FilterRow';
 import { FilterSection } from '../ui/windowChrome/FilterSection';
+import { SidebarPlaceholder } from '../ui/windowChrome/SidebarPlaceholder';
 import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
 import { isFacetSelected } from '../ui/windowChrome/filters';
 import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
@@ -55,6 +56,10 @@ export const DownloadsSidebar = ({
 }: DownloadsSidebarProps) => {
   const { t } = useTranslation();
   const selectAllLabel = t('downloads.filters.selectAll');
+  const hasFacets =
+    statusOptions.length > 0 ||
+    typeOptions.length > 0 ||
+    serverOptions.length > 0;
 
   return (
     <Box
@@ -81,6 +86,12 @@ export const DownloadsSidebar = ({
       <Box flexGrow={1} style={{ minHeight: 0 }}>
         <Scrollable vertical>
           <Box paddingInline='x12' paddingBlockEnd='x12' height='100%'>
+            {!hasFacets && (
+              <SidebarPlaceholder icon='customize'>
+                {t('downloads.filters.empty')}
+              </SidebarPlaceholder>
+            )}
+
             {statusOptions.length > 0 && (
               <FilterSection
                 title={t('downloads.filters.status')}

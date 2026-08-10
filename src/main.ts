@@ -74,6 +74,7 @@ import {
   exportLocalStorage,
   watchMachineTheme,
 } from './ui/main/rootWindow';
+import { startSecondaryWindowControlsHandler } from './ui/main/secondaryWindowControls';
 import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
@@ -141,6 +142,7 @@ const start = async (): Promise<void> => {
   setupScreenSharing();
   startServerViewScreenSharingHandler();
   startVideoCallWindowHandler();
+  startSecondaryWindowControlsHandler();
   startLogViewerWindowHandler();
   startDownloadsWindowHandler();
   startSettingsWindowHandler();

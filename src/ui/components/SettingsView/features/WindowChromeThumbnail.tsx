@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 
 import type { NavigationLayout } from '../../../common';
+import { THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH } from './thumbnailMetrics';
 
 export type ThumbnailTheme = 'light' | 'dark' | 'auto';
 export type ThumbnailPlatform = 'darwin' | 'win32' | 'linux';
 
-const WIDTH = 168;
-const HEIGHT = 110;
+const WIDTH = THUMBNAIL_WIDTH;
+const HEIGHT = THUMBNAIL_HEIGHT;
 
 /**
  * Literal colours rather than palette tokens — deliberately.

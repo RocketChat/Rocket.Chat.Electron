@@ -194,6 +194,7 @@
       "server": "Server",
       "mimeType": "Type",
       "status": "Status",
+      "empty": "Filters appear here once you have downloads.",
       "clear": "Clear filters",
       "all": "All",
       "mimes": {

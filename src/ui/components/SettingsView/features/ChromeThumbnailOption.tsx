@@ -8,6 +8,10 @@ import type {
   ThumbnailTheme,
 } from './WindowChromeThumbnail';
 import { WindowChromeThumbnail } from './WindowChromeThumbnail';
+import {
+  THUMBNAIL_FRAME_BORDER,
+  THUMBNAIL_FRAME_PADDING,
+} from './thumbnailMetrics';
 
 /**
  * A real radio input, only visually hidden.
@@ -42,9 +46,9 @@ const OptionLabel = styled.label<{ isDisabled: boolean }>`
 
 const Frame = styled.span<{ isSelected: boolean; radius: number }>`
   display: block;
-  padding: 3px;
+  padding: ${THUMBNAIL_FRAME_PADDING}px;
   border-radius: ${({ radius }) => radius + 2}px;
-  border: 2px solid
+  border: ${THUMBNAIL_FRAME_BORDER}px solid
     ${({ isSelected }) =>
       isSelected ? 'var(--rcx-color-stroke-highlight)' : 'transparent'};
 

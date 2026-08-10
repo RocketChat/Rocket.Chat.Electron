@@ -16,6 +16,7 @@ import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_NAVIGATION_LAYOUT_CHANGED } from '../../../actions';
 import type { NavigationLayout as NavigationLayoutValue } from '../../../common';
 import { ChromeThumbnailOption } from './ChromeThumbnailOption';
+import { THUMBNAIL_GAP } from './thumbnailMetrics';
 
 type NavigationLayoutProps = {
   className?: string;
@@ -84,7 +85,12 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
           ? t('settings.options.navigation.disabledHint')
           : t('settings.options.navigation.description')}
       </FieldDescription>
-      <Box display='flex' flexWrap='wrap' mbs='x12' style={{ gap: '20px' }}>
+      <Box
+        display='flex'
+        flexWrap='wrap'
+        mbs='x12'
+        style={{ gap: `${THUMBNAIL_GAP}px` }}
+      >
         {options.map(([value, label]) => (
           <ChromeThumbnailOption
             key={value}

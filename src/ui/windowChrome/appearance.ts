@@ -9,6 +9,10 @@
 export type PaletteTheme = 'light' | 'dark';
 
 export const isDarwin = process.platform === 'darwin';
+export const isWindows = process.platform === 'win32';
+
+/** Platforms where the toolbar replaces the native title bar entirely. */
+export const hasInAppTitleBar = isDarwin || isWindows;
 
 /** Height of the toolbar, which doubles as the window drag region on macOS. */
 export const TOOLBAR_HEIGHT = 52;
@@ -28,6 +32,35 @@ export const TRAFFIC_LIGHTS_Y = Math.round(
 /** Where toolbar content may start without colliding with the buttons. */
 export const TRAFFIC_LIGHTS_INSET =
   TRAFFIC_LIGHTS_X + TRAFFIC_LIGHTS_WIDTH + 16;
+
+/**
+ * Width of the Windows caption buttons drawn into the toolbar: three 46px
+ * buttons, the metric the OS itself uses. The toolbar reserves as much again at
+ * its leading edge so the title stays centred in the window rather than in what
+ * is left of it.
+ */
+export const WINDOW_CONTROLS_WIDTH = 46 * 3;
+
+/**
+ * Window options that hand the title bar over to the toolbar, matching what the
+ * main window does on each platform: macOS keeps its traffic lights floating
+ * over the toolbar, Windows hides the caption entirely and the toolbar draws its
+ * own buttons, and Linux keeps its native frame.
+ */
+export const getTitleBarOptions = () => {
+  if (isDarwin) {
+    return {
+      titleBarStyle: 'hiddenInset' as const,
+      trafficLightPosition: { x: TRAFFIC_LIGHTS_X, y: TRAFFIC_LIGHTS_Y },
+    };
+  }
+
+  if (isWindows) {
+    return { titleBarStyle: 'hidden' as const };
+  }
+
+  return {};
+};
 
 /** Width of the filters sidebar. */
 export const SIDEBAR_WIDTH = 248;

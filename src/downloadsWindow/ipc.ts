@@ -12,14 +12,12 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { watchWindowControls } from '../ui/main/secondaryWindowControls';
 import {
   getSavedWindowBounds,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
-import {
-  TRAFFIC_LIGHTS_X,
-  TRAFFIC_LIGHTS_Y,
-} from '../ui/windowChrome/appearance';
+import { getTitleBarOptions } from '../ui/windowChrome/appearance';
 import {
   TRANSPARENCY_CHANNEL,
   WINDOW_MIN_HEIGHT,
@@ -81,14 +79,10 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
     minWidth: WINDOW_MIN_WIDTH,
     minHeight: WINDOW_MIN_HEIGHT,
     title: 'Downloads - Rocket.Chat',
-    // The toolbar doubles as the title bar on macOS, so the window shows one
-    // header instead of a native title bar stacked on an in-app one.
-    ...(isMac
-      ? {
-          titleBarStyle: 'hiddenInset' as const,
-          trafficLightPosition: { x: TRAFFIC_LIGHTS_X, y: TRAFFIC_LIGHTS_Y },
-        }
-      : {}),
+    // The toolbar doubles as the title bar wherever the platform allows it, so
+    // the window shows one header instead of a native title bar stacked on an
+    // in-app one.
+    ...getTitleBarOptions(),
     // `transparent` cannot be toggled after creation, so — like the root window —
     // the window is always transparent with a vibrancy material on macOS and the
     // setting only decides whether the renderer paints an opaque surface over it.
@@ -142,6 +136,7 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
   );
 
   watchWindowBounds('downloads', downloadsWindow);
+  watchWindowControls(downloadsWindow);
 
   downloadsWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 };

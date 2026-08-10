@@ -1,8 +1,22 @@
 import { Box } from '@rocket.chat/fuselage';
 import type { ReactNode } from 'react';
 
-import { TOOLBAR_HEIGHT, TRAFFIC_LIGHTS_INSET, isDarwin } from './appearance';
+import { WindowControls } from './WindowControls';
+import {
+  TOOLBAR_HEIGHT,
+  TRAFFIC_LIGHTS_INSET,
+  WINDOW_CONTROLS_WIDTH,
+  hasInAppTitleBar,
+  isDarwin,
+  isWindows,
+} from './appearance';
 import { DRAG_REGION_CLASS, NO_DRAG_REGION_CLASS } from './styles';
+
+const leadingInset = (): number => {
+  if (isDarwin) return TRAFFIC_LIGHTS_INSET;
+  if (isWindows) return WINDOW_CONTROLS_WIDTH;
+  return 12;
+};
 
 export type WindowToolbarProps = {
   /** Centred title area. */
@@ -12,8 +26,9 @@ export type WindowToolbarProps = {
 };
 
 /**
- * The window's header. On macOS it *is* the title bar — hence the drag region
- * and the room reserved for the traffic lights that float over it — so the
+ * The window's header, and on macOS and Windows the title bar itself — hence the
+ * drag region, the room reserved for the traffic lights that float over it, and
+ * the caption buttons drawn into its trailing edge on Windows. Either way the
  * window shows one header instead of a native title bar stacked on an in-app
  * one. It paints no background: the window's panel colour shows through.
  */
@@ -21,14 +36,15 @@ export const WindowToolbar = ({ children, actions }: WindowToolbarProps) => (
   <Box
     display='flex'
     flexDirection='row'
-    alignItems='center'
+    alignItems='stretch'
     flexShrink={0}
     // Both paddings go through Box props: Box emits styling props as
     // `!important`, so an inline `paddingInlineStart` would lose to
     // `paddingInline`.
-    paddingInlineStart={isDarwin ? TRAFFIC_LIGHTS_INSET : 12}
-    paddingInlineEnd='x12'
-    className={isDarwin ? DRAG_REGION_CLASS : undefined}
+    paddingInlineStart={leadingInset()}
+    // The caption buttons run to the window's edge, as they do natively.
+    paddingInlineEnd={isWindows ? 0 : 12}
+    className={hasInAppTitleBar ? DRAG_REGION_CLASS : undefined}
     style={{ height: `${TOOLBAR_HEIGHT}px`, userSelect: 'none' }}
   >
     <Box
@@ -41,9 +57,15 @@ export const WindowToolbar = ({ children, actions }: WindowToolbarProps) => (
       {children}
     </Box>
     {actions && (
-      <Box flexShrink={0} className={NO_DRAG_REGION_CLASS}>
+      <Box
+        display='flex'
+        alignItems='center'
+        flexShrink={0}
+        className={NO_DRAG_REGION_CLASS}
+      >
         {actions}
       </Box>
     )}
+    {isWindows && <WindowControls />}
   </Box>
 );

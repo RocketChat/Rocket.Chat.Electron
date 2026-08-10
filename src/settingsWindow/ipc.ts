@@ -12,19 +12,18 @@ import {
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { watchWindowControls } from '../ui/main/secondaryWindowControls';
 import {
   getSavedWindowBounds,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
-import {
-  TRAFFIC_LIGHTS_X,
-  TRAFFIC_LIGHTS_Y,
-} from '../ui/windowChrome/appearance';
+import { getTitleBarOptions } from '../ui/windowChrome/appearance';
 import {
   TRANSPARENCY_CHANNEL,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
   WINDOW_PREFERRED_HEIGHT,
+  WINDOW_PREFERRED_WIDTH,
   WINDOW_SIZE_MULTIPLIER,
 } from './constants';
 
@@ -57,11 +56,15 @@ const createSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
     y: winBounds.y + winBounds.height / 2,
   });
 
-  const width = Math.round(
-    actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER
+  // Open wide and tall enough for the Appearance section, but never larger than
+  // the screen it opens on.
+  const width = Math.min(
+    actualScreen.workAreaSize.width,
+    Math.max(
+      WINDOW_PREFERRED_WIDTH,
+      Math.round(actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER)
+    )
   );
-  // Open tall enough for the Appearance section, but never taller than the
-  // screen it opens on.
   const height = Math.min(
     actualScreen.workAreaSize.height,
     Math.max(
@@ -88,14 +91,10 @@ const createSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
     minWidth: WINDOW_MIN_WIDTH,
     minHeight: WINDOW_MIN_HEIGHT,
     title: 'Settings - Rocket.Chat',
-    // The toolbar doubles as the title bar on macOS, so the window shows one
-    // header instead of a native title bar stacked on an in-app one.
-    ...(isMac
-      ? {
-          titleBarStyle: 'hiddenInset' as const,
-          trafficLightPosition: { x: TRAFFIC_LIGHTS_X, y: TRAFFIC_LIGHTS_Y },
-        }
-      : {}),
+    // The toolbar doubles as the title bar wherever the platform allows it, so
+    // the window shows one header instead of a native title bar stacked on an
+    // in-app one.
+    ...getTitleBarOptions(),
     // `transparent` cannot be toggled after creation, so — like the root window —
     // the window is always transparent with a vibrancy material on macOS and the
     // setting only decides whether the renderer paints an opaque surface over it.
@@ -149,6 +148,7 @@ const createSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
   );
 
   watchWindowBounds('settings', settingsWindow);
+  watchWindowControls(settingsWindow);
 
   settingsWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 };

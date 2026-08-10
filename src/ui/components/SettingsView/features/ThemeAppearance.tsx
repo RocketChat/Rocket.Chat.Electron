@@ -15,6 +15,7 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_USER_THEME_PREFERENCE_CHANGED } from '../../../actions';
 import { ChromeThumbnailOption } from './ChromeThumbnailOption';
+import { THUMBNAIL_GAP } from './thumbnailMetrics';
 
 type ThemeAppearanceProps = {
   className?: string;
@@ -66,7 +67,12 @@ export const ThemeAppearance = (props: ThemeAppearanceProps) => {
       <FieldDescription>
         {t('settings.options.themeAppearance.description')}
       </FieldDescription>
-      <Box display='flex' flexWrap='wrap' mbs='x12' style={{ gap: '20px' }}>
+      <Box
+        display='flex'
+        flexWrap='wrap'
+        mbs='x12'
+        style={{ gap: `${THUMBNAIL_GAP}px` }}
+      >
         {options.map(([value, label]) => (
           <ChromeThumbnailOption
             key={value}

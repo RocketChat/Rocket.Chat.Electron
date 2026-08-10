@@ -36,8 +36,20 @@ const PdfContent = ({ url, partition }: { url: string; partition: string }) => {
     const webviewElement = webviewRef.current;
 
     if (webviewElement) {
-      const handleDidAttach: () => void = () => {
+      // `dom-ready` rather than `did-attach`: getWebContentsId() throws until
+      // the guest document exists, so announcing the viewer on attach never
+      // reached the main process — and with it, neither did the link
+      // interception that depends on knowing this webview's id.
+      let announcedWebContentsId: number | null = null;
+
+      const handleDomReady: () => void = () => {
         const webContentsId = webviewElement.getWebContentsId();
+
+        // Fires again on every navigation inside the viewer; the id only
+        // changes when the guest is replaced.
+        if (announcedWebContentsId === webContentsId) return;
+        announcedWebContentsId = webContentsId;
+
         dispatch({
           type: WEBVIEW_PDF_VIEWER_ATTACHED,
           payload: { WebContentsId: webContentsId },
@@ -60,10 +72,10 @@ const PdfContent = ({ url, partition }: { url: string; partition: string }) => {
         });
       };
 
-      webviewElement.addEventListener('did-attach', handleDidAttach);
+      webviewElement.addEventListener('dom-ready', handleDomReady);
 
       return () => {
-        webviewElement.removeEventListener('did-attach', handleDidAttach);
+        webviewElement.removeEventListener('dom-ready', handleDomReady);
       };
     }
     return () => {};

@@ -142,6 +142,7 @@ type ChannelToArgsMap = {
   'settings-window/close-requested': () => void;
   'downloads-window/open-window': () => void;
   'downloads-window/close-requested': () => void;
+  'document-viewer-window/close-requested': () => void;
   'secondary-window/minimize': () => void;
   'secondary-window/toggle-maximize': () => void;
   'secondary-window/close': () => void;

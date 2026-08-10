@@ -15,6 +15,7 @@ import { setUserDataDirectory } from './app/main/dev';
 import { startBrowserHandler } from './browser/ipc';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
+import { startDocumentViewerWindowHandler } from './documentViewerWindow/ipc';
 import { setupDownloads } from './downloads/main';
 import { setupElectronDlWithTracking } from './downloads/main/setup';
 import {
@@ -143,6 +144,7 @@ const start = async (): Promise<void> => {
   startServerViewScreenSharingHandler();
   startVideoCallWindowHandler();
   startSecondaryWindowControlsHandler();
+  startDocumentViewerWindowHandler();
   startLogViewerWindowHandler();
   startDownloadsWindowHandler();
   startSettingsWindowHandler();

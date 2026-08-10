@@ -1,0 +1,188 @@
+import path from 'path';
+
+import type { Event } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
+
+import { packageJsonInformation } from '../app/main/app';
+import { handle } from '../ipc/main';
+import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../servers/actions';
+import { listen, select, watch } from '../store';
+import type { RootState } from '../store/rootReducer';
+import { getRootWindow } from '../ui/main/rootWindow';
+import { watchWindowControls } from '../ui/main/secondaryWindowControls';
+import {
+  getSavedWindowBounds,
+  watchWindowBounds,
+} from '../ui/main/secondaryWindowState';
+import { getTitleBarOptions } from '../ui/windowChrome/appearance';
+import {
+  DOCUMENT_CHANNEL,
+  TRANSPARENCY_CHANNEL,
+  WINDOW_MIN_HEIGHT,
+  WINDOW_MIN_WIDTH,
+  WINDOW_SIZE_MULTIPLIER,
+} from './constants';
+
+const isMac = process.platform === 'darwin';
+
+let documentViewerWindow: BrowserWindow | null = null;
+
+export type DocumentRequest = {
+  server: string;
+  documentUrl: string;
+  documentFormat: string;
+};
+
+const selectIsTransparencyEnabled = ({
+  isTransparentWindowEnabled,
+}: RootState): boolean => isTransparentWindowEnabled;
+
+/**
+ * The document loads in a webview on the originating server's session, which is
+ * what lets an authenticated URL — or a blob the server page created — resolve
+ * at all.
+ */
+const toQuery = ({ server, documentUrl, documentFormat }: DocumentRequest) => ({
+  url: documentUrl,
+  format: documentFormat,
+  partition: `persist:${server}`,
+  server,
+});
+
+const createDocumentViewerWindow = async (
+  request: DocumentRequest
+): Promise<void> => {
+  const mainWindow = await getRootWindow();
+  const winBounds = mainWindow.getNormalBounds();
+
+  const actualScreen = screen.getDisplayNearestPoint({
+    x: winBounds.x + winBounds.width / 2,
+    y: winBounds.y + winBounds.height / 2,
+  });
+
+  const width = Math.round(
+    actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER
+  );
+  const height = Math.round(
+    actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER
+  );
+  const x = Math.round(
+    (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
+  );
+  const y = Math.round(
+    (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
+  );
+
+  // Where the reader last left this window, falling back to centred on the
+  // display nearest the main window.
+  const savedBounds = getSavedWindowBounds('documentViewer');
+
+  // Seeds the first paint only; the renderer then follows the setting live.
+  const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
+
+  documentViewerWindow = new BrowserWindow({
+    ...(savedBounds ?? { width, height, x, y }),
+    minWidth: WINDOW_MIN_WIDTH,
+    minHeight: WINDOW_MIN_HEIGHT,
+    title: 'Document - Rocket.Chat',
+    // The toolbar doubles as the title bar wherever the platform allows it, so
+    // the window shows one header instead of a native title bar stacked on an
+    // in-app one.
+    ...getTitleBarOptions(),
+    // `transparent` cannot be toggled after creation, so — like the root window —
+    // the window is always transparent with a vibrancy material on macOS and the
+    // setting only decides whether the renderer paints an opaque surface over it.
+    ...(isMac
+      ? {
+          transparent: true,
+          vibrancy: 'sidebar' as const,
+          visualEffectState: 'active' as const,
+        }
+      : {}),
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      // The document itself renders in a <webview> on the server's session.
+      webviewTag: true,
+    },
+    show: false,
+  });
+
+  documentViewerWindow.loadFile(
+    path.join(app.getAppPath(), 'app/document-viewer-window.html'),
+    {
+      query: {
+        transparent: String(isTransparencyEnabled),
+        ...toQuery(request),
+      },
+    }
+  );
+
+  documentViewerWindow.once('ready-to-show', () => {
+    documentViewerWindow?.setTitle(
+      `Document - ${packageJsonInformation.productName}`
+    );
+    documentViewerWindow?.show();
+  });
+
+  documentViewerWindow.on('closed', () => {
+    documentViewerWindow = null;
+  });
+
+  documentViewerWindow.webContents.on(
+    'will-navigate',
+    (event: Event, url: string) => {
+      if (!url.startsWith('file://')) {
+        event.preventDefault();
+      }
+    }
+  );
+
+  watchWindowBounds('documentViewer', documentViewerWindow);
+  watchWindowControls(documentViewerWindow);
+
+  documentViewerWindow.webContents.setWindowOpenHandler(() => ({
+    action: 'deny',
+  }));
+};
+
+/**
+ * Shows a document, reusing the open window when there is one.
+ *
+ * One window rather than one per document: a reader opening a second file
+ * almost always means "instead of", and a pile of identical windows is worse
+ * than a single one that follows them.
+ */
+export const openDocumentViewerWindow = async (
+  request: DocumentRequest
+): Promise<void> => {
+  if (documentViewerWindow && !documentViewerWindow.isDestroyed()) {
+    documentViewerWindow.webContents.send(DOCUMENT_CHANNEL, toQuery(request));
+    documentViewerWindow.focus();
+    return;
+  }
+
+  await createDocumentViewerWindow(request);
+};
+
+export const startDocumentViewerWindowHandler = (): void => {
+  // Every entry point already dispatches this — the page asking to open a PDF,
+  // and the main process intercepting a markdown download — so hooking it here
+  // redirects all of them at once. An empty url is the old in-pane viewer's way
+  // of saying "closed", and has nothing to open.
+  listen(SERVER_DOCUMENT_VIEWER_OPEN_URL, ({ payload }) => {
+    if (!payload.documentUrl) return;
+    openDocumentViewerWindow(payload as DocumentRequest);
+  });
+
+  handle('document-viewer-window/close-requested', async () => {
+    documentViewerWindow?.close();
+  });
+
+  // Transparency is a renderer concern here, so a change only needs pushing to
+  // the open window — no reopen, no restart.
+  watch(selectIsTransparencyEnabled, (isEnabled) => {
+    if (!documentViewerWindow || documentViewerWindow.isDestroyed()) return;
+    documentViewerWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  });
+};

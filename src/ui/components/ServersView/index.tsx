@@ -23,8 +23,6 @@ export const ServersView = () => {
           isSupported={server.isSupportedVersion}
           supportedVersionsFetchState={server.supportedVersionsFetchState}
           title={server.title}
-          documentViewerOpenUrl={server.documentViewerOpenUrl}
-          documentViewerFormat={server.documentViewerFormat}
           userLoggedIn={server.userLoggedIn}
           isTabPanel={navigationLayout === 'tabs'}
         />

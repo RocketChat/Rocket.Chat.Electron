@@ -7,7 +7,11 @@ import { SECONDARY_WINDOW_STATE_CHANGED } from '../actions';
 import { debounce } from './debounce';
 
 /** Windows that remember where they were, keyed in persisted state. */
-export type SecondaryWindowId = 'logViewer' | 'downloads' | 'settings';
+export type SecondaryWindowId =
+  | 'logViewer'
+  | 'downloads'
+  | 'settings'
+  | 'documentViewer';
 
 export type SecondaryWindowBounds = Rectangle;
 

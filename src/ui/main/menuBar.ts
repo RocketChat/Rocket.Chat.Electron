@@ -440,15 +440,13 @@ export const createViewMenu = createSelector(
           },
         },
       ]),
-      ...on(process.platform === 'linux', () => [
+      ...on(process.platform !== 'darwin', () => [
         {
           id: 'showMenuBar',
           label: t('menus.showMenuBar'),
           type: 'checkbox',
           checked: isMenuBarEnabled,
-          enabled: !isMenuBarEnabled || navigationLayout === 'sidebar',
-          accelerator:
-            process.platform === 'darwin' ? 'Shift+Command+M' : 'Ctrl+Shift+M',
+          accelerator: 'Ctrl+Shift+M',
           click: async ({ checked }) => {
             const browserWindow = await getRootWindow();
 
@@ -475,10 +473,6 @@ export const createViewMenu = createSelector(
         type: 'radio',
         checked: navigationLayout === 'tabs',
         accelerator: nextNavigationLayoutAccelerator(navigationLayout, 'tabs'),
-        enabled:
-          process.platform !== 'linux' ||
-          isMenuBarEnabled ||
-          navigationLayout === 'tabs',
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -501,10 +495,6 @@ export const createViewMenu = createSelector(
           navigationLayout,
           'sidebar'
         ),
-        enabled:
-          process.platform !== 'linux' ||
-          isMenuBarEnabled ||
-          navigationLayout === 'sidebar',
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -527,10 +517,6 @@ export const createViewMenu = createSelector(
           navigationLayout,
           'hidden'
         ),
-        enabled:
-          process.platform !== 'linux' ||
-          isMenuBarEnabled ||
-          navigationLayout === 'hidden',
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -1280,18 +1266,20 @@ class MenuBarService extends Service {
         return;
       }
 
+      // Windows and Linux share the same model: keep the menu attached for
+      // accelerators, show it permanently when isMenuBarEnabled, otherwise
+      // auto-hide so a solo Alt press reveals it (classic desktop chrome).
+      // isMenuBarEnabled is already a view-menu dependency, so this watcher
+      // re-runs when the toggle flips and re-applies visibility here.
       const browserWindow = await getRootWindow();
-
-      if (process.platform === 'win32') {
-        Menu.setApplicationMenu(null);
-        browserWindow.setMenu(menu);
-        browserWindow.setMenuBarVisibility(false);
-        browserWindow.autoHideMenuBar = false;
-        return;
-      }
+      const isMenuBarEnabled = select(
+        ({ isMenuBarEnabled }) => isMenuBarEnabled
+      );
 
       Menu.setApplicationMenu(null);
       browserWindow.setMenu(menu);
+      browserWindow.autoHideMenuBar = !isMenuBarEnabled;
+      browserWindow.setMenuBarVisibility(isMenuBarEnabled);
     });
 
     this.listen(APP_MENU_TRIGGERED, async (action) => {

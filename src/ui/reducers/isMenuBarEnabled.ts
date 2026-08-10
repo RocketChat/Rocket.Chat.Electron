@@ -12,8 +12,13 @@ type IsMenuBarEnabledAction =
   | ActionOf<typeof SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>;
 
+// macOS always uses the system menu bar (this flag is unused for visibility
+// there). Windows and Linux default to auto-hide: Alt reveals the bar; the
+// Settings / View → Menu bar toggle pins it permanently.
+const defaultIsMenuBarEnabled = process.platform === 'darwin';
+
 export const isMenuBarEnabled: Reducer<boolean, IsMenuBarEnabledAction> = (
-  state = true,
+  state = defaultIsMenuBarEnabled,
   action
 ) => {
   switch (action.type) {

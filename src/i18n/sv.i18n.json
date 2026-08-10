@@ -433,6 +433,44 @@
       "settingsMenu": "Anpassa och kontrollera appen"
     }
   },
+  "tabBar": {
+    "workspaces": "Arbetsytor",
+    "addWorkspace": "Lägg till arbetsyta",
+    "unreadMessage_one": "{{- count}} meddelande",
+    "unreadMessage_other": "{{- count}} meddelanden",
+    "unreadMessages": "Olästa meddelanden",
+    "meatballMenu": "Programmeny",
+    "update": {
+      "available": "Uppdatering",
+      "updating": "Uppdaterar…",
+      "percent": "{{- percent}}%",
+      "restart": "Starta om för att uppdatera",
+      "tooltip": "En ny version av skrivbordsappen är tillgänglig, klicka för mer information",
+      "checking": "Söker efter uppdateringar…",
+      "upToDate": "Du är uppdaterad",
+      "upToDateTooltip": "{{- version}} är den senaste versionen",
+      "checkFailed": "Det gick inte att söka efter uppdateringar"
+    },
+    "windowControls": {
+      "minimize": "Minimera",
+      "maximize": "Maximera",
+      "restore": "Återställ",
+      "close": "Stäng"
+    },
+    "downloads": {
+      "tooltip": "Laddar ned filer, klicka för detaljer",
+      "title": "Nedladdningar",
+      "showAll": "Visa alla nedladdningar",
+      "pause": "Pausa",
+      "resume": "Återuppta",
+      "cancel": "Avbryt",
+      "showInFolder": "Visa i mapp",
+      "percent": "{{- percent}}%",
+      "canceled": "Avbruten",
+      "failed": "Misslyckades",
+      "dismiss": "Stäng"
+    }
+  },
   "touchBar": {
     "formatting": "Formatering",
     "selectServer": "Välj server"
@@ -497,44 +535,6 @@
     "expiration": {
       "label": "Utgångsdatum:",
       "expiresOn": "Upphör {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Arbetsytor",
-    "addWorkspace": "Lägg till arbetsyta",
-    "unreadMessage_one": "{{- count}} meddelande",
-    "unreadMessage_other": "{{- count}} meddelanden",
-    "unreadMessages": "Olästa meddelanden",
-    "meatballMenu": "Programmeny",
-    "update": {
-      "available": "Uppdatering",
-      "updating": "Uppdaterar…",
-      "percent": "{{- percent}}%",
-      "restart": "Starta om för att uppdatera",
-      "tooltip": "En ny version av skrivbordsappen är tillgänglig, klicka för mer information",
-      "checking": "Söker efter uppdateringar…",
-      "upToDate": "Du är uppdaterad",
-      "upToDateTooltip": "{{- version}} är den senaste versionen",
-      "checkFailed": "Det gick inte att söka efter uppdateringar"
-    },
-    "windowControls": {
-      "minimize": "Minimera",
-      "maximize": "Maximera",
-      "restore": "Återställ",
-      "close": "Stäng"
-    },
-    "downloads": {
-      "tooltip": "Laddar ned filer, klicka för detaljer",
-      "title": "Nedladdningar",
-      "showAll": "Visa alla nedladdningar",
-      "pause": "Pausa",
-      "resume": "Återuppta",
-      "cancel": "Avbryt",
-      "showInFolder": "Visa i mapp",
-      "percent": "{{- percent}}%",
-      "canceled": "Avbruten",
-      "failed": "Misslyckades",
-      "dismiss": "Stäng"
     }
   }
 }

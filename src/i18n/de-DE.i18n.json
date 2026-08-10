@@ -378,6 +378,44 @@
       "clearStorageData": "Speicherdaten löschen"
     }
   },
+  "tabBar": {
+    "workspaces": "Arbeitsbereiche",
+    "addWorkspace": "Arbeitsbereich hinzufügen",
+    "unreadMessage_one": "{{- count}} Nachricht",
+    "unreadMessage_other": "{{- count}} Nachrichten",
+    "unreadMessages": "Ungelesene Nachrichten",
+    "meatballMenu": "Anwendungsmenü",
+    "update": {
+      "available": "Update",
+      "updating": "Wird aktualisiert…",
+      "percent": "{{- percent}}%",
+      "restart": "Zum Aktualisieren neu starten",
+      "tooltip": "Eine neue Version der Desktop-App ist verfügbar, klicken Sie für Details",
+      "checking": "Suche nach Updates…",
+      "upToDate": "Sie sind auf dem neuesten Stand",
+      "upToDateTooltip": "{{- version}} ist die neueste Version",
+      "checkFailed": "Updates konnten nicht geprüft werden"
+    },
+    "windowControls": {
+      "minimize": "Minimieren",
+      "maximize": "Maximieren",
+      "restore": "Wiederherstellen",
+      "close": "Schließen"
+    },
+    "downloads": {
+      "tooltip": "Dateien werden heruntergeladen, klicken Sie für Details",
+      "title": "Downloads",
+      "showAll": "Alle Downloads anzeigen",
+      "pause": "Pause",
+      "resume": "Fortsetzen",
+      "cancel": "Abbrechen",
+      "showInFolder": "Im Ordner anzeigen",
+      "percent": "{{- percent}}%",
+      "canceled": "Abgebrochen",
+      "failed": "Fehlgeschlagen",
+      "dismiss": "Schließen"
+    }
+  },
   "touchBar": {
     "formatting": "Formatierung",
     "selectServer": "Server auswählen"
@@ -442,44 +480,6 @@
     "expiration": {
       "label": "Ablauf:",
       "expiresOn": "Läuft ab am {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Arbeitsbereiche",
-    "addWorkspace": "Arbeitsbereich hinzufügen",
-    "unreadMessage_one": "{{- count}} Nachricht",
-    "unreadMessage_other": "{{- count}} Nachrichten",
-    "unreadMessages": "Ungelesene Nachrichten",
-    "meatballMenu": "Anwendungsmenü",
-    "update": {
-      "available": "Update",
-      "updating": "Wird aktualisiert…",
-      "percent": "{{- percent}}%",
-      "restart": "Zum Aktualisieren neu starten",
-      "tooltip": "Eine neue Version der Desktop-App ist verfügbar, klicken Sie für Details",
-      "checking": "Suche nach Updates…",
-      "upToDate": "Sie sind auf dem neuesten Stand",
-      "upToDateTooltip": "{{- version}} ist die neueste Version",
-      "checkFailed": "Updates konnten nicht geprüft werden"
-    },
-    "windowControls": {
-      "minimize": "Minimieren",
-      "maximize": "Maximieren",
-      "restore": "Wiederherstellen",
-      "close": "Schließen"
-    },
-    "downloads": {
-      "tooltip": "Dateien werden heruntergeladen, klicken Sie für Details",
-      "title": "Downloads",
-      "showAll": "Alle Downloads anzeigen",
-      "pause": "Pause",
-      "resume": "Fortsetzen",
-      "cancel": "Abbrechen",
-      "showInFolder": "Im Ordner anzeigen",
-      "percent": "{{- percent}}%",
-      "canceled": "Abgebrochen",
-      "failed": "Fehlgeschlagen",
-      "dismiss": "Schließen"
     }
   }
 }

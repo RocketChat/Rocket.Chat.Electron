@@ -209,6 +209,44 @@
       "openDevTools": "Відкрити DevTools"
     }
   },
+  "tabBar": {
+    "workspaces": "Робочі простори",
+    "addWorkspace": "Додати робочий простір",
+    "unreadMessage_one": "{{- count}} повідомлення",
+    "unreadMessage_other": "{{- count}} повідомлення",
+    "unreadMessages": "Непрочитані повідомлення",
+    "meatballMenu": "Меню застосунку",
+    "update": {
+      "available": "Оновлення",
+      "updating": "Оновлення…",
+      "percent": "{{- percent}}%",
+      "restart": "Перезапустити для оновлення",
+      "tooltip": "Доступна нова версія настільного застосунку, натисніть, щоб переглянути деталі",
+      "checking": "Перевірка оновлень…",
+      "upToDate": "У вас остання версія",
+      "upToDateTooltip": "{{- version}} — остання версія",
+      "checkFailed": "Не вдалося перевірити оновлення"
+    },
+    "windowControls": {
+      "minimize": "Згорнути",
+      "maximize": "Розгорнути",
+      "restore": "Відновити",
+      "close": "Закрити"
+    },
+    "downloads": {
+      "tooltip": "Завантаження файлів, натисніть для деталей",
+      "title": "Завантаження",
+      "showAll": "Показати всі завантаження",
+      "pause": "Призупинити",
+      "resume": "Продовжити",
+      "cancel": "Скасувати",
+      "showInFolder": "Показати в папці",
+      "percent": "{{- percent}}%",
+      "canceled": "Скасовано",
+      "failed": "Не вдалося",
+      "dismiss": "Закрити"
+    }
+  },
   "touchBar": {
     "formatting": "Форматування",
     "selectServer": "Вибрати сервер"
@@ -273,46 +311,6 @@
     "expiration": {
       "label": "Термін дії:",
       "expiresOn": "Закінчується {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Робочі простори",
-    "addWorkspace": "Додати робочий простір",
-    "unreadMessage_one": "{{- count}} повідомлення",
-    "unreadMessage_few": "{{- count}} повідомлення",
-    "unreadMessage_many": "{{- count}} повідомлень",
-    "unreadMessage_other": "{{- count}} повідомлення",
-    "unreadMessages": "Непрочитані повідомлення",
-    "meatballMenu": "Меню застосунку",
-    "update": {
-      "available": "Оновлення",
-      "updating": "Оновлення…",
-      "percent": "{{- percent}}%",
-      "restart": "Перезапустити для оновлення",
-      "tooltip": "Доступна нова версія настільного застосунку, натисніть, щоб переглянути деталі",
-      "checking": "Перевірка оновлень…",
-      "upToDate": "У вас остання версія",
-      "upToDateTooltip": "{{- version}} — остання версія",
-      "checkFailed": "Не вдалося перевірити оновлення"
-    },
-    "windowControls": {
-      "minimize": "Згорнути",
-      "maximize": "Розгорнути",
-      "restore": "Відновити",
-      "close": "Закрити"
-    },
-    "downloads": {
-      "tooltip": "Завантаження файлів, натисніть для деталей",
-      "title": "Завантаження",
-      "showAll": "Показати всі завантаження",
-      "pause": "Призупинити",
-      "resume": "Продовжити",
-      "cancel": "Скасувати",
-      "showInFolder": "Показати в папці",
-      "percent": "{{- percent}}%",
-      "canceled": "Скасовано",
-      "failed": "Не вдалося",
-      "dismiss": "Закрити"
     }
   }
 }

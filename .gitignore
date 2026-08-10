@@ -23,6 +23,14 @@ Thumbs.db
 supportedVersions.jwt
 # local research (git-ignored)
 localdev/
+localdev.zip
+
+# local agent tooling state
+.localdev/
+.agents/
+.codex/
+.fuselage-craft/
+prompt-exports/
 
 # caches and temp
 /coverage
@@ -31,7 +39,12 @@ node-compile-cache/
 coderabbit-update-*/
 
 # Claude Code local config
-.claude/
+.claude/settings.local.json
+.claude/mytasks/
+.claude/worktrees/
+.claude/rules/
+.claude/scheduled_tasks.lock
+.claude/commands/
 
 # ByteRover context-tree (local knowledge base)
 .brv/

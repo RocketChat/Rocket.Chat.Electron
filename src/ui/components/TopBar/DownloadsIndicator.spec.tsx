@@ -574,7 +574,9 @@ describe('DownloadsIndicator', () => {
       }),
     });
 
-    expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('downloads-unseen-dot')
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: 'tabBar.downloads.title' })
@@ -710,6 +712,8 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
+      screen.getByTestId('downloads-unseen-dot');
+
       const glyph = screen.getByTestId('downloads-glyph');
 
       const paths = glyph.querySelectorAll('path');
@@ -728,15 +732,13 @@ describe('DownloadsIndicator', () => {
 
     it('reverts to the plain idle glyph (no circles) once the unseen download is marked seen by clicking the button', async () => {
       const user = userEvent.setup();
-      // The component reads Date.now() twice — once for the mount-time seenAt,
-      // once when the button is clicked — and the download only counts as
-      // unseen while its endTime sits between the two. Left to the real clock
-      // that window is a fraction of a millisecond wide, so the test passed
-      // only when mount and render landed in the same tick; it is driven here
-      // instead.
-      const mountTime = 1_000_000;
-      const clickTime = mountTime + 10_000;
-      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(mountTime);
+      // seenAt is initialized to the mount-time Date.now(); endTime must sit
+      // between that mount time and the later click's own Date.now() call
+      // for the download to start unseen and end up seen after the click.
+      // Date.now is pinned for the duration of this test to make that
+      // ordering deterministic instead of racing the wall clock.
+      const NOW = Date.now();
+      const spy = jest.spyOn(Date, 'now').mockReturnValue(NOW);
 
       try {
         renderWithStore(<DownloadsIndicator />, {
@@ -746,15 +748,14 @@ describe('DownloadsIndicator', () => {
               state: 'completed',
               receivedBytes: 1000,
               startTime: SESSION_START + 1000,
-              endTime: mountTime + 1,
+              endTime: NOW + 1,
             },
           }),
         });
 
         expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
 
-        // Opening the popup is what marks everything finished so far as seen.
-        nowSpy.mockReturnValue(clickTime);
+        spy.mockReturnValue(NOW + 60_000);
 
         await user.click(
           screen.getByRole('button', { name: 'tabBar.downloads.title' })
@@ -770,7 +771,7 @@ describe('DownloadsIndicator', () => {
 
         expect(glyph.querySelectorAll('circle')).toHaveLength(0);
       } finally {
-        nowSpy.mockRestore();
+        spy.mockRestore();
       }
     });
 

@@ -94,19 +94,20 @@ export const Shell = () => {
             }
           />
         )}
-        {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
-          <TopBar
-            centerSlot={
-              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
-            }
-            trailingSlot={
-              <>
-                <UpdateLabel />
-                <DownloadsIndicator compact />
-              </>
-            }
-          />
-        )}
+        {navigationLayout !== 'tabs' &&
+          ['darwin', 'linux'].includes(process.platform) && (
+            <TopBar
+              centerSlot={
+                navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+              }
+              trailingSlot={
+                <>
+                  <UpdateLabel />
+                  <DownloadsIndicator compact />
+                </>
+              }
+            />
+          )}
         {navigationLayout !== 'tabs' && process.platform === 'win32' && (
           <TopBar
             leadingSlot={

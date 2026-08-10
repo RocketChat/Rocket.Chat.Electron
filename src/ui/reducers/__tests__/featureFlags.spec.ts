@@ -9,6 +9,7 @@ import { isBugsnagEnabled } from '../isBugsnagEnabled';
 import { isDebugLoggingEnabled } from '../isDebugLoggingEnabled';
 import { isDetailedEventsLoggingEnabled } from '../isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../isDeveloperModeEnabled';
+import { isDownloadsPercentageEnabled } from '../isDownloadsPercentageEnabled';
 import { isFlashFrameEnabled } from '../isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../isInternalVideoChatWindowEnabled';
@@ -158,6 +159,51 @@ describe('isFlashFrameEnabled', () => {
       isFlashFrameEnabled(true, {
         type: uiActions.SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED,
         payload: false,
+      } as any)
+    ).toBe(false);
+  });
+});
+
+describe('isDownloadsPercentageEnabled', () => {
+  it('defaults to false when no state is passed', () => {
+    expect(
+      isDownloadsPercentageEnabled(undefined, {
+        type: 'UNKNOWN_DOWNLOADS_PERCENTAGE',
+      } as any)
+    ).toBe(false);
+  });
+
+  it('reads from APP_SETTINGS_LOADED', () => {
+    expect(
+      isDownloadsPercentageEnabled(true, {
+        type: APP_SETTINGS_LOADED,
+        payload: { isDownloadsPercentageEnabled: false },
+      } as any)
+    ).toBe(false);
+  });
+
+  it('keeps prior state when APP_SETTINGS_LOADED omits the field', () => {
+    expect(
+      isDownloadsPercentageEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toBe(false);
+  });
+
+  it('applies SETTINGS_SET_DOWNLOADS_PERCENTAGE_ENABLED_CHANGED', () => {
+    expect(
+      isDownloadsPercentageEnabled(true, {
+        type: uiActions.SETTINGS_SET_DOWNLOADS_PERCENTAGE_ENABLED_CHANGED,
+        payload: false,
+      } as any)
+    ).toBe(false);
+  });
+
+  it('keeps state on unknown actions', () => {
+    expect(
+      isDownloadsPercentageEnabled(false, {
+        type: 'UNKNOWN_DOWNLOADS_PERCENTAGE',
       } as any)
     ).toBe(false);
   });

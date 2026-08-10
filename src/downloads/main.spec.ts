@@ -2,12 +2,13 @@ import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell } from 'electron';
 
 import { handle } from '../ipc/main';
-import { dispatch, select } from '../store';
+import { dispatch, listen, select } from '../store';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
   DOWNLOADS_CLEARED,
+  DOWNLOADS_SIMULATION_REQUESTED,
 } from './actions';
 import { DownloadStatus } from './common';
 import { handleWillDownloadEvent, setupDownloads } from './main';
@@ -42,12 +43,14 @@ jest.mock('i18next', () => ({
 jest.mock('../store', () => ({
   dispatch: jest.fn(),
   select: jest.fn(),
+  listen: jest.fn(),
 }));
 
 describe('downloads/main', () => {
   const mockDispatch = dispatch as jest.MockedFunction<typeof dispatch>;
   const mockSelect = select as jest.MockedFunction<typeof select>;
   const mockHandle = handle as jest.MockedFunction<typeof handle>;
+  const mockListen = listen as jest.MockedFunction<typeof listen>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -397,6 +400,204 @@ describe('downloads/main', () => {
           type: DOWNLOAD_REMOVED,
           payload: 'test-item-id',
         });
+      });
+    });
+
+    describe('DOWNLOADS_SIMULATION_REQUESTED', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+        mockSelect.mockImplementation((selector: any) =>
+          selector({ servers: [] })
+        );
+      });
+
+      afterEach(() => {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      });
+
+      const getSimulationHandler = () =>
+        (mockListen.mock.calls as any[]).find(
+          ([type]) => type === DOWNLOADS_SIMULATION_REQUESTED
+        )?.[1] as any;
+
+      it('registers a listener for DOWNLOADS_SIMULATION_REQUESTED', () => {
+        expect(mockListen).toHaveBeenCalledWith(
+          DOWNLOADS_SIMULATION_REQUESTED,
+          expect.any(Function)
+        );
+      });
+
+      it('dispatches two DOWNLOAD_CREATED actions', async () => {
+        const handler = getSimulationHandler();
+
+        await handler?.({ type: DOWNLOADS_SIMULATION_REQUESTED });
+
+        const createdCalls = (mockDispatch.mock.calls as any[]).filter(
+          ([action]) => action.type === DOWNLOAD_CREATED
+        );
+
+        expect(createdCalls).toHaveLength(2);
+        expect(createdCalls[0][0].payload).toMatchObject({
+          fileName: 'demo-video.mp4',
+          state: 'progressing',
+          receivedBytes: 0,
+        });
+        expect(createdCalls[1][0].payload).toMatchObject({
+          fileName: 'demo-archive.zip',
+          state: 'progressing',
+          receivedBytes: 0,
+        });
+      });
+
+      it('grows receivedBytes on progress ticks and completes both downloads', async () => {
+        const handler = getSimulationHandler();
+
+        await handler?.({ type: DOWNLOADS_SIMULATION_REQUESTED });
+
+        const createdCalls = (mockDispatch.mock.calls as any[]).filter(
+          ([action]) => action.type === DOWNLOAD_CREATED
+        );
+        const videoItemId = createdCalls[0][0].payload.itemId;
+        const archiveItemId = createdCalls[1][0].payload.itemId;
+
+        jest.advanceTimersByTime(250);
+
+        const firstTickUpdates = (mockDispatch.mock.calls as any[]).filter(
+          ([action]) =>
+            action.type === DOWNLOAD_UPDATED &&
+            action.payload.itemId === videoItemId
+        );
+        expect(firstTickUpdates).toHaveLength(1);
+        expect(firstTickUpdates[0][0].payload.receivedBytes).toBeGreaterThan(0);
+
+        // Advance well past both simulated durations (~14s is the longer one).
+        jest.advanceTimersByTime(20_000);
+
+        const videoUpdates = (mockDispatch.mock.calls as any[]).filter(
+          ([action]) =>
+            action.type === DOWNLOAD_UPDATED &&
+            action.payload.itemId === videoItemId
+        );
+        const archiveUpdates = (mockDispatch.mock.calls as any[]).filter(
+          ([action]) =>
+            action.type === DOWNLOAD_UPDATED &&
+            action.payload.itemId === archiveItemId
+        );
+
+        expect(videoUpdates[videoUpdates.length - 1][0].payload).toMatchObject({
+          state: 'completed',
+          receivedBytes: 256 * 1024 * 1024,
+        });
+        expect(
+          archiveUpdates[archiveUpdates.length - 1][0].payload
+        ).toMatchObject({
+          state: 'completed',
+          receivedBytes: 64 * 1024 * 1024,
+        });
+      });
+
+      it('removes the previous simulation itemIds when a new simulation starts', async () => {
+        const handler = getSimulationHandler();
+
+        await handler?.({ type: DOWNLOADS_SIMULATION_REQUESTED });
+
+        const firstCreatedCalls = (mockDispatch.mock.calls as any[]).filter(
+          ([action]) => action.type === DOWNLOAD_CREATED
+        );
+        const firstVideoItemId = firstCreatedCalls[0][0].payload.itemId;
+        const firstArchiveItemId = firstCreatedCalls[1][0].payload.itemId;
+
+        mockDispatch.mockClear();
+
+        await handler?.({ type: DOWNLOADS_SIMULATION_REQUESTED });
+
+        const removedCalls = (mockDispatch.mock.calls as any[]).filter(
+          ([action]) => action.type === DOWNLOAD_REMOVED
+        );
+        const removedItemIds = removedCalls.map(([action]) => action.payload);
+
+        expect(removedItemIds).toEqual(
+          expect.arrayContaining([firstVideoItemId, firstArchiveItemId])
+        );
+      });
+    });
+
+    describe('interruptOrphanedDownloads', () => {
+      it('marks a persisted progressing download with no live item as interrupted', () => {
+        mockDispatch.mockClear();
+        mockSelect.mockImplementation((selector: any) =>
+          selector({
+            downloads: {
+              'progressing-item': {
+                itemId: 'progressing-item',
+                state: 'progressing',
+                status: DownloadStatus.ALL,
+              },
+            },
+          })
+        );
+
+        setupDownloads();
+
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: DOWNLOAD_UPDATED,
+          payload: expect.objectContaining({
+            itemId: 'progressing-item',
+            state: 'interrupted',
+            endTime: expect.any(Number),
+          }),
+        });
+      });
+
+      it('marks a persisted paused download with no live item as interrupted', () => {
+        mockDispatch.mockClear();
+        mockSelect.mockImplementation((selector: any) =>
+          selector({
+            downloads: {
+              'paused-item': {
+                itemId: 'paused-item',
+                state: 'paused',
+                status: DownloadStatus.PAUSED,
+              },
+            },
+          })
+        );
+
+        setupDownloads();
+
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: DOWNLOAD_UPDATED,
+          payload: expect.objectContaining({
+            itemId: 'paused-item',
+            state: 'interrupted',
+            endTime: expect.any(Number),
+          }),
+        });
+      });
+
+      it('leaves a completed download untouched', () => {
+        mockDispatch.mockClear();
+        mockSelect.mockImplementation((selector: any) =>
+          selector({
+            downloads: {
+              'completed-item': {
+                itemId: 'completed-item',
+                state: 'completed',
+                status: DownloadStatus.ALL,
+              },
+            },
+          })
+        );
+
+        setupDownloads();
+
+        expect(mockDispatch).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: DOWNLOAD_UPDATED,
+            payload: expect.objectContaining({ itemId: 'completed-item' }),
+          })
+        );
       });
     });
   });

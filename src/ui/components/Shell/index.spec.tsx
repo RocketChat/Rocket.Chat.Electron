@@ -86,6 +86,13 @@ jest.mock('../TabBar/WindowControls', () => ({
   WindowControls: () => <div data-testid='window-controls' />,
 }));
 
+jest.mock('../TopBar/DownloadsIndicator', () => ({
+  __esModule: true,
+  DownloadsIndicator: ({ compact = false }: { compact?: boolean }) => (
+    <div data-testid='downloads-indicator' data-compact={String(compact)} />
+  ),
+}));
+
 jest.mock('../AboutDialog', () => ({
   __esModule: true,
   AboutDialog: () => <div data-testid='about-dialog' />,
@@ -400,6 +407,105 @@ describe('Shell', () => {
       // darwin tabs trailing slot, so it is expected.
       expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+    });
+  });
+
+  describe('downloads indicator: exactly one instance, compact in the thin TopBar', () => {
+    it('renders exactly one instance on the darwin TopBar (sidebar layout), compact', () => {
+      const restorePlatform = setPlatform('darwin');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'sidebar' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-compact', 'true');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('renders exactly one instance on the darwin TopBar (hidden layout), compact', () => {
+      const restorePlatform = setPlatform('darwin');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'hidden' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-compact', 'true');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('renders exactly one instance on the darwin TabBar (tabs layout), not compact', () => {
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({ navigationLayout: 'tabs' }),
+      });
+
+      const instances = screen.getAllByTestId('downloads-indicator');
+      expect(instances).toHaveLength(1);
+      expect(instances[0]).toHaveAttribute('data-compact', 'false');
+    });
+
+    it('renders exactly one instance on the win32 TopBar leading slot, compact', () => {
+      const restorePlatform = setPlatform('win32');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'sidebar' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-compact', 'true');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('renders exactly one instance on the win32 TabBar (tabs layout), not compact', () => {
+      const restorePlatform = setPlatform('win32');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({ navigationLayout: 'tabs' }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+        expect(instances[0]).toHaveAttribute('data-compact', 'false');
+      } finally {
+        restorePlatform();
+      }
+    });
+
+    it('still renders exactly one instance regardless of developer mode', () => {
+      // Shell's non-tabs TopBar branches are gated on darwin/win32 only (a
+      // pre-existing platform split, unrelated to developer mode) — pin the
+      // platform like every sibling test in this block so the assertion
+      // doesn't depend on the CI runner's actual process.platform (this test
+      // is about developer mode, not platform).
+      const restorePlatform = setPlatform('darwin');
+
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({
+            navigationLayout: 'sidebar',
+            isDeveloperModeEnabled: true,
+          }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+      } finally {
+        restorePlatform();
+      }
     });
   });
 });

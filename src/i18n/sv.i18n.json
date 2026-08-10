@@ -243,6 +243,10 @@
         "onLinux": "Vissa Linux-distributioner har inte stöd för den här funktionen.",
         "descriptionDarwin": "Appikonen studsar i dockan för att dra till sig användarens uppmärksamhet."
       },
+      "downloadsPercentage": {
+        "title": "Nedladdningsprocent",
+        "description": "Visa nedladdningsförloppsandelen i fliken."
+      },
       "hardwareAcceleration": {
         "title": "Hårdvaruacceleration",
         "description": "Aktiverar användning av hårdvaruacceleration när sådan finns tillgänglig. Programmet laddas om vid ändring."

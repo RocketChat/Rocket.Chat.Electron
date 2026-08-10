@@ -6,6 +6,7 @@ import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
+import { DOWNLOADS_SIMULATION_REQUESTED } from '../../downloads/actions';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -52,6 +53,35 @@ const on = (
   condition: boolean,
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
+
+const createSimulationMenuItems = (): MenuItemConstructorOptions[] => [
+  {
+    id: 'simulateUpdate',
+    label: t('menus.simulateUpdate'),
+    click: async () => {
+      const browserWindow = await getRootWindow();
+
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
+      dispatch({ type: UPDATES_SIMULATION_REQUESTED });
+    },
+  },
+  {
+    id: 'simulateDownload',
+    label: t('menus.simulateDownload'),
+    click: async () => {
+      const browserWindow = await getRootWindow();
+
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
+      dispatch({ type: DOWNLOADS_SIMULATION_REQUESTED });
+    },
+  },
+];
 
 // The layout shortcut advances through tabs → sidebar → hidden → tabs. It is
 // shown on whichever radio is the *next* step, so pressing it (or clicking that
@@ -570,6 +600,8 @@ const selectWindowDeps = createStructuredSelector({
   }: RootState) => isShowWindowOnUnreadChangedEnabled,
   isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
+  isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
+    isDeveloperModeEnabled,
 });
 
 export const createWindowMenu = createSelector(
@@ -825,21 +857,7 @@ export const createHelpMenu = createSelector(
           });
         },
       },
-      ...on(isDeveloperModeEnabled, () => [
-        {
-          id: 'simulateUpdate',
-          label: t('menus.simulateUpdate'),
-          click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
-            dispatch({ type: UPDATES_SIMULATION_REQUESTED });
-          },
-        },
-      ]),
+      ...on(isDeveloperModeEnabled, createSimulationMenuItems),
       {
         id: 'videoCallToolsSubmenu',
         label: t('menus.videoCallTools'),
@@ -1001,6 +1019,7 @@ export const selectAppMenuPopupTemplate = createSelector(
     createViewMenu,
     createWindowMenu,
     createHelpMenu,
+    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled,
   ],
   (
     rocketChatMenu,
@@ -1008,7 +1027,8 @@ export const selectAppMenuPopupTemplate = createSelector(
     editMenu,
     viewMenu,
     windowMenu,
-    helpMenu
+    helpMenu,
+    isDeveloperModeEnabled
   ): MenuItemConstructorOptions[] => {
     const settingsItem: MenuItemConstructorOptions = {
       id: 'settings',
@@ -1038,7 +1058,15 @@ export const selectAppMenuPopupTemplate = createSelector(
     // already lives in the system menu bar and quitting is available there, so
     // the meatball popup only needs the desktop-app extras.
     if (process.platform === 'darwin') {
-      return [settingsItem, downloadsItem, checkForUpdatesItem];
+      return [
+        settingsItem,
+        downloadsItem,
+        checkForUpdatesItem,
+        ...on(isDeveloperModeEnabled, () => [
+          { type: 'separator' },
+          ...createSimulationMenuItems(),
+        ]),
+      ];
     }
 
     return [
@@ -1057,6 +1085,10 @@ export const selectAppMenuPopupTemplate = createSelector(
       settingsItem,
       downloadsItem,
       checkForUpdatesItem,
+      ...on(isDeveloperModeEnabled, () => [
+        { type: 'separator' },
+        ...createSimulationMenuItems(),
+      ]),
       { type: 'separator' },
       createQuitMenuItem(),
     ];
@@ -1072,6 +1104,7 @@ export const selectServerSwitcherMenuTemplate = createSelector(
     servers,
     currentView,
     isAddNewServersEnabled,
+    isDeveloperModeEnabled,
   }): MenuItemConstructorOptions[] => {
     const serverItems = servers.map((server, i): MenuItemConstructorOptions => {
       const isActive =
@@ -1136,6 +1169,17 @@ export const selectServerSwitcherMenuTemplate = createSelector(
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           },
         } as MenuItemConstructorOptions,
+      ]),
+      {
+        id: 'checkForUpdates',
+        label: t('menus.checkForUpdates'),
+        click: () => {
+          dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
+        },
+      },
+      ...on(isDeveloperModeEnabled, () => [
+        { type: 'separator' } as MenuItemConstructorOptions,
+        ...createSimulationMenuItems(),
       ]),
     ];
   }

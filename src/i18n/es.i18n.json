@@ -234,6 +234,10 @@
         "onLinux": "Algunas distribuciones de Linux no admiten esta función.",
         "descriptionDarwin": "Hace rebotar el icono de la aplicación en el dock para atraer la atención del usuario."
       },
+      "downloadsPercentage": {
+        "title": "Porcentaje de descarga",
+        "description": "Mostrar el porcentaje de progreso de descarga en la barra de pestañas."
+      },
       "hardwareAcceleration": {
         "title": "Aceleración de hardware",
         "description": "Habilita el uso de la aceleración de hardware cuando esté disponible. La aplicación se reiniciará al realizar cambios."

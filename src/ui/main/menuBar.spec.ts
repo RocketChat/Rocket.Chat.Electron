@@ -1,10 +1,16 @@
 import type { MenuItemConstructorOptions } from 'electron';
 
+import { DOWNLOADS_SIMULATION_REQUESTED } from '../../downloads/actions';
 import type { Server } from '../../servers/common';
 import type { RootState } from '../../store/rootReducer';
+import {
+  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+  UPDATES_SIMULATION_REQUESTED,
+} from '../../updates/actions';
 import { MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED } from '../actions';
 import {
   getServerContextMenuTemplate,
+  selectAppMenuPopupTemplate,
   selectMenuBarTemplate,
   selectMenuBarTemplateAsJson,
   selectServerSwitcherMenuTemplate,
@@ -296,6 +302,104 @@ describe('ui/main/menuBar', () => {
       );
       expect(serverB?.accelerator).toBe('CommandOrControl+2');
       expect(serverB?.checked).toBe(false);
+    });
+
+    it('always includes checkForUpdates and dispatches on click', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { dispatch } = require('../../store');
+      const state = createState({ isDeveloperModeEnabled: false });
+      const template = selectServerSwitcherMenuTemplate(state);
+
+      const checkForUpdates = findMenu(template, 'checkForUpdates');
+      await (checkForUpdates.click as any)();
+
+      expect(dispatch).toHaveBeenCalledWith({
+        type: UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+      });
+    });
+
+    it('omits simulate items when developer mode is off', () => {
+      const state = createState({ isDeveloperModeEnabled: false });
+      const template = selectServerSwitcherMenuTemplate(state);
+      const ids = template.map((item) => item.id);
+
+      expect(ids).not.toContain('simulateUpdate');
+      expect(ids).not.toContain('simulateDownload');
+    });
+
+    it('lists simulate items right after checkForUpdates when developer mode is on and dispatches on click', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { dispatch } = require('../../store');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getRootWindow } = require('./rootWindow');
+      (getRootWindow as jest.Mock).mockResolvedValue({
+        isVisible: () => true,
+        showInactive: jest.fn(),
+        focus: jest.fn(),
+      });
+
+      const state = createState({ isDeveloperModeEnabled: true });
+      const template = selectServerSwitcherMenuTemplate(state);
+      const ids = template.map((item) => item.id);
+
+      const checkForUpdatesIndex = ids.indexOf('checkForUpdates');
+      expect(checkForUpdatesIndex).toBeGreaterThanOrEqual(0);
+      expect(template[checkForUpdatesIndex + 1]?.type).toBe('separator');
+      expect(ids[checkForUpdatesIndex + 2]).toBe('simulateUpdate');
+      expect(ids[checkForUpdatesIndex + 3]).toBe('simulateDownload');
+
+      const simulateUpdate = findMenu(template, 'simulateUpdate');
+      await (simulateUpdate.click as any)();
+      expect(dispatch).toHaveBeenCalledWith({
+        type: UPDATES_SIMULATION_REQUESTED,
+      });
+
+      const simulateDownload = findMenu(template, 'simulateDownload');
+      await (simulateDownload.click as any)();
+      expect(dispatch).toHaveBeenCalledWith({
+        type: DOWNLOADS_SIMULATION_REQUESTED,
+      });
+    });
+  });
+
+  describe('selectAppMenuPopupTemplate', () => {
+    const originalPlatform = process.platform;
+
+    const setPlatform = (platform: NodeJS.Platform): void => {
+      Object.defineProperty(process, 'platform', { value: platform });
+    };
+
+    afterEach(() => {
+      setPlatform(originalPlatform);
+    });
+
+    (['darwin', 'win32'] as const).forEach((platform) => {
+      describe(`on ${platform}`, () => {
+        beforeEach(() => {
+          setPlatform(platform);
+        });
+
+        it('omits simulate items and the extra separator when developer mode is off', () => {
+          const state = createState({ isDeveloperModeEnabled: false });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          expect(ids).not.toContain('simulateUpdate');
+          expect(ids).not.toContain('simulateDownload');
+        });
+
+        it('lists simulate items right after checkForUpdates when developer mode is on', () => {
+          const state = createState({ isDeveloperModeEnabled: true });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          const checkForUpdatesIndex = ids.indexOf('checkForUpdates');
+          expect(checkForUpdatesIndex).toBeGreaterThanOrEqual(0);
+          expect(template[checkForUpdatesIndex + 1]?.type).toBe('separator');
+          expect(ids[checkForUpdatesIndex + 2]).toBe('simulateUpdate');
+          expect(ids[checkForUpdatesIndex + 3]).toBe('simulateDownload');
+        });
+      });
     });
   });
 

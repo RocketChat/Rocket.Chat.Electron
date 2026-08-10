@@ -158,6 +158,10 @@
         "description": "使用闪屏来吸引用户的注意。",
         "onLinux": "在一些Linux系统上这个功能不可用。"
       },
+      "downloadsPercentage": {
+        "title": "下载百分比",
+        "description": "在选项卡栏中显示下载进度百分比。"
+      },
       "internalVideoChatWindow": {
         "title": "在程序窗口中打开视频通话",
         "description": "如果启用，视频通话将在应用程序窗口中打开，而不是在默认浏览器中打开。但是，对于<strong>Google Meet</strong>和<strong>Jitsi</strong>，Electron应用程序不支持屏幕录制，所以无论此设置如何，它们始终会在浏览器中打开。",

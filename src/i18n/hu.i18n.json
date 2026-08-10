@@ -247,6 +247,10 @@
         "onLinux": "Egyes Linux disztribúciók nem támogatják ezt a funkciót.",
         "descriptionDarwin": "Pattogtatja az alkalmazás ikonját a dokkban, hogy felhívja a felhasználó figyelmét."
       },
+      "downloadsPercentage": {
+        "title": "Letöltés százaléka",
+        "description": "A letöltés előrehaladási százalékának megjelenítése a lapok sávján."
+      },
       "hardwareAcceleration": {
         "title": "Hardveres gyorsítás",
         "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."

@@ -215,6 +215,10 @@
         "onLinux": "Einige Linux-Distributionen unterstützen diese Funktion nicht.",
         "descriptionDarwin": "Lässt das App-Symbol im Dock hüpfen, um die Aufmerksamkeit des Benutzers zu erregen."
       },
+      "downloadsPercentage": {
+        "title": "Download-Prozentsatz",
+        "description": "Zeigt den Download-Fortschrittsprozenzsatz in der Tab-Leiste an."
+      },
       "hardwareAcceleration": {
         "title": "Hardware-Beschleunigung",
         "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."

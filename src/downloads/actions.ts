@@ -4,10 +4,12 @@ export const DOWNLOAD_CREATED = 'downloads/created';
 export const DOWNLOAD_REMOVED = 'downloads/removed';
 export const DOWNLOADS_CLEARED = 'downloads/cleared';
 export const DOWNLOAD_UPDATED = 'downloads/updated';
+export const DOWNLOADS_SIMULATION_REQUESTED = 'downloads/simulation-requested';
 
 export type DownloadsActionTypeToPayloadMap = {
   [DOWNLOAD_CREATED]: Download;
   [DOWNLOAD_UPDATED]: Pick<Download, 'itemId'> & Partial<Download>;
   [DOWNLOAD_REMOVED]: Download['itemId'];
   [DOWNLOADS_CLEARED]: void;
+  [DOWNLOADS_SIMULATION_REQUESTED]: void;
 };

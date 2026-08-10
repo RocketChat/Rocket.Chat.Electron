@@ -86,6 +86,30 @@ describe('parseLogLines', () => {
 
     expect(entry.level).toBe('info');
   });
+
+  it('precomputes searchText and rawLower', () => {
+    const [entry] = parseLogLines(
+      '[2026-08-07 10:00:00.000] [info] [Main] [Server-1] HELLO World'
+    );
+
+    expect(entry.searchText).toBe(
+      `${entry.message} ${entry.context}`.toLowerCase()
+    );
+    expect(entry.rawLower).toBe(entry.raw.toLowerCase());
+    expect(entry.contextTags).toEqual(['Main', 'Server-1']);
+  });
+
+  it('updates searchText when continuation lines are folded in', () => {
+    const [entry] = parseLogLines(
+      [
+        '[2026-08-07 10:00:00.000] [error] [main] Boom',
+        '    at foo (foo.js:1:1)',
+      ].join('\n')
+    );
+
+    expect(entry.searchText).toContain('at foo');
+    expect(entry.rawLower).toContain('at foo');
+  });
 });
 
 describe('timestamp helpers', () => {

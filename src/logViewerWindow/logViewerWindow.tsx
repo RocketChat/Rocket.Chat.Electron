@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Callout,
+  Icon,
   IconButton,
   States,
   StatesAction,
@@ -46,6 +47,7 @@ import { LOG_LEVELS } from './appearance';
 import {
   TRANSPARENCY_CHANNEL,
   AUTO_REFRESH_INTERVAL_MS,
+  AUTO_SCROLL_GUARD_MS,
   PAGE_SIZE,
   SCROLL_DELAY_MS,
   SEARCH_DEBOUNCE_MS,
@@ -134,8 +136,11 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const lastModifiedTimeRef = useRef<number | undefined>(undefined);
   const lastKnownSizeRef = useRef<number>(0);
   const isAutoScrollingRef = useRef(false);
+  const lastAutoScrollAtRef = useRef(0);
+  const isSuspendedRef = useRef(false);
   const parseGenerationRef = useRef(0);
   const loadRequestIdRef = useRef(0);
+  const [pendingNewEntryCount, setPendingNewEntryCount] = useState(0);
   const [expandedEntryIds, setExpandedEntryIds] = useState<Set<string>>(
     () => new Set()
   );
@@ -349,11 +354,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const matchesSearch = useCallback(
     (entry: LogEntryType): boolean => {
       if (!debouncedSearchFilter) return true;
-      const needle = debouncedSearchFilter.toLowerCase();
-      return (
-        entry.message.toLowerCase().includes(needle) ||
-        entry.context.toLowerCase().includes(needle)
-      );
+      return entry.searchText.includes(debouncedSearchFilter.toLowerCase());
     },
     [debouncedSearchFilter]
   );
@@ -691,6 +692,10 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
             return [...newEntries, ...prev];
           });
 
+          if (isSuspendedRef.current) {
+            setPendingNewEntryCount((prev) => prev + newEntries.length);
+          }
+
           setFileInfo((prev) =>
             prev
               ? {
@@ -729,6 +734,13 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   }, [autoScroll]);
 
   useEffect(() => {
+    isSuspendedRef.current = autoScroll && userHasScrolled;
+    if (!isSuspendedRef.current) {
+      setPendingNewEntryCount(0);
+    }
+  }, [autoScroll, userHasScrolled]);
+
+  useEffect(() => {
     if (
       autoScroll &&
       !userHasScrolled &&
@@ -737,6 +749,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     ) {
       const timeoutId = setTimeout(() => {
         isAutoScrollingRef.current = true;
+        lastAutoScrollAtRef.current = Date.now();
         if (virtuosoRef.current && autoScroll && !userHasScrolled) {
           virtuosoRef.current.scrollToIndex({
             index: 0,
@@ -753,10 +766,22 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   const handleScroll = useCallback(() => {
     if (isAutoScrollingRef.current) return;
+    if (Date.now() - lastAutoScrollAtRef.current < AUTO_SCROLL_GUARD_MS) return;
     if (autoScroll && !userHasScrolled) {
       setUserHasScrolled(true);
     }
   }, [autoScroll, userHasScrolled]);
+
+  const handleResumeAutoScroll = useCallback(() => {
+    setUserHasScrolled(false);
+    setPendingNewEntryCount(0);
+    if (virtuosoRef.current) {
+      isAutoScrollingRef.current = true;
+      lastAutoScrollAtRef.current = Date.now();
+      virtuosoRef.current.scrollToIndex({ index: 0, behavior: 'smooth' });
+      isAutoScrollingRef.current = false;
+    }
+  }, []);
 
   const handleCopyEntry = useCallback((entry: LogEntryType) => {
     navigator.clipboard.writeText(entry.raw).catch((error) => {
@@ -842,6 +867,24 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
       isDefaultLog: true,
     });
   }, []);
+
+  const handleRevealLogFile = useCallback(async () => {
+    try {
+      const response = (await ipcRenderer.invoke(
+        'log-viewer-window/reveal-log-file',
+        {
+          filePath: currentLogFile.isDefaultLog
+            ? undefined
+            : currentLogFile.filePath,
+        }
+      )) as { success: boolean; error?: string };
+      if (!response?.success) {
+        console.error('Failed to reveal log file:', response?.error);
+      }
+    } catch (error) {
+      console.error('Failed to reveal log file:', error);
+    }
+  }, [currentLogFile.filePath, currentLogFile.isDefaultLog]);
 
   const handleRefresh = useCallback(() => {
     loadLogs();
@@ -965,6 +1008,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
           isStreaming={isStreaming}
           onOpenLogFile={handleOpenLogFile}
           onOpenDefaultLog={handleOpenDefaultLog}
+          onRevealLogFile={handleRevealLogFile}
           onRefresh={handleRefresh}
           onToggleStreaming={handleToggleStreaming}
           onCopy={handleCopyLogs}
@@ -1111,20 +1155,57 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
                 </Box>
               )}
               {!loadError && visibleLogs.length > 0 && (
-                <GroupedVirtuoso
-                  ref={virtuosoRef}
-                  data={visibleLogs}
-                  groupCounts={dayGroupCounts}
-                  groupContent={renderDayGroup}
-                  // Group header rows share the flat index space with entries but
-                  // have no data item, so `entry` is undefined for them.
-                  computeItemKey={(index, entry) => entry?.id ?? `day-${index}`}
-                  itemContent={renderLogEntry}
-                  overscan={VIRTUOSO_OVERSCAN}
-                  style={{ height: '100%', width: '100%' }}
-                  onScroll={handleScroll}
-                  endReached={handleEndReached}
-                />
+                <Box position='relative' flexGrow={1} style={{ minHeight: 0 }}>
+                  {autoScroll &&
+                    userHasScrolled &&
+                    pendingNewEntryCount > 0 && (
+                      <Box
+                        is='button'
+                        type='button'
+                        onClick={handleResumeAutoScroll}
+                        position='absolute'
+                        insetBlockStart='x8'
+                        insetInlineStart='50%'
+                        style={{
+                          transform: 'translateX(-50%)',
+                          cursor: 'pointer',
+                        }}
+                        zIndex={10}
+                        pi='x12'
+                        pb='x6'
+                        borderRadius='x24'
+                        backgroundColor='status-background-info'
+                        color='status-font-on-info'
+                        fontScale='c1'
+                        display='flex'
+                        alignItems='center'
+                        border='none'
+                      >
+                        <Icon name='arrow-up' size='x12' />
+                        <Box marginInlineStart='x4'>
+                          {t('logViewer.messages.newEntriesPaused', {
+                            count: pendingNewEntryCount,
+                          })}
+                        </Box>
+                      </Box>
+                    )}
+                  <GroupedVirtuoso
+                    ref={virtuosoRef}
+                    data={visibleLogs}
+                    groupCounts={dayGroupCounts}
+                    groupContent={renderDayGroup}
+                    // Group header rows share the flat index space with entries but
+                    // have no data item, so `entry` is undefined for them.
+                    computeItemKey={(index, entry) =>
+                      entry?.id ?? `day-${index}`
+                    }
+                    itemContent={renderLogEntry}
+                    overscan={VIRTUOSO_OVERSCAN}
+                    style={{ height: '100%', width: '100%' }}
+                    onScroll={handleScroll}
+                    endReached={handleEndReached}
+                  />
+                </Box>
               )}
             </Box>
 

@@ -1,10 +1,9 @@
 import fs, { createWriteStream } from 'fs';
 import path from 'path';
-import { promisify } from 'util';
 
 import archiver from 'archiver';
 import type { Event } from 'electron';
-import { app, BrowserWindow, screen, dialog } from 'electron';
+import { app, BrowserWindow, screen, dialog, shell } from 'electron';
 import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
@@ -35,8 +34,19 @@ const t = i18next.t.bind(i18next);
 
 const isMac = process.platform === 'darwin';
 
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
+const { readFile, writeFile, mkdir, stat } = fs.promises;
+
+const pathExists = async (targetPath: string): Promise<boolean> => {
+  try {
+    await stat(targetPath);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return false;
+    }
+    throw error;
+  }
+};
 
 let logViewerWindow: BrowserWindow | null = null;
 const allowedLogPaths = new Set<string>();
@@ -80,7 +90,18 @@ const validateLogFilePath = (
 
 const LOG_ENTRY_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]/;
 
-const getLastNEntries = (
+export const countLogEntries = (content: string): number => {
+  const lines = content.split(/\r?\n/);
+  let count = 0;
+  lines.forEach((line) => {
+    if (LOG_ENTRY_REGEX.test(line)) {
+      count += 1;
+    }
+  });
+  return count;
+};
+
+export const getLastNEntries = (
   content: string,
   limit: number
 ): { content: string; totalEntries: number } => {
@@ -110,6 +131,21 @@ const getLastNEntries = (
     content: lines.slice(startLineIndex).join('\n'),
     totalEntries,
   };
+};
+
+const NEWLINE_BYTE = 0x0a;
+
+export const trimBufferToLastNewline = (
+  buf: Buffer
+): { consumed: Buffer; bytesConsumed: number } => {
+  const lastNewlineIndex = buf.lastIndexOf(NEWLINE_BYTE);
+
+  if (lastNewlineIndex === -1) {
+    return { consumed: Buffer.alloc(0), bytesConsumed: 0 };
+  }
+
+  const bytesConsumed = lastNewlineIndex + 1;
+  return { consumed: buf.subarray(0, bytesConsumed), bytesConsumed };
 };
 
 /** Set while a window is being built; see `createLogViewerWindow`. */
@@ -287,10 +323,13 @@ export const startLogViewerWindowHandler = (): void => {
       }
 
       const result = await dialog.showOpenDialog(logViewerWindow, {
-        title: 'Select Log File',
+        title: t('dialog.selectLogFile.title'),
         filters: [
-          { name: 'Log Files', extensions: ['log', 'txt'] },
-          { name: 'All Files', extensions: ['*'] },
+          {
+            name: t('dialog.selectLogFile.logFiles'),
+            extensions: ['log', 'txt'],
+          },
+          { name: t('dialog.selectLogFile.allFiles'), extensions: ['*'] },
         ],
         properties: ['openFile'],
       });
@@ -345,11 +384,11 @@ export const startLogViewerWindowHandler = (): void => {
         }
         const limit = options?.limit;
 
-        if (!fs.existsSync(logPath)) {
+        if (!(await pathExists(logPath))) {
           if (!options?.filePath) {
             const logDir = path.dirname(logPath);
-            if (!fs.existsSync(logDir)) {
-              fs.mkdirSync(logDir, { recursive: true });
+            if (!(await pathExists(logDir))) {
+              await mkdir(logDir, { recursive: true });
             }
             await writeFile(logPath, '');
           } else {
@@ -366,13 +405,14 @@ export const startLogViewerWindowHandler = (): void => {
 
         if (limit === 'all' || !limit) {
           logContent = fileContent;
+          totalEntries = countLogEntries(fileContent);
         } else {
           const result = getLastNEntries(fileContent, limit);
           logContent = result.content;
           totalEntries = result.totalEntries;
         }
 
-        const stats = fs.statSync(logPath);
+        const stats = await stat(logPath);
         const lastModifiedTime = stats.mtime.getTime();
 
         return {
@@ -419,11 +459,11 @@ export const startLogViewerWindowHandler = (): void => {
           logPath = getLogFilePath();
         }
 
-        if (!fs.existsSync(logPath)) {
+        if (!(await pathExists(logPath))) {
           return { success: false, error: 'Log file does not exist' };
         }
 
-        const stats = fs.statSync(logPath);
+        const stats = await stat(logPath);
         return {
           success: true,
           lastModifiedTime: stats.mtime.getTime(),
@@ -463,11 +503,11 @@ export const startLogViewerWindowHandler = (): void => {
           logPath = getLogFilePath();
         }
 
-        if (!fs.existsSync(logPath)) {
+        if (!(await pathExists(logPath))) {
           return { success: false, error: 'Log file does not exist' };
         }
 
-        const stats = fs.statSync(logPath);
+        const stats = await stat(logPath);
         const rawFromByte = Number(options.fromByte);
         const fromByte =
           Number.isFinite(rawFromByte) && rawFromByte >= 0
@@ -478,7 +518,7 @@ export const startLogViewerWindowHandler = (): void => {
           return {
             success: true,
             logs: '',
-            newSize: stats.size,
+            newSize: fromByte,
             lastModifiedTime: stats.mtime.getTime(),
           };
         }
@@ -494,16 +534,68 @@ export const startLogViewerWindowHandler = (): void => {
           stream.on('error', (err) => reject(err));
         });
 
-        const newContent = Buffer.concat(chunks).toString('utf-8');
+        const rawChunk = Buffer.concat(chunks);
+        const { consumed, bytesConsumed } = trimBufferToLastNewline(rawChunk);
+
+        if (bytesConsumed === 0) {
+          return {
+            success: true,
+            logs: '',
+            newSize: fromByte,
+            lastModifiedTime: stats.mtime.getTime(),
+          };
+        }
+
+        const newContent = consumed.toString('utf-8');
 
         return {
           success: true,
           logs: newContent,
-          newSize: stats.size,
+          newSize: fromByte + bytesConsumed,
           lastModifiedTime: stats.mtime.getTime(),
         };
       } catch (error) {
         console.error('Failed to read log tail:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    }
+  );
+
+  handle(
+    'log-viewer-window/reveal-log-file',
+    async (_, options?: { filePath?: string }) => {
+      try {
+        let logPath: string;
+        if (options?.filePath) {
+          const validation = validateLogFilePath(options.filePath);
+          if (!validation.valid) {
+            return { success: false, error: validation.error };
+          }
+          const normalizedPath = path.normalize(options.filePath);
+          const defaultLogPath = path.normalize(getLogFilePath());
+          if (
+            normalizedPath !== defaultLogPath &&
+            !allowedLogPaths.has(normalizedPath)
+          ) {
+            return {
+              success: false,
+              error:
+                'Log file not authorized. Please select it via the file dialog first.',
+            };
+          }
+          logPath = normalizedPath;
+        } else {
+          logPath = getLogFilePath();
+        }
+
+        if (!(await pathExists(logPath))) {
+          return { success: false, error: 'Log file does not exist' };
+        }
+
+        shell.showItemInFolder(logPath);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to reveal log file:', error);
         return { success: false, error: (error as Error).message };
       }
     }
@@ -546,16 +638,25 @@ export const startLogViewerWindowHandler = (): void => {
         }
 
         const result = await dialog.showSaveDialog(logViewerWindow, {
-          title: 'Save Log File',
+          title: t('dialog.saveLogFile.title'),
           defaultPath: options.defaultFileName,
           filters: [
-            { name: 'ZIP Files', extensions: ['zip'] },
-            { name: 'All Files', extensions: ['*'] },
+            { name: t('dialog.saveLogFile.zipFiles'), extensions: ['zip'] },
+            { name: t('dialog.saveLogFile.logFiles'), extensions: ['log'] },
+            { name: t('dialog.saveLogFile.allFiles'), extensions: ['*'] },
           ],
         });
 
         if (result.canceled || !result.filePath) {
           return { success: false, canceled: true };
+        }
+
+        if (result.filePath.toLowerCase().endsWith('.log')) {
+          await writeFile(result.filePath, options.content, 'utf-8');
+          return {
+            success: true,
+            filePath: result.filePath,
+          };
         }
 
         await new Promise<void>((resolve, reject) => {

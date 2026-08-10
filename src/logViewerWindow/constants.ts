@@ -33,3 +33,6 @@ export const PAGE_SIZE = 100;
 /** Time slices drawn in the distribution timeline, and the plot's height */
 export const TIMELINE_BUCKET_COUNT = 96;
 export const TIMELINE_PLOT_HEIGHT = 40;
+
+/** Window during which scroll events are ignored after a programmatic scroll */
+export const AUTO_SCROLL_GUARD_MS = 150;

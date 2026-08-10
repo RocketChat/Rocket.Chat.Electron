@@ -26,8 +26,10 @@ jest.mock('fs', () => {
     promises: {
       readFile: jest.fn(async () => logContent),
       writeFile: jest.fn(async () => undefined),
+      mkdir: jest.fn(async () => undefined),
       stat: jest.fn(async () => ({
         size: 128,
+        mtime: new Date('2026-01-01T00:00:02.000Z'),
         mtimeMs: Date.parse('2026-01-01T00:00:02.000Z'),
       })),
     },

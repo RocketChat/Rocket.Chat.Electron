@@ -24,6 +24,8 @@ const makeEntry = (offsetMs: number): LogEntryType => ({
   context: '',
   message: 'message',
   raw: 'raw',
+  searchText: 'message ',
+  rawLower: 'raw',
 });
 
 const entries: LogEntryType[] = Array.from({ length: 20 }, (_unused, index) =>

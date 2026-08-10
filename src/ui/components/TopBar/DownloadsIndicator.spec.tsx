@@ -77,6 +77,66 @@ const OUTER_CIRCLE_D =
 const ARROW_PATH =
   'M21.6956 17.8553L16.6966 22.7214C16.3083 23.0993 15.6898 23.0993 15.3015 22.7214L10.3025 17.8553C9.90672 17.47 9.89819 16.8369 10.2834 16.4412C10.6686 16.0454 11.3018 16.0369 11.6975 16.4221L14.999 19.6359L14.999 11C14.999 10.4477 15.4468 10 15.999 10C16.5513 10 16.999 10.4477 16.999 11L16.999 19.6359L20.3006 16.4221C20.6963 16.0369 21.3294 16.0454 21.7147 16.4412C22.0999 16.8369 22.0914 17.47 21.6956 17.8553Z';
 
+// Reads the parsed CSSOM (not getComputedStyle, which evaluates media
+// queries against the runner's actual OS-level motion preference — see the
+// long comment at the call site) to find, for a given element's own
+// emotion-generated class, the plain style rule and the
+// prefers-reduced-motion override rule that target it. Both exist in the
+// CSSOM regardless of whether the query currently matches, so this is
+// deterministic across every CI runner.
+const findTransitionRulesForElement = (
+  element: Element
+): {
+  baseRule: CSSStyleRule | undefined;
+  reducedMotionRule: CSSStyleRule | undefined;
+  reducedMotionCondition: string | undefined;
+} => {
+  const className = Array.from(element.classList).find((name) =>
+    name.startsWith('css-')
+  );
+
+  let baseRule: CSSStyleRule | undefined;
+  let reducedMotionRule: CSSStyleRule | undefined;
+  let reducedMotionCondition: string | undefined;
+
+  if (!className) {
+    return { baseRule, reducedMotionRule, reducedMotionCondition };
+  }
+
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      continue;
+    }
+
+    for (const rule of Array.from(rules)) {
+      if (
+        rule instanceof CSSStyleRule &&
+        rule.selectorText.includes(className)
+      ) {
+        baseRule = rule;
+        continue;
+      }
+
+      if (rule instanceof CSSMediaRule) {
+        for (const innerRule of Array.from(rule.cssRules)) {
+          if (
+            innerRule instanceof CSSStyleRule &&
+            innerRule.selectorText.includes(className)
+          ) {
+            reducedMotionRule = innerRule;
+            reducedMotionCondition = rule.conditionText;
+          }
+        }
+      }
+    }
+  }
+
+  return { baseRule, reducedMotionRule, reducedMotionCondition };
+};
+
 describe('DownloadsIndicator', () => {
   beforeEach(() => {
     mockDispatch.mockClear();
@@ -918,7 +978,7 @@ describe('DownloadsIndicator', () => {
       expect(parseFloat(getComputedStyle(slot).marginLeft)).toBeGreaterThan(0);
     });
 
-    it("applies Fuselage's standard 0.18s micro-interaction duration (matching .rcx-box--animated) on max-width, margin and opacity, so the resize is animated, not instant", () => {
+    it("applies Fuselage's standard 0.18s micro-interaction duration (matching .rcx-box--animated) on max-width, margin and opacity, so the resize is animated, not instant, and opts out under prefers-reduced-motion", () => {
       renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: { ...baseDownload, state: 'progressing' },
@@ -926,12 +986,32 @@ describe('DownloadsIndicator', () => {
       });
 
       const slot = screen.getByTestId('downloads-progress-slot');
-      const { transition } = getComputedStyle(slot);
 
-      expect(transition).toContain('max-width');
-      expect(transition).toContain('margin');
-      expect(transition).toContain('opacity');
-      expect(transition).toContain('0.18s');
+      // getComputedStyle(slot).transition reflects the runner's ACTUAL
+      // prefers-reduced-motion setting: GitHub's Windows/macOS CI VMs report
+      // 'reduce' (OS-level animations disabled), so computed style there is
+      // legitimately 'none', while Ubuntu/local runners with no preference
+      // resolve the real transition — same component, different environment,
+      // different (both correct) computed result. Reading the stylesheet
+      // rules via the CSSOM instead is deterministic in every environment:
+      // cssRules/cssText reflect the parsed source, not an evaluated media
+      // query, so both the base rule and the reduced-motion override are
+      // always present and assertable regardless of the runner's actual
+      // motion preference.
+      const { baseRule, reducedMotionRule, reducedMotionCondition } =
+        findTransitionRulesForElement(slot);
+
+      expect(baseRule).toBeDefined();
+      expect(baseRule?.style.transition).toContain('max-width');
+      expect(baseRule?.style.transition).toContain('margin');
+      expect(baseRule?.style.transition).toContain('opacity');
+      expect(baseRule?.style.transition).toContain('0.18s');
+
+      expect(reducedMotionRule).toBeDefined();
+      expect(reducedMotionCondition).toContain(
+        'prefers-reduced-motion: reduce'
+      );
+      expect(reducedMotionRule?.style.transition).toBe('none');
     });
 
     it('grows the button width when the percentage expands (icon slides left as the group is right-anchored)', () => {

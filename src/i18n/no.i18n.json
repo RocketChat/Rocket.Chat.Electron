@@ -451,6 +451,44 @@
       "settingsMenu": "Tilpass og kontroller appen"
     }
   },
+  "tabBar": {
+    "workspaces": "Arbeidsområder",
+    "addWorkspace": "Legg til arbeidsområde",
+    "unreadMessage_one": "{{- count}} melding",
+    "unreadMessage_other": "{{- count}} meldinger",
+    "unreadMessages": "Uleste meldinger",
+    "meatballMenu": "Programmeny",
+    "update": {
+      "available": "Oppdatering",
+      "updating": "Oppdaterer…",
+      "percent": "{{- percent}}%",
+      "restart": "Start på nytt for å oppdatere",
+      "tooltip": "En ny versjon av skrivebordsappen er tilgjengelig, klikk for detaljer",
+      "checking": "Ser etter oppdateringer…",
+      "upToDate": "Du er oppdatert",
+      "upToDateTooltip": "{{- version}} er den nyeste versjonen",
+      "checkFailed": "Kunne ikke se etter oppdateringer"
+    },
+    "windowControls": {
+      "minimize": "Minimer",
+      "maximize": "Maksimer",
+      "restore": "Gjenopprett",
+      "close": "Lukk"
+    },
+    "downloads": {
+      "tooltip": "Laster ned filer, klikk for detaljer",
+      "title": "Nedlastinger",
+      "showAll": "Vis alle nedlastinger",
+      "pause": "Pause",
+      "resume": "Gjenoppta",
+      "cancel": "Kanseller",
+      "showInFolder": "Vis i mappe",
+      "percent": "{{- percent}}%",
+      "canceled": "Kansellert",
+      "failed": "Mislyktes",
+      "dismiss": "Lukk"
+    }
+  },
   "touchBar": {
     "formatting": "Formatering",
     "selectServer": "Velg server"
@@ -515,44 +553,6 @@
     "expiration": {
       "label": "Utløpsdato:",
       "expiresOn": "Utløper {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Arbeidsområder",
-    "addWorkspace": "Legg til arbeidsområde",
-    "unreadMessage_one": "{{- count}} melding",
-    "unreadMessage_other": "{{- count}} meldinger",
-    "unreadMessages": "Uleste meldinger",
-    "meatballMenu": "Programmeny",
-    "update": {
-      "available": "Oppdatering",
-      "updating": "Oppdaterer…",
-      "percent": "{{- percent}}%",
-      "restart": "Start på nytt for å oppdatere",
-      "tooltip": "En ny versjon av skrivebordsappen er tilgjengelig, klikk for detaljer",
-      "checking": "Ser etter oppdateringer…",
-      "upToDate": "Du er oppdatert",
-      "upToDateTooltip": "{{- version}} er den nyeste versjonen",
-      "checkFailed": "Kunne ikke se etter oppdateringer"
-    },
-    "windowControls": {
-      "minimize": "Minimer",
-      "maximize": "Maksimer",
-      "restore": "Gjenopprett",
-      "close": "Lukk"
-    },
-    "downloads": {
-      "tooltip": "Laster ned filer, klikk for detaljer",
-      "title": "Nedlastinger",
-      "showAll": "Vis alle nedlastinger",
-      "pause": "Pause",
-      "resume": "Gjenoppta",
-      "cancel": "Kanseller",
-      "showInFolder": "Vis i mappe",
-      "percent": "{{- percent}}%",
-      "canceled": "Kansellert",
-      "failed": "Mislyktes",
-      "dismiss": "Lukk"
     }
   }
 }

@@ -404,6 +404,44 @@
       "copyCurrentUrl": "Copiar URL actual"
     }
   },
+  "tabBar": {
+    "workspaces": "Espacios de trabajo",
+    "addWorkspace": "Añadir espacio de trabajo",
+    "unreadMessage_one": "{{- count}} mensaje",
+    "unreadMessage_other": "{{- count}} mensajes",
+    "unreadMessages": "Mensajes no leídos",
+    "meatballMenu": "Menú de la aplicación",
+    "update": {
+      "available": "Actualización",
+      "updating": "Actualizando…",
+      "percent": "{{- percent}}%",
+      "restart": "Reiniciar para actualizar",
+      "tooltip": "Hay una nueva versión de la aplicación de escritorio disponible, haz clic para ver los detalles",
+      "checking": "Buscando actualizaciones…",
+      "upToDate": "Estás al día",
+      "upToDateTooltip": "{{- version}} es la última versión",
+      "checkFailed": "No se pudo buscar actualizaciones"
+    },
+    "windowControls": {
+      "minimize": "Minimizar",
+      "maximize": "Maximizar",
+      "restore": "Restaurar",
+      "close": "Cerrar"
+    },
+    "downloads": {
+      "tooltip": "Descargando archivos, haz clic para ver detalles",
+      "title": "Descargas",
+      "showAll": "Mostrar todas las descargas",
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "cancel": "Cancelar",
+      "showInFolder": "Mostrar en carpeta",
+      "percent": "{{- percent}}%",
+      "canceled": "Cancelada",
+      "failed": "Fallida",
+      "dismiss": "Cerrar"
+    }
+  },
   "touchBar": {
     "formatting": "Formato",
     "selectServer": "Seleccionar servidor"
@@ -468,44 +506,6 @@
     "expiration": {
       "label": "Expiración:",
       "expiresOn": "Expira el {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Espacios de trabajo",
-    "addWorkspace": "Añadir espacio de trabajo",
-    "unreadMessage_one": "{{- count}} mensaje",
-    "unreadMessage_other": "{{- count}} mensajes",
-    "unreadMessages": "Mensajes no leídos",
-    "meatballMenu": "Menú de la aplicación",
-    "update": {
-      "available": "Actualización",
-      "updating": "Actualizando…",
-      "percent": "{{- percent}}%",
-      "restart": "Reiniciar para actualizar",
-      "tooltip": "Hay una nueva versión de la aplicación de escritorio disponible, haz clic para ver los detalles",
-      "checking": "Buscando actualizaciones…",
-      "upToDate": "Estás al día",
-      "upToDateTooltip": "{{- version}} es la última versión",
-      "checkFailed": "No se pudo buscar actualizaciones"
-    },
-    "windowControls": {
-      "minimize": "Minimizar",
-      "maximize": "Maximizar",
-      "restore": "Restaurar",
-      "close": "Cerrar"
-    },
-    "downloads": {
-      "tooltip": "Descargando archivos, haz clic para ver detalles",
-      "title": "Descargas",
-      "showAll": "Mostrar todas las descargas",
-      "pause": "Pausar",
-      "resume": "Reanudar",
-      "cancel": "Cancelar",
-      "showInFolder": "Mostrar en carpeta",
-      "percent": "{{- percent}}%",
-      "canceled": "Cancelada",
-      "failed": "Fallida",
-      "dismiss": "Cerrar"
     }
   }
 }

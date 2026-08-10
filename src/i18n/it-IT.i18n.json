@@ -21,32 +21,6 @@
       }
     }
   },
-  "serverInfo": {
-    "title": "Informazioni sul Server",
-    "urlLabel": "URL:",
-    "versionLabel": "Versione:",
-    "unknown": "Sconosciuto",
-    "exchangeUrlLabel": "URL Outlook Exchange:",
-    "supportedVersionsTitle": "Versioni Supportate",
-    "statusLabel": "Stato:",
-    "status": {
-      "loading": "Caricamento...",
-      "error": "Caricamento fallito",
-      "loaded": "Caricato",
-      "idle": "Inattivo",
-      "from": "da {{source}}"
-    },
-    "supported": {
-      "unknown": "Sconosciuto",
-      "expiring": "In scadenza",
-      "yes": "Sì",
-      "no": "No"
-    },
-    "expiration": {
-      "label": "Scadenza:",
-      "expiresOn": "Scade il {{date}}"
-    }
-  },
   "tabBar": {
     "workspaces": "Aree di lavoro",
     "addWorkspace": "Aggiungi area di lavoro",
@@ -83,6 +57,32 @@
       "canceled": "Annullato",
       "failed": "Non riuscito",
       "dismiss": "Chiudi"
+    }
+  },
+  "serverInfo": {
+    "title": "Informazioni sul Server",
+    "urlLabel": "URL:",
+    "versionLabel": "Versione:",
+    "unknown": "Sconosciuto",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Versioni Supportate",
+    "statusLabel": "Stato:",
+    "status": {
+      "loading": "Caricamento...",
+      "error": "Caricamento fallito",
+      "loaded": "Caricato",
+      "idle": "Inattivo",
+      "from": "da {{source}}"
+    },
+    "supported": {
+      "unknown": "Sconosciuto",
+      "expiring": "In scadenza",
+      "yes": "Sì",
+      "no": "No"
+    },
+    "expiration": {
+      "label": "Scadenza:",
+      "expiresOn": "Scade il {{date}}"
     }
   }
 }

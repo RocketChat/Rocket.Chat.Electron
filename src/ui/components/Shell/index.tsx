@@ -96,7 +96,7 @@ export const Shell = () => {
                 // adding ~1px and caused a horizontal scrollbar on Linux).
                 boxShadow: isWindowExpanded
                   ? undefined
-                  : 'inset 0 0 0 1px rgba(0, 0, 0, 0.14)',
+                  : 'inset 0 0 0 1px var(--rcx-color-shadow-elevation-border)',
               }
             : undefined
         }

@@ -216,6 +216,10 @@
         "onLinux": "Некоторые дистрибутивы Linux не поддерживают эту функцию.",
         "descriptionDarwin": "Мигание значка приложения в трее для привлечения внимания пользователя."
       },
+      "downloadsPercentage": {
+        "title": "Процент загрузки",
+        "description": "Показывать процент прогресса загрузки в строке вкладок."
+      },
       "hardwareAcceleration": {
         "title": "Аппаратное ускорение",
         "description": "Включает использование аппаратного ускорения, если оно доступно. Приложение будет перезапущено при изменении этой настройки."
@@ -376,6 +380,44 @@
       "clearStorageData": "Очистить данные хранилища"
     }
   },
+  "tabBar": {
+    "workspaces": "Рабочие пространства",
+    "addWorkspace": "Добавить рабочее пространство",
+    "unreadMessage_one": "{{- count}} сообщение",
+    "unreadMessage_other": "{{- count}} сообщения",
+    "unreadMessages": "Непрочитанные сообщения",
+    "meatballMenu": "Меню приложения",
+    "update": {
+      "available": "Обновление",
+      "updating": "Обновление…",
+      "percent": "{{- percent}}%",
+      "restart": "Перезапустить для обновления",
+      "tooltip": "Доступна новая версия настольного приложения, нажмите для подробностей",
+      "checking": "Проверка обновлений…",
+      "upToDate": "У вас последняя версия",
+      "upToDateTooltip": "{{- version}} — последняя версия",
+      "checkFailed": "Не удалось проверить обновления"
+    },
+    "windowControls": {
+      "minimize": "Свернуть",
+      "maximize": "Развернуть",
+      "restore": "Восстановить",
+      "close": "Закрыть"
+    },
+    "downloads": {
+      "tooltip": "Загрузка файлов, нажмите для подробностей",
+      "title": "Загрузки",
+      "showAll": "Показать все загрузки",
+      "pause": "Пауза",
+      "resume": "Возобновить",
+      "cancel": "Отмена",
+      "showInFolder": "Показать в папке",
+      "percent": "{{- percent}}%",
+      "canceled": "Отменено",
+      "failed": "Не удалось",
+      "dismiss": "Закрыть"
+    }
+  },
   "touchBar": {
     "formatting": "Форматирование",
     "selectServer": "Выбрать сервер"
@@ -440,46 +482,6 @@
     "expiration": {
       "label": "Истечение срока:",
       "expiresOn": "Истекает {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Рабочие пространства",
-    "addWorkspace": "Добавить рабочее пространство",
-    "unreadMessage_one": "{{- count}} сообщение",
-    "unreadMessage_few": "{{- count}} сообщения",
-    "unreadMessage_many": "{{- count}} сообщений",
-    "unreadMessage_other": "{{- count}} сообщения",
-    "unreadMessages": "Непрочитанные сообщения",
-    "meatballMenu": "Меню приложения",
-    "update": {
-      "available": "Обновление",
-      "updating": "Обновление…",
-      "percent": "{{- percent}}%",
-      "restart": "Перезапустить для обновления",
-      "tooltip": "Доступна новая версия настольного приложения, нажмите для подробностей",
-      "checking": "Проверка обновлений…",
-      "upToDate": "У вас последняя версия",
-      "upToDateTooltip": "{{- version}} — последняя версия",
-      "checkFailed": "Не удалось проверить обновления"
-    },
-    "windowControls": {
-      "minimize": "Свернуть",
-      "maximize": "Развернуть",
-      "restore": "Восстановить",
-      "close": "Закрыть"
-    },
-    "downloads": {
-      "tooltip": "Загрузка файлов, нажмите для подробностей",
-      "title": "Загрузки",
-      "showAll": "Показать все загрузки",
-      "pause": "Пауза",
-      "resume": "Возобновить",
-      "cancel": "Отмена",
-      "showInFolder": "Показать в папке",
-      "percent": "{{- percent}}%",
-      "canceled": "Отменено",
-      "failed": "Не удалось",
-      "dismiss": "Закрыть"
     }
   }
 }

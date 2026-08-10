@@ -51,6 +51,7 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.minimizeOnClose',
       'settings.options.menubar',
       'settings.options.flashFrame',
+      'settings.options.downloadsPercentage',
       'settings.options.availableBrowsers',
       'settings.options.outlookCalendarSyncInterval',
       'settings.options.e2ePdfPreviewSizeLimit',

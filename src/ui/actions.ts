@@ -134,6 +134,8 @@ export const SETTINGS_SET_E2E_PDF_PREVIEW_SIZE_LIMIT_CHANGED =
   'settings/set-e2e-pdf-preview-size-limit-changed';
 export const SETTINGS_SET_NAVIGATION_LAYOUT_CHANGED =
   'settings/set-navigation-layout-changed';
+export const SETTINGS_SET_DOWNLOADS_PERCENTAGE_ENABLED_CHANGED =
+  'settings/set-downloads-percentage-enabled-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -282,6 +284,7 @@ export type UiActionTypeToPayloadMap = {
     id: string;
     bounds: { x: number; y: number; width: number; height: number };
   };
+  [SETTINGS_SET_DOWNLOADS_PERCENTAGE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;

@@ -1,6 +1,7 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
 
 import { AvailableBrowsers } from './features/AvailableBrowsers';
+import { DownloadsPercentage } from './features/DownloadsPercentage';
 import { E2ePdfPreviewSizeLimit } from './features/E2ePdfPreviewSizeLimit';
 import { FlashFrame } from './features/FlashFrame';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
@@ -32,6 +33,7 @@ export const GeneralTab = () => {
           {isWin32 && <MinimizeOnClose />}
           {!isDarwin && !isWin32 && <MenuBar />}
           <FlashFrame />
+          <DownloadsPercentage />
         </FieldGroup>
 
         <FieldGroup mbs='x24'>

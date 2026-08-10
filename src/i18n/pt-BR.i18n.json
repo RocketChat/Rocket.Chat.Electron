@@ -229,6 +229,10 @@
         "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade.",
         "descriptionDarwin": "Faz o ícone da aplicação saltar na dock quando recebe notificação."
       },
+      "downloadsPercentage": {
+        "title": "Percentual de download",
+        "description": "Mostrar o percentual de progresso do download na barra de abas."
+      },
       "hardwareAcceleration": {
         "title": "Aceleração de hardware",
         "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
@@ -409,6 +413,44 @@
       "settingsMenu": "Personalizar e controlar app"
     }
   },
+  "tabBar": {
+    "workspaces": "Espaços de trabalho",
+    "addWorkspace": "Adicionar espaço de trabalho",
+    "unreadMessage_one": "{{- count}} mensagem",
+    "unreadMessage_other": "{{- count}} mensagens",
+    "unreadMessages": "Mensagens não lidas",
+    "meatballMenu": "Menu do aplicativo",
+    "update": {
+      "available": "Atualização",
+      "updating": "Atualizando…",
+      "percent": "{{- percent}}%",
+      "restart": "Reiniciar para atualizar",
+      "tooltip": "Uma nova versão do aplicativo desktop está disponível, clique para ver os detalhes",
+      "checking": "Verificando atualizações…",
+      "upToDate": "Você está atualizado",
+      "upToDateTooltip": "{{- version}} é a versão mais recente",
+      "checkFailed": "Não foi possível verificar atualizações"
+    },
+    "windowControls": {
+      "minimize": "Minimizar",
+      "maximize": "Maximizar",
+      "restore": "Restaurar",
+      "close": "Fechar"
+    },
+    "downloads": {
+      "tooltip": "Baixando arquivos, clique para ver detalhes",
+      "title": "Downloads",
+      "showAll": "Mostrar todos os downloads",
+      "pause": "Pausar",
+      "resume": "Retomar",
+      "cancel": "Cancelar",
+      "showInFolder": "Mostrar na pasta",
+      "percent": "{{- percent}}%",
+      "canceled": "Cancelado",
+      "failed": "Falhou",
+      "dismiss": "Fechar"
+    }
+  },
   "touchBar": {
     "formatting": "Formatação",
     "selectServer": "Selecionar servidor"
@@ -473,44 +515,6 @@
     "expiration": {
       "label": "Expiração:",
       "expiresOn": "Expira em {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Espaços de trabalho",
-    "addWorkspace": "Adicionar espaço de trabalho",
-    "unreadMessage_one": "{{- count}} mensagem",
-    "unreadMessage_other": "{{- count}} mensagens",
-    "unreadMessages": "Mensagens não lidas",
-    "meatballMenu": "Menu do aplicativo",
-    "update": {
-      "available": "Atualização",
-      "updating": "Atualizando…",
-      "percent": "{{- percent}}%",
-      "restart": "Reiniciar para atualizar",
-      "tooltip": "Uma nova versão do aplicativo desktop está disponível, clique para ver os detalhes",
-      "checking": "Verificando atualizações…",
-      "upToDate": "Você está atualizado",
-      "upToDateTooltip": "{{- version}} é a versão mais recente",
-      "checkFailed": "Não foi possível verificar atualizações"
-    },
-    "windowControls": {
-      "minimize": "Minimizar",
-      "maximize": "Maximizar",
-      "restore": "Restaurar",
-      "close": "Fechar"
-    },
-    "downloads": {
-      "tooltip": "Baixando arquivos, clique para ver detalhes",
-      "title": "Downloads",
-      "showAll": "Mostrar todos os downloads",
-      "pause": "Pausar",
-      "resume": "Retomar",
-      "cancel": "Cancelar",
-      "showInFolder": "Mostrar na pasta",
-      "percent": "{{- percent}}%",
-      "canceled": "Cancelado",
-      "failed": "Falhou",
-      "dismiss": "Fechar"
     }
   }
 }

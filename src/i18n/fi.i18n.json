@@ -222,6 +222,10 @@
         "onLinux": "Jotkin Linux-jakelut eivät tue tätä ominaisuutta.",
         "descriptionDarwin": "Herättää käyttäjän huomion ponnauttamalla sovelluskuvaketta Dockissa."
       },
+      "downloadsPercentage": {
+        "title": "Latauksen prosenttiosuus",
+        "description": "Näytä latauksen etenemisprosentti välilehtien palkissa."
+      },
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
         "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
@@ -372,6 +376,44 @@
       "clearStorageData": "Tyhjennä tallennustiedot"
     }
   },
+  "tabBar": {
+    "workspaces": "Työtilat",
+    "addWorkspace": "Lisää työtila",
+    "unreadMessage_one": "{{- count}} viesti",
+    "unreadMessage_other": "{{- count}} viestiä",
+    "unreadMessages": "Lukemattomat viestit",
+    "meatballMenu": "Sovellusvalikko",
+    "update": {
+      "available": "Päivitys",
+      "updating": "Päivitetään…",
+      "percent": "{{- percent}}%",
+      "restart": "Käynnistä uudelleen päivittääksesi",
+      "tooltip": "Uusi työpöytäsovelluksen versio on saatavilla, katso lisätiedot napsauttamalla",
+      "checking": "Tarkistetaan päivityksiä…",
+      "upToDate": "Sovellus on ajan tasalla",
+      "upToDateTooltip": "{{- version}} on uusin versio",
+      "checkFailed": "Päivitysten tarkistus epäonnistui"
+    },
+    "windowControls": {
+      "minimize": "Pienennä",
+      "maximize": "Suurenna",
+      "restore": "Palauta",
+      "close": "Sulje"
+    },
+    "downloads": {
+      "tooltip": "Tiedostoja ladataan, napsauta nähdäksesi tiedot",
+      "title": "Lataukset",
+      "showAll": "Näytä kaikki lataukset",
+      "pause": "Keskeytä",
+      "resume": "Jatka",
+      "cancel": "Peruuta",
+      "showInFolder": "Näytä kansiossa",
+      "percent": "{{- percent}}%",
+      "canceled": "Peruutettu",
+      "failed": "Epäonnistui",
+      "dismiss": "Sulje"
+    }
+  },
   "touchBar": {
     "formatting": "Muotoilu",
     "selectServer": "Valitse palvelin"
@@ -436,44 +478,6 @@
     "expiration": {
       "label": "Vanheneminen:",
       "expiresOn": "Vanhenee {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Työtilat",
-    "addWorkspace": "Lisää työtila",
-    "unreadMessage_one": "{{- count}} viesti",
-    "unreadMessage_other": "{{- count}} viestiä",
-    "unreadMessages": "Lukemattomat viestit",
-    "meatballMenu": "Sovellusvalikko",
-    "update": {
-      "available": "Päivitys",
-      "updating": "Päivitetään…",
-      "percent": "{{- percent}}%",
-      "restart": "Käynnistä uudelleen päivittääksesi",
-      "tooltip": "Uusi työpöytäsovelluksen versio on saatavilla, katso lisätiedot napsauttamalla",
-      "checking": "Tarkistetaan päivityksiä…",
-      "upToDate": "Sovellus on ajan tasalla",
-      "upToDateTooltip": "{{- version}} on uusin versio",
-      "checkFailed": "Päivitysten tarkistus epäonnistui"
-    },
-    "windowControls": {
-      "minimize": "Pienennä",
-      "maximize": "Suurenna",
-      "restore": "Palauta",
-      "close": "Sulje"
-    },
-    "downloads": {
-      "tooltip": "Tiedostoja ladataan, napsauta nähdäksesi tiedot",
-      "title": "Lataukset",
-      "showAll": "Näytä kaikki lataukset",
-      "pause": "Keskeytä",
-      "resume": "Jatka",
-      "cancel": "Peruuta",
-      "showInFolder": "Näytä kansiossa",
-      "percent": "{{- percent}}%",
-      "canceled": "Peruutettu",
-      "failed": "Epäonnistui",
-      "dismiss": "Sulje"
     }
   }
 }

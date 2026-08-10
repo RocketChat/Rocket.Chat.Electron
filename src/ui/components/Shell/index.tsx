@@ -87,8 +87,8 @@ export const Shell = () => {
           <TabBar
             trailingSlot={
               <>
-                <DownloadsIndicator />
                 <UpdateLabel />
+                <DownloadsIndicator />
                 <MeatballMenuButton />
               </>
             }
@@ -101,8 +101,8 @@ export const Shell = () => {
             }
             trailingSlot={
               <>
-                <DownloadsIndicator />
                 <UpdateLabel />
+                <DownloadsIndicator compact />
               </>
             }
           />
@@ -113,7 +113,7 @@ export const Shell = () => {
               <>
                 {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
                 <UpdateLabel />
-                <DownloadsIndicator />
+                <DownloadsIndicator compact />
               </>
             }
             centerSlot={

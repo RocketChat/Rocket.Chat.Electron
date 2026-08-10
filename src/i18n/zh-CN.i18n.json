@@ -261,6 +261,43 @@
       "clearStorageData": "清除存储数据"
     }
   },
+  "tabBar": {
+    "workspaces": "工作区",
+    "addWorkspace": "添加工作区",
+    "unreadMessage_other": "{{- count}} 条消息",
+    "unreadMessages": "未读消息",
+    "meatballMenu": "应用程序菜单",
+    "update": {
+      "available": "更新",
+      "updating": "正在更新…",
+      "percent": "{{- percent}}%",
+      "restart": "重启以更新",
+      "tooltip": "桌面应用有新版本可用，点击查看详情",
+      "checking": "正在检查更新…",
+      "upToDate": "已是最新版本",
+      "upToDateTooltip": "{{- version}} 已是最新版本",
+      "checkFailed": "无法检查更新"
+    },
+    "windowControls": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "restore": "还原",
+      "close": "关闭"
+    },
+    "downloads": {
+      "tooltip": "正在下载文件，点击查看详情",
+      "title": "下载",
+      "showAll": "显示所有下载",
+      "pause": "暂停",
+      "resume": "继续",
+      "cancel": "取消",
+      "showInFolder": "在文件夹中显示",
+      "percent": "{{- percent}}%",
+      "canceled": "已取消",
+      "failed": "失败",
+      "dismiss": "关闭"
+    }
+  },
   "touchBar": {
     "formatting": "格式化",
     "selectServer": "选择服务器"
@@ -319,43 +356,6 @@
     "expiration": {
       "label": "过期时间:",
       "expiresOn": "将于 {{date}} 过期"
-    }
-  },
-  "tabBar": {
-    "workspaces": "工作区",
-    "addWorkspace": "添加工作区",
-    "unreadMessage_other": "{{- count}} 条消息",
-    "unreadMessages": "未读消息",
-    "meatballMenu": "应用程序菜单",
-    "update": {
-      "available": "更新",
-      "updating": "正在更新…",
-      "percent": "{{- percent}}%",
-      "restart": "重启以更新",
-      "tooltip": "桌面应用有新版本可用，点击查看详情",
-      "checking": "正在检查更新…",
-      "upToDate": "已是最新版本",
-      "upToDateTooltip": "{{- version}} 已是最新版本",
-      "checkFailed": "无法检查更新"
-    },
-    "windowControls": {
-      "minimize": "最小化",
-      "maximize": "最大化",
-      "restore": "还原",
-      "close": "关闭"
-    },
-    "downloads": {
-      "tooltip": "正在下载文件，点击查看详情",
-      "title": "下载",
-      "showAll": "显示所有下载",
-      "pause": "暂停",
-      "resume": "继续",
-      "cancel": "取消",
-      "showInFolder": "在文件夹中显示",
-      "percent": "{{- percent}}%",
-      "canceled": "已取消",
-      "failed": "失败",
-      "dismiss": "关闭"
     }
   }
 }

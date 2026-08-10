@@ -373,6 +373,44 @@
       "clearStorageData": "Effacer les données de stockage"
     }
   },
+  "tabBar": {
+    "workspaces": "Espaces de travail",
+    "addWorkspace": "Ajouter un espace de travail",
+    "unreadMessage_one": "{{- count}} message",
+    "unreadMessage_other": "{{- count}} messages",
+    "unreadMessages": "Messages non lus",
+    "meatballMenu": "Menu de l'application",
+    "update": {
+      "available": "Mise à jour",
+      "updating": "Mise à jour…",
+      "percent": "{{- percent}}%",
+      "restart": "Redémarrer pour mettre à jour",
+      "tooltip": "Une nouvelle version de l'application de bureau est disponible, cliquez pour plus de détails",
+      "checking": "Recherche de mises à jour…",
+      "upToDate": "Vous êtes à jour",
+      "upToDateTooltip": "{{- version}} est la dernière version",
+      "checkFailed": "Impossible de rechercher des mises à jour"
+    },
+    "windowControls": {
+      "minimize": "Réduire",
+      "maximize": "Agrandir",
+      "restore": "Restaurer",
+      "close": "Fermer"
+    },
+    "downloads": {
+      "tooltip": "Téléchargement des fichiers, cliquez pour plus de détails",
+      "title": "Téléchargements",
+      "showAll": "Afficher tous les téléchargements",
+      "pause": "Pause",
+      "resume": "Reprendre",
+      "cancel": "Annuler",
+      "showInFolder": "Afficher dans le dossier",
+      "percent": "{{- percent}}%",
+      "canceled": "Annulé",
+      "failed": "Échoué",
+      "dismiss": "Fermer"
+    }
+  },
   "touchBar": {
     "formatting": "Mise en page",
     "selectServer": "Sélectionnez un serveur"
@@ -437,44 +475,6 @@
     "expiration": {
       "label": "Expiration :",
       "expiresOn": "Expire le {{date}}"
-    }
-  },
-  "tabBar": {
-    "workspaces": "Espaces de travail",
-    "addWorkspace": "Ajouter un espace de travail",
-    "unreadMessage_one": "{{- count}} message",
-    "unreadMessage_other": "{{- count}} messages",
-    "unreadMessages": "Messages non lus",
-    "meatballMenu": "Menu de l'application",
-    "update": {
-      "available": "Mise à jour",
-      "updating": "Mise à jour…",
-      "percent": "{{- percent}}%",
-      "restart": "Redémarrer pour mettre à jour",
-      "tooltip": "Une nouvelle version de l'application de bureau est disponible, cliquez pour plus de détails",
-      "checking": "Recherche de mises à jour…",
-      "upToDate": "Vous êtes à jour",
-      "upToDateTooltip": "{{- version}} est la dernière version",
-      "checkFailed": "Impossible de rechercher des mises à jour"
-    },
-    "windowControls": {
-      "minimize": "Réduire",
-      "maximize": "Agrandir",
-      "restore": "Restaurer",
-      "close": "Fermer"
-    },
-    "downloads": {
-      "tooltip": "Téléchargement des fichiers, cliquez pour plus de détails",
-      "title": "Téléchargements",
-      "showAll": "Afficher tous les téléchargements",
-      "pause": "Pause",
-      "resume": "Reprendre",
-      "cancel": "Annuler",
-      "showInFolder": "Afficher dans le dossier",
-      "percent": "{{- percent}}%",
-      "canceled": "Annulé",
-      "failed": "Échoué",
-      "dismiss": "Fermer"
     }
   }
 }

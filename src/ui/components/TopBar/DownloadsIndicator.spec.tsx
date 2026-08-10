@@ -728,37 +728,50 @@ describe('DownloadsIndicator', () => {
 
     it('reverts to the plain idle glyph (no circles) once the unseen download is marked seen by clicking the button', async () => {
       const user = userEvent.setup();
-      // seenAt is initialized to the mount-time Date.now(); endTime must sit
-      // between that mount time and the later click's own Date.now() call
-      // for the download to start unseen and end up seen after the click.
-      const mountTime = Date.now();
-      renderWithStore(<DownloadsIndicator />, {
-        preloadedState: buildState({
-          1: {
-            ...baseDownload,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 1000,
-            endTime: mountTime + 1,
-          },
-        }),
-      });
+      // The component reads Date.now() twice — once for the mount-time seenAt,
+      // once when the button is clicked — and the download only counts as
+      // unseen while its endTime sits between the two. Left to the real clock
+      // that window is a fraction of a millisecond wide, so the test passed
+      // only when mount and render landed in the same tick; it is driven here
+      // instead.
+      const mountTime = 1_000_000;
+      const clickTime = mountTime + 10_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(mountTime);
 
-      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+      try {
+        renderWithStore(<DownloadsIndicator />, {
+          preloadedState: buildState({
+            1: {
+              ...baseDownload,
+              state: 'completed',
+              receivedBytes: 1000,
+              startTime: SESSION_START + 1000,
+              endTime: mountTime + 1,
+            },
+          }),
+        });
 
-      await user.click(
-        screen.getByRole('button', { name: 'tabBar.downloads.title' })
-      );
-      await user.click(screen.getByTestId('downloads-panel-backdrop'));
+        expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
 
-      const glyph = screen.getByTestId('downloads-glyph');
-      const paths = glyph.querySelectorAll('path');
-      expect(paths).toHaveLength(1);
-      expect(paths[0].getAttribute('d')).toContain(TRACK_CIRCLE_D);
-      expect(paths[0].getAttribute('d')).toContain(OUTER_CIRCLE_D);
-      expect(paths[0].getAttribute('d')).toContain(ARROW_PATH);
+        // Opening the popup is what marks everything finished so far as seen.
+        nowSpy.mockReturnValue(clickTime);
 
-      expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+        await user.click(
+          screen.getByRole('button', { name: 'tabBar.downloads.title' })
+        );
+        await user.click(screen.getByTestId('downloads-panel-backdrop'));
+
+        const glyph = screen.getByTestId('downloads-glyph');
+        const paths = glyph.querySelectorAll('path');
+        expect(paths).toHaveLength(1);
+        expect(paths[0].getAttribute('d')).toContain(TRACK_CIRCLE_D);
+        expect(paths[0].getAttribute('d')).toContain(OUTER_CIRCLE_D);
+        expect(paths[0].getAttribute('d')).toContain(ARROW_PATH);
+
+        expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+      } finally {
+        nowSpy.mockRestore();
+      }
     });
 
     it('does not spin the unseen-completed arc (indeterminate spin only applies while actually downloading)', () => {

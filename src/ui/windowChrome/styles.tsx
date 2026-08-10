@@ -52,8 +52,14 @@ export const WindowChromeGlobalStyles = ({
         background-color: ${surfaces.hover};
       }
 
+      /*
+       * Keyboard focus draws a highlight ring rather than the selected fill:
+       * the fill is what says "this section is open", so borrowing it for focus
+       * left two rows claiming to be the current one.
+       */
       .${FILTER_ROW_CLASS}:focus-visible {
-        background-color: ${surfaces.selected};
+        outline: 2px solid var(--rcx-color-stroke-highlight);
+        outline-offset: -2px;
       }
 
       .${TEXT_BUTTON_CLASS}:hover, .${TEXT_BUTTON_CLASS}:focus-visible {

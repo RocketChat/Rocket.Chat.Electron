@@ -1,14 +1,6 @@
-import {
-  Box,
-  Button,
-  Field,
-  FieldHint,
-  FieldLabel,
-  FieldRow,
-  TextInput,
-} from '@rocket.chat/fuselage';
+import { Box, Button, FieldHint, TextInput } from '@rocket.chat/fuselage';
 import type { KeyboardEvent } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -21,6 +13,7 @@ import {
   isReservedTelephonyShortcutAccelerator,
   normalizeTelephonyShortcutAccelerator,
 } from '../../../../telephony/shortcuts';
+import { SettingField } from './SettingField';
 
 const normalizeShortcutText = (value: string): string | null =>
   normalizeTelephonyShortcutAccelerator(value);
@@ -66,7 +59,13 @@ const eventToAccelerator = (event: KeyboardEvent<HTMLInputElement>) => {
   return parts.join('+');
 };
 
-export const TelephonyGlobalShortcut = () => {
+type TelephonyGlobalShortcutProps = {
+  className?: string;
+};
+
+export const TelephonyGlobalShortcut = (
+  props: TelephonyGlobalShortcutProps
+) => {
   const { t } = useTranslation();
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const telephonyGlobalShortcutConfig = useSelector(
@@ -160,19 +159,19 @@ export const TelephonyGlobalShortcut = () => {
     telephonyGlobalShortcutRegistrationStatus.accelerator ===
       telephonyGlobalShortcutConfig.accelerator;
 
+  const shortcutInputId = useId();
+
   return (
-    <Field marginBlock='x16'>
-      <FieldRow>
-        <FieldLabel>{t('settings.options.telephonyShortcut.title')}</FieldLabel>
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>
-          {t('settings.options.telephonyShortcut.description')}
-        </FieldHint>
-      </FieldRow>
-      <FieldRow>
-        <Box display='flex' alignItems='center' flexGrow={1}>
+    <SettingField
+      className={props.className}
+      htmlFor={shortcutInputId}
+      label={t('settings.options.telephonyShortcut.title')}
+      description={t('settings.options.telephonyShortcut.description')}
+    >
+      <Box display='flex' flexDirection='column' flexGrow={1}>
+        <Box display='flex' alignItems='center'>
           <TextInput
+            id={shortcutInputId}
             data-testid='telephony-shortcut-input'
             disabled={!isTelephonyEnabled}
             readOnly
@@ -205,26 +204,21 @@ export const TelephonyGlobalShortcut = () => {
             {t('settings.options.telephonyShortcut.clear')}
           </Button>
         </Box>
-      </FieldRow>
-      {telephonyGlobalShortcutRegistrationStatus.error && (
-        <FieldRow>
+
+        {telephonyGlobalShortcutRegistrationStatus.error && (
           <FieldHint color='danger'>
             {telephonyGlobalShortcutRegistrationStatus.error}
           </FieldHint>
-        </FieldRow>
-      )}
-      {validationError && (
-        <FieldRow>
+        )}
+        {validationError && (
           <FieldHint color='danger'>{validationError}</FieldHint>
-        </FieldRow>
-      )}
-      {isRegistered && (
-        <FieldRow>
+        )}
+        {isRegistered && (
           <FieldHint>
             {t('settings.options.telephonyShortcut.registered')}
           </FieldHint>
-        </FieldRow>
-      )}
-    </Field>
+        )}
+      </Box>
+    </SettingField>
   );
 };

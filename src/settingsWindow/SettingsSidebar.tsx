@@ -2,7 +2,10 @@ import { Box, Icon, Scrollable, SearchInput } from '@rocket.chat/fuselage';
 import type { Keys as IconName } from '@rocket.chat/icons';
 import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
+import packageJson from '../../package.json';
+import type { RootState } from '../store/rootReducer';
 import { NavRow } from '../ui/windowChrome/NavRow';
 import type { Surfaces } from '../ui/windowChrome/appearance';
 import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
@@ -34,6 +37,15 @@ export const SettingsSidebar = ({
   onSearchFilterChange,
 }: SettingsSidebarProps) => {
   const { t } = useTranslation();
+
+  const appVersion = useSelector(({ appVersion }: RootState) => appVersion);
+
+  // Straight from package.json rather than through `packageJsonInformation`:
+  // that module is main-process only, and importing it here would pull
+  // child_process and the root window into the settings bundle.
+  const copyright = `© 2016-${new Date().getFullYear()}, ${
+    packageJson.productName
+  }`;
 
   return (
     <Box
@@ -80,6 +92,22 @@ export const SettingsSidebar = ({
             )}
           </Box>
         </Scrollable>
+      </Box>
+
+      {/*
+        Signature at the foot of the window rather than a setting of its own:
+        worth being able to find and copy, not worth a row. The labels are
+        dropped — a version number and a copyright line read as themselves.
+      */}
+      <Box
+        paddingInline='x12'
+        paddingBlock='x8'
+        fontScale='micro'
+        color='annotation'
+        style={{ userSelect: 'text', textAlign: 'center' }}
+      >
+        <Box withTruncatedText>{appVersion}</Box>
+        <Box withTruncatedText>{copyright}</Box>
       </Box>
     </Box>
   );

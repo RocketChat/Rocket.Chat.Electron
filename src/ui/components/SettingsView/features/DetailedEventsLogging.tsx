@@ -1,10 +1,3 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +7,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED } from '../../../actions';
+import { ToggleField } from './ToggleField';
 
 type DetailedEventsLoggingProps = {
   className?: string;
@@ -40,22 +34,13 @@ export const DetailedEventsLogging = (props: DetailedEventsLoggingProps) => {
   const isDetailedEventsLoggingEnabledId = useId();
 
   return (
-    <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel htmlFor={isDetailedEventsLoggingEnabledId}>
-          {t('settings.options.detailedEventsLogging.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isDetailedEventsLoggingEnabledId}
-          checked={isDetailedEventsLoggingEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>
-          {t('settings.options.detailedEventsLogging.description')}
-        </FieldHint>
-      </FieldRow>
-    </Field>
+    <ToggleField
+      className={props.className}
+      id={isDetailedEventsLoggingEnabledId}
+      label={t('settings.options.detailedEventsLogging.title')}
+      description={t('settings.options.detailedEventsLogging.description')}
+      checked={isDetailedEventsLoggingEnabled}
+      onChange={handleChange}
+    />
   );
 };

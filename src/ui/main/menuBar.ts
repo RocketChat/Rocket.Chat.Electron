@@ -19,7 +19,6 @@ import { openVideoCallWebviewDevTools } from '../../videoCallWindow/ipc';
 import {
   APP_MENU_TRIGGERED,
   CLEAR_CACHE_TRIGGERED,
-  MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
   MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
@@ -78,17 +77,18 @@ const selectAddServersDeps = createStructuredSelector({
     isAddNewServersEnabled,
 });
 
+/**
+ * macOS only, and deliberately the system panel rather than anything of ours:
+ * every Mac app has this item in the same place, and the version and copyright
+ * it shows come from the bundle. Windows and Linux have no such convention, so
+ * they get no About item at all — the version lives in the settings window's
+ * Advanced section instead.
+ */
 const createAboutMenuItem = (): MenuItemConstructorOptions => ({
   id: 'about',
   label: t('menus.about', { appName: app.name }),
-  click: async () => {
-    const browserWindow = await getRootWindow();
-
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
-    }
-    browserWindow.focus();
-    dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+  click: () => {
+    app.showAboutPanel();
   },
 });
 
@@ -934,21 +934,6 @@ export const createHelpMenu = createSelector(
           openExternal(urls.rocketchat.site);
         },
       },
-      ...on(process.platform !== 'darwin', () => [
-        {
-          id: 'about',
-          label: t('menus.about', { appName: app.name }),
-          click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
-            dispatch({ type: MENU_BAR_ABOUT_CLICKED });
-          },
-        },
-      ]),
     ],
   })
 );
@@ -974,11 +959,7 @@ const createRocketChatMenu = createSelector(
   (): MenuItemConstructorOptions => ({
     id: 'rocketChatMenu',
     label: app.name,
-    submenu: [
-      createAboutMenuItem(),
-      { type: 'separator' },
-      createDisableGpuMenuItem(),
-    ],
+    submenu: [createDisableGpuMenuItem()],
   })
 );
 

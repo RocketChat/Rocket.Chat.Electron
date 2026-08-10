@@ -20,6 +20,10 @@ export type NavRowProps = {
  * A selectable sidebar row, for windows whose sidebar navigates sections rather
  * than filtering a list. Shares the filter row's hover treatment so both kinds
  * of sidebar feel the same.
+ *
+ * Every row carries the same text and icon colour: the fill behind the selected
+ * one already says which is selected, and dimming the rest made the list read as
+ * mostly disabled.
  */
 export const NavRow = ({
   label,
@@ -61,19 +65,10 @@ export const NavRow = ({
       onKeyDown={handleKeyDown}
     >
       {icon && (
-        <Icon
-          name={icon}
-          size='x16'
-          color={isSelected ? 'default' : 'hint'}
-          marginInlineEnd='x8'
-        />
+        <Icon name={icon} size='x16' color='default' marginInlineEnd='x8' />
       )}
       <Box flexGrow={1} style={{ minWidth: 0 }}>
-        <Box
-          fontScale='p2'
-          color={isSelected ? 'default' : 'hint'}
-          withTruncatedText
-        >
+        <Box fontScale='p2' color='default' withTruncatedText>
           {label}
         </Box>
         {description && (

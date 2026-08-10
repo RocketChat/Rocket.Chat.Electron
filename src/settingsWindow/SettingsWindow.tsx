@@ -3,9 +3,7 @@ import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
-import type { RootState } from '../store/rootReducer';
 import TooltipProvider from '../ui/components/utils/TooltipProvider';
 import { WindowToolbar } from '../ui/windowChrome/WindowToolbar';
 import type { PaletteTheme } from '../ui/windowChrome/appearance';
@@ -37,10 +35,6 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
     [paletteTheme, surfaces]
   );
 
-  const isDeveloperModeEnabled = useSelector(
-    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
-  );
-
   const [currentSection, setCurrentSection] = useLocalStorage(
     'settings-window/section',
     DEFAULT_SECTION
@@ -54,13 +48,9 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
     []
   );
 
-  const availableSections = useMemo(
-    () =>
-      SETTINGS_SECTIONS.filter(
-        (section) => !section.isDeveloperOnly || isDeveloperModeEnabled
-      ),
-    [isDeveloperModeEnabled]
-  );
+  // Every section is listed: the parts that are developer-only live inside
+  // Advanced, which hides them itself.
+  const availableSections = SETTINGS_SECTIONS;
 
   /**
    * A section survives the search if its own name matches, or if any setting it

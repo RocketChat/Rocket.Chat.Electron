@@ -313,10 +313,7 @@ describe('dialogs reducer', () => {
 describe('openDialog reducer', () => {
   it('sets and clears open dialog state', () => {
     expect(
-      openDialog(null, { type: uiActions.MENU_BAR_ABOUT_CLICKED } as any)
-    ).toBe('about');
-    expect(
-      openDialog('about', {
+      openDialog('screen-sharing', {
         type: navigationActions.CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
       } as any)
     ).toBe('select-client-certificate');
@@ -337,23 +334,15 @@ describe('openDialog reducer', () => {
   });
 
   it('ignores unknown actions', () => {
-    expect(openDialog('about', { type: 'UNKNOWN_DIALOG_ACTION' } as any)).toBe(
-      'about'
-    );
+    expect(
+      openDialog('screen-sharing', { type: 'UNKNOWN_DIALOG_ACTION' } as any)
+    ).toBe('screen-sharing');
     expect(
       openDialog(undefined, { type: 'UNKNOWN_DIALOG_ACTION' } as any)
     ).toBe(null);
   });
 
   it('handles dismiss actions and alternate branches', () => {
-    expect(
-      openDialog('about', { type: uiActions.ABOUT_DIALOG_DISMISSED } as any)
-    ).toBe(null);
-
-    expect(
-      openDialog('settings', { type: uiActions.ABOUT_DIALOG_DISMISSED } as any)
-    ).toBe('settings');
-
     expect(
       openDialog(null, {
         type: outlookActions.OUTLOOK_CALENDAR_DIALOG_DISMISSED,

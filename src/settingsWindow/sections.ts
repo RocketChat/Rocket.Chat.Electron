@@ -1,8 +1,8 @@
 import type { Keys as IconName } from '@rocket.chat/icons';
 import type { ComponentType } from 'react';
 
-import { DeveloperTab } from '../ui/components/SettingsView/DeveloperTab';
 import type { Surfaces } from '../ui/windowChrome/appearance';
+import { AdvancedSection } from './sections/AdvancedSection';
 import { AppearanceSection } from './sections/AppearanceSection';
 import { CertificatesSection } from './sections/CertificatesSection';
 import { GeneralSection } from './sections/GeneralSection';
@@ -15,7 +15,7 @@ export type SettingsSectionId =
   | 'certificates'
   | 'telephony'
   | 'videoCalls'
-  | 'developer';
+  | 'advanced';
 
 /** Every section is handed the window's surfaces; most ignore them. */
 export type SettingsSectionProps = {
@@ -38,8 +38,6 @@ export type SettingsSectionDefinition = {
    * no change at all.
    */
   settingKeys: string[];
-  /** Only rendered when developer mode is on. */
-  isDeveloperOnly?: boolean;
   Component: ComponentType<SettingsSectionProps>;
 };
 
@@ -55,10 +53,10 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.flashFrame',
       'settings.options.availableBrowsers',
       'settings.options.outlookCalendarSyncInterval',
-      'settings.options.hardwareAcceleration',
       'settings.options.e2ePdfPreviewSizeLimit',
-      'settings.options.report',
       'settings.options.ntlmCredentials',
+      'dialog.about.checkUpdates',
+      'dialog.about.checkUpdatesOnStart',
     ],
     Component: GeneralSection,
   },
@@ -104,15 +102,17 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     Component: VideoCallsSection,
   },
   {
-    id: 'developer',
-    icon: 'code',
-    labelKey: 'settings.developer',
+    id: 'advanced',
+    icon: 'cog',
+    labelKey: 'settings.sections.advanced',
     settingKeys: [
+      'dialog.about.updateChannel.label',
+      'settings.options.hardwareAcceleration',
+      'settings.options.report',
       'settings.options.verboseOutlookLogging',
       'settings.options.detailedEventsLogging',
       'settings.options.debugLogging',
     ],
-    isDeveloperOnly: true,
-    Component: DeveloperTab,
+    Component: AdvancedSection,
   },
 ];

@@ -315,6 +315,17 @@ export const setupGpuCrashHandler = (): void => {
 };
 
 export const setupApp = (): void => {
+  // The About menu item shows the system panel on macOS; without this it would
+  // report Electron's own name and version in an unpackaged run, since those
+  // otherwise come from the bundle's Info.plist.
+  if (process.platform === 'darwin') {
+    app.setAboutPanelOptions({
+      applicationName: packageJson.productName,
+      applicationVersion: app.getVersion(),
+      copyright: packageJson.copyright,
+    });
+  }
+
   app.addListener('activate', async () => {
     try {
       const browserWindow = await getRootWindow();

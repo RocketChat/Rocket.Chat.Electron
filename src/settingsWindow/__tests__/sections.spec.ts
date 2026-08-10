@@ -30,11 +30,10 @@ describe('SETTINGS_SECTIONS', () => {
     expect(ids).toContain('videoCalls');
   });
 
-  it('gates only the developer section behind developer mode', () => {
-    const gated = SETTINGS_SECTIONS.filter(
-      (section) => section.isDeveloperOnly
-    ).map((section) => section.id);
-    expect(gated).toEqual(['developer']);
+  it('lists every section, gating developer content inside Advanced instead', () => {
+    const ids = SETTINGS_SECTIONS.map((section) => section.id);
+    expect(ids).toContain('advanced');
+    expect(ids).not.toContain('developer');
   });
 
   it('does not list the same setting in two sections', () => {

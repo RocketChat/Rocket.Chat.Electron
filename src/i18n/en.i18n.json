@@ -20,14 +20,17 @@
     "about": {
       "title": "About {{- appName}}",
       "version": "Version: <1>{{-version}}</1>",
-      "checkUpdates": "Check for Updates",
-      "checkUpdatesOnStart": "Check for Updates on Start",
+      "checkUpdates": "Check for updates now",
+      "checkUpdatesDescription": "Look for a newer version now.",
+      "checkUpdatesOnStart": "Check for updates on start",
+      "checkUpdatesOnStartDescription": "Look for a newer version every time the app launches.",
       "noUpdatesAvailable": "No updates are available.",
       "updateAvailable": "Version {{- version}} is available",
       "copyright": "Copyright {{copyright}}",
       "errorWhenLookingForUpdates": "An error has occurred when looking for updates",
       "updateChannel": {
-        "label": "Update Channel",
+        "label": "Update channel",
+        "description": "Which release stream this app updates from.",
         "latest": "Stable",
         "beta": "Beta",
         "alpha": "Alpha (Experimental)"
@@ -292,7 +295,8 @@
       "other": "Other & technical",
       "logging": "Logging",
       "telephony": "Telephony",
-      "videoCalls": "Video calls"
+      "videoCalls": "Video calls",
+      "advanced": "Advanced"
     },
     "options": {
       "report": {

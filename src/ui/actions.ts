@@ -17,7 +17,6 @@ export const CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED =
   'clear-cache-dialog/keep-login-data-clicked';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
-export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED =
   'menu-bar/add-new-server-clicked';
 export const MENU_BAR_SELECT_SERVER_CLICKED = 'menu-bar/select-server-clicked';
@@ -189,7 +188,6 @@ export type UiActionTypeToPayloadMap = {
   [CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED]: WebContents['id'];
   [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
-  [MENU_BAR_ABOUT_CLICKED]: void;
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;

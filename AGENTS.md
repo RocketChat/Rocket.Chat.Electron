@@ -39,6 +39,15 @@ yarn workspaces:build        # Build all workspaces
   2. Sign built packages using `jsign` with Google Cloud KMS.
 
   This prevents MSI build failures from KMS CNG provider conflicts.
+- `electron-builder.json`'s `mac.bundleVersion` (macOS `CFBundleVersion`) is
+  independent from `package.json`'s `version` and must be bumped on every
+  release that ships to the App Store / gets notarized — Apple requires each
+  submission's `CFBundleVersion` to strictly increase over the last one.
+  Format: `YYMM` + a single-digit build counter that resets to `0` at the
+  start of each month, e.g. the first build shipped in August 2026 is
+  `26080`, the second same-month build is `26081`. Check the current value
+  and the date of its last bump (`git log -p --follow -- electron-builder.json`)
+  before incrementing — do not guess an arbitrary increment.
 
 ## UI Work
 

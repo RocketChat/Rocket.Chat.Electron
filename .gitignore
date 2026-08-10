@@ -23,6 +23,14 @@ Thumbs.db
 supportedVersions.jwt
 # local research (git-ignored)
 localdev/
+localdev.zip
+
+# local agent tooling state
+.localdev/
+.agents/
+.codex/
+.fuselage-craft/
+prompt-exports/
 
 # caches and temp
 /coverage

@@ -1,6 +1,6 @@
 import * as store from '../../store';
-import { APP_SETTINGS_LOADED } from '../actions';
 import { MENU_BAR_DEFAULT_REVISION } from '../PersistableValues';
+import { APP_SETTINGS_LOADED } from '../actions';
 import { mergePersistableValues } from './data';
 import {
   getPersistedMeta,
@@ -173,7 +173,9 @@ describe('mergePersistableValues', () => {
         writable: true,
         configurable: true,
       });
-      (getPersistedMeta as jest.Mock).mockReturnValue(MENU_BAR_DEFAULT_REVISION);
+      (getPersistedMeta as jest.Mock).mockReturnValue(
+        MENU_BAR_DEFAULT_REVISION
+      );
       mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: true,

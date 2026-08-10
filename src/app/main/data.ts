@@ -7,8 +7,8 @@ import { logger } from '../../logging';
 import { select, dispatch, watch } from '../../store';
 import { getSystemCertificateStatus } from '../../systemCertificates';
 import { normalizeNumber } from '../../ui/main/rootWindow';
-import { APP_SETTINGS_LOADED } from '../actions';
 import { MENU_BAR_DEFAULT_REVISION } from '../PersistableValues';
+import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import {
   getPersistedMeta,
@@ -174,10 +174,7 @@ export const mergePersistableValues = async (
   // isMenuBarEnabled=true; Linux defaulted to always-on. Both now auto-hide
   // (Alt reveals) unless the user pins the bar. The revision is stored as
   // config meta so later persistValues() snapshots cannot re-apply the force.
-  const appliedMenuBarRevision = getPersistedMeta(
-    'menuBarDefaultRevision',
-    0
-  );
+  const appliedMenuBarRevision = getPersistedMeta('menuBarDefaultRevision', 0);
   if (appliedMenuBarRevision < MENU_BAR_DEFAULT_REVISION) {
     if (process.platform !== 'darwin') {
       values = {

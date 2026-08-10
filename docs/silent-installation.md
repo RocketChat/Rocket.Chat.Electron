@@ -524,7 +524,7 @@ Same locations as `servers.json` (see table above).
 | `isFlashFrameEnabled`              | boolean | `false` | Flash taskbar on new messages          |
 | `isMinimizeOnCloseEnabled`         | boolean | `false` | Minimize to taskbar instead of closing |
 | `doCheckForUpdatesOnStartup`       | boolean | `true`  | Check for updates on startup           |
-| `isMenuBarEnabled`                 | boolean | `false` (Windows/Linux; unused on macOS) | Keep the menu bar always visible. When `false`, press Alt to show it temporarily. |
+| `isMenuBarEnabled`                 | boolean | `false` (Windows/Linux; unused on macOS) | `true` keeps the menu bar always visible; `false` auto-hides it (press Alt to show temporarily). |
 | `isTrayIconEnabled`                | boolean | `true`  | Enable system tray icon                |
 | `isUpdatingEnabled`                | boolean | `true`  | Allow user to update the app           |
 | `isAddNewServersEnabled`           | boolean | `true`  | Allow adding new servers               |

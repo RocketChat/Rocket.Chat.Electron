@@ -524,7 +524,7 @@ describe('DownloadsIndicator', () => {
     expect(getComputedStyle(slot).marginLeft).toBe('0px');
   });
 
-  it('shows the unseen-completed dot when a download completes while the popup is closed', () => {
+  it('shows the unseen-completed dot when a download completes while the popup is closed', async () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
         1: {
@@ -537,10 +537,12 @@ describe('DownloadsIndicator', () => {
       }),
     });
 
-    expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('downloads-unseen-dot')
+    ).toBeInTheDocument();
   });
 
-  it('positions the full-size unseen dot tangent on the ring (top/right 1px, not 4px which would sit inside the ring)', () => {
+  it('positions the full-size unseen dot tangent on the ring (top/right 1px, not 4px which would sit inside the ring)', async () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
         1: {
@@ -553,7 +555,7 @@ describe('DownloadsIndicator', () => {
       }),
     });
 
-    const dot = screen.getByTestId('downloads-unseen-dot');
+    const dot = await screen.findByTestId('downloads-unseen-dot');
     expect(getComputedStyle(dot).top).toBe('1px');
     expect(getComputedStyle(dot).right).toBe('1px');
     expect(getComputedStyle(dot).width).toBe('8px');
@@ -574,7 +576,9 @@ describe('DownloadsIndicator', () => {
       }),
     });
 
-    expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('downloads-unseen-dot')
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: 'tabBar.downloads.title' })
@@ -697,7 +701,7 @@ describe('DownloadsIndicator', () => {
       expect(button.querySelector('.rcx-icon--name-download')).toBeNull();
     });
 
-    it('keeps the arc fully filled in the completed-unseen accent color instead of the plain idle glyph', () => {
+    it('keeps the arc fully filled in the completed-unseen accent color instead of the plain idle glyph', async () => {
       renderWithStore(<DownloadsIndicator />, {
         preloadedState: buildState({
           1: {
@@ -709,6 +713,8 @@ describe('DownloadsIndicator', () => {
           },
         }),
       });
+
+      await screen.findByTestId('downloads-unseen-dot');
 
       const glyph = screen.getByTestId('downloads-glyph');
 
@@ -744,7 +750,9 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
-      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+      expect(
+        await screen.findByTestId('downloads-unseen-dot')
+      ).toBeInTheDocument();
 
       await user.click(
         screen.getByRole('button', { name: 'tabBar.downloads.title' })

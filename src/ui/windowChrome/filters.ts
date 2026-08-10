@@ -1,29 +1,50 @@
 /**
- * Facet selections use "empty means everything", so an untouched filter stays
- * valid when new options show up in the data.
+ * A facet's selection: `null` while the reader has not touched it, which means
+ * everything and keeps including options that show up in the data later, or an
+ * explicit list of what they picked — including none at all.
  *
- * Toggling expands "all" into an explicit list first, then collapses back to
- * "all" once every option is selected again — or once none is, which would
- * otherwise leave the list showing nothing with no way back from the sidebar.
+ * Untouched and "none selected" have to be distinguishable. Folding them
+ * together, as an empty array did, meant unchecking the last option silently
+ * ticked every box again, so the list could never be emptied from the sidebar.
+ */
+export type FacetSelection<T extends string = string> = T[] | null;
+
+/**
+ * Toggles one option, expanding "everything" into an explicit list first and
+ * collapsing back to it once every option is picked again — so a facet the
+ * reader has fully re-selected keeps taking in new options.
  */
 export const toggleFacet = <T extends string>(
-  selected: T[],
+  selected: FacetSelection<T>,
   option: T,
   universe: T[]
-): T[] => {
-  const current = selected.length === 0 ? universe : selected;
+): FacetSelection<T> => {
+  const current = selected ?? universe;
   const next = current.includes(option)
     ? current.filter((value) => value !== option)
     : [...current, option];
 
-  if (next.length === 0 || next.length >= universe.length) {
-    return [];
+  if (next.length >= universe.length) {
+    return null;
   }
 
   return next;
 };
 
 export const isFacetSelected = <T extends string>(
-  selected: T[],
+  selected: FacetSelection<T>,
   option: T
-): boolean => selected.length === 0 || selected.includes(option);
+): boolean => selected === null || selected.includes(option);
+
+/** Whether the reader has narrowed this facet at all. */
+export const isFacetNarrowed = <T extends string>(
+  selected: FacetSelection<T>
+): boolean => selected !== null;
+
+/**
+ * Persisted selections are user-editable JSON, so never trust their shape: only
+ * an array is an explicit selection, anything else means untouched.
+ */
+export const readFacetSelection = <T extends string>(
+  stored: unknown
+): FacetSelection<T> => (Array.isArray(stored) ? (stored as T[]) : null);

@@ -24,7 +24,13 @@ import { formatServerTitle } from '../ui/components/utils/formatServerTitle';
 import { DayHeader } from '../ui/windowChrome/DayHeader';
 import type { PaletteTheme } from '../ui/windowChrome/appearance';
 import { getCardStyle, resolveSurfaces } from '../ui/windowChrome/appearance';
-import { toggleFacet } from '../ui/windowChrome/filters';
+import type { FacetSelection } from '../ui/windowChrome/filters';
+import {
+  isFacetNarrowed,
+  isFacetSelected,
+  readFacetSelection,
+  toggleFacet,
+} from '../ui/windowChrome/filters';
 import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
 import { useTransparency } from '../ui/windowChrome/useTransparency';
 import { LogEntry } from './LogEntry';
@@ -177,30 +183,24 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   // a filter the reader has to find and change.
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const [storedLevelFilters, setLevelFilters] = useLocalStorage<LogLevel[]>(
-    'log-viewer/levels',
-    []
-  );
-  const [storedContextFilters, setContextFilters] = useLocalStorage<string[]>(
-    'log-viewer/contexts',
-    []
-  );
-  const [storedServerFilters, setServerFilters] = useLocalStorage<string[]>(
-    'log-viewer/servers',
-    []
-  );
+  const [storedLevelFilters, setLevelFilters] = useLocalStorage<
+    FacetSelection<LogLevel>
+  >('log-viewer/levels', null);
+  const [storedContextFilters, setContextFilters] =
+    useLocalStorage<FacetSelection>('log-viewer/contexts', null);
+  const [storedServerFilters, setServerFilters] =
+    useLocalStorage<FacetSelection>('log-viewer/servers', null);
 
-  // Persisted selections are user-editable JSON, so never trust their shape.
   const levelFilters = useMemo(
-    () => (Array.isArray(storedLevelFilters) ? storedLevelFilters : []),
+    () => readFacetSelection<LogLevel>(storedLevelFilters),
     [storedLevelFilters]
   );
   const contextFilters = useMemo(
-    () => (Array.isArray(storedContextFilters) ? storedContextFilters : []),
+    () => readFacetSelection(storedContextFilters),
     [storedContextFilters]
   );
   const serverFilters = useMemo(
-    () => (Array.isArray(storedServerFilters) ? storedServerFilters : []),
+    () => readFacetSelection(storedServerFilters),
     [storedServerFilters]
   );
 
@@ -227,7 +227,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   // Drop persisted hosts that are no longer configured, so a removed workspace
   // cannot leave the list filtered down to nothing.
   useEffect(() => {
-    if (serverOptions.length === 0 || serverFilters.length === 0) return;
+    if (serverOptions.length === 0 || serverFilters === null) return;
     const pruned = serverFilters.filter((host) => serverOptions.includes(host));
     if (pruned.length !== serverFilters.length) {
       setServerFilters(pruned);
@@ -236,9 +236,9 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   const handleClearFilters = useCallback((): void => {
     setSearchFilter('');
-    setLevelFilters([]);
-    setContextFilters([]);
-    setServerFilters([]);
+    setLevelFilters(null);
+    setContextFilters(null);
+    setServerFilters(null);
     setTimeRange(null);
   }, [setLevelFilters, setContextFilters, setServerFilters]);
 
@@ -332,7 +332,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   const matchesServer = useCallback(
     (entry: LogEntryType): boolean => {
-      if (serverFilters.length === 0) return true;
+      if (serverFilters === null) return true;
       return serverFilters.some(
         (host) =>
           entry.contextTags.includes(host) || entry.message.includes(host)
@@ -343,13 +343,13 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   const matchesLevel = useCallback(
     (entry: LogEntryType): boolean =>
-      levelFilters.length === 0 || levelFilters.includes(entry.level),
+      isFacetSelected(levelFilters, entry.level),
     [levelFilters]
   );
 
   const matchesContext = useCallback(
     (entry: LogEntryType): boolean =>
-      contextFilters.length === 0 ||
+      contextFilters === null ||
       entry.contextTags.some((tag) => contextFilters.includes(tag)),
     [contextFilters]
   );
@@ -521,9 +521,9 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const activeFilterCount = useMemo(
     () =>
       (debouncedSearchFilter ? 1 : 0) +
-      (levelFilters.length > 0 ? 1 : 0) +
-      (contextFilters.length > 0 ? 1 : 0) +
-      (serverFilters.length > 0 ? 1 : 0) +
+      (isFacetNarrowed(levelFilters) ? 1 : 0) +
+      (isFacetNarrowed(contextFilters) ? 1 : 0) +
+      (isFacetNarrowed(serverFilters) ? 1 : 0) +
       (timeRange !== null ? 1 : 0),
     [
       debouncedSearchFilter,
@@ -538,7 +538,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     (level: LogLevel) => {
       setLevelFilters((previous) =>
         toggleFacet(
-          Array.isArray(previous) ? previous : [],
+          readFacetSelection<LogLevel>(previous),
           level,
           availableLevels.length > 0 ? availableLevels : LOG_LEVELS
         )
@@ -550,11 +550,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const handleToggleContext = useCallback(
     (context: string) => {
       setContextFilters((previous) =>
-        toggleFacet(
-          Array.isArray(previous) ? previous : [],
-          context,
-          contextOptions
-        )
+        toggleFacet(readFacetSelection(previous), context, contextOptions)
       );
     },
     [contextOptions, setContextFilters]
@@ -563,11 +559,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const handleToggleServer = useCallback(
     (server: string) => {
       setServerFilters((previous) =>
-        toggleFacet(
-          Array.isArray(previous) ? previous : [],
-          server,
-          serverOptions
-        )
+        toggleFacet(readFacetSelection(previous), server, serverOptions)
       );
     },
     [serverOptions, setServerFilters]
@@ -980,9 +972,9 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
             onToggleAutoScroll={handleToggleAutoScroll}
             showTimeline={showTimeline}
             onToggleShowTimeline={() => setShowTimeline(!showTimeline)}
-            onSelectAllLevels={() => setLevelFilters([])}
-            onSelectAllContexts={() => setContextFilters([])}
-            onSelectAllServers={() => setServerFilters([])}
+            onSelectAllLevels={() => setLevelFilters(null)}
+            onSelectAllContexts={() => setContextFilters(null)}
+            onSelectAllServers={() => setServerFilters(null)}
           />
 
           <Box

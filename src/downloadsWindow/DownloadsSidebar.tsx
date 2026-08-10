@@ -6,7 +6,8 @@ import { FilterRow } from '../ui/windowChrome/FilterRow';
 import { FilterSection } from '../ui/windowChrome/FilterSection';
 import { SidebarPlaceholder } from '../ui/windowChrome/SidebarPlaceholder';
 import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
-import { isFacetSelected } from '../ui/windowChrome/filters';
+import type { FacetSelection } from '../ui/windowChrome/filters';
+import { isFacetNarrowed, isFacetSelected } from '../ui/windowChrome/filters';
 import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
 
 export type FacetOption = {
@@ -19,15 +20,15 @@ export type DownloadsSidebarProps = {
   searchFilter: string;
   onSearchFilterChange: (event: ChangeEvent<HTMLInputElement>) => void;
   serverOptions: FacetOption[];
-  serverFilters: string[];
+  serverFilters: FacetSelection;
   serverCounts: Record<string, number>;
   onToggleServer: (server: string) => void;
   typeOptions: FacetOption[];
-  typeFilters: string[];
+  typeFilters: FacetSelection;
   typeCounts: Record<string, number>;
   onToggleType: (mimeType: string) => void;
   statusOptions: FacetOption[];
-  statusFilters: string[];
+  statusFilters: FacetSelection;
   statusCounts: Record<string, number>;
   onToggleStatus: (status: string) => void;
   onSelectAllServers: () => void;
@@ -96,7 +97,7 @@ export const DownloadsSidebar = ({
               <FilterSection
                 title={t('downloads.filters.status')}
                 selectAllLabel={selectAllLabel}
-                canSelectAll={statusFilters.length > 0}
+                canSelectAll={isFacetNarrowed(statusFilters)}
                 onSelectAll={onSelectAllStatuses}
               >
                 {statusOptions.map((option) => (
@@ -115,7 +116,7 @@ export const DownloadsSidebar = ({
               <FilterSection
                 title={t('downloads.filters.mimeType')}
                 selectAllLabel={selectAllLabel}
-                canSelectAll={typeFilters.length > 0}
+                canSelectAll={isFacetNarrowed(typeFilters)}
                 onSelectAll={onSelectAllTypes}
               >
                 {typeOptions.map((option) => (
@@ -134,7 +135,7 @@ export const DownloadsSidebar = ({
               <FilterSection
                 title={t('downloads.filters.server')}
                 selectAllLabel={selectAllLabel}
-                canSelectAll={serverFilters.length > 0}
+                canSelectAll={isFacetNarrowed(serverFilters)}
                 onSelectAll={onSelectAllServers}
               >
                 {serverOptions.map((option) => (

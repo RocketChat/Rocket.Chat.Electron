@@ -24,7 +24,13 @@ import { formatServerTitle } from '../ui/components/utils/formatServerTitle';
 import { DayHeader } from '../ui/windowChrome/DayHeader';
 import type { PaletteTheme } from '../ui/windowChrome/appearance';
 import { getCardStyle, resolveSurfaces } from '../ui/windowChrome/appearance';
-import { toggleFacet } from '../ui/windowChrome/filters';
+import type { FacetSelection } from '../ui/windowChrome/filters';
+import {
+  isFacetNarrowed,
+  isFacetSelected,
+  readFacetSelection,
+  toggleFacet,
+} from '../ui/windowChrome/filters';
 import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
 import { useTransparency } from '../ui/windowChrome/useTransparency';
 import { DownloadRow } from './DownloadRow';
@@ -70,30 +76,25 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
   );
 
   const [searchFilter, setSearchFilter] = useState('');
-  const [storedServerFilters, setServerFilters] = useLocalStorage<string[]>(
-    'downloads-window/servers',
-    []
-  );
-  const [storedTypeFilters, setTypeFilters] = useLocalStorage<string[]>(
+  const [storedServerFilters, setServerFilters] =
+    useLocalStorage<FacetSelection>('downloads-window/servers', null);
+  const [storedTypeFilters, setTypeFilters] = useLocalStorage<FacetSelection>(
     'downloads-window/types',
-    []
+    null
   );
-  const [storedStatusFilters, setStatusFilters] = useLocalStorage<string[]>(
-    'downloads-window/statuses',
-    []
-  );
+  const [storedStatusFilters, setStatusFilters] =
+    useLocalStorage<FacetSelection>('downloads-window/statuses', null);
 
-  // Persisted selections are user-editable JSON, so never trust their shape.
   const serverFilters = useMemo(
-    () => (Array.isArray(storedServerFilters) ? storedServerFilters : []),
+    () => readFacetSelection(storedServerFilters),
     [storedServerFilters]
   );
   const typeFilters = useMemo(
-    () => (Array.isArray(storedTypeFilters) ? storedTypeFilters : []),
+    () => readFacetSelection(storedTypeFilters),
     [storedTypeFilters]
   );
   const statusFilters = useMemo(
-    () => (Array.isArray(storedStatusFilters) ? storedStatusFilters : []),
+    () => readFacetSelection(storedStatusFilters),
     [storedStatusFilters]
   );
 
@@ -113,19 +114,19 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
 
   const matchesServer = useCallback(
     (download: Download): boolean =>
-      serverFilters.length === 0 || serverFilters.includes(download.serverUrl),
+      isFacetSelected(serverFilters, download.serverUrl),
     [serverFilters]
   );
 
   const matchesType = useCallback(
     (download: Download): boolean =>
-      typeFilters.length === 0 || typeFilters.includes(getMimeGroup(download)),
+      isFacetSelected(typeFilters, getMimeGroup(download)),
     [typeFilters]
   );
 
   const matchesStatus = useCallback(
     (download: Download): boolean =>
-      statusFilters.length === 0 || statusFilters.includes(download.status),
+      isFacetSelected(statusFilters, download.status),
     [statusFilters]
   );
 
@@ -222,22 +223,22 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
 
   const activeFilterCount =
     (searchFilter ? 1 : 0) +
-    (serverFilters.length > 0 ? 1 : 0) +
-    (typeFilters.length > 0 ? 1 : 0) +
-    (statusFilters.length > 0 ? 1 : 0);
+    (isFacetNarrowed(serverFilters) ? 1 : 0) +
+    (isFacetNarrowed(typeFilters) ? 1 : 0) +
+    (isFacetNarrowed(statusFilters) ? 1 : 0);
 
   const handleClearFilters = useCallback(() => {
     setSearchFilter('');
-    setServerFilters([]);
-    setTypeFilters([]);
-    setStatusFilters([]);
+    setServerFilters(null);
+    setTypeFilters(null);
+    setStatusFilters(null);
   }, [setServerFilters, setTypeFilters, setStatusFilters]);
 
   const handleToggleServer = useCallback(
     (server: string) => {
       setServerFilters((previous) =>
         toggleFacet(
-          Array.isArray(previous) ? previous : [],
+          readFacetSelection(previous),
           server,
           serverOptions.map(({ value }) => value)
         )
@@ -250,7 +251,7 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
     (mimeType: string) => {
       setTypeFilters((previous) =>
         toggleFacet(
-          Array.isArray(previous) ? previous : [],
+          readFacetSelection(previous),
           mimeType,
           typeOptions.map(({ value }) => value)
         )
@@ -263,7 +264,7 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
     (status: string) => {
       setStatusFilters((previous) =>
         toggleFacet(
-          Array.isArray(previous) ? previous : [],
+          readFacetSelection(previous),
           status,
           statusOptions.map(({ value }) => value)
         )
@@ -328,9 +329,9 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
             statusFilters={statusFilters}
             statusCounts={statusCounts}
             onToggleStatus={handleToggleStatus}
-            onSelectAllServers={() => setServerFilters([])}
-            onSelectAllTypes={() => setTypeFilters([])}
-            onSelectAllStatuses={() => setStatusFilters([])}
+            onSelectAllServers={() => setServerFilters(null)}
+            onSelectAllTypes={() => setTypeFilters(null)}
+            onSelectAllStatuses={() => setStatusFilters(null)}
           />
 
           <Box

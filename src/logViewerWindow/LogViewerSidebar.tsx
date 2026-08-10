@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { FilterRow } from '../ui/windowChrome/FilterRow';
 import { FilterSection } from '../ui/windowChrome/FilterSection';
 import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
-import { isFacetSelected } from '../ui/windowChrome/filters';
+import type { FacetSelection } from '../ui/windowChrome/filters';
+import { isFacetNarrowed, isFacetSelected } from '../ui/windowChrome/filters';
 import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
 import { LEVEL_ACCENT, LOG_LEVELS } from './appearance';
 import type { LogLevel } from './types';
@@ -13,19 +14,19 @@ import type { LogLevel } from './types';
 export type LogViewerSidebarProps = {
   searchFilter: string;
   onSearchFilterChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  levelFilters: LogLevel[];
+  levelFilters: FacetSelection<LogLevel>;
   /** Levels present in the loaded file — the only ones worth offering. */
   availableLevels: LogLevel[];
   levelCounts: Record<string, number>;
   onToggleLevel: (level: LogLevel) => void;
   contextOptions: string[];
   contextLabels: Record<string, string>;
-  contextFilters: string[];
+  contextFilters: FacetSelection;
   contextCounts: Record<string, number>;
   onToggleContext: (context: string) => void;
   serverOptions: string[];
   serverLabels: Record<string, string>;
-  serverFilters: string[];
+  serverFilters: FacetSelection;
   serverCounts: Record<string, number>;
   onToggleServer: (server: string) => void;
   showContext: boolean;
@@ -109,7 +110,7 @@ export const LogViewerSidebar = ({
             <FilterSection
               title={t('logViewer.sidebar.levels')}
               selectAllLabel={selectAllLabel}
-              canSelectAll={levelFilters.length > 0}
+              canSelectAll={isFacetNarrowed(levelFilters)}
               onSelectAll={onSelectAllLevels}
             >
               {(availableLevels.length > 0 ? availableLevels : LOG_LEVELS).map(
@@ -130,7 +131,7 @@ export const LogViewerSidebar = ({
               <FilterSection
                 title={t('logViewer.sidebar.contexts')}
                 selectAllLabel={selectAllLabel}
-                canSelectAll={contextFilters.length > 0}
+                canSelectAll={isFacetNarrowed(contextFilters)}
                 onSelectAll={onSelectAllContexts}
               >
                 {contextOptions.map((context) => (
@@ -150,7 +151,7 @@ export const LogViewerSidebar = ({
               <FilterSection
                 title={t('logViewer.sidebar.servers')}
                 selectAllLabel={selectAllLabel}
-                canSelectAll={serverFilters.length > 0}
+                canSelectAll={isFacetNarrowed(serverFilters)}
                 onSelectAll={onSelectAllServers}
               >
                 {serverOptions.map((server) => (

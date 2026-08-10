@@ -1,30 +1,43 @@
-import { isFacetSelected, toggleFacet } from '../filters';
+import {
+  isFacetNarrowed,
+  isFacetSelected,
+  readFacetSelection,
+  toggleFacet,
+} from '../filters';
 
 const OPTIONS = ['error', 'warn', 'info'];
 
 describe('isFacetSelected', () => {
-  it('treats an empty selection as everything selected', () => {
-    expect(isFacetSelected([], 'error')).toBe(true);
-    expect(isFacetSelected([], 'warn')).toBe(true);
+  it('treats an untouched facet as everything selected', () => {
+    expect(isFacetSelected(null, 'error')).toBe(true);
+    expect(isFacetSelected(null, 'warn')).toBe(true);
   });
 
   it('honours an explicit selection', () => {
     expect(isFacetSelected(['error'], 'error')).toBe(true);
     expect(isFacetSelected(['error'], 'warn')).toBe(false);
   });
+
+  it('treats an empty selection as nothing selected', () => {
+    expect(isFacetSelected([], 'error')).toBe(false);
+  });
 });
 
 describe('toggleFacet', () => {
   it('expands "all" into an explicit selection when one option is removed', () => {
-    expect(toggleFacet([], 'warn', OPTIONS)).toEqual(['error', 'info']);
+    expect(toggleFacet(null, 'warn', OPTIONS)).toEqual(['error', 'info']);
   });
 
   it('collapses back to "all" once every option is selected again', () => {
-    expect(toggleFacet(['error', 'info'], 'warn', OPTIONS)).toEqual([]);
+    expect(toggleFacet(['error', 'info'], 'warn', OPTIONS)).toBeNull();
   });
 
-  it('collapses to "all" rather than leaving nothing selected', () => {
+  it('lets the reader clear the last option instead of ticking them all back', () => {
     expect(toggleFacet(['warn'], 'warn', OPTIONS)).toEqual([]);
+  });
+
+  it('adds back to an emptied facet', () => {
+    expect(toggleFacet([], 'warn', OPTIONS)).toEqual(['warn']);
   });
 
   it('removes an option from a partial selection', () => {
@@ -36,12 +49,36 @@ describe('toggleFacet', () => {
   });
 
   it('collapses stale selections that outgrew the option list', () => {
-    expect(toggleFacet(['error', 'warn', 'gone'], 'info', OPTIONS)).toEqual([]);
+    expect(toggleFacet(['error', 'warn', 'gone'], 'info', OPTIONS)).toBeNull();
   });
 
   it('never mutates the incoming selection', () => {
     const selected = ['error'];
     toggleFacet(selected, 'info', OPTIONS);
     expect(selected).toEqual(['error']);
+  });
+});
+
+describe('isFacetNarrowed', () => {
+  it('is false while the facet is untouched', () => {
+    expect(isFacetNarrowed(null)).toBe(false);
+  });
+
+  it('is true for any explicit selection, including none', () => {
+    expect(isFacetNarrowed(['error'])).toBe(true);
+    expect(isFacetNarrowed([])).toBe(true);
+  });
+});
+
+describe('readFacetSelection', () => {
+  it('keeps an array as an explicit selection', () => {
+    expect(readFacetSelection(['error'])).toEqual(['error']);
+    expect(readFacetSelection([])).toEqual([]);
+  });
+
+  it('treats anything else as untouched', () => {
+    expect(readFacetSelection(undefined)).toBeNull();
+    expect(readFacetSelection('error')).toBeNull();
+    expect(readFacetSelection({ error: true })).toBeNull();
   });
 });

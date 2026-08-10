@@ -486,15 +486,26 @@ describe('Shell', () => {
     });
 
     it('still renders exactly one instance regardless of developer mode', () => {
-      renderWithStore(<Shell />, {
-        preloadedState: buildState({
-          navigationLayout: 'sidebar',
-          isDeveloperModeEnabled: true,
-        }),
-      });
+      // Shell's non-tabs TopBar branches are gated on darwin/win32 only (a
+      // pre-existing platform split, unrelated to developer mode) — pin the
+      // platform like every sibling test in this block so the assertion
+      // doesn't depend on the CI runner's actual process.platform (this test
+      // is about developer mode, not platform).
+      const restorePlatform = setPlatform('darwin');
 
-      const instances = screen.getAllByTestId('downloads-indicator');
-      expect(instances).toHaveLength(1);
+      try {
+        renderWithStore(<Shell />, {
+          preloadedState: buildState({
+            navigationLayout: 'sidebar',
+            isDeveloperModeEnabled: true,
+          }),
+        });
+
+        const instances = screen.getAllByTestId('downloads-indicator');
+        expect(instances).toHaveLength(1);
+      } finally {
+        restorePlatform();
+      }
     });
   });
 });

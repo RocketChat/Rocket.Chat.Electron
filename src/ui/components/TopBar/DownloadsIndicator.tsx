@@ -138,8 +138,13 @@ const Percentage = styled.span<{ compact: boolean }>`
 //
 // 0.18s is Fuselage's own micro-interaction duration, not an invented value:
 // node_modules/@rocket.chat/fuselage/dist/fuselage.css's `.rcx-box--animated`
-// rule is `transition: all .18s`, with a `@media (prefers-reduced-motion)`
-// override to `transition: none` — both mirrored here.
+// rule is `transition: all .18s`, with a `@media (prefers-reduced-motion: reduce)`
+// override to `transition: none` — both mirrored here. The transition is
+// declared unconditionally (default-on) and only removed under the
+// `reduce` media query (opt-out) — a bare `(prefers-reduced-motion)` with no
+// value is a boolean media-feature check that's true whenever the browser
+// merely supports the feature (which headless Chromium in CI does), so it
+// would always match and permanently disable the transition.
 const PercentageSlot = styled.span<{ expanded: boolean; compact: boolean }>`
   display: inline-flex;
   overflow: hidden;
@@ -159,7 +164,7 @@ const PercentageSlot = styled.span<{ expanded: boolean; compact: boolean }>`
     margin 0.18s ease,
     opacity 0.18s ease;
 
-  @media (prefers-reduced-motion) {
+  @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
 `;

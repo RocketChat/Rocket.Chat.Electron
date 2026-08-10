@@ -14,8 +14,13 @@ export const isWindows = process.platform === 'win32';
 /** Platforms where the toolbar replaces the native title bar entirely. */
 export const hasInAppTitleBar = isDarwin || isWindows;
 
-/** Height of the toolbar, which doubles as the window drag region on macOS. */
-export const TOOLBAR_HEIGHT = 52;
+/**
+ * Height of the toolbar, which doubles as the window drag region on macOS.
+ *
+ * The main window's tab strip reads from this too, so the app has one title bar
+ * height rather than two that drift.
+ */
+export const TOOLBAR_HEIGHT = 40;
 
 /**
  * macOS traffic light geometry. The three buttons are 12px wide with 8px gaps

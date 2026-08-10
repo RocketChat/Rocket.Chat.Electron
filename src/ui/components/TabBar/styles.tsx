@@ -2,6 +2,8 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Badge } from '@rocket.chat/fuselage';
 
+import { TOOLBAR_HEIGHT } from '../../windowChrome/appearance';
+
 export type TabOrientation = 'horizontal' | 'vertical';
 
 /**
@@ -57,7 +59,7 @@ export const Strip = styled.div<StripProps>`
   padding-top: ${process.platform === 'darwin' ? '2px' : '1px'};
   flex: 0 0 auto;
   width: 100%;
-  height: ${({ height = '40px' }) => height};
+  height: ${({ height = `${TOOLBAR_HEIGHT}px` }) => height};
   gap: 3px;
   -webkit-app-region: drag;
   user-select: none;

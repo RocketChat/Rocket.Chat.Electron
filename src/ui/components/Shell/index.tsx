@@ -78,8 +78,10 @@ export const Shell = () => {
       <Box
         bg={isTransparentWindowEnabled ? 'transparent' : 'surface-neutral'}
         display='flex'
-        flexWrap='wrap'
+        flexWrap='nowrap'
         height='100%'
+        width='100%'
+        maxWidth='100%'
         flexDirection='column'
         style={
           usesLinuxClientChromeRounding
@@ -89,10 +91,12 @@ export const Shell = () => {
                   ? 0
                   : CLIENT_CHROME_CORNER_RADIUS_PX,
                 overflow: 'hidden',
-                // Hairline edge so the rounded silhouette reads on light wallpapers.
+                boxSizing: 'border-box',
+                // Inset hairline stays inside the box (outer box-shadow was
+                // adding ~1px and caused a horizontal scrollbar on Linux).
                 boxShadow: isWindowExpanded
                   ? undefined
-                  : '0 0 0 1px rgba(0, 0, 0, 0.14)',
+                  : 'inset 0 0 0 1px rgba(0, 0, 0, 0.14)',
               }
             : undefined
         }

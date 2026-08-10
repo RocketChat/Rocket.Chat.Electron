@@ -36,12 +36,14 @@ export const GlobalStyles = ({
         html,
         body,
         #root {
+          width: 100%;
           height: 100%;
+          margin: 0;
+          overflow: hidden;
         }
 
         body {
           -webkit-font-smoothing: antialiased;
-          margin: 0;
           padding: 0;
           font-family:
             Inter,
@@ -57,7 +59,6 @@ export const GlobalStyles = ({
           font-size: 0.875rem;
           line-height: 1rem;
           background-color: ${backgroundColor};
-          overflow: hidden;
         }
       `}
     />

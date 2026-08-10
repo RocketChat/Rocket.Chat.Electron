@@ -574,7 +574,9 @@ describe('DownloadsIndicator', () => {
       }),
     });
 
-    expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('downloads-unseen-dot')
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: 'tabBar.downloads.title' })
@@ -710,6 +712,8 @@ describe('DownloadsIndicator', () => {
         }),
       });
 
+      screen.getByTestId('downloads-unseen-dot');
+
       const glyph = screen.getByTestId('downloads-glyph');
 
       const paths = glyph.querySelectorAll('path');
@@ -731,34 +735,44 @@ describe('DownloadsIndicator', () => {
       // seenAt is initialized to the mount-time Date.now(); endTime must sit
       // between that mount time and the later click's own Date.now() call
       // for the download to start unseen and end up seen after the click.
-      const mountTime = Date.now();
-      renderWithStore(<DownloadsIndicator />, {
-        preloadedState: buildState({
-          1: {
-            ...baseDownload,
-            state: 'completed',
-            receivedBytes: 1000,
-            startTime: SESSION_START + 1000,
-            endTime: mountTime + 1,
-          },
-        }),
-      });
+      // Date.now is pinned for the duration of this test to make that
+      // ordering deterministic instead of racing the wall clock.
+      const NOW = Date.now();
+      const spy = jest.spyOn(Date, 'now').mockReturnValue(NOW);
 
-      expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
+      try {
+        renderWithStore(<DownloadsIndicator />, {
+          preloadedState: buildState({
+            1: {
+              ...baseDownload,
+              state: 'completed',
+              receivedBytes: 1000,
+              startTime: SESSION_START + 1000,
+              endTime: NOW + 1,
+            },
+          }),
+        });
 
-      await user.click(
-        screen.getByRole('button', { name: 'tabBar.downloads.title' })
-      );
-      await user.click(screen.getByTestId('downloads-panel-backdrop'));
+        expect(screen.getByTestId('downloads-unseen-dot')).toBeInTheDocument();
 
-      const glyph = screen.getByTestId('downloads-glyph');
-      const paths = glyph.querySelectorAll('path');
-      expect(paths).toHaveLength(1);
-      expect(paths[0].getAttribute('d')).toContain(TRACK_CIRCLE_D);
-      expect(paths[0].getAttribute('d')).toContain(OUTER_CIRCLE_D);
-      expect(paths[0].getAttribute('d')).toContain(ARROW_PATH);
+        spy.mockReturnValue(NOW + 60_000);
 
-      expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+        await user.click(
+          screen.getByRole('button', { name: 'tabBar.downloads.title' })
+        );
+        await user.click(screen.getByTestId('downloads-panel-backdrop'));
+
+        const glyph = screen.getByTestId('downloads-glyph');
+        const paths = glyph.querySelectorAll('path');
+        expect(paths).toHaveLength(1);
+        expect(paths[0].getAttribute('d')).toContain(TRACK_CIRCLE_D);
+        expect(paths[0].getAttribute('d')).toContain(OUTER_CIRCLE_D);
+        expect(paths[0].getAttribute('d')).toContain(ARROW_PATH);
+
+        expect(glyph.querySelectorAll('circle')).toHaveLength(0);
+      } finally {
+        spy.mockRestore();
+      }
     });
 
     it('does not spin the unseen-completed arc (indeterminate spin only applies while actually downloading)', () => {

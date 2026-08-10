@@ -95,3 +95,28 @@
   HTTPS + system trust store + code-signature verification of the downloaded artifact. The blast
   radius of a stale or broken pin exceeds the risk it would remove.
 - Affected files: electron-builder.json (update feed config); no source changes made.
+
+## `prefers-reduced-motion` diverges across CI runners — `getComputedStyle` transition assertions are platform-flaky
+
+- Status: Confirmed (GitHub-hosted `windows-latest`/`macos-latest` runners, PR #3443 and #3449
+  CI runs; local dev Macs and the `ubuntu-latest`/xvfb runner unaffected).
+- Symptom: A renderer spec that asserts on a CSS transition/animation property via
+  `getComputedStyle(element).transitionDuration` (or similar) passes locally and on Linux CI but
+  fails or reports a different value on GitHub-hosted Windows and macOS runners.
+- Root cause: `getComputedStyle` resolves the live cascade, which means it evaluates the
+  `prefers-reduced-motion` media query against the runner's actual OS-level accessibility
+  setting. GitHub-hosted Windows and macOS runner images report `prefers-reduced-motion: reduce`
+  at the OS level, while the `ubuntu-latest` + xvfb runner and local developer Macs report
+  `no-preference`. A component that opts out of animation under reduced motion therefore renders
+  with different computed transition values depending solely on which CI platform is running the
+  test — the assertion is checking the runner's OS setting, not the component's logic.
+- Workaround: Do not assert transition/animation values via `getComputedStyle` in specs. Instead,
+  read the parsed CSSOM directly — walk `document.styleSheets`, find the plain style rule and the
+  `@media (prefers-reduced-motion: reduce)` override rule that target the element's own
+  emotion-generated class. Both rules exist in the CSSOM regardless of which value the media
+  query currently resolves to on that runner, so the assertion is deterministic on every
+  platform. See `findTransitionRulesForElement` in
+  `src/ui/components/TopBar/DownloadsIndicator.spec.tsx` (~lines 80-138) for the pattern.
+- Affected files: src/ui/components/TopBar/DownloadsIndicator.spec.tsx.
+- Reference: PR #3443 (introduced the animated percentage slot), PR #3449 (documented after CI
+  runs surfaced the divergence).

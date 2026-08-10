@@ -27,8 +27,8 @@ Drives a release from "fixes merged on master" to "published GitHub release with
 ## Phase 0 — Resolve version & scope
 
 1. Fresh state: `git fetch origin master --tags`.
-2. Latest tags: `git tag --sort=-creatordate | head -5`. Current version: `node -p "require('./package.json').version"`.
-3. Resolve TARGET from the arg, or propose: patch bump over latest stable tag. If latest tag is an alpha of the same version, this is a **promotion** (drop the `-alpha.N` suffix).
+2. Latest tags, semver-sorted (not by creation date — an alpha or an older version created later can otherwise look newest): `git tag --sort=-v:refname | head -5`. Current version: `node -p "require('./package.json').version"`.
+3. Resolve TARGET from the arg, or propose: patch bump over the latest **stable** tag (`scripts/release-tag.ts`'s channel logic — exclude alpha/beta/rc tags when picking the stable baseline). If latest tag is an alpha of the same version, this is a **promotion** (drop the `-alpha.N` suffix).
 4. Collect what ships: `git log <last-tag>..origin/master --oneline --no-merges`. Filter out chore/version-bump commits.
 5. If master has nothing new since the last tag → STOP and tell the user there is nothing to release.
 
@@ -41,31 +41,43 @@ Drives a release from "fixes merged on master" to "published GitHub release with
 
 ## Phase 2 — Bump branch & PR
 
-1. Prefer a worktree so the user's working directory is untouched:
-   `git worktree add ../Rocket.Chat.Electron-worktrees/release-<version> -b chore/release-<version> origin/master`
+1. Create the release worktree and record its path — every command below runs inside it (`cd` into it, or `git -C <path>`), never in the user's own checkout:
+   ```sh
+   git worktree add ../Rocket.Chat.Electron-worktrees/release-<version> -b chore/release-<version> origin/master
+   RELEASE_WT=$(pwd)/../Rocket.Chat.Electron-worktrees/release-<version>
+   cd "$RELEASE_WT"
+   ```
 2. Bump `"version"` in `package.json` (root, ~line 9). Nothing else — no lockfile change needed for a version bump.
-3. Commit: `chore: bump version to <version>` and push the branch.
-4. Open PR to **master** titled `chore: bump version to <version>`, body = the shipped-changes list from Phase 1. No `build-artifacts` label (release build comes from the tag, not the PR).
-5. Wait for `validate-pr` checks (lint + tests on all 3 platforms).
-6. **GATE: show PR URL + checks status. STOP until the user says merge.**
+3. **GATE: show the diff and STOP for explicit user approval before the first commit + push of `chore/release-<version>`.**
+4. Commit: `chore: bump version to <version>` and push the branch (still inside `$RELEASE_WT`).
+5. Open PR to **master** titled `chore: bump version to <version>`, body = the shipped-changes list from Phase 1. No `build-artifacts` label (release build comes from the tag, not the PR).
+6. Wait for `validate-pr` checks (lint + tests on all 3 platforms).
+7. **GATE: show PR URL + checks status. STOP until the user says merge.**
 
 ## Phase 3 — Merge & tag
 
+All commands in this phase run inside `$RELEASE_WT` (`git -C "$RELEASE_WT" ...` or stay `cd`'d in) — never in the user's own checkout.
+
 1. Squash-merge: `gh pr merge <PR> --squash`.
-2. `git fetch origin master` and confirm the merge commit is HEAD of `origin/master` and its `package.json` has TARGET.
+2. `git -C "$RELEASE_WT" fetch origin master` and confirm the merge commit is HEAD of `origin/master` and its `package.json` has TARGET.
 3. **GATE: confirm with the user before pushing the tag** (tag push = build + release creation; deleting a tag after builds start is messy).
 4. Move the release worktree HEAD onto the master merge commit, then tag via the repo script. The release worktree is still on `chore/release-<version>` (the pre-merge bump commit) — tagging there ships the wrong tree. Detach onto the squashed merge commit first (its `package.json` version must equal TARGET):
-   ```
-   MERGE_SHA=$(git rev-parse origin/master)
-   git checkout "$MERGE_SHA"          # detached HEAD at the merge commit
-   node -p "require('./package.json').version"   # MUST print TARGET
-   yarn release:tag                    # reads package.json version, guards, tags HEAD, pushes
+   ```sh
+   MERGE_SHA=$(git -C "$RELEASE_WT" rev-parse origin/master)
+   git -C "$RELEASE_WT" checkout "$MERGE_SHA"          # detached HEAD at the merge commit
+   node -p "require('$RELEASE_WT/package.json').version"   # MUST print TARGET
+   (cd "$RELEASE_WT" && yarn release:tag)              # reads package.json version, guards, tags HEAD, pushes
    ```
    `yarn release:tag` (`scripts/release-tag.ts`) reads the version from `package.json`, refuses if the tag already exists or isn't greater than the latest tag in-channel, then tags the current HEAD as the bare version and pushes it. It prompts `Proceed? (y/N)` — pipe `y` for non-interactive (`echo y | yarn release:tag`).
-   - **node_modules required**: a fresh worktree has none, so `yarn release:tag` fails with `Couldn't find the node_modules state file (findPackageLocation)`. Either run `yarn install` in the worktree first, or run the script's exact equivalent by hand after verifying its guards yourself:
-     ```
-     git tag -l <version> | grep -q . && echo "TAG EXISTS — abort" || git tag -- <version>
-     git rev-list -1 <version>            # confirm it points at the merge SHA
+   - **node_modules required**: a fresh worktree has none, so `yarn release:tag` fails with `Couldn't find the node_modules state file (findPackageLocation)`. Either run `yarn install` in the worktree first, or run the script's exact equivalent by hand — same version/channel guard, fail closed — after verifying its guards yourself:
+     ```sh
+     cd "$RELEASE_WT"
+     if git rev-parse -q --verify "refs/tags/<version>" >/dev/null; then
+       echo "TAG EXISTS — abort" >&2
+       exit 1
+     fi
+     git tag -- <version>
+     test "$(git rev-list -1 <version>)" = "$MERGE_SHA" || { echo "tag does not point at merge SHA — abort" >&2; exit 1; }
      git push origin refs/tags/<version>
      ```
 5. Note: the master push (bump merge) also triggers `build-release.yml` — that run is a master build, NOT the release run. The release run is the one with `head_branch == <version>` (the tag ref). Find it: `gh run list --workflow=build-release.yml --limit 5 --json databaseId,headBranch,status`.
@@ -90,8 +102,8 @@ Drives a release from "fixes merged on master" to "published GitHub release with
 
    (4.15.1 reference: 27 assets total.)
 3. Apply the Phase 1 release notes: `gh release edit <version> --notes-file <file>`.
-4. If the release is a draft: **GATE — ask before publishing** (`gh release edit <version> --draft=false`). Publishing exposes the update feed (`latest*.yml`) to every installed client — this is the point of no return for auto-update.
-5. Alphas: mark prerelease (`--prerelease`) so stable clients don't pick them up.
+4. Alphas: mark prerelease (`gh release edit <version> --prerelease`) **while still a draft** — do this before the publish gate, never after, so the alpha is never briefly visible to stable clients.
+5. If the release is a draft: **GATE — ask before publishing** (`gh release edit <version> --draft=false`). Publishing exposes the update feed (`latest*.yml`) to every installed client — this is the point of no return for auto-update.
 
 ## Phase 6 — Wrap up
 

@@ -203,7 +203,7 @@ git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch ma
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Rocket.Chat.Electron** (4212 symbols, 8257 relationships, 267 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Rocket.Chat.Electron**. Use the GitNexus MCP tools to understand code, assess impact, and navigate safely — read `gitnexus://repo/Rocket.Chat.Electron/context` for current index stats and staleness.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 

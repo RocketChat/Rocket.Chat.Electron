@@ -35,8 +35,8 @@ Semantic guide (hard-won):
   as an annulus between r=11 and r=13 centered on (16,16) — i.e. a
   mid-radius-12, stroke-2 ring.
 - Percent text that must not jitter: monospace + `font-variant-numeric:
-  tabular-nums` + fixed `3ch` width (two digits + `%`) — the `UpdateLabel`
-  convention; reuse it, don't invent widths.
+  tabular-nums` + `min-width: 3ch` (two digits + `%`; 100% simply grows the
+  pill) — the `UpdateLabel` convention; reuse it, don't invent widths.
 - Fuselage `Select` (and other react-aria-backed inputs) requires a visible
   label, `aria-label`, or `aria-labelledby` — react-aria's `useSelect` only
   recognizes those props and throws the accessibility warning otherwise;
@@ -98,7 +98,9 @@ CSS:
     while animating.
 - Progress arcs: `stroke-dasharray = circumference`, `stroke-dashoffset =
   circumference × (1 − progress)`, `transition: stroke-dashoffset 200ms` for
-  smooth fill; indeterminate = fixed quarter arc + 1s linear spin.
+  smooth fill; indeterminate = fixed quarter arc + 1s linear spin. `progress`
+  here is normalized to `0–1` — the update store publishes `0–100`, so divide
+  by `100` before applying the formula.
 - `@keyframes` declared inside an emotion template literal work; backticks
   inside CSS comments in a template literal end the template early.
 - jsdom resolves `ch` units to pixels in `getComputedStyle` — to assert a

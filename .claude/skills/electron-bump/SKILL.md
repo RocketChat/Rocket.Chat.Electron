@@ -9,7 +9,7 @@ Automates a safe Electron upgrade for **this repo** (Rocket.Chat.Electron). Plan
 
 ## Invocation
 
-```
+```text
 /electron-bump [version]
 ```
 
@@ -33,10 +33,11 @@ Automates a safe Electron upgrade for **this repo** (Rocket.Chat.Electron). Plan
    - `node -p "require('./package.json').devDependencies.electron"` → CURRENT.
    - `node -p "require('./package.json').devDependencies['electron-builder']"` → builder version.
 2. Resolve TARGET (arg or `npm view electron version`).
-3. Classify the jump: **patch** (z), **minor** (y), or **major** (x). This drives effort:
+3. **Downgrade guard**: compare TARGET vs CURRENT semver. If TARGET < CURRENT, STOP and ask for explicit confirmation that a downgrade is intended before proceeding.
+4. Classify the jump: **patch** (z), **minor** (y), or **major** (x). This drives effort:
    - **patch / minor within same major** → historically package.json + yarn.lock only, no code changes. Light path.
    - **major** → expect API breaks, code adaptation, @types/node bump, README/builder updates. Full path.
-4. Ensure GitNexus index is fresh: if any GitNexus tool warns stale, run `npx gitnexus analyze --skip-agents-md` in background and continue.
+5. Ensure GitNexus index is fresh: if any GitNexus tool warns stale, run `npx gitnexus analyze --skip-agents-md` in background and continue.
 
 ---
 
@@ -82,7 +83,7 @@ GitNexus-query each before assuming safe. Known hot callsites as of E40:
 | `contextBridge` | MEDIUM | `src/preload.ts`, `src/videoCallWindow/preload/index.ts` |
 | `screen` / display | MEDIUM | `src/logViewerWindow/ipc.ts`, `src/videoCallWindow/ipc.ts` |
 
-Not currently used (skip unless re-introduced): `webContents.printToPDF`, `remote` module, `BrowserView`/`WebContentsView`.
+Not currently used as of E40 (`webContents.printToPDF`, `remote` module, `BrowserView`/`WebContentsView`) — treat as a hint, not an exclusion list: if the researcher reports one of these as breaking for this range, verify via GitNexus rather than skipping it outright.
 
 ---
 
@@ -130,7 +131,7 @@ Write the plan to a **dedicated, non-colliding** file: `.localdev/workflow/elect
 3. Apply coupled config edits from the plan (builder bundle id, CI `node-version`).
 4. Apply code fixes:
    - Dispatch `builder-fast` for single scoped edits, `builder-smart` for non-trivial API adaptations, `builder-trivial` only for the same edit across 5+ sites.
-   - Serialize builders by file. Re-run `mcp__gitnexus__impact` mentally against each edit's blast radius.
+   - Serialize builders by file. Run `mcp__gitnexus__impact` for each edit before applying it — don't assess blast radius mentally.
 5. Update docs only if the plan flagged them (README version table, cert doc).
 
 ---
@@ -152,7 +153,7 @@ Definition of Done: version bumped everywhere the plan listed, lint green, tests
 
 1. Run `mcp__gitnexus__detect_changes()` to confirm only the expected symbols/flows changed (CLAUDE.md mandate).
 2. Show the user the diff summary, confirm the commit.
-3. Commit with conventional message: `chore: update Electron from <CURRENT> to <TARGET> (#<PR>)` — match the repo's historical style (see PRs #3285, #3179). Body lists breaking-change adaptations for a major bump; minimal for patch/minor.
+3. Commit with conventional message: `chore: update Electron from <CURRENT> to <TARGET>` — match the repo's historical style (see PRs #3285, #3179; the PR number isn't known at commit time, and squash-merge titles carry it anyway). Body lists breaking-change adaptations for a major bump; minimal for patch/minor.
 4. Push the branch.
 5. Open a **ready (non-draft)** PR: `gh pr create --base master --label build-artifacts`. Base is **master** (repo default). Apply the `build-artifacts` label here because an Electron bump changes packaging and reviewers must smoke-test the built installers — this is exactly the case the label is for. PR body:
    - What changed: version delta, bundled Node/Chromium.

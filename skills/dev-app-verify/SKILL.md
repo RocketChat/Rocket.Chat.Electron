@@ -9,6 +9,9 @@ description: Drive and screenshot the running Rocket.Chat Desktop dev app (yarn 
 inspector; there is **no renderer CDP port**). Everything below drives the
 app through that socket: real menus, real Redux, real paint.
 
+This skill drives the local macOS dev machine — commands (`pkill`, `/tmp`
+paths) are macOS-specific by design. No Windows variants.
+
 ## When to use
 
 - A UI change needs visual proof (component tests can't see paint — a
@@ -51,39 +54,64 @@ const targets = await fetch('http://127.0.0.1:9339/json',
 const ws = new WebSocket(targets[0].webSocketDebuggerUrl);
 let id = 0;
 const pending = new Map();
+const REQUEST_TIMEOUT_MS = 5000;
+const failAllPending = (reason) => {
+  for (const [i, { reject }] of pending) { reject(reason); pending.delete(i); }
+};
 ws.onmessage = (e) => {
   const m = JSON.parse(e.data);
-  if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
+  if (m.id && pending.has(m.id)) { pending.get(m.id).resolve(m); pending.delete(m.id); }
 };
+ws.onerror = (e) => failAllPending(new Error(`ws error: ${e.message || e}`));
+ws.onclose = () => failAllPending(new Error('ws closed'));
 const send = (method, params = {}) =>
-  new Promise((res) => { const i = ++id; pending.set(i, res);
-    ws.send(JSON.stringify({ id: i, method, params })); });
-await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; setTimeout(rej, 5000); });
+  new Promise((resolve, reject) => {
+    const i = ++id;
+    const timer = setTimeout(() => {
+      pending.delete(i);
+      reject(new Error(`${method} timed out after ${REQUEST_TIMEOUT_MS}ms (watcher restart or dead socket?)`));
+    }, REQUEST_TIMEOUT_MS);
+    pending.set(i, { resolve: (m) => { clearTimeout(timer); resolve(m); }, reject });
+    ws.send(JSON.stringify({ id: i, method, params }));
+  });
+await new Promise((res, rej) => { ws.onopen = res; setTimeout(rej, 5000); });
 await send('Runtime.enable');
 const ev = async (expression) => {
   const r = await send('Runtime.evaluate',
     { expression, awaitPromise: true, returnByValue: true });
+  if (r.error) throw new Error(`CDP error: ${JSON.stringify(r.error).slice(0, 400)}`);
   if (r.result?.exceptionDetails)
     throw new Error(JSON.stringify(r.result.exceptionDetails).slice(0, 400));
   return r.result?.result?.value;
 };
 // `require` is NOT in eval scope — always go through process.mainModule.
 const REQ = 'process.mainModule.require';
+// Root window = the one BrowserWindow with no parent and not the log-viewer
+// window (the only other unparented window `src/main.ts` creates). Reuse
+// this exact expression for every operation below — do not re-derive it.
+const ROOT_WINDOW = `${REQ}('electron').BrowserWindow.getAllWindows()
+  .find((w) => !w.isDestroyed() && !w.getParentWindow()
+    && w.getTitle() !== 'Log Viewer - Rocket.Chat')`;
 
 // 1. Un-occlude so paint (and capturePage) is live
-await ev(`(() => { const { BrowserWindow } = ${REQ}('electron');
-  const w = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed());
+await ev(`(() => { const w = ${ROOT_WINDOW};
   w.show(); w.focus(); return 'ok'; })()`);
 
-// 2. Trigger real flows via menu item ids (works for any getMenuItemById id;
-//    'developerMode' toggles the gate for the simulate items)
+// 2. Trigger real flows via menu item ids (works for any getMenuItemById id).
+//    Assert the gate + item are actually there before clicking — a missing
+//    or disabled item would otherwise silently no-op and still print 'clicked'.
 await ev(`(() => { const { Menu } = ${REQ}('electron');
-  Menu.getApplicationMenu()?.getMenuItemById('simulateDownload')?.click();
+  const menu = Menu.getApplicationMenu();
+  const devMode = menu?.getMenuItemById('developerMode');
+  if (!devMode?.checked) throw new Error('developerMode gate is off');
+  const item = menu.getMenuItemById('simulateDownload');
+  if (!item) throw new Error('simulateDownload menu item not found');
+  if (!item.enabled) throw new Error('simulateDownload menu item is disabled');
+  item.click();
   return 'clicked'; })()`);
 
 // 3. Read renderer truth (computed styles > pixels for diagnosis)
-console.log(await ev(`(() => { const { BrowserWindow } = ${REQ}('electron');
-  const w = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed());
+console.log(await ev(`(() => { const w = ${ROOT_WINDOW};
   return w.webContents.executeJavaScript(\`(() => {
     const b = document.querySelector('button[data-downloads-status]');
     return JSON.stringify({ status: b?.getAttribute('data-downloads-status'),
@@ -91,8 +119,7 @@ console.log(await ev(`(() => { const { BrowserWindow } = ${REQ}('electron');
   })()\`); })()`));
 
 // 4. Screenshot a region (write PNG somewhere readable, then Read it)
-await ev(`(() => { const { BrowserWindow } = ${REQ}('electron');
-  const w = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed());
+await ev(`(() => { const w = ${ROOT_WINDOW};
   const [width] = w.getContentSize();
   return w.webContents.capturePage(
     { x: Math.max(0, width - 420), y: 0, width: 420, height: 34 }

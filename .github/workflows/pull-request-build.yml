@@ -513,11 +513,13 @@ jobs:
 
           # Verify authentication is working
           Write-Host "Verifying gcloud authentication..." -ForegroundColor Yellow
+          # Never echo $tokenOutput: with 2>&1 it holds the access token on
+          # success, and Actions cannot mask a value minted at runtime.
           $tokenOutput = & $gcloudCmd auth print-access-token 2>&1
-          if ($LASTEXITCODE -eq 0) {
+          if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($tokenOutput)) {
             Write-Host "✅ Google Cloud authentication successful" -ForegroundColor Green
           } else {
-            Write-Host "❌ Google Cloud authentication failed: $tokenOutput" -ForegroundColor Red
+            Write-Host "❌ Google Cloud authentication failed (exit code $LASTEXITCODE)" -ForegroundColor Red
             exit 1
           }
 

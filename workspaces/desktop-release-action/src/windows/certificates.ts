@@ -1,6 +1,8 @@
-import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import * as core from '@actions/core';
+
 import { run, runAndBuffer } from '../shell';
 
 export const addCertToStore = async (
@@ -77,7 +79,7 @@ export const verifyCertificateInStore = async (
     core.info('✅ Certificate reports having a private key');
   } else {
     core.info(
-      '⚠️ Certificate does NOT have a private key - this is expected for KMS'
+      '⚠ Certificate does NOT have a private key - this is expected for KMS'
     );
   }
 };

@@ -1,6 +1,7 @@
 import * as path from 'path';
+
 import * as core from '@actions/core';
-import { runElectronBuilder } from '../shell';
+
 import { setupCertificates } from './certificates';
 import {
   setupGoogleCloudAuth,
@@ -8,13 +9,14 @@ import {
   authenticateGcloud,
 } from './google-cloud';
 import { installKmsCngProvider } from './kms-provider';
-import { findSigntool, installJsign } from './signing-tools';
 import { signBuiltPackages } from './sign-packages';
+import { findSigntool, installJsign } from './signing-tools';
 import { updateYamlChecksums } from './update-yaml-checksums';
 import {
   verifyExecutableSignature,
   verifyInstallerSignatures,
 } from './verify-signature';
+import { runElectronBuilder } from '../shell';
 
 export const packOnWindows = async (): Promise<void> => {
   try {

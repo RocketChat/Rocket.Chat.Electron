@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Server } from '../../../servers/common';
 
@@ -70,7 +70,11 @@ export const useTabBarLayout = <S extends Server>(
   const rafRef = useRef<number | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
 
-  const tabListRef = (node: HTMLElement | null): void => {
+  // Stable across renders (no deps) so React doesn't detach/reattach the ref
+  // on every state update — an unstable ref identity would call
+  // unobserve/observe again on each render, scheduling a redundant rAF that
+  // fires after the render's `act()` scope has already closed.
+  const tabListRef = useCallback((node: HTMLElement | null): void => {
     if (observerRef.current && elementRef.current) {
       observerRef.current.unobserve(elementRef.current);
     }
@@ -80,7 +84,7 @@ export const useTabBarLayout = <S extends Server>(
     if (node && observerRef.current) {
       observerRef.current.observe(node);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') {

@@ -80,7 +80,6 @@ const getExistingTags = (): string[] => {
     return [];
   }
   if (!output) return [];
-  // Return normalized tags (without 'v' prefix) for consistent comparison
   return output.split('\n').filter(Boolean).map(normalizeTag);
 };
 

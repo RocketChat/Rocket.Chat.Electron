@@ -147,17 +147,20 @@ Route curl through `ctx_execute` — a PreToolUse hook redirects curl/wget out o
 
 2. **Inventory.** For each PR in the Phase 1 list, find its Jira issue: a `CORE-NNNN` in the PR title/body/branch, or search by feature keywords (`searchJiraIssuesUsingJql`, component `Electron`). Broad JQL sweeps blow the MCP token limit — restrict `fields` to `summary,status,issuetype,fixVersions` and parse the saved file with `ctx_execute` when it still overflows.
 
-3. **Existing issues** — add the fixVersion, leaving other fields alone:
+3. **Existing issues** — add the fixVersion, leaving other fields alone. The write REPLACES the whole array, so read first and send the union; passing only the new version silently drops any release the issue already shipped in:
 
-   ```
-   editJiraIssue(issueIdOrKey: "CORE-NNNN", fields: {"fixVersions": [{"name": "[Electron] <version>"}]})
+   ```text
+   # 1. read what is already there (getJiraIssue, fields: ["fixVersions"])
+   # 2. send existing + the new one, deduplicated by name
+   editJiraIssue(issueIdOrKey: "CORE-NNNN",
+     fields: {"fixVersions": [{"name": "<existing>"}, {"name": "[Electron] <version>"}]})
    ```
 
-   This REPLACES the array — preserve prior entries if an issue shipped in several versions.
+   An issue with no prior `fixVersions` collapses to just the new entry — that is the common case, but confirm it rather than assume it.
 
 4. **Uncovered work** — create an issue per feature area (not per PR; related PRs group into one). Ask the user for granularity if the split isn't obvious. Set `components: [{"name": "Electron"}]` and the fixVersion at creation:
 
-   ```
+   ```text
    createJiraIssue(projectKey: "CORE", issueTypeName: "Task"|"Bug",
      additional_fields: {"components": [{"name":"Electron"}],
                          "fixVersions": [{"name": "[Electron] <version>"}]})

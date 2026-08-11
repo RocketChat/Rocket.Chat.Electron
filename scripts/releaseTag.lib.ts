@@ -9,10 +9,8 @@ export const getChannel = (version: SemVer): string => {
   return 'prerelease';
 };
 
-export const normalizeTag = (tag: string): string => {
-  // Strip leading 'v' if present for consistent comparison
-  return tag.startsWith('v') ? tag.slice(1) : tag;
-};
+export const normalizeTag = (tag: string): string =>
+  tag.startsWith('v') ? tag.slice(1) : tag;
 
 export const getLatestTagForChannel = (
   tags: string[],

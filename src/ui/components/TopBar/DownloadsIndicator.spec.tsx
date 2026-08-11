@@ -204,8 +204,10 @@ describe('DownloadsIndicator', () => {
     expect(parseFloat(style.width)).toBeCloseTo(oneCh * 3, 1);
   });
 
-  it('leaves the size out of a transfer that has not moved any bytes yet', async () => {
-    const user = userEvent.setup();
+  // fireEvent rather than userEvent, and a text search over the panel rather
+  // than the whole tree: with the richer row in the panel this test crossed
+  // Jest's 5s limit on the Windows runner.
+  it('leaves the size out of a transfer that has not moved any bytes yet', () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
         1: {
@@ -217,12 +219,11 @@ describe('DownloadsIndicator', () => {
       }),
     });
 
-    await user.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button'));
 
-    expect(screen.getByText('report.pdf')).toBeInTheDocument();
-    expect(
-      screen.queryByText(/downloads\.item\.progressSize/, { exact: false })
-    ).not.toBeInTheDocument();
+    const panel = screen.getByRole('dialog');
+    expect(panel).toHaveTextContent('report.pdf');
+    expect(panel).not.toHaveTextContent('downloads.item.progressSize');
   });
 
   it('opens the popup listing recent downloads on click', async () => {

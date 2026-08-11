@@ -1,27 +1,38 @@
-import { Box, IconButton, ProgressBar, Tag } from '@rocket.chat/fuselage';
+import { Box, IconButton, Tag } from '@rocket.chat/fuselage';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Download } from '../downloads/common';
 import { invoke } from '../ipc/renderer';
 import { formatServerTitle } from '../ui/components/utils/formatServerTitle';
-import type { Surfaces } from '../ui/windowChrome/appearance';
 import { isDarwin } from '../ui/windowChrome/appearance';
 import { LIST_ROW_CLASS } from '../ui/windowChrome/styles';
+import { useCopiedFeedback } from '../ui/windowChrome/useCopiedFeedback';
 import { FileTypeIcon } from './FileTypeIcon';
 import { DOWNLOAD_NAME_CLASS } from './styles';
 
 export type DownloadRowProps = {
   download: Download;
-  surfaces: Surfaces;
+  /**
+   * The workspace a download came from. Worth saying in the downloads window,
+   * which filters by it; noise in the main window's panel, which lists a
+   * handful of downloads from the session at hand.
+   */
+  showServer?: boolean;
 };
 
 /**
  * One download as a list row rather than a card: icon, name and a single muted
  * line of metadata, with the actions that apply to its current state. The
  * progress bar only appears while a transfer is live.
+ *
+ * Shared by the downloads window and the main window's downloads panel, so a
+ * download reads the same wherever it is seen.
  */
-export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
+export const DownloadRow = ({
+  download,
+  showServer = true,
+}: DownloadRowProps) => {
   const { t, i18n } = useTranslation();
   const {
     itemId,
@@ -48,7 +59,7 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
   const meta = useMemo(() => {
     const parts: string[] = [];
 
-    if (serverTitle) parts.push(formatServerTitle(serverTitle));
+    if (showServer && serverTitle) parts.push(formatServerTitle(serverTitle));
 
     if (receivedBytes && totalBytes) {
       // The "x of y" form only says something while bytes are still moving.
@@ -89,11 +100,14 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
     isActive,
     receivedBytes,
     serverTitle,
+    showServer,
     startTime,
     state,
     t,
     totalBytes,
   ]);
+
+  const [hasCopiedLink, acknowledgeCopy] = useCopiedFeedback();
 
   const run = useCallback(
     (channel: Parameters<typeof invoke>[0]) => () => {
@@ -108,10 +122,43 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
       display='flex'
       flexDirection='row'
       alignItems='center'
+      position='relative'
       paddingInline='x12'
       paddingBlock='x8'
-      style={{ borderBlockEnd: `1px solid ${surfaces.divider}` }}
+      // Straight from the palette rather than the window's surfaces, so the row
+      // can be dropped into the main window's downloads panel unchanged.
+      style={{
+        borderBlockEnd: '1px solid var(--rcx-color-stroke-extra-light)',
+      }}
     >
+      {/*
+        Progress rides along the row's bottom edge instead of sitting under the
+        text: in the flow it added 12px the moment a transfer started, so every
+        row below it jumped. Drawn here rather than with Fuselage's ProgressBar,
+        whose animated shine is an absolutely positioned pseudo-element with no
+        containing block of its own — it escapes the bar and sweeps the whole
+        list.
+      */}
+      {isActive && (
+        <Box
+          style={{
+            position: 'absolute',
+            insetInline: 0,
+            insetBlockEnd: 0,
+            height: '2px',
+            backgroundColor: 'var(--rcx-color-stroke-extra-light)',
+          }}
+        >
+          <Box
+            style={{
+              width: `${percentage}%`,
+              height: '100%',
+              backgroundColor: 'var(--rcx-color-stroke-highlight)',
+              transition: 'width 150ms ease-out',
+            }}
+          />
+        </Box>
+      )}
       <FileTypeIcon fileName={fileName} mimeType={mimeType} />
 
       <Box flexGrow={1} marginInline='x12' style={{ minWidth: 0 }}>
@@ -165,14 +212,6 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
             {meta}
           </Box>
         )}
-        {isActive && (
-          <Box marginBlockStart='x4'>
-            <ProgressBar
-              percentage={percentage}
-              animated={state === 'progressing'}
-            />
-          </Box>
-        )}
       </Box>
 
       <Box
@@ -200,16 +239,6 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
             title={t('downloads.item.resume')}
             aria-label={t('downloads.item.resume')}
             onClick={run('downloads/resume')}
-          />
-        )}
-        {isActive && (
-          <IconButton
-            small
-            color='secondary-info'
-            icon='cross'
-            title={t('downloads.item.cancel')}
-            aria-label={t('downloads.item.cancel')}
-            onClick={run('downloads/cancel')}
           />
         )}
         {/* Quick Look has no equivalent off macOS, so it is offered there only. */}
@@ -247,18 +276,41 @@ export const DownloadRow = ({ download, surfaces }: DownloadRowProps) => {
           <IconButton
             small
             color='secondary-info'
-            icon='link'
-            title={t('downloads.item.copyLink')}
-            aria-label={t('downloads.item.copyLink')}
-            onClick={run('downloads/copy-link')}
+            icon={hasCopiedLink ? 'check' : 'link'}
+            title={
+              hasCopiedLink
+                ? t('downloads.item.copied')
+                : t('downloads.item.copyLink')
+            }
+            aria-label={
+              hasCopiedLink
+                ? t('downloads.item.copied')
+                : t('downloads.item.copyLink')
+            }
+            onClick={() => {
+              run('downloads/copy-link')();
+              acknowledgeCopy();
+            }}
           />
         )}
         {/*
-          A cross, not a trash can: this drops the entry from the list and
-          leaves the downloaded file alone. It is also only offered once the
-          transfer is over — while it is live, Cancel is the equivalent action,
-          and two crosses side by side would be ambiguous.
+          Whatever a row's state, its last action is a cross, so the button
+          nearest the edge never moves as a download progresses.
+
+          They are not the same action: while a transfer is live the cross
+          cancels it; once it is over the cross drops the entry from the list
+          and leaves the downloaded file alone.
         */}
+        {isActive && (
+          <IconButton
+            small
+            color='secondary-info'
+            icon='cross'
+            title={t('downloads.item.cancel')}
+            aria-label={t('downloads.item.cancel')}
+            onClick={run('downloads/cancel')}
+          />
+        )}
         {!isActive && (
           <IconButton
             small

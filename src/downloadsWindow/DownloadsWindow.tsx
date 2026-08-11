@@ -406,7 +406,6 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
                           <DownloadRow
                             key={download.itemId}
                             download={download}
-                            surfaces={surfaces}
                           />
                         ))}
                       </Box>

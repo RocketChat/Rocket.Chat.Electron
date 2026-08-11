@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Surfaces } from '../ui/windowChrome/appearance';
+import { useCopiedFeedback } from '../ui/windowChrome/useCopiedFeedback';
 import { LEVEL_ACCENT, LEVEL_BADGE_VARIANT } from './appearance';
 import { getEntryTime } from './parseLogs';
 import { LOG_MARK_CLASS, LOG_ROW_ACTIONS_CLASS, LOG_ROW_CLASS } from './styles';
@@ -113,9 +114,12 @@ export const LogEntry = ({
   const isFolded = isFoldable && !isExpanded;
   const visibleMessage = isFolded ? lines[0] : entry.message;
 
+  const [hasCopied, acknowledgeCopy] = useCopiedFeedback();
+
   const handleCopy = (event: MouseEvent<HTMLElement>): void => {
     event.stopPropagation();
     onCopy(entry);
+    acknowledgeCopy();
   };
 
   return (
@@ -220,9 +224,17 @@ export const LogEntry = ({
       >
         <IconButton
           tiny
-          icon='copy'
-          title={t('logViewer.entry.copyEntry')}
-          aria-label={t('logViewer.entry.copyEntry')}
+          icon={hasCopied ? 'check' : 'copy'}
+          title={
+            hasCopied
+              ? t('logViewer.entry.copied')
+              : t('logViewer.entry.copyEntry')
+          }
+          aria-label={
+            hasCopied
+              ? t('logViewer.entry.copied')
+              : t('logViewer.entry.copyEntry')
+          }
           onClick={handleCopy}
         />
       </Box>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { WindowToolbar } from '../ui/windowChrome/WindowToolbar';
 import { NO_DRAG_REGION_CLASS } from '../ui/windowChrome/styles';
+import { useCopiedFeedback } from '../ui/windowChrome/useCopiedFeedback';
 
 export type LogViewerToolbarProps = {
   fileName: string;
@@ -32,6 +33,7 @@ export const LogViewerToolbar = ({
   onSave,
 }: LogViewerToolbarProps) => {
   const { t } = useTranslation();
+  const [hasCopied, acknowledgeCopy] = useCopiedFeedback();
 
   return (
     <WindowToolbar
@@ -80,10 +82,21 @@ export const LogViewerToolbar = ({
           />
           <IconButton
             small
-            icon='copy'
-            title={t('logViewer.buttons.copy')}
-            aria-label={t('logViewer.buttons.copy')}
-            onClick={onCopy}
+            icon={hasCopied ? 'check' : 'copy'}
+            title={
+              hasCopied
+                ? t('logViewer.buttons.copied')
+                : t('logViewer.buttons.copy')
+            }
+            aria-label={
+              hasCopied
+                ? t('logViewer.buttons.copied')
+                : t('logViewer.buttons.copy')
+            }
+            onClick={() => {
+              onCopy();
+              acknowledgeCopy();
+            }}
           />
           <IconButton
             small

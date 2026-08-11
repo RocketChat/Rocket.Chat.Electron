@@ -192,7 +192,7 @@
       "downloadInterrupted": "Download Interrupted",
       "downloadCancelled": "Download Cancelled",
       "downloadFailed": "Download Failed",
-      "downloadExpired": "Downlaod Expired",
+      "downloadExpired": "Download expired",
       "downloadExpiredMessage": "Please retry downloading from source."
     },
     "filters": {
@@ -225,15 +225,16 @@
     "item": {
       "cancel": "Cancel",
       "copyLink": "Copy link",
+      "copied": "Copied",
       "errored": "Download cancelled",
       "pause": "Pause",
       "progressSize": "{{receivedBytes, byteSize}} of {{totalBytes, byteSize}} ({{ratio, percentage}})",
       "remove": "Remove from list",
       "resume": "Resume",
       "retry": "Retry",
-      "showInFolder": "Show in Folder",
+      "showInFolder": "Show in folder",
       "openFile": "Open {{fileName}}",
-      "preview": "Quick Look"
+      "preview": "Quick look"
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}",
     "empty": {
@@ -702,15 +703,16 @@
       "noEntries": "No entries"
     },
     "buttons": {
-      "openLogFile": "Open Log File",
-      "defaultLog": "Default Log",
+      "openLogFile": "Open log file",
+      "defaultLog": "Default log",
       "refresh": "Refresh",
-      "autoRefresh": "Auto Refresh",
-      "stopAutoRefresh": "Stop Auto Refresh",
+      "autoRefresh": "Auto refresh",
+      "stopAutoRefresh": "Stop auto refresh",
       "copy": "Copy",
+      "copied": "Copied",
       "save": "Save",
       "clear": "Clear all",
-      "clearFilters": "Clear Filters",
+      "clearFilters": "Clear filters",
       "clearFiltersCount": "Clear {{count}} filters"
     },
     "controls": {
@@ -774,7 +776,8 @@
       "expand_one": "+{{count}} more line",
       "expand_other": "+{{count}} more lines",
       "collapse": "Show less",
-      "copyEntry": "Copy entry"
+      "copyEntry": "Copy entry",
+      "copied": "Copied"
     },
     "status": {
       "live": "Live",

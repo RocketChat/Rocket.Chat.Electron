@@ -1,8 +1,8 @@
 diff --git a/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js b/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js
-index 4485862..1c0adad 100644
+index 4485862..f34ba6a 100644
 --- a/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js
 +++ b/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js
-@@ -66,14 +66,21 @@ async function startWorker(rootDir, target, config) {
+@@ -66,14 +66,19 @@ async function startWorker(rootDir, target, config) {
          DISPOSABLES.add(() => {
              if (child.pid != null) {
                  try {
@@ -18,10 +18,8 @@ index 4485862..1c0adad 100644
 +                        // Kill whole process group with negative PID (See `man kill`)
 +                        process.kill(-child.pid, 'SIGKILL');
 +                    }
-+                } catch {
-+                    // Ignored: the process group/PID may already be dead by the time
-+                    // we get here (e.g. kill ESRCH/EPERM), and the fallback
-+                    // child.kill('SIGKILL') below covers the remaining cases.
++                } catch (error) {
++                    console.error('Failed to kill process:', error);
                  }
              }
 -            child.kill("SIGKILL");

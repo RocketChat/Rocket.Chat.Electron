@@ -337,6 +337,12 @@ const fire = (
 
 describe('videoCallWindow/ipc — PR #3359 hardening', () => {
   let realSetTimeout: typeof setTimeout;
+  // Several tests below deliberately drive unresolvable-origin-server and
+  // rejected-path branches that emit a diagnostic `console.warn` (fallback
+  // partitioning, `open-in-main-window` path validation). Mute it here so the
+  // expected, exercised warnings don't spam CI output; tests that want to
+  // assert on it can still spy/restore console.warn themselves.
+  let consoleWarnSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.resetModules();
@@ -346,6 +352,7 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
     rootWindowDeferred = null;
     wcIdSeq = 1000;
     realSetTimeout = global.setTimeout;
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
     // Re-apply default impls after clearAllMocks wiped them.
     select.mockImplementation(() => ({
       videoCallWindowState: { bounds: { x: 0, y: 0, width: 0, height: 0 } },
@@ -361,6 +368,10 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
     // window-state methods to deterministic defaults for each test.
     fakeRootWindow.isDestroyed.mockReturnValue(false);
     fakeRootWindow.isMinimized.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
   });
 
   // -------------------------------------------------------------------------

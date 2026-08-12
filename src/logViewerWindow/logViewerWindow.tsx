@@ -135,6 +135,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const lastKnownSizeRef = useRef<number>(0);
   const isAutoScrollingRef = useRef(false);
   const parseGenerationRef = useRef(0);
+  const loadRequestIdRef = useRef(0);
   const [expandedEntryIds, setExpandedEntryIds] = useState<Set<string>>(
     () => new Set()
   );
@@ -255,6 +256,8 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   }, [setLevelFilters, setContextFilters, setServerFilters]);
 
   const loadLogs = useCallback(async () => {
+    const requestId = loadRequestIdRef.current + 1;
+    loadRequestIdRef.current = requestId;
     setIsLoading(true);
     try {
       setLoadError(null);
@@ -267,6 +270,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
             : currentLogFile.filePath,
         }
       )) as ReadLogsResponse;
+      if (requestId !== loadRequestIdRef.current) return;
       if (response?.success && response.logs !== undefined) {
         parseGenerationRef.current += 1;
         const parsedLogs = parseLogLines(
@@ -321,11 +325,14 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
         });
       } else {
         console.error('Failed to load logs:', response?.error);
+        setLogEntries([]);
         setFileInfo(null);
         setLoadError(response?.error || t('logViewer.messages.loadFailed'));
       }
     } catch (error) {
+      if (requestId !== loadRequestIdRef.current) return;
       console.error('Failed to load logs:', error);
+      setLogEntries([]);
       setFileInfo(null);
       setLoadError(
         error instanceof Error
@@ -333,7 +340,9 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
           : t('logViewer.messages.loadFailed')
       );
     } finally {
-      setIsLoading(false);
+      if (requestId === loadRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [currentLogFile.filePath, currentLogFile.isDefaultLog, t]);
 
@@ -804,6 +813,8 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
       if (response?.success && response.filePath) {
         setLogEntries([]);
         setFileInfo(null);
+        setTimeRange(null);
+        setLoadError(null);
 
         setIsStreaming(false);
 
@@ -821,6 +832,8 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const handleOpenDefaultLog = useCallback(() => {
     setLogEntries([]);
     setFileInfo(null);
+    setTimeRange(null);
+    setLoadError(null);
 
     setCurrentLogFile({
       filePath: undefined,
@@ -1045,7 +1058,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
                 marginBlockEnd: 0,
               }}
             >
-              {showTimeline && timelineEntries.length > 0 && (
+              {showTimeline && !loadError && timelineEntries.length > 0 && (
                 <LogTimeline
                   entries={timelineEntries}
                   surfaces={surfaces}
@@ -1103,7 +1116,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
                   </States>
                 </Box>
               )}
-              {visibleLogs.length > 0 && (
+              {!loadError && visibleLogs.length > 0 && (
                 <GroupedVirtuoso
                   ref={virtuosoRef}
                   data={visibleLogs}

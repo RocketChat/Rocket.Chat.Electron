@@ -182,6 +182,8 @@
     },
     "back": "Back",
     "download": "Download",
+    "downloadError": "The document could not be saved",
+    "dismissError": "Dismiss",
     "viewSource": "View source",
     "viewRendered": "View rendered"
   },

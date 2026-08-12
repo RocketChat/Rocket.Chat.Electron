@@ -10,6 +10,7 @@ import { listen, select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { watchWindowControls } from '../ui/main/secondaryWindowControls';
+import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import {
   getSavedWindowBounds,
   watchWindowBounds,
@@ -56,6 +57,36 @@ const toQuery = ({ server, documentUrl, documentFormat }: DocumentRequest) => ({
 
 /** Set while a window is being built; see `openDocumentViewerWindow`. */
 let pendingCreation: Promise<void> | null = null;
+
+/**
+ * The document most recently queued for the reused window while its page is
+ * still loading. Only the latest one is sent once loading finishes, so rapid
+ * successive opens end up showing the last requested document rather than a
+ * stale intermediate one.
+ */
+let latestPendingRequest: DocumentRequest | null = null;
+
+/**
+ * Sends the next document once the window's page has finished loading.
+ * Sending while the page is still loading would race the renderer's
+ * `DOCUMENT_CHANNEL` listener registration and drop the message silently.
+ */
+const sendWhenReady = (
+  window: BrowserWindow,
+  request: DocumentRequest
+): void => {
+  if (!window.webContents.isLoading()) {
+    window.webContents.send(DOCUMENT_CHANNEL, toQuery(request));
+    return;
+  }
+
+  latestPendingRequest = request;
+  window.webContents.once('did-finish-load', () => {
+    if (window.isDestroyed() || !latestPendingRequest) return;
+    window.webContents.send(DOCUMENT_CHANNEL, toQuery(latestPendingRequest));
+    latestPendingRequest = null;
+  });
+};
 
 const buildDocumentViewerWindow = async (
   request: DocumentRequest
@@ -117,7 +148,7 @@ const buildDocumentViewerWindow = async (
     show: false,
   });
 
-  documentViewerWindow.loadFile(
+  await documentViewerWindow.loadFile(
     path.join(app.getAppPath(), 'app/document-viewer-window.html'),
     {
       query: {
@@ -172,8 +203,8 @@ export const openDocumentViewerWindow = async (
   if (pendingCreation) await pendingCreation;
 
   if (documentViewerWindow && !documentViewerWindow.isDestroyed()) {
-    documentViewerWindow.webContents.send(DOCUMENT_CHANNEL, toQuery(request));
-    documentViewerWindow.focus();
+    sendWhenReady(documentViewerWindow, request);
+    focusSecondaryWindow(documentViewerWindow);
     return;
   }
 

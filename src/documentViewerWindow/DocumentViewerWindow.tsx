@@ -1,4 +1,4 @@
-import { Box, Icon, IconButton } from '@rocket.chat/fuselage';
+import { Box, Callout, Icon, IconButton } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +38,7 @@ export const DocumentViewerWindow = ({
   const [document, setDocument] =
     useState<DocumentDescriptor>(readInitialDocument);
   const [isRaw, setIsRaw] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // The window is reused for the next document rather than reopened, so the
   // main process hands it over here.
@@ -49,6 +50,7 @@ export const DocumentViewerWindow = ({
       setDocument(next);
       // A new document is rendered, whatever the previous one was showing.
       setIsRaw(false);
+      setSaveError(null);
     };
 
     ipcRenderer.on(DOCUMENT_CHANNEL, handleDocument);
@@ -57,14 +59,27 @@ export const DocumentViewerWindow = ({
     };
   }, []);
 
-  const handleDownload = useCallback(() => {
-    invoke('document-viewer-window/save-document', {
+  const handleDownload = useCallback(async () => {
+    const result = await invoke('document-viewer-window/save-document', {
       url: document.url,
       partition: document.partition,
       server: document.server,
       format: document.format,
     });
-  }, [document]);
+
+    // A cancelled save dialog is not a failure worth surfacing.
+    if (result.canceled) {
+      setSaveError(null);
+      return;
+    }
+
+    if (!result.success) {
+      setSaveError(result.error ?? t('documentViewer.downloadError'));
+      return;
+    }
+
+    setSaveError(null);
+  }, [document, t]);
 
   const handleToggleRaw = useCallback(() => {
     setIsRaw((current) => !current);
@@ -143,6 +158,25 @@ export const DocumentViewerWindow = ({
           )}
         </WindowToolbar>
 
+        {saveError && (
+          <Box padding='x8'>
+            <Callout
+              type='danger'
+              actions={
+                <IconButton
+                  small
+                  icon='cross'
+                  title={t('documentViewer.dismissError')}
+                  aria-label={t('documentViewer.dismissError')}
+                  onClick={() => setSaveError(null)}
+                />
+              }
+            >
+              {saveError}
+            </Callout>
+          </Box>
+        )}
+
         <Box
           flexGrow={1}
           display='flex'
@@ -150,14 +184,15 @@ export const DocumentViewerWindow = ({
           style={{ minWidth: 0, minHeight: 0, ...cardStyle }}
         >
           {/*
-            Keyed on the document so a second file replaces the first outright:
-            both viewers hold a webview that would otherwise keep the previous
-            document's session and scroll position.
+            Keyed on the document's identity (url + partition) so a second file —
+            or the same file reopened under a different workspace's partition —
+            replaces the first outright: both viewers hold a webview that would
+            otherwise keep the previous document's session and scroll position.
           */}
           {isMarkdown ? (
             <Box position='relative' flexGrow={1}>
               <MarkdownContent
-                key={document.url}
+                key={`${document.partition}:${document.url}`}
                 url={document.url}
                 partition={document.partition}
                 isRaw={isRaw}
@@ -165,7 +200,7 @@ export const DocumentViewerWindow = ({
             </Box>
           ) : (
             <PdfContent
-              key={document.url}
+              key={`${document.partition}:${document.url}`}
               url={document.url}
               partition={document.partition}
             />

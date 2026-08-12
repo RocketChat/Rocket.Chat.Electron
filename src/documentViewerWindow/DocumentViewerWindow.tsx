@@ -60,25 +60,33 @@ export const DocumentViewerWindow = ({
   }, []);
 
   const handleDownload = useCallback(async () => {
-    const result = await invoke('document-viewer-window/save-document', {
-      url: document.url,
-      partition: document.partition,
-      server: document.server,
-      format: document.format,
-    });
+    try {
+      const result = await invoke('document-viewer-window/save-document', {
+        url: document.url,
+        partition: document.partition,
+        server: document.server,
+        format: document.format,
+      });
 
-    // A cancelled save dialog is not a failure worth surfacing.
-    if (result.canceled) {
+      // A cancelled save dialog is not a failure worth surfacing.
+      if (result.canceled) {
+        setSaveError(null);
+        return;
+      }
+
+      if (!result.success) {
+        setSaveError(result.error ?? t('documentViewer.downloadError'));
+        return;
+      }
+
       setSaveError(null);
-      return;
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : t('documentViewer.downloadError')
+      );
     }
-
-    if (!result.success) {
-      setSaveError(result.error ?? t('documentViewer.downloadError'));
-      return;
-    }
-
-    setSaveError(null);
   }, [document, t]);
 
   const handleToggleRaw = useCallback(() => {

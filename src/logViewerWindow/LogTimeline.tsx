@@ -1,12 +1,15 @@
 import { Box, IconButton } from '@rocket.chat/fuselage';
-import type { MouseEvent as ReactMouseEvent } from 'react';
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+} from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Surfaces } from '../ui/windowChrome/appearance';
 import { TimelineBar } from './TimelineBar';
 import { TIMELINE_BUCKET_COUNT, TIMELINE_PLOT_HEIGHT } from './constants';
-import { TIMELINE_SELECTION_CLASS } from './styles';
+import { TIMELINE_PLOT_CLASS, TIMELINE_SELECTION_CLASS } from './styles';
 import type { TimeRange, TimelineBucket } from './timeline';
 import { buildTimeline, resolveRange } from './timeline';
 import type { LogEntryType } from './types';
@@ -59,6 +62,37 @@ export const LogTimeline = ({
   const releaseDragRef = useRef<(() => void) | null>(null);
   useEffect(() => () => releaseDragRef.current?.(), []);
 
+  /**
+   * Anchor bucket for Shift+Arrow range extension. Reset whenever the
+   * selection is replaced by something the keyboard didn't just build, so a
+   * fresh mouse drag or an external change doesn't extend from a stale anchor.
+   */
+  const keyAnchorRef = useRef<number | null>(null);
+
+  /**
+   * Bucket whose startTime a given time belongs to. Bucket boundaries are
+   * shared (one bucket's endTime is the next one's startTime), so this has to
+   * favour the later bucket on an exact boundary hit — matching how
+   * `buildTimeline` slots entries — or the anchor of a range ending exactly on
+   * a boundary would resolve one bucket too early.
+   */
+  const bucketIndexAtStart = useCallback((time: number): number => {
+    const buckets = bucketsRef.current;
+    for (let index = buckets.length - 1; index >= 0; index -= 1) {
+      if (time >= buckets[index].startTime) return index;
+    }
+    return 0;
+  }, []);
+
+  /** Bucket whose endTime a given time belongs to, favouring the earlier bucket. */
+  const bucketIndexAtEnd = useCallback((time: number): number => {
+    const buckets = bucketsRef.current;
+    for (let index = 0; index < buckets.length; index += 1) {
+      if (time <= buckets[index].endTime) return index;
+    }
+    return Math.max(0, buckets.length - 1);
+  }, []);
+
   const bucketFromClientX = useCallback((clientX: number): number => {
     const rect = plotRef.current?.getBoundingClientRect();
     const count = bucketsRef.current.length;
@@ -76,6 +110,7 @@ export const LogTimeline = ({
     (event: ReactMouseEvent<HTMLElement>) => {
       if (event.button !== 0 || bucketsRef.current.length === 0) return;
       event.preventDefault();
+      keyAnchorRef.current = null;
 
       const anchor = bucketFromClientX(event.clientX);
       setDragRange(resolveRange(bucketsRef.current, anchor, anchor));
@@ -115,8 +150,59 @@ export const LogTimeline = ({
   );
 
   const handleClearRange = useCallback(() => {
+    keyAnchorRef.current = null;
     onSelectRange(null);
   }, [onSelectRange]);
+
+  const handleKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLElement>) => {
+      const buckets = bucketsRef.current;
+      const lastIndex = buckets.length - 1;
+      if (lastIndex < 0) return;
+
+      if (event.key === 'Escape') {
+        keyAnchorRef.current = null;
+        onSelectRange(null);
+        return;
+      }
+
+      const activeIndex =
+        selectedRange !== null
+          ? bucketIndexAtEnd(selectedRange.endTime)
+          : lastIndex;
+      const anchorIndex =
+        selectedRange !== null
+          ? keyAnchorRef.current ?? bucketIndexAtStart(selectedRange.startTime)
+          : activeIndex;
+
+      let nextCursor = activeIndex;
+      switch (event.key) {
+        case 'ArrowLeft':
+          nextCursor = Math.max(0, activeIndex - 1);
+          break;
+        case 'ArrowRight':
+          nextCursor = Math.min(lastIndex, activeIndex + 1);
+          break;
+        case 'Home':
+          nextCursor = 0;
+          break;
+        case 'End':
+          nextCursor = lastIndex;
+          break;
+        default:
+          return;
+      }
+
+      event.preventDefault();
+
+      const nextAnchor = event.shiftKey ? anchorIndex : nextCursor;
+      keyAnchorRef.current = nextAnchor;
+
+      const range = resolveRange(buckets, nextAnchor, nextCursor);
+      if (range) onSelectRange(range);
+    },
+    [bucketIndexAtEnd, bucketIndexAtStart, onSelectRange, selectedRange]
+  );
 
   if (timeline.buckets.length === 0) {
     return null;
@@ -131,6 +217,10 @@ export const LogTimeline = ({
   const highlightWidth = highlight
     ? Math.max(0.6, toPercent(highlight.endTime) - highlightLeft)
     : 0;
+
+  const activeBucketIndex = highlight
+    ? bucketIndexAtEnd(highlight.endTime)
+    : timeline.buckets.length - 1;
 
   return (
     <Box
@@ -147,9 +237,13 @@ export const LogTimeline = ({
     >
       <Box
         ref={plotRef}
+        className={TIMELINE_PLOT_CLASS}
         role='slider'
         tabIndex={0}
         aria-label={t('logViewer.timeline.hint')}
+        aria-valuemin={0}
+        aria-valuemax={Math.max(0, timeline.buckets.length - 1)}
+        aria-valuenow={activeBucketIndex}
         aria-valuetext={
           selectedRange
             ? `${formatTime(selectedRange.startTime)} – ${formatTime(
@@ -160,6 +254,7 @@ export const LogTimeline = ({
         display='flex'
         alignItems='flex-end'
         onMouseDown={handleMouseDown}
+        onKeyDown={handleKeyDown}
         style={{
           position: 'relative',
           height: `${TIMELINE_PLOT_HEIGHT}px`,

@@ -6,6 +6,7 @@ export const LOG_ROW_CLASS = 'rcx-log-row';
 export const LOG_ROW_ACTIONS_CLASS = 'rcx-log-row__actions';
 export const LOG_MARK_CLASS = 'rcx-log-mark';
 export const TIMELINE_SELECTION_CLASS = 'rcx-log-timeline-selection';
+export const TIMELINE_PLOT_CLASS = 'rcx-log-timeline-plot';
 
 type LogViewerGlobalStylesProps = {
   surfaces: Surfaces;
@@ -43,6 +44,11 @@ export const LogViewerGlobalStyles = ({
         padding: 0 1px;
         background-color: var(--rcx-color-status-background-warning);
         color: var(--rcx-color-status-font-on-warning);
+      }
+
+      .${TIMELINE_PLOT_CLASS}:focus-visible {
+        outline: 2px solid var(--rcx-color-stroke-highlight);
+        outline-offset: -2px;
       }
 
       .${TIMELINE_SELECTION_CLASS} {

@@ -1,10 +1,11 @@
 import { Box, Button, Throbber } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { invoke } from '../../../../ipc/renderer';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import {
@@ -80,29 +81,41 @@ export const CheckForUpdates = (props: CheckForUpdatesProps) => {
     return () => clearTimeout(timer);
   }, [isCheckingForUpdates, newUpdateVersion, t, updateError]);
 
-  // Set while a check started here is in flight, so only a manual check hands
-  // over to the titlebar panel.
+  // Tracks a check requested from this button through its full
+  // requested → checking → settled transition, so the result effect below
+  // only acts once a check that actually started here has finished — never on
+  // stale state left over from a previous check.
   const [hasRequestedCheck, setHasRequestedCheck] = useState(false);
+  const hasCheckStartedRef = useRef(false);
 
   useEffect(() => {
-    if (!hasRequestedCheck || isCheckingForUpdates) return undefined;
+    if (!hasRequestedCheck) return;
 
-    if (!newUpdateVersion) {
-      setHasRequestedCheck(false);
-      setResultMessage(t('dialog.about.noUpdatesAvailable'));
-      const timer = setTimeout(
-        () => setResultMessage(null),
-        RESULT_MESSAGE_TIMEOUT
-      );
-      return () => clearTimeout(timer);
+    if (isCheckingForUpdates) {
+      hasCheckStartedRef.current = true;
+      return;
     }
 
+    if (!hasCheckStartedRef.current) return;
+
+    hasCheckStartedRef.current = false;
     setHasRequestedCheck(false);
+
+    if (!newUpdateVersion) {
+      setResultMessage(t('dialog.about.noUpdatesAvailable'));
+      setTimeout(() => setResultMessage(null), RESULT_MESSAGE_TIMEOUT);
+      return;
+    }
+
+    // Opening the panel alone would leave it behind the focused settings
+    // window, so bring the root window forward and close this one to
+    // guarantee the handover is visible.
     dispatch({ type: UPDATES_PANEL_TOGGLED, payload: true });
-    return undefined;
+    invoke('settings-window/close-requested');
   }, [dispatch, hasRequestedCheck, isCheckingForUpdates, newUpdateVersion, t]);
 
   const handleCheckClick = useCallback(() => {
+    hasCheckStartedRef.current = false;
     setHasRequestedCheck(true);
     dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
   }, [dispatch]);

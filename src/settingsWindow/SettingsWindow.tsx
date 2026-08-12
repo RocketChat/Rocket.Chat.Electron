@@ -35,11 +35,27 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
     [paletteTheme, surfaces]
   );
 
-  const [currentSection, setCurrentSection] = useLocalStorage(
+  const [persistedSection, setPersistedSection] = useLocalStorage(
     'settings-window/section',
     DEFAULT_SECTION
   );
   const [searchFilter, setSearchFilter] = useState('');
+  // While a search hides the persisted section, this holds the section shown
+  // instead — display-only, so clearing the search restores the persisted one
+  // rather than the last search result overwriting it permanently.
+  const [searchOverrideSection, setSearchOverrideSection] = useState<
+    string | null
+  >(null);
+
+  const currentSection = searchOverrideSection ?? persistedSection;
+
+  const setCurrentSection = useCallback(
+    (sectionId: string) => {
+      setSearchOverrideSection(null);
+      setPersistedSection(sectionId);
+    },
+    [setPersistedSection]
+  );
 
   const handleSearchFilterChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -85,14 +101,23 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
   }, [availableSections, searchFilter, t]);
 
   // The section is remembered across opens and can be filtered away by a search,
-  // so keep the selection on something that is actually listed.
+  // so keep the selection on something that is actually listed — but only for
+  // the duration of the search, never persisting the substitution.
   useEffect(() => {
     if (visibleSections.length === 0) return;
-    if (visibleSections.some((section) => section.id === currentSection)) {
+
+    if (visibleSections.some((section) => section.id === persistedSection)) {
+      if (searchOverrideSection !== null) setSearchOverrideSection(null);
       return;
     }
-    setCurrentSection(visibleSections[0].id);
-  }, [currentSection, setCurrentSection, visibleSections]);
+
+    if (
+      searchOverrideSection === null ||
+      !visibleSections.some((section) => section.id === searchOverrideSection)
+    ) {
+      setSearchOverrideSection(visibleSections[0].id);
+    }
+  }, [persistedSection, searchOverrideSection, visibleSections]);
 
   const ActiveSection = useMemo(
     () =>

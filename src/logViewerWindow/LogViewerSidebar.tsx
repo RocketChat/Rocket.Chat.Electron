@@ -1,4 +1,10 @@
-import { Box, Icon, Scrollable, SearchInput } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Icon,
+  Scrollable,
+  SearchInput,
+  ToggleSwitch,
+} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -168,36 +174,65 @@ export const LogViewerSidebar = ({
             )}
 
             <FilterSection title={t('logViewer.sidebar.display')}>
-              <FilterRow
-                label={t('logViewer.controls.showContext')}
-                checked={showContext}
-                onToggle={onToggleShowContext}
-              />
-              <FilterRow
-                label={t('logViewer.controls.showServer')}
-                checked={showServer}
-                onToggle={onToggleShowServer}
-              />
-              <FilterRow
-                label={t('logViewer.controls.wrapLines')}
-                checked={wrapLines}
-                onToggle={onToggleWrapLines}
-              />
-              <FilterRow
-                label={t('logViewer.controls.collapseMultiline')}
-                checked={collapseMultiline}
-                onToggle={onToggleCollapseMultiline}
-              />
-              <FilterRow
-                label={t('logViewer.controls.autoScrollToTop')}
-                checked={autoScroll}
-                onToggle={onToggleAutoScroll}
-              />
-              <FilterRow
-                label={t('logViewer.controls.showTimeline')}
-                checked={showTimeline}
-                onToggle={onToggleShowTimeline}
-              />
+              {(
+                [
+                  [
+                    t('logViewer.controls.showContext'),
+                    showContext,
+                    onToggleShowContext,
+                  ],
+                  [
+                    t('logViewer.controls.showServer'),
+                    showServer,
+                    onToggleShowServer,
+                  ],
+                  [
+                    t('logViewer.controls.wrapLines'),
+                    wrapLines,
+                    onToggleWrapLines,
+                  ],
+                  [
+                    t('logViewer.controls.collapseMultiline'),
+                    collapseMultiline,
+                    onToggleCollapseMultiline,
+                  ],
+                  [
+                    t('logViewer.controls.autoScrollToTop'),
+                    autoScroll,
+                    onToggleAutoScroll,
+                  ],
+                  [
+                    t('logViewer.controls.showTimeline'),
+                    showTimeline,
+                    onToggleShowTimeline,
+                  ],
+                ] as const
+              ).map(([label, checked, onToggle]) => (
+                <Box
+                  key={label}
+                  display='flex'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  paddingBlock='x4'
+                  paddingInline='x4'
+                  marginInline='neg-x4'
+                >
+                  <Box
+                    fontScale='p2'
+                    color='default'
+                    withTruncatedText
+                    marginInlineEnd='x8'
+                  >
+                    {label}
+                  </Box>
+                  <ToggleSwitch
+                    flexShrink={0}
+                    checked={checked}
+                    onChange={onToggle}
+                    aria-label={label}
+                  />
+                </Box>
+              ))}
             </FilterSection>
           </Box>
         </Scrollable>

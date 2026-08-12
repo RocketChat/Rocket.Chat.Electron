@@ -1,4 +1,4 @@
-import { Box } from '@rocket.chat/fuselage';
+import { Box, StatusBullet } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
 import { StatusBar } from '../ui/windowChrome/StatusBar';
@@ -61,15 +61,9 @@ export const LogStatusBar = ({
           color='status-font-on-success'
           title={filePath}
         >
-          <Box
-            width='x8'
-            height='x8'
-            borderRadius='full'
-            marginInlineEnd='x4'
-            style={{
-              backgroundColor: 'var(--rcx-color-status-font-on-success)',
-            }}
-          />
+          <Box display='flex' marginInlineEnd='x4'>
+            <StatusBullet status='online' size='small' />
+          </Box>
           {t('logViewer.status.live')}
         </Box>
       )}

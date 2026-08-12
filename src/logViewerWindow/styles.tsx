@@ -30,7 +30,13 @@ export const LogViewerGlobalStyles = ({
 
       .${LOG_ROW_ACTIONS_CLASS} {
         opacity: 0;
-        transition: opacity 120ms ease-out;
+        transition: opacity 0.18s ease-out;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .${LOG_ROW_ACTIONS_CLASS} {
+          transition: none;
+        }
       }
 
       .${LOG_ROW_CLASS}:hover

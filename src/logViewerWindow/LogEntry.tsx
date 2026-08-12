@@ -135,8 +135,8 @@ export const LogEntry = ({
       lineHeight='x16'
       style={{
         borderBlockEnd: `1px solid ${surfaces.divider}`,
-        borderInlineStart: `3px solid ${LEVEL_ACCENT[entry.level]}`,
-        paddingInlineStart: '9px',
+        borderInlineStart: `1px solid ${LEVEL_ACCENT[entry.level]}`,
+        paddingInlineStart: '11px',
       }}
     >
       <Box

@@ -1,9 +1,9 @@
 import type { LogLevel } from './types';
 
 export const LEVEL_ACCENT: Record<LogLevel, string> = {
-  error: 'var(--rcx-color-status-font-on-danger)',
-  warn: 'var(--rcx-color-status-font-on-warning)',
-  info: 'var(--rcx-color-status-font-on-info)',
+  error: 'var(--rcx-color-status-bullet-busy)',
+  warn: 'var(--rcx-color-status-bullet-away)',
+  info: 'var(--rcx-color-badge-background-level-2)',
   debug: 'var(--rcx-color-font-hint)',
   verbose: 'var(--rcx-color-font-annotation)',
   silly: 'var(--rcx-color-font-annotation)',

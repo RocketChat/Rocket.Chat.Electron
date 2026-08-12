@@ -24,7 +24,11 @@ export const TextButton = ({
   <Box
     is='button'
     type='button'
+    display='inline-flex'
+    alignItems='center'
+    justifyContent='center'
     flexShrink={0}
+    minSize='x24'
     fontScale='micro'
     color={danger ? 'danger' : 'info'}
     className={TEXT_BUTTON_CLASS}

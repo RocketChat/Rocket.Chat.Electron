@@ -126,7 +126,9 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [hasSaved, acknowledgeSave] = useCopiedFeedback();
+  const [hasSaved, acknowledgeSave] = useCopiedFeedback(
+    t('logViewer.buttons.saved')
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const lastModifiedTimeRef = useRef<number | undefined>(undefined);

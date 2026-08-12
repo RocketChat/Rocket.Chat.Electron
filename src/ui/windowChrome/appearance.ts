@@ -154,6 +154,8 @@ const SELECTED_FILL: Record<PaletteTheme, string> = {
  */
 const OPAQUE_PANEL = 'var(--rcx-color-surface-neutral)';
 const OPAQUE_CARD = 'var(--rcx-color-surface-light)';
+const OPAQUE_HOVER = 'var(--rcx-color-surface-hover)';
+const OPAQUE_SELECTED = 'var(--rcx-color-surface-selected)';
 
 export const resolveSurfaces = (
   theme: PaletteTheme,
@@ -164,9 +166,10 @@ export const resolveSurfaces = (
   sticky: isTransparent
     ? TRANSLUCENT_STICKY_FILL[theme]
     : 'var(--rcx-color-surface-tint)',
+  // No field/input surface token in fuselage 0.80.0; keep the tinted fill.
   field: FIELD_FILL[theme],
-  hover: HOVER_FILL[theme],
-  selected: SELECTED_FILL[theme],
+  hover: isTransparent ? HOVER_FILL[theme] : OPAQUE_HOVER,
+  selected: isTransparent ? SELECTED_FILL[theme] : OPAQUE_SELECTED,
   divider: 'var(--rcx-color-stroke-extra-light)',
 });
 

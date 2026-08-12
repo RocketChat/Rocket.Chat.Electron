@@ -62,8 +62,14 @@ export const WindowChromeGlobalStyles = ({
         outline-offset: -2px;
       }
 
-      .${TEXT_BUTTON_CLASS}:hover, .${TEXT_BUTTON_CLASS}:focus-visible {
+      .${TEXT_BUTTON_CLASS}:hover {
         text-decoration: underline;
+      }
+
+      .${TEXT_BUTTON_CLASS}:focus-visible {
+        text-decoration: underline;
+        outline: 2px solid var(--rcx-color-stroke-highlight);
+        outline-offset: 2px;
       }
 
       /*

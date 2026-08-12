@@ -15,6 +15,7 @@ import type { RootState } from '../store/rootReducer';
 import { LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { watchWindowControls } from '../ui/main/secondaryWindowControls';
+import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import {
   getSavedWindowBounds,
   watchWindowBounds,
@@ -235,7 +236,7 @@ const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
   if (pendingCreation) await pendingCreation;
 
   if (logViewerWindow && !logViewerWindow.isDestroyed()) {
-    logViewerWindow.focus();
+    focusSecondaryWindow(logViewerWindow);
     return;
   }
 

@@ -13,6 +13,7 @@ import {
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { watchWindowControls } from '../ui/main/secondaryWindowControls';
+import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import {
   getSavedWindowBounds,
   watchWindowBounds,
@@ -155,7 +156,7 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
   if (pendingCreation) await pendingCreation;
 
   if (downloadsWindow && !downloadsWindow.isDestroyed()) {
-    downloadsWindow.focus();
+    focusSecondaryWindow(downloadsWindow);
     return;
   }
 

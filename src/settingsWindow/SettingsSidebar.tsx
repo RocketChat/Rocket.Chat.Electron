@@ -1,7 +1,7 @@
 import { Box, Icon, Scrollable, SearchInput } from '@rocket.chat/fuselage';
 import type { Keys as IconName } from '@rocket.chat/icons';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -11,6 +11,7 @@ import { NavRow } from '../ui/windowChrome/NavRow';
 import type { Surfaces } from '../ui/windowChrome/appearance';
 import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
 import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
+import { useFindShortcut } from '../ui/windowChrome/useFindShortcut';
 
 export const SETTINGS_TABPANEL_ID = 'settings-section-panel';
 
@@ -43,6 +44,8 @@ export const SettingsSidebar = ({
   onSearchFilterChange,
 }: SettingsSidebarProps) => {
   const { t } = useTranslation();
+  const searchFieldRef = useRef<HTMLDivElement>(null);
+  useFindShortcut(searchFieldRef);
 
   const appVersion = useSelector(({ appVersion }: RootState) => appVersion);
 
@@ -114,7 +117,12 @@ export const SettingsSidebar = ({
         minHeight: 0,
       }}
     >
-      <Box padding='x12' paddingBlockEnd='x8' className={SEARCH_FIELD_CLASS}>
+      <Box
+        ref={searchFieldRef}
+        padding='x12'
+        paddingBlockEnd='x8'
+        className={SEARCH_FIELD_CLASS}
+      >
         <SearchInput
           addon={<Icon name='magnifier' size='x20' />}
           aria-label={t('settings.search')}

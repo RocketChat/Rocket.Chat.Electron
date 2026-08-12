@@ -1,6 +1,7 @@
 import { Box } from '@rocket.chat/fuselage';
 import type { ReactNode } from 'react';
 
+import { SectionLabel } from './SectionLabel';
 import { TextButton } from './TextButton';
 
 export type FilterSectionProps = {
@@ -34,14 +35,7 @@ export const FilterSection = ({
       // sections do not shift as filters are toggled.
       style={{ minHeight: '20px' }}
     >
-      <Box
-        fontScale='micro'
-        color='annotation'
-        withTruncatedText
-        style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}
-      >
-        {title}
-      </Box>
+      <SectionLabel>{title}</SectionLabel>
       {canSelectAll && onSelectAll && (
         <TextButton onClick={onSelectAll}>{selectAllLabel}</TextButton>
       )}

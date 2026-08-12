@@ -6,6 +6,7 @@ import {
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FilterRow } from '../ui/windowChrome/FilterRow';
@@ -14,6 +15,7 @@ import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
 import type { FacetSelection } from '../ui/windowChrome/filters';
 import { isFacetNarrowed, isFacetSelected } from '../ui/windowChrome/filters';
 import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
+import { useFindShortcut } from '../ui/windowChrome/useFindShortcut';
 import { LEVEL_ACCENT, LOG_LEVELS } from './appearance';
 import type { LogLevel } from './types';
 
@@ -86,6 +88,8 @@ export const LogViewerSidebar = ({
   onSelectAllServers,
 }: LogViewerSidebarProps) => {
   const { t } = useTranslation();
+  const searchFieldRef = useRef<HTMLDivElement>(null);
+  useFindShortcut(searchFieldRef);
   const selectAllLabel = t('logViewer.filters.selectAll');
 
   return (
@@ -100,7 +104,12 @@ export const LogViewerSidebar = ({
         minHeight: 0,
       }}
     >
-      <Box padding='x12' paddingBlockEnd='x8' className={SEARCH_FIELD_CLASS}>
+      <Box
+        ref={searchFieldRef}
+        padding='x12'
+        paddingBlockEnd='x8'
+        className={SEARCH_FIELD_CLASS}
+      >
         <SearchInput
           addon={<Icon name='magnifier' size='x20' />}
           aria-label={t('logViewer.placeholders.searchLogs')}

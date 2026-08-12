@@ -770,9 +770,10 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
         label={dayGroups[groupIndex]?.label ?? ''}
         trailing={dayGroups[groupIndex]?.count}
         surfaces={surfaces}
+        blurred={isTransparent}
       />
     ),
-    [dayGroups, surfaces]
+    [dayGroups, surfaces, isTransparent]
   );
 
   const renderLogEntry = useCallback(
@@ -929,13 +930,6 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault();
-        const searchInput = document.querySelector(
-          'input[type="search"]'
-        ) as HTMLInputElement;
-        searchInput?.focus();
-      }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleSaveLogs();

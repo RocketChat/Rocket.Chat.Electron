@@ -1,5 +1,6 @@
 import { Box, Icon, Scrollable, SearchInput } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FilterRow } from '../ui/windowChrome/FilterRow';
@@ -9,6 +10,7 @@ import { SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
 import type { FacetSelection } from '../ui/windowChrome/filters';
 import { isFacetNarrowed, isFacetSelected } from '../ui/windowChrome/filters';
 import { SEARCH_FIELD_CLASS } from '../ui/windowChrome/styles';
+import { useFindShortcut } from '../ui/windowChrome/useFindShortcut';
 
 export type FacetOption = {
   value: string;
@@ -56,6 +58,8 @@ export const DownloadsSidebar = ({
   onSelectAllStatuses,
 }: DownloadsSidebarProps) => {
   const { t } = useTranslation();
+  const searchFieldRef = useRef<HTMLDivElement>(null);
+  useFindShortcut(searchFieldRef);
   const selectAllLabel = t('downloads.filters.selectAll');
   const hasFacets =
     statusOptions.length > 0 ||
@@ -74,7 +78,12 @@ export const DownloadsSidebar = ({
         minHeight: 0,
       }}
     >
-      <Box padding='x12' paddingBlockEnd='x8' className={SEARCH_FIELD_CLASS}>
+      <Box
+        ref={searchFieldRef}
+        padding='x12'
+        paddingBlockEnd='x8'
+        className={SEARCH_FIELD_CLASS}
+      >
         <SearchInput
           addon={<Icon name='magnifier' size='x20' />}
           aria-label={t('downloads.filters.search')}

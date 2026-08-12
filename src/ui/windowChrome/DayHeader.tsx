@@ -1,11 +1,14 @@
 import { Box } from '@rocket.chat/fuselage';
 import type { ReactNode } from 'react';
 
+import { SectionLabel } from './SectionLabel';
 import type { Surfaces } from './appearance';
 
 export type DayHeaderProps = {
   label: string;
   surfaces: Surfaces;
+  /** Blur the sticky fill only over a vibrant window. */
+  blurred?: boolean;
   /** Trailing content, such as how many entries the day holds. */
   trailing?: ReactNode;
   /**
@@ -24,6 +27,7 @@ export const DayHeader = ({
   surfaces,
   trailing,
   sticky = false,
+  blurred = false,
 }: DayHeaderProps) => (
   <Box
     display='flex'
@@ -31,18 +35,14 @@ export const DayHeader = ({
     justifyContent='space-between'
     paddingInline='x12'
     paddingBlock='x4'
-    fontScale='micro'
-    color='hint'
     style={{
       ...(sticky ? { position: 'sticky', insetBlockStart: 0, zIndex: 1 } : {}),
       backgroundColor: surfaces.sticky,
-      backdropFilter: 'blur(12px)',
+      ...(blurred ? { backdropFilter: 'blur(12px)' } : {}),
       borderBlockEnd: `1px solid ${surfaces.divider}`,
-      textTransform: 'uppercase',
-      letterSpacing: '0.06em',
     }}
   >
-    <Box withTruncatedText>{label}</Box>
+    <SectionLabel>{label}</SectionLabel>
     {trailing !== undefined && (
       <Box flexShrink={0} style={{ fontVariantNumeric: 'tabular-nums' }}>
         {trailing}

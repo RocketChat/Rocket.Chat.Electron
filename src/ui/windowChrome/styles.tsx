@@ -22,7 +22,6 @@ type WindowChromeGlobalStylesProps = {
  * thousands of rows, and per-row state would re-render on every pointer move.
  */
 export const WindowChromeGlobalStyles = ({
-  paletteTheme,
   surfaces,
 }: WindowChromeGlobalStylesProps) => (
   <Global
@@ -38,6 +37,7 @@ export const WindowChromeGlobalStyles = ({
         height: 100%;
         margin: 0;
         background-color: ${surfaces.panel};
+        color: var(--rcx-color-font-default);
       }
 
       .${DRAG_REGION_CLASS} {
@@ -94,15 +94,11 @@ export const WindowChromeGlobalStyles = ({
         border: 2px solid transparent;
         border-radius: 6px;
         background-clip: content-box;
-        background-color: ${paletteTheme === 'dark'
-          ? 'rgba(255, 255, 255, 0.22)'
-          : 'rgba(0, 0, 0, 0.22)'};
+        background-color: color-mix(in srgb, currentColor 22%, transparent);
       }
 
       ::-webkit-scrollbar-thumb:hover {
-        background-color: ${paletteTheme === 'dark'
-          ? 'rgba(255, 255, 255, 0.34)'
-          : 'rgba(0, 0, 0, 0.34)'};
+        background-color: color-mix(in srgb, currentColor 34%, transparent);
       }
 
       ::-webkit-scrollbar-corner {

@@ -404,6 +404,7 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
                           )}
                           trailing={group.items.length}
                           surfaces={surfaces}
+                          blurred={isTransparent}
                         />
                         {group.items.map((download) => (
                           <DownloadRow

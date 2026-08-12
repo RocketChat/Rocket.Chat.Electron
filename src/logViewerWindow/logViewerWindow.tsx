@@ -229,9 +229,12 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   useEffect(() => {
     if (serverOptions.length === 0 || serverFilters === null) return;
     const pruned = serverFilters.filter((host) => serverOptions.includes(host));
-    if (pruned.length !== serverFilters.length) {
-      setServerFilters(pruned);
-    }
+    if (pruned.length === serverFilters.length) return;
+
+    // Back to untouched when nothing survives: an empty selection now means
+    // "no server selected", which would filter the list down to nothing — the
+    // very thing this is here to prevent.
+    setServerFilters(pruned.length > 0 ? pruned : null);
   }, [serverFilters, serverOptions, setServerFilters]);
 
   const handleClearFilters = useCallback((): void => {

@@ -60,20 +60,24 @@ const readBlobFromServer = async (
     throw new Error('The workspace that created this document is not open');
   }
 
-  const base64 = await webContents.executeJavaScript(
+  // Read with FileReader rather than a byte loop and btoa: this runs in the
+  // reader's own workspace, and doing it by hand froze that window for the
+  // length of the file while holding it three times over — the buffer, the
+  // binary string and the base64. The engine's own encoder streams it.
+  const dataUrl: string = await webContents.executeJavaScript(
     `(async () => {
       const response = await fetch(${JSON.stringify(url)});
-      const buffer = await response.arrayBuffer();
-      let binary = '';
-      const bytes = new Uint8Array(buffer);
-      for (let i = 0; i < bytes.length; i += 1) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
+      const blob = await response.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
     })()`
   );
 
-  return Buffer.from(String(base64), 'base64');
+  return Buffer.from(String(dataUrl).split(',')[1] ?? '', 'base64');
 };
 
 const readDocument = async ({

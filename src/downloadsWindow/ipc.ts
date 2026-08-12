@@ -43,12 +43,10 @@ const selectIsTransparencyEnabled = ({
   isTransparentWindowEnabled,
 }: RootState): boolean => isTransparentWindowEnabled;
 
-const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
-  if (downloadsWindow && !downloadsWindow.isDestroyed()) {
-    downloadsWindow.focus();
-    return;
-  }
+/** Set while a window is being built; see `createDownloadsWindow`. */
+let pendingCreation: Promise<void> | null = null;
 
+const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
   const mainWindow = await getRootWindow();
   const winBounds = mainWindow.getNormalBounds();
 
@@ -143,6 +141,28 @@ const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
   watchWindowControls(downloadsWindow);
 
   downloadsWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+};
+
+/**
+ * Opens the window, or focuses the one already open.
+ *
+ * Building one awaits the main window before the module variable is assigned,
+ * so two opens arriving in that gap would each build a window and the second
+ * would orphan the first — visible, untracked, and impossible to close from its
+ * own channel. Every caller comes through here, so only one is ever in flight.
+ */
+const createDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
+  if (pendingCreation) await pendingCreation;
+
+  if (downloadsWindow && !downloadsWindow.isDestroyed()) {
+    downloadsWindow.focus();
+    return;
+  }
+
+  pendingCreation = buildDownloadsWindow(focusOnShow).finally(() => {
+    pendingCreation = null;
+  });
+  await pendingCreation;
 };
 
 export const openDownloadsWindow = (): Promise<void> =>

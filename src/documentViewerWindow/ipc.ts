@@ -54,7 +54,10 @@ const toQuery = ({ server, documentUrl, documentFormat }: DocumentRequest) => ({
   server,
 });
 
-const createDocumentViewerWindow = async (
+/** Set while a window is being built; see `openDocumentViewerWindow`. */
+let pendingCreation: Promise<void> | null = null;
+
+const buildDocumentViewerWindow = async (
   request: DocumentRequest
 ): Promise<void> => {
   const mainWindow = await getRootWindow();
@@ -162,13 +165,22 @@ const createDocumentViewerWindow = async (
 export const openDocumentViewerWindow = async (
   request: DocumentRequest
 ): Promise<void> => {
+  // Building one awaits the main window before the module variable is
+  // assigned, so two documents opened in quick succession would each build a
+  // window and the second would orphan the first — visible, untracked, and
+  // impossible to close from its own channel.
+  if (pendingCreation) await pendingCreation;
+
   if (documentViewerWindow && !documentViewerWindow.isDestroyed()) {
     documentViewerWindow.webContents.send(DOCUMENT_CHANNEL, toQuery(request));
     documentViewerWindow.focus();
     return;
   }
 
-  await createDocumentViewerWindow(request);
+  pendingCreation = buildDocumentViewerWindow(request).finally(() => {
+    pendingCreation = null;
+  });
+  await pendingCreation;
 };
 
 export const startDocumentViewerWindowHandler = (): void => {
@@ -178,7 +190,9 @@ export const startDocumentViewerWindowHandler = (): void => {
   // of saying "closed", and has nothing to open.
   listen(SERVER_DOCUMENT_VIEWER_OPEN_URL, ({ payload }) => {
     if (!payload.documentUrl) return;
-    openDocumentViewerWindow(payload as DocumentRequest);
+    openDocumentViewerWindow(payload as DocumentRequest).catch((error) => {
+      console.error('Could not open the document viewer:', error);
+    });
   });
 
   handle('document-viewer-window/close-requested', async () => {

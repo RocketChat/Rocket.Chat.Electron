@@ -111,12 +111,10 @@ const getLastNEntries = (
   };
 };
 
-const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
-  if (logViewerWindow && !logViewerWindow.isDestroyed()) {
-    logViewerWindow.focus();
-    return;
-  }
+/** Set while a window is being built; see `createLogViewerWindow`. */
+let pendingCreation: Promise<void> | null = null;
 
+const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
   const mainWindow = await getRootWindow();
   const winBounds = await mainWindow.getNormalBounds();
 
@@ -223,6 +221,28 @@ const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
   logViewerWindow.webContents.setWindowOpenHandler(() => {
     return { action: 'deny' };
   });
+};
+
+/**
+ * Opens the window, or focuses the one already open.
+ *
+ * Building one awaits the main window before the module variable is assigned,
+ * so two opens arriving in that gap would each build a window and the second
+ * would orphan the first — visible, untracked, and impossible to close from its
+ * own channel. Every caller comes through here, so only one is ever in flight.
+ */
+const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
+  if (pendingCreation) await pendingCreation;
+
+  if (logViewerWindow && !logViewerWindow.isDestroyed()) {
+    logViewerWindow.focus();
+    return;
+  }
+
+  pendingCreation = buildLogViewerWindow(focusOnShow).finally(() => {
+    pendingCreation = null;
+  });
+  await pendingCreation;
 };
 
 export const openLogViewerWindow = (): Promise<void> =>

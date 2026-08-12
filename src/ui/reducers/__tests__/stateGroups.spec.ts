@@ -54,9 +54,9 @@ describe('currentView reducer', () => {
     expect(
       currentView('add-new-server', {
         type: APP_SETTINGS_LOADED,
-        payload: { currentView: 'downloads' },
+        payload: { currentView: { url: 'https://saved.example' } },
       } as any)
-    ).toEqual('downloads');
+    ).toEqual({ url: 'https://saved.example' });
     expect(
       currentView('add-new-server', {
         type: DEEP_LINKS_SERVER_ADDED,
@@ -71,13 +71,29 @@ describe('currentView reducer', () => {
     ).toEqual({ url: 'https://focused.example' });
   });
 
-  it('handles focus/download/action transitions', () => {
+  it.each(['downloads', 'settings'])(
+    'ignores a persisted %s view, which the root window no longer has',
+    (retired) => {
+      // Restoring it would strand the reader there: the sidebar buttons that
+      // used to leave those views now open windows instead.
+      expect(
+        currentView({ url: 'https://abc' }, {
+          type: APP_SETTINGS_LOADED,
+          payload: { currentView: retired },
+        } as any)
+      ).toEqual({ url: 'https://abc' });
+    }
+  );
+
+  it('focuses the requested server whatever view the request names', () => {
+    // Downloads open in a window of their own now, so a focus request only
+    // ever selects a server.
     expect(
       currentView({ url: 'https://abc' }, {
         type: uiActions.WEBVIEW_FOCUS_REQUESTED,
         payload: { url: 'https://focused.example', view: 'downloads' },
       } as any)
-    ).toBe('downloads');
+    ).toEqual({ url: 'https://focused.example' });
 
     expect(
       currentView({ url: 'https://abc' }, {

@@ -12,6 +12,7 @@ import {
   watchAndPersistChanges,
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
+import { flushPersistedValues } from './app/main/persistence';
 import { startBrowserHandler } from './browser/ipc';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
@@ -174,6 +175,7 @@ const start = async (): Promise<void> => {
     attentionDrawing.tearDown();
     stopOutlookCalendarSync();
     cleanupVideoCallResources();
+    flushPersistedValues();
   });
 
   watchAndPersistChanges();

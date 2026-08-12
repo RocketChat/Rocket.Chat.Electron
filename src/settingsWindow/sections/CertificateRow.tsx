@@ -24,7 +24,12 @@ export const CertificateRow = ({
 }: CertificateRowProps) => {
   const { t } = useTranslation();
 
-  const handleRemove = useCallback(() => {
+  const handleRemove = useCallback(async () => {
+    const confirmed = await invoke(
+      'settings-window/confirm-remove-certificate',
+      domain
+    );
+    if (!confirmed) return;
     invoke('certificatesManager/remove', domain);
   }, [domain]);
 

@@ -17,6 +17,7 @@ import { useSelector } from 'react-redux';
 import { DOWNLOADS_CLEARED } from '../downloads/actions';
 import type { Download } from '../downloads/common';
 import { DownloadStatus } from '../downloads/common';
+import { invoke } from '../ipc/renderer';
 import { dispatch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import TooltipProvider from '../ui/components/utils/TooltipProvider';
@@ -273,7 +274,9 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
     [statusOptions, setStatusFilters]
   );
 
-  const handleClearAll = useCallback(() => {
+  const handleClearAll = useCallback(async () => {
+    const confirmed = await invoke('downloads-window/confirm-clear-all');
+    if (!confirmed) return;
     dispatch({ type: DOWNLOADS_CLEARED });
   }, []);
 

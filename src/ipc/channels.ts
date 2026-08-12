@@ -140,8 +140,10 @@ type ChannelToArgsMap = {
   };
   'settings-window/open-window': () => void;
   'settings-window/close-requested': () => void;
+  'settings-window/confirm-remove-certificate': (domain: string) => boolean;
   'downloads-window/open-window': () => void;
   'downloads-window/close-requested': () => void;
+  'downloads-window/confirm-clear-all': () => boolean;
   'document-viewer-window/close-requested': () => void;
   'document-viewer-window/save-document': (request: {
     url: string;

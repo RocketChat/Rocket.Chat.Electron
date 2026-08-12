@@ -1,7 +1,8 @@
 import path from 'path';
 
 import type { Event } from 'electron';
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, dialog, screen } from 'electron';
+import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
@@ -30,6 +31,8 @@ import {
   WINDOW_PREFERRED_WIDTH,
   WINDOW_SIZE_MULTIPLIER,
 } from './constants';
+
+const t = i18next.t.bind(i18next);
 
 const isMac = process.platform === 'darwin';
 
@@ -208,6 +211,29 @@ export const startSettingsWindowHandler = (): void => {
   handle('settings-window/close-requested', async () => {
     settingsWindow?.close();
   });
+
+  handle(
+    'settings-window/confirm-remove-certificate',
+    async (_webContents, domain) => {
+      if (!settingsWindow || settingsWindow.isDestroyed()) {
+        return false;
+      }
+
+      const { response } = await dialog.showMessageBox(settingsWindow, {
+        type: 'warning',
+        buttons: [
+          t('dialog.removeCertificate.yes'),
+          t('dialog.removeCertificate.cancel'),
+        ],
+        defaultId: 1,
+        cancelId: 1,
+        title: t('dialog.removeCertificate.title'),
+        message: t('dialog.removeCertificate.message', { domain }),
+      });
+
+      return response === 0;
+    }
+  );
 
   // Transparency is a renderer concern here, so a change only needs pushing to
   // the open window — no reopen, no restart.

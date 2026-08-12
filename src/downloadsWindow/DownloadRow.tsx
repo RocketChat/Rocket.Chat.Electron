@@ -153,8 +153,13 @@ export const DownloadRow = ({
             style={{
               width: `${percentage}%`,
               height: '100%',
-              backgroundColor: 'var(--rcx-color-stroke-highlight)',
-              transition: 'width 150ms ease-out',
+              // ProgressBar's default fill is `bg: status-font-on-info`
+              // (fuselage 0.80.0 ProgressBar.tsx in fuselage.development.js).
+              backgroundColor: 'var(--rcx-color-status-font-on-info)',
+              transition: window.matchMedia('(prefers-reduced-motion: reduce)')
+                .matches
+                ? 'none'
+                : 'width 150ms ease-out',
             }}
           />
         </Box>

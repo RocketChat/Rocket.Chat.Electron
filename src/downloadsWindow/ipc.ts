@@ -1,7 +1,8 @@
 import path from 'path';
 
 import type { Event } from 'electron';
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, dialog, screen } from 'electron';
+import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
@@ -28,6 +29,8 @@ import {
   WINDOW_MIN_WIDTH,
   WINDOW_SIZE_MULTIPLIER,
 } from './constants';
+
+const t = i18next.t.bind(i18next);
 
 const isMac = process.platform === 'darwin';
 
@@ -198,6 +201,26 @@ export const startDownloadsWindowHandler = (): void => {
 
   handle('downloads-window/close-requested', async () => {
     downloadsWindow?.close();
+  });
+
+  handle('downloads-window/confirm-clear-all', async () => {
+    if (!downloadsWindow || downloadsWindow.isDestroyed()) {
+      return false;
+    }
+
+    const { response } = await dialog.showMessageBox(downloadsWindow, {
+      type: 'warning',
+      buttons: [
+        t('dialog.clearDownloads.yes'),
+        t('dialog.clearDownloads.cancel'),
+      ],
+      defaultId: 1,
+      cancelId: 1,
+      title: t('dialog.clearDownloads.title'),
+      message: t('dialog.clearDownloads.message'),
+    });
+
+    return response === 0;
   });
 
   // Transparency is a renderer concern here, so a change only needs pushing to

@@ -10,7 +10,11 @@ import type { PaletteTheme } from '../ui/windowChrome/appearance';
 import { getCardStyle, resolveSurfaces } from '../ui/windowChrome/appearance';
 import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
 import { useTransparency } from '../ui/windowChrome/useTransparency';
-import { SettingsSidebar } from './SettingsSidebar';
+import {
+  SETTINGS_TABPANEL_ID,
+  SettingsSidebar,
+  settingsSectionTabId,
+} from './SettingsSidebar';
 import type { SettingsSectionItem } from './SettingsSidebar';
 import { TRANSPARENCY_CHANNEL } from './constants';
 import { fuzzyMatch, matchesSearchText } from './fuzzy';
@@ -167,6 +171,9 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
           />
 
           <Box
+            id={SETTINGS_TABPANEL_ID}
+            role='tabpanel'
+            aria-labelledby={settingsSectionTabId(currentSection)}
             flexGrow={1}
             display='flex'
             flexDirection='column'

@@ -14,6 +14,8 @@ export type NavRowProps = {
   isSelected: boolean;
   surfaces: Surfaces;
   onSelect: () => void;
+  id?: string;
+  controlsId?: string;
 };
 
 /**
@@ -32,6 +34,8 @@ export const NavRow = ({
   isSelected,
   surfaces,
   onSelect,
+  id,
+  controlsId,
 }: NavRowProps) => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLElement>) => {
@@ -45,9 +49,11 @@ export const NavRow = ({
 
   return (
     <Box
+      id={id}
       role='tab'
       aria-selected={isSelected}
-      tabIndex={0}
+      aria-controls={controlsId}
+      tabIndex={isSelected ? 0 : -1}
       display='flex'
       alignItems='center'
       paddingBlock='x6'
@@ -68,7 +74,11 @@ export const NavRow = ({
         <Icon name={icon} size='x16' color='default' marginInlineEnd='x8' />
       )}
       <Box flexGrow={1} style={{ minWidth: 0 }}>
-        <Box fontScale='p2' color='default' withTruncatedText>
+        <Box
+          fontScale={isSelected ? 'p2b' : 'p2'}
+          color='default'
+          withTruncatedText
+        >
           {label}
         </Box>
         {description && (

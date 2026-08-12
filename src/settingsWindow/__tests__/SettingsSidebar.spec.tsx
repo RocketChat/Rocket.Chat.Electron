@@ -1,5 +1,6 @@
 import { fireEvent } from '@testing-library/react';
 
+import { invoke } from '../../ipc/renderer';
 import { renderWithStore, screen, within } from '../../ui/test-utils';
 import { NavRow } from '../../ui/windowChrome/NavRow';
 import type { Surfaces } from '../../ui/windowChrome/appearance';
@@ -26,6 +27,12 @@ jest.mock('electron', () => ({
     off: jest.fn(),
   },
 }));
+
+jest.mock('../../ipc/renderer', () => ({
+  invoke: jest.fn(),
+}));
+
+const invokeMock = invoke as jest.MockedFunction<typeof invoke>;
 
 jest.mock('../sections', () => ({
   SETTINGS_SECTIONS: [
@@ -212,6 +219,7 @@ describe('NavRow selected weight', () => {
 describe('SettingsWindow tabpanel', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    invokeMock.mockResolvedValue(false as never);
   });
 
   it('links the selected tab to the content panel', () => {

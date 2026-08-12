@@ -1,5 +1,6 @@
 import { fireEvent } from '@testing-library/react';
 
+import { invoke } from '../../ipc/renderer';
 import {
   renderWithStore,
   screen,
@@ -24,6 +25,12 @@ jest.mock('electron', () => ({
     off: jest.fn(),
   },
 }));
+
+jest.mock('../../ipc/renderer', () => ({
+  invoke: jest.fn(),
+}));
+
+const invokeMock = invoke as jest.MockedFunction<typeof invoke>;
 
 // Stubs sections cheaply so this spec exercises only the section-selection
 // logic, not each section's own dependencies.
@@ -55,6 +62,7 @@ const seedPersistedSection = (id: string): void => {
 describe('SettingsWindow section selection', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    invokeMock.mockResolvedValue(false as never);
   });
 
   it('renders the persisted section on open', () => {

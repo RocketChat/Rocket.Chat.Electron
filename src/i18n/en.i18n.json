@@ -713,6 +713,9 @@
       "copy": "Copy",
       "copied": "Copied",
       "save": "Save",
+      "saved": "Saved",
+      "retry": "Retry",
+      "dismissError": "Dismiss error",
       "clear": "Clear all",
       "clearFilters": "Clear filters",
       "clearFiltersCount": "Clear {{count}} filters"
@@ -765,7 +768,9 @@
     },
     "messages": {
       "noLogsFound": "No logs found",
-      "adjustFilters": "Try adjusting your filters or refresh the logs"
+      "adjustFilters": "Try adjusting your filters or refresh the logs",
+      "loadFailed": "Failed to load logs",
+      "saveFailed": "Failed to save logs"
     },
     "sidebar": {
       "title": "Log filters",

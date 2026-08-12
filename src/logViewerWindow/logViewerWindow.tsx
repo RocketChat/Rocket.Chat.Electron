@@ -1,5 +1,8 @@
 import {
   Box,
+  Button,
+  Callout,
+  IconButton,
   States,
   StatesAction,
   StatesActions,
@@ -32,6 +35,7 @@ import {
   toggleFacet,
 } from '../ui/windowChrome/filters';
 import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
+import { useCopiedFeedback } from '../ui/windowChrome/useCopiedFeedback';
 import { useTransparency } from '../ui/windowChrome/useTransparency';
 import { LogEntry } from './LogEntry';
 import { LogStatusBar } from './LogStatusBar';
@@ -120,6 +124,9 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   );
   const [logEntries, setLogEntries] = useState<LogEntryType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [hasSaved, acknowledgeSave] = useCopiedFeedback();
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const lastModifiedTimeRef = useRef<number | undefined>(undefined);
@@ -248,6 +255,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const loadLogs = useCallback(async () => {
     setIsLoading(true);
     try {
+      setLoadError(null);
       const response = (await ipcRenderer.invoke(
         'log-viewer-window/read-logs',
         {
@@ -312,10 +320,16 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
       } else {
         console.error('Failed to load logs:', response?.error);
         setFileInfo(null);
+        setLoadError(response?.error || t('logViewer.messages.loadFailed'));
       }
     } catch (error) {
       console.error('Failed to load logs:', error);
       setFileInfo(null);
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : t('logViewer.messages.loadFailed')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -851,6 +865,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   }, [filteredLogs]);
 
   const handleSaveLogs = useCallback(async () => {
+    setSaveError(null);
     try {
       const logText = filteredLogs.map((entry) => entry.raw).join('\n');
       const timestamp = new Date()
@@ -867,13 +882,22 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
       if (response?.success) {
         console.log('Logs saved successfully to:', response.filePath);
+        acknowledgeSave();
+      } else if (response?.canceled) {
+        // User dismissed the save dialog — not an error, stay silent.
       } else if (response?.error) {
         console.error('Failed to save logs:', response.error);
+        setSaveError(response.error);
       }
     } catch (error) {
       console.error('Failed to save logs:', error);
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : t('logViewer.messages.saveFailed')
+      );
     }
-  }, [filteredLogs]);
+  }, [filteredLogs, acknowledgeSave, t]);
 
   const handleToggleAutoScroll = useCallback(() => {
     setAutoScroll((previous) => {
@@ -936,7 +960,27 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
           onToggleStreaming={handleToggleStreaming}
           onCopy={handleCopyLogs}
           onSave={handleSaveLogs}
+          hasSaved={hasSaved}
         />
+
+        {saveError && (
+          <Box padding='x8'>
+            <Callout
+              type='danger'
+              actions={
+                <IconButton
+                  small
+                  icon='cross'
+                  title={t('logViewer.buttons.dismissError')}
+                  aria-label={t('logViewer.buttons.dismissError')}
+                  onClick={() => setSaveError(null)}
+                />
+              }
+            >
+              {saveError}
+            </Callout>
+          </Box>
+        )}
 
         <Box
           display='flex'
@@ -1017,7 +1061,22 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
                   <Throbber size='x32' />
                 </Box>
               )}
-              {!isLoading && visibleLogs.length === 0 && (
+              {!isLoading && loadError && (
+                <Box
+                  display='flex'
+                  justifyContent='center'
+                  alignItems='center'
+                  flexGrow={1}
+                >
+                  <Callout type='danger' width='x368' maxWidth='100%'>
+                    <Box marginBlockEnd='x8'>{loadError}</Box>
+                    <Button small onClick={handleRefresh}>
+                      {t('logViewer.buttons.retry')}
+                    </Button>
+                  </Callout>
+                </Box>
+              )}
+              {!isLoading && !loadError && visibleLogs.length === 0 && (
                 <Box
                   display='flex'
                   justifyContent='center'

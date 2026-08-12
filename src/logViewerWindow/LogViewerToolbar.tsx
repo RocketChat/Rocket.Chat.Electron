@@ -17,6 +17,7 @@ export type LogViewerToolbarProps = {
   onToggleStreaming: () => void;
   onCopy: () => void;
   onSave: () => void;
+  hasSaved: boolean;
 };
 
 export const LogViewerToolbar = ({
@@ -31,6 +32,7 @@ export const LogViewerToolbar = ({
   onToggleStreaming,
   onCopy,
   onSave,
+  hasSaved,
 }: LogViewerToolbarProps) => {
   const { t } = useTranslation();
   const [hasCopied, acknowledgeCopy] = useCopiedFeedback();
@@ -100,9 +102,17 @@ export const LogViewerToolbar = ({
           />
           <IconButton
             small
-            icon='download'
-            title={t('logViewer.buttons.save')}
-            aria-label={t('logViewer.buttons.save')}
+            icon={hasSaved ? 'check' : 'download'}
+            title={
+              hasSaved
+                ? t('logViewer.buttons.saved')
+                : t('logViewer.buttons.save')
+            }
+            aria-label={
+              hasSaved
+                ? t('logViewer.buttons.saved')
+                : t('logViewer.buttons.save')
+            }
             onClick={onSave}
           />
         </ButtonGroup>

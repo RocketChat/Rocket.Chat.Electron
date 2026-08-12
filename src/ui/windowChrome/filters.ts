@@ -19,7 +19,10 @@ export const toggleFacet = <T extends string>(
   option: T,
   universe: T[]
 ): FacetSelection<T> => {
-  const current = selected ?? universe;
+  const current =
+    selected === null
+      ? universe
+      : selected.filter((value) => universe.includes(value));
   const next = current.includes(option)
     ? current.filter((value) => value !== option)
     : [...current, option];
@@ -31,10 +34,19 @@ export const toggleFacet = <T extends string>(
   return next;
 };
 
+/**
+ * A value outside the facet's universe (e.g. a status the facet doesn't
+ * offer as an option) can never be narrowed out by that facet, so it always
+ * matches regardless of the current selection.
+ */
 export const isFacetSelected = <T extends string>(
   selected: FacetSelection<T>,
-  option: T
-): boolean => selected === null || selected.includes(option);
+  option: T,
+  universe?: readonly T[]
+): boolean =>
+  selected === null ||
+  (universe !== undefined && !universe.includes(option)) ||
+  selected.includes(option);
 
 /** Whether the reader has narrowed this facet at all. */
 export const isFacetNarrowed = <T extends string>(

@@ -126,7 +126,7 @@ export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
 
   const matchesStatus = useCallback(
     (download: Download): boolean =>
-      isFacetSelected(statusFilters, download.status),
+      isFacetSelected(statusFilters, download.status, STATUSES),
     [statusFilters]
   );
 

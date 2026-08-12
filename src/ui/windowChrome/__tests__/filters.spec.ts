@@ -21,6 +21,15 @@ describe('isFacetSelected', () => {
   it('treats an empty selection as nothing selected', () => {
     expect(isFacetSelected([], 'error')).toBe(false);
   });
+
+  it('always matches a value outside the facet universe, even when narrowed', () => {
+    expect(isFacetSelected(['error'], 'all', OPTIONS)).toBe(true);
+    expect(isFacetSelected([], 'all', OPTIONS)).toBe(true);
+  });
+
+  it('honours an explicit selection for a value inside the universe', () => {
+    expect(isFacetSelected(['error'], 'warn', OPTIONS)).toBe(false);
+  });
 });
 
 describe('toggleFacet', () => {
@@ -48,8 +57,19 @@ describe('toggleFacet', () => {
     expect(toggleFacet(['error'], 'info', OPTIONS)).toEqual(['error', 'info']);
   });
 
-  it('collapses stale selections that outgrew the option list', () => {
+  it('collapses stale selections that outgrew the option list once every current option is picked', () => {
     expect(toggleFacet(['error', 'warn', 'gone'], 'info', OPTIONS)).toBeNull();
+  });
+
+  it('does not let a stale persisted value inflate the count and force-collapse to "all"', () => {
+    expect(toggleFacet(['error', 'gone'], 'warn', OPTIONS)).toEqual([
+      'error',
+      'warn',
+    ]);
+  });
+
+  it('drops stale values instead of counting them toward the universe', () => {
+    expect(toggleFacet(['gone'], 'error', OPTIONS)).toEqual(['error']);
   });
 
   it('never mutates the incoming selection', () => {

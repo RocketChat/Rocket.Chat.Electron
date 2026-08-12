@@ -48,6 +48,18 @@ describe('persistValues throttling', () => {
     expect(mockSet).toHaveBeenCalledWith(value(1));
   });
 
+  it('writes immediately when the throttle interval has elapsed exactly', () => {
+    jest.advanceTimersByTime(2000);
+    persistValues(value(1));
+    mockSet.mockClear();
+
+    jest.advanceTimersByTime(1000);
+    persistValues(value(2));
+
+    expect(mockSet).toHaveBeenCalledTimes(1);
+    expect(mockSet).toHaveBeenCalledWith(value(2));
+  });
+
   it('coalesces rapid successive calls and persists only the final values after the trailing interval', () => {
     jest.advanceTimersByTime(2000);
     persistValues(value(1));

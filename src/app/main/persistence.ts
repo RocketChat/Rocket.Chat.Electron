@@ -76,7 +76,7 @@ const scheduleTrailingSave = (delay: number): void => {
 export const persistValues = (values: PersistableValues): void => {
   const elapsed = Date.now() - lastSavedTime;
 
-  if (elapsed > THROTTLE_INTERVAL_MS) {
+  if (elapsed >= THROTTLE_INTERVAL_MS) {
     pendingValues = null;
     writeNow(values);
     return;

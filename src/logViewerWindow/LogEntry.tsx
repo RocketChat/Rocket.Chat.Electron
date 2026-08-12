@@ -131,6 +131,7 @@ export const LogEntry = ({
       paddingBlock='x8'
       paddingInlineEnd='x8'
       fontFamily='mono'
+      // Fuselage 0.80.0 has no mono fontScale; keep the code scale here.
       fontSize='x12'
       lineHeight='x16'
       style={{

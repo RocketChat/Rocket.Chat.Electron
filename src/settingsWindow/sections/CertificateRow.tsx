@@ -65,7 +65,6 @@ export const CertificateRow = ({
 
       <IconButton
         tiny
-        color='secondary-info'
         icon='cross'
         title={t('certificatesManager.item.remove')}
         aria-label={t('certificatesManager.item.remove')}

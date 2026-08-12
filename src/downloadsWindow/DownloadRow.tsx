@@ -229,7 +229,6 @@ export const DownloadRow = ({
         {state === 'progressing' && (
           <IconButton
             small
-            color='secondary-info'
             icon='pause'
             title={t('downloads.item.pause')}
             aria-label={t('downloads.item.pause')}
@@ -239,7 +238,6 @@ export const DownloadRow = ({
         {state === 'paused' && (
           <IconButton
             small
-            color='secondary-info'
             icon='play'
             title={t('downloads.item.resume')}
             aria-label={t('downloads.item.resume')}
@@ -250,7 +248,6 @@ export const DownloadRow = ({
         {isDarwin && state === 'completed' && (
           <IconButton
             small
-            color='secondary-info'
             icon='eye'
             title={t('downloads.item.preview')}
             aria-label={t('downloads.item.preview')}
@@ -260,7 +257,6 @@ export const DownloadRow = ({
         {state === 'completed' && (
           <IconButton
             small
-            color='secondary-info'
             icon='folder'
             title={t('downloads.item.showInFolder')}
             aria-label={t('downloads.item.showInFolder')}
@@ -270,7 +266,6 @@ export const DownloadRow = ({
         {errored && (
           <IconButton
             small
-            color='secondary-info'
             icon='refresh'
             title={t('downloads.item.retry')}
             aria-label={t('downloads.item.retry')}
@@ -280,7 +275,6 @@ export const DownloadRow = ({
         {!expired && (
           <IconButton
             small
-            color='secondary-info'
             icon={hasCopiedLink ? 'check' : 'link'}
             title={
               hasCopiedLink
@@ -309,7 +303,6 @@ export const DownloadRow = ({
         {isActive && (
           <IconButton
             small
-            color='secondary-info'
             icon='cross'
             title={t('downloads.item.cancel')}
             aria-label={t('downloads.item.cancel')}
@@ -319,7 +312,6 @@ export const DownloadRow = ({
         {!isActive && (
           <IconButton
             small
-            color='secondary-info'
             icon='cross'
             title={t('downloads.item.remove')}
             aria-label={t('downloads.item.remove')}

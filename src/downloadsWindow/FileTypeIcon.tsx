@@ -71,7 +71,6 @@ export const FileTypeIcon = ({ fileName, mimeType }: FileTypeIconProps) => {
           position: 'absolute',
           insetInline: '3px',
           insetBlockEnd: '7px',
-          fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.02em',
           lineHeight: 1,

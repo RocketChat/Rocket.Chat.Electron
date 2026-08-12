@@ -145,7 +145,11 @@ export const DocumentViewerWindow = ({
             </>
           }
         >
-          <Icon name={isMarkdown ? 'file-document' : 'file-pdf'} size='x16' />
+          <Icon
+            name={isMarkdown ? 'file-document' : 'file-pdf'}
+            size='x16'
+            color='hint'
+          />
           <Box
             marginInlineStart='x4'
             fontScale='p2b'

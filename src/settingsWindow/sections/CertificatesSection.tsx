@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../store/rootReducer';
+import { SectionLabel } from '../../ui/windowChrome/SectionLabel';
 import type { Surfaces } from '../../ui/windowChrome/appearance';
 import { SEARCH_FIELD_CLASS } from '../../ui/windowChrome/styles';
 import { fuzzyMatch } from '../fuzzy';
@@ -89,16 +90,13 @@ export const CertificatesSection = ({ surfaces }: CertificatesSectionProps) => {
       </Box>
 
       {certificates.length > 0 && (
-        <Box
-          marginBlockEnd='x8'
-          fontScale='micro'
-          color='annotation'
-          style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}
-        >
-          {t('certificatesManager.summary', {
-            count: certificates.length,
-            trusted: trustedCount,
-          })}
+        <Box marginBlockEnd='x8'>
+          <SectionLabel>
+            {t('certificatesManager.summary', {
+              count: certificates.length,
+              trusted: trustedCount,
+            })}
+          </SectionLabel>
         </Box>
       )}
 
@@ -120,11 +118,10 @@ export const CertificatesSection = ({ surfaces }: CertificatesSectionProps) => {
         </States>
       ) : (
         <Box
-          style={{
-            border: `1px solid ${surfaces.divider}`,
-            borderRadius: '4px',
-            overflow: 'hidden',
-          }}
+          borderWidth='x1'
+          borderColor='extra-light'
+          borderRadius='x4'
+          style={{ overflow: 'hidden' }}
         >
           {visible.map(({ domain, isTrusted }) => (
             <CertificateRow

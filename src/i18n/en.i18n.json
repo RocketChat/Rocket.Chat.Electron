@@ -218,11 +218,6 @@
       "clear": "Clear filters",
       "all": "All",
       "mimes": {
-        "images": "Images",
-        "videos": "Videos",
-        "audios": "Audios",
-        "texts": "Texts",
-        "files": "Files",
         "image": "Images",
         "video": "Videos",
         "audio": "Audio",

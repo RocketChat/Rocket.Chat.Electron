@@ -488,6 +488,7 @@ export const DownloadsIndicator = ({
                   alignItems='center'
                   justifyContent='space-between'
                   paddingInline='x12'
+                  paddingBlock='x12'
                 >
                   <Box fontScale='h4'>{t('tabBar.downloads.title')}</Box>
                   <IconButton
@@ -511,6 +512,7 @@ export const DownloadsIndicator = ({
                   display='flex'
                   justifyContent='center'
                   paddingBlockStart='x12'
+                  paddingBlockEnd='x12'
                   paddingInline='x12'
                 >
                   <Button secondary small width='100%' onClick={handleShowAll}>

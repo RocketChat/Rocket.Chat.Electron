@@ -76,11 +76,11 @@ const DownloadsManagerView = () => {
   const mimeTypeOptions = useMemo<[string, string][]>(
     () => [
       ['*', t('downloads.filters.all')],
-      ['image', t('downloads.filters.mimes.images')],
-      ['video', t('downloads.filters.mimes.videos')],
-      ['audio', t('downloads.filters.mimes.audios')],
-      ['text', t('downloads.filters.mimes.texts')],
-      ['application', t('downloads.filters.mimes.files')],
+      ['image', t('downloads.filters.mimes.image')],
+      ['video', t('downloads.filters.mimes.video')],
+      ['audio', t('downloads.filters.mimes.audio')],
+      ['text', t('downloads.filters.mimes.text')],
+      ['application', t('downloads.filters.mimes.application')],
     ],
     [t]
   );

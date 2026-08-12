@@ -171,29 +171,39 @@ export const resolveSurfaces = (
 });
 
 export const CARD_INSET = 4;
-export const CARD_RADIUS = isDarwin ? 14 : 8;
+/**
+ * Nearest token on the Fuselage border-radius scale (small 2px / medium 4px /
+ * large 8px / extra-large 20px) to the previous literal geometry (14px / 8px):
+ * `large` matches the non-macOS radius exactly and is the closest single step
+ * below the macOS radius (-6px, vs. +6px for `extra-large`).
+ */
+export const CARD_RADIUS = 'var(--rcx-border-radius-large, 0.5rem)';
 
 export type CardStyle = {
   boxShadow: string;
 };
 
-/** No hairline: the shadow alone lifts the card off the panel. */
-export const resolveCardStyle = (theme: PaletteTheme): CardStyle => ({
-  boxShadow: `0 0 3px 0 ${
-    theme === 'dark' ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.1)'
-  }`,
+/**
+ * No hairline: the shadow alone lifts the card off the panel. Colour comes
+ * from Fuselage's elevation-1 shadow token, the same one `Tile` uses for its
+ * single-shadow elevation, so the card moves with theme/high-contrast changes
+ * instead of a fixed literal.
+ */
+export const resolveCardStyle = (): CardStyle => ({
+  boxShadow:
+    '0 0 3px 0 var(--rcx-color-shadow-elevation-1, var(--rcx-color-neutral-800-10, rgba(47, 52, 61, 0.1)))',
 });
 
 /** Inline style for the inset content card, shared by both windows. */
 export const getCardStyle = (
-  theme: PaletteTheme,
+  _theme: PaletteTheme,
   surfaces: Surfaces
 ): Record<string, string> => {
-  const { boxShadow } = resolveCardStyle(theme);
+  const { boxShadow } = resolveCardStyle();
   return {
     backgroundColor: surfaces.card,
     margin: `${CARD_INSET}px`,
-    borderRadius: `${CARD_RADIUS}px`,
+    borderRadius: CARD_RADIUS,
     boxShadow,
     overflow: 'hidden',
   };

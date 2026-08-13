@@ -3,11 +3,9 @@ name: Build release
 
 on:
   push:
-    branches:
-      - master
-      - dev
     tags:
-      - '*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

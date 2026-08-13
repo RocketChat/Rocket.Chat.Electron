@@ -73,5 +73,11 @@ module.exports = {
       ],
       setupFilesAfterEnv: ['./src/.jest/setup.ts'],
     },
+    {
+      preset: 'ts-jest',
+      errorOnDeprecated: true,
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/scripts/**/*.(spec|test).ts'],
+    },
   ],
 };

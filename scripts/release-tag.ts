@@ -1,25 +1,54 @@
 import { execSync, execFileSync } from 'child_process';
 import { createInterface } from 'readline';
-import { parse, gt, prerelease, SemVer } from 'semver';
+import { parse, SemVer } from 'semver';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+import { evaluateTag, getChannel, normalizeTag } from './releaseTag.lib';
+
 const REPO_URL = 'https://github.com/RocketChat/Rocket.Chat.Electron';
+
+type Flags = {
+  yes: boolean;
+  force: boolean;
+  allowUnverifiedRef: boolean;
+  help: boolean;
+};
+
+const parseFlags = (argv: string[]): Flags => ({
+  yes:
+    argv.includes('--yes') || argv.includes('-y') || process.env.CI === 'true',
+  force: argv.includes('--force'),
+  allowUnverifiedRef: argv.includes('--allow-unverified-ref'),
+  help: argv.includes('--help') || argv.includes('-h'),
+});
+
+const printHelp = (): void => {
+  console.log(`
+  Release Tag Creator
+
+  Usage: yarn release:tag [options]
+
+  Options:
+    -y, --yes                Skip the confirmation prompt (also honored
+                              automatically when CI=true).
+    --force                  Allow tagging a version that is not greater
+                              than the latest release in its channel
+                              (prints a warning instead of exiting).
+    --allow-unverified-ref    Allow tagging when HEAD is not an ancestor of
+                              any allowed remote ref for the version's
+                              channel (prints a warning instead of exiting).
+                              Use only for intentional releases cut outside
+                              the normal branches (e.g. hotfix branches).
+    -h, --help                Show this help message.
+`);
+};
 
 const getVersion = (): string => {
   const packageJson = JSON.parse(
     readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')
   );
   return packageJson.version;
-};
-
-const getChannel = (version: SemVer): string => {
-  const pre = prerelease(version);
-  if (!pre || pre.length === 0) return 'stable';
-  if (pre[0] === 'alpha') return 'alpha';
-  if (pre[0] === 'beta') return 'beta';
-  if (pre[0] === 'rc' || pre[0] === 'candidate') return 'candidate';
-  return 'prerelease';
 };
 
 const exec = (cmd: string): string | null => {
@@ -38,11 +67,6 @@ const fetchTags = (): void => {
   execSync('git fetch --tags', { stdio: 'inherit' });
 };
 
-const normalizeTag = (tag: string): string => {
-  // Strip leading 'v' if present for consistent comparison
-  return tag.startsWith('v') ? tag.slice(1) : tag;
-};
-
 const getExistingTags = (): string[] => {
   const output = exec('git tag -l');
   if (output === null) {
@@ -50,21 +74,86 @@ const getExistingTags = (): string[] => {
     return [];
   }
   if (!output) return [];
-  // Return normalized tags (without 'v' prefix) for consistent comparison
   return output.split('\n').filter(Boolean).map(normalizeTag);
 };
 
-const getLatestTagForChannel = (
-  tags: string[],
-  channel: string
-): SemVer | null => {
-  const channelTags = tags
-    .map((tag) => parse(tag))
-    .filter((v): v is SemVer => v !== null)
-    .filter((v) => getChannel(v) === channel)
-    .sort((a, b) => (gt(a, b) ? -1 : 1));
+const getHeadSha = (): string | null => exec('git rev-parse HEAD');
 
-  return channelTags[0] || null;
+const getRemoteReleaseBranches = (): string[] => {
+  console.log('Listing remote release branches...');
+  const output = exec("git ls-remote --heads origin 'release/*'");
+  if (!output) return [];
+  return output
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/refs\/heads\/(release\/\S+)$/);
+      return match ? match[1] : null;
+    })
+    .filter((branch): branch is string => branch !== null);
+};
+
+const fetchRef = (ref: string): boolean => {
+  console.log(`Fetching origin ${ref}...`);
+  try {
+    execSync(`git fetch origin ${ref}`, { stdio: 'inherit' });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isHeadAncestorOf = (remoteRef: string): boolean => {
+  try {
+    execSync(`git merge-base --is-ancestor HEAD ${remoteRef}`, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+type ChannelRefCheck = {
+  ok: boolean;
+  checkedRefs: string[];
+  missingRefs: string[];
+};
+
+const checkHeadAgainstChannelRefs = (channel: string): ChannelRefCheck => {
+  const isPrerelease = channel !== 'stable';
+  const primaryBranch = isPrerelease ? 'dev' : 'master';
+
+  const releaseBranches = getRemoteReleaseBranches();
+
+  const missingRefs: string[] = [];
+  const checkedRefs: string[] = [];
+
+  if (fetchRef(primaryBranch)) {
+    checkedRefs.push(`origin/${primaryBranch}`);
+  } else {
+    missingRefs.push(`origin/${primaryBranch}`);
+  }
+
+  for (const branch of releaseBranches) {
+    if (fetchRef(branch)) {
+      checkedRefs.push(`origin/${branch}`);
+    } else {
+      missingRefs.push(`origin/${branch}`);
+    }
+  }
+
+  if (missingRefs.length > 0 && checkedRefs.length === 0) {
+    console.error(
+      `\n  Error: Could not fetch any allowed ref for the "${channel}" channel.`
+    );
+    console.error(`    Missing: ${missingRefs.join(', ')}`);
+    process.exit(1);
+  }
+
+  const ok = checkedRefs.some((ref) => isHeadAncestorOf(ref));
+
+  return { ok, checkedRefs, missingRefs };
 };
 
 const prompt = (question: string): Promise<string> => {
@@ -82,16 +171,25 @@ const prompt = (question: string): Promise<string> => {
 };
 
 const main = async (): Promise<void> => {
+  const flags = parseFlags(process.argv.slice(2));
+
+  if (flags.help) {
+    printHelp();
+    process.exit(0);
+  }
+
   console.log('\n  Release Tag Creator\n');
 
   // 1. Read version from package.json
   const versionString = getVersion();
-  const version = parse(versionString);
+  const parsed = parse(versionString);
 
-  if (!version) {
+  if (!parsed) {
     console.error(`Error: Invalid version in package.json: ${versionString}`);
     process.exit(1);
   }
+
+  const version: SemVer = parsed;
 
   // 2. Detect channel
   const channel = getChannel(version);
@@ -101,32 +199,87 @@ const main = async (): Promise<void> => {
   console.log(`  Tag:      ${version.version}`);
   console.log('');
 
-  // 3. Fetch tags
+  // 3. Verify HEAD is contained in an allowed ref for this channel
+  const refCheck = checkHeadAgainstChannelRefs(channel);
+
+  if (!refCheck.ok) {
+    const headSha = getHeadSha() ?? 'unknown';
+    const isPrerelease = channel !== 'stable';
+    const primaryRefLabel = isPrerelease ? 'origin/dev' : 'origin/master';
+
+    if (flags.allowUnverifiedRef) {
+      console.warn(
+        `\n  WARNING: HEAD (${headSha}) is not an ancestor of any allowed ref for the "${channel}" channel.`
+      );
+      console.warn(`  Checked: ${refCheck.checkedRefs.join(', ') || 'none'}`);
+      if (refCheck.missingRefs.length > 0) {
+        console.warn(`  Could not fetch: ${refCheck.missingRefs.join(', ')}`);
+      }
+      console.warn(
+        `  Proceeding anyway because --allow-unverified-ref was passed.\n`
+      );
+    } else {
+      console.error(
+        `\n  Error: HEAD is not contained in any allowed ref for the "${channel}" channel.`
+      );
+      console.error(`    HEAD:      ${headSha}`);
+      console.error(
+        `    Checked:   ${refCheck.checkedRefs.join(', ') || 'none'}`
+      );
+      if (refCheck.missingRefs.length > 0) {
+        console.error(
+          `    Could not fetch: ${refCheck.missingRefs.join(', ')}`
+        );
+      }
+      console.error(
+        `\n  Prerelease tags (alpha/beta/rc) are cut from origin/dev or an`
+      );
+      console.error(
+        `  origin/release/* branch. Stable tags are cut from origin/master or`
+      );
+      console.error(
+        `  an origin/release/* branch. Tagging from anywhere else ships the`
+      );
+      console.error(
+        `  wrong tree (e.g. a pre-merge bump commit instead of the squashed`
+      );
+      console.error(
+        `  merge commit). Merge/push to ${primaryRefLabel} first, then`
+      );
+      console.error(
+        `  re-run this script from the up-to-date branch. If this is an`
+      );
+      console.error(
+        `  intentional release cut outside those branches, re-run with`
+      );
+      console.error(`  --allow-unverified-ref.\n`);
+      process.exit(1);
+    }
+  }
+
+  // 4. Fetch tags
   fetchTags();
 
-  // 4. Check if tag already exists
+  // 5. Evaluate tag (existing-tag check + channel regression)
   const existingTags = getExistingTags();
+  const result = evaluateTag({
+    version,
+    existingTags,
+    force: flags.force,
+  });
 
-  if (existingTags.includes(version.version)) {
-    console.error(`\n  Error: Tag ${version.version} already exists!`);
-    console.error(`  The version in package.json has already been released.`);
-    console.error(`  Please bump the version before creating a new release.\n`);
+  if (!result.ok) {
+    console.error(`\n  Error: ${result.error}\n`);
     process.exit(1);
   }
 
   console.log(`  Tag does not exist yet`);
 
-  // 5. Check if version is newer than latest in channel
-  const latestInChannel = getLatestTagForChannel(existingTags, channel);
-
-  if (latestInChannel && !gt(version, latestInChannel)) {
-    console.warn(`\n  Warning: Version ${version.version} is not greater than`);
-    console.warn(
-      `  the latest ${channel} release (${latestInChannel.version}).`
-    );
-    console.warn(`  This may be intentional, but please verify.\n`);
-  } else if (latestInChannel) {
-    console.log(`  Latest ${channel}: ${latestInChannel.version}`);
+  if (result.warning) {
+    console.warn(`\n  WARNING: ${result.warning}`);
+    console.warn(`  Proceeding anyway because --force was passed.\n`);
+  } else if (result.latestInChannel) {
+    console.log(`  Latest ${channel}: ${result.latestInChannel.version}`);
   } else {
     console.log(`  First ${channel} release`);
   }
@@ -137,17 +290,21 @@ const main = async (): Promise<void> => {
   console.log(`    2. Push tag to origin`);
   console.log(`    3. Trigger GitHub Actions build-release workflow\n`);
 
-  const answer = await prompt('  Proceed? (y/N): ');
+  if (!flags.yes) {
+    const answer = await prompt('  Proceed? (y/N): ');
 
-  if (answer !== 'y' && answer !== 'yes') {
-    console.log('\n  Aborted.\n');
-    process.exit(0);
+    if (answer !== 'y' && answer !== 'yes') {
+      console.log('\n  Aborted.\n');
+      process.exit(0);
+    }
   }
 
   // 7. Create and push tag
   console.log(`\n  Creating tag ${version.version}...`);
   try {
-    execFileSync('git', ['tag', '--', version.version], { stdio: 'inherit' });
+    execFileSync('git', ['tag', '--', version.version], {
+      stdio: 'inherit',
+    });
   } catch {
     console.error(`  Error: Failed to create tag`);
     process.exit(1);

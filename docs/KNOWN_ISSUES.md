@@ -120,3 +120,34 @@
 - Affected files: src/ui/components/TopBar/DownloadsIndicator.spec.tsx.
 - Reference: PR #3443 (introduced the animated percentage slot), PR #3449 (documented after CI
   runs surfaced the divergence).
+
+## Jest test run sits near Node's default 2 GB heap ceiling
+
+- Status: Mitigated, not fixed. The ceiling is raised; the underlying accumulation remains.
+- Symptom: The `Test` step dies with
+  `FATAL ERROR: Ineffective mark-compacts near heap limit - JavaScript heap out of memory`
+  and `exit code 255`, typically on `check (macos-latest)` first, after most or all suites
+  have already reported PASS and none have FAILED. Observed at 2038.0/2051.6 MB with
+  `current mu = 0.040` (V8 spending ~96% of its time in GC before giving up).
+- Root cause: `@kayahr/jest-electron-runner` spawns a detached Electron child per test
+  target and registers a teardown closure for each one in a module-level `DISPOSABLES` set
+  that is only drained at the very end of the run. With `--maxWorkers=1` (required by the
+  runner) every suite shares one process, so nothing is reclaimed by worker recycling, and
+  each retained closure keeps its child's context reachable. `--coverage` inflates each
+  suite's retained set further, which is why `yarn test:coverage` (validate-pr) tips over
+  before `yarn test` (build-release) does. macOS fails first: slowest arm64 runner, largest
+  retained set.
+- Workaround: `NODE_OPTIONS: --max-old-space-size=6144` on the `Test` step in
+  `.github/workflows/validate-pr.yml` and `.github/workflows/build-release.yml`
+  (GitHub-hosted runners have >= 7 GB), and `--detectOpenHandles` removed from the `test` /
+  `test:coverage` scripts — it retains async resource references by design in order to
+  report them. It is still available as `yarn test:debug` when actually debugging handles.
+- Expect this to recur as the suite grows: raising the ceiling buys headroom, it does not
+  stop the accumulation. If it returns, do NOT just raise the number again — the real fix is
+  upstream disposing each child as its target finishes instead of at end-of-run. Note that
+  `workerIdleMemoryLimit` does NOT help: Jest recycles *worker processes* after a test, and
+  at `--maxWorkers=1` with this custom runner there is no worker to recycle.
+- Affected files: .github/workflows/validate-pr.yml, .github/workflows/build-release.yml,
+  package.json, patches/@kayahr+jest-electron-runner+29.14.0.patch.
+- Reference: PR #3452. Failing run 31515022528 (`check (macos-latest)`); green after the fix
+  in run 31515403323 (macOS 16m32s, 1721 tests, 0 failures).

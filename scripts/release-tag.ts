@@ -11,7 +11,7 @@ const REPO_URL = 'https://github.com/RocketChat/Rocket.Chat.Electron';
 type Flags = {
   yes: boolean;
   force: boolean;
-  allowDetachedFromMaster: boolean;
+  allowUnverifiedRef: boolean;
   help: boolean;
 };
 
@@ -19,7 +19,7 @@ const parseFlags = (argv: string[]): Flags => ({
   yes:
     argv.includes('--yes') || argv.includes('-y') || process.env.CI === 'true',
   force: argv.includes('--force'),
-  allowDetachedFromMaster: argv.includes('--allow-detached-from-master'),
+  allowUnverifiedRef: argv.includes('--allow-unverified-ref'),
   help: argv.includes('--help') || argv.includes('-h'),
 });
 
@@ -30,18 +30,17 @@ const printHelp = (): void => {
   Usage: yarn release:tag [options]
 
   Options:
-    -y, --yes                       Skip the confirmation prompt (also
-                                     honored automatically when CI=true).
-    --force                         Allow tagging a version that is not
-                                     greater than the latest release in its
-                                     channel (prints a warning instead of
-                                     exiting).
-    --allow-detached-from-master    Allow tagging when HEAD is not an
-                                     ancestor of origin/master (prints a
-                                     warning instead of exiting). Use only
-                                     for intentional non-master releases
-                                     (e.g. hotfix branches).
-    -h, --help                      Show this help message.
+    -y, --yes                Skip the confirmation prompt (also honored
+                              automatically when CI=true).
+    --force                  Allow tagging a version that is not greater
+                              than the latest release in its channel
+                              (prints a warning instead of exiting).
+    --allow-unverified-ref    Allow tagging when HEAD is not an ancestor of
+                              any allowed remote ref for the version's
+                              channel (prints a warning instead of exiting).
+                              Use only for intentional releases cut outside
+                              the normal branches (e.g. hotfix branches).
+    -h, --help                Show this help message.
 `);
 };
 
@@ -68,11 +67,6 @@ const fetchTags = (): void => {
   execSync('git fetch --tags', { stdio: 'inherit' });
 };
 
-const fetchOriginMaster = (): void => {
-  console.log('Fetching origin/master...');
-  execSync('git fetch origin master', { stdio: 'inherit' });
-};
-
 const getExistingTags = (): string[] => {
   const output = exec('git tag -l');
   if (output === null) {
@@ -85,18 +79,81 @@ const getExistingTags = (): string[] => {
 
 const getHeadSha = (): string | null => exec('git rev-parse HEAD');
 
-const getOriginMasterSha = (): string | null =>
-  exec('git rev-parse origin/master');
+const getRemoteReleaseBranches = (): string[] => {
+  console.log('Listing remote release branches...');
+  const output = exec("git ls-remote --heads origin 'release/*'");
+  if (!output) return [];
+  return output
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/refs\/heads\/(release\/\S+)$/);
+      return match ? match[1] : null;
+    })
+    .filter((branch): branch is string => branch !== null);
+};
 
-const isHeadOnOriginMaster = (): boolean => {
+const fetchRef = (ref: string): boolean => {
+  console.log(`Fetching origin ${ref}...`);
   try {
-    execSync('git merge-base --is-ancestor HEAD origin/master', {
+    execSync(`git fetch origin ${ref}`, { stdio: 'inherit' });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isHeadAncestorOf = (remoteRef: string): boolean => {
+  try {
+    execSync(`git merge-base --is-ancestor HEAD ${remoteRef}`, {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     return true;
   } catch {
     return false;
   }
+};
+
+type ChannelRefCheck = {
+  ok: boolean;
+  checkedRefs: string[];
+  missingRefs: string[];
+};
+
+const checkHeadAgainstChannelRefs = (channel: string): ChannelRefCheck => {
+  const isPrerelease = channel !== 'stable';
+  const primaryBranch = isPrerelease ? 'dev' : 'master';
+
+  const releaseBranches = getRemoteReleaseBranches();
+
+  const missingRefs: string[] = [];
+  const checkedRefs: string[] = [];
+
+  if (fetchRef(primaryBranch)) {
+    checkedRefs.push(`origin/${primaryBranch}`);
+  } else {
+    missingRefs.push(`origin/${primaryBranch}`);
+  }
+
+  for (const branch of releaseBranches) {
+    if (fetchRef(branch)) {
+      checkedRefs.push(`origin/${branch}`);
+    } else {
+      missingRefs.push(`origin/${branch}`);
+    }
+  }
+
+  if (missingRefs.length > 0 && checkedRefs.length === 0) {
+    console.error(
+      `\n  Error: Could not fetch any allowed ref for the "${channel}" channel.`
+    );
+    console.error(`    Missing: ${missingRefs.join(', ')}`);
+    process.exit(1);
+  }
+
+  const ok = checkedRefs.some((ref) => isHeadAncestorOf(ref));
+
+  return { ok, checkedRefs, missingRefs };
 };
 
 const prompt = (question: string): Promise<string> => {
@@ -142,38 +199,60 @@ const main = async (): Promise<void> => {
   console.log(`  Tag:      ${version.version}`);
   console.log('');
 
-  // 3. Verify HEAD is contained in origin/master
-  fetchOriginMaster();
+  // 3. Verify HEAD is contained in an allowed ref for this channel
+  const refCheck = checkHeadAgainstChannelRefs(channel);
 
-  if (!isHeadOnOriginMaster()) {
+  if (!refCheck.ok) {
     const headSha = getHeadSha() ?? 'unknown';
-    const originMasterSha = getOriginMasterSha() ?? 'unknown';
+    const isPrerelease = channel !== 'stable';
+    const primaryRefLabel = isPrerelease ? 'origin/dev' : 'origin/master';
 
-    if (flags.allowDetachedFromMaster) {
+    if (flags.allowUnverifiedRef) {
       console.warn(
-        `\n  WARNING: HEAD (${headSha}) is not an ancestor of origin/master (${originMasterSha}).`
+        `\n  WARNING: HEAD (${headSha}) is not an ancestor of any allowed ref for the "${channel}" channel.`
       );
+      console.warn(`  Checked: ${refCheck.checkedRefs.join(', ') || 'none'}`);
+      if (refCheck.missingRefs.length > 0) {
+        console.warn(`  Could not fetch: ${refCheck.missingRefs.join(', ')}`);
+      }
       console.warn(
-        `  Proceeding anyway because --allow-detached-from-master was passed.\n`
+        `  Proceeding anyway because --allow-unverified-ref was passed.\n`
       );
     } else {
-      console.error(`\n  Error: HEAD is not contained in origin/master.`);
-      console.error(`    HEAD:           ${headSha}`);
-      console.error(`    origin/master:  ${originMasterSha}`);
       console.error(
-        `\n  Tagging from a branch other than the merged origin/master commit`
+        `\n  Error: HEAD is not contained in any allowed ref for the "${channel}" channel.`
+      );
+      console.error(`    HEAD:      ${headSha}`);
+      console.error(
+        `    Checked:   ${refCheck.checkedRefs.join(', ') || 'none'}`
+      );
+      if (refCheck.missingRefs.length > 0) {
+        console.error(
+          `    Could not fetch: ${refCheck.missingRefs.join(', ')}`
+        );
+      }
+      console.error(
+        `\n  Prerelease tags (alpha/beta/rc) are cut from origin/dev or an`
       );
       console.error(
-        `  ships the wrong tree (e.g. a pre-merge bump commit instead of the`
+        `  origin/release/* branch. Stable tags are cut from origin/master or`
       );
       console.error(
-        `  squashed merge commit). Merge/push to master first, then re-run`
+        `  an origin/release/* branch. Tagging from anywhere else ships the`
       );
       console.error(
-        `  this script from the up-to-date master branch. If this is an`
+        `  wrong tree (e.g. a pre-merge bump commit instead of the squashed`
       );
-      console.error(`  intentional non-master release, re-run with`);
-      console.error(`  --allow-detached-from-master.\n`);
+      console.error(
+        `  merge commit). Merge/push to ${primaryRefLabel} first, then`
+      );
+      console.error(
+        `  re-run this script from the up-to-date branch. If this is an`
+      );
+      console.error(
+        `  intentional release cut outside those branches, re-run with`
+      );
+      console.error(`  --allow-unverified-ref.\n`);
       process.exit(1);
     }
   }

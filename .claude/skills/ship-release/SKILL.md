@@ -72,20 +72,20 @@ All commands in this phase run inside `$RELEASE_WT` (`git -C "$RELEASE_WT" ...` 
    yarn release:tag --yes
    ```
 
-   `scripts/release-tag.ts` reads the version from `package.json`, fetches `origin/master` and tags, then **fails closed (exit 1)** on:
+   `scripts/release-tag.ts` reads the version from `package.json`, fetches the refs allowed for that version's channel, then **fails closed (exit 1)** on:
 
-   | Guard                                                  | Override                       |
-   | ------------------------------------------------------ | ------------------------------ |
-   | Invalid semver in `package.json`                       | none                           |
-   | HEAD not contained in `origin/master`                  | `--allow-detached-from-master` |
-   | Tag already exists                                     | none — not even `--force`      |
-   | Version not greater than latest tag **in its channel** | `--force`                      |
+   | Guard                                                  | Override                    |
+   | ------------------------------------------------------ | ---------------------------- |
+   | Invalid semver in `package.json`                       | none                         |
+   | HEAD not an ancestor of an allowed ref for its channel | `--allow-unverified-ref`    |
+   | Tag already exists                                     | none — not even `--force`   |
+   | Version not greater than latest tag **in its channel** | `--force`                   |
 
-   Channel detection (stable / alpha / beta / candidate) compares only within a channel, so an alpha never blocks a stable or vice versa. The origin/master guard is what makes step 4's "detach onto the merge commit" enforced rather than merely documented — a hand-rolled `git tag` skips every one of these.
+   Prerelease tags (alpha/beta/rc) must have HEAD as an ancestor of `origin/dev` or an `origin/release/*` branch; stable tags must have HEAD as an ancestor of `origin/master` or an `origin/release/*` branch. Channel detection (stable / alpha / beta / candidate) compares only within a channel, so an alpha never blocks a stable or vice versa. The ref-ancestor guard is what makes step 4's "detach onto the merge commit" enforced rather than merely documented — a hand-rolled `git tag` skips every one of these.
 
    - **`--yes` skips the confirmation prompt** (also auto-skipped when `CI=true`), so an agent can run this unattended. Step 3 is already the human gate. Without the flag it prompts `Proceed? (y/N)` over `readline`, which needs a real TTY — piping `echo y` is unreliable.
    - **`yarn install` first.** A fresh worktree has no `node_modules`, and without it the script dies with `Couldn't find the node_modules state file (findPackageLocation)`. Install — do not work around it by tagging by hand.
-   - **If the script refuses, that is a real finding** — report the guard that fired and fix the cause. Do not bypass it with manual git commands, and do not reach for `--force`/`--allow-detached-from-master` without the user explicitly agreeing.
+   - **If the script refuses, that is a real finding** — report the guard that fired and fix the cause. Do not bypass it with manual git commands, and do not reach for `--force`/`--allow-unverified-ref` without the user explicitly agreeing.
    - After it reports success, verify the tag landed on the right commit:
      ```sh
      git -C "$RELEASE_WT" fetch origin --tags
@@ -212,5 +212,5 @@ Keeping this current per-release is far cheaper than reconstructing it from `git
 | Version stays unreleased after PUT                       | Account lacks project-admin rights (empty-body no-op)     | GET the version to confirm; hand the toggle to a CORE project admin                             |
 | `release:tag` → `findPackageLocation`                    | Fresh worktree has no `node_modules`                      | `yarn install` in the worktree — never tag by hand instead                                      |
 | `release:tag` hangs at `Proceed? (y/N)`                  | Ran without `--yes`; `readline` needs a TTY               | Re-run with `--yes` (step 3 is already the human gate)                                          |
-| `release:tag` → "HEAD is not contained in origin/master" | Tagging the pre-merge bump commit, not the squashed merge | Detach onto `origin/master` (Phase 3 step 4) — this guard is the point, do not override blindly |
+| `release:tag` → "HEAD is not contained in any allowed ref" | Tagging the pre-merge bump commit, not the squashed merge/dev commit | Detach onto the branch the channel expects (Phase 3 step 4) — this guard is the point, do not override blindly |
 | `release:tag` refuses the version                        | Guard fired: tag exists, or not greater in-channel        | Real finding — report the guard; fix the version, do not bypass with manual git                 |

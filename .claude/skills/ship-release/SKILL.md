@@ -106,7 +106,10 @@ push, release publish) is gated on explicit user approval.
 4. Commit `chore: bump version to <version>`, push, open a PR to **`dev`**.
 5. Wait for `validate-pr` checks. **GATE: show PR URL + checks status. STOP
    until the user says merge.**
-6. Squash-merge: `gh pr merge <PR> --squash`.
+6. Squash-merge: `gh pr merge <PR> --squash`. Branch protection requires 1
+   approving review, so this typically needs `--admin` (the release manager
+   has bypass) — otherwise `gh pr merge` refuses with "requirements have not
+   been met".
 
 ### Stable (promotion)
 
@@ -114,7 +117,8 @@ push, release publish) is gated on explicit user approval.
 2. Bump `"version"` in `package.json` to the bare version (drop the
    pre-release suffix, e.g. `4.17.0-alpha.6` → `4.17.0`).
 3. **GATE**, commit, push, open a bump PR to **`dev`**. Wait for checks.
-   **GATE: STOP until the user says merge.** Squash-merge.
+   **GATE: STOP until the user says merge.** Squash-merge (branch protection
+   requires 1 approving review, so this typically needs `--admin`).
 4. `git -C "$RELEASE_WT" fetch origin dev` and confirm the merge commit is
    HEAD of `origin/dev` with `package.json` at TARGET.
 5. Open the **release PR**: `dev` → `master`
@@ -142,7 +146,8 @@ push, release publish) is gated on explicit user approval.
    pushing.
 3. Bump `"version"` in `package.json` to `X.Y.Z`, commit, push a bump PR
    targeting **`release/<X.Y.x>`**. Wait for checks. **GATE: STOP until the
-   user says merge.** Squash-merge.
+   user says merge.** Squash-merge (branch protection requires 1 approving
+   review, so this typically needs `--admin`).
 
 ## Phase 3 — Merge & tag
 
@@ -169,6 +174,9 @@ or stay `cd`'d in) — never in the user's own checkout.
    ```sh
    gh pr merge <RELEASE_PR> --merge
    ```
+   Branch protection requires 1 approving review, so this typically needs
+   `--admin` (the release manager has bypass) — otherwise `gh pr merge`
+   refuses with "requirements have not been met".
 2. `git -C "$RELEASE_WT" fetch origin master` and confirm the merge commit
    is HEAD of `origin/master` and its `package.json` has TARGET.
 3. **GATE: confirm with the user before pushing the tag.**

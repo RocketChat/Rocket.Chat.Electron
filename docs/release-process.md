@@ -23,11 +23,21 @@ Alpha work stays on `dev`; it never gets its own long-lived branch.
 
 ## How channels work
 
-| Channel | Version Format | Who Gets It | Update File |
-|---------|---------------|-------------|-------------|
-| Stable | `4.12.0` | All users (default) | `latest.yml` |
-| Beta | `4.12.0-beta.1` | Beta opt-in users | `beta.yml` |
-| Alpha | `4.12.0-alpha.1` | Alpha opt-in users | `alpha.yml` |
+| Channel | Version Format | Who Gets It |
+|---------|---------------|-------------|
+| Stable | `4.12.0` | All users (default) |
+| Beta | `4.12.0-beta.1` | Beta opt-in users |
+| Alpha | `4.12.0-alpha.1` | Alpha opt-in users |
+
+Every release — stable, beta, or alpha — uploads the same update metadata
+(`latest.yml`, `latest-mac.yml`, `latest-linux.yml`); there is no
+per-channel `.yml` filename. Channel separation instead comes from two
+things: whether the GitHub release is marked **Pre-release** (true for
+alpha/beta, false for stable), and whether the client has opted into
+prereleases (electron-updater's `allowPrerelease` is enabled for the
+alpha/beta channel settings, disabled for stable). A stable client's
+updater ignores prerelease-flagged releases even though they share the
+same `latest*.yml` file names.
 
 **Channel hierarchy**: Alpha users receive alpha, beta, AND stable updates.
 Beta users receive beta AND stable. Stable users only receive stable.
@@ -98,9 +108,10 @@ Alphas are cut directly from `dev` — no dedicated branch.
 
 4. CI builds automatically: pushing a semver tag is the **only** trigger for
    release builds (`build-release.yml` no longer runs on branch pushes). The
-   workflow builds for all platforms, generates `alpha.yml`,
-   `alpha-mac.yml`, `alpha-linux.yml` metadata, and creates a **draft**
-   GitHub release marked as Pre-release.
+   workflow builds for all platforms, generates `latest.yml`,
+   `latest-mac.yml`, `latest-linux.yml` metadata, and creates a **draft**
+   GitHub release marked as Pre-release — that Pre-release flag, not the
+   metadata file name, is what keeps the build away from stable clients.
 
 5. Publish the release: open the draft on GitHub Releases, review the notes,
    click "Publish release". Nothing is visible to any client until a human
@@ -269,9 +280,9 @@ Typical release progression:
 ### Update not showing after channel switch
 
 1. Verify the release is published (not draft) on GitHub.
-2. Check that the corresponding `.yml` file exists in the release assets:
-   - Alpha: `alpha.yml`, `alpha-mac.yml`, `alpha-linux.yml`
-   - Beta: `beta.yml`, `beta-mac.yml`, `beta-linux.yml`
+2. Check that `latest.yml`, `latest-mac.yml`, and `latest-linux.yml` exist
+   in the release assets, and that the release's Pre-release flag matches
+   the intended channel (checked for alpha/beta, unchecked for stable).
 3. Click "Check for Updates" in the About dialog.
 4. Restart the app and try again.
 

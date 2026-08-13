@@ -97,11 +97,24 @@ const createMockServer = (overrides?: Partial<any>) => ({
 });
 
 describe('supportedVersions/main.ts', () => {
+  // Many tests below deliberately inject network/decode failures (e.g.
+  // `Error('Network error')`) to exercise fallback paths and don't assert on
+  // the resulting `console.warn` diagnostics themselves (those are covered by
+  // the dedicated tests that do assert on it). Mute it here so the expected,
+  // exercised warnings don't spam CI output; tests that specifically assert
+  // on `console.warn` still spy/restore it themselves per-test.
+  let consoleWarnSpy: jest.SpyInstance;
+
   beforeEach(() => {
     // resetAllMocks (not clearAllMocks) so a jsonwebtoken.verify
     // mockReturnValue/mockImplementation set by one test cannot leak into
     // the next — clearAllMocks only clears call history, not implementations.
     jest.resetAllMocks();
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
   });
 
   // ========== INITIALIZATION & SETUP TESTS ==========

@@ -73,6 +73,53 @@ yarn workspaces:build        # Build all workspaces
   and the date of its last bump (`git log -p --follow -- electron-builder.json`)
   before incrementing — do not guess an arbitrary increment.
 
+## Releases And Tagging
+
+- **Always create release tags with `yarn release:tag`** — never hand-rolled
+  `git tag` + `git push`. The script (`scripts/release-tag.ts`) reads the
+  version from `package.json`, fetches the refs allowed for that version's
+  channel, and fails closed (exit 1) on every unsafe case. Tagging by hand
+  skips all of it.
+- Which remote refs are allowed depends on the channel: prerelease tags
+  (alpha/beta/rc — any version with a prerelease id) must have HEAD as an
+  ancestor of `origin/dev` or any `origin/release/*` branch; stable tags
+  (no prerelease id) must have HEAD as an ancestor of `origin/master` or any
+  `origin/release/*` branch. `origin/release/*` branches are discovered via
+  `git ls-remote --heads origin 'release/*'` at run time.
+- Guards, and how to override each:
+
+  | Guard | Override |
+  |---|---|
+  | Invalid semver in `package.json` | none |
+  | HEAD not an ancestor of an allowed ref for its channel | `--allow-unverified-ref` |
+  | Tag already exists | none — not even `--force` |
+  | Version not greater than latest tag **in its channel** | `--force` |
+
+- Channel (stable / alpha / beta / candidate) is detected from the version and
+  compared only within itself, so an alpha never blocks a stable or vice versa.
+- Flags: `--yes` / `-y` skips the confirmation prompt (also skipped
+  automatically when `CI=true`); `--help` lists everything. Without `--yes` the
+  prompt reads a real TTY, so piping `echo y` is unreliable — use the flag.
+- Tag the **squashed merge/bump commit on the branch the channel expects**
+  (dev for prereleases; master, or a `release/X.Y.x` branch for patch
+  releases, for stables), never a pre-merge bump commit on an unmerged
+  branch — that ships the wrong tree. The ref-ancestor guard enforces this;
+  if it fires, fix the checkout rather than overriding it.
+- A fresh worktree has no `node_modules`, so the script dies with
+  `Couldn't find the node_modules state file (findPackageLocation)`. Run
+  `yarn install` in the worktree — never work around it by tagging by hand.
+- If a guard fires, treat it as a real finding: report it and fix the cause.
+  Do not reach for `--force` or `--allow-unverified-ref` without the
+  release owner explicitly agreeing.
+- Tag names are the bare version (`4.16.0`, no `v` prefix). `build-release.yml`
+  triggers on any tag push, and the auto-updater feed derives from
+  `package.json`'s version, which MUST match the tag.
+- Pure tag/channel logic lives in `scripts/releaseTag.lib.ts` and is unit
+  tested (`scripts/releaseTag.lib.spec.ts`); `release-tag.ts` keeps the I/O.
+  Script specs run under their own Jest project (`testEnvironment: 'node'`).
+- The full end-to-end flow (notes, bump PR, merge, tag, CI, asset matrix, Jira
+  release sync) is driven by the `ship-release` skill.
+
 ## UI Work
 
 - Use Fuselage components from `@rocket.chat/fuselage` for UI work unless the

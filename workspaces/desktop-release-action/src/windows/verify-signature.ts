@@ -1,10 +1,12 @@
-import * as core from '@actions/core';
 import * as fs from 'fs';
-import * as glob from 'glob';
 import * as path from 'path';
+
+import * as core from '@actions/core';
+import * as glob from 'glob';
+
 import { runAndBuffer } from '../shell';
 
-export interface SignatureResult {
+export interface ISignatureResult {
   file: string;
   valid: boolean;
   status: string;
@@ -14,7 +16,7 @@ export interface SignatureResult {
 
 const verifyWithPowerShell = async (
   filePath: string
-): Promise<SignatureResult> => {
+): Promise<ISignatureResult> => {
   const fileName = path.basename(filePath);
 
   try {
@@ -49,7 +51,7 @@ const verifyWithPowerShell = async (
 
 export const verifySignature = async (
   filePath: string
-): Promise<SignatureResult> => {
+): Promise<ISignatureResult> => {
   return verifyWithPowerShell(filePath);
 };
 
@@ -64,7 +66,7 @@ export const verifyExecutableSignature = async (
     'win-arm64-unpacked',
   ];
 
-  const results: SignatureResult[] = [];
+  const results: ISignatureResult[] = [];
   let hasFailures = false;
 
   for (const dir of unpackedDirs) {
@@ -109,7 +111,7 @@ export const verifyInstallerSignatures = async (
   core.info('Verifying Windows installer signatures...');
 
   const patterns = ['*.exe', '*.msi'];
-  const results: SignatureResult[] = [];
+  const results: ISignatureResult[] = [];
   let hasFailures = false;
 
   for (const pattern of patterns) {

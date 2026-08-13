@@ -224,12 +224,14 @@ const WorkspaceTab = ({
         <Initials visible={!favicon} orientation={orientation}>
           {initials}
         </Initials>
-        <Favicon
-          visible={!!favicon}
-          src={favicon ?? ''}
-          draggable='false'
-          orientation={orientation}
-        />
+        {favicon && (
+          <Favicon
+            visible
+            src={favicon}
+            draggable='false'
+            orientation={orientation}
+          />
+        )}
         {showLabel && <Label>{formatServerTitle(title)}</Label>}
         {showLabel && isShortcutVisible && shortcutNumber && (
           <ShortcutChip>{shortcutNumber}</ShortcutChip>

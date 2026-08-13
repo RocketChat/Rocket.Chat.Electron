@@ -1,6 +1,6 @@
 # Rocket.Chat Desktop App
 
-[![Build Status](https://github.com/RocketChat/Rocket.Chat.Electron/actions/workflows/build-release.yml/badge.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/actions)
+[![Latest release](https://img.shields.io/github/v/release/RocketChat/Rocket.Chat.Electron)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
 ![Project Dependencies](https://img.shields.io/librariesio/github/RocketChat/Rocket.Chat.Electron)
 [![GitHub All Releases](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
 ![GitHub](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)
@@ -155,6 +155,21 @@ command on. Ready for distribution file will be outputted to `dist` directory.
 All packaging actions are handled by [electron-builder][]. It has a lot of
 [customization options][].
 
+## Development and Releases
+
+All pull requests target `dev`; `master` contains only released code, and
+`release/X.Y.x` branches carry patch releases for a shipped version.
+Releases are tag-driven — pushing a semver tag triggers CI to build every
+platform and draft a GitHub release, which a human then reviews and
+publishes.
+
+- [docs/development-and-release-flow.md][] — conceptual overview of the
+  branch model, versioning, and CI/CD.
+- [docs/release-process.md][] — operational runbook with the exact commands
+  for cutting alpha, stable, and patch releases.
+- [.github/CONTRIBUTING.md][] — contribution guidelines, including which
+  branch to target.
+
 ## Default servers
 
 The `servers.json` file will define what servers the client will connect to and
@@ -265,3 +280,6 @@ Released under the MIT license.
 [Jest electron runner]: https://github.com/kayahr/jest-electron-runner
 [electron-builder]: https://github.com/electron-userland/electron-builder
 [customization options]: https://www.electron.build/configuration
+[docs/development-and-release-flow.md]: docs/development-and-release-flow.md
+[docs/release-process.md]: docs/release-process.md
+[.github/CONTRIBUTING.md]: .github/CONTRIBUTING.md

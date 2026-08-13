@@ -1,6 +1,6 @@
 ---
 name: electron-bump
-description: Upgrade the Electron version in Rocket.Chat.Electron safely. Detects breaking changes between the current and target Electron release, produces a migration plan gated on user approval, applies the fixes (using GitNexus impact analysis to find every affected callsite), bumps coupled config (electron-builder bundle id, CI node-version, @types/node), runs lint + tests, and opens a ready PR from a fresh branch off master. Trigger when the user says "bump electron", "upgrade electron", "update electron to X", "/electron-bump", or asks to move to a newer Electron release.
+description: Upgrade the Electron version in Rocket.Chat.Electron safely. Detects breaking changes between the current and target Electron release, produces a migration plan gated on user approval, applies the fixes (using GitNexus impact analysis to find every affected callsite), bumps coupled config (electron-builder bundle id, CI node-version, @types/node), runs lint + tests, and opens a ready PR from a fresh branch off dev. Trigger when the user says "bump electron", "upgrade electron", "update electron to X", "/electron-bump", or asks to move to a newer Electron release.
 ---
 
 # Electron Version Bump
@@ -19,7 +19,7 @@ Automates a safe Electron upgrade for **this repo** (Rocket.Chat.Electron). Plan
 
 ## Hard rules
 
-- Branch from **master**, never edit master directly. Use a worktree (see CLAUDE.md § Worktrees) so the user's working dir is untouched.
+- Branch from **dev**, never edit dev directly. Use a worktree (see CLAUDE.md § Worktrees) so the user's working dir is untouched.
 - Plan-gated: do NOT apply any code/config edit until the user approves the migration plan.
 - This is an Orchestrator task: delegate research to `researcher`, edits to `builder-*`, test runs to `watcher`/`tester`. Don't solo the implementation.
 - Never commit/push without explicit user permission for the commit step (PR creation is the approved end-state of this skill, but confirm before `git push` if not already authorized this session).
@@ -118,10 +118,10 @@ Write the plan to a **dedicated, non-colliding** file: `.localdev/workflow/elect
 
 ## Phase 4 — Branch & apply (after approval)
 
-1. Create worktree off master:
+1. Create worktree off dev:
    ```bash
    mkdir -p ../Rocket.Chat.Electron-worktrees
-   git worktree add ../Rocket.Chat.Electron-worktrees/electron-<TARGET> -b chore/electron-<TARGET> master
+   git worktree add ../Rocket.Chat.Electron-worktrees/electron-<TARGET> -b chore/electron-<TARGET> dev
    ```
    Work in that worktree for the rest of the skill.
 2. Bump the version:
@@ -155,7 +155,7 @@ Definition of Done: version bumped everywhere the plan listed, lint green, tests
 2. Show the user the diff summary, confirm the commit.
 3. Commit with conventional message: `chore: update Electron from <CURRENT> to <TARGET>` — match the repo's historical style (see PRs #3285, #3179; the PR number isn't known at commit time, and squash-merge titles carry it anyway). Body lists breaking-change adaptations for a major bump; minimal for patch/minor.
 4. Push the branch.
-5. Open a **ready (non-draft)** PR: `gh pr create --base master --label build-artifacts`. Base is **master** (repo default). Apply the `build-artifacts` label here because an Electron bump changes packaging and reviewers must smoke-test the built installers — this is exactly the case the label is for. PR body:
+5. Open a **ready (non-draft)** PR: `gh pr create --base dev --label build-artifacts`. Base is **dev** (repo default). Apply the `build-artifacts` label here because an Electron bump changes packaging and reviewers must smoke-test the built installers — this is exactly the case the label is for. PR body:
    - What changed: version delta, bundled Node/Chromium.
    - Breaking changes addressed (bullet list, frame as adaptation not regression).
    - Verification: lint + tests pass; CI will run cross-platform builds.

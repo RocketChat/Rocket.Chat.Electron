@@ -6,6 +6,12 @@
     <title>Log Viewer - Rocket.Chat</title>
     <link rel="stylesheet" href="./main.css" />
     <style>
+      :root {
+        /* Lets Chromium paint the base canvas in the OS appearance, so an
+           opaque window does not flash white before the palette mounts. */
+        color-scheme: light dark;
+      }
+
       body {
         margin: 0;
         padding: 0;
@@ -14,6 +20,9 @@
           'Helvetica Neue', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        /* Stays transparent until the app resolves the window material, so a
+           vibrant window never flashes an opaque backdrop on first paint. */
+        background-color: transparent;
       }
 
       #root {

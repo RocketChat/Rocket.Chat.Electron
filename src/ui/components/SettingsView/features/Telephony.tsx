@@ -1,10 +1,3 @@
-import {
-  ToggleSwitch,
-  Field,
-  FieldRow,
-  FieldLabel,
-  FieldHint,
-} from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
 import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +8,7 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED } from '../../../actions';
 import { TelephonyDiagnostics } from './TelephonyDiagnostics';
+import { ToggleField } from './ToggleField';
 
 type TelephonyProps = {
   className?: string;
@@ -40,21 +34,15 @@ export const Telephony = (props: TelephonyProps) => {
   const isTelephonyEnabledId = useId();
 
   return (
-    <Field className={props.className} marginBlock='x16'>
-      <FieldRow>
-        <FieldLabel htmlFor={isTelephonyEnabledId}>
-          {t('settings.options.telephony.title')}
-        </FieldLabel>
-        <ToggleSwitch
-          id={isTelephonyEnabledId}
-          checked={isTelephonyEnabled}
-          onChange={handleChange}
-        />
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>{t('settings.options.telephony.description')}</FieldHint>
-      </FieldRow>
+    <ToggleField
+      className={props.className}
+      id={isTelephonyEnabledId}
+      label={t('settings.options.telephony.title')}
+      description={t('settings.options.telephony.description')}
+      checked={isTelephonyEnabled}
+      onChange={handleChange}
+    >
       {isTelephonyEnabled && <TelephonyDiagnostics />}
-    </Field>
+    </ToggleField>
   );
 };

@@ -1,15 +1,15 @@
 import styled from '@emotion/styled';
-import { Box, Dropdown, IconButton } from '@rocket.chat/fuselage';
+import { Box, Button, Dropdown, IconButton } from '@rocket.chat/fuselage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import type { Download } from '../../../downloads/common';
+import { DownloadRow } from '../../../downloadsWindow/DownloadRow';
 import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { SIDE_BAR_DOWNLOADS_BUTTON_CLICKED } from '../../actions';
 import { TabBarButtonWrapper } from '../TabBar/styles';
-import { DownloadsIndicatorItem } from './DownloadsIndicatorItem';
 
 // Captured once at module load, this marks the boundary between downloads
 // from earlier sessions (ignored, like Chrome's downloads button) and
@@ -255,7 +255,7 @@ type DownloadsIndicatorProps = {
 export const DownloadsIndicator = ({
   compact = false,
 }: DownloadsIndicatorProps = {}) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const downloads = useSelector(({ downloads }: RootState) => downloads);
   const isDownloadsPercentageEnabled = useSelector(
@@ -480,16 +480,15 @@ export const DownloadsIndicator = ({
                 aria-label={t('tabBar.downloads.title')}
                 display='flex'
                 flexDirection='column'
-                paddingInline='x12'
-                paddingBlock='x12'
-                width='x320'
+                width='x440'
                 style={{ WebkitAppRegion: 'no-drag' } as never}
               >
                 <Box
                   display='flex'
                   alignItems='center'
                   justifyContent='space-between'
-                  marginBlockEnd='x8'
+                  paddingInline='x12'
+                  paddingBlock='x12'
                 >
                   <Box fontScale='h4'>{t('tabBar.downloads.title')}</Box>
                   <IconButton
@@ -502,32 +501,23 @@ export const DownloadsIndicator = ({
                 </Box>
                 <Box display='flex' flexDirection='column'>
                   {recentDownloads.map((download) => (
-                    <DownloadsIndicatorItem
+                    <DownloadRow
                       key={download.itemId}
                       download={download}
-                      t={t}
-                      i18n={i18n}
+                      showServer={false}
                     />
                   ))}
                 </Box>
                 <Box
-                  is='button'
-                  type='button'
-                  marginBlockStart='x8'
-                  paddingBlock='x8'
-                  fontScale='p2'
-                  color='info'
-                  textAlign='center'
-                  borderBlockStartWidth='x1'
-                  borderBlockStartStyle='solid'
-                  borderBlockStartColor='extra-light'
-                  style={{
-                    cursor: 'pointer',
-                    background: 'none',
-                  }}
-                  onClick={handleShowAll}
+                  display='flex'
+                  justifyContent='center'
+                  paddingBlockStart='x12'
+                  paddingBlockEnd='x12'
+                  paddingInline='x12'
                 >
-                  {t('tabBar.downloads.showAll')}
+                  <Button secondary small width='100%' onClick={handleShowAll}>
+                    {t('tabBar.downloads.showAll')}
+                  </Button>
                 </Box>
               </Box>
             </Dropdown>

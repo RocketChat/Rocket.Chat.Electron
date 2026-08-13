@@ -34,7 +34,7 @@ const ThemedLogViewerWindow = () => {
   return (
     <>
       <PaletteStyleTag theme={theme} selector=':root' />
-      <LogViewerWindow />
+      <LogViewerWindow paletteTheme={theme === 'dark' ? 'dark' : 'light'} />
     </>
   );
 };

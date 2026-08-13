@@ -42,6 +42,9 @@ jest.mock('@rocket.chat/fuselage', () => ({
     <button {...props}>{children}</button>
   ),
   Field: ({ children }: any) => <div>{children}</div>,
+  FieldDescription: ({ children, ...props }: any) => (
+    <div {...props}>{children}</div>
+  ),
   FieldHint: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   FieldLabel: ({ children, ...props }: any) => (
     <label {...props}>{children}</label>

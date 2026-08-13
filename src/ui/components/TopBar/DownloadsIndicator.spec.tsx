@@ -204,8 +204,10 @@ describe('DownloadsIndicator', () => {
     expect(parseFloat(style.width)).toBeCloseTo(oneCh * 3, 1);
   });
 
-  it('renders progress size text for a 0-byte-received download without the ??? sentinel', async () => {
-    const user = userEvent.setup();
+  // fireEvent rather than userEvent, and a text search over the panel rather
+  // than the whole tree: with the richer row in the panel this test crossed
+  // Jest's 5s limit on the Windows runner.
+  it('leaves the size out of a transfer that has not moved any bytes yet', () => {
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
         1: {
@@ -217,19 +219,11 @@ describe('DownloadsIndicator', () => {
       }),
     });
 
-    await user.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button'));
 
-    const sizeText = screen.getByText(/downloads\.item\.progressSize/, {
-      exact: false,
-    });
-    expect(sizeText).toBeInTheDocument();
-    expect(sizeText.textContent).not.toMatch(/\?\?\?/);
-    expect(sizeText.textContent).toEqual(
-      expect.stringContaining('"receivedBytes":0')
-    );
-    expect(sizeText.textContent).toEqual(
-      expect.stringContaining('"totalBytes":901800')
-    );
+    const panel = screen.getByRole('dialog');
+    expect(panel).toHaveTextContent('report.pdf');
+    expect(panel).not.toHaveTextContent('downloads.item.progressSize');
   });
 
   it('opens the popup listing recent downloads on click', async () => {
@@ -255,7 +249,7 @@ describe('DownloadsIndicator', () => {
 
     await user.click(screen.getByRole('button'));
     await user.click(
-      screen.getByRole('button', { name: 'tabBar.downloads.pause' })
+      screen.getByRole('button', { name: 'downloads.item.pause' })
     );
 
     expect(invokeMock).toHaveBeenCalledWith('downloads/pause', 1);
@@ -327,16 +321,16 @@ describe('DownloadsIndicator', () => {
     );
 
     const row = screen.getByRole('button', {
-      name: 'tabBar.downloads.showInFolder',
+      name: 'downloads.item.showInFolder',
     });
-    expect(row).toHaveAttribute('title', 'tabBar.downloads.showInFolder');
+    expect(row).toHaveAttribute('title', 'downloads.item.showInFolder');
 
     await user.click(row);
 
     expect(invokeMock).toHaveBeenCalledWith('downloads/show-in-folder', 1);
   });
 
-  it('shows the pill and canceled status for a cancelled download from this session, without a show-in-folder action', async () => {
+  it('tags a cancelled download as errored, without a show-in-folder action', async () => {
     const user = userEvent.setup();
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
@@ -354,10 +348,10 @@ describe('DownloadsIndicator', () => {
     await user.click(pill);
 
     expect(screen.getByText('report.pdf')).toBeInTheDocument();
-    expect(screen.getByText('tabBar.downloads.canceled')).toBeInTheDocument();
+    expect(screen.getByText('downloads.item.errored')).toBeInTheDocument();
 
     expect(
-      screen.queryByRole('button', { name: 'tabBar.downloads.showInFolder' })
+      screen.queryByRole('button', { name: 'downloads.item.showInFolder' })
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByText('report.pdf'));
@@ -365,7 +359,7 @@ describe('DownloadsIndicator', () => {
     expect(invokeMock).not.toHaveBeenCalledWith('downloads/show-in-folder', 1);
   });
 
-  it('shows the failed status for an interrupted download', async () => {
+  it('tags an interrupted download as errored', async () => {
     const user = userEvent.setup();
     renderWithStore(<DownloadsIndicator />, {
       preloadedState: buildState({
@@ -381,7 +375,7 @@ describe('DownloadsIndicator', () => {
       screen.getByRole('button', { name: 'tabBar.downloads.title' })
     );
 
-    expect(screen.getByText('tabBar.downloads.failed')).toBeInTheDocument();
+    expect(screen.getByText('downloads.item.errored')).toBeInTheDocument();
   });
 
   it('shows a dismiss button in the open popup', async () => {

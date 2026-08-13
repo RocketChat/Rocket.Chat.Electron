@@ -17,7 +17,6 @@ export const CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED =
   'clear-cache-dialog/keep-login-data-clicked';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
-export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED =
   'menu-bar/add-new-server-clicked';
 export const MENU_BAR_SELECT_SERVER_CLICKED = 'menu-bar/select-server-clicked';
@@ -102,6 +101,13 @@ export const SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED =
   'settings/set-is-transparent-window-enabled-changed';
 export const SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED =
   'settings/set-is-developer-mode-enabled-changed';
+export const LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED =
+  'log-viewer-window/open-state-changed';
+export const DOWNLOADS_WINDOW_OPEN_STATE_CHANGED =
+  'downloads-window/open-state-changed';
+export const SETTINGS_WINDOW_OPEN_STATE_CHANGED =
+  'settings-window/open-state-changed';
+export const SECONDARY_WINDOW_STATE_CHANGED = 'secondary-window/state-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED =
   'settings/set-is-video-call-devtools-auto-open-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED =
@@ -184,7 +190,6 @@ export type UiActionTypeToPayloadMap = {
   [CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED]: WebContents['id'];
   [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
-  [MENU_BAR_ABOUT_CLICKED]: void;
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
@@ -272,6 +277,13 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED]: boolean;
+  [LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [DOWNLOADS_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [SETTINGS_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [SECONDARY_WINDOW_STATE_CHANGED]: {
+    id: string;
+    bounds: { x: number; y: number; width: number; height: number };
+  };
   [SETTINGS_SET_DOWNLOADS_PERCENTAGE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;

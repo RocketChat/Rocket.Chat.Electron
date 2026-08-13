@@ -1,5 +1,5 @@
 import type { DownloadItem, Event, WebContents } from 'electron';
-import { clipboard, shell } from 'electron';
+import { BrowserWindow, clipboard, shell } from 'electron';
 
 import { handle } from '../ipc/main';
 import { dispatch, listen, select } from '../store';
@@ -20,8 +20,12 @@ jest.mock('electron', () => ({
   },
   shell: {
     showItemInFolder: jest.fn(),
+    openPath: jest.fn(),
   },
   webContents: {},
+  BrowserWindow: {
+    fromWebContents: jest.fn(),
+  },
 }));
 
 // Mock IPC handler
@@ -307,6 +311,101 @@ describe('downloads/main', () => {
         'downloads/remove',
         expect.any(Function)
       );
+    });
+
+    describe('IPC handler: downloads/preview-file', () => {
+      const getPreviewHandler = () =>
+        mockHandle.mock.calls.find(
+          ([channel]) => (channel as string) === 'downloads/preview-file'
+        )?.[1] as any;
+
+      it('quick looks a completed download from its own window', async () => {
+        const previewFile = jest.fn();
+        mockSelect.mockReturnValue({
+          savePath: '/downloads/test-file.pdf',
+          fileName: 'test-file.pdf',
+          state: 'completed',
+        });
+        (BrowserWindow.fromWebContents as jest.Mock).mockReturnValue({
+          previewFile,
+        });
+
+        await getPreviewHandler()?.({} as any, 'test-item-id');
+
+        expect(previewFile).toHaveBeenCalledWith(
+          '/downloads/test-file.pdf',
+          'test-file.pdf'
+        );
+      });
+
+      it('does nothing for an unfinished download', async () => {
+        const previewFile = jest.fn();
+        mockSelect.mockReturnValue({
+          savePath: '/downloads/partial.pdf',
+          state: 'progressing',
+        });
+        (BrowserWindow.fromWebContents as jest.Mock).mockReturnValue({
+          previewFile,
+        });
+
+        await getPreviewHandler()?.({} as any, 'test-item-id');
+
+        expect(previewFile).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('IPC handler: downloads/open-file', () => {
+      const getOpenFileHandler = () =>
+        mockHandle.mock.calls.find(
+          ([channel]) => (channel as string) === 'downloads/open-file'
+        )?.[1] as any;
+
+      it('opens a completed download with the OS handler', async () => {
+        mockSelect.mockReturnValue({
+          savePath: '/downloads/test-file.pdf',
+          state: 'completed',
+        });
+        (shell.openPath as jest.Mock).mockResolvedValue('');
+
+        await getOpenFileHandler()?.({} as any, 'test-item-id');
+
+        expect(shell.openPath).toHaveBeenCalledWith('/downloads/test-file.pdf');
+        expect(shell.showItemInFolder).not.toHaveBeenCalled();
+      });
+
+      it('reveals the folder when the file can no longer be opened', async () => {
+        mockSelect.mockReturnValue({
+          savePath: '/downloads/moved.pdf',
+          state: 'completed',
+        });
+        // openPath resolves with a message rather than rejecting.
+        (shell.openPath as jest.Mock).mockResolvedValue('No such file');
+
+        await getOpenFileHandler()?.({} as any, 'test-item-id');
+
+        expect(shell.showItemInFolder).toHaveBeenCalledWith(
+          '/downloads/moved.pdf'
+        );
+      });
+
+      it('does nothing for an unfinished download', async () => {
+        mockSelect.mockReturnValue({
+          savePath: '/downloads/partial.pdf',
+          state: 'progressing',
+        });
+
+        await getOpenFileHandler()?.({} as any, 'test-item-id');
+
+        expect(shell.openPath).not.toHaveBeenCalled();
+      });
+
+      it('does nothing when the download does not exist', async () => {
+        mockSelect.mockReturnValue(undefined);
+
+        await getOpenFileHandler()?.({} as any, 'nope');
+
+        expect(shell.openPath).not.toHaveBeenCalled();
+      });
     });
 
     describe('IPC handler: downloads/show-in-folder', () => {

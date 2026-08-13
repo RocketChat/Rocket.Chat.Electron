@@ -4,6 +4,9 @@ prefixes:
 
 - "feat:" for new features;
 - "fix:" for bug fixes.
+
+INSTRUCTION: Target the `dev` branch, unless this PR is backporting a fix
+to a `release/X.Y.x` patch line.
 -->
 
 <!-- Inform the issue number that this PR closes, or remove the line below -->

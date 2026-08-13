@@ -26,6 +26,27 @@ yarn workspaces:build        # Build all workspaces
   `rm -rf workspaces/desktop-release-action/dist/dist` — the action only
   needs `workspaces/desktop-release-action/dist/index.js`.
 
+## Branching Model
+
+- `dev` is the default branch. ALL feature and fix PRs target `dev` and are
+  squash-merged.
+- `master` holds only released code. It advances only via a `dev`→`master`
+  release PR merged with a true merge commit (`gh pr merge --merge`) —
+  NEVER squash a release PR; squashing forks history permanently.
+- `release/X.Y.x` branches are patch lines for a shipped stable version.
+  Fixes land on `dev` first and are cherry-picked onto the release branch.
+  A hotfix authored directly on a release branch must be forward-ported to
+  `dev` immediately via a cherry-pick PR.
+- Never back-merge `master` or a `release/X.Y.x` branch into `dev`.
+- Tags are created only via `yarn release:tag` (channel-aware guard).
+  Release builds trigger on semver tag pushes only and always produce a
+  draft release for a human to review and publish.
+- Version invariant: `package.json` on `dev` always equals the newest tag
+  cut from `dev`'s own line (the first alpha of a new cycle bumps straight
+  to `X.(Y+1).0-alpha.1`).
+- Details: `docs/development-and-release-flow.md` (conceptual overview),
+  `docs/release-process.md` (exact commands).
+
 ## Patches And Builds
 
 - Do not confuse the two patch systems:
@@ -33,6 +54,9 @@ yarn workspaces:build        # Build all workspaces
     (configured in `package.json`).
   - `patch-package`: `patches/`, currently for `@kayahr/jest-electron-runner`.
 - Never add `@ewsjs/xhr` patches to `patches/`; that creates CI conflicts.
+- The `desktop-release-action`'s dev/snapshot code paths (`releaseDevelopment`
+  / `releaseSnapshot`) are intentionally dead — do not rebuild its `dist/`
+  bundle just to remove them.
 - Windows builds must include all architectures: `x64`, `ia32`, and `arm64`.
 - Code signing uses Google Cloud KMS in two phases:
   1. Build packages without signing (empty env vars).
@@ -209,8 +233,8 @@ node qa/scripts/export-qase-csv.mjs qa/<pack>
 
 - Never commit or push without explicit user permission — "fix this" does NOT
   mean "commit it".
-- Never commit directly to `master` or `dev` — create a branch, test, open a
-  PR.
+- Never commit directly to `master`, `dev`, or `release/X.Y.x` — create a
+  branch, test, open a PR.
 - Read-only git operations (status, diff, log) are always fine.
 - Show what will be committed before committing.
 
@@ -220,7 +244,7 @@ Use worktrees to avoid disrupting another working directory:
 
 ```bash
 mkdir -p ../Rocket.Chat.Electron-worktrees
-git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch master
+git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch dev
 ```
 
 ### Working Principles
@@ -266,7 +290,7 @@ This project is indexed by GitNexus as **Rocket.Chat.Electron**. Use the GitNexu
 ## Always Do
 
 - **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "master"})`.
+- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "dev"})`.
 - **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
 - When exploring unfamiliar code, use `query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
 - When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `context({name: "symbolName"})`.

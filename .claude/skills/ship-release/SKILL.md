@@ -1,99 +1,225 @@
 ---
 name: ship-release
-description: Ship a Rocket.Chat.Electron release end-to-end. Collects merged fixes since the last tag, drafts release notes, bumps the version on a chore/release branch, opens the bump PR, and — after explicit user approval at each gate — merges, tags, monitors the build-release pipeline in the background, verifies the published release has the full platform asset matrix, and syncs the Jira release (fixVersion on every shipped issue, creating issues for work that has none). Handles stable, patch, and alpha releases plus alpha→stable promotion. Trigger when the user says "ship release X.Y.Z", "release 4.16.0", "cut a patch release", "promote alpha to stable", "/ship-release", or asks to sync/backfill a Jira release's fixVersions.
+description: Ship a Rocket.Chat.Electron release end-to-end. Collects merged fixes since the last tag, drafts release notes, bumps the version on a chore/release branch, opens the bump PR, and — after explicit user approval at each gate — merges, tags, monitors the build-release pipeline in the background, and verifies the published release has the full platform asset matrix. Handles alpha (on dev), stable promotion (dev→master), and patch releases (release/X.Y.x). Trigger when the user says "ship release X.Y.Z", "release 4.16.0", "cut a patch release", "promote alpha to stable", or "/ship-release".
 ---
 
 # Ship Release
 
-Drives a release from "fixes merged on master" to "published GitHub release with all platform assets verified". Every irreversible step (merge, tag push, release publish) is gated on explicit user approval.
+Drives a release from "fixes merged on dev" to "published GitHub release
+with all platform assets verified". Every irreversible step (merge, tag
+push, release publish) is gated on explicit user approval.
 
 ## Invocation
 
 - `/ship-release 4.15.2` — explicit target version.
-- `/ship-release` — infer next version: patch bump over the latest stable tag, or ask if ambiguous.
-- Alpha: `/ship-release 4.16.0-alpha.0`. Promotion: `/ship-release 4.16.0` when latest tag is `4.16.0-alpha.N`.
+- `/ship-release` — infer next version: patch bump over the latest stable
+  tag, or ask if ambiguous.
+- Alpha: `/ship-release 4.17.0-alpha.1`. Stable promotion:
+  `/ship-release 4.17.0` when the latest tag is `4.17.0-alpha.N`. Patch:
+  `/ship-release 4.16.1` when the latest stable tag is `4.16.0`.
+
+## Release types at a glance
+
+| Type | Bump branch cut from | Bump PR targets | Merge method | Tag lands on |
+|---|---|---|---|---|
+| Alpha `X.Y.0-alpha.N` | fresh `origin/dev` | `dev` | squash | `dev` tip |
+| Stable `X.Y.0` | fresh `origin/dev` | `dev`, then a release PR `dev`→`master` | bump: squash; release: **merge commit** (`gh pr merge --merge`) | `master` merge commit |
+| Patch `X.Y.Z` | `release/X.Y.x` (cut from tag `X.Y.0` if it doesn't exist yet) | `release/X.Y.x` | squash | `release/X.Y.x` tip |
 
 ## Hard rules
 
-- **NEVER merge, tag, or publish without explicit user approval at that gate.** Preparing a branch/PR is reversible; merge/tag/publish are not.
-- Release branch is always `chore/release-<version>` cut from **fresh `origin/master`** — never from dev, never from a stale local master.
-- Tag only AFTER the bump PR is merged, and tag the **merge commit on master** — a tag pointing anywhere else ships the wrong tree.
-- Tag name is the bare version (`4.15.1`, no `v` prefix) — `build-release.yml` triggers on any tag push, and the auto-updater feed derives from `package.json` version, which MUST match the tag.
-- **Always tag with `yarn release:tag`** (`scripts/release-tag.ts`) — never hand-rolled `git tag` + `git push`. Its channel-aware guards (tag-exists, semver-greater-within-channel) are the safety net; a manual tag skips them. If it refuses, fix the cause — do not work around it.
+- **NEVER merge, tag, or publish without explicit user approval at that
+  gate.** Preparing a branch/PR is reversible; merge/tag/publish are not.
+- **Stable release PRs (`dev`→`master`) must be merged with a true merge
+  commit** (`gh pr merge --merge`), never squash. Squashing forks history
+  permanently — `master` stops being a subset of `dev`'s commit graph.
+  Every other bump PR (alpha on `dev`, patch on `release/X.Y.x`) still
+  squash-merges as usual.
+- Tag only AFTER the relevant bump/release PR is merged, and tag the exact
+  commit that carries the target version — a tag pointing anywhere else
+  ships the wrong tree.
+- Tag name is the bare version (`4.15.1`, no `v` prefix) — `build-release.yml`
+  triggers only on semver tag pushes, and the auto-updater feed derives from
+  `package.json` version, which MUST match the tag.
 - Bump PRs squash-merge (history convention: `chore: bump version to X.Y.Z (#NNNN)`).
-- All three platform jobs (ubuntu / macos / windows) must be green before the release counts as buildable. No partial releases.
-- A release without the full asset matrix (below) is NOT done — report exactly which assets are missing.
-- Monitor CI in the background (`run_in_background` Bash or `watcher`) — never block the session polling in foreground.
+- All three platform jobs (ubuntu / macos / windows) must be green before
+  the release counts as buildable. No partial releases.
+- A release without the full asset matrix (below) is NOT done — report
+  exactly which assets are missing.
+- Monitor CI in the background (`run_in_background` Bash or `watcher`) —
+  never block the session polling in foreground.
+- Tags always go through `yarn release:tag` (`scripts/release-tag.ts`),
+  never a bare `git tag` push. The script is channel-aware: it verifies HEAD
+  is an ancestor of the allowed ref for the tag's channel (alpha →
+  `origin/dev`; stable/patch → `origin/master` or the matching
+  `origin/release/*`) before tagging. An intentional escape hatch,
+  `--allow-unverified-ref`, bypasses the ancestor check — only use it with
+  explicit user confirmation that the ref is correct.
 
 ## Phase 0 — Resolve version & scope
 
-1. Fresh state: `git fetch origin master --tags`.
-2. Latest tags, semver-sorted (not by creation date — an alpha or an older version created later can otherwise look newest): `git tag --sort=-v:refname | head -5`. Current version: `node -p "require('./package.json').version"`.
-3. Resolve TARGET from the arg, or propose: patch bump over the latest **stable** tag (`scripts/release-tag.ts`'s channel logic — exclude alpha/beta/rc tags when picking the stable baseline). If latest tag is an alpha of the same version, this is a **promotion** (drop the `-alpha.N` suffix).
-4. Collect what ships: `git log <last-tag>..origin/master --oneline --no-merges`. Filter out chore/version-bump commits.
-5. If master has nothing new since the last tag → STOP and tell the user there is nothing to release.
+1. Fresh state: `git fetch origin dev master --tags` (also fetch the
+   relevant `release/X.Y.x` for a patch).
+2. Latest tags, semver-sorted (not by creation date — an alpha or an older
+   version created later can otherwise look newest):
+   `git tag --sort=-v:refname | head -5`.
+3. Resolve TARGET and its type from the arg, or propose one:
+   - No pre-release suffix and the latest tag on that `X.Y` line is an
+     alpha → **stable promotion**.
+   - Next `X.Y.Z+1` after an existing stable tag `X.Y.Z` → **patch**.
+   - Next `X.(Y+1).0-alpha.1` after the latest stable tag → **alpha**.
+4. Collect what ships:
+   - Alpha/stable: `git log <last-tag>..origin/dev --oneline --no-merges`.
+   - Patch: `git log <last-tag>..origin/release/X.Y.x --oneline --no-merges`
+     plus the cherry-pick candidates still on `dev` only.
+   Filter out chore/version-bump commits.
+5. If the relevant branch has nothing new since the last tag → STOP and
+   tell the user there is nothing to release.
 
 ## Phase 1 — Release notes draft
 
-1. Map each shipped commit to its PR (`(#NNNN)` suffix) and pull titles: `gh pr view NNNN --json title,labels`.
-2. Draft notes grouped as: 🐛 Fixes / ✨ Improvements / 🔧 Internal. Straightforward language, what changed and why — no invented metrics.
-3. **Customer-facing framing rule applies**: partial-scope fixes are "hardening" / "did not cover path X", never "was broken" / "regression".
-4. Show the draft to the user. Notes get applied to the GitHub release in Phase 5.
+1. Map each shipped commit to its PR (`(#NNNN)` suffix) and pull titles:
+   `gh pr view NNNN --json title,labels`.
+2. Draft notes grouped as: 🐛 Fixes / ✨ Improvements / 🔧 Internal.
+   Straightforward language, what changed and why — no invented metrics.
+3. **Customer-facing framing rule applies**: partial-scope fixes are
+   "hardening" / "did not cover path X", never "was broken" / "regression".
+4. Show the draft to the user. Notes get applied to the GitHub release in
+   Phase 5.
 
 ## Phase 2 — Bump branch & PR
 
-1. Create the release worktree and record its path — every command below runs inside it (`cd` into it, or `git -C <path>`), never in the user's own checkout:
+### Alpha
+
+1. Create the release worktree off fresh `origin/dev` and record its path —
+   every command below runs inside it:
    ```sh
-   git worktree add ../Rocket.Chat.Electron-worktrees/release-<version> -b chore/release-<version> origin/master
+   git worktree add ../Rocket.Chat.Electron-worktrees/release-<version> -b chore/release-<version> origin/dev
    RELEASE_WT=$(pwd)/../Rocket.Chat.Electron-worktrees/release-<version>
    cd "$RELEASE_WT"
    ```
-2. Bump `"version"` in `package.json` (root, ~line 9). Nothing else — no lockfile change needed for a version bump.
-3. **GATE: show the diff and STOP for explicit user approval before the first commit + push of `chore/release-<version>`.**
-4. Commit: `chore: bump version to <version>` and push the branch (still inside `$RELEASE_WT`).
-5. Open PR to **master** titled `chore: bump version to <version>`, body = the shipped-changes list from Phase 1. No `build-artifacts` label (release build comes from the tag, not the PR).
-6. Wait for `validate-pr` checks (lint + tests on all 3 platforms).
-7. **GATE: show PR URL + checks status. STOP until the user says merge.**
+2. Bump `"version"` in `package.json` and `mac.bundleVersion` in
+   `electron-builder.json` (see `docs/release-process.md` for the
+   `bundleVersion` format/increment rule).
+3. **GATE: show the diff and STOP for explicit user approval** before the
+   first commit + push.
+4. Commit `chore: bump version to <version>`, push, open a PR to **`dev`**.
+5. Wait for `validate-pr` checks. **GATE: show PR URL + checks status. STOP
+   until the user says merge.**
+6. Squash-merge: `gh pr merge <PR> --squash`.
+
+### Stable (promotion)
+
+1. Same worktree setup as alpha, off fresh `origin/dev`.
+2. Bump `"version"` in `package.json` to the bare version (drop the
+   pre-release suffix, e.g. `4.17.0-alpha.6` → `4.17.0`).
+3. **GATE**, commit, push, open a bump PR to **`dev`**. Wait for checks.
+   **GATE: STOP until the user says merge.** Squash-merge.
+4. `git -C "$RELEASE_WT" fetch origin dev` and confirm the merge commit is
+   HEAD of `origin/dev` with `package.json` at TARGET.
+5. Open the **release PR**: `dev` → `master`
+   (`gh pr create --base master --head dev --title "chore: release <version>"`),
+   body = the shipped-changes list from Phase 1. **GATE: show PR URL +
+   checks status. STOP until the user explicitly approves the promotion
+   merge** — this is the point where history becomes irreversible.
+
+### Patch
+
+1. Ensure the patch line exists, cut from the stable tag it patches:
+   ```sh
+   git fetch origin --tags
+   git ls-remote --heads origin release/<X.Y.x> # check if it already exists
+   # if missing:
+   git worktree add ../Rocket.Chat.Electron-worktrees/release-<X.Y.x> -b release/<X.Y.x> <X.Y.0>
+   git push origin release/<X.Y.x>
+   ```
+2. Cherry-pick the target fixes from `dev` onto the release branch (in a
+   worktree checked out to `release/<X.Y.x>`):
+   ```sh
+   git cherry-pick <fix-commit-sha> [...]
+   ```
+   **GATE: show the cherry-picked commits and STOP for approval** before
+   pushing.
+3. Bump `"version"` in `package.json` to `X.Y.Z`, commit, push a bump PR
+   targeting **`release/<X.Y.x>`**. Wait for checks. **GATE: STOP until the
+   user says merge.** Squash-merge.
 
 ## Phase 3 — Merge & tag
 
-All commands in this phase run inside `$RELEASE_WT` (`git -C "$RELEASE_WT" ...` or stay `cd`'d in) — never in the user's own checkout.
+All commands in this phase run inside `$RELEASE_WT` (`git -C "$RELEASE_WT" ...`
+or stay `cd`'d in) — never in the user's own checkout.
 
-1. Squash-merge: `gh pr merge <PR> --squash`.
-2. `git -C "$RELEASE_WT" fetch origin master` and confirm the merge commit is HEAD of `origin/master` and its `package.json` has TARGET.
-3. **GATE: confirm with the user before pushing the tag** (tag push = build + release creation; deleting a tag after builds start is messy).
-4. Move the release worktree HEAD onto the master merge commit, then tag with **`yarn release:tag`** — always the repo script, never hand-rolled `git tag`/`git push`. The worktree is still on `chore/release-<version>` (the pre-merge bump commit); tagging there ships the wrong tree, so detach onto the squashed merge commit first:
+### Alpha
 
+1. `git -C "$RELEASE_WT" fetch origin dev` and confirm the squash-merge
+   commit is HEAD of `origin/dev` with `package.json` at TARGET.
+2. **GATE: confirm with the user before pushing the tag.**
+3. Detach onto the `dev` tip and tag:
    ```sh
-   MERGE_SHA=$(git -C "$RELEASE_WT" rev-parse origin/master)
-   git -C "$RELEASE_WT" checkout "$MERGE_SHA"              # detached HEAD at the merge commit
+   MERGE_SHA=$(git -C "$RELEASE_WT" rev-parse origin/dev)
+   git -C "$RELEASE_WT" checkout "$MERGE_SHA"
    node -p "require('$RELEASE_WT/package.json').version"   # MUST print TARGET
-   cd "$RELEASE_WT" && yarn install                        # required — see below
-   yarn release:tag --yes
+   (cd "$RELEASE_WT" && yarn release:tag)
    ```
 
-   `scripts/release-tag.ts` reads the version from `package.json`, fetches the refs allowed for that version's channel, then **fails closed (exit 1)** on:
+### Stable
 
-   | Guard                                                  | Override                    |
-   | ------------------------------------------------------ | ---------------------------- |
-   | Invalid semver in `package.json`                       | none                         |
-   | HEAD not an ancestor of an allowed ref for its channel | `--allow-unverified-ref`    |
-   | Tag already exists                                     | none — not even `--force`   |
-   | Version not greater than latest tag **in its channel** | `--force`                   |
+1. **After** the Phase 2 release PR is approved by the user, merge it with a
+   **true merge commit — never squash**:
+   ```sh
+   gh pr merge <RELEASE_PR> --merge
+   ```
+2. `git -C "$RELEASE_WT" fetch origin master` and confirm the merge commit
+   is HEAD of `origin/master` and its `package.json` has TARGET.
+3. **GATE: confirm with the user before pushing the tag.**
+4. Detach onto the `master` merge commit and tag:
+   ```sh
+   MERGE_SHA=$(git -C "$RELEASE_WT" rev-parse origin/master)
+   git -C "$RELEASE_WT" checkout "$MERGE_SHA"
+   node -p "require('$RELEASE_WT/package.json').version"   # MUST print TARGET
+   (cd "$RELEASE_WT" && yarn release:tag)
+   ```
 
-   Prerelease tags (alpha/beta/rc) must have HEAD as an ancestor of `origin/dev` or an `origin/release/*` branch; stable tags must have HEAD as an ancestor of `origin/master` or an `origin/release/*` branch. Channel detection (stable / alpha / beta / candidate) compares only within a channel, so an alpha never blocks a stable or vice versa. The ref-ancestor guard is what makes step 4's "detach onto the merge commit" enforced rather than merely documented — a hand-rolled `git tag` skips every one of these.
+### Patch
 
-   - **`--yes` skips the confirmation prompt** (also auto-skipped when `CI=true`), so an agent can run this unattended. Step 3 is already the human gate. Without the flag it prompts `Proceed? (y/N)` over `readline`, which needs a real TTY — piping `echo y` is unreliable.
-   - **`yarn install` first.** A fresh worktree has no `node_modules`, and without it the script dies with `Couldn't find the node_modules state file (findPackageLocation)`. Install — do not work around it by tagging by hand.
-   - **If the script refuses, that is a real finding** — report the guard that fired and fix the cause. Do not bypass it with manual git commands, and do not reach for `--force`/`--allow-unverified-ref` without the user explicitly agreeing.
-   - After it reports success, verify the tag landed on the right commit:
-     ```sh
-     git -C "$RELEASE_WT" fetch origin --tags
-     test "$(git -C "$RELEASE_WT" rev-list -1 <version>)" = "$MERGE_SHA" \
-       && echo "tag OK" || echo "TAG POINTS AT THE WRONG COMMIT — do not proceed"
-     ```
+1. `git -C "$RELEASE_WT" fetch origin release/<X.Y.x>` and confirm the
+   squash-merge commit is HEAD of `origin/release/<X.Y.x>` with
+   `package.json` at TARGET.
+2. **GATE: confirm with the user before pushing the tag.**
+3. Detach onto the release-branch tip and tag:
+   ```sh
+   MERGE_SHA=$(git -C "$RELEASE_WT" rev-parse origin/release/<X.Y.x>)
+   git -C "$RELEASE_WT" checkout "$MERGE_SHA"
+   node -p "require('$RELEASE_WT/package.json').version"   # MUST print TARGET
+   (cd "$RELEASE_WT" && yarn release:tag)
+   ```
 
-5. Note: the master push (bump merge) also triggers `build-release.yml` — that run is a master build, NOT the release run. The release run is the one with `head_branch == <version>` (the tag ref). Find it: `gh run list --workflow=build-release.yml --limit 5 --json databaseId,headBranch,status`.
+### All types
+
+`yarn release:tag` (`scripts/release-tag.ts`) reads the version from
+`package.json`, runs the channel-aware ancestor guard, refuses if the tag
+already exists or isn't greater than the latest tag in-channel, then tags
+the current HEAD as the bare version and pushes it. It prompts
+`Proceed? (y/N)` — pipe `y` for non-interactive (`echo y | yarn release:tag`).
+
+- **node_modules required**: a fresh worktree has none, so `yarn release:tag`
+  fails with `Couldn't find the node_modules state file (findPackageLocation)`.
+  Run `yarn install` in the worktree first, or replicate the script's exact
+  guard by hand (fail closed) if a fast tag is unavoidable:
+  ```sh
+  cd "$RELEASE_WT"
+  if git rev-parse -q --verify "refs/tags/<version>" >/dev/null; then
+    echo "TAG EXISTS — abort" >&2
+    exit 1
+  fi
+  git tag -- <version>
+  test "$(git rev-list -1 <version>)" = "$MERGE_SHA" || { echo "tag does not point at merge SHA — abort" >&2; exit 1; }
+  git push origin refs/tags/<version>
+  ```
+- The tag push is the **only** trigger for `build-release.yml` — branch
+  pushes to `dev`/`master`/`release/*` no longer start a release build.
+  Find the run: `gh run list --workflow=build-release.yml --limit 5 --json databaseId,headBranch,status`
+  (the release run's `headBranch` is the tag ref itself).
 
 ## Phase 4 — Monitor pipeline
 
@@ -107,110 +233,38 @@ All commands in this phase run inside `$RELEASE_WT` (`git -C "$RELEASE_WT" ...` 
 1. `gh release view <version> --json name,isDraft,url,assets`.
 2. Assert the full asset matrix — missing entries = release NOT done:
 
-   | Platform | Expected assets                                                                                            |
-   | -------- | ---------------------------------------------------------------------------------------------------------- |
-   | macOS    | `-mac.dmg` (+`.blockmap`), `-mac.pkg`, `-mac.zip`, `-mas.pkg`, `latest-mac.yml`                            |
-   | Windows  | x64/ia32/arm64 × (`.exe` +`.blockmap`, `.msi`, `.appx`), universal `-win.exe` (+`.blockmap`), `latest.yml` |
-   | Linux    | `.deb`, `.rpm`, `.snap`, `.AppImage`, `.tar.gz`, `latest-linux.yml`                                        |
+   | Platform | Expected assets |
+   |---|---|
+   | macOS | `-mac.dmg` (+`.blockmap`), `-mac.pkg`, `-mac.zip`, `-mas.pkg`, `latest-mac.yml` |
+   | Windows | x64/ia32/arm64 × (`.exe` +`.blockmap`, `.msi`, `.appx`), universal `-win.exe` (+`.blockmap`), `latest.yml` |
+   | Linux | `.deb`, `.rpm`, `.snap`, `.AppImage`, `.tar.gz`, `latest-linux.yml` |
 
    (4.15.1 reference: 27 assets total.)
-
 3. Apply the Phase 1 release notes: `gh release edit <version> --notes-file <file>`.
 4. Alphas: mark prerelease (`gh release edit <version> --prerelease`) **while still a draft** — do this before the publish gate, never after, so the alpha is never briefly visible to stable clients.
 5. If the release is a draft: **GATE — ask before publishing** (`gh release edit <version> --draft=false`). Publishing exposes the update feed (`latest*.yml`) to every installed client — this is the point of no return for auto-update.
 
-## Phase 6 — Jira release sync
+## Phase 6 — Wrap up
 
-Every shipped PR must be traceable to a Jira issue carrying `fixVersion = [Electron] <version>`, so the release report answers "what went into this version". Do this **after** the GitHub release is verified, using the Phase 1 PR list as the work inventory.
-
-### Credentials
-
-The Atlassian MCP tools (`createJiraIssue`, `editJiraIssue`, `searchJiraIssuesUsingJql`) handle most of it. For raw REST — transitions, version metadata — use the `jira` CLI's stored token; it has no `api` subcommand, so call REST directly:
-
-```sh
-TOKEN=$(security find-generic-password -s "jira-cli" -w)
-LOGIN=$(grep -i "^login:" ~/.config/.jira/.config.yml | awk '{print $2}')
-curl -s -u "$LOGIN:$TOKEN" -H "Accept: application/json" <url>
-```
-
-Route curl through `ctx_execute` — a PreToolUse hook redirects curl/wget out of plain Bash.
-
-### Steps
-
-1. **Resolve the version.** Name format is `[Electron] X.Y.Z` — NOT bare `X.Y.Z`, and JQL on the wrong name silently returns zero issues rather than erroring. Confirm before trusting an empty result:
-
-   ```sh
-   curl -s -u "$LOGIN:$TOKEN" "https://rocketchat.atlassian.net/rest/api/3/project/CORE/version?maxResults=100&query=Electron"
-   ```
-
-   Releases are usually pre-created by the team. If absent, ask — creating one needs project-admin rights (see step 6).
-
-2. **Inventory.** For each PR in the Phase 1 list, find its Jira issue: a `CORE-NNNN` in the PR title/body/branch, or search by feature keywords (`searchJiraIssuesUsingJql`, component `Electron`). Broad JQL sweeps blow the MCP token limit — restrict `fields` to `summary,status,issuetype,fixVersions` and parse the saved file with `ctx_execute` when it still overflows.
-
-3. **Existing issues** — add the fixVersion, leaving other fields alone. The write REPLACES the whole array, so read first and send the union; passing only the new version silently drops any release the issue already shipped in:
-
-   ```text
-   # 1. read what is already there (getJiraIssue, fields: ["fixVersions"])
-   # 2. send existing + the new one, deduplicated by name
-   editJiraIssue(issueIdOrKey: "CORE-NNNN",
-     fields: {"fixVersions": [{"name": "<existing>"}, {"name": "[Electron] <version>"}]})
-   ```
-
-   An issue with no prior `fixVersions` collapses to just the new entry — that is the common case, but confirm it rather than assume it.
-
-4. **Uncovered work** — create an issue per feature area (not per PR; related PRs group into one). Ask the user for granularity if the split isn't obvious. Set `components: [{"name": "Electron"}]` and the fixVersion at creation:
-
-   ```text
-   createJiraIssue(projectKey: "CORE", issueTypeName: "Task"|"Bug",
-     additional_fields: {"components": [{"name":"Electron"}],
-                         "fixVersions": [{"name": "[Electron] <version>"}]})
-   ```
-
-   Each description: what shipped, why, PR links, and any QA/verification note. Include chores, deps, docs, i18n and CI — the release report is the audit trail, and "no user-visible change" is itself worth recording. Don't invent metrics; quote only numbers the PR actually reports.
-
-5. **Transition to Done.** Transition id **111** → Done on the CORE workflow; resolution is set automatically and is NOT a settable field on it — `jira issue move <key> Done --resolution Done` fails with a bare `400`. Confirm ids first (workflows change):
-
-   ```sh
-   curl -s -u "$LOGIN:$TOKEN" "https://rocketchat.atlassian.net/rest/api/3/issue/<key>/transitions?expand=transitions.fields"
-   curl -s -u "$LOGIN:$TOKEN" -X POST -H "Content-Type: application/json" \
-     -d '{"transition":{"id":"111"}}' \
-     "https://rocketchat.atlassian.net/rest/api/3/issue/<key>/transitions"   # expect HTTP 204
-   ```
-
-   Ask before flipping issues that QA still holds (`in QA`, `Ready for QA`) — that status is QA's tracking, not yours.
-
-6. **Mark the version released** — needs **global or project-admin rights**, which the desktop maintainer account does NOT have. The PUT returns an empty body and silently no-ops (a fuller payload surfaces the real _"You must have global or project administrator rights in order to modify versions"_). Never report this as done off the response — GET the version back and check `released`. When it fails, hand it to a CORE project admin and say so explicitly.
-
-7. **Verify and report** — never trust the write responses alone:
-   ```sh
-   curl -s -u "$LOGIN:$TOKEN" -G \
-     --data-urlencode 'jql=project=CORE AND fixVersion=<versionId> ORDER BY key ASC' \
-     --data-urlencode 'fields=summary,status,resolution,issuetype' \
-     "https://rocketchat.atlassian.net/rest/api/3/search/jql"
-   ```
-   Cross-check every Phase 1 PR against the issue set and report leftovers. Auditing by scraping `/pull/` links out of descriptions gives false positives — older tickets describe fixes in prose without links, so map those by hand before claiming a gap.
-
-Keeping this current per-release is far cheaper than reconstructing it from `git log` months later.
-
-## Phase 7 — Wrap up
-
-1. Report: release URL, asset count, platforms green, Jira release URL + issue count.
+1. Report: release URL, asset count, platforms green.
 2. Cleanup: remove the release worktree (`git worktree remove ../Rocket.Chat.Electron-worktrees/release-<version>`).
-3. Optional (ask): comment the release URL on shipped PRs.
+3. **Stable only**: confirm `dev`'s `package.json` still equals TARGET (the
+   version invariant) — it should, since the bump happened on `dev` before
+   promotion.
+4. **Patch only**: remind the user that if this fix was authored directly on
+   the release branch (not cherry-picked from `dev`), it must be
+   forward-ported to `dev` via a small cherry-pick PR — the one exception to
+   the never-back-merge rule.
+5. Optional (ask): transition linked Jira tickets to Done (desktop tickets: assignee Jean, component Electron) and comment the release URL on shipped PRs.
 
 ## Failure modes
 
-| Symptom                                                  | Likely cause                                              | Action                                                                                          |
-| -------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Tag run missing from `gh run list`                       | Tag pushed before merge, or push rejected                 | Verify tag exists on remote and points at master HEAD                                           |
-| Windows job fails at signing/MSI                         | KMS CNG provider conflict (two-phase signing)             | Read `--log-failed`; usually re-run, not code                                                   |
-| macOS job stuck >1h at notarize                          | Apple notarization queue                                  | Wait; stall threshold 2h before escalating                                                      |
-| Release exists but assets partial                        | One platform job failed after others published            | Fix/re-run failed job; electron-builder appends to same release                                 |
-| `latest*.yml` version ≠ tag                              | package.json bump missed before tag                       | Critical — auto-updater breaks; delete release+tag, redo from Phase 2                           |
-| Jira release reads empty                                 | JQL used bare `X.Y.Z`; real name is `[Electron] X.Y.Z`    | Resolve the name/id from the project version list — a wrong name returns zero, not an error     |
-| `jira issue move ... Done` → `400`                       | `--resolution` is not settable on transition 111          | Drop the flag; POST the transition, resolution is set by the workflow                           |
-| Version stays unreleased after PUT                       | Account lacks project-admin rights (empty-body no-op)     | GET the version to confirm; hand the toggle to a CORE project admin                             |
-| `release:tag` → `findPackageLocation`                    | Fresh worktree has no `node_modules`                      | `yarn install` in the worktree — never tag by hand instead                                      |
-| `release:tag` hangs at `Proceed? (y/N)`                  | Ran without `--yes`; `readline` needs a TTY               | Re-run with `--yes` (step 3 is already the human gate)                                          |
-| `release:tag` → "HEAD is not contained in any allowed ref" | Tagging the pre-merge bump commit, not the squashed merge/dev commit | Detach onto the branch the channel expects (Phase 3 step 4) — this guard is the point, do not override blindly |
-| `release:tag` refuses the version                        | Guard fired: tag exists, or not greater in-channel        | Real finding — report the guard; fix the version, do not bypass with manual git                 |
+| Symptom | Likely cause | Action |
+|---|---|---|
+| Tag run missing from `gh run list` | Tag pushed before merge, or push rejected | Verify tag exists on remote and points at the correct branch's HEAD |
+| Windows job fails at signing/MSI | KMS CNG provider conflict (two-phase signing) | Read `--log-failed`; usually re-run, not code |
+| macOS job stuck >1h at notarize | Apple notarization queue | Wait; stall threshold 2h before escalating |
+| Release exists but assets partial | One platform job failed after others published | Fix/re-run failed job; electron-builder appends to same release |
+| `latest*.yml` version ≠ tag | package.json bump missed before tag | Critical — auto-updater breaks; delete release+tag, redo from Phase 2 |
+| `yarn release:tag` guard rejects HEAD | Tagging from the wrong branch for the channel (e.g. tagging a stable off `dev` directly, or an alpha off a `release/*` branch) | Re-verify you're on the correct branch/commit; only use `--allow-unverified-ref` with explicit user confirmation |
+| Release PR (`dev`→`master`) accidentally squashed | Wrong merge method selected in the merge dialog/CLI | Irreversible — history has forked; escalate to the user immediately, do not attempt to "fix" it by force-pushing `master` |

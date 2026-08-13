@@ -29,6 +29,17 @@ To check your files, run:
 yarn lint
 ```
 
+## Branching Model
+
+Pull requests target `dev`, the default branch. `master` holds only
+released code — it only moves forward via a `dev`→`master` release merge.
+`release/X.Y.x` branches are patch lines for a shipped stable version,
+maintained by cherry-picking fixes from `dev`; only backport PRs for an
+already-released version should target one of these.
+
+See `docs/development-and-release-flow.md` for the full picture of how a
+change moves from PR to release.
+
 ## Contributor License Agreement
 
 Please review and sign our [CLA].

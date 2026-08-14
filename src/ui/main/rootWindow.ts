@@ -160,6 +160,9 @@ export const isInsideSomeScreen = ({
         y + height > bounds.y
     );
 
+export const isWindowInAnyFullscreen = (window: BrowserWindow): boolean =>
+  window.isFullScreen() || window.isSimpleFullScreen();
+
 export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   const rootWindowState = select(selectRootWindowState);
   const isTrayIconEnabled = select(
@@ -412,7 +415,7 @@ export const setupRootWindow = (): void => {
 
     const escapeFullscreenGuard = createEscapeFullscreenGuard(
       rootWindow.webContents,
-      () => rootWindow.isFullScreen() || rootWindow.isSimpleFullScreen()
+      () => isWindowInAnyFullscreen(rootWindow)
     );
 
     rootWindow.webContents.addListener('before-input-event', (event, input) => {

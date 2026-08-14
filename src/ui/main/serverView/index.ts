@@ -45,7 +45,7 @@ import {
 } from '../../actions';
 import { createEscapeFullscreenGuard } from '../escapeFullscreenGuard';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
-import { getRootWindow } from '../rootWindow';
+import { getRootWindow, isWindowInAnyFullscreen } from '../rootWindow';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
 
@@ -357,7 +357,7 @@ const initializeServerWebContentsAfterAttach = (
 
   const escapeFullscreenGuard = createEscapeFullscreenGuard(
     guestWebContents,
-    () => rootWindow.isFullScreen() || rootWindow.isSimpleFullScreen()
+    () => isWindowInAnyFullscreen(rootWindow)
   );
 
   const exitGuestHtmlFullscreen = (): void => {
@@ -385,19 +385,26 @@ const initializeServerWebContentsAfterAttach = (
     }
 
     if (key === 'Escape') {
-      // On macOS, while the guest is in HTML5 fullscreen (e.g. a video player)
-      // ESC must only leave the video fullscreen, like Chrome does: swallow the
-      // native key event so it cannot reach the native window and exit its
-      // fullscreen, and drive the fullscreen exit explicitly. Calling it on the
-      // guest's main frame also covers a fullscreen element inside a nested
-      // frame. Windows and Linux keep leaving this to Chromium.
-      if (
-        process.platform === 'darwin' &&
-        isGuestInHtmlFullscreen &&
-        type === 'keyDown'
-      ) {
-        event.preventDefault();
-        exitGuestHtmlFullscreen();
+      // The root window only reacts to ESC on key down; forwarding the key up as
+      // well would leak an unguarded ESC once the guest left HTML5 fullscreen.
+      if (type !== 'keyDown') {
+        return;
+      }
+
+      // While the guest is in HTML5 fullscreen (e.g. a video player) ESC is
+      // never forwarded to the root window. On macOS it must additionally only
+      // leave the video fullscreen, like Chrome does: swallow the native key
+      // event so it cannot reach the native window and exit its fullscreen too,
+      // and drive the fullscreen exit explicitly. Calling it on the guest's
+      // main frame also covers a fullscreen element inside a nested frame.
+      // Windows and Linux leave the fullscreen exit itself to Chromium.
+      if (isGuestInHtmlFullscreen) {
+        if (process.platform === 'darwin') {
+          event.preventDefault();
+          if (!input.isAutoRepeat) {
+            exitGuestHtmlFullscreen();
+          }
+        }
         return;
       }
 
@@ -405,16 +412,10 @@ const initializeServerWebContentsAfterAttach = (
         event.preventDefault();
         return;
       }
+    }
 
-      // The root window only reacts to ESC on key down; forwarding the key up as
-      // well would leak an unguarded ESC once the guest left HTML5 fullscreen.
-      if (type !== 'keyDown') {
-        return;
-      }
-
-      if (isGuestInHtmlFullscreen) {
-        return;
-      }
+    if (rootWindow.isDestroyed() || rootWindow.webContents.isDestroyed()) {
+      return;
     }
 
     rootWindow.webContents.sendInputEvent({

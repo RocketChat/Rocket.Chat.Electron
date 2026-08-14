@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+import type { Input } from 'electron';
 import { app, screen } from 'electron';
 
 jest.mock('electron', () => ({
@@ -493,20 +494,21 @@ describe('rootWindow Escape fullscreen guard', () => {
     });
   };
 
-  const createInput = (overrides: Record<string, unknown> = {}): any => ({
-    type: 'keyDown',
-    key: 'Escape',
-    code: 'Escape',
-    isAutoRepeat: false,
-    isComposing: false,
-    shift: false,
-    control: false,
-    alt: false,
-    meta: false,
-    location: 0,
-    modifiers: [],
-    ...overrides,
-  });
+  const createInput = (overrides: Partial<Input> = {}): Input =>
+    ({
+      type: 'keyDown',
+      key: 'Escape',
+      code: 'Escape',
+      isAutoRepeat: false,
+      isComposing: false,
+      shift: false,
+      control: false,
+      alt: false,
+      meta: false,
+      location: 0,
+      modifiers: [],
+      ...overrides,
+    }) as Input;
 
   const setupAndGetHandler = async (): Promise<any> => {
     const { setupRootWindow } = require('./rootWindow');

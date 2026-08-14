@@ -54,6 +54,12 @@ jest.mock('../rootWindow', () => ({
       webContents: { addListener: jest.fn() },
     })
   ),
+  isWindowInAnyFullscreen: jest.fn(
+    (window: {
+      isFullScreen: () => boolean;
+      isSimpleFullScreen: () => boolean;
+    }) => window.isFullScreen() || window.isSimpleFullScreen()
+  ),
 }));
 
 jest.mock('./popupMenu', () => ({
@@ -172,7 +178,12 @@ describe('serverView before-input-event fullscreen handling', () => {
   let rootWindow: {
     isFullScreen: jest.Mock;
     isSimpleFullScreen: jest.Mock;
-    webContents: { sendInputEvent: jest.Mock; addListener: jest.Mock };
+    isDestroyed: jest.Mock;
+    webContents: {
+      sendInputEvent: jest.Mock;
+      addListener: jest.Mock;
+      isDestroyed: jest.Mock;
+    };
   };
 
   const setPlatform = (platform: NodeJS.Platform): void => {
@@ -233,7 +244,12 @@ describe('serverView before-input-event fullscreen handling', () => {
     rootWindow = {
       isFullScreen: jest.fn(() => true),
       isSimpleFullScreen: jest.fn(() => false),
-      webContents: { sendInputEvent: jest.fn(), addListener: jest.fn() },
+      isDestroyed: jest.fn(() => false),
+      webContents: {
+        sendInputEvent: jest.fn(),
+        addListener: jest.fn(),
+        isDestroyed: jest.fn(() => false),
+      },
     };
     mockGetRootWindow.mockResolvedValue(rootWindow as any);
 
@@ -272,6 +288,18 @@ describe('serverView before-input-event fullscreen handling', () => {
     expect(guestWebContents.executeJavaScript).toHaveBeenCalledWith(
       expect.stringContaining('exitFullscreen')
     );
+    expect(rootWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
+  });
+
+  it('swallows auto-repeated Escapes in HTML5 fullscreen without re-running the exit', () => {
+    enterHtmlFullscreen();
+
+    beforeInputEventHandler(createEvent(), createInput());
+    const event = createEvent();
+    beforeInputEventHandler(event, createInput({ isAutoRepeat: true }));
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(guestWebContents.executeJavaScript).toHaveBeenCalledTimes(1);
     expect(rootWindow.webContents.sendInputEvent).not.toHaveBeenCalled();
   });
 

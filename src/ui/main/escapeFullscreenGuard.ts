@@ -15,6 +15,10 @@ import type { Input, KeyboardInputEvent, WebContents } from 'electron';
  * is replayed through `sendInputEvent`: a synthetic event carries no `NSEvent` and
  * therefore can never reach AppKit, while the page still receives its ESC.
  *
+ * Auto-repeated ESC key downs are swallowed without a replay: a replay of a
+ * repeat could race the previous replay's round trip through the renderer, and
+ * the raced native repeat would reach AppKit unguarded.
+ *
  * Windows and Linux redispatch to registered window accelerators only, and no ESC
  * accelerator exists, so the guard is inert there.
  */
@@ -42,10 +46,6 @@ const toKeyboardModifiers = (input: Input): KeyboardModifier[] => {
     modifiers.push('meta');
   }
 
-  if (input.isAutoRepeat) {
-    modifiers.push('isautorepeat');
-  }
-
   return modifiers;
 };
 
@@ -62,20 +62,15 @@ export const createEscapeFullscreenGuard = (
   isWindowFullscreen: () => boolean,
   now: () => number = Date.now
 ): EscapeFullscreenGuard => {
-  let pendingReplays = 0;
-  let pendingReplaysExpireAt = 0;
+  let replayExpiresAt = 0;
 
   const isReplay = (): boolean => {
-    if (pendingReplays === 0) {
+    if (replayExpiresAt === 0 || now() > replayExpiresAt) {
+      replayExpiresAt = 0;
       return false;
     }
 
-    if (now() > pendingReplaysExpireAt) {
-      pendingReplays = 0;
-      return false;
-    }
-
-    pendingReplays -= 1;
+    replayExpiresAt = 0;
     return true;
   };
 
@@ -89,20 +84,28 @@ export const createEscapeFullscreenGuard = (
         return false;
       }
 
-      if (!isWindowFullscreen()) {
-        return false;
+      // Auto-repeats never come back as replays (only the initial key down is
+      // replayed), so they must be swallowed before the replay credit is
+      // consulted — otherwise a repeat racing the in-flight replay would
+      // consume its credit and pass through to AppKit as a raw native event.
+      if (input.isAutoRepeat) {
+        return isWindowFullscreen();
       }
 
+      // Consume the replay credit before the fullscreen gate: a replay that
+      // lands after the window already left fullscreen must not leave a stale
+      // credit behind for the next real ESC to be mistaken for a replay.
       if (isReplay()) {
         return false;
       }
 
-      pendingReplays += 1;
-      pendingReplaysExpireAt = now() + REPLAY_TIMEOUT_MS;
-
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Replaying Escape to keep the window in fullscreen');
+      if (!isWindowFullscreen()) {
+        return false;
       }
+
+      replayExpiresAt = now() + REPLAY_TIMEOUT_MS;
+
+      console.debug('Replaying Escape to keep the window in fullscreen');
 
       target.sendInputEvent({
         type: 'keyDown',

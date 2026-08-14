@@ -63,13 +63,50 @@ describe('createEscapeFullscreenGuard', () => {
   it('forwards the active modifiers with the replayed event', () => {
     const guard = createGuard();
 
-    guard.handleInput(createInput({ shift: true, isAutoRepeat: true }));
+    guard.handleInput(createInput({ shift: true, control: true }));
 
     expect(target.sendInputEvent).toHaveBeenCalledWith({
       type: 'keyDown',
       keyCode: 'Escape',
-      modifiers: ['shift', 'isautorepeat'],
+      modifiers: ['shift', 'control'],
     });
+  });
+
+  it('swallows auto-repeated Escapes without replaying them', () => {
+    const guard = createGuard();
+
+    expect(guard.handleInput(createInput())).toBe(true);
+    expect(guard.handleInput(createInput({ isAutoRepeat: true }))).toBe(true);
+    expect(guard.handleInput(createInput({ isAutoRepeat: true }))).toBe(true);
+    expect(target.sendInputEvent).toHaveBeenCalledTimes(1);
+
+    expect(guard.handleInput(createInput())).toBe(false);
+    expect(target.sendInputEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets auto-repeated Escapes through when the window is not in fullscreen', () => {
+    const guard = createGuard(false);
+
+    expect(guard.handleInput(createInput({ isAutoRepeat: true }))).toBe(false);
+    expect(target.sendInputEvent).not.toHaveBeenCalled();
+  });
+
+  it('clears the replay credit when the replay lands after fullscreen ended', () => {
+    let fullscreen = true;
+    const guard = createEscapeFullscreenGuard(
+      target,
+      () => fullscreen,
+      () => currentTime
+    );
+
+    expect(guard.handleInput(createInput())).toBe(true);
+
+    fullscreen = false;
+    expect(guard.handleInput(createInput())).toBe(false);
+
+    fullscreen = true;
+    expect(guard.handleInput(createInput())).toBe(true);
+    expect(target.sendInputEvent).toHaveBeenCalledTimes(2);
   });
 
   it('lets the replayed event through without replaying it again', () => {

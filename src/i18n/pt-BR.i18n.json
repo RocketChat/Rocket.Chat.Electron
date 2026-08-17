@@ -253,8 +253,7 @@
       },
       "menubar": {
         "title": "Barra de menus",
-        "description": "Mostra a barra de menus no topo da aplicação",
-        "disabledHint": "Não é possível desativar a barra de menus quando a barra lateral está desativada. As configurações se tornariam inacessíveis."
+        "description": "Mostra a barra de menus no topo da aplicação"
       },
       "sidebar": {
         "title": "Barra lateral",

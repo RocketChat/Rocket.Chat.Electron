@@ -258,8 +258,7 @@
       },
       "menubar": {
         "title": "Barra de menú",
-        "description": "Mostrar la barra de menú en la parte superior de la ventana.",
-        "disabledHint": "No se puede desactivar la barra de menú cuando la barra lateral está desactivada. La configuración sería inaccesible."
+        "description": "Mostrar la barra de menú en la parte superior de la ventana."
       },
       "sidebar": {
         "title": "Barra lateral",

@@ -278,8 +278,7 @@
       },
       "menubar": {
         "title": "Menylinje",
-        "description": "Vis menylinjen øverst i vinduet.",
-        "disabledHint": "Kan ikke deaktivere menylinjen når sidefeltet er deaktivert. Innstillinger ville bli utilgjengelige."
+        "description": "Vis menylinjen øverst i vinduet."
       },
       "sidebar": {
         "title": "Sidefelt",

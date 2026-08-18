@@ -2,7 +2,7 @@ import type { NativeImage } from 'electron';
 import { Notification, nativeImage } from 'electron';
 
 import { invoke } from '../ipc/main';
-import { dispatch, dispatchSingle, listen } from '../store';
+import { dispatch, dispatchSingle, listen, select } from '../store';
 import type { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -19,6 +19,19 @@ import {
 } from './actions';
 import attentionDrawing from './attentionDrawing';
 import type { ExtendedNotificationOptions } from './common';
+import { parseActivationArguments } from './parseActivationArguments';
+
+type NotificationRoutingMeta = {
+  ipcMeta?: ActionIPCMeta;
+  title?: string;
+  category?: 'DOWNLOADS' | 'SERVER';
+};
+
+const MAX_ROUTING_ENTRIES = 200;
+
+const shouldUseActivationRouting = (): boolean =>
+  process.platform === 'win32' &&
+  typeof Notification.handleActivation === 'function';
 
 const resolveIcon = async (
   iconUrl: string | undefined
@@ -48,6 +61,21 @@ const resolveIcon = async (
 const notifications = new Map();
 const notificationTypes = new Map<string, 'voice' | 'text'>();
 const notificationCategories = new Map<string, 'DOWNLOADS' | 'SERVER'>();
+const notificationRoutingMeta = new Map<string, NotificationRoutingMeta>();
+
+const setNotificationRoutingMeta = (
+  id: string,
+  meta: NotificationRoutingMeta
+): void => {
+  notificationRoutingMeta.set(id, meta);
+
+  if (notificationRoutingMeta.size > MAX_ROUTING_ENTRIES) {
+    const oldestId = notificationRoutingMeta.keys().next().value;
+    if (oldestId !== undefined) {
+      notificationRoutingMeta.delete(oldestId);
+    }
+  }
+};
 
 const createNotification = async (
   id: string,
@@ -64,13 +92,18 @@ const createNotification = async (
   }: ExtendedNotificationOptions,
   ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
+  const isQuickReplyEnabled = select(
+    (state) => state.isNotificationQuickReplyEnabled
+  );
+
   const notification = new Notification({
+    id,
     title,
     subtitle,
     body: body ?? '',
     icon: await resolveIcon(icon),
     silent: silent ?? undefined,
-    hasReply: canReply,
+    hasReply: canReply && isQuickReplyEnabled,
     actions: actions?.map((action) => ({
       type: 'button',
       text: action.title,
@@ -107,44 +140,47 @@ const createNotification = async (
     notificationCategories.delete(id);
   });
 
-  notification.addListener('click', () => {
-    const serverUrl =
-      ipcMeta?.webContentsId !== undefined
-        ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
-        : undefined;
-    const notificationCategory = notificationCategories.get(id);
-    dispatchSingle({
-      type: NOTIFICATIONS_NOTIFICATION_CLICKED,
-      payload: {
-        id,
-        title,
-        ...(serverUrl && { serverUrl }),
-        ...(notificationCategory && { category: notificationCategory }),
-      },
-      ipcMeta,
+  if (!shouldUseActivationRouting()) {
+    notification.addListener('click', () => {
+      const serverUrl =
+        ipcMeta?.webContentsId !== undefined
+          ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
+          : undefined;
+      const notificationCategory = notificationCategories.get(id);
+      dispatchSingle({
+        type: NOTIFICATIONS_NOTIFICATION_CLICKED,
+        payload: {
+          id,
+          title,
+          ...(serverUrl && { serverUrl }),
+          ...(notificationCategory && { category: notificationCategory }),
+        },
+        ipcMeta,
+      });
     });
-  });
 
-  notification.addListener('reply', (_event, reply) => {
-    dispatchSingle({
-      type: NOTIFICATIONS_NOTIFICATION_REPLIED,
-      payload: { id, reply },
-      ipcMeta,
+    notification.addListener('reply', (_event, reply) => {
+      dispatchSingle({
+        type: NOTIFICATIONS_NOTIFICATION_REPLIED,
+        payload: { id, reply },
+        ipcMeta,
+      });
     });
-  });
 
-  notification.addListener('action', (_event, index) => {
-    dispatchSingle({
-      type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
-      payload: { id, index },
-      ipcMeta,
+    notification.addListener('action', (_event, index) => {
+      dispatchSingle({
+        type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
+        payload: { id, index },
+        ipcMeta,
+      });
     });
-  });
+  }
 
   notifications.set(id, notification);
   if (category) {
     notificationCategories.set(id, category);
   }
+  setNotificationRoutingMeta(id, { ipcMeta, title, category });
 
   notification.show();
 
@@ -226,6 +262,64 @@ const handleCreateEvent = async (
   return createNotification(id, options, ipcMeta);
 };
 
+export const handleNotificationActivation = (
+  details: Electron.ActivationArguments
+): void => {
+  const { tag, type } = parseActivationArguments(details.arguments);
+
+  if (!tag) {
+    console.warn(
+      '[notifications] could not parse notification id from activation arguments'
+    );
+    return;
+  }
+
+  const routingMeta = notificationRoutingMeta.get(tag);
+  if (!routingMeta) {
+    console.warn(
+      `[notifications] no routing metadata found for notification ${tag}`
+    );
+    return;
+  }
+
+  const { ipcMeta, title, category } = routingMeta;
+
+  if (type === 'reply' && details.reply !== undefined) {
+    dispatchSingle({
+      type: NOTIFICATIONS_NOTIFICATION_REPLIED,
+      payload: { id: tag, reply: details.reply },
+      ipcMeta,
+    });
+    return;
+  }
+
+  if (type === 'action') {
+    dispatchSingle({
+      type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
+      payload: { id: tag, index: details.actionIndex ?? 0 },
+      ipcMeta,
+    });
+    return;
+  }
+
+  if (type === 'click') {
+    const serverUrl =
+      ipcMeta?.webContentsId !== undefined
+        ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
+        : undefined;
+    dispatchSingle({
+      type: NOTIFICATIONS_NOTIFICATION_CLICKED,
+      payload: {
+        id: tag,
+        title: title ?? '',
+        ...(serverUrl && { serverUrl }),
+        ...(category && { category }),
+      },
+      ipcMeta,
+    });
+  }
+};
+
 export const setupNotifications = (): void => {
   listen(NOTIFICATIONS_CREATE_REQUESTED, async (action) => {
     if (!hasMeta(action)) {
@@ -251,5 +345,10 @@ export const setupNotifications = (): void => {
       attentionDrawing.stopAttention(notificationId);
     }
     notificationTypes.delete(notificationId);
+    notificationRoutingMeta.delete(notificationId);
   });
+
+  if (shouldUseActivationRouting()) {
+    Notification.handleActivation(handleNotificationActivation);
+  }
 };

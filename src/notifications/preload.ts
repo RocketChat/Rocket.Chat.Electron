@@ -66,6 +66,13 @@ export const createNotification = async ({
     onEvent?.({ type: event.type, detail: event.detail })
   );
 
+  if (eventHandlers.size > 500) {
+    const oldestId = eventHandlers.keys().next().value;
+    if (oldestId !== undefined) {
+      eventHandlers.delete(oldestId);
+    }
+  }
+
   return id;
 };
 
@@ -108,7 +115,6 @@ export const listenToNotificationsRequests = (): void => {
     } = action;
     const eventHandler = eventHandlers.get(id);
     eventHandler?.({ type: 'close' });
-    eventHandlers.delete(id);
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {

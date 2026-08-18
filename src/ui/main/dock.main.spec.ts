@@ -53,9 +53,11 @@ describe('ui/main/dock', () => {
       value: 'linux',
       configurable: true,
     });
+    watchCallbacks.clear();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const dock = require('./dock').default;
     expect(() => dock.setUp()).not.toThrow();
+    expect(watchCallbacks.size).toBe(0);
   });
 
   it('registers badge and bounce watches on darwin and drives dock APIs', () => {

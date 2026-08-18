@@ -589,6 +589,7 @@ const selectWindowDeps = createStructuredSelector({
   isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
     isDeveloperModeEnabled,
   isUpdatingAllowed: ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
+  isUpdatingEnabled: ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled,
   updateStore: ({ updateStore }: RootState) => updateStore,
 });
 
@@ -1009,6 +1010,7 @@ export const selectAppMenuPopupTemplate = createSelector(
     createHelpMenu,
     ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled,
     ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
+    ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled,
     ({ updateStore }: RootState) => updateStore,
   ],
   (
@@ -1020,9 +1022,16 @@ export const selectAppMenuPopupTemplate = createSelector(
     helpMenu,
     isDeveloperModeEnabled,
     isUpdatingAllowed,
+    isUpdatingEnabled,
     updateStore
   ): MenuItemConstructorOptions[] => {
-    const canCheckForUpdates = isUpdatingAllowed || updateStore !== null;
+    // Store builds stay unconditional on isUpdatingEnabled (an admin can
+    // disable electron-updater, but that setting has no bearing on a store's
+    // own update mechanism); non-store builds need BOTH allowed and enabled,
+    // otherwise clicking the item flips updateCheckStatus to 'checking'
+    // (reducers.ts) with no listener ever registered to settle it back.
+    const canCheckForUpdates =
+      (isUpdatingAllowed && isUpdatingEnabled) || updateStore !== null;
 
     const settingsItem: MenuItemConstructorOptions = {
       id: 'settings',
@@ -1100,9 +1109,16 @@ export const selectServerSwitcherMenuTemplate = createSelector(
     isAddNewServersEnabled,
     isDeveloperModeEnabled,
     isUpdatingAllowed,
+    isUpdatingEnabled,
     updateStore,
   }): MenuItemConstructorOptions[] => {
-    const canCheckForUpdates = isUpdatingAllowed || updateStore !== null;
+    // Store builds stay unconditional on isUpdatingEnabled (an admin can
+    // disable electron-updater, but that setting has no bearing on a store's
+    // own update mechanism); non-store builds need BOTH allowed and enabled,
+    // otherwise clicking the item flips updateCheckStatus to 'checking'
+    // (reducers.ts) with no listener ever registered to settle it back.
+    const canCheckForUpdates =
+      (isUpdatingAllowed && isUpdatingEnabled) || updateStore !== null;
 
     const serverItems = servers.map((server, i): MenuItemConstructorOptions => {
       const isActive =

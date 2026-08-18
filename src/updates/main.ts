@@ -335,13 +335,15 @@ const checkForStoreUpdate = async (
 
     if (!result) {
       console.warn(`Store (${store}) update check failed: no result`);
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: Object.assign(
-          new Error(`Store (${store}) update check failed`),
-          { name: 'StoreLookupError' }
-        ),
-      });
+      // dispatchUpdateError shapes the payload as a plain
+      // { message, stack, name } object (not a real Error instance) — the
+      // action crosses to renderers via webContents.send, whose structured
+      // clone resets a real Error's custom `name` back to 'Error'.
+      dispatchUpdateError(
+        Object.assign(new Error(`Store (${store}) update check failed`), {
+          name: 'StoreLookupError',
+        })
+      );
       return;
     }
 

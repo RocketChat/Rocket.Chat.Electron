@@ -304,12 +304,13 @@ describe('ui/main/menuBar', () => {
       expect(serverB?.checked).toBe(false);
     });
 
-    it('includes checkForUpdates and dispatches on click when updating is allowed', async () => {
+    it('includes checkForUpdates and dispatches on click when updating is allowed and enabled', async () => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { dispatch } = require('../../store');
       const state = createState({
         isDeveloperModeEnabled: false,
         isUpdatingAllowed: true,
+        isUpdatingEnabled: true,
         updateStore: null,
       });
       const template = selectServerSwitcherMenuTemplate(state);
@@ -326,6 +327,7 @@ describe('ui/main/menuBar', () => {
       const state = createState({
         isDeveloperModeEnabled: false,
         isUpdatingAllowed: false,
+        isUpdatingEnabled: false,
         updateStore: 'mas',
       });
       const template = selectServerSwitcherMenuTemplate(state);
@@ -338,6 +340,20 @@ describe('ui/main/menuBar', () => {
       const state = createState({
         isDeveloperModeEnabled: false,
         isUpdatingAllowed: false,
+        isUpdatingEnabled: true,
+        updateStore: null,
+      });
+      const template = selectServerSwitcherMenuTemplate(state);
+      const ids = template.map((item) => item.id);
+
+      expect(ids).not.toContain('checkForUpdates');
+    });
+
+    it('omits checkForUpdates when updating is allowed but admin-disabled (isUpdatingEnabled: false) on a non-store build', () => {
+      const state = createState({
+        isDeveloperModeEnabled: false,
+        isUpdatingAllowed: true,
+        isUpdatingEnabled: false,
         updateStore: null,
       });
       const template = selectServerSwitcherMenuTemplate(state);
@@ -369,6 +385,7 @@ describe('ui/main/menuBar', () => {
       const state = createState({
         isDeveloperModeEnabled: true,
         isUpdatingAllowed: true,
+        isUpdatingEnabled: true,
         updateStore: null,
       });
       const template = selectServerSwitcherMenuTemplate(state);
@@ -424,6 +441,7 @@ describe('ui/main/menuBar', () => {
           const state = createState({
             isDeveloperModeEnabled: true,
             isUpdatingAllowed: true,
+            isUpdatingEnabled: true,
             updateStore: null,
           });
           const template = selectAppMenuPopupTemplate(state);
@@ -436,9 +454,10 @@ describe('ui/main/menuBar', () => {
           expect(ids[checkForUpdatesIndex + 3]).toBe('simulateDownload');
         });
 
-        it('includes checkForUpdates when updating is allowed', () => {
+        it('includes checkForUpdates when updating is allowed and enabled', () => {
           const state = createState({
             isUpdatingAllowed: true,
+            isUpdatingEnabled: true,
             updateStore: null,
           });
           const template = selectAppMenuPopupTemplate(state);
@@ -450,6 +469,7 @@ describe('ui/main/menuBar', () => {
         it('includes checkForUpdates for a store build even when isUpdatingAllowed is false', () => {
           const state = createState({
             isUpdatingAllowed: false,
+            isUpdatingEnabled: false,
             updateStore: 'mas',
           });
           const template = selectAppMenuPopupTemplate(state);
@@ -461,6 +481,19 @@ describe('ui/main/menuBar', () => {
         it('omits checkForUpdates when updating is neither allowed nor store-distributed (e.g. Linux deb/rpm/tar.gz)', () => {
           const state = createState({
             isUpdatingAllowed: false,
+            isUpdatingEnabled: true,
+            updateStore: null,
+          });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          expect(ids).not.toContain('checkForUpdates');
+        });
+
+        it('omits checkForUpdates when updating is allowed but admin-disabled (isUpdatingEnabled: false) on a non-store build', () => {
+          const state = createState({
+            isUpdatingAllowed: true,
+            isUpdatingEnabled: false,
             updateStore: null,
           });
           const template = selectAppMenuPopupTemplate(state);

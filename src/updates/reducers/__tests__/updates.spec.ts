@@ -489,10 +489,10 @@ describe('updateDownloadProgress reducer', () => {
 
   it('should NOT reset progress on UPDATES_OPEN_STORE_PAGE_REQUESTED (store builds have nothing to download)', () => {
     expect(
-      updateDownloadProgress(0, {
+      updateDownloadProgress(42, {
         type: UPDATES_OPEN_STORE_PAGE_REQUESTED,
       } as any)
-    ).toBe(0);
+    ).toBe(42);
   });
 });
 

@@ -12,6 +12,7 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_OPEN_APP_STORE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_READY,
   UPDATES_SKIP_REQUESTED,
@@ -439,6 +440,14 @@ describe('updateDownloadStatus reducer', () => {
   ])('should reset to idle on %s', (type) => {
     expect(updateDownloadStatus('downloaded', { type } as any)).toBe('idle');
   });
+
+  it('should NOT enter downloading on UPDATES_OPEN_APP_STORE_REQUESTED (MAS has nothing to download)', () => {
+    expect(
+      updateDownloadStatus('idle', {
+        type: UPDATES_OPEN_APP_STORE_REQUESTED,
+      } as any)
+    ).toBe('idle');
+  });
 });
 
 describe('updateDownloadProgress reducer', () => {
@@ -474,6 +483,14 @@ describe('updateDownloadProgress reducer', () => {
       } as any)
     ).toBe(0);
   });
+
+  it('should NOT reset progress on UPDATES_OPEN_APP_STORE_REQUESTED (MAS has nothing to download)', () => {
+    expect(
+      updateDownloadProgress(0, {
+        type: UPDATES_OPEN_APP_STORE_REQUESTED,
+      } as any)
+    ).toBe(0);
+  });
 });
 
 describe('isUpdatePanelOpen reducer', () => {
@@ -498,6 +515,7 @@ describe('isUpdatePanelOpen reducer', () => {
 
   it.each([
     UPDATES_DOWNLOAD_REQUESTED,
+    UPDATES_OPEN_APP_STORE_REQUESTED,
     UPDATES_SKIP_REQUESTED,
     UPDATES_NEW_VERSION_NOT_AVAILABLE,
     UPDATES_ERROR_THROWN,

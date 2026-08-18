@@ -109,7 +109,7 @@ describe('fetchLatestAppStoreVersion', () => {
     expect(await fetchLatestAppStoreVersion()).toBeNull();
   });
 
-  it('returns null when the request is aborted (timeout)', async () => {
+  it('returns null when the request is aborted (timeout), manually signaling abort', async () => {
     global.fetch = jest.fn().mockImplementation((_url, options) => {
       const { signal } = options as { signal: AbortSignal };
       return new Promise((_resolve, reject) => {
@@ -127,6 +127,34 @@ describe('fetchLatestAppStoreVersion', () => {
     controllerAbort.dispatchEvent(new Event('abort'));
 
     expect(await promise).toBeNull();
+  });
+
+  it("returns null when the module's own 10s timeout fires, driven by fake timers", async () => {
+    jest.useFakeTimers();
+
+    try {
+      global.fetch = jest.fn().mockImplementation((_url, options) => {
+        const { signal } = options as { signal: AbortSignal };
+        return new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => {
+            reject(
+              new DOMException('The operation was aborted.', 'AbortError')
+            );
+          });
+        });
+      });
+
+      const promise = fetchLatestAppStoreVersion();
+
+      // Advances the real setTimeout(() => controller.abort(), 10_000)
+      // inside fetchLatestAppStoreVersion, rather than firing the abort event
+      // by hand.
+      await jest.advanceTimersByTimeAsync(10_000);
+
+      expect(await promise).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 
@@ -169,6 +197,57 @@ describe('openAppStore', () => {
 
   it('falls back to the constant app store url when none is provided', async () => {
     await openAppStore();
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      'https://apps.apple.com/app/id1086818840'
+    );
+  });
+
+  it('accepts an itunes.apple.com https url', async () => {
+    await openAppStore(
+      'https://itunes.apple.com/us/app/rocket-chat/id1086818840'
+    );
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      'https://itunes.apple.com/us/app/rocket-chat/id1086818840'
+    );
+  });
+
+  it('falls back on an http (non-https) downgrade', async () => {
+    await openAppStore('http://apps.apple.com/app/id1086818840');
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      'https://apps.apple.com/app/id1086818840'
+    );
+  });
+
+  it('falls back on a file: URL', async () => {
+    await openAppStore('file:///etc/passwd');
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      'https://apps.apple.com/app/id1086818840'
+    );
+  });
+
+  it('falls back on a javascript: URL', async () => {
+    await openAppStore('javascript:alert(1)');
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      'https://apps.apple.com/app/id1086818840'
+    );
+  });
+
+  it('falls back on an https url with an unexpected host', async () => {
+    await openAppStore('https://evil.example.com/apps.apple.com');
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      'https://apps.apple.com/app/id1086818840'
+    );
+  });
+
+  it('falls back on a malformed URL string', async () => {
+    await openAppStore('not a url');
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      'https://apps.apple.com/app/id1086818840'
+    );
+  });
+
+  it('falls back when no url is provided', async () => {
+    await openAppStore(undefined);
     expect(shell.openExternal).toHaveBeenCalledWith(
       'https://apps.apple.com/app/id1086818840'
     );

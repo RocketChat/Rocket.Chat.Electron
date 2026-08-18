@@ -150,6 +150,37 @@ export const isStoreVersionNewer = (
   return false;
 };
 
+/** Hostnames the App Store deep link is allowed to point at. */
+const ALLOWED_STORE_HOSTNAMES = new Set(['apps.apple.com', 'itunes.apple.com']);
+
+/**
+ * Validates a store URL before it's handed to `shell.openExternal`: only
+ * `https:` URLs pointed at an Apple App Store hostname pass through.
+ * Anything else (a protocol downgrade, an unexpected host, a malformed
+ * string, or no URL at all) falls back to the known-safe constant instead of
+ * being opened as-is.
+ */
+const toSafeStoreUrl = (storeUrl?: string): string => {
+  if (!storeUrl) {
+    return FALLBACK_APP_STORE_URL;
+  }
+
+  try {
+    const url = new URL(storeUrl);
+
+    if (
+      url.protocol === 'https:' &&
+      ALLOWED_STORE_HOSTNAMES.has(url.hostname)
+    ) {
+      return storeUrl;
+    }
+  } catch {
+    // Malformed URL — fall through to the fallback below.
+  }
+
+  return FALLBACK_APP_STORE_URL;
+};
+
 /** Opens the Mac App Store listing, falling back to the app's known store id. */
 export const openAppStore = (storeUrl?: string): Promise<void> =>
-  shell.openExternal(storeUrl ?? FALLBACK_APP_STORE_URL);
+  shell.openExternal(toSafeStoreUrl(storeUrl));

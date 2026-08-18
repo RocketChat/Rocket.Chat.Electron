@@ -24,6 +24,7 @@ import {
   UPDATES_INSTALL_REQUESTED,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_OPEN_APP_STORE_REQUESTED,
   UPDATES_READY,
   UPDATES_SIMULATION_REQUESTED,
   UPDATES_SKIP_REQUESTED,
@@ -330,10 +331,9 @@ const checkForAppStoreUpdate = async (): Promise<void> => {
       console.warn('Mac App Store update check failed: no result');
       dispatch({
         type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: 'Mac App Store update check failed',
+        payload: Object.assign(new Error('Mac App Store update check failed'), {
           name: 'AppStoreLookupError',
-        } as Error,
+        }),
       });
       return;
     }
@@ -382,17 +382,6 @@ export const setupUpdateLabelFlow = (): void => {
   });
 
   listen(UPDATES_DOWNLOAD_REQUESTED, async () => {
-    if (isMasBuild()) {
-      // MAS builds cannot self-update: hand the user off to the App Store
-      // listing instead of touching autoUpdater.
-      try {
-        await openAppStore(lastKnownAppStoreUrl);
-      } catch (error) {
-        dispatchUpdateError(error);
-      }
-      return;
-    }
-
     isLabelInitiatedDownload = true;
 
     if (isSimulatingUpdate) {
@@ -404,6 +393,20 @@ export const setupUpdateLabelFlow = (): void => {
       await autoUpdater.downloadUpdate();
     } catch (error) {
       isLabelInitiatedDownload = false;
+      dispatchUpdateError(error);
+    }
+  });
+
+  // MAS builds cannot self-update: hand the user off to the App Store
+  // listing instead of touching autoUpdater. Kept as a distinct listener
+  // (rather than a branch inside UPDATES_DOWNLOAD_REQUESTED) so the
+  // download-status reducers, which see every FSA regardless of this
+  // branch, never flip to "downloading" for a build that never downloads
+  // anything.
+  listen(UPDATES_OPEN_APP_STORE_REQUESTED, async () => {
+    try {
+      await openAppStore(lastKnownAppStoreUrl);
+    } catch (error) {
       dispatchUpdateError(error);
     }
   });

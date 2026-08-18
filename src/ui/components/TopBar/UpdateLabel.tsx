@@ -17,6 +17,7 @@ import {
   UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
+  UPDATES_OPEN_APP_STORE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
@@ -339,6 +340,15 @@ export const UpdateLabel = () => {
 
   const handleInstallClick = (): void => {
     toggle(false);
+
+    if (isMasUpdate) {
+      // Nothing to download on this build — hand off to the App Store
+      // listing via a distinct action, so the download-status reducers
+      // (which see every FSA) never flip to "downloading".
+      dispatch({ type: UPDATES_OPEN_APP_STORE_REQUESTED });
+      return;
+    }
+
     dispatch({ type: UPDATES_DOWNLOAD_REQUESTED });
   };
 

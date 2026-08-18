@@ -2,6 +2,7 @@ import {
   UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
+  UPDATES_OPEN_APP_STORE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
@@ -119,6 +120,22 @@ describe('UpdateLabel', () => {
     await user.click(screen.getByText('dialog.update.install'));
 
     expect(mockDispatch).toHaveBeenCalledWith({
+      type: UPDATES_DOWNLOAD_REQUESTED,
+    });
+  });
+
+  it('opens the App Store instead of downloading on a MAS build', async () => {
+    const user = userEvent.setup();
+    renderWithStore(<UpdateLabel />, {
+      preloadedState: openState({ updateStore: 'mas' }),
+    });
+
+    await user.click(screen.getByText('dialog.update.openAppStore'));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: UPDATES_OPEN_APP_STORE_REQUESTED,
+    });
+    expect(mockDispatch).not.toHaveBeenCalledWith({
       type: UPDATES_DOWNLOAD_REQUESTED,
     });
   });

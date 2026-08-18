@@ -1,7 +1,7 @@
 import {
   isServerUrlResolutionResult,
   ServerUrlResolutionStatus,
-} from './common';
+} from '../common';
 
 describe('servers/common', () => {
   it('returns false for non-array objects', () => {

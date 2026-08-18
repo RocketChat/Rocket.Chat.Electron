@@ -30,6 +30,12 @@ import {
   UPDATES_UPDATE_DOWNLOADED,
   UPDATES_CHANNEL_CHANGED,
 } from './actions';
+import {
+  fetchLatestAppStoreVersion,
+  isMasBuild,
+  isStoreVersionNewer,
+  openAppStore,
+} from './appStoreUpdates';
 import type {
   AppLevelUpdateConfiguration,
   UpdateConfiguration,
@@ -141,6 +147,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
         (process.platform === 'win32' && !process.windowsStore) ||
         (process.platform === 'darwin' && !process.mas),
+      updateStore: isMasBuild() ? ('mas' as const) : null,
       isEachUpdatesSettingConfigurable: true,
       isUpdatingEnabled,
       doCheckForUpdatesOnStartup,
@@ -303,6 +310,56 @@ const dispatchUpdateError = (error: unknown): void => {
   }
 };
 
+/** Store URL from the last successful Mac App Store lookup, used by the "Open App Store" action. */
+let lastKnownAppStoreUrl: string | undefined;
+
+/**
+ * Runs a user-initiated update check against the Mac App Store lookup instead
+ * of electron-updater. Mirrors the non-MAS check's dispatch sequence
+ * (checking → available/not-available) and error-reporting convention (a
+ * failed lookup is not actionable for the user: warn-level log +
+ * UPDATES_ERROR_THROWN, never a modal).
+ */
+const checkForAppStoreUpdate = async (): Promise<void> => {
+  dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
+
+  try {
+    const result = await fetchLatestAppStoreVersion();
+
+    if (!result) {
+      console.warn('Mac App Store update check failed: no result');
+      dispatch({
+        type: UPDATES_ERROR_THROWN,
+        payload: {
+          message: 'Mac App Store update check failed',
+          name: 'AppStoreLookupError',
+        } as Error,
+      });
+      return;
+    }
+
+    const currentVersion = app.getVersion();
+
+    if (!isStoreVersionNewer(result.version, currentVersion)) {
+      lastKnownAppStoreUrl = undefined;
+      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+      return;
+    }
+
+    lastKnownAppStoreUrl = result.storeUrl;
+    dispatch({
+      type: UPDATES_NEW_VERSION_AVAILABLE,
+      payload: result.version,
+    });
+  } catch (error) {
+    console.warn(
+      'Mac App Store update check failed:',
+      error instanceof Error ? error.message : error
+    );
+    dispatchUpdateError(error);
+  }
+};
+
 /**
  * Wires the titlebar update label to the updater. Registered before the
  * "updating not allowed/enabled" bail-out so the simulated flow stays available
@@ -325,6 +382,17 @@ export const setupUpdateLabelFlow = (): void => {
   });
 
   listen(UPDATES_DOWNLOAD_REQUESTED, async () => {
+    if (isMasBuild()) {
+      // MAS builds cannot self-update: hand the user off to the App Store
+      // listing instead of touching autoUpdater.
+      try {
+        await openAppStore(lastKnownAppStoreUrl);
+      } catch (error) {
+        dispatchUpdateError(error);
+      }
+      return;
+    }
+
     isLabelInitiatedDownload = true;
 
     if (isSimulatingUpdate) {
@@ -363,6 +431,18 @@ export const setupUpdateLabelFlow = (): void => {
 
     await warnAboutUpdateSkipped();
     dispatch({ type: UPDATE_SKIPPED, payload: action.payload });
+  });
+
+  // The Mac App Store build cannot use electron-updater, so its user-initiated
+  // check is registered here (unconditionally) instead of in setupUpdates,
+  // which bails out before reaching the electron-updater-only listener below.
+  listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
+    if (!isMasBuild()) {
+      return;
+    }
+
+    isUserInitiatedCheck = true;
+    await checkForAppStoreUpdate();
   });
 };
 
@@ -406,6 +486,7 @@ export const setupUpdates = async (): Promise<void> => {
     isInternalVideoChatWindowEnabled,
     isVideoCallScreenCaptureFallbackEnabled,
     updateChannel,
+    updateStore,
   } = await loadConfiguration();
 
   dispatch({
@@ -422,12 +503,20 @@ export const setupUpdates = async (): Promise<void> => {
       isInternalVideoChatWindowEnabled,
       isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
+      updateStore,
     },
   });
 
   // Registered first so the simulated flow (and the label's own actions) stay
   // reachable even when this build cannot self-update.
   setupUpdateLabelFlow();
+
+  // The Mac App Store update path is wired inside setupUpdateLabelFlow's
+  // listeners (gated on isMasBuild()); it does not depend on isUpdatingAllowed
+  // (which stays false for MAS on purpose) nor on electron-updater setup below.
+  if (isMasBuild()) {
+    return;
+  }
 
   if (!isUpdatingAllowed || !isUpdatingEnabled) {
     return;

@@ -86,6 +86,7 @@
       "currentVersion": "Current version",
       "newVersion": "New version",
       "install": "Install update",
+      "openAppStore": "Open App Store",
       "skip": "Skip this version"
     },
     "updateInstallLater": {

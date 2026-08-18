@@ -195,6 +195,8 @@ export const UpdateLabel = () => {
   const isUpdatingEnabled = useSelector(
     ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled
   );
+  const updateStore = useSelector(({ updateStore }: RootState) => updateStore);
+  const isMasUpdate = updateStore === 'mas';
 
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
@@ -252,10 +254,10 @@ export const UpdateLabel = () => {
   if (!newUpdateVersion) {
     // In builds that cannot self-update the check listener is never
     // registered, so a requested check would sit at "checking" forever —
-    // show nothing instead.
+    // show nothing instead. The Mac App Store build has its own check
+    // listener despite isUpdatingAllowed being false, so it stays exempt.
     if (
-      !isUpdatingAllowed ||
-      !isUpdatingEnabled ||
+      (!isMasUpdate && (!isUpdatingAllowed || !isUpdatingEnabled)) ||
       updateCheckStatus === 'idle'
     ) {
       return null;
@@ -433,7 +435,9 @@ export const UpdateLabel = () => {
                     primary
                     onClick={handleInstallClick}
                   >
-                    {t('dialog.update.install')}
+                    {isMasUpdate
+                      ? t('dialog.update.openAppStore')
+                      : t('dialog.update.install')}
                   </Button>
                 </ButtonGroup>
               </Box>

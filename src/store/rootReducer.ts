@@ -72,6 +72,7 @@ import {
   updateDownloadStatus,
   updateError,
   updateChannel,
+  updateStore,
 } from '../updates/reducers';
 
 export const rootReducer = combineReducers({
@@ -134,6 +135,7 @@ export const rootReducer = combineReducers({
   isDetailedEventsLoggingEnabled,
   isVerboseOutlookLoggingEnabled,
   updateChannel,
+  updateStore,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
   isTransparentWindowEnabled,

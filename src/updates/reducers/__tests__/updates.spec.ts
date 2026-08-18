@@ -33,6 +33,7 @@ import {
   updateDownloadStatus,
   updateError,
   updateChannel,
+  updateStore,
 } from '../../reducers';
 
 const unknown = { type: 'UNKNOWN_ACTION' } as any;
@@ -167,6 +168,34 @@ describe('isUpdatingAllowed reducer', () => {
 
   it('should preserve state on unknown action', () => {
     expect(isUpdatingAllowed(false, unknown)).toBe(false);
+  });
+});
+
+describe('updateStore reducer', () => {
+  it('should default to null', () => {
+    expect(updateStore(undefined, unknown)).toBeNull();
+  });
+
+  it("should read 'mas' from UPDATES_READY", () => {
+    expect(
+      updateStore(null, {
+        type: UPDATES_READY,
+        payload: { updateStore: 'mas' },
+      } as any)
+    ).toBe('mas');
+  });
+
+  it('should read null from UPDATES_READY on non-MAS builds', () => {
+    expect(
+      updateStore('mas', {
+        type: UPDATES_READY,
+        payload: { updateStore: null },
+      } as any)
+    ).toBeNull();
+  });
+
+  it('should preserve state on unknown action', () => {
+    expect(updateStore('mas', unknown)).toBe('mas');
   });
 });
 

@@ -22,7 +22,11 @@ import {
   UPDATE_SKIPPED,
   UPDATES_CHANNEL_CHANGED,
 } from './actions';
-import type { UpdateCheckStatus, UpdateDownloadStatus } from './common';
+import type {
+  UpdateCheckStatus,
+  UpdateDownloadStatus,
+  UpdateStore,
+} from './common';
 
 type DoCheckForUpdatesOnStartupAction =
   | ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
@@ -116,6 +120,23 @@ export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (
     case UPDATES_READY: {
       const { isUpdatingAllowed } = action.payload;
       return isUpdatingAllowed;
+    }
+
+    default:
+      return state;
+  }
+};
+
+type UpdateStoreAction = ActionOf<typeof UPDATES_READY>;
+
+export const updateStore: Reducer<UpdateStore, UpdateStoreAction> = (
+  state = null,
+  action
+) => {
+  switch (action.type) {
+    case UPDATES_READY: {
+      const { updateStore } = action.payload;
+      return updateStore;
     }
 
     default:

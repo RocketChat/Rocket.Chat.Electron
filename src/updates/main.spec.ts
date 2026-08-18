@@ -19,6 +19,7 @@ describe('mergeConfigurations', () => {
       isInternalVideoChatWindowEnabled: true,
       isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
+      updateStore: null,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {};
     const userConfiguration: UserLevelUpdateConfiguration = {};
@@ -45,6 +46,7 @@ describe('mergeConfigurations', () => {
       isInternalVideoChatWindowEnabled: true,
       isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
+      updateStore: null,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -78,6 +80,7 @@ describe('mergeConfigurations', () => {
       isInternalVideoChatWindowEnabled: true,
       isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
+      updateStore: null,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -115,6 +118,7 @@ describe('mergeConfigurations', () => {
       isInternalVideoChatWindowEnabled: true,
       isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
+      updateStore: null,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       forced: true,

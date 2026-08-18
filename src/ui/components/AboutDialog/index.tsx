@@ -103,6 +103,7 @@ export const AboutDialog = () => {
   const newUpdateVersion = useSelector(
     ({ newUpdateVersion }: RootState) => newUpdateVersion
   );
+  const updateStore = useSelector(({ updateStore }: RootState) => updateStore);
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const updateError = useSelector(({ updateError }: RootState) => updateError);
   const updateChannel = useSelector(
@@ -113,7 +114,11 @@ export const AboutDialog = () => {
   );
 
   const isVisible = openDialog === 'about';
-  const canUpdate = isUpdatingAllowed && isUpdatingEnabled;
+  const isMasUpdate = updateStore === 'mas';
+  // MAS builds cannot use electron-updater (isUpdatingAllowed is false there
+  // on purpose), but they still get a user-initiated check via the App Store
+  // lookup, so the button must not be hidden for them.
+  const canUpdate = (isUpdatingAllowed && isUpdatingEnabled) || isMasUpdate;
   const isCheckForUpdatesOnStartupChecked =
     isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup;
   const canSetCheckForUpdatesOnStartup =
@@ -247,7 +252,7 @@ export const AboutDialog = () => {
 
         {canUpdate && (
           <Box display='flex' flexDirection='column'>
-            {isDeveloperModeEnabled && (
+            {isDeveloperModeEnabled && !isMasUpdate && (
               <Box mbe='x16'>
                 <Field>
                   <FieldRow>

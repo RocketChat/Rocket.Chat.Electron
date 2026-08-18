@@ -10,7 +10,15 @@ export type UpdateConfiguration = {
   isInternalVideoChatWindowEnabled: boolean;
   isVideoCallScreenCaptureFallbackEnabled: boolean;
   updateChannel: string;
+  updateStore: UpdateStore;
 };
+
+/**
+ * Which store-flavored update flow the current build uses, if any. `'mas'`
+ * routes update checks through the Mac App Store lookup instead of
+ * electron-updater.
+ */
+export type UpdateStore = 'mas' | null;
 
 export type AppLevelUpdateConfiguration = {
   forced?: boolean;

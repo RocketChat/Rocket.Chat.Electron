@@ -24,6 +24,7 @@ jest.mock('electron', () => ({
     quit: jest.fn(),
     commandLine: { hasSwitch: jest.fn(() => false) },
     getPath: jest.fn(() => ''),
+    showAboutPanel: jest.fn(),
   },
   shell: {
     showItemInFolder: jest.fn(),

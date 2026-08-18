@@ -20,6 +20,35 @@ using [Electron][].
 | macOS    | 12 (Monterey)               | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP                    |
 | Linux    | Ubuntu 22.04+ or equivalent | x64                             | AppImage, deb, rpm, snap, tar.gz |
 
+4.16.0 also ships a **Mac App Store** (MAS) package and a **Microsoft
+Store** AppX (the GitHub release attaches `*-mas.pkg` and `*.appx`; those
+builds still update only through the stores). There is **no published
+Flatpak** (Flatpak remains an electron-builder target only). Linux GitHub
+assets are **amd64 / x86_64 only**. See [docs/README.md][] for the full
+documentation index.
+
+---
+
+## How updates work by install source
+
+In-app auto-update (`electron-updater`) is allowed only when
+`(linux && APPIMAGE) || (win32 && !windowsStore) || (darwin && !mas)`
+(`src/updates/main.ts`). Everything else is store- or IT-managed.
+
+| Install source | How it updates |
+| -------------- | -------------- |
+| GitHub **NSIS** / **MSI** / **DMG** / **PKG** / **AppImage** | In-app **electron-updater** (GitHub Releases) |
+| **Mac App Store** (MAS) | Mac App Store only |
+| **Microsoft Store** (AppX) | Microsoft Store only |
+| **Snap** | Snap store |
+| **deb** / **rpm** | Distro packages or IT-managed rollout |
+
+Enterprise MSI installs can turn off in-app updates with
+`DISABLE_AUTO_UPDATES=1`, which writes `resources/update.json` with
+`canUpdate: false` (and `autoUpdate: false`). NSIS `/disableAutoUpdates`
+writes the same file. See [docs/enterprise-deployment.md][] — do not
+duplicate that runbook here.
+
 ---
 
 ## Engage with us
@@ -65,8 +94,8 @@ add the options below:
 Prerequisites:
 
 - [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Node.js](https://nodejs.org) >= 24.11.1
-- [Yarn](http://yarnpkg.com/) >= 4.0.2
+- [Node.js](https://nodejs.org) **24.11.1** (see [.github/CONTRIBUTING.md][])
+- [Yarn](https://yarnpkg.com/) **4.6**
 
 Now just clone and start the app:
 
@@ -113,6 +142,11 @@ distributable app.
 
 ### Troubleshooting
 
+User-facing logs and the in-app viewer:
+[docs/troubleshooting.md](docs/troubleshooting.md)
+(**Help → Open Log Viewer**, Settings → Advanced → Verbose logging,
+on-disk paths, DevTools, `yarn start` inspector on port 9339).
+
 #### Ubuntu/Debian
 
 You may need to install the following packages for development:
@@ -137,22 +171,26 @@ sudo dnf install libX11-devel libXScrnSaver-devel gcc-c++
 yarn test
 ```
 
-We use [Jest][] testing framework with the [Jest electron runner][]. It searches
-for all files in `src` directory that match the glob pattern
-`*.(spec|test).{js,ts,tsx}`.
+We use [Jest][] testing framework with the [Jest electron runner][]. Spec
+placement is path-sensitive (nested `*.spec.ts`; `*.main.spec.ts` for
+main) — see [.github/CONTRIBUTING.md][].
 
 ### Making a release
 
-To package your app into an installer use command:
+**Do not run `yarn release`.** Official Desktop releases are tag-driven
+and documented in [docs/release-process.md][] (`yarn release:tag`, then
+CI on the tag). `yarn release` in `package.json` is
+`electron-builder --publish onTagOrDraft` and is not the shipping path.
+
+For a **local** installer on the machine you are developing on:
 
 ```sh
-yarn release
+yarn build-mac    # or yarn build-win / yarn build-linux
 ```
 
-It will start the packaging process for operating system you are running this
-command on. Ready for distribution file will be outputted to `dist` directory.
-
-All packaging actions are handled by [electron-builder][]. It has a lot of
+Those scripts run `electron-builder --publish never` and write packages
+to `dist`. That is local packaging only — it does not publish a GitHub
+release. Packaging is handled by [electron-builder][]; see its
 [customization options][].
 
 ## Development and Releases
@@ -163,6 +201,7 @@ Releases are tag-driven — pushing a semver tag triggers CI to build every
 platform and draft a GitHub release, which a human then reviews and
 publishes.
 
+- [docs/README.md][] — grouped documentation index.
 - [docs/development-and-release-flow.md][] — conceptual overview of the
   branch model, versioning, and CI/CD.
 - [docs/release-process.md][] — operational runbook with the exact commands
@@ -280,6 +319,8 @@ Released under the MIT license.
 [Jest electron runner]: https://github.com/kayahr/jest-electron-runner
 [electron-builder]: https://github.com/electron-userland/electron-builder
 [customization options]: https://www.electron.build/configuration
+[docs/README.md]: docs/README.md
 [docs/development-and-release-flow.md]: docs/development-and-release-flow.md
 [docs/release-process.md]: docs/release-process.md
+[docs/enterprise-deployment.md]: docs/enterprise-deployment.md
 [.github/CONTRIBUTING.md]: .github/CONTRIBUTING.md

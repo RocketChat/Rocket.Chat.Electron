@@ -28,7 +28,10 @@ export const parseLogLines = (logText: string): LogEntryType[] => {
       const [, timestamp, level, rest] = match;
 
       const contextMatch = rest.match(CONTEXT_REGEX);
-      const context = contextMatch?.[1] || '';
+      const contextTags = Array.from(
+        (contextMatch?.[1] || '').matchAll(/\[([^\]]*)\]/g),
+        ([, tag]) => tag.trim()
+      ).filter(Boolean);
       const message = contextMatch?.[2] || rest;
 
       if (currentEntry) {
@@ -39,7 +42,8 @@ export const parseLogLines = (logText: string): LogEntryType[] => {
         id: `log-${entries.length}`,
         timestamp,
         level: parseLogLevel(level),
-        context: context.replace(/[\[\]]/g, ' ').trim(),
+        contextTags,
+        context: contextTags.join(' '),
         message: message.trim(),
         raw: line,
       };

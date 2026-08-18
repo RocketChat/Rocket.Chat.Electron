@@ -85,14 +85,33 @@ jest.mock('@rocket.chat/fuselage', () => {
         onChange,
         ...rest,
       }),
+    Callout: passthrough('div'),
+    IconButton: ({ onClick, title, ...rest }: any) =>
+      React.createElement('button', {
+        'type': 'button',
+        onClick,
+        'aria-label': title,
+        ...rest,
+      }),
+    States: passthrough('div'),
+    StatesAction: ({ children, onClick, ...rest }: any) =>
+      React.createElement(
+        'button',
+        { type: 'button', onClick, ...rest },
+        children
+      ),
+    StatesActions: passthrough('div'),
+    StatesIcon: () => null,
+    StatesSubtitle: passthrough('div'),
+    StatesTitle: passthrough('div'),
   };
 });
 
 jest.mock('react-virtuoso', () => ({
-  Virtuoso: ({ data, itemContent }: any) => (
+  GroupedVirtuoso: ({ data, itemContent }: any) => (
     <div data-testid='virtuoso'>
       {(data || []).map((item: any, index: number) => (
-        <div key={item.id || index}>{itemContent(index, item)}</div>
+        <div key={item.id || index}>{itemContent(index, 0, item)}</div>
       ))}
     </div>
   ),
@@ -102,6 +121,59 @@ jest.mock('../LogEntry', () => ({
   LogEntry: ({ entry }: any) => (
     <div data-testid={`log-${entry.id}`}>{entry.message}</div>
   ),
+}));
+
+jest.mock('../LogViewerToolbar', () => ({
+  LogViewerToolbar: ({ onRefresh }: { onRefresh: () => void }) => (
+    <button type='button' onClick={onRefresh}>
+      logViewer.buttons.refresh
+    </button>
+  ),
+}));
+
+jest.mock('../LogViewerSidebar', () => ({
+  LogViewerSidebar: ({
+    searchFilter,
+    onSearchFilterChange,
+  }: {
+    searchFilter: string;
+    onSearchFilterChange: (event: { target: { value: string } }) => void;
+  }) => (
+    <input
+      aria-label='search'
+      value={searchFilter}
+      onChange={onSearchFilterChange}
+    />
+  ),
+}));
+
+jest.mock('../LogTimeline', () => ({
+  LogTimeline: () => null,
+}));
+
+jest.mock('../LogStatusBar', () => ({
+  LogStatusBar: () => null,
+}));
+
+jest.mock('../../ui/windowChrome/styles', () => ({
+  WindowChromeGlobalStyles: () => null,
+}));
+
+jest.mock('../styles', () => ({
+  LogViewerGlobalStyles: () => null,
+}));
+
+jest.mock('../../ui/windowChrome/useTransparency', () => ({
+  useTransparency: () => false,
+}));
+
+jest.mock('../../ui/windowChrome/useCopiedFeedback', () => ({
+  useCopiedFeedback: () => [false, jest.fn()],
+}));
+
+jest.mock('../../ui/components/utils/TooltipProvider', () => ({
+  __esModule: true,
+  default: ({ children }: { children: unknown }) => children,
 }));
 
 const sampleLog = [
@@ -125,9 +197,9 @@ describe('LogViewerWindow', () => {
         };
       }
       if (channel === 'log-viewer-window/get-server-mapping') {
-        return { 'open.rocket.chat': 'Community' };
+        return { success: true, mapping: { 'open.rocket.chat': 'Community' } };
       }
-      if (channel === 'log-viewer-window/select-file') {
+      if (channel === 'log-viewer-window/select-log-file') {
         return {
           success: true,
           filePath: '/tmp/other.log',
@@ -149,7 +221,7 @@ describe('LogViewerWindow', () => {
   });
 
   it('loads and renders log entries', async () => {
-    render(<LogViewerWindow />);
+    render(<LogViewerWindow paletteTheme='light' />);
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith(
         'log-viewer-window/read-logs',
@@ -159,7 +231,7 @@ describe('LogViewerWindow', () => {
   });
 
   it('filters rendered entries by the search term', async () => {
-    render(<LogViewerWindow />);
+    render(<LogViewerWindow paletteTheme='light' />);
     await waitFor(() => expect(invoke).toHaveBeenCalled());
     await waitFor(() => expect(screen.getAllByTestId(/^log-/)).toHaveLength(2));
 
@@ -171,7 +243,7 @@ describe('LogViewerWindow', () => {
   });
 
   it('invokes the refresh IPC channel when the refresh button is clicked', async () => {
-    render(<LogViewerWindow />);
+    render(<LogViewerWindow paletteTheme='light' />);
     await waitFor(() => expect(invoke).toHaveBeenCalled());
     invoke.mockClear();
 

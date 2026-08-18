@@ -39,12 +39,9 @@ describe('MenuBar', () => {
     expect(toggle).not.toBeDisabled();
   });
 
-  it('disables toggle when menu bar is the only navigation chrome (tabs layout)', () => {
+  it('keeps the toggle enabled for tabs layout', () => {
     renderMenuBar({ isMenuBarEnabled: true, navigationLayout: 'tabs' });
-    expect(screen.getByRole('checkbox')).toBeDisabled();
-    expect(
-      screen.getByText('settings.options.menubar.disabledHint')
-    ).toBeInTheDocument();
+    expect(screen.getByRole('checkbox')).not.toBeDisabled();
   });
 
   it('dispatches SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED on toggle', () => {

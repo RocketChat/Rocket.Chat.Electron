@@ -24,6 +24,9 @@ jest.mock('./features/VerboseOutlookLogging', () => ({
   VerboseOutlookLogging: () => <div data-testid='verbose-outlook' />,
 }));
 
+jest.mock('./features/ThemeAppearance', () => ({
+  ThemeAppearance: () => <div data-testid='theme-appearance' />,
+}));
 jest.mock('./features/NavigationLayout', () => ({
   NavigationLayout: () => <div data-testid='nav-layout' />,
 }));
@@ -32,6 +35,9 @@ jest.mock('./features/TrayIcon', () => ({
 }));
 jest.mock('./features/FlashFrame', () => ({
   FlashFrame: () => <div data-testid='flash' />,
+}));
+jest.mock('./features/DownloadsPercentage', () => ({
+  DownloadsPercentage: () => <div data-testid='downloads-percentage' />,
 }));
 jest.mock('./features/AvailableBrowsers', () => ({
   AvailableBrowsers: () => <div data-testid='browsers' />,

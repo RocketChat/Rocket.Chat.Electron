@@ -1,14 +1,12 @@
 import fs from 'fs';
 
-import {
-  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
-  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-} from '../../ui/actions';
+import { ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED } from '../../ui/actions';
 // eslint-disable-next-line import/order
 import {
   UPDATE_SKIPPED,
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+  UPDATES_INSTALL_REQUESTED,
+  UPDATES_SKIP_REQUESTED,
 } from '../actions';
 
 const listeners = new Map<string, Function>();
@@ -136,8 +134,8 @@ describe('updates/setupUpdates', () => {
         (autoUpdater.addListener as jest.Mock).mock.calls.length
     ).toBeGreaterThan(0);
     expect(listeners.has(UPDATES_CHECK_FOR_UPDATES_REQUESTED)).toBe(true);
-    expect(listeners.has(UPDATE_DIALOG_SKIP_UPDATE_CLICKED)).toBe(true);
-    expect(listeners.has(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED)).toBe(true);
+    expect(listeners.has(UPDATES_SKIP_REQUESTED)).toBe(true);
+    expect(listeners.has(UPDATES_INSTALL_REQUESTED)).toBe(true);
     expect(listeners.has(ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED)).toBe(true);
   });
 
@@ -151,8 +149,8 @@ describe('updates/setupUpdates', () => {
 
   it('dispatches UPDATE_SKIPPED when skip dialog action fires', async () => {
     await setupUpdates();
-    await listeners.get(UPDATE_DIALOG_SKIP_UPDATE_CLICKED)?.({
-      type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+    await listeners.get(UPDATES_SKIP_REQUESTED)?.({
+      type: UPDATES_SKIP_REQUESTED,
       payload: '9.9.9',
     });
     expect(dispatch).toHaveBeenCalledWith(

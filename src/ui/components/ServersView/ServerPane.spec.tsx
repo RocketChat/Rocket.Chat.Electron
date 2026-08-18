@@ -18,11 +18,6 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('./DocumentViewer', () => ({
-  __esModule: true,
-  default: () => <div data-testid='document-viewer' />,
-}));
-
 jest.mock('./ErrorView', () => ({
   __esModule: true,
   default: ({ isFailed, onReload }: any) =>
@@ -61,8 +56,6 @@ describe('ServerPane', () => {
           isFailed={false}
           isSupported
           title='Community'
-          documentViewerOpenUrl={undefined}
-          documentViewerFormat={undefined}
         />
       </Provider>
     );
@@ -81,8 +74,6 @@ describe('ServerPane', () => {
           isFailed
           isSupported
           title='Community'
-          documentViewerOpenUrl={undefined}
-          documentViewerFormat={undefined}
         />
       </Provider>
     );
@@ -104,29 +95,9 @@ describe('ServerPane', () => {
           isSupported={false}
           supportedVersionsFetchState='success'
           title='Old'
-          documentViewerOpenUrl={undefined}
-          documentViewerFormat={undefined}
         />
       </Provider>
     );
     expect(screen.getByTestId('unsupported')).toBeInTheDocument();
-  });
-
-  it('shows document viewer when open url is set', () => {
-    render(
-      <Provider store={makeStore()}>
-        <ServerPane
-          lastPath={undefined}
-          serverUrl='https://open.rocket.chat'
-          isSelected
-          isFailed={false}
-          isSupported
-          title='Community'
-          documentViewerOpenUrl='https://open.rocket.chat/file.pdf'
-          documentViewerFormat='pdf'
-        />
-      </Provider>
-    );
-    expect(screen.getByTestId('document-viewer')).toBeInTheDocument();
   });
 });

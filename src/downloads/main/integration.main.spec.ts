@@ -17,6 +17,7 @@ jest.mock('../../store', () => ({
   createMainReduxStore: jest.fn(),
   dispatch: jest.fn(),
   select: jest.fn(),
+  listen: jest.fn(),
 }));
 
 // Mock electron modules

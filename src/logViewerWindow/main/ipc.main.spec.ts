@@ -4,6 +4,7 @@ import { openLogViewerWindow, startLogViewerWindowHandler } from '../ipc';
 
 const handlers = new Map<string, Function>();
 const select = jest.fn();
+const dispatch = jest.fn();
 const getRootWindow = jest.fn();
 
 const logContent = [
@@ -58,6 +59,7 @@ jest.mock('electron', () => ({
       name === 'logs' ? '/tmp/logs' : '/tmp'
     ),
     getAppPath: jest.fn(() => '/app'),
+    on: jest.fn(),
   },
   BrowserWindow: jest.fn().mockImplementation(() => ({
     loadFile: jest.fn().mockResolvedValue(undefined),
@@ -65,6 +67,9 @@ jest.mock('electron', () => ({
     on: jest.fn(),
     show: jest.fn(),
     focus: jest.fn(),
+    isMinimized: jest.fn(() => false),
+    restore: jest.fn(),
+    addListener: jest.fn(),
     isDestroyed: jest.fn(() => false),
     webContents: {
       openDevTools: jest.fn(),
@@ -124,6 +129,8 @@ jest.mock('../../logging/context', () => ({
 
 jest.mock('../../store', () => ({
   select: (...args: unknown[]) => select(...args),
+  dispatch: (...args: unknown[]) => dispatch(...args),
+  watch: jest.fn(),
 }));
 
 jest.mock('../../ui/main/rootWindow', () => ({

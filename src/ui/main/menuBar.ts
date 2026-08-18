@@ -588,6 +588,8 @@ const selectWindowDeps = createStructuredSelector({
     isAddNewServersEnabled,
   isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
     isDeveloperModeEnabled,
+  isUpdatingAllowed: ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
+  updateStore: ({ updateStore }: RootState) => updateStore,
 });
 
 export const createWindowMenu = createSelector(
@@ -1006,6 +1008,8 @@ export const selectAppMenuPopupTemplate = createSelector(
     createWindowMenu,
     createHelpMenu,
     ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled,
+    ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
+    ({ updateStore }: RootState) => updateStore,
   ],
   (
     rocketChatMenu,
@@ -1014,8 +1018,12 @@ export const selectAppMenuPopupTemplate = createSelector(
     viewMenu,
     windowMenu,
     helpMenu,
-    isDeveloperModeEnabled
+    isDeveloperModeEnabled,
+    isUpdatingAllowed,
+    updateStore
   ): MenuItemConstructorOptions[] => {
+    const canCheckForUpdates = isUpdatingAllowed || updateStore !== null;
+
     const settingsItem: MenuItemConstructorOptions = {
       id: 'settings',
       label: t('menus.settings'),
@@ -1047,7 +1055,7 @@ export const selectAppMenuPopupTemplate = createSelector(
       return [
         settingsItem,
         downloadsItem,
-        checkForUpdatesItem,
+        ...on(canCheckForUpdates, () => [checkForUpdatesItem]),
         ...on(isDeveloperModeEnabled, () => [
           { type: 'separator' },
           ...createSimulationMenuItems(),
@@ -1070,7 +1078,7 @@ export const selectAppMenuPopupTemplate = createSelector(
       { type: 'separator' },
       settingsItem,
       downloadsItem,
-      checkForUpdatesItem,
+      ...on(canCheckForUpdates, () => [checkForUpdatesItem]),
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' },
         ...createSimulationMenuItems(),
@@ -1091,7 +1099,11 @@ export const selectServerSwitcherMenuTemplate = createSelector(
     currentView,
     isAddNewServersEnabled,
     isDeveloperModeEnabled,
+    isUpdatingAllowed,
+    updateStore,
   }): MenuItemConstructorOptions[] => {
+    const canCheckForUpdates = isUpdatingAllowed || updateStore !== null;
+
     const serverItems = servers.map((server, i): MenuItemConstructorOptions => {
       const isActive =
         typeof currentView === 'object' && currentView.url === server.url;
@@ -1156,13 +1168,15 @@ export const selectServerSwitcherMenuTemplate = createSelector(
           },
         } as MenuItemConstructorOptions,
       ]),
-      {
-        id: 'checkForUpdates',
-        label: t('menus.checkForUpdates'),
-        click: () => {
-          dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
-        },
-      },
+      ...on(canCheckForUpdates, () => [
+        {
+          id: 'checkForUpdates',
+          label: t('menus.checkForUpdates'),
+          click: () => {
+            dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
+          },
+        } as MenuItemConstructorOptions,
+      ]),
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' } as MenuItemConstructorOptions,
         ...createSimulationMenuItems(),

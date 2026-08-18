@@ -14,11 +14,12 @@ export type UpdateConfiguration = {
 };
 
 /**
- * Which store-flavored update flow the current build uses, if any. `'mas'`
- * routes update checks through the Mac App Store lookup instead of
- * electron-updater.
+ * Which store-flavored update flow the current build uses, if any — routes
+ * update checks through the store's own lookup/page instead of
+ * electron-updater. `'mas'` (Mac App Store), `'windows'` (Microsoft Store),
+ * `'snap'` (Snap Store), `'flatpak'` (Flathub).
  */
-export type UpdateStore = 'mas' | null;
+export type UpdateStore = 'mas' | 'windows' | 'snap' | 'flatpak' | null;
 
 export type AppLevelUpdateConfiguration = {
   forced?: boolean;

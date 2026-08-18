@@ -114,11 +114,12 @@ export const AboutDialog = () => {
   );
 
   const isVisible = openDialog === 'about';
-  const isMasUpdate = updateStore === 'mas';
-  // MAS builds cannot use electron-updater (isUpdatingAllowed is false there
-  // on purpose), but they still get a user-initiated check via the App Store
-  // lookup, so the button must not be hidden for them.
-  const canUpdate = (isUpdatingAllowed && isUpdatingEnabled) || isMasUpdate;
+  const isStoreUpdate = updateStore !== null;
+  // Store builds cannot use electron-updater (isUpdatingAllowed is false for
+  // mas/windows there on purpose), but they still get a user-initiated check
+  // via the store's own lookup/page, so the button must not be hidden for
+  // them.
+  const canUpdate = (isUpdatingAllowed && isUpdatingEnabled) || isStoreUpdate;
   const isCheckForUpdatesOnStartupChecked =
     isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup;
   const canSetCheckForUpdatesOnStartup =
@@ -252,7 +253,7 @@ export const AboutDialog = () => {
 
         {canUpdate && (
           <Box display='flex' flexDirection='column'>
-            {isDeveloperModeEnabled && !isMasUpdate && (
+            {isDeveloperModeEnabled && !isStoreUpdate && (
               <Box mbe='x16'>
                 <Field>
                   <FieldRow>

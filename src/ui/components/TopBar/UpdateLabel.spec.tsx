@@ -2,7 +2,7 @@ import {
   UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
-  UPDATES_OPEN_APP_STORE_REQUESTED,
+  UPDATES_OPEN_STORE_PAGE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
@@ -124,21 +124,29 @@ describe('UpdateLabel', () => {
     });
   });
 
-  it('opens the App Store instead of downloading on a MAS build', async () => {
-    const user = userEvent.setup();
-    renderWithStore(<UpdateLabel />, {
-      preloadedState: openState({ updateStore: 'mas' }),
-    });
+  it.each([
+    ['mas', 'dialog.update.openStore.mas'],
+    ['windows', 'dialog.update.openStore.windows'],
+    ['snap', 'dialog.update.openStore.snap'],
+    ['flatpak', 'dialog.update.openStore.flatpak'],
+  ] as const)(
+    'opens the store page instead of downloading on a %s build',
+    async (store, labelKey) => {
+      const user = userEvent.setup();
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: openState({ updateStore: store }),
+      });
 
-    await user.click(screen.getByText('dialog.update.openAppStore'));
+      await user.click(screen.getByText(labelKey));
 
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: UPDATES_OPEN_APP_STORE_REQUESTED,
-    });
-    expect(mockDispatch).not.toHaveBeenCalledWith({
-      type: UPDATES_DOWNLOAD_REQUESTED,
-    });
-  });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UPDATES_OPEN_STORE_PAGE_REQUESTED,
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith({
+        type: UPDATES_DOWNLOAD_REQUESTED,
+      });
+    }
+  );
 
   it('skips the version from the panel skip action', async () => {
     const user = userEvent.setup();
@@ -369,6 +377,22 @@ describe('UpdateLabel', () => {
 
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
+
+    it.each(['mas', 'windows', 'snap', 'flatpak'] as const)(
+      'still shows checking feedback for a %s build despite isUpdatingAllowed being false',
+      (store) => {
+        renderWithStore(<UpdateLabel />, {
+          preloadedState: checkState('checking', {
+            isUpdatingAllowed: false,
+            updateStore: store,
+          }),
+        });
+
+        expect(screen.getByRole('button')).toHaveTextContent(
+          'tabBar.update.checking'
+        );
+      }
+    );
 
     it('prefers the available-update pill over check feedback', () => {
       renderWithStore(<UpdateLabel />, {

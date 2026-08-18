@@ -246,8 +246,7 @@
       },
       "menubar": {
         "title": "Barre de menu",
-        "description": "Afficher la barre de menus en haut de la fenêtre.",
-        "disabledHint": "Impossible de désactiver la barre de menu quand la barre latérale est désactivée. Les paramètres deviendraient inaccessibles."
+        "description": "Afficher la barre de menus en haut de la fenêtre."
       },
       "sidebar": {
         "title": "Barre latérale",

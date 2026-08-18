@@ -142,9 +142,13 @@ type PersistableValues_4_16_2 = PersistableValues_4_16_1 & {
   menuBarDefaultRevision?: number;
 };
 
+type PersistableValues_4_17_0 = PersistableValues_4_16_2 & {
+  isNotificationQuickReplyEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_16_2,
-  keyof PersistableValues_4_16_2
+  PersistableValues_4_17_0,
+  keyof PersistableValues_4_17_0
 >;
 
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */
@@ -296,4 +300,8 @@ export const migrations = {
       menuBarDefaultRevision: MENU_BAR_DEFAULT_REVISION,
     };
   },
+  '>=4.17.0': (before: PersistableValues_4_16_2): PersistableValues_4_17_0 => ({
+    ...before,
+    isNotificationQuickReplyEnabled: true,
+  }),
 };

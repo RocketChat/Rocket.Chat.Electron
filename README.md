@@ -231,17 +231,18 @@ a single server mode.
 
 #### The settings that can be overridden are:
 
-| Setting                                    | Description                                                                                            |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `"isReportEnabled": true`                  | Sets if the bugs will be reported to developers.                                                       |
-| `"isInternalVideoChatWindowEnabled": true` | Sets if video calls will be opened in an internal window.                                              |
-| `"isFlashFrameEnabled": true`              | Sets if the flash frame will be enabled.                                                               |
-| `"isMinimizeOnCloseEnabled": false`        | Sets if the app will be minimized on close.                                                            |
-| `"doCheckForUpdatesOnStartup": true`       | Sets if the app will check for updates on startup.                                                     |
-| `"isMenuBarEnabled": false`                | Windows/Linux: `true` keeps the menu bar always visible; `false` auto-hides it (Alt shows it temporarily). Unused on macOS. |
-| `"isTrayIconEnabled": true`                | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"` |
-| `"isUpdatingEnabled": true`                | Sets if the app can be updated by the user.                                                            |
-| `"isAddNewServersEnabled": true`           | Sets if the user can add new servers.                                                                  |
+| Setting                                    | Description                                                                                                                                                  |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `"isReportEnabled": true`                  | Sets if the bugs will be reported to developers.                                                                                                             |
+| `"isInternalVideoChatWindowEnabled": true` | Sets if video calls will be opened in an internal window.                                                                                                    |
+| `"isFlashFrameEnabled": true`              | Sets if the flash frame will be enabled.                                                                                                                     |
+| `"isMinimizeOnCloseEnabled": false`        | Sets if the app will be minimized on close.                                                                                                                  |
+| `"doCheckForUpdatesOnStartup": true`       | Sets if the app will check for updates on startup.                                                                                                           |
+| `"isMenuBarEnabled": false`                | Windows/Linux: `true` keeps the menu bar always visible; `false` auto-hides it (Alt shows it temporarily). Unused on macOS.                                  |
+| `"isTrayIconEnabled": true`                | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"`                                                       |
+| `"isUpdatingEnabled": true`                | Sets if the app can be updated by the user.                                                                                                                  |
+| `"isAddNewServersEnabled": true`           | Sets if the user can add new servers.                                                                                                                        |
+| `"isNotificationQuickReplyEnabled": true`  | Sets if notifications are created with an inline reply field. When set to `false`, notifications are created without the inline reply field (Windows/macOS). |
 
 ##### Single server mode
 

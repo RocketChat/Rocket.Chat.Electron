@@ -107,6 +107,9 @@ const selectPersistableValuesB = createStructuredSelector({
     isSettingsWindowOpen,
   secondaryWindowStates: ({ secondaryWindowStates }: RootState) =>
     secondaryWindowStates,
+  isNotificationQuickReplyEnabled: ({
+    isNotificationQuickReplyEnabled,
+  }: RootState) => isNotificationQuickReplyEnabled,
 });
 
 export const selectPersistableValues = createSelector(

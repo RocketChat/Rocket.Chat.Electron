@@ -14,6 +14,7 @@ export const APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET =
 export type OverrideOnlySettings = {
   allowInsecureOutlookConnections?: boolean;
   outlookCalendarSyncIntervalOverride?: number | null;
+  isNotificationQuickReplyEnabled?: boolean;
 };
 
 export type AppActionTypeToPayloadMap = {

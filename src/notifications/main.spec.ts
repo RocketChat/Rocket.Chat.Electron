@@ -153,13 +153,13 @@ describe('notifications/main win32 activation routing', () => {
     );
   });
 
-  it('dispatches NOTIFICATIONS_NOTIFICATION_CLICKED for a click activation', async () => {
+  it('attaches the instance click listener on win32 with handleActivation available, and firing it dispatches NOTIFICATIONS_NOTIFICATION_CLICKED', async () => {
     await createTestNotification('click-abc123');
 
-    handleNotificationActivation({
-      type: 'click',
-      arguments: 'type=click&tag=click-abc123',
-    } as any);
+    const instance = notificationInstances[0];
+    expect(instance.listeners.click).toBeDefined();
+
+    instance.listeners.click[0]();
 
     expect(mockDispatchSingle).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -200,11 +200,11 @@ describe('notifications/main win32 activation routing', () => {
     warnSpy.mockRestore();
   });
 
-  it('does not attach instance click/reply/action listeners on win32', async () => {
+  it('attaches the instance click listener but not reply/action listeners on win32', async () => {
     await createTestNotification('listeners-abc123');
 
     const instance = notificationInstances[0];
-    expect(instance.listeners.click).toBeUndefined();
+    expect(instance.listeners.click).toBeDefined();
     expect(instance.listeners.reply).toBeUndefined();
     expect(instance.listeners.action).toBeUndefined();
     expect(instance.listeners.show).toBeDefined();

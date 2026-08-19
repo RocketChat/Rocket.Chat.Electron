@@ -23,8 +23,6 @@ import { parseActivationArguments } from './parseActivationArguments';
 
 type NotificationRoutingMeta = {
   ipcMeta?: ActionIPCMeta;
-  title?: string;
-  category?: 'DOWNLOADS' | 'SERVER';
 };
 
 const MAX_ROUTING_ENTRIES = 200;
@@ -140,25 +138,25 @@ const createNotification = async (
     notificationCategories.delete(id);
   });
 
-  if (!shouldUseActivationRouting()) {
-    notification.addListener('click', () => {
-      const serverUrl =
-        ipcMeta?.webContentsId !== undefined
-          ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
-          : undefined;
-      const notificationCategory = notificationCategories.get(id);
-      dispatchSingle({
-        type: NOTIFICATIONS_NOTIFICATION_CLICKED,
-        payload: {
-          id,
-          title,
-          ...(serverUrl && { serverUrl }),
-          ...(notificationCategory && { category: notificationCategory }),
-        },
-        ipcMeta,
-      });
+  notification.addListener('click', () => {
+    const serverUrl =
+      ipcMeta?.webContentsId !== undefined
+        ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
+        : undefined;
+    const notificationCategory = notificationCategories.get(id);
+    dispatchSingle({
+      type: NOTIFICATIONS_NOTIFICATION_CLICKED,
+      payload: {
+        id,
+        title,
+        ...(serverUrl && { serverUrl }),
+        ...(notificationCategory && { category: notificationCategory }),
+      },
+      ipcMeta,
     });
+  });
 
+  if (!shouldUseActivationRouting()) {
     notification.addListener('reply', (_event, reply) => {
       dispatchSingle({
         type: NOTIFICATIONS_NOTIFICATION_REPLIED,
@@ -180,7 +178,7 @@ const createNotification = async (
   if (category) {
     notificationCategories.set(id, category);
   }
-  setNotificationRoutingMeta(id, { ipcMeta, title, category });
+  setNotificationRoutingMeta(id, { ipcMeta });
 
   notification.show();
 
@@ -282,7 +280,7 @@ export const handleNotificationActivation = (
     return;
   }
 
-  const { ipcMeta, title, category } = routingMeta;
+  const { ipcMeta } = routingMeta;
 
   if (type === 'reply' && details.reply !== undefined) {
     dispatchSingle({
@@ -297,24 +295,6 @@ export const handleNotificationActivation = (
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
       payload: { id: tag, index: details.actionIndex ?? 0 },
-      ipcMeta,
-    });
-    return;
-  }
-
-  if (type === 'click') {
-    const serverUrl =
-      ipcMeta?.webContentsId !== undefined
-        ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
-        : undefined;
-    dispatchSingle({
-      type: NOTIFICATIONS_NOTIFICATION_CLICKED,
-      payload: {
-        id: tag,
-        title: title ?? '',
-        ...(serverUrl && { serverUrl }),
-        ...(category && { category }),
-      },
       ipcMeta,
     });
   }

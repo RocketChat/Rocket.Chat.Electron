@@ -788,6 +788,151 @@ describe('deepLinks/main.ts', () => {
       expect(mockWebContents.loadURL).not.toHaveBeenCalled();
     });
 
+    const runSamlDeepLink = async (deepLink: string): Promise<void> => {
+      const savedArgv = process.argv;
+      process.argv = ['electron', '.', deepLink];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+    };
+
+    it('redeems a SAML credentialToken on the target server view', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      await runSamlDeepLink(
+        'rocketchat://auth?type=saml&host=https://chat.example.com&credentialToken=saml-fresh-A'
+      );
+
+      expect(resolveServerUrlMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      // The web client's own /saml/:token route redeems the token on this view's connection.
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/saml/saml-fresh-A'
+      );
+      expect(mockWebContents.loadURL).not.toHaveBeenCalledWith(
+        expect.stringContaining('loginClient')
+      );
+    });
+
+    it('percent-encodes the SAML credentialToken into the path', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      await runSamlDeepLink(
+        'rocketchat://auth?type=saml&host=https://chat.example.com&credentialToken=saml%2Fescape%3FB'
+      );
+
+      // A token cannot break out of the /saml/ path segment and reach another route.
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/saml/saml%2Fescape%3FB'
+      );
+    });
+
+    it('does nothing when the SAML deep link has no credentialToken', async () => {
+      setupDeepLinks();
+
+      await runSamlDeepLink(
+        'rocketchat://auth?type=saml&host=https://chat.example.com'
+      );
+
+      expect(resolveServerUrlMock).not.toHaveBeenCalled();
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('redeems a different SAML credentialToken after one was consumed', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      await runSamlDeepLink(
+        'rocketchat://auth?type=saml&host=https://chat.example.com&credentialToken=saml-first-D'
+      );
+      await runSamlDeepLink(
+        'rocketchat://auth?type=saml&host=https://chat.example.com&credentialToken=saml-second-D'
+      );
+
+      expect(mockWebContents.loadURL).toHaveBeenCalledTimes(2);
+      expect(mockWebContents.loadURL).toHaveBeenLastCalledWith(
+        'https://chat.example.com/saml/saml-second-D'
+      );
+    });
+
+    it('asks to add an unknown server before redeeming a SAML credentialToken', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      askForServerAdditionMock.mockResolvedValue(true);
+      selectMock.mockImplementation((selector: any) =>
+        selector({ servers: [] })
+      );
+
+      await runSamlDeepLink(
+        'rocketchat://auth?type=saml&host=https://chat.example.com&credentialToken=saml-add-E'
+      );
+
+      expect(askForServerAdditionMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: DEEP_LINKS_SERVER_ADDED,
+        payload: 'https://chat.example.com',
+      });
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/saml/saml-add-E'
+      );
+    });
+
+    it('keeps using the resumeToken path for an unrecognized auth type', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      selectMock.mockReturnValue([
+        { url: 'https://chat.example.com', title: 'Chat' },
+      ]);
+
+      await runSamlDeepLink(
+        'rocketchat://auth?type=whatever&host=https://chat.example.com&token=abc&userId=123'
+      );
+
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/home?resumeToken=abc&userId=123'
+      );
+    });
+
     it('processes rocketchat://room link when host and path are valid', async () => {
       setupDeepLinks();
 

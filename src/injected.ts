@@ -242,12 +242,13 @@ const start = async () => {
   // across Rocket.Chat versions and could not be confirmed at runtime, so a
   // short candidate list is probed and the first hit wins. All misses are a
   // supported outcome: presence is reported as unsupported and hidden.
-  // Ordered by how closely each matches the one specifier proven against a
-  // live workspace, `/app/utils/rocketchat.info`: leading slash, app-root
-  // relative, no file extension.
+  // `/client/lib/presence.ts` is the specifier confirmed against a live
+  // Rocket.Chat 8.8 workspace — the extension is required there, and the
+  // extensionless form fails with "Cannot find module". The others are
+  // fallbacks for versions that resolve it differently.
   const presenceModulePaths = [
-    '/client/lib/presence',
     '/client/lib/presence.ts',
+    '/client/lib/presence',
     'client/lib/presence',
   ];
 
@@ -874,8 +875,24 @@ const start = async () => {
         if (!uid || !Presence) return;
 
         try {
-          latestStoreEntry = Presence.store?.get(uid) ?? null;
           Presence.listen(uid, handlePresenceUpdate);
+
+          // The store is populated lazily: it stays empty until something
+          // asks for a uid, so reading `store.get` here returns nothing on a
+          // fresh session and `listen` alone never backfills it. `get`
+          // resolves the current presence and registers the subscription that
+          // keeps it up to date, so it is what seeds the first value.
+          Promise.resolve(Presence.get(uid))
+            .then((entry: PresenceStoreEntry | undefined) => {
+              if (currentUid !== uid) return;
+              handlePresenceUpdate(entry ?? Presence.store?.get(uid));
+            })
+            .catch((error: unknown) => {
+              console.warn(
+                '[Rocket.Chat Desktop] Failed to read the initial presence',
+                error
+              );
+            });
         } catch (error) {
           console.warn(
             '[Rocket.Chat Desktop] Failed to subscribe to presence updates',

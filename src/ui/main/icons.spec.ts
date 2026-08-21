@@ -384,12 +384,89 @@ describe('getTrayIconPath', () => {
     );
   });
 
-  it('ignores presence for darwin platform', () => {
+  it('matches presence paths for darwin platform', () => {
     expect(getTrayIconPath({ platform: 'darwin', presence: 'online' })).toBe(
-      getTrayIconPath({ platform: 'darwin' })
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'presence-online.png'
+      )
+    );
+    expect(getTrayIconPath({ platform: 'darwin', presence: 'away' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'darwin', 'presence-away.png')
+    );
+    expect(getTrayIconPath({ platform: 'darwin', presence: 'busy' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'darwin', 'presence-busy.png')
+    );
+    expect(getTrayIconPath({ platform: 'darwin', presence: 'offline' })).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'presence-offline.png'
+      )
+    );
+  });
+
+  it('combines presence and badge for darwin platform', () => {
+    expect(
+      getTrayIconPath({ platform: 'darwin', presence: 'online', badge: '•' })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'presence-online-notification-dot.png'
+      )
     );
     expect(
-      getTrayIconPath({ platform: 'darwin', presence: 'busy', badge: 3 })
-    ).toBe(getTrayIconPath({ platform: 'darwin', badge: 3 }));
+      getTrayIconPath({ platform: 'darwin', presence: 'busy', badge: 5 })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'presence-busy-notification-5.png'
+      )
+    );
+    expect(
+      getTrayIconPath({ platform: 'darwin', presence: 'away', badge: 10 })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'darwin',
+        'presence-away-notification-plus-9.png'
+      )
+    );
+  });
+
+  it('never returns a Template path for darwin when presence is set (colour must survive)', () => {
+    const presences: Array<'online' | 'away' | 'busy' | 'offline'> = [
+      'online',
+      'away',
+      'busy',
+      'offline',
+    ];
+
+    for (const presence of presences) {
+      expect(getTrayIconPath({ platform: 'darwin', presence })).not.toContain(
+        'Template'
+      );
+      expect(
+        getTrayIconPath({ platform: 'darwin', presence, badge: 3 })
+      ).not.toContain('Template');
+    }
   });
 });

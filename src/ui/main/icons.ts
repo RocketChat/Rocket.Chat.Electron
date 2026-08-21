@@ -16,16 +16,25 @@ export const getAppIconPath = ({
   return `${app.getAppPath()}/app/images/icon.ico`;
 };
 
-const getMacOSTrayIconPath = (badge: Server['badge']): string =>
-  path.join(
-    app.getAppPath(),
-    `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
-  );
-
 const getBadgeNamePart = (badge: Server['badge']): string =>
   (badge === '•' && 'notification-dot') ||
   (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
   `notification-${badge}`;
+
+const getMacOSTrayIconPath = (
+  badge: Server['badge'],
+  presence: UserPresence | undefined
+): string => {
+  if (!presence) {
+    return path.join(
+      app.getAppPath(),
+      `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
+    );
+  }
+
+  const name = `presence-${presence}${badge ? `-${getBadgeNamePart(badge)}` : ''}`;
+  return path.join(app.getAppPath(), `app/images/tray/darwin/${name}.png`);
+};
 
 const getWindowsTrayIconPath = (
   badge: Server['badge'],
@@ -58,7 +67,7 @@ export const getTrayIconPath = ({
 }): string => {
   switch (platform ?? process.platform) {
     case 'darwin':
-      return getMacOSTrayIconPath(badge);
+      return getMacOSTrayIconPath(badge, presence);
 
     case 'win32':
       return getWindowsTrayIconPath(badge, presence);

@@ -9,6 +9,7 @@ import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 import type { ActiveServerPresence } from '../selectors';
 import { selectGlobalBadge, selectActiveServerPresence } from '../selectors';
 import { getTrayIconPath, getAppIconPath } from './icons';
+import { applyMacOSMenuBarGlyphAppearance } from './macOSTrayGlyph';
 import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
@@ -207,17 +208,30 @@ const createTrayIcon = (): Tray => {
   return trayIcon;
 };
 
+const loadTrayImage = (
+  badge: Server['badge'],
+  presence: UserPresence | undefined
+): ReturnType<typeof nativeImage.createFromPath> => {
+  const imagePath = getTrayIconPath({
+    platform: process.platform,
+    badge,
+    presence,
+  });
+  const image = nativeImage.createFromPath(imagePath);
+
+  if (process.platform === 'darwin' && presence) {
+    return applyMacOSMenuBarGlyphAppearance(image);
+  }
+
+  return image;
+};
+
 const updateTrayIconImage = (
   trayIcon: Tray,
   badge: Server['badge'],
   presence: UserPresence | undefined
 ): void => {
-  const image = getTrayIconPath({
-    platform: process.platform,
-    badge,
-    presence,
-  });
-  trayIcon.setImage(nativeImage.createFromPath(image));
+  trayIcon.setImage(loadTrayImage(badge, presence));
 };
 
 const updateTrayIconTitle = (

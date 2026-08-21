@@ -94,6 +94,16 @@ const createMacOSAppIcon = async (): Promise<void> => {
   await writeFile('build/icon.icns', icns);
 };
 
+const writeMacOSPresenceTrayIcon = async (
+  props: { badge?: Server['badge']; presence: UserPresence },
+  fileName: string
+): Promise<void> => {
+  const icon = renderToStaticMarkup(createElement(MacOSTrayIcon, props));
+  const pngs = await convertSvgToPng(icon, 24, 48);
+  await writeFile(`src/public/images/tray/darwin/${fileName}.png`, pngs[0]);
+  await writeFile(`src/public/images/tray/darwin/${fileName}@2x.png`, pngs[1]);
+};
+
 const createMacOSTrayIcons = async (): Promise<void> => {
   const defaultIcon = renderToStaticMarkup(createElement(MacOSTrayIcon));
   const defaultIconPngs = await convertSvgToPng(defaultIcon, 24, 48);
@@ -118,6 +128,17 @@ const createMacOSTrayIcons = async (): Promise<void> => {
     'src/public/images/tray/darwin/notificationTemplate@2x.png',
     notificationIconPngs[1]
   );
+
+  for await (const presence of PRESENCES) {
+    await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
+
+    for await (const badge of BADGES) {
+      await writeMacOSPresenceTrayIcon(
+        { badge, presence },
+        `presence-${presence}-notification-${badgeName(badge)}`
+      );
+    }
+  }
 };
 
 const createDmgBackgrounds = async (): Promise<void> => {
@@ -239,7 +260,27 @@ const createLinuxTrayIcons = async (): Promise<void> => {
   }
 };
 
+const writePresenceTrayIcons = async (): Promise<void> => {
+  for await (const presence of PRESENCES) {
+    await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
+    await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
+    await writeLinuxTrayIcon({ presence }, `presence-${presence}`);
+
+    for await (const badge of BADGES) {
+      const suffix = `presence-${presence}-notification-${badgeName(badge)}`;
+      await writeMacOSPresenceTrayIcon({ badge, presence }, suffix);
+      await writeWindowsTrayIcon({ badge, presence }, suffix);
+      await writeLinuxTrayIcon({ badge, presence }, suffix);
+    }
+  }
+};
+
 const run = async (): Promise<void> => {
+  if (process.argv.includes('--presence')) {
+    await writePresenceTrayIcons();
+    return;
+  }
+
   await createMacOSAppIcon();
   await createWindowsAppIcons();
   await createLinuxAppIcons();

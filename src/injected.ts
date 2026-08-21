@@ -1,5 +1,7 @@
 import type { NotificationAction } from 'electron';
 
+import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
+
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
 const resolveWithExponentialBackoff = <T>(
@@ -468,6 +470,7 @@ const start = async () => {
     gitCommitHash: false,
     themeAppearance: false,
     userPresence: false,
+    userPresenceStatus: false,
   };
 
   // Per-subscription unread state, accumulated from the
@@ -747,6 +750,75 @@ const start = async () => {
         window.RocketChatDesktop.setUserLoggedIn(userId !== null);
       });
       setupFlags.userLoginDetection = true;
+    }
+
+    if (Tracker && Meteor && !setupFlags.userPresenceStatus) {
+      Tracker.autorun(() => {
+        const u = Meteor.user();
+        const conn = Meteor.status();
+
+        const presenceSupported = Boolean(u) && u?.status !== undefined;
+        const presence = u?.status;
+        const presenceStatusText = u?.statusText;
+
+        const connectionStatusMap: Record<
+          string,
+          'connected' | 'connecting' | 'disconnected'
+        > = {
+          connected: 'connected',
+          connecting: 'connecting',
+          failed: 'disconnected',
+          waiting: 'connecting',
+          offline: 'disconnected',
+        };
+        const presenceConnection =
+          connectionStatusMap[conn?.status] ?? 'disconnected';
+
+        window.RocketChatDesktop.setUserPresence({
+          presence,
+          presenceStatusText,
+          presenceConnection,
+          presenceSupported,
+        });
+      });
+
+      const SET_USER_STATUS_MIN_INTERVAL_MS = 1000;
+
+      const presenceRateLimiter = createPresenceRateLimiter({
+        minIntervalMs: SET_USER_STATUS_MIN_INTERVAL_MS,
+        onDeferred: () => {
+          console.warn(
+            '[Rocket.Chat Desktop] setUserStatus request deferred: rate limit (1/s) not yet elapsed, will send latest status once elapsed'
+          );
+        },
+        send: ({ status, statusText }) => {
+          if (!Meteor.call) return;
+
+          Meteor.call('setUserStatus', status, statusText, (err: any) => {
+            if (!err) return;
+
+            if (
+              err.error === 'error-not-allowed' ||
+              err.error === 'error-status-not-allowed'
+            ) {
+              console.warn(
+                `[Rocket.Chat Desktop] setUserStatus rejected: ${err.error}`
+              );
+              return;
+            }
+
+            console.error('[Rocket.Chat Desktop] setUserStatus failed', err);
+          });
+        },
+      });
+
+      window.RocketChatDesktop.onPresenceChangeRequested(
+        (status, statusText) => {
+          presenceRateLimiter.request({ status, statusText });
+        }
+      );
+
+      setupFlags.userPresenceStatus = true;
     }
 
     if (Tracker && Meteor && !setupFlags.gitCommitHash) {

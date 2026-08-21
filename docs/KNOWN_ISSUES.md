@@ -151,3 +151,28 @@
   package.json, patches/@kayahr+jest-electron-runner+29.14.0.patch.
 - Reference: PR #3452. Failing run 31515022528 (`check (macos-latest)`); green after the fix
   in run 31515403323 (macOS 16m32s, 1721 tests, 0 failures).
+
+## Rocket.Chat presence Meteor methods: `UserPresence:setDefaultStatus` deprecated for 9.0.0
+
+- Status: Not a blocker. We use the non-deprecated `setUserStatus` instead, so nothing is
+  scheduled to break — this entry exists so the constraint is not rediscovered.
+- Detail: `apps/meteor/server/meteor-methods/users/userPresence.ts` logs
+  `methodDeprecationLogger.method('UserPresence:setDefaultStatus', '9.0.0', '/v1/users.setStatus')`.
+  The method still works on 8.x but is slated for removal in Rocket.Chat 9.0.0, with the REST
+  endpoint `/v1/users.setStatus` named as its replacement.
+- Why we did not use it anyway: it takes `status` only, so it cannot set a custom status
+  message. `Meteor.call('setUserStatus', statusType, statusText)`
+  (`apps/meteor/server/meteor-methods/users/setUserStatus.ts`) sets both in one call, is not
+  deprecated, and throws real errors (`error-not-allowed`,
+  `error-status-not-allowed`) instead of returning `undefined` silently. It is also on the
+  DDP fast-path bypass list (`apps/meteor/client/meteor/overrides/ddpOverREST.ts`), so there
+  is no latency penalty versus the deprecated method.
+- Gotcha to remember: `setUserStatus` is rate limited to **1 call/sec/user**
+  (`RateLimiter.limitMethod('setUserStatus', 1, 1000, ...)`). Any UI that drives it — e.g.
+  the tray presence selector — must debounce or the second rapid pick is rejected.
+- Second gotcha: `statusDefault` does NOT track these writes. Both methods route through
+  `Presence.setStatus`, which moves `status`; `statusDefault` stays put. Read `status` for
+  anything user-visible, including a "currently selected" checkmark.
+- Affected files: src/injected.ts (presence read/write bridge), src/ui/main/trayIcon.ts.
+- Reference: CORE-2525. Verified against Rocket.Chat @ 8.8.0-develop source and confirmed
+  live against open.rocket.chat (server 8.8).

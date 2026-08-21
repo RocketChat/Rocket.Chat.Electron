@@ -10,7 +10,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { rimraf } from 'rimraf';
 
-import type { Server } from './servers/common';
+import type { Server, UserPresence } from './servers/common';
 import DmgBackground from './ui/assets/DmgBackground';
 import NsisSideBar from './ui/assets/NsisSideBar';
 import AppIcon from './ui/icons/AppIcon';
@@ -18,6 +18,15 @@ import LinuxTrayIcon from './ui/icons/LinuxTrayIcon';
 import MacOSAppIcon from './ui/icons/MacOSAppIcon';
 import MacOSTrayIcon from './ui/icons/MacOSTrayIcon';
 import WindowsTrayIcon from './ui/icons/WindowsTrayIcon';
+
+const BADGES = ['•', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Server['badge'][];
+
+const PRESENCES: UserPresence[] = ['online', 'away', 'busy', 'offline'];
+
+const badgeName = (badge: Server['badge']): string =>
+  (badge === '•' && 'dot') ||
+  (typeof badge === 'number' && badge > 9 && 'plus-9') ||
+  String(badge);
 
 const convertSvgToPng = async (
   svg: string,
@@ -141,56 +150,32 @@ const createWindowsAppIcons = async (): Promise<void> => {
   await writeFile('src/public/images/icon.ico', ico);
 };
 
-const createWindowsTrayIcons = async (): Promise<void> => {
-  const defaultIcon = renderToStaticMarkup(createElement(WindowsTrayIcon));
-  const defaultIconPngs = await convertSvgToPng(
-    defaultIcon,
-    16,
-    24,
-    32,
-    48,
-    64,
-    128,
-    256
-  );
-  const defaultIconIco = await icoConvert.convert(defaultIconPngs);
-  await writeFile('src/public/images/tray/win32/default.ico', defaultIconIco);
+const writeWindowsTrayIcon = async (
+  props: { badge?: Server['badge']; presence?: UserPresence },
+  fileName: string
+): Promise<void> => {
+  const icon = renderToStaticMarkup(createElement(WindowsTrayIcon, props));
+  const pngs = await convertSvgToPng(icon, 16, 24, 32, 48, 64, 128, 256);
+  const ico = await icoConvert.convert(pngs);
+  await writeFile(`src/public/images/tray/win32/${fileName}.ico`, ico);
+};
 
-  for await (const badge of [
-    '•',
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-  ] as Server['badge'][]) {
-    const notificationIcon = renderToStaticMarkup(
-      createElement(WindowsTrayIcon, { badge })
-    );
-    const notificationIconPngs = await convertSvgToPng(
-      notificationIcon,
-      16,
-      24,
-      32,
-      48,
-      64,
-      128,
-      256
-    );
-    const notificationIconIco = await icoConvert.convert(notificationIconPngs);
-    const name =
-      (badge === '•' && 'dot') ||
-      (typeof badge === 'number' && badge > 9 && 'plus-9') ||
-      String(badge);
-    await writeFile(
-      `src/public/images/tray/win32/notification-${name}.ico`,
-      notificationIconIco
-    );
+const createWindowsTrayIcons = async (): Promise<void> => {
+  await writeWindowsTrayIcon({}, 'default');
+
+  for await (const badge of BADGES) {
+    await writeWindowsTrayIcon({ badge }, `notification-${badgeName(badge)}`);
+  }
+
+  for await (const presence of PRESENCES) {
+    await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
+
+    for await (const badge of BADGES) {
+      await writeWindowsTrayIcon(
+        { badge, presence },
+        `presence-${presence}-notification-${badgeName(badge)}`
+      );
+    }
   }
 };
 
@@ -225,51 +210,32 @@ const createLinuxAppIcons = async (): Promise<void> => {
   await writeFile('build/icons/512x512.png', pngs[6]);
 };
 
-const createLinuxTrayIcons = async (): Promise<void> => {
-  const defaultIcon = renderToStaticMarkup(createElement(LinuxTrayIcon));
-  const defaultIconPngs = await convertSvgToPng(defaultIcon, 64, 128);
-  await writeFile(
-    'src/public/images/tray/linux/default.png',
-    defaultIconPngs[0]
-  );
-  await writeFile(
-    'src/public/images/tray/linux/default@2x.png',
-    defaultIconPngs[1]
-  );
+const writeLinuxTrayIcon = async (
+  props: { badge?: Server['badge']; presence?: UserPresence },
+  fileName: string
+): Promise<void> => {
+  const icon = renderToStaticMarkup(createElement(LinuxTrayIcon, props));
+  const pngs = await convertSvgToPng(icon, 64, 128);
+  await writeFile(`src/public/images/tray/linux/${fileName}.png`, pngs[0]);
+  await writeFile(`src/public/images/tray/linux/${fileName}@2x.png`, pngs[1]);
+};
 
-  for await (const badge of [
-    '•',
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-  ] as Server['badge'][]) {
-    const notificationIcon = renderToStaticMarkup(
-      createElement(LinuxTrayIcon, { badge })
-    );
-    const notificationIconPngs = await convertSvgToPng(
-      notificationIcon,
-      64,
-      128
-    );
-    const name =
-      (badge === '•' && 'dot') ||
-      (typeof badge === 'number' && badge > 9 && 'plus-9') ||
-      String(badge);
-    await writeFile(
-      `src/public/images/tray/linux/notification-${name}.png`,
-      notificationIconPngs[0]
-    );
-    await writeFile(
-      `src/public/images/tray/linux/notification-${name}@2x.png`,
-      notificationIconPngs[1]
-    );
+const createLinuxTrayIcons = async (): Promise<void> => {
+  await writeLinuxTrayIcon({}, 'default');
+
+  for await (const badge of BADGES) {
+    await writeLinuxTrayIcon({ badge }, `notification-${badgeName(badge)}`);
+  }
+
+  for await (const presence of PRESENCES) {
+    await writeLinuxTrayIcon({ presence }, `presence-${presence}`);
+
+    for await (const badge of BADGES) {
+      await writeLinuxTrayIcon(
+        { badge, presence },
+        `presence-${presence}-notification-${badgeName(badge)}`
+      );
+    }
   }
 };
 

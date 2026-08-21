@@ -243,4 +243,153 @@ describe('getTrayIconPath', () => {
       )
     );
   });
+
+  it('returns the legacy paths when presence is undefined (regression guard)', () => {
+    expect(getTrayIconPath({ platform: 'win32', presence: undefined })).toBe(
+      getTrayIconPath({ platform: 'win32' })
+    );
+    expect(getTrayIconPath({ platform: 'linux', presence: undefined })).toBe(
+      getTrayIconPath({ platform: 'linux' })
+    );
+    expect(getTrayIconPath({ platform: 'darwin', presence: undefined })).toBe(
+      getTrayIconPath({ platform: 'darwin' })
+    );
+    expect(
+      getTrayIconPath({ platform: 'win32', badge: 3, presence: undefined })
+    ).toBe(getTrayIconPath({ platform: 'win32', badge: 3 }));
+    expect(
+      getTrayIconPath({ platform: 'linux', badge: 3, presence: undefined })
+    ).toBe(getTrayIconPath({ platform: 'linux', badge: 3 }));
+  });
+
+  it('matches presence paths for win32 platform', () => {
+    expect(getTrayIconPath({ platform: 'win32', presence: 'online' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'presence-online.ico')
+    );
+    expect(getTrayIconPath({ platform: 'win32', presence: 'away' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'presence-away.ico')
+    );
+    expect(getTrayIconPath({ platform: 'win32', presence: 'busy' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'presence-busy.ico')
+    );
+    expect(getTrayIconPath({ platform: 'win32', presence: 'offline' })).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'win32',
+        'presence-offline.ico'
+      )
+    );
+  });
+
+  it('matches presence paths for linux platform', () => {
+    expect(getTrayIconPath({ platform: 'linux', presence: 'online' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'presence-online.png')
+    );
+    expect(getTrayIconPath({ platform: 'linux', presence: 'away' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'presence-away.png')
+    );
+    expect(getTrayIconPath({ platform: 'linux', presence: 'busy' })).toBe(
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'presence-busy.png')
+    );
+    expect(getTrayIconPath({ platform: 'linux', presence: 'offline' })).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'linux',
+        'presence-offline.png'
+      )
+    );
+  });
+
+  it('combines presence and badge for win32 platform', () => {
+    expect(
+      getTrayIconPath({ platform: 'win32', presence: 'online', badge: '•' })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'win32',
+        'presence-online-notification-dot.ico'
+      )
+    );
+    expect(
+      getTrayIconPath({ platform: 'win32', presence: 'busy', badge: 5 })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'win32',
+        'presence-busy-notification-5.ico'
+      )
+    );
+    expect(
+      getTrayIconPath({ platform: 'win32', presence: 'away', badge: 10 })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'win32',
+        'presence-away-notification-plus-9.ico'
+      )
+    );
+  });
+
+  it('combines presence and badge for linux platform', () => {
+    expect(
+      getTrayIconPath({ platform: 'linux', presence: 'online', badge: '•' })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'linux',
+        'presence-online-notification-dot.png'
+      )
+    );
+    expect(
+      getTrayIconPath({ platform: 'linux', presence: 'busy', badge: 5 })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'linux',
+        'presence-busy-notification-5.png'
+      )
+    );
+    expect(
+      getTrayIconPath({ platform: 'linux', presence: 'away', badge: 10 })
+    ).toBe(
+      path.join(
+        '/app',
+        'app',
+        'images',
+        'tray',
+        'linux',
+        'presence-away-notification-plus-9.png'
+      )
+    );
+  });
+
+  it('ignores presence for darwin platform', () => {
+    expect(getTrayIconPath({ platform: 'darwin', presence: 'online' })).toBe(
+      getTrayIconPath({ platform: 'darwin' })
+    );
+    expect(
+      getTrayIconPath({ platform: 'darwin', presence: 'busy', badge: 3 })
+    ).toBe(getTrayIconPath({ platform: 'darwin', badge: 3 }));
+  });
 });

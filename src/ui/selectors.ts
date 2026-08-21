@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import type { Server } from '../servers/common';
+import type { Server, UserPresence } from '../servers/common';
 import type { RootState } from '../store/rootReducer';
 
 export type Selector<T> = (state: RootState) => T;
@@ -42,4 +42,55 @@ const isBadgeCount = (badge: Server['badge']): badge is number =>
 export const selectGlobalBadgeCount = createSelector(
   selectGlobalBadge,
   (badge): number => (isBadgeCount(badge) ? badge : 0)
+);
+
+export type ActiveServerPresence = {
+  url?: string;
+  title?: string;
+  presence?: UserPresence;
+  statusText?: string;
+  connection?: 'connected' | 'connecting' | 'disconnected';
+  supported?: boolean;
+  loggedIn?: boolean;
+  hasServers: boolean;
+};
+
+const toHref = (url: string): string => {
+  try {
+    return new URL(url).href;
+  } catch {
+    return url;
+  }
+};
+
+export const selectActiveServerPresence = createSelector(
+  ({ servers }: RootState) => servers,
+  ({ currentView }: RootState) => currentView,
+  (servers, currentView): ActiveServerPresence => {
+    const hasServers = servers.length > 0;
+
+    if (typeof currentView !== 'object' || !currentView.url) {
+      return { hasServers };
+    }
+
+    const currentViewHref = toHref(currentView.url);
+    const activeServer = servers.find(
+      (server) => toHref(server.url) === currentViewHref
+    );
+
+    if (!activeServer) {
+      return { hasServers };
+    }
+
+    return {
+      url: activeServer.url,
+      title: activeServer.title,
+      presence: activeServer.presence,
+      statusText: activeServer.presenceStatusText,
+      connection: activeServer.presenceConnection,
+      supported: activeServer.presenceSupported,
+      loggedIn: activeServer.userLoggedIn,
+      hasServers,
+    };
+  }
 );

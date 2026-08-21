@@ -640,6 +640,15 @@
         "title": "{{- appName}} is still running",
         "content": "{{- appName }} is set to stay running in the system tray/notification area."
       }
+    },
+    "presence": {
+      "online": "Online",
+      "away": "Away",
+      "busy": "Busy",
+      "offline": "Offline",
+      "disconnected": "Disconnected — trying to reconnect...",
+      "signIn": "Sign in to {{- workspace}}",
+      "addWorkspace": "Add workspace"
     }
   },
   "taskbar": {

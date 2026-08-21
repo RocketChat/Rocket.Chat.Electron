@@ -3,6 +3,7 @@ import {
   selectGlobalBadge,
   selectGlobalBadgeCount,
   selectGlobalBadgeText,
+  selectActiveServerPresence,
 } from '../selectors';
 
 const state = (servers: any[]): RootState =>
@@ -35,5 +36,15 @@ describe('ui/selectors', () => {
     expect(selectGlobalBadgeCount(state([{ badge: '•' }, { badge: 7 }]))).toBe(
       7
     );
+  });
+
+  it('does not throw when a server has a malformed url', () => {
+    const rootState = {
+      servers: [{ url: 'not a url', title: 'Bad Server' }],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(() => selectActiveServerPresence(rootState)).not.toThrow();
+    expect(selectActiveServerPresence(rootState).url).toBeUndefined();
   });
 });

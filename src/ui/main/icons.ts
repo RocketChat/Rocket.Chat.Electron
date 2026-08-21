@@ -2,7 +2,7 @@ import path from 'path';
 
 import { app } from 'electron';
 
-import type { Server } from '../../servers/common';
+import type { Server, UserPresence } from '../../servers/common';
 
 export const getAppIconPath = ({
   platform,
@@ -22,29 +22,38 @@ const getMacOSTrayIconPath = (badge: Server['badge']): string =>
     `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
   );
 
-const getWindowsTrayIconPath = (badge: Server['badge']): string => {
-  const name =
-    (!badge && 'default') ||
-    (badge === '•' && 'notification-dot') ||
-    (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
-    `notification-${badge}`;
+const getBadgeNamePart = (badge: Server['badge']): string =>
+  (badge === '•' && 'notification-dot') ||
+  (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
+  `notification-${badge}`;
+
+const getWindowsTrayIconPath = (
+  badge: Server['badge'],
+  presence: UserPresence | undefined
+): string => {
+  const name = presence
+    ? `presence-${presence}${badge ? `-${getBadgeNamePart(badge)}` : ''}`
+    : (!badge && 'default') || getBadgeNamePart(badge);
   return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
 };
 
-const getLinuxTrayIconPath = (badge: Server['badge']): string => {
-  const name =
-    (!badge && 'default') ||
-    (badge === '•' && 'notification-dot') ||
-    (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
-    `notification-${badge}`;
+const getLinuxTrayIconPath = (
+  badge: Server['badge'],
+  presence: UserPresence | undefined
+): string => {
+  const name = presence
+    ? `presence-${presence}${badge ? `-${getBadgeNamePart(badge)}` : ''}`
+    : (!badge && 'default') || getBadgeNamePart(badge);
   return path.join(app.getAppPath(), `app/images/tray/linux/${name}.png`);
 };
 
 export const getTrayIconPath = ({
   badge,
+  presence,
   platform,
 }: {
   badge?: Server['badge'];
+  presence?: UserPresence;
   platform: NodeJS.Platform;
 }): string => {
   switch (platform ?? process.platform) {
@@ -52,10 +61,10 @@ export const getTrayIconPath = ({
       return getMacOSTrayIconPath(badge);
 
     case 'win32':
-      return getWindowsTrayIconPath(badge);
+      return getWindowsTrayIconPath(badge, presence);
 
     case 'linux':
-      return getLinuxTrayIconPath(badge);
+      return getLinuxTrayIconPath(badge, presence);
 
     default:
       throw Error(`unsupported platform (${platform})`);

@@ -16,6 +16,7 @@ import {
 } from '../../outlookCalendar/preload';
 import { onTelephonyCallRequested } from '../../telephony/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
+import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import {
@@ -31,6 +32,7 @@ import {
 } from './internalVideoChatWindow';
 import { onNavigateToRoute } from './navigateToRoute';
 import { openInBrowser } from './openInBrowser';
+import { onPresenceChangeRequested, setUserPresence } from './presence';
 import { reloadServer } from './reloadServer';
 import {
   setBackground,
@@ -64,6 +66,18 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   supportedDocumentViewerFormats: () => string[];
   onNavigateToRoute: (callback: (path: string) => void) => void;
   setUserRoles: (roles: string[]) => void;
+  setUserPresence: (payload: {
+    presence: Server['presence'];
+    presenceStatusText: Server['presenceStatusText'];
+    presenceConnection: Server['presenceConnection'];
+    presenceSupported: Server['presenceSupported'];
+  }) => void;
+  onPresenceChangeRequested: (
+    callback: (
+      status: NonNullable<Server['presence']>,
+      statusText?: string
+    ) => void
+  ) => void;
 };
 
 declare global {
@@ -94,6 +108,8 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserPresenceDetection,
   setUserLoggedIn,
   setUserRoles,
+  setUserPresence,
+  onPresenceChangeRequested,
   setUserThemeAppearance,
   createNotification,
   destroyNotification,

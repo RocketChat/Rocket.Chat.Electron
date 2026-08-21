@@ -31,6 +31,9 @@ jest.mock('electron', () => ({
     createFromPath: jest.fn(() => ({})),
   },
   Tray: jest.fn(() => trayMethods),
+  webContents: {
+    fromId: jest.fn(() => undefined),
+  },
 }));
 
 jest.mock('i18next', () => ({
@@ -70,6 +73,8 @@ jest.mock('../../store', () => {
 
 jest.mock('../selectors', () => ({
   selectGlobalBadge: (state: any) => state.globalBadge,
+  selectActiveServerPresence: (state: any) =>
+    state.activeServerPresence ?? { hasServers: false },
 }));
 
 jest.mock('./icons', () => ({
@@ -96,6 +101,7 @@ describe('ui/main/trayIcon', () => {
           rootWindowState: { visible: true },
           hasHideOnTrayNotificationShown: false,
           globalBadge: 3,
+          activeServerPresence: { hasServers: false },
         });
       }
       return undefined;

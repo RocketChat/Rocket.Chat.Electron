@@ -1,30 +1,22 @@
 import type { Server, UserPresence } from '../../servers/common';
 import AppIcon from './AppIcon';
 import Badge from './Badge';
-import PresenceDot from './PresenceDot';
+import { PRESENCE_COLORS } from './presenceColors';
 
 type LinuxTrayIconProps = {
   badge?: Server['badge'];
   presence?: UserPresence;
 };
 
-const LinuxTrayIcon = ({ badge, presence }: LinuxTrayIconProps) => {
-  const color = '#9EA2A8';
-
-  return (
-    <AppIcon color={color}>
-      {!!presence && (
-        <svg x='0' y='0' width='50%' height='100%'>
-          <PresenceDot presence={presence} />
-        </svg>
-      )}
-      {!!badge && (
-        <svg x='50%' y='0' width='50%' height='100%'>
-          <Badge value={badge} />
-        </svg>
-      )}
-    </AppIcon>
-  );
-};
+const LinuxTrayIcon = ({ badge, presence }: LinuxTrayIconProps) => (
+  <AppIcon color='#9EA2A8'>
+    {(badge || presence) && (
+      <Badge
+        value={badge ?? 0}
+        backgroundColor={presence ? PRESENCE_COLORS[presence] : undefined}
+      />
+    )}
+  </AppIcon>
+);
 
 export default LinuxTrayIcon;

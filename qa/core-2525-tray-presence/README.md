@@ -81,8 +81,8 @@ When updating this pack, derive visible steps from the implementation:
   `src/ui/main/trayIcon.ts` (`buildMenuTemplate`, `buildPresenceMenuItems`).
 - Tray icon file selection per platform/badge/presence: `src/ui/main/icons.ts`
   (`getTrayIconPath`).
-- Presence dot colors and offline hollow-ring rendering:
-  `src/ui/icons/PresenceDot.tsx`.
+- Presence circle colours (existing unread `Badge`, recolored):
+  `src/ui/icons/presenceColors.ts`, `WindowsTrayIcon.tsx`, `LinuxTrayIcon.tsx`.
 - Visible menu labels: `src/i18n/en.i18n.json` under `tray.presence.*`.
 - Active-workspace presence selection: `src/ui/selectors.ts`
   (`selectActiveServerPresence`).

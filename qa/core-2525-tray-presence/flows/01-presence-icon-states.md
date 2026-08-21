@@ -21,9 +21,9 @@ expected_result: The tray icon shows a visually distinct colored dot for online,
 ## Review Basis
 
 - Comparison range: `dev` to the CORE-2525 branch.
-- Changed surface: `src/ui/main/icons.ts` (`getTrayIconPath`), `src/ui/main/trayIcon.ts` (`updateTrayIconImage`, `getActivePresenceForIcon`), `src/ui/icons/PresenceDot.tsx`.
+- Changed surface: `src/ui/main/icons.ts` (`getTrayIconPath`), `src/ui/main/trayIcon.ts` (`updateTrayIconImage`, `getActivePresenceForIcon`), `src/ui/icons/WindowsTrayIcon.tsx` / `LinuxTrayIcon.tsx` (presence recolors the existing `Badge` overlay; same size and position as the shipping unread circle).
 - User-visible risk: A tester cannot tell their presence at a glance from the system tray, or two states render as the same icon.
-- Hypothesis: Setting presence to online, away, busy, or offline changes the tray icon to a distinct dot color/shape (online `#2DE0A5` filled, away `#FFD21F` filled, busy `#F5455C` filled, offline `#9EA2A8` hollow ring) with no badge overlap.
+- Hypothesis: Setting presence to online, away, busy, or offline recolors the existing unread-badge circle (online `#2DE0A5`, away `#FFD21F`, busy `#F5455C`, offline `#9EA2A8`) without moving or resizing it.
 - Smallest useful proof: Local UI repro on a real Windows and Linux build, comparing the tray icon crop against the four expected renders.
 
 ## Steps
@@ -34,7 +34,7 @@ expected_result: The tray icon shows a visually distinct colored dot for online,
 | 2 | Right-click the tray icon to open its context menu, then click the `Online` radio item at the top of the menu (a filled circle indicator to the left of the label when selected). | Presence value `online` | Within a few seconds the tray icon's dot renders as a solid green-teal filled circle (`#2DE0A5`). | Set presence to `online` via the app's IPC/API path and read back the icon file path from `getTrayIconPath`. |
 | 3 | Right-click the tray icon again and click the `Away` radio item. | Presence value `away` | The tray icon's dot changes to a solid yellow filled circle (`#FFD21F`), visibly different from step 2. | Set presence to `away`, confirm the resolved icon path differs from the online icon path. |
 | 4 | Right-click the tray icon again and click the `Busy` radio item. | Presence value `busy` | The tray icon's dot changes to a solid red filled circle (`#F5455C`), visibly different from steps 2 and 3. | Set presence to `busy`, confirm the resolved icon path differs from prior states. |
-| 5 | Right-click the tray icon again and click the `Offline` radio item. | Presence value `offline` | The tray icon's dot changes to a hollow/outlined gray ring (`#9EA2A8` stroke, no fill), visually distinct from the three filled dots in steps 2-4 (ring vs. solid disc). | Set presence to `offline`, confirm the resolved icon path differs from prior states and the rendered asset uses the ring/outline variant. |
+| 5 | Right-click the tray icon again and click the `Offline` radio item. | Presence value `offline` | The tray icon's circle changes to a solid gray fill (`#9EA2A8`), same size and position as steps 2-4, distinct by colour only. | Set presence to `offline`, confirm the resolved icon path differs from prior states. |
 | 6 | Zoom or crop a screenshot of the tray icon region at native size (16x16 on Windows) for each of the four states captured above. | Screenshots from steps 2-5 | All four crops are distinguishable from each other by color/shape even at native icon size. | Compare the four resolved icon file paths/pixel buffers; assert they are byte-distinct. |
 
 ## Evidence
@@ -46,5 +46,5 @@ expected_result: The tray icon shows a visually distinct colored dot for online,
 
 - Two or more presence states render the same icon (color/shape collision).
 - The dot does not appear at all (icon looks identical to the pre-feature default icon).
-- The offline ring renders filled instead of hollow, or is indistinguishable from busy/away at native size.
+- Offline is indistinguishable from busy/away at native size.
 - The icon fails to update within a few seconds of changing presence.

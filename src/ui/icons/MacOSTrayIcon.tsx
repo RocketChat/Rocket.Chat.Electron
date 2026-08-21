@@ -1,17 +1,11 @@
 import type { UserPresence } from '../../servers/common';
 import AppIcon from './AppIcon';
 import Badge from './Badge';
+import { PRESENCE_COLORS } from './presenceColors';
 
 type MacOSTrayIconProps = {
   notification?: boolean;
   presence?: UserPresence;
-};
-
-const PRESENCE_COLORS: Record<UserPresence, string> = {
-  online: '#2DE0A5',
-  away: '#FFD21F',
-  busy: '#F5455C',
-  offline: '#9EA2A8',
 };
 
 // The badge circle is the same shape, size and position whether or not

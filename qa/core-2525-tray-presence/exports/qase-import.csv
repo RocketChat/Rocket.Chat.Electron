@@ -19,13 +19,13 @@ Agent: Set presence to `away`, confirm the resolved icon path differs from the o
 4. ""Presence value `busy`
 Agent: Set presence to `busy`, confirm the resolved icon path differs from prior states.""
 5. ""Presence value `offline`
-Agent: Set presence to `offline`, confirm the resolved icon path differs from prior states and the rendered asset uses the ring/outline variant.""
+Agent: Set presence to `offline`, confirm the resolved icon path differs from prior states.""
 6. ""Screenshots from steps 2-5
 Agent: Compare the four resolved icon file paths/pixel buffers; assert they are byte-distinct.""","1. ""Tray icon is visible and shows a default icon plus a small colored dot in the lower-right corner of the icon.""
 2. ""Within a few seconds the tray icon's dot renders as a solid green-teal filled circle (`#2DE0A5`).""
 3. ""The tray icon's dot changes to a solid yellow filled circle (`#FFD21F`), visibly different from step 2.""
 4. ""The tray icon's dot changes to a solid red filled circle (`#F5455C`), visibly different from steps 2 and 3.""
-5. ""The tray icon's dot changes to a hollow/outlined gray ring (`#9EA2A8` stroke, no fill), visually distinct from the three filled dots in steps 2-4 (ring vs. solid disc).""
+5. ""The tray icon's circle changes to a solid gray fill (`#9EA2A8`), same size and position as steps 2-4, distinct by colour only.""
 6. ""All four crops are distinguishable from each other by color/shape even at native icon size."""
 "","1","Tray presence status","","Tray Menu Presence Radios Reflect And Change Effective Status","Source flow: CORE-2525-QA-002
 
@@ -197,24 +197,24 @@ Agent: Confirm title/tooltip reset independently of the current presence value."
 5. ""The title clears (empty) and the tooltip returns to """"no unread message"""" text, same as step 1, regardless of the presence set in step 4."""
 "","1","Tray presence status","","Presence Dot And Unread Badge Are Both Visible And Distinguishable Together","Source flow: CORE-2525-QA-010
 
-When both an unread badge and a non-default presence are active, the tray icon renders both the presence dot and the badge overlay simultaneously, and a tester can tell them apart at native icon size.","installed_branch_build
+When both an unread count and a presence are active, the tray icon uses the shipping unread-badge circle (same size and position) filled with the presence colour and showing the unread numeral.","installed_branch_build
 presence_supporting_workspace
 logged_in_session
 unread_mention_source","- Zoomed/cropped screenshots at native icon size for: presence-only, badge-only (from flow 09), and combined presence+badge.
-- Resolved icon file paths for each state if screenshots are inconclusive at native size.","major","high","actual","manual","classic","CORE-2525-QA-010,source:repo-qa,platform:windows,platform:linux,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a presence-supporting workspace with zero unread mentions and presence left at its default. Right-click the tray icon (Windows notification area / Linux system tray) and set presence to `Busy` via the context menu.""
-2. ""From another client/account, send this user two unread @-mentions while presence remains `Busy`.""
-3. ""Compare the step-2 screenshot against the step-1 (presence-only) screenshot and a badge-only screenshot from flow 09 step 3 (2 unread mentions, no presence).""
-4. ""Mark all mentions read while presence remains `Busy`, then re-check the icon.""","1. ""Presence: busy, 0 unread
+- Resolved icon file paths for each state if screenshots are inconclusive at native size.","major","high","actual","manual","classic","CORE-2525-QA-010,source:repo-qa,platform:windows,platform:linux,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a presence-supporting workspace with zero unread mentions and presence left at its default. Right-click the tray icon (Windows notification area / Linux system tray) and set presence to `Online` via the context menu.""
+2. ""From another client/account, send this user two unread @-mentions while presence remains `Online`.""
+3. ""Compare the step-2 screenshot against a badge-only screenshot from flow 09 (2 unread mentions, no presence).""
+4. ""Mark all mentions read while presence remains `Online`, then re-check the icon.""","1. ""Presence: online, 0 unread
 Agent: Read the resolved icon path; assert it matches the presence-only filename pattern with no badge suffix.""
-2. ""2 unread mentions, presence: busy
-Agent: Read the resolved icon path; assert it matches the combined filename pattern `presence-busy-notification-2` (or the equivalent badge-name part) and confirm the tray title shows `2`.""
-3. ""Screenshots from steps 1-2 and flow 09
-Agent: Compare pixel regions of the three icon assets to confirm the presence dot and badge marker are in different positions/do not fully overlap.""
-4. ""0 unread, presence: busy
-Agent: Confirm the resolved icon path returns to the presence-only pattern from step 1.""","1. ""The tray icon shows only the red busy dot (`#F5455C`), no numeral/badge overlay. Capture a zoomed screenshot for baseline comparison.""
-2. ""The tray icon now shows both the busy dot AND a badge/count indicator (e.g. the numeral `2` as the tray title, and/or a combined icon asset) simultaneously. Zoom/crop a screenshot at native size (16x16 on Windows).""
-3. ""The presence dot and the badge marker occupy visually separate regions of the icon (not the same pixels) and a viewer can identify both the presence color and that mentions are unread from the combined icon alone.""
-4. ""The icon reverts to showing only the busy dot (matches step 1), confirming the badge cleanly detaches from the presence dot."""
+2. ""2 unread mentions, presence: online
+Agent: Read the resolved icon path; assert it matches `presence-online-notification-2` and the tray title shows `2`.""
+3. ""Screenshots from step 2 and flow 09
+Agent: Overlay or measure the badge circle on both assets; they occupy the same region.""
+4. ""0 unread, presence: online
+Agent: Confirm the resolved icon path returns to the presence-only pattern from step 1.""","1. ""The tray icon shows only the green presence circle (`#2DE0A5`), same size and position as the shipping unread badge, with no numeral. Capture a zoomed screenshot for baseline comparison.""
+2. ""The tray icon shows the shipping unread circle (same size/position as a no-presence `notification-2` icon) filled `#2DE0A5` with the numeral `2` in white. The tray title still shows `2`.""
+3. ""The circle matches the shipping unread badge's size and position; only the fill colour differs (presence green vs shipping red).""
+4. ""The icon reverts to the green empty circle from step 1 (numeral gone, circle stays)."""
 "","1","Tray presence status","","Rapid Presence Clicks Coalesce Without Dropping The Final Choice","Source flow: CORE-2525-QA-011
 
 Clicking Online then immediately Busy within the same second results in the server ending up on Busy (the last-requested value), not silently stuck on Online or on no change at all.","installed_branch_build

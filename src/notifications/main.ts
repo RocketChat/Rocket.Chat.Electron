@@ -2,6 +2,7 @@ import type { NativeImage } from 'electron';
 import { Notification, nativeImage } from 'electron';
 
 import { invoke } from '../ipc/main';
+import { loggers } from '../logging/scopes';
 import { dispatch, dispatchSingle, listen, select } from '../store';
 import type { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
@@ -287,8 +288,9 @@ export const handleNotificationActivation = (
   const { tag, type } = parseActivationArguments(details.arguments);
 
   if (!tag) {
-    console.warn(
-      '[notifications] could not parse notification id from activation arguments'
+    loggers.notifications.warn(
+      'could not parse notification id from activation arguments',
+      details.arguments
     );
     return;
   }
@@ -300,8 +302,8 @@ export const handleNotificationActivation = (
   // off the notification id, and only the view that created it has an entry.
   const routingMeta = notificationRoutingMeta.get(tag);
   if (!routingMeta) {
-    console.warn(
-      `[notifications] no routing metadata for notification ${tag}; broadcasting activation`
+    loggers.notifications.warn(
+      `no routing metadata for notification ${tag}; broadcasting activation`
     );
   }
 

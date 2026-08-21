@@ -58,6 +58,14 @@ jest.mock('./attentionDrawing', () => ({
   default: { drawAttention: jest.fn(), stopAttention: jest.fn() },
 }));
 
+const mockNotificationsWarn = jest.fn();
+
+jest.mock('../logging/scopes', () => ({
+  loggers: {
+    notifications: { warn: (...args: any[]) => mockNotificationsWarn(...args) },
+  },
+}));
+
 const listeners = new Map<string, (action: any) => void | Promise<void>>();
 
 const mockDispatch = jest.fn();
@@ -173,8 +181,6 @@ describe('notifications/main win32 activation routing', () => {
   });
 
   it('warns and does not dispatch when the tag cannot be parsed', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
     handleNotificationActivation({
       type: 'reply',
       arguments: 'garbage',
@@ -182,13 +188,10 @@ describe('notifications/main win32 activation routing', () => {
     } as any);
 
     expect(mockDispatchSingle).not.toHaveBeenCalled();
-    expect(warnSpy).toHaveBeenCalled();
-    warnSpy.mockRestore();
+    expect(mockNotificationsWarn).toHaveBeenCalled();
   });
 
   it('warns but still broadcasts the reply when routing metadata is missing', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
     handleNotificationActivation({
       type: 'reply',
       arguments: 'type=reply&tag=unknown-id',
@@ -200,13 +203,10 @@ describe('notifications/main win32 activation routing', () => {
       type: NOTIFICATIONS_NOTIFICATION_REPLIED,
       payload: { id: 'unknown-id', reply: 'hi' },
     });
-    expect(warnSpy).toHaveBeenCalled();
-    warnSpy.mockRestore();
+    expect(mockNotificationsWarn).toHaveBeenCalled();
   });
 
   it('warns but still broadcasts the action when routing metadata is missing', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
     handleNotificationActivation({
       type: 'action',
       arguments: 'type=action&tag=unknown-id',
@@ -218,8 +218,7 @@ describe('notifications/main win32 activation routing', () => {
       type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
       payload: { id: 'unknown-id', index: 1 },
     });
-    expect(warnSpy).toHaveBeenCalled();
-    warnSpy.mockRestore();
+    expect(mockNotificationsWarn).toHaveBeenCalled();
   });
 
   it('still delivers a reply from an Action Center card after the banner timed out and the web client auto-closed it', async () => {
@@ -278,7 +277,6 @@ describe('notifications/main win32 activation routing', () => {
 
     mockDispatch.mockClear();
     mockDispatchSingle.mockClear();
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     handleNotificationActivation({
       type: 'reply',
@@ -295,8 +293,7 @@ describe('notifications/main win32 activation routing', () => {
     );
     // Precise routing survived, so the broadcast fallback stays untouched.
     expect(mockDispatch).not.toHaveBeenCalled();
-    expect(warnSpy).not.toHaveBeenCalled();
-    warnSpy.mockRestore();
+    expect(mockNotificationsWarn).not.toHaveBeenCalled();
   });
 
   it('keeps routing metadata across a banner timeout so the reply is still addressed to its view', async () => {

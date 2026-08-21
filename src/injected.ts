@@ -262,8 +262,13 @@ const start = async () => {
   });
 
   // Initialize non-module dependent features immediately
-  navigator.clipboard.writeText = async (...args) =>
-    window.RocketChatDesktop.writeTextToClipboard(...args);
+  // navigator.clipboard is undefined outside secure contexts (plain HTTP
+  // workspaces), so guard the patch or the whole start() chain throws here
+  // and never reaches the Notification shim below.
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText = async (...args) =>
+      window.RocketChatDesktop.writeTextToClipboard(...args);
+  }
 
   console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 

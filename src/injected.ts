@@ -1,6 +1,7 @@
 import type { NotificationAction } from 'electron';
 
 import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
+import { parseUsersInfoStatusText } from './servers/preload/presenceStatusText';
 
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
@@ -753,13 +754,78 @@ const start = async () => {
     }
 
     if (Tracker && Meteor && !setupFlags.userPresenceStatus) {
+      // `statusText` (the custom status message) is not part of the DDP
+      // publication of the user document, so it is fetched via REST instead
+      // of read reactively. Fetching inside the autorun below would hammer
+      // the endpoint on every reactive change, so the result is cached here
+      // and only re-fetched when a session first appears or after the app
+      // requests a presence change.
+      let cachedStatusText: string | undefined;
+      let statusTextFetchInFlight = false;
+
+      // Re-pushes the last known presence snapshot with the freshly fetched
+      // `cachedStatusText`, since the REST fetch resolving does not itself
+      // re-run the Tracker.autorun below.
+      let pushLatestPresence: (() => void) | null = null;
+
+      const fetchStatusText = async (): Promise<void> => {
+        if (statusTextFetchInFlight) return;
+
+        let token: string | null = null;
+        let userId: string | null = null;
+        try {
+          token = window.localStorage.getItem('Meteor.loginToken');
+          userId = window.localStorage.getItem('Meteor.userId');
+        } catch (error) {
+          console.warn(
+            '[Rocket.Chat Desktop] Failed to read login credentials from localStorage',
+            error
+          );
+          return;
+        }
+
+        if (!token || !userId) return;
+
+        statusTextFetchInFlight = true;
+        try {
+          const response = await fetch(
+            `/api/v1/users.info?userId=${encodeURIComponent(userId)}`,
+            {
+              headers: {
+                'X-Auth-Token': token,
+                'X-User-Id': userId,
+              },
+            }
+          );
+          const json = await response.json();
+          cachedStatusText = parseUsersInfoStatusText(json);
+          pushLatestPresence?.();
+        } catch (error) {
+          console.warn(
+            '[Rocket.Chat Desktop] Failed to fetch custom status text',
+            error
+          );
+        } finally {
+          statusTextFetchInFlight = false;
+        }
+      };
+
+      let lastUserId: string | null = null;
+
       Tracker.autorun(() => {
         const u = Meteor.user();
         const conn = Meteor.status();
 
         const presenceSupported = Boolean(u) && u?.status !== undefined;
         const presence = u?.status;
-        const presenceStatusText = u?.statusText;
+
+        const currentUserId: string | null = u?._id ?? null;
+        if (currentUserId && currentUserId !== lastUserId) {
+          lastUserId = currentUserId;
+          fetchStatusText().catch(() => {});
+        } else if (!currentUserId) {
+          lastUserId = null;
+        }
 
         const connectionStatusMap: Record<
           string,
@@ -774,12 +840,16 @@ const start = async () => {
         const presenceConnection =
           connectionStatusMap[conn?.status] ?? 'disconnected';
 
-        window.RocketChatDesktop.setUserPresence({
-          presence,
-          presenceStatusText,
-          presenceConnection,
-          presenceSupported,
-        });
+        pushLatestPresence = () => {
+          window.RocketChatDesktop.setUserPresence({
+            presence,
+            presenceStatusText: cachedStatusText,
+            presenceConnection,
+            presenceSupported,
+          });
+        };
+
+        pushLatestPresence();
       });
 
       const SET_USER_STATUS_MIN_INTERVAL_MS = 1000;
@@ -815,6 +885,9 @@ const start = async () => {
       window.RocketChatDesktop.onPresenceChangeRequested(
         (status, statusText) => {
           presenceRateLimiter.request({ status, statusText });
+          // The user may have changed their custom status message in-app;
+          // re-fetch so the tray's cached value stays in sync.
+          fetchStatusText().catch(() => {});
         }
       );
 

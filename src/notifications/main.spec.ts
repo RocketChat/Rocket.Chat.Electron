@@ -186,7 +186,7 @@ describe('notifications/main win32 activation routing', () => {
     warnSpy.mockRestore();
   });
 
-  it('warns and does not dispatch when routing metadata is missing', () => {
+  it('warns but still broadcasts the reply when routing metadata is missing', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     handleNotificationActivation({
@@ -196,8 +196,132 @@ describe('notifications/main win32 activation routing', () => {
     } as any);
 
     expect(mockDispatchSingle).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: NOTIFICATIONS_NOTIFICATION_REPLIED,
+      payload: { id: 'unknown-id', reply: 'hi' },
+    });
     expect(warnSpy).toHaveBeenCalled();
     warnSpy.mockRestore();
+  });
+
+  it('warns but still broadcasts the action when routing metadata is missing', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    handleNotificationActivation({
+      type: 'action',
+      arguments: 'type=action&tag=unknown-id',
+      actionIndex: 1,
+    } as any);
+
+    expect(mockDispatchSingle).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
+      payload: { id: 'unknown-id', index: 1 },
+    });
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('still delivers a reply from an Action Center card after the banner timed out and the web client auto-closed it', async () => {
+    await createTestNotification('timeout-abc123');
+    const instance = notificationInstances[0];
+
+    // Windows auto-hides the banner into the Action Center: Electron emits
+    // `close` while the card stays actionable.
+    instance.listeners.close[0]();
+
+    // The web client's `setTimeout(() => n.close())` then dismisses it.
+    const dismissed = listeners.get('notifications/notification-dismissed');
+    expect(dismissed).toBeDefined();
+    dismissed!({
+      type: 'notifications/notification-dismissed',
+      payload: { id: 'timeout-abc123' },
+    });
+
+    // The dismissal must reach the instance even though `close` already
+    // removed it from the live map, or the card is never taken down.
+    expect(instance.close).toHaveBeenCalled();
+
+    mockDispatch.mockClear();
+    mockDispatchSingle.mockClear();
+
+    handleNotificationActivation({
+      type: 'reply',
+      arguments: 'type=reply&tag=timeout-abc123',
+      reply: 'late reply',
+    } as any);
+
+    // The reply lands, and win32 keeps the routing metadata through the
+    // dismissal so it is still addressed to the originating view.
+    expect(mockDispatchSingle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: NOTIFICATIONS_NOTIFICATION_REPLIED,
+        payload: { id: 'timeout-abc123', reply: 'late reply' },
+        ipcMeta: { type: 'single', webContentsId: 7 },
+      })
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('retains routing metadata through a dismissal on win32 so a later activation keeps its original ipcMeta', async () => {
+    await createTestNotification('retain-abc123', {
+      type: 'single',
+      webContentsId: 42,
+    });
+
+    const dismissed = listeners.get('notifications/notification-dismissed');
+    expect(dismissed).toBeDefined();
+    dismissed!({
+      type: 'notifications/notification-dismissed',
+      payload: { id: 'retain-abc123' },
+    });
+
+    mockDispatch.mockClear();
+    mockDispatchSingle.mockClear();
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    handleNotificationActivation({
+      type: 'reply',
+      arguments: 'type=reply&tag=retain-abc123',
+      reply: 'after dismissal',
+    } as any);
+
+    expect(mockDispatchSingle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: NOTIFICATIONS_NOTIFICATION_REPLIED,
+        payload: { id: 'retain-abc123', reply: 'after dismissal' },
+        ipcMeta: { type: 'single', webContentsId: 42 },
+      })
+    );
+    // Precise routing survived, so the broadcast fallback stays untouched.
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('keeps routing metadata across a banner timeout so the reply is still addressed to its view', async () => {
+    await createTestNotification('closed-abc123');
+    const instance = notificationInstances[0];
+
+    instance.listeners.close[0]();
+
+    mockDispatch.mockClear();
+    mockDispatchSingle.mockClear();
+
+    handleNotificationActivation({
+      type: 'reply',
+      arguments: 'type=reply&tag=closed-abc123',
+      reply: 'from action center',
+    } as any);
+
+    expect(mockDispatchSingle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: NOTIFICATIONS_NOTIFICATION_REPLIED,
+        payload: { id: 'closed-abc123', reply: 'from action center' },
+        ipcMeta: { type: 'single', webContentsId: 7 },
+      })
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('attaches the instance click listener but not reply/action listeners on win32', async () => {

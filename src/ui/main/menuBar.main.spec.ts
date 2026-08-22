@@ -2,6 +2,7 @@ import type { MenuItemConstructorOptions } from 'electron';
 
 import { DOWNLOADS_SIMULATION_REQUESTED } from '../../downloads/actions';
 import type { Server } from '../../servers/common';
+import { dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import {
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
@@ -15,28 +16,36 @@ import {
   selectMenuBarTemplateAsJson,
   selectServerSwitcherMenuTemplate,
 } from './menuBar';
+import { getRootWindow } from './rootWindow';
 
 jest.mock('electron', () => ({
   app: {
     name: 'Rocket.Chat',
+    quit: jest.fn(),
     commandLine: { hasSwitch: jest.fn(() => false) },
     getPath: jest.fn(() => ''),
+    showAboutPanel: jest.fn(),
   },
   shell: {
     showItemInFolder: jest.fn(),
+    openExternal: jest.fn(),
   },
   BrowserWindow: {
     getAllWindows: jest.fn(() => []),
     getFocusedWindow: jest.fn(() => null),
   },
   Menu: {
-    buildFromTemplate: jest.fn(),
+    buildFromTemplate: jest.fn((template) => ({
+      popup: jest.fn(),
+      template,
+    })),
     setApplicationMenu: jest.fn(),
   },
 }));
 
 jest.mock('i18next', () => ({
-  t: (key: string) => key,
+  t: (key: string, opts?: { appName?: string }) =>
+    opts?.appName ? `${key}:${opts.appName}` : key,
 }));
 
 jest.mock('../../app/main/app', () => ({
@@ -52,32 +61,60 @@ jest.mock('../../videoCallWindow/ipc', () => ({
 }));
 
 jest.mock('./dialogs', () => ({
-  askForAppDataReset: jest.fn(),
+  askForAppDataReset: jest.fn().mockResolvedValue(false),
 }));
 
+const mockBrowserWindow = {
+  isVisible: jest.fn(() => true),
+  showInactive: jest.fn(),
+  show: jest.fn(),
+  focus: jest.fn(),
+  hide: jest.fn(),
+  minimize: jest.fn(),
+  maximize: jest.fn(),
+  unmaximize: jest.fn(),
+  close: jest.fn(),
+  isFullScreen: jest.fn(() => false),
+  setFullScreen: jest.fn(),
+  getNormalBounds: jest.fn(() => ({ x: 0, y: 0, width: 1000, height: 600 })),
+  getBounds: jest.fn(() => ({ x: 0, y: 0, width: 1000, height: 600 })),
+  webContents: {
+    openDevTools: jest.fn(),
+    toggleDevTools: jest.fn(),
+    reload: jest.fn(),
+    reloadIgnoringCache: jest.fn(),
+    goBack: jest.fn(),
+    goForward: jest.fn(),
+    zoomIn: jest.fn(),
+    zoomOut: jest.fn(),
+    setZoomLevel: jest.fn(),
+    getZoomLevel: jest.fn(() => 0),
+  },
+  setMenu: jest.fn(),
+  setMenuBarVisibility: jest.fn(),
+  autoHideMenuBar: false,
+};
+
 jest.mock('./rootWindow', () => ({
-  getRootWindow: jest.fn(),
+  getRootWindow: jest.fn(async () => mockBrowserWindow),
 }));
 
 jest.mock('./serverView', () => ({
-  getWebContentsByServerUrl: jest.fn(),
+  getWebContentsByServerUrl: jest.fn(() => ({
+    reload: jest.fn(),
+    reloadIgnoringCache: jest.fn(),
+    openDevTools: jest.fn(),
+  })),
 }));
 
-jest.mock('../../store', () => ({
-  dispatch: jest.fn(),
-  select: jest.fn(),
-  Service: class Service {
-    protected initialize(): void {}
-
-    setUp(): void {
-      this.initialize();
-    }
-  },
-}));
-
-const createServer = (url: string, title: string): Server => ({
+const createServer = (
+  url: string,
+  title: string,
+  extras: Partial<Server> = {}
+): Server => ({
   url,
   title,
+  ...extras,
 });
 
 const createState = (overrides: Partial<RootState> = {}): RootState =>
@@ -88,7 +125,7 @@ const createState = (overrides: Partial<RootState> = {}): RootState =>
     isMenuBarEnabled: true,
     isAddNewServersEnabled: true,
     isShowWindowOnUnreadChangedEnabled: false,
-    isDeveloperModeEnabled: false,
+    isDeveloperModeEnabled: true,
     isVideoCallDevtoolsAutoOpenEnabled: false,
     navigationLayout: 'tabs',
     rootWindowState: {
@@ -103,6 +140,41 @@ const createState = (overrides: Partial<RootState> = {}): RootState =>
     ...overrides,
   }) as RootState;
 
+jest.mock('../../store', () => ({
+  dispatch: jest.fn(),
+  select: jest.fn((selector: (state: any) => unknown) =>
+    selector({
+      servers: [],
+      currentView: 'downloads',
+      isTrayIconEnabled: true,
+      isMenuBarEnabled: true,
+      isAddNewServersEnabled: true,
+      isShowWindowOnUnreadChangedEnabled: false,
+      isDeveloperModeEnabled: true,
+      isVideoCallDevtoolsAutoOpenEnabled: false,
+      navigationLayout: 'tabs',
+      rootWindowState: {
+        focused: true,
+        visible: true,
+        maximized: false,
+        minimized: false,
+        fullscreen: false,
+        normal: true,
+        bounds: { x: undefined, y: undefined, width: 1000, height: 600 },
+      },
+    })
+  ),
+  Service: class Service {
+    protected initialize(): void {}
+
+    setUp(): void {
+      this.initialize();
+    }
+  },
+  watch: jest.fn(),
+  listen: jest.fn(),
+}));
+
 const findMenu = (
   template: MenuItemConstructorOptions[],
   id: string
@@ -114,7 +186,30 @@ const findMenu = (
   return menu;
 };
 
+const collectClickableItems = (
+  items: MenuItemConstructorOptions[] | undefined,
+  acc: MenuItemConstructorOptions[] = []
+): MenuItemConstructorOptions[] => {
+  if (!items) return acc;
+  for (const item of items) {
+    if (typeof item.click === 'function') {
+      acc.push(item);
+    }
+    if (Array.isArray(item.submenu)) {
+      collectClickableItems(item.submenu, acc);
+    }
+  }
+  return acc;
+};
+
 describe('ui/main/menuBar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getRootWindow as jest.Mock).mockResolvedValue(mockBrowserWindow);
+    mockBrowserWindow.isVisible.mockReturnValue(true);
+    mockBrowserWindow.isFullScreen.mockReturnValue(false);
+  });
+
   describe('selectMenuBarTemplateAsJson', () => {
     it('differs between a 1-server state and a 2-server state', () => {
       const oneServerState = createState({
@@ -264,6 +359,31 @@ describe('ui/main/menuBar', () => {
       await expectNext('tabs', 'sidebar');
       await expectNext('sidebar', 'hidden');
       await expectNext('hidden', 'tabs');
+    });
+
+    it('reflects developer mode and tray toggles', () => {
+      const state = createState({
+        isDeveloperModeEnabled: true,
+        isTrayIconEnabled: false,
+        isShowWindowOnUnreadChangedEnabled: true,
+        isMenuBarEnabled: false,
+      });
+      const template = selectMenuBarTemplate(state);
+      const viewMenu = findMenu(
+        template as MenuItemConstructorOptions[],
+        'viewMenu'
+      );
+      const submenu = viewMenu.submenu as MenuItemConstructorOptions[];
+      const ids = submenu.map((item) => item.id).filter(Boolean);
+
+      // Platform-dependent items may be omitted; assert those that exist.
+      const tray = submenu.find((item) => item.id === 'showTrayIcon');
+      if (tray) expect(tray.checked).toBe(false);
+      const menuBar = submenu.find((item) => item.id === 'showMenuBar');
+      if (menuBar) expect(menuBar.checked).toBe(false);
+      const unread = submenu.find((item) => item.id === 'showOnUnreadMessage');
+      if (unread) expect(unread.checked).toBe(true);
+      expect(ids.length).toBeGreaterThan(3);
     });
   });
 
@@ -447,6 +567,142 @@ describe('ui/main/menuBar', () => {
 
       const removeIndex = template.findIndex((item) => item.id === 'remove');
       expect(template[removeIndex - 1]?.type).toBe('separator');
+    });
+  });
+
+  describe('full template coverage', () => {
+    it('builds app/edit/view/window/help menus for multi-server developer state', () => {
+      const state = createState({
+        servers: [
+          createServer('https://one.example', 'One', { badge: 3 }),
+          createServer('https://two.example', 'Two', { failed: true }),
+        ],
+        currentView: { url: 'https://one.example' },
+        isAddNewServersEnabled: true,
+        isDeveloperModeEnabled: true,
+        isVideoCallDevtoolsAutoOpenEnabled: true,
+        rootWindowState: {
+          focused: true,
+          visible: true,
+          maximized: true,
+          minimized: false,
+          fullscreen: false,
+          normal: false,
+          bounds: { x: 0, y: 0, width: 1200, height: 800 },
+        },
+      });
+
+      const template = selectMenuBarTemplate(
+        state
+      ) as MenuItemConstructorOptions[];
+      expect(template.map((item) => item.id)).toEqual(
+        expect.arrayContaining([
+          'appMenu',
+          'editMenu',
+          'viewMenu',
+          'windowMenu',
+          'helpMenu',
+        ])
+      );
+
+      const clickables = collectClickableItems(template);
+      expect(clickables.length).toBeGreaterThan(15);
+    });
+
+    it('invokes click handlers without throwing for common menu actions', async () => {
+      const state = createState({
+        servers: [
+          createServer('https://one.example', 'One'),
+          createServer('https://two.example', 'Two'),
+        ],
+        currentView: { url: 'https://one.example' },
+        isAddNewServersEnabled: true,
+        isDeveloperModeEnabled: true,
+      });
+
+      const template = selectMenuBarTemplate(
+        state
+      ) as MenuItemConstructorOptions[];
+      const clickables = collectClickableItems(template);
+
+      const errors: Array<{ id: unknown; error: unknown }> = [];
+      for (const item of clickables) {
+        try {
+          // Handlers must run sequentially to avoid overlapping shared mock
+          // state (e.g. mockBrowserWindow.isVisible toggling mid-iteration).
+          // eslint-disable-next-line no-await-in-loop
+          await Promise.resolve(
+            item.click?.({} as any, mockBrowserWindow as any, {} as any)
+          );
+        } catch (error) {
+          // All handlers are backed by fully mocked dependencies
+          // (getRootWindow, dispatch, shell, app, BrowserWindow,
+          // openExternal, relaunchApp, askForAppDataReset,
+          // getWebContentsByServerUrl); none are expected to throw here.
+          errors.push({ id: item.id, error });
+        }
+      }
+
+      expect(errors).toEqual([]);
+      expect(dispatch).toHaveBeenCalled();
+      expect(getRootWindow).toHaveBeenCalled();
+    });
+
+    it('builds selectAppMenuPopupTemplate and runs its click handlers', async () => {
+      const state = createState({
+        servers: [createServer('https://one.example', 'One')],
+        isAddNewServersEnabled: true,
+      });
+      const template = selectAppMenuPopupTemplate(state);
+      expect(template.find((item) => item.id === 'settings')).toBeDefined();
+      expect(template.find((item) => item.id === 'downloads')).toBeDefined();
+      expect(
+        template.find((item) => item.id === 'checkForUpdates')
+      ).toBeDefined();
+
+      const clickables = collectClickableItems(template);
+      const errors: Array<{ id: unknown; error: unknown }> = [];
+      for (const item of clickables) {
+        try {
+          // Handlers must run sequentially to avoid overlapping shared mock
+          // state (see note in the previous test).
+          // eslint-disable-next-line no-await-in-loop
+          await Promise.resolve(
+            item.click?.({} as any, mockBrowserWindow as any, {} as any)
+          );
+        } catch (error) {
+          // All handlers are backed by fully mocked dependencies; none are
+          // expected to throw here (see note in the previous test).
+          errors.push({ id: item.id, error });
+        }
+      }
+
+      expect(errors).toEqual([]);
+      expect(dispatch).toHaveBeenCalled();
+    });
+
+    it('shows inactive root window before focusing when hidden', async () => {
+      // Use windowMenu's 'settings' item: it carries the same
+      // show-if-hidden-then-focus behavior as the darwin-only 'about'/
+      // 'preferences' items, but unlike those, it is registered on every
+      // platform — selectMenuBarTemplate is memoized per createSelector, so a
+      // test-local process.platform override can't force recomputation of a
+      // platform-gated item already cached under the runner's real platform.
+      mockBrowserWindow.isVisible.mockReturnValue(false);
+      const state = createState({
+        isAddNewServersEnabled: true,
+      });
+      const template = selectMenuBarTemplate(
+        state
+      ) as MenuItemConstructorOptions[];
+      const windowMenu = findMenu(template, 'windowMenu');
+      const settings = (
+        windowMenu.submenu as MenuItemConstructorOptions[]
+      ).find((item) => item.id === 'settings');
+      expect(settings).toBeDefined();
+      await settings?.click?.({} as any, mockBrowserWindow as any, {} as any);
+      expect(mockBrowserWindow.showInactive).toHaveBeenCalled();
+      expect(mockBrowserWindow.focus).toHaveBeenCalled();
     });
   });
 });

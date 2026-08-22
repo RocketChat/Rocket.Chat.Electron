@@ -1,12 +1,12 @@
-import type { ActionOf } from '../store/actions';
+import type { ActionOf } from '../../store/actions';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
   DOWNLOADS_CLEARED,
-} from './actions';
-import type { Download } from './common';
-import { DownloadStatus } from './common';
+} from '../actions';
+import type { Download } from '../common';
+import { DownloadStatus } from '../common';
 
 describe('download actions', () => {
   const mockDownload: Download = {

@@ -1,10 +1,10 @@
 import type { DownloadItem } from 'electron';
 import { t } from 'i18next';
 
-import { createNotification } from '../notifications/preload';
+import { createNotification } from '../../notifications/preload';
 
 // Mock modules
-jest.mock('../notifications/preload', () => ({
+jest.mock('../../notifications/preload', () => ({
   createNotification: jest.fn(),
 }));
 

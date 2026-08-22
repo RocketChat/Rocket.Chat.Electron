@@ -60,6 +60,7 @@ import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
 import { secondaryWindowStates } from '../ui/reducers/secondaryWindowStates';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
+import { tabs } from '../ui/reducers/tabs';
 import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
@@ -150,6 +151,7 @@ export const rootReducer = combineReducers({
   telephonyGlobalShortcutConfig,
   telephonyGlobalShortcutRegistrationStatus,
   isTelephonyEnabled,
+  tabs,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

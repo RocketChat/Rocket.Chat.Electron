@@ -116,7 +116,6 @@ export const createRootWindow = (): void => {
         }
       : {}),
   });
-
   // Block navigation to smb:// protocol
   _rootWindow.webContents.on('will-navigate', (event, url) => {
     if (typeof url === 'string' && url.toLowerCase().startsWith('smb://')) {

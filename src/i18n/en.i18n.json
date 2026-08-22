@@ -14,7 +14,8 @@
     "copyLinkText": "Copy link text",
     "openLink": "Open link",
     "saveImageAs": "Save image as...",
-    "copyImage": "Copy image"
+    "copyImage": "Copy image",
+    "openInNewTab": "Open in new tab"
   },
   "dialog": {
     "about": {

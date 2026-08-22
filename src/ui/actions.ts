@@ -40,6 +40,13 @@ export const VIDEO_CALL_WINDOW_STATE_CHANGED =
   'video-call-window/state-changed';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED =
   'side-bar/add-new-server-clicked';
+export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
+  'side-bar/context-menu-triggered';
+export const OPEN_NEW_TAB = 'tab-pane/open-new-tab';
+export const CLOSE_TAB = 'tab-pane/close-tab';
+export const ACTIVE_TAB = 'tab-pane/active-tab';
+export const TAB_TITLE_CHANGED = 'tab-pane/title-changed';
+export const TAB_WEBVIEW_ATTACHED = 'tab-pane/webview-attached';
 export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED =
   'side-bar/downloads-button-clicked';
 export const SIDE_BAR_SETTINGS_BUTTON_CLICKED =
@@ -357,4 +364,13 @@ export type UiActionTypeToPayloadMap = {
   [WINDOW_CONTROLS_MINIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_MAXIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_CLOSE_CLICKED]: void;
+  [OPEN_NEW_TAB]: { url: string; text: string; serverUrl: string };
+  [CLOSE_TAB]: { url: string };
+  [ACTIVE_TAB]: { url: string };
+  [TAB_TITLE_CHANGED]: { url: string; text: string };
+  [TAB_WEBVIEW_ATTACHED]: {
+    url: string;
+    serverUrl: string;
+    webContentsId: number;
+  };
 };

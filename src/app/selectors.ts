@@ -5,6 +5,7 @@ import type { RootState } from '../store/rootReducer';
 // Split into two structured selectors: a single one with 46+ keys exceeds
 // TypeScript's type-instantiation depth limit under ts-jest (TS2589).
 const selectPersistableValuesA = createStructuredSelector({
+  tabs: ({ tabs }: RootState) => tabs,
   currentView: ({ currentView }: RootState) => currentView,
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }: RootState) =>
     doCheckForUpdatesOnStartup,

@@ -3,6 +3,7 @@ import type { NotificationAction } from 'electron';
 import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
 import type { PresenceStoreEntry } from './servers/preload/presenceSnapshot';
 import { buildPresenceSnapshot } from './servers/preload/presenceSnapshot';
+import { hasUsablePresenceApi } from './servers/preload/presenceSupport';
 
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
@@ -309,15 +310,14 @@ const start = async () => {
 
   tryRequireFirstOf(presenceModulePaths)
     .then((module) => {
-      const resolved = module?.Presence;
-      if (!resolved?.store || typeof resolved.listen !== 'function') {
+      if (!hasUsablePresenceApi(module)) {
         console.warn(
           '[Rocket.Chat Desktop] Presence module resolved without the expected store/listen API; presence will be reported as unsupported'
         );
         presenceModuleResolved = false;
         return;
       }
-      Presence = resolved;
+      Presence = (module as { Presence: unknown }).Presence;
       presenceModuleResolved = true;
       console.log('[Rocket.Chat Desktop] Presence module loaded successfully');
     })

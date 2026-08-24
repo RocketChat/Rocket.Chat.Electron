@@ -469,4 +469,126 @@ describe('getTrayIconPath', () => {
       ).not.toContain('Template');
     }
   });
+
+  describe('disconnected state', () => {
+    it('matches the disconnected path for win32 platform', () => {
+      expect(getTrayIconPath({ platform: 'win32', disconnected: true })).toBe(
+        path.join('/app', 'app', 'images', 'tray', 'win32', 'disconnected.ico')
+      );
+    });
+
+    it('matches the disconnected path for linux platform', () => {
+      expect(getTrayIconPath({ platform: 'linux', disconnected: true })).toBe(
+        path.join('/app', 'app', 'images', 'tray', 'linux', 'disconnected.png')
+      );
+    });
+
+    it('matches the disconnected path for darwin platform (never a Template asset)', () => {
+      const trayPath = getTrayIconPath({
+        platform: 'darwin',
+        disconnected: true,
+      });
+      expect(trayPath).toBe(
+        path.join('/app', 'app', 'images', 'tray', 'darwin', 'disconnected.png')
+      );
+      expect(trayPath).not.toContain('Template');
+    });
+
+    it('combines disconnected and badge for win32 platform', () => {
+      expect(
+        getTrayIconPath({ platform: 'win32', disconnected: true, badge: '•' })
+      ).toBe(
+        path.join(
+          '/app',
+          'app',
+          'images',
+          'tray',
+          'win32',
+          'disconnected-notification-dot.ico'
+        )
+      );
+      expect(
+        getTrayIconPath({ platform: 'win32', disconnected: true, badge: 5 })
+      ).toBe(
+        path.join(
+          '/app',
+          'app',
+          'images',
+          'tray',
+          'win32',
+          'disconnected-notification-5.ico'
+        )
+      );
+      expect(
+        getTrayIconPath({ platform: 'win32', disconnected: true, badge: 10 })
+      ).toBe(
+        path.join(
+          '/app',
+          'app',
+          'images',
+          'tray',
+          'win32',
+          'disconnected-notification-plus-9.ico'
+        )
+      );
+    });
+
+    it('combines disconnected and badge for linux platform', () => {
+      expect(
+        getTrayIconPath({ platform: 'linux', disconnected: true, badge: '•' })
+      ).toBe(
+        path.join(
+          '/app',
+          'app',
+          'images',
+          'tray',
+          'linux',
+          'disconnected-notification-dot.png'
+        )
+      );
+    });
+
+    it('combines disconnected and badge for darwin platform', () => {
+      expect(
+        getTrayIconPath({ platform: 'darwin', disconnected: true, badge: '•' })
+      ).toBe(
+        path.join(
+          '/app',
+          'app',
+          'images',
+          'tray',
+          'darwin',
+          'disconnected-notification-dot.png'
+        )
+      );
+    });
+
+    it('ignores a stale presence value when disconnected is true (fault state wins)', () => {
+      expect(
+        getTrayIconPath({
+          platform: 'win32',
+          disconnected: true,
+          presence: 'online',
+        })
+      ).toBe(
+        path.join('/app', 'app', 'images', 'tray', 'win32', 'disconnected.ico')
+      );
+    });
+
+    it('falls back to the existing presence/default paths when disconnected is false or omitted (regression guard)', () => {
+      expect(getTrayIconPath({ platform: 'win32', disconnected: false })).toBe(
+        getTrayIconPath({ platform: 'win32' })
+      );
+      expect(getTrayIconPath({ platform: 'linux' })).toBe(
+        getTrayIconPath({ platform: 'linux', disconnected: undefined })
+      );
+      expect(
+        getTrayIconPath({
+          platform: 'win32',
+          presence: 'online',
+          disconnected: false,
+        })
+      ).toBe(getTrayIconPath({ platform: 'win32', presence: 'online' }));
+    });
+  });
 });

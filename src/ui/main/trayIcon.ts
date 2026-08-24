@@ -2,6 +2,7 @@ import type { MenuItemConstructorOptions } from 'electron';
 import { app, Menu, nativeImage, Tray, webContents } from 'electron';
 import i18next from 'i18next';
 
+import { loggers } from '../../logging/scopes';
 import type { Server, UserPresence } from '../../servers/common';
 import { watch, select, Service, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -41,8 +42,15 @@ const requestPresenceChange = (
 };
 
 const showRootWindow = async (): Promise<void> => {
-  const browserWindow = await getRootWindow();
-  browserWindow.show();
+  try {
+    const browserWindow = await getRootWindow();
+    browserWindow.show();
+  } catch (error) {
+    loggers.ui.error(
+      'Failed to show the root window from the tray menu',
+      error
+    );
+  }
 };
 
 const PRESENCE_OPTIONS: { presence: UserPresence; labelKey: string }[] = [
@@ -145,15 +153,22 @@ export const buildMenuTemplate = (state: {
     {
       label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
       click: async () => {
-        const isRootWindowVisible = select(selectIsRootWindowVisible);
-        const browserWindow = await getRootWindow();
+        try {
+          const isRootWindowVisible = select(selectIsRootWindowVisible);
+          const browserWindow = await getRootWindow();
 
-        if (isRootWindowVisible) {
-          browserWindow.hide();
-          return;
+          if (isRootWindowVisible) {
+            browserWindow.hide();
+            return;
+          }
+
+          browserWindow.show();
+        } catch (error) {
+          loggers.ui.error(
+            'Failed to toggle the root window from the tray menu',
+            error
+          );
         }
-
-        browserWindow.show();
       },
     },
     {
@@ -175,6 +190,27 @@ const createTrayIcon = (): Tray => {
 
   if (process.platform !== 'darwin') {
     trayIcon.addListener('click', async () => {
+      try {
+        const isRootWindowVisible = select(selectIsRootWindowVisible);
+        const browserWindow = await getRootWindow();
+
+        if (isRootWindowVisible) {
+          browserWindow.hide();
+          return;
+        }
+
+        browserWindow.show();
+      } catch (error) {
+        loggers.ui.error(
+          'Failed to toggle the root window from the tray icon click',
+          error
+        );
+      }
+    });
+  }
+
+  trayIcon.addListener('balloon-click', async () => {
+    try {
       const isRootWindowVisible = select(selectIsRootWindowVisible);
       const browserWindow = await getRootWindow();
 
@@ -184,19 +220,12 @@ const createTrayIcon = (): Tray => {
       }
 
       browserWindow.show();
-    });
-  }
-
-  trayIcon.addListener('balloon-click', async () => {
-    const isRootWindowVisible = select(selectIsRootWindowVisible);
-    const browserWindow = await getRootWindow();
-
-    if (isRootWindowVisible) {
-      browserWindow.hide();
-      return;
+    } catch (error) {
+      loggers.ui.error(
+        'Failed to toggle the root window from the tray balloon click',
+        error
+      );
     }
-
-    browserWindow.show();
   });
 
   trayIcon.addListener('right-click', (_event, bounds) => {
@@ -210,16 +239,18 @@ const createTrayIcon = (): Tray => {
 
 const loadTrayImage = (
   badge: Server['badge'],
-  presence: UserPresence | undefined
+  presence: UserPresence | undefined,
+  disconnected: boolean
 ): ReturnType<typeof nativeImage.createFromPath> => {
   const imagePath = getTrayIconPath({
     platform: process.platform,
     badge,
     presence,
+    disconnected,
   });
   const image = nativeImage.createFromPath(imagePath);
 
-  if (process.platform === 'darwin' && presence) {
+  if (process.platform === 'darwin' && (presence || disconnected)) {
     return applyMacOSMenuBarGlyphAppearance(image);
   }
 
@@ -229,9 +260,10 @@ const loadTrayImage = (
 const updateTrayIconImage = (
   trayIcon: Tray,
   badge: Server['badge'],
-  presence: UserPresence | undefined
+  presence: UserPresence | undefined,
+  disconnected: boolean
 ): void => {
-  trayIcon.setImage(loadTrayImage(badge, presence));
+  trayIcon.setImage(loadTrayImage(badge, presence, disconnected));
 };
 
 const updateTrayIconTitle = (
@@ -293,6 +325,29 @@ const getActivePresenceForIcon = (
   return activeServerPresence.presence;
 };
 
+// Mirrors `buildPresenceMenuItems`'s `isDisconnected` predicate so the tray
+// icon and the tray menu always agree on whether the workspace is reachable.
+// No-url / unsupported / logged-out states win over this — those already
+// return `undefined` from `getActivePresenceForIcon` and keep showing the
+// base icon, matching the menu, which hides presence options entirely for
+// those same states.
+const isDisconnectedForIcon = (
+  activeServerPresence: ActiveServerPresence
+): boolean => {
+  if (
+    !activeServerPresence.url ||
+    activeServerPresence.supported === false ||
+    !activeServerPresence.loggedIn
+  ) {
+    return false;
+  }
+
+  return (
+    activeServerPresence.connection === 'disconnected' ||
+    activeServerPresence.connection === 'connecting'
+  );
+};
+
 const manageTrayIcon = async (): Promise<() => void> => {
   const trayIcon = createTrayIcon();
 
@@ -327,7 +382,8 @@ const manageTrayIcon = async (): Promise<() => void> => {
     updateTrayIconImage(
       trayIcon,
       globalBadge,
-      getActivePresenceForIcon(activeServerPresence)
+      getActivePresenceForIcon(activeServerPresence),
+      isDisconnectedForIcon(activeServerPresence)
     );
     updateTrayIconTitle(trayIcon, globalBadge);
     updateTrayIconToolTip(trayIcon, globalBadge);
@@ -350,7 +406,8 @@ const manageTrayIcon = async (): Promise<() => void> => {
       updateTrayIconImage(
         trayIcon,
         globalBadge,
-        getActivePresenceForIcon(activeServerPresence)
+        getActivePresenceForIcon(activeServerPresence),
+        isDisconnectedForIcon(activeServerPresence)
       );
     }
   );

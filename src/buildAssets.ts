@@ -95,7 +95,11 @@ const createMacOSAppIcon = async (): Promise<void> => {
 };
 
 const writeMacOSPresenceTrayIcon = async (
-  props: { badge?: Server['badge']; presence: UserPresence },
+  props: {
+    badge?: Server['badge'];
+    presence?: UserPresence;
+    disconnected?: boolean;
+  },
   fileName: string
 ): Promise<void> => {
   const icon = renderToStaticMarkup(createElement(MacOSTrayIcon, props));
@@ -139,6 +143,15 @@ const createMacOSTrayIcons = async (): Promise<void> => {
       );
     }
   }
+
+  await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
+
+  for await (const badge of BADGES) {
+    await writeMacOSPresenceTrayIcon(
+      { badge, disconnected: true },
+      `disconnected-notification-${badgeName(badge)}`
+    );
+  }
 };
 
 const createDmgBackgrounds = async (): Promise<void> => {
@@ -172,7 +185,11 @@ const createWindowsAppIcons = async (): Promise<void> => {
 };
 
 const writeWindowsTrayIcon = async (
-  props: { badge?: Server['badge']; presence?: UserPresence },
+  props: {
+    badge?: Server['badge'];
+    presence?: UserPresence;
+    disconnected?: boolean;
+  },
   fileName: string
 ): Promise<void> => {
   const icon = renderToStaticMarkup(createElement(WindowsTrayIcon, props));
@@ -197,6 +214,15 @@ const createWindowsTrayIcons = async (): Promise<void> => {
         `presence-${presence}-notification-${badgeName(badge)}`
       );
     }
+  }
+
+  await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
+
+  for await (const badge of BADGES) {
+    await writeWindowsTrayIcon(
+      { badge, disconnected: true },
+      `disconnected-notification-${badgeName(badge)}`
+    );
   }
 };
 
@@ -232,7 +258,11 @@ const createLinuxAppIcons = async (): Promise<void> => {
 };
 
 const writeLinuxTrayIcon = async (
-  props: { badge?: Server['badge']; presence?: UserPresence },
+  props: {
+    badge?: Server['badge'];
+    presence?: UserPresence;
+    disconnected?: boolean;
+  },
   fileName: string
 ): Promise<void> => {
   const icon = renderToStaticMarkup(createElement(LinuxTrayIcon, props));
@@ -258,6 +288,15 @@ const createLinuxTrayIcons = async (): Promise<void> => {
       );
     }
   }
+
+  await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
+
+  for await (const badge of BADGES) {
+    await writeLinuxTrayIcon(
+      { badge, disconnected: true },
+      `disconnected-notification-${badgeName(badge)}`
+    );
+  }
 };
 
 const writePresenceTrayIcons = async (): Promise<void> => {
@@ -272,6 +311,17 @@ const writePresenceTrayIcons = async (): Promise<void> => {
       await writeWindowsTrayIcon({ badge, presence }, suffix);
       await writeLinuxTrayIcon({ badge, presence }, suffix);
     }
+  }
+
+  await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
+  await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
+  await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
+
+  for await (const badge of BADGES) {
+    const suffix = `disconnected-notification-${badgeName(badge)}`;
+    await writeMacOSPresenceTrayIcon({ badge, disconnected: true }, suffix);
+    await writeWindowsTrayIcon({ badge, disconnected: true }, suffix);
+    await writeLinuxTrayIcon({ badge, disconnected: true }, suffix);
   }
 };
 

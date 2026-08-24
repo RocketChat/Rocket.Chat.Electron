@@ -36,7 +36,9 @@ yarn workspaces:build        # Build all workspaces
 - `release/X.Y.x` branches are patch lines for a shipped stable version.
   Fixes land on `dev` first and are cherry-picked onto the release branch.
   A hotfix authored directly on a release branch must be forward-ported to
-  `dev` immediately via a cherry-pick PR.
+  `dev` in the same change or immediately after (cherry-pick PR). Do not
+  ship a stable cut from `dev` that is missing a hotfix that already
+  shipped on a release line.
 - Never back-merge `master` or a `release/X.Y.x` branch into `dev`.
 - Tags are created only via `yarn release:tag` (channel-aware guard).
   Release builds trigger on semver tag pushes only and always produce a
@@ -134,6 +136,15 @@ yarn workspaces:build        # Build all workspaces
   color/animation tokens, read `docs/desktop-ui-guidelines.md` — token
   semantics and traps, Fuselage geometry/timing facts, the button-dimming and
   SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
+
+## Desktop Notifications
+
+- Windows / Electron 42 can emit `reply` twice for one toast (WinRT + COM
+  activation paths). Guard `NOTIFICATIONS_NOTIFICATION_REPLIED` with a
+  per-notification `Set`; re-arm (delete the id) on `show`; never clear on
+  `close` — the duplicate can arrive after dismiss, and clearing there
+  reopens the race. If Windows replies are routed through
+  `Notification.handleActivation`, that path must use the same `Set`.
 
 ## Testing
 

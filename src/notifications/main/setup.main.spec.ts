@@ -233,4 +233,68 @@ describe('notifications/main setupNotifications', () => {
     expect(dispatch).not.toHaveBeenCalled();
     expect(notificationInstances).toHaveLength(0);
   });
+
+  const repliedCalls = () =>
+    dispatchSingle.mock.calls.filter(
+      ([action]) => action.type === NOTIFICATIONS_NOTIFICATION_REPLIED
+    );
+
+  it('dispatches REPLIED exactly once when the same reply event fires twice', async () => {
+    await create({
+      title: 'Hello',
+      body: 'World',
+      tag: 'dedup-1',
+      canReply: true,
+    });
+    const n = notificationInstances[0];
+
+    n.emit('reply', {}, 'hi there');
+    n.emit('reply', {}, 'hi there');
+
+    expect(repliedCalls()).toHaveLength(1);
+    expect(repliedCalls()[0][0].payload).toEqual({
+      id: 'dedup-1',
+      reply: 'hi there',
+    });
+  });
+
+  it('re-arms the guard after another show event, allowing a subsequent reply to dispatch', async () => {
+    await create({
+      title: 'Hello',
+      body: 'World',
+      tag: 'dedup-2',
+      canReply: true,
+    });
+    const n = notificationInstances[0];
+
+    n.emit('reply', {}, 'first reply');
+    n.emit('show');
+    n.emit('reply', {}, 'second reply');
+
+    expect(repliedCalls()).toHaveLength(2);
+    expect(repliedCalls()[1][0].payload).toEqual({
+      id: 'dedup-2',
+      reply: 'second reply',
+    });
+  });
+
+  it('does not re-arm the reply guard on close (duplicate can arrive after dismiss)', async () => {
+    await create({
+      title: 'Hello',
+      body: 'World',
+      tag: 'dedup-3',
+      canReply: true,
+    });
+    const n = notificationInstances[0];
+
+    n.emit('reply', {}, 'once');
+    n.emit('close');
+    n.emit('reply', {}, 'late duplicate');
+
+    expect(repliedCalls()).toHaveLength(1);
+    expect(repliedCalls()[0][0].payload).toEqual({
+      id: 'dedup-3',
+      reply: 'once',
+    });
+  });
 });

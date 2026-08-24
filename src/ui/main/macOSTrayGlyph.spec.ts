@@ -76,8 +76,8 @@ describe('applyMacOSMenuBarGlyphAppearance', () => {
     applyMacOSMenuBarGlyphAppearance(image as never);
 
     expect(addRepresentation).toHaveBeenCalledTimes(1);
-    expect([
-      ...addRepresentation.mock.calls[0][0].buffer,
-    ]).toEqual([255, 255, 255, 255]);
+    expect([...addRepresentation.mock.calls[0][0].buffer]).toEqual([
+      255, 255, 255, 255,
+    ]);
   });
 });

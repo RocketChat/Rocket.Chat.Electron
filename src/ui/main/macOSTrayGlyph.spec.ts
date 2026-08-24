@@ -59,9 +59,22 @@ describe('invertDarkAchromaticPixels', () => {
 });
 
 describe('applyMacOSMenuBarGlyphAppearance', () => {
+  const originalPlatform = process.platform;
+
   beforeEach(() => {
     addRepresentation.mockClear();
     createEmpty.mockClear();
+    Object.defineProperty(process, 'platform', {
+      value: 'darwin',
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      configurable: true,
+    });
   });
 
   it('inverts the glyph even when the OS appearance setting is light', () => {

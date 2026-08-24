@@ -48,6 +48,12 @@ export const createPresenceRateLimiter = (options: {
   const request = (call: PresenceCall): void => {
     const currentTime = now();
 
+    if (timerScheduled) {
+      pendingCall = call;
+      onDeferred?.(call);
+      return;
+    }
+
     if (
       hasSentFirstCall &&
       shouldDebouncePresenceCall(currentTime, lastCallAt, minIntervalMs)

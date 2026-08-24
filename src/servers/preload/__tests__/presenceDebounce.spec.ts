@@ -156,6 +156,53 @@ describe('createPresenceRateLimiter', () => {
     expect(send).toHaveBeenNthCalledWith(2, { status: 'offline' });
   });
 
+  // REGRESSION GUARD: if the scheduled timer fires late, a request arriving
+  // after the interval has technically elapsed must NOT take the immediate
+  // path — it must still be captured as the pending call so the (still
+  // pending) scheduled flush sends the newest status, not a stale one.
+  it('sends the newest call, not a stale one, when a request arrives after the timer was due but before it fires', () => {
+    const send = jest.fn();
+
+    // A manual clock that lets time move forward WITHOUT auto-firing
+    // scheduled timers, so a "late-firing timer" can be simulated: time
+    // passes the deadline, a newer request arrives, and only THEN is the
+    // scheduled callback invoked manually.
+    let currentTime = 0;
+    let scheduledFn: (() => void) | undefined;
+
+    const limiter = createPresenceRateLimiter({
+      minIntervalMs: 1000,
+      send,
+      now: () => currentTime,
+      schedule: (fn) => {
+        scheduledFn = fn;
+      },
+    });
+
+    limiter.request({ status: 'online' });
+    send.mockClear();
+
+    currentTime += 100;
+    limiter.request({ status: 'away' });
+
+    expect(scheduledFn).toBeDefined();
+
+    // Move time past the scheduled deadline without invoking the timer.
+    currentTime += 1000;
+
+    // A newer request arrives after the deadline has technically elapsed,
+    // but the timer has not fired yet.
+    limiter.request({ status: 'busy' });
+
+    expect(send).not.toHaveBeenCalled();
+
+    // Now let the (late) scheduled timer fire.
+    scheduledFn?.();
+
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledWith({ status: 'busy' });
+  });
+
   it('calls onDeferred when a request is coalesced', () => {
     const send = jest.fn();
     const onDeferred = jest.fn();

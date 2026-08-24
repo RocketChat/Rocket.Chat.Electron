@@ -21,6 +21,13 @@ describe('mapConnectionStatus', () => {
   it('falls back to disconnected when the status is missing', () => {
     expect(mapConnectionStatus(undefined)).toBe('disconnected');
   });
+
+  // REGRESSION GUARD: a status value that collides with an inherited
+  // Object.prototype member (e.g. 'toString') must not resolve to that
+  // inherited function — it must fall back to 'disconnected'.
+  it('falls back to disconnected for a status that collides with Object.prototype', () => {
+    expect(mapConnectionStatus('toString')).toBe('disconnected');
+  });
 });
 
 describe('buildPresenceSnapshot', () => {

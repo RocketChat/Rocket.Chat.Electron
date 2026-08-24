@@ -42,7 +42,9 @@ const CONNECTION_STATUS_MAP: Record<
 export const mapConnectionStatus = (
   status: string | undefined
 ): NonNullable<Server['presenceConnection']> =>
-  (status && CONNECTION_STATUS_MAP[status]) || 'disconnected';
+  status && Object.prototype.hasOwnProperty.call(CONNECTION_STATUS_MAP, status)
+    ? CONNECTION_STATUS_MAP[status]
+    : 'disconnected';
 
 const normalizePresence = (
   status: string | undefined

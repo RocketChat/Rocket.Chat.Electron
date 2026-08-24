@@ -111,10 +111,14 @@ describe('servers/preload/presence', () => {
     });
 
     it('does nothing when the ipc event fires before a callback is registered', () => {
+      // Reset module state so a freshly required `../presence` has no
+      // registered callback left over from a prior test in this file.
+      jest.resetModules();
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcRenderer } = require('electron') as {
         ipcRenderer: { on: jest.Mock };
       };
+      ipcRenderer.on.mockClear();
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const presence = require('../presence');
 

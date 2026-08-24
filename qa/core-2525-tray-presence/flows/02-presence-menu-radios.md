@@ -1,7 +1,7 @@
 ---
 id: CORE-2525-QA-002
 title: Tray Menu Presence Radios Reflect And Change Effective Status
-platforms: [windows, linux]
+platforms: [windows, linux, macos]
 priority: smoke
 qase:
   suite: Tray presence status
@@ -34,7 +34,7 @@ expected_result: The tray menu lists Online/Away/Busy/Offline as radio items, th
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| --- | --- | --- | --- | --- |
 | 1 | On the second client (web UI or another Rocket.Chat client signed in as the same user), open the user avatar menu in the top-left of the sidebar and note the currently displayed status label (Online/Away/Busy/Offline). | Logged-in web session | A baseline status label is visible on the second client. | Read the account's presence value from the second client/API. |
 | 2 | On the desktop app, right-click the tray icon (Windows: bottom-right notification area, behind the `^` chevron if hidden; Linux: system tray/status area). | none | A context menu opens showing four items with radio-button markers (a filled or outlined circle to the left of each label) reading `Online`, `Away`, `Busy`, `Offline`, in that order, followed by a separator line. | Open/read the tray context menu template via `buildMenuTemplate`. |
 | 3 | Confirm which of the four radio items shows the filled/selected radio marker. | none | The selected radio item's label matches the baseline status noted in step 1. | Assert the radio item where `checked === true` matches `activeServerPresence.presence`. |

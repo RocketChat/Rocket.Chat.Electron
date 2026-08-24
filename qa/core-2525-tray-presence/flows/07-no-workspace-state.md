@@ -1,7 +1,7 @@
 ---
 id: CORE-2525-QA-007
 title: No Workspace Configured Shows An Add-Workspace Item
-platforms: [windows, linux]
+platforms: [windows, linux, macos]
 priority: medium
 qase:
   suite: Tray presence status
@@ -28,7 +28,7 @@ expected_result: With zero workspaces configured, the tray menu shows no presenc
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| --- | --- | --- | --- | --- |
 | 1 | Launch the branch build with a fresh profile/no workspaces configured, or remove every workspace from the left vertical server list (open each workspace's context/kebab menu and choose to remove it) until none remain. | none | The main window shows the "Add a workspace"/onboarding screen with no server icons in the left server list. | Confirm the servers collection/state is empty (`hasServers: false`). |
 | 2 | Right-click the tray icon (Windows notification area / Linux system tray) to open the context menu. | none | The menu's first item reads `Add workspace`, rendered as a normal enabled item with no radio marker. No presence radios, no custom-status line, and no sign-in item appear. | Read the tray menu template and assert the presence-section items array has exactly one entry labeled `Add workspace` with `enabled: true`. |
 | 3 | Click the `Add workspace` item. | none | The main window is brought to the front/shown, displaying the add-workspace/onboarding screen. | Confirm the item's `click` handler shows the root window. |

@@ -1,7 +1,7 @@
 ---
 id: CORE-2525-QA-010
 title: Presence Dot And Unread Badge Are Both Visible And Distinguishable Together
-platforms: [windows, linux]
+platforms: [windows, linux, macos]
 priority: release
 qase:
   suite: Tray presence status
@@ -29,20 +29,20 @@ expected_result: When both an unread count and a presence are active, the tray i
 - Changed surface: `src/ui/main/icons.ts` (`getWindowsTrayIconPath`/`getLinuxTrayIconPath` building the combined `presence-<presence>-notification-<badge>` filename), `src/ui/main/trayIcon.ts` (`updateTrayIconImage` passing both `badge` and `presence` on every relevant state change).
 - User-visible risk: Recoloring the shipping unread circle for presence could hide the unread count, or change the circle's size/position versus the pre-feature unread icon.
 - Hypothesis: With presence set (e.g. `online`) and at least one unread mention, the icon is the original badge overlay (same size and place as shipping `notification-N`) filled with the presence colour and showing the numeral.
-- Smallest useful proof: Local UI repro with both conditions active simultaneously, captured as a zoomed screenshot at native icon size and compared against the presence-only and badge-only renders from flows 01 and 09.
+- Smallest useful proof: Local UI repro with both conditions active simultaneously, captured as a zoomed screenshot at native icon size and compared against the presence-only render from flow 01 and the badge-only, native-size, no-presence crop that flow 09's Evidence section requires capturing at its 2-unread-@-mentions state.
 
 ## Steps
 
 | Step | Action | Test data | Expected result | Agent action |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | Sign in to a presence-supporting workspace with zero unread mentions and presence left at its default. Right-click the tray icon (Windows notification area / Linux system tray) and set presence to `Online` via the context menu. | Presence: online, 0 unread | The tray icon shows only the green presence circle (`#2DE0A5`), same size and position as the shipping unread badge, with no numeral. Capture a zoomed screenshot for baseline comparison. | Read the resolved icon path; assert it matches the presence-only filename pattern with no badge suffix. |
-| 2 | From another client/account, send this user two unread @-mentions while presence remains `Online`. | 2 unread mentions, presence: online | The tray icon shows the shipping unread circle (same size/position as a no-presence `notification-2` icon) filled `#2DE0A5` with the numeral `2` in white. The tray title still shows `2`. | Read the resolved icon path; assert it matches `presence-online-notification-2` and the tray title shows `2`. |
-| 3 | Compare the step-2 screenshot against a badge-only screenshot from flow 09 (2 unread mentions, no presence). | Screenshots from step 2 and flow 09 | The circle matches the shipping unread badge's size and position; only the fill colour differs (presence green vs shipping red). | Overlay or measure the badge circle on both assets; they occupy the same region. |
-| 4 | Mark all mentions read while presence remains `Online`, then re-check the icon. | 0 unread, presence: online | The icon reverts to the green empty circle from step 1 (numeral gone, circle stays). | Confirm the resolved icon path returns to the presence-only pattern from step 1. |
+| --- | --- | --- | --- | --- |
+| 1    | Sign in to a presence-supporting workspace with zero unread mentions and presence left at its default. Right-click the tray icon (Windows notification area / Linux system tray) and set presence to `Online` via the context menu. | Presence: online, 0 unread                                              | The tray icon shows only the green presence circle (`#2DE0A5`), same size and position as the shipping unread badge, with no numeral. Capture a zoomed screenshot for baseline comparison. | Read the resolved icon path; assert it matches the presence-only filename pattern with no badge suffix.       |
+| 2    | From another client/account, send this user two unread @-mentions while presence remains `Online`.                                                                                                                                  | 2 unread mentions, presence: online                                     | The tray icon shows the shipping unread circle (same size/position as a no-presence `notification-2` icon) filled `#2DE0A5` with the numeral `2` in white. The tray title still shows `2`. | Read the resolved icon path; assert it matches `presence-online-notification-2` and the tray title shows `2`. |
+| 3    | Compare the step-2 screenshot against the badge-only, native-size icon crop captured in flow 09's Evidence section (2 unread @-mentions, no presence set).                                                                          | Screenshot from step 2 and the native-size badge-only crop from flow 09 | The circle matches the shipping unread badge's size and position; only the fill colour differs (presence green vs shipping red).                                                           | Overlay or measure the badge circle on both assets; they occupy the same region.                              |
+| 4    | Mark all mentions read while presence remains `Online`, then re-check the icon.                                                                                                                                                     | 0 unread, presence: online                                              | The icon reverts to the green empty circle from step 1 (numeral gone, circle stays).                                                                                                       | Confirm the resolved icon path returns to the presence-only pattern from step 1.                              |
 
 ## Evidence
 
-- Zoomed/cropped screenshots at native icon size for: presence-only, badge-only (from flow 09), and combined presence+badge.
+- Zoomed/cropped screenshots at native icon size for: presence-only (this flow's step 1), badge-only (reuse the native-size crop required by flow 09's Evidence section, captured at flow 09's 2-unread-@-mentions state), and combined presence+badge (this flow's step 2).
 - Resolved icon file paths for each state if screenshots are inconclusive at native size.
 
 ## Failure Signals

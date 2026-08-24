@@ -1,15 +1,35 @@
 # Tray Presence Status QA Pack (CORE-2525)
 
 This folder contains manual and agent-readable QA flows for the tray presence
-status feature. It covers the Windows/Linux system-tray icon showing a
-presence dot (online/away/busy/offline), the tray context menu's presence
-radio items and read-only custom status line, connection/logged-out/no-
-workspace/unsupported-workspace states, active-workspace scoping, the
-unread-badge regression, and the presence rate limiter.
+status feature. It covers the Windows/Linux/macOS system-tray or menu-bar icon
+showing a presence dot (online/away/busy/offline), the tray context menu's
+presence radio items and read-only custom status line, connection/logged-out/
+no-workspace/unsupported-workspace states, active-workspace scoping, the
+unread-badge regression, and the presence rate limiter, on all three
+platforms.
 
-macOS is deliberately out of scope for the dot indicator: macOS tray images
-are template images and render as monochrome, so the color-coded presence
-dot cannot show there. Do not run these flows on macOS.
+macOS ships the presence dot indicator alongside Windows and Linux and is a
+fully in-scope target platform for every flow in this pack: run all flows on
+macOS, not just Windows and Linux. The rocket glyph in the menu bar goes
+through a colour-inversion path (`src/ui/main/macOSTrayGlyph.ts`,
+`invertDarkAchromaticPixels`) that inverts only dark, low-saturation
+(achromatic) glyph pixels to white so the icon reads correctly against both
+light- and dark-tinted menu bars, including Liquid Glass, which keeps status
+items light-tinted even when the system Appearance is set to Light; the
+saturated presence dot pixels are deliberately left untouched by that
+inversion, and the presence icon assets under `src/public/images/tray/darwin/`
+are deliberately not named `*Template.png`, so the colour-coded dot renders
+in colour rather than being flattened to monochrome by AppKit. Two mechanical
+differences a tester needs to execute steps correctly on macOS:
+
+- The icon lives in the menu bar at the top-right of the screen, not a
+  taskbar notification area. Wherever a step says "right-click the tray icon
+  (Windows notification area / Linux system tray)", on macOS this means:
+  click the app's icon in the menu bar (a single left-click opens the menu;
+  there is no separate right-click gesture for this icon on macOS).
+- Menu bar icons render at 18x18 pt (2x/3x pixel density on Retina displays),
+  not 16x16 px like Windows; native-size screenshot crops should be taken at
+  the platform's own native resolution.
 
 The steps are intentionally visual and self-contained. They describe screen
 region, icon shape, visible labels, and confirmation states because these
@@ -19,7 +39,7 @@ document.
 
 ## Quick Start
 
-1. Install or run a build from this branch on Windows or Linux.
+1. Install or run a build from this branch on Windows, Linux, or macOS.
 2. Add at least two Rocket.Chat workspaces that support presence (a modern
    server where the account has a `status` field), and sign in to at least
    one of them far enough for the main window to load.
@@ -33,19 +53,19 @@ document.
 
 ## Smoke Order
 
-| Order | Flow                                      | Required on    |
-| ----- | ----------------------------------------- | -------------- |
-| 1     | `flows/01-presence-icon-states.md`        | Windows, Linux |
-| 2     | `flows/02-presence-menu-radios.md`        | Windows, Linux |
-| 3     | `flows/03-custom-status-text.md`          | Windows, Linux |
-| 4     | `flows/04-active-workspace-scoping.md`    | Windows, Linux |
-| 5     | `flows/05-disconnected-state.md`          | Windows, Linux |
-| 6     | `flows/06-logged-out-state.md`            | Windows, Linux |
-| 7     | `flows/07-no-workspace-state.md`          | Windows, Linux |
-| 8     | `flows/08-unsupported-workspace.md`       | Windows, Linux |
-| 9     | `flows/09-unread-badge-regression.md`     | Windows, Linux |
-| 10    | `flows/10-badge-and-presence-combined.md` | Windows, Linux |
-| 11    | `flows/11-rate-limit-rapid-clicks.md`     | Windows, Linux |
+| Order | Flow                                      | Required on           |
+| ----- | ----------------------------------------- | --------------------- |
+| 1     | `flows/01-presence-icon-states.md`        | Windows, Linux, macOS |
+| 2     | `flows/02-presence-menu-radios.md`        | Windows, Linux, macOS |
+| 3     | `flows/03-custom-status-text.md`          | Windows, Linux, macOS |
+| 4     | `flows/04-active-workspace-scoping.md`    | Windows, Linux, macOS |
+| 5     | `flows/05-disconnected-state.md`          | Windows, Linux, macOS |
+| 6     | `flows/06-logged-out-state.md`            | Windows, Linux, macOS |
+| 7     | `flows/07-no-workspace-state.md`          | Windows, Linux, macOS |
+| 8     | `flows/08-unsupported-workspace.md`       | Windows, Linux, macOS |
+| 9     | `flows/09-unread-badge-regression.md`     | Windows, Linux, macOS |
+| 10    | `flows/10-badge-and-presence-combined.md` | Windows, Linux, macOS |
+| 11    | `flows/11-rate-limit-rapid-clicks.md`     | Windows, Linux, macOS |
 
 ## Flow Result Format
 
@@ -61,9 +81,9 @@ Notes:
 ```
 
 Capture screenshots of the tray icon (ideally a zoomed crop of the
-notification area / system tray) for icon-legibility failures, and screen
-recordings or before/after screenshots of the second client for status-value
-failures.
+notification area / system tray / macOS menu bar) for icon-legibility
+failures, and screen recordings or before/after screenshots of the second
+client for status-value failures.
 
 ## Folder Map
 
@@ -82,7 +102,11 @@ When updating this pack, derive visible steps from the implementation:
 - Tray icon file selection per platform/badge/presence: `src/ui/main/icons.ts`
   (`getTrayIconPath`).
 - Presence circle colours (existing unread `Badge`, recolored):
-  `src/ui/icons/presenceColors.ts`, `WindowsTrayIcon.tsx`, `LinuxTrayIcon.tsx`.
+  `src/ui/icons/presenceColors.ts`, `WindowsTrayIcon.tsx`, `LinuxTrayIcon.tsx`,
+  `MacOSTrayIcon.tsx`.
+- macOS menu bar glyph appearance (colour inversion of the achromatic glyph
+  only, presence dot left untouched): `src/ui/main/macOSTrayGlyph.ts`
+  (`invertDarkAchromaticPixels`, `applyMacOSMenuBarGlyphAppearance`).
 - Visible menu labels: `src/i18n/en.i18n.json` under `tray.presence.*`.
 - Active-workspace presence selection: `src/ui/selectors.ts`
   (`selectActiveServerPresence`).

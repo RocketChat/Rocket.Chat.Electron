@@ -21,25 +21,28 @@ const getBadgeNamePart = (badge: Server['badge']): string =>
   (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
   `notification-${badge}`;
 
-// win32 and darwin never bake the unread count into the tray icon — the
-// Windows taskbar overlay and the macOS menu-bar title already show it. When
-// presence is known, these two platforms show presence ONLY — no
-// notification badge at all, since the count is already visible elsewhere —
-// so `badge` is ignored once `presence` is set.
+// win32 and darwin show STATUS only in the tray icon — the Windows taskbar
+// overlay and the macOS menu-bar title already show the unread count. There
+// is no "unread + presence unknown" fallback asset on these two platforms:
+// when presence is unknown the icon is always the default/disconnected
+// icon, regardless of `badge`, so `badge` is ignored entirely on darwin/
+// win32.
 const getMacOSTrayIconPath = (
-  badge: Server['badge'],
+  _badge: Server['badge'],
   presence: UserPresence | undefined,
   disconnected: boolean | undefined
 ): string => {
   if (disconnected) {
-    const name = `disconnected${badge ? '-notification' : ''}`;
-    return path.join(app.getAppPath(), `app/images/tray/darwin/${name}.png`);
+    return path.join(
+      app.getAppPath(),
+      'app/images/tray/darwin/disconnected.png'
+    );
   }
 
   if (!presence) {
     return path.join(
       app.getAppPath(),
-      `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
+      'app/images/tray/darwin/defaultTemplate.png'
     );
   }
 
@@ -50,18 +53,18 @@ const getMacOSTrayIconPath = (
 };
 
 const getWindowsTrayIconPath = (
-  badge: Server['badge'],
+  _badge: Server['badge'],
   presence: UserPresence | undefined,
   disconnected: boolean | undefined
 ): string => {
   if (disconnected) {
-    const name = `disconnected${badge ? '-notification' : ''}`;
-    return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
+    return path.join(
+      app.getAppPath(),
+      'app/images/tray/win32/disconnected.ico'
+    );
   }
 
-  const name = presence
-    ? `presence-${presence}`
-    : (!badge && 'default') || 'notification';
+  const name = presence ? `presence-${presence}` : 'default';
   return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
 };
 
@@ -73,8 +76,10 @@ const getLinuxTrayIconPath = (
   if (disconnected) {
     // DisconnectedBadge ignores the badge value, so linux only needs the
     // presence-less on/off pair here — the count never varies the artwork.
-    const name = `disconnected${badge ? '-notification' : ''}`;
-    return path.join(app.getAppPath(), `app/images/tray/linux/${name}.png`);
+    return path.join(
+      app.getAppPath(),
+      'app/images/tray/linux/disconnected.png'
+    );
   }
 
   const name = presence

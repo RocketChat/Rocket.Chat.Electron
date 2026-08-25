@@ -97,7 +97,6 @@ const createMacOSAppIcon = async (): Promise<void> => {
 
 const writeMacOSPresenceTrayIcon = async (
   props: {
-    badge?: Server['badge'];
     presence?: UserPresence;
     disconnected?: boolean;
   },
@@ -108,13 +107,6 @@ const writeMacOSPresenceTrayIcon = async (
   await writeFile(`src/public/images/tray/darwin/${fileName}.png`, pngs[0]);
   await writeFile(`src/public/images/tray/darwin/${fileName}@2x.png`, pngs[1]);
 };
-
-// win32/darwin never bake the unread count into the tray icon — the Windows
-// taskbar overlay and the macOS menu-bar title already show it. When
-// presence is known, these two platforms show presence ONLY (no badge at
-// all, since the count is already visible elsewhere); when presence is
-// unknown, the dot ('•') variant marks "has unread" without a numeral.
-const NOTIFICATION_BADGE: Server['badge'] = '•';
 
 const createMacOSTrayIcons = async (): Promise<void> => {
   const defaultIcon = renderToStaticMarkup(createElement(MacOSTrayIcon));
@@ -128,28 +120,11 @@ const createMacOSTrayIcons = async (): Promise<void> => {
     defaultIconPngs[1]
   );
 
-  const notificationIcon = renderToStaticMarkup(
-    createElement(MacOSTrayIcon, { notification: true })
-  );
-  const notificationIconPngs = await convertSvgToPng(notificationIcon, 24, 48);
-  await writeFile(
-    'src/public/images/tray/darwin/notificationTemplate.png',
-    notificationIconPngs[0]
-  );
-  await writeFile(
-    'src/public/images/tray/darwin/notificationTemplate@2x.png',
-    notificationIconPngs[1]
-  );
-
   for await (const presence of PRESENCES) {
     await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
   }
 
   await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
-  await writeMacOSPresenceTrayIcon(
-    { badge: NOTIFICATION_BADGE, disconnected: true },
-    'disconnected-notification'
-  );
 };
 
 const createDmgBackgrounds = async (): Promise<void> => {
@@ -184,7 +159,6 @@ const createWindowsAppIcons = async (): Promise<void> => {
 
 const writeWindowsTrayIcon = async (
   props: {
-    badge?: Server['badge'];
     presence?: UserPresence;
     disconnected?: boolean;
   },
@@ -198,17 +172,12 @@ const writeWindowsTrayIcon = async (
 
 const createWindowsTrayIcons = async (): Promise<void> => {
   await writeWindowsTrayIcon({}, 'default');
-  await writeWindowsTrayIcon({ badge: NOTIFICATION_BADGE }, 'notification');
 
   for await (const presence of PRESENCES) {
     await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
   }
 
   await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
-  await writeWindowsTrayIcon(
-    { badge: NOTIFICATION_BADGE, disconnected: true },
-    'disconnected-notification'
-  );
 };
 
 const createNsisSideBars = async (): Promise<void> => {
@@ -277,10 +246,6 @@ const createLinuxTrayIcons = async (): Promise<void> => {
   // DisconnectedBadge ignores the badge value, so linux only needs the
   // presence-less on/off pair here — the count never varies the artwork.
   await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
-  await writeLinuxTrayIcon(
-    { badge: NOTIFICATION_BADGE, disconnected: true },
-    'disconnected-notification'
-  );
 };
 
 const writePresenceTrayIcons = async (): Promise<void> => {
@@ -300,19 +265,6 @@ const writePresenceTrayIcons = async (): Promise<void> => {
   await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
   await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
   await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
-
-  await writeMacOSPresenceTrayIcon(
-    { badge: NOTIFICATION_BADGE, disconnected: true },
-    'disconnected-notification'
-  );
-  await writeWindowsTrayIcon(
-    { badge: NOTIFICATION_BADGE, disconnected: true },
-    'disconnected-notification'
-  );
-  await writeLinuxTrayIcon(
-    { badge: NOTIFICATION_BADGE, disconnected: true },
-    'disconnected-notification'
-  );
 };
 
 // The tray context menu's presence top-level item and submenu radios use a

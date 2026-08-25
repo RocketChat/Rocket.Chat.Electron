@@ -1,36 +1,24 @@
-import type { Server, UserPresence } from '../../servers/common';
+import type { UserPresence } from '../../servers/common';
 import AppIcon from './AppIcon';
-import Badge from './Badge';
 import DisconnectedBadge from './DisconnectedBadge';
 import PresenceBullet from './PresenceBullet';
 import PresenceBulletCutout from './PresenceBulletCutout';
 
 type MacOSTrayIconProps = {
-  notification?: boolean;
   presence?: UserPresence;
-  badge?: Server['badge'];
   disconnected?: boolean;
 };
 
-// The badge circle is the same shape, size and position whether or not
-// presence is known — only its colour changes. Left as `black` it is a
-// template image and macOS renders it monochrome with the glyph; given a
-// presence colour the asset is no longer a template, so the colour survives.
-//
-// When presence is known, the tray shows presence ONLY — no unread count —
-// because the macOS menu-bar title already carries the count. `badge` is
-// therefore ignored whenever `presence` is set.
+// The tray shows STATUS only — no unread count is ever baked into the
+// artwork, because the macOS menu-bar title already carries the count. There
+// is no "unread, presence unknown" fallback asset: when presence is unknown
+// the icon is always the default template icon.
 //
 // `DisconnectedBadge`'s amber fill is outside `invertDarkAchromaticPixels`'s
 // inversion window (see macOSTrayGlyph.ts): its saturation is well above
 // the colour threshold, so it never gets flipped to white along with the
 // black rocket glyph.
-const MacOSTrayIcon = ({
-  notification,
-  presence,
-  badge,
-  disconnected,
-}: MacOSTrayIconProps) => {
+const MacOSTrayIcon = ({ presence, disconnected }: MacOSTrayIconProps) => {
   let overlay;
   let cutout;
   if (disconnected) {
@@ -39,8 +27,6 @@ const MacOSTrayIcon = ({
   } else if (presence) {
     overlay = <PresenceBullet presence={presence} />;
     cutout = <PresenceBulletCutout />;
-  } else if (notification) {
-    overlay = <Badge value={badge ?? 0} backgroundColor='black' />;
   }
 
   return (

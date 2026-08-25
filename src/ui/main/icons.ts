@@ -16,17 +16,12 @@ export const getAppIconPath = ({
   return `${app.getAppPath()}/app/images/icon.ico`;
 };
 
-const getBadgeNamePart = (badge: Server['badge']): string =>
-  (badge === '•' && 'notification-dot') ||
-  (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
-  `notification-${badge}`;
-
-// win32 and darwin show STATUS only in the tray icon — the Windows taskbar
-// overlay and the macOS menu-bar title already show the unread count. There
-// is no "unread + presence unknown" fallback asset on these two platforms:
-// when presence is unknown the icon is always the default/disconnected
-// icon, regardless of `badge`, so `badge` is ignored entirely on darwin/
-// win32.
+// All three platforms show STATUS only in the tray icon — the Windows
+// taskbar overlay, the macOS menu-bar title, and the Linux tray tooltip
+// already show the unread count. There is no "unread + presence unknown"
+// fallback asset on any platform: when presence is unknown the icon is
+// always the default/disconnected icon, regardless of `badge`, so `badge`
+// is ignored entirely.
 const getMacOSTrayIconPath = (
   _badge: Server['badge'],
   presence: UserPresence | undefined,
@@ -69,22 +64,18 @@ const getWindowsTrayIconPath = (
 };
 
 const getLinuxTrayIconPath = (
-  badge: Server['badge'],
+  _badge: Server['badge'],
   presence: UserPresence | undefined,
   disconnected: boolean | undefined
 ): string => {
   if (disconnected) {
-    // DisconnectedBadge ignores the badge value, so linux only needs the
-    // presence-less on/off pair here — the count never varies the artwork.
     return path.join(
       app.getAppPath(),
       'app/images/tray/linux/disconnected.png'
     );
   }
 
-  const name = presence
-    ? `presence-${presence}${badge ? `-${getBadgeNamePart(badge)}` : ''}`
-    : (!badge && 'default') || getBadgeNamePart(badge);
+  const name = presence ? `presence-${presence}` : 'default';
   return path.join(app.getAppPath(), `app/images/tray/linux/${name}.png`);
 };
 

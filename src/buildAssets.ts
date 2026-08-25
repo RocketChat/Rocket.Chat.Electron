@@ -10,7 +10,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { rimraf } from 'rimraf';
 
-import type { Server, UserPresence } from './servers/common';
+import type { UserPresence } from './servers/common';
 import DmgBackground from './ui/assets/DmgBackground';
 import NsisSideBar from './ui/assets/NsisSideBar';
 import AppIcon from './ui/icons/AppIcon';
@@ -20,14 +20,7 @@ import MacOSTrayIcon from './ui/icons/MacOSTrayIcon';
 import PresenceMenuIcon from './ui/icons/PresenceMenuIcon';
 import WindowsTrayIcon from './ui/icons/WindowsTrayIcon';
 
-const BADGES = ['•', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Server['badge'][];
-
 const PRESENCES: UserPresence[] = ['online', 'away', 'busy', 'offline'];
-
-const badgeName = (badge: Server['badge']): string =>
-  (badge === '•' && 'dot') ||
-  (typeof badge === 'number' && badge > 9 && 'plus-9') ||
-  String(badge);
 
 const convertSvgToPng = async (
   svg: string,
@@ -213,7 +206,6 @@ const createLinuxAppIcons = async (): Promise<void> => {
 
 const writeLinuxTrayIcon = async (
   props: {
-    badge?: Server['badge'];
     presence?: UserPresence;
     disconnected?: boolean;
   },
@@ -228,23 +220,10 @@ const writeLinuxTrayIcon = async (
 const createLinuxTrayIcons = async (): Promise<void> => {
   await writeLinuxTrayIcon({}, 'default');
 
-  for await (const badge of BADGES) {
-    await writeLinuxTrayIcon({ badge }, `notification-${badgeName(badge)}`);
-  }
-
   for await (const presence of PRESENCES) {
     await writeLinuxTrayIcon({ presence }, `presence-${presence}`);
-
-    for await (const badge of BADGES) {
-      await writeLinuxTrayIcon(
-        { badge, presence },
-        `presence-${presence}-notification-${badgeName(badge)}`
-      );
-    }
   }
 
-  // DisconnectedBadge ignores the badge value, so linux only needs the
-  // presence-less on/off pair here — the count never varies the artwork.
   await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
 };
 
@@ -253,13 +232,6 @@ const writePresenceTrayIcons = async (): Promise<void> => {
     await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
     await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
     await writeLinuxTrayIcon({ presence }, `presence-${presence}`);
-
-    for await (const badge of BADGES) {
-      await writeLinuxTrayIcon(
-        { badge, presence },
-        `presence-${presence}-notification-${badgeName(badge)}`
-      );
-    }
   }
 
   await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');

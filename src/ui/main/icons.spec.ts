@@ -86,56 +86,21 @@ describe('getTrayIconPath', () => {
     );
   });
 
-  it('matches path for linux platform', () => {
+  it('matches path for linux platform (badge ignored — status only)', () => {
     expect(getTrayIconPath({ platform: 'linux' })).toBe(
       path.join('/app', 'app', 'images', 'tray', 'linux', 'default.png')
     );
     expect(getTrayIconPath({ platform: 'linux', badge: '•' })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'linux',
-        'notification-dot.png'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'default.png')
     );
     expect(getTrayIconPath({ platform: 'linux', badge: 1 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-1.png')
-    );
-    expect(getTrayIconPath({ platform: 'linux', badge: 2 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-2.png')
-    );
-    expect(getTrayIconPath({ platform: 'linux', badge: 3 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-3.png')
-    );
-    expect(getTrayIconPath({ platform: 'linux', badge: 4 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-4.png')
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'default.png')
     );
     expect(getTrayIconPath({ platform: 'linux', badge: 5 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-5.png')
-    );
-    expect(getTrayIconPath({ platform: 'linux', badge: 6 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-6.png')
-    );
-    expect(getTrayIconPath({ platform: 'linux', badge: 7 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-7.png')
-    );
-    expect(getTrayIconPath({ platform: 'linux', badge: 8 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-8.png')
-    );
-    expect(getTrayIconPath({ platform: 'linux', badge: 9 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'linux', 'notification-9.png')
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'default.png')
     );
     expect(getTrayIconPath({ platform: 'linux', badge: 10 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'linux',
-        'notification-plus-9.png'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'default.png')
     );
   });
 
@@ -219,42 +184,21 @@ describe('getTrayIconPath', () => {
     );
   });
 
-  it('combines presence and badge for linux platform', () => {
+  it('ignores badge for linux platform when presence is known (presence-only tray — tooltip shows the count)', () => {
     expect(
       getTrayIconPath({ platform: 'linux', presence: 'online', badge: '•' })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'linux',
-        'presence-online-notification-dot.png'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'presence-online.png')
     );
     expect(
       getTrayIconPath({ platform: 'linux', presence: 'busy', badge: 5 })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'linux',
-        'presence-busy-notification-5.png'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'presence-busy.png')
     );
     expect(
       getTrayIconPath({ platform: 'linux', presence: 'away', badge: 10 })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'linux',
-        'presence-away-notification-plus-9.png'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'linux', 'presence-away.png')
     );
   });
 

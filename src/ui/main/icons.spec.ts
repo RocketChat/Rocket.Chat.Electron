@@ -46,77 +46,7 @@ describe('getTrayIconPath', () => {
         'notificationTemplate.png'
       )
     );
-    expect(getTrayIconPath({ platform: 'darwin', badge: 2 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'notificationTemplate.png'
-      )
-    );
-    expect(getTrayIconPath({ platform: 'darwin', badge: 3 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'notificationTemplate.png'
-      )
-    );
-    expect(getTrayIconPath({ platform: 'darwin', badge: 4 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'notificationTemplate.png'
-      )
-    );
     expect(getTrayIconPath({ platform: 'darwin', badge: 5 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'notificationTemplate.png'
-      )
-    );
-    expect(getTrayIconPath({ platform: 'darwin', badge: 6 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'notificationTemplate.png'
-      )
-    );
-    expect(getTrayIconPath({ platform: 'darwin', badge: 7 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'notificationTemplate.png'
-      )
-    );
-    expect(getTrayIconPath({ platform: 'darwin', badge: 8 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'notificationTemplate.png'
-      )
-    );
-    expect(getTrayIconPath({ platform: 'darwin', badge: 9 })).toBe(
       path.join(
         '/app',
         'app',
@@ -143,51 +73,16 @@ describe('getTrayIconPath', () => {
       path.join('/app', 'app', 'images', 'tray', 'win32', 'default.ico')
     );
     expect(getTrayIconPath({ platform: 'win32', badge: '•' })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'win32',
-        'notification-dot.ico'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification.ico')
     );
     expect(getTrayIconPath({ platform: 'win32', badge: 1 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-1.ico')
-    );
-    expect(getTrayIconPath({ platform: 'win32', badge: 2 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-2.ico')
-    );
-    expect(getTrayIconPath({ platform: 'win32', badge: 3 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-3.ico')
-    );
-    expect(getTrayIconPath({ platform: 'win32', badge: 4 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-4.ico')
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification.ico')
     );
     expect(getTrayIconPath({ platform: 'win32', badge: 5 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-5.ico')
-    );
-    expect(getTrayIconPath({ platform: 'win32', badge: 6 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-6.ico')
-    );
-    expect(getTrayIconPath({ platform: 'win32', badge: 7 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-7.ico')
-    );
-    expect(getTrayIconPath({ platform: 'win32', badge: 8 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-8.ico')
-    );
-    expect(getTrayIconPath({ platform: 'win32', badge: 9 })).toBe(
-      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification-9.ico')
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification.ico')
     );
     expect(getTrayIconPath({ platform: 'win32', badge: 10 })).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'win32',
-        'notification-plus-9.ico'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'notification.ico')
     );
   });
 
@@ -306,7 +201,7 @@ describe('getTrayIconPath', () => {
     );
   });
 
-  it('combines presence and badge for win32 platform', () => {
+  it('combines presence and badge for win32 platform (no numeral — taskbar overlay shows the count)', () => {
     expect(
       getTrayIconPath({ platform: 'win32', presence: 'online', badge: '•' })
     ).toBe(
@@ -316,7 +211,7 @@ describe('getTrayIconPath', () => {
         'images',
         'tray',
         'win32',
-        'presence-online-notification-dot.ico'
+        'presence-online-notification.ico'
       )
     );
     expect(
@@ -328,7 +223,7 @@ describe('getTrayIconPath', () => {
         'images',
         'tray',
         'win32',
-        'presence-busy-notification-5.ico'
+        'presence-busy-notification.ico'
       )
     );
     expect(
@@ -340,7 +235,7 @@ describe('getTrayIconPath', () => {
         'images',
         'tray',
         'win32',
-        'presence-away-notification-plus-9.ico'
+        'presence-away-notification.ico'
       )
     );
   });
@@ -413,7 +308,7 @@ describe('getTrayIconPath', () => {
     );
   });
 
-  it('combines presence and badge for darwin platform', () => {
+  it('combines presence and badge for darwin platform (no numeral — menu-bar title shows the count)', () => {
     expect(
       getTrayIconPath({ platform: 'darwin', presence: 'online', badge: '•' })
     ).toBe(
@@ -423,7 +318,7 @@ describe('getTrayIconPath', () => {
         'images',
         'tray',
         'darwin',
-        'presence-online-notification-dot.png'
+        'presence-online-notification.png'
       )
     );
     expect(
@@ -435,7 +330,7 @@ describe('getTrayIconPath', () => {
         'images',
         'tray',
         'darwin',
-        'presence-busy-notification-5.png'
+        'presence-busy-notification.png'
       )
     );
     expect(
@@ -447,7 +342,7 @@ describe('getTrayIconPath', () => {
         'images',
         'tray',
         'darwin',
-        'presence-away-notification-plus-9.png'
+        'presence-away-notification.png'
       )
     );
   });
@@ -494,7 +389,7 @@ describe('getTrayIconPath', () => {
       expect(trayPath).not.toContain('Template');
     });
 
-    it('combines disconnected and badge for win32 platform', () => {
+    it('combines disconnected and badge for win32 platform (no numeral — taskbar overlay shows the count)', () => {
       expect(
         getTrayIconPath({ platform: 'win32', disconnected: true, badge: '•' })
       ).toBe(
@@ -504,7 +399,7 @@ describe('getTrayIconPath', () => {
           'images',
           'tray',
           'win32',
-          'disconnected-notification-dot.ico'
+          'disconnected-notification.ico'
         )
       );
       expect(
@@ -516,7 +411,7 @@ describe('getTrayIconPath', () => {
           'images',
           'tray',
           'win32',
-          'disconnected-notification-5.ico'
+          'disconnected-notification.ico'
         )
       );
       expect(
@@ -528,12 +423,12 @@ describe('getTrayIconPath', () => {
           'images',
           'tray',
           'win32',
-          'disconnected-notification-plus-9.ico'
+          'disconnected-notification.ico'
         )
       );
     });
 
-    it('combines disconnected and badge for linux platform', () => {
+    it('combines disconnected and badge for linux platform (DisconnectedBadge ignores the count)', () => {
       expect(
         getTrayIconPath({ platform: 'linux', disconnected: true, badge: '•' })
       ).toBe(
@@ -543,12 +438,24 @@ describe('getTrayIconPath', () => {
           'images',
           'tray',
           'linux',
-          'disconnected-notification-dot.png'
+          'disconnected-notification.png'
+        )
+      );
+      expect(
+        getTrayIconPath({ platform: 'linux', disconnected: true, badge: 5 })
+      ).toBe(
+        path.join(
+          '/app',
+          'app',
+          'images',
+          'tray',
+          'linux',
+          'disconnected-notification.png'
         )
       );
     });
 
-    it('combines disconnected and badge for darwin platform', () => {
+    it('combines disconnected and badge for darwin platform (no numeral — menu-bar title shows the count)', () => {
       expect(
         getTrayIconPath({ platform: 'darwin', disconnected: true, badge: '•' })
       ).toBe(
@@ -558,7 +465,19 @@ describe('getTrayIconPath', () => {
           'images',
           'tray',
           'darwin',
-          'disconnected-notification-dot.png'
+          'disconnected-notification.png'
+        )
+      );
+      expect(
+        getTrayIconPath({ platform: 'darwin', disconnected: true, badge: 5 })
+      ).toBe(
+        path.join(
+          '/app',
+          'app',
+          'images',
+          'tray',
+          'darwin',
+          'disconnected-notification.png'
         )
       );
     });

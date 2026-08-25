@@ -1,10 +1,15 @@
 import { hasUsablePresenceApi } from '../presenceSupport';
 
 describe('hasUsablePresenceApi', () => {
-  it('returns true for a module with a valid Presence (store + listen function)', () => {
+  it('returns true for a module with a valid Presence (store + listen + get + stop functions)', () => {
     expect(
       hasUsablePresenceApi({
-        Presence: { store: new Map(), listen: () => undefined },
+        Presence: {
+          store: new Map(),
+          listen: () => undefined,
+          get: () => undefined,
+          stop: () => undefined,
+        },
       })
     ).toBe(true);
   });
@@ -12,7 +17,12 @@ describe('hasUsablePresenceApi', () => {
   it('returns false when store is present but listen is not a function', () => {
     expect(
       hasUsablePresenceApi({
-        Presence: { store: new Map(), listen: 'not-a-function' },
+        Presence: {
+          store: new Map(),
+          listen: 'not-a-function',
+          get: () => undefined,
+          stop: () => undefined,
+        },
       })
     ).toBe(false);
   });
@@ -20,7 +30,11 @@ describe('hasUsablePresenceApi', () => {
   it('returns false when Presence is present but store is missing', () => {
     expect(
       hasUsablePresenceApi({
-        Presence: { listen: () => undefined },
+        Presence: {
+          listen: () => undefined,
+          get: () => undefined,
+          stop: () => undefined,
+        },
       })
     ).toBe(false);
   });
@@ -28,9 +42,74 @@ describe('hasUsablePresenceApi', () => {
   it('returns false when store is present but undefined', () => {
     expect(
       hasUsablePresenceApi({
-        Presence: { store: undefined, listen: () => undefined },
+        Presence: {
+          store: undefined,
+          listen: () => undefined,
+          get: () => undefined,
+          stop: () => undefined,
+        },
       })
     ).toBe(false);
+  });
+
+  it('returns false when get is missing', () => {
+    expect(
+      hasUsablePresenceApi({
+        Presence: {
+          store: new Map(),
+          listen: () => undefined,
+          stop: () => undefined,
+        },
+      })
+    ).toBe(false);
+  });
+
+  it('returns false when stop is missing', () => {
+    expect(
+      hasUsablePresenceApi({
+        Presence: {
+          store: new Map(),
+          listen: () => undefined,
+          get: () => undefined,
+        },
+      })
+    ).toBe(false);
+  });
+
+  it('returns false when get is not a function', () => {
+    expect(
+      hasUsablePresenceApi({
+        Presence: {
+          store: new Map(),
+          listen: () => undefined,
+          get: 'not-a-function',
+          stop: () => undefined,
+        },
+      })
+    ).toBe(false);
+  });
+
+  it('returns false when stop is not a function', () => {
+    expect(
+      hasUsablePresenceApi({
+        Presence: {
+          store: new Map(),
+          listen: () => undefined,
+          get: () => undefined,
+          stop: 'not-a-function',
+        },
+      })
+    ).toBe(false);
+  });
+
+  it('returns false when get and stop are only inherited from the prototype chain', () => {
+    const proto = { get: () => undefined, stop: () => undefined };
+    const resolved = Object.create(proto, {
+      store: { value: new Map(), enumerable: true },
+      listen: { value: () => undefined, enumerable: true },
+    });
+
+    expect(hasUsablePresenceApi({ Presence: resolved })).toBe(false);
   });
 
   it('returns false when Presence is missing entirely', () => {

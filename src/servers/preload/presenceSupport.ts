@@ -10,12 +10,15 @@
 export type PresenceModuleShape = {
   store?: unknown;
   listen?: unknown;
+  get?: unknown;
+  stop?: unknown;
 };
 
-// Own-property check only: a `store`/`listen` value that arrives merely
-// inherited from the prototype chain (e.g. `Object.create({ listen: fn })`)
-// must not be treated as a usable API — mirrors the own-property guard in
-// `presenceSnapshot.ts` (`mapConnectionStatus`).
+// Own-property check only: a `store`/`listen`/`get`/`stop` value that
+// arrives merely inherited from the prototype chain (e.g.
+// `Object.create({ listen: fn })`) must not be treated as a usable API —
+// mirrors the own-property guard in `presenceSnapshot.ts`
+// (`mapConnectionStatus`).
 const hasOwn = (value: object, key: string): boolean =>
   Object.prototype.hasOwnProperty.call(value, key);
 
@@ -42,5 +45,21 @@ export const hasUsablePresenceApi = (module: unknown): boolean => {
     return false;
   }
 
-  return typeof (resolved as PresenceModuleShape).listen === 'function';
+  if (typeof (resolved as PresenceModuleShape).listen !== 'function') {
+    return false;
+  }
+
+  if (!hasOwn(resolved, 'get')) {
+    return false;
+  }
+
+  if (typeof (resolved as PresenceModuleShape).get !== 'function') {
+    return false;
+  }
+
+  if (!hasOwn(resolved, 'stop')) {
+    return false;
+  }
+
+  return typeof (resolved as PresenceModuleShape).stop === 'function';
 };

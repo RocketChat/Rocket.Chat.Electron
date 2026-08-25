@@ -172,6 +172,30 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
     expect(findItem(template, 'tray.presence.disconnected')).toBeDefined();
   });
 
+  it('disables submenu radios and shows a disconnected line when presence disconnection is simulated (connection forced to disconnected while otherwise connected)', () => {
+    const template = buildMenuTemplate(
+      baseState({
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'online',
+        // Mirrors what selectActiveServerPresence returns when
+        // isPresenceDisconnectionSimulated overrides a real 'connected' value.
+        connection: 'disconnected',
+        loggedIn: true,
+        supported: true,
+      })
+    );
+
+    const rootItem = findPresenceRootItem(template);
+    const radios = rootItem.submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
+    expect(radios).toHaveLength(4);
+    radios.forEach((item: any) => expect(item.enabled).toBe(false));
+
+    expect(findItem(template, 'tray.presence.disconnected')).toBeDefined();
+  });
+
   it('enables submenu radios and shows no disconnected line when connection is not yet known (fresh boot)', () => {
     const template = buildMenuTemplate(
       baseState({

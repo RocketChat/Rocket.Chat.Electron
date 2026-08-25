@@ -66,7 +66,13 @@ const toHref = (url: string): string => {
 export const selectActiveServerPresence = createSelector(
   ({ servers }: RootState) => servers,
   ({ currentView }: RootState) => currentView,
-  (servers, currentView): ActiveServerPresence => {
+  ({ isPresenceDisconnectionSimulated }: RootState) =>
+    isPresenceDisconnectionSimulated,
+  (
+    servers,
+    currentView,
+    isPresenceDisconnectionSimulated
+  ): ActiveServerPresence => {
     const hasServers = servers.length > 0;
 
     if (typeof currentView !== 'object' || !currentView.url) {
@@ -87,7 +93,9 @@ export const selectActiveServerPresence = createSelector(
       title: activeServer.title,
       presence: activeServer.presence,
       statusText: activeServer.presenceStatusText,
-      connection: activeServer.presenceConnection,
+      connection: isPresenceDisconnectionSimulated
+        ? 'disconnected'
+        : activeServer.presenceConnection,
       supported: activeServer.presenceSupported,
       loggedIn: activeServer.userLoggedIn,
       hasServers,

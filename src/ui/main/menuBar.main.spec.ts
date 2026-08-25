@@ -8,7 +8,10 @@ import {
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
   UPDATES_SIMULATION_REQUESTED,
 } from '../../updates/actions';
-import { MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED } from '../actions';
+import {
+  MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
+  SET_PRESENCE_DISCONNECTION_SIMULATED,
+} from '../actions';
 import {
   getServerContextMenuTemplate,
   selectAppMenuPopupTemplate,
@@ -127,6 +130,7 @@ const createState = (overrides: Partial<RootState> = {}): RootState =>
     isShowWindowOnUnreadChangedEnabled: false,
     isDeveloperModeEnabled: true,
     isVideoCallDevtoolsAutoOpenEnabled: false,
+    isPresenceDisconnectionSimulated: false,
     navigationLayout: 'tabs',
     rootWindowState: {
       focused: true,
@@ -152,6 +156,7 @@ jest.mock('../../store', () => ({
       isShowWindowOnUnreadChangedEnabled: false,
       isDeveloperModeEnabled: true,
       isVideoCallDevtoolsAutoOpenEnabled: false,
+      isPresenceDisconnectionSimulated: false,
       navigationLayout: 'tabs',
       rootWindowState: {
         focused: true,
@@ -445,6 +450,7 @@ describe('ui/main/menuBar', () => {
 
       expect(ids).not.toContain('simulateUpdate');
       expect(ids).not.toContain('simulateDownload');
+      expect(ids).not.toContain('simulateDisconnected');
     });
 
     it('lists simulate items right after checkForUpdates when developer mode is on and dispatches on click', async () => {
@@ -467,6 +473,7 @@ describe('ui/main/menuBar', () => {
       expect(template[checkForUpdatesIndex + 1]?.type).toBe('separator');
       expect(ids[checkForUpdatesIndex + 2]).toBe('simulateUpdate');
       expect(ids[checkForUpdatesIndex + 3]).toBe('simulateDownload');
+      expect(ids[checkForUpdatesIndex + 4]).toBe('simulateDisconnected');
 
       const simulateUpdate = findMenu(template, 'simulateUpdate');
       await (simulateUpdate.click as any)();
@@ -479,6 +486,25 @@ describe('ui/main/menuBar', () => {
       expect(dispatch).toHaveBeenCalledWith({
         type: DOWNLOADS_SIMULATION_REQUESTED,
       });
+
+      const simulateDisconnected = findMenu(template, 'simulateDisconnected');
+      expect(simulateDisconnected.type).toBe('checkbox');
+      expect(simulateDisconnected.checked).toBe(false);
+      await (simulateDisconnected.click as any)();
+      expect(dispatch).toHaveBeenCalledWith({
+        type: SET_PRESENCE_DISCONNECTION_SIMULATED,
+        payload: true,
+      });
+    });
+
+    it('reflects the checked state of the simulate disconnected item from the store', () => {
+      const state = createState({
+        isDeveloperModeEnabled: true,
+        isPresenceDisconnectionSimulated: true,
+      });
+      const template = selectServerSwitcherMenuTemplate(state);
+      const simulateDisconnected = findMenu(template, 'simulateDisconnected');
+      expect(simulateDisconnected.checked).toBe(true);
     });
   });
 
@@ -506,6 +532,7 @@ describe('ui/main/menuBar', () => {
 
           expect(ids).not.toContain('simulateUpdate');
           expect(ids).not.toContain('simulateDownload');
+          expect(ids).not.toContain('simulateDisconnected');
         });
 
         it('lists simulate items right after checkForUpdates when developer mode is on', () => {
@@ -518,6 +545,7 @@ describe('ui/main/menuBar', () => {
           expect(template[checkForUpdatesIndex + 1]?.type).toBe('separator');
           expect(ids[checkForUpdatesIndex + 2]).toBe('simulateUpdate');
           expect(ids[checkForUpdatesIndex + 3]).toBe('simulateDownload');
+          expect(ids[checkForUpdatesIndex + 4]).toBe('simulateDisconnected');
         });
       });
     });

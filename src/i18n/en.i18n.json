@@ -475,6 +475,7 @@
     "developerMode": "Developer Mode",
     "simulateUpdate": "Simulate Update Flow",
     "simulateDownload": "Simulate Download",
+    "simulateDisconnected": "Simulate Disconnected",
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",

@@ -47,4 +47,38 @@ describe('ui/selectors', () => {
     expect(() => selectActiveServerPresence(rootState)).not.toThrow();
     expect(selectActiveServerPresence(rootState).url).toBeUndefined();
   });
+
+  it('overrides connection to disconnected when presence disconnection is simulated', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          title: 'Server',
+          presenceConnection: 'connected',
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+      isPresenceDisconnectionSimulated: true,
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).connection).toBe(
+      'disconnected'
+    );
+  });
+
+  it('keeps the real connection when presence disconnection is not simulated', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          title: 'Server',
+          presenceConnection: 'connected',
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+      isPresenceDisconnectionSimulated: false,
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).connection).toBe('connected');
+  });
 });

@@ -319,18 +319,18 @@ const writePresenceTrayIcons = async (): Promise<void> => {
 // dedicated square bullet icon (no rocket) rendered at menu-icon sizes —
 // separate from the `presence-<p>.png`/`.ico` tray-bar icons above, which
 // are platform-specific and sized for the OS tray/menu bar itself. Sized to
-// 14pt (roughly the cap height of the menu font, matching Teams' status
-// icons) rather than a full 16pt glyph slot, which reads oversized next to
-// menu text; generated directly at target size so no runtime resize is
-// needed (nativeImage.resize() would drop the @2x representation).
+// 12pt, matching Fuselage's `StatusBullet` next to 14px menu text, rather
+// than a full 16pt glyph slot, which reads oversized next to menu text;
+// generated directly at target size so no runtime resize is needed
+// (nativeImage.resize() would drop the @2x representation).
 const createPresenceMenuIcons = async (): Promise<void> => {
   for await (const presence of PRESENCES) {
     const icon = renderToStaticMarkup(
       createElement(PresenceMenuIcon, { presence })
     );
-    const [png14, png28] = await convertSvgToPng(icon, 14, 28);
-    await writeFile(`src/public/images/presence/${presence}.png`, png14);
-    await writeFile(`src/public/images/presence/${presence}@2x.png`, png28);
+    const [png12, png24] = await convertSvgToPng(icon, 12, 24);
+    await writeFile(`src/public/images/presence/${presence}.png`, png12);
+    await writeFile(`src/public/images/presence/${presence}@2x.png`, png24);
   }
 };
 

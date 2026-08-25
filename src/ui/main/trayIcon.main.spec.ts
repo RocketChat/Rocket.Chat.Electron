@@ -80,6 +80,7 @@ jest.mock('../selectors', () => ({
 jest.mock('./icons', () => ({
   getTrayIconPath: (...args: any[]) => getTrayIconPath(...args),
   getAppIconPath: (...args: any[]) => getAppIconPath(...args),
+  getPresenceMenuIconPath: (presence: string) => `/presence/${presence}.png`,
 }));
 
 jest.mock('./rootWindow', () => ({

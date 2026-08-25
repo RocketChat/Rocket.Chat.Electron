@@ -9,7 +9,11 @@ import type { RootState } from '../../store/rootReducer';
 import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 import type { ActiveServerPresence } from '../selectors';
 import { selectGlobalBadge, selectActiveServerPresence } from '../selectors';
-import { getTrayIconPath, getAppIconPath } from './icons';
+import {
+  getTrayIconPath,
+  getAppIconPath,
+  getPresenceMenuIconPath,
+} from './icons';
 import { applyMacOSMenuBarGlyphAppearance } from './macOSTrayGlyph';
 import { getRootWindow } from './rootWindow';
 
@@ -110,9 +114,10 @@ const buildPresenceMenuItems = (
     connection === 'disconnected' || connection === 'connecting';
   const isConnected = !isDisconnected;
 
-  const items: MenuItemConstructorOptions[] = PRESENCE_OPTIONS.map(
+  const submenu: MenuItemConstructorOptions[] = PRESENCE_OPTIONS.map(
     ({ presence: optionPresence, labelKey }) => ({
       label: t(labelKey),
+      icon: nativeImage.createFromPath(getPresenceMenuIconPath(optionPresence)),
       type: 'radio',
       checked: presence === optionPresence,
       enabled: isConnected,
@@ -121,6 +126,24 @@ const buildPresenceMenuItems = (
       },
     })
   );
+
+  const currentOption = PRESENCE_OPTIONS.find(
+    (option) => option.presence === presence
+  );
+
+  const items: MenuItemConstructorOptions[] = [
+    {
+      label: currentOption
+        ? t(currentOption.labelKey)
+        : t('tray.presence.status'),
+      ...(currentOption && {
+        icon: nativeImage.createFromPath(
+          getPresenceMenuIconPath(currentOption.presence)
+        ),
+      }),
+      submenu,
+    },
+  ];
 
   if (!isConnected) {
     items.push({

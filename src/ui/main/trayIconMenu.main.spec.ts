@@ -38,6 +38,9 @@ jest.mock('../selectors', () => ({
 jest.mock('./icons', () => ({
   getTrayIconPath: jest.fn(() => '/icon.png'),
   getAppIconPath: jest.fn(() => '/app.png'),
+  getPresenceMenuIconPath: jest.fn(
+    (presence: string) => `/presence/${presence}.png`
+  ),
 }));
 
 jest.mock('./rootWindow', () => ({
@@ -88,7 +91,10 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
     expect(findItem(template, 'tray.menu.show')).toBeDefined();
   });
 
-  it('renders four radio items with the correct one checked when connected', () => {
+  const findPresenceRootItem = (template: any[]) =>
+    template.find((item) => Array.isArray(item.submenu));
+
+  it('shows the current presence as the top-level label/icon and four radios in the submenu when connected', () => {
     const template = buildMenuTemplate(
       baseState({
         hasServers: true,
@@ -101,18 +107,28 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       })
     );
 
-    const radios = template.filter((item) => item.type === 'radio');
+    const rootItem = findPresenceRootItem(template);
+    expect(rootItem).toBeDefined();
+    expect(rootItem.label).toBe('tray.presence.away');
+    expect(rootItem.icon).toBeDefined();
+
+    const radios = rootItem.submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
     expect(radios).toHaveLength(4);
-    expect(radios.map((item) => item.checked)).toEqual([
+    expect(radios.map((item: any) => item.checked)).toEqual([
       false,
       true,
       false,
       false,
     ]);
-    radios.forEach((item) => expect(item.enabled).toBe(true));
+    radios.forEach((item: any) => {
+      expect(item.enabled).toBe(true);
+      expect(item.icon).toBeDefined();
+    });
   });
 
-  it('disables radios and shows a disconnected line when connecting', () => {
+  it('disables submenu radios and shows a disconnected line when connecting', () => {
     const template = buildMenuTemplate(
       baseState({
         hasServers: true,
@@ -124,14 +140,17 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       })
     );
 
-    const radios = template.filter((item) => item.type === 'radio');
+    const rootItem = findPresenceRootItem(template);
+    const radios = rootItem.submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
     expect(radios).toHaveLength(4);
-    radios.forEach((item) => expect(item.enabled).toBe(false));
+    radios.forEach((item: any) => expect(item.enabled).toBe(false));
 
     expect(findItem(template, 'tray.presence.disconnected')).toBeDefined();
   });
 
-  it('disables radios and shows a disconnected line when disconnected', () => {
+  it('disables submenu radios and shows a disconnected line when disconnected', () => {
     const template = buildMenuTemplate(
       baseState({
         hasServers: true,
@@ -143,14 +162,17 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       })
     );
 
-    const radios = template.filter((item) => item.type === 'radio');
+    const rootItem = findPresenceRootItem(template);
+    const radios = rootItem.submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
     expect(radios).toHaveLength(4);
-    radios.forEach((item) => expect(item.enabled).toBe(false));
+    radios.forEach((item: any) => expect(item.enabled).toBe(false));
 
     expect(findItem(template, 'tray.presence.disconnected')).toBeDefined();
   });
 
-  it('enables radios and shows no disconnected line when connection is not yet known (fresh boot)', () => {
+  it('enables submenu radios and shows no disconnected line when connection is not yet known (fresh boot)', () => {
     const template = buildMenuTemplate(
       baseState({
         hasServers: true,
@@ -162,14 +184,17 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       })
     );
 
-    const radios = template.filter((item) => item.type === 'radio');
+    const rootItem = findPresenceRootItem(template);
+    const radios = rootItem.submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
     expect(radios).toHaveLength(4);
-    radios.forEach((item) => expect(item.enabled).toBe(true));
+    radios.forEach((item: any) => expect(item.enabled).toBe(true));
 
     expect(findItem(template, 'tray.presence.disconnected')).toBeUndefined();
   });
 
-  it('renders four radios with none checked when connection and presence are both not yet known', () => {
+  it('labels the top-level item with the neutral status label and no icon, with none checked in the submenu, when presence and connection are both not yet known', () => {
     const template = buildMenuTemplate(
       baseState({
         hasServers: true,
@@ -181,9 +206,15 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       })
     );
 
-    const radios = template.filter((item) => item.type === 'radio');
+    const rootItem = findPresenceRootItem(template);
+    expect(rootItem.label).toBe('tray.presence.status');
+    expect(rootItem.icon).toBeUndefined();
+
+    const radios = rootItem.submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
     expect(radios).toHaveLength(4);
-    radios.forEach((item) => expect(item.checked).toBe(false));
+    radios.forEach((item: any) => expect(item.checked).toBe(false));
   });
 
   it('shows a disabled custom status line when statusText is set', () => {

@@ -27,30 +27,34 @@ Agent: Compare the four resolved icon file paths/pixel buffers; assert they are 
 4. ""The tray icon's bullet changes to a filled red circle (`#F5455C`) with a horizontal bar cut out through the middle (the background shows through the cut-out), visibly different from steps 2 and 3.""
 5. ""The tray icon's bullet changes to a hollow gray ring (stroke only, `#9EA2A8`, no fill — the tray background shows through the middle), same size and position as steps 2-4, distinct by both shape and colour.""
 6. ""All four crops are distinguishable from each other by shape and color even at native icon size."""
-"","1","Tray presence status","","Tray Menu Presence Radios Reflect And Change Effective Status","Source flow: CORE-2525-QA-002
+"","1","Tray presence status","","Tray Menu Presence Submenu Reflects And Changes Effective Status","Source flow: CORE-2525-QA-002
 
-The tray menu lists Online/Away/Busy/Offline as radio items, the currently effective status is checked, and selecting a different one applies it on the server.","installed_branch_build
+The tray menu's top-level presence item shows the current status label with a matching coloured bullet icon; opening its submenu lists Online/Away/Busy/Offline as radio items each with its own bullet, the currently effective status is checked, and selecting a different one applies it on the server.","installed_branch_build
 presence_supporting_workspace
 logged_in_session
-second_client_session","- Screenshot of the tray context menu showing the four radio items and which one is checked, before and after the click.
+second_client_session","- Screenshot of the tray context menu showing the top-level status item and its expanded submenu with the four radio items and which one is checked, before and after the click.
 - Screenshot or copied status text from the second client confirming the server-side value changed.","critical","high","actual","manual","classic","CORE-2525-QA-002,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:second_client_session","1. ""On the second client (web UI or another Rocket.Chat client signed in as the same user), open the user avatar menu in the top-left of the sidebar and note the currently displayed status label (Online/Away/Busy/Offline).""
 2. ""On the desktop app, right-click the tray icon (Windows: bottom-right notification area, behind the `^` chevron if hidden; Linux: system tray/status area; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu).""
-3. ""Confirm which of the four radio items shows the filled/selected radio marker.""
-4. ""Click a different radio item than the currently selected one, for example click `Busy` if `Online` was selected.""
-5. ""Switch to the second client and re-check the status label from step 1 (refresh or wait for the reactive presence indicator to update).""","1. ""Logged-in web session
+3. ""Hover over (or click, on platforms where it opens on click) the top-level status item to reveal its submenu.""
+4. ""Confirm which of the four submenu radio items shows the filled/selected radio marker, and confirm it matches the top-level item's label from step 2.""
+5. ""Click a different radio item than the currently selected one, for example click `Busy` if `Online` was selected.""
+6. ""Switch to the second client and re-check the status label from step 1 (refresh or wait for the reactive presence indicator to update).""","1. ""Logged-in web session
 Agent: Read the account's presence value from the second client/API.""
 2. ""none
-Agent: Open/read the tray context menu template via `buildMenuTemplate`.""
+Agent: Open/read the tray context menu template via `buildMenuTemplate`; assert the top-level presence item has a `submenu` array and an `icon`.""
 3. ""none
-Agent: Assert the radio item where `checked === true` matches `activeServerPresence.presence`.""
-4. ""Target presence `busy`
+Agent: Read the `submenu` array of the top-level presence item and assert it has 4 radio items, each with an `icon`.""
+4. ""none
+Agent: Assert the radio item where `checked === true` matches `activeServerPresence.presence`, and the top-level item's `label` matches the same presence.""
+5. ""Target presence `busy`
 Agent: Trigger the `click` handler for the target `PRESENCE_OPTIONS` entry and re-read the menu template.""
-5. ""none
+6. ""none
 Agent: Query `/api/v1/users.info` or the DDP user document for `status` and assert it equals the clicked value.""","1. ""A baseline status label is visible on the second client.""
-2. ""A context menu opens showing four items with radio-button markers (a filled or outlined circle to the left of each label) reading `Online`, `Away`, `Busy`, `Offline`, in that order, followed by a separator line.""
-3. ""The selected radio item's label matches the baseline status noted in step 1.""
-4. ""The menu closes; re-opening the tray context menu (right-click again; on macOS: click the menu bar icon again) shows `Busy` now carrying the selected radio marker instead of the previous item.""
-5. ""The second client now shows `Busy` (or the label clicked in step 4), proving the change reached the server, not just the tray."""
+2. ""A context menu opens whose top item shows the current status label (e.g. `Online`) with a small coloured bullet icon to its left, and a submenu arrow indicating it expands, followed later by a separator line.""
+3. ""A submenu opens showing four items with radio-button markers (a filled or outlined circle to the left of each label) reading `Online`, `Away`, `Busy`, `Offline`, in that order, each with its own coloured bullet icon.""
+4. ""The selected radio item's label matches the baseline status noted in step 1, and matches the top-level item's own label.""
+5. ""The menu closes; re-opening the tray context menu (right-click again; on macOS: click the menu bar icon again) shows the top-level item now labeled `Busy` with the busy bullet icon, and re-opening its submenu shows `Busy` carrying the selected radio marker instead of the previous item.""
+6. ""The second client now shows `Busy` (or the label clicked in step 5), proving the change reached the server, not just the tray."""
 "","1","Tray presence status","","Custom Status Text Appears As A Read-Only Menu Line Or Is Omitted","Source flow: CORE-2525-QA-003
 
 A set custom status message appears as a disabled tray menu line; when absent or cleared, the line does not appear at all.","installed_branch_build
@@ -58,10 +62,10 @@ presence_supporting_workspace
 logged_in_session
 second_client_session","- Screenshot of the tray menu with the custom status line visible and grayed out.
 - Screenshot of the tray menu after clearing the status, showing the line is absent.","normal","medium","actual","manual","classic","CORE-2525-QA-003,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:second_client_session","1. ""On the second client (web UI signed in as the same user), open the user avatar menu top-left of the sidebar, click the current status label to open the status editor, and type a custom message, e.g. `In a meeting`, then confirm/save.""
-2. ""On the desktop app, right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) and click any presence radio item (e.g. re-click the currently checked one, or pick a different one) to force a presence-change request, which makes the tray re-fetch the status text; alternatively fully quit and relaunch the app so it re-fetches on login. Then right-click the tray icon again (on macOS: click the menu bar icon again) to open the context menu.""
+2. ""On the desktop app, right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu), open the top-level presence item's submenu and click any radio item (e.g. re-click the currently checked one, or pick a different one) to force a presence-change request, which makes the tray re-fetch the status text; alternatively fully quit and relaunch the app so it re-fetches on login. Then right-click the tray icon again (on macOS: click the menu bar icon again) to open the context menu.""
 3. ""Attempt to click the `In a meeting` line.""
 4. ""On the second client, clear the custom status message (open the status editor again and remove the text, then confirm/save).""
-5. ""On the desktop app, trigger a presence change from the tray (click any radio item) to force a re-fetch of the status text, then right-click the tray icon again (on macOS: click the menu bar icon again) to re-open the menu.""","1. ""Custom status text `In a meeting`
+5. ""On the desktop app, trigger a presence change from the tray (open the top-level presence item's submenu and click any radio item) to force a re-fetch of the status text, then right-click the tray icon again (on macOS: click the menu bar icon again) to re-open the menu.""","1. ""Custom status text `In a meeting`
 Agent: Set the custom status message via the web client or `setUserStatus` REST/DDP call.""
 2. ""none
 Agent: Trigger a presence-change request (or restart/login) to force the tray to re-fetch the status text, then read the tray menu template and assert the last item before the separator has `label: 'In a meeting'` and `enabled: false`.""
@@ -70,11 +74,11 @@ Agent: Confirm the item has no `click` handler / `enabled === false`.""
 4. ""Empty custom status text
 Agent: Set the custom status message to empty/undefined.""
 5. ""none
-Agent: Re-read the tray menu template and assert no disabled non-radio item is present between the radios and the separator.""","1. ""The second client shows `In a meeting` next to the user's status.""
-2. ""Below the four presence radio items and above the separator, an extra menu line reads `In a meeting`. This line has no radio marker and appears visually dimmed/grayed compared to the radio items above it.""
+Agent: Re-read the tray menu template and assert no disabled non-radio item is present between the top-level presence item and the separator.""","1. ""The second client shows `In a meeting` next to the user's status.""
+2. ""Below the top-level presence item and above the separator, an extra menu line reads `In a meeting`. This line has no radio marker and appears visually dimmed/grayed compared to the top-level item above it.""
 3. ""Nothing happens; the menu does not close differently and no status change occurs (the item is not clickable).""
 4. ""The second client no longer shows a custom status message next to the user's status.""
-5. ""The `In a meeting` line is gone entirely; the menu goes directly from the four presence radios to the separator line."""
+5. ""The `In a meeting` line is gone entirely; the menu goes directly from the top-level presence item to the separator line."""
 "","1","Tray presence status","","Tray Presence Reflects Only The Active Workspace Tab","Source flow: CORE-2525-QA-004
 
 The tray icon/menu always reflect the presence of the workspace currently open in the main window, and switching tabs updates the tray without changing presence on the workspace that lost focus.","installed_branch_build
@@ -101,7 +105,7 @@ Agent: Query both workspaces' `users.info`/DDP status independently and assert A
 5. ""Workspace A's status is untouched; only Workspace B's status changed."""
 "","1","Tray presence status","","Disconnected Workspace Disables Presence Radios With A Reconnecting Notice","Source flow: CORE-2525-QA-005
 
-While the active workspace is disconnected or reconnecting, the four presence radios are disabled and a disabled ""Disconnected — trying to reconnect..."" line is shown; a merely unknown (not-yet-reported) connection state does NOT trigger this.","installed_branch_build
+While the active workspace is disconnected or reconnecting, the four presence radios in the top-level presence item's submenu are disabled and a disabled ""Disconnected — trying to reconnect..."" line is shown; a merely unknown (not-yet-reported) connection state does NOT trigger this.","installed_branch_build
 presence_supporting_workspace
 logged_in_session
 network_disconnect_control","- Screenshot of the tray menu immediately after cold launch (step 1) showing enabled radios.
@@ -119,9 +123,9 @@ Agent: Read the tray menu template; assert all radio items have `enabled: false`
 4. ""none
 Agent: Confirm the disabled item has no effective `click` action / the presence value does not change.""
 5. ""Network restored
-Agent: Re-read the tray menu template; assert radios are `enabled: true` and the disconnected item is absent.""","1. ""The four presence radios (`Online`, `Away`, `Busy`, `Offline`) are enabled (not grayed out) and no `Disconnected — trying to reconnect...` line is present, even in the brief window before the first connection status has been reactively pushed.""
+Agent: Re-read the tray menu template; assert radios are `enabled: true` and the disconnected item is absent.""","1. ""The four presence radios in the top-level presence item's submenu (`Online`, `Away`, `Busy`, `Offline`) are enabled (not grayed out) and no `Disconnected — trying to reconnect...` line is present, even in the brief window before the first connection status has been reactively pushed.""
 2. ""The main window shows a connection-lost/reconnecting indicator (standard Rocket.Chat reconnect banner).""
-3. ""The four presence radios are now grayed out/disabled (clicking them does nothing), and a new disabled line reads `Disconnected — trying to reconnect...` positioned after the four radios and before the separator.""
+3. ""The four presence radios in the top-level presence item's submenu are now grayed out/disabled (clicking them does nothing), and a new disabled line reads `Disconnected — trying to reconnect...` positioned after the top-level presence item and before the separator.""
 4. ""No visible change occurs; the checked radio stays on whatever it was before the disconnect.""
 5. ""The radios re-enable and the `Disconnected — trying to reconnect...` line disappears from the menu."""
 "","1","Tray presence status","","Logged-Out Workspace Shows A Sign-In Item Instead Of Presence Radios","Source flow: CORE-2525-QA-006

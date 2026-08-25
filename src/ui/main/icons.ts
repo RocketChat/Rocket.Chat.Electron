@@ -83,6 +83,9 @@ const getLinuxTrayIconPath = (
   return path.join(app.getAppPath(), `app/images/tray/linux/${name}.png`);
 };
 
+export const getPresenceMenuIconPath = (presence: UserPresence): string =>
+  path.join(app.getAppPath(), `app/images/presence/${presence}.png`);
+
 export const getTrayIconPath = ({
   badge,
   presence,

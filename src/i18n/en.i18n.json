@@ -642,6 +642,7 @@
       }
     },
     "presence": {
+      "status": "Status",
       "online": "Online",
       "away": "Away",
       "busy": "Busy",

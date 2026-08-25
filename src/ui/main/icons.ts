@@ -22,9 +22,10 @@ const getBadgeNamePart = (badge: Server['badge']): string =>
   `notification-${badge}`;
 
 // win32 and darwin never bake the unread count into the tray icon — the
-// Windows taskbar overlay and the macOS menu-bar title already show it.
-// Only whether a badge is present matters here, so these two platforms
-// collapse every truthy badge value down to a single "-notification" asset.
+// Windows taskbar overlay and the macOS menu-bar title already show it. When
+// presence is known, these two platforms show presence ONLY — no
+// notification badge at all, since the count is already visible elsewhere —
+// so `badge` is ignored once `presence` is set.
 const getMacOSTrayIconPath = (
   badge: Server['badge'],
   presence: UserPresence | undefined,
@@ -42,8 +43,10 @@ const getMacOSTrayIconPath = (
     );
   }
 
-  const name = `presence-${presence}${badge ? '-notification' : ''}`;
-  return path.join(app.getAppPath(), `app/images/tray/darwin/${name}.png`);
+  return path.join(
+    app.getAppPath(),
+    `app/images/tray/darwin/presence-${presence}.png`
+  );
 };
 
 const getWindowsTrayIconPath = (
@@ -57,7 +60,7 @@ const getWindowsTrayIconPath = (
   }
 
   const name = presence
-    ? `presence-${presence}${badge ? '-notification' : ''}`
+    ? `presence-${presence}`
     : (!badge && 'default') || 'notification';
   return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
 };

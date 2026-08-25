@@ -109,8 +109,10 @@ const writeMacOSPresenceTrayIcon = async (
 };
 
 // win32/darwin never bake the unread count into the tray icon — the Windows
-// taskbar overlay and the macOS menu-bar title already show it. Only
-// presence of a badge matters, so a single dot ('•') variant covers it.
+// taskbar overlay and the macOS menu-bar title already show it. When
+// presence is known, these two platforms show presence ONLY (no badge at
+// all, since the count is already visible elsewhere); when presence is
+// unknown, the dot ('•') variant marks "has unread" without a numeral.
 const NOTIFICATION_BADGE: Server['badge'] = '•';
 
 const createMacOSTrayIcons = async (): Promise<void> => {
@@ -140,10 +142,6 @@ const createMacOSTrayIcons = async (): Promise<void> => {
 
   for await (const presence of PRESENCES) {
     await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
-    await writeMacOSPresenceTrayIcon(
-      { badge: NOTIFICATION_BADGE, presence },
-      `presence-${presence}-notification`
-    );
   }
 
   await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
@@ -203,10 +201,6 @@ const createWindowsTrayIcons = async (): Promise<void> => {
 
   for await (const presence of PRESENCES) {
     await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
-    await writeWindowsTrayIcon(
-      { badge: NOTIFICATION_BADGE, presence },
-      `presence-${presence}-notification`
-    );
   }
 
   await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
@@ -293,15 +287,6 @@ const writePresenceTrayIcons = async (): Promise<void> => {
     await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
     await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
     await writeLinuxTrayIcon({ presence }, `presence-${presence}`);
-
-    await writeMacOSPresenceTrayIcon(
-      { badge: NOTIFICATION_BADGE, presence },
-      `presence-${presence}-notification`
-    );
-    await writeWindowsTrayIcon(
-      { badge: NOTIFICATION_BADGE, presence },
-      `presence-${presence}-notification`
-    );
 
     for await (const badge of BADGES) {
       await writeLinuxTrayIcon(

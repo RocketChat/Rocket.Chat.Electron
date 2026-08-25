@@ -2,7 +2,7 @@ v2.id,suite_id,suite,suite_without_cases,title,description,preconditions,postcon
 "","1","Tray presence status","1","","","","","","","","","","","","",""
 "","1","Tray presence status","","Tray Icon Shows A Distinct Dot Per Presence State","Source flow: CORE-2525-QA-001
 
-The tray icon shows a visually distinct colored dot for online, away, busy, and offline, matching the effective presence value.","installed_branch_build
+The tray icon shows a distinct Rocket.Chat status-bullet shape/color per presence — filled green-teal (online), yellow with a clock-hand cut-out (away), red with a horizontal-bar cut-out (busy), hollow gray ring (offline) — matching the effective presence value.","installed_branch_build
 presence_supporting_workspace
 logged_in_session","- Zoomed screenshot/crop of the tray icon for each of the four presence states.
 - Resolved icon file paths used per state (from app logs or code-path proof) if screenshots are inconclusive at native size.","critical","high","actual","manual","classic","CORE-2525-QA-001,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session","1. ""Launch the branch build and sign in to a presence-supporting workspace so the main window fully loads. On Windows, locate the app's icon in the notification area at the bottom-right of the taskbar (click the `^` overflow chevron first if the icon is hidden there). On Linux, locate the icon in the system tray/status area, typically top-right of the panel. On macOS, locate the icon in the menu bar at the top-right of the screen (among the other menu bar icons).""
@@ -21,12 +21,12 @@ Agent: Set presence to `busy`, confirm the resolved icon path differs from prior
 5. ""Presence value `offline`
 Agent: Set presence to `offline`, confirm the resolved icon path differs from prior states.""
 6. ""Screenshots from steps 2-5
-Agent: Compare the four resolved icon file paths/pixel buffers; assert they are byte-distinct.""","1. ""Tray/menu bar icon is visible and shows a default icon plus a small colored dot in the lower-right corner of the icon.""
-2. ""Within a few seconds the tray icon's dot renders as a solid green-teal filled circle (`#2DE0A5`).""
-3. ""The tray icon's dot changes to a solid yellow filled circle (`#FFD21F`), visibly different from step 2.""
-4. ""The tray icon's dot changes to a solid red filled circle (`#F5455C`), visibly different from steps 2 and 3.""
-5. ""The tray icon's circle changes to a solid gray fill (`#9EA2A8`), same size and position as steps 2-4, distinct by colour only.""
-6. ""All four crops are distinguishable from each other by color/shape even at native icon size."""
+Agent: Compare the four resolved icon file paths/pixel buffers; assert they are byte-distinct.""","1. ""Tray/menu bar icon is visible and shows a default icon plus a small status bullet in the lower-right corner of the icon.""
+2. ""Within a few seconds the tray icon's bullet renders as a solid green-teal filled circle (`#2DE0A5`), no cut-out.""
+3. ""The tray icon's bullet changes to a filled yellow circle (`#FFD21F`) with a clock-hand shape cut out of it (the background shows through the cut-out, the same shape as the Fuselage away status bullet), visibly different from step 2.""
+4. ""The tray icon's bullet changes to a filled red circle (`#F5455C`) with a horizontal bar cut out through the middle (the background shows through the cut-out), visibly different from steps 2 and 3.""
+5. ""The tray icon's bullet changes to a hollow gray ring (stroke only, `#9EA2A8`, no fill — the tray background shows through the middle), same size and position as steps 2-4, distinct by both shape and colour.""
+6. ""All four crops are distinguishable from each other by shape and color even at native icon size."""
 "","1","Tray presence status","","Tray Menu Presence Radios Reflect And Change Effective Status","Source flow: CORE-2525-QA-002
 
 The tray menu lists Online/Away/Busy/Offline as radio items, the currently effective status is checked, and selecting a different one applies it on the server.","installed_branch_build
@@ -173,12 +173,12 @@ Agent: Re-read the tray menu template for the newly active, supported workspace 
 4. ""The presence radios reappear for that workspace, confirming the hiding is per-workspace, not a global disable."""
 "","1","Tray presence status","","Unread Badge Behavior Is Unchanged By Presence","Source flow: CORE-2525-QA-009
 
-The tray icon title/tooltip/badge overlay for unread mentions and messages behaves exactly as before this branch, regardless of the current presence value. On Windows and macOS, the tray icon itself never bakes in the unread numeral — the Windows taskbar overlay and the macOS menu-bar title already show the count. Linux keeps its numbered tray icons.","installed_branch_build
+The tray icon title/tooltip/badge overlay for unread mentions and messages behaves exactly as before this branch, regardless of the current presence value. On Windows and macOS, once presence is known the tray icon shows presence ONLY — no unread indicator baked into the artwork at all — because the Windows taskbar overlay and the macOS menu-bar title already show the count. Linux keeps its numbered tray icons.","installed_branch_build
 presence_supporting_workspace
 logged_in_session
 unread_mention_source","- Screenshots/copied text of the tray tooltip at 0, 1, and 2 unread @-mentions.
 - Screenshot of the tray icon title showing the numeral count, and (Windows) the taskbar overlay badge showing the count.
-- A native-size crop of the tray icon at the 2-unread-@-mentions state from step 3 (this will be presence-coloured, since presence is always set on a presence-supporting workspace), for size/position comparison against flow 10's combined presence+badge icon.
+- A native-size crop of the tray icon at the 2-unread-@-mentions state from step 3 (this will be presence-coloured/shaped, since presence is always set on a presence-supporting workspace; on Windows/macOS it is identical to the icon shown before any unread arrived), for comparison against flow 10's presence-only vs. Linux combined-badge behaviour.
 - A native-size render of the shipping badge-only reference asset, unchanged by this branch, as the pre-feature baseline: `src/public/images/tray/darwin/notificationTemplate.png` + `notificationTemplate@2x.png` on macOS, `src/public/images/tray/win32/notification.ico` on Windows, `src/public/images/tray/linux/notification-2.png` on Linux.
 - Confirmation that presence changes in step 4 did not alter title/tooltip text.","critical","high","actual","manual","classic","CORE-2525-QA-009,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a presence-supporting workspace and ensure it has zero unread mentions/messages. Note the account's current presence value (e.g. `online`) — presence is always set on this kind of workspace, so it stays active for the rest of this flow. Hover the mouse over the tray icon without clicking (Windows notification area / Linux system tray; on macOS: the app icon in the menu bar at the top-right) to read its tooltip text.""
 2. ""From another client or account, send this user an @-mention in a channel they are a member of, so an unread mention count appears.""
@@ -187,39 +187,40 @@ unread_mention_source","- Screenshots/copied text of the tray tooltip at 0, 1, a
 5. ""Mark all @-mentions as read in the app, then re-check the tray title/tooltip.""","1. ""Presence recorded, e.g. `online`
 Agent: Read the tray's current tooltip text and title string, and confirm the resolved icon path is `presence-<recorded presence>` with no `-notification` suffix (no badge).""
 2. ""1 unread @-mention, presence unchanged from step 1
-Agent: Read the tray title and tooltip text; assert they match the pre-existing i18n templates unchanged by this branch. On Windows/macOS assert the resolved icon path is `presence-<recorded presence>-notification` (no numeral in the filename — the `1` is only in the title/overlay). On Linux assert it is `presence-<recorded presence>-notification-1`.""
+Agent: Read the tray title and tooltip text; assert they match the pre-existing i18n templates unchanged by this branch. On Windows/macOS assert the resolved icon path is still the plain `presence-<recorded presence>` (unchanged from step 1 — the `1` is only in the title/overlay, never in the icon file). On Linux assert it is `presence-<recorded presence>-notification-1`.""
 3. ""2 unread @-mentions, presence unchanged from step 1
-Agent: Confirm the pluralized tooltip renders with the correct count interpolated. On Windows/macOS assert the resolved icon path is still `presence-<recorded presence>-notification` (unchanged from step 2 — the icon file does not vary with the count). On Linux assert it is `presence-<recorded presence>-notification-2`.""
+Agent: Confirm the pluralized tooltip renders with the correct count interpolated. On Windows/macOS assert the resolved icon path is still the plain `presence-<recorded presence>` (unchanged from step 2 — the icon file never varies with the count once presence is known). On Linux assert it is `presence-<recorded presence>-notification-2`.""
 4. ""Presence: busy, 2 unread @-mentions unchanged
-Agent: Re-read tray title/tooltip after the presence change and assert they are identical to step 3's values. On Windows/macOS assert the resolved icon path is `presence-busy-notification` (no numeral). On Linux assert it is `presence-busy-notification-2`.""
+Agent: Re-read tray title/tooltip after the presence change and assert they are identical to step 3's values. On Windows/macOS assert the resolved icon path is the plain `presence-busy` (no `-notification` suffix at all). On Linux assert it is `presence-busy-notification-2`.""
 5. ""0 unread @-mentions
 Agent: Confirm title/tooltip reset independently of the current presence value.""","1. ""Tooltip reads the app name followed by """"no unread message"""" (exact string from `tray.tooltip.noUnreadMessage`). Tray icon shows no numeric title/badge overlay, and its dot still shows the recorded presence colour.""
-2. ""The tray icon's title (visible next to/under the icon depending on OS taskbar style) shows the numeral `1`; hovering the tray icon shows tooltip text """"you have a unread mention/direct message"""" (singular form from `tray.tooltip.unreadMention`). The icon's presence-coloured dot is unchanged from step 1.""
+2. ""The tray icon's title (visible next to/under the icon depending on OS taskbar style) shows the numeral `1`; hovering the tray icon shows tooltip text """"you have a unread mention/direct message"""" (singular form from `tray.tooltip.unreadMention`). The icon's presence bullet shape/colour is unchanged from step 1 (no unread indicator added to the artwork).""
 3. ""The tray icon's title shows `2`; tooltip text switches to the plural form """"you have 2 unread mentions/direct messages"""" (`tray.tooltip.unreadMention_plural`).""
-4. ""The title still shows `2` and the tooltip still shows the same plural mention text as step 3 — unaffected by the presence change. Only the icon's dot colour and file path reflect the new presence.""
+4. ""The title still shows `2` and the tooltip still shows the same plural mention text as step 3 — unaffected by the presence change. Only the icon's bullet colour/shape and file path reflect the new presence.""
 5. ""The title clears (empty) and the tooltip returns to """"no unread message"""" text, same as step 1, regardless of the presence set in step 4."""
-"","1","Tray presence status","","Presence Dot And Unread Badge Are Both Visible And Distinguishable Together","Source flow: CORE-2525-QA-010
+"","1","Tray presence status","","Presence Bullet And Unread Badge Coexist As The Product Intends Per Platform","Source flow: CORE-2525-QA-010
 
-When both an unread count and a presence are active, the tray icon uses the shipping unread-badge circle (same size and position) filled with the presence colour. On Windows and macOS the badge circle never carries the unread numeral (a plain dot only — the Windows taskbar overlay and the macOS menu-bar title show the count instead). On Linux the badge circle still shows the unread numeral.","installed_branch_build
+When both an unread count and a presence are active, Windows and macOS show presence ONLY (the icon file is identical to the no-unread state — the Windows taskbar overlay and the macOS menu-bar title carry the count instead). Linux keeps the presence-coloured unread badge with the numeral baked into the icon, unchanged from before this branch.","installed_branch_build
 presence_supporting_workspace
 logged_in_session
-unread_mention_source","- Zoomed/cropped screenshots at native icon size for: presence-only (this flow's step 1) and combined presence+badge (this flow's step 2).
-- The shipping badge-only reference asset used for comparison in step 3 (pre-feature baseline, unchanged by this branch): `src/public/images/tray/darwin/notificationTemplate.png` + `notificationTemplate@2x.png` on macOS, `src/public/images/tray/win32/notification.ico` on Windows, `src/public/images/tray/linux/notification-2.png` on Linux.
+unread_mention_source","- Zoomed/cropped screenshots at native icon size for: presence-only with 0 unread (step 1) and presence with 2 unread (step 2), on all three platforms.
+- Windows/macOS: confirmation that the step 1 and step 2 icon files/screenshots are identical (no combined state exists on these platforms).
+- The shipping badge-only reference asset used for Linux comparison in step 3 (pre-feature baseline, unchanged by this branch): `src/public/images/tray/linux/notification-2.png`.
 - Screenshot of the Windows taskbar overlay badge / macOS menu-bar title showing the unread count for step 2.
 - Resolved icon file paths for each state if screenshots are inconclusive at native size.","major","high","actual","manual","classic","CORE-2525-QA-010,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a presence-supporting workspace with zero unread mentions and presence left at its default. Right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) and set presence to `Online` via the context menu.""
 2. ""From another client/account, send this user two unread @-mentions while presence remains `Online`.""
-3. ""Compare the step-2 screenshot against a native-size render of the shipping badge-only reference asset, unchanged by this branch: `src/public/images/tray/darwin/notificationTemplate.png` + `notificationTemplate@2x.png` on macOS, `src/public/images/tray/win32/notification.ico` on Windows, `src/public/images/tray/linux/notification-2.png` on Linux.""
+3. ""On Linux only: compare the step-2 screenshot against a native-size render of the shipping badge-only reference asset, unchanged by this branch: `src/public/images/tray/linux/notification-2.png`. On Windows/macOS: compare the step-2 screenshot against the step-1 screenshot directly (they must be pixel-identical, since presence alone determines the icon on these platforms).""
 4. ""Mark all mentions read while presence remains `Online`, then re-check the icon.""","1. ""Presence: online, 0 unread
-Agent: Read the resolved icon path; assert it matches the presence-only filename pattern with no `-notification` suffix.""
+Agent: Read the resolved icon path; on Windows/macOS assert it is `presence-online` with no badge-related suffix. On Linux assert it is the plain `presence-online`.""
 2. ""2 unread mentions, presence: online
-Agent: On Windows/macOS: read the resolved icon path; assert it matches `presence-online-notification` (no numeral) and that the count `2` appears only via the taskbar overlay / tray title, never in the icon file. On Linux: read the resolved icon path; assert it matches `presence-online-notification-2` and the tray title shows `2`.""
-3. ""Screenshot from step 2 and the platform's shipping badge-only reference asset
-Agent: Overlay or measure the badge circle on both assets; they occupy the same region and carry the same numeral-or-dot treatment.""
+Agent: On Windows/macOS: read the resolved icon path; assert it is still the plain `presence-online` (unchanged from step 1) and that the count `2` appears only via the taskbar overlay / tray title, never in the icon file. On Linux: read the resolved icon path; assert it matches `presence-online-notification-2` and the tray title shows `2`.""
+3. ""Screenshot from step 2 and (Linux) the shipping badge-only reference asset, or (Windows/macOS) the step-1 screenshot
+Agent: Linux: overlay or measure the badge circle on both assets; they occupy the same region and both carry the numeral `2`. Windows/macOS: diff the two screenshots; assert zero pixel difference.""
 4. ""0 unread, presence: online
-Agent: Confirm the resolved icon path returns to the presence-only pattern from step 1 on every platform.""","1. ""The tray icon shows only the green presence circle (`#2DE0A5`), same size and position as the shipping unread badge, with no numeral. Capture a zoomed screenshot for baseline comparison.""
-2. ""On Windows/macOS: the tray icon shows the shipping unread circle (same size/position as the no-presence `notification` icon) filled `#2DE0A5`, still just a dot — no numeral in the icon itself. The Windows taskbar overlay badge and the macOS menu-bar title show the numeral `2` instead. On Linux: the tray icon shows the shipping unread circle filled `#2DE0A5` with the numeral `2` in white, same as before this branch. The tray title still shows `2` on all platforms.""
-3. ""The circle matches the shipping unread badge's size and position; only the fill colour differs (presence green vs the shipping asset's default colour). On Windows/macOS both the step-2 icon and the reference asset are dot-only (no numeral); on Linux both show the numeral `2`.""
-4. ""The icon reverts to the green empty circle from step 1 (circle stays, and on Windows/macOS it was already numeral-free so nothing visibly changes in the icon file itself; on Linux the numeral disappears)."""
+Agent: Confirm the resolved icon path returns to `presence-online` on every platform (Windows/macOS: no change from step 2; Linux: drops the `-notification-<n>` suffix).""","1. ""The tray icon shows the online status bullet (solid `#2DE0A5` filled circle, no cut-out), same size and position as the shipping unread badge. Capture a zoomed screenshot for baseline comparison.""
+2. ""On Windows/macOS: the tray icon is byte-identical to step 1 — the online status bullet, no unread indicator baked in anywhere. The Windows taskbar overlay badge and the macOS menu-bar title show the numeral `2` instead. On Linux: the tray icon shows the shipping unread badge shape recoloured `#2DE0A5` with the numeral `2` in white, same as before this branch. The tray title still shows `2` on all platforms.""
+3. ""Linux: the numeral badge matches the shipping unread badge's size and position; only the fill colour differs (presence green vs the shipping asset's default colour). Windows/macOS: step 1 and step 2 screenshots are indistinguishable.""
+4. ""The icon is unchanged from step 2 on Windows/macOS (it was already presence-only with no unread indicator, so nothing changes in the icon file). On Linux the numeral disappears, reverting to the plain presence bullet."""
 "","1","Tray presence status","","Rapid Presence Clicks Coalesce Without Dropping The Final Choice","Source flow: CORE-2525-QA-011
 
 Clicking Online then immediately Busy within the same second results in the server ending up on Busy (the last-requested value), not silently stuck on Online or on no change at all.","installed_branch_build

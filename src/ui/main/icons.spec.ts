@@ -201,42 +201,21 @@ describe('getTrayIconPath', () => {
     );
   });
 
-  it('combines presence and badge for win32 platform (no numeral — taskbar overlay shows the count)', () => {
+  it('ignores badge for win32 platform when presence is known (presence-only tray — taskbar overlay shows the count)', () => {
     expect(
-      getTrayIconPath({ platform: 'win32', presence: 'online', badge: '•' })
+      getTrayIconPath({ platform: 'win32', presence: 'online', badge: 5 })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'win32',
-        'presence-online-notification.ico'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'presence-online.ico')
     );
     expect(
       getTrayIconPath({ platform: 'win32', presence: 'busy', badge: 5 })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'win32',
-        'presence-busy-notification.ico'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'presence-busy.ico')
     );
     expect(
       getTrayIconPath({ platform: 'win32', presence: 'away', badge: 10 })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'win32',
-        'presence-away-notification.ico'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'win32', 'presence-away.ico')
     );
   });
 
@@ -308,9 +287,9 @@ describe('getTrayIconPath', () => {
     );
   });
 
-  it('combines presence and badge for darwin platform (no numeral — menu-bar title shows the count)', () => {
+  it('ignores badge for darwin platform when presence is known (presence-only tray — menu-bar title shows the count)', () => {
     expect(
-      getTrayIconPath({ platform: 'darwin', presence: 'online', badge: '•' })
+      getTrayIconPath({ platform: 'darwin', presence: 'online', badge: 5 })
     ).toBe(
       path.join(
         '/app',
@@ -318,32 +297,18 @@ describe('getTrayIconPath', () => {
         'images',
         'tray',
         'darwin',
-        'presence-online-notification.png'
+        'presence-online.png'
       )
     );
     expect(
-      getTrayIconPath({ platform: 'darwin', presence: 'busy', badge: 5 })
+      getTrayIconPath({ platform: 'darwin', presence: 'busy', badge: '•' })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'presence-busy-notification.png'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'darwin', 'presence-busy.png')
     );
     expect(
       getTrayIconPath({ platform: 'darwin', presence: 'away', badge: 10 })
     ).toBe(
-      path.join(
-        '/app',
-        'app',
-        'images',
-        'tray',
-        'darwin',
-        'presence-away-notification.png'
-      )
+      path.join('/app', 'app', 'images', 'tray', 'darwin', 'presence-away.png')
     );
   });
 

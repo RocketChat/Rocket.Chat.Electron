@@ -2,7 +2,8 @@ import type { Server, UserPresence } from '../../servers/common';
 import AppIcon from './AppIcon';
 import Badge from './Badge';
 import DisconnectedBadge from './DisconnectedBadge';
-import { PRESENCE_COLORS } from './presenceColors';
+import PresenceBullet from './PresenceBullet';
+import PresenceBulletCutout from './PresenceBulletCutout';
 
 type MacOSTrayIconProps = {
   notification?: boolean;
@@ -16,6 +17,10 @@ type MacOSTrayIconProps = {
 // template image and macOS renders it monochrome with the glyph; given a
 // presence colour the asset is no longer a template, so the colour survives.
 //
+// When presence is known, the tray shows presence ONLY — no unread count —
+// because the macOS menu-bar title already carries the count. `badge` is
+// therefore ignored whenever `presence` is set.
+//
 // `DisconnectedBadge`'s grey ring stroke and amber warning tick are both
 // outside `invertDarkAchromaticPixels`'s inversion window (see
 // macOSTrayGlyph.ts): the grey's luma is well above the achromatic
@@ -26,28 +31,32 @@ const MacOSTrayIcon = ({
   presence,
   badge,
   disconnected,
-}: MacOSTrayIconProps) => (
-  <svg
-    width='100%'
-    viewBox='0 0 512 512'
-    fill='none'
-    xmlns='http://www.w3.org/2000/svg'
-  >
-    <g transform='translate(256, 256) scale(0.8) translate(-256, -256)'>
-      <AppIcon color='black'>
-        {disconnected ? (
-          <DisconnectedBadge />
-        ) : (
-          (notification || presence) && (
-            <Badge
-              value={badge ?? 0}
-              backgroundColor={presence ? PRESENCE_COLORS[presence] : 'black'}
-            />
-          )
-        )}
-      </AppIcon>
-    </g>
-  </svg>
-);
+}: MacOSTrayIconProps) => {
+  let overlay;
+  let cutout;
+  if (disconnected) {
+    overlay = <DisconnectedBadge />;
+  } else if (presence) {
+    overlay = <PresenceBullet presence={presence} />;
+    cutout = <PresenceBulletCutout />;
+  } else if (notification) {
+    overlay = <Badge value={badge ?? 0} backgroundColor='black' />;
+  }
+
+  return (
+    <svg
+      width='100%'
+      viewBox='0 0 512 512'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <g transform='translate(256, 256) scale(0.8) translate(-256, -256)'>
+        <AppIcon color='black' cutout={cutout}>
+          {overlay}
+        </AppIcon>
+      </g>
+    </svg>
+  );
+};
 
 export default MacOSTrayIcon;

@@ -25,7 +25,7 @@ expected_result: The tray icon title/tooltip/badge overlay for unread mentions a
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/trayIcon.ts` (`updateTrayIconImage`, `updateTrayIconTitle`, `updateTrayIconToolTip` — all pre-existing, now called alongside the new presence-aware `getTrayIconPath`), `src/ui/main/icons.ts` (`getBadgeNamePart`, `getWindowsTrayIconPath`, `getLinuxTrayIconPath`).
 - User-visible risk: Threading presence into the same icon-resolution path as the badge accidentally changes badge-only behavior (wrong icon, wrong tooltip text, wrong numeric title) for users who never touch presence. Separately, Windows/macOS deliberately never bake any unread indicator into the tray icon artwork once presence is known (the taskbar overlay / menu-bar title already shows it) — a regression here would either resurrect a `-notification` icon variant or drop the presence bullet entirely.
 - Hypothesis: On a presence-supporting, logged-in workspace, `presence` is always defined (seeded by `Presence.get`), so on Windows/macOS the icon always resolves to the plain `presence-<presence>` asset regardless of unread count — the badge value is ignored entirely once presence is set — while Linux resolves through `presence-<presence>-notification-<n>` (numeral preserved). The regression this flow guards against is that the tray title text, tooltip text, and badge numeral (via title/overlay, not the icon file) stay byte-identical to the pre-feature behavior regardless of which presence value is currently active.

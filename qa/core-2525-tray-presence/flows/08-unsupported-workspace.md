@@ -24,7 +24,7 @@ expected_result: On a workspace whose server does not report a user status field
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/trayIcon.ts` (`buildPresenceMenuItems`, the `supported === false` early return), `src/injected.ts` (`presenceSupported = Boolean(u) && u?.status !== undefined`).
 - User-visible risk: A previously-found ordering bug returned "unsupported" before the logged-out check, so an unsupported + logged-out workspace incorrectly offered no sign-in option; this flow proves presence hiding does not swallow the sign-in/add-workspace items either.
 - Hypothesis: When signed in to a workspace whose account document has no `status` field (an older/unsupported server), the tray menu shows zero presence radios and no custom-status line, with the separator directly followed by `Show`/`Hide` and `Quit`; the menu structure for logged-out/no-workspace states from flows 06/07 is unaffected by this check.

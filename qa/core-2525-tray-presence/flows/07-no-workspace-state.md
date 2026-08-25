@@ -19,7 +19,7 @@ expected_result: With zero workspaces configured, the tray menu shows no presenc
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/trayIcon.ts` (`buildPresenceMenuItems`, the `!hasServers` branch), `src/i18n/en.i18n.json` (`tray.presence.addWorkspace`).
 - User-visible risk: The tray menu offers presence controls with nothing to apply them to, or gives no way back into the app to add a first workspace.
 - Hypothesis: On a fresh install/profile with zero workspaces added, the tray menu's presence section shows exactly one item labeled `Add workspace`, enabled, with no radios and no custom-status line; clicking it brings the main window to the front.

@@ -19,7 +19,7 @@ expected_result: When the active workspace has no logged-in session, the tray me
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/trayIcon.ts` (`buildPresenceMenuItems`, the `!loggedIn` branch), `src/i18n/en.i18n.json` (`tray.presence.signIn`).
 - User-visible risk: The tray menu offers presence controls that cannot work (no session), or omits any path back to signing in.
 - Hypothesis: With a workspace added but not signed in (or signed out), the tray menu shows exactly one item labeled `Sign in to <workspace title or URL>`, enabled, with no presence radios and no custom-status line; clicking it brings the main window to the front.

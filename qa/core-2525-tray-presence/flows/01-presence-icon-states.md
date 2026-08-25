@@ -20,7 +20,7 @@ expected_result: The tray icon shows a distinct Rocket.Chat status-bullet shape/
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/icons.ts` (`getTrayIconPath`), `src/ui/main/trayIcon.ts` (`updateTrayIconImage`, `getActivePresenceForIcon`), `src/ui/icons/PresenceBullet.tsx` (new — renders the Fuselage `StatusBullet` glyph shapes in the same footprint as `Badge`), `src/ui/icons/WindowsTrayIcon.tsx` / `LinuxTrayIcon.tsx` / `MacOSTrayIcon.tsx` (presence renders `PresenceBullet` instead of a plain recolored `Badge` circle; same size and position as the shipping unread circle), `src/ui/main/macOSTrayGlyph.ts` (`invertDarkAchromaticPixels`, `applyMacOSMenuBarGlyphAppearance`).
 - User-visible risk: A tester cannot tell their presence at a glance from the system tray/menu bar, or two states render as the same icon.
 - Hypothesis: Setting presence to online, away, busy, or offline renders the matching Rocket.Chat status-bullet shape in the existing badge slot — online is a solid filled circle (`#2DE0A5`), away is a filled circle with a clock-hand shape cut out (`#FFD21F`), busy is a filled circle with a horizontal bar cut out (`#F5455C`), offline is a hollow ring/stroke-only circle (`#9EA2A8`) — without moving or resizing the slot, on Windows, Linux, and macOS alike.

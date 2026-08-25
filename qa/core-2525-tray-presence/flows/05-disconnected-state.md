@@ -25,7 +25,7 @@ expected_result: While the active workspace is disconnected or reconnecting, the
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/trayIcon.ts` (`isDisconnected`/`isConnected` in `buildPresenceMenuItems`), `src/injected.ts` (`connectionStatusMap` inside the `userPresenceStatus` autorun).
 - User-visible risk: A regression previously made every startup look disconnected because `undefined` (pre-first-push connection state) was treated as disconnected; this flow proves that is fixed and that a real disconnect still disables the radios correctly.
 - Hypothesis: Only real `connecting`/`disconnected`/`failed`/`waiting`/`offline` DDP connection states disable the radios and show the reconnecting line; a fresh app launch before the first connection status push behaves as connected (radios enabled, no reconnecting line).

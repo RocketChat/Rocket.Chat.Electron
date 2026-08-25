@@ -25,7 +25,7 @@ expected_result: A set custom status message appears as a disabled tray menu lin
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/trayIcon.ts` (`buildPresenceMenuItems`, the `statusText` disabled item), `src/servers/preload/presenceStatusText.ts`, the REST `users.info` fetch in `src/injected.ts`.
 - User-visible risk: Custom status text is shown as clickable/editable (misleading, since the tray cannot edit it), or a stale/empty status text lingers in the menu after being cleared.
 - Hypothesis: When the account has a non-empty custom status message, the tray menu shows it as an extra item below the presence radios that cannot be clicked (grayed out); when the account has no custom status message, no such line appears.

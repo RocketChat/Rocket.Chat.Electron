@@ -25,7 +25,7 @@ expected_result: The tray menu lists Online/Away/Busy/Offline as radio items, th
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/main/trayIcon.ts` (`buildPresenceMenuItems`, `PRESENCE_OPTIONS`), `src/i18n/en.i18n.json` (`tray.presence.*`), `src/servers/preload/presence.ts`.
 - User-visible risk: The menu shows the wrong checked state, or clicking a radio does not actually change presence on the server (a tray that looks right but failed to send).
 - Hypothesis: The tray context menu shows exactly four radio items labeled `Online`, `Away`, `Busy`, `Offline`; the item matching the account's current `status` is checked; clicking a different one both re-checks that item and changes the account's status on the server.

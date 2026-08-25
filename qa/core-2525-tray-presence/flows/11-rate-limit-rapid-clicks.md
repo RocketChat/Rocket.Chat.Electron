@@ -25,7 +25,7 @@ expected_result: Clicking Online then immediately Busy within the same second re
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/servers/preload/presenceDebounce.ts` (`createPresenceRateLimiter`), its call site in `src/injected.ts` (`presenceRateLimiter.request(...)` inside `onPresenceChangeRequested`).
 - User-visible risk: The server rate-limits `setUserStatus` to 1 call/sec/user; a fixed defect (found in review, not caught by earlier passing tests) had the debounce drop the user's last click inside that 1s window with no retry, leaving the account stuck on a stale status the tray never corrects. This flow proves the trailing-edge fix actually reaches the server.
 - Hypothesis: Clicking `Online` then, within well under a second, clicking `Busy` results in the account's status ending on `Busy` once the rate-limit window elapses — verified on the server/second client, not just by watching the tray's own (optimistic) checkmark.

@@ -25,7 +25,7 @@ expected_result: The tray icon/menu always reflect the presence of the workspace
 
 ## Review Basis
 
-- Comparison range: `dev` to the CORE-2525 branch.
+- Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.
 - Changed surface: `src/ui/selectors.ts` (`selectActiveServerPresence`), `src/ui/main/trayIcon.ts` (`watch(selectActiveServerPresence, ...)`), `requestPresenceChange` (scopes the change to the server matching `activeServerPresence.url`).
 - User-visible risk: Switching between workspace tabs shows a stale or wrong presence dot/menu, or clicking a radio changes presence on the wrong workspace.
 - Hypothesis: With two workspaces added, each with a different presence value, switching the active tab updates the tray icon and menu to match the newly active workspace only; changing presence from the tray affects only that active workspace's account.

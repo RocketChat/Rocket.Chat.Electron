@@ -636,10 +636,16 @@ jobs:
               }
             }
             core.setOutput('artifact_urls', artifactUrls.trim());
-            const builtAt = new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+            const now = new Date();
+            const builtAtLocal = new Intl.DateTimeFormat('en-GB', {
+              timeZone: 'America/Sao_Paulo',
+              weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit', hour12: false,
+            }).format(now) + ' (UTC-3)';
+            const builtAtUtc = now.toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
             const shortSha = context.payload.pull_request.head.sha.slice(0, 7);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            core.setOutput('build_info', `_Built from \`${shortSha}\` on ${builtAt} · [workflow run](${runUrl})_`);
+            core.setOutput('build_info', `_Built from \`${shortSha}\` on ${builtAtLocal} · ${builtAtUtc} · [workflow run](${runUrl})_`);
 
       - name: Post PR Comment with the Artifact links
         if: steps.get-artifact-urls.outputs.artifact_urls != ''

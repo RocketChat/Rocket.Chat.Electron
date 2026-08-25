@@ -25,6 +25,9 @@ yarn workspaces:build        # Build all workspaces
 - After building `desktop-release-action`, remove the nested dist:
   `rm -rf workspaces/desktop-release-action/dist/dist` — the action only
   needs `workspaces/desktop-release-action/dist/index.js`.
+- `app/` mirrors `src/public` (the `syncPublicAssets()` rollup plugin):
+  files removed from `src/public` are purged from `app/` on build, and
+  `yarn start`'s watcher rebuilds/relaunches when `src/public` assets change.
 
 ## Branching Model
 

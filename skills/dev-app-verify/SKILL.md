@@ -49,18 +49,25 @@ Run with the context-mode sandbox (Bun has a global `WebSocket`) or any Bun
 runtime. Adapt the marked sections.
 
 ```javascript
-const targets = await fetch('http://127.0.0.1:9339/json',
-  { signal: AbortSignal.timeout(3000) }).then((r) => r.json());
+const targets = await fetch('http://127.0.0.1:9339/json', {
+  signal: AbortSignal.timeout(3000),
+}).then((r) => r.json());
 const ws = new WebSocket(targets[0].webSocketDebuggerUrl);
 let id = 0;
 const pending = new Map();
 const REQUEST_TIMEOUT_MS = 5000;
 const failAllPending = (reason) => {
-  for (const [i, { reject }] of pending) { reject(reason); pending.delete(i); }
+  for (const [i, { reject }] of pending) {
+    reject(reason);
+    pending.delete(i);
+  }
 };
 ws.onmessage = (e) => {
   const m = JSON.parse(e.data);
-  if (m.id && pending.has(m.id)) { pending.get(m.id).resolve(m); pending.delete(m.id); }
+  if (m.id && pending.has(m.id)) {
+    pending.get(m.id).resolve(m);
+    pending.delete(m.id);
+  }
 };
 ws.onerror = (e) => failAllPending(new Error(`ws error: ${e.message || e}`));
 ws.onclose = () => failAllPending(new Error('ws closed'));
@@ -69,17 +76,34 @@ const send = (method, params = {}) =>
     const i = ++id;
     const timer = setTimeout(() => {
       pending.delete(i);
-      reject(new Error(`${method} timed out after ${REQUEST_TIMEOUT_MS}ms (watcher restart or dead socket?)`));
+      reject(
+        new Error(
+          `${method} timed out after ${REQUEST_TIMEOUT_MS}ms (watcher restart or dead socket?)`
+        )
+      );
     }, REQUEST_TIMEOUT_MS);
-    pending.set(i, { resolve: (m) => { clearTimeout(timer); resolve(m); }, reject });
+    pending.set(i, {
+      resolve: (m) => {
+        clearTimeout(timer);
+        resolve(m);
+      },
+      reject,
+    });
     ws.send(JSON.stringify({ id: i, method, params }));
   });
-await new Promise((res, rej) => { ws.onopen = res; setTimeout(rej, 5000); });
+await new Promise((res, rej) => {
+  ws.onopen = res;
+  setTimeout(rej, 5000);
+});
 await send('Runtime.enable');
 const ev = async (expression) => {
-  const r = await send('Runtime.evaluate',
-    { expression, awaitPromise: true, returnByValue: true });
-  if (r.error) throw new Error(`CDP error: ${JSON.stringify(r.error).slice(0, 400)}`);
+  const r = await send('Runtime.evaluate', {
+    expression,
+    awaitPromise: true,
+    returnByValue: true,
+  });
+  if (r.error)
+    throw new Error(`CDP error: ${JSON.stringify(r.error).slice(0, 400)}`);
   if (r.result?.exceptionDetails)
     throw new Error(JSON.stringify(r.result.exceptionDetails).slice(0, 400));
   return r.result?.result?.value;
@@ -111,12 +135,14 @@ await ev(`(() => { const { Menu } = ${REQ}('electron');
   return 'clicked'; })()`);
 
 // 3. Read renderer truth (computed styles > pixels for diagnosis)
-console.log(await ev(`(() => { const w = ${ROOT_WINDOW};
+console.log(
+  await ev(`(() => { const w = ${ROOT_WINDOW};
   return w.webContents.executeJavaScript(\`(() => {
     const b = document.querySelector('button[data-downloads-status]');
     return JSON.stringify({ status: b?.getAttribute('data-downloads-status'),
       rect: b && b.getBoundingClientRect().toJSON() });
-  })()\`); })()`));
+  })()\`); })()`)
+);
 
 // 4. Screenshot a region (write PNG somewhere readable, then Read it)
 await ev(`(() => { const w = ${ROOT_WINDOW};
@@ -127,6 +153,22 @@ await ev(`(() => { const w = ${ROOT_WINDOW};
     return 'ok'; }); })()`);
 ws.close();
 ```
+
+## Gotchas
+
+- In the main-process inspector sandbox bare `require` may be missing — use
+  `process.mainModule.require('electron')`.
+- Developer-menu toggles can be driven with
+  `Menu.getApplicationMenu().getMenuItemById('<id>').click()` (ids:
+  `developerMode`, `simulateUpdate`, `simulateDownload`,
+  `simulateDisconnected`).
+- The tray `Tray` instance is module-scoped and not reachable from CDP;
+  opening the tray menu needs a real click — `osascript`/System Events clicks
+  require Accessibility permission for the terminal app (error -25211
+  otherwise). `screencapture -x` + `sips -c` crops work without permission
+  for verifying the icon itself.
+- `yarn start` relaunches Electron once per bundle for ~60 s; wait for
+  `waiting for changes` before screenshots.
 
 ## Useful recipes
 
@@ -141,5 +183,5 @@ ws.close();
   catches token and animation regressions.
 - The dev instance uses the `Rocket.Chat (development)` userData profile —
   its persisted settings (theme, `navigationLayout: 'tabs' | 'sidebar' |
-  'hidden'`) live in that profile's `config.json`; edit + restart to switch
+'hidden'`) live in that profile's `config.json`; edit + restart to switch
   the layout under test (TopBar layouts only render with `sidebar`/`hidden`).

@@ -75,6 +75,10 @@ yarn workspaces:build        # Build all workspaces
   `26080`, the second same-month build is `26081`. Check the current value
   and the date of its last bump (`git log -p --follow -- electron-builder.json`)
   before incrementing — do not guess an arbitrary increment.
+- `yarn build-assets` re-encodes every PNG/ICO it touches, including ones
+  whose source did not change; commit only the assets whose SVG/component
+  changed and `git checkout --` the rest (byte noise otherwise floods the
+  diff).
 
 ## Releases And Tagging
 
@@ -137,6 +141,20 @@ yarn workspaces:build        # Build all workspaces
   color/animation tokens, read `docs/desktop-ui-guidelines.md` — token
   semantics and traps, Fuselage geometry/timing facts, the button-dimming and
   SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
+- Tray icons are status-only on macOS, Windows and Linux: six states per
+  platform — `default`, `presence-{online,away,busy,offline}`, `disconnected`
+  (`src/ui/main/icons.ts`). The unread count is never baked into the tray
+  image; it lives on the Windows taskbar overlay (`rootWindow.ts`
+  `setOverlayIcon`), the macOS menu-bar title and the Linux tray tooltip.
+- Presence bullets reuse Fuselage `StatusBullet` glyphs
+  (`src/ui/icons/PresenceBullet.tsx`: filled / clock cut-out / bar cut-out /
+  hollow ring; `DisconnectedBadge.tsx`: filled amber with a bold `!`). Any
+  overlay with transparent cut-outs or a hollow shape MUST pass `AppIcon`'s
+  `cutout` prop (`PresenceBulletCutout`), otherwise the rocket shows through
+  the holes.
+- Tray-menu bullet icons are 12pt assets under `src/public/images/presence/`
+  (regenerate with `yarn build-assets --presence-menu-icons`), matching
+  Fuselage's 12px bullet next to 14px text.
 
 ## Testing
 
@@ -155,8 +173,12 @@ yarn workspaces:build        # Build all workspaces
   paint (a clipped SVG passes every DOM assertion). Use the `dev-app-verify`
   skill (`skills/dev-app-verify/SKILL.md`) to drive and screenshot the running
   `yarn start` app via the port-9339 inspector, and the Developer Mode menu
-  items (`Simulate Update Flow` / `Simulate Download`) to exercise the flows
-  without real downloads/updates.
+  items (`Simulate Update Flow` / `Simulate Download` / `Simulate
+  Disconnected`) to exercise the flows without real downloads/updates.
+  `Simulate Disconnected` is a Developer menu checkbox that forces the active
+  workspace's presence connection to `disconnected` read-side only — the real
+  connection stays up — so the disconnected tray icon and menu line can be
+  checked without dropping the network.
 - Screen-capture / WebRTC / portal behavior CANNOT be validated in
   software-rendered VMs — Chromium gates the PipeWire capture path on
   hardware GL (the gate moves between Electron versions). Validate on
@@ -175,6 +197,14 @@ const runtimeDir = process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.(
   Only mock when defensive coding isn't possible. Linux-only APIs requiring
   this: `process.getuid()`, `process.getgid()`, `process.geteuid()`,
   `process.getegid()`.
+
+## Startup Debugging
+
+- `yarn start` relaunches Electron once per rollup bundle for the first
+  ~60 s (each `writeBundle` restarts the app), so the tray/menu-bar icon
+  flickers or is absent until `waiting for changes` prints. Judge tray state
+  only after that, and `pkill` orphaned worktree Electrons first — a
+  leftover instance keeps port 9339 and shows a second menu-bar icon.
 
 ## QA Flow Authoring
 

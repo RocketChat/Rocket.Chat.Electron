@@ -45,6 +45,11 @@ describe('invertDarkAchromaticPixels', () => {
     expect([...invertDarkAchromaticPixels(offline)]).toEqual([...offline]);
   });
 
+  it('does not invert the disconnected-badge amber fill', () => {
+    const amber = pixel(57, 140, 243, 255);
+    expect([...invertDarkAchromaticPixels(amber)]).toEqual([...amber]);
+  });
+
   it('leaves fully transparent pixels alone', () => {
     expect([...invertDarkAchromaticPixels(pixel(0, 0, 0, 0))]).toEqual([
       0, 0, 0, 0,

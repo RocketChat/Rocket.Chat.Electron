@@ -21,11 +21,10 @@ type MacOSTrayIconProps = {
 // because the macOS menu-bar title already carries the count. `badge` is
 // therefore ignored whenever `presence` is set.
 //
-// `DisconnectedBadge`'s grey ring stroke and amber warning tick are both
-// outside `invertDarkAchromaticPixels`'s inversion window (see
-// macOSTrayGlyph.ts): the grey's luma is well above the achromatic
-// threshold and the amber's saturation is well above the colour threshold,
-// so neither gets flipped to white along with the black rocket glyph.
+// `DisconnectedBadge`'s amber fill is outside `invertDarkAchromaticPixels`'s
+// inversion window (see macOSTrayGlyph.ts): its saturation is well above
+// the colour threshold, so it never gets flipped to white along with the
+// black rocket glyph.
 const MacOSTrayIcon = ({
   notification,
   presence,
@@ -36,6 +35,7 @@ const MacOSTrayIcon = ({
   let cutout;
   if (disconnected) {
     overlay = <DisconnectedBadge />;
+    cutout = <PresenceBulletCutout />;
   } else if (presence) {
     overlay = <PresenceBullet presence={presence} />;
     cutout = <PresenceBulletCutout />;

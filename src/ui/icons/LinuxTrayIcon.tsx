@@ -25,6 +25,7 @@ const LinuxTrayIcon = ({
   let cutout;
   if (disconnected) {
     overlay = <DisconnectedBadge />;
+    cutout = <PresenceBulletCutout />;
   } else if (presence && badge) {
     overlay = (
       <Badge value={badge} backgroundColor={PRESENCE_COLORS[presence]} />

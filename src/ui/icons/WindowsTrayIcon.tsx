@@ -23,6 +23,7 @@ const WindowsTrayIcon = ({
   let cutout;
   if (disconnected) {
     overlay = <DisconnectedBadge />;
+    cutout = <PresenceBulletCutout />;
   } else if (presence) {
     overlay = <PresenceBullet presence={presence} />;
     cutout = <PresenceBulletCutout />;

@@ -355,6 +355,7 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       })
     );
 
+    expect(findPresenceRootItem(template)).toBeUndefined();
     const radios = template.filter((item) => item.type === 'radio');
     expect(radios).toHaveLength(0);
     expect(template.some((item) => item.label === 'Some status')).toBe(false);

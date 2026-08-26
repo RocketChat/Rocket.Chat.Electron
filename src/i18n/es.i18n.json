@@ -363,7 +363,8 @@
     "viewMenu": "&Ver",
     "windowMenu": "&Ventana",
     "zoomIn": "Acercar",
-    "zoomOut": "Alejar"
+    "zoomOut": "Alejar",
+    "simulateDisconnected": "Simular desconexión"
   },
   "loadingError": {
     "title": "Fallo al cargar el servidor",
@@ -467,6 +468,16 @@
         "title": "{{- appName}} todavía está en ejecución",
         "content": "{{- appName}} está configurado para permanecer en ejecución en la bandeja del sistema/área de notificación."
       }
+    },
+    "presence": {
+      "status": "Estado",
+      "online": "En línea",
+      "away": "Ausente",
+      "busy": "Ocupado",
+      "offline": "Desconectado",
+      "disconnected": "Desconectado — intentando reconectar...",
+      "signIn": "Iniciar sesión en {{- workspace}}",
+      "addWorkspace": "Agregar espacio de trabajo"
     }
   },
   "taskbar": {

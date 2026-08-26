@@ -89,8 +89,10 @@ git diff dev...HEAD -- src/i18n/en.i18n.json
 
 Extract the added/changed keys, then check every other `src/i18n/*.i18n.json`
 file for those keys (dot-notation nested lookup, same approach as the
-`i18n-audit` skill). List any locale missing a newly added key. If
-`en.i18n.json` did not change, mark this check "n/a".
+`i18n-audit` skill). List any locale missing a newly added key. If any
+locale is missing a key, run the `i18n-translate` skill to fill the gap
+before opening the PR. If `en.i18n.json` did not change, mark this check
+"n/a".
 
 ### 6. Packaging
 

@@ -13,11 +13,6 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/require-impact.sh",
             "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-locale-edits.sh",
-            "timeout": 5
           }
         ]
       },

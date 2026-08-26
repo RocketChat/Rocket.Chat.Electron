@@ -20,7 +20,6 @@ denies via the hook JSON protocol.
 | -------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------- |
 | `block-sensitive-files.sh` | Deny edits to lock files and `.env*`                                               | `PreToolUse` on `Edit\|Write`            |
 | `require-impact.sh`        | Ask for confirmation when editing TS source without a recent GitNexus impact check | `PreToolUse` on `Edit\|Write`            |
-| `block-locale-edits.sh`    | Deny edits to non-English locale files (Lingohub-managed)                          | `PreToolUse` on `Edit\|Write`            |
 | `guard-workspace-build.sh` | Deny `yarn`/`npm build` run inside a workspace directory                           | `PreToolUse` on `Bash`                   |
 | `auto-format.sh`           | Run Prettier on the edited file                                                    | `PostToolUse` on `Edit\|Write`           |
 | `i18n-parity.sh`           | Report i18n key parity vs `en.i18n.json` after a locale edit                       | `PostToolUse` on `Edit\|Write`           |
@@ -35,8 +34,9 @@ no such call happened in the last 15 minutes. `guard-workspace-build.sh` and
 `clean-action-dist.sh` enforce the AGENTS.md "Patches And Builds" rules
 (never `yarn build` inside a workspace dir; strip the nested
 `desktop-release-action` dist after a workspace-wide build).
-`block-locale-edits.sh` enforces the i18n rule that translations sync from
-Lingohub, not direct edits.
+`i18n-parity.sh` reports translation gaps after `en.i18n.json` changes
+because developers edit only the English source during a feature and
+translate other locales at the end via the `i18n-translate` skill.
 
 ### Disabling a hook locally
 
@@ -65,6 +65,7 @@ explicitly asked for, not auto-triggered by description match).
 | `electron-build`   | Build and test the Electron app with worktree isolation                                            | model-invoked or explicit ask                       |
 | `electron-bump`    | Upgrade the Electron version with migration plan and impact analysis                               | "bump electron", `/electron-bump`                   |
 | `i18n-audit`       | Audit translation completeness across all language files                                           | model-invoked or explicit ask                       |
+| `i18n-translate`   | Translate new `en.i18n.json` keys into every other locale at feature completion                     | explicit ask only                                    |
 | `new-ipc-channel`  | Scaffold a new IPC channel with proper TypeScript types                                            | model-invoked or explicit ask                       |
 | `release-notes`    | Generate release notes from git history between tags                                               | model-invoked or explicit ask                       |
 | `boot-wedge-debug` | Debug the intermittent webview boot wedge via boot-watchdog logs and live CDP                      | wedge/throbber symptom mentioned                    |

@@ -24,6 +24,7 @@ import { parseActivationArguments } from './parseActivationArguments';
 
 type NotificationRoutingMeta = {
   ipcMeta?: ActionIPCMeta;
+  category?: 'DOWNLOADS' | 'SERVER';
 };
 
 const MAX_ROUTING_ENTRIES = 200;
@@ -170,7 +171,9 @@ const createNotification = async (
       ipcMeta?.webContentsId !== undefined
         ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
         : undefined;
-    const notificationCategory = notificationCategories.get(id);
+    const notificationCategory =
+      notificationCategories.get(id) ??
+      notificationRoutingMeta.get(id)?.category;
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_CLICKED,
       payload: {
@@ -210,7 +213,7 @@ const createNotification = async (
   if (category) {
     notificationCategories.set(id, category);
   }
-  setNotificationRoutingMeta(id, { ipcMeta });
+  setNotificationRoutingMeta(id, { ipcMeta, category });
 
   notification.show();
 

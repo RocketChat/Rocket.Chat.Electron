@@ -180,6 +180,43 @@ describe('notifications/main win32 activation routing', () => {
     );
   });
 
+  it('preserves the category for a root click on a card retained past close', async () => {
+    const createRequested = listeners.get('notifications/create-requested');
+    expect(createRequested).toBeDefined();
+    await createRequested!({
+      type: 'notifications/create-requested',
+      payload: {
+        title: 'Hello',
+        tag: 'category-abc123',
+        canReply: true,
+        category: 'DOWNLOADS',
+      },
+      meta: { id: 'req-1' },
+      ipcMeta: { type: 'single', webContentsId: 7 },
+    });
+
+    const instance = notificationInstances[0];
+
+    // Windows auto-hides the banner into the Action Center: Electron emits
+    // `close`, which drops `notificationCategories`, before the root card is
+    // clicked.
+    instance.listeners.close[0]();
+
+    mockDispatchSingle.mockClear();
+
+    instance.listeners.click[0]();
+
+    expect(mockDispatchSingle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: NOTIFICATIONS_NOTIFICATION_CLICKED,
+        payload: expect.objectContaining({
+          id: 'category-abc123',
+          category: 'DOWNLOADS',
+        }),
+      })
+    );
+  });
+
   it('warns and does not dispatch when the tag cannot be parsed', () => {
     handleNotificationActivation({
       type: 'reply',

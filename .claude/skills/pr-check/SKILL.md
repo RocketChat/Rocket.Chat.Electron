@@ -130,6 +130,18 @@ going forward (new IPC pattern, new test layout rule, new platform
 constraint), confirm `AGENTS.md` and/or `CLAUDE.md` were updated to
 match. If not applicable, mark "n/a".
 
+### 9. No machine-specific paths
+
+```bash
+git grep -n -E '/Users/[a-z]+|/home/[a-z]+|C:\\Users' -- ':!*.lock' $(git diff --name-only dev...HEAD)
+```
+
+Must return nothing. Any hit is a candidate leaked local path (or a
+generic doc example like `/Users/user/...` — use judgment to tell the
+two apart); also flag any literal hostname or personal email if
+trivially visible in the same diff. Report pass/fail and the matching
+lines as evidence.
+
 ## Output: PR body draft
 
 Read `.github/PULL_REQUEST_TEMPLATE.md` and fill its actual sections —

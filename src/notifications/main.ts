@@ -64,6 +64,9 @@ const closedNotifications = new Map<string, Electron.Notification>();
 const notificationTypes = new Map<string, 'voice' | 'text'>();
 const notificationCategories = new Map<string, 'DOWNLOADS' | 'SERVER'>();
 const notificationRoutingMeta = new Map<string, NotificationRoutingMeta>();
+// Electron can fire a Windows toast's `reply` event twice for one submission;
+// gate on this until the next `show` resets it (SUP-1097 forward-port, #3467).
+const repliedNotifications = new Set<string>();
 
 const setNotificationRoutingMeta = (
   id: string,
@@ -114,6 +117,8 @@ const createNotification = async (
   });
 
   notification.addListener('show', () => {
+    repliedNotifications.delete(id);
+
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_SHOWN,
       payload: { id },
@@ -180,6 +185,11 @@ const createNotification = async (
 
   if (!shouldUseActivationRouting()) {
     notification.addListener('reply', (_event, reply) => {
+      if (repliedNotifications.has(id)) {
+        return;
+      }
+      repliedNotifications.add(id);
+
       dispatchSingle({
         type: NOTIFICATIONS_NOTIFICATION_REPLIED,
         payload: { id, reply },
@@ -320,6 +330,11 @@ export const handleNotificationActivation = (
   };
 
   if (type === 'reply' && details.reply !== undefined) {
+    if (repliedNotifications.has(tag)) {
+      return;
+    }
+    repliedNotifications.add(tag);
+
     dispatchActivation({
       type: NOTIFICATIONS_NOTIFICATION_REPLIED,
       payload: { id: tag, reply: details.reply },

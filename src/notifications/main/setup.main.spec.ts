@@ -122,6 +122,11 @@ describe('notifications/main setupNotifications', () => {
     });
   };
 
+  const repliedCalls = () =>
+    dispatchSingle.mock.calls.filter(
+      ([action]) => action.type === NOTIFICATIONS_NOTIFICATION_REPLIED
+    );
+
   it('creates a notification and wires show/click/close/reply/action', async () => {
     await create({
       title: 'Hello',
@@ -180,6 +185,35 @@ describe('notifications/main setupNotifications', () => {
     expect(dispatchSingle).toHaveBeenCalledWith(
       expect.objectContaining({ type: NOTIFICATIONS_NOTIFICATION_CLOSED })
     );
+  });
+
+  it('dispatches a duplicated reply event exactly once', async () => {
+    await create({ title: 'Hello', tag: 'reply-once' });
+
+    const notification = notificationInstances[0];
+    notification.emit('reply', {}, 'hi there');
+    notification.emit('reply', {}, 'hi there');
+
+    expect(repliedCalls()).toHaveLength(1);
+    expect(repliedCalls()[0][0].payload).toEqual({
+      id: 'reply-once',
+      reply: 'hi there',
+    });
+  });
+
+  it('accepts another reply after the notification is shown again', async () => {
+    await create({ title: 'Hello', tag: 'reply-again' });
+
+    const notification = notificationInstances[0];
+    notification.emit('reply', {}, 'first reply');
+    notification.emit('show');
+    notification.emit('reply', {}, 'second reply');
+
+    expect(repliedCalls()).toHaveLength(2);
+    expect(repliedCalls()[1][0].payload).toEqual({
+      id: 'reply-again',
+      reply: 'second reply',
+    });
   });
 
   it('draws attention for voice notifications', async () => {

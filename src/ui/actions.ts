@@ -32,6 +32,8 @@ export const MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED =
   'menu-bar/toggle-is-developer-mode-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED =
   'menu-bar/toggle-is-video-call-devtools-auto-open-enabled-clicked';
+export const SET_PRESENCE_DISCONNECTION_SIMULATED =
+  'menu-bar/set-presence-disconnection-simulated';
 export const MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED =
   'menu-bar/set-navigation-layout-clicked';
 export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
@@ -75,6 +77,7 @@ export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
 export const WEBVIEW_USER_ROLES_CHANGED = 'webview/user-roles-changed';
+export const WEBVIEW_USER_PRESENCE_CHANGED = 'webview/user-presence-changed';
 export const WEBVIEW_ALLOWED_REDIRECTS_CHANGED =
   'webview/allowed-redirects-changed';
 export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
@@ -198,6 +201,7 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED]: boolean;
+  [SET_PRESENCE_DISCONNECTION_SIMULATED]: boolean;
   [MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED]: NavigationLayout;
   [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
@@ -253,6 +257,13 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_USER_ROLES_CHANGED]: {
     url: Server['url'];
     userRoles: Server['userRoles'];
+  };
+  [WEBVIEW_USER_PRESENCE_CHANGED]: {
+    url: Server['url'];
+    presence: Server['presence'];
+    presenceStatusText: Server['presenceStatusText'];
+    presenceConnection: Server['presenceConnection'];
+    presenceSupported: Server['presenceSupported'];
   };
   [WEBVIEW_GIT_COMMIT_HASH_CHECK]: {
     url: Server['url'];

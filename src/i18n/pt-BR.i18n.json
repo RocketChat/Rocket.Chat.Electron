@@ -359,7 +359,8 @@
     "viewMenu": "&Exibir",
     "windowMenu": "&Janela",
     "zoomIn": "Aumentar zoom",
-    "zoomOut": "Diminuir zoom"
+    "zoomOut": "Diminuir zoom",
+    "simulateDisconnected": "Simular desconexão"
   },
   "loadingError": {
     "title": "Servidor Falhou em Carregar",
@@ -472,6 +473,16 @@
         "title": "{{- appName}} ainda está rodando",
         "content": "{{- appName }} está configurado para permanecer em funcionamento na bandeja do sistema/área de notificação."
       }
+    },
+    "presence": {
+      "status": "Status",
+      "online": "Online",
+      "away": "Ausente",
+      "busy": "Ocupado",
+      "offline": "Offline",
+      "disconnected": "Desconectado — tentando reconectar...",
+      "signIn": "Entrar em {{- workspace}}",
+      "addWorkspace": "Adicionar espaço de trabalho"
     }
   },
   "taskbar": {

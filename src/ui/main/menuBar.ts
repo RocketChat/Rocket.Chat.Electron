@@ -31,6 +31,7 @@ import {
   OPEN_SERVER_INFO_MODAL,
   SERVER_CONTEXT_MENU_TRIGGERED,
   SERVER_SWITCHER_MENU_TRIGGERED,
+  SET_PRESENCE_DISCONNECTION_SIMULATED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SERVER_COPY_URL,
@@ -53,7 +54,9 @@ const on = (
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
-const createSimulationMenuItems = (): MenuItemConstructorOptions[] => [
+const createSimulationMenuItems = (
+  isPresenceDisconnectionSimulated: boolean
+): MenuItemConstructorOptions[] => [
   {
     id: 'simulateUpdate',
     label: t('menus.simulateUpdate'),
@@ -78,6 +81,24 @@ const createSimulationMenuItems = (): MenuItemConstructorOptions[] => [
       }
       browserWindow.focus();
       dispatch({ type: DOWNLOADS_SIMULATION_REQUESTED });
+    },
+  },
+  {
+    id: 'simulateDisconnected',
+    label: t('menus.simulateDisconnected'),
+    type: 'checkbox',
+    checked: isPresenceDisconnectionSimulated,
+    click: async () => {
+      const browserWindow = await getRootWindow();
+
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
+      dispatch({
+        type: SET_PRESENCE_DISCONNECTION_SIMULATED,
+        payload: !isPresenceDisconnectionSimulated,
+      });
     },
   },
 ];
@@ -588,6 +609,9 @@ const selectWindowDeps = createStructuredSelector({
     isAddNewServersEnabled,
   isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
     isDeveloperModeEnabled,
+  isPresenceDisconnectionSimulated: ({
+    isPresenceDisconnectionSimulated,
+  }: RootState) => isPresenceDisconnectionSimulated,
 });
 
 export const createWindowMenu = createSelector(
@@ -738,6 +762,9 @@ const selectHelpDeps = createStructuredSelector({
   isVideoCallDevtoolsAutoOpenEnabled: ({
     isVideoCallDevtoolsAutoOpenEnabled,
   }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
+  isPresenceDisconnectionSimulated: ({
+    isPresenceDisconnectionSimulated,
+  }: RootState) => isPresenceDisconnectionSimulated,
 });
 
 export const createHelpMenu = createSelector(
@@ -745,6 +772,7 @@ export const createHelpMenu = createSelector(
   ({
     isDeveloperModeEnabled,
     isVideoCallDevtoolsAutoOpenEnabled,
+    isPresenceDisconnectionSimulated,
   }): MenuItemConstructorOptions => ({
     id: 'helpMenu',
     label: t('menus.helpMenu'),
@@ -843,7 +871,9 @@ export const createHelpMenu = createSelector(
           });
         },
       },
-      ...on(isDeveloperModeEnabled, createSimulationMenuItems),
+      ...on(isDeveloperModeEnabled, () =>
+        createSimulationMenuItems(isPresenceDisconnectionSimulated)
+      ),
       {
         id: 'videoCallToolsSubmenu',
         label: t('menus.videoCallTools'),
@@ -987,6 +1017,8 @@ export const selectAppMenuPopupTemplate = createSelector(
     createWindowMenu,
     createHelpMenu,
     ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled,
+    ({ isPresenceDisconnectionSimulated }: RootState) =>
+      isPresenceDisconnectionSimulated,
   ],
   (
     rocketChatMenu,
@@ -995,7 +1027,8 @@ export const selectAppMenuPopupTemplate = createSelector(
     viewMenu,
     windowMenu,
     helpMenu,
-    isDeveloperModeEnabled
+    isDeveloperModeEnabled,
+    isPresenceDisconnectionSimulated
   ): MenuItemConstructorOptions[] => {
     const settingsItem: MenuItemConstructorOptions = {
       id: 'settings',
@@ -1031,7 +1064,7 @@ export const selectAppMenuPopupTemplate = createSelector(
         checkForUpdatesItem,
         ...on(isDeveloperModeEnabled, () => [
           { type: 'separator' },
-          ...createSimulationMenuItems(),
+          ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
         ]),
       ];
     }
@@ -1054,7 +1087,7 @@ export const selectAppMenuPopupTemplate = createSelector(
       checkForUpdatesItem,
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' },
-        ...createSimulationMenuItems(),
+        ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
       ]),
       { type: 'separator' },
       createQuitMenuItem(),
@@ -1072,6 +1105,7 @@ export const selectServerSwitcherMenuTemplate = createSelector(
     currentView,
     isAddNewServersEnabled,
     isDeveloperModeEnabled,
+    isPresenceDisconnectionSimulated,
   }): MenuItemConstructorOptions[] => {
     const serverItems = servers.map((server, i): MenuItemConstructorOptions => {
       const isActive =
@@ -1146,7 +1180,7 @@ export const selectServerSwitcherMenuTemplate = createSelector(
       },
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' } as MenuItemConstructorOptions,
-        ...createSimulationMenuItems(),
+        ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
       ]),
     ];
   }

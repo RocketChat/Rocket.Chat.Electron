@@ -10,14 +10,17 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { rimraf } from 'rimraf';
 
-import type { Server } from './servers/common';
+import type { UserPresence } from './servers/common';
 import DmgBackground from './ui/assets/DmgBackground';
 import NsisSideBar from './ui/assets/NsisSideBar';
 import AppIcon from './ui/icons/AppIcon';
 import LinuxTrayIcon from './ui/icons/LinuxTrayIcon';
 import MacOSAppIcon from './ui/icons/MacOSAppIcon';
 import MacOSTrayIcon from './ui/icons/MacOSTrayIcon';
+import PresenceMenuIcon from './ui/icons/PresenceMenuIcon';
 import WindowsTrayIcon from './ui/icons/WindowsTrayIcon';
+
+const PRESENCES: UserPresence[] = ['online', 'away', 'busy', 'offline'];
 
 const convertSvgToPng = async (
   svg: string,
@@ -85,6 +88,19 @@ const createMacOSAppIcon = async (): Promise<void> => {
   await writeFile('build/icon.icns', icns);
 };
 
+const writeMacOSPresenceTrayIcon = async (
+  props: {
+    presence?: UserPresence;
+    disconnected?: boolean;
+  },
+  fileName: string
+): Promise<void> => {
+  const icon = renderToStaticMarkup(createElement(MacOSTrayIcon, props));
+  const pngs = await convertSvgToPng(icon, 24, 48);
+  await writeFile(`src/public/images/tray/darwin/${fileName}.png`, pngs[0]);
+  await writeFile(`src/public/images/tray/darwin/${fileName}@2x.png`, pngs[1]);
+};
+
 const createMacOSTrayIcons = async (): Promise<void> => {
   const defaultIcon = renderToStaticMarkup(createElement(MacOSTrayIcon));
   const defaultIconPngs = await convertSvgToPng(defaultIcon, 24, 48);
@@ -97,18 +113,11 @@ const createMacOSTrayIcons = async (): Promise<void> => {
     defaultIconPngs[1]
   );
 
-  const notificationIcon = renderToStaticMarkup(
-    createElement(MacOSTrayIcon, { notification: true })
-  );
-  const notificationIconPngs = await convertSvgToPng(notificationIcon, 24, 48);
-  await writeFile(
-    'src/public/images/tray/darwin/notificationTemplate.png',
-    notificationIconPngs[0]
-  );
-  await writeFile(
-    'src/public/images/tray/darwin/notificationTemplate@2x.png',
-    notificationIconPngs[1]
-  );
+  for await (const presence of PRESENCES) {
+    await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
+  }
+
+  await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
 };
 
 const createDmgBackgrounds = async (): Promise<void> => {
@@ -141,57 +150,27 @@ const createWindowsAppIcons = async (): Promise<void> => {
   await writeFile('src/public/images/icon.ico', ico);
 };
 
-const createWindowsTrayIcons = async (): Promise<void> => {
-  const defaultIcon = renderToStaticMarkup(createElement(WindowsTrayIcon));
-  const defaultIconPngs = await convertSvgToPng(
-    defaultIcon,
-    16,
-    24,
-    32,
-    48,
-    64,
-    128,
-    256
-  );
-  const defaultIconIco = await icoConvert.convert(defaultIconPngs);
-  await writeFile('src/public/images/tray/win32/default.ico', defaultIconIco);
+const writeWindowsTrayIcon = async (
+  props: {
+    presence?: UserPresence;
+    disconnected?: boolean;
+  },
+  fileName: string
+): Promise<void> => {
+  const icon = renderToStaticMarkup(createElement(WindowsTrayIcon, props));
+  const pngs = await convertSvgToPng(icon, 16, 24, 32, 48, 64, 128, 256);
+  const ico = await icoConvert.convert(pngs);
+  await writeFile(`src/public/images/tray/win32/${fileName}.ico`, ico);
+};
 
-  for await (const badge of [
-    '•',
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-  ] as Server['badge'][]) {
-    const notificationIcon = renderToStaticMarkup(
-      createElement(WindowsTrayIcon, { badge })
-    );
-    const notificationIconPngs = await convertSvgToPng(
-      notificationIcon,
-      16,
-      24,
-      32,
-      48,
-      64,
-      128,
-      256
-    );
-    const notificationIconIco = await icoConvert.convert(notificationIconPngs);
-    const name =
-      (badge === '•' && 'dot') ||
-      (typeof badge === 'number' && badge > 9 && 'plus-9') ||
-      String(badge);
-    await writeFile(
-      `src/public/images/tray/win32/notification-${name}.ico`,
-      notificationIconIco
-    );
+const createWindowsTrayIcons = async (): Promise<void> => {
+  await writeWindowsTrayIcon({}, 'default');
+
+  for await (const presence of PRESENCES) {
+    await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
   }
+
+  await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
 };
 
 const createNsisSideBars = async (): Promise<void> => {
@@ -225,55 +204,71 @@ const createLinuxAppIcons = async (): Promise<void> => {
   await writeFile('build/icons/512x512.png', pngs[6]);
 };
 
-const createLinuxTrayIcons = async (): Promise<void> => {
-  const defaultIcon = renderToStaticMarkup(createElement(LinuxTrayIcon));
-  const defaultIconPngs = await convertSvgToPng(defaultIcon, 64, 128);
-  await writeFile(
-    'src/public/images/tray/linux/default.png',
-    defaultIconPngs[0]
-  );
-  await writeFile(
-    'src/public/images/tray/linux/default@2x.png',
-    defaultIconPngs[1]
-  );
+const writeLinuxTrayIcon = async (
+  props: {
+    presence?: UserPresence;
+    disconnected?: boolean;
+  },
+  fileName: string
+): Promise<void> => {
+  const icon = renderToStaticMarkup(createElement(LinuxTrayIcon, props));
+  const pngs = await convertSvgToPng(icon, 64, 128);
+  await writeFile(`src/public/images/tray/linux/${fileName}.png`, pngs[0]);
+  await writeFile(`src/public/images/tray/linux/${fileName}@2x.png`, pngs[1]);
+};
 
-  for await (const badge of [
-    '•',
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-  ] as Server['badge'][]) {
-    const notificationIcon = renderToStaticMarkup(
-      createElement(LinuxTrayIcon, { badge })
+const createLinuxTrayIcons = async (): Promise<void> => {
+  await writeLinuxTrayIcon({}, 'default');
+
+  for await (const presence of PRESENCES) {
+    await writeLinuxTrayIcon({ presence }, `presence-${presence}`);
+  }
+
+  await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
+};
+
+const writePresenceTrayIcons = async (): Promise<void> => {
+  for await (const presence of PRESENCES) {
+    await writeMacOSPresenceTrayIcon({ presence }, `presence-${presence}`);
+    await writeWindowsTrayIcon({ presence }, `presence-${presence}`);
+    await writeLinuxTrayIcon({ presence }, `presence-${presence}`);
+  }
+
+  await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
+  await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
+  await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
+};
+
+// The tray context menu's presence top-level item and submenu radios use a
+// dedicated square bullet icon (no rocket) rendered at menu-icon sizes —
+// separate from the `presence-<p>.png`/`.ico` tray-bar icons above, which
+// are platform-specific and sized for the OS tray/menu bar itself. Sized to
+// 12pt, matching Fuselage's `StatusBullet` next to 14px menu text, rather
+// than a full 16pt glyph slot, which reads oversized next to menu text;
+// generated directly at target size so no runtime resize is needed
+// (nativeImage.resize() would drop the @2x representation).
+const createPresenceMenuIcons = async (): Promise<void> => {
+  for await (const presence of PRESENCES) {
+    const icon = renderToStaticMarkup(
+      createElement(PresenceMenuIcon, { presence })
     );
-    const notificationIconPngs = await convertSvgToPng(
-      notificationIcon,
-      64,
-      128
-    );
-    const name =
-      (badge === '•' && 'dot') ||
-      (typeof badge === 'number' && badge > 9 && 'plus-9') ||
-      String(badge);
-    await writeFile(
-      `src/public/images/tray/linux/notification-${name}.png`,
-      notificationIconPngs[0]
-    );
-    await writeFile(
-      `src/public/images/tray/linux/notification-${name}@2x.png`,
-      notificationIconPngs[1]
-    );
+    const [png12, png24] = await convertSvgToPng(icon, 12, 24);
+    await writeFile(`src/public/images/presence/${presence}.png`, png12);
+    await writeFile(`src/public/images/presence/${presence}@2x.png`, png24);
   }
 };
 
 const run = async (): Promise<void> => {
+  if (process.argv.includes('--presence')) {
+    await writePresenceTrayIcons();
+    return;
+  }
+
+  if (process.argv.includes('--presence-menu-icons')) {
+    await createPresenceMenuIcons();
+    return;
+  }
+
   await createMacOSAppIcon();
   await createWindowsAppIcons();
   await createLinuxAppIcons();

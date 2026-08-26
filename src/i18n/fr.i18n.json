@@ -338,7 +338,8 @@
     "viewMenu": "&Voir",
     "windowMenu": "&Fenêtre",
     "zoomIn": "Zoomer",
-    "zoomOut": "Zoom arrière"
+    "zoomOut": "Zoom arrière",
+    "simulateDisconnected": "Simuler une déconnexion"
   },
   "loadingError": {
     "title": "Echec du chargement du serveur",
@@ -436,6 +437,16 @@
         "title": "{{- appName}} est toujours en cours d'exécution",
         "content": "{{- appName }} est configuré pour continuer à fonctionner dans la barre d'état système / zone de notification."
       }
+    },
+    "presence": {
+      "status": "Statut",
+      "online": "En ligne",
+      "away": "Absent",
+      "busy": "Occupé",
+      "offline": "Hors ligne",
+      "disconnected": "Déconnecté — tentative de reconnexion...",
+      "signIn": "Se connecter à {{- workspace}}",
+      "addWorkspace": "Ajouter un espace de travail"
     }
   },
   "taskbar": {

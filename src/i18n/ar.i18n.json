@@ -46,5 +46,20 @@
       "label": "تاريخ الانتهاء:",
       "expiresOn": "ينتهي في {{date}}"
     }
+  },
+  "menus": {
+    "simulateDisconnected": "محاكاة قطع الاتصال"
+  },
+  "tray": {
+    "presence": {
+      "status": "الحالة",
+      "online": "متصل",
+      "away": "غائب",
+      "busy": "مشغول",
+      "offline": "غير متصل",
+      "disconnected": "انقطع الاتصال — جارٍ إعادة المحاولة...",
+      "signIn": "تسجيل الدخول إلى {{- workspace}}",
+      "addWorkspace": "إضافة مساحة عمل"
+    }
   }
 }

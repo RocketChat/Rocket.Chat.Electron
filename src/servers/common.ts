@@ -1,6 +1,8 @@
 import type { OutlookCredentials } from '../outlookCalendar/type';
 import type { SupportedVersions } from './supportedVersions/types';
 
+export type UserPresence = 'online' | 'away' | 'busy' | 'offline';
+
 export type Server = {
   url: string;
   title?: string;
@@ -31,6 +33,10 @@ export type Server = {
   supportedVersionsValidatedAt?: Date;
   documentViewerOpenUrl?: string;
   documentViewerFormat?: string;
+  presence?: UserPresence;
+  presenceStatusText?: string;
+  presenceConnection?: 'connected' | 'connecting' | 'disconnected';
+  presenceSupported?: boolean;
 };
 
 export const enum ServerUrlResolutionStatus {

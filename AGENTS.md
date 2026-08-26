@@ -173,6 +173,21 @@ const runtimeDir = process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.(
   this: `process.getuid()`, `process.getgid()`, `process.geteuid()`,
   `process.getegid()`.
 
+## Startup Debugging
+
+- The webview boot-success signal is `WEBVIEW_SERVER_VERSION_UPDATED`
+  (dispatched by `setVersion` from `setServerInfo`). Do NOT key boot cycles
+  on `did-start-loading` — it fires for subframes and resources and produces
+  false boot-failure reports; key on committed navigations (`did-navigate`).
+- Workspace stuck on the loading throbber ("boot wedge"): read
+  `~/Library/Logs/Rocket.Chat/boot-watchdog.jsonl` first, then follow
+  `.claude/skills/boot-wedge-debug/SKILL.md` (live CDP autopsy, cure ladder). Full
+  investigation history: `docs/postmortem-webview-boot-wedge.md`.
+- Startup `Maximum update depth exceeded` storms are data-dependent (unread
+  rooms at boot). Before blaming recent code for an intermittent startup
+  failure, bisect against a clean baseline build — the storm reproduced on
+  the untouched alpha.2 baseline (see the post-mortem, PR #3437).
+
 ## QA Flow Authoring
 
 When creating or updating QA assets under `qa/`, read these first:

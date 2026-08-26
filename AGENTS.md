@@ -173,6 +173,34 @@ const runtimeDir = process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.(
   this: `process.getuid()`, `process.getgid()`, `process.geteuid()`,
   `process.getegid()`.
 
+## Windows Notifications
+
+- A Windows Action Center card stays repliable indefinitely, and Electron emits
+  the JS `close` event when the banner times out
+  (`NotificationDismissed(should_destroy=false)`). Calling `close()` on the
+  instance does NOT remove the card. Do NOT tie per-notification state — reply
+  routing, target webContents, preload event handlers — to a `close` or dismiss
+  signal, or replies typed later are dropped. Keep it (bounded) until the app
+  decides the notification is finished.
+- The web client auto-closes every desktop notification 10s after showing it
+  (`useNotification.ts`; the server never sends `duration`, so the fallback is
+  always used). Expect that close to arrive while the card is still on screen.
+- Only reply and action-button interactions carry activation arguments
+  (`type=...&tag=<id>`, read via `Notification.handleActivation`, win32).
+  A click on the toast body carries none and arrives ONLY as the instance
+  `click` event — keep that listener unconditional.
+- `Notification.handleActivation` REPLACES the stored callback rather than
+  adding one. A debug probe that registers its own handler silently
+  unregisters the app's — do not use it to observe production behavior.
+- Enter does NOT submit a toast reply; only the toast's Reply button does, and
+  the card closes on submit whether or not the app received anything. Assert
+  replies by querying the server for the message, never by watching the UI.
+- Log dropped activations through `loggers.notifications`
+  (`src/logging/scopes.ts`). `console.warn` from the main process is invisible
+  in packaged builds, which makes a dropped reply untraceable in the field.
+- Full investigation history:
+  `docs/postmortem-notification-quick-reply-sup-1097.md`.
+
 ## QA Flow Authoring
 
 When creating or updating QA assets under `qa/`, read these first:

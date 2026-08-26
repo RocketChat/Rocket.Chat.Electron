@@ -52,6 +52,7 @@ export type ActiveServerPresence = {
   connection?: 'connected' | 'connecting' | 'disconnected';
   supported?: boolean;
   loggedIn?: boolean;
+  failed?: boolean;
   hasServers: boolean;
 };
 
@@ -98,6 +99,7 @@ export const selectActiveServerPresence = createSelector(
         : activeServer.presenceConnection,
       supported: activeServer.presenceSupported,
       loggedIn: activeServer.userLoggedIn,
+      failed: activeServer.failed,
       hasServers,
     };
   }

@@ -75,6 +75,7 @@ const buildPresenceMenuItems = (
     connection,
     supported,
     loggedIn,
+    failed,
     hasServers,
   } = activeServerPresence;
 
@@ -106,7 +107,7 @@ const buildPresenceMenuItems = (
     ];
   }
 
-  if (supported === false) {
+  if (supported === false || failed) {
     return [];
   }
 

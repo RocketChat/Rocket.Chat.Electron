@@ -58,6 +58,7 @@ type ActiveServerPresence = {
   connection?: 'connected' | 'connecting' | 'disconnected';
   supported?: boolean;
   loggedIn?: boolean;
+  failed?: boolean;
   hasServers: boolean;
 };
 
@@ -309,6 +310,29 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
         connection: 'connected',
         loggedIn: true,
         supported: false,
+      })
+    );
+
+    const radios = template.filter((item) => item.type === 'radio');
+    expect(radios).toHaveLength(0);
+    expect(template.some((item) => item.label === 'Some status')).toBe(false);
+    expect(findItem(template, 'tray.presence.signIn')).toBeUndefined();
+    expect(findItem(template, 'tray.presence.addWorkspace')).toBeUndefined();
+    expect(findItem(template, 'tray.menu.hide')).toBeDefined();
+    expect(findItem(template, 'tray.menu.quit')).toBeDefined();
+  });
+
+  it('hides presence items entirely when the active server failed to load', () => {
+    const template = buildMenuTemplate(
+      baseState({
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'online',
+        statusText: 'Some status',
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+        failed: true,
       })
     );
 

@@ -81,4 +81,19 @@ describe('ui/selectors', () => {
 
     expect(selectActiveServerPresence(rootState).connection).toBe('connected');
   });
+
+  it('passes through the failed flag from the active server', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          title: 'Server',
+          failed: true,
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).failed).toBe(true);
+  });
 });

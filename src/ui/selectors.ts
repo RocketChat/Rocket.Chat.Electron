@@ -54,6 +54,7 @@ export type ActiveServerPresence = {
   loggedIn?: boolean;
   failed?: boolean;
   hasServers: boolean;
+  isAddingServer: boolean;
 };
 
 const toHref = (url: string): string => {
@@ -75,9 +76,10 @@ export const selectActiveServerPresence = createSelector(
     isPresenceDisconnectionSimulated
   ): ActiveServerPresence => {
     const hasServers = servers.length > 0;
+    const isAddingServer = currentView === 'add-new-server';
 
     if (typeof currentView !== 'object' || !currentView.url) {
-      return { hasServers };
+      return { hasServers, isAddingServer };
     }
 
     const currentViewHref = toHref(currentView.url);
@@ -86,7 +88,7 @@ export const selectActiveServerPresence = createSelector(
     );
 
     if (!activeServer) {
-      return { hasServers };
+      return { hasServers, isAddingServer };
     }
 
     return {
@@ -101,6 +103,7 @@ export const selectActiveServerPresence = createSelector(
       loggedIn: activeServer.userLoggedIn,
       failed: activeServer.failed,
       hasServers,
+      isAddingServer,
     };
   }
 );

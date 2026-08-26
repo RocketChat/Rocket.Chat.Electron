@@ -60,6 +60,7 @@ type ActiveServerPresence = {
   loggedIn?: boolean;
   failed?: boolean;
   hasServers: boolean;
+  isAddingServer?: boolean;
 };
 
 const baseState = (
@@ -294,6 +295,24 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
 
   it('shows an Add workspace item and no radios when there are no servers', () => {
     const template = buildMenuTemplate(baseState({ hasServers: false }));
+
+    const radios = template.filter((item) => item.type === 'radio');
+    expect(radios).toHaveLength(0);
+    expect(findItem(template, 'tray.presence.addWorkspace')).toBeDefined();
+  });
+
+  it('shows an Add workspace item and no radios when on the add-workspace screen with existing servers', () => {
+    const template = buildMenuTemplate(
+      baseState({
+        hasServers: true,
+        isAddingServer: true,
+        url: 'https://server.test',
+        presence: 'online',
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+      })
+    );
 
     const radios = template.filter((item) => item.type === 'radio');
     expect(radios).toHaveLength(0);

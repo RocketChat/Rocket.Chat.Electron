@@ -81,4 +81,38 @@ describe('ui/selectors', () => {
 
     expect(selectActiveServerPresence(rootState).connection).toBe('connected');
   });
+
+  it('passes through the failed flag from the active server', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          title: 'Server',
+          failed: true,
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).failed).toBe(true);
+  });
+
+  it('flags isAddingServer when the current view is the add-workspace screen, even with existing servers', () => {
+    const rootState = {
+      servers: [{ url: 'https://server.test', title: 'Server' }],
+      currentView: 'add-new-server',
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).isAddingServer).toBe(true);
+    expect(selectActiveServerPresence(rootState).hasServers).toBe(true);
+  });
+
+  it('does not flag isAddingServer when a server is selected', () => {
+    const rootState = {
+      servers: [{ url: 'https://server.test', title: 'Server' }],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).isAddingServer).toBe(false);
+  });
 });

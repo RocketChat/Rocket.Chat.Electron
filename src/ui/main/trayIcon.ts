@@ -75,10 +75,12 @@ const buildPresenceMenuItems = (
     connection,
     supported,
     loggedIn,
+    failed,
     hasServers,
+    isAddingServer,
   } = activeServerPresence;
 
-  if (!hasServers) {
+  if (!hasServers || isAddingServer) {
     return [
       {
         label: t('tray.presence.addWorkspace'),
@@ -106,7 +108,7 @@ const buildPresenceMenuItems = (
     ];
   }
 
-  if (supported === false) {
+  if (supported === false || failed) {
     return [];
   }
 

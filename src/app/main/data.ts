@@ -205,12 +205,21 @@ export const mergePersistableValues = async (
     String(mergedOverrides.allowInsecureOutlookConnections).toLowerCase() ===
       'true';
 
+  const isNotificationQuickReplyEnabled =
+    mergedOverrides.isNotificationQuickReplyEnabled === undefined
+      ? true
+      : mergedOverrides.isNotificationQuickReplyEnabled === true ||
+        String(
+          mergedOverrides.isNotificationQuickReplyEnabled
+        ).toLowerCase() === 'true';
+
   dispatch({
     type: APP_SETTINGS_LOADED,
     payload: {
       ...values,
       allowInsecureOutlookConnections: isInsecureOutlookEnabled,
       outlookCalendarSyncIntervalOverride,
+      isNotificationQuickReplyEnabled,
     },
   });
 

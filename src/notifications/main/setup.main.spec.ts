@@ -67,6 +67,7 @@ jest.mock('electron', () => {
 jest.mock('../../store', () => ({
   dispatch: (...args: unknown[]) => dispatch(...args),
   dispatchSingle: (...args: unknown[]) => dispatchSingle(...args),
+  select: () => true,
   listen: (type: string, listener: Function) => {
     listeners.set(type, listener);
     return () => listeners.delete(type);

@@ -14,6 +14,7 @@ import {
   trustedCertificates,
   notTrustedCertificates,
 } from '../navigation/reducers';
+import { isNotificationQuickReplyEnabled } from '../notifications/reducers/isNotificationQuickReplyEnabled';
 import { allowInsecureOutlookConnections } from '../outlookCalendar/reducers/allowInsecureOutlookConnections';
 import { outlookCalendarSyncInterval } from '../outlookCalendar/reducers/outlookCalendarSyncInterval';
 import { outlookCalendarSyncIntervalOverride } from '../outlookCalendar/reducers/outlookCalendarSyncIntervalOverride';
@@ -152,6 +153,7 @@ export const rootReducer = combineReducers({
   telephonyGlobalShortcutConfig,
   telephonyGlobalShortcutRegistrationStatus,
   isTelephonyEnabled,
+  isNotificationQuickReplyEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

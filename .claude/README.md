@@ -16,16 +16,17 @@ Shell scripts invoked automatically by `settings.json`. Each reads the tool
 call as JSON on stdin (`jq` to extract fields) and either allows, asks, or
 denies via the hook JSON protocol.
 
-| Hook                       | Purpose                                                                            | Trigger                                  |
-| -------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------- |
-| `block-sensitive-files.sh` | Deny edits to lock files and `.env*`                                               | `PreToolUse` on `Edit\|Write`            |
-| `require-impact.sh`        | Ask for confirmation when editing TS source without a recent GitNexus impact check | `PreToolUse` on `Edit\|Write`            |
-| `guard-workspace-build.sh` | Deny `yarn`/`npm build` run inside a workspace directory                           | `PreToolUse` on `Bash`                   |
-| `auto-format.sh`           | Run Prettier on the edited file                                                    | `PostToolUse` on `Edit\|Write`           |
-| `i18n-parity.sh`           | Report i18n key parity vs `en.i18n.json` after a locale edit                       | `PostToolUse` on `Edit\|Write`           |
-| `typecheck.sh`             | Run `tsc --noEmit` after editing a `.ts`/`.tsx` file                               | `PostToolUse` on `Edit\|Write` (async)   |
-| `mark-impact.sh`           | Record a timestamp marker when GitNexus impact analysis runs                       | `PostToolUse` on `mcp__gitnexus__impact` |
-| `clean-action-dist.sh`     | Remove the nested `desktop-release-action/dist/dist` after a workspace build       | `PostToolUse` on `Bash`                  |
+| Hook                          | Purpose                                                                            | Trigger                                  |
+| ----------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------- |
+| `block-sensitive-files.sh`    | Deny edits to lock files and `.env*`                                               | `PreToolUse` on `Edit\|Write`            |
+| `require-impact.sh`           | Ask for confirmation when editing TS source without a recent GitNexus impact check | `PreToolUse` on `Edit\|Write`            |
+| `guard-workspace-build.sh`    | Deny `yarn`/`npm build` run inside a workspace directory                           | `PreToolUse` on `Bash`                   |
+| `auto-format.sh`              | Run Prettier on the edited file                                                    | `PostToolUse` on `Edit\|Write`           |
+| `i18n-parity.sh`              | Report i18n key parity vs `en.i18n.json` after a locale edit                       | `PostToolUse` on `Edit\|Write`           |
+| `typecheck.sh`                | Run `tsc --noEmit` after editing a `.ts`/`.tsx` file                               | `PostToolUse` on `Edit\|Write` (async)   |
+| `mark-impact.sh`              | Record a timestamp marker when GitNexus impact analysis runs                       | `PostToolUse` on `mcp__gitnexus__impact` |
+| `clean-action-dist.sh`        | Remove the nested `desktop-release-action/dist/dist` after a workspace build       | `PostToolUse` on `Bash`                  |
+| `protect-default-branches.sh` | Deny `git commit`/`git push` on `dev`/`master` and force-push to them              | `PreToolUse` on `Bash`                   |
 
 `require-impact.sh` and `mark-impact.sh` enforce the AGENTS.md/CLAUDE.md rule
 "run impact analysis before editing any symbol" — `mark-impact.sh` timestamps
@@ -55,22 +56,24 @@ Invocable multi-step workflows (`SKILL.md` with `name`/`description`
 frontmatter; `disable-model-invocation: true` means the skill only runs when
 explicitly asked for, not auto-triggered by description match).
 
-| Skill              | Purpose                                                                                            | Invocation                                          |
-| ------------------ | -------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `new-spec`         | Scaffold a Jest spec in the correct runner path and verify discovery                               | model-invoked or explicit ask                       |
-| `pr-check`         | Pre-PR gate: `detect_changes`, lint, targeted tests, i18n parity, packaging/QA, drafts the PR body | model-invoked or explicit ask                       |
-| `qa-pack`          | Author/update a `qa/<feature-slug>/` pack from a diff and validate it                              | model-invoked or explicit ask                       |
-| `package-smoke`    | Run installer smoke tests (MSI VM, Linux AppImage/deb) via `watcher`                               | explicit ask only                                   |
-| `ship-release`     | Ship a release end-to-end, gated on user approval at every irreversible step                       | `/ship-release`, "ship release X.Y.Z"               |
-| `electron-build`   | Build and test the Electron app with worktree isolation                                            | model-invoked or explicit ask                       |
-| `electron-bump`    | Upgrade the Electron version with migration plan and impact analysis                               | "bump electron", `/electron-bump`                   |
-| `i18n-audit`       | Audit translation completeness across all language files                                           | model-invoked or explicit ask                       |
-| `i18n-translate`   | Translate new `en.i18n.json` keys into every other locale at feature completion                     | explicit ask only                                    |
-| `new-ipc-channel`  | Scaffold a new IPC channel with proper TypeScript types                                            | model-invoked or explicit ask                       |
-| `release-notes`    | Generate release notes from git history between tags                                               | model-invoked or explicit ask                       |
-| `boot-wedge-debug` | Debug the intermittent webview boot wedge via boot-watchdog logs and live CDP                      | wedge/throbber symptom mentioned                    |
-| `dev-app-verify`   | Drive and screenshot the running dev app for UI runtime verification                               | UI change needs visual verification                 |
-| `gitnexus/*`       | GitNexus CLI/exploration/debugging/refactoring/impact-analysis reference                           | vendored/regenerated by GitNexus — do not hand-edit |
+| Skill               | Purpose                                                                                            | Invocation                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `new-spec`          | Scaffold a Jest spec in the correct runner path and verify discovery                               | model-invoked or explicit ask                       |
+| `pr-check`          | Pre-PR gate: `detect_changes`, lint, targeted tests, i18n parity, packaging/QA, drafts the PR body | model-invoked or explicit ask                       |
+| `qa-pack`           | Author/update a `qa/<feature-slug>/` pack from a diff and validate it                              | model-invoked or explicit ask                       |
+| `package-smoke`     | Run installer smoke tests (MSI VM, Linux AppImage/deb) via `watcher`                               | explicit ask only                                   |
+| `ship-release`      | Ship a release end-to-end, gated on user approval at every irreversible step                       | `/ship-release`, "ship release X.Y.Z"               |
+| `electron-build`    | Build and test the Electron app with worktree isolation                                            | model-invoked or explicit ask                       |
+| `electron-bump`     | Upgrade the Electron version with migration plan and impact analysis                               | "bump electron", `/electron-bump`                   |
+| `i18n-audit`        | Audit translation completeness across all language files                                           | model-invoked or explicit ask                       |
+| `i18n-translate`    | Translate new `en.i18n.json` keys into every other locale at feature completion                    | explicit ask only                                   |
+| `new-ipc-channel`   | Scaffold a new IPC channel with proper TypeScript types                                            | model-invoked or explicit ask                       |
+| `release-notes`     | Generate release notes from git history between tags                                               | model-invoked or explicit ask                       |
+| `boot-wedge-debug`  | Debug the intermittent webview boot wedge via boot-watchdog logs and live CDP                      | wedge/throbber symptom mentioned                    |
+| `dev-app-verify`    | Drive and screenshot the running dev app for UI runtime verification                               | UI change needs visual verification                 |
+| `worktree-gc`       | Find and remove merged/abandoned git worktrees, local branches, and stashes                        | explicit ask only                                   |
+| `coderabbit-triage` | Triage unresolved CodeRabbit review threads on a PR: classify, fix, reply, resolve                 | explicit ask only                                   |
+| `gitnexus/*`        | GitNexus CLI/exploration/debugging/refactoring/impact-analysis reference                           | vendored/regenerated by GitNexus — do not hand-edit |
 
 ## agents/
 
@@ -87,3 +90,4 @@ followed inline rather than dispatched as a model/tools-scoped subagent.
 | `i18n-validator`             | Validate translation key completeness across language files                                                        | any `src/i18n/` file modified                                                                                    |
 | `cross-platform-validator`   | Review changes for Windows/macOS/Linux compatibility issues                                                        | cross-platform-sensitive code changes                                                                            |
 | `test-coverage-gap`          | Identify and prioritize source files/modules lacking test coverage                                                 | coverage review requests                                                                                         |
+| `ci-failure-triage`          | Classify a failed GitHub Actions run as known-flaky vs real                                                        | failed CI run needs triage                                                                                       |

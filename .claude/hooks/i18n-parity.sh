@@ -8,6 +8,14 @@ if [ -z "$FILE_PATH" ]; then
   exit 0
 fi
 
+# Hooks fire for any path a subagent edits, including other repos — only act
+# on paths inside this project.
+ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+case "$FILE_PATH" in
+  "$ROOT"/*) ;;
+  *) exit 0 ;;
+esac
+
 [[ "$FILE_PATH" == *"/src/i18n/"* || "$FILE_PATH" == src/i18n/* ]] || exit 0
 [[ "$FILE_PATH" == *.i18n.json ]] || exit 0
 

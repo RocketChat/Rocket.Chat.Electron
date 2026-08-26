@@ -132,34 +132,23 @@ match. If not applicable, mark "n/a".
 
 ## Output: PR body draft
 
-After the checklist, print a draft PR body (do not create the PR):
+Read `.github/PULL_REQUEST_TEMPLATE.md` and fill its actual sections —
+do not invent a different structure. As of this writing the template
+asks for:
 
-```markdown
-## Summary
+- A `Closes #ISSUE_NUMBER` line (fill the real issue number if one
+  exists, otherwise remove the line per the template's own instruction).
+- A free-form "tell us more about your PR" section — use this for a
+  short summary of what changed and why, plus a "How verified" list
+  citing each check from the checklist above with its real result
+  (e.g. `yarn lint`: pass; `yarn test --runTestsByPath ...`: pass/fail
+  counts; GitNexus `detect_changes`: summary).
+- Screenshots if the diff touches UI (per the template's own prompt).
 
-<1-3 sentences: what changed and why, plain language>
+Re-read the template file at skill-run time in case it changed — do not
+rely on the structure described above if the live file differs.
 
-## What changed
-
-- <bullet per meaningful change, derived from the diff>
-
-## Why
-
-<the motivating bug/requirement, not restated file names>
-
-## How verified
-
-- `yarn lint`: <pass/fail, real output>
-- `yarn test --runTestsByPath ...`: <pass/fail counts, real output>
-- GitNexus `detect_changes`: <summary, real output>
-- <any other check from above with a real result>
-
-## Screenshots
-
-<only if UI changed; otherwise omit this section>
-```
-
-Every line under "How verified" must cite an actual command and its
+Every claim in the drafted body must cite an actual command and its
 actual result from this run — no estimated coverage, no speculated
 user impact, no invented timing numbers (AGENTS.md Writing rules).
 

@@ -9,7 +9,7 @@ disable-model-invocation: true
 Find git worktrees, local branches, and stashes that are safe to remove
 because their work already merged or was abandoned. Always dry-run first
 and STOP for explicit confirmation before deleting anything. This skill
-runs from the main checkout (`/Users/jean/Github/Rocket.Chat.Electron`);
+runs from the main checkout (the project root);
 per AGENTS.md, project worktrees live under
 `../Rocket.Chat.Electron-worktrees/` (sibling of the main checkout, created
 via `git worktree add ../Rocket.Chat.Electron-worktrees/<name> -b <branch> master`).
@@ -59,6 +59,10 @@ git branch --merged origin/dev
 Exclude `dev`, `master`, and the current branch. Every remaining name is
 a candidate for `git branch -d` (only after its worktree, if any, is
 removed first — a branch checked out in a worktree cannot be deleted).
+Branches whose PR was squash-merged are refused by `-d` because their
+commits are not ancestors of `origin/dev`; list them separately with the
+merged PR number and delete with `-D` only after the user explicitly
+asks for it.
 
 ### 5. Stashes — list only, never auto-drop
 
@@ -102,8 +106,7 @@ Stashes: drop only the specific stash(es) the user names, one at a time
 
 ## Safety rules
 
-- Never remove the main worktree (`/Users/jean/Github/Rocket.Chat.Electron`)
-  or the worktree Claude Code is currently running in.
+- Never remove the main worktree (the project root) or the worktree Claude Code is currently running in.
 - Never remove a dirty worktree (non-empty `git status --porcelain`).
 - Never remove a worktree whose branch has an open PR.
 - Never pass `--force` to `git worktree remove` or `-D` to `git branch`

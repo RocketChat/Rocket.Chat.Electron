@@ -43,6 +43,7 @@ import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
 import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnabled';
+import { isPresenceDisconnectionSimulated } from '../ui/reducers/isPresenceDisconnectionSimulated';
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isSettingsWindowOpen } from '../ui/reducers/isSettingsWindowOpen';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
@@ -143,6 +144,7 @@ export const rootReducer = combineReducers({
   updateChannel,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
+  isPresenceDisconnectionSimulated,
   isDownloadsWindowOpen,
   isLogViewerWindowOpen,
   isTransparentWindowEnabled,

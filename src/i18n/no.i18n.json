@@ -399,7 +399,8 @@
     "viewMenu": "Visning",
     "windowMenu": "Vindu",
     "zoomIn": "Zoom inn",
-    "zoomOut": "Zoom ut"
+    "zoomOut": "Zoom ut",
+    "simulateDisconnected": "Simuler frakobling"
   },
   "loadingError": {
     "title": "Serveren kunne ikke lastes inn",
@@ -514,6 +515,16 @@
         "title": "{{- appName}} kjører fortsatt",
         "content": "{{- appName }} er satt til å fortsette å kjøre i systemstatusfeltet/meldingsområdet."
       }
+    },
+    "presence": {
+      "status": "Status",
+      "online": "Pålogget",
+      "away": "Borte",
+      "busy": "Opptatt",
+      "offline": "Frakoblet",
+      "disconnected": "Frakoblet — prøver å koble til på nytt...",
+      "signIn": "Logg på {{- workspace}}",
+      "addWorkspace": "Legg til arbeidsområde"
     }
   },
   "taskbar": {

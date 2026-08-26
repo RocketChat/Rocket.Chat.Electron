@@ -231,7 +231,8 @@
     "viewMenu": "显示 (&V)",
     "windowMenu": "窗口 (&W)",
     "zoomIn": "放大",
-    "zoomOut": "缩小"
+    "zoomOut": "缩小",
+    "simulateDisconnected": "模拟断开连接"
   },
   "loadingError": {
     "title": "服务器载入失败",
@@ -317,6 +318,16 @@
       "unreadMention": "{{- appName}}: 您有未读的直接或提及到您的信息",
       "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未读的直接或提及到您的信息",
       "unreadMessage": "{{- appName}}: 您有未读的信息"
+    },
+    "presence": {
+      "status": "状态",
+      "online": "在线",
+      "away": "离开",
+      "busy": "忙碌",
+      "offline": "离线",
+      "disconnected": "已断开连接 — 正在尝试重新连接...",
+      "signIn": "登录 {{- workspace}}",
+      "addWorkspace": "添加工作区"
     }
   },
   "taskbar": {

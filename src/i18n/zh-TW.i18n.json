@@ -168,7 +168,8 @@
     "viewMenu": "檢視 (&V)",
     "windowMenu": "視窗 (&W)",
     "zoomIn": "放大",
-    "zoomOut": "縮小"
+    "zoomOut": "縮小",
+    "simulateDisconnected": "模擬中斷連線"
   },
   "loadingError": {
     "title": "伺服器載入失敗",
@@ -235,6 +236,16 @@
       "unreadMention": "{{- appName}}: 您有未讀的直接或提及到您的訊息",
       "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未讀的直接或提及到您的訊息",
       "unreadMessage": "{{- appName}}: 您有未讀的訊息"
+    },
+    "presence": {
+      "status": "狀態",
+      "online": "線上",
+      "away": "離開",
+      "busy": "忙碌",
+      "offline": "離線",
+      "disconnected": "已中斷連線 — 正在嘗試重新連線...",
+      "signIn": "登入 {{- workspace}}",
+      "addWorkspace": "新增工作區"
     }
   },
   "taskbar": {

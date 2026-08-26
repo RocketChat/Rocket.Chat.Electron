@@ -84,5 +84,20 @@
       "label": "Scadenza:",
       "expiresOn": "Scade il {{date}}"
     }
+  },
+  "menus": {
+    "simulateDisconnected": "Simula disconnessione"
+  },
+  "tray": {
+    "presence": {
+      "status": "Stato",
+      "online": "Online",
+      "away": "Assente",
+      "busy": "Occupato",
+      "offline": "Offline",
+      "disconnected": "Disconnesso — tentativo di riconnessione...",
+      "signIn": "Accedi a {{- workspace}}",
+      "addWorkspace": "Aggiungi area di lavoro"
+    }
   }
 }

@@ -160,6 +160,10 @@ type ChannelToArgsMap = {
   'screen-picker/screen-recording-is-permission-granted': () => boolean;
   'screen-picker/open-url': (url: string) => void;
   'telephony/get-diagnostics': () => TelephonyDiagnostics;
+  'presence/change-requested': (
+    status: NonNullable<Server['presence']>,
+    statusText?: string
+  ) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

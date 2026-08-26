@@ -339,7 +339,8 @@
     "viewMenu": "Darstellung",
     "windowMenu": "&Fenster",
     "zoomIn": "Vergrößern",
-    "zoomOut": "Verkleinern"
+    "zoomOut": "Verkleinern",
+    "simulateDisconnected": "Verbindungsabbruch simulieren"
   },
   "loadingError": {
     "title": "Server konnte nicht geladen werden",
@@ -437,6 +438,16 @@
         "title": "{{- appName}} läuft noch",
         "content": "{{- appName }} ist so eingestellt, dass es in der Taskleiste/im Benachrichtigungsbereich ausgeführt wird."
       }
+    },
+    "presence": {
+      "status": "Status",
+      "online": "Online",
+      "away": "Abwesend",
+      "busy": "Beschäftigt",
+      "offline": "Offline",
+      "disconnected": "Verbindung getrennt — Verbindung wird erneut hergestellt...",
+      "signIn": "Bei {{- workspace}} anmelden",
+      "addWorkspace": "Arbeitsbereich hinzufügen"
     }
   },
   "taskbar": {

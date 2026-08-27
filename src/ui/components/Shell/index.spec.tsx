@@ -96,11 +96,6 @@ jest.mock('../TopBar/DownloadsIndicator', () => ({
   ),
 }));
 
-jest.mock('../AboutDialog', () => ({
-  __esModule: true,
-  AboutDialog: () => <div data-testid='about-dialog' />,
-}));
-
 jest.mock('../ServerInfoModal', () => ({
   __esModule: true,
   ServerInfoModal: () => <div data-testid='server-info-modal' />,
@@ -215,7 +210,6 @@ describe('Shell', () => {
   it('mounts the top-level dialogs', () => {
     renderWithStore(<Shell />, { preloadedState: buildState() });
 
-    expect(screen.getByTestId('about-dialog')).toBeInTheDocument();
     expect(screen.getByTestId('server-info-modal')).toBeInTheDocument();
     expect(screen.getByTestId('supported-version-dialog')).toBeInTheDocument();
     expect(screen.getByTestId('clear-cache-dialog')).toBeInTheDocument();

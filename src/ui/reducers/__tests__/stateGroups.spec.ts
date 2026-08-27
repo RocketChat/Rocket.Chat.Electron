@@ -54,9 +54,9 @@ describe('currentView reducer', () => {
     expect(
       currentView('add-new-server', {
         type: APP_SETTINGS_LOADED,
-        payload: { currentView: 'downloads' },
+        payload: { currentView: { url: 'https://saved.example' } },
       } as any)
-    ).toEqual('downloads');
+    ).toEqual({ url: 'https://saved.example' });
     expect(
       currentView('add-new-server', {
         type: DEEP_LINKS_SERVER_ADDED,
@@ -71,13 +71,29 @@ describe('currentView reducer', () => {
     ).toEqual({ url: 'https://focused.example' });
   });
 
-  it('handles focus/download/action transitions', () => {
+  it.each(['downloads', 'settings'])(
+    'ignores a persisted %s view, which the root window no longer has',
+    (retired) => {
+      // Restoring it would strand the reader there: the sidebar buttons that
+      // used to leave those views now open windows instead.
+      expect(
+        currentView({ url: 'https://abc' }, {
+          type: APP_SETTINGS_LOADED,
+          payload: { currentView: retired },
+        } as any)
+      ).toEqual({ url: 'https://abc' });
+    }
+  );
+
+  it('focuses the requested server whatever view the request names', () => {
+    // Downloads open in a window of their own now, so a focus request only
+    // ever selects a server.
     expect(
       currentView({ url: 'https://abc' }, {
         type: uiActions.WEBVIEW_FOCUS_REQUESTED,
         payload: { url: 'https://focused.example', view: 'downloads' },
       } as any)
-    ).toBe('downloads');
+    ).toEqual({ url: 'https://focused.example' });
 
     expect(
       currentView({ url: 'https://abc' }, {
@@ -122,17 +138,19 @@ describe('currentView reducer', () => {
       } as any)
     ).toEqual('add-new-server');
 
+    // Downloads open in their own window, so the root window keeps its view.
     expect(
       currentView('settings', {
         type: uiActions.SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
       } as any)
-    ).toEqual('downloads');
+    ).toEqual('settings');
 
+    // Settings open in their own window now, so the root window stays put.
     expect(
       currentView('downloads', {
         type: uiActions.SIDE_BAR_SETTINGS_BUTTON_CLICKED,
       } as any)
-    ).toEqual('settings');
+    ).toEqual('downloads');
 
     expect(
       currentView('downloads', {
@@ -311,10 +329,7 @@ describe('dialogs reducer', () => {
 describe('openDialog reducer', () => {
   it('sets and clears open dialog state', () => {
     expect(
-      openDialog(null, { type: uiActions.MENU_BAR_ABOUT_CLICKED } as any)
-    ).toBe('about');
-    expect(
-      openDialog('about', {
+      openDialog('screen-sharing', {
         type: navigationActions.CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
       } as any)
     ).toBe('select-client-certificate');
@@ -335,23 +350,15 @@ describe('openDialog reducer', () => {
   });
 
   it('ignores unknown actions', () => {
-    expect(openDialog('about', { type: 'UNKNOWN_DIALOG_ACTION' } as any)).toBe(
-      'about'
-    );
+    expect(
+      openDialog('screen-sharing', { type: 'UNKNOWN_DIALOG_ACTION' } as any)
+    ).toBe('screen-sharing');
     expect(
       openDialog(undefined, { type: 'UNKNOWN_DIALOG_ACTION' } as any)
     ).toBe(null);
   });
 
   it('handles dismiss actions and alternate branches', () => {
-    expect(
-      openDialog('about', { type: uiActions.ABOUT_DIALOG_DISMISSED } as any)
-    ).toBe(null);
-
-    expect(
-      openDialog('settings', { type: uiActions.ABOUT_DIALOG_DISMISSED } as any)
-    ).toBe('settings');
-
     expect(
       openDialog(null, {
         type: outlookActions.OUTLOOK_CALENDAR_DIALOG_DISMISSED,

@@ -116,10 +116,14 @@ marked.use({
 const MarkdownContent = ({
   url,
   partition,
+  isRaw = false,
 }: {
   url: string;
   partition: string;
+  /** Show the markdown source as written instead of rendering it. */
+  isRaw?: boolean;
 }) => {
+  const [source, setSource] = useState('');
   const [htmlContent, setHtmlContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +177,9 @@ const MarkdownContent = ({
       .invoke('document-viewer/fetch-content', url, serverUrl)
       .then((text: string) => {
         if (cancelled) return;
+        // Kept alongside the rendered HTML so switching to source and back is
+        // instant rather than another round trip to the workspace.
+        setSource(text);
         return marked.parse(text);
       })
       .then((html) => {
@@ -228,8 +235,31 @@ const MarkdownContent = ({
     );
   }
 
+  if (isRaw) {
+    return (
+      <Box overflow='auto' position='absolute' style={{ inset: 0 }}>
+        <Box
+          is='pre'
+          color='default'
+          fontScale='p2'
+          style={{
+            margin: 0,
+            padding: '32px 40px 64px',
+            fontFamily:
+              'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            userSelect: 'text',
+          }}
+        >
+          {source}
+        </Box>
+      </Box>
+    );
+  }
+
   return (
-    <Box overflow='auto' position='absolute' style={{ inset: 0 }} bg='surface'>
+    <Box overflow='auto' position='absolute' style={{ inset: 0 }}>
       <Box
         ref={containerRef}
         className='markdown-body'

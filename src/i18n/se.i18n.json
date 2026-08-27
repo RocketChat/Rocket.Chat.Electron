@@ -46,5 +46,20 @@
       "label": "Utgångsdatum:",
       "expiresOn": "Upphör {{date}}"
     }
+  },
+  "menus": {
+    "simulateDisconnected": "Simuler čađaheami"
+  },
+  "tray": {
+    "presence": {
+      "status": "Stáhtus",
+      "online": "Fárrolaš",
+      "away": "Eret",
+      "busy": "Bargguid alde",
+      "offline": "Ii fárrolaš",
+      "disconnected": "Čatnasat gaskkalduvvon — geahččalit ođđasit čatnasit...",
+      "signIn": "Čálihuvvo {{- workspace}} bargobáikái",
+      "addWorkspace": "Lasit bargobáikki"
+    }
   }
 }

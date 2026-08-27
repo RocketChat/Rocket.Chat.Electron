@@ -10,6 +10,9 @@ export interface ILogEntryType {
   id: string;
   timestamp: string;
   level: LogLevel;
+  /** Bracketed context tags in the order they were logged. */
+  contextTags: string[];
+  /** `contextTags` joined with spaces, for free-text search. */
   context: string;
   message: string;
   raw: string;

@@ -189,7 +189,8 @@
     "viewMenu": "&Görünüm",
     "windowMenu": "&Pencereler",
     "zoomIn": "Yakınlaştır",
-    "zoomOut": "Uzaklaştır"
+    "zoomOut": "Uzaklaştır",
+    "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et"
   },
   "loadingError": {
     "title": "Sunucu yüklenirken hata oluştu",
@@ -277,6 +278,16 @@
       "unreadMention": "{{- appName}}: okunmamış bahsetme/direkt mesajınız var",
       "unreadMention_plural": "{{- appName}}: {{- count}} okunmamış bahsetme/direkt mesajınız var",
       "unreadMessage": "{{- appName}}: okunmamış mesajınız var"
+    },
+    "presence": {
+      "status": "Durum",
+      "online": "Çevrimiçi",
+      "away": "Uzakta",
+      "busy": "Meşgul",
+      "offline": "Çevrimdışı",
+      "disconnected": "Bağlantı kesildi — yeniden bağlanmaya çalışılıyor...",
+      "signIn": "{{- workspace}} alanına giriş yap",
+      "addWorkspace": "Çalışma alanı ekle"
     }
   },
   "taskbar": {

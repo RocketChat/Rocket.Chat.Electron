@@ -1,15 +1,32 @@
-import type { Server } from '../../servers/common';
+import type { UserPresence } from '../../servers/common';
 import AppIcon from './AppIcon';
-import Badge from './Badge';
+import DisconnectedBadge from './DisconnectedBadge';
+import PresenceBullet from './PresenceBullet';
+import PresenceBulletCutout from './PresenceBulletCutout';
 
 type LinuxTrayIconProps = {
-  badge?: Server['badge'];
+  presence?: UserPresence;
+  disconnected?: boolean;
 };
 
-const LinuxTrayIcon = ({ badge }: LinuxTrayIconProps) => {
-  const color = '#9EA2A8';
+// Linux is status-only, same as macOS/Windows — the unread count lives in
+// the tray tooltip instead of the icon.
+const LinuxTrayIcon = ({ presence, disconnected }: LinuxTrayIconProps) => {
+  let overlay;
+  let cutout;
+  if (disconnected) {
+    overlay = <DisconnectedBadge />;
+    cutout = <PresenceBulletCutout />;
+  } else if (presence) {
+    overlay = <PresenceBullet presence={presence} />;
+    cutout = <PresenceBulletCutout />;
+  }
 
-  return <AppIcon color={color}>{!!badge && <Badge value={badge} />}</AppIcon>;
+  return (
+    <AppIcon color='#9EA2A8' cutout={cutout}>
+      {overlay}
+    </AppIcon>
+  );
 };
 
 export default LinuxTrayIcon;

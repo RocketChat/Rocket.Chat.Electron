@@ -205,7 +205,8 @@
     "viewMenu": "&Widok",
     "windowMenu": "&Okno",
     "zoomIn": "Przybliż",
-    "zoomOut": "Oddal"
+    "zoomOut": "Oddal",
+    "simulateDisconnected": "Symuluj rozłączenie"
   },
   "loadingError": {
     "title": "Błąd ładowania serwera",
@@ -299,6 +300,16 @@
         "title": "{{- appName}} wciąż działa",
         "content": "{{- appName }} jest ustawiony aby działał w zasobniku systemowym/obszarze powiadomień."
       }
+    },
+    "presence": {
+      "status": "Status",
+      "online": "Dostępny",
+      "away": "Zaraz wracam",
+      "busy": "Zajęty",
+      "offline": "Offline",
+      "disconnected": "Rozłączono — próba ponownego połączenia...",
+      "signIn": "Zaloguj się do {{- workspace}}",
+      "addWorkspace": "Dodaj obszar roboczy"
     }
   },
   "taskbar": {

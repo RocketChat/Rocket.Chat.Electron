@@ -25,6 +25,9 @@ yarn workspaces:build        # Build all workspaces
 - After building `desktop-release-action`, remove the nested dist:
   `rm -rf workspaces/desktop-release-action/dist/dist` — the action only
   needs `workspaces/desktop-release-action/dist/index.js`.
+- `app/` mirrors `src/public` (the `syncPublicAssets()` rollup plugin):
+  files removed from `src/public` are purged from `app/` on build, and
+  `yarn start`'s watcher rebuilds/relaunches when `src/public` assets change.
 
 ## Branching Model
 
@@ -72,6 +75,10 @@ yarn workspaces:build        # Build all workspaces
   `26080`, the second same-month build is `26081`. Check the current value
   and the date of its last bump (`git log -p --follow -- electron-builder.json`)
   before incrementing — do not guess an arbitrary increment.
+- `yarn build-assets` re-encodes every PNG/ICO it touches, including ones
+  whose source did not change; commit only the assets whose SVG/component
+  changed and `git checkout --` the rest (byte noise otherwise floods the
+  diff).
 
 ## Releases And Tagging
 
@@ -134,6 +141,20 @@ yarn workspaces:build        # Build all workspaces
   color/animation tokens, read `docs/desktop-ui-guidelines.md` — token
   semantics and traps, Fuselage geometry/timing facts, the button-dimming and
   SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
+- Tray icons are status-only on macOS, Windows and Linux: six states per
+  platform — `default`, `presence-{online,away,busy,offline}`, `disconnected`
+  (`src/ui/main/icons.ts`). The unread count is never baked into the tray
+  image; it lives on the Windows taskbar overlay (`rootWindow.ts`
+  `setOverlayIcon`), the macOS menu-bar title and the Linux tray tooltip.
+- Presence bullets reuse Fuselage `StatusBullet` glyphs
+  (`src/ui/icons/PresenceBullet.tsx`: filled / clock cut-out / bar cut-out /
+  hollow ring; `DisconnectedBadge.tsx`: filled amber with a bold `!`). Any
+  overlay with transparent cut-outs or a hollow shape MUST pass `AppIcon`'s
+  `cutout` prop (`PresenceBulletCutout`), otherwise the rocket shows through
+  the holes.
+- Tray-menu bullet icons are 12pt assets under `src/public/images/presence/`
+  (regenerate with `yarn build-assets --presence-menu-icons`), matching
+  Fuselage's 12px bullet next to 14px text.
 
 ## Testing
 
@@ -152,8 +173,12 @@ yarn workspaces:build        # Build all workspaces
   paint (a clipped SVG passes every DOM assertion). Use the `dev-app-verify`
   skill (`skills/dev-app-verify/SKILL.md`) to drive and screenshot the running
   `yarn start` app via the port-9339 inspector, and the Developer Mode menu
-  items (`Simulate Update Flow` / `Simulate Download`) to exercise the flows
-  without real downloads/updates.
+  items (`Simulate Update Flow` / `Simulate Download` / `Simulate
+  Disconnected`) to exercise the flows without real downloads/updates.
+  `Simulate Disconnected` is a Developer menu checkbox that forces the active
+  workspace's presence connection to `disconnected` read-side only — the real
+  connection stays up — so the disconnected tray icon and menu line can be
+  checked without dropping the network.
 - Screen-capture / WebRTC / portal behavior CANNOT be validated in
   software-rendered VMs — Chromium gates the PipeWire capture path on
   hardware GL (the gate moves between Electron versions). Validate on
@@ -172,6 +197,42 @@ const runtimeDir = process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.(
   Only mock when defensive coding isn't possible. Linux-only APIs requiring
   this: `process.getuid()`, `process.getgid()`, `process.geteuid()`,
   `process.getegid()`.
+
+## Windows Notifications
+
+- A Windows Action Center card stays repliable indefinitely, and Electron emits
+  the JS `close` event when the banner times out
+  (`NotificationDismissed(should_destroy=false)`). Calling `close()` on the
+  instance does NOT remove the card. Do NOT tie per-notification state — reply
+  routing, target webContents, preload event handlers — to a `close` or dismiss
+  signal, or replies typed later are dropped. Keep it (bounded) until the app
+  decides the notification is finished.
+- The web client auto-closes every desktop notification 10s after showing it
+  (`useNotification.ts`; the server never sends `duration`, so the fallback is
+  always used). Expect that close to arrive while the card is still on screen.
+- Only reply and action-button interactions carry activation arguments
+  (`type=...&tag=<id>`, read via `Notification.handleActivation`, win32).
+  A click on the toast body carries none and arrives ONLY as the instance
+  `click` event — keep that listener unconditional.
+- `Notification.handleActivation` REPLACES the stored callback rather than
+  adding one. A debug probe that registers its own handler silently
+  unregisters the app's — do not use it to observe production behavior.
+- Enter does NOT submit a toast reply; only the toast's Reply button does, and
+  the card closes on submit whether or not the app received anything. Assert
+  replies by querying the server for the message, never by watching the UI.
+- Log dropped activations through `loggers.notifications`
+  (`src/logging/scopes.ts`). `console.warn` from the main process is invisible
+  in packaged builds, which makes a dropped reply untraceable in the field.
+- Full investigation history:
+  `docs/postmortem-notification-quick-reply-sup-1097.md`.
+
+## Startup Debugging
+
+- `yarn start` relaunches Electron once per rollup bundle for the first
+  ~60 s (each `writeBundle` restarts the app), so the tray/menu-bar icon
+  flickers or is absent until `waiting for changes` prints. Judge tray state
+  only after that, and `pkill` orphaned worktree Electrons first — a
+  leftover instance keeps port 9339 and shows a second menu-bar icon.
 
 ## QA Flow Authoring
 

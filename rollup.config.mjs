@@ -1,5 +1,7 @@
 import { spawn } from 'child_process';
+import fs from 'fs';
 import { mkdir, writeFile } from 'fs/promises';
+import path from 'path';
 
 import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
@@ -209,6 +211,91 @@ const downloadSupportedVersions = () => {
   };
 };
 
+// rollup-plugin-copy only adds/overwrites files, it never deletes, so an
+// asset removed from src/public would otherwise linger in app/ forever
+// (stale tray icons surviving in dev and even packaged builds). It also
+// doesn't register src/public with rollup's watcher, so regenerated
+// PNG/ICO assets never trigger a rebuild/relaunch on their own. This plugin
+// watches src/public directly and mirrors it into app/, purging anything
+// under a mirrored subtree that no longer has a source counterpart.
+const syncPublicAssets = () => {
+  const srcDir = path.resolve('src/public');
+  const destDir = path.resolve('app');
+
+  const walk = (dir) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const files = [];
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...walk(fullPath));
+      } else if (entry.isFile()) {
+        files.push(fullPath);
+      }
+    }
+    return files;
+  };
+
+  return {
+    name: 'sync-public-assets',
+    buildStart() {
+      for (const filePath of walk(srcDir)) {
+        this.addWatchFile(filePath);
+      }
+    },
+    writeBundle() {
+      const srcFiles = walk(srcDir);
+
+      // Mirror: copy every source file to its destination, creating
+      // directories as needed.
+      for (const srcFile of srcFiles) {
+        const relPath = path.relative(srcDir, srcFile);
+        const destFile = path.join(destDir, relPath);
+        fs.mkdirSync(path.dirname(destFile), { recursive: true });
+        fs.copyFileSync(srcFile, destFile);
+      }
+
+      // Purge: only within subtrees mirrored from src/public (currently
+      // just images/), remove destination files with no source
+      // counterpart, then remove directories left empty.
+      const srcSubdirs = fs
+        .readdirSync(srcDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
+
+      const srcRelSet = new Set(
+        srcFiles.map((srcFile) => path.relative(srcDir, srcFile))
+      );
+
+      const purgeDir = (destSubDir) => {
+        if (!fs.existsSync(destSubDir)) {
+          return;
+        }
+        const entries = fs.readdirSync(destSubDir, { withFileTypes: true });
+        for (const entry of entries) {
+          const destPath = path.join(destSubDir, entry.name);
+          if (entry.isDirectory()) {
+            purgeDir(destPath);
+            if (fs.readdirSync(destPath).length === 0) {
+              fs.rmdirSync(destPath);
+            }
+          } else if (entry.isFile()) {
+            const relPath = path.relative(destDir, destPath);
+            if (!srcRelSet.has(relPath)) {
+              fs.unlinkSync(destPath);
+            }
+          }
+        }
+      };
+
+      for (const subdir of srcSubdirs) {
+        const destSubDir = path.join(destDir, subdir);
+        purgeDir(destSubDir);
+      }
+    },
+  };
+};
+
 const extensions = ['.js', '.ts', '.tsx'];
 
 // Match dependency subpaths (e.g. `react-dom/client`) as external too. An
@@ -261,6 +348,96 @@ export default [
   {
     external: makeExternal(['@bugsnag/js']),
     input: 'src/logViewerWindow/log-viewer-window.tsx',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+      run(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
+    external: makeExternal(['@bugsnag/js']),
+    input: 'src/downloadsWindow/downloads-window.tsx',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+      run(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
+    external: makeExternal(['@bugsnag/js']),
+    input: 'src/settingsWindow/settings-window.tsx',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+      run(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
+    external: makeExternal(['@bugsnag/js']),
+    input: 'src/documentViewerWindow/document-viewer-window.tsx',
     preserveEntrySignatures: 'strict',
     plugins: [
       json(),
@@ -451,10 +628,10 @@ export default [
     plugins: [
       copy({
         targets: [
-          { src: 'src/public/*', dest: 'app' },
           { src: 'node_modules/@rocket.chat/icons/dist/*', dest: 'app/icons' },
         ],
       }),
+      syncPublicAssets(),
       downloadSupportedVersions(),
       json(),
       replace({

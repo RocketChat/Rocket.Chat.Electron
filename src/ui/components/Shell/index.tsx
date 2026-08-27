@@ -3,7 +3,6 @@ import { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
-import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
 import { ClearCacheDialog } from '../ClearCacheDialog';
 import DownloadsManagerView from '../DownloadsManagerView';
@@ -189,7 +188,6 @@ export const Shell = () => {
           </Box>
         </Box>
       </Box>
-      <AboutDialog />
       <ServerInfoModal />
       <SupportedVersionDialog />
       <ScreenSharingDialog />

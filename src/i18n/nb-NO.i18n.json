@@ -46,5 +46,20 @@
       "label": "Utløpsdato:",
       "expiresOn": "Utløper {{date}}"
     }
+  },
+  "menus": {
+    "simulateDisconnected": "Simuler frakobling"
+  },
+  "tray": {
+    "presence": {
+      "status": "Status",
+      "online": "Pålogget",
+      "away": "Borte",
+      "busy": "Opptatt",
+      "offline": "Frakoblet",
+      "disconnected": "Frakoblet — prøver å koble til på nytt...",
+      "signIn": "Logg på {{- workspace}}",
+      "addWorkspace": "Legg til arbeidsområde"
+    }
   }
 }

@@ -20,7 +20,6 @@ import { openVideoCallWebviewDevTools } from '../../videoCallWindow/ipc';
 import {
   APP_MENU_TRIGGERED,
   CLEAR_CACHE_TRIGGERED,
-  MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
   MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
@@ -32,6 +31,7 @@ import {
   OPEN_SERVER_INFO_MODAL,
   SERVER_CONTEXT_MENU_TRIGGERED,
   SERVER_SWITCHER_MENU_TRIGGERED,
+  SET_PRESENCE_DISCONNECTION_SIMULATED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SERVER_COPY_URL,
@@ -54,7 +54,9 @@ const on = (
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
-const createSimulationMenuItems = (): MenuItemConstructorOptions[] => [
+const createSimulationMenuItems = (
+  isPresenceDisconnectionSimulated: boolean
+): MenuItemConstructorOptions[] => [
   {
     id: 'simulateUpdate',
     label: t('menus.simulateUpdate'),
@@ -79,6 +81,24 @@ const createSimulationMenuItems = (): MenuItemConstructorOptions[] => [
       }
       browserWindow.focus();
       dispatch({ type: DOWNLOADS_SIMULATION_REQUESTED });
+    },
+  },
+  {
+    id: 'simulateDisconnected',
+    label: t('menus.simulateDisconnected'),
+    type: 'checkbox',
+    checked: isPresenceDisconnectionSimulated,
+    click: async () => {
+      const browserWindow = await getRootWindow();
+
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
+      dispatch({
+        type: SET_PRESENCE_DISCONNECTION_SIMULATED,
+        payload: !isPresenceDisconnectionSimulated,
+      });
     },
   },
 ];
@@ -108,17 +128,18 @@ const selectAddServersDeps = createStructuredSelector({
     isAddNewServersEnabled,
 });
 
+/**
+ * macOS only, and deliberately the system panel rather than anything of ours:
+ * every Mac app has this item in the same place, and the version and copyright
+ * it shows come from the bundle. Windows and Linux have no such convention, so
+ * they get no About item at all — the version lives in the settings window's
+ * Advanced section instead.
+ */
 const createAboutMenuItem = (): MenuItemConstructorOptions => ({
   id: 'about',
   label: t('menus.about', { appName: app.name }),
-  click: async () => {
-    const browserWindow = await getRootWindow();
-
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
-    }
-    browserWindow.focus();
-    dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+  click: () => {
+    app.showAboutPanel();
   },
 });
 
@@ -591,6 +612,9 @@ const selectWindowDeps = createStructuredSelector({
   isUpdatingAllowed: ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
   isUpdatingEnabled: ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled,
   updateStore: ({ updateStore }: RootState) => updateStore,
+  isPresenceDisconnectionSimulated: ({
+    isPresenceDisconnectionSimulated,
+  }: RootState) => isPresenceDisconnectionSimulated,
 });
 
 export const createWindowMenu = createSelector(
@@ -741,6 +765,9 @@ const selectHelpDeps = createStructuredSelector({
   isVideoCallDevtoolsAutoOpenEnabled: ({
     isVideoCallDevtoolsAutoOpenEnabled,
   }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
+  isPresenceDisconnectionSimulated: ({
+    isPresenceDisconnectionSimulated,
+  }: RootState) => isPresenceDisconnectionSimulated,
 });
 
 export const createHelpMenu = createSelector(
@@ -748,6 +775,7 @@ export const createHelpMenu = createSelector(
   ({
     isDeveloperModeEnabled,
     isVideoCallDevtoolsAutoOpenEnabled,
+    isPresenceDisconnectionSimulated,
   }): MenuItemConstructorOptions => ({
     id: 'helpMenu',
     label: t('menus.helpMenu'),
@@ -846,7 +874,9 @@ export const createHelpMenu = createSelector(
           });
         },
       },
-      ...on(isDeveloperModeEnabled, createSimulationMenuItems),
+      ...on(isDeveloperModeEnabled, () =>
+        createSimulationMenuItems(isPresenceDisconnectionSimulated)
+      ),
       {
         id: 'videoCallToolsSubmenu',
         label: t('menus.videoCallTools'),
@@ -941,21 +971,6 @@ export const createHelpMenu = createSelector(
           openExternal(urls.rocketchat.site);
         },
       },
-      ...on(process.platform !== 'darwin', () => [
-        {
-          id: 'about',
-          label: t('menus.about', { appName: app.name }),
-          click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
-            dispatch({ type: MENU_BAR_ABOUT_CLICKED });
-          },
-        },
-      ]),
     ],
   })
 );
@@ -981,11 +996,7 @@ const createRocketChatMenu = createSelector(
   (): MenuItemConstructorOptions => ({
     id: 'rocketChatMenu',
     label: app.name,
-    submenu: [
-      createAboutMenuItem(),
-      { type: 'separator' },
-      createDisableGpuMenuItem(),
-    ],
+    submenu: [createDisableGpuMenuItem()],
   })
 );
 
@@ -1012,6 +1023,8 @@ export const selectAppMenuPopupTemplate = createSelector(
     ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
     ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled,
     ({ updateStore }: RootState) => updateStore,
+    ({ isPresenceDisconnectionSimulated }: RootState) =>
+      isPresenceDisconnectionSimulated,
   ],
   (
     rocketChatMenu,
@@ -1023,7 +1036,8 @@ export const selectAppMenuPopupTemplate = createSelector(
     isDeveloperModeEnabled,
     isUpdatingAllowed,
     isUpdatingEnabled,
-    updateStore
+    updateStore,
+    isPresenceDisconnectionSimulated
   ): MenuItemConstructorOptions[] => {
     // Store builds stay unconditional on isUpdatingEnabled (an admin can
     // disable electron-updater, but that setting has no bearing on a store's
@@ -1067,7 +1081,7 @@ export const selectAppMenuPopupTemplate = createSelector(
         ...on(canCheckForUpdates, () => [checkForUpdatesItem]),
         ...on(isDeveloperModeEnabled, () => [
           { type: 'separator' },
-          ...createSimulationMenuItems(),
+          ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
         ]),
       ];
     }
@@ -1090,7 +1104,7 @@ export const selectAppMenuPopupTemplate = createSelector(
       ...on(canCheckForUpdates, () => [checkForUpdatesItem]),
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' },
-        ...createSimulationMenuItems(),
+        ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
       ]),
       { type: 'separator' },
       createQuitMenuItem(),
@@ -1111,6 +1125,7 @@ export const selectServerSwitcherMenuTemplate = createSelector(
     isUpdatingAllowed,
     isUpdatingEnabled,
     updateStore,
+    isPresenceDisconnectionSimulated,
   }): MenuItemConstructorOptions[] => {
     // Store builds stay unconditional on isUpdatingEnabled (an admin can
     // disable electron-updater, but that setting has no bearing on a store's
@@ -1195,7 +1210,7 @@ export const selectServerSwitcherMenuTemplate = createSelector(
       ]),
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' } as MenuItemConstructorOptions,
-        ...createSimulationMenuItems(),
+        ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
       ]),
     ];
   }

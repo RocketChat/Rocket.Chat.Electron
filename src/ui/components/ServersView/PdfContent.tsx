@@ -36,15 +36,14 @@ const PdfContent = ({ url, partition }: { url: string; partition: string }) => {
     const webviewElement = webviewRef.current;
 
     if (webviewElement) {
-      const handleDidAttach: () => void = () => {
-        const webContentsId = webviewElement.getWebContentsId();
-        dispatch({
-          type: WEBVIEW_PDF_VIEWER_ATTACHED,
-          payload: { WebContentsId: webContentsId },
-        });
+      // `dom-ready` rather than `did-attach`: getWebContentsId() throws until
+      // the guest document exists, so announcing the viewer on attach never
+      // reached the main process — and with it, neither did the link
+      // interception that depends on knowing this webview's id.
+      let announcedWebContentsId: number | null = null;
 
-        webviewElement.addEventListener('did-finish-load', () => {
-          webviewElement.executeJavaScript(`
+      const handleDidFinishLoad = (): void => {
+        webviewElement.executeJavaScript(`
             document.addEventListener('click', (event) => {
               const anchor = event.target instanceof Element ? event.target.closest('a') : null;
               if (anchor && anchor.href) {
@@ -57,13 +56,31 @@ const PdfContent = ({ url, partition }: { url: string; partition: string }) => {
               }
             }, true);
           `);
+      };
+
+      const handleDomReady: () => void = () => {
+        const webContentsId = webviewElement.getWebContentsId();
+
+        // Fires again on every navigation inside the viewer; the id only
+        // changes when the guest is replaced.
+        if (announcedWebContentsId === webContentsId) return;
+        announcedWebContentsId = webContentsId;
+
+        dispatch({
+          type: WEBVIEW_PDF_VIEWER_ATTACHED,
+          payload: { WebContentsId: webContentsId },
         });
       };
 
-      webviewElement.addEventListener('did-attach', handleDidAttach);
+      webviewElement.addEventListener('dom-ready', handleDomReady);
+      webviewElement.addEventListener('did-finish-load', handleDidFinishLoad);
 
       return () => {
-        webviewElement.removeEventListener('did-attach', handleDidAttach);
+        webviewElement.removeEventListener('dom-ready', handleDomReady);
+        webviewElement.removeEventListener(
+          'did-finish-load',
+          handleDidFinishLoad
+        );
       };
     }
     return () => {};

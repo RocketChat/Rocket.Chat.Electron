@@ -46,5 +46,20 @@
       "label": "过期时间:",
       "expiresOn": "将于 {{date}} 过期"
     }
+  },
+  "menus": {
+    "simulateDisconnected": "模拟断开连接"
+  },
+  "tray": {
+    "presence": {
+      "status": "状态",
+      "online": "在线",
+      "away": "离开",
+      "busy": "忙碌",
+      "offline": "离线",
+      "disconnected": "已断开连接 — 正在尝试重新连接...",
+      "signIn": "登录 {{- workspace}}",
+      "addWorkspace": "添加工作区"
+    }
   }
 }

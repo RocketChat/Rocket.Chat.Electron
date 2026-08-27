@@ -122,4 +122,37 @@ describe('CheckForUpdates', () => {
     ).not.toBeInTheDocument();
     expect(invokeMock).not.toHaveBeenCalled();
   });
+
+  it('renders nothing when updates are not allowed in this build', () => {
+    renderWithStore(<CheckForUpdates />, {
+      preloadedState: { ...preloadedState, isUpdatingAllowed: false },
+    });
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('renders nothing when updates are disabled', () => {
+    renderWithStore(<CheckForUpdates />, {
+      preloadedState: { ...preloadedState, isUpdatingEnabled: false },
+    });
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it.each(['mas', 'windows', 'snap', 'flatpak'] as const)(
+    'still renders the check button for a %s build despite isUpdatingAllowed being false',
+    (store) => {
+      renderWithStore(<CheckForUpdates />, {
+        preloadedState: {
+          ...preloadedState,
+          isUpdatingAllowed: false,
+          updateStore: store,
+        },
+      });
+
+      expect(
+        screen.getByRole('button', { name: 'dialog.about.checkUpdates' })
+      ).toBeInTheDocument();
+    }
+  );
 });

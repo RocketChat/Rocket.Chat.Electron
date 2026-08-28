@@ -13,6 +13,7 @@ export type LogViewerToolbarProps = {
   isStreaming: boolean;
   onOpenLogFile: () => void;
   onOpenDefaultLog: () => void;
+  onRevealLogFile: () => void;
   onRefresh: () => void;
   onToggleStreaming: () => void;
   onCopy: () => void;
@@ -28,6 +29,7 @@ export const LogViewerToolbar = ({
   isStreaming,
   onOpenLogFile,
   onOpenDefaultLog,
+  onRevealLogFile,
   onRefresh,
   onToggleStreaming,
   onCopy,
@@ -47,6 +49,13 @@ export const LogViewerToolbar = ({
             title={t('logViewer.buttons.openLogFile')}
             aria-label={t('logViewer.buttons.openLogFile')}
             onClick={onOpenLogFile}
+          />
+          <IconButton
+            small
+            icon='file'
+            title={t('logViewer.buttons.showInFolder')}
+            aria-label={t('logViewer.buttons.showInFolder')}
+            onClick={onRevealLogFile}
           />
           {!isDefaultLog && (
             <IconButton

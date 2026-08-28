@@ -14,6 +14,8 @@ const entry = (timestamp: string, level: LogLevel = 'info'): LogEntryType => ({
   context: 'main',
   message: 'message',
   raw: `[${timestamp}] [${level}] [main] message`,
+  searchText: 'message main',
+  rawLower: `[${timestamp}] [${level}] [main] message`.toLowerCase(),
 });
 
 describe('buildTimeline', () => {

@@ -79,6 +79,12 @@
       "yes": "Yes",
       "cancel": "Cancel"
     },
+    "saveLogFile": {
+      "title": "Save Log File",
+      "zipFiles": "ZIP Files",
+      "logFiles": "Log Files",
+      "allFiles": "All Files"
+    },
     "screenshare": {
       "title": "Share Your Screen",
       "announcement": "Select a screen to share"
@@ -112,6 +118,11 @@
       "title": "Skip Update",
       "message": "We will notify you when the next update is available\nIf you change your mind you can check for updates from the About menu.",
       "ok": "OK"
+    },
+    "selectLogFile": {
+      "title": "Select Log File",
+      "logFiles": "Log Files",
+      "allFiles": "All Files"
     },
     "selectClientCertificate": {
       "announcement": "Select Certificate",
@@ -726,6 +737,7 @@
       "entries_one": "{{count}} entry",
       "entries_other": "{{count}} entries",
       "entriesOfTotal": "{{count}} of {{total}} entries",
+      "matches": "{{count}} matches",
       "noEntries": "No entries"
     },
     "buttons": {
@@ -738,6 +750,7 @@
       "copied": "Copied",
       "save": "Save",
       "saved": "Saved",
+      "showInFolder": "Show in Folder",
       "retry": "Retry",
       "dismissError": "Dismiss error",
       "clear": "Clear all",
@@ -792,6 +805,7 @@
     },
     "messages": {
       "noLogsFound": "No logs found",
+      "newEntriesPaused": "{{count}} new entries — click to resume",
       "adjustFilters": "Try adjusting your filters or refresh the logs",
       "loadFailed": "Failed to load logs",
       "saveFailed": "Failed to save logs"

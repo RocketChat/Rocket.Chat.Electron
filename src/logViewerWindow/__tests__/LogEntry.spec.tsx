@@ -28,6 +28,8 @@ const baseEntry = (overrides: Partial<LogEntryType> = {}): LogEntryType => ({
   contextTags: ['main', 'open.rocket.chat'],
   context: 'main open.rocket.chat',
   raw: 'raw line',
+  searchText: 'hello world main open.rocket.chat',
+  rawLower: 'raw line',
   ...overrides,
 });
 

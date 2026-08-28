@@ -123,6 +123,10 @@ type ChannelToArgsMap = {
     lastModifiedTime?: number;
     error?: string;
   };
+  'log-viewer-window/reveal-log-file': (options?: { filePath?: string }) => {
+    success: boolean;
+    error?: string;
+  };
   'log-viewer-window/confirm-clear-logs': () => boolean;
   'log-viewer-window/clear-logs': () => { success: boolean; error?: string };
   'log-viewer-window/save-logs': (options: {

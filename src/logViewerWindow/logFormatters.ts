@@ -13,6 +13,13 @@ export const formatFileSize = (bytes: number): string => {
   return `${mb.toFixed(1)} MB`;
 };
 
+const buildEntryDerivedFields = (
+  entry: Pick<LogEntryType, 'message' | 'context' | 'raw'>
+): Pick<LogEntryType, 'searchText' | 'rawLower'> => ({
+  searchText: `${entry.message} ${entry.context}`.toLowerCase(),
+  rawLower: entry.raw.toLowerCase(),
+});
+
 export const parseLogLines = (logText: string): LogEntryType[] => {
   if (!logText || logText.trim() === '') {
     return [];
@@ -38,18 +45,29 @@ export const parseLogLines = (logText: string): LogEntryType[] => {
         entries.push(currentEntry);
       }
 
+      const parsedMessage = message.trim();
+      const context = contextTags.join(' ');
+
       currentEntry = {
         id: `log-${entries.length}`,
         timestamp,
         level: parseLogLevel(level),
         contextTags,
-        context: contextTags.join(' '),
-        message: message.trim(),
+        context,
+        message: parsedMessage,
         raw: line,
+        ...buildEntryDerivedFields({
+          message: parsedMessage,
+          context,
+          raw: line,
+        }),
       };
     } else if (currentEntry && line.trim()) {
       currentEntry.message += `\n${line}`;
       currentEntry.raw += `\n${line}`;
+      const derived = buildEntryDerivedFields(currentEntry);
+      currentEntry.searchText = derived.searchText;
+      currentEntry.rawLower = derived.rawLower;
     }
   });
 

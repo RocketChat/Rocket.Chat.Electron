@@ -55,6 +55,8 @@ export const CheckForUpdates = (props: CheckForUpdatesProps) => {
     ({ newUpdateVersion }: RootState) => newUpdateVersion
   );
   const updateError = useSelector(({ updateError }: RootState) => updateError);
+  const updateStore = useSelector(({ updateStore }: RootState) => updateStore);
+  const isStoreUpdate = updateStore !== null;
 
   const [resultMessage, setResultMessage] = useState<string | null>(null);
 
@@ -132,7 +134,11 @@ export const CheckForUpdates = (props: CheckForUpdatesProps) => {
 
   const fieldId = useId();
 
-  if (!isUpdatingAllowed || !isUpdatingEnabled) return null;
+  // Store builds cannot use electron-updater (isUpdatingAllowed is false for
+  // mas/windows there on purpose), but they still get a user-initiated check
+  // via the store's own lookup/page. Store builds have their own check
+  // listener despite isUpdatingAllowed being false, so they stay exempt.
+  if (!isStoreUpdate && (!isUpdatingAllowed || !isUpdatingEnabled)) return null;
 
   return (
     <ToggleField

@@ -14,6 +14,16 @@ export const UPDATES_DOWNLOAD_PROGRESSED = 'updates/download-progressed';
 export const UPDATES_UPDATE_DOWNLOADED = 'updates/update-downloaded';
 /** The titlebar update label was clicked while an update was available. */
 export const UPDATES_DOWNLOAD_REQUESTED = 'updates/download-requested';
+/**
+ * The titlebar update label's primary action was clicked on a store build
+ * (Mac App Store, Microsoft Store, Snap Store, Flathub), where there is
+ * nothing to download — this hands off to the store's page instead. Kept
+ * distinct from UPDATES_DOWNLOAD_REQUESTED so the download-status reducers
+ * (which every FSA reaches, regardless of which branch main.ts takes) never
+ * flip to "downloading" for a build that never downloads anything.
+ */
+export const UPDATES_OPEN_STORE_PAGE_REQUESTED =
+  'updates/open-store-page-requested';
 /** The titlebar update label was clicked once the update finished downloading. */
 export const UPDATES_INSTALL_REQUESTED = 'updates/install-requested';
 /** "Skip this version" was chosen in the titlebar update panel. */
@@ -45,6 +55,7 @@ export type UpdatesActionTypeToPayloadMap = {
   [UPDATES_DOWNLOAD_PROGRESSED]: number;
   [UPDATES_UPDATE_DOWNLOADED]: void;
   [UPDATES_DOWNLOAD_REQUESTED]: void;
+  [UPDATES_OPEN_STORE_PAGE_REQUESTED]: void;
   [UPDATES_INSTALL_REQUESTED]: void;
   [UPDATES_SKIP_REQUESTED]: string | null;
   [UPDATES_PANEL_TOGGLED]: boolean;

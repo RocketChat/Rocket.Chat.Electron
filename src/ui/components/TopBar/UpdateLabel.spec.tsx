@@ -2,6 +2,7 @@ import {
   UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
+  UPDATES_OPEN_STORE_PAGE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
@@ -122,6 +123,30 @@ describe('UpdateLabel', () => {
       type: UPDATES_DOWNLOAD_REQUESTED,
     });
   });
+
+  it.each([
+    ['mas', 'dialog.update.openStore.mas'],
+    ['windows', 'dialog.update.openStore.windows'],
+    ['snap', 'dialog.update.openStore.snap'],
+    ['flatpak', 'dialog.update.openStore.flatpak'],
+  ] as const)(
+    'opens the store page instead of downloading on a %s build',
+    async (store, labelKey) => {
+      const user = userEvent.setup();
+      renderWithStore(<UpdateLabel />, {
+        preloadedState: openState({ updateStore: store }),
+      });
+
+      await user.click(screen.getByText(labelKey));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UPDATES_OPEN_STORE_PAGE_REQUESTED,
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith({
+        type: UPDATES_DOWNLOAD_REQUESTED,
+      });
+    }
+  );
 
   it('skips the version from the panel skip action', async () => {
     const user = userEvent.setup();
@@ -352,6 +377,22 @@ describe('UpdateLabel', () => {
 
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
+
+    it.each(['mas', 'windows', 'snap', 'flatpak'] as const)(
+      'still shows checking feedback for a %s build despite isUpdatingAllowed being false',
+      (store) => {
+        renderWithStore(<UpdateLabel />, {
+          preloadedState: checkState('checking', {
+            isUpdatingAllowed: false,
+            updateStore: store,
+          }),
+        });
+
+        expect(screen.getByRole('button')).toHaveTextContent(
+          'tabBar.update.checking'
+        );
+      }
+    );
 
     it('prefers the available-update pill over check feedback', () => {
       renderWithStore(<UpdateLabel />, {

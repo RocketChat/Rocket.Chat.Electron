@@ -89,6 +89,12 @@
       "currentVersion": "Current version",
       "newVersion": "New version",
       "install": "Install update",
+      "openStore": {
+        "mas": "Open App Store",
+        "windows": "Open Microsoft Store",
+        "snap": "Open Snap Store",
+        "flatpak": "Open Flathub"
+      },
       "skip": "Skip this version"
     },
     "updateInstallLater": {

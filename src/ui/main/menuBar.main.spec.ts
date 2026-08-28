@@ -429,10 +429,15 @@ describe('ui/main/menuBar', () => {
       expect(serverB?.checked).toBe(false);
     });
 
-    it('always includes checkForUpdates and dispatches on click', async () => {
+    it('includes checkForUpdates and dispatches on click when updating is allowed and enabled', async () => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { dispatch } = require('../../store');
-      const state = createState({ isDeveloperModeEnabled: false });
+      const state = createState({
+        isDeveloperModeEnabled: false,
+        isUpdatingAllowed: true,
+        isUpdatingEnabled: true,
+        updateStore: null,
+      });
       const template = selectServerSwitcherMenuTemplate(state);
 
       const checkForUpdates = findMenu(template, 'checkForUpdates');
@@ -441,6 +446,45 @@ describe('ui/main/menuBar', () => {
       expect(dispatch).toHaveBeenCalledWith({
         type: UPDATES_CHECK_FOR_UPDATES_REQUESTED,
       });
+    });
+
+    it('includes checkForUpdates for a store build even when isUpdatingAllowed is false', () => {
+      const state = createState({
+        isDeveloperModeEnabled: false,
+        isUpdatingAllowed: false,
+        isUpdatingEnabled: false,
+        updateStore: 'mas',
+      });
+      const template = selectServerSwitcherMenuTemplate(state);
+      const ids = template.map((item) => item.id);
+
+      expect(ids).toContain('checkForUpdates');
+    });
+
+    it('omits checkForUpdates when updating is neither allowed nor store-distributed (e.g. Linux deb/rpm/tar.gz)', () => {
+      const state = createState({
+        isDeveloperModeEnabled: false,
+        isUpdatingAllowed: false,
+        isUpdatingEnabled: true,
+        updateStore: null,
+      });
+      const template = selectServerSwitcherMenuTemplate(state);
+      const ids = template.map((item) => item.id);
+
+      expect(ids).not.toContain('checkForUpdates');
+    });
+
+    it('omits checkForUpdates when updating is allowed but admin-disabled (isUpdatingEnabled: false) on a non-store build', () => {
+      const state = createState({
+        isDeveloperModeEnabled: false,
+        isUpdatingAllowed: true,
+        isUpdatingEnabled: false,
+        updateStore: null,
+      });
+      const template = selectServerSwitcherMenuTemplate(state);
+      const ids = template.map((item) => item.id);
+
+      expect(ids).not.toContain('checkForUpdates');
     });
 
     it('omits simulate items when developer mode is off', () => {
@@ -464,7 +508,12 @@ describe('ui/main/menuBar', () => {
         focus: jest.fn(),
       });
 
-      const state = createState({ isDeveloperModeEnabled: true });
+      const state = createState({
+        isDeveloperModeEnabled: true,
+        isUpdatingAllowed: true,
+        isUpdatingEnabled: true,
+        updateStore: null,
+      });
       const template = selectServerSwitcherMenuTemplate(state);
       const ids = template.map((item) => item.id);
 
@@ -536,7 +585,12 @@ describe('ui/main/menuBar', () => {
         });
 
         it('lists simulate items right after checkForUpdates when developer mode is on', () => {
-          const state = createState({ isDeveloperModeEnabled: true });
+          const state = createState({
+            isDeveloperModeEnabled: true,
+            isUpdatingAllowed: true,
+            isUpdatingEnabled: true,
+            updateStore: null,
+          });
           const template = selectAppMenuPopupTemplate(state);
           const ids = template.map((item) => item.id);
 
@@ -546,6 +600,54 @@ describe('ui/main/menuBar', () => {
           expect(ids[checkForUpdatesIndex + 2]).toBe('simulateUpdate');
           expect(ids[checkForUpdatesIndex + 3]).toBe('simulateDownload');
           expect(ids[checkForUpdatesIndex + 4]).toBe('simulateDisconnected');
+        });
+
+        it('includes checkForUpdates when updating is allowed and enabled', () => {
+          const state = createState({
+            isUpdatingAllowed: true,
+            isUpdatingEnabled: true,
+            updateStore: null,
+          });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          expect(ids).toContain('checkForUpdates');
+        });
+
+        it('includes checkForUpdates for a store build even when isUpdatingAllowed is false', () => {
+          const state = createState({
+            isUpdatingAllowed: false,
+            isUpdatingEnabled: false,
+            updateStore: 'mas',
+          });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          expect(ids).toContain('checkForUpdates');
+        });
+
+        it('omits checkForUpdates when updating is neither allowed nor store-distributed (e.g. Linux deb/rpm/tar.gz)', () => {
+          const state = createState({
+            isUpdatingAllowed: false,
+            isUpdatingEnabled: true,
+            updateStore: null,
+          });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          expect(ids).not.toContain('checkForUpdates');
+        });
+
+        it('omits checkForUpdates when updating is allowed but admin-disabled (isUpdatingEnabled: false) on a non-store build', () => {
+          const state = createState({
+            isUpdatingAllowed: true,
+            isUpdatingEnabled: false,
+            updateStore: null,
+          });
+          const template = selectAppMenuPopupTemplate(state);
+          const ids = template.map((item) => item.id);
+
+          expect(ids).not.toContain('checkForUpdates');
         });
       });
     });

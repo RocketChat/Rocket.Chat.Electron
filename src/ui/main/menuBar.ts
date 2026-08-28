@@ -609,6 +609,9 @@ const selectWindowDeps = createStructuredSelector({
     isAddNewServersEnabled,
   isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
     isDeveloperModeEnabled,
+  isUpdatingAllowed: ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
+  isUpdatingEnabled: ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled,
+  updateStore: ({ updateStore }: RootState) => updateStore,
   isPresenceDisconnectionSimulated: ({
     isPresenceDisconnectionSimulated,
   }: RootState) => isPresenceDisconnectionSimulated,
@@ -1017,6 +1020,9 @@ export const selectAppMenuPopupTemplate = createSelector(
     createWindowMenu,
     createHelpMenu,
     ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled,
+    ({ isUpdatingAllowed }: RootState) => isUpdatingAllowed,
+    ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled,
+    ({ updateStore }: RootState) => updateStore,
     ({ isPresenceDisconnectionSimulated }: RootState) =>
       isPresenceDisconnectionSimulated,
   ],
@@ -1028,8 +1034,19 @@ export const selectAppMenuPopupTemplate = createSelector(
     windowMenu,
     helpMenu,
     isDeveloperModeEnabled,
+    isUpdatingAllowed,
+    isUpdatingEnabled,
+    updateStore,
     isPresenceDisconnectionSimulated
   ): MenuItemConstructorOptions[] => {
+    // Store builds stay unconditional on isUpdatingEnabled (an admin can
+    // disable electron-updater, but that setting has no bearing on a store's
+    // own update mechanism); non-store builds need BOTH allowed and enabled,
+    // otherwise clicking the item flips updateCheckStatus to 'checking'
+    // (reducers.ts) with no listener ever registered to settle it back.
+    const canCheckForUpdates =
+      (isUpdatingAllowed && isUpdatingEnabled) || updateStore !== null;
+
     const settingsItem: MenuItemConstructorOptions = {
       id: 'settings',
       label: t('menus.settings'),
@@ -1061,7 +1078,7 @@ export const selectAppMenuPopupTemplate = createSelector(
       return [
         settingsItem,
         downloadsItem,
-        checkForUpdatesItem,
+        ...on(canCheckForUpdates, () => [checkForUpdatesItem]),
         ...on(isDeveloperModeEnabled, () => [
           { type: 'separator' },
           ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
@@ -1084,7 +1101,7 @@ export const selectAppMenuPopupTemplate = createSelector(
       { type: 'separator' },
       settingsItem,
       downloadsItem,
-      checkForUpdatesItem,
+      ...on(canCheckForUpdates, () => [checkForUpdatesItem]),
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' },
         ...createSimulationMenuItems(isPresenceDisconnectionSimulated),
@@ -1105,8 +1122,19 @@ export const selectServerSwitcherMenuTemplate = createSelector(
     currentView,
     isAddNewServersEnabled,
     isDeveloperModeEnabled,
+    isUpdatingAllowed,
+    isUpdatingEnabled,
+    updateStore,
     isPresenceDisconnectionSimulated,
   }): MenuItemConstructorOptions[] => {
+    // Store builds stay unconditional on isUpdatingEnabled (an admin can
+    // disable electron-updater, but that setting has no bearing on a store's
+    // own update mechanism); non-store builds need BOTH allowed and enabled,
+    // otherwise clicking the item flips updateCheckStatus to 'checking'
+    // (reducers.ts) with no listener ever registered to settle it back.
+    const canCheckForUpdates =
+      (isUpdatingAllowed && isUpdatingEnabled) || updateStore !== null;
+
     const serverItems = servers.map((server, i): MenuItemConstructorOptions => {
       const isActive =
         typeof currentView === 'object' && currentView.url === server.url;
@@ -1171,13 +1199,15 @@ export const selectServerSwitcherMenuTemplate = createSelector(
           },
         } as MenuItemConstructorOptions,
       ]),
-      {
-        id: 'checkForUpdates',
-        label: t('menus.checkForUpdates'),
-        click: () => {
-          dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
-        },
-      },
+      ...on(canCheckForUpdates, () => [
+        {
+          id: 'checkForUpdates',
+          label: t('menus.checkForUpdates'),
+          click: () => {
+            dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
+          },
+        } as MenuItemConstructorOptions,
+      ]),
       ...on(isDeveloperModeEnabled, () => [
         { type: 'separator' } as MenuItemConstructorOptions,
         ...createSimulationMenuItems(isPresenceDisconnectionSimulated),

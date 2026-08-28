@@ -12,6 +12,7 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_OPEN_STORE_PAGE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_READY,
   UPDATES_SKIP_REQUESTED,
@@ -33,6 +34,7 @@ import {
   updateDownloadStatus,
   updateError,
   updateChannel,
+  updateStore,
 } from '../../reducers';
 
 const unknown = { type: 'UNKNOWN_ACTION' } as any;
@@ -167,6 +169,37 @@ describe('isUpdatingAllowed reducer', () => {
 
   it('should preserve state on unknown action', () => {
     expect(isUpdatingAllowed(false, unknown)).toBe(false);
+  });
+});
+
+describe('updateStore reducer', () => {
+  it('should default to null', () => {
+    expect(updateStore(undefined, unknown)).toBeNull();
+  });
+
+  it.each(['mas', 'windows', 'snap', 'flatpak'] as const)(
+    "should read '%s' from UPDATES_READY",
+    (store) => {
+      expect(
+        updateStore(null, {
+          type: UPDATES_READY,
+          payload: { updateStore: store },
+        } as any)
+      ).toBe(store);
+    }
+  );
+
+  it('should read null from UPDATES_READY on non-store builds', () => {
+    expect(
+      updateStore('mas', {
+        type: UPDATES_READY,
+        payload: { updateStore: null },
+      } as any)
+    ).toBeNull();
+  });
+
+  it('should preserve state on unknown action', () => {
+    expect(updateStore('mas', unknown)).toBe('mas');
   });
 });
 
@@ -410,6 +443,14 @@ describe('updateDownloadStatus reducer', () => {
   ])('should reset to idle on %s', (type) => {
     expect(updateDownloadStatus('downloaded', { type } as any)).toBe('idle');
   });
+
+  it('should NOT enter downloading on UPDATES_OPEN_STORE_PAGE_REQUESTED (store builds have nothing to download)', () => {
+    expect(
+      updateDownloadStatus('idle', {
+        type: UPDATES_OPEN_STORE_PAGE_REQUESTED,
+      } as any)
+    ).toBe('idle');
+  });
 });
 
 describe('updateDownloadProgress reducer', () => {
@@ -445,6 +486,14 @@ describe('updateDownloadProgress reducer', () => {
       } as any)
     ).toBe(0);
   });
+
+  it('should NOT reset progress on UPDATES_OPEN_STORE_PAGE_REQUESTED (store builds have nothing to download)', () => {
+    expect(
+      updateDownloadProgress(42, {
+        type: UPDATES_OPEN_STORE_PAGE_REQUESTED,
+      } as any)
+    ).toBe(42);
+  });
 });
 
 describe('isUpdatePanelOpen reducer', () => {
@@ -469,6 +518,7 @@ describe('isUpdatePanelOpen reducer', () => {
 
   it.each([
     UPDATES_DOWNLOAD_REQUESTED,
+    UPDATES_OPEN_STORE_PAGE_REQUESTED,
     UPDATES_SKIP_REQUESTED,
     UPDATES_NEW_VERSION_NOT_AVAILABLE,
     UPDATES_ERROR_THROWN,

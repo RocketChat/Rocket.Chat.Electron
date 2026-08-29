@@ -87,9 +87,7 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
     const webviewReadyCall = mockListen.mock.calls.find(
       ([actionType]) => actionType === WEBVIEW_READY
     );
-    webviewReadyCallback = webviewReadyCall?.[1] as (
-      action: unknown
-    ) => void;
+    webviewReadyCallback = webviewReadyCall?.[1] as (action: unknown) => void;
 
     const guestWebContents = {
       addListener: jest.fn(),
@@ -115,6 +113,9 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
     ({ preventDefault: jest.fn() }) as unknown as Event;
 
   it('allows same-origin http navigation', () => {
+    webviewReadyCallback({
+      payload: { webContentsId: 1, url: 'http://open.rocket.chat' },
+    });
     const event = createEvent();
     willNavigateHandler(event, 'http://open.rocket.chat/page');
     expect(event.preventDefault).not.toHaveBeenCalled();
@@ -208,7 +209,10 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
 
     it('allows navigation within the workspace subpath', () => {
       const event = createEvent();
-      willNavigateHandler(event, 'https://company.org/rocketchat/channel/general');
+      willNavigateHandler(
+        event,
+        'https://company.org/rocketchat/channel/general'
+      );
       expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
@@ -225,6 +229,25 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
       );
       expect(mockOpenExternal).toHaveBeenCalledWith(
         'https://company.org/wiki/page'
+      );
+    });
+
+    it('intercepts and opens links when protocol does not match (http vs https)', async () => {
+      const event = createEvent();
+      willNavigateHandler(
+        event,
+        'http://company.org/rocketchat/channel/general'
+      );
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockIsProtocolAllowed).toHaveBeenCalledWith(
+        'http://company.org/rocketchat/channel/general'
+      );
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'http://company.org/rocketchat/channel/general'
       );
     });
   });

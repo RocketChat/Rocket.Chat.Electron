@@ -587,6 +587,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         pathname.endsWith('/') ? pathname : `${pathname}/`;
 
       const isSameServer =
+        targetUrl.protocol === serverUrl.protocol &&
         targetUrl.hostname === serverUrl.hostname &&
         targetUrl.port === serverUrl.port &&
         normalizePath(targetUrl.pathname).startsWith(

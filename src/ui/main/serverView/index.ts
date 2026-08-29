@@ -558,18 +558,42 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     // Download handling is now managed by electron-dl in main.ts
     // and integrated with our downloads system via setupDownloads()
 
-    // prevents the webview from navigating because of twitter preview links
+    // Intercept external links (e.g. Markdown links in topic or messages) and open them externally
     guestWebContents.on('will-navigate', (e, redirectUrl) => {
-      const { protocol, hostname } = new URL(redirectUrl);
+      let targetUrl: URL;
+      let serverUrl: URL;
 
-      if (protocol !== 'http:' && protocol !== 'https:') {
+      try {
+        targetUrl = new URL(redirectUrl);
+        serverUrl = new URL(action.payload.url);
+      } catch {
         e.preventDefault();
         return;
       }
 
-      const preventNavigateHosts = ['t.co', 'twitter.com'];
+      if (targetUrl.protocol !== 'http:' && targetUrl.protocol !== 'https:') {
+        e.preventDefault();
+        isProtocolAllowed(redirectUrl).then((allowed) => {
+          if (!allowed) {
+            return;
+          }
 
-      if (preventNavigateHosts.includes(hostname)) {
+          openExternal(redirectUrl);
+        });
+        return;
+      }
+
+      const normalizePath = (pathname: string): string =>
+        pathname.endsWith('/') ? pathname : `${pathname}/`;
+
+      const isSameServer =
+        targetUrl.hostname === serverUrl.hostname &&
+        targetUrl.port === serverUrl.port &&
+        normalizePath(targetUrl.pathname).startsWith(
+          normalizePath(serverUrl.pathname)
+        );
+
+      if (!isSameServer) {
         e.preventDefault();
         isProtocolAllowed(redirectUrl).then((allowed) => {
           if (!allowed) {

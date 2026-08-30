@@ -95,6 +95,24 @@ describe('DownloadItem', () => {
 
       expect(invokeMock).toHaveBeenCalledWith('downloads/copy-link', 42);
     });
+
+    it('calculates and renders progressSpeed and estimatedTimeLeft when endTime is undefined', () => {
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1000);
+      try {
+        renderItem({
+          state: 'progressing',
+          receivedBytes: 500,
+          totalBytes: 1000,
+          startTime: 0,
+          endTime: undefined,
+        });
+
+        expect(screen.getByText('byteSpeed:500')).toBeInTheDocument();
+        expect(screen.getByText('duration:1')).toBeInTheDocument();
+      } finally {
+        nowSpy.mockRestore();
+      }
+    });
   });
 
   describe('paused state', () => {

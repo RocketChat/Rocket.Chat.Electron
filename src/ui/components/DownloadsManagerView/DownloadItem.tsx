@@ -60,10 +60,7 @@ const DownloadItem = ({
       return undefined;
     }
 
-    return i18n.format(
-      (receivedBytes / elapsed) * 1000,
-      'byteSpeed'
-    );
+    return i18n.format((receivedBytes / elapsed) * 1000, 'byteSpeed');
   }, [endTime, i18n, receivedBytes, startTime, state, totalBytes]);
 
   const estimatedTimeLeft = useMemo(() => {

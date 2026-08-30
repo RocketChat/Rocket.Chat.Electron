@@ -97,13 +97,13 @@ describe('DownloadItem', () => {
     });
 
     it('calculates and renders progressSpeed and estimatedTimeLeft when endTime is undefined', () => {
-      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1000);
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(2000);
       try {
         renderItem({
           state: 'progressing',
           receivedBytes: 500,
           totalBytes: 1000,
-          startTime: 0,
+          startTime: 1000,
           endTime: undefined,
         });
 

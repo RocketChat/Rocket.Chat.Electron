@@ -9,13 +9,13 @@ lowercase, and specific, for example `qa/telephony-deeplink/`.
 
 ## Pack Structure
 
-| Path              | Required    | Purpose                                                               |
-| ----------------- | ----------- | --------------------------------------------------------------------- |
-| `README.md`       | Yes         | Entry point, prerequisites, smoke order, result format                |
-| `flows/`          | Yes         | One Markdown file per scenario                                        |
-| `test-links.html` | When useful | Static browser page for protocol/deep-link/manual click targets       |
-| `scripts/`        | Optional    | Small helper scripts for repeatable environment checks                |
-| `results/`        | Optional    | Local evidence notes; do not commit run-specific artifacts by default |
+| Path | Required | Purpose |
+| --- | --- | --- |
+| `README.md` | Yes | Entry point, prerequisites, smoke order, result format |
+| `flows/` | Yes | One Markdown file per scenario |
+| `test-links.html` | When useful | Static browser page for protocol/deep-link/manual click targets |
+| `scripts/` | Optional | Small helper scripts for repeatable environment checks |
+| `results/` | Optional | Local evidence notes; do not commit run-specific artifacts by default |
 
 ## Flow Files
 
@@ -167,8 +167,3 @@ unless a release owner explicitly asks for them.
 
 - `qa/telephony-deeplink/` covers telephony `tel:` / `callto:` links, settings,
   diagnostics, workspace selection, default handlers, and installer policy.
-- `qa/supported-versions/` covers supported-version exception matching and the
-  unsupported-version block.
-- `qa/macos-fullscreen-escape/` covers the macOS native fullscreen behavior of the
-  Escape key, including video HTML5 fullscreen, and the Windows/Linux regression
-  check.

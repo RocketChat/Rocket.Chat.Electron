@@ -34,6 +34,7 @@ import {
 import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
+import { createEscapeFullscreenGuard } from './escapeFullscreenGuard';
 import { getTrayIconPath } from './icons';
 
 const webPreferences: WebPreferences = {
@@ -158,6 +159,9 @@ export const isInsideSomeScreen = ({
         y < bounds.y + bounds.height &&
         y + height > bounds.y
     );
+
+export const isWindowInAnyFullscreen = (window: BrowserWindow): boolean =>
+  window.isFullScreen() || window.isSimpleFullScreen();
 
 export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   const rootWindowState = select(selectRootWindowState);
@@ -407,6 +411,17 @@ export const setupRootWindow = (): void => {
 
     rootWindow.addListener('focus', async () => {
       rootWindow.flashFrame(false);
+    });
+
+    const escapeFullscreenGuard = createEscapeFullscreenGuard(
+      rootWindow.webContents,
+      () => isWindowInAnyFullscreen(rootWindow)
+    );
+
+    rootWindow.webContents.addListener('before-input-event', (event, input) => {
+      if (escapeFullscreenGuard.handleInput(input)) {
+        event.preventDefault();
+      }
     });
 
     rootWindow.addListener('close', async (event) => {

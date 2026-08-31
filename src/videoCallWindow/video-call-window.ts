@@ -12,6 +12,7 @@ import {
   InternalPickerProvider,
 } from '../screenSharing/screenPicker';
 import type { ScreenSharePickerModuleType } from './screenSharePickerMount';
+import { validateVideoCallUrl } from './validateVideoCallUrl';
 
 const MAX_INIT_ATTEMPTS = 10;
 const MAX_RECOVERY_ATTEMPTS = 3;
@@ -594,26 +595,6 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
   webviewElement.addEventListener('did-finish-load', handleFinishLoad);
   webviewElement.addEventListener('did-fail-load', handleDidFailLoad);
   webviewElement.addEventListener('crashed', handleCrashed);
-};
-
-const validateVideoCallUrl = (url: string): string => {
-  try {
-    const parsedUrl = new URL(url);
-
-    const allowedProtocols = ['http:', 'https:'];
-    if (!allowedProtocols.includes(parsedUrl.protocol)) {
-      throw new Error(
-        `Invalid URL protocol: ${parsedUrl.protocol}. Only http: and https: are allowed.`
-      );
-    }
-
-    return parsedUrl.href;
-  } catch (error) {
-    if (error instanceof TypeError) {
-      throw new Error(`Invalid URL format: ${url}`);
-    }
-    throw error;
-  }
 };
 
 const createWebview = (url: string, partition?: string | null): void => {

@@ -17,9 +17,19 @@ import {
   UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_DOWNLOAD_REQUESTED,
   UPDATES_INSTALL_REQUESTED,
+  UPDATES_OPEN_STORE_PAGE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_SKIP_REQUESTED,
 } from '../../../updates/actions';
+import type { UpdateStore } from '../../../updates/common';
+
+/** i18n key for the primary panel action's label, per store. */
+const OPEN_STORE_PAGE_LABEL_KEYS: Record<Exclude<UpdateStore, null>, string> = {
+  mas: 'dialog.update.openStore.mas',
+  windows: 'dialog.update.openStore.windows',
+  snap: 'dialog.update.openStore.snap',
+  flatpak: 'dialog.update.openStore.flatpak',
+};
 
 type LabelVariant = 'primary' | 'success' | 'danger';
 
@@ -195,6 +205,8 @@ export const UpdateLabel = () => {
   const isUpdatingEnabled = useSelector(
     ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled
   );
+  const updateStore = useSelector(({ updateStore }: RootState) => updateStore);
+  const isStoreUpdate = updateStore !== null;
 
   const reference = useRef<HTMLButtonElement>(null);
   const target = useRef<HTMLDivElement>(null);
@@ -252,10 +264,10 @@ export const UpdateLabel = () => {
   if (!newUpdateVersion) {
     // In builds that cannot self-update the check listener is never
     // registered, so a requested check would sit at "checking" forever —
-    // show nothing instead.
+    // show nothing instead. Store builds have their own check listener
+    // despite isUpdatingAllowed being false, so they stay exempt.
     if (
-      !isUpdatingAllowed ||
-      !isUpdatingEnabled ||
+      (!isStoreUpdate && (!isUpdatingAllowed || !isUpdatingEnabled)) ||
       updateCheckStatus === 'idle'
     ) {
       return null;
@@ -337,6 +349,15 @@ export const UpdateLabel = () => {
 
   const handleInstallClick = (): void => {
     toggle(false);
+
+    if (isStoreUpdate) {
+      // Nothing to download on this build — hand off to the store's page
+      // via a distinct action, so the download-status reducers (which see
+      // every FSA) never flip to "downloading".
+      dispatch({ type: UPDATES_OPEN_STORE_PAGE_REQUESTED });
+      return;
+    }
+
     dispatch({ type: UPDATES_DOWNLOAD_REQUESTED });
   };
 
@@ -433,7 +454,9 @@ export const UpdateLabel = () => {
                     primary
                     onClick={handleInstallClick}
                   >
-                    {t('dialog.update.install')}
+                    {updateStore
+                      ? t(OPEN_STORE_PAGE_LABEL_KEYS[updateStore])
+                      : t('dialog.update.install')}
                   </Button>
                 </ButtonGroup>
               </Box>

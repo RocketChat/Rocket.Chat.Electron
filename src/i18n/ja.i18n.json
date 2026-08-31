@@ -176,7 +176,8 @@
     "viewMenu": "表示 (&V)",
     "windowMenu": "ウィンドウ (&W)",
     "zoomIn": "拡大",
-    "zoomOut": "縮小"
+    "zoomOut": "縮小",
+    "simulateDisconnected": "切断をシミュレート"
   },
   "loadingError": {
     "title": "サーバーの読み込みに失敗しました",
@@ -258,6 +259,16 @@
       "unreadMention": "{{- appName}}: 未読のメンション/ダイレクトメッセージがあります",
       "unreadMention_plural": "{{- appName}}: 未読のメンション/ダイレクトメッセージが {{- count}} 件あります",
       "unreadMessage": "{{- appName}}: 未読のメッセージがあります"
+    },
+    "presence": {
+      "status": "ステータス",
+      "online": "オンライン",
+      "away": "退席中",
+      "busy": "取り込み中",
+      "offline": "オフライン",
+      "disconnected": "切断されました — 再接続を試みています...",
+      "signIn": "{{- workspace}} にサインイン",
+      "addWorkspace": "ワークスペースを追加"
     }
   },
   "taskbar": {

@@ -10,9 +10,16 @@ export interface ILogEntryType {
   id: string;
   timestamp: string;
   level: LogLevel;
+  /** Bracketed context tags in the order they were logged. */
+  contextTags: string[];
+  /** `contextTags` joined with spaces, for free-text search. */
   context: string;
   message: string;
   raw: string;
+  /** Lowercased `message` + `context` for filter matching without reallocating. */
+  searchText: string;
+  /** Lowercased `raw` for full-entry search without reallocating. */
+  rawLower: string;
 }
 
 export interface IReadLogsResponse {
@@ -81,3 +88,15 @@ export const parseLogLevel = (value: unknown): LogLevel => {
   const trimmed = value.trim().toLowerCase();
   return isLogLevel(trimmed) ? trimmed : 'info';
 };
+
+const LOG_LEVEL_ORDER: Record<LogLevel, number> = {
+  silly: 0,
+  verbose: 1,
+  debug: 2,
+  info: 3,
+  warn: 4,
+  error: 5,
+};
+
+export const isAtLeastLevel = (level: LogLevel, minLevel: LogLevel): boolean =>
+  LOG_LEVEL_ORDER[level] >= LOG_LEVEL_ORDER[minLevel];

@@ -39,7 +39,6 @@ export const E2ePdfPreviewSizeLimit = (props: E2ePdfPreviewSizeLimitProps) => {
   return (
     <SettingField
       className={props.className}
-      marginBlock='x16'
       htmlFor={id}
       label={t('settings.options.e2ePdfPreviewSizeLimit.title')}
       description={t('settings.options.e2ePdfPreviewSizeLimit.description')}

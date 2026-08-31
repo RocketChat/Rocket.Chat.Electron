@@ -376,7 +376,8 @@
     "viewMenu": "&Visa",
     "windowMenu": "&Fönster",
     "zoomIn": "Zooma in",
-    "zoomOut": "Zooma ut"
+    "zoomOut": "Zooma ut",
+    "simulateDisconnected": "Simulera frånkoppling"
   },
   "loadingError": {
     "title": "Servern kunde inte laddas",
@@ -491,6 +492,16 @@
         "title": "{{- appName}} är fortfarande igång",
         "content": "{{- appName }} är inställd på att fortsätta köras i systemfältet/notifikationsområdet."
       }
+    },
+    "presence": {
+      "status": "Status",
+      "online": "Online",
+      "away": "Borta",
+      "busy": "Upptagen",
+      "offline": "Offline",
+      "disconnected": "Frånkopplad — försöker återansluta...",
+      "signIn": "Logga in på {{- workspace}}",
+      "addWorkspace": "Lägg till arbetsyta"
     }
   },
   "taskbar": {

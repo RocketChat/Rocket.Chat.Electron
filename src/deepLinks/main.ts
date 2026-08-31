@@ -85,6 +85,11 @@ type AuthenticationParams = {
   userId: string;
 };
 
+type SamlAuthenticationParams = {
+  host: string;
+  credentialToken: string;
+};
+
 type OpenRoomParams = {
   host: string;
   path?: string;
@@ -177,6 +182,21 @@ const performAuthentication = async ({
     webContents.loadURL(url.href);
   });
 
+const performSamlAuthentication = async ({
+  host,
+  credentialToken,
+}: SamlAuthenticationParams): Promise<void> => {
+  return performOnServer(host, async (serverUrl) => {
+    const url = new URL(
+      `saml/${encodeURIComponent(credentialToken)}`,
+      serverUrl
+    );
+
+    const webContents = await getWebContents(serverUrl);
+    webContents.loadURL(url.href);
+  });
+};
+
 // https://developer.rocket.chat/rocket.chat/deeplink#channel-group-dm
 const performOpenRoom = async ({
   host,
@@ -219,6 +239,24 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
     webContents.loadURL(new URL(path, serverUrl).href);
   });
 
+const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {
+  const host = args.get('host') ?? undefined;
+
+  if (args.get('type') === 'saml') {
+    const credentialToken = args.get('credentialToken') ?? undefined;
+    if (host && credentialToken) {
+      await performSamlAuthentication({ host, credentialToken });
+    }
+    return;
+  }
+
+  const token = args.get('token') ?? undefined;
+  const userId = args.get('userId') ?? undefined;
+  if (host && token && userId) {
+    await performAuthentication({ host, token, userId });
+  }
+};
+
 const processDeepLink = async (deepLink: string): Promise<void> => {
   const telephonyLink = parseTelephonyLink(deepLink);
   if (telephonyLink) {
@@ -242,12 +280,7 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
 
   switch (action) {
     case 'auth': {
-      const host = args.get('host') ?? undefined;
-      const token = args.get('token') ?? undefined;
-      const userId = args.get('userId') ?? undefined;
-      if (host && token && userId) {
-        await performAuthentication({ host, token, userId });
-      }
+      await performAuthDeepLink(args);
       break;
     }
 

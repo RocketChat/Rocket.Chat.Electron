@@ -7,6 +7,7 @@ import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop } from './servers/preload/api';
 import { listenToNavigateToRouteRequests } from './servers/preload/navigateToRoute';
+import { listenToPresenceChangeRequests } from './servers/preload/presence';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
 import { listenToTelephonyRequests } from './telephony/preload';
@@ -68,6 +69,7 @@ const start = async (): Promise<void> => {
 
   listenToTelephonyRequests();
   listenToNavigateToRouteRequests();
+  listenToPresenceChangeRequests();
 
   console.log('[Rocket.Chat Desktop] waiting for RocketChatDesktop.onReady');
   RocketChatDesktop.onReady(() => {

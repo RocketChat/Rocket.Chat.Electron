@@ -1,5 +1,5 @@
 import type { DownloadItem, Event, WebContents } from 'electron';
-import { clipboard, shell, webContents } from 'electron';
+import { BrowserWindow, clipboard, shell, webContents } from 'electron';
 import { t } from 'i18next';
 
 import { handle } from '../ipc/main';
@@ -246,6 +246,42 @@ export const setupDownloads = (): void => {
 
   listen(DOWNLOADS_SIMULATION_REQUESTED, async () => {
     startDownloadsSimulation();
+  });
+
+  /**
+   * Opens the downloaded file with the OS default handler. The path is looked up
+   * from our own state by id rather than taken from the renderer, so a window
+   * cannot ask the main process to open an arbitrary file.
+   */
+  handle('downloads/open-file', async (_webContents, itemId) => {
+    const download = select(({ downloads }) => downloads[itemId]);
+
+    if (!download || download.state !== 'completed') {
+      return;
+    }
+
+    const error = await shell.openPath(download.savePath);
+
+    // openPath resolves with a message instead of throwing; a missing or moved
+    // file is the common case, so fall back to revealing its folder.
+    if (error) {
+      shell.showItemInFolder(download.savePath);
+    }
+  });
+
+  /**
+   * macOS Quick Look. There is no cross-platform equivalent, so the renderer
+   * only offers this on darwin; elsewhere the file opens in its default app.
+   */
+  handle('downloads/preview-file', async (senderWebContents, itemId) => {
+    const download = select(({ downloads }) => downloads[itemId]);
+
+    if (!download || download.state !== 'completed') {
+      return;
+    }
+
+    const window = BrowserWindow.fromWebContents(senderWebContents);
+    window?.previewFile(download.savePath, download.fileName);
   });
 
   handle('downloads/show-in-folder', async (_webContents, itemId) => {

@@ -3,11 +3,10 @@ import {
   FieldLabel,
   FieldDescription,
   FieldRow,
-  RadioButton,
   Box,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback, useId } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -16,6 +15,8 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_NAVIGATION_LAYOUT_CHANGED } from '../../../actions';
 import type { NavigationLayout as NavigationLayoutValue } from '../../../common';
+import { ChromeThumbnailOption } from './ChromeThumbnailOption';
+import { THUMBNAIL_GAP } from './thumbnailMetrics';
 
 type NavigationLayoutProps = {
   className?: string;
@@ -24,6 +25,12 @@ type NavigationLayoutProps = {
 export const NavigationLayout = (props: NavigationLayoutProps) => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
+  );
+  const userThemePreference = useSelector(
+    ({ userThemePreference }: RootState) => userThemePreference
+  );
+  const machineTheme = useSelector(
+    ({ machineTheme }: RootState) => machineTheme
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
@@ -42,9 +49,23 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
     [dispatch]
   );
 
-  const workspaceTabsId = useId();
-  const workspaceBarId = useId();
-  const workspaceHiddenId = useId();
+  const groupName = useId();
+
+  // Each thumbnail previews the layout it selects, drawn in the theme the user
+  // is actually running so the previews match their window. `machineTheme` is
+  // loosely typed as a string, so anything that is not dark falls back to light.
+  const resolvedTheme =
+    userThemePreference === 'auto' ? machineTheme : userThemePreference;
+  const previewTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+
+  const options = useMemo(
+    (): [NavigationLayoutValue, string][] => [
+      ['tabs', t('settings.options.navigation.workspaceTabs')],
+      ['sidebar', t('settings.options.navigation.workspaceBar')],
+      ['hidden', t('settings.options.navigation.workspaceHidden')],
+    ],
+    [t]
+  );
 
   return (
     <Field className={props.className}>
@@ -54,37 +75,24 @@ export const NavigationLayout = (props: NavigationLayoutProps) => {
       <FieldDescription>
         {t('settings.options.navigation.description')}
       </FieldDescription>
-      <Box display='flex' flexDirection='column' mbs='x8'>
-        <Box display='flex' alignItems='center' mbe='x8'>
-          <RadioButton
-            id={workspaceTabsId}
-            checked={navigationLayout === 'tabs'}
-            onChange={handleChange('tabs')}
+      <Box
+        display='flex'
+        flexWrap='wrap'
+        mbs='x12'
+        style={{ gap: `${THUMBNAIL_GAP}px` }}
+      >
+        {options.map(([value, label]) => (
+          <ChromeThumbnailOption
+            key={value}
+            name={groupName}
+            value={value}
+            label={label}
+            layout={value}
+            theme={previewTheme}
+            checked={navigationLayout === value}
+            onChange={handleChange(value)}
           />
-          <FieldLabel htmlFor={workspaceTabsId} mis='x8'>
-            {t('settings.options.navigation.workspaceTabs')}
-          </FieldLabel>
-        </Box>
-        <Box display='flex' alignItems='center' mbe='x8'>
-          <RadioButton
-            id={workspaceBarId}
-            checked={navigationLayout === 'sidebar'}
-            onChange={handleChange('sidebar')}
-          />
-          <FieldLabel htmlFor={workspaceBarId} mis='x8'>
-            {t('settings.options.navigation.workspaceBar')}
-          </FieldLabel>
-        </Box>
-        <Box display='flex' alignItems='center'>
-          <RadioButton
-            id={workspaceHiddenId}
-            checked={navigationLayout === 'hidden'}
-            onChange={handleChange('hidden')}
-          />
-          <FieldLabel htmlFor={workspaceHiddenId} mis='x8'>
-            {t('settings.options.navigation.workspaceHidden')}
-          </FieldLabel>
-        </Box>
+        ))}
       </Box>
     </Field>
   );

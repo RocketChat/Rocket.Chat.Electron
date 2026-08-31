@@ -3,6 +3,7 @@ import {
   selectGlobalBadge,
   selectGlobalBadgeCount,
   selectGlobalBadgeText,
+  selectActiveServerPresence,
 } from '../selectors';
 
 const state = (servers: any[]): RootState =>
@@ -35,5 +36,83 @@ describe('ui/selectors', () => {
     expect(selectGlobalBadgeCount(state([{ badge: '•' }, { badge: 7 }]))).toBe(
       7
     );
+  });
+
+  it('does not throw when a server has a malformed url', () => {
+    const rootState = {
+      servers: [{ url: 'not a url', title: 'Bad Server' }],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(() => selectActiveServerPresence(rootState)).not.toThrow();
+    expect(selectActiveServerPresence(rootState).url).toBeUndefined();
+  });
+
+  it('overrides connection to disconnected when presence disconnection is simulated', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          title: 'Server',
+          presenceConnection: 'connected',
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+      isPresenceDisconnectionSimulated: true,
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).connection).toBe(
+      'disconnected'
+    );
+  });
+
+  it('keeps the real connection when presence disconnection is not simulated', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          title: 'Server',
+          presenceConnection: 'connected',
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+      isPresenceDisconnectionSimulated: false,
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).connection).toBe('connected');
+  });
+
+  it('passes through the failed flag from the active server', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          title: 'Server',
+          failed: true,
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).failed).toBe(true);
+  });
+
+  it('flags isAddingServer when the current view is the add-workspace screen, even with existing servers', () => {
+    const rootState = {
+      servers: [{ url: 'https://server.test', title: 'Server' }],
+      currentView: 'add-new-server',
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).isAddingServer).toBe(true);
+    expect(selectActiveServerPresence(rootState).hasServers).toBe(true);
+  });
+
+  it('does not flag isAddingServer when a server is selected', () => {
+    const rootState = {
+      servers: [{ url: 'https://server.test', title: 'Server' }],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState).isAddingServer).toBe(false);
   });
 });

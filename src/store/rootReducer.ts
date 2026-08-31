@@ -14,6 +14,7 @@ import {
   trustedCertificates,
   notTrustedCertificates,
 } from '../navigation/reducers';
+import { isNotificationQuickReplyEnabled } from '../notifications/reducers/isNotificationQuickReplyEnabled';
 import { allowInsecureOutlookConnections } from '../outlookCalendar/reducers/allowInsecureOutlookConnections';
 import { outlookCalendarSyncInterval } from '../outlookCalendar/reducers/outlookCalendarSyncInterval';
 import { outlookCalendarSyncIntervalOverride } from '../outlookCalendar/reducers/outlookCalendarSyncIntervalOverride';
@@ -33,14 +34,18 @@ import { isDebugLoggingEnabled } from '../ui/reducers/isDebugLoggingEnabled';
 import { isDetailedEventsLoggingEnabled } from '../ui/reducers/isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
 import { isDownloadsPercentageEnabled } from '../ui/reducers/isDownloadsPercentageEnabled';
+import { isDownloadsWindowOpen } from '../ui/reducers/isDownloadsWindowOpen';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
+import { isLogViewerWindowOpen } from '../ui/reducers/isLogViewerWindowOpen';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
 import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnabled';
+import { isPresenceDisconnectionSimulated } from '../ui/reducers/isPresenceDisconnectionSimulated';
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
+import { isSettingsWindowOpen } from '../ui/reducers/isSettingsWindowOpen';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTelephonyEnabled } from '../ui/reducers/isTelephonyEnabled';
@@ -55,6 +60,7 @@ import { navigationLayout } from '../ui/reducers/navigationLayout';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
+import { secondaryWindowStates } from '../ui/reducers/secondaryWindowStates';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
 import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
@@ -72,6 +78,7 @@ import {
   updateDownloadStatus,
   updateError,
   updateChannel,
+  updateStore,
 } from '../updates/reducers';
 
 export const rootReducer = combineReducers({
@@ -93,6 +100,7 @@ export const rootReducer = combineReducers({
   isMenuBarEnabled,
   isMessageBoxFocused,
   isShowWindowOnUnreadChangedEnabled,
+  isSettingsWindowOpen,
   isSideBarEnabled,
   navigationLayout,
   isTrayIconEnabled,
@@ -106,6 +114,7 @@ export const rootReducer = combineReducers({
   openDialog,
   rootWindowIcon,
   rootWindowState,
+  secondaryWindowStates,
   selectedBrowser,
   servers,
   userThemePreference,
@@ -134,14 +143,19 @@ export const rootReducer = combineReducers({
   isDetailedEventsLoggingEnabled,
   isVerboseOutlookLoggingEnabled,
   updateChannel,
+  updateStore,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
+  isPresenceDisconnectionSimulated,
+  isDownloadsWindowOpen,
+  isLogViewerWindowOpen,
   isTransparentWindowEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
   telephonyPreferredServer,
   telephonyGlobalShortcutConfig,
   telephonyGlobalShortcutRegistrationStatus,
   isTelephonyEnabled,
+  isNotificationQuickReplyEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

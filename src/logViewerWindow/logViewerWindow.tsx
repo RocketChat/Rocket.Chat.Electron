@@ -1,32 +1,63 @@
 import {
   Box,
-  SearchInput,
-  Icon,
   Button,
-  ButtonGroup,
-  Select,
-  Tile,
+  Callout,
+  Icon,
+  IconButton,
+  States,
+  StatesAction,
+  StatesActions,
+  StatesIcon,
+  StatesSubtitle,
+  StatesTitle,
   Throbber,
-  CheckBox,
 } from '@rocket.chat/fuselage';
 import {
   useLocalStorage,
   useDebouncedValue,
 } from '@rocket.chat/fuselage-hooks';
 import { ipcRenderer } from 'electron';
-import type { ChangeEvent, Key } from 'react';
+import type { ChangeEvent } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { VirtuosoHandle } from 'react-virtuoso';
-import { Virtuoso } from 'react-virtuoso';
+import { GroupedVirtuoso } from 'react-virtuoso';
 
-import { LogEntry } from './LogEntry';
+import TooltipProvider from '../ui/components/utils/TooltipProvider';
+import { formatServerTitle } from '../ui/components/utils/formatServerTitle';
+import { DayHeader } from '../ui/windowChrome/DayHeader';
+import type { PaletteTheme } from '../ui/windowChrome/appearance';
+import { getCardStyle, resolveSurfaces } from '../ui/windowChrome/appearance';
+import type { FacetSelection } from '../ui/windowChrome/filters';
 import {
+  isFacetNarrowed,
+  isFacetSelected,
+  readFacetSelection,
+  toggleFacet,
+} from '../ui/windowChrome/filters';
+import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
+import { useCopiedFeedback } from '../ui/windowChrome/useCopiedFeedback';
+import { useTransparency } from '../ui/windowChrome/useTransparency';
+import { LogEntry } from './LogEntry';
+import { LogStatusBar } from './LogStatusBar';
+import { LogTimeline } from './LogTimeline';
+import { LogViewerSidebar } from './LogViewerSidebar';
+import { LogViewerToolbar } from './LogViewerToolbar';
+import { LOG_LEVELS } from './appearance';
+import {
+  TRANSPARENCY_CHANNEL,
   AUTO_REFRESH_INTERVAL_MS,
+  AUTO_SCROLL_GUARD_MS,
+  PAGE_SIZE,
   SCROLL_DELAY_MS,
   SEARCH_DEBOUNCE_MS,
   VIRTUOSO_OVERSCAN,
 } from './constants';
+import { advanceVisibleCount } from './pagination';
+import { countBy, getEntryDay, parseLogLines } from './parseLogs';
+import { LogViewerGlobalStyles } from './styles';
+import type { TimeRange } from './timeline';
+import { isWithinRange } from './timeline';
 import {
   type LogLevel,
   type LogEntryType,
@@ -35,11 +66,22 @@ import {
   type SaveLogsResponse,
   type SelectFileResponse,
   type ClearLogsResponse,
-  parseLogLevel,
 } from './types';
 
-const LOG_LINE_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]\s*(.*)$/;
-const CONTEXT_REGEX = /^(\[[^\]]+\](?:\s*\[[^\]]+\])*)\s*(.*)$/;
+/** Context tags that have a friendlier translated name than the raw tag. */
+const CONTEXT_LABEL_KEYS: Record<string, string> = {
+  'main': 'logViewer.filters.context.main',
+  'renderer:root': 'logViewer.filters.context.renderer',
+  'renderer:webview': 'logViewer.filters.context.webview',
+  'renderer:videocall': 'logViewer.filters.context.videocall',
+  'videocall': 'logViewer.filters.context.videocall',
+  'outlook': 'logViewer.filters.context.outlook',
+  'auth': 'logViewer.filters.context.auth',
+  'updates': 'logViewer.filters.context.updates',
+  'notifications': 'logViewer.filters.context.notifications',
+  'servers': 'logViewer.filters.context.servers',
+  'ipc': 'logViewer.filters.context.ipc',
+};
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -50,8 +92,33 @@ const formatFileSize = (bytes: number): string => {
   return `${mb.toFixed(1)} MB`;
 };
 
-function LogViewerWindow() {
+const formatDayLabel = (day: string): string => {
+  const parsed = new Date(day);
+  if (isNaN(parsed.getTime())) return day;
+  return parsed.toLocaleDateString(undefined, {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+type LogViewerWindowProps = {
+  paletteTheme: PaletteTheme;
+};
+
+function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   const { t } = useTranslation();
+  const isTransparent = useTransparency(TRANSPARENCY_CHANNEL);
+  const surfaces = useMemo(
+    () => resolveSurfaces(paletteTheme, isTransparent),
+    [paletteTheme, isTransparent]
+  );
+  const cardStyle = useMemo(
+    () => getCardStyle(paletteTheme, surfaces),
+    [paletteTheme, surfaces]
+  );
+
   const [searchFilter, setSearchFilter] = useState('');
   const debouncedSearchFilter = useDebouncedValue(
     searchFilter,
@@ -59,15 +126,24 @@ function LogViewerWindow() {
   );
   const [logEntries, setLogEntries] = useState<LogEntryType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [hasSaved, acknowledgeSave] = useCopiedFeedback(
+    t('logViewer.buttons.saved')
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const lastModifiedTimeRef = useRef<number | undefined>(undefined);
   const lastKnownSizeRef = useRef<number>(0);
   const isAutoScrollingRef = useRef(false);
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [userHasScrolled, setUserHasScrolled] = useState(false);
-  const [showContext, setShowContext] = useState(true);
-  const [showServer, setShowServer] = useState(true);
+  const lastAutoScrollAtRef = useRef(0);
+  const isSuspendedRef = useRef(false);
+  const parseGenerationRef = useRef(0);
+  const loadRequestIdRef = useRef(0);
+  const [pendingNewEntryCount, setPendingNewEntryCount] = useState(0);
+  const [expandedEntryIds, setExpandedEntryIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const [serverMapping, setServerMapping] = useState<Record<string, string>>(
     {}
   );
@@ -88,175 +164,108 @@ function LogViewerWindow() {
     isDefaultLog: true,
   });
 
-  const entryLimitOptions = useMemo<[string, string][]>(
-    () => [
-      ['100', t('logViewer.filters.entryLimit.last100')],
-      ['500', t('logViewer.filters.entryLimit.last500')],
-      ['1000', t('logViewer.filters.entryLimit.last1000')],
-      ['5000', t('logViewer.filters.entryLimit.last5000')],
-      ['all', t('logViewer.filters.entryLimit.all')],
-    ],
-    [t]
+  const [showContext, setShowContext] = useLocalStorage(
+    'log-viewer/show-context',
+    true
   );
+  const [showServer, setShowServer] = useLocalStorage(
+    'log-viewer/show-server',
+    true
+  );
+  const [wrapLines, setWrapLines] = useLocalStorage(
+    'log-viewer/wrap-lines',
+    true
+  );
+  const [collapseMultiline, setCollapseMultiline] = useLocalStorage(
+    'log-viewer/collapse-multiline',
+    true
+  );
+  const [autoScroll, setAutoScroll] = useLocalStorage(
+    'log-viewer/auto-scroll',
+    true
+  );
+  const [showTimeline, setShowTimeline] = useLocalStorage(
+    'log-viewer/show-timeline',
+    true
+  );
+  // Deliberately not persisted: a time range belongs to the file you are reading
+  // now, and restoring one silently would hide entries on the next open.
+  const [timeRange, setTimeRange] = useState<TimeRange | null>(null);
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
 
-  const [entryLimit, setEntryLimit] =
-    useState<(typeof entryLimitOptions)[number][0]>('100');
+  // How many matching entries are handed to the list. Scrolling to the end
+  // raises it a page at a time, so reading further back is a scroll rather than
+  // a filter the reader has to find and change.
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const [storedLevelFilters, setLevelFilters] = useLocalStorage<
+    FacetSelection<LogLevel>
+  >('log-viewer/levels', null);
+  const [storedContextFilters, setContextFilters] =
+    useLocalStorage<FacetSelection>('log-viewer/contexts', null);
+  const [storedServerFilters, setServerFilters] =
+    useLocalStorage<FacetSelection>('log-viewer/servers', null);
+
+  const levelFilters = useMemo(
+    () => readFacetSelection<LogLevel>(storedLevelFilters),
+    [storedLevelFilters]
+  );
+  const contextFilters = useMemo(
+    () => readFacetSelection(storedContextFilters),
+    [storedContextFilters]
+  );
+  const serverFilters = useMemo(
+    () => readFacetSelection(storedServerFilters),
+    [storedServerFilters]
+  );
 
   const handleSearchFilterChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       setSearchFilter(event.target.value);
     },
-    [setSearchFilter]
+    []
   );
 
-  const levelFilterOptions = useMemo<[LogLevel | 'all', string][]>(
-    () => [
-      ['all', t('logViewer.filters.level.all')],
-      ['debug', t('logViewer.filters.level.debug')],
-      ['info', t('logViewer.filters.level.info')],
-      ['warn', t('logViewer.filters.level.warn')],
-      ['error', t('logViewer.filters.level.error')],
-      ['verbose', t('logViewer.filters.level.verbose')],
-    ],
-    [t]
+  const serverOptions = useMemo(
+    () => Object.keys(serverMapping),
+    [serverMapping]
   );
 
-  const [levelFilter, setLevelFilter] = useLocalStorage<
-    (typeof levelFilterOptions)[number][0]
-  >('log-level', 'all');
-
-  const handleLevelFilterChange = useCallback(
-    (value: Key) => {
-      setLevelFilter(String(value) as LogLevel | 'all');
-    },
-    [setLevelFilter]
-  );
-
-  const contextFilterOptions = useMemo<[string, string][]>(
-    () => [
-      ['all', t('logViewer.filters.context.all')],
-      ['main', t('logViewer.filters.context.main')],
-      ['renderer', t('logViewer.filters.context.renderer')],
-      ['webview', t('logViewer.filters.context.webview')],
-      ['videocall', t('logViewer.filters.context.videocall')],
-      ['outlook', t('logViewer.filters.context.outlook')],
-      ['auth', t('logViewer.filters.context.auth')],
-      ['updates', t('logViewer.filters.context.updates')],
-      ['notifications', t('logViewer.filters.context.notifications')],
-      ['servers', t('logViewer.filters.context.servers')],
-      ['ipc', t('logViewer.filters.context.ipc')],
-    ],
-    [t]
-  );
-
-  const [contextFilter, setContextFilter] = useLocalStorage<
-    (typeof contextFilterOptions)[number][0]
-  >('log-context', 'all');
-
-  const handleContextFilterChange = useCallback(
-    (value: Key) => {
-      setContextFilter(String(value));
-    },
-    [setContextFilter]
-  );
-
-  const serverFilterOptions = useMemo<[string, string][]>(() => {
-    const options: [string, string][] = [
-      ['all', t('logViewer.filters.server.all')],
-    ];
+  const serverLabels = useMemo(() => {
+    const labels: Record<string, string> = {};
     Object.entries(serverMapping).forEach(([hostname, name]) => {
-      options.push([hostname, name || hostname]);
+      labels[hostname] = name || hostname;
     });
-    return options;
-  }, [serverMapping, t]);
+    return labels;
+  }, [serverMapping]);
 
-  const [serverFilter, setServerFilter] = useLocalStorage<string>(
-    'log-server',
-    'all'
-  );
-
-  // Reset persisted server filter if the stored value no longer exists
+  // Drop persisted hosts that are no longer configured, so a removed workspace
+  // cannot leave the list filtered down to nothing.
   useEffect(() => {
-    const validKeys = serverFilterOptions.map(([key]) => key);
-    if (!validKeys.includes(serverFilter)) {
-      setServerFilter('all');
-    }
-  }, [serverFilter, serverFilterOptions, setServerFilter]);
+    if (serverOptions.length === 0 || serverFilters === null) return;
+    const pruned = serverFilters.filter((host) => serverOptions.includes(host));
+    if (pruned.length === serverFilters.length) return;
 
-  const handleServerFilterChange = useCallback(
-    (value: Key) => {
-      setServerFilter(String(value));
-    },
-    [setServerFilter]
-  );
+    // Back to untouched when nothing survives: an empty selection now means
+    // "no server selected", which would filter the list down to nothing — the
+    // very thing this is here to prevent.
+    setServerFilters(pruned.length > 0 ? pruned : null);
+  }, [serverFilters, serverOptions, setServerFilters]);
 
-  const handleEntryLimitChange = useCallback(
-    (value: Key) => {
-      setEntryLimit(String(value));
-    },
-    [setEntryLimit]
-  );
-
-  const handleClearAll = useCallback((): void => {
+  const handleClearFilters = useCallback((): void => {
     setSearchFilter('');
-    setLevelFilter('all');
-    setContextFilter('all');
-    setServerFilter('all');
-    setEntryLimit('100');
-  }, [
-    setSearchFilter,
-    setLevelFilter,
-    setContextFilter,
-    setServerFilter,
-    setEntryLimit,
-  ]);
-
-  const parseLogLines = useCallback((logText: string): LogEntryType[] => {
-    if (!logText || logText.trim() === '') {
-      return [];
-    }
-    const lines = logText.split(/\r?\n/).filter((line: string) => line.trim());
-    const entries: LogEntryType[] = [];
-    let currentEntry: LogEntryType | null = null;
-
-    lines.forEach((line, _index) => {
-      const match = line.match(LOG_LINE_REGEX);
-
-      if (match) {
-        const [, timestamp, level, rest] = match;
-
-        const contextMatch = rest.match(CONTEXT_REGEX);
-        const context = contextMatch?.[1] || '';
-        const message = contextMatch?.[2] || rest;
-
-        if (currentEntry) {
-          entries.push(currentEntry);
-        }
-
-        currentEntry = {
-          id: `log-${entries.length}`,
-          timestamp,
-          level: parseLogLevel(level),
-          context: context.replace(/[\[\]]/g, ' ').trim(),
-          message: message.trim(),
-          raw: line,
-        };
-      } else if (currentEntry && line.trim()) {
-        currentEntry.message += `\n${line}`;
-        currentEntry.raw += `\n${line}`;
-      }
-    });
-
-    if (currentEntry) {
-      entries.push(currentEntry);
-    }
-
-    return entries.reverse();
-  }, []);
+    setLevelFilters(null);
+    setContextFilters(null);
+    setServerFilters(null);
+    setTimeRange(null);
+  }, [setLevelFilters, setContextFilters, setServerFilters]);
 
   const loadLogs = useCallback(async () => {
+    const requestId = loadRequestIdRef.current + 1;
+    loadRequestIdRef.current = requestId;
     setIsLoading(true);
     try {
+      setLoadError(null);
       const response = (await ipcRenderer.invoke(
         'log-viewer-window/read-logs',
         {
@@ -266,9 +275,15 @@ function LogViewerWindow() {
             : currentLogFile.filePath,
         }
       )) as ReadLogsResponse;
+      if (requestId !== loadRequestIdRef.current) return;
       if (response?.success && response.logs !== undefined) {
-        const parsedLogs = parseLogLines(response.logs);
+        parseGenerationRef.current += 1;
+        const parsedLogs = parseLogLines(
+          response.logs,
+          `g${parseGenerationRef.current}`
+        );
         setLogEntries(parsedLogs);
+        setExpandedEntryIds(new Set());
 
         setCurrentLogFile({
           filePath: response.filePath,
@@ -315,60 +330,281 @@ function LogViewerWindow() {
         });
       } else {
         console.error('Failed to load logs:', response?.error);
+        setLogEntries([]);
         setFileInfo(null);
+        setLoadError(response?.error || t('logViewer.messages.loadFailed'));
       }
     } catch (error) {
+      if (requestId !== loadRequestIdRef.current) return;
       console.error('Failed to load logs:', error);
+      setLogEntries([]);
       setFileInfo(null);
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : t('logViewer.messages.loadFailed')
+      );
     } finally {
-      setIsLoading(false);
-    }
-  }, [parseLogLines, currentLogFile.filePath, currentLogFile.isDefaultLog, t]);
-
-  const filteredLogs = useMemo(() => {
-    const filtered = logEntries.filter((entry) => {
-      const matchesSearch =
-        !debouncedSearchFilter ||
-        entry.message
-          .toLowerCase()
-          .includes(debouncedSearchFilter.toLowerCase()) ||
-        entry.context
-          .toLowerCase()
-          .includes(debouncedSearchFilter.toLowerCase());
-
-      const matchesLevel = levelFilter === 'all' || entry.level === levelFilter;
-
-      const contextTags = entry.context.toLowerCase().split(/\s+/);
-
-      const matchesContext =
-        contextFilter === 'all' ||
-        contextTags.some((tag) => tag.startsWith(contextFilter.toLowerCase()));
-
-      const matchesServer =
-        serverFilter === 'all' ||
-        contextTags.some((tag) => tag === serverFilter.toLowerCase()) ||
-        entry.raw.toLowerCase().includes(serverFilter.toLowerCase());
-
-      return matchesSearch && matchesLevel && matchesContext && matchesServer;
-    });
-
-    // Apply entry limit as a display cap on filtered results
-    if (entryLimit !== 'all') {
-      const limit = parseInt(entryLimit);
-      if (filtered.length > limit) {
-        return filtered.slice(0, limit);
+      if (requestId === loadRequestIdRef.current) {
+        setIsLoading(false);
       }
     }
+  }, [currentLogFile.filePath, currentLogFile.isDefaultLog, t]);
 
-    return filtered;
+  const matchesSearch = useCallback(
+    (entry: LogEntryType): boolean => {
+      if (!debouncedSearchFilter) return true;
+      return entry.searchText.includes(debouncedSearchFilter.toLowerCase());
+    },
+    [debouncedSearchFilter]
+  );
+
+  const matchesServer = useCallback(
+    (entry: LogEntryType): boolean => {
+      if (serverFilters === null) return true;
+      return serverFilters.some(
+        (host) =>
+          entry.contextTags.includes(host) || entry.message.includes(host)
+      );
+    },
+    [serverFilters]
+  );
+
+  const matchesLevel = useCallback(
+    (entry: LogEntryType): boolean =>
+      isFacetSelected(levelFilters, entry.level),
+    [levelFilters]
+  );
+
+  const matchesContext = useCallback(
+    (entry: LogEntryType): boolean =>
+      contextFilters === null ||
+      entry.contextTags.some((tag) => contextFilters.includes(tag)),
+    [contextFilters]
+  );
+
+  const matchesTimeRange = useCallback(
+    (entry: LogEntryType): boolean =>
+      timeRange === null ||
+      isWithinRange(new Date(entry.timestamp).getTime(), timeRange),
+    [timeRange]
+  );
+
+  /**
+   * Counts are faceted: each list reports what selecting it would yield with the
+   * *other* filters applied, so a count is never a number the reader cannot get.
+   */
+  const searchedEntries = useMemo(
+    () => logEntries.filter(matchesSearch),
+    [logEntries, matchesSearch]
+  );
+
+  const levelCounts = useMemo(
+    () =>
+      countBy(
+        searchedEntries.filter(
+          (entry) =>
+            matchesContext(entry) &&
+            matchesServer(entry) &&
+            matchesTimeRange(entry)
+        ),
+        (entry) => [entry.level]
+      ),
+    [searchedEntries, matchesContext, matchesServer, matchesTimeRange]
+  );
+
+  const contextCounts = useMemo(
+    () =>
+      countBy(
+        searchedEntries.filter(
+          (entry) =>
+            matchesLevel(entry) &&
+            matchesServer(entry) &&
+            matchesTimeRange(entry)
+        ),
+        (entry) => entry.contextTags.filter((tag) => !(tag in serverMapping))
+      ),
+    [
+      searchedEntries,
+      matchesLevel,
+      matchesServer,
+      matchesTimeRange,
+      serverMapping,
+    ]
+  );
+
+  const serverCounts = useMemo(
+    () =>
+      countBy(
+        searchedEntries.filter(
+          (entry) =>
+            matchesLevel(entry) &&
+            matchesContext(entry) &&
+            matchesTimeRange(entry)
+        ),
+        (entry) =>
+          serverOptions.filter(
+            (host) =>
+              entry.contextTags.includes(host) || entry.message.includes(host)
+          )
+      ),
+    [
+      searchedEntries,
+      matchesLevel,
+      matchesContext,
+      matchesTimeRange,
+      serverOptions,
+    ]
+  );
+
+  /** Levels and context tags that actually occur in the loaded file. */
+  const availableLevels = useMemo(() => {
+    const present = new Set(logEntries.map((entry) => entry.level));
+    return LOG_LEVELS.filter((level) => present.has(level));
+  }, [logEntries]);
+
+  const contextOptions = useMemo(() => {
+    const totals = countBy(logEntries, (entry) =>
+      entry.contextTags.filter((tag) => !(tag in serverMapping))
+    );
+    return Object.keys(totals).sort(
+      (a, b) => totals[b] - totals[a] || a.localeCompare(b)
+    );
+  }, [logEntries, serverMapping]);
+
+  const contextLabels = useMemo(() => {
+    const labels: Record<string, string> = {};
+    contextOptions.forEach((tag) => {
+      const key = CONTEXT_LABEL_KEYS[tag];
+      labels[tag] = key ? t(key) : tag;
+    });
+    return labels;
+  }, [contextOptions, t]);
+
+  /**
+   * Matches of every filter except the time range — the chart's data, so it can
+   * keep showing the whole span with the selection marked on top of it.
+   */
+  const timelineEntries = useMemo(
+    () =>
+      searchedEntries.filter(
+        (entry) =>
+          matchesLevel(entry) && matchesContext(entry) && matchesServer(entry)
+      ),
+    [searchedEntries, matchesLevel, matchesContext, matchesServer]
+  );
+
+  /** Every entry matching the filters — what Copy and Save act on. */
+  const filteredLogs = useMemo(
+    () => timelineEntries.filter(matchesTimeRange),
+    [timelineEntries, matchesTimeRange]
+  );
+
+  /** The page of matches currently handed to the list. */
+  const visibleLogs = useMemo(
+    () => filteredLogs.slice(0, visibleCount),
+    [filteredLogs, visibleCount]
+  );
+
+  const handleEndReached = useCallback(() => {
+    setVisibleCount((previous) =>
+      advanceVisibleCount(previous, filteredLogs.length, PAGE_SIZE)
+    );
+  }, [filteredLogs.length]);
+
+  // Changing what matches restarts paging; appended entries must not, or a
+  // reader scrolled into history would be yanked back to the first page.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
   }, [
-    logEntries,
     debouncedSearchFilter,
-    levelFilter,
-    contextFilter,
-    serverFilter,
-    entryLimit,
+    levelFilters,
+    contextFilters,
+    serverFilters,
+    timeRange,
   ]);
+
+  /**
+   * Runs of entries sharing a calendar day. Fed to the list as groups so their
+   * headers stick to the top of the viewport while that day scrolls past.
+   */
+  const dayGroups = useMemo(() => {
+    const groups: { label: string; count: number }[] = [];
+    let previousDay: string | undefined;
+    visibleLogs.forEach((entry) => {
+      const day = getEntryDay(entry.timestamp);
+      if (day !== previousDay) {
+        groups.push({ label: formatDayLabel(day), count: 0 });
+        previousDay = day;
+      }
+      groups[groups.length - 1].count += 1;
+    });
+    return groups;
+  }, [visibleLogs]);
+
+  const dayGroupCounts = useMemo(
+    () => dayGroups.map((group) => group.count),
+    [dayGroups]
+  );
+
+  const activeFilterCount = useMemo(
+    () =>
+      (debouncedSearchFilter ? 1 : 0) +
+      (isFacetNarrowed(levelFilters) ? 1 : 0) +
+      (isFacetNarrowed(contextFilters) ? 1 : 0) +
+      (isFacetNarrowed(serverFilters) ? 1 : 0) +
+      (timeRange !== null ? 1 : 0),
+    [
+      debouncedSearchFilter,
+      levelFilters,
+      contextFilters,
+      serverFilters,
+      timeRange,
+    ]
+  );
+
+  const handleToggleLevel = useCallback(
+    (level: LogLevel) => {
+      setLevelFilters((previous) =>
+        toggleFacet(
+          readFacetSelection<LogLevel>(previous),
+          level,
+          availableLevels.length > 0 ? availableLevels : LOG_LEVELS
+        )
+      );
+    },
+    [availableLevels, setLevelFilters]
+  );
+
+  const handleToggleContext = useCallback(
+    (context: string) => {
+      setContextFilters((previous) =>
+        toggleFacet(readFacetSelection(previous), context, contextOptions)
+      );
+    },
+    [contextOptions, setContextFilters]
+  );
+
+  const handleToggleServer = useCallback(
+    (server: string) => {
+      setServerFilters((previous) =>
+        toggleFacet(readFacetSelection(previous), server, serverOptions)
+      );
+    },
+    [serverOptions, setServerFilters]
+  );
+
+  const handleToggleExpanded = useCallback((id: string) => {
+    setExpandedEntryIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     lastModifiedTimeRef.current = fileInfo?.lastModifiedTime;
@@ -382,7 +618,17 @@ function LogViewerWindow() {
           'log-viewer-window/get-server-mapping'
         )) as { success: boolean; mapping: Record<string, string> };
         if (response?.success) {
-          setServerMapping(response.mapping);
+          // Workspace titles are often the raw address; strip the scheme and
+          // trailing slashes here so the sidebar labels and the tag on every
+          // row read the same way the workspace tabs do.
+          setServerMapping(
+            Object.fromEntries(
+              Object.entries(response.mapping).map(([host, title]) => [
+                host,
+                formatServerTitle(title || host),
+              ])
+            )
+          );
         }
       } catch {
         // Non-critical: mapping not available yet
@@ -434,13 +680,21 @@ function LogViewerWindow() {
       )) as ReadLogsTailResponse;
 
       if (tailResponse?.success && tailResponse.logs) {
-        const newEntries = parseLogLines(tailResponse.logs);
+        parseGenerationRef.current += 1;
+        const newEntries = parseLogLines(
+          tailResponse.logs,
+          `g${parseGenerationRef.current}`
+        );
         if (newEntries.length > 0) {
           setLogEntries((prev) => {
             // newEntries are already reversed (newest first)
             // Prepend them to existing entries
             return [...newEntries, ...prev];
           });
+
+          if (isSuspendedRef.current) {
+            setPendingNewEntryCount((prev) => prev + newEntries.length);
+          }
 
           setFileInfo((prev) =>
             prev
@@ -464,7 +718,7 @@ function LogViewerWindow() {
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
-  }, [isStreaming, currentLogFile.isDefaultLog, loadLogs, parseLogLines]);
+  }, [isStreaming, currentLogFile.isDefaultLog, loadLogs]);
 
   useEffect(() => {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
@@ -480,6 +734,13 @@ function LogViewerWindow() {
   }, [autoScroll]);
 
   useEffect(() => {
+    isSuspendedRef.current = autoScroll && userHasScrolled;
+    if (!isSuspendedRef.current) {
+      setPendingNewEntryCount(0);
+    }
+  }, [autoScroll, userHasScrolled]);
+
+  useEffect(() => {
     if (
       autoScroll &&
       !userHasScrolled &&
@@ -488,6 +749,7 @@ function LogViewerWindow() {
     ) {
       const timeoutId = setTimeout(() => {
         isAutoScrollingRef.current = true;
+        lastAutoScrollAtRef.current = Date.now();
         if (virtuosoRef.current && autoScroll && !userHasScrolled) {
           virtuosoRef.current.scrollToIndex({
             index: 0,
@@ -504,24 +766,69 @@ function LogViewerWindow() {
 
   const handleScroll = useCallback(() => {
     if (isAutoScrollingRef.current) return;
+    if (Date.now() - lastAutoScrollAtRef.current < AUTO_SCROLL_GUARD_MS) return;
     if (autoScroll && !userHasScrolled) {
       setUserHasScrolled(true);
     }
   }, [autoScroll, userHasScrolled]);
 
+  const handleResumeAutoScroll = useCallback(() => {
+    setUserHasScrolled(false);
+    setPendingNewEntryCount(0);
+    if (virtuosoRef.current) {
+      isAutoScrollingRef.current = true;
+      lastAutoScrollAtRef.current = Date.now();
+      virtuosoRef.current.scrollToIndex({ index: 0, behavior: 'smooth' });
+      isAutoScrollingRef.current = false;
+    }
+  }, []);
+
+  const handleCopyEntry = useCallback((entry: LogEntryType) => {
+    navigator.clipboard.writeText(entry.raw).catch((error) => {
+      console.error('Failed to copy entry to clipboard:', error);
+    });
+  }, []);
+
+  const renderDayGroup = useCallback(
+    (groupIndex: number) => (
+      <DayHeader
+        label={dayGroups[groupIndex]?.label ?? ''}
+        trailing={dayGroups[groupIndex]?.count}
+        surfaces={surfaces}
+        blurred={isTransparent}
+      />
+    ),
+    [dayGroups, surfaces, isTransparent]
+  );
+
   const renderLogEntry = useCallback(
-    (_index: number, entry: LogEntryType) => {
-      return (
-        <LogEntry
-          key={entry.id}
-          entry={entry}
-          showContext={showContext}
-          showServer={showServer}
-          serverMapping={serverMapping}
-        />
-      );
-    },
-    [showContext, showServer, serverMapping]
+    (_index: number, _groupIndex: number, entry: LogEntryType) => (
+      <LogEntry
+        entry={entry}
+        showContext={showContext}
+        showServer={showServer}
+        serverMapping={serverMapping}
+        searchTerm={debouncedSearchFilter}
+        wrapLines={wrapLines}
+        collapseEnabled={collapseMultiline}
+        isExpanded={expandedEntryIds.has(entry.id)}
+        onToggleExpanded={handleToggleExpanded}
+        onCopy={handleCopyEntry}
+        surfaces={surfaces}
+      />
+    ),
+    [
+      showContext,
+      showServer,
+      serverMapping,
+      debouncedSearchFilter,
+      wrapLines,
+      collapseMultiline,
+      expandedEntryIds,
+      handleToggleExpanded,
+      handleCopyEntry,
+      surfaces,
+    ]
   );
 
   const handleOpenLogFile = useCallback(async () => {
@@ -532,6 +839,8 @@ function LogViewerWindow() {
       if (response?.success && response.filePath) {
         setLogEntries([]);
         setFileInfo(null);
+        setTimeRange(null);
+        setLoadError(null);
 
         setIsStreaming(false);
 
@@ -549,6 +858,8 @@ function LogViewerWindow() {
   const handleOpenDefaultLog = useCallback(() => {
     setLogEntries([]);
     setFileInfo(null);
+    setTimeRange(null);
+    setLoadError(null);
 
     setCurrentLogFile({
       filePath: undefined,
@@ -556,6 +867,24 @@ function LogViewerWindow() {
       isDefaultLog: true,
     });
   }, []);
+
+  const handleRevealLogFile = useCallback(async () => {
+    try {
+      const response = (await ipcRenderer.invoke(
+        'log-viewer-window/reveal-log-file',
+        {
+          filePath: currentLogFile.isDefaultLog
+            ? undefined
+            : currentLogFile.filePath,
+        }
+      )) as { success: boolean; error?: string };
+      if (!response?.success) {
+        console.error('Failed to reveal log file:', response?.error);
+      }
+    } catch (error) {
+      console.error('Failed to reveal log file:', error);
+    }
+  }, [currentLogFile.filePath, currentLogFile.isDefaultLog]);
 
   const handleRefresh = useCallback(() => {
     loadLogs();
@@ -584,8 +913,8 @@ function LogViewerWindow() {
   }, [currentLogFile.isDefaultLog, loadLogs]);
 
   const handleToggleStreaming = useCallback(() => {
-    setIsStreaming(!isStreaming);
-  }, [isStreaming]);
+    setIsStreaming((previous) => !previous);
+  }, []);
 
   const handleCopyLogs = useCallback(() => {
     const logText = filteredLogs.map((entry) => entry.raw).join('\n');
@@ -595,6 +924,7 @@ function LogViewerWindow() {
   }, [filteredLogs]);
 
   const handleSaveLogs = useCallback(async () => {
+    setSaveError(null);
     try {
       const logText = filteredLogs.map((entry) => entry.raw).join('\n');
       const timestamp = new Date()
@@ -611,23 +941,38 @@ function LogViewerWindow() {
 
       if (response?.success) {
         console.log('Logs saved successfully to:', response.filePath);
+        acknowledgeSave();
+      } else if (response?.canceled) {
+        // User dismissed the save dialog — not an error, stay silent.
       } else if (response?.error) {
         console.error('Failed to save logs:', response.error);
+        setSaveError(response.error);
       }
     } catch (error) {
       console.error('Failed to save logs:', error);
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : t('logViewer.messages.saveFailed')
+      );
     }
-  }, [filteredLogs]);
+  }, [filteredLogs, acknowledgeSave, t]);
+
+  const handleToggleAutoScroll = useCallback(() => {
+    setAutoScroll((previous) => {
+      const next = !previous;
+      if (next) {
+        setUserHasScrolled(false);
+        setTimeout(() => {
+          virtuosoRef.current?.scrollToIndex({ index: 0, behavior: 'smooth' });
+        }, SCROLL_DELAY_MS);
+      }
+      return next;
+    });
+  }, [setAutoScroll]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault();
-        const searchInput = document.querySelector(
-          'input[type="search"]'
-        ) as HTMLInputElement;
-        searchInput?.focus();
-      }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleSaveLogs();
@@ -639,326 +984,246 @@ function LogViewerWindow() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [searchFilter, setSearchFilter, handleSaveLogs]);
-
-  const handleClose = useCallback(() => {
-    ipcRenderer.invoke('log-viewer-window/close-requested');
-  }, []);
+  }, [searchFilter, handleSaveLogs]);
 
   return (
-    <Box
-      display='flex'
-      flexDirection='column'
-      height='100vh'
-      width='100%'
-      backgroundColor='surface-light'
-    >
+    <TooltipProvider>
+      <WindowChromeGlobalStyles
+        paletteTheme={paletteTheme}
+        surfaces={surfaces}
+      />
+      <LogViewerGlobalStyles surfaces={surfaces} />
       <Box
-        minHeight='x64'
-        padding='x24'
         display='flex'
-        flexDirection='row'
-        flexWrap='nowrap'
-        alignItems='center'
-        borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
-        backgroundColor='surface-tint'
+        flexDirection='column'
+        height='100vh'
+        width='100%'
+        style={{ backgroundColor: surfaces.panel }}
       >
+        <LogViewerToolbar
+          fileName={currentLogFile.fileName}
+          filePath={currentLogFile.filePath}
+          isDefaultLog={currentLogFile.isDefaultLog}
+          isLoading={isLoading}
+          isStreaming={isStreaming}
+          onOpenLogFile={handleOpenLogFile}
+          onOpenDefaultLog={handleOpenDefaultLog}
+          onRevealLogFile={handleRevealLogFile}
+          onRefresh={handleRefresh}
+          onToggleStreaming={handleToggleStreaming}
+          onCopy={handleCopyLogs}
+          onSave={handleSaveLogs}
+          hasSaved={hasSaved}
+        />
+
+        {saveError && (
+          <Box padding='x8'>
+            <Callout
+              type='danger'
+              actions={
+                <IconButton
+                  small
+                  icon='cross'
+                  title={t('logViewer.buttons.dismissError')}
+                  aria-label={t('logViewer.buttons.dismissError')}
+                  onClick={() => setSaveError(null)}
+                />
+              }
+            >
+              {saveError}
+            </Callout>
+          </Box>
+        )}
+
         <Box
           display='flex'
           flexDirection='row'
-          alignItems='center'
           flexGrow={1}
+          style={{ minHeight: 0 }}
         >
-          <Icon
-            name='list-alt'
-            size='x20'
-            color='default'
-            aria-label={t('logViewer.aria.logIcon')}
+          <LogViewerSidebar
+            searchFilter={searchFilter}
+            onSearchFilterChange={handleSearchFilterChange}
+            levelFilters={levelFilters}
+            availableLevels={availableLevels}
+            levelCounts={levelCounts}
+            onToggleLevel={handleToggleLevel}
+            contextOptions={contextOptions}
+            contextLabels={contextLabels}
+            contextFilters={contextFilters}
+            contextCounts={contextCounts}
+            onToggleContext={handleToggleContext}
+            serverOptions={serverOptions}
+            serverLabels={serverLabels}
+            serverFilters={serverFilters}
+            serverCounts={serverCounts}
+            onToggleServer={handleToggleServer}
+            showContext={showContext}
+            onToggleShowContext={() => setShowContext(!showContext)}
+            showServer={showServer}
+            onToggleShowServer={() => setShowServer(!showServer)}
+            wrapLines={wrapLines}
+            onToggleWrapLines={() => setWrapLines(!wrapLines)}
+            collapseMultiline={collapseMultiline}
+            onToggleCollapseMultiline={() =>
+              setCollapseMultiline(!collapseMultiline)
+            }
+            autoScroll={autoScroll}
+            onToggleAutoScroll={handleToggleAutoScroll}
+            showTimeline={showTimeline}
+            onToggleShowTimeline={() => setShowTimeline(!showTimeline)}
+            onSelectAllLevels={() => setLevelFilters(null)}
+            onSelectAllContexts={() => setContextFilters(null)}
+            onSelectAllServers={() => setServerFilters(null)}
           />
-          <Box fontScale='h4' marginInlineStart='x8' color='default'>
-            {t('logViewer.title')}
-          </Box>
+
           <Box
+            flexGrow={1}
             display='flex'
             flexDirection='column'
-            alignItems='flex-start'
-            color='hint'
-            fontSize='x12'
-            marginInlineStart='x16'
+            style={{ minWidth: 0, minHeight: 0 }}
           >
-            <Box display='flex' alignItems='center' marginBlockEnd='x4'>
-              <Icon
-                name={currentLogFile.isDefaultLog ? 'home' : 'attachment'}
-                size='x12'
-              />
-              <Box
-                marginInlineStart='x4'
-                fontWeight='bold'
-                color={currentLogFile.isDefaultLog ? 'default' : 'info'}
-              >
-                {currentLogFile.fileName}
-                {!currentLogFile.isDefaultLog &&
-                  ` (${t('logViewer.fileInfo.custom')})`}
-              </Box>
-            </Box>
-            {fileInfo && (
-              <Box display='flex' alignItems='center' flexWrap='wrap'>
-                <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                  <Icon name='hash' size='x12' />
-                  <Box marginInlineStart='x4'>
-                    {fileInfo.totalEntriesInFile &&
-                    fileInfo.totalEntriesInFile !== fileInfo.totalEntries
-                      ? t('logViewer.fileInfo.entriesOfTotal', {
-                          count: fileInfo.totalEntries,
-                          total: fileInfo.totalEntriesInFile,
-                        })
-                      : t('logViewer.fileInfo.entries', {
-                          count: fileInfo.totalEntries,
-                        })}
-                  </Box>
-                </Box>
-                <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                  <Icon name='file' size='x12' />
-                  <Box marginInlineStart='x4'>{fileInfo.size}</Box>
-                </Box>
-                <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                  <Icon name='clock' size='x12' />
-                  <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </Box>
-        <ButtonGroup>
-          <Button onClick={handleOpenLogFile}>
-            <Icon name='folder' size='x16' />
-            {t('logViewer.buttons.openLogFile')}
-          </Button>
-          {!currentLogFile.isDefaultLog && (
-            <Button onClick={handleOpenDefaultLog}>
-              <Icon name='home' size='x16' />
-              {t('logViewer.buttons.defaultLog')}
-            </Button>
-          )}
-          <Button onClick={handleRefresh} disabled={isLoading}>
-            <Icon
-              name='refresh'
-              size='x16'
-              aria-label={t('logViewer.buttons.refresh')}
-            />
-            {t('logViewer.buttons.refresh')}
-          </Button>
-          <Button
-            onClick={handleToggleStreaming}
-            primary={isStreaming}
-            disabled={!currentLogFile.isDefaultLog}
-          >
-            <Icon name={isStreaming ? 'pause' : 'play'} size='x16' />
-            {isStreaming
-              ? t('logViewer.buttons.stopAutoRefresh')
-              : t('logViewer.buttons.autoRefresh')}
-          </Button>
-          <Button onClick={handleCopyLogs}>
-            <Icon name='copy' size='x16' />
-            {t('logViewer.buttons.copy')}
-          </Button>
-          <Button onClick={handleSaveLogs}>
-            <Icon name='download' size='x16' />
-            {t('logViewer.buttons.save')}
-          </Button>
-          <Button
-            onClick={handleClearLogs}
-            danger
-            disabled={!currentLogFile.isDefaultLog}
-          >
-            <Icon name='trash' size='x16' />
-            {t('logViewer.buttons.clear')}
-          </Button>
-          <Button onClick={handleClose}>
-            <Icon name='cross' size='x16' />
-            {t('logViewer.buttons.close')}
-          </Button>
-        </ButtonGroup>
-      </Box>
-
-      <Box
-        padding='x24'
-        paddingBlockStart='x12'
-        paddingBlockEnd='x12'
-        display='flex'
-        flexDirection='row'
-        flexWrap='wrap'
-        alignItems='center'
-        justifyContent='space-between'
-        borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
-        backgroundColor='surface-tint'
-      >
-        <Box display='flex' alignItems='center' flexWrap='wrap'>
-          <Box display='flex' alignItems='center' marginInlineEnd='x16'>
-            <CheckBox
-              aria-label={t('logViewer.controls.showContext')}
-              checked={showContext}
-              onChange={() => setShowContext(!showContext)}
-            />
-            <Box marginInlineStart='x4' display='inline' color='default'>
-              {t('logViewer.controls.showContext')}
-            </Box>
-          </Box>
-          <Box display='flex' alignItems='center' marginInlineEnd='x16'>
-            <CheckBox
-              aria-label={t('logViewer.controls.showServer')}
-              checked={showServer}
-              onChange={() => setShowServer(!showServer)}
-            />
-            <Box marginInlineStart='x4' display='inline' color='default'>
-              {t('logViewer.controls.showServer')}
-            </Box>
-          </Box>
-          <Box display='flex' alignItems='center'>
-            <CheckBox
-              aria-label={t('logViewer.controls.autoScrollToTop')}
-              checked={autoScroll}
-              onChange={() => {
-                const newAutoScroll = !autoScroll;
-                setAutoScroll(newAutoScroll);
-                if (newAutoScroll) {
-                  setUserHasScrolled(false);
-                  if (filteredLogs.length > 0 && virtuosoRef.current) {
-                    setTimeout(() => {
-                      virtuosoRef.current?.scrollToIndex({
-                        index: 0,
-                        behavior: 'smooth',
-                      });
-                    }, 100);
-                  }
-                }
-              }}
-            />
-            <Box marginInlineStart='x4' display='inline' color='default'>
-              {t('logViewer.controls.autoScrollToTop')}
-            </Box>
-          </Box>
-        </Box>
-        <Box display='flex' alignItems='center' flexWrap='wrap'>
-          <Box marginInlineEnd='x12'>
-            <Select
-              aria-label={t('logViewer.placeholders.loadAmount')}
-              placeholder={t('logViewer.placeholders.loadAmount')}
-              value={entryLimit}
-              options={entryLimitOptions}
-              onChange={handleEntryLimitChange}
-              width={180}
-            />
-          </Box>
-          <Box minWidth='x200' marginInlineEnd='x12'>
-            <SearchInput
-              aria-label={t('logViewer.placeholders.searchLogs')}
-              placeholder={t('logViewer.placeholders.searchLogs')}
-              value={searchFilter}
-              onChange={handleSearchFilterChange}
-            />
-          </Box>
-          <Box marginInlineEnd='x12'>
-            <Select
-              aria-label={t('logViewer.placeholders.level')}
-              placeholder={t('logViewer.placeholders.level')}
-              value={levelFilter}
-              options={levelFilterOptions}
-              onChange={handleLevelFilterChange}
-              width={120}
-            />
-          </Box>
-          <Box marginInlineEnd='x12'>
-            <Select
-              aria-label={t('logViewer.placeholders.context')}
-              placeholder={t('logViewer.placeholders.context')}
-              value={contextFilter}
-              options={contextFilterOptions}
-              onChange={handleContextFilterChange}
-              width={200}
-            />
-          </Box>
-          {serverFilterOptions.length > 1 && (
-            <Box marginInlineEnd='x12'>
-              <Select
-                aria-label={t('logViewer.filters.server.label')}
-                placeholder={t('logViewer.filters.server.all')}
-                value={serverFilter}
-                options={serverFilterOptions}
-                onChange={handleServerFilterChange}
-                width={240}
-              />
-            </Box>
-          )}
-          <Button onClick={handleClearAll}>
-            {t('logViewer.buttons.clearFilters')}
-          </Button>
-        </Box>
-      </Box>
-
-      <Box flexGrow={1} padding='x24' paddingBlockStart='x12'>
-        <Tile elevation='2' padding={0} overflow='hidden' height='100%'>
-          {isLoading && (
             <Box
-              display='flex'
-              justifyContent='center'
-              alignItems='center'
-              height='x400'
-              backgroundColor='surface-light'
-            >
-              <Throbber size='x32' />
-            </Box>
-          )}
-          {!isLoading && filteredLogs.length === 0 && (
-            <Box
+              flexGrow={1}
               display='flex'
               flexDirection='column'
-              justifyContent='center'
-              alignItems='center'
-              height='100%'
-              color='hint'
-              backgroundColor='surface-light'
+              style={{
+                minWidth: 0,
+                minHeight: 0,
+                ...cardStyle,
+                // The status bar below supplies this gap, so the card's own
+                // bottom margin would double it.
+                marginBlockEnd: 0,
+              }}
             >
-              <Icon name='list-alt' size='x32' color='hint' />
-              <Box marginBlockStart='x8' fontScale='p2'>
-                {t('logViewer.messages.noLogsFound')}
-              </Box>
-              <Box marginBlockStart='x4' fontScale='c1' color='hint'>
-                {t('logViewer.messages.adjustFilters')}
-              </Box>
+              {showTimeline && !loadError && timelineEntries.length > 0 && (
+                <LogTimeline
+                  entries={timelineEntries}
+                  surfaces={surfaces}
+                  selectedRange={timeRange}
+                  onSelectRange={setTimeRange}
+                />
+              )}
+              {isLoading && logEntries.length === 0 && (
+                <Box
+                  display='flex'
+                  justifyContent='center'
+                  alignItems='center'
+                  flexGrow={1}
+                >
+                  <Throbber size='x32' />
+                </Box>
+              )}
+              {!isLoading && loadError && (
+                <Box
+                  display='flex'
+                  justifyContent='center'
+                  alignItems='center'
+                  flexGrow={1}
+                >
+                  <Callout type='danger' width='x368' maxWidth='100%'>
+                    <Box marginBlockEnd='x8'>{loadError}</Box>
+                    <Button small onClick={handleRefresh}>
+                      {t('logViewer.buttons.retry')}
+                    </Button>
+                  </Callout>
+                </Box>
+              )}
+              {!isLoading && !loadError && visibleLogs.length === 0 && (
+                <Box
+                  display='flex'
+                  justifyContent='center'
+                  alignItems='center'
+                  flexGrow={1}
+                >
+                  <States>
+                    <StatesIcon name='magnifier' />
+                    <StatesTitle>
+                      {t('logViewer.messages.noLogsFound')}
+                    </StatesTitle>
+                    <StatesSubtitle>
+                      {t('logViewer.messages.adjustFilters')}
+                    </StatesSubtitle>
+                    {activeFilterCount > 0 && (
+                      <StatesActions>
+                        <StatesAction onClick={handleClearFilters}>
+                          {t('logViewer.buttons.clearFilters')}
+                        </StatesAction>
+                      </StatesActions>
+                    )}
+                  </States>
+                </Box>
+              )}
+              {!loadError && visibleLogs.length > 0 && (
+                <Box position='relative' flexGrow={1} style={{ minHeight: 0 }}>
+                  {autoScroll &&
+                    userHasScrolled &&
+                    pendingNewEntryCount > 0 && (
+                      <Box
+                        is='button'
+                        type='button'
+                        onClick={handleResumeAutoScroll}
+                        position='absolute'
+                        insetBlockStart='x8'
+                        insetInlineStart='50%'
+                        style={{
+                          transform: 'translateX(-50%)',
+                          cursor: 'pointer',
+                        }}
+                        zIndex={10}
+                        pi='x12'
+                        pb='x6'
+                        borderRadius='x24'
+                        backgroundColor='status-background-info'
+                        color='status-font-on-info'
+                        fontScale='c1'
+                        display='flex'
+                        alignItems='center'
+                        border='none'
+                      >
+                        <Icon name='arrow-up' size='x12' />
+                        <Box marginInlineStart='x4'>
+                          {t('logViewer.messages.newEntriesPaused', {
+                            count: pendingNewEntryCount,
+                          })}
+                        </Box>
+                      </Box>
+                    )}
+                  <GroupedVirtuoso
+                    ref={virtuosoRef}
+                    data={visibleLogs}
+                    groupCounts={dayGroupCounts}
+                    groupContent={renderDayGroup}
+                    // Group header rows share the flat index space with entries but
+                    // have no data item, so `entry` is undefined for them.
+                    computeItemKey={(index, entry) =>
+                      entry?.id ?? `day-${index}`
+                    }
+                    itemContent={renderLogEntry}
+                    overscan={VIRTUOSO_OVERSCAN}
+                    style={{ height: '100%', width: '100%' }}
+                    onScroll={handleScroll}
+                    endReached={handleEndReached}
+                  />
+                </Box>
+              )}
             </Box>
-          )}
-          {!isLoading && filteredLogs.length > 0 && (
-            <Box height='100%' position='relative'>
-              <Box
-                position='absolute'
-                insetBlockStart='x8'
-                insetInlineEnd='x8'
-                zIndex={10}
-                pi='x8'
-                pb='x4'
-                borderRadius='x4'
-                bg='tint'
-                color='hint'
-                fontScale='c1'
-              >
-                {t('logViewer.fileInfo.entries', {
-                  count: filteredLogs.length,
-                })}
-              </Box>
-              <Virtuoso
-                ref={virtuosoRef}
-                data={filteredLogs}
-                itemContent={renderLogEntry}
-                overscan={VIRTUOSO_OVERSCAN}
-                style={{ height: '100%', width: '100%' }}
-                onScroll={handleScroll}
-              />
-            </Box>
-          )}
-        </Tile>
+
+            <LogStatusBar
+              shownCount={filteredLogs.length}
+              loadedCount={logEntries.length}
+              fileSize={fileInfo?.size}
+              dateRange={fileInfo?.dateRange}
+              filePath={currentLogFile.filePath}
+              isStreaming={isStreaming}
+              isLoading={isLoading}
+              canClear={currentLogFile.isDefaultLog && logEntries.length > 0}
+              onClearLogs={handleClearLogs}
+            />
+          </Box>
+        </Box>
       </Box>
-    </Box>
+    </TooltipProvider>
   );
 }
 

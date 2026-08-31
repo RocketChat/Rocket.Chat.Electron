@@ -20,14 +20,17 @@
     "about": {
       "title": "About {{- appName}}",
       "version": "Version: <1>{{-version}}</1>",
-      "checkUpdates": "Check for Updates",
-      "checkUpdatesOnStart": "Check for Updates on Start",
+      "checkUpdates": "Check for updates now",
+      "checkUpdatesDescription": "Look for a newer version now.",
+      "checkUpdatesOnStart": "Check for updates on start",
+      "checkUpdatesOnStartDescription": "Look for a newer version every time the app launches.",
       "noUpdatesAvailable": "No updates are available.",
       "updateAvailable": "Version {{- version}} is available",
       "copyright": "Copyright {{copyright}}",
       "errorWhenLookingForUpdates": "An error has occurred when looking for updates",
       "updateChannel": {
-        "label": "Update Channel",
+        "label": "Update channel",
+        "description": "Which release stream this app updates from.",
         "latest": "Stable",
         "beta": "Beta",
         "alpha": "Alpha (Experimental)"
@@ -76,6 +79,12 @@
       "yes": "Yes",
       "cancel": "Cancel"
     },
+    "saveLogFile": {
+      "title": "Save Log File",
+      "zipFiles": "ZIP Files",
+      "logFiles": "Log Files",
+      "allFiles": "All Files"
+    },
     "screenshare": {
       "title": "Share Your Screen",
       "announcement": "Select a screen to share"
@@ -86,6 +95,12 @@
       "currentVersion": "Current version",
       "newVersion": "New version",
       "install": "Install update",
+      "openStore": {
+        "mas": "Open App Store",
+        "windows": "Open Microsoft Store",
+        "snap": "Open Snap Store",
+        "flatpak": "Open Flathub"
+      },
       "skip": "Skip this version"
     },
     "updateInstallLater": {
@@ -103,6 +118,11 @@
       "title": "Skip Update",
       "message": "We will notify you when the next update is available\nIf you change your mind you can check for updates from the About menu.",
       "ok": "OK"
+    },
+    "selectLogFile": {
+      "title": "Select Log File",
+      "logFiles": "Log Files",
+      "allFiles": "All Files"
     },
     "selectClientCertificate": {
       "announcement": "Select Certificate",
@@ -170,6 +190,18 @@
       "detail": "This action cannot be undone. All current log entries will be permanently deleted.",
       "yes": "Clear",
       "cancel": "Cancel"
+    },
+    "clearDownloads": {
+      "title": "Clear all downloads",
+      "message": "Remove every download from this list? Downloaded files stay on disk.",
+      "yes": "Clear all",
+      "cancel": "Cancel"
+    },
+    "removeCertificate": {
+      "title": "Remove certificate",
+      "message": "Remove the stored decision for \"{{- domain}}\"? The next visit will ask you again.",
+      "yes": "Remove",
+      "cancel": "Cancel"
     }
   },
   "documentViewer": {
@@ -177,7 +209,12 @@
       "pdf": "PDF Viewer",
       "markdown": "Markdown Viewer"
     },
-    "back": "Back"
+    "back": "Back",
+    "download": "Download",
+    "downloadError": "The document could not be saved",
+    "dismissError": "Dismiss",
+    "viewSource": "View source",
+    "viewRendered": "View rendered"
   },
   "downloads": {
     "title": "Downloads",
@@ -186,7 +223,7 @@
       "downloadInterrupted": "Download Interrupted",
       "downloadCancelled": "Download Cancelled",
       "downloadFailed": "Download Failed",
-      "downloadExpired": "Downlaod Expired",
+      "downloadExpired": "Download expired",
       "downloadExpiredMessage": "Please retry downloading from source."
     },
     "filters": {
@@ -194,30 +231,36 @@
       "server": "Server",
       "mimeType": "Type",
       "status": "Status",
+      "empty": "Filters appear here once you have downloads.",
       "clear": "Clear filters",
       "all": "All",
       "mimes": {
-        "images": "Images",
-        "videos": "Videos",
-        "audios": "Audios",
-        "texts": "Texts",
-        "files": "Files"
+        "image": "Images",
+        "video": "Videos",
+        "audio": "Audio",
+        "text": "Documents",
+        "application": "Files",
+        "other": "Other"
       },
       "statuses": {
         "paused": "Paused",
         "cancelled": "Cancelled"
-      }
+      },
+      "selectAll": "All"
     },
     "item": {
       "cancel": "Cancel",
       "copyLink": "Copy link",
+      "copied": "Copied",
       "errored": "Download cancelled",
       "pause": "Pause",
       "progressSize": "{{receivedBytes, byteSize}} of {{totalBytes, byteSize}} ({{ratio, percentage}})",
       "remove": "Remove from list",
       "resume": "Resume",
       "retry": "Retry",
-      "showInFolder": "Show in Folder"
+      "showInFolder": "Show in folder",
+      "openFile": "Open {{fileName}}",
+      "preview": "Quick look"
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}",
     "empty": {
@@ -227,6 +270,20 @@
     "noResults": {
       "title": "No matching downloads",
       "subtitle": "Try adjusting your filters or search."
+    },
+    "clearFilters": "Clear filters",
+    "clearFiltersCount": "Clear {{count}} filters",
+    "count_one": "{{count}} download",
+    "count_other": "{{count}} downloads",
+    "countOfTotal": "{{count}} of {{total}} downloads",
+    "sidebar": {
+      "title": "Download filters"
+    },
+    "clearAll": "Clear all",
+    "day": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "unknown": "Earlier"
     }
   },
   "certificatesManager": {
@@ -237,6 +294,21 @@
       "domain": "Domain",
       "actions": "Actions",
       "remove": "Remove"
+    },
+    "filter": "Filter domains",
+    "state": {
+      "trusted": "Trusted",
+      "notTrusted": "Not trusted"
+    },
+    "summary_one": "{{count}} certificate · {{trusted}} trusted",
+    "summary_other": "{{count}} certificates · {{trusted}} trusted",
+    "empty": {
+      "title": "No certificates yet",
+      "subtitle": "Certificates you trust or reject will appear here."
+    },
+    "noResults": {
+      "title": "No matching certificates",
+      "subtitle": "Try a different domain."
     }
   },
   "settings": {
@@ -253,7 +325,8 @@
       "other": "Other & technical",
       "logging": "Logging",
       "telephony": "Telephony",
-      "videoCalls": "Video calls"
+      "videoCalls": "Video calls",
+      "advanced": "Advanced"
     },
     "options": {
       "report": {
@@ -390,7 +463,10 @@
         "title": "PDF preview size limit in encrypted rooms (MB)",
         "description": "Encrypted files are loaded into memory for previews. Files larger than this limit will be downloaded directly."
       }
-    }
+    },
+    "appearance": "Appearance",
+    "search": "Search settings",
+    "noResults": "No matching settings"
   },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",
@@ -416,6 +492,7 @@
     "developerMode": "Developer Mode",
     "simulateUpdate": "Simulate Update Flow",
     "simulateDownload": "Simulate Download",
+    "simulateDisconnected": "Simulate Disconnected",
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",
@@ -581,6 +658,16 @@
         "title": "{{- appName}} is still running",
         "content": "{{- appName }} is set to stay running in the system tray/notification area."
       }
+    },
+    "presence": {
+      "status": "Status",
+      "online": "Online",
+      "away": "Away",
+      "busy": "Busy",
+      "offline": "Offline",
+      "disconnected": "Disconnected — trying to reconnect...",
+      "signIn": "Sign in to {{- workspace}}",
+      "addWorkspace": "Add workspace"
     }
   },
   "taskbar": {
@@ -645,58 +732,53 @@
   },
   "logViewer": {
     "title": "Log Viewer",
-    "aria": {
-      "logIcon": "Log viewer icon",
-      "entriesCount": "{{count}} log entries displayed"
-    },
     "fileInfo": {
       "custom": "Custom",
-      "entries": "{{count}} entries",
+      "entries_one": "{{count}} entry",
+      "entries_other": "{{count}} entries",
       "entriesOfTotal": "{{count}} of {{total}} entries",
+      "matches": "{{count}} matches",
       "noEntries": "No entries"
     },
     "buttons": {
-      "openLogFile": "Open Log File",
-      "defaultLog": "Default Log",
+      "openLogFile": "Open log file",
+      "defaultLog": "Default log",
       "refresh": "Refresh",
-      "autoRefresh": "Auto Refresh",
-      "stopAutoRefresh": "Stop Auto Refresh",
+      "autoRefresh": "Auto refresh",
+      "stopAutoRefresh": "Stop auto refresh",
       "copy": "Copy",
+      "copied": "Copied",
       "save": "Save",
-      "clear": "Clear",
-      "close": "Close",
-      "clearFilters": "Clear Filters"
+      "saved": "Saved",
+      "showInFolder": "Show in Folder",
+      "retry": "Retry",
+      "dismissError": "Dismiss error",
+      "clear": "Clear all",
+      "clearFilters": "Clear filters",
+      "clearFiltersCount": "Clear {{count}} filters"
     },
     "controls": {
       "showContext": "Show Context",
       "showServer": "Show Server",
-      "autoScrollToTop": "Auto Scroll to Top"
+      "autoScrollToTop": "Auto Scroll to Top",
+      "wrapLines": "Wrap long lines",
+      "collapseMultiline": "Collapse multi-line entries",
+      "showTimeline": "Show timeline"
     },
     "placeholders": {
-      "loadAmount": "Load amount",
       "searchLogs": "Search logs...",
-      "level": "Level",
-      "context": "Context",
       "exchangeDebug": "Exchange Debug Filter"
     },
     "filters": {
-      "entryLimit": {
-        "last100": "Last 100 entries",
-        "last500": "Last 500 entries",
-        "last1000": "Last 1000 entries",
-        "last5000": "Last 5000 entries",
-        "all": "All entries"
-      },
       "level": {
-        "all": "All Levels",
         "debug": "Debug",
         "info": "Info",
         "warn": "Warning",
         "error": "Error",
-        "verbose": "Verbose"
+        "verbose": "Verbose",
+        "silly": "Silly"
       },
       "context": {
-        "all": "All Contexts",
         "main": "Main Process",
         "renderer": "Renderer",
         "webview": "Webview",
@@ -708,10 +790,6 @@
         "servers": "Servers",
         "ipc": "IPC Communication"
       },
-      "server": {
-        "all": "All Servers",
-        "label": "Server"
-      },
       "exchangeDebug": {
         "all": "All Logs",
         "success": "Success Only",
@@ -722,11 +800,40 @@
         "networkErrors": "Network Issues",
         "successFactors": "Success Factors",
         "outlookCalendar": "Outlook Calendar"
-      }
+      },
+      "selectAll": "All"
     },
     "messages": {
       "noLogsFound": "No logs found",
-      "adjustFilters": "Try adjusting your filters or refresh the logs"
+      "newEntriesPaused": "{{count}} new entries — click to resume",
+      "adjustFilters": "Try adjusting your filters or refresh the logs",
+      "loadFailed": "Failed to load logs",
+      "saveFailed": "Failed to save logs"
+    },
+    "sidebar": {
+      "title": "Log filters",
+      "levels": "Levels",
+      "contexts": "Contexts",
+      "display": "Display",
+      "servers": "Servers"
+    },
+    "entry": {
+      "expand_one": "+{{count}} more line",
+      "expand_other": "+{{count}} more lines",
+      "collapse": "Show less",
+      "copyEntry": "Copy entry",
+      "copied": "Copied"
+    },
+    "status": {
+      "live": "Live",
+      "loading": "Loading…"
+    },
+    "timeline": {
+      "label": "Distribution over time",
+      "peak_one": "peak {{count}} entry",
+      "peak_other": "peak {{count}} entries",
+      "hint": "Drag across the chart to select a time range",
+      "clearRange": "Clear time range"
     }
   },
   "serverInfo": {

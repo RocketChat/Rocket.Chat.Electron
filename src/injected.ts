@@ -1,5 +1,10 @@
 import type { NotificationAction } from 'electron';
 
+import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
+import type { PresenceStoreEntry } from './servers/preload/presenceSnapshot';
+import { buildPresenceSnapshot } from './servers/preload/presenceSnapshot';
+import { hasUsablePresenceApi } from './servers/preload/presenceSupport';
+
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
 const resolveWithExponentialBackoff = <T>(
@@ -27,6 +32,26 @@ const resolveWithExponentialBackoff = <T>(
 
 const tryRequire = <T = any>(path: string) =>
   resolveWithExponentialBackoff<T>(() => window.require(path));
+
+// Some webapp modules are reachable under more than one specifier depending on
+// the Rocket.Chat version, and there is no registry we can enumerate. Probing
+// each candidate with `tryRequire` in turn would multiply the exponential
+// backoff per candidate, so the whole candidate list is probed in a single
+// synchronous pass and it is that pass which gets retried with backoff.
+const tryRequireFirstOf = <T = any>(paths: string[]) =>
+  resolveWithExponentialBackoff<T>(async () => {
+    for (const path of paths) {
+      try {
+        const module = window.require(path);
+        if (module) {
+          return module as T;
+        }
+      } catch (error) {
+        // Wrong specifier for this server version; try the next candidate.
+      }
+    }
+    throw new Error(`None of the module paths resolved: ${paths.join(', ')}`);
+  });
 
 const BOOT_RECOVERY_ATTEMPTS_KEY = 'rocketChatDesktopBootRecoveryAttempts';
 const MAX_BOOT_RECOVERY_ATTEMPTS = 2;
@@ -211,6 +236,23 @@ const start = async () => {
     return '/app/utils';
   })();
 
+  // The webapp's presence store (`apps/meteor/client/lib/presence.ts`) is the
+  // ONLY source of a user's presence: it is fed by the `stream-user-presence`
+  // DDP stream and is deliberately not published into the `Meteor.users`
+  // minimongo collection. The exact `window.require` specifier is not stable
+  // across Rocket.Chat versions and could not be confirmed at runtime, so a
+  // short candidate list is probed and the first hit wins. All misses are a
+  // supported outcome: presence is reported as unsupported and hidden.
+  // `/client/lib/presence.ts` is the specifier confirmed against a live
+  // Rocket.Chat 8.8 workspace — the extension is required there, and the
+  // extensionless form fails with "Cannot find module". The others are
+  // fallbacks for versions that resolve it differently.
+  const presenceModulePaths = [
+    '/client/lib/presence.ts',
+    '/client/lib/presence',
+    'client/lib/presence',
+  ];
+
   // Load core modules with individual error handling (non-blocking)
   let Meteor: any = null;
   let Session: any = null;
@@ -218,6 +260,11 @@ const start = async () => {
   let settings: any = null;
   let getUserPreference: any = null;
   let UserPresence: any = null;
+  let Presence: any = null;
+  // Distinguishes "still loading" (null) from "this workspace does not expose
+  // the presence module" (false), so the tray can degrade to hiding presence
+  // instead of showing a permanently blank state.
+  let presenceModuleResolved: boolean | null = null;
 
   // Load modules asynchronously without blocking
   const loadModule = async (
@@ -261,9 +308,36 @@ const start = async () => {
     UserPresence = value.UserPresence;
   });
 
+  tryRequireFirstOf(presenceModulePaths)
+    .then((module) => {
+      if (!hasUsablePresenceApi(module)) {
+        console.warn(
+          '[Rocket.Chat Desktop] Presence module resolved without the expected store/listen API; presence will be reported as unsupported'
+        );
+        presenceModuleResolved = false;
+        return;
+      }
+      Presence = (module as { Presence: unknown }).Presence;
+      presenceModuleResolved = true;
+      console.log('[Rocket.Chat Desktop] Presence module loaded successfully');
+    })
+    .catch(() => {
+      console.warn(
+        `[Rocket.Chat Desktop] Failed to load the presence module (tried: ${presenceModulePaths.join(
+          ', '
+        )}); presence will be reported as unsupported`
+      );
+      presenceModuleResolved = false;
+    });
+
   // Initialize non-module dependent features immediately
-  navigator.clipboard.writeText = async (...args) =>
-    window.RocketChatDesktop.writeTextToClipboard(...args);
+  // navigator.clipboard is undefined outside secure contexts (plain HTTP
+  // workspaces), so guard the patch or the whole start() chain throws here
+  // and never reaches the Notification shim below.
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText = async (...args) =>
+      window.RocketChatDesktop.writeTextToClipboard(...args);
+  }
 
   console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
@@ -468,6 +542,7 @@ const start = async () => {
     gitCommitHash: false,
     themeAppearance: false,
     userPresence: false,
+    userPresenceStatus: false,
   };
 
   // Per-subscription unread state, accumulated from the
@@ -747,6 +822,141 @@ const start = async () => {
         window.RocketChatDesktop.setUserLoggedIn(userId !== null);
       });
       setupFlags.userLoginDetection = true;
+    }
+
+    if (
+      Tracker &&
+      Meteor &&
+      presenceModuleResolved !== null &&
+      !setupFlags.userPresenceStatus
+    ) {
+      // Presence and the custom status message both come from the webapp's
+      // presence store, which is fed by the `stream-user-presence` DDP stream.
+      // `Presence.listen` is an Emitter subscription, NOT a Tracker reactive
+      // dependency, so it cannot live inside the autorun below — it is
+      // subscribed once per uid outside it. Only `Meteor.userId()` and
+      // `Meteor.status()` are genuinely reactive.
+      const presenceSupported = presenceModuleResolved === true;
+
+      let currentUid: string | null = null;
+      let latestStoreEntry: PresenceStoreEntry | null = null;
+      let latestConnectionStatus: string | undefined;
+
+      const pushPresence = (): void => {
+        window.RocketChatDesktop.setUserPresence(
+          buildPresenceSnapshot({
+            storeEntry: latestStoreEntry,
+            connectionStatus: latestConnectionStatus,
+            supported: presenceSupported,
+          })
+        );
+      };
+
+      const handlePresenceUpdate = (entry?: PresenceStoreEntry): void => {
+        latestStoreEntry = entry ?? null;
+        pushPresence();
+      };
+
+      // `listen` only fires on subsequent stream updates, so the current value
+      // is seeded from the store; `stop` on uid change keeps handlers from
+      // accumulating across account switches.
+      const subscribeToPresence = (uid: string | null): void => {
+        if (uid === currentUid) return;
+
+        if (currentUid && Presence) {
+          try {
+            Presence.stop(currentUid, handlePresenceUpdate);
+          } catch (error) {
+            console.warn(
+              '[Rocket.Chat Desktop] Failed to unsubscribe from presence updates',
+              error
+            );
+          }
+        }
+
+        currentUid = uid;
+        latestStoreEntry = null;
+
+        if (!uid || !Presence) return;
+
+        try {
+          Presence.listen(uid, handlePresenceUpdate);
+
+          // The store is populated lazily: it stays empty until something
+          // asks for a uid, so reading `store.get` here returns nothing on a
+          // fresh session and `listen` alone never backfills it. `get`
+          // resolves the current presence and registers the subscription that
+          // keeps it up to date, so it is what seeds the first value.
+          Promise.resolve(Presence.get(uid))
+            .then((entry: PresenceStoreEntry | undefined) => {
+              if (currentUid !== uid) return;
+              handlePresenceUpdate(entry ?? Presence.store?.get(uid));
+            })
+            .catch((error: unknown) => {
+              console.warn(
+                '[Rocket.Chat Desktop] Failed to read the initial presence',
+                error
+              );
+            });
+        } catch (error) {
+          console.warn(
+            '[Rocket.Chat Desktop] Failed to subscribe to presence updates',
+            error
+          );
+        }
+      };
+
+      Tracker.autorun(() => {
+        const uid: string | null = Meteor.userId();
+        const conn = Meteor.status();
+
+        latestConnectionStatus = conn?.status;
+
+        subscribeToPresence(uid);
+        pushPresence();
+      });
+
+      const SET_USER_STATUS_MIN_INTERVAL_MS = 1000;
+
+      const presenceRateLimiter = createPresenceRateLimiter({
+        minIntervalMs: SET_USER_STATUS_MIN_INTERVAL_MS,
+        onDeferred: () => {
+          console.warn(
+            '[Rocket.Chat Desktop] setUserStatus request deferred: rate limit (1/s) not yet elapsed, will send latest status once elapsed'
+          );
+        },
+        send: ({ status, statusText }) => {
+          if (!Meteor.call) return;
+
+          Meteor.call('setUserStatus', status, statusText, (err: any) => {
+            if (!err) return;
+
+            if (
+              err.error === 'error-not-allowed' ||
+              err.error === 'error-status-not-allowed'
+            ) {
+              console.warn(
+                `[Rocket.Chat Desktop] setUserStatus rejected: ${err.error}`
+              );
+              return;
+            }
+
+            console.error('[Rocket.Chat Desktop] setUserStatus failed', err);
+          });
+        },
+      });
+
+      // No local refresh needed after a change request: the server broadcasts
+      // the new presence (and statusText) back over `stream-user-presence`,
+      // which reaches `handlePresenceUpdate` on its own — including changes
+      // made on another device.
+      window.RocketChatDesktop.onPresenceChangeRequested(
+        (status, statusText) => {
+          presenceRateLimiter.request({ status, statusText });
+        }
+      );
+
+      setupFlags.userPresenceStatus = true;
     }
 
     if (Tracker && Meteor && !setupFlags.gitCommitHash) {

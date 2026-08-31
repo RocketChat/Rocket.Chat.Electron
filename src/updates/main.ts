@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
+import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { gt as semverGt, inc as semverInc } from 'semver';
 
@@ -16,6 +16,7 @@ import {
 } from '../ui/main/dialogs';
 import {
   UPDATE_SKIPPED,
+  UPDATES_CHECK_FEEDBACK_DISMISSED,
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
   UPDATES_CHECKING_FOR_UPDATE,
   UPDATES_DOWNLOAD_PROGRESSED,
@@ -24,6 +25,7 @@ import {
   UPDATES_INSTALL_REQUESTED,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_OPEN_STORE_PAGE_REQUESTED,
   UPDATES_READY,
   UPDATES_SIMULATION_REQUESTED,
   UPDATES_SKIP_REQUESTED,
@@ -33,8 +35,15 @@ import {
 import type {
   AppLevelUpdateConfiguration,
   UpdateConfiguration,
+  UpdateStore,
   UserLevelUpdateConfiguration,
 } from './common';
+import {
+  detectUpdateStore,
+  fetchLatestStoreVersion,
+  isStoreVersionNewer,
+  openStorePage,
+} from './storeUpdates';
 
 const readJsonObject = async (
   filePath: string
@@ -141,6 +150,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
         (process.platform === 'win32' && !process.windowsStore) ||
         (process.platform === 'darwin' && !process.mas),
+      updateStore: detectUpdateStore(),
       isEachUpdatesSettingConfigurable: true,
       isUpdatingEnabled,
       doCheckForUpdatesOnStartup,
@@ -207,28 +217,39 @@ const endSimulatedUpdate = (): void => {
   dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 };
 
-const nativeUpdateDownloadedCallback = (): void => {
-  nativeUpdater.removeListener(
-    'update-downloaded',
-    nativeUpdateDownloadedCallback
-  );
-  nativeUpdater.quitAndInstall();
-};
+// Thrown values are not guaranteed to be Errors, and the dispatched payload
+// crosses the IPC boundary, so it has to be a plain serializable object.
+const normalizeUpdateError = (
+  error: unknown
+): Pick<Error, 'message' | 'stack' | 'name'> =>
+  error instanceof Error
+    ? { message: error.message, stack: error.stack, name: error.name }
+    : { message: String(error), stack: undefined, name: 'Error' };
 
 /** Quits and relaunches into the freshly downloaded update. */
 const installDownloadedUpdate = (): void => {
+  // The try/catch must live inside the setImmediate callback: a throw from a
+  // later tick escapes a catch wrapping only the scheduling call, which is how
+  // macOS install failures went unreported for years (see #955).
   setImmediate(() => {
+    // Detached so the pending quit isn't cancelled by the app's own
+    // window-all-closed handler. If the install fails we never quit, so the
+    // listeners have to go back or closing every window would no longer
+    // reach that handler for the rest of the session.
+    const windowAllClosedListeners = app.listeners('window-all-closed');
     app.removeAllListeners('window-all-closed');
-    if (process.platform === 'darwin') {
-      const allBrowserWindows = BrowserWindow.getAllWindows();
-      allBrowserWindows.forEach((browserWindow) => {
-        browserWindow.removeAllListeners('close');
-        browserWindow.destroy();
-      });
-      nativeUpdater.checkForUpdates();
-      nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);
-    } else {
+
+    try {
       autoUpdater.quitAndInstall(true, true);
+    } catch (error) {
+      for (const listener of windowAllClosedListeners) {
+        app.addListener('window-all-closed', listener as () => void);
+      }
+
+      dispatch({
+        type: UPDATES_ERROR_THROWN,
+        payload: normalizeUpdateError(error),
+      });
     }
   });
 };
@@ -303,6 +324,62 @@ const dispatchUpdateError = (error: unknown): void => {
   }
 };
 
+/** Store URL from the last successful store version lookup, used by the "Open store page" action. */
+let lastKnownStoreUrl: string | undefined;
+
+/**
+ * Runs a user-initiated update check against a store's own version lookup
+ * instead of electron-updater. Mirrors the non-store check's dispatch
+ * sequence (checking → available/not-available) and error-reporting
+ * convention (a failed lookup is not actionable for the user: warn-level log
+ * + UPDATES_ERROR_THROWN, never a modal). Only called for stores that expose
+ * a version API (mas, snap, flatpak) — windows has none, see
+ * setupUpdateLabelFlow's UPDATES_CHECK_FOR_UPDATES_REQUESTED listener.
+ */
+const checkForStoreUpdate = async (
+  store: Exclude<UpdateStore, null>
+): Promise<void> => {
+  dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
+
+  try {
+    const result = await fetchLatestStoreVersion(store);
+
+    if (!result) {
+      console.warn(`Store (${store}) update check failed: no result`);
+      // dispatchUpdateError shapes the payload as a plain
+      // { message, stack, name } object (not a real Error instance) — the
+      // action crosses to renderers via webContents.send, whose structured
+      // clone resets a real Error's custom `name` back to 'Error'.
+      dispatchUpdateError(
+        Object.assign(new Error(`Store (${store}) update check failed`), {
+          name: 'StoreLookupError',
+        })
+      );
+      return;
+    }
+
+    const currentVersion = app.getVersion();
+
+    if (!isStoreVersionNewer(result.version, currentVersion)) {
+      lastKnownStoreUrl = undefined;
+      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+      return;
+    }
+
+    lastKnownStoreUrl = result.storeUrl;
+    dispatch({
+      type: UPDATES_NEW_VERSION_AVAILABLE,
+      payload: result.version,
+    });
+  } catch (error) {
+    console.warn(
+      `Store (${store}) update check failed:`,
+      error instanceof Error ? error.message : error
+    );
+    dispatchUpdateError(error);
+  }
+};
+
 /**
  * Wires the titlebar update label to the updater. Registered before the
  * "updating not allowed/enabled" bail-out so the simulated flow stays available
@@ -340,6 +417,26 @@ export const setupUpdateLabelFlow = (): void => {
     }
   });
 
+  // Store builds cannot self-update: hand the user off to the store's own
+  // page instead of touching autoUpdater. Kept as a distinct listener
+  // (rather than a branch inside UPDATES_DOWNLOAD_REQUESTED) so the
+  // download-status reducers, which see every FSA regardless of this
+  // branch, never flip to "downloading" for a build that never downloads
+  // anything.
+  listen(UPDATES_OPEN_STORE_PAGE_REQUESTED, async () => {
+    const store = detectUpdateStore();
+
+    if (!store) {
+      return;
+    }
+
+    try {
+      await openStorePage(store, lastKnownStoreUrl);
+    } catch (error) {
+      dispatchUpdateError(error);
+    }
+  });
+
   listen(UPDATES_INSTALL_REQUESTED, async () => {
     if (isSimulatingUpdate) {
       // Nothing to install — unwind the simulation instead of restarting.
@@ -363,6 +460,39 @@ export const setupUpdateLabelFlow = (): void => {
 
     await warnAboutUpdateSkipped();
     dispatch({ type: UPDATE_SKIPPED, payload: action.payload });
+  });
+
+  // Store builds cannot use electron-updater, so their user-initiated check
+  // is registered here (unconditionally) instead of in setupUpdates, which
+  // bails out before reaching the electron-updater-only listener below.
+  listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
+    const store = detectUpdateStore();
+
+    if (!store) {
+      return;
+    }
+
+    isUserInitiatedCheck = true;
+
+    // windows has no version-lookup API (see storeUpdates.ts) — the Store
+    // app itself is the only source of truth for whether an update exists,
+    // so open it directly instead of faking a checking/available sequence.
+    // UPDATES_CHECK_FOR_UPDATES_REQUESTED already flipped updateCheckStatus
+    // to 'checking' (see reducers.ts) before this listener ran, and nothing
+    // else settles it for this path, so it must be dismissed explicitly on
+    // success — never NEW_VERSION_NOT_AVAILABLE, since we never actually
+    // checked anything and must not claim "up to date".
+    if (store === 'windows') {
+      try {
+        await openStorePage(store);
+        dispatch({ type: UPDATES_CHECK_FEEDBACK_DISMISSED });
+      } catch (error) {
+        dispatchUpdateError(error);
+      }
+      return;
+    }
+
+    await checkForStoreUpdate(store);
   });
 };
 
@@ -406,6 +536,7 @@ export const setupUpdates = async (): Promise<void> => {
     isInternalVideoChatWindowEnabled,
     isVideoCallScreenCaptureFallbackEnabled,
     updateChannel,
+    updateStore,
   } = await loadConfiguration();
 
   dispatch({
@@ -422,12 +553,22 @@ export const setupUpdates = async (): Promise<void> => {
       isInternalVideoChatWindowEnabled,
       isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
+      updateStore,
     },
   });
 
   // Registered first so the simulated flow (and the label's own actions) stay
   // reachable even when this build cannot self-update.
   setupUpdateLabelFlow();
+
+  // The store update path (mas/windows/snap/flatpak) is wired inside
+  // setupUpdateLabelFlow's listeners (gated on detectUpdateStore()); it does
+  // not depend on isUpdatingAllowed (which is already false for mas/windows
+  // by construction, and irrelevant for snap/flatpak) nor on electron-updater
+  // setup below. electron-updater must never initialize for any store build.
+  if (updateStore !== null) {
+    return;
+  }
 
   if (!isUpdatingAllowed || !isUpdatingEnabled) {
     return;

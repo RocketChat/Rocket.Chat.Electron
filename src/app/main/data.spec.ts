@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import * as store from '../../store';
 import { MENU_BAR_DEFAULT_REVISION } from '../PersistableValues';
 import { APP_SETTINGS_LOADED } from '../actions';
@@ -238,6 +240,34 @@ describe('mergePersistableValues', () => {
         payload: expect.objectContaining({
           isMenuBarEnabled: false,
           isSideBarEnabled: false,
+        }),
+      });
+    });
+  });
+
+  describe('overridden settings', () => {
+    it('applies isNotificationQuickReplyEnabled=false from overridden-settings.json', async () => {
+      (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify({ isNotificationQuickReplyEnabled: false })
+      );
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isNotificationQuickReplyEnabled: false,
+        }),
+      });
+    });
+
+    it('defaults isNotificationQuickReplyEnabled to true when not overridden', async () => {
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isNotificationQuickReplyEnabled: true,
         }),
       });
     });

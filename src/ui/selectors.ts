@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import type { Server } from '../servers/common';
+import type { Server, UserPresence } from '../servers/common';
 import type { RootState } from '../store/rootReducer';
 
 export type Selector<T> = (state: RootState) => T;
@@ -42,4 +42,68 @@ const isBadgeCount = (badge: Server['badge']): badge is number =>
 export const selectGlobalBadgeCount = createSelector(
   selectGlobalBadge,
   (badge): number => (isBadgeCount(badge) ? badge : 0)
+);
+
+export type ActiveServerPresence = {
+  url?: string;
+  title?: string;
+  presence?: UserPresence;
+  statusText?: string;
+  connection?: 'connected' | 'connecting' | 'disconnected';
+  supported?: boolean;
+  loggedIn?: boolean;
+  failed?: boolean;
+  hasServers: boolean;
+  isAddingServer: boolean;
+};
+
+const toHref = (url: string): string => {
+  try {
+    return new URL(url).href;
+  } catch {
+    return url;
+  }
+};
+
+export const selectActiveServerPresence = createSelector(
+  ({ servers }: RootState) => servers,
+  ({ currentView }: RootState) => currentView,
+  ({ isPresenceDisconnectionSimulated }: RootState) =>
+    isPresenceDisconnectionSimulated,
+  (
+    servers,
+    currentView,
+    isPresenceDisconnectionSimulated
+  ): ActiveServerPresence => {
+    const hasServers = servers.length > 0;
+    const isAddingServer = currentView === 'add-new-server';
+
+    if (typeof currentView !== 'object' || !currentView.url) {
+      return { hasServers, isAddingServer };
+    }
+
+    const currentViewHref = toHref(currentView.url);
+    const activeServer = servers.find(
+      (server) => toHref(server.url) === currentViewHref
+    );
+
+    if (!activeServer) {
+      return { hasServers, isAddingServer };
+    }
+
+    return {
+      url: activeServer.url,
+      title: activeServer.title,
+      presence: activeServer.presence,
+      statusText: activeServer.presenceStatusText,
+      connection: isPresenceDisconnectionSimulated
+        ? 'disconnected'
+        : activeServer.presenceConnection,
+      supported: activeServer.presenceSupported,
+      loggedIn: activeServer.userLoggedIn,
+      failed: activeServer.failed,
+      hasServers,
+      isAddingServer,
+    };
+  }
 );

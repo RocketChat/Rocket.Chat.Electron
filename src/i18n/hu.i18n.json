@@ -385,7 +385,8 @@
     "viewMenu": "&Nézet",
     "windowMenu": "&Ablak",
     "zoomIn": "Nagyítás",
-    "zoomOut": "Kicsinyítés"
+    "zoomOut": "Kicsinyítés",
+    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása"
   },
   "loadingError": {
     "title": "Kiszolgáló betöltése sikertelen",
@@ -500,6 +501,16 @@
         "title": "A {{- appName}} továbbra is fut",
         "content": "A {{- appName }} úgy lett beállítva, hogy futva maradjon a rendszertálcán vagy az értesítési területen."
       }
+    },
+    "presence": {
+      "status": "Állapot",
+      "online": "Elérhető",
+      "away": "Távol",
+      "busy": "Elfoglalt",
+      "offline": "Nem elérhető",
+      "disconnected": "Kapcsolat megszakadt — újracsatlakozás...",
+      "signIn": "Bejelentkezés ide: {{- workspace}}",
+      "addWorkspace": "Munkaterület hozzáadása"
     }
   },
   "taskbar": {

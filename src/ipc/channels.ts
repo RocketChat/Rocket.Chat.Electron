@@ -14,6 +14,8 @@ type ChannelToArgsMap = {
   'power-monitor/get-system-idle-state': (
     idleThreshold: number
   ) => SystemIdleState;
+  'downloads/open-file': (itemId: Download['itemId']) => void;
+  'downloads/preview-file': (itemId: Download['itemId']) => void;
   'downloads/show-in-folder': (itemId: Download['itemId']) => void;
   'downloads/copy-link': (itemId: Download['itemId']) => void;
   'downloads/pause': (itemId: Download['itemId']) => void;
@@ -121,6 +123,10 @@ type ChannelToArgsMap = {
     lastModifiedTime?: number;
     error?: string;
   };
+  'log-viewer-window/reveal-log-file': (options?: { filePath?: string }) => {
+    success: boolean;
+    error?: string;
+  };
   'log-viewer-window/confirm-clear-logs': () => boolean;
   'log-viewer-window/clear-logs': () => { success: boolean; error?: string };
   'log-viewer-window/save-logs': (options: {
@@ -136,11 +142,32 @@ type ChannelToArgsMap = {
     success: boolean;
     mapping: Record<string, string>;
   };
+  'settings-window/open-window': () => void;
+  'settings-window/close-requested': () => void;
+  'settings-window/confirm-remove-certificate': (domain: string) => boolean;
+  'downloads-window/open-window': () => void;
+  'downloads-window/close-requested': () => void;
+  'downloads-window/confirm-clear-all': () => boolean;
+  'document-viewer-window/close-requested': () => void;
+  'document-viewer-window/save-document': (request: {
+    url: string;
+    partition: string;
+    server: string;
+    format: string;
+  }) => { success: boolean; canceled?: boolean; error?: string };
+  'secondary-window/minimize': () => void;
+  'secondary-window/toggle-maximize': () => void;
+  'secondary-window/close': () => void;
+  'secondary-window/is-maximized': () => boolean;
   'screen-picker/open': () => void;
   'screen-picker/source-responded': (sourceId: string | null) => void;
   'screen-picker/screen-recording-is-permission-granted': () => boolean;
   'screen-picker/open-url': (url: string) => void;
   'telephony/get-diagnostics': () => TelephonyDiagnostics;
+  'presence/change-requested': (
+    status: NonNullable<Server['presence']>,
+    statusText?: string
+  ) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

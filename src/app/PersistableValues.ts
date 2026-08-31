@@ -120,6 +120,13 @@ type PersistableValues_4_15_0 = PersistableValues_4_14_0 & {
 
 type PersistableValues_4_16_0 = PersistableValues_4_15_0 & {
   navigationLayout: 'tabs' | 'sidebar' | 'hidden';
+  isLogViewerWindowOpen: boolean;
+  isDownloadsWindowOpen: boolean;
+  isSettingsWindowOpen: boolean;
+  secondaryWindowStates: Record<
+    string,
+    { x: number; y: number; width: number; height: number }
+  >;
 };
 
 type PersistableValues_4_16_1 = PersistableValues_4_16_0 & {
@@ -135,9 +142,13 @@ type PersistableValues_4_16_2 = PersistableValues_4_16_1 & {
   menuBarDefaultRevision?: number;
 };
 
+type PersistableValues_4_17_0 = PersistableValues_4_16_2 & {
+  isNotificationQuickReplyEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_16_2,
-  keyof PersistableValues_4_16_2
+  PersistableValues_4_17_0,
+  keyof PersistableValues_4_17_0
 >;
 
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */
@@ -257,6 +268,17 @@ export const migrations = {
     ...before,
     navigationLayout:
       (before as Partial<PersistableValues_4_16_0>).navigationLayout ?? 'tabs',
+    isLogViewerWindowOpen:
+      (before as Partial<PersistableValues_4_16_0>).isLogViewerWindowOpen ??
+      false,
+    isDownloadsWindowOpen:
+      (before as Partial<PersistableValues_4_16_0>).isDownloadsWindowOpen ??
+      false,
+    isSettingsWindowOpen:
+      (before as Partial<PersistableValues_4_16_0>).isSettingsWindowOpen ??
+      false,
+    secondaryWindowStates:
+      (before as Partial<PersistableValues_4_16_0>).secondaryWindowStates ?? {},
   }),
   '>=4.16.1': (before: PersistableValues_4_16_0): PersistableValues_4_16_1 => ({
     ...before,
@@ -278,4 +300,8 @@ export const migrations = {
       menuBarDefaultRevision: MENU_BAR_DEFAULT_REVISION,
     };
   },
+  '>=4.17.0': (before: PersistableValues_4_16_2): PersistableValues_4_17_0 => ({
+    ...before,
+    isNotificationQuickReplyEnabled: true,
+  }),
 };

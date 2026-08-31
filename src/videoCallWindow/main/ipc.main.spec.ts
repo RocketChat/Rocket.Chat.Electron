@@ -317,9 +317,10 @@ const loadModule = async () => {
 const open = async (
   openWindow: (...a: any[]) => any,
   callerWc: WebContents,
-  url = 'https://meet.example/room'
+  url = 'https://meet.example/room',
+  options?: unknown
 ) => {
-  const p = openWindow(callerWc, url, undefined);
+  const p = openWindow(callerWc, url, options);
   await flushPromises();
   await flushPromises();
   await p;
@@ -847,6 +848,32 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         listener({ sender: { hostWebContents: null } })
       ).not.toThrow();
     });
+  });
+
+  // -------------------------------------------------------------------------
+  // get-provider-sync: 'video-call-window/get-provider-sync' (ipcMain.on)
+  // -------------------------------------------------------------------------
+  it('writes the current provider name to event.returnValue', async () => {
+    getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+    const { openWindow } = await loadModule();
+    const electron = (await import('electron')) as any;
+    const call = electron.ipcMain.on.mock.calls.find(
+      ([channel]: [string]) => channel === 'video-call-window/get-provider-sync'
+    );
+    expect(call).toBeDefined();
+    const listener = call[1] as (event: { returnValue: unknown }) => void;
+
+    const eventBeforeOpen = { returnValue: undefined as unknown };
+    listener(eventBeforeOpen);
+    expect(eventBeforeOpen.returnValue).toBeNull();
+
+    await open(openWindow, makeCallerWc(1), 'https://meet.example/room', {
+      providerName: 'jitsi',
+    });
+
+    const eventAfterOpen = { returnValue: undefined as unknown };
+    listener(eventAfterOpen);
+    expect(eventAfterOpen.returnValue).toBe('jitsi');
   });
 
   // -------------------------------------------------------------------------

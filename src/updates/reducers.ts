@@ -15,6 +15,7 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
+  UPDATES_OPEN_STORE_PAGE_REQUESTED,
   UPDATES_PANEL_TOGGLED,
   UPDATES_READY,
   UPDATES_SKIP_REQUESTED,
@@ -22,7 +23,11 @@ import {
   UPDATE_SKIPPED,
   UPDATES_CHANNEL_CHANGED,
 } from './actions';
-import type { UpdateCheckStatus, UpdateDownloadStatus } from './common';
+import type {
+  UpdateCheckStatus,
+  UpdateDownloadStatus,
+  UpdateStore,
+} from './common';
 
 type DoCheckForUpdatesOnStartupAction =
   | ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
@@ -116,6 +121,23 @@ export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (
     case UPDATES_READY: {
       const { isUpdatingAllowed } = action.payload;
       return isUpdatingAllowed;
+    }
+
+    default:
+      return state;
+  }
+};
+
+type UpdateStoreAction = ActionOf<typeof UPDATES_READY>;
+
+export const updateStore: Reducer<UpdateStore, UpdateStoreAction> = (
+  state = null,
+  action
+) => {
+  switch (action.type) {
+    case UPDATES_READY: {
+      const { updateStore } = action.payload;
+      return updateStore;
     }
 
     default:
@@ -331,6 +353,7 @@ export const updateCheckStatus: Reducer<
 type IsUpdatePanelOpenAction =
   | ActionOf<typeof UPDATES_PANEL_TOGGLED>
   | ActionOf<typeof UPDATES_DOWNLOAD_REQUESTED>
+  | ActionOf<typeof UPDATES_OPEN_STORE_PAGE_REQUESTED>
   | ActionOf<typeof UPDATES_SKIP_REQUESTED>
   | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
   | ActionOf<typeof UPDATES_ERROR_THROWN>
@@ -346,6 +369,7 @@ export const isUpdatePanelOpen: Reducer<boolean, IsUpdatePanelOpenAction> = (
 
     // Acting on the panel, or the update going away, dismisses it.
     case UPDATES_DOWNLOAD_REQUESTED:
+    case UPDATES_OPEN_STORE_PAGE_REQUESTED:
     case UPDATES_SKIP_REQUESTED:
     case UPDATES_NEW_VERSION_NOT_AVAILABLE:
     case UPDATES_ERROR_THROWN:

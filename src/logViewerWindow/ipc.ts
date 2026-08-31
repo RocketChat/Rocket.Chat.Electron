@@ -1,27 +1,66 @@
 import fs, { createWriteStream } from 'fs';
 import path from 'path';
-import { promisify } from 'util';
 
 import archiver from 'archiver';
 import type { Event } from 'electron';
-import { app, BrowserWindow, screen, dialog } from 'electron';
+import { app, BrowserWindow, screen, dialog, shell } from 'electron';
 import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
 import { getHost } from '../logging/context';
-import { select } from '../store';
+import { dispatch, select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
+import { LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
-import { WINDOW_SIZE_MULTIPLIER } from './constants';
+import { watchWindowControls } from '../ui/main/secondaryWindowControls';
+import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
+import {
+  getSavedWindowBounds,
+  watchWindowBounds,
+} from '../ui/main/secondaryWindowState';
+import {
+  NOT_FULL_SCREENABLE,
+  getTitleBarOptions,
+} from '../ui/windowChrome/appearance';
+import {
+  TRANSPARENCY_CHANNEL,
+  WINDOW_MIN_HEIGHT,
+  WINDOW_MIN_WIDTH,
+  WINDOW_SIZE_MULTIPLIER,
+} from './constants';
 
 const t = i18next.t.bind(i18next);
 
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
+const isMac = process.platform === 'darwin';
+
+const { readFile, writeFile, mkdir, stat } = fs.promises;
+
+const pathExists = async (targetPath: string): Promise<boolean> => {
+  try {
+    await stat(targetPath);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return false;
+    }
+    throw error;
+  }
+};
 
 let logViewerWindow: BrowserWindow | null = null;
 const allowedLogPaths = new Set<string>();
+
+/**
+ * Set once quitting starts. The window's `closed` handler fires both when the
+ * reader closes it and when the app tears its windows down on quit; without this
+ * the quit path would record "closed" and defeat restoring it next launch.
+ */
+let isAppQuitting = false;
+
+const selectIsTransparencyEnabled = ({
+  isTransparentWindowEnabled,
+}: RootState): boolean => isTransparentWindowEnabled;
 
 const getLogFilePath = (): string => {
   const logsPath = app.getPath('logs');
@@ -51,7 +90,18 @@ const validateLogFilePath = (
 
 const LOG_ENTRY_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]/;
 
-const getLastNEntries = (
+export const countLogEntries = (content: string): number => {
+  const lines = content.split(/\r?\n/);
+  let count = 0;
+  lines.forEach((line) => {
+    if (LOG_ENTRY_REGEX.test(line)) {
+      count += 1;
+    }
+  });
+  return count;
+};
+
+export const getLastNEntries = (
   content: string,
   limit: number
 ): { content: string; totalEntries: number } => {
@@ -83,12 +133,25 @@ const getLastNEntries = (
   };
 };
 
-export const openLogViewerWindow = async (): Promise<void> => {
-  if (logViewerWindow && !logViewerWindow.isDestroyed()) {
-    logViewerWindow.focus();
-    return;
+const NEWLINE_BYTE = 0x0a;
+
+export const trimBufferToLastNewline = (
+  buf: Buffer
+): { consumed: Buffer; bytesConsumed: number } => {
+  const lastNewlineIndex = buf.lastIndexOf(NEWLINE_BYTE);
+
+  if (lastNewlineIndex === -1) {
+    return { consumed: Buffer.alloc(0), bytesConsumed: 0 };
   }
 
+  const bytesConsumed = lastNewlineIndex + 1;
+  return { consumed: buf.subarray(0, bytesConsumed), bytesConsumed };
+};
+
+/** Set while a window is being built; see `createLogViewerWindow`. */
+let pendingCreation: Promise<void> | null = null;
+
+const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
   const mainWindow = await getRootWindow();
   const winBounds = await mainWindow.getNormalBounds();
 
@@ -115,12 +178,34 @@ export const openLogViewerWindow = async (): Promise<void> => {
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
 
+  // Where the reader last left this window, falling back to centred on the
+  // display nearest the main window.
+  const savedBounds = getSavedWindowBounds('logViewer');
+
+  // Seeds the first paint only; the renderer then follows the setting live.
+  const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
+
   logViewerWindow = new BrowserWindow({
-    width,
-    height,
-    x,
-    y,
+    ...(savedBounds ?? { width, height, x, y }),
+    minWidth: WINDOW_MIN_WIDTH,
+    minHeight: WINDOW_MIN_HEIGHT,
     title: 'Log Viewer - Rocket.Chat',
+    // The toolbar doubles as the title bar wherever the platform allows it, so
+    // the window shows one header instead of a native title bar stacked on an
+    // in-app one.
+    ...getTitleBarOptions(),
+    ...NOT_FULL_SCREENABLE,
+    // `transparent` cannot be toggled after creation, so — like the root window —
+    // the window is always transparent with a vibrancy material on macOS and the
+    // setting only decides whether the renderer paints an opaque surface over it.
+    // That is what lets the setting apply without reopening the window.
+    ...(isMac
+      ? {
+          transparent: true,
+          vibrancy: 'sidebar' as const,
+          visualEffectState: 'active' as const,
+        }
+      : {}),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -129,19 +214,33 @@ export const openLogViewerWindow = async (): Promise<void> => {
   });
 
   logViewerWindow.loadFile(
-    path.join(app.getAppPath(), 'app/log-viewer-window.html')
+    path.join(app.getAppPath(), 'app/log-viewer-window.html'),
+    { query: { transparent: String(isTransparencyEnabled) } }
   );
 
   logViewerWindow.once('ready-to-show', () => {
     logViewerWindow?.setTitle(
       `Log Viewer - ${packageJsonInformation.productName}`
     );
-    logViewerWindow?.show();
+    if (focusOnShow) {
+      logViewerWindow?.show();
+      return;
+    }
+    // Restored at launch: show it without stealing focus from the main window.
+    logViewerWindow?.showInactive();
   });
+
+  dispatch({ type: LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED, payload: true });
 
   logViewerWindow.on('closed', () => {
     logViewerWindow = null;
     allowedLogPaths.clear();
+    if (!isAppQuitting) {
+      dispatch({
+        type: LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED,
+        payload: false,
+      });
+    }
   });
 
   logViewerWindow.webContents.on(
@@ -153,12 +252,64 @@ export const openLogViewerWindow = async (): Promise<void> => {
     }
   );
 
+  watchWindowBounds('logViewer', logViewerWindow);
+  watchWindowControls(logViewerWindow);
+
   logViewerWindow.webContents.setWindowOpenHandler(() => {
     return { action: 'deny' };
   });
 };
 
+/**
+ * Opens the window, or focuses the one already open.
+ *
+ * Building one awaits the main window before the module variable is assigned,
+ * so two opens arriving in that gap would each build a window and the second
+ * would orphan the first — visible, untracked, and impossible to close from its
+ * own channel. Every caller comes through here, so only one is ever in flight.
+ */
+const createLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
+  if (pendingCreation) await pendingCreation;
+
+  if (logViewerWindow && !logViewerWindow.isDestroyed()) {
+    focusSecondaryWindow(logViewerWindow);
+    return;
+  }
+
+  pendingCreation = buildLogViewerWindow(focusOnShow).finally(() => {
+    pendingCreation = null;
+  });
+  await pendingCreation;
+};
+
+export const openLogViewerWindow = (): Promise<void> =>
+  createLogViewerWindow(true);
+
+/**
+ * Reopens the window at launch when it was open at shutdown, without taking
+ * focus from the main window.
+ */
+export const restoreLogViewerWindow = async (): Promise<void> => {
+  if (
+    !select(({ isLogViewerWindowOpen }: RootState) => isLogViewerWindowOpen)
+  ) {
+    return;
+  }
+  await createLogViewerWindow(false);
+};
+
 export const startLogViewerWindowHandler = (): void => {
+  app.on('before-quit', () => {
+    isAppQuitting = true;
+  });
+
+  // Transparency is a renderer concern here, so a change only needs pushing to
+  // the open window — no reopen, no restart.
+  watch(selectIsTransparencyEnabled, (isEnabled) => {
+    if (!logViewerWindow || logViewerWindow.isDestroyed()) return;
+    logViewerWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  });
+
   handle('log-viewer-window/open-window', openLogViewerWindow);
 
   handle('log-viewer-window/close-requested', async () => {
@@ -172,10 +323,13 @@ export const startLogViewerWindowHandler = (): void => {
       }
 
       const result = await dialog.showOpenDialog(logViewerWindow, {
-        title: 'Select Log File',
+        title: t('dialog.selectLogFile.title'),
         filters: [
-          { name: 'Log Files', extensions: ['log', 'txt'] },
-          { name: 'All Files', extensions: ['*'] },
+          {
+            name: t('dialog.selectLogFile.logFiles'),
+            extensions: ['log', 'txt'],
+          },
+          { name: t('dialog.selectLogFile.allFiles'), extensions: ['*'] },
         ],
         properties: ['openFile'],
       });
@@ -230,11 +384,11 @@ export const startLogViewerWindowHandler = (): void => {
         }
         const limit = options?.limit;
 
-        if (!fs.existsSync(logPath)) {
+        if (!(await pathExists(logPath))) {
           if (!options?.filePath) {
             const logDir = path.dirname(logPath);
-            if (!fs.existsSync(logDir)) {
-              fs.mkdirSync(logDir, { recursive: true });
+            if (!(await pathExists(logDir))) {
+              await mkdir(logDir, { recursive: true });
             }
             await writeFile(logPath, '');
           } else {
@@ -251,13 +405,14 @@ export const startLogViewerWindowHandler = (): void => {
 
         if (limit === 'all' || !limit) {
           logContent = fileContent;
+          totalEntries = countLogEntries(fileContent);
         } else {
           const result = getLastNEntries(fileContent, limit);
           logContent = result.content;
           totalEntries = result.totalEntries;
         }
 
-        const stats = fs.statSync(logPath);
+        const stats = await stat(logPath);
         const lastModifiedTime = stats.mtime.getTime();
 
         return {
@@ -304,11 +459,11 @@ export const startLogViewerWindowHandler = (): void => {
           logPath = getLogFilePath();
         }
 
-        if (!fs.existsSync(logPath)) {
+        if (!(await pathExists(logPath))) {
           return { success: false, error: 'Log file does not exist' };
         }
 
-        const stats = fs.statSync(logPath);
+        const stats = await stat(logPath);
         return {
           success: true,
           lastModifiedTime: stats.mtime.getTime(),
@@ -348,11 +503,11 @@ export const startLogViewerWindowHandler = (): void => {
           logPath = getLogFilePath();
         }
 
-        if (!fs.existsSync(logPath)) {
+        if (!(await pathExists(logPath))) {
           return { success: false, error: 'Log file does not exist' };
         }
 
-        const stats = fs.statSync(logPath);
+        const stats = await stat(logPath);
         const rawFromByte = Number(options.fromByte);
         const fromByte =
           Number.isFinite(rawFromByte) && rawFromByte >= 0
@@ -363,7 +518,7 @@ export const startLogViewerWindowHandler = (): void => {
           return {
             success: true,
             logs: '',
-            newSize: stats.size,
+            newSize: fromByte,
             lastModifiedTime: stats.mtime.getTime(),
           };
         }
@@ -379,16 +534,68 @@ export const startLogViewerWindowHandler = (): void => {
           stream.on('error', (err) => reject(err));
         });
 
-        const newContent = Buffer.concat(chunks).toString('utf-8');
+        const rawChunk = Buffer.concat(chunks);
+        const { consumed, bytesConsumed } = trimBufferToLastNewline(rawChunk);
+
+        if (bytesConsumed === 0) {
+          return {
+            success: true,
+            logs: '',
+            newSize: fromByte,
+            lastModifiedTime: stats.mtime.getTime(),
+          };
+        }
+
+        const newContent = consumed.toString('utf-8');
 
         return {
           success: true,
           logs: newContent,
-          newSize: stats.size,
+          newSize: fromByte + bytesConsumed,
           lastModifiedTime: stats.mtime.getTime(),
         };
       } catch (error) {
         console.error('Failed to read log tail:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    }
+  );
+
+  handle(
+    'log-viewer-window/reveal-log-file',
+    async (_, options?: { filePath?: string }) => {
+      try {
+        let logPath: string;
+        if (options?.filePath) {
+          const validation = validateLogFilePath(options.filePath);
+          if (!validation.valid) {
+            return { success: false, error: validation.error };
+          }
+          const normalizedPath = path.normalize(options.filePath);
+          const defaultLogPath = path.normalize(getLogFilePath());
+          if (
+            normalizedPath !== defaultLogPath &&
+            !allowedLogPaths.has(normalizedPath)
+          ) {
+            return {
+              success: false,
+              error:
+                'Log file not authorized. Please select it via the file dialog first.',
+            };
+          }
+          logPath = normalizedPath;
+        } else {
+          logPath = getLogFilePath();
+        }
+
+        if (!(await pathExists(logPath))) {
+          return { success: false, error: 'Log file does not exist' };
+        }
+
+        shell.showItemInFolder(logPath);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to reveal log file:', error);
         return { success: false, error: (error as Error).message };
       }
     }
@@ -431,16 +638,25 @@ export const startLogViewerWindowHandler = (): void => {
         }
 
         const result = await dialog.showSaveDialog(logViewerWindow, {
-          title: 'Save Log File',
+          title: t('dialog.saveLogFile.title'),
           defaultPath: options.defaultFileName,
           filters: [
-            { name: 'ZIP Files', extensions: ['zip'] },
-            { name: 'All Files', extensions: ['*'] },
+            { name: t('dialog.saveLogFile.zipFiles'), extensions: ['zip'] },
+            { name: t('dialog.saveLogFile.logFiles'), extensions: ['log'] },
+            { name: t('dialog.saveLogFile.allFiles'), extensions: ['*'] },
           ],
         });
 
         if (result.canceled || !result.filePath) {
           return { success: false, canceled: true };
+        }
+
+        if (result.filePath.toLowerCase().endsWith('.log')) {
+          await writeFile(result.filePath, options.content, 'utf-8');
+          return {
+            success: true,
+            filePath: result.filePath,
+          };
         }
 
         await new Promise<void>((resolve, reject) => {

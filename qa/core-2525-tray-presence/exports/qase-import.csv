@@ -1,0 +1,248 @@
+v2.id,suite_id,suite,suite_without_cases,title,description,preconditions,postconditions,severity,priority,status,automation,steps_type,tags,steps_actions,steps_data,steps_results
+"","1","Tray presence status","1","","","","","","","","","","","","",""
+"","1","Tray presence status","","Tray Icon Shows A Distinct Dot Per Presence State","Source flow: CORE-2525-QA-001
+
+The tray icon shows a distinct Rocket.Chat status-bullet shape/color per presence — filled green-teal (online), yellow with a clock-hand cut-out (away), red with a horizontal-bar cut-out (busy), hollow gray ring (offline) — matching the effective presence value.","installed_branch_build
+presence_supporting_workspace
+logged_in_session","- Zoomed screenshot/crop of the tray icon for each of the four presence states.
+- Resolved icon file paths used per state (from app logs or code-path proof) if screenshots are inconclusive at native size.","critical","high","actual","manual","classic","CORE-2525-QA-001,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session","1. ""Launch the branch build and sign in to a presence-supporting workspace so the main window fully loads. On Windows, locate the app's icon in the notification area at the bottom-right of the taskbar (click the `^` overflow chevron first if the icon is hidden there). On Linux, locate the icon in the system tray/status area, typically top-right of the panel. On macOS, locate the icon in the menu bar at the top-right of the screen (among the other menu bar icons).""
+2. ""Right-click the tray icon to open its context menu, then click the `Online` radio item at the top of the menu (a filled circle indicator to the left of the label when selected).""
+3. ""Right-click the tray icon again and click the `Away` radio item.""
+4. ""Right-click the tray icon again and click the `Busy` radio item.""
+5. ""Right-click the tray icon again and click the `Offline` radio item.""
+6. ""Zoom or crop a screenshot of the tray/menu bar icon region at native size (16x16 on Windows; macOS menu bar icons render at 18x18 pt, 2x/3x on Retina) for each of the four states captured above.""","1. ""Presence-supporting workspace credentials
+Agent: Locate the tray icon element/pixel region for the app.""
+2. ""Presence value `online`
+Agent: Set presence to `online` via the app's IPC/API path and read back the icon file path from `getTrayIconPath`.""
+3. ""Presence value `away`
+Agent: Set presence to `away`, confirm the resolved icon path differs from the online icon path.""
+4. ""Presence value `busy`
+Agent: Set presence to `busy`, confirm the resolved icon path differs from prior states.""
+5. ""Presence value `offline`
+Agent: Set presence to `offline`, confirm the resolved icon path differs from prior states.""
+6. ""Screenshots from steps 2-5
+Agent: Compare the four resolved icon file paths/pixel buffers; assert they are byte-distinct.""","1. ""Tray/menu bar icon is visible and shows a default icon plus a small status bullet in the lower-right corner of the icon.""
+2. ""Within a few seconds the tray icon's bullet renders as a solid green-teal filled circle (`#2DE0A5`), no cut-out.""
+3. ""The tray icon's bullet changes to a filled yellow circle (`#FFD21F`) with a clock-hand shape cut out of it (the background shows through the cut-out, the same shape as the Fuselage away status bullet), visibly different from step 2.""
+4. ""The tray icon's bullet changes to a filled red circle (`#F5455C`) with a horizontal bar cut out through the middle (the background shows through the cut-out), visibly different from steps 2 and 3.""
+5. ""The tray icon's bullet changes to a hollow gray ring (stroke only, `#9EA2A8`, no fill — the tray background shows through the middle), same size and position as steps 2-4, distinct by both shape and colour.""
+6. ""All four crops are distinguishable from each other by shape and color even at native icon size."""
+"","1","Tray presence status","","Tray Menu Presence Submenu Reflects And Changes Effective Status","Source flow: CORE-2525-QA-002
+
+The tray menu's top-level presence item shows the current status label with a matching coloured bullet icon; opening its submenu lists Online/Away/Busy/Offline as radio items each with its own bullet, the currently effective status is checked, and selecting a different one applies it on the server.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+second_client_session","- Screenshot of the tray context menu showing the top-level status item and its expanded submenu with the four radio items and which one is checked, before and after the click.
+- Screenshot or copied status text from the second client confirming the server-side value changed.","critical","high","actual","manual","classic","CORE-2525-QA-002,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:second_client_session","1. ""On the second client (web UI or another Rocket.Chat client signed in as the same user), open the user avatar menu in the top-left of the sidebar and note the currently displayed status label (Online/Away/Busy/Offline).""
+2. ""On the desktop app, right-click the tray icon (Windows: bottom-right notification area, behind the `^` chevron if hidden; Linux: system tray/status area; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu).""
+3. ""Hover over (or click, on platforms where it opens on click) the top-level status item to reveal its submenu.""
+4. ""Confirm which of the four submenu radio items shows the filled/selected radio marker, and confirm it matches the top-level item's label from step 2.""
+5. ""Click a different radio item than the currently selected one, for example click `Busy` if `Online` was selected.""
+6. ""Switch to the second client and re-check the status label from step 1 (refresh or wait for the reactive presence indicator to update).""","1. ""Logged-in web session
+Agent: Read the account's presence value from the second client/API.""
+2. ""none
+Agent: Open/read the tray context menu template via `buildMenuTemplate`; assert the top-level presence item has a `submenu` array and an `icon`.""
+3. ""none
+Agent: Read the `submenu` array of the top-level presence item and assert it has 4 radio items, each with an `icon`.""
+4. ""none
+Agent: Assert the radio item where `checked === true` matches `activeServerPresence.presence`, and the top-level item's `label` matches the same presence.""
+5. ""Target presence `busy`
+Agent: Trigger the `click` handler for the target `PRESENCE_OPTIONS` entry and re-read the menu template.""
+6. ""none
+Agent: Query `/api/v1/users.info` or the DDP user document for `status` and assert it equals the clicked value.""","1. ""A baseline status label is visible on the second client.""
+2. ""A context menu opens whose top item shows the current status label (e.g. `Online`) with a small coloured bullet icon to its left, and a submenu arrow indicating it expands, followed later by a separator line.""
+3. ""A submenu opens showing four items with radio-button markers (a filled or outlined circle to the left of each label) reading `Online`, `Away`, `Busy`, `Offline`, in that order, each with its own coloured bullet icon.""
+4. ""The selected radio item's label matches the baseline status noted in step 1, and matches the top-level item's own label.""
+5. ""The menu closes; re-opening the tray context menu (right-click again; on macOS: click the menu bar icon again) shows the top-level item now labeled `Busy` with the busy bullet icon, and re-opening its submenu shows `Busy` carrying the selected radio marker instead of the previous item.""
+6. ""The second client now shows `Busy` (or the label clicked in step 5), proving the change reached the server, not just the tray."""
+"","1","Tray presence status","","Custom Status Text Appears As A Read-Only Menu Line Or Is Omitted","Source flow: CORE-2525-QA-003
+
+A set custom status message appears as a disabled tray menu line; when absent or cleared, the line does not appear at all.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+second_client_session","- Screenshot of the tray menu with the custom status line visible and grayed out.
+- Screenshot of the tray menu after clearing the status, showing the line is absent.","normal","medium","actual","manual","classic","CORE-2525-QA-003,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:second_client_session","1. ""On the second client (web UI signed in as the same user), open the user avatar menu top-left of the sidebar, click the current status label to open the status editor, and type a custom message, e.g. `In a meeting`, then confirm/save.""
+2. ""On the desktop app, right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu), open the top-level presence item's submenu and click any radio item (e.g. re-click the currently checked one, or pick a different one) to force a presence-change request, which makes the tray re-fetch the status text; alternatively fully quit and relaunch the app so it re-fetches on login. Then right-click the tray icon again (on macOS: click the menu bar icon again) to open the context menu.""
+3. ""Attempt to click the `In a meeting` line.""
+4. ""On the second client, clear the custom status message (open the status editor again and remove the text, then confirm/save).""
+5. ""On the desktop app, trigger a presence change from the tray (open the top-level presence item's submenu and click any radio item) to force a re-fetch of the status text, then right-click the tray icon again (on macOS: click the menu bar icon again) to re-open the menu.""","1. ""Custom status text `In a meeting`
+Agent: Set the custom status message via the web client or `setUserStatus` REST/DDP call.""
+2. ""none
+Agent: Trigger a presence-change request (or restart/login) to force the tray to re-fetch the status text, then read the tray menu template and assert the last item before the separator has `label: 'In a meeting'` and `enabled: false`.""
+3. ""none
+Agent: Confirm the item has no `click` handler / `enabled === false`.""
+4. ""Empty custom status text
+Agent: Set the custom status message to empty/undefined.""
+5. ""none
+Agent: Re-read the tray menu template and assert no disabled non-radio item is present between the top-level presence item and the separator.""","1. ""The second client shows `In a meeting` next to the user's status.""
+2. ""Below the top-level presence item and above the separator, an extra menu line reads `In a meeting`. This line has no radio marker and appears visually dimmed/grayed compared to the top-level item above it.""
+3. ""Nothing happens; the menu does not close differently and no status change occurs (the item is not clickable).""
+4. ""The second client no longer shows a custom status message next to the user's status.""
+5. ""The `In a meeting` line is gone entirely; the menu goes directly from the top-level presence item to the separator line."""
+"","1","Tray presence status","","Tray Presence Reflects Only The Active Workspace Tab","Source flow: CORE-2525-QA-004
+
+The tray icon/menu always reflect the presence of the workspace currently open in the main window, and switching tabs updates the tray without changing presence on the workspace that lost focus.","installed_branch_build
+two_presence_supporting_workspaces
+logged_in_session
+second_client_session","- Screenshots of the tray icon/menu immediately after switching to each workspace tab.
+- Screenshots or copied status values from both workspaces' second clients before and after step 4.","major","high","actual","manual","classic","CORE-2525-QA-004,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:two_presence_supporting_workspaces,requires:logged_in_session,requires:second_client_session","1. ""Add and sign in to two presence-supporting workspaces (Workspace A and Workspace B) in the desktop app's left vertical server list. On each workspace's own web/second client, set Workspace A's account status to `Online` and Workspace B's account status to `Busy`.""
+2. ""In the left vertical server list, click Workspace A's icon to make it the active tab. Right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) to open the menu.""
+3. ""In the left vertical server list, click Workspace B's icon to switch the active tab. Right-click the tray icon again (on macOS: click the menu bar icon again).""
+4. ""With Workspace B still active, right-click the tray icon (on macOS: click the menu bar icon) and click the `Online` radio item.""
+5. ""On Workspace A's second client, confirm its status is still `Online` (unchanged by step 4), and on Workspace B's second client, confirm its status changed to `Online` (was `Busy`).""","1. ""Workspace A -> online, Workspace B -> busy
+Agent: Confirm both server entries exist with `userLoggedIn: true` and distinct `presence` values.""
+2. ""Active tab: Workspace A
+Agent: Read `selectActiveServerPresence` and assert `url` matches Workspace A and `presence === 'online'`.""
+3. ""Active tab: Workspace B
+Agent: Re-read `selectActiveServerPresence` and assert `url` now matches Workspace B and `presence === 'busy'`.""
+4. ""Target presence: online, applied to Workspace B
+Agent: Confirm the presence-change IPC targets Workspace B's `webContentsId`.""
+5. ""none
+Agent: Query both workspaces' `users.info`/DDP status independently and assert A is unchanged, B changed.""","1. ""Both workspaces are signed in and visible as separate icons in the left server list; each shows its own distinct status on its own second client.""
+2. ""The tray icon shows the online dot (`#2DE0A5` filled) and the tray menu's checked radio is `Online`.""
+3. ""Within a few seconds, the tray icon switches to the busy dot (`#F5455C` filled) and the tray menu's checked radio is now `Busy`, with the workspace title shown in menu items referencing Workspace B where applicable.""
+4. ""The tray icon/menu for the active tab (Workspace B) show `Online` checked.""
+5. ""Workspace A's status is untouched; only Workspace B's status changed."""
+"","1","Tray presence status","","Disconnected Workspace Disables Presence Radios With A Reconnecting Notice","Source flow: CORE-2525-QA-005
+
+While the active workspace is disconnected or reconnecting, the four presence radios in the top-level presence item's submenu are disabled and a disabled ""Disconnected — trying to reconnect..."" line is shown; a merely unknown (not-yet-reported) connection state does NOT trigger this.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+network_disconnect_control","- Screenshot of the tray menu immediately after cold launch (step 1) showing enabled radios.
+- Screenshot of the tray menu while disconnected (step 3) showing disabled radios and the reconnecting line.
+- Zoomed/cropped screenshot of the tray/menu-bar icon at native size while disconnected (step 3), showing the filled amber circle with the exclamation cut-out.
+- Screenshot after reconnecting (step 5) showing radios enabled again.","major","high","actual","manual","classic","CORE-2525-QA-005,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:network_disconnect_control","1. ""Cold-launch the desktop app fresh (fully quit first, not just hidden) with a presence-supporting workspace already configured and a healthy network connection, then immediately right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) as soon as the main window appears, before any manual action.""
+2. ""With the app running and the workspace connected, disconnect the machine's network (disable Wi-Fi/Ethernet, or use a firewall rule to block the workspace's domain) so the workspace visibly shows a reconnecting/offline banner in the main window.""
+3. ""Right-click the tray icon again (on macOS: click the menu bar icon again) while still disconnected.""
+4. ""Attempt to click one of the disabled radio items, e.g. `Busy`.""
+5. ""Restore the network connection and wait for the main window's reconnect banner to disappear, then right-click the tray icon again (on macOS: click the menu bar icon again).""","1. ""none
+Agent: Read the tray menu template at the earliest observable point after launch; assert all radio items have `enabled: true` and no disabled non-radio """"Disconnected"""" item exists.""
+2. ""Network disabled
+Agent: Force the underlying Meteor DDP connection into a `connecting`/`failed`/`waiting`/`offline` state.""
+3. ""none
+Agent: Read the tray menu template; assert all radio items have `enabled: false` and a disabled item with that exact label is present. Read the resolved icon path/pixel buffer and confirm the overlay is the filled amber disconnected bullet.""
+4. ""none
+Agent: Confirm the disabled item has no effective `click` action / the presence value does not change.""
+5. ""Network restored
+Agent: Re-read the tray menu template; assert radios are `enabled: true` and the disconnected item is absent.""","1. ""The four presence radios in the top-level presence item's submenu (`Online`, `Away`, `Busy`, `Offline`) are enabled (not grayed out) and no `Disconnected — trying to reconnect...` line is present, even in the brief window before the first connection status has been reactively pushed.""
+2. ""The main window shows a connection-lost/reconnecting indicator (standard Rocket.Chat reconnect banner).""
+3. ""The four presence radios in the top-level presence item's submenu are now grayed out/disabled (clicking them does nothing), and a new disabled line reads `Disconnected — trying to reconnect...` positioned after the top-level presence item and before the separator. The tray/menu-bar icon itself now shows a filled amber circle with a vertical exclamation mark cut out of it (not the hollow-ring look of an earlier build), same size and position as the presence bullets.""
+4. ""No visible change occurs; the checked radio stays on whatever it was before the disconnect.""
+5. ""The radios re-enable and the `Disconnected — trying to reconnect...` line disappears from the menu."""
+"","1","Tray presence status","","Logged-Out Workspace Shows A Sign-In Item Instead Of Presence Radios","Source flow: CORE-2525-QA-006
+
+When the active workspace has no logged-in session, the tray menu shows no presence radios and instead a single enabled ""Sign in to <workspace>"" item that opens the app.","installed_branch_build
+configured_workspace_no_session","- Screenshot of the tray menu showing only the sign-in item, no radios.
+- Screenshot of the main window coming to the front after clicking the item.","normal","medium","actual","manual","classic","CORE-2525-QA-006,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:configured_workspace_no_session","1. ""Add a workspace in the left vertical server list (or use one already added) and sign out of it from the main window (open the user avatar menu top-left of the sidebar, click `Logout`), so the workspace tab exists but shows the login/sign-in screen instead of the chat UI.""
+2. ""Minimize or hide the main window, then right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) to open the context menu.""
+3. ""Click the `Sign in to <workspace>` item.""","1. ""A workspace with a logged-out session
+Agent: Confirm the server entry exists with `userLoggedIn: false` and a resolved `url`.""
+2. ""none
+Agent: Read the tray menu template and assert the presence-section items array has exactly one entry with that label pattern and `enabled: true`, and no `type: 'radio'` items.""
+3. ""none
+Agent: Confirm the item's `click` handler shows the root window.""","1. ""The main window shows that workspace's login screen when its tab is active.""
+2. ""The menu's first item reads `Sign in to <workspace name or URL>` (matching the workspace's configured title, or its URL if no title is set), rendered as a normal enabled item with no radio marker. No `Online`/`Away`/`Busy`/`Offline` items and no custom-status line appear above or below it.""
+3. ""The main window is brought to the front/shown, displaying that workspace's login screen."""
+"","1","Tray presence status","","No Workspace Configured Shows An Add-Workspace Item","Source flow: CORE-2525-QA-007
+
+With zero workspaces configured, the tray menu shows no presence radios and instead a single enabled ""Add workspace"" item that opens the app.","installed_branch_build
+no_workspaces_configured","- Screenshot of the tray menu showing only the `Add workspace` item.
+- Screenshot of the main window's onboarding screen after clicking it.","normal","medium","actual","manual","classic","CORE-2525-QA-007,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:no_workspaces_configured","1. ""Launch the branch build with a fresh profile/no workspaces configured, or remove every workspace from the left vertical server list (open each workspace's context/kebab menu and choose to remove it) until none remain.""
+2. ""Right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) to open the context menu.""
+3. ""Click the `Add workspace` item.""","1. ""none
+Agent: Confirm the servers collection/state is empty (`hasServers: false`).""
+2. ""none
+Agent: Read the tray menu template and assert the presence-section items array has exactly one entry labeled `Add workspace` with `enabled: true`.""
+3. ""none
+Agent: Confirm the item's `click` handler shows the root window.""","1. ""The main window shows the """"Add a workspace""""/onboarding screen with no server icons in the left server list.""
+2. ""The menu's first item reads `Add workspace`, rendered as a normal enabled item with no radio marker. No presence radios, no custom-status line, and no sign-in item appear.""
+3. ""The main window is brought to the front/shown, displaying the add-workspace/onboarding screen."""
+"","1","Tray presence status","","Unsupported Workspace Hides Presence Items And Custom Status Entirely","Source flow: CORE-2525-QA-008
+
+On a workspace whose server does not report a user status field, presence radios and any custom-status line are hidden entirely (not shown disabled), while the rest of the tray menu (Show/Hide, Quit) still works normally.","installed_branch_build
+legacy_server_without_presence_status
+logged_in_session","- Screenshot of the tray menu on the unsupported workspace showing no presence section at all.
+- Screenshot of the tray menu after switching to a supported workspace showing radios again.","normal","medium","actual","manual","classic","CORE-2525-QA-008,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:legacy_server_without_presence_status,requires:logged_in_session","1. ""Sign in to a workspace pointed at a legacy server version that does not publish a `status` field on the user document (per the verified contract, presence support was proven live against 8.8.0-develop; use an older/unsupported build for this negative case), making it the active tab in the left vertical server list.""
+2. ""Right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) to open the context menu.""
+3. ""Confirm the rest of the menu still works: click `Hide` (or `Show`, depending on current window state).""
+4. ""Switch the active tab to a different, presence-supporting workspace (if one is configured) and re-open the tray menu.""","1. ""Legacy/unsupported server, logged-in session
+Agent: Confirm the active legacy-server entry has `userLoggedIn: true` and `presenceSupported: false`.""
+2. ""none
+Agent: Read the tray menu template and assert `buildPresenceMenuItems` returned an empty array, and no leading separator was inserted.""
+3. ""none
+Agent: Confirm the `Show`/`Hide` item's click handler still toggles `rootWindowState.visible`.""
+4. ""Presence-supporting workspace
+Agent: Re-read the tray menu template for the newly active, supported workspace and assert radios are present.""","1. ""The main window loads the workspace normally (chat UI visible), with no visible error.""
+2. ""No `Online`/`Away`/`Busy`/`Offline` radios appear, no custom-status line appears, and no disabled placeholder text about presence appears either — the presence section is fully absent, not shown-and-disabled. The menu starts directly with `Show`/`Hide` followed by `Quit`.""
+3. ""The main window hides or shows as expected, unaffected by the unsupported presence check.""
+4. ""The presence radios reappear for that workspace, confirming the hiding is per-workspace, not a global disable."""
+"","1","Tray presence status","","Unread Badge Behavior Is Unchanged By Presence","Source flow: CORE-2525-QA-009
+
+The tray icon title/tooltip/badge overlay for unread mentions and messages behaves exactly as before this branch, regardless of the current presence value. On all three platforms, once presence is known the tray icon shows presence ONLY — no unread indicator baked into the artwork at all — because the count is already shown via the Windows taskbar overlay, the macOS menu-bar title, or the Linux tray tooltip.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+unread_mention_source","- Screenshots/copied text of the tray tooltip at 0, 1, and 2 unread @-mentions, on all three platforms.
+- Screenshot of the tray icon title showing the numeral count, and (Windows) the taskbar overlay badge showing the count.
+- A native-size crop of the tray icon at the 2-unread-@-mentions state from step 3 on all three platforms (this will be presence-coloured/shaped only — identical to the icon shown before any unread arrived), for comparison against flow 10's presence-only behaviour.
+- Confirmation that no dedicated notification/badge asset exists on any platform anymore — an unread count with unknown presence resolves to the plain default icon (`default.ico` / `defaultTemplate.png` / `default.png`), since the count is only ever shown via the taskbar overlay (Windows), menu-bar title (macOS), or tray tooltip (Linux).
+- Confirmation that presence changes in step 4 did not alter title/tooltip text.","critical","high","actual","manual","classic","CORE-2525-QA-009,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a presence-supporting workspace and ensure it has zero unread mentions/messages. Note the account's current presence value (e.g. `online`) — presence is always set on this kind of workspace, so it stays active for the rest of this flow. Hover the mouse over the tray icon without clicking (Windows notification area / Linux system tray; on macOS: the app icon in the menu bar at the top-right) to read its tooltip text.""
+2. ""From another client or account, send this user an @-mention in a channel they are a member of, so an unread mention count appears.""
+3. ""Send a second unread @-mention from another account/client.""
+4. ""Change presence via the tray menu (right-click the tray icon on Windows/Linux; on macOS left-click the app icon in the menu bar at the top-right) (e.g. to `Busy`) while the 2 unread @-mentions are still pending, then re-check the tray title and tooltip.""
+5. ""Mark all @-mentions as read in the app, then re-check the tray title/tooltip.""","1. ""Presence recorded, e.g. `online`
+Agent: Read the tray's current tooltip text and title string, and confirm the resolved icon path is `presence-<recorded presence>` with no `-notification` suffix (no badge), on all three platforms.""
+2. ""1 unread @-mention, presence unchanged from step 1
+Agent: Read the tray title and tooltip text; assert they match the pre-existing i18n templates unchanged by this branch. On all three platforms assert the resolved icon path is still the plain `presence-<recorded presence>` (unchanged from step 1 — the `1` is only in the title/overlay/tooltip, never in the icon file).""
+3. ""2 unread @-mentions, presence unchanged from step 1
+Agent: Confirm the pluralized tooltip renders with the correct count interpolated. On all three platforms assert the resolved icon path is still the plain `presence-<recorded presence>` (unchanged from step 2 — the icon file never varies with the count once presence is known).""
+4. ""Presence: busy, 2 unread @-mentions unchanged
+Agent: Re-read tray title/tooltip after the presence change and assert they are identical to step 3's values. On all three platforms assert the resolved icon path is the plain `presence-busy` (no `-notification` suffix at all).""
+5. ""0 unread @-mentions
+Agent: Confirm title/tooltip reset independently of the current presence value.""","1. ""Tooltip reads the app name followed by """"no unread message"""" (exact string from `tray.tooltip.noUnreadMessage`). Tray icon shows no numeric title/badge overlay, and its dot still shows the recorded presence colour.""
+2. ""The tray icon's title (visible next to/under the icon depending on OS taskbar style) shows the numeral `1`; hovering the tray icon shows tooltip text """"you have a unread mention/direct message"""" (singular form from `tray.tooltip.unreadMention`). The icon's presence bullet shape/colour is unchanged from step 1 (no unread indicator added to the artwork).""
+3. ""The tray icon's title shows `2`; tooltip text switches to the plural form """"you have 2 unread mentions/direct messages"""" (`tray.tooltip.unreadMention_plural`).""
+4. ""The title still shows `2` and the tooltip still shows the same plural mention text as step 3 — unaffected by the presence change. Only the icon's bullet colour/shape and file path reflect the new presence.""
+5. ""The title clears (empty) and the tooltip returns to """"no unread message"""" text, same as step 1, regardless of the presence set in step 4."""
+"","1","Tray presence status","","Presence Bullet And Unread Badge Coexist As The Product Intends Per Platform","Source flow: CORE-2525-QA-010
+
+When both an unread count and a presence are active, all three platforms show presence ONLY — the icon file is identical to the no-unread state. The Windows taskbar overlay, the macOS menu-bar title, and the Linux tray tooltip carry the count instead.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+unread_mention_source","- Zoomed/cropped screenshots at native icon size for: presence-only with 0 unread (step 1) and presence with 2 unread (step 2), on all three platforms.
+- Confirmation that the step 1 and step 2 icon files/screenshots are identical on all three platforms (no combined state exists anywhere).
+- Screenshot of the Windows taskbar overlay badge / macOS menu-bar title / Linux tray tooltip showing the unread count for step 2.
+- Resolved icon file paths for each state if screenshots are inconclusive at native size.","major","high","actual","manual","classic","CORE-2525-QA-010,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a presence-supporting workspace with zero unread mentions and presence left at its default. Right-click the tray icon (Windows notification area / Linux system tray; on macOS: left-click the app icon in the menu bar at the top-right — a single click opens the same menu) and set presence to `Online` via the context menu.""
+2. ""From another client/account, send this user two unread @-mentions while presence remains `Online`.""
+3. ""Compare the step-2 screenshot against the step-1 screenshot directly on all three platforms (they must be pixel-identical, since presence alone determines the icon on every platform).""
+4. ""Mark all mentions read while presence remains `Online`, then re-check the icon.""","1. ""Presence: online, 0 unread
+Agent: Read the resolved icon path; on all three platforms assert it is `presence-online` with no badge-related suffix.""
+2. ""2 unread mentions, presence: online
+Agent: On all three platforms: read the resolved icon path; assert it is still the plain `presence-online` (unchanged from step 1) and that the count `2` appears only via the taskbar overlay / tray title / tooltip, never in the icon file.""
+3. ""Screenshots from steps 1 and 2
+Agent: Diff the two screenshots on each platform; assert zero pixel difference.""
+4. ""0 unread, presence: online
+Agent: Confirm the resolved icon path stays `presence-online` on every platform (no change from step 2).""","1. ""The tray icon shows the online status bullet (solid `#2DE0A5` filled circle, no cut-out). Capture a zoomed screenshot for baseline comparison.""
+2. ""On all three platforms: the tray icon is byte-identical to step 1 — the online status bullet, no unread indicator baked in anywhere. The Windows taskbar overlay badge and the macOS menu-bar title show the numeral `2` instead; the Linux tray tooltip shows the unread count text. The tray title still shows `2` on Windows/macOS.""
+3. ""Step 1 and step 2 screenshots are indistinguishable on all three platforms.""
+4. ""The icon is unchanged from step 2 on all three platforms (it was already presence-only with no unread indicator, so nothing changes in the icon file)."""
+"","1","Tray presence status","","Rapid Presence Clicks Coalesce Without Dropping The Final Choice","Source flow: CORE-2525-QA-011
+
+Clicking Online then immediately Busy within the same second results in the server ending up on Busy (the last-requested value), not silently stuck on Online or on no change at all.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+second_client_session","- Screenshot/copied text of the second client's status label before the rapid clicks, immediately after (still within the rate-limit window), and once polling confirms the final `Busy` value.
+- Timestamps or a screen recording showing the two tray clicks happened within roughly one second of each other.
+- The final polled status value and the elapsed time (ms) it took to settle on `Busy`, or the fact that the 10-second timeout was reached without settling.","normal","medium","actual","manual","classic","CORE-2525-QA-011,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:second_client_session","1. ""Sign in to a presence-supporting workspace and, on a second client (web UI signed in as the same user), open the user avatar menu top-left of the sidebar to have the status label visible for comparison. Set the account to any known baseline status first (e.g. `Away`) and confirm on the second client.""
+2. ""On the desktop app, right-click the tray icon (Windows notification area / Linux system tray) or, on macOS, left-click the app icon in the menu bar at the top-right (a single click opens the same menu), click `Online`, then immediately reopen the tray/menu-bar menu the same way and click `Busy` — both clicks performed within roughly the same second, faster than a normal deliberate click-pause-click. On macOS specifically: click the menu-bar icon, click `Online`, click the menu-bar icon again, click `Busy`, all within ~1 second.""
+3. ""Without touching the tray again, repeatedly refresh/re-check the second client's status label (or repeatedly re-query the server) every ~200ms, for up to 10 seconds total, until the status label reads `Busy` or the 10-second timeout is reached.""
+4. ""Re-open the tray context menu on the desktop app (right-click the tray icon on Windows/Linux; on macOS left-click the app icon in the menu bar at the top-right).""","1. ""Baseline: away
+Agent: Confirm baseline `status` on the server equals `away`.""
+2. ""Rapid sequence: online, then busy
+Agent: Issue two `requestPresenceChange` calls back to back with less than 1000ms between them: `online` then `busy`.""
+3. ""Poll interval: 200ms, timeout: 10s
+Agent: Poll the server (`users.info`/DDP) for `status` on a bounded interval (e.g. every 200ms) up to a 10-second timeout; assert the polled value reaches `busy` before the timeout, and record the elapsed time it took to settle; fail the assertion if the timeout is reached without `status === 'busy'`.""
+4. ""none
+Agent: Re-read the tray menu template and assert the checked item is `Busy`.""","1. ""Second client shows `Away`.""
+2. ""The tray's own checked radio ends up on `Busy` immediately (tray state is optimistic/local).""
+3. ""Within the polling window the second client's status label settles on `Busy`, not `Online` and not still `Away` — the later click was not dropped by the rate limiter. If the status has not become `Busy` by the 10-second timeout, treat this step as failed rather than continuing to wait.""
+4. ""The checked radio still reads `Busy`, matching the confirmed server value from step 3 (tray and server agree)."""

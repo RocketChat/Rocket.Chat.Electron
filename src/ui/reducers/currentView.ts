@@ -42,6 +42,17 @@ type CurrentViewState =
   | 'settings'
   | { url: string };
 
+/**
+ * Views the root window no longer has: downloads and settings each open in a
+ * window of their own now.
+ *
+ * A profile saved before that change still names one, and restoring it would
+ * strand the reader on a view whose only way out was the sidebar button that
+ * now opens a window instead.
+ */
+const isRetiredView = (view: CurrentViewState): boolean =>
+  view === 'downloads' || view === 'settings';
+
 export const currentView = (
   state: CurrentViewState = 'add-new-server',
   action: CurrentViewAction
@@ -58,8 +69,7 @@ export const currentView = (
     }
 
     case WEBVIEW_FOCUS_REQUESTED: {
-      const { url, view } = action.payload;
-      if (view === 'downloads') return 'downloads';
+      const { url } = action.payload;
       return { url };
     }
 
@@ -70,7 +80,7 @@ export const currentView = (
 
     case APP_SETTINGS_LOADED: {
       const { currentView = state } = action.payload;
-      return currentView;
+      return isRetiredView(currentView) ? state : currentView;
     }
 
     case MENU_BAR_ADD_NEW_SERVER_CLICKED:
@@ -85,11 +95,15 @@ export const currentView = (
       return state;
     }
 
+    // Downloads open in their own window now, so the root window keeps
+    // whatever view it was on.
     case SIDE_BAR_DOWNLOADS_BUTTON_CLICKED:
-      return 'downloads';
+      return state;
 
+    // Settings open in their own window now, so the root window keeps
+    // whatever view it was on.
     case SIDE_BAR_SETTINGS_BUTTON_CLICKED:
-      return 'settings';
+      return state;
 
     default:
       return state;

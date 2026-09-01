@@ -183,7 +183,7 @@
     "undici": "5.28.5"
   },
   "volta": {
-    "node": "22.22.1",
+    "node": "24.11.1",
     "yarn": "4.6.0"
   },
   "packageManager": "yarn@4.6.0"

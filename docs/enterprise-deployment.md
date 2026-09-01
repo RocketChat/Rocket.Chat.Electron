@@ -3,6 +3,12 @@
 Guidance for deploying Rocket.Chat Desktop in enterprise environments (Active
 Directory, SCCM/MECM, Intune, Group Policy).
 
+Which install source receives in-app GitHub updates vs store / Snap /
+distro updates is summarized in the README:
+[How updates work by install source](../README.md#how-updates-work-by-install-source).
+`DISABLE_AUTO_UPDATES` and `update.json` `canUpdate: false` are described
+below.
+
 ## Installer choice
 
 Two Windows installers are published for each release:

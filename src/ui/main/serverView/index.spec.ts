@@ -69,6 +69,7 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
   const mockListen = listen as unknown as jest.Mock;
 
   let willNavigateHandler: (event: Event, url: string) => void;
+  let webviewReadyCallback: (action: unknown) => void;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -79,9 +80,7 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
     const webviewReadyCall = mockListen.mock.calls.find(
       ([actionType]) => actionType === WEBVIEW_READY
     );
-    const webviewReadyCallback = webviewReadyCall?.[1] as (
-      action: unknown
-    ) => void;
+    webviewReadyCallback = webviewReadyCall?.[1] as (action: unknown) => void;
 
     const guestWebContents = {
       addListener: jest.fn(),
@@ -106,28 +105,48 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
   const createEvent = (): Event =>
     ({ preventDefault: jest.fn() }) as unknown as Event;
 
-  it('allows http navigation', () => {
+  it('allows same-origin http navigation', () => {
+    webviewReadyCallback({
+      payload: { webContentsId: 1, url: 'http://open.rocket.chat' },
+    });
     const event = createEvent();
     willNavigateHandler(event, 'http://open.rocket.chat/page');
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
 
-  it('allows https navigation', () => {
+  it('allows same-origin https navigation', () => {
     const event = createEvent();
     willNavigateHandler(event, 'https://open.rocket.chat/page');
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
 
-  it('denies file:// navigation', () => {
+  it('denies file:// navigation and does not open externally', async () => {
+    mockIsProtocolAllowed.mockResolvedValueOnce(false);
     const event = createEvent();
     willNavigateHandler(event, 'file:///etc/passwd');
     expect(event.preventDefault).toHaveBeenCalled();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockIsProtocolAllowed).toHaveBeenCalledWith('file:///etc/passwd');
+    expect(mockOpenExternal).not.toHaveBeenCalled();
   });
 
-  it('denies navigation to an unknown/custom scheme', () => {
+  it('prevents in-app navigation and opens external markdown links externally when allowed', async () => {
     const event = createEvent();
-    willNavigateHandler(event, 'custom-scheme://payload');
+    willNavigateHandler(event, 'https://github.com/RocketChat');
+
     expect(event.preventDefault).toHaveBeenCalled();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockIsProtocolAllowed).toHaveBeenCalledWith(
+      'https://github.com/RocketChat'
+    );
+    expect(mockOpenExternal).toHaveBeenCalledWith(
+      'https://github.com/RocketChat'
+    );
   });
 
   it('still prevents and opens t.co links externally when allowed', async () => {
@@ -142,7 +161,7 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
     expect(mockOpenExternal).toHaveBeenCalledWith('https://t.co/abc123');
   });
 
-  it('does not open externally when protocol is not allowed for t.co links', async () => {
+  it('does not open externally when protocol is not allowed for external links', async () => {
     mockIsProtocolAllowed.mockResolvedValueOnce(false);
     const event = createEvent();
     willNavigateHandler(event, 'https://twitter.com/some/status');
@@ -152,5 +171,77 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
     await Promise.resolve();
 
     expect(mockOpenExternal).not.toHaveBeenCalled();
+  });
+
+  it('prevents navigation and opens allowed custom schemes externally (e.g. mailto:)', async () => {
+    const event = createEvent();
+    willNavigateHandler(event, 'mailto:support@rocket.chat');
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockIsProtocolAllowed).toHaveBeenCalledWith(
+      'mailto:support@rocket.chat'
+    );
+    expect(mockOpenExternal).toHaveBeenCalledWith('mailto:support@rocket.chat');
+  });
+
+  it('safely handles invalid URLs', () => {
+    const event = createEvent();
+    willNavigateHandler(event, 'not-a-valid-url');
+    expect(event.preventDefault).toHaveBeenCalled();
+  });
+
+  describe('subpath-hosted workspace handling', () => {
+    beforeEach(() => {
+      webviewReadyCallback({
+        payload: { webContentsId: 1, url: 'https://company.org/rocketchat/' },
+      });
+    });
+
+    it('allows navigation within the workspace subpath', () => {
+      const event = createEvent();
+      willNavigateHandler(
+        event,
+        'https://company.org/rocketchat/channel/general'
+      );
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('intercepts and opens external same-domain paths outside the workspace subpath', async () => {
+      const event = createEvent();
+      willNavigateHandler(event, 'https://company.org/wiki/page');
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockIsProtocolAllowed).toHaveBeenCalledWith(
+        'https://company.org/wiki/page'
+      );
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://company.org/wiki/page'
+      );
+    });
+
+    it('intercepts and opens links when protocol does not match (http vs https)', async () => {
+      const event = createEvent();
+      willNavigateHandler(
+        event,
+        'http://company.org/rocketchat/channel/general'
+      );
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockIsProtocolAllowed).toHaveBeenCalledWith(
+        'http://company.org/rocketchat/channel/general'
+      );
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'http://company.org/rocketchat/channel/general'
+      );
+    });
   });
 });

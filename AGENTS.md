@@ -340,6 +340,12 @@ git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch de
   Only include numbers from actual logs, error messages, or documented
   sources.
 - PR descriptions: straightforward language, focus on what changed and why.
+- PR descriptions and commit bodies are public. Do not include internal
+  references (Jira or Zoho Desk links and ticket text, customer names,
+  support conversations) or local developer tooling notes (GitNexus,
+  agent workflow, ledgers). A bare Jira key in the title or subject is
+  the accepted convention; everything else about the ticket stays
+  internal.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence

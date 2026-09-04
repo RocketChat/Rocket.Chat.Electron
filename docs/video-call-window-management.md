@@ -377,9 +377,11 @@ one used by the video call window's own host page) with the following policy:
   denied.
 
 Any popup spawned this way gets the same policy applied recursively via
-`did-create-window`, so a nested popup or an in-popup navigation can't escape
-the sandbox. The video call window's own host page is unaffected by this
-change and keeps routing all `http(s)` popups to the system browser.
+`did-create-window`. Both page-initiated navigations (`will-navigate`) and
+server-side redirects (`will-redirect`) go through the same protocol check,
+so a nested popup or an in-popup navigation/redirect can't escape the
+sandbox. The video call window's own host page is unaffected by this change
+and keeps routing all `http(s)` popups to the system browser.
 
 ### Deferred React Import
 ```typescript

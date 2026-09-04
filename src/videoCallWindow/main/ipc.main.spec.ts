@@ -1040,12 +1040,37 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       ).toEqual({ action: 'deny' });
     });
 
-    it('registers a will-navigate handler on the guest webview', async () => {
+    it('registers will-navigate and will-redirect handlers on the guest webview', async () => {
       const guest = await attachGuest();
       expect(guest.on).toHaveBeenCalledWith(
         'will-navigate',
         expect.any(Function)
       );
+      expect(guest.on).toHaveBeenCalledWith(
+        'will-redirect',
+        expect.any(Function)
+      );
+    });
+
+    it('will-redirect: denies a redirect to a dangerous scheme and sends it to the system browser, but leaves http(s) alone', async () => {
+      const guest = await attachGuest();
+      const willRedirectHandler = guest.on.mock.calls.find(
+        ([event]: [string]) => event === 'will-redirect'
+      )[1];
+
+      const { openExternal } = (await import(
+        '../../utils/browserLauncher'
+      )) as any;
+
+      const dangerousEvent = { preventDefault: jest.fn() };
+      willRedirectHandler(dangerousEvent, 'smb://share/path');
+      expect(dangerousEvent.preventDefault).toHaveBeenCalledTimes(1);
+      await flushPromises();
+      expect(openExternal).toHaveBeenCalledWith('smb://share/path');
+
+      const httpEvent = { preventDefault: jest.fn() };
+      willRedirectHandler(httpEvent, 'https://example.com/page');
+      expect(httpEvent.preventDefault).not.toHaveBeenCalled();
     });
 
     it('registers a did-create-window handler that wires the popup child window with the guest policy', async () => {
@@ -1074,6 +1099,10 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       ).toHaveBeenCalledTimes(1);
       expect(childWindow.webContents.on).toHaveBeenCalledWith(
         'will-navigate',
+        expect.any(Function)
+      );
+      expect(childWindow.webContents.on).toHaveBeenCalledWith(
+        'will-redirect',
         expect.any(Function)
       );
 

@@ -374,11 +374,12 @@ const handleConferenceWebviewWindowOpen = ({
   return { action: 'deny' };
 };
 
-// Shared by the conference webview's own `will-navigate` and any popup child
-// window it spawns: send external-protocol target="_self" navigations
-// (mailto:, tel:, custom schemes) to the browser; http(s)/file/data/about/blob
-// self-navigations stay in place so auth redirects and the conference's own
-// flows keep working.
+// Shared by the conference webview's own `will-navigate`/`will-redirect` and
+// any popup child window it spawns: send external-protocol target="_self"
+// navigations (mailto:, tel:, custom schemes) — whether page-initiated
+// (`will-navigate`) or a server-side redirect (`will-redirect`) — to the
+// browser; http(s)/file/data/about/blob navigations stay in place so auth
+// redirects and the conference's own flows keep working.
 const handleConferenceWillNavigate = (event: Event, navUrl: string): void => {
   try {
     const { protocol } = new URL(navUrl);
@@ -487,6 +488,7 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     // schemes) to the browser too; http(s) self-navigations stay in the webview
     // so the conference's own flows (auth redirects, etc.) keep working.
     webviewWebContents.on('will-navigate', handleConferenceWillNavigate);
+    webviewWebContents.on('will-redirect', handleConferenceWillNavigate);
 
     // A guest-webview popup (e.g. an SSO/IdP login window) is created hidden
     // to avoid a white flash, and its own popups/navigations must follow the
@@ -500,6 +502,7 @@ const setupWebviewHandlers = (webContents: WebContents) => {
         handleConferenceWebviewWindowOpen
       );
       childWindow.webContents.on('will-navigate', handleConferenceWillNavigate);
+      childWindow.webContents.on('will-redirect', handleConferenceWillNavigate);
     });
 
     // Media (mic/cam) permission requests from the conference originate in the

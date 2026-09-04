@@ -376,12 +376,15 @@ one used by the video call window's own host page) with the following policy:
 - **Everything else** (`javascript:`, `data:`, `file:`, `smb:`, etc.) is
   denied.
 
-Any popup spawned this way gets the same policy applied recursively via
-`did-create-window`. Both page-initiated navigations (`will-navigate`) and
-server-side redirects (`will-redirect`) go through the same protocol check,
-so a nested popup or an in-popup navigation/redirect can't escape the
-sandbox. The video call window's own host page is unaffected by this change
-and keeps routing all `http(s)` popups to the system browser.
+Any popup spawned this way gets the same policy re-applied to every
+descendant popup (a popup opened from a popup, and so on) via each window's
+own `did-create-window` registration. Both page-initiated navigations
+(`will-navigate`) and server-side redirects (`will-redirect`) go through the
+same protocol check: navigations/redirects to `http:`, `https:`, `file:`,
+`data:`, `about:`, or `blob:` proceed in place, and any other scheme is
+cancelled and, if the app's external-protocol check allows it, handed to the
+system browser. The video call window's own host page is unaffected by this
+change and keeps routing all `http(s)` popups to the system browser.
 
 ### Deferred React Import
 ```typescript

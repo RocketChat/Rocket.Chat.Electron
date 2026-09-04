@@ -400,6 +400,23 @@ const handleConferenceWillNavigate = (event: Event, navUrl: string): void => {
   }
 };
 
+// Applies the conference guest's popup policy (window-open handler,
+// will-navigate/will-redirect guards) to a popup window, and recurses via
+// `did-create-window` so every descendant popup (a popup opened from a
+// popup, and so on) gets the same wiring — a grandchild can't slip through
+// unpoliced just because it wasn't opened directly from the webview.
+const attachConferencePopupPolicy = (childWindow: BrowserWindow): void => {
+  childWindow.once('ready-to-show', () => {
+    childWindow.show();
+  });
+  childWindow.webContents.setWindowOpenHandler(
+    handleConferenceWebviewWindowOpen
+  );
+  childWindow.webContents.on('will-navigate', handleConferenceWillNavigate);
+  childWindow.webContents.on('will-redirect', handleConferenceWillNavigate);
+  childWindow.webContents.on('did-create-window', attachConferencePopupPolicy);
+};
+
 const setupWebviewHandlers = (webContents: WebContents) => {
   // Track attached webviews that need handler setup
   const pendingWebviews: WebContents[] = [];
@@ -491,19 +508,10 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     webviewWebContents.on('will-redirect', handleConferenceWillNavigate);
 
     // A guest-webview popup (e.g. an SSO/IdP login window) is created hidden
-    // to avoid a white flash, and its own popups/navigations must follow the
-    // same guest policy so a nested popup (or a redirect inside the popup)
-    // can't escape the sandbox.
-    webviewWebContents.on('did-create-window', (childWindow) => {
-      childWindow.once('ready-to-show', () => {
-        childWindow.show();
-      });
-      childWindow.webContents.setWindowOpenHandler(
-        handleConferenceWebviewWindowOpen
-      );
-      childWindow.webContents.on('will-navigate', handleConferenceWillNavigate);
-      childWindow.webContents.on('will-redirect', handleConferenceWillNavigate);
-    });
+    // to avoid a white flash, and the same policy is applied to every
+    // descendant popup (a popup opened from this popup, and so on) via
+    // attachConferencePopupPolicy's own did-create-window registration.
+    webviewWebContents.on('did-create-window', attachConferencePopupPolicy);
 
     // Media (mic/cam) permission requests from the conference originate in the
     // webview's session, NOT the host window's, so the handler must live on the

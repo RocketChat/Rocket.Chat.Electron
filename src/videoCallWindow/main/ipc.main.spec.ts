@@ -1073,7 +1073,7 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(httpEvent.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('registers a did-create-window handler that wires the popup child window with the guest policy', async () => {
+    it('registers a did-create-window handler that wires the popup child window with the guest policy, recursively for descendant popups', async () => {
       const guest = await attachGuest();
       expect(guest.on).toHaveBeenCalledWith(
         'did-create-window',
@@ -1083,14 +1083,16 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         ([event]: [string]) => event === 'did-create-window'
       )[1];
 
-      const childWindow = {
+      const makeFakeChild = () => ({
         once: jest.fn(),
         show: jest.fn(),
         webContents: {
           setWindowOpenHandler: jest.fn(),
           on: jest.fn(),
         },
-      };
+      });
+
+      const childWindow = makeFakeChild();
 
       didCreateWindowHandler(childWindow, { url: 'https://idp.example/sso' });
 
@@ -1105,6 +1107,10 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         'will-redirect',
         expect.any(Function)
       );
+      expect(childWindow.webContents.on).toHaveBeenCalledWith(
+        'did-create-window',
+        expect.any(Function)
+      );
 
       expect(childWindow.once).toHaveBeenCalledWith(
         'ready-to-show',
@@ -1116,6 +1122,47 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(childWindow.show).not.toHaveBeenCalled();
       readyToShowCallback();
       expect(childWindow.show).toHaveBeenCalledTimes(1);
+
+      // A popup opened FROM the child (a grandchild) must get the same
+      // wiring — the recursive did-create-window registration above is what
+      // makes that happen.
+      const childDidCreateWindowHandler =
+        childWindow.webContents.on.mock.calls.find(
+          ([event]: [string]) => event === 'did-create-window'
+        )[1];
+
+      const grandchildWindow = makeFakeChild();
+      childDidCreateWindowHandler(grandchildWindow, {
+        url: 'https://idp.example/sso/nested',
+      });
+
+      expect(
+        grandchildWindow.webContents.setWindowOpenHandler
+      ).toHaveBeenCalledTimes(1);
+      expect(grandchildWindow.webContents.on).toHaveBeenCalledWith(
+        'will-navigate',
+        expect.any(Function)
+      );
+      expect(grandchildWindow.webContents.on).toHaveBeenCalledWith(
+        'will-redirect',
+        expect.any(Function)
+      );
+      expect(grandchildWindow.webContents.on).toHaveBeenCalledWith(
+        'did-create-window',
+        expect.any(Function)
+      );
+
+      expect(grandchildWindow.once).toHaveBeenCalledWith(
+        'ready-to-show',
+        expect.any(Function)
+      );
+      const grandchildReadyToShowCallback =
+        grandchildWindow.once.mock.calls.find(
+          ([event]: [string]) => event === 'ready-to-show'
+        )[1];
+      expect(grandchildWindow.show).not.toHaveBeenCalled();
+      grandchildReadyToShowCallback();
+      expect(grandchildWindow.show).toHaveBeenCalledTimes(1);
     });
 
     it('leaves the host window popup policy unchanged: http(s) still denied + sent to the system browser', async () => {

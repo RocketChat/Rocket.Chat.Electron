@@ -955,17 +955,44 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       return guest;
     };
 
-    it('routes http(s) popups to the system browser and denies the Electron window', async () => {
+    it('allows http(s) popups as sandboxed Electron child windows (SSO/IdP flow)', async () => {
       const guest = await attachGuest();
       expect(guest.setWindowOpenHandler).toHaveBeenCalledTimes(1);
       const handler = guest.setWindowOpenHandler.mock.calls[0][0];
 
-      expect(handler({ url: 'https://example.com/page' })).toEqual({
+      const result = handler({
+        url: 'https://example.com/page',
+        disposition: 'new-window',
+      });
+      expect(result.action).toBe('allow');
+      expect(result.overrideBrowserWindowOptions.webPreferences).toMatchObject({
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: true,
+      });
+
+      const { openExternal } = (await import(
+        '../../utils/browserLauncher'
+      )) as any;
+      expect(openExternal).not.toHaveBeenCalled();
+    });
+
+    it('routes tab-disposition http(s) popups to the system browser and denies the Electron window', async () => {
+      const guest = await attachGuest();
+      const handler = guest.setWindowOpenHandler.mock.calls[0][0];
+
+      expect(
+        handler({
+          url: 'https://example.com/page',
+          disposition: 'foreground-tab',
+        })
+      ).toEqual({
         action: 'deny',
       });
       const { openExternal } = (await import(
         '../../utils/browserLauncher'
       )) as any;
+      await flushPromises();
       expect(openExternal).toHaveBeenCalledWith('https://example.com/page');
     });
 
@@ -973,8 +1000,15 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       const guest = await attachGuest();
       const handler = guest.setWindowOpenHandler.mock.calls[0][0];
 
-      expect(handler({ url: 'about:blank' })).toEqual({ action: 'allow' });
-      expect(handler({ url: 'blob:https://meet.example/abc' })).toEqual({
+      expect(
+        handler({ url: 'about:blank', disposition: 'new-window' })
+      ).toEqual({ action: 'allow' });
+      expect(
+        handler({
+          url: 'blob:https://meet.example/abc',
+          disposition: 'new-window',
+        })
+      ).toEqual({
         action: 'allow',
       });
     });
@@ -983,16 +1017,27 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       const guest = await attachGuest();
       const handler = guest.setWindowOpenHandler.mock.calls[0][0];
 
-      expect(handler({ url: 'javascript:alert(1)' })).toEqual({
+      expect(
+        handler({ url: 'javascript:alert(1)', disposition: 'new-window' })
+      ).toEqual({
         action: 'deny',
       });
-      expect(handler({ url: 'file:///etc/passwd' })).toEqual({
+      expect(
+        handler({ url: 'file:///etc/passwd', disposition: 'new-window' })
+      ).toEqual({
         action: 'deny',
       });
-      expect(handler({ url: 'data:text/html,<script>1</script>' })).toEqual({
+      expect(
+        handler({
+          url: 'data:text/html,<script>1</script>',
+          disposition: 'new-window',
+        })
+      ).toEqual({
         action: 'deny',
       });
-      expect(handler({ url: 'smb://share/path' })).toEqual({ action: 'deny' });
+      expect(
+        handler({ url: 'smb://share/path', disposition: 'new-window' })
+      ).toEqual({ action: 'deny' });
     });
 
     it('registers a will-navigate handler on the guest webview', async () => {
@@ -1001,6 +1046,73 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         'will-navigate',
         expect.any(Function)
       );
+    });
+
+    it('registers a did-create-window handler that wires the popup child window with the guest policy', async () => {
+      const guest = await attachGuest();
+      expect(guest.on).toHaveBeenCalledWith(
+        'did-create-window',
+        expect.any(Function)
+      );
+      const didCreateWindowHandler = guest.on.mock.calls.find(
+        ([event]: [string]) => event === 'did-create-window'
+      )[1];
+
+      const childWindow = {
+        once: jest.fn(),
+        show: jest.fn(),
+        webContents: {
+          setWindowOpenHandler: jest.fn(),
+          on: jest.fn(),
+        },
+      };
+
+      didCreateWindowHandler(childWindow, { url: 'https://idp.example/sso' });
+
+      expect(
+        childWindow.webContents.setWindowOpenHandler
+      ).toHaveBeenCalledTimes(1);
+      expect(childWindow.webContents.on).toHaveBeenCalledWith(
+        'will-navigate',
+        expect.any(Function)
+      );
+
+      expect(childWindow.once).toHaveBeenCalledWith(
+        'ready-to-show',
+        expect.any(Function)
+      );
+      const readyToShowCallback = childWindow.once.mock.calls.find(
+        ([event]: [string]) => event === 'ready-to-show'
+      )[1];
+      expect(childWindow.show).not.toHaveBeenCalled();
+      readyToShowCallback();
+      expect(childWindow.show).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves the host window popup policy unchanged: http(s) still denied + sent to the system browser', async () => {
+      await attachGuest();
+
+      // The host window's webContents (createdWindows[0].webContents) has its
+      // window-open handler registered twice (an smb-only guard, then the
+      // shared handleVideoCallWindowOpen wrapper) — the last registration is
+      // the one Electron actually uses.
+      const hostSetWindowOpenHandler =
+        createdWindows[0].webContents.setWindowOpenHandler;
+      expect(hostSetWindowOpenHandler.mock.calls.length).toBeGreaterThanOrEqual(
+        2
+      );
+      const hostHandler =
+        hostSetWindowOpenHandler.mock.calls[
+          hostSetWindowOpenHandler.mock.calls.length - 1
+        ][0];
+
+      expect(hostHandler({ url: 'https://example.com/page' })).toEqual({
+        action: 'deny',
+      });
+      const { openExternal } = (await import(
+        '../../utils/browserLauncher'
+      )) as any;
+      expect(openExternal).toHaveBeenCalledWith('https://example.com/page');
     });
 
     it('installs a media permission handler on the fallback (isolated) webview session', async () => {

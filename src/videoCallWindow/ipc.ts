@@ -322,6 +322,83 @@ const handleVideoCallWindowOpen = ({
   return { action: 'deny' };
 };
 
+// Window-open policy for the conference (guest) webview only. Unlike the host
+// page above, an http(s) popup here isn't always a plain external link — SSO
+// providers (e.g. Pexip's IdP login flow) rely on `window.open` handing
+// control back to the opener via `window.opener`, which only works if the
+// popup is a real (sandboxed) Electron child window. Tab-target links
+// (middle-click / ctrl-click) still go to the system browser; dangerous
+// schemes are still denied.
+type WindowOpenDetails = {
+  url: string;
+  disposition: string;
+};
+const handleConferenceWebviewWindowOpen = ({
+  url,
+  disposition,
+}: WindowOpenDetails):
+  | { action: 'deny' }
+  | {
+      action: 'allow';
+      overrideBrowserWindowOptions?: Electron.BrowserWindowConstructorOptions;
+    } => {
+  if (disposition === 'foreground-tab' || disposition === 'background-tab') {
+    isProtocolAllowed(url).then((allowed) => {
+      if (allowed) {
+        openExternal(url);
+      }
+    });
+    return { action: 'deny' };
+  }
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        show: false,
+        autoHideMenuBar: true,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+          sandbox: true,
+          webviewTag: false,
+        },
+      },
+    };
+  }
+
+  const lower = url.toLowerCase();
+  if (ALLOWED_POPUP_SCHEMES.some((scheme) => lower.startsWith(scheme))) {
+    return { action: 'allow' };
+  }
+  return { action: 'deny' };
+};
+
+// Shared by the conference webview's own `will-navigate` and any popup child
+// window it spawns: send external-protocol target="_self" navigations
+// (mailto:, tel:, custom schemes) to the browser; http(s)/file/data/about/blob
+// self-navigations stay in place so auth redirects and the conference's own
+// flows keep working.
+const handleConferenceWillNavigate = (event: Event, navUrl: string): void => {
+  try {
+    const { protocol } = new URL(navUrl);
+    if (
+      !['http:', 'https:', 'file:', 'data:', 'about:', 'blob:'].includes(
+        protocol
+      )
+    ) {
+      event.preventDefault();
+      isProtocolAllowed(navUrl).then((allowed) => {
+        if (allowed) {
+          openExternal(navUrl);
+        }
+      });
+    }
+  } catch {
+    // Ignore unparseable URLs.
+  }
+};
+
 const setupWebviewHandlers = (webContents: WebContents) => {
   // Track attached webviews that need handler setup
   const pendingWebviews: WebContents[] = [];
@@ -400,31 +477,29 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     webviewWebContents: WebContents
   ): void => {
     // Route external links opened from the conference (target="_blank" /
-    // window.open) to the system browser instead of spawning a new Electron
-    // window, mirroring the main app window.
-    webviewWebContents.setWindowOpenHandler(handleVideoCallWindowOpen);
+    // window.open) to a sandboxed Electron popup window for plain http(s)
+    // (needed for SSO/IdP login flows such as Pexip, which rely on
+    // window.opener), and to the system browser for tab-target links and
+    // in-app popup schemes otherwise. See handleConferenceWebviewWindowOpen.
+    webviewWebContents.setWindowOpenHandler(handleConferenceWebviewWindowOpen);
 
     // Send external-protocol target="_self" navigations (mailto:, tel:, custom
     // schemes) to the browser too; http(s) self-navigations stay in the webview
     // so the conference's own flows (auth redirects, etc.) keep working.
-    webviewWebContents.on('will-navigate', (event: Event, navUrl: string) => {
-      try {
-        const { protocol } = new URL(navUrl);
-        if (
-          !['http:', 'https:', 'file:', 'data:', 'about:', 'blob:'].includes(
-            protocol
-          )
-        ) {
-          event.preventDefault();
-          isProtocolAllowed(navUrl).then((allowed) => {
-            if (allowed) {
-              openExternal(navUrl);
-            }
-          });
-        }
-      } catch {
-        // Ignore unparseable URLs.
-      }
+    webviewWebContents.on('will-navigate', handleConferenceWillNavigate);
+
+    // A guest-webview popup (e.g. an SSO/IdP login window) is created hidden
+    // to avoid a white flash, and its own popups/navigations must follow the
+    // same guest policy so a nested popup (or a redirect inside the popup)
+    // can't escape the sandbox.
+    webviewWebContents.on('did-create-window', (childWindow) => {
+      childWindow.once('ready-to-show', () => {
+        childWindow.show();
+      });
+      childWindow.webContents.setWindowOpenHandler(
+        handleConferenceWebviewWindowOpen
+      );
+      childWindow.webContents.on('will-navigate', handleConferenceWillNavigate);
     });
 
     // Media (mic/cam) permission requests from the conference originate in the

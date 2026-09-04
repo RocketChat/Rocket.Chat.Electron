@@ -51,6 +51,18 @@ The script exits on its own when all required checks (default: the three
 pending. Run `bash .claude/skills/pr-watch/scripts/watch.sh <pr> --once` to
 see the current snapshot without waiting.
 
+Also pin the PR in the status line, so its check counts stay visible even
+when the cwd is a different checkout or branch:
+
+```bash
+mkdir -p ~/.cache/claude-statusline
+printf 'RocketChat/Rocket.Chat.Electron#%s\n' <pr> > ~/.cache/claude-statusline/current.pr
+```
+
+The status line script reads that file first and falls back to the cwd
+branch's PR when it is absent. Leave it in place after `DONE`; the user
+clears it with `rm ~/.cache/claude-statusline/current.pr` when they move on.
+
 ### 3. Relay events, one line each
 
 | Event line                       | What to tell the user                                                                                       |

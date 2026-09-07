@@ -150,6 +150,7 @@
     "copy": "コピー (&C)",
     "cut": "切り取り (&T)",
     "developerMode": "開発者モード",
+    "simulateDisconnected": "切断をシミュレート",
     "documentation": "ドキュメント",
     "editMenu": "編集 (&E)",
     "fileMenu": "ファイル (&F)",
@@ -176,8 +177,7 @@
     "viewMenu": "表示 (&V)",
     "windowMenu": "ウィンドウ (&W)",
     "zoomIn": "拡大",
-    "zoomOut": "縮小",
-    "simulateDisconnected": "切断をシミュレート"
+    "zoomOut": "縮小"
   },
   "loadingError": {
     "title": "サーバーの読み込みに失敗しました",

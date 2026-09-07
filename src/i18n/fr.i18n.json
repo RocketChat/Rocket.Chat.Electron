@@ -163,11 +163,9 @@
       "clear": "Effacer les filtres",
       "all": "Tout",
       "mimes": {
-        "images": "Images",
-        "videos": "Vidéos",
-        "audios": "Audios",
-        "texts": "Textes",
-        "files": "Fichiers"
+        "image": "Images",
+        "video": "Vidéos",
+        "application": "Fichiers"
       },
       "statuses": {
         "paused": "Mis en pause",
@@ -303,6 +301,7 @@
     "copy": "&Copier",
     "cut": "Cou&per",
     "developerMode": "Mode développeur",
+    "simulateDisconnected": "Simuler une déconnexion",
     "disableGpu": "Désactiver le GPU",
     "documentation": "Documentation",
     "downloads": "Téléchargements",
@@ -337,8 +336,7 @@
     "viewMenu": "&Voir",
     "windowMenu": "&Fenêtre",
     "zoomIn": "Zoomer",
-    "zoomOut": "Zoom arrière",
-    "simulateDisconnected": "Simuler une déconnexion"
+    "zoomOut": "Zoom arrière"
   },
   "loadingError": {
     "title": "Echec du chargement du serveur",

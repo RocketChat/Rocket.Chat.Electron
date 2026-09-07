@@ -163,6 +163,7 @@
     "copy": "&Kopyala",
     "cut": "Kes",
     "developerMode": "Geliştirici Modu",
+    "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et",
     "documentation": "Dökümantasyon",
     "editMenu": "&Düzenle",
     "fileMenu": "&Dosya",
@@ -189,8 +190,7 @@
     "viewMenu": "&Görünüm",
     "windowMenu": "&Pencereler",
     "zoomIn": "Yakınlaştır",
-    "zoomOut": "Uzaklaştır",
-    "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et"
+    "zoomOut": "Uzaklaştır"
   },
   "loadingError": {
     "title": "Sunucu yüklenirken hata oluştu",

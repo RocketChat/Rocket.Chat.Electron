@@ -21,6 +21,21 @@
       }
     }
   },
+  "menus": {
+    "simulateDisconnected": "Simuler fråkopling"
+  },
+  "tray": {
+    "presence": {
+      "status": "Status",
+      "online": "Pålogga",
+      "away": "Borte",
+      "busy": "Oppteken",
+      "offline": "Fråkopla",
+      "disconnected": "Fråkopla — prøver å kopla til på nytt...",
+      "signIn": "Logg på {{- workspace}}",
+      "addWorkspace": "Legg til arbeidsområde"
+    }
+  },
   "serverInfo": {
     "title": "Serverinformasjon",
     "urlLabel": "URL:",
@@ -45,21 +60,6 @@
     "expiration": {
       "label": "Utløpsdato:",
       "expiresOn": "Utløper {{date}}"
-    }
-  },
-  "menus": {
-    "simulateDisconnected": "Simuler fråkopling"
-  },
-  "tray": {
-    "presence": {
-      "status": "Status",
-      "online": "Pålogga",
-      "away": "Borte",
-      "busy": "Oppteken",
-      "offline": "Fråkopla",
-      "disconnected": "Fråkopla — prøver å kopla til på nytt...",
-      "signIn": "Logg på {{- workspace}}",
-      "addWorkspace": "Legg til arbeidsområde"
     }
   }
 }

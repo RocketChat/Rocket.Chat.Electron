@@ -43,6 +43,7 @@ jest.mock('../../ui/main/secondaryWindowFocus', () => ({
 jest.mock('../../ui/main/secondaryWindowState', () => ({
   getSavedWindowBounds: jest.fn(() => undefined),
   watchWindowBounds: jest.fn(),
+  onWindowBoundsReset: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../ui/windowChrome/appearance', () => ({

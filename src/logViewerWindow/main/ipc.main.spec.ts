@@ -133,6 +133,7 @@ jest.mock('../../store', () => ({
   select: (...args: unknown[]) => select(...args),
   dispatch: (...args: unknown[]) => dispatch(...args),
   watch: jest.fn(),
+  listen: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../ui/main/rootWindow', () => ({

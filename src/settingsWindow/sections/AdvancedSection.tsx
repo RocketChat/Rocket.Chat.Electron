@@ -6,6 +6,7 @@ import { DebugLogging } from '../../ui/components/SettingsView/features/DebugLog
 import { DetailedEventsLogging } from '../../ui/components/SettingsView/features/DetailedEventsLogging';
 import { HardwareAcceleration } from '../../ui/components/SettingsView/features/HardwareAcceleration';
 import { ReportErrors } from '../../ui/components/SettingsView/features/ReportErrors';
+import { ResetWindowBounds } from '../../ui/components/SettingsView/features/ResetWindowBounds';
 import { SettingGroupDivider } from '../../ui/components/SettingsView/features/SettingGroupDivider';
 import { UpdateChannel } from '../../ui/components/SettingsView/features/UpdateChannel';
 import { VerboseOutlookLogging } from '../../ui/components/SettingsView/features/VerboseOutlookLogging';
@@ -44,6 +45,12 @@ export const AdvancedSection = () => {
       <FieldGroup>
         <HardwareAcceleration />
         <ReportErrors />
+      </FieldGroup>
+
+      <SettingGroupDivider />
+
+      <FieldGroup>
+        <ResetWindowBounds />
       </FieldGroup>
 
       {isDeveloperModeEnabled && (

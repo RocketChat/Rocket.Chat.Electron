@@ -17,6 +17,7 @@ import { watchWindowControls } from '../ui/main/secondaryWindowControls';
 import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import {
   getSavedWindowBounds,
+  onWindowBoundsReset,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
 import {
@@ -50,7 +51,13 @@ const selectIsTransparencyEnabled = ({
 /** Set while a window is being built; see `createDownloadsWindow`. */
 let pendingCreation: Promise<void> | null = null;
 
-const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
+/** Centred on the display nearest the main window. */
+const getDefaultBounds = async (): Promise<{
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}> => {
   const mainWindow = await getRootWindow();
   const winBounds = mainWindow.getNormalBounds();
 
@@ -71,6 +78,12 @@ const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
   const y = Math.round(
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
+
+  return { width, height, x, y };
+};
+
+const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
+  const { width, height, x, y } = await getDefaultBounds();
 
   // Where the reader last left this window, falling back to centred on the
   // display nearest the main window.
@@ -228,5 +241,10 @@ export const startDownloadsWindowHandler = (): void => {
   watch(selectIsTransparencyEnabled, (isEnabled) => {
     if (!downloadsWindow || downloadsWindow.isDestroyed()) return;
     downloadsWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  });
+
+  onWindowBoundsReset('downloads', async () => {
+    if (!downloadsWindow || downloadsWindow.isDestroyed()) return;
+    downloadsWindow.setBounds(await getDefaultBounds());
   });
 };

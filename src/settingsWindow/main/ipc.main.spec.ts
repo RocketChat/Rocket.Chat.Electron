@@ -43,6 +43,7 @@ jest.mock('../../ui/main/secondaryWindowFocus', () => ({
 jest.mock('../../ui/main/secondaryWindowState', () => ({
   getSavedWindowBounds: jest.fn(() => undefined),
   watchWindowBounds: jest.fn(),
+  onWindowBoundsReset: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../ui/windowChrome/appearance', () => ({
@@ -185,5 +186,30 @@ describe('settings-window/confirm-remove-certificate', () => {
     await expect(confirmHandler()({} as never, 'example.test')).resolves.toBe(
       true
     );
+  });
+});
+
+describe('settings-window/reset-window-bounds', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    handleRegistry.clear();
+    createdWindows.length = 0;
+  });
+
+  it('dispatches WINDOW_BOUNDS_RESET', async () => {
+    const { startSettingsWindowHandler } = await loadIpc();
+    const { dispatch } = jest.requireMock('../../store') as {
+      dispatch: jest.Mock;
+    };
+    startSettingsWindowHandler();
+
+    const handler = handleRegistry.get('settings-window/reset-window-bounds');
+    if (!handler) {
+      throw new Error('reset-window-bounds was not registered');
+    }
+    await handler({} as never);
+
+    expect(dispatch).toHaveBeenCalledWith({ type: 'window-bounds/reset' });
   });
 });

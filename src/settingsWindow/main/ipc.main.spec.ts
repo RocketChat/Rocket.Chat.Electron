@@ -213,3 +213,44 @@ describe('settings-window/reset-window-bounds', () => {
     expect(dispatch).toHaveBeenCalledWith({ type: 'window-bounds/reset' });
   });
 });
+
+describe('settings-window default sizing', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    handleRegistry.clear();
+    createdWindows.length = 0;
+  });
+
+  it('opens at the fixed default size when the screen has room', async () => {
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 900, height: 720 })
+    );
+  });
+
+  it('clamps to the work area when the display is smaller than the default', async () => {
+    const { screen } = jest.requireMock('electron') as {
+      screen: { getDisplayNearestPoint: jest.Mock };
+    };
+    screen.getDisplayNearestPoint.mockReturnValue({
+      workAreaSize: { width: 800, height: 600 },
+      workArea: { x: 0, y: 0, width: 800, height: 600 },
+    });
+
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 800, height: 600 })
+    );
+  });
+});

@@ -31,7 +31,6 @@ import {
   WINDOW_MIN_WIDTH,
   WINDOW_PREFERRED_HEIGHT,
   WINDOW_PREFERRED_WIDTH,
-  WINDOW_SIZE_MULTIPLIER,
 } from './constants';
 
 const t = i18next.t.bind(i18next);
@@ -74,17 +73,11 @@ const getDefaultBounds = async (): Promise<{
 
   const width = Math.min(
     actualScreen.workAreaSize.width,
-    Math.max(
-      WINDOW_PREFERRED_WIDTH,
-      Math.round(actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER)
-    )
+    WINDOW_PREFERRED_WIDTH
   );
   const height = Math.min(
     actualScreen.workAreaSize.height,
-    Math.max(
-      WINDOW_PREFERRED_HEIGHT,
-      Math.round(actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER)
-    )
+    WINDOW_PREFERRED_HEIGHT
   );
   const x = Math.round(
     (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x

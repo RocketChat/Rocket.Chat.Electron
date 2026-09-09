@@ -8,8 +8,9 @@ export const AUTO_REFRESH_INTERVAL_MS = 2000;
 /** Delay before scrolling to ensure Virtuoso is ready */
 export const SCROLL_DELAY_MS = 100;
 
-/** Window size as multiplier of screen size */
-export const WINDOW_SIZE_MULTIPLIER = 0.8;
+/** Default window size, clamped to the work area of the display it opens on */
+export const WINDOW_DEFAULT_WIDTH = 1700;
+export const WINDOW_DEFAULT_HEIGHT = 1080;
 
 /** Debounce delay for search filter in milliseconds */
 export const SEARCH_DEBOUNCE_MS = 300;

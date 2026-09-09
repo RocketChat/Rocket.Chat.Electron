@@ -156,11 +156,22 @@ describe('logViewerWindow/ipc', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
   });
 
-  it('opens a log viewer window', async () => {
+  it('clamps to the work area when the display is smaller than the default', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { screen } = require('electron');
+    screen.getDisplayNearestPoint.mockReturnValue({
+      workArea: { x: 0, y: 0, width: 1000, height: 600 },
+      workAreaSize: { width: 1000, height: 600 },
+    });
+
+    // First open in this module's lifetime: the singleton window doesn't
+    // exist yet, so this actually constructs a BrowserWindow.
     await openLogViewerWindow();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { BrowserWindow } = require('electron');
-    expect(BrowserWindow).toHaveBeenCalled();
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 1000, height: 600 })
+    );
   });
 
   it('registers handlers and reads default log with limit', async () => {

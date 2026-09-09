@@ -230,6 +230,10 @@
         "title": "Laitteistokiihdytys",
         "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
       },
+      "resetWindowBounds": {
+        "title": "Palauta ikkunoiden koot ja sijainnit",
+        "description": "Unohtaa, mihin sovellus ja sen ikkunat oli sijoitettu. Jokainen ikkuna avautuu seuraavan kerran oletuskoossaan keskitettynä."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Videopuhelujen varanäyttökaappaus",
         "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
@@ -323,6 +327,7 @@
     "reload": "La&taa uudelleen",
     "reportIssue": "Ilmoita ongelmasta",
     "resetAppData": "Nollaa sovelluksen tiedot",
+    "resetWindowBounds": "Palauta ikkunoiden koot ja sijainnit",
     "resetZoom": "Nollaa zoomaus",
     "selectAll": "V&alitse kaikki",
     "services": "Palvelut",

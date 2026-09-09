@@ -8,6 +8,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "重置窗口大小和位置",
+        "description": "忘记应用及其窗口的摆放位置。每个窗口下次显示时将以默认大小居中打开。"
+      },
       "transparentWindow": {
         "title": "透明窗口效果",
         "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
@@ -48,7 +52,8 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "模拟断开连接"
+    "simulateDisconnected": "模拟断开连接",
+    "resetWindowBounds": "重置窗口大小和位置"
   },
   "tray": {
     "presence": {

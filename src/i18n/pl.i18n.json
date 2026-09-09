@@ -129,6 +129,10 @@
     "title": "Ustawienia",
     "general": "Ogólne",
     "options": {
+      "resetWindowBounds": {
+        "title": "Zresetuj rozmiary i położenie okien",
+        "description": "Zapomina, gdzie znajdowały się aplikacja i jej okna. Każde okno otworzy się w domyślnym rozmiarze, wyśrodkowane, przy następnym wyświetleniu."
+      },
       "trayIcon": {
         "title": "Ikona zasobnika",
         "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
@@ -191,6 +195,7 @@
     "reload": "P&rzeładuj",
     "reportIssue": "Raportowanie błędu",
     "resetAppData": "Reset danych aplikacji",
+    "resetWindowBounds": "Zresetuj rozmiary i położenie okien",
     "resetZoom": "Reset zoomu",
     "selectAll": "&Zaznacz wszystko",
     "services": "Usługi",

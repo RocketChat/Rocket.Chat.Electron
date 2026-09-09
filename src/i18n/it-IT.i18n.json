@@ -8,6 +8,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "Ripristina dimensioni e posizioni delle finestre",
+        "description": "Dimentica dove erano posizionate l’app e le sue finestre. Ogni finestra si aprirà alla dimensione predefinita, centrata, la prossima volta che verrà mostrata."
+      },
       "transparentWindow": {
         "title": "Effetto finestra trasparente",
         "description": "Abilita l'effetto nativo di vibrazione/trasparenza per la finestra. Richiede il riavvio per applicare."
@@ -86,7 +90,8 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "Simula disconnessione"
+    "simulateDisconnected": "Simula disconnessione",
+    "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre"
   },
   "tray": {
     "presence": {

@@ -162,6 +162,10 @@
         "title": "下载百分比",
         "description": "在选项卡栏中显示下载进度百分比。"
       },
+      "resetWindowBounds": {
+        "title": "重置窗口大小和位置",
+        "description": "忘记应用及其窗口的摆放位置。每个窗口下次显示时将以默认大小居中打开。"
+      },
       "internalVideoChatWindow": {
         "title": "在程序窗口中打开视频通话",
         "description": "如果启用，视频通话将在应用程序窗口中打开，而不是在默认浏览器中打开。但是，对于<strong>Google Meet</strong>和<strong>Jitsi</strong>，Electron应用程序不支持屏幕录制，所以无论此设置如何，它们始终会在浏览器中打开。",
@@ -219,6 +223,7 @@
     "reload": "重新载入 (&R)",
     "reportIssue": "报告问题",
     "resetAppData": "重置应用数据",
+    "resetWindowBounds": "重置窗口大小和位置",
     "resetZoom": "重置缩放",
     "selectAll": "选择全部 (&A)",
     "showFullScreen": "全屏幕",

@@ -182,6 +182,7 @@ export const WINDOW_CONTROLS_MINIMIZE_CLICKED =
 export const WINDOW_CONTROLS_MAXIMIZE_CLICKED =
   'window-controls/maximize-clicked';
 export const WINDOW_CONTROLS_CLOSE_CLICKED = 'window-controls/close-clicked';
+export const WINDOW_BOUNDS_RESET = 'window-bounds/reset';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -368,4 +369,5 @@ export type UiActionTypeToPayloadMap = {
   [WINDOW_CONTROLS_MINIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_MAXIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_CLOSE_CLICKED]: void;
+  [WINDOW_BOUNDS_RESET]: void;
 };

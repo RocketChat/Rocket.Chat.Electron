@@ -262,6 +262,10 @@
         "title": "Maskinvareakselerasjon",
         "description": "Muliggjør maskinvareakselerasjon når tilgjengelig. Applikasjonen vil lastes inn på nytt ved endring."
       },
+      "resetWindowBounds": {
+        "title": "Tilbakestill vindusstørrelser og -posisjoner",
+        "description": "Glemmer hvor appen og vinduene dens var plassert. Hvert vindu åpnes i standardstørrelse, sentrert, neste gang det vises."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Reserveopptak for videosamtaler",
         "description": "Deaktiverer Windows Graphics Capture slik at deling virker i RDP-økter. Appen starter på nytt når du endrer dette valget.",
@@ -381,6 +385,7 @@
     "reloadClearingCache": "Tving omlasting",
     "reportIssue": "Rapporter problem",
     "resetAppData": "Tilbakestill appdata",
+    "resetWindowBounds": "Tilbakestill vindusstørrelser og -posisjoner",
     "resetZoom": "Tilbakestill zoom",
     "selectAll": "Velg alle",
     "services": "Tjenester",

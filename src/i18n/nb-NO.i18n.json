@@ -8,6 +8,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "Tilbakestill vindusstørrelser og -posisjoner",
+        "description": "Glemmer hvor appen og vinduene dens var plassert. Hvert vindu åpnes i standardstørrelse, sentrert, neste gang det vises."
+      },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
         "description": "Aktiver innfødt vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
@@ -48,7 +52,8 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "Simuler frakobling"
+    "simulateDisconnected": "Simuler frakobling",
+    "resetWindowBounds": "Tilbakestill vindusstørrelser og -posisjoner"
   },
   "tray": {
     "presence": {

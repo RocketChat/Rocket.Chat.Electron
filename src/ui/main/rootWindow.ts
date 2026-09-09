@@ -27,6 +27,7 @@ import type { RootState } from '../../store/rootReducer';
 import {
   ROOT_WINDOW_STATE_CHANGED,
   WEBVIEW_FOCUS_REQUESTED,
+  WINDOW_BOUNDS_RESET,
   WINDOW_CONTROLS_CLOSE_CLICKED,
   WINDOW_CONTROLS_MAXIMIZE_CLICKED,
   WINDOW_CONTROLS_MINIMIZE_CLICKED,
@@ -159,7 +160,10 @@ export const isInsideSomeScreen = ({
         y + height > bounds.y
     );
 
-export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
+export const applyRootWindowState = (
+  browserWindow: BrowserWindow,
+  { force = false }: { force?: boolean } = {}
+): void => {
   const rootWindowState = select(selectRootWindowState);
   const isTrayIconEnabled = select(
     ({ isTrayIconEnabled }) => isTrayIconEnabled
@@ -173,15 +177,13 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     !isInsideSomeScreen({ x, y, width, height })
   ) {
     const primaryDisplay = screen.getPrimaryDisplay();
-    const {
-      bounds: { width: primaryDisplayWidth, height: primaryDisplayHeight },
-    } = primaryDisplay;
-    x = Math.round((primaryDisplayWidth - width) / 2);
-    y = Math.round((primaryDisplayHeight - height) / 2);
-    width = normalizeNumber(primaryDisplay.workAreaSize.width * 0.9);
-    height = normalizeNumber(primaryDisplay.workAreaSize.height * 0.9);
+    const { workArea, workAreaSize } = primaryDisplay;
+    width = Math.round(workAreaSize.width * 0.9);
+    height = Math.round(workAreaSize.height * 0.9);
+    x = Math.round(workArea.x + (workArea.width - width) / 2);
+    y = Math.round(workArea.y + (workArea.height - height) / 2);
   }
-  if (browserWindow.isVisible()) {
+  if (browserWindow.isVisible() && !force) {
     return;
   }
 
@@ -341,6 +343,17 @@ export const setupRootWindow = (): void => {
       await safeWindowOperation((browserWindow) => {
         browserWindow.close();
       }, 'Window controls close');
+    }),
+    listen(WINDOW_BOUNDS_RESET, async () => {
+      await safeWindowOperation((browserWindow) => {
+        if (browserWindow.isFullScreen()) {
+          browserWindow.setFullScreen(false);
+        }
+        if (browserWindow.isMaximized()) {
+          browserWindow.unmaximize();
+        }
+        applyRootWindowState(browserWindow, { force: true });
+      }, 'Window bounds reset');
     }),
     ...(process.platform === 'darwin'
       ? [

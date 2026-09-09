@@ -11,12 +11,14 @@ import type { RootState } from '../store/rootReducer';
 import {
   SETTINGS_WINDOW_OPEN_STATE_CHANGED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
+  WINDOW_BOUNDS_RESET,
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { watchWindowControls } from '../ui/main/secondaryWindowControls';
 import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import {
   getSavedWindowBounds,
+  onWindowBoundsReset,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
 import {
@@ -29,7 +31,6 @@ import {
   WINDOW_MIN_WIDTH,
   WINDOW_PREFERRED_HEIGHT,
   WINDOW_PREFERRED_WIDTH,
-  WINDOW_SIZE_MULTIPLIER,
 } from './constants';
 
 const t = i18next.t.bind(i18next);
@@ -52,7 +53,16 @@ const selectIsTransparencyEnabled = ({
 /** Set while a window is being built; see `createSettingsWindow`. */
 let pendingCreation: Promise<void> | null = null;
 
-const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
+/**
+ * Centred on the display nearest the main window, sized for the Appearance
+ * section but never larger than the screen it opens on.
+ */
+const getDefaultBounds = async (): Promise<{
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}> => {
   const mainWindow = await getRootWindow();
   const winBounds = mainWindow.getNormalBounds();
 
@@ -61,21 +71,13 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
     y: winBounds.y + winBounds.height / 2,
   });
 
-  // Open wide and tall enough for the Appearance section, but never larger than
-  // the screen it opens on.
   const width = Math.min(
     actualScreen.workAreaSize.width,
-    Math.max(
-      WINDOW_PREFERRED_WIDTH,
-      Math.round(actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER)
-    )
+    WINDOW_PREFERRED_WIDTH
   );
   const height = Math.min(
     actualScreen.workAreaSize.height,
-    Math.max(
-      WINDOW_PREFERRED_HEIGHT,
-      Math.round(actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER)
-    )
+    WINDOW_PREFERRED_HEIGHT
   );
   const x = Math.round(
     (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
@@ -83,6 +85,12 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
   const y = Math.round(
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
+
+  return { width, height, x, y };
+};
+
+const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
+  const { width, height, x, y } = await getDefaultBounds();
 
   // Where the reader last left this window, falling back to centred on the
   // display nearest the main window.
@@ -212,6 +220,10 @@ export const startSettingsWindowHandler = (): void => {
     settingsWindow?.close();
   });
 
+  handle('settings-window/reset-window-bounds', async () => {
+    dispatch({ type: WINDOW_BOUNDS_RESET });
+  });
+
   handle(
     'settings-window/confirm-remove-certificate',
     async (_webContents, domain) => {
@@ -240,5 +252,10 @@ export const startSettingsWindowHandler = (): void => {
   watch(selectIsTransparencyEnabled, (isEnabled) => {
     if (!settingsWindow || settingsWindow.isDestroyed()) return;
     settingsWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  });
+
+  onWindowBoundsReset('settings', async () => {
+    if (!settingsWindow || settingsWindow.isDestroyed()) return;
+    settingsWindow.setBounds(await getDefaultBounds());
   });
 };

@@ -117,6 +117,10 @@
     "title": "Ayarlar",
     "general": "Genel",
     "options": {
+      "resetWindowBounds": {
+        "title": "Pencere boyutlarını ve konumlarını sıfırla",
+        "description": "Uygulamanın ve pencerelerinin nereye yerleştirildiğini unutur. Her pencere bir sonraki gösterilişinde varsayılan boyutunda ve ortalanmış olarak açılır."
+      },
       "trayIcon": {
         "title": "Görev çubuğu ikonu",
         "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
@@ -177,6 +181,7 @@
     "reload": "&Yeniden yükle",
     "reportIssue": "Hata bildir",
     "resetAppData": "Uygulama verisini sıfırla",
+    "resetWindowBounds": "Pencere Boyutlarını ve Konumlarını Sıfırla",
     "resetZoom": "Görünümü sıfırla",
     "selectAll": "Tümünü seç",
     "showFullScreen": "Tam ekran",

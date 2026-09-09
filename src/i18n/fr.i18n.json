@@ -230,6 +230,10 @@
         "title": "Accélération matérielle",
         "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
       },
+      "resetWindowBounds": {
+        "title": "Réinitialiser la taille et la position des fenêtres",
+        "description": "Oublie l’emplacement de l’application et de ses fenêtres. Chaque fenêtre s’ouvrira à sa taille par défaut, centrée, la prochaine fois qu’elle sera affichée."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Solution de capture d'écran pour les appels vidéo",
         "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option.",
@@ -324,6 +328,7 @@
     "reload": "Recharger",
     "reportIssue": "Signaler un problème",
     "resetAppData": "Effacer les données de l'application",
+    "resetWindowBounds": "Réinitialiser la taille et la position des fenêtres",
     "resetZoom": "Réinitialiser le zoom",
     "selectAll": "Sélectionner tout",
     "services": "Services",

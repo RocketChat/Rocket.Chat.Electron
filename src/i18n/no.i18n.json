@@ -446,14 +446,19 @@
       "copyCurrentUrl": "Kopier gjeldende URL",
       "reloadClearingCache": "Tving omlasting",
       "serverInfo": "Serverinfo",
-      "supportedVersionsInfo": "Informasjon om støttede versjoner"
+      "supportedVersionsInfo": "Informasjon om støttede versjoner",
+      "muteWorkspace": "Mute workspace"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} ulest melding",
       "unreadMessages": "{{- count}} uleste meldinger",
       "userNotLoggedIn": "Ikke innlogget",
       "addWorkspace": "Legg til server ({{shortcut}}+N)",
-      "settingsMenu": "Tilpass og kontroller appen"
+      "settingsMenu": "Tilpass og kontroller appen",
+      "audioPlaying": "Playing audio",
+      "audioMuted": "Muted",
+      "muteWorkspace": "Mute workspace",
+      "unmuteWorkspace": "Unmute workspace"
     }
   },
   "tabBar": {

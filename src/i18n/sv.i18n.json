@@ -424,14 +424,19 @@
       "copyCurrentUrl": "Kopiera aktuell URL",
       "reloadClearingCache": "Tvinga fram omladdning",
       "serverInfo": "Serverinformation",
-      "supportedVersionsInfo": "Information om versioner som stöds"
+      "supportedVersionsInfo": "Information om versioner som stöds",
+      "muteWorkspace": "Mute workspace"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} olästa meddelanden",
       "unreadMessages": "{{- count}} olästa meddelanden",
       "userNotLoggedIn": "Inte inloggad",
       "addWorkspace": "Lägg till arbetsyta ({{shortcut}}+N)",
-      "settingsMenu": "Anpassa och kontrollera appen"
+      "settingsMenu": "Anpassa och kontrollera appen",
+      "audioPlaying": "Playing audio",
+      "audioMuted": "Muted",
+      "muteWorkspace": "Mute workspace",
+      "unmuteWorkspace": "Unmute workspace"
     }
   },
   "tabBar": {

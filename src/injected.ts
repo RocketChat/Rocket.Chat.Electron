@@ -301,12 +301,22 @@ const start = async () => {
   loadModule(settingsModulePath, 'Settings', (value) => {
     settings = value.settings;
   });
-  loadModule(utilsModulePath, 'Utils', (value) => {
-    getUserPreference = value.getUserPreference;
-  });
-  loadModule(userPresenceModulePath, 'UserPresence', (value) => {
-    UserPresence = value.UserPresence;
-  });
+  // Since Rocket.Chat 7.10.0 the web client registers the idle detector itself
+  // (apps/meteor/client/lib/userPresence.ts) and the meteor-user-presence
+  // package no longer exists, so these modules are only needed for the legacy
+  // presence block below.
+  const usesLegacyPresenceDetection = !versionIsGreaterOrEqualsTo(
+    serverInfo.version,
+    '7.10.0'
+  );
+  if (usesLegacyPresenceDetection) {
+    loadModule(utilsModulePath, 'Utils', (value) => {
+      getUserPreference = value.getUserPreference;
+    });
+    loadModule(userPresenceModulePath, 'UserPresence', (value) => {
+      UserPresence = value.UserPresence;
+    });
+  }
 
   tryRequireFirstOf(presenceModulePaths)
     .then((module) => {
@@ -543,6 +553,7 @@ const start = async () => {
     themeAppearance: false,
     userPresence: false,
     userPresenceStatus: false,
+    userPresenceReassert: false,
   };
 
   // Per-subscription unread state, accumulated from the
@@ -968,7 +979,38 @@ const start = async () => {
       setupFlags.gitCommitHash = true;
     }
 
-    if (Tracker && Meteor && getUserPreference && !setupFlags.userPresence) {
+    // After a websocket reconnection the server writes `online` for the new
+    // session. The desktop poller only reports OS idle transitions, so a user
+    // who stayed idle across the drop would remain `online` until the next
+    // transition. Once the connection and login settle, ask the preload to
+    // report the current idle state unconditionally. Web clients >= 8.8.0 also
+    // re-assert on their own; the duplicate is idempotent.
+    if (Tracker && Meteor && !setupFlags.userPresenceReassert) {
+      let wasSettled = false;
+      Tracker.autorun(() => {
+        const settled =
+          Boolean(Meteor.status()?.connected) &&
+          Boolean(Meteor.userId()) &&
+          !Meteor.loggingIn?.();
+        if (settled && !wasSettled) {
+          window.RocketChatDesktop.reassertUserPresenceDetection();
+        }
+        wasSettled = settled;
+      });
+      setupFlags.userPresenceReassert = true;
+    }
+
+    // Only for servers < 7.10.0. Newer web clients register the idle detector
+    // themselves; the preload keeps a single registration, so registering again
+    // here would replace the web client's callback: it would never learn the
+    // user is idle and could not re-assert `away` after a websocket reconnection.
+    if (
+      usesLegacyPresenceDetection &&
+      Tracker &&
+      Meteor &&
+      getUserPreference &&
+      !setupFlags.userPresence
+    ) {
       Tracker.autorun(() => {
         const uid = Meteor.userId();
         if (!uid) return;

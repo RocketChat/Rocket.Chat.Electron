@@ -86,7 +86,8 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "Simula disconnessione"
+    "simulateDisconnected": "Simula disconnessione",
+    "findInPage": "&Find…"
   },
   "tray": {
     "presence": {
@@ -99,5 +100,13 @@
       "signIn": "Accedi a {{- workspace}}",
       "addWorkspace": "Aggiungi area di lavoro"
     }
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   }
 }

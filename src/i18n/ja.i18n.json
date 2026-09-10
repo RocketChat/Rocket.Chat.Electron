@@ -153,6 +153,7 @@
     "documentation": "ドキュメント",
     "editMenu": "編集 (&E)",
     "fileMenu": "ファイル (&F)",
+    "findInPage": "&Find…",
     "forward": "進む(&F)",
     "helpMenu": "ヘルプ (&H)",
     "learnMore": "もっと詳しく知る",
@@ -178,6 +179,14 @@
     "zoomIn": "拡大",
     "zoomOut": "縮小",
     "simulateDisconnected": "切断をシミュレート"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "サーバーの読み込みに失敗しました",

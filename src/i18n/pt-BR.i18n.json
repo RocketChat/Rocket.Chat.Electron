@@ -330,6 +330,7 @@
     "settings": "Configurações",
     "editMenu": "&Editar",
     "fileMenu": "&Arquivo",
+    "findInPage": "&Find…",
     "forward": "&Avançar",
     "helpMenu": "Aj&uda",
     "hide": "Ocultar {{- appName}}",
@@ -361,6 +362,14 @@
     "zoomIn": "Aumentar zoom",
     "zoomOut": "Diminuir zoom",
     "simulateDisconnected": "Simular desconexão"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Servidor Falhou em Carregar",

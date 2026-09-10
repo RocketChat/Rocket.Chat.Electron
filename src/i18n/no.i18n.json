@@ -366,6 +366,7 @@
     "settings": "Innstillinger",
     "editMenu": "Redigere",
     "fileMenu": "Fil",
+    "findInPage": "&Find…",
     "forward": "Framover",
     "helpMenu": "Hjelp",
     "hide": "Skjul {{- appName}}",
@@ -401,6 +402,14 @@
     "zoomIn": "Zoom inn",
     "zoomOut": "Zoom ut",
     "simulateDisconnected": "Simuler frakobling"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Serveren kunne ikke lastes inn",

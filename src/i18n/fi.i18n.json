@@ -309,6 +309,7 @@
     "settings": "Asetukset",
     "editMenu": "M&uokkaa",
     "fileMenu": "Tie&dosto",
+    "findInPage": "&Find…",
     "forward": "V&älitä",
     "helpMenu": "&Ohje",
     "hide": "Piilota {{- appName}}",
@@ -339,6 +340,14 @@
     "zoomIn": "Lähennä",
     "zoomOut": "Loitonna",
     "simulateDisconnected": "Simuloi yhteyden katkeamista"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Palvelimen lataus epäonnistui",

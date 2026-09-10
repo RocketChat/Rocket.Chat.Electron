@@ -8,6 +8,14 @@ if [ -z "$FILE_PATH" ]; then
   exit 0
 fi
 
+# Hooks fire for any path a subagent edits, including other repos — only act
+# on paths inside this project.
+ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+case "$FILE_PATH" in
+  "$ROOT"/*) ;;
+  *) exit 0 ;;
+esac
+
 if [[ "$FILE_PATH" != *.ts && "$FILE_PATH" != *.tsx ]]; then
   exit 0
 fi

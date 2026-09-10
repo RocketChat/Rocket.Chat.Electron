@@ -301,12 +301,22 @@ const start = async () => {
   loadModule(settingsModulePath, 'Settings', (value) => {
     settings = value.settings;
   });
-  loadModule(utilsModulePath, 'Utils', (value) => {
-    getUserPreference = value.getUserPreference;
-  });
-  loadModule(userPresenceModulePath, 'UserPresence', (value) => {
-    UserPresence = value.UserPresence;
-  });
+  // Since Rocket.Chat 7.10.0 the web client registers the idle detector itself
+  // (apps/meteor/client/lib/userPresence.ts) and the meteor-user-presence
+  // package no longer exists, so these modules are only needed for the legacy
+  // presence block below.
+  const usesLegacyPresenceDetection = !versionIsGreaterOrEqualsTo(
+    serverInfo.version,
+    '7.10.0'
+  );
+  if (usesLegacyPresenceDetection) {
+    loadModule(utilsModulePath, 'Utils', (value) => {
+      getUserPreference = value.getUserPreference;
+    });
+    loadModule(userPresenceModulePath, 'UserPresence', (value) => {
+      UserPresence = value.UserPresence;
+    });
+  }
 
   tryRequireFirstOf(presenceModulePaths)
     .then((module) => {
@@ -968,19 +978,17 @@ const start = async () => {
       setupFlags.gitCommitHash = true;
     }
 
-    // Since Rocket.Chat 7.10.0 the web client registers the idle detector itself
-    // (apps/meteor/client/lib/userPresence.ts). The preload keeps a single
-    // registration, so registering again here replaces the web client's callback:
-    // it never learns the user is idle and cannot re-assert `away` after a
-    // websocket reconnection.
+    // Only for servers < 7.10.0. Newer web clients register the idle detector
+    // themselves; the preload keeps a single registration, so registering again
+    // here would replace the web client's callback: it would never learn the
+    // user is idle and could not re-assert `away` after a websocket reconnection.
     if (
-      !setupFlags.userPresence &&
-      versionIsGreaterOrEqualsTo(serverInfo.version, '7.10.0')
+      usesLegacyPresenceDetection &&
+      Tracker &&
+      Meteor &&
+      getUserPreference &&
+      !setupFlags.userPresence
     ) {
-      setupFlags.userPresence = true;
-    }
-
-    if (Tracker && Meteor && getUserPreference && !setupFlags.userPresence) {
       Tracker.autorun(() => {
         const uid = Meteor.userId();
         if (!uid) return;

@@ -1,0 +1,14 @@
+src/injected.ts
+  h_a14d455b9c5e4f 971-977
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "664c6ac8bfe3dea095350a86bee33c45624d66d6",
+  "prompts": {},
+  "humans": {
+    "h_a14d455b9c5e4f": {
+      "author": "Ricardo Garim <rswarovsky@gmail.com>"
+    }
+  }
+}

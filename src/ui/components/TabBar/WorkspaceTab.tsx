@@ -1,3 +1,4 @@
+import { Icon } from '@rocket.chat/fuselage';
 import type {
   DragEvent,
   FocusEvent,
@@ -12,6 +13,7 @@ import { dispatch } from '../../../store';
 import {
   SERVER_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_SERVER_SELECTED,
+  SIDE_BAR_SERVER_TOGGLE_MUTE,
 } from '../../actions';
 import { isDarwin } from '../../utils/platform';
 import { TooltipContext } from '../utils/TooltipContext';
@@ -25,6 +27,7 @@ import {
   Initials,
   Label,
   ShortcutChip,
+  SpeakerButton,
   Tab,
   TabBadge,
   UnreadDot,
@@ -63,6 +66,8 @@ type WorkspaceTabProps = {
   isSelected: boolean;
   badge?: '•' | number;
   userLoggedIn?: boolean;
+  isAudible?: boolean;
+  isAudioMuted?: boolean;
   compact: boolean;
   orientation?: TabOrientation;
   shortcutNumber: string | null;
@@ -81,6 +86,8 @@ const WorkspaceTab = ({
   isSelected,
   badge,
   userLoggedIn,
+  isAudible,
+  isAudioMuted,
   compact,
   orientation = 'horizontal',
   shortcutNumber,
@@ -121,11 +128,25 @@ const WorkspaceTab = ({
 
   const unreadSuffix = getUnreadSuffix();
 
+  const getAudioSuffix = (): string => {
+    if (isAudioMuted) {
+      return ` — ${t('sidebar.tooltips.audioMuted')}`;
+    }
+
+    if (isAudible) {
+      return ` — ${t('sidebar.tooltips.audioPlaying')}`;
+    }
+
+    return '';
+  };
+
+  const audioSuffix = getAudioSuffix();
+
   const serverAddress = url.replace(/\/+$/, '');
   const tooltipName = removeServerAddress(title, serverAddress);
   const tooltipPrimaryLine = `${
     tooltipName || serverAddress
-  }${unreadSuffix}${shortcutSuffix}`;
+  }${unreadSuffix}${audioSuffix}${shortcutSuffix}`;
   // Show the name on the first line and the address on a second line. When the
   // title is only the address, the primary line already is it, so skip line two.
   const tooltipLines = tooltipName
@@ -169,6 +190,19 @@ const WorkspaceTab = ({
     tooltip.close();
   };
 
+  const handleToggleMuteClick = (event: MouseEvent): void => {
+    event.stopPropagation();
+    dispatch({ type: SIDE_BAR_SERVER_TOGGLE_MUTE, payload: url });
+  };
+
+  const handleToggleMuteKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      event.stopPropagation();
+      dispatch({ type: SIDE_BAR_SERVER_TOGGLE_MUTE, payload: url });
+    }
+  };
+
   const isVertical = orientation === 'vertical';
   const showLabel = !compact && !isVertical;
 
@@ -193,6 +227,29 @@ const WorkspaceTab = ({
     }
     return null;
   })();
+
+  // Horizontal tab-strip only: in the vertical sidebar the indicator would
+  // hang off the 32px tab corner alongside the badge, so it is intentionally
+  // omitted there — the tooltip audio suffix still covers that layout.
+  const showSpeaker = !isVertical && (isAudible || isAudioMuted);
+  const speakerElement = showSpeaker ? (
+    <SpeakerButton
+      role='button'
+      tabIndex={0}
+      $muted={isAudioMuted}
+      data-muted={isAudioMuted ? 'true' : 'false'}
+      aria-label={
+        isAudioMuted
+          ? t('sidebar.tooltips.unmuteWorkspace')
+          : t('sidebar.tooltips.muteWorkspace')
+      }
+      aria-pressed={!!isAudioMuted}
+      onClick={handleToggleMuteClick}
+      onKeyDown={handleToggleMuteKeyDown}
+    >
+      <Icon name={isAudioMuted ? 'volume-off' : 'volume'} size='x12' />
+    </SpeakerButton>
+  ) : null;
 
   return (
     <>
@@ -239,7 +296,10 @@ const WorkspaceTab = ({
         {isVertical ? (
           <BadgeWrapper>{badgeElement}</BadgeWrapper>
         ) : (
-          badgeElement
+          <>
+            {badgeElement}
+            {speakerElement}
+          </>
         )}
       </Tab>
       <Divider orientation={orientation}></Divider>

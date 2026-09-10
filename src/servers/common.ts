@@ -3,6 +3,14 @@ import type { SupportedVersions } from './supportedVersions/types';
 
 export type UserPresence = 'online' | 'away' | 'busy' | 'offline';
 
+export type MediaCaptureState = {
+  camera: boolean;
+  microphone: boolean;
+  screen: boolean;
+};
+
+export type MediaCaptureSource = 'workspace' | 'videoCall';
+
 export type Server = {
   url: string;
   title?: string;
@@ -39,6 +47,7 @@ export type Server = {
   presenceSupported?: boolean;
   isAudible?: boolean;
   isAudioMuted?: boolean;
+  mediaCapture?: Partial<Record<MediaCaptureSource, MediaCaptureState>>;
 };
 
 export const enum ServerUrlResolutionStatus {

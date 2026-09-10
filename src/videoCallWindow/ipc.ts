@@ -29,8 +29,12 @@ import {
   resolveStandaloneOriginWindow,
   setupServerViewDisplayMedia,
 } from '../screenSharing/serverViewScreenSharing';
-import { select, dispatchLocal } from '../store';
-import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
+import type { MediaCaptureState } from '../servers/common';
+import { select, dispatch, dispatchLocal } from '../store';
+import {
+  VIDEO_CALL_WINDOW_STATE_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
+} from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
@@ -160,6 +164,21 @@ const restoreServerViewHandler = async (
   }
 };
 
+// Clears the 'videoCall' media capture source for the call's originating
+// server so the tab indicator drops the moment the call window closes,
+// instead of lingering on whatever capture state was last reported. No-op for
+// isolated/fallback sessions (no server url to key the state on). Safe to call
+// from every teardown path — the same idempotency reasoning as
+// `restoreServerViewHandler` applies (last-writer-wins reducer merge).
+const clearVideoCallMediaCapture = (call: ActiveCall | null): void => {
+  if (!call?.isSharedSession) return;
+  const serverUrl = call.partition.replace(/^persist:/, '');
+  dispatch({
+    type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+    payload: { url: serverUrl, source: 'videoCall', state: null },
+  });
+};
+
 const cleanupVideoCallWindow = () => {
   const capturedCall = activeCall;
   if (
@@ -211,6 +230,7 @@ const cleanupVideoCallWindow = () => {
       // Restore the server-view display-media handler that this call's unified
       // handler took over (no-op on isolated/fallback sessions).
       void restoreServerViewHandler(capturedCall);
+      clearVideoCallMediaCapture(capturedCall);
 
       // Tear down screen sharing (active + queued) before removing window
       // listeners — silent cleanup() would orphan a popout-parented picker
@@ -797,6 +817,7 @@ const openVideoCallWindow = async (
       // display-media handler. Restore the plain server-view handler so
       // main-app screen sharing keeps working (no-op on isolated sessions).
       void restoreServerViewHandler(capturedCall);
+      clearVideoCallMediaCapture(capturedCall);
 
       // Clear credentials and provider on close
       videoCallCredentials = null;
@@ -981,6 +1002,7 @@ const openVideoCallWindow = async (
     // never fires — restore the server-view handler here too (idempotent).
     webContents.on('render-process-gone', () => {
       void restoreServerViewHandler(capturedCall);
+      clearVideoCallMediaCapture(capturedCall);
     });
 
     // Set the pending URL after window is created to prevent race condition with cleanup
@@ -1109,6 +1131,35 @@ export const startVideoCallWindowHandler = (): void => {
       win.close();
     }
   });
+
+  // Reported by the media capture hook script injected into the call
+  // window's page (see src/videoCallWindow/preload/index.ts). Attributes the
+  // state to the call's originating server via `activeCall`'s partition —
+  // the call window itself has no server url of its own.
+  ipcMain.on(
+    'video-call-window/media-capture-changed',
+    (_event, state: MediaCaptureState) => {
+      if (
+        typeof state !== 'object' ||
+        state === null ||
+        typeof state.camera !== 'boolean' ||
+        typeof state.microphone !== 'boolean' ||
+        typeof state.screen !== 'boolean'
+      ) {
+        return;
+      }
+
+      if (!activeCall?.isSharedSession) {
+        return;
+      }
+
+      const serverUrl = activeCall.partition.replace(/^persist:/, '');
+      dispatch({
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: { url: serverUrl, source: 'videoCall', state },
+      });
+    }
+  );
 
   handle('video-call-window/screen-recording-is-permission-granted', async () =>
     checkScreenRecordingPermission()

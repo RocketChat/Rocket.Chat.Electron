@@ -46,6 +46,7 @@ import {
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
   WEBVIEW_AUDIO_STATE_CHANGED,
   WEBVIEW_AUDIO_MUTED_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
@@ -308,6 +309,11 @@ const initializeServerWebContentsAfterAttach = (
     dispatch({
       type: WEBVIEW_AUDIO_STATE_CHANGED,
       payload: { url: serverUrl, isAudible: false },
+    });
+
+    dispatch({
+      type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+      payload: { url: serverUrl, source: 'workspace', state: null },
     });
 
     const canPurge = select(

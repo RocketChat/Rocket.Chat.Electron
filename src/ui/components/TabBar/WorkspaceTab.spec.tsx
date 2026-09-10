@@ -96,3 +96,99 @@ describe('WorkspaceTab audio indicator', () => {
     });
   });
 });
+
+describe('WorkspaceTab media capture indicator', () => {
+  beforeEach(() => {
+    mockDispatch.mockClear();
+  });
+
+  it('renders nothing when no source reports any active capture', () => {
+    render(
+      <WorkspaceTab
+        {...baseProps}
+        orientation='horizontal'
+        mediaCapture={{
+          workspace: { camera: false, microphone: false, screen: false },
+        }}
+      />
+    );
+
+    expect(screen.queryByLabelText(/sidebar.tooltips.capture/)).toBeNull();
+    // No capture icon rendered (mic/video/desktop) alongside the tab.
+    expect(document.querySelector('[data-capture]')).not.toBeInTheDocument();
+  });
+
+  it('shows the indicator when screen sharing is active', () => {
+    render(
+      <WorkspaceTab
+        {...baseProps}
+        orientation='horizontal'
+        mediaCapture={{
+          workspace: { camera: false, microphone: false, screen: true },
+        }}
+      />
+    );
+
+    expect(document.querySelector('[data-capture]')).toBeInTheDocument();
+  });
+
+  it('shows the indicator when only the microphone is active', () => {
+    render(
+      <WorkspaceTab
+        {...baseProps}
+        orientation='horizontal'
+        mediaCapture={{
+          workspace: { camera: false, microphone: true, screen: false },
+        }}
+      />
+    );
+
+    expect(document.querySelector('[data-capture]')).toBeInTheDocument();
+  });
+
+  it('merges capture state across the workspace and videoCall sources (OR)', () => {
+    render(
+      <WorkspaceTab
+        {...baseProps}
+        orientation='horizontal'
+        mediaCapture={{
+          workspace: { camera: false, microphone: false, screen: false },
+          videoCall: { camera: true, microphone: false, screen: false },
+        }}
+      />
+    );
+
+    expect(document.querySelector('[data-capture]')).toBeInTheDocument();
+  });
+
+  it('does not render the capture indicator in the vertical sidebar layout', () => {
+    render(
+      <WorkspaceTab
+        {...baseProps}
+        orientation='vertical'
+        mediaCapture={{
+          workspace: { camera: false, microphone: true, screen: false },
+        }}
+      />
+    );
+
+    expect(document.querySelector('[data-capture]')).not.toBeInTheDocument();
+  });
+
+  it('includes the capture label in the tab tooltip/aria-label', () => {
+    render(
+      <WorkspaceTab
+        {...baseProps}
+        orientation='horizontal'
+        mediaCapture={{
+          workspace: { camera: false, microphone: true, screen: false },
+        }}
+      />
+    );
+
+    const tab = screen.getByRole('tab');
+    expect(tab.getAttribute('aria-label')).toContain(
+      'sidebar.tooltips.captureMicrophone'
+    );
+  });
+});

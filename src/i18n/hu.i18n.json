@@ -445,7 +445,10 @@
       "audioPlaying": "Playing audio",
       "audioMuted": "Muted",
       "muteWorkspace": "Mute workspace",
-      "unmuteWorkspace": "Unmute workspace"
+      "unmuteWorkspace": "Unmute workspace",
+      "captureScreen": "Sharing screen",
+      "captureCamera": "Camera on",
+      "captureMicrophone": "Microphone on"
     }
   },
   "tabBar": {

@@ -21,6 +21,7 @@ import {
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_AUDIO_STATE_CHANGED,
   WEBVIEW_AUDIO_MUTED_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
@@ -66,6 +67,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
   | ActionOf<typeof WEBVIEW_AUDIO_STATE_CHANGED>
   | ActionOf<typeof WEBVIEW_AUDIO_MUTED_CHANGED>
+  | ActionOf<typeof WEBVIEW_MEDIA_CAPTURE_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
@@ -272,6 +274,22 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return update(state, { url, isAudioMuted });
     }
 
+    case WEBVIEW_MEDIA_CAPTURE_CHANGED: {
+      const { url, source, state: captureState } = action.payload;
+      const index = state.findIndex((server) => server.url === url);
+      if (index === -1) {
+        return state;
+      }
+      const server = state[index];
+      const nextMediaCapture = { ...server.mediaCapture };
+      if (captureState === null) {
+        delete nextMediaCapture[source];
+      } else {
+        nextMediaCapture[source] = captureState;
+      }
+      return update(state, { url, mediaCapture: nextMediaCapture });
+    }
+
     case WEBVIEW_DID_NAVIGATE: {
       const { url, pageUrl } = action.payload;
       if (pageUrl?.includes(url)) {
@@ -300,6 +318,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return servers.map((server: Server) => ({
         ...server,
         url: ensureUrlFormat(server.url),
+        isAudible: false,
+        isAudioMuted: false,
+        mediaCapture: undefined,
       }));
     }
 
@@ -312,6 +333,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         documentViewerFormat: '',
         isAudible: false,
         isAudioMuted: false,
+        mediaCapture: undefined,
       }));
     }
 

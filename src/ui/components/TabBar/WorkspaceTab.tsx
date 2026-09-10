@@ -9,6 +9,7 @@ import type {
 import { useContext, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { Server } from '../../../servers/common';
 import { dispatch } from '../../../store';
 import {
   SERVER_CONTEXT_MENU_TRIGGERED,
@@ -22,6 +23,7 @@ import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
 import {
   BadgeWrapper,
+  CaptureIndicator,
   Divider,
   Favicon,
   Initials,
@@ -68,6 +70,7 @@ type WorkspaceTabProps = {
   userLoggedIn?: boolean;
   isAudible?: boolean;
   isAudioMuted?: boolean;
+  mediaCapture?: Server['mediaCapture'];
   compact: boolean;
   orientation?: TabOrientation;
   shortcutNumber: string | null;
@@ -88,6 +91,7 @@ const WorkspaceTab = ({
   userLoggedIn,
   isAudible,
   isAudioMuted,
+  mediaCapture,
   compact,
   orientation = 'horizontal',
   shortcutNumber,
@@ -142,11 +146,39 @@ const WorkspaceTab = ({
 
   const audioSuffix = getAudioSuffix();
 
+  // OR each boolean across every reporting source (workspace webview + video
+  // call window) — either one actively capturing is enough to show the state.
+  const activeCapture = {
+    camera: Object.values(mediaCapture ?? {}).some((state) => state.camera),
+    microphone: Object.values(mediaCapture ?? {}).some(
+      (state) => state.microphone
+    ),
+    screen: Object.values(mediaCapture ?? {}).some((state) => state.screen),
+  };
+
+  // A single 'rec' glyph covers all three capture states — it no longer
+  // distinguishes which device is active (the tooltip suffix below still
+  // does, via the three i18n labels).
+  const anyCapture =
+    activeCapture.screen || activeCapture.camera || activeCapture.microphone;
+
+  const getCaptureSuffix = (): string => {
+    const labels = [
+      activeCapture.screen && t('sidebar.tooltips.captureScreen'),
+      activeCapture.camera && t('sidebar.tooltips.captureCamera'),
+      activeCapture.microphone && t('sidebar.tooltips.captureMicrophone'),
+    ].filter((label): label is string => Boolean(label));
+
+    return labels.length > 0 ? ` — ${labels.join(', ')}` : '';
+  };
+
+  const captureSuffix = getCaptureSuffix();
+
   const serverAddress = url.replace(/\/+$/, '');
   const tooltipName = removeServerAddress(title, serverAddress);
   const tooltipPrimaryLine = `${
     tooltipName || serverAddress
-  }${unreadSuffix}${audioSuffix}${shortcutSuffix}`;
+  }${unreadSuffix}${audioSuffix}${captureSuffix}${shortcutSuffix}`;
   // Show the name on the first line and the address on a second line. When the
   // title is only the address, the primary line already is it, so skip line two.
   const tooltipLines = tooltipName
@@ -250,6 +282,17 @@ const WorkspaceTab = ({
     </SpeakerButton>
   ) : null;
 
+  // Horizontal tab-strip only, same rule as the speaker indicator above. No
+  // click action: this is a read-only status glyph, so it carries no
+  // role='button', no handlers, and is aria-hidden — the capture state is
+  // exposed to assistive tech via the tab's own tooltip/aria-label suffix.
+  const showCapture = !isVertical && anyCapture;
+  const captureElement = showCapture ? (
+    <CaptureIndicator aria-hidden='true' data-capture='rec'>
+      <Icon name='rec' size='x16' />
+    </CaptureIndicator>
+  ) : null;
+
   return (
     <>
       <Tab
@@ -297,6 +340,7 @@ const WorkspaceTab = ({
         ) : (
           <>
             {badgeElement}
+            {captureElement}
             {speakerElement}
           </>
         )}

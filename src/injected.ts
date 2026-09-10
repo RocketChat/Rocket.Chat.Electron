@@ -968,6 +968,18 @@ const start = async () => {
       setupFlags.gitCommitHash = true;
     }
 
+    // Since Rocket.Chat 7.10.0 the web client registers the idle detector itself
+    // (apps/meteor/client/lib/userPresence.ts). The preload keeps a single
+    // registration, so registering again here replaces the web client's callback:
+    // it never learns the user is idle and cannot re-assert `away` after a
+    // websocket reconnection.
+    if (
+      !setupFlags.userPresence &&
+      versionIsGreaterOrEqualsTo(serverInfo.version, '7.10.0')
+    ) {
+      setupFlags.userPresence = true;
+    }
+
     if (Tracker && Meteor && getUserPreference && !setupFlags.userPresence) {
       Tracker.autorun(() => {
         const uid = Meteor.userId();

@@ -15,6 +15,7 @@ import {
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_AUDIO_STATE_CHANGED,
   WEBVIEW_AUDIO_MUTED_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
@@ -364,6 +365,79 @@ describe('servers reducer', () => {
     });
   });
 
+  describe('WEBVIEW_MEDIA_CAPTURE_CHANGED', () => {
+    it('should set the media capture state for a source', () => {
+      const newState = servers([existing], {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: {
+          url,
+          source: 'workspace',
+          state: { camera: true, microphone: false, screen: false },
+        },
+      } as any);
+
+      expect(newState[0].mediaCapture).toEqual({
+        workspace: { camera: true, microphone: false, screen: false },
+      });
+    });
+
+    it('should merge a second source alongside an existing one', () => {
+      const withWorkspace: Server = {
+        ...existing,
+        mediaCapture: {
+          workspace: { camera: true, microphone: false, screen: false },
+        },
+      };
+
+      const newState = servers([withWorkspace], {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: {
+          url,
+          source: 'videoCall',
+          state: { camera: false, microphone: true, screen: false },
+        },
+      } as any);
+
+      expect(newState[0].mediaCapture).toEqual({
+        workspace: { camera: true, microphone: false, screen: false },
+        videoCall: { camera: false, microphone: true, screen: false },
+      });
+    });
+
+    it('should clear a source when state is null', () => {
+      const withBoth: Server = {
+        ...existing,
+        mediaCapture: {
+          workspace: { camera: true, microphone: false, screen: false },
+          videoCall: { camera: false, microphone: true, screen: false },
+        },
+      };
+
+      const newState = servers([withBoth], {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: { url, source: 'workspace', state: null },
+      } as any);
+
+      expect(newState[0].mediaCapture).toEqual({
+        videoCall: { camera: false, microphone: true, screen: false },
+      });
+    });
+
+    it('should not modify state for an unknown url', () => {
+      const state = [existing];
+      const newState = servers(state, {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: {
+          url: 'https://unknown.rocket.chat/',
+          source: 'workspace',
+          state: { camera: true, microphone: false, screen: false },
+        },
+      } as any);
+
+      expect(newState).toBe(state);
+    });
+  });
+
   describe('WEBVIEW_DID_NAVIGATE', () => {
     it('should set lastPath when pageUrl includes the server url', () => {
       const newState = servers([existing], {
@@ -447,6 +521,28 @@ describe('servers reducer', () => {
 
       expect(newState[0].url).toBe('https://open.rocket.chat/');
     });
+
+    it('should reset audio state flags and mediaCapture for a persisted server', () => {
+      const newState = servers([], {
+        type: SERVERS_LOADED,
+        payload: {
+          servers: [
+            {
+              url: 'https://open.rocket.chat',
+              isAudible: true,
+              isAudioMuted: true,
+              mediaCapture: {
+                workspace: { camera: true, microphone: false, screen: false },
+              },
+            },
+          ],
+        },
+      } as any);
+
+      expect(newState[0].isAudible).toBe(false);
+      expect(newState[0].isAudioMuted).toBe(false);
+      expect(newState[0].mediaCapture).toBeUndefined();
+    });
   });
 
   describe('APP_SETTINGS_LOADED', () => {
@@ -477,6 +573,24 @@ describe('servers reducer', () => {
 
       expect(newState[0].isAudible).toBe(false);
       expect(newState[0].isAudioMuted).toBe(false);
+    });
+
+    it('should reset mediaCapture', () => {
+      const newState = servers([], {
+        type: APP_SETTINGS_LOADED,
+        payload: {
+          servers: [
+            {
+              url: 'https://open.rocket.chat',
+              mediaCapture: {
+                workspace: { camera: true, microphone: false, screen: false },
+              },
+            },
+          ],
+        },
+      } as any);
+
+      expect(newState[0].mediaCapture).toBeUndefined();
     });
 
     it('should fall back to current state when servers missing', () => {

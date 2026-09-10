@@ -1,5 +1,19 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webFrame } from 'electron';
+
+import type { MediaCaptureState } from '../../servers/common';
+import { MEDIA_CAPTURE_HOOK_SCRIPT } from '../../servers/preload/mediaCapture';
 import './jitsiBridge';
+
+// Same hook used by the workspace webview preload — the video call window's
+// host page has no contextIsolation, so this could patch `navigator`
+// directly, but injecting via executeJavaScript keeps the same code path (and
+// therefore the same tested behavior) for both surfaces.
+webFrame.executeJavaScript(MEDIA_CAPTURE_HOOK_SCRIPT).catch((error) => {
+  console.error(
+    '[Rocket.Chat Desktop] Failed to inject media capture hook in video call window:',
+    error
+  );
+});
 
 // Accept only in-app relative routes ("/..."), rejecting absolute URLs,
 // protocol-relative URLs ("//host") and the backslash variant ("/\\host") so
@@ -50,5 +64,9 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
     serverUrl: string;
   } | null> => {
     return ipcRenderer.invoke('video-call-window/get-credentials');
+  },
+  // Reported by the injected media capture hook script above.
+  reportMediaCapture: (state: MediaCaptureState) => {
+    ipcRenderer.send('video-call-window/media-capture-changed', state);
   },
 });

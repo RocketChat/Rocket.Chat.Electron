@@ -2,7 +2,7 @@ import type { AnyAction } from 'redux';
 
 import type { Download } from '../downloads/common';
 import type { OutlookEventsResponse } from '../outlookCalendar/type';
-import type { Server } from '../servers/common';
+import type { MediaCaptureState, Server } from '../servers/common';
 import type { TelephonyDiagnostics } from '../telephony/diagnostics';
 import type { SystemIdleState } from '../userPresence/common';
 
@@ -68,6 +68,7 @@ type ChannelToArgsMap = {
   'video-call-window/prewarm-capturer-cache': () => {
     success: boolean;
   };
+  'video-call-window/media-capture-changed': (state: MediaCaptureState) => void;
   'jitsi-desktop-capturer-get-sources': (
     args: [options: Electron.SourcesOptions, jitsiDomain: string]
   ) => Electron.DesktopCapturerSource[];

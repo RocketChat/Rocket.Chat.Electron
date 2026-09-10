@@ -19,6 +19,7 @@ export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED =
   'menu-bar/add-new-server-clicked';
+export const MENU_BAR_FIND_IN_PAGE_CLICKED = 'menu-bar/find-in-page-clicked';
 export const MENU_BAR_SELECT_SERVER_CLICKED = 'menu-bar/select-server-clicked';
 export const MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED =
   'menu-bar/toggle-is-menu-bar-enabled-clicked';
@@ -194,6 +195,7 @@ export type UiActionTypeToPayloadMap = {
   [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
+  [MENU_BAR_FIND_IN_PAGE_CLICKED]: void;
   [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;

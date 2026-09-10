@@ -208,6 +208,7 @@
     "settings": "设置",
     "editMenu": "编辑 (&E)",
     "fileMenu": "文件 (&F)",
+    "findInPage": "&Find…",
     "forward": "下一步 (&F)",
     "helpMenu": "帮助 (&H)",
     "learnMore": "了解更多",
@@ -233,6 +234,14 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "simulateDisconnected": "模拟断开连接"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "服务器载入失败",

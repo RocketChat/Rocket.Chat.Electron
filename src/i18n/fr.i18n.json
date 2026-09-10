@@ -310,6 +310,7 @@
     "settings": "Paramètres",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
+    "findInPage": "&Find…",
     "forward": "&Suivant",
     "helpMenu": "&Aide",
     "hide": "Masquer {{- appName}}",
@@ -340,6 +341,14 @@
     "zoomIn": "Zoomer",
     "zoomOut": "Zoom arrière",
     "simulateDisconnected": "Simuler une déconnexion"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Echec du chargement du serveur",

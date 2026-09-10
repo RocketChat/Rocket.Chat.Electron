@@ -352,6 +352,7 @@
     "settings": "Beállítások",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
+    "findInPage": "&Find…",
     "forward": "&Előre",
     "helpMenu": "&Súgó",
     "hide": "A {{- appName}} elrejtése",
@@ -388,6 +389,14 @@
     "zoomIn": "Nagyítás",
     "zoomOut": "Kicsinyítés",
     "simulateDisconnected": "Kapcsolat megszakadásának szimulálása"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Kiszolgáló betöltése sikertelen",

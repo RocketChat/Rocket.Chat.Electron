@@ -166,6 +166,7 @@
     "documentation": "Dökümantasyon",
     "editMenu": "&Düzenle",
     "fileMenu": "&Dosya",
+    "findInPage": "&Find…",
     "forward": "&İleri",
     "helpMenu": "&Yardım",
     "learnMore": "Daha fazlasını öğren",
@@ -191,6 +192,14 @@
     "zoomIn": "Yakınlaştır",
     "zoomOut": "Uzaklaştır",
     "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Sunucu yüklenirken hata oluştu",

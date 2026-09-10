@@ -147,6 +147,7 @@
     "documentation": "Документація",
     "editMenu": "&Редагувати",
     "fileMenu": "&Файл",
+    "findInPage": "&Find…",
     "forward": "Вперед",
     "helpMenu": "&Довідка",
     "hide": "Приховати {{- appName}}",
@@ -176,6 +177,14 @@
     "zoomIn": "Збільшити",
     "zoomOut": "Зменшити",
     "simulateDisconnected": "Симулювати відключення"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Не вдалося завантажити сервер",

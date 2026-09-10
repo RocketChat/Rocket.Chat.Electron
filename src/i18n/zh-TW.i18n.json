@@ -145,6 +145,7 @@
     "documentation": "文件",
     "editMenu": "編輯 (&E)",
     "fileMenu": "檔案 (&F)",
+    "findInPage": "&Find…",
     "forward": "下一步 (&F)",
     "helpMenu": "幫助 (&H)",
     "learnMore": "了解更多",
@@ -170,6 +171,14 @@
     "zoomIn": "放大",
     "zoomOut": "縮小",
     "simulateDisconnected": "模擬中斷連線"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "伺服器載入失敗",

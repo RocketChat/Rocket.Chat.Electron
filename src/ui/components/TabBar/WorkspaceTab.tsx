@@ -236,7 +236,6 @@ const WorkspaceTab = ({
     <SpeakerButton
       role='button'
       tabIndex={0}
-      $muted={isAudioMuted}
       data-muted={isAudioMuted ? 'true' : 'false'}
       aria-label={
         isAudioMuted

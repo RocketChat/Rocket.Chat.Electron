@@ -447,7 +447,11 @@ export const BadgeWrapper = styled.div`
    forwarded to the DOM span). `line-height: 0` keeps the Fuselage Icon's
    own line-height from nudging it off-centre inside the flex-centred
    circle. */
-export const SpeakerButton = styled.span<{ $muted?: boolean }>`
+/* The mute control keeps the neutral ghost badge in both states — the
+   Fuselage `volume` / `volume-off` glyph alone signals muted vs. unmuted.
+   Red is reserved for the capture (rec) indicator, matching Chrome, which
+   colors only camera/mic/screen capture and leaves audio controls neutral. */
+export const SpeakerButton = styled.span`
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -460,32 +464,14 @@ export const SpeakerButton = styled.span<{ $muted?: boolean }>`
   border-radius: 9999px;
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-
-  ${({ $muted }) =>
-    $muted
-      ? css`
-          background-color: var(
-            --rcx-badge-colors-danger-background-color,
-            var(
-              --rcx-color-badge-background-level-4,
-              var(--rcx-color-red-500, #ec0d2a)
-            )
-          );
-          color: var(
-            --rcx-badge-colors-danger-color,
-            var(--rcx-color-font-pure-white, #fff)
-          );
-        `
-      : css`
-          background-color: var(
-            --rcx-badge-colors-ghost-background-color,
-            var(--rcx-color-stroke-dark, var(--rcx-color-neutral-700, #6c737a))
-          );
-          color: var(
-            --rcx-badge-colors-ghost-color,
-            var(--rcx-color-font-pure-white, #fff)
-          );
-        `}
+  background-color: var(
+    --rcx-badge-colors-ghost-background-color,
+    var(--rcx-color-stroke-dark, var(--rcx-color-neutral-700, #6c737a))
+  );
+  color: var(
+    --rcx-badge-colors-ghost-color,
+    var(--rcx-color-font-pure-white, #fff)
+  );
 
   &:focus-visible {
     outline: 1px solid currentColor;

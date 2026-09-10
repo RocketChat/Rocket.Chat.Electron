@@ -19,6 +19,8 @@ import {
   WEBVIEW_USER_ROLES_CHANGED,
   WEBVIEW_USER_PRESENCE_CHANGED,
   WEBVIEW_FAVICON_CHANGED,
+  WEBVIEW_AUDIO_STATE_CHANGED,
+  WEBVIEW_AUDIO_MUTED_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
@@ -62,6 +64,8 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_USER_PRESENCE_CHANGED>
   | ActionOf<typeof WEBVIEW_ALLOWED_REDIRECTS_CHANGED>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
+  | ActionOf<typeof WEBVIEW_AUDIO_STATE_CHANGED>
+  | ActionOf<typeof WEBVIEW_AUDIO_MUTED_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
@@ -258,6 +262,16 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, favicon });
     }
 
+    case WEBVIEW_AUDIO_STATE_CHANGED: {
+      const { url, isAudible } = action.payload;
+      return update(state, { url, isAudible });
+    }
+
+    case WEBVIEW_AUDIO_MUTED_CHANGED: {
+      const { url, isAudioMuted } = action.payload;
+      return update(state, { url, isAudioMuted });
+    }
+
     case WEBVIEW_DID_NAVIGATE: {
       const { url, pageUrl } = action.payload;
       if (pageUrl?.includes(url)) {
@@ -296,6 +310,8 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         url: ensureUrlFormat(server.url),
         documentViewerOpenUrl: '',
         documentViewerFormat: '',
+        isAudible: false,
+        isAudioMuted: false,
       }));
     }
 

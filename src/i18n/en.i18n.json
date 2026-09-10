@@ -589,14 +589,19 @@
       "reloadClearingCache": "Force reload",
       "serverInfo": "Server info",
       "supportedVersionsInfo": "Supported Versions Info",
-      "addWorkspace": "Add workspace"
+      "addWorkspace": "Add workspace",
+      "muteWorkspace": "Mute workspace"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} unread message",
       "unreadMessages": "{{- count}} unread messages",
       "userNotLoggedIn": "Not logged in",
       "addWorkspace": "Add workspace ({{shortcut}}+N)",
-      "settingsMenu": "Customize and control app"
+      "settingsMenu": "Customize and control app",
+      "audioPlaying": "Playing audio",
+      "audioMuted": "Muted",
+      "muteWorkspace": "Mute workspace",
+      "unmuteWorkspace": "Unmute workspace"
     }
   },
   "tabBar": {

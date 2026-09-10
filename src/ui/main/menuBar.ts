@@ -39,6 +39,7 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  SIDE_BAR_SERVER_TOGGLE_MUTE,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
 } from '../actions';
@@ -1247,6 +1248,15 @@ export const getServerContextMenuTemplate = (
       label: t('sidebar.item.copyCurrentUrl'),
       click: () => {
         dispatch({ type: SIDE_BAR_SERVER_COPY_URL, payload: url });
+      },
+    },
+    {
+      id: 'muteWorkspace',
+      type: 'checkbox',
+      label: t('sidebar.item.muteWorkspace'),
+      checked: !!server?.isAudioMuted,
+      click: () => {
+        dispatch({ type: SIDE_BAR_SERVER_TOGGLE_MUTE, payload: url });
       },
     },
     {

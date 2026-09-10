@@ -37,6 +37,8 @@ export type Server = {
   presenceStatusText?: string;
   presenceConnection?: 'connected' | 'connecting' | 'disconnected';
   presenceSupported?: boolean;
+  isAudible?: boolean;
+  isAudioMuted?: boolean;
 };
 
 export const enum ServerUrlResolutionStatus {

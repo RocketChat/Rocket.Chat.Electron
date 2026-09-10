@@ -553,6 +553,7 @@ const start = async () => {
     themeAppearance: false,
     userPresence: false,
     userPresenceStatus: false,
+    userPresenceReassert: false,
   };
 
   // Per-subscription unread state, accumulated from the
@@ -976,6 +977,27 @@ const start = async () => {
         window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
       });
       setupFlags.gitCommitHash = true;
+    }
+
+    // After a websocket reconnection the server writes `online` for the new
+    // session. The desktop poller only reports OS idle transitions, so a user
+    // who stayed idle across the drop would remain `online` until the next
+    // transition. Once the connection and login settle, ask the preload to
+    // report the current idle state unconditionally. Web clients >= 8.8.0 also
+    // re-assert on their own; the duplicate is idempotent.
+    if (Tracker && Meteor && !setupFlags.userPresenceReassert) {
+      let wasSettled = false;
+      Tracker.autorun(() => {
+        const settled =
+          Boolean(Meteor.status()?.connected) &&
+          Boolean(Meteor.userId()) &&
+          !Meteor.loggingIn?.();
+        if (settled && !wasSettled) {
+          window.RocketChatDesktop.reassertUserPresenceDetection();
+        }
+        wasSettled = settled;
+      });
+      setupFlags.userPresenceReassert = true;
     }
 
     // Only for servers < 7.10.0. Newer web clients register the idle detector

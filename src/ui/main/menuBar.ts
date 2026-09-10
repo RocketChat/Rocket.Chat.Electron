@@ -21,6 +21,7 @@ import {
   APP_MENU_TRIGGERED,
   CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
+  MENU_BAR_FIND_IN_PAGE_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
   MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
@@ -300,6 +301,21 @@ export const createEditMenu = createSelector(
         id: 'selectAll',
         label: t('menus.selectAll'),
         role: 'selectAll',
+      },
+      { type: 'separator' },
+      {
+        id: 'findInPage',
+        label: t('menus.findInPage'),
+        accelerator: 'CommandOrControl+F',
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          dispatch({ type: MENU_BAR_FIND_IN_PAGE_CLICKED });
+        },
       },
     ],
   })

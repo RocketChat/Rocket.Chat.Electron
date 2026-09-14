@@ -26,6 +26,7 @@ jest.mock('../../../telephony/preload', () => ({
 
 jest.mock('../../../userPresence/preload', () => ({
   setUserPresenceDetection: jest.fn(),
+  reassertUserPresenceDetection: jest.fn(),
 }));
 
 jest.mock('../badge', () => ({ setBadge: jest.fn() }));

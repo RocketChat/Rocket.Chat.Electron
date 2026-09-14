@@ -11,6 +11,7 @@ import type {
   UploadFile,
   UploadRawData,
   WebContents,
+  WebContentsAudioStateChangedEventParams,
   WebPreferences,
 } from 'electron';
 import { app, clipboard, webContents } from 'electron';
@@ -41,7 +42,10 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  SIDE_BAR_SERVER_TOGGLE_MUTE,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
+  WEBVIEW_AUDIO_STATE_CHANGED,
+  WEBVIEW_AUDIO_MUTED_CHANGED,
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
@@ -51,6 +55,11 @@ import { createPopupMenuForServerView } from './popupMenu';
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
 const VIDEO_CALL_PRELOAD_PATH = 'app/preload/preload.js';
+
+// Chrome keeps its tab audio icon for ~2s after audio goes quiet, so a brief
+// silent gap mid speech (observed ~500ms mid voice-message on the dev app)
+// doesn't blink the indicator off and back on.
+const AUDIBLE_HOLD_MS = 2000;
 
 /**
  * Determines if a webview is a video call webview based on partition and frame name.
@@ -267,6 +276,8 @@ const initializeServerWebContentsAfterAttach = (
   webContentsByServerUrl.set(serverUrl, guestWebContents);
   attachBootWatchdog(serverUrl, guestWebContents);
 
+  let audibleHoldTimer: NodeJS.Timeout | undefined;
+
   const webviewSession = guestWebContents.session;
 
   // Intercept markdown file downloads and open in document viewer
@@ -288,6 +299,16 @@ const initializeServerWebContentsAfterAttach = (
     guestWebContents.removeAllListeners();
     webviewSession.removeAllListeners();
     webContentsByServerUrl.delete(serverUrl);
+
+    if (audibleHoldTimer) {
+      clearTimeout(audibleHoldTimer);
+      audibleHoldTimer = undefined;
+    }
+
+    dispatch({
+      type: WEBVIEW_AUDIO_STATE_CHANGED,
+      payload: { url: serverUrl, isAudible: false },
+    });
 
     const canPurge = select(
       ({ servers }) => !servers.some((server) => server.url === serverUrl)
@@ -382,10 +403,42 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  const handleAudioStateChanged = (
+    event: Event<WebContentsAudioStateChangedEventParams>
+  ): void => {
+    if (event.audible) {
+      if (audibleHoldTimer) {
+        clearTimeout(audibleHoldTimer);
+        audibleHoldTimer = undefined;
+      }
+      dispatch({
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url: serverUrl, isAudible: true },
+      });
+      return;
+    }
+
+    if (audibleHoldTimer) {
+      return;
+    }
+
+    audibleHoldTimer = setTimeout(() => {
+      audibleHoldTimer = undefined;
+      if (guestWebContents.isDestroyed()) {
+        return;
+      }
+      dispatch({
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url: serverUrl, isAudible: false },
+      });
+    }, AUDIBLE_HOLD_MS);
+  };
+
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
+  guestWebContents.addListener('audio-state-changed', handleAudioStateChanged);
 };
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {
@@ -512,6 +565,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
     setupServerViewDisplayMedia(guestWebContents);
 
+    const isAudioMuted = select(
+      ({ servers }) =>
+        servers.find((server) => server.url === action.payload.url)
+          ?.isAudioMuted
+    );
+    if (isAudioMuted) {
+      guestWebContents.setAudioMuted(true);
+    }
+
     // Download handling is now managed by electron-dl in main.ts
     // and integrated with our downloads system via setupDownloads()
 
@@ -590,6 +652,19 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     dispatch({
       type: SIDE_BAR_REMOVE_SERVER_CLICKED,
       payload: action.payload,
+    });
+  });
+
+  listen(SIDE_BAR_SERVER_TOGGLE_MUTE, (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    if (!guestWebContents || guestWebContents.isDestroyed()) {
+      return;
+    }
+    const next = !guestWebContents.isAudioMuted();
+    guestWebContents.setAudioMuted(next);
+    dispatch({
+      type: WEBVIEW_AUDIO_MUTED_CHANGED,
+      payload: { url: action.payload, isAudioMuted: next },
     });
   });
 

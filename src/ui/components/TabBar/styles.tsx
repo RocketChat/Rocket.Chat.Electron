@@ -434,6 +434,51 @@ export const BadgeWrapper = styled.div`
   pointer-events: none;
 `;
 
+/* Same 16px footprint as TabBadge/Badge (min-width/min-height: 1rem), reusing
+   Fuselage Badge variant token chains verbatim (compiled fuselage.css) so the
+   speaker indicator reads as a sibling of the mention/unread badges rather
+   than a new visual language. Unmuted uses the ghost chain (same as the
+   plain audible state); muted swaps to the danger chain so the Fuselage
+   `volume-off` icon reads as an actively-muted control, not just another
+   badge color. Horizontal tab-strip only — rendered as a plain sibling of
+   the badge, not inside BadgeWrapper, so no pointer-events override is
+   needed here. `$muted` is a transient prop (emotion convention:
+   `$`-prefixed props are consumed by the styled component and never
+   forwarded to the DOM span). `line-height: 0` keeps the Fuselage Icon's
+   own line-height from nudging it off-centre inside the flex-centred
+   circle. */
+/* The mute control keeps the neutral ghost badge in both states — the
+   Fuselage `volume` / `volume-off` glyph alone signals muted vs. unmuted.
+   Red is reserved for the capture (rec) indicator, matching Chrome, which
+   colors only camera/mic/screen capture and leaves audio controls neutral. */
+export const SpeakerButton = styled.span`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  line-height: 0;
+  border-radius: 9999px;
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  background-color: var(
+    --rcx-badge-colors-ghost-background-color,
+    var(--rcx-color-stroke-dark, var(--rcx-color-neutral-700, #6c737a))
+  );
+  color: var(
+    --rcx-badge-colors-ghost-color,
+    var(--rcx-color-font-pure-white, #fff)
+  );
+
+  &:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 1px;
+  }
+`;
+
 export const WindowControlsGroup = styled.div`
   display: flex;
   flex-direction: row;

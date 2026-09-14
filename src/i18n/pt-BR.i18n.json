@@ -170,11 +170,9 @@
       "clear": "Limpar filtros",
       "all": "Todos",
       "mimes": {
-        "images": "Imagens",
-        "videos": "Vídeos",
-        "audios": "Áudio",
-        "texts": "Textos",
-        "files": "Arquivos"
+        "image": "Imagens",
+        "video": "Vídeos",
+        "application": "Arquivos"
       },
       "statuses": {
         "paused": "Pausado",
@@ -323,6 +321,7 @@
     "copy": "&Copiar",
     "cut": "Recor&tar",
     "developerMode": "Modo desenvolvedor",
+    "simulateDisconnected": "Simular desconexão",
     "disableGpu": "Desabilitar GPU",
     "documentation": "Documentação",
     "downloads": "Downloads",
@@ -358,8 +357,7 @@
     "viewMenu": "&Exibir",
     "windowMenu": "&Janela",
     "zoomIn": "Aumentar zoom",
-    "zoomOut": "Diminuir zoom",
-    "simulateDisconnected": "Simular desconexão"
+    "zoomOut": "Diminuir zoom"
   },
   "loadingError": {
     "title": "Servidor Falhou em Carregar",

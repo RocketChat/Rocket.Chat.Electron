@@ -355,6 +355,37 @@ webview.setAttribute('partition', 'persist:video-call-session'); // Generic part
 webview.src = url; // Set last - triggers loading
 ```
 
+### Conference Webview Popup Policy
+
+`allowpopups` alone is not enough to control what a conference page can spawn
+via `window.open` / `target="_blank"` — `src/videoCallWindow/ipc.ts` installs
+a `setWindowOpenHandler` on the attached conference webview (separate from the
+one used by the video call window's own host page) with the following policy:
+
+- **Tab-target links** (`disposition` `foreground-tab` / `background-tab`,
+  e.g. middle-click or ctrl-click) are sent to the system browser and the
+  Electron popup is denied.
+- **Plain `http(s)` popups** (default disposition) are allowed as sandboxed
+  Electron child windows (`nodeIntegration: false`, `contextIsolation: true`,
+  `sandbox: true`, no preload, hidden until `ready-to-show`). This is required
+  for identity-provider SSO login flows (e.g. Pexip's IdP popup), which rely
+  on `window.opener` to hand the result back to the conference page — routing
+  these to the system browser breaks that relationship.
+- **In-app popup schemes** (`about:`, `blob:`) are allowed as before, for
+  device pickers and transient blob/PDF exports.
+- **Everything else** (`javascript:`, `data:`, `file:`, `smb:`, etc.) is
+  denied.
+
+Any popup spawned this way gets the same policy re-applied to every
+descendant popup (a popup opened from a popup, and so on) via each window's
+own `did-create-window` registration. Both page-initiated navigations
+(`will-navigate`) and server-side redirects (`will-redirect`) go through the
+same protocol check: navigations/redirects to `http:`, `https:`, `file:`,
+`data:`, `about:`, or `blob:` proceed in place, and any other scheme is
+cancelled and, if the app's external-protocol check allows it, handed to the
+system browser. The video call window's own host page is unaffected by this
+change and keeps routing all `http(s)` popups to the system browser.
+
 ### Deferred React Import
 ```typescript
 let screenPickerModule: typeof import('./screenSharePickerMount') | null = null;

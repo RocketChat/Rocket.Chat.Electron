@@ -20,11 +20,11 @@ push, release publish) is gated on explicit user approval.
 
 ## Release types at a glance
 
-| Type | Bump branch cut from | Bump PR targets | Merge method | Tag lands on |
-|---|---|---|---|---|
-| Alpha `X.Y.0-alpha.N` | fresh `origin/dev` | `dev` | squash | `dev` tip |
-| Stable `X.Y.0` | fresh `origin/dev` | `dev`, then a release PR `dev`→`master` | bump: squash; release: **merge commit** (`gh pr merge --merge`) | `master` merge commit |
-| Patch `X.Y.Z` | `release/X.Y.x` (cut from tag `X.Y.0` if it doesn't exist yet) | `release/X.Y.x` | squash | `release/X.Y.x` tip |
+| Type                  | Bump branch cut from                                           | Bump PR targets                         | Merge method                                                    | Tag lands on          |
+| --------------------- | -------------------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------- | --------------------- |
+| Alpha `X.Y.0-alpha.N` | fresh `origin/dev`                                             | `dev`                                   | squash                                                          | `dev` tip             |
+| Stable `X.Y.0`        | fresh `origin/dev`                                             | `dev`, then a release PR `dev`→`master` | bump: squash; release: **merge commit** (`gh pr merge --merge`) | `master` merge commit |
+| Patch `X.Y.Z`         | `release/X.Y.x` (cut from tag `X.Y.0` if it doesn't exist yet) | `release/X.Y.x`                         | squash                                                          | `release/X.Y.x` tip   |
 
 ## Hard rules
 
@@ -72,7 +72,7 @@ push, release publish) is gated on explicit user approval.
    - Alpha/stable: `git log <last-tag>..origin/dev --oneline --no-merges`.
    - Patch: `git log <last-tag>..origin/release/X.Y.x --oneline --no-merges`
      plus the cherry-pick candidates still on `dev` only.
-   Filter out chore/version-bump commits.
+     Filter out chore/version-bump commits.
 5. If the relevant branch has nothing new since the last tag → STOP and
    tell the user there is nothing to release.
 
@@ -236,18 +236,69 @@ the current HEAD as the bare version and pushes it. It prompts
 3. A failed single job can sometimes be re-run: `gh run rerun <run-id> --failed` — ask the user first.
 4. Do not report progress on every poll; surface only completion, failure, or a stall (>2h).
 
+## Phase 4b — Re-tag an unpublished release
+
+Use when the tag run fails for a reason that needs a code or config change
+on the release branch (a CI/toolchain regression, a bump mistake) and the
+release is **still a draft**. The build workflow fires only on tag pushes, so
+the fix cannot reach the pipeline without a new tag; reusing the same version
+keeps the version history clean (no dead `X.Y.Z` tag with no release).
+
+Preconditions — verify each, abort if any fails:
+
+1. `gh release view <version> --json isDraft -q .isDraft` prints `true`.
+   **NEVER re-tag a published release** — clients may already have fetched
+   `latest*.yml` for it; ship the next patch version instead.
+2. The old tag run is not `in_progress` (`gh run view <run-id> --json status`).
+   If it is, `gh run cancel <run-id>` first, otherwise it recreates the draft
+   after you delete it.
+3. **GATE: explicit user approval to delete the draft and the remote tag.**
+
+Procedure (in `$RELEASE_WT`):
+
+```sh
+# 1. land the fix on the release branch (PR + squash-merge as in Phase 2),
+#    then fetch the new tip
+git -C "$RELEASE_WT" fetch origin <branch>
+
+# 2. remove the draft release and the tag (remote and local)
+gh release delete <version> --yes
+git push origin :refs/tags/<version>
+git -C "$RELEASE_WT" tag -d <version> 2>/dev/null || true
+gh release view <version> 2>&1 | grep -q 'release not found' || { echo "draft still exists"; exit 1; }
+git ls-remote --tags origin <version> | grep -q . && { echo "remote tag still exists"; exit 1; }
+
+# 3. tag the new tip exactly as in Phase 3
+MERGE_SHA=$(git -C "$RELEASE_WT" rev-parse origin/<branch>)
+git -C "$RELEASE_WT" checkout "$MERGE_SHA"
+node -p "require('$RELEASE_WT/package.json').version"   # MUST print TARGET
+(cd "$RELEASE_WT" && yarn release:tag --yes)
+```
+
+`yarn release:tag` refuses an existing tag with no override, so step 2 must
+finish before step 3; if it still fires, the remote tag deletion did not land.
+Then continue with Phase 4 on the new run. `gh release delete` without
+`--cleanup-tag` leaves the tag alone, which is why the tag is deleted
+explicitly — keep the two steps separate so a failed release deletion never
+silently leaves a tag pointing at the old commit.
+
+If the fix was authored directly on the release branch, forward-port it to
+`dev` via a cherry-pick PR (Phase 6 step 4) — a toolchain fix like this
+otherwise breaks the next `dev` release too.
+
 ## Phase 5 — Verify release & publish
 
 1. `gh release view <version> --json name,isDraft,url,assets`.
 2. Assert the full asset matrix — missing entries = release NOT done:
 
-   | Platform | Expected assets |
-   |---|---|
-   | macOS | `-mac.dmg` (+`.blockmap`), `-mac.pkg`, `-mac.zip`, `-mas.pkg`, `latest-mac.yml` |
-   | Windows | x64/ia32/arm64 × (`.exe` +`.blockmap`, `.msi`, `.appx`), universal `-win.exe` (+`.blockmap`), `latest.yml` |
-   | Linux | `.deb`, `.rpm`, `.snap`, `.AppImage`, `.tar.gz`, `latest-linux.yml` |
+   | Platform | Expected assets                                                                                            |
+   | -------- | ---------------------------------------------------------------------------------------------------------- |
+   | macOS    | `-mac.dmg` (+`.blockmap`), `-mac.pkg`, `-mac.zip`, `-mas.pkg`, `latest-mac.yml`                            |
+   | Windows  | x64/ia32/arm64 × (`.exe` +`.blockmap`, `.msi`, `.appx`), universal `-win.exe` (+`.blockmap`), `latest.yml` |
+   | Linux    | `.deb`, `.rpm`, `.snap`, `.AppImage`, `.tar.gz`, `latest-linux.yml`                                        |
 
    (4.15.1 reference: 27 assets total.)
+
 3. Apply the Phase 1 release notes: `gh release edit <version> --notes-file <file>`.
 4. Alphas: mark prerelease (`gh release edit <version> --prerelease`) **while still a draft** — do this before the publish gate, never after, so the alpha is never briefly visible to stable clients.
 5. If the release is a draft: **GATE — ask before publishing** (`gh release edit <version> --draft=false`). Publishing exposes the update feed (`latest*.yml`) to every installed client — this is the point of no return for auto-update.
@@ -267,12 +318,14 @@ the current HEAD as the bare version and pushes it. It prompts
 
 ## Failure modes
 
-| Symptom | Likely cause | Action |
-|---|---|---|
-| Tag run missing from `gh run list` | Tag pushed before merge, or push rejected | Verify tag exists on remote and points at the correct branch's HEAD |
-| Windows job fails at signing/MSI | KMS CNG provider conflict (two-phase signing) | Read `--log-failed`; usually re-run, not code |
-| macOS job stuck >1h at notarize | Apple notarization queue | Wait; stall threshold 2h before escalating |
-| Release exists but assets partial | One platform job failed after others published | Fix/re-run failed job; electron-builder appends to same release |
-| `latest*.yml` version ≠ tag | package.json bump missed before tag | Critical — auto-updater breaks; delete release+tag, redo from Phase 2 |
-| `yarn release:tag` guard rejects HEAD | Tagging from the wrong branch for the channel (e.g. tagging a stable off `dev` directly, or an alpha off a `release/*` branch) | Re-verify you're on the correct branch/commit; only use `--allow-unverified-ref` with explicit user confirmation |
-| Release PR (`dev`→`master`) accidentally squashed | Wrong merge method selected in the merge dialog/CLI | Irreversible — history has forked; escalate to the user immediately, do not attempt to "fix" it by force-pushing `master` |
+| Symptom                                           | Likely cause                                                                                                                   | Action                                                                                                                    |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Tag run missing from `gh run list`                | Tag pushed before merge, or push rejected                                                                                      | Verify tag exists on remote and points at the correct branch's HEAD                                                       |
+| Windows job fails at signing/MSI                  | KMS CNG provider conflict (two-phase signing)                                                                                  | Read `--log-failed`; usually re-run, not code                                                                             |
+| macOS job stuck >1h at notarize                   | Apple notarization queue                                                                                                       | Wait; stall threshold 2h before escalating                                                                                |
+| Release exists but assets partial                 | One platform job failed after others published                                                                                 | Fix/re-run failed job; electron-builder appends to same release                                                           |
+| `latest*.yml` version ≠ tag                       | package.json bump missed before tag                                                                                            | Critical — auto-updater breaks; delete release+tag, redo from Phase 2                                                     |
+| macOS job fails at `security set-key-partition-list` with `SecKeychainUnlock: The user name or passphrase you entered is not correct`, before any signing | electron-builder < 26.16.1 passes the p12 password where the temp keychain's own password is expected; newer macOS runner images reject it (first seen Sep 2026, provisioner 20260828) | Not a flake — a rerun fails identically. Fix is code: yarn patch on `app-builder-lib` (in `.yarn/patches/`, see 4.17.1) or bump electron-builder ≥ 26.16.1, then Phase 4b |
+| Tag run needs a code fix and the release is still a draft | CI/toolchain regression or bump mistake discovered by the tag run | Phase 4b: land the fix, delete draft + tag, re-tag the same version. Never for a published release |
+| `yarn release:tag` guard rejects HEAD             | Tagging from the wrong branch for the channel (e.g. tagging a stable off `dev` directly, or an alpha off a `release/*` branch) | Re-verify you're on the correct branch/commit; only use `--allow-unverified-ref` with explicit user confirmation          |
+| Release PR (`dev`→`master`) accidentally squashed | Wrong merge method selected in the merge dialog/CLI                                                                            | Irreversible — history has forked; escalate to the user immediately, do not attempt to "fix" it by force-pushing `master` |

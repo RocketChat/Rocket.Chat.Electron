@@ -175,6 +175,7 @@
     "copy": "&Kopiuj",
     "cut": "&Wytnij",
     "developerMode": "Tryb programisty",
+    "simulateDisconnected": "Symuluj rozłączenie",
     "documentation": "Dokumentacja",
     "editMenu": "&Edycja",
     "fileMenu": "&Plik",
@@ -205,8 +206,7 @@
     "viewMenu": "&Widok",
     "windowMenu": "&Okno",
     "zoomIn": "Przybliż",
-    "zoomOut": "Oddal",
-    "simulateDisconnected": "Symuluj rozłączenie"
+    "zoomOut": "Oddal"
   },
   "loadingError": {
     "title": "Błąd ładowania serwera",

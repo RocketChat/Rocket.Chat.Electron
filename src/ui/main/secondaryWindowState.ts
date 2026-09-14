@@ -1,9 +1,12 @@
 import type { BrowserWindow, Rectangle } from 'electron';
 import { screen } from 'electron';
 
-import { dispatch, select } from '../../store';
+import { dispatch, listen, select } from '../../store';
 import type { RootState } from '../../store/rootReducer';
-import { SECONDARY_WINDOW_STATE_CHANGED } from '../actions';
+import {
+  SECONDARY_WINDOW_STATE_CHANGED,
+  WINDOW_BOUNDS_RESET,
+} from '../actions';
 import { debounce } from './debounce';
 
 /** Windows that remember where they were, keyed in persisted state. */
@@ -88,4 +91,36 @@ export const watchWindowBounds = (
 
   browserWindow.addListener('move', save);
   browserWindow.addListener('resize', save);
+};
+
+const windowBoundsResetCallbacks = new Map<
+  SecondaryWindowId,
+  () => void | Promise<void>
+>();
+
+let unlistenWindowBoundsReset: (() => void) | undefined;
+
+/**
+ * Registers a callback that recentres a secondary window to its default bounds
+ * when the user resets window sizes and positions.
+ *
+ * Only one callback is kept per window id, and the underlying `listen`
+ * subscription is created lazily and shared, so calling this from each
+ * window's ipc setup does not accumulate one Redux subscription per window.
+ */
+export const onWindowBoundsReset = (
+  id: SecondaryWindowId,
+  recenter: () => void | Promise<void>
+): (() => void) => {
+  windowBoundsResetCallbacks.set(id, recenter);
+
+  if (!unlistenWindowBoundsReset) {
+    unlistenWindowBoundsReset = listen(WINDOW_BOUNDS_RESET, () => {
+      windowBoundsResetCallbacks.forEach((callback) => callback());
+    });
+  }
+
+  return () => {
+    windowBoundsResetCallbacks.delete(id);
+  };
 };

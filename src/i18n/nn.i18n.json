@@ -8,6 +8,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "Nullstill vindaugsstorleikar og -posisjonar",
+        "description": "Gløymer kvar appen og vindauga hennar var plasserte. Kvart vindauge opnar seg i standardstorleik, sentrert, neste gong det vert vist."
+      },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
         "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
@@ -48,7 +52,8 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "Simuler fråkopling"
+    "simulateDisconnected": "Simuler fråkopling",
+    "resetWindowBounds": "Nullstill vindaugsstorleikar og -posisjonar"
   },
   "tray": {
     "presence": {

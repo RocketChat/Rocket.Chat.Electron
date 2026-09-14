@@ -13,6 +13,7 @@ import { watchWindowControls } from '../ui/main/secondaryWindowControls';
 import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import {
   getSavedWindowBounds,
+  onWindowBoundsReset,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
 import {
@@ -88,9 +89,13 @@ const sendWhenReady = (
   });
 };
 
-const buildDocumentViewerWindow = async (
-  request: DocumentRequest
-): Promise<void> => {
+/** Centred on the display nearest the main window. */
+const getDefaultBounds = async (): Promise<{
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}> => {
   const mainWindow = await getRootWindow();
   const winBounds = mainWindow.getNormalBounds();
 
@@ -111,6 +116,14 @@ const buildDocumentViewerWindow = async (
   const y = Math.round(
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
+
+  return { width, height, x, y };
+};
+
+const buildDocumentViewerWindow = async (
+  request: DocumentRequest
+): Promise<void> => {
+  const { width, height, x, y } = await getDefaultBounds();
 
   // Where the reader last left this window, falling back to centred on the
   // display nearest the main window.
@@ -246,5 +259,10 @@ export const startDocumentViewerWindowHandler = (): void => {
   watch(selectIsTransparencyEnabled, (isEnabled) => {
     if (!documentViewerWindow || documentViewerWindow.isDestroyed()) return;
     documentViewerWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  });
+
+  onWindowBoundsReset('documentViewer', async () => {
+    if (!documentViewerWindow || documentViewerWindow.isDestroyed()) return;
+    documentViewerWindow.setBounds(await getDefaultBounds());
   });
 };

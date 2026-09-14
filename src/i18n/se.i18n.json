@@ -8,6 +8,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "Máhcat lásiid sturrodagaid ja sajiid",
+        "description": "Vajálduhttá gos áppa ja dan láset ledje. Juohke láse rahppo standárdsturrodagas, guovdu, boahtte háve go čájehuvvo."
+      },
       "transparentWindow": {
         "title": "Genomskinlig fönstereffekt",
         "description": "Aktivera inbyggd vibrans/genomskinlighetseffekt för fönstret. Kräver omstart för att tillämpa."
@@ -48,7 +52,8 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "Simuler čađaheami"
+    "simulateDisconnected": "Simuler čađaheami",
+    "resetWindowBounds": "Máhcat lásiid sturrodagaid ja sajiid"
   },
   "tray": {
     "presence": {

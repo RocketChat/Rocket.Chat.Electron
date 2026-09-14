@@ -24,6 +24,7 @@ jest.mock('electron', () => ({
   screen: {
     getPrimaryDisplay: jest.fn(() => ({
       bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1080 },
       workAreaSize: { width: 1920, height: 1080 },
     })),
     getAllDisplays: jest.fn(() => [
@@ -131,6 +132,49 @@ describe('rootWindow geometry helpers', () => {
       const bounds = browserWindow.setBounds.mock.calls[0][0];
       expect(bounds.x).toBeGreaterThanOrEqual(0);
       expect(bounds.y).toBeGreaterThanOrEqual(0);
+    });
+
+    it('centers with integer, rounded bounds when 0.9x work area is non-integral', () => {
+      (screen.getPrimaryDisplay as jest.Mock).mockReturnValueOnce({
+        bounds: { x: 0, y: 31, width: 3440, height: 1380 },
+        workArea: { x: 0, y: 31, width: 3440, height: 1349 },
+        workAreaSize: { width: 3440, height: 1349 },
+      });
+      select.mockImplementation((selector: any) =>
+        selector({
+          rootWindowState: {
+            focused: true,
+            visible: false,
+            maximized: false,
+            minimized: false,
+            fullscreen: false,
+            normal: true,
+            bounds: { x: -9999, y: -9999, width: 1000, height: 600 },
+          },
+          isTrayIconEnabled: true,
+        })
+      );
+
+      applyRootWindowState(browserWindow as any);
+
+      expect(browserWindow.setBounds).toHaveBeenCalledTimes(1);
+      const bounds = browserWindow.setBounds.mock.calls[0][0];
+
+      const expectedWidth = Math.round(3440 * 0.9);
+      const expectedHeight = Math.round(1349 * 0.9);
+      const expectedX = Math.round(0 + (3440 - expectedWidth) / 2);
+      const expectedY = Math.round(31 + (1349 - expectedHeight) / 2);
+
+      expect(Number.isInteger(bounds.width)).toBe(true);
+      expect(Number.isInteger(bounds.height)).toBe(true);
+      expect(Number.isInteger(bounds.x)).toBe(true);
+      expect(Number.isInteger(bounds.y)).toBe(true);
+      expect(bounds).toEqual({
+        width: expectedWidth,
+        height: expectedHeight,
+        x: expectedX,
+        y: expectedY,
+      });
     });
 
     it('skips layout when window is already visible', () => {

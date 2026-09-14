@@ -96,6 +96,10 @@
     "title": "設定",
     "general": "一般",
     "options": {
+      "resetWindowBounds": {
+        "title": "重設視窗大小與位置",
+        "description": "忘記應用程式及其視窗的擺放位置。每個視窗下次顯示時將以預設大小置中開啟。"
+      },
       "trayIcon": {
         "title": "系統匣圖示",
         "description": "顯示系統匣圖示。啟用系統匣圖示時，關閉視窗會將應用程式最小化到系統匣。否則，應用程式將會關閉。"
@@ -156,6 +160,7 @@
     "reload": "重新載入 (&R)",
     "reportIssue": "問題回報",
     "resetAppData": "回復程式設定",
+    "resetWindowBounds": "重設視窗大小與位置",
     "resetZoom": "重置縮放比率",
     "selectAll": "選擇全部 (&A)",
     "showFullScreen": "全螢幕",

@@ -115,6 +115,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "ウィンドウのサイズと位置をリセット",
+        "description": "アプリとそのウィンドウの配置を忘れます。各ウィンドウは次回表示時に既定のサイズで中央に開きます。"
+      },
       "transparentWindow": {
         "title": "透明ウィンドウ効果",
         "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
@@ -164,6 +168,7 @@
     "reload": "再読み込み(&R)",
     "reportIssue": "問題を報告する",
     "resetAppData": "アプリデータをリセット",
+    "resetWindowBounds": "ウィンドウのサイズと位置をリセット",
     "resetZoom": "ズームをリセット",
     "selectAll": "全て選択 (&A)",
     "showFullScreen": "全画面",

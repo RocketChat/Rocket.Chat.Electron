@@ -15,7 +15,10 @@ import {
   setUserToken,
 } from '../../outlookCalendar/preload';
 import { onTelephonyCallRequested } from '../../telephony/preload';
-import { setUserPresenceDetection } from '../../userPresence/preload';
+import {
+  reassertUserPresenceDetection,
+  setUserPresenceDetection,
+} from '../../userPresence/preload';
 import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
@@ -66,6 +69,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   supportedDocumentViewerFormats: () => string[];
   onNavigateToRoute: (callback: (path: string) => void) => void;
   setUserRoles: (roles: string[]) => void;
+  reassertUserPresenceDetection: () => void;
   setUserPresence: (payload: {
     presence: Server['presence'];
     presenceStatusText: Server['presenceStatusText'];
@@ -106,6 +110,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setBackground,
   setTitle,
   setUserPresenceDetection,
+  reassertUserPresenceDetection,
   setUserLoggedIn,
   setUserRoles,
   setUserPresence,

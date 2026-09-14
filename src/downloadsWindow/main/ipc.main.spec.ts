@@ -43,6 +43,7 @@ jest.mock('../../ui/main/secondaryWindowFocus', () => ({
 jest.mock('../../ui/main/secondaryWindowState', () => ({
   getSavedWindowBounds: jest.fn(() => undefined),
   watchWindowBounds: jest.fn(),
+  onWindowBoundsReset: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../ui/windowChrome/appearance', () => ({
@@ -175,5 +176,46 @@ describe('downloads-window/confirm-clear-all', () => {
     showMessageBox.mockResolvedValue({ response: 0 });
 
     await expect(confirmHandler()({} as never)).resolves.toBe(true);
+  });
+});
+
+describe('downloads-window default sizing', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    handleRegistry.clear();
+    createdWindows.length = 0;
+  });
+
+  it('opens at the fixed default size when the screen has room', async () => {
+    const { openDownloadsWindow } = await loadIpc();
+    await openDownloadsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 1200, height: 700 })
+    );
+  });
+
+  it('clamps to the work area when the display is smaller than the default', async () => {
+    const { screen } = jest.requireMock('electron') as {
+      screen: { getDisplayNearestPoint: jest.Mock };
+    };
+    screen.getDisplayNearestPoint.mockReturnValue({
+      workAreaSize: { width: 1000, height: 600 },
+      workArea: { x: 0, y: 0, width: 1000, height: 600 },
+    });
+
+    const { openDownloadsWindow } = await loadIpc();
+    await openDownloadsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 1000, height: 600 })
+    );
   });
 });

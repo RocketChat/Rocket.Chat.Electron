@@ -41,6 +41,7 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
+  WINDOW_BOUNDS_RESET,
 } from '../actions';
 import { formatServerTitle } from '../components/utils/formatServerTitle';
 import { askForAppDataReset } from './dialogs';
@@ -559,6 +560,13 @@ export const createViewMenu = createSelector(
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.setZoomLevel(0);
+        },
+      },
+      {
+        id: 'resetWindowBounds',
+        label: t('menus.resetWindowBounds'),
+        click: () => {
+          dispatch({ type: WINDOW_BOUNDS_RESET });
         },
       },
       {

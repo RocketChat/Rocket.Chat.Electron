@@ -251,6 +251,10 @@
         "title": "Hårdvaruacceleration",
         "description": "Aktiverar användning av hårdvaruacceleration när sådan finns tillgänglig. Programmet laddas om vid ändring."
       },
+      "resetWindowBounds": {
+        "title": "Återställ fönsterstorlekar och -positioner",
+        "description": "Glömmer var appen och dess fönster var placerade. Varje fönster öppnas i standardstorlek, centrerat, nästa gång det visas."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Reservläge för videosamtal",
         "description": "Stänger av Windows Graphics Capture så att delning fungerar i RDP-sessioner. Appen startas om när du ändrar valet.",
@@ -359,6 +363,7 @@
     "reloadClearingCache": "Tvinga fram omladdning",
     "reportIssue": "Rapportera problem",
     "resetAppData": "Återställ appdata",
+    "resetWindowBounds": "Återställ fönsterstorlekar och -positioner",
     "resetZoom": "Återställ zoom",
     "selectAll": "Välj alla",
     "services": "Tjänster",

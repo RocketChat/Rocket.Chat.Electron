@@ -255,6 +255,10 @@
         "title": "Hardveres gyorsítás",
         "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
       },
+      "resetWindowBounds": {
+        "title": "Ablakméretek és -pozíciók visszaállítása",
+        "description": "Elfelejti, hol helyezkedett el az alkalmazás és annak ablakai. Minden ablak a következő megjelenítéskor alapértelmezett méretben, középre igazítva nyílik meg."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Tartalék képernyőrögzítés a videohívásokhoz",
         "description": "A Windows Graphics Capture funkció letiltása, hogy a képernyőmegosztás működjön a távoli asztal munkameneteiben. Az alkalmazás újraindul, ha megváltoztatja ezt a beállítást.",
@@ -367,6 +371,7 @@
     "reloadClearingCache": "Kényszerített újratöltés",
     "reportIssue": "Probléma jelentése",
     "resetAppData": "Alkalmazásadatok visszaállítása",
+    "resetWindowBounds": "Ablakméretek és -pozíciók visszaállítása",
     "resetZoom": "Nagyítás visszaállítása",
     "selectAll": "Öss&zes kijelölése",
     "services": "Szolgáltatások",

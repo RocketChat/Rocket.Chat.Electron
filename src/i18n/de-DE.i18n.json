@@ -223,6 +223,10 @@
         "title": "Hardware-Beschleunigung",
         "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
       },
+      "resetWindowBounds": {
+        "title": "Fenstergrößen und -positionen zurücksetzen",
+        "description": "Vergisst, wo die App und ihre Fenster platziert waren. Jedes Fenster öffnet sich beim nächsten Anzeigen zentriert in seiner Standardgröße."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
         "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
@@ -325,6 +329,7 @@
     "reload": "&Neu laden",
     "reportIssue": "Problem melden",
     "resetAppData": "Appdaten löschen",
+    "resetWindowBounds": "Fenstergrößen und -positionen zurücksetzen",
     "resetZoom": "Originalgröße",
     "selectAll": "Alle auswählen",
     "services": "Dienstleistungen",

@@ -4,10 +4,6 @@ import { CARD_INSET, SIDEBAR_WIDTH } from '../ui/windowChrome/appearance';
 /** Channel the main process pushes transparency changes on. */
 export const TRANSPARENCY_CHANNEL = 'settings-window/transparency-changed';
 
-/** Window size as a multiplier of the screen it opens on. */
-// Matches the downloads window, so the secondary windows open at one size.
-export const WINDOW_SIZE_MULTIPLIER = 0.52;
-
 /** Padding inside the content card, and the scrollbar that eats into it. */
 const CARD_PADDING = 24;
 const SCROLLBAR_WIDTH = 10;
@@ -30,9 +26,7 @@ export const WINDOW_MIN_WIDTH =
 export const WINDOW_MIN_HEIGHT = 660;
 
 /**
- * Size the window opens at when the screen allows it. The size multiplier alone
- * yields a window that wraps or clips Appearance on smaller displays, so the
- * larger of the two wins.
+ * Default window size, clamped to the work area of the display it opens on.
  */
-export const WINDOW_PREFERRED_WIDTH = WINDOW_MIN_WIDTH;
+export const WINDOW_PREFERRED_WIDTH = 900;
 export const WINDOW_PREFERRED_HEIGHT = 720;

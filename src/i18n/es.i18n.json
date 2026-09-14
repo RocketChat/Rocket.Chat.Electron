@@ -242,6 +242,10 @@
         "title": "Aceleración de hardware",
         "description": "Habilita el uso de la aceleración de hardware cuando esté disponible. La aplicación se reiniciará al realizar cambios."
       },
+      "resetWindowBounds": {
+        "title": "Restablecer tamaños y posiciones de las ventanas",
+        "description": "Olvida dónde estaban colocadas la aplicación y sus ventanas. Cada ventana se abrirá con su tamaño predeterminado, centrada, la próxima vez que se muestre."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Modo alternativo de captura en videollamadas",
         "description": "Desactiva Windows Graphics Capture para que el uso compartido funcione en sesiones RDP. La app se reinicia cuando cambias esta opción.",
@@ -349,6 +353,7 @@
     "reload": "&Recargar",
     "reportIssue": "Informar problema",
     "resetAppData": "Restablecer datos de la aplicación",
+    "resetWindowBounds": "Restablecer tamaños y posiciones de las ventanas",
     "resetZoom": "Restablecer zoom",
     "selectAll": "Seleccionar &todo",
     "services": "Servicios",

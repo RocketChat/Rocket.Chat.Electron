@@ -6,6 +6,9 @@ replaces the former `docs/alpha-release-process.md` and
 `docs/pre-release-process.md`.
 
 For the conceptual overview, see `development-and-release-flow.md`.
+Which install source uses in-app electron-updater vs the Mac App Store,
+Microsoft Store, Snap, or distro/IT is documented in the README:
+[How updates work by install source](../README.md#how-updates-work-by-install-source).
 
 ## Branch model
 

@@ -10,7 +10,7 @@ import {
 } from '../actions';
 import { setupNotifications } from '../main';
 
-const listeners = new Map<string, Function>();
+const listeners = new Map<string, (...args: any[]) => unknown>();
 const dispatch = jest.fn();
 const dispatchSingle = jest.fn();
 const getRootWindow = jest.fn();
@@ -32,14 +32,14 @@ jest.mock('electron', () => {
 
     requireInteraction = false;
 
-    listeners: Record<string, Function[]> = {};
+    listeners: Record<string, ((...args: any[]) => unknown)[]> = {};
 
     constructor(opts: any) {
       Object.assign(this, opts);
       notificationInstances.push(this);
     }
 
-    addListener(event: string, cb: Function) {
+    addListener(event: string, cb: (...args: any[]) => unknown) {
       this.listeners[event] = this.listeners[event] || [];
       this.listeners[event].push(cb);
     }
@@ -68,7 +68,7 @@ jest.mock('../../store', () => ({
   dispatch: (...args: unknown[]) => dispatch(...args),
   dispatchSingle: (...args: unknown[]) => dispatchSingle(...args),
   select: () => true,
-  listen: (type: string, listener: Function) => {
+  listen: (type: string, listener: (...args: any[]) => unknown) => {
     listeners.set(type, listener);
     return () => listeners.delete(type);
   },
@@ -227,6 +227,83 @@ describe('notifications/main setupNotifications', () => {
     expect(drawAttention).toHaveBeenCalledWith('voice-1');
     notificationInstances[0].emit('close');
     expect(stopAttention).toHaveBeenCalledWith('voice-1');
+  });
+
+  it('restores a minimized window when requested before toast display', async () => {
+    const window = {
+      isDestroyed: () => false,
+      isMinimized: () => true,
+      restore: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+    };
+    getRootWindow.mockResolvedValue(window);
+    const notification = {
+      title: 'Call',
+      tag: 'call',
+      notificationType: 'voice',
+      restoreWindow: true,
+    };
+    await create(notification);
+    await create(notification);
+    expect(window.restore).toHaveBeenCalledTimes(2);
+    expect(window.show).toHaveBeenCalledTimes(2);
+    expect(window.focus).toHaveBeenCalledTimes(2);
+
+    window.isMinimized = () => false;
+    await create(notification);
+    expect(window.restore).toHaveBeenCalledTimes(2);
+
+    window.isMinimized = () => true;
+    window.isDestroyed = () => true;
+    await create(notification);
+    expect(window.restore).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not restore when restoreWindow is not requested', async () => {
+    await create({
+      title: 'Call',
+      tag: 'call',
+      notificationType: 'voice',
+    });
+    expect(getRootWindow).not.toHaveBeenCalled();
+    await create({
+      title: 'Message',
+      tag: 'message',
+      notificationType: 'text',
+    });
+    expect(getRootWindow).not.toHaveBeenCalled();
+  });
+
+  it('restores a real minimized Electron window when requested', async () => {
+    const { BrowserWindow, app } = jest.requireActual('electron');
+    await app.whenReady();
+    const window = new BrowserWindow({ width: 400, height: 200, show: false });
+    try {
+      await window.loadURL('data:text/html,<title>Restore test</title>');
+      window.show();
+      const minimized = new Promise<void>((resolve) =>
+        window.once('minimize', resolve)
+      );
+      window.minimize();
+      await minimized;
+      expect(window.isMinimized()).toBe(true);
+      getRootWindow.mockResolvedValue(window);
+      const restored = new Promise<void>((resolve) =>
+        window.once('restore', resolve)
+      );
+      await create({
+        title: 'Call',
+        tag: 'call',
+        notificationType: 'voice',
+        restoreWindow: true,
+      });
+      await restored;
+      expect(window.isMinimized()).toBe(false);
+      expect(window.isVisible()).toBe(true);
+    } finally {
+      window.destroy();
+    }
   });
 
   it('updates an existing tagged notification', async () => {

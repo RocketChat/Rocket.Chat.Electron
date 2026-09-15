@@ -7,6 +7,7 @@ import { dispatch, dispatchSingle, listen, select } from '../store';
 import type { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import { getServerUrlByWebContentsId } from '../ui/main/serverView';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
@@ -282,12 +283,30 @@ const updateNotification = async (
   return id;
 };
 
+const restoreRootWindow = async (): Promise<void> => {
+  try {
+    focusSecondaryWindow(await getRootWindow());
+  } catch (error) {
+    loggers.notifications.warn(
+      'Could not restore window for notification',
+      error
+    );
+  }
+};
+
 const handleCreateEvent = async (
   { tag, ...options }: ExtendedNotificationOptions,
   ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
   if (tag && notifications.has(tag)) {
     return updateNotification(tag, options);
+  }
+
+  // Only incoming calls may raise the window, and only when first shown, so
+  // updates of the same call do not steal focus again. Not awaited: the root
+  // window lookup waits 300 ms and must not delay the toast.
+  if (options.restoreWindow && options.notificationType === 'voice') {
+    void restoreRootWindow();
   }
 
   const id = tag || Math.random().toString(36).slice(2);

@@ -298,12 +298,20 @@ const initializeServerWebContentsAfterAttach = (
   guestWebContents.addListener('destroyed', () => {
     guestWebContents.removeAllListeners();
     webviewSession.removeAllListeners();
-    webContentsByServerUrl.delete(serverUrl);
 
     if (audibleHoldTimer) {
       clearTimeout(audibleHoldTimer);
       audibleHoldTimer = undefined;
     }
+
+    // A replacement webview for the same server may already have attached and
+    // taken over the mapping. The outgoing webContents must not clear state
+    // that now belongs to its replacement.
+    if (webContentsByServerUrl.get(serverUrl) !== guestWebContents) {
+      return;
+    }
+
+    webContentsByServerUrl.delete(serverUrl);
 
     dispatch({
       type: WEBVIEW_AUDIO_STATE_CHANGED,

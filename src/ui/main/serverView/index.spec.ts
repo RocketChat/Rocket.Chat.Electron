@@ -223,6 +223,64 @@ describe('serverView audio state and mute handling', () => {
     });
   });
 
+  it('ignores a destroyed webview that has already been replaced for the same server', () => {
+    const serverUrl = 'https://open.rocket.chat';
+
+    const createGuest = () => {
+      const handlers: Record<string, (...args: any[]) => void> = {};
+      const guest = {
+        addListener: jest.fn((event: string, handler: any) => {
+          handlers[event] = handler;
+        }),
+        on: jest.fn(),
+        removeAllListeners: jest.fn(),
+        setWindowOpenHandler: jest.fn(),
+        setAudioMuted: jest.fn(),
+        isAudioMuted: jest.fn(() => false),
+        isDestroyed: jest.fn(() => false),
+        session: {
+          on: jest.fn(),
+          removeAllListeners: jest.fn(),
+          clearStorageData: jest.fn(),
+          flushStorageData: jest.fn(),
+        },
+      } as unknown as WebContents;
+      return { guest, handlers };
+    };
+
+    const mockFromId = jest.requireMock('electron').webContents
+      .fromId as jest.Mock;
+    const webviewAttachedCallback = getWebviewAttachedCallback();
+
+    const outgoing = createGuest();
+    mockFromId.mockReturnValue(outgoing.guest);
+    webviewAttachedCallback({ payload: { webContentsId: 1, url: serverUrl } });
+
+    const replacement = createGuest();
+    mockFromId.mockReturnValue(replacement.guest);
+    webviewAttachedCallback({ payload: { webContentsId: 2, url: serverUrl } });
+
+    mockDispatch.mockClear();
+    mockSelect.mockClear();
+
+    outgoing.handlers.destroyed?.();
+
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: WEBVIEW_AUDIO_STATE_CHANGED,
+      payload: { url: serverUrl, isAudible: false },
+    });
+    expect(outgoing.guest.session.clearStorageData).not.toHaveBeenCalled();
+    expect(outgoing.guest.session.flushStorageData).not.toHaveBeenCalled();
+
+    const toggleMuteCallback = mockListen.mock.calls.find(
+      ([actionType]) => actionType === SIDE_BAR_SERVER_TOGGLE_MUTE
+    )?.[1] as (action: unknown) => void;
+    toggleMuteCallback({ payload: serverUrl });
+
+    expect(replacement.guest.setAudioMuted).toHaveBeenCalledWith(true);
+    expect(outgoing.guest.setAudioMuted).not.toHaveBeenCalled();
+  });
+
   describe('audible hold-off (debounce quiet gaps)', () => {
     beforeEach(() => {
       jest.useFakeTimers();

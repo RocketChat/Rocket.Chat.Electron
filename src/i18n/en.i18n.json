@@ -599,9 +599,7 @@
       "addWorkspace": "Add workspace ({{shortcut}}+N)",
       "settingsMenu": "Customize and control app",
       "audioPlaying": "Playing audio",
-      "audioMuted": "Muted",
-      "muteWorkspace": "Mute workspace",
-      "unmuteWorkspace": "Unmute workspace"
+      "audioMuted": "Muted"
     }
   },
   "tabBar": {

@@ -405,7 +405,7 @@
       "clearStorageData": "Limpar dados de armazenamento",
       "copyCurrentUrl": "Copiar URL",
       "reloadClearingCache": "Forçar recarregamento",
-      "muteWorkspace": "Mute workspace"
+      "muteWorkspace": "Silenciar workspace"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} mensagem não lida",
@@ -413,10 +413,8 @@
       "userNotLoggedIn": "Não conectado",
       "addWorkspace": "Adicionar workspace ({{shortcut}}+N)",
       "settingsMenu": "Personalizar e controlar app",
-      "audioPlaying": "Playing audio",
-      "audioMuted": "Muted",
-      "muteWorkspace": "Mute workspace",
-      "unmuteWorkspace": "Unmute workspace"
+      "audioPlaying": "Reproduzindo áudio",
+      "audioMuted": "Silenciado"
     }
   },
   "tabBar": {

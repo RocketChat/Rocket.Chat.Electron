@@ -425,7 +425,7 @@
       "reloadClearingCache": "Tvinga fram omladdning",
       "serverInfo": "Serverinformation",
       "supportedVersionsInfo": "Information om versioner som stöds",
-      "muteWorkspace": "Mute workspace"
+      "muteWorkspace": "Stäng av ljud för arbetsytan"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} olästa meddelanden",
@@ -433,10 +433,8 @@
       "userNotLoggedIn": "Inte inloggad",
       "addWorkspace": "Lägg till arbetsyta ({{shortcut}}+N)",
       "settingsMenu": "Anpassa och kontrollera appen",
-      "audioPlaying": "Playing audio",
-      "audioMuted": "Muted",
-      "muteWorkspace": "Mute workspace",
-      "unmuteWorkspace": "Unmute workspace"
+      "audioPlaying": "Spelar upp ljud",
+      "audioMuted": "Ljudlös"
     }
   },
   "tabBar": {

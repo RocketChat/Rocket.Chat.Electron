@@ -447,7 +447,7 @@
       "reloadClearingCache": "Tving omlasting",
       "serverInfo": "Serverinfo",
       "supportedVersionsInfo": "Informasjon om støttede versjoner",
-      "muteWorkspace": "Mute workspace"
+      "muteWorkspace": "Demp server"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} ulest melding",
@@ -455,10 +455,8 @@
       "userNotLoggedIn": "Ikke innlogget",
       "addWorkspace": "Legg til server ({{shortcut}}+N)",
       "settingsMenu": "Tilpass og kontroller appen",
-      "audioPlaying": "Playing audio",
-      "audioMuted": "Muted",
-      "muteWorkspace": "Mute workspace",
-      "unmuteWorkspace": "Unmute workspace"
+      "audioPlaying": "Spiller av lyd",
+      "audioMuted": "Dempet"
     }
   },
   "tabBar": {

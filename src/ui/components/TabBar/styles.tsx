@@ -472,11 +472,6 @@ export const SpeakerButton = styled.span`
     --rcx-badge-colors-ghost-color,
     var(--rcx-color-font-pure-white, #fff)
   );
-
-  &:focus-visible {
-    outline: 1px solid currentColor;
-    outline-offset: 1px;
-  }
 `;
 
 export const WindowControlsGroup = styled.div`

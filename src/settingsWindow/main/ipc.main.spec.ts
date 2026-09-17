@@ -48,6 +48,8 @@ jest.mock('../../ui/main/secondaryWindowState', () => ({
 
 jest.mock('../../ui/windowChrome/appearance', () => ({
   NOT_FULL_SCREENABLE: {},
+  SIDEBAR_WIDTH: 248,
+  CARD_INSET: 4,
   getTitleBarOptions: jest.fn(() => ({})),
 }));
 
@@ -231,6 +233,40 @@ describe('settings-window default sizing', () => {
     };
     expect(BrowserWindow).toHaveBeenCalledWith(
       expect.objectContaining({ width: 900, height: 720 })
+    );
+  });
+
+  it('is not resizable or maximizable', async () => {
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ resizable: false, maximizable: false })
+    );
+  });
+
+  it('restores a saved position but never a saved size', async () => {
+    const { getSavedWindowBounds } = jest.requireMock(
+      '../../ui/main/secondaryWindowState'
+    ) as { getSavedWindowBounds: jest.Mock };
+    getSavedWindowBounds.mockReturnValue({
+      x: 40,
+      y: 60,
+      width: 1400,
+      height: 1000,
+    });
+
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ x: 40, y: 60, width: 900, height: 720 })
     );
   });
 

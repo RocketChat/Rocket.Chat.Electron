@@ -143,7 +143,7 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
         width='100%'
         style={{ backgroundColor: surfaces.panel }}
       >
-        <WindowToolbar>
+        <WindowToolbar isMaximizable={false}>
           <Icon name='cog' size='x16' color='hint' />
           <Box
             marginInlineStart='x4'

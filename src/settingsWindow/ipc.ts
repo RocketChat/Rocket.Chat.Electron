@@ -25,13 +25,7 @@ import {
   NOT_FULL_SCREENABLE,
   getTitleBarOptions,
 } from '../ui/windowChrome/appearance';
-import {
-  TRANSPARENCY_CHANNEL,
-  WINDOW_MIN_HEIGHT,
-  WINDOW_MIN_WIDTH,
-  WINDOW_PREFERRED_HEIGHT,
-  WINDOW_PREFERRED_WIDTH,
-} from './constants';
+import { TRANSPARENCY_CHANNEL, WINDOW_HEIGHT, WINDOW_WIDTH } from './constants';
 
 const t = i18next.t.bind(i18next);
 
@@ -54,8 +48,8 @@ const selectIsTransparencyEnabled = ({
 let pendingCreation: Promise<void> | null = null;
 
 /**
- * Centred on the display nearest the main window, sized for the Appearance
- * section but never larger than the screen it opens on.
+ * Centred on the display nearest the main window, at the fixed window size but
+ * never larger than the screen it opens on.
  */
 const getDefaultBounds = async (): Promise<{
   width: number;
@@ -71,14 +65,8 @@ const getDefaultBounds = async (): Promise<{
     y: winBounds.y + winBounds.height / 2,
   });
 
-  const width = Math.min(
-    actualScreen.workAreaSize.width,
-    WINDOW_PREFERRED_WIDTH
-  );
-  const height = Math.min(
-    actualScreen.workAreaSize.height,
-    WINDOW_PREFERRED_HEIGHT
-  );
+  const width = Math.min(actualScreen.workAreaSize.width, WINDOW_WIDTH);
+  const height = Math.min(actualScreen.workAreaSize.height, WINDOW_HEIGHT);
   const x = Math.round(
     (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
   );
@@ -93,16 +81,22 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
   const { width, height, x, y } = await getDefaultBounds();
 
   // Where the reader last left this window, falling back to centred on the
-  // display nearest the main window.
+  // display nearest the main window. Only the position is restored: the size is
+  // fixed, and a size persisted by an older, resizable build must not win.
   const savedBounds = getSavedWindowBounds('settings');
+  const position = savedBounds
+    ? { x: savedBounds.x, y: savedBounds.y }
+    : { x, y };
 
   // Seeds the first paint only; the renderer then follows the setting live.
   const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
 
   settingsWindow = new BrowserWindow({
-    ...(savedBounds ?? { width, height, x, y }),
-    minWidth: WINDOW_MIN_WIDTH,
-    minHeight: WINDOW_MIN_HEIGHT,
+    width,
+    height,
+    ...position,
+    resizable: false,
+    maximizable: false,
     title: 'Settings - Rocket.Chat',
     // The toolbar doubles as the title bar wherever the platform allows it, so
     // the window shows one header instead of a native title bar stacked on an

@@ -10,29 +10,6 @@ export const getInternalVideoChatWindowEnabled = (): boolean =>
 
 export type videoCallWindowOptions = {
   providerName?: string | undefined;
-  credentials?: {
-    userId: string;
-    authToken: string;
-  };
-};
-
-const getCredentialsForPexip = (
-  options: videoCallWindowOptions | undefined
-): videoCallWindowOptions | undefined => {
-  if (options?.providerName !== 'pexip') {
-    return options;
-  }
-
-  const authToken = localStorage.getItem('Meteor.loginToken');
-  const userId = localStorage.getItem('Meteor.userId');
-  if (authToken && userId) {
-    return {
-      ...options,
-      credentials: { userId, authToken },
-    };
-  }
-
-  return options;
 };
 
 export const openInternalVideoChatWindow = (
@@ -45,7 +22,6 @@ export const openInternalVideoChatWindow = (
     return;
   }
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
-    const enrichedOptions = getCredentialsForPexip(options);
     switch (options?.providerName) {
       case 'jitsi':
         // window.open(validUrl.href, 'Video Call', 'scrollbars=true');
@@ -53,7 +29,7 @@ export const openInternalVideoChatWindow = (
         ipcRenderer.invoke(
           'video-call-window/open-window',
           validUrl.href,
-          enrichedOptions
+          options
         );
         break;
       case 'googlemeet':
@@ -63,7 +39,7 @@ export const openInternalVideoChatWindow = (
         ipcRenderer.invoke(
           'video-call-window/open-window',
           validUrl.href,
-          enrichedOptions
+          options
         );
         break;
     }

@@ -70,11 +70,6 @@ let activeCall: ActiveCall | null = null;
 // Serializes open-window requests so two near-simultaneous opens can't both pass
 // the destruction/existing-window guards and race into `new BrowserWindow`.
 let openWindowQueue: Promise<unknown> = Promise.resolve();
-let videoCallCredentials: {
-  userId: string;
-  authToken: string;
-  serverUrl: string;
-} | null = null;
 let videoCallProviderName: string | null = null;
 
 const videoCallScreenSharingTracker = new ScreenSharingRequestTracker(
@@ -242,9 +237,6 @@ const cleanupVideoCallWindow = () => {
       }
     }
   }
-
-  // Clear credentials immediately during cleanup
-  videoCallCredentials = null;
 
   // Use setTimeout to ensure this cleanup happens after any window events are processed
   setTimeout(() => {
@@ -604,7 +596,6 @@ const openVideoCallWindow = async (
   url: string,
   options?: {
     providerName?: string;
-    credentials?: { userId: string; authToken: string };
   }
 ): Promise<void> => {
   console.log('Video call window: Open-window handler called with URL:', url);
@@ -629,22 +620,7 @@ const openVideoCallWindow = async (
     return;
   }
 
-  // Store provider name and credentials
   videoCallProviderName = options?.providerName ?? null;
-  videoCallCredentials = null;
-  if (options?.providerName === 'pexip' && options?.credentials) {
-    try {
-      const serverOrigin = new URL(_wc.getURL()).origin;
-      videoCallCredentials = {
-        userId: options.credentials.userId,
-        authToken: options.credentials.authToken,
-        serverUrl: serverOrigin,
-      };
-    } catch {
-      // _wc.getURL() may not be a valid URL in edge cases
-      videoCallCredentials = null;
-    }
-  }
 
   if (isVideoCallWindowDestroying) {
     console.log('Waiting for video call window destruction to complete...');
@@ -884,8 +860,7 @@ const openVideoCallWindow = async (
       // main-app screen sharing keeps working (no-op on isolated sessions).
       void restoreServerViewHandler(capturedCall);
 
-      // Clear credentials and provider on close
-      videoCallCredentials = null;
+      // Clear provider on close
       videoCallProviderName = null;
 
       // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
@@ -1528,21 +1503,6 @@ handle('video-call-window/webview-ready', async () => {
 handle('video-call-window/webview-failed', async (_webContents, error) => {
   console.error('Video call window: Webview failed to load:', error);
   return { success: true };
-});
-
-handle('video-call-window/get-credentials', async (callerWebContents) => {
-  // Only return credentials to the video call window's webview
-  const isAuthorizedCaller =
-    !!videoCallWindow &&
-    !videoCallWindow.isDestroyed() &&
-    (callerWebContents.id === videoCallWindow.webContents.id ||
-      callerWebContents.hostWebContents?.id === videoCallWindow.webContents.id);
-
-  if (!isAuthorizedCaller || !videoCallCredentials) {
-    return null;
-  }
-
-  return videoCallCredentials;
 });
 
 handle('video-call-window/get-language', async () => {

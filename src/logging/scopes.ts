@@ -41,4 +41,5 @@ export const loggers = {
   videoCall: createScopedLogger('videocall'),
   servers: createScopedLogger('servers'),
   logViewer: createScopedLogger('logviewer'),
+  persistence: createScopedLogger('persistence'),
 };

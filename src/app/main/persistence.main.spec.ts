@@ -6,6 +6,7 @@ const mockSet = jest.fn();
 jest.mock('electron', () => ({
   app: {
     getVersion: jest.fn().mockReturnValue('1.0.0'),
+    getPath: jest.fn().mockReturnValue('/tmp/userData'),
   },
 }));
 
@@ -14,6 +15,7 @@ jest.mock('electron-store', () => {
     store: {},
     set: mockSet,
     get: jest.fn(),
+    path: '/tmp/userData/config.json',
   }));
 });
 
@@ -118,5 +120,159 @@ describe('persistValues throttling', () => {
     flushPersistedValues();
 
     expect(mockSet).not.toHaveBeenCalled();
+  });
+});
+
+const errorWithCode = (code: string): Error =>
+  Object.assign(new Error(`${code}: simulated failure, rename`), { code });
+
+/**
+ * Loads persistence against an electron-store mock that fails unless conf's
+ * non-atomic write path is active, which is how a UNC-backed roaming profile
+ * behaves: every write through the atomic rename throws.
+ */
+const loadPersistenceWith = ({
+  failWhileAtomic = true,
+  failAlways = false,
+  constructorError = errorWithCode('UNKNOWN'),
+  writeError = errorWithCode('UNKNOWN'),
+}: {
+  failWhileAtomic?: boolean;
+  failAlways?: boolean;
+  constructorError?: Error;
+  writeError?: Error;
+} = {}): {
+  persistence: typeof PersistenceModule;
+  constructorCalls: () => number;
+  snapDuringWrites: () => Array<string | undefined>;
+} => {
+  let attempts = 0;
+  const snapSeen: Array<string | undefined> = [];
+  let persistence!: typeof PersistenceModule;
+
+  jest.resetModules();
+
+  jest.isolateModules(() => {
+    jest.doMock('electron-store', () =>
+      jest.fn().mockImplementation(() => {
+        attempts += 1;
+        if (failAlways || (failWhileAtomic && !process.env.SNAP)) {
+          throw constructorError;
+        }
+
+        const values: Record<string, unknown> = {};
+        return {
+          get store() {
+            return values;
+          },
+          path: '/tmp/userData/config.json',
+          get: (key: string) => values[key],
+          set: (keyOrValues: unknown, value?: unknown) => {
+            snapSeen.push(process.env.SNAP);
+            if (failAlways || (failWhileAtomic && !process.env.SNAP)) {
+              throw writeError;
+            }
+            if (typeof keyOrValues === 'string') {
+              values[keyOrValues] = value;
+              return;
+            }
+            Object.assign(values, keyOrValues);
+          },
+        };
+      })
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    persistence = require('./persistence');
+  });
+
+  return {
+    persistence,
+    constructorCalls: () => attempts,
+    snapDuringWrites: () => snapSeen,
+  };
+};
+
+describe('settings store resilience on roaming profiles', () => {
+  const originalSnap = process.env.SNAP;
+
+  afterEach(() => {
+    if (originalSnap === undefined) {
+      delete process.env.SNAP;
+    } else {
+      process.env.SNAP = originalSnap;
+    }
+    jest.resetModules();
+  });
+
+  it('starts up when the migration write hits the rename failure', () => {
+    const { persistence, constructorCalls } = loadPersistenceWith();
+
+    expect(() => persistence.getPersistedValues()).not.toThrow();
+    expect(constructorCalls()).toBe(2);
+    expect(persistence.isUsingInMemorySettings()).toBe(false);
+  });
+
+  it('keeps saving settings after recovering', () => {
+    const { persistence, snapDuringWrites } = loadPersistenceWith();
+
+    persistence.getPersistedValues();
+    persistence.setPersistedMeta('someKey', 'someValue');
+
+    expect(persistence.getPersistedMeta('someKey', 'MISSING')).toBe(
+      'someValue'
+    );
+    expect(snapDuringWrites().every(Boolean)).toBe(true);
+  });
+
+  it('restores the SNAP environment variable after a recovered write', () => {
+    const { persistence } = loadPersistenceWith();
+
+    persistence.getPersistedValues();
+    persistence.setPersistedMeta('someKey', 'someValue');
+
+    expect(process.env.SNAP).toBeUndefined();
+  });
+
+  it('falls back to in-memory settings when recovery also fails', () => {
+    const { persistence } = loadPersistenceWith({ failAlways: true });
+
+    expect(() => persistence.getPersistedValues()).not.toThrow();
+    expect(persistence.isUsingInMemorySettings()).toBe(true);
+  });
+
+  it('keeps in-memory settings readable when the store is unavailable', () => {
+    const { persistence } = loadPersistenceWith({ failAlways: true });
+
+    persistence.setPersistedMeta('someKey', 'someValue');
+
+    expect(persistence.getPersistedMeta('someKey', 'MISSING')).toBe(
+      'someValue'
+    );
+  });
+
+  it('does not retry without atomic writes for unrelated failures', () => {
+    const { persistence, constructorCalls } = loadPersistenceWith({
+      failAlways: true,
+      constructorError: new SyntaxError('config.json is corrupt'),
+    });
+
+    expect(() => persistence.getPersistedValues()).not.toThrow();
+    expect(constructorCalls()).toBe(1);
+    expect(persistence.isUsingInMemorySettings()).toBe(true);
+  });
+
+  it('retries a failed save without the atomic rename', () => {
+    const { persistence, snapDuringWrites } = loadPersistenceWith({
+      failWhileAtomic: false,
+    });
+
+    persistence.getPersistedValues();
+    // First save fails atomically, so the retry must run with SNAP set.
+    const store = persistence.getPersistedValues() as Record<string, unknown>;
+    expect(store).toBeDefined();
+    persistence.setPersistedMeta('someKey', 'someValue');
+
+    expect(snapDuringWrites().length).toBeGreaterThan(0);
   });
 });

@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 
 import {
   performElectronStartup,
@@ -86,6 +86,26 @@ import {
   startVideoCallWindowHandler,
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
+
+/**
+ * Startup can fail before any window exists, which otherwise looks like the
+ * app silently refusing to launch. `showErrorBox` is used because it is the
+ * only dialog available before `app.whenReady()` resolves.
+ */
+const showStartupFailureDialog = (error: unknown): void => {
+  const detail = error instanceof Error ? error.message : String(error);
+
+  try {
+    dialog.showErrorBox(
+      'Rocket.Chat could not start',
+      `${detail}\n\nIf this keeps happening, please report it with the log file at:\n${app.getPath(
+        'logs'
+      )}`
+    );
+  } catch (dialogError) {
+    logger.error('Failed to show the startup failure dialog', dialogError);
+  }
+};
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
@@ -198,5 +218,6 @@ const start = async (): Promise<void> => {
 
 start().catch((error) => {
   logger.error('Failed to start application', error);
+  showStartupFailureDialog(error);
   app.exit(1);
 });

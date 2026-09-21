@@ -56,6 +56,29 @@ inputs:
   snapcraft_token:
     description: 'The Snapcraft token to publish releases'
     required: true
+  mode:
+    description: >-
+      build (default): pack the given targets and upload them to the tagged draft release.
+      prepare: only create/find the draft release for the tag, so parallel build jobs never race on it.
+      dry-run: pack and sign/verify the given targets, never touch GitHub releases or Snapcraft
+      (usable from workflow_dispatch on a branch).
+    required: false
+    default: 'build'
+  targets:
+    description: >-
+      Space-separated electron-builder targets for this job, e.g. "nsis", "msi", "appx",
+      "dmg zip pkg", "mas", "AppImage deb rpm tar.gz", "snap". Empty = every target for the platform
+      (the pre-split behaviour).
+    required: false
+    default: ''
+  upload_update_metadata:
+    description: >-
+      Whether this job uploads the electron-updater metadata files (latest*.yml, alpha*.yml,
+      beta*.yml). Exactly ONE job per platform must be true: the one that builds the artifact the
+      updater consumes (nsis on Windows, dmg+zip on macOS, AppImage on Linux). Other jobs would
+      overwrite it with a partial file list.
+    required: false
+    default: 'true'
 
 runs:
   using: 'node24'

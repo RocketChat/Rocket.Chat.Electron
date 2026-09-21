@@ -8,8 +8,8 @@ export const disableSpotlightIndexing = (): Promise<void> =>
     () => run(`sudo mdutil -a -i off`)
   );
 
-export const packOnMacOS = (): Promise<void> =>
-  runElectronBuilder(`--mac --universal`, {
+export const packOnMacOS = (targets = ''): Promise<void> =>
+  runElectronBuilder(`--mac ${targets} --universal`.replace(/\s+/g, ' '), {
     CSC_LINK: core.getInput('mac_csc_link'),
     CSC_KEY_PASSWORD: core.getInput('mac_csc_key_password'),
     FORCE_NOTARIZE: 'true',

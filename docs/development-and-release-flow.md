@@ -20,12 +20,12 @@ unrelated work that has since landed on `dev`. This separation keeps
 
 ## Branch roles
 
-| Branch | Purpose | Who merges into it | Merge method |
-|---|---|---|---|
-| `dev` | Default branch; integration point for all feature and fix PRs; source of alpha tags | Any contributor via PR review | Squash |
-| `master` | Released code only; moves forward exclusively through a `dev`→`master` release merge | Release manager, at promotion time | True merge commit |
-| `release/X.Y.x` | Patch line for a shipped stable version; receives cherry-picked fixes from `dev` | Release manager, when preparing a patch | Squash |
-| Feature/fix branches | Short-lived, one change per branch, opened against `dev` | The author, via PR | Squash (into `dev`) |
+| Branch               | Purpose                                                                              | Who merges into it                      | Merge method        |
+| -------------------- | ------------------------------------------------------------------------------------ | --------------------------------------- | ------------------- |
+| `dev`                | Default branch; integration point for all feature and fix PRs; source of alpha tags  | Any contributor via PR review           | Squash              |
+| `master`             | Released code only; moves forward exclusively through a `dev`→`master` release merge | Release manager, at promotion time      | True merge commit   |
+| `release/X.Y.x`      | Patch line for a shipped stable version; receives cherry-picked fixes from `dev`     | Release manager, when preparing a patch | Squash              |
+| Feature/fix branches | Short-lived, one change per branch, opened against `dev`                             | The author, via PR                      | Squash (into `dev`) |
 
 ## Lifecycle of a change
 
@@ -78,11 +78,11 @@ or more squash-merged PRs.
 
 ## CI/CD
 
-| Stage | Trigger | What happens |
-|---|---|---|
-| PR checks | Any PR opened against `dev`, `master`, or `release/*` | `validate-pr` runs lint and the full test suite; a `build-artifacts` label additionally builds installers for manual smoke-testing |
-| Release build | A semver tag push (`X.Y.Z` or `X.Y.Z-alpha.N`, etc.) | `build-release` builds every platform's installers and creates a **draft** GitHub release |
-| Publish | Manual | A human reviews the draft release and its assets, then publishes it |
+| Stage         | Trigger                                               | What happens                                                                                                                                                                                                                      |
+| ------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR checks     | Any PR opened against `dev`, `master`, or `release/*` | `validate-pr` runs lint and the full test suite; a `build-artifacts` label additionally builds installers for manual smoke-testing                                                                                                |
+| Release build | A semver tag push (`X.Y.Z` or `X.Y.Z-alpha.N`, etc.)  | `build-release` creates a **draft** GitHub release, then seven parallel jobs (per platform × installer family) build, sign and upload the installers into it. `workflow_dispatch` runs the same jobs as a dry run with no release |
+| Publish       | Manual                                                | A human reviews the draft release and its assets, then publishes it                                                                                                                                                               |
 
 Release builds never run on a branch push — only on a tag. This keeps
 `dev`, `master`, and `release/*` free of accidental builds, and guarantees
@@ -92,11 +92,11 @@ publish step.
 Published releases are consumed by the app's auto-updater through three
 channels:
 
-| Channel | Who receives it |
-|---|---|
-| `latest` (stable) | All users by default |
-| `beta` | Users who opt into beta updates |
-| `alpha` | Users who opt into alpha updates (also receive beta and stable) |
+| Channel           | Who receives it                                                 |
+| ----------------- | --------------------------------------------------------------- |
+| `latest` (stable) | All users by default                                            |
+| `beta`            | Users who opt into beta updates                                 |
+| `alpha`           | Users who opt into alpha updates (also receive beta and stable) |
 
 ## Versioning
 

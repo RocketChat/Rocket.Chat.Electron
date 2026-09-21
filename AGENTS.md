@@ -43,7 +43,15 @@ yarn workspaces:build        # Build all workspaces
 - Never back-merge `master` or a `release/X.Y.x` branch into `dev`.
 - Tags are created only via `yarn release:tag` (channel-aware guard).
   Release builds trigger on semver tag pushes only and always produce a
-  draft release for a human to review and publish.
+  draft release for a human to review and publish. `build-release.yml` is a
+  `prepare` job (creates the draft) plus seven parallel packaging jobs; only
+  ONE job per platform may set `upload_update_metadata: 'true'` (nsis, dmg,
+  AppImage) — the `latest*.yml` a job uploads lists only the files that job
+  built, so a second uploader replaces it with a partial list and breaks
+  auto-update. `workflow_dispatch` on that workflow is a signed dry run with
+  no release; use it before trusting a workflow/action change with a tag.
+  The release action reads `mode`, `targets` and `upload_update_metadata`
+  inputs (`workspaces/desktop-release-action/action.yml`).
 - Version invariant: `package.json` on `dev` always equals the newest tag
   cut from `dev`'s own line (the first alpha of a new cycle bumps straight
   to `X.(Y+1).0-alpha.1`).

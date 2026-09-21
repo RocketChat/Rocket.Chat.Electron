@@ -40,7 +40,11 @@ jobs:
       - name: Setup node_modules cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: '**/node_modules'
+          # .yarn/cache is project-local (enableGlobalCache: false); without it
+          # every job re-fetches all package archives even on a node_modules hit.
+          path: |
+            **/node_modules
+            .yarn/cache
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install package dependencies
         run: yarn install
@@ -97,12 +101,27 @@ jobs:
       - name: Setup node_modules cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: '**/node_modules'
+          # .yarn/cache is project-local (enableGlobalCache: false); without it
+          # every job re-fetches all package archives even on a node_modules hit.
+          path: |
+            **/node_modules
+            .yarn/cache
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install package dependencies
         run: yarn install
       - name: Lint
         run: yarn lint
+      - name: Setup Electron download cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          # electron-builder --dir downloads the Electron zip on every run
+          # otherwise. Paths follow @electron/get's per-OS cache location.
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/yarn.lock') }}
       - name: Build app/
         run: yarn build
         env:

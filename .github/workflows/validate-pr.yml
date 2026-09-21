@@ -21,6 +21,11 @@ jobs:
     # The slowest shard finished in ~15 min on the first sharded run; a wedged
     # Electron child under jest-electron-runner otherwise burns the 6 h default.
     timeout-minutes: 45
+    env:
+      # puppeteer is only used by `yarn build-assets` (the one spec touching it
+      # mocks the module); its postinstall would download Chromium, which has
+      # no arm64 Linux build and is dead weight on every test shard.
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
     strategy:
       fail-fast: false
       matrix:

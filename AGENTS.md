@@ -167,6 +167,31 @@ yarn workspaces:build        # Build all workspaces
 - Verify new specs with `yarn test --listTests --runTestsByPath <file>` when
   discovery is uncertain.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation.
+  It forces `--maxWorkers=1` and spawns one Electron process per spec file,
+  so the only CI parallelism is cross-job `--shard`; after the transform fix
+  that spawn is most of each shard's ~3 min. Do NOT reach for more workers,
+  runner classes or a faster transformer to cut that floor.
+- ts-jest runs transpile-only (`tsconfig: { isolatedModules: true }` inline
+  in `jest.config.js`, `tsconfig.json` untouched). Do NOT switch back to
+  `preset: 'ts-jest'`: the default builds a type-checking Program per spec
+  file and CI has no warm Jest cache, which made the Test step 4× slower.
+  Type errors in specs are caught by `tsc --noEmit` in `yarn lint`.
+- Do NOT switch the transformer to `@swc/jest` without first fixing the two
+  spec patterns it breaks: assigning onto `require(mod).fn` (swc emits
+  read-only getters) and reading a `const` inside a `jest.mock` factory
+  (swc's hoisting hits the temporal dead zone). Measured gain is ~20 s per
+  shard. Story: `docs/postmortem-validate-pr-ci-speed.md`.
+- `jest.config.js` excludes 18 preload/renderer specs under `--coverage`.
+  Keep at least one CI leg running plain `yarn test` (today: windows and
+  macos shards) or those specs gate nothing.
+- validate-pr runs the ubuntu shards on `ubuntu-24.04-arm`. Cache keys MUST
+  include `runner.arch` (both arches report `runner.os == Linux`), and the
+  test job sets `PUPPETEER_SKIP_DOWNLOAD` because puppeteer's postinstall has
+  no arm64 Linux Chromium; puppeteer is only used by `yarn build-assets`.
+- Before blaming CI runners for a slowdown, pull per-step timings
+  (`gh run view <id> --json jobs`) across months. In Sep 2026 the Windows
+  Test step had gone from 1 min to 27 min purely from suite growth plus
+  per-file type-checking; runners were unchanged.
 - Tests run on Windows, macOS, and Linux CI — always verify cross-platform
   behavior.
 - UI changes need runtime/visual verification — component tests cannot see

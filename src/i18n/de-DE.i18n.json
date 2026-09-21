@@ -156,11 +156,9 @@
       "clear": "Filter löschen",
       "all": "Alle",
       "mimes": {
-        "images": "Bilder",
-        "videos": "Videos",
-        "audios": "Audios",
-        "texts": "Texte",
-        "files": "Dateien"
+        "image": "Bilder",
+        "video": "Videos",
+        "application": "Dateien"
       },
       "statuses": {
         "paused": "Angehalten",
@@ -305,6 +303,7 @@
     "copy": "&Kopieren",
     "cut": "&Ausschneiden",
     "developerMode": "Entwicklermodus",
+    "simulateDisconnected": "Verbindungsabbruch simulieren",
     "disableGpu": "GPU deaktivieren",
     "documentation": "Dokumentation",
     "downloads": "Downloads",
@@ -338,8 +337,7 @@
     "viewMenu": "Darstellung",
     "windowMenu": "&Fenster",
     "zoomIn": "Vergrößern",
-    "zoomOut": "Verkleinern",
-    "simulateDisconnected": "Verbindungsabbruch simulieren"
+    "zoomOut": "Verkleinern"
   },
   "loadingError": {
     "title": "Server konnte nicht geladen werden",

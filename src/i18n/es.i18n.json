@@ -175,11 +175,9 @@
       "clear": "Limpiar filtros",
       "all": "Todos",
       "mimes": {
-        "images": "Imágenes",
-        "videos": "Videos",
-        "audios": "Audios",
-        "texts": "Textos",
-        "files": "Archivos"
+        "image": "Imágenes",
+        "video": "Videos",
+        "application": "Archivos"
       },
       "statuses": {
         "paused": "Pausada",
@@ -328,6 +326,7 @@
     "copy": "&Copiar",
     "cut": "Cor&tar",
     "developerMode": "Modo desarrollador",
+    "simulateDisconnected": "Simular desconexión",
     "disableGpu": "Deshabilitar GPU",
     "documentation": "Documentación",
     "downloads": "Descargas",
@@ -362,8 +361,7 @@
     "viewMenu": "&Ver",
     "windowMenu": "&Ventana",
     "zoomIn": "Acercar",
-    "zoomOut": "Alejar",
-    "simulateDisconnected": "Simular desconexión"
+    "zoomOut": "Alejar"
   },
   "loadingError": {
     "title": "Fallo al cargar el servidor",

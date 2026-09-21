@@ -184,11 +184,9 @@
       "clear": "Rensa filter",
       "all": "Alla",
       "mimes": {
-        "images": "Bilder",
-        "videos": "Videor",
-        "audios": "Ljudfiler",
-        "texts": "Texter",
-        "files": "Filer"
+        "image": "Bilder",
+        "video": "Videor",
+        "application": "Filer"
       },
       "statuses": {
         "paused": "Pausad",
@@ -337,6 +335,7 @@
     "copy": "&Kopiera",
     "cut": "Klipp ut",
     "developerMode": "Utvecklarläge",
+    "simulateDisconnected": "Simulera frånkoppling",
     "disableGpu": "Avaktivera GPU",
     "documentation": "Dokumentation",
     "downloads": "Nedladdningar",
@@ -376,8 +375,7 @@
     "viewMenu": "&Visa",
     "windowMenu": "&Fönster",
     "zoomIn": "Zooma in",
-    "zoomOut": "Zooma ut",
-    "simulateDisconnected": "Simulera frånkoppling"
+    "zoomOut": "Zooma ut"
   },
   "loadingError": {
     "title": "Servern kunde inte laddas",

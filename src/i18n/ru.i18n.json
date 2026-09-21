@@ -157,11 +157,9 @@
       "clear": "Очистить фильтры",
       "all": "Все",
       "mimes": {
-        "images": "Изображения",
-        "videos": "Видео",
-        "audios": "Аудиозаписи",
-        "texts": "Тексты",
-        "files": "Файлы"
+        "image": "Изображения",
+        "video": "Видео",
+        "application": "Файлы"
       },
       "statuses": {
         "paused": "На паузе",
@@ -306,6 +304,7 @@
     "copy": "&Копировать",
     "cut": "В&ырезать",
     "developerMode": "Режим разработчика",
+    "simulateDisconnected": "Симулировать отключение",
     "disableGpu": "Отключить GPU",
     "documentation": "Документация",
     "downloads": "Загрузки",
@@ -340,8 +339,7 @@
     "viewMenu": "&Вид",
     "windowMenu": "&Окна",
     "zoomIn": "Увеличить",
-    "zoomOut": "Уменьшить",
-    "simulateDisconnected": "Симулировать отключение"
+    "zoomOut": "Уменьшить"
   },
   "loadingError": {
     "title": "Не удалось загрузить сервер",

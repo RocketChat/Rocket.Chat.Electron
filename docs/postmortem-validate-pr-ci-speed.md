@@ -7,10 +7,26 @@ Cut the wall time of the `Validate pull request` workflow, which had grown to
 
 ## Impact
 
-- PR feedback with free runners dropped from 34 minutes to about 5 minutes
-  (run 35597079932 on `dev` vs run 35642580925 on the PR).
-- Build and smoke-launch results now arrive in 2–6 minutes, in parallel with
-  tests, instead of after them.
+Baseline run 35597079932 on `dev` vs final run 35642580925 on the PR.
+
+|                               | Before                        | After                    | Change                |
+| ----------------------------- | ----------------------------- | ------------------------ | --------------------- |
+| Wall time, free runners       | 34 min                        | **5.2 min**              | **6.5× faster, −85%** |
+| Slowest Test step             | 27m15s (windows)              | 3m17s (macos shard 2)    | 8× faster, −88%       |
+| Build + smoke-launch feedback | after the Test step (~30 min) | 2.4–5.1 min, in parallel | 6–12× sooner          |
+| Jobs per PR                   | 3                             | 9                        | 3× more runners       |
+
+Step by step:
+
+| Step                                  | Wall time after | Step gain  | Cumulative |
+| ------------------------------------- | --------------- | ---------- | ---------- |
+| Baseline                              | 34 min          |            |            |
+| Shard across jobs, coverage on one OS | 17.2 min        | 2.0×, −49% | 2.0×, −49% |
+| ts-jest transpile-only (one line)     | 7.1 min         | 2.4×, −59% | 4.8×, −79% |
+| Caches warm, ubuntu shards on arm64   | 5.2 min         | 1.4×, −27% | 6.5×, −85% |
+
+Other observable effects:
+
 - 18 preload/renderer specs that `jest.config.js` excludes under `--coverage`
   now gate Windows and macOS. Before, every OS ran the coverage variant, so
   those specs did not participate in PR checks on any platform.
@@ -18,16 +34,24 @@ Cut the wall time of the `Validate pull request` workflow, which had grown to
 
 ### Per platform
 
-Baseline run 35597079932 vs final run 35642580925. "Longest job" is the
-platform's critical path: before, its single job; after, the slowest of its
-two test shards and its build job. "Test step" is the slowest Test step on
-that platform.
+The longest job is the platform's critical path: before, its single job;
+after, the slowest of its two test shards and its build job.
 
-| Platform         | Longest job before | after           | change     | Test step before | after   | change     |
-| ---------------- | ------------------ | --------------- | ---------- | ---------------- | ------- | ---------- |
-| windows          | 34.2 min           | 5.2 min (build) | 6.6×, −85% | 27.3 min         | 3.0 min | 9.1×, −89% |
-| ubuntu (→ arm64) | 24.7 min           | 4.2 min         | 5.9×, −83% | 21.5 min         | 2.9 min | 7.4×, −86% |
-| macos            | 23.4 min           | 5.0 min         | 4.7×, −79% | 18.5 min         | 3.3 min | 5.6×, −82% |
+Longest job:
+
+| Platform         | Before   | After           | Change     |
+| ---------------- | -------- | --------------- | ---------- |
+| windows          | 34.2 min | 5.2 min (build) | 6.6×, −85% |
+| ubuntu (→ arm64) | 24.7 min | 4.2 min         | 5.9×, −83% |
+| macos            | 23.4 min | 5.0 min         | 4.7×, −79% |
+
+Slowest Test step:
+
+| Platform         | Before   | After   | Change     |
+| ---------------- | -------- | ------- | ---------- |
+| windows          | 27.3 min | 3.0 min | 9.1×, −89% |
+| ubuntu (→ arm64) | 21.5 min | 2.9 min | 7.4×, −86% |
+| macos            | 18.5 min | 3.3 min | 5.6×, −82% |
 
 Windows gained the most because it paid the most for the per-file
 type-check; its critical path is now the build job packaging x64 and ia32,

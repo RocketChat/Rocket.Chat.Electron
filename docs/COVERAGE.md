@@ -7,7 +7,7 @@ Running log of test-coverage milestones for Rocket.Chat.Electron. Append a new r
 - `yarn test:coverage` runs the full Jest suite with `--coverage` and writes reports to `coverage/` (`lcov.info`, `coverage-summary.json`, plus a `text-summary` to the console).
 - Two Jest projects run under `@kayahr/jest-electron-runner`: renderer (electron DOM env) and main (node env). Coverage is collected across both via the root-level `collectCoverageFrom` in `jest.config.js`.
 - The authoritative number is `coverage/coverage-summary.json` → `total.lines.pct` (the console `text-summary` matches it).
-- CI (`.github/workflows/validate-pr.yml`) runs `yarn test:coverage` on every PR to `dev`, `master`, or a `release/*` line and uploads to **Codecov** (`unit` flag). Coverage is **informational** — there is intentionally no hard `coverageThreshold` gate, matching the main Rocket.Chat monorepo's house style (`codecov.yml`: `patch: off`, project `target: auto / threshold: 1%`).
+- CI (`.github/workflows/validate-pr.yml`) runs `yarn test:coverage` on every PR to `dev`, `master`, or a `release/*` line and uploads to **Codecov** (`unit` flag). The suite is split into two `--shard` jobs per OS; only the `ubuntu-latest` shards collect coverage (Windows/macOS run plain `yarn test`), and Codecov merges the two shard uploads for the same commit server-side. The per-shard `coverage-report-shard-N` artifacts are therefore partial — read the merged number from Codecov or from a local run, never from a single artifact. Coverage is **informational** — there is intentionally no hard `coverageThreshold` gate, matching the main Rocket.Chat monorepo's house style (`codecov.yml`: `patch: off`, project `target: auto / threshold: 1%`).
 
 ## How to update this log
 

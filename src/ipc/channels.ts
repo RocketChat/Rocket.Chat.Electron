@@ -37,7 +37,6 @@ type ChannelToArgsMap = {
     url: string,
     options?: {
       providerName?: string;
-      credentials?: { userId: string; authToken: string };
     }
   ) => void;
   'video-call-window/open-url': (url: string) => void;

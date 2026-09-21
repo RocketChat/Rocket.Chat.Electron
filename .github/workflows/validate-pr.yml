@@ -73,7 +73,9 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=6144
         run: yarn test --shard=${{ matrix.shard }}/2
       - name: Upload coverage to Codecov
-        if: ${{ always() && matrix.os == 'ubuntu-24.04-arm' }}
+        # Not always(): a shard that failed mid-run leaves a partial report,
+        # and Codecov would merge it into the normal `unit` flag.
+        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           flags: unit

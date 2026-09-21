@@ -16,6 +16,25 @@ Cut the wall time of the `Validate pull request` workflow, which had grown to
   those specs did not participate in PR checks on any platform.
 - Docs-only PRs (`**.md`) no longer start the matrix.
 
+### Per platform
+
+Baseline run 35597079932 vs final run 35642580925. "Longest job" is the
+platform's critical path: before, its single job; after, the slowest of its
+two test shards and its build job. "Test step" is the slowest Test step on
+that platform.
+
+| Platform         | Longest job before | after           | change     | Test step before | after   | change     |
+| ---------------- | ------------------ | --------------- | ---------- | ---------------- | ------- | ---------- |
+| windows          | 34.2 min           | 5.2 min (build) | 6.6×, −85% | 27.3 min         | 3.0 min | 9.1×, −89% |
+| ubuntu (→ arm64) | 24.7 min           | 4.2 min         | 5.9×, −83% | 21.5 min         | 2.9 min | 7.4×, −86% |
+| macos            | 23.4 min           | 5.0 min         | 4.7×, −79% | 18.5 min         | 3.3 min | 5.6×, −82% |
+
+Windows gained the most because it paid the most for the per-file
+type-check; its critical path is now the build job packaging x64 and ia32,
+not the tests. The three platforms finish within a minute of each other,
+where Windows used to trail by ten. macOS gained the least because its
+runner was already the fastest at the per-file Electron spawn that remains.
+
 ## Timeline
 
 ### Diagnosis: where the time went

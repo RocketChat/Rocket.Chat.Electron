@@ -4,6 +4,7 @@ permissions: {}
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     branches:
       - master
       - dev
@@ -18,7 +19,14 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
+    # On a `labeled` event only react to the build-artifacts label itself;
+    # otherwise adding any other label to an already-labelled PR would
+    # rebuild every installer.
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'build-artifacts') ||
+      (github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'build-artifacts'))
+    # Installers only: lint and the Jest suite are gated by validate-pr.yml.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -50,27 +58,31 @@ jobs:
       - name: Setup node_modules cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          # Same layout and key as validate-pr.yml so the two workflows share
+          # cache entries; .yarn/cache is project-local (enableGlobalCache: false).
+          path: |
+            **/node_modules
+            .yarn/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Setup Electron download cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: ${{ runner.os }}-${{ runner.arch }}-electron-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install package dependencies
         run: yarn install
-
-      - name: Lint
-        run: yarn lint
-
-      - name: Test
-        env:
-          CSC_LINK: ${{ matrix.build-target == 'mac' && secrets.MAC_CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ matrix.build-target == 'mac' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
-        run: yarn test
 
       - name: Build app/
         run: yarn build
         env:
           NODE_ENV: production
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Setup Google Cloud authentication (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
@@ -524,7 +536,8 @@ jobs:
             exit 1
           }
 
-          yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis msi
+          # PR artifacts: nsis only (msi is a release-only target)
+          yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
@@ -534,7 +547,8 @@ jobs:
         if: ${{ matrix.build-target == 'mac' }}
         run: |
           sudo mdutil -a -i off
-          yarn electron-builder --publish never --mac --universal
+          # PR artifacts: dmg only (pkg/zip/mas are release-only targets)
+          yarn electron-builder --publish never --mac dmg --universal
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
@@ -548,31 +562,6 @@ jobs:
         if: ${{ matrix.build-target == 'linux' }}
         run: yarn electron-builder --publish never --linux snap deb appimage
 
-      - name: Find Snap File
-        id: find_snap
-        if: ${{ matrix.build-target == 'linux' }}
-        run: |
-          SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
-          if [ -z "$SNAP_FILE" ]; then
-            echo "::error::Snap file not found in dist/"
-            exit 1
-          fi
-          echo "Found snap file: $SNAP_FILE"
-          echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
-
-      - name: Publish to Snap Store (Edge)
-        if: ${{ matrix.build-target == 'linux' }}
-        uses: snapcore/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40 # v1.2.0
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.find_snap.outputs.SNAP_FILE_PATH }}
-          release: edge
-
-      # Install AWS CLI
-      - name: Install AWS CLI
-        run: pip install awscli
-
       # Upload artifacts to Wasabi (Windows)
       - name: Upload Artifacts to Wasabi (Windows)
         if: ${{ matrix.build-target == 'windows' }}
@@ -581,8 +570,7 @@ jobs:
             --acl public-read `
             --endpoint-url=https://s3.us-east-1.wasabisys.com `
             --exclude "*" `
-            --include "rocketchat-*.exe" `
-            --include "rocketchat-*.msi"
+            --include "rocketchat-*.exe"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
@@ -596,8 +584,7 @@ jobs:
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --checksum-algorithm SHA1 \
             --exclude "*" \
-            --include "rocketchat-*.dmg" \
-            --include "rocketchat-*.pkg"
+            --include "rocketchat-*.dmg"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}

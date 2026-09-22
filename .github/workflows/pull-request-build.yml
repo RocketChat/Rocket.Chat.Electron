@@ -19,7 +19,12 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
+    # On a `labeled` event only react to the build-artifacts label itself;
+    # otherwise adding any other label to an already-labelled PR would
+    # rebuild every installer.
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'build-artifacts') ||
+      (github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'build-artifacts'))
     # Installers only: lint and the Jest suite are gated by validate-pr.yml.
     timeout-minutes: 60
     strategy:

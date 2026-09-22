@@ -303,7 +303,7 @@ describe('TabBar', () => {
 
   it('falls back tabindex to the first tab when no server is selected', () => {
     renderTabBar(<TabBar />, {
-      preloadedState: buildState({ currentView: 'settings' }),
+      preloadedState: buildState({ currentView: 'add-new-server' }),
     });
 
     const tabs = screen.getAllByRole('tab');

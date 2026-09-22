@@ -31,8 +31,6 @@ export type Server = {
   supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   expirationMessageLastTimeShown?: Date;
   supportedVersionsValidatedAt?: Date;
-  documentViewerOpenUrl?: string;
-  documentViewerFormat?: string;
   presence?: UserPresence;
   presenceStatusText?: string;
   presenceConnection?: 'connected' | 'connecting' | 'disconnected';

@@ -121,11 +121,13 @@ describe('ServerSwitcher', () => {
     expect(trigger).not.toHaveTextContent('https://');
   });
 
-  it('shows the view title when a utility page is open', () => {
+  it('shows the add-server title when that view is open', () => {
     renderWithStore(<ServerSwitcher />, {
-      preloadedState: buildState({ currentView: 'settings' }),
+      preloadedState: buildState({ currentView: 'add-new-server' }),
     });
 
-    expect(screen.getByRole('button')).toHaveTextContent('sidebar.settings');
+    expect(screen.getByRole('button')).toHaveTextContent(
+      'sidebar.addNewServer'
+    );
   });
 });

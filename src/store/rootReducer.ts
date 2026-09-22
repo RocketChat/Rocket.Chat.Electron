@@ -47,7 +47,6 @@ import { isPresenceDisconnectionSimulated } from '../ui/reducers/isPresenceDisco
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isSettingsWindowOpen } from '../ui/reducers/isSettingsWindowOpen';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
-import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTelephonyEnabled } from '../ui/reducers/isTelephonyEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
@@ -55,7 +54,6 @@ import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookL
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
-import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { navigationLayout } from '../ui/reducers/navigationLayout';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
@@ -101,7 +99,6 @@ export const rootReducer = combineReducers({
   isMessageBoxFocused,
   isShowWindowOnUnreadChangedEnabled,
   isSettingsWindowOpen,
-  isSideBarEnabled,
   navigationLayout,
   isTrayIconEnabled,
   isMinimizeOnCloseEnabled,
@@ -132,7 +129,6 @@ export const rootReducer = combineReducers({
   isInternalVideoChatWindowEnabled,
   isAddNewServersEnabled,
   hasHideOnTrayNotificationShown,
-  lastSelectedServerUrl,
   allowedNTLMCredentialsDomains,
   isNTLMCredentialsEnabled,
   videoCallWindowState,

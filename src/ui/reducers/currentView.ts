@@ -36,11 +36,7 @@ type CurrentViewAction =
   | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
-type CurrentViewState =
-  | 'add-new-server'
-  | 'downloads'
-  | 'settings'
-  | { url: string };
+type CurrentViewState = 'add-new-server' | { url: string };
 
 /**
  * Views the root window no longer has: downloads and settings each open in a
@@ -50,7 +46,7 @@ type CurrentViewState =
  * strand the reader on a view whose only way out was the sidebar button that
  * now opens a window instead.
  */
-const isRetiredView = (view: CurrentViewState): boolean =>
+const isRetiredView = (view: unknown): boolean =>
   view === 'downloads' || view === 'settings';
 
 export const currentView = (
@@ -80,7 +76,9 @@ export const currentView = (
 
     case APP_SETTINGS_LOADED: {
       const { currentView = state } = action.payload;
-      return isRetiredView(currentView) ? state : currentView;
+      return isRetiredView(currentView)
+        ? state
+        : (currentView as CurrentViewState);
     }
 
     case MENU_BAR_ADD_NEW_SERVER_CLICKED:

@@ -117,13 +117,6 @@ export const setupNavigation = async (): Promise<void> => {
         });
       }
 
-      queuedTrustRequests
-        .get(certificate.fingerprint)
-        ?.forEach((cb) =>
-          cb(isTrustedByUser === AskForCertificateTrustResponse.NO)
-        );
-      queuedTrustRequests.delete(certificate.fingerprint);
-
       notTrustedCertificates = select(
         ({ notTrustedCertificates }) => notTrustedCertificates
       );
@@ -186,12 +179,14 @@ export const setupNavigation = async (): Promise<void> => {
         const requestHost = new URL(authenticationResponseDetails.url).host;
 
         if (serverHost !== requestHost || !username) {
-          callback();
-          return;
+          continue;
         }
 
         callback(username, password);
+        return;
       }
+
+      callback();
     }
   );
 

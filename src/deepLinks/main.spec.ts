@@ -1288,6 +1288,94 @@ describe('deepLinks/main.ts', () => {
       );
       expect(mockWebContents.loadURL).not.toHaveBeenCalled();
     });
+
+    describe('go.rocket.chat HTTPS shortener', () => {
+      const runGoDeepLink = async (deepLink: string): Promise<void> => {
+        const savedArgv = process.argv;
+        process.argv = ['electron', '.', deepLink];
+
+        await processDeepLinksInArgs();
+
+        process.argv = savedArgv;
+      };
+
+      beforeEach(() => {
+        resolveServerUrlMock.mockResolvedValue([
+          'https://chat.example.com',
+          ServerUrlResolutionStatus.OK,
+          undefined,
+        ] as any);
+        selectMock.mockReturnValue([
+          { url: 'https://chat.example.com', title: 'Chat' },
+        ]);
+      });
+
+      it('processes https://go.rocket.chat/auth through the real parse/process path', async () => {
+        setupDeepLinks();
+
+        await runGoDeepLink(
+          'https://go.rocket.chat/auth?host=https://chat.example.com&token=abc&userId=123'
+        );
+
+        expect(resolveServerUrlMock).toHaveBeenCalledWith(
+          'https://chat.example.com'
+        );
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/home?resumeToken=abc&userId=123'
+        );
+      });
+
+      it('processes https://go.rocket.chat/room through the real parse/process path', async () => {
+        setupDeepLinks();
+
+        await runGoDeepLink(
+          'https://go.rocket.chat/room?host=https://chat.example.com&path=channel/general&token=abc&userId=123'
+        );
+
+        expect(resolveServerUrlMock).toHaveBeenCalledWith(
+          'https://chat.example.com'
+        );
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/channel/general?resumeToken=abc&userId=123'
+        );
+      });
+
+      it('processes https://go.rocket.chat/invite through the real parse/process path', async () => {
+        setupDeepLinks();
+
+        await runGoDeepLink(
+          'https://go.rocket.chat/invite?host=https://chat.example.com&path=invite/example'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/invite/example'
+        );
+      });
+
+      it('processes https://go.rocket.chat/conference through the real parse/process path', async () => {
+        setupDeepLinks();
+
+        await runGoDeepLink(
+          'https://go.rocket.chat/conference?host=https://chat.example.com&path=conference/room-1'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/conference/room-1'
+        );
+      });
+
+      it('redeems a SAML credentialToken from a go.rocket.chat auth link', async () => {
+        setupDeepLinks();
+
+        await runGoDeepLink(
+          'https://go.rocket.chat/auth?type=saml&host=https://chat.example.com&credentialToken=saml-go-A'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/saml/saml-go-A'
+        );
+      });
+    });
   });
 
   describe('isTelephonyEnabled gate for tel: deep links', () => {

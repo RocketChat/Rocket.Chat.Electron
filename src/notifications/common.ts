@@ -9,6 +9,7 @@ export type ExtendedNotificationOptions = NotificationOptions & {
   }[];
   renotify?: boolean;
   requireInteraction?: boolean;
+  restoreWindow?: boolean;
   notificationType?: 'voice' | 'text';
   category?: NotificationCategory;
 };
@@ -22,5 +23,6 @@ export type CustomNotificationOptions = {
     avatar?: string;
     silent?: boolean;
     requireInteraction?: boolean;
+    restoreWindow?: boolean;
   };
 };

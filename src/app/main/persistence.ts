@@ -18,14 +18,25 @@ const NON_ATOMIC_FALLBACK_CODES = new Set([
   'EXDEV',
 ]);
 
-const errorCodeOf = (error: unknown): string | undefined =>
-  typeof error === 'object' && error !== null && 'code' in error
-    ? String((error as { code: unknown }).code)
+const errorFieldOf = (error: unknown, field: string): string | undefined =>
+  typeof error === 'object' && error !== null && field in error
+    ? String((error as Record<string, unknown>)[field])
     : undefined;
 
+const errorCodeOf = (error: unknown): string | undefined =>
+  errorFieldOf(error, 'code');
+
+/**
+ * Only the rename step of the atomic write is retried without atomicity.
+ * `atomically` rethrows the original Node error, so `syscall` is preserved.
+ */
 const isNonAtomicFallbackError = (error: unknown): boolean => {
   const code = errorCodeOf(error);
-  return code !== undefined && NON_ATOMIC_FALLBACK_CODES.has(code);
+  return (
+    code !== undefined &&
+    NON_ATOMIC_FALLBACK_CODES.has(code) &&
+    errorFieldOf(error, 'syscall') === 'rename'
+  );
 };
 
 type StoreLike = Pick<

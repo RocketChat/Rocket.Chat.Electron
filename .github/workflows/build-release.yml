@@ -6,21 +6,98 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-*'
+  # Manual dispatch is always a dry run: every packaging job builds and signs
+  # exactly as a tag push would, but never touches GitHub releases or
+  # Snapcraft, and uploads its dist/ as a workflow artifact instead. Use it to
+  # exercise this workflow from a branch before cutting a tag.
+  workflow_dispatch:
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Lint and the Jest suite are NOT run here on purpose: tags are cut with
+# `yarn release:tag`, which only accepts a HEAD that is on dev, master or a
+# release/* branch, and every commit on those branches passed validate-pr.yml.
+# Re-running the suite on every packaging job would triple the release time
+# for no additional signal (see docs/postmortem-validate-pr-ci-speed.md).
+
 jobs:
-  build:
+  # Creates (or finds) the draft release for the tag once, so the seven build
+  # jobs below can upload into it concurrently without racing on
+  # find-or-create and producing duplicate drafts.
+  prepare:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup Node 24.11.1
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.11.1'
+      - uses: ./workspaces/desktop-release-action
+        with:
+          mode: prepare
+          github_token: ${{ secrets.GH_TOKEN }}
+          # Unused in prepare mode; required inputs still have to be present.
+          mac_csc_link: ${{ secrets.MAC_CSC_LINK }}
+          mac_csc_key_password: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          mac_apple_id: ${{ secrets.APPLEID }}
+          mac_apple_id_password: ${{ secrets.APPLEIDPASS }}
+          mac_asc_provider: 'S6UPZG7ZR3'
+          gcp_sa_json: ${{ secrets.GCP_SA_JSON }}
+          win_kms_key_resource: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          snapcraft_token: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+  build:
+    needs: [prepare]
+    # prepare is skipped on workflow_dispatch (dry run); still run the builds.
+    if: ${{ always() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') }}
+    permissions:
+      contents: read
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
+        include:
+          # Exactly one job per platform owns the electron-updater metadata
+          # (latest*.yml): the one that builds the artifact the updater
+          # downloads. The others would overwrite it with a partial file list.
+          - os: windows-latest
+            name: windows-nsis
+            targets: nsis
+            update_metadata: 'true'
+          - os: windows-latest
+            name: windows-msi
+            targets: msi
+            update_metadata: 'false'
+          - os: windows-latest
+            name: windows-appx
+            targets: appx
+            update_metadata: 'false'
+          - os: macos-latest
+            name: macos-dmg
+            targets: dmg zip pkg
+            update_metadata: 'true'
+          - os: macos-latest
+            name: macos-mas
+            targets: mas
+            update_metadata: 'false'
+          - os: ubuntu-latest
+            name: linux-appimage
+            targets: AppImage deb rpm tar.gz
+            update_metadata: 'true'
+          - os: ubuntu-latest
+            name: linux-snap
+            targets: snap
+            update_metadata: 'false'
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Disable git core.autocrlf
@@ -39,8 +116,22 @@ jobs:
       - name: Setup node_modules cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          # Same layout and key as validate-pr.yml so the workflows share
+          # cache entries; .yarn/cache is project-local (enableGlobalCache: false).
+          path: |
+            **/node_modules
+            .yarn/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Setup Electron download cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: ${{ runner.os }}-${{ runner.arch }}-electron-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install package dependencies
         run: yarn install
@@ -51,37 +142,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xz-utils libarchive-tools squashfs-tools
 
-      - name: Lint
-        run: yarn lint
-
-      - name: Test
-        env:
-          CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.MAC_CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
-          NODE_OPTIONS: --max-old-space-size=6144
-        run: yarn test
-
       - name: Build app/
         run: yarn build
         env:
           NODE_ENV: production
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Setup gcloud (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ runner.os == 'Windows' }}
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
         with:
           version: '>=536.0.0'
 
       - name: Authenticate to Google Cloud (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ runner.os == 'Windows' }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           credentials_json: ${{ secrets.GCP_SA_JSON }}
 
       - uses: ./workspaces/desktop-release-action
         with:
+          mode: ${{ github.event_name == 'workflow_dispatch' && 'dry-run' || 'build' }}
+          targets: ${{ matrix.targets }}
+          upload_update_metadata: ${{ matrix.update_metadata }}
           mac_csc_link: ${{ secrets.MAC_CSC_LINK }}
           mac_csc_key_password: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
           mac_apple_id: ${{ secrets.APPLEID }}
@@ -96,3 +179,29 @@ jobs:
           snapcraft_token: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+      # Dry runs have nowhere else to put their output; keep it for inspection
+      # (installer names, yml contents, signatures) without a release.
+      - name: Upload dry-run output
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dry-run-${{ matrix.name }}
+          path: |
+            dist/*.yml
+            dist/*.exe
+            dist/*.exe.blockmap
+            dist/*.msi
+            dist/*.appx
+            dist/*.dmg
+            dist/*.dmg.blockmap
+            dist/*.zip
+            dist/*.pkg
+            dist/mas-universal/*.pkg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.snap
+          if-no-files-found: error
+          retention-days: 7

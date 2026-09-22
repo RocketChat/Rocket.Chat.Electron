@@ -18,7 +18,10 @@ import {
 } from './verify-signature';
 import { runElectronBuilder } from '../shell';
 
-export const packOnWindows = async (): Promise<void> => {
+export const packOnWindows = async (targets = ''): Promise<void> => {
+  const targetList = targets ? targets.split(/\s+/) : ['nsis', 'msi', 'appx'];
+  const buildsInstallers =
+    targetList.includes('nsis') || targetList.includes('msi');
   try {
     // Find and setup signtool
     await findSigntool();
@@ -67,14 +70,16 @@ export const packOnWindows = async (): Promise<void> => {
       'Executables will be signed by electron-builder via winSignKms.js'
     );
 
-    core.info('Building NSIS installer...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
-
-    core.info('Building MSI installer...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
-
-    core.info('Building AppX package...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
+    // One electron-builder invocation per target keeps the per-target
+    // failure isolation of the original sequential flow; a job that is
+    // given a single target (the split workflow) runs exactly one.
+    for (const target of targetList) {
+      core.info(`Building ${target} package...`);
+      await runElectronBuilder(
+        `--x64 --ia32 --arm64 --win ${target}`,
+        buildEnv
+      );
+    }
 
     core.info('✅ All Windows packages built successfully');
 
@@ -83,17 +88,24 @@ export const packOnWindows = async (): Promise<void> => {
     core.info('Verifying executable signatures...');
     await verifyExecutableSignature(distPath);
 
-    core.info('Installing KMS CNG provider for installer signing...');
-    await installKmsCngProvider();
+    if (buildsInstallers) {
+      // AppX is Store-signed; jsign/KMS only applies to nsis exe and msi.
+      core.info('Installing KMS CNG provider for installer signing...');
+      await installKmsCngProvider();
 
-    core.info('Signing installer packages...');
-    await signBuiltPackages(distPath);
+      core.info('Signing installer packages...');
+      await signBuiltPackages(distPath);
 
-    core.info('Verifying installer signatures...');
-    await verifyInstallerSignatures(distPath);
+      core.info('Verifying installer signatures...');
+      await verifyInstallerSignatures(distPath);
+    } else {
+      core.info('No nsis/msi targets in this job, skipping installer signing');
+    }
 
-    core.info('Updating latest.yml with correct checksums...');
-    await updateYamlChecksums(distPath);
+    if (targetList.includes('nsis')) {
+      core.info('Updating latest.yml with correct checksums...');
+      await updateYamlChecksums(distPath);
+    }
 
     core.info('✅ Windows packages built, signed, and verified successfully');
   } catch (error) {

@@ -1,6 +1,6 @@
 # Post-Mortem: Screen-share picker at launch — startup enumeration trigger (issue #3308, PR #3400)
 
-Continuation of [postmortem-screen-picker-sandbox-detection.md](./postmortem-screen-picker-sandbox-detection.md). That investigation shipped a sandbox-safe `detectPickerType()` in 4.15.1 and closed the cache-prewarm trigger. Field reports on 4.15.1 (Ubuntu 26.04 KDE/Cosmic, Wayland, deb) continued — this investigation found and removed a second, independent trigger, and explains why it evaded every software-rendered test environment.
+Continuation of the earlier sandbox-detection investigation, which shipped a sandbox-safe `detectPickerType()` in 4.15.1 and closed the cache-prewarm trigger. Field reports on 4.15.1 (Ubuntu 26.04 KDE/Cosmic, Wayland, deb) continued — this investigation found and removed a second, independent trigger, and explains why it evaded every software-rendered test environment.
 
 ## Objective
 

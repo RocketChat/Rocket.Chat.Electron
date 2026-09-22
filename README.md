@@ -143,25 +143,20 @@ for all files in `src` directory that match the glob pattern
 
 ### Making a release
 
-To package your app into an installer use command:
+Releases are tag-driven. Cut a tag with `yarn release:tag` (never a bare
+`git tag`); CI then builds every platform and drafts a GitHub release for
+a human to review and publish. See [docs/release-process.md][] for the
+full runbook, and [docs/development-and-release-flow.md][] for the branch
+model.
 
-```sh
-yarn release
-```
-
-It will start the packaging process for operating system you are running this
-command on. Ready for distribution file will be outputted to `dist` directory.
-
-All packaging actions are handled by [electron-builder][]. It has a lot of
-[customization options][].
+To package a local installer for the OS you are on (not a release), use
+`yarn build-mac`, `yarn build-win`, or `yarn build-linux`. Packaging is
+handled by [electron-builder][] ([customization options][]).
 
 ## Development and Releases
 
 All pull requests target `dev`; `master` contains only released code, and
 `release/X.Y.x` branches carry patch releases for a shipped version.
-Releases are tag-driven — pushing a semver tag triggers CI to build every
-platform and draft a GitHub release, which a human then reviews and
-publishes.
 
 - [docs/development-and-release-flow.md][] — conceptual overview of the
   branch model, versioning, and CI/CD.

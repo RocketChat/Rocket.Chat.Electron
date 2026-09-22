@@ -193,7 +193,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-create-class-features-plugin@npm:^7.18.6, @babel/helper-create-class-features-plugin@npm:^7.28.6":
+"@babel/helper-create-class-features-plugin@npm:^7.28.6":
   version: 7.28.6
   resolution: "@babel/helper-create-class-features-plugin@npm:7.28.6"
   dependencies:
@@ -434,30 +434,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-proposal-class-properties@npm:~7.18.6":
-  version: 7.18.6
-  resolution: "@babel/plugin-proposal-class-properties@npm:7.18.6"
-  dependencies:
-    "@babel/helper-create-class-features-plugin": "npm:^7.18.6"
-    "@babel/helper-plugin-utils": "npm:^7.18.6"
-  peerDependencies:
-    "@babel/core": ^7.0.0-0
-  checksum: 10/49a78a2773ec0db56e915d9797e44fd079ab8a9b2e1716e0df07c92532f2c65d76aeda9543883916b8e0ff13606afeffa67c5b93d05b607bc87653ad18a91422
-  languageName: node
-  linkType: hard
-
-"@babel/plugin-proposal-function-bind@npm:~7.23.3":
-  version: 7.23.3
-  resolution: "@babel/plugin-proposal-function-bind@npm:7.23.3"
-  dependencies:
-    "@babel/helper-plugin-utils": "npm:^7.22.5"
-    "@babel/plugin-syntax-function-bind": "npm:^7.23.3"
-  peerDependencies:
-    "@babel/core": ^7.0.0-0
-  checksum: 10/b1ecb9a267f0061320412dfd7560249f224ffedc1a7fbc9bfb7accd3ff9fff4752edbc5f57de600f75d968a9e896bc86e36a0a9ff6acb68722c6c0edc6348248
-  languageName: node
-  linkType: hard
-
 "@babel/plugin-proposal-private-property-in-object@npm:7.21.0-placeholder-for-preset-env.2":
   version: 7.21.0-placeholder-for-preset-env.2
   resolution: "@babel/plugin-proposal-private-property-in-object@npm:7.21.0-placeholder-for-preset-env.2"
@@ -530,17 +506,6 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.0.0-0
   checksum: 10/85740478be5b0de185228e7814451d74ab8ce0a26fcca7613955262a26e99e8e15e9da58f60c754b84515d4c679b590dbd3f2148f0f58025f4ae706f1c5a5d4a
-  languageName: node
-  linkType: hard
-
-"@babel/plugin-syntax-function-bind@npm:^7.23.3":
-  version: 7.28.6
-  resolution: "@babel/plugin-syntax-function-bind@npm:7.28.6"
-  dependencies:
-    "@babel/helper-plugin-utils": "npm:^7.28.6"
-  peerDependencies:
-    "@babel/core": ^7.0.0-0
-  checksum: 10/83153afa0a07cfa0f9ec4d48d29bafedf249a310781a6d4b61f040e24f15f47635f8c731258cd91e01626ef0ca6d97ddc4f579538fbb6f435ff9547e1d4e7b8d
   languageName: node
   linkType: hard
 
@@ -14690,8 +14655,6 @@ __metadata:
   dependencies:
     "@babel/core": "npm:~7.23.9"
     "@babel/eslint-parser": "npm:~7.23.3"
-    "@babel/plugin-proposal-class-properties": "npm:~7.18.6"
-    "@babel/plugin-proposal-function-bind": "npm:~7.23.3"
     "@babel/preset-env": "npm:~7.23.7"
     "@babel/preset-react": "npm:~7.23.3"
     "@babel/preset-typescript": "npm:~7.23.3"

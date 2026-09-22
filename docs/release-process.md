@@ -124,7 +124,7 @@ Alphas are cut directly from `dev` — no dedicated branch.
    all of which are gated by `validate-pr.yml`.
 
    **Dry run without a tag.** `build-release.yml` also accepts
-   `workflow_dispatch` with `dry_run` (the default). Run it from any branch
+   `workflow_dispatch`, which is always a dry run. Run it from any branch
    (`gh workflow run build-release.yml --ref <branch>`): every packaging job
    builds and signs its targets exactly as a tag push would, skips GitHub
    releases and Snapcraft, and uploads its `dist/` as a `dry-run-<job>`

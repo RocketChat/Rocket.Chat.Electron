@@ -6,17 +6,11 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-*'
+  # Manual dispatch is always a dry run: every packaging job builds and signs
+  # exactly as a tag push would, but never touches GitHub releases or
+  # Snapcraft, and uploads its dist/ as a workflow artifact instead. Use it to
+  # exercise this workflow from a branch before cutting a tag.
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: >-
-          Pack and sign every target exactly as a tag push would, but never
-          touch GitHub releases or Snapcraft. Each job uploads its dist/ as a
-          workflow artifact instead. Use it to exercise this workflow from a
-          branch before cutting a tag.
-        type: boolean
-        default: true
-        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

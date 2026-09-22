@@ -53,7 +53,7 @@ const resolveIcon = async (
     );
     return nativeImage.createFromDataURL(dataUri);
   } catch (error) {
-    console.error(error);
+    loggers.notifications.error(error);
     return undefined;
   }
 };

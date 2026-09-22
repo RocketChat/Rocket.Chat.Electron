@@ -31,7 +31,6 @@ type ChannelToArgsMap = {
     url: string,
     options?: {
       providerName?: string;
-      credentials?: { userId: string; authToken: string };
     }
   ) => void;
   'video-call-window/open-url': (url: string) => void;
@@ -56,11 +55,6 @@ type ChannelToArgsMap = {
   'video-call-window/webview-loading': () => { success: boolean };
   'video-call-window/webview-ready': () => { success: boolean };
   'video-call-window/webview-failed': (error: string) => { success: boolean };
-  'video-call-window/get-credentials': () => {
-    userId: string;
-    authToken: string;
-    serverUrl: string;
-  } | null;
   'video-call-window/get-language': () => {
     success: boolean;
     language: string;

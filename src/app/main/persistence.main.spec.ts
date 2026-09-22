@@ -123,8 +123,11 @@ describe('persistValues throttling', () => {
   });
 });
 
-const errorWithCode = (code: string): Error =>
-  Object.assign(new Error(`${code}: simulated failure, rename`), { code });
+const errorWithCode = (code: string, syscall = 'rename'): Error =>
+  Object.assign(new Error(`${code}: simulated failure, ${syscall}`), {
+    code,
+    syscall,
+  });
 
 /**
  * Loads persistence against an electron-store mock that fails unless conf's
@@ -132,12 +135,14 @@ const errorWithCode = (code: string): Error =>
  * behaves: every write through the atomic rename throws.
  */
 const loadPersistenceWith = ({
-  failWhileAtomic = true,
+  failConstructorWhileAtomic = true,
+  failWriteWhileAtomic = true,
   failAlways = false,
   constructorError = errorWithCode('UNKNOWN'),
   writeError = errorWithCode('UNKNOWN'),
 }: {
-  failWhileAtomic?: boolean;
+  failConstructorWhileAtomic?: boolean;
+  failWriteWhileAtomic?: boolean;
   failAlways?: boolean;
   constructorError?: Error;
   writeError?: Error;
@@ -156,7 +161,7 @@ const loadPersistenceWith = ({
     jest.doMock('electron-store', () =>
       jest.fn().mockImplementation(() => {
         attempts += 1;
-        if (failAlways || (failWhileAtomic && !process.env.SNAP)) {
+        if (failAlways || (failConstructorWhileAtomic && !process.env.SNAP)) {
           throw constructorError;
         }
 
@@ -169,7 +174,7 @@ const loadPersistenceWith = ({
           get: (key: string) => values[key],
           set: (keyOrValues: unknown, value?: unknown) => {
             snapSeen.push(process.env.SNAP);
-            if (failAlways || (failWhileAtomic && !process.env.SNAP)) {
+            if (failAlways || (failWriteWhileAtomic && !process.env.SNAP)) {
               throw writeError;
             }
             if (typeof keyOrValues === 'string') {
@@ -231,7 +236,7 @@ describe('settings store resilience on roaming profiles', () => {
     persistence.getPersistedValues();
     persistence.setPersistedMeta('someKey', 'someValue');
 
-    expect(process.env.SNAP).toBeUndefined();
+    expect(process.env.SNAP).toBe(originalSnap);
   });
 
   it('falls back to in-memory settings when recovery also fails', () => {
@@ -262,17 +267,29 @@ describe('settings store resilience on roaming profiles', () => {
     expect(persistence.isUsingInMemorySettings()).toBe(true);
   });
 
+  it('does not retry without atomic writes when the code is not from a rename', () => {
+    const { persistence, constructorCalls } = loadPersistenceWith({
+      failAlways: true,
+      constructorError: errorWithCode('EPERM', 'open'),
+    });
+
+    expect(() => persistence.getPersistedValues()).not.toThrow();
+    expect(constructorCalls()).toBe(1);
+    expect(persistence.isUsingInMemorySettings()).toBe(true);
+  });
+
   it('retries a failed save without the atomic rename', () => {
     const { persistence, snapDuringWrites } = loadPersistenceWith({
-      failWhileAtomic: false,
+      failConstructorWhileAtomic: false,
+      failWriteWhileAtomic: true,
     });
 
     persistence.getPersistedValues();
-    // First save fails atomically, so the retry must run with SNAP set.
-    const store = persistence.getPersistedValues() as Record<string, unknown>;
-    expect(store).toBeDefined();
     persistence.setPersistedMeta('someKey', 'someValue');
 
-    expect(snapDuringWrites().length).toBeGreaterThan(0);
+    expect(snapDuringWrites()).toEqual([undefined, '1']);
+    expect(persistence.getPersistedMeta('someKey', 'MISSING')).toBe(
+      'someValue'
+    );
   });
 });

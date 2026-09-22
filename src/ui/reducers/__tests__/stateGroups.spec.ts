@@ -21,7 +21,6 @@ import {
 import { e2ePdfPreviewSizeLimit } from '../e2ePdfPreviewSizeLimit';
 import { hasHideOnTrayNotificationShown } from '../hasHideOnTrayNotificationShown';
 import { isMinimizeOnCloseEnabled } from '../isMinimizeOnCloseEnabled';
-import { lastSelectedServerUrl } from '../lastSelectedServerUrl';
 import { openDialog } from '../openDialog';
 import { rootWindowIcon } from '../rootWindowIcon';
 import { rootWindowState } from '../rootWindowState';
@@ -91,7 +90,7 @@ describe('currentView reducer', () => {
     expect(
       currentView({ url: 'https://abc' }, {
         type: uiActions.WEBVIEW_FOCUS_REQUESTED,
-        payload: { url: 'https://focused.example', view: 'downloads' },
+        payload: { url: 'https://focused.example', view: 'server' },
       } as any)
     ).toEqual({ url: 'https://focused.example' });
 
@@ -132,7 +131,7 @@ describe('currentView reducer', () => {
     ).toEqual('add-new-server');
 
     expect(
-      currentView('settings', {
+      currentView('add-new-server', {
         type: SERVERS_LOADED,
         payload: { selected: undefined },
       } as any)
@@ -140,28 +139,28 @@ describe('currentView reducer', () => {
 
     // Downloads open in their own window, so the root window keeps its view.
     expect(
-      currentView('settings', {
+      currentView({ url: 'https://stay.example' }, {
         type: uiActions.SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
       } as any)
-    ).toEqual('settings');
+    ).toEqual({ url: 'https://stay.example' });
 
     // Settings open in their own window now, so the root window stays put.
     expect(
-      currentView('downloads', {
+      currentView({ url: 'https://stay.example' }, {
         type: uiActions.SIDE_BAR_SETTINGS_BUTTON_CLICKED,
       } as any)
-    ).toEqual('downloads');
+    ).toEqual({ url: 'https://stay.example' });
 
     expect(
-      currentView('downloads', {
+      currentView('add-new-server', {
         type: uiActions.ADD_SERVER_VIEW_SERVER_ADDED,
         payload: 'https://added.example',
       } as any)
     ).toEqual({ url: 'https://added.example' });
 
     expect(
-      currentView('downloads', { type: 'UNKNOWN_CURRENT_VIEW_ACTION' } as any)
-    ).toEqual('downloads');
+      currentView('add-new-server', { type: 'UNKNOWN_CURRENT_VIEW_ACTION' } as any)
+    ).toEqual('add-new-server');
 
     expect(
       currentView({ url: 'https://abc' }, {
@@ -171,8 +170,11 @@ describe('currentView reducer', () => {
     ).toEqual({ url: 'https://selected.example' });
 
     expect(
-      currentView('settings', { type: APP_SETTINGS_LOADED, payload: {} } as any)
-    ).toBe('settings');
+      currentView({ url: 'https://stay.example' }, {
+        type: APP_SETTINGS_LOADED,
+        payload: {},
+      } as any)
+    ).toEqual({ url: 'https://stay.example' });
 
     expect(
       currentView(undefined, { type: 'UNKNOWN_CURRENT_VIEW_ACTION' } as any)
@@ -373,54 +375,6 @@ describe('openDialog reducer', () => {
   });
 });
 
-describe('lastSelectedServerUrl', () => {
-  it('prefers first server from settings when empty and picks from payload', () => {
-    expect(
-      lastSelectedServerUrl('', {
-        type: APP_SETTINGS_LOADED,
-        payload: {
-          servers: [
-            { url: 'https://first.example' },
-            { url: 'https://second.example' },
-          ],
-        },
-      } as any)
-    ).toBe('https://first.example');
-
-    expect(
-      lastSelectedServerUrl('https://keep.example', {
-        type: APP_SETTINGS_LOADED,
-        payload: {},
-      } as any)
-    ).toBe('https://keep.example');
-
-    expect(
-      lastSelectedServerUrl('https://keep.example', {
-        type: uiActions.SIDE_BAR_SERVER_SELECTED,
-        payload: 'https://clicked.example',
-      } as any)
-    ).toBe('https://clicked.example');
-
-    expect(
-      lastSelectedServerUrl(undefined, {
-        type: APP_SETTINGS_LOADED,
-        payload: {},
-      } as any)
-    ).toBe('');
-
-    expect(
-      lastSelectedServerUrl('https://keep.example', {
-        type: 'UNKNOWN_SERVER_SELECTION_ACTION' as any,
-      } as any)
-    ).toBe('https://keep.example');
-
-    expect(
-      lastSelectedServerUrl(undefined, {
-        type: 'UNKNOWN_SERVER_SELECTION_ACTION' as any,
-      } as any)
-    ).toBe('');
-  });
-});
 
 describe('rootWindowIcon', () => {
   it('defaults null and sets icon payload', () => {

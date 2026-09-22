@@ -24,8 +24,6 @@ export const MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED =
   'menu-bar/toggle-is-menu-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED =
   'menu-bar/toggle-is-show-window-on-unread-changed-enabled-clicked';
-export const MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED =
-  'menu-bar/toggle-is-side-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED =
@@ -94,8 +92,6 @@ export const SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED =
   'settings/set-is-tray-icon-enabled-changed';
 export const SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED =
   'settings/set-is-telephony-enabled-changed';
-export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
-  'settings/set-is-side-bar-enabled-changed';
 export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
   'settings/set-is-menu-bar-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED =
@@ -198,7 +194,6 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
-  [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED]: boolean;
@@ -232,7 +227,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
-  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' | 'downloads' };
+  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
   [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: void;
@@ -285,7 +280,6 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED]: boolean;
-  [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED]: boolean;

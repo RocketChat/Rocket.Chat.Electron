@@ -66,7 +66,6 @@ beforeEach(() => {
 describe('mergePersistableValues', () => {
   const mockInitialValues = {
     isMenuBarEnabled: true,
-    isSideBarEnabled: true,
     navigationLayout: 'tabs' as const,
     rootWindowState: {
       focused: true,
@@ -205,7 +204,6 @@ describe('mergePersistableValues', () => {
       mockSelect.mockReturnValue({
         ...mockInitialValues,
         isMenuBarEnabled: false,
-        isSideBarEnabled: false,
         navigationLayout: 'sidebar',
       });
 
@@ -215,31 +213,6 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isMenuBarEnabled: false,
-          isSideBarEnabled: false,
-        }),
-      });
-    });
-
-    it('should handle sidebar-closed from localStorage with recovery', async () => {
-      const localStorage = {
-        'sidebar-closed': 'true',
-        'autohideMenu': 'true',
-      };
-
-      mockSelect.mockReturnValue({
-        ...mockInitialValues,
-        isMenuBarEnabled: false,
-        isSideBarEnabled: false,
-        navigationLayout: 'sidebar',
-      });
-
-      await mergePersistableValues(localStorage);
-
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: APP_SETTINGS_LOADED,
-        payload: expect.objectContaining({
-          isMenuBarEnabled: false,
-          isSideBarEnabled: false,
         }),
       });
     });

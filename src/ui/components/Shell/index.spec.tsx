@@ -32,16 +32,6 @@ jest.mock('../AddServerView', () => ({
   AddServerView: () => <div data-testid='add-server-view' />,
 }));
 
-jest.mock('../DownloadsManagerView', () => ({
-  __esModule: true,
-  default: () => <div data-testid='downloads-manager-view' />,
-}));
-
-jest.mock('../SettingsView', () => ({
-  __esModule: true,
-  SettingsView: () => <div data-testid='settings-view' />,
-}));
-
 jest.mock('../TopBar', () => ({
   __esModule: true,
   TopBar: ({
@@ -203,8 +193,6 @@ describe('Shell', () => {
     expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
     expect(screen.getByTestId('servers-view')).toBeInTheDocument();
     expect(screen.getByTestId('add-server-view')).toBeInTheDocument();
-    expect(screen.getByTestId('downloads-manager-view')).toBeInTheDocument();
-    expect(screen.getByTestId('settings-view')).toBeInTheDocument();
   });
 
   it('mounts the top-level dialogs', () => {

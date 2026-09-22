@@ -34,7 +34,6 @@ jest.mock('./UnsupportedServer', () => ({
 }));
 
 jest.mock('./styles', () => ({
-  DocumentViewerWrapper: ({ children }: any) => <div>{children}</div>,
   StyledWebView: 'div',
   Wrapper: ({ children, ...props }: any) => (
     <div data-testid='server-pane' {...props}>

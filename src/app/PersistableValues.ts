@@ -146,9 +146,9 @@ type PersistableValues_4_17_0 = PersistableValues_4_16_2 & {
   isNotificationQuickReplyEnabled: boolean;
 };
 
-export type PersistableValues = Pick<
+export type PersistableValues = Omit<
   PersistableValues_4_17_0,
-  keyof PersistableValues_4_17_0
+  'isSideBarEnabled' | 'lastSelectedServerUrl'
 >;
 
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */

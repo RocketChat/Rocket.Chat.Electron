@@ -41,9 +41,7 @@ const setPlatform = (platform: NodeJS.Platform): void => {
   });
 };
 
-type PreloadModule = typeof import('../preload');
-
-const loadPreload = async (): Promise<PreloadModule> => {
+const loadPreload = async () => {
   jest.resetModules();
   listeners.clear();
   dispatch.mockClear();
@@ -202,14 +200,16 @@ describe('notifications/preload event handler lifetime', () => {
       await loadPreload();
 
     const onEvents = Array.from({ length: 201 }, () => jest.fn());
+    // Sequential inserts so Map iteration order matches creation order for the
+    // LRU eviction assertion below.
     const ids: unknown[] = [];
-
-    for (const onEvent of onEvents) {
+    for (let i = 0; i < onEvents.length; i += 1) {
       ids.push(
+        // eslint-disable-next-line no-await-in-loop -- order-sensitive LRU setup
         await createNotification({
           title: 'n',
           body: 'b',
-          onEvent,
+          onEvent: onEvents[i],
         })
       );
     }

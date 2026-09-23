@@ -137,6 +137,15 @@
         "title": "Ikona zasobnika",
         "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
       },
+      "trayIconUnreadCounter": {
+        "title": "Licznik nieprzeczytanych na ikonie zasobnika",
+        "titleDarwin": "Wskaźnik nieprzeczytanych na ikonie paska menu",
+        "description": "Pokazuj na ikonie plakietkę nieprzeczytanych wiadomości zamiast statusu obecności."
+      },
+      "menuBarUnreadCount": {
+        "title": "Liczba nieprzeczytanych na pasku menu",
+        "description": "Pokazuj liczbę nieprzeczytanych wzmianek obok ikony na pasku menu."
+      },
       "availableBrowsers": {
         "title": "Domyślna przeglądarka",
         "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne z tej aplikacji. Ustawienie domyślne systemu używa ustawień Twojego systemu operacyjnego.",

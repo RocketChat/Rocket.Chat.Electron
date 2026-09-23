@@ -22,6 +22,15 @@
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Olästa-räknare i ikonen för brickan",
+        "titleDarwin": "Olästa-indikator i menyfältsikonen",
+        "description": "Visa märket för olästa meddelanden på ikonen i stället för din närvarostatus."
+      },
+      "menuBarUnreadCount": {
+        "title": "Antal olästa i menyfältet",
+        "description": "Visa antalet olästa omnämnanden bredvid ikonen i menyfältet."
       }
     }
   },

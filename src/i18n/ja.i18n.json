@@ -129,6 +129,15 @@
         "auto": "システムに従う",
         "light": "ライト",
         "dark": "ダーク"
+      },
+      "trayIconUnreadCounter": {
+        "title": "トレイアイコンに未読数を表示",
+        "titleDarwin": "メニューバーアイコンに未読を表示",
+        "description": "アイコンにプレゼンスステータスの代わりに未読メッセージのバッジを表示します。"
+      },
+      "menuBarUnreadCount": {
+        "title": "メニューバーに未読数を表示",
+        "description": "メニューバーアイコンの横に未読メンションの数を表示します。"
       }
     }
   },

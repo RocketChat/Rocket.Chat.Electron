@@ -294,6 +294,15 @@
         "title": "Systemstatusikon",
         "description": "Vis ikonet på systemstatusfeltet. Hvis systemstatusikonet er aktivt, vil appen være skjult ved lukke. Ellers avsluttes programmet."
       },
+      "trayIconUnreadCounter": {
+        "title": "Uleste-teller i systemstatusikonet",
+        "titleDarwin": "Uleste-indikator i menylinjeikonet",
+        "description": "Vis merket for uleste meldinger på ikonet i stedet for tilstedeværelsesstatusen din."
+      },
+      "menuBarUnreadCount": {
+        "title": "Antall uleste i menylinjen",
+        "description": "Vis antall uleste omtaler ved siden av ikonet i menylinjen."
+      },
       "availableBrowsers": {
         "title": "Standard nettleser",
         "description": "Velg hvilken nettleser som skal åpne eksterne lenker fra denne appen. Systemstandard bruker operativsysteminnstillingene dine.",

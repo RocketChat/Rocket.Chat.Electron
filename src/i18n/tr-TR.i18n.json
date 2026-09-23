@@ -125,6 +125,15 @@
         "title": "Görev çubuğu ikonu",
         "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
       },
+      "trayIconUnreadCounter": {
+        "title": "Görev çubuğu ikonunda okunmamış sayacı",
+        "titleDarwin": "Menü çubuğu ikonunda okunmamış göstergesi",
+        "description": "İkonda çevrimiçi durumunuz yerine okunmamış mesaj rozetini gösterir."
+      },
+      "menuBarUnreadCount": {
+        "title": "Menü çubuğunda okunmamış sayısı",
+        "description": "Okunmamış bahsetmelerin sayısını menü çubuğu ikonunun yanında gösterir."
+      },
       "availableBrowsers": {
         "title": "Varsayılan Tarayıcı",
         "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin. Sistem Varsayılanı, işletim sisteminizin ayarlarını kullanır.",

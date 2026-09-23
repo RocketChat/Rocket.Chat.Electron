@@ -262,6 +262,15 @@
         "title": "Ilmaisinalueen kuvake",
         "description": "Näytä ilmaisinalueen kuvake ilmaisinalueella. Jos ilmaisinalueen kuvake on käytössä, sovellus piilotetaan suljettaessa ilmaisinalueelle. Muutoin sovellus suljetaan."
       },
+      "trayIconUnreadCounter": {
+        "title": "Lukemattomien laskuri ilmaisinalueen kuvakkeessa",
+        "titleDarwin": "Lukemattomien ilmaisin valikkopalkin kuvakkeessa",
+        "description": "Näytä lukemattomien viestien merkki kuvakkeessa läsnäolotilasi sijaan."
+      },
+      "menuBarUnreadCount": {
+        "title": "Lukemattomien määrä valikkopalkissa",
+        "description": "Näytä lukemattomien mainintojen määrä valikkopalkin kuvakkeen vieressä."
+      },
       "availableBrowsers": {
         "title": "Oletusselain",
         "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta. Järjestelmän oletus käyttää käyttöjärjestelmäsi asetuksia.",

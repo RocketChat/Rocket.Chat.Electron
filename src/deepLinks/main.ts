@@ -16,6 +16,10 @@ import {
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import {
+  isConferenceCallPageUrl,
+  requestConferenceWindow,
+} from '../ui/main/serverView/conferenceWindow';
 import type { UiPreviewSource } from '../ui/main/serverView/uiPreview';
 import {
   isUiPreviewAllowed,
@@ -240,8 +244,15 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
     if (!/^conference\//.test(path)) {
       return;
     }
+    const { href } = new URL(path, serverUrl);
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
+
+    if (isConferenceCallPageUrl(href, serverUrl)) {
+      requestConferenceWindow(serverUrl, webContents, href);
+      return;
+    }
+
+    webContents.loadURL(href);
   });
 
 const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {

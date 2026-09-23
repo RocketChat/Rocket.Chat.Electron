@@ -33,6 +33,7 @@ type ChannelToArgsMap = {
   'ui-preview/restore': (serverUrl: Server['url']) => void;
   'server-view/ready': () => void;
   'server-view/open-url-on-browser': (url: string) => void;
+  'server-view/take-pending-conference': () => string | null;
   'video-call-window/open-window': (
     url: string,
     options?: {

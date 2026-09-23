@@ -258,7 +258,7 @@ unread_mention_source","- Native-size crops of the tray icon for steps 2, 3, 4, 
 4. ""Send enough further @-mentions to reach 10 or more.""
 5. ""Mark everything as read.""
 6. ""Developer mode only: open the app menu bar item """"Developer"""" and check """"Simulate Disconnected"""". Uncheck it afterwards.""
-7. ""Right-click the tray icon (Windows notification area / Linux system tray; on macOS left-click the app icon in the menu bar at the top-right) and click the last menu item, """"Quit"""", to exit fully. Start the app again, then press `Ctrl+,` / `Cmd+,` to reopen the settings window on its """"General"""" section.""
+7. ""From another account, send this user one @-mention so the tray shows the unread badge again. Then right-click the tray icon (Windows notification area / Linux system tray; on macOS left-click the app icon in the menu bar at the top-right) and click the last menu item, """"Quit"""", to exit fully. Start the app again, then press `Ctrl+,` / `Cmd+,` to reopen the settings window on its """"General"""" section.""
 8. ""Turn """"Unread counter in tray icon"""" off.""
 9. ""Turn the """"Tray icon"""" toggle (macOS: """"Menu bar extra"""") off.""","1. ""Fresh profile or one upgraded from 4.17.x
 Agent: Read `isTrayIconUnreadCounterEnabled` from the store (expect `false`) and the resolved tray icon path (`presence-<presence>`).""
@@ -272,8 +272,8 @@ Agent: Assert `notification-plus-9.*` on Windows/Linux.""
 Agent: Assert the path is `default.ico` / `default.png` / `defaultTemplate.png`.""
 6. ""Simulated disconnect, toggle still on
 Agent: Assert `disconnected.*` while simulated.""
-7. ""Restart
-Agent: Read the persisted value from the store after restart (`true`).""
+7. ""1 unread @-mention, restart
+Agent: Read the persisted value from the store after restart (`true`) and assert the resolved path is `notification-1.*` / `notificationTemplate.png`.""
 8. ""Toggle off
 Agent: Assert the path is `presence-<presence>` again.""
 9. ""Tray icon disabled
@@ -283,7 +283,7 @@ Agent: Assert the toggle's checkbox is `disabled`.""","1. ""The """"Unread count
 4. ""Windows/Linux shows the red circle with `9+`; macOS keeps the dot.""
 5. ""The tray icon shows the plain grey rocket with no bullet and no badge (presence is not shown in this mode).""
 6. ""The tray icon shows the grey rocket with the amber `!` badge while disconnected, and returns to the step 5 icon afterwards.""
-7. """"""Unread counter in tray icon"""" is still on, and the tray icon still uses the unread badge artwork.""
+7. """"""Unread counter in tray icon"""" is still on, and the tray icon shows the unread badge for 1 unread (red circle with `1` on Windows/Linux, the dot glyph on macOS), not the presence bullet.""
 8. ""The tray icon returns to the rocket with the presence bullet immediately, without any new message arriving.""
 9. ""The """"Unread counter in tray icon"""" toggle becomes greyed out and cannot be clicked. Turn """"Tray icon"""" back on afterwards."""
 "","1","Tray presence status","","Menu Bar Unread Count Can Be Hidden On macOS","Source flow: CORE-2525-QA-013

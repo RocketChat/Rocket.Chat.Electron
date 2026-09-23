@@ -94,4 +94,77 @@ describe('jitsi/ipc', () => {
     expect(isJitsiServerAllowedMock).toHaveBeenCalledTimes(1);
     expect(mockGetSources).not.toHaveBeenCalled();
   });
+
+  const sourcesAllowedFirst = async (): Promise<void> => {
+    isJitsiServerAllowedMock.mockResolvedValueOnce({
+      allowed: true,
+      dontAskAgain: false,
+    });
+    await getHandler()({}, [{}, 'https://jitsi.example']);
+  };
+
+  it('replaces a zero-sized thumbnailSize with a safe size', async () => {
+    // jitsi-meet requests `{width: 0, height: 0}` when it does not need
+    // thumbnails; zero sizes crash the PipeWire-backed capturer on Wayland
+    // (electron#47591) — the setup of issue #2823.
+    await sourcesAllowedFirst();
+    await getHandler()({}, [
+      { types: ['screen'], thumbnailSize: { width: 0, height: 0 } },
+      'https://jitsi.example',
+    ]);
+
+    expect(mockGetSources).toHaveBeenLastCalledWith({
+      types: ['screen'],
+      thumbnailSize: { width: 1, height: 1 },
+    });
+  });
+
+  it('clamps invalid and oversized thumbnail dimensions', async () => {
+    await sourcesAllowedFirst();
+    await getHandler()({}, [
+      {
+        types: ['window'],
+        thumbnailSize: { width: -5, height: 9999999 },
+      },
+      'https://jitsi.example',
+    ]);
+
+    expect(mockGetSources).toHaveBeenLastCalledWith({
+      types: ['window'],
+      thumbnailSize: { width: 1, height: 512 },
+    });
+  });
+
+  it('keeps valid options untouched', async () => {
+    await sourcesAllowedFirst();
+    const options = {
+      types: ['screen', 'window'],
+      thumbnailSize: { width: 320, height: 180 },
+      fetchWindowIcons: true,
+    };
+    await getHandler()({}, [options, 'https://jitsi.example']);
+
+    expect(mockGetSources).toHaveBeenLastCalledWith({
+      types: ['screen', 'window'],
+      thumbnailSize: { width: 320, height: 180 },
+      fetchWindowIcons: true,
+    });
+  });
+
+  it('falls back to safe defaults for malformed options', async () => {
+    await sourcesAllowedFirst();
+
+    await getHandler()({}, [
+      { types: ['printer', 'audio'], thumbnailSize: 'junk' },
+      'https://jitsi.example',
+    ]);
+    expect(mockGetSources).toHaveBeenLastCalledWith({
+      types: ['screen', 'window'],
+    });
+
+    await getHandler()({}, [null, 'https://jitsi.example']);
+    expect(mockGetSources).toHaveBeenLastCalledWith({
+      types: ['screen', 'window'],
+    });
+  });
 });

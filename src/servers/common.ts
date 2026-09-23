@@ -39,6 +39,24 @@ export type Server = {
   presenceSupported?: boolean;
 };
 
+// Conference pages host a call and are built to run in their own window; a
+// server view restored onto one has no way back to the app.
+export const isConferencePageUrl = (
+  pageUrl: string,
+  serverUrl: Server['url']
+): boolean => {
+  try {
+    const { pathname } = new URL(pageUrl);
+    const basePath = new URL(serverUrl).pathname.replace(/\/?$/, '/');
+    return (
+      pathname.startsWith(basePath) &&
+      /^conference(\/|$)/.test(pathname.slice(basePath.length))
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const enum ServerUrlResolutionStatus {
   OK = 'ok',
   INVALID_URL = 'invalid-url',

@@ -27,6 +27,7 @@ type ChannelToArgsMap = {
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
   'server-view/open-url-on-browser': (url: string) => void;
+  'server-view/take-pending-conference': () => string | null;
   'video-call-window/open-window': (
     url: string,
     options?: {

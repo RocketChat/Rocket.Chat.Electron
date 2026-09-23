@@ -1,4 +1,5 @@
 import {
+  isConferencePageUrl,
   isServerUrlResolutionResult,
   ServerUrlResolutionStatus,
 } from '../common';
@@ -55,5 +56,55 @@ describe('servers/common', () => {
         {},
       ])
     ).toBe(false);
+  });
+
+  describe('isConferencePageUrl', () => {
+    it('matches conference pages of the server', () => {
+      expect(
+        isConferencePageUrl(
+          'https://chat.example/conference/abc?scheduled=true',
+          'https://chat.example/'
+        )
+      ).toBe(true);
+      expect(
+        isConferencePageUrl(
+          'https://chat.example/conference/abc',
+          'https://chat.example'
+        )
+      ).toBe(true);
+    });
+
+    it('honors a server hosted under a sub-path', () => {
+      expect(
+        isConferencePageUrl(
+          'https://example.com/chat/conference/abc',
+          'https://example.com/chat/'
+        )
+      ).toBe(true);
+      expect(
+        isConferencePageUrl(
+          'https://example.com/conference/abc',
+          'https://example.com/chat/'
+        )
+      ).toBe(false);
+    });
+
+    it('does not match other pages', () => {
+      expect(
+        isConferencePageUrl(
+          'https://chat.example/channel/conference',
+          'https://chat.example/'
+        )
+      ).toBe(false);
+      expect(
+        isConferencePageUrl(
+          'https://chat.example/conferences',
+          'https://chat.example/'
+        )
+      ).toBe(false);
+      expect(isConferencePageUrl('not a url', 'https://chat.example/')).toBe(
+        false
+      );
+    });
   });
 });

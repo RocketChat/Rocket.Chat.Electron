@@ -360,6 +360,17 @@ describe('servers reducer', () => {
       expect(newState).toBe(state);
     });
 
+    it('should not store a conference page as lastPath', () => {
+      const state = [{ ...existing, lastPath: `${url}home` }];
+      const newState = servers(state, {
+        type: WEBVIEW_DID_NAVIGATE,
+        payload: { url, pageUrl: `${url}conference/abc?scheduled=true` },
+      } as any);
+
+      expect(newState).toBe(state);
+      expect(newState[0].lastPath).toBe(`${url}home`);
+    });
+
     it('should return unchanged state when pageUrl is undefined', () => {
       const state = [existing];
       const newState = servers(state, {

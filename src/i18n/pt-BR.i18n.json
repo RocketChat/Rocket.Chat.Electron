@@ -269,6 +269,15 @@
         "title": "Ícone da bandeja",
         "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
       },
+      "trayIconUnreadCounter": {
+        "title": "Contador de não lidas no ícone da bandeja",
+        "titleDarwin": "Indicador de não lidas no ícone da barra de menus",
+        "description": "Mostra o indicador de mensagens não lidas no ícone em vez do seu status de presença."
+      },
+      "menuBarUnreadCount": {
+        "title": "Contagem de não lidas na barra de menus",
+        "description": "Mostra o número de menções não lidas ao lado do ícone na barra de menus."
+      },
       "availableBrowsers": {
         "title": "Navegador Padrão",
         "description": "Escolha qual navegador abrirá os links externos deste aplicativo. Sistema Padrão usa as configurações do seu sistema operacional.",

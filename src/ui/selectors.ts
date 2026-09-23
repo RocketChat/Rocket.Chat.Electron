@@ -21,6 +21,14 @@ export const selectGlobalBadge = createSelector(
   }
 );
 
+export const selectIsTrayIconUnreadCounterEnabled = ({
+  isTrayIconUnreadCounterEnabled,
+}: RootState): boolean => isTrayIconUnreadCounterEnabled;
+
+export const selectIsMenuBarUnreadCountEnabled = ({
+  isMenuBarUnreadCountEnabled,
+}: RootState): boolean => isMenuBarUnreadCountEnabled;
+
 export const selectGlobalBadgeText = createSelector(
   selectGlobalBadge,
   (badge) => {

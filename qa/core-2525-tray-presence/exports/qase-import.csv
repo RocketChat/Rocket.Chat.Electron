@@ -246,3 +246,70 @@ Agent: Re-read the tray menu template and assert the checked item is `Busy`.""",
 2. ""The tray's own checked radio ends up on `Busy` immediately (tray state is optimistic/local).""
 3. ""Within the polling window the second client's status label settles on `Busy`, not `Online` and not still `Away` — the later click was not dropped by the rate limiter. If the status has not become `Busy` by the 10-second timeout, treat this step as failed rather than continuing to wait.""
 4. ""The checked radio still reads `Busy`, matching the confirmed server value from step 3 (tray and server agree)."""
+"","1","Tray presence status","","Unread Counter Tray Icon Setting Restores The Pre-4.17 Badge","Source flow: CORE-2525-QA-012
+
+With ""Unread counter in tray icon"" off (the default) the tray icon shows presence only; turning it on immediately replaces the presence bullet with the pre-4.17 unread badge (dot, 1-9 or 9+ on Windows/Linux, a dot on macOS), turning it off restores presence, and the choice survives a restart.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+unread_mention_source","- Native-size crops of the tray icon for steps 2, 3, 4, 5 and 8 on each platform.
+- A screenshot of the settings window General section showing both tray toggles.","major","high","actual","manual","classic","CORE-2525-QA-012,source:repo-qa,platform:windows,platform:linux,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a presence-supporting workspace with zero unread messages. Press `Ctrl+,` (Windows/Linux) or `Cmd+,` (macOS) to open the settings window; the left sidebar shows """"General"""" selected. Near the top of the General section find the toggle """"Tray icon"""" (macOS: """"Menu bar extra"""") and, directly under it, the toggle """"Unread counter in tray icon"""" (macOS: """"Unread indicator in menu bar extra"""").""
+2. ""From another account, send this user one @-mention. Look at the tray icon.""
+3. ""In the settings window, turn """"Unread counter in tray icon"""" on. Do not send any new message. Look at the tray icon.""
+4. ""Send enough further @-mentions to reach 10 or more.""
+5. ""Mark everything as read.""
+6. ""Developer mode only: open the app menu bar item """"Developer"""" and check """"Simulate Disconnected"""". Uncheck it afterwards.""
+7. ""Right-click the tray icon (Windows notification area / Linux system tray; on macOS left-click the app icon in the menu bar at the top-right) and click the last menu item, """"Quit"""", to exit fully. Start the app again, then press `Ctrl+,` / `Cmd+,` to reopen the settings window on its """"General"""" section.""
+8. ""Turn """"Unread counter in tray icon"""" off.""
+9. ""Turn the """"Tray icon"""" toggle (macOS: """"Menu bar extra"""") off.""","1. ""Fresh profile or one upgraded from 4.17.x
+Agent: Read `isTrayIconUnreadCounterEnabled` from the store (expect `false`) and the resolved tray icon path (`presence-<presence>`).""
+2. ""1 unread @-mention
+Agent: Assert the resolved path is still `presence-<presence>`.""
+3. ""Toggle on, still 1 unread
+Agent: Assert the resolved path is `notification-1.ico` / `notification-1.png` / `notificationTemplate.png`.""
+4. ""10+ unread @-mentions
+Agent: Assert `notification-plus-9.*` on Windows/Linux.""
+5. ""0 unread
+Agent: Assert the path is `default.ico` / `default.png` / `defaultTemplate.png`.""
+6. ""Simulated disconnect, toggle still on
+Agent: Assert `disconnected.*` while simulated.""
+7. ""Restart
+Agent: Read the persisted value from the store after restart (`true`).""
+8. ""Toggle off
+Agent: Assert the path is `presence-<presence>` again.""
+9. ""Tray icon disabled
+Agent: Assert the toggle's checkbox is `disabled`.""","1. ""The """"Unread counter in tray icon"""" toggle is off. The tray icon (Windows notification area / Linux system tray; macOS menu bar, top-right) shows the rocket with the presence bullet in its bottom-right corner.""
+2. ""The tray icon still shows the presence bullet, not a number (default behaviour unchanged). The count appears only on the Windows taskbar overlay, the macOS menu-bar title or the Linux tray tooltip.""
+3. ""Without any new message, the bottom-right corner of the tray icon switches from the presence bullet to a red circle with a white `1` (Windows/Linux) or a filled dot on the monochrome rocket (macOS).""
+4. ""Windows/Linux shows the red circle with `9+`; macOS keeps the dot.""
+5. ""The tray icon shows the plain grey rocket with no bullet and no badge (presence is not shown in this mode).""
+6. ""The tray icon shows the grey rocket with the amber `!` badge while disconnected, and returns to the step 5 icon afterwards.""
+7. """"""Unread counter in tray icon"""" is still on, and the tray icon still uses the unread badge artwork.""
+8. ""The tray icon returns to the rocket with the presence bullet immediately, without any new message arriving.""
+9. ""The """"Unread counter in tray icon"""" toggle becomes greyed out and cannot be clicked. Turn """"Tray icon"""" back on afterwards."""
+"","1","Tray presence status","","Menu Bar Unread Count Can Be Hidden On macOS","Source flow: CORE-2525-QA-013
+
+With ""Unread count in menu bar"" on (the default) the number of unread mentions shows next to the menu bar extra; turning it off removes the number immediately without changing the icon or the Dock badge, and the choice survives a restart.","installed_branch_build
+presence_supporting_workspace
+logged_in_session
+unread_mention_source","- Menu bar crops for steps 1, 3 and 6, and a screenshot of the Dock badge at step 4.","minor","medium","actual","manual","classic","CORE-2525-QA-013,source:repo-qa,platform:macos,requires:installed_branch_build,requires:presence_supporting_workspace,requires:logged_in_session,requires:unread_mention_source","1. ""Sign in to a workspace and have another account send this user two @-mentions. Look at the app icon in the macOS menu bar at the top-right of the screen.""
+2. ""Press `Cmd+,` to open the settings window; the left sidebar shows """"General"""" selected. Find the toggle """"Unread count in menu bar"""", directly under """"Unread indicator in menu bar extra"""", near the top of the section.""
+3. ""Turn """"Unread count in menu bar"""" off. Do not send any new message. Look at the menu bar.""
+4. ""Have the other account send one more @-mention.""
+5. ""Click the app icon in the menu bar at the top-right of the screen and click the last menu item, """"Quit"""". Start the app again and press `Cmd+,` to reopen the settings window on its """"General"""" section.""
+6. ""Turn """"Unread count in menu bar"""" back on.""","1. ""2 unread @-mentions
+Agent: Confirm the tray title is `2`.""
+2. ""Default settings
+Agent: Read `isMenuBarUnreadCountEnabled` from the store (expect `true`).""
+3. ""Toggle off
+Agent: Confirm the tray title is empty.""
+4. ""3 unread @-mentions
+Agent: Confirm the tray title stays empty.""
+5. ""Restart
+Agent: Read the persisted value (`false`).""
+6. ""Toggle on
+Agent: Confirm the tray title is `3`.""","1. ""The number `2` appears right next to the rocket icon in the menu bar.""
+2. ""The toggle is on.""
+3. ""The `2` next to the rocket icon disappears immediately; the icon itself and the red Dock badge are unchanged.""
+4. ""No number appears next to the menu bar icon; the Dock badge shows `3`.""
+5. """"""Unread count in menu bar"""" is still off and no number appears next to the menu bar icon.""
+6. ""The number `3` reappears next to the menu bar icon immediately."""

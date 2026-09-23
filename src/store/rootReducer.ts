@@ -40,6 +40,7 @@ import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelera
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
 import { isLogViewerWindowOpen } from '../ui/reducers/isLogViewerWindowOpen';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
+import { isMenuBarUnreadCountEnabled } from '../ui/reducers/isMenuBarUnreadCountEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
 import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnabled';
@@ -51,6 +52,7 @@ import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTelephonyEnabled } from '../ui/reducers/isTelephonyEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isTrayIconUnreadCounterEnabled } from '../ui/reducers/isTrayIconUnreadCounterEnabled';
 import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
@@ -104,6 +106,8 @@ export const rootReducer = combineReducers({
   isSideBarEnabled,
   navigationLayout,
   isTrayIconEnabled,
+  isTrayIconUnreadCounterEnabled,
+  isMenuBarUnreadCountEnabled,
   isMinimizeOnCloseEnabled,
   isUpdatePanelOpen,
   isUpdatingAllowed,

@@ -146,9 +146,14 @@ type PersistableValues_4_17_0 = PersistableValues_4_16_2 & {
   isNotificationQuickReplyEnabled: boolean;
 };
 
+type PersistableValues_4_18_0 = PersistableValues_4_17_0 & {
+  isTrayIconUnreadCounterEnabled: boolean;
+  isMenuBarUnreadCountEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_17_0,
-  keyof PersistableValues_4_17_0
+  PersistableValues_4_18_0,
+  keyof PersistableValues_4_18_0
 >;
 
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */

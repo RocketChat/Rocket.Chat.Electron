@@ -184,7 +184,7 @@
     "app-builder-lib@npm:26.0.3": "patch:app-builder-lib@npm%3A26.0.3#~/.yarn/patches/app-builder-lib-npm-26.0.3-39d262b1d4.patch"
   },
   "volta": {
-    "node": "22.22.1",
+    "node": "24.11.1",
     "yarn": "4.6.0"
   },
   "packageManager": "yarn@4.6.0"

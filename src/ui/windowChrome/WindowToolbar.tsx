@@ -5,16 +5,16 @@ import { WindowControls } from './WindowControls';
 import {
   TOOLBAR_HEIGHT,
   TRAFFIC_LIGHTS_INSET,
-  WINDOW_CONTROLS_WIDTH,
   hasInAppTitleBar,
   isDarwin,
   isWindows,
+  windowControlsWidth,
 } from './appearance';
 import { DRAG_REGION_CLASS, NO_DRAG_REGION_CLASS } from './styles';
 
-const leadingInset = (): number => {
+const leadingInset = (isMaximizable: boolean): number => {
   if (isDarwin) return TRAFFIC_LIGHTS_INSET;
-  if (isWindows) return WINDOW_CONTROLS_WIDTH;
+  if (isWindows) return windowControlsWidth(isMaximizable);
   return 12;
 };
 
@@ -23,6 +23,11 @@ export type WindowToolbarProps = {
   children: ReactNode;
   /** Trailing controls; wrapped so they stay clickable inside the drag region. */
   actions?: ReactNode;
+  /**
+   * Whether the window can be maximised. A fixed-size window drops the caption
+   * button for it rather than showing one that does nothing.
+   */
+  isMaximizable?: boolean;
 };
 
 /**
@@ -32,7 +37,11 @@ export type WindowToolbarProps = {
  * window shows one header instead of a native title bar stacked on an in-app
  * one. It paints no background: the window's panel colour shows through.
  */
-export const WindowToolbar = ({ children, actions }: WindowToolbarProps) => (
+export const WindowToolbar = ({
+  children,
+  actions,
+  isMaximizable = true,
+}: WindowToolbarProps) => (
   <Box
     display='flex'
     flexDirection='row'
@@ -41,7 +50,7 @@ export const WindowToolbar = ({ children, actions }: WindowToolbarProps) => (
     // Both paddings go through Box props: Box emits styling props as
     // `!important`, so an inline `paddingInlineStart` would lose to
     // `paddingInline`.
-    paddingInlineStart={leadingInset()}
+    paddingInlineStart={leadingInset(isMaximizable)}
     // The caption buttons run to the window's edge, as they do natively.
     paddingInlineEnd={isWindows ? 0 : 12}
     className={hasInAppTitleBar ? DRAG_REGION_CLASS : undefined}
@@ -66,6 +75,6 @@ export const WindowToolbar = ({ children, actions }: WindowToolbarProps) => (
         {actions}
       </Box>
     )}
-    {isWindows && <WindowControls />}
+    {isWindows && <WindowControls isMaximizable={isMaximizable} />}
   </Box>
 );

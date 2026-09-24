@@ -13,20 +13,18 @@ const SCROLLBAR_WIDTH = 10;
  * thumbnails, inside the content card, next to the section list. Narrower and
  * the options wrap, which reads as a layout accident rather than a choice.
  */
-export const WINDOW_MIN_WIDTH =
+const CONTENT_MIN_WIDTH =
   SIDEBAR_WIDTH +
   CARD_INSET * 2 +
   CARD_PADDING * 2 +
   SCROLLBAR_WIDTH +
   thumbnailRowWidth();
-/**
- * Tall enough for the whole Appearance section — both thumbnail groups plus the
- * transparency toggle — without the last control being clipped.
- */
-export const WINDOW_MIN_HEIGHT = 660;
 
 /**
- * Default window size, clamped to the work area of the display it opens on.
+ * The window is not resizable: every section is laid out for this one size,
+ * so it opens the same everywhere instead of remembering whatever shape a
+ * drag or a monitor change last left it in. Only a work area smaller than
+ * this shrinks it, so it never opens larger than the screen.
  */
-export const WINDOW_PREFERRED_WIDTH = 900;
-export const WINDOW_PREFERRED_HEIGHT = 720;
+export const WINDOW_WIDTH = Math.max(900, CONTENT_MIN_WIDTH);
+export const WINDOW_HEIGHT = 720;

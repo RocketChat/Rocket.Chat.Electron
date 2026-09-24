@@ -438,14 +438,17 @@
       "copyCurrentUrl": "Jelenlegi URL másolása",
       "reloadClearingCache": "Kényszerített újratöltés",
       "serverInfo": "Kiszolgálóinformációk",
-      "supportedVersionsInfo": "Támogatott verziók információi"
+      "supportedVersionsInfo": "Támogatott verziók információi",
+      "muteWorkspace": "Munkaterület némítása"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} olvasatlan üzenet",
       "unreadMessages": "{{- count}} olvasatlan üzenet",
       "userNotLoggedIn": "Nincs bejelentkezve",
       "addWorkspace": "Munkaterület hozzáadása ({{shortcut}}+N)",
-      "settingsMenu": "Az alkalmazás személyre szabása és vezérlése"
+      "settingsMenu": "Az alkalmazás személyre szabása és vezérlése",
+      "audioPlaying": "Hang lejátszása",
+      "audioMuted": "Némítva"
     }
   },
   "tabBar": {

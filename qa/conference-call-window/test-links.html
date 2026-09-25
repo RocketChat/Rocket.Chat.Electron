@@ -129,8 +129,9 @@
         goLink.textContent = goLink.href;
         appLink.href = `rocketchat://conference?${query}`;
         appLink.textContent = appLink.href;
-        roomText.value = `https://${h}/${path}`;
-        roomLink.href = roomText.value;
+        const roomUrl = `https://${encodeURI(h)}/conference/${encodeURIComponent(a)}?scheduled=true`;
+        roomText.value = roomUrl;
+        roomLink.href = roomUrl;
       };
 
       host.addEventListener('input', update);

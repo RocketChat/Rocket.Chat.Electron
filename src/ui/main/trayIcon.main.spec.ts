@@ -75,6 +75,10 @@ jest.mock('../selectors', () => ({
   selectGlobalBadge: (state: any) => state.globalBadge,
   selectActiveServerPresence: (state: any) =>
     state.activeServerPresence ?? { hasServers: false },
+  selectIsTrayIconUnreadCounterEnabled: (state: any) =>
+    state.isTrayIconUnreadCounterEnabled ?? false,
+  selectIsMenuBarUnreadCountEnabled: (state: any) =>
+    state.isMenuBarUnreadCountEnabled ?? true,
 }));
 
 jest.mock('./icons', () => ({
@@ -290,6 +294,121 @@ describe('ui/main/trayIcon', () => {
       expect(getTrayIconPath).toHaveBeenLastCalledWith(
         expect.objectContaining({ disconnected: false, presence: 'online' })
       );
+    });
+  });
+
+  describe('unread counter setting wiring', () => {
+    const state = {
+      rootWindowState: { visible: true },
+      hasHideOnTrayNotificationShown: false,
+      globalBadge: 4,
+      isTrayIconUnreadCounterEnabled: false,
+      activeServerPresence: {
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'busy',
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+      },
+    };
+
+    beforeEach(() => {
+      select.mockImplementation((selector: any) =>
+        typeof selector === 'function' ? selector(state) : undefined
+      );
+    });
+
+    const setUpService = async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const service = require('./trayIcon').default;
+      service.setUp();
+      await new Promise((r) => setTimeout(r, 20));
+      getTrayIconPath.mockClear();
+      trayMethods.setImage.mockClear();
+    };
+
+    it('re-renders the icon with the counter as soon as the setting turns on', async () => {
+      await setUpService();
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectIsTrayIconUnreadCounterEnabled } = require('../selectors');
+      watchCallbacks.get(selectIsTrayIconUnreadCounterEnabled)?.(true);
+
+      expect(trayMethods.setImage).toHaveBeenCalledTimes(1);
+      expect(getTrayIconPath).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          badge: 4,
+          presence: 'busy',
+          showUnreadCounter: true,
+        })
+      );
+    });
+
+    it('passes the current setting when the badge changes', async () => {
+      await setUpService();
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectGlobalBadge } = require('../selectors');
+      watchCallbacks.get(selectGlobalBadge)?.(4);
+
+      expect(getTrayIconPath).toHaveBeenLastCalledWith(
+        expect.objectContaining({ badge: 4, showUnreadCounter: false })
+      );
+    });
+  });
+
+  describe('menu bar unread count setting wiring', () => {
+    const state = {
+      rootWindowState: { visible: true },
+      hasHideOnTrayNotificationShown: false,
+      globalBadge: 7,
+      isMenuBarUnreadCountEnabled: true,
+      activeServerPresence: { hasServers: false },
+    };
+
+    beforeEach(() => {
+      select.mockImplementation((selector: any) =>
+        typeof selector === 'function' ? selector(state) : undefined
+      );
+    });
+
+    const setUpService = async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const service = require('./trayIcon').default;
+      service.setUp();
+      await new Promise((r) => setTimeout(r, 20));
+      trayMethods.setTitle.mockClear();
+    };
+
+    it('shows the count in the title when enabled', async () => {
+      await setUpService();
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectGlobalBadge } = require('../selectors');
+      watchCallbacks.get(selectGlobalBadge)?.(7);
+
+      expect(trayMethods.setTitle).toHaveBeenLastCalledWith('7');
+    });
+
+    it('clears the title as soon as the setting turns off', async () => {
+      await setUpService();
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectIsMenuBarUnreadCountEnabled } = require('../selectors');
+      watchCallbacks.get(selectIsMenuBarUnreadCountEnabled)?.(false);
+
+      expect(trayMethods.setTitle).toHaveBeenLastCalledWith('');
+    });
+
+    it('restores the count when the setting turns back on', async () => {
+      await setUpService();
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectIsMenuBarUnreadCountEnabled } = require('../selectors');
+      watchCallbacks.get(selectIsMenuBarUnreadCountEnabled)?.(true);
+
+      expect(trayMethods.setTitle).toHaveBeenLastCalledWith('7');
     });
   });
 });

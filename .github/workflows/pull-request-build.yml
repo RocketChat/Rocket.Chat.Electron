@@ -11,7 +11,10 @@ on:
       - 'release/**'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref }}
+  # A `labeled` event for any other label (e.g. a bot's triage label) is
+  # skipped by the job's `if`, but in the shared group it would still cancel an
+  # artifact build that is already running. Give those events their own group.
+  group: ${{ github.workflow }}-${{ github.head_ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'build-artifacts' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: true
 
 jobs:

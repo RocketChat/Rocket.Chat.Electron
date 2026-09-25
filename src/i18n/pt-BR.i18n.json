@@ -148,6 +148,14 @@
     },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
+    },
+    "uiOverride": {
+      "title": "Carregar prévia de UI",
+      "message": "Carregar outra interface web para \"{{- host}}\"?",
+      "detail": "A interface será carregada de {{- bundle}} e rodará com sua sessão neste servidor. Continue apenas se confiar neste build. Use Exibir > Restaurar UI do servidor ou reinicie o app para voltar.",
+      "load": "Carregar UI",
+      "cancel": "Cancelar",
+      "developerModeRequired": "Ative o Modo Desenvolvedor nas Configurações para carregar prévias de UI."
     }
   },
   "documentViewer": {
@@ -359,7 +367,8 @@
     "windowMenu": "&Janela",
     "zoomIn": "Aumentar zoom",
     "zoomOut": "Diminuir zoom",
-    "simulateDisconnected": "Simular desconexão"
+    "simulateDisconnected": "Simular desconexão",
+    "restoreServerUi": "Restaurar UI do servidor"
   },
   "loadingError": {
     "title": "Servidor Falhou em Carregar",

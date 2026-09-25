@@ -12,10 +12,13 @@ import { openTelephonyDialpad } from '../telephony/dialpad';
 import { parseTelephonyLink } from '../telephony/links';
 import {
   askForServerAddition,
+  askForUiOverride,
   warnAboutInvalidServerUrl,
+  warnAboutUiOverrideRequiresDeveloperMode,
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import { applyUiOverride } from '../ui/main/serverView/uiOverride';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
 export type { TelephonyLink } from '../telephony/common';
@@ -257,6 +260,37 @@ const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {
   }
 };
 
+const performUiPreview = async ({
+  host,
+  bundle,
+}: {
+  host: string;
+  bundle: string;
+}): Promise<void> => {
+  if (!select(({ isDeveloperModeEnabled }) => isDeveloperModeEnabled)) {
+    await warnAboutUiOverrideRequiresDeveloperMode();
+    return;
+  }
+
+  let bundleUrl: URL;
+  try {
+    bundleUrl = new URL(bundle);
+  } catch {
+    return;
+  }
+  if (bundleUrl.protocol !== 'https:' && bundleUrl.protocol !== 'http:') {
+    return;
+  }
+
+  await performOnServer(host, async (serverUrl) => {
+    if (!(await askForUiOverride(serverUrl, bundleUrl.href))) {
+      return;
+    }
+    await getWebContents(serverUrl);
+    await applyUiOverride(serverUrl, bundleUrl.href);
+  });
+};
+
 const processDeepLink = async (deepLink: string): Promise<void> => {
   const telephonyLink = parseTelephonyLink(deepLink);
   if (telephonyLink) {
@@ -300,6 +334,15 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
       const path = args.get('path') ?? undefined;
       if (host && path) {
         await performInvite({ host, path });
+      }
+      break;
+    }
+
+    case 'ui-preview': {
+      const host = args.get('host') ?? undefined;
+      const bundle = args.get('bundle') ?? undefined;
+      if (host && bundle) {
+        await performUiPreview({ host, bundle });
       }
       break;
     }

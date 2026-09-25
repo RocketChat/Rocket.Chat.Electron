@@ -45,6 +45,39 @@ export const askForServerAddition = async (
   return response === 0;
 };
 
+export const askForUiOverride = async (
+  serverUrl: string,
+  bundleUrl: string,
+  parentWindow?: BrowserWindow
+): Promise<boolean> => {
+  parentWindow?.show();
+
+  const { response } = await dialog.showMessageBox(
+    parentWindow ?? (await getRootWindow()),
+    {
+      type: 'warning',
+      buttons: [t('dialog.uiOverride.load'), t('dialog.uiOverride.cancel')],
+      defaultId: 1,
+      cancelId: 1,
+      title: t('dialog.uiOverride.title'),
+      message: t('dialog.uiOverride.message', { host: serverUrl }),
+      detail: t('dialog.uiOverride.detail', { bundle: bundleUrl }),
+    }
+  );
+
+  return response === 0;
+};
+
+export const warnAboutUiOverrideRequiresDeveloperMode = async (
+  parentWindow?: BrowserWindow
+): Promise<void> => {
+  await dialog.showMessageBox(parentWindow ?? (await getRootWindow()), {
+    type: 'info',
+    title: t('dialog.uiOverride.title'),
+    message: t('dialog.uiOverride.developerModeRequired'),
+  });
+};
+
 export const warnAboutInvalidServerUrl = (
   _serverUrl: string,
   _reason: string,

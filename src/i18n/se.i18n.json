@@ -24,13 +24,13 @@
         "dark": "Mörk"
       },
       "trayIconUnreadCounter": {
-        "title": "Olästa-räknare i ikonen för brickan",
-        "titleDarwin": "Olästa-indikator i menyfältsikonen",
-        "description": "Visa märket för olästa meddelanden på ikonen i stället för din närvarostatus."
+        "title": "Lohkkekeahtes dieđáhusaid lohku govažis",
+        "titleDarwin": "Lohkkekeahtes dieđáhusaid mearka fálloholgga govažis",
+        "description": "Čájet lohkkekeahtes dieđáhusaid mearkka govažis du stáhtusa sajis."
       },
       "menuBarUnreadCount": {
-        "title": "Antal olästa i menyfältet",
-        "description": "Visa antalet olästa omnämnanden bredvid ikonen i menyfältet."
+        "title": "Lohkkekeahtes dieđáhusaid lohku fálloholggas",
+        "description": "Čájet lohkkekeahtes namuhemiid logu fálloholgga govaža bálddas."
       }
     }
   },

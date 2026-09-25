@@ -155,7 +155,8 @@
       "detail": "A interface será carregada de {{- bundle}} e rodará com sua sessão neste servidor. Continue apenas se confiar neste build. Use Exibir > Restaurar UI do servidor ou reinicie o app para voltar.",
       "load": "Carregar UI",
       "cancel": "Cancelar",
-      "developerModeRequired": "Ative o Modo Desenvolvedor nas Configurações para carregar prévias de UI."
+      "developerModeRequired": "Ative o Modo Desenvolvedor nas Configurações para carregar prévias de UI.",
+      "failed": "Não foi possível carregar a prévia de UI."
     }
   },
   "documentViewer": {

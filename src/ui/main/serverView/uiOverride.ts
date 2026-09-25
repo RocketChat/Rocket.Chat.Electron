@@ -67,14 +67,14 @@ export const isUiServedFromServer = (
 export const prepareIndexHtml = (
   html: string,
   serverUrl: string,
-  bundleUrl: string
+  label: string
 ) => {
   const { origin, pathname } = new URL(withTrailingSlash(serverUrl));
   const runtimeConfig = JSON.stringify({
     ROOT_URL: origin + pathname,
     ROOT_URL_PATH_PREFIX: pathname.replace(/\/$/, ''),
   });
-  const badge = `<div style="position:fixed;bottom:4px;right:4px;z-index:2147483647;pointer-events:none;padding:2px 6px;border-radius:4px;font:11px/16px monospace;background:#f5455c;color:#fff;opacity:.85">UI preview: ${escapeHtml(bundleUrl)}</div>`;
+  const badge = `<div style="position:fixed;bottom:4px;right:4px;z-index:2147483647;pointer-events:none;padding:2px 6px;border-radius:4px;font:11px/16px monospace;background:#f5455c;color:#fff;opacity:.85">UI preview: ${escapeHtml(label)}</div>`;
 
   return html
     .replace(/<base href="[^"]*"\s*\/?>/, `<base href="${pathname}" />`)
@@ -93,7 +93,7 @@ const passthrough = (ses: Session, request: Request) =>
 
 // ponytail: every request of the server's scheme in this session goes through the main process while an override is active; fine for testing, not for daily use.
 const createHandler =
-  (ses: Session, serverUrl: string, bundleUrl: string) =>
+  (ses: Session, serverUrl: string, bundleUrl: string, label: string) =>
   async (request: Request): Promise<Response> => {
     const server = new URL(withTrailingSlash(serverUrl));
     const url = new URL(request.url);
@@ -125,7 +125,7 @@ const createHandler =
     }
 
     return new Response(
-      prepareIndexHtml(await index.text(), serverUrl, bundleUrl),
+      prepareIndexHtml(await index.text(), serverUrl, label),
       { headers: { 'content-type': 'text/html; charset=utf-8' } }
     );
   };
@@ -139,7 +139,11 @@ const reloadServer = async (serverUrl: string, ses: Session) => {
 
 export const hasUiOverride = (serverUrl: string) => overrides.has(serverUrl);
 
-export const applyUiOverride = async (serverUrl: string, bundleUrl: string) => {
+export const applyUiOverride = async (
+  serverUrl: string,
+  bundleUrl: string,
+  label = bundleUrl
+) => {
   const ses = getServerSession(serverUrl);
   const scheme = getScheme(serverUrl);
   const normalizedBundleUrl = withTrailingSlash(bundleUrl);
@@ -149,7 +153,7 @@ export const applyUiOverride = async (serverUrl: string, bundleUrl: string) => {
   }
   ses.protocol.handle(
     scheme,
-    createHandler(ses, serverUrl, normalizedBundleUrl)
+    createHandler(ses, serverUrl, normalizedBundleUrl, label)
   );
   overrides.set(serverUrl, normalizedBundleUrl);
 

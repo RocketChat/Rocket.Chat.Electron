@@ -7,7 +7,7 @@ import { app, net } from 'electron';
 
 // Published by Rocket.Chat's `UI Preview Publish` workflow; public, so pulls need no GitHub login.
 const registry = 'https://ghcr.io';
-const repository = 'rocketchat/rocket.chat-web-preview';
+const repository = 'rocketchat/rocket.chat-web';
 
 export const getUiPreviewReference = (tag: string) =>
   `ghcr.io/${repository}:${tag}`;

@@ -392,6 +392,15 @@
         "description": "Show tray icon on system tray. Instead of quitting, app is hidden to tray on close when enabled.",
         "descriptionDarwin": "Show app icon in menu bar."
       },
+      "trayIconUnreadCounter": {
+        "title": "Unread counter in tray icon",
+        "titleDarwin": "Unread indicator in menu bar extra",
+        "description": "Show the unread messages badge on the icon instead of your presence status."
+      },
+      "menuBarUnreadCount": {
+        "title": "Unread count in menu bar",
+        "description": "Show the number of unread mentions next to the menu bar extra."
+      },
       "availableBrowsers": {
         "title": "Default browser",
         "description": "Choose which browser to open external links in.",

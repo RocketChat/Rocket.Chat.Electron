@@ -254,6 +254,15 @@
         "title": "Taskleistensymbol",
         "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
       },
+      "trayIconUnreadCounter": {
+        "title": "Zähler für Ungelesenes im Taskleistensymbol",
+        "titleDarwin": "Hinweis auf Ungelesenes im Menüleistensymbol",
+        "description": "Zeigt das Abzeichen für ungelesene Nachrichten statt deines Anwesenheitsstatus auf dem Symbol an."
+      },
+      "menuBarUnreadCount": {
+        "title": "Anzahl ungelesener Nachrichten in der Menüleiste",
+        "description": "Zeigt die Anzahl ungelesener Erwähnungen neben dem Menüleistensymbol an."
+      },
       "availableBrowsers": {
         "title": "Standard-Browser",
         "description": "Wählen Sie aus, welcher Browser externe Links aus dieser App öffnen soll. Systemstandard verwendet die Einstellungen Ihres Betriebssystems.",

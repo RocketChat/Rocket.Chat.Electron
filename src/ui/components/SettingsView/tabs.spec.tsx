@@ -33,6 +33,12 @@ jest.mock('./features/NavigationLayout', () => ({
 jest.mock('./features/TrayIcon', () => ({
   TrayIcon: () => <div data-testid='tray' />,
 }));
+jest.mock('./features/MenuBarUnreadCount', () => ({
+  MenuBarUnreadCount: () => <div data-testid='menu-bar-unread-count' />,
+}));
+jest.mock('./features/TrayIconUnreadCounter', () => ({
+  TrayIconUnreadCounter: () => <div data-testid='tray-unread-counter' />,
+}));
 jest.mock('./features/FlashFrame', () => ({
   FlashFrame: () => <div data-testid='flash' />,
 }));
@@ -107,6 +113,7 @@ describe('Settings tabs', () => {
     render(<GeneralTab />);
     expect(screen.getByTestId('nav-layout')).toBeInTheDocument();
     expect(screen.getByTestId('tray')).toBeInTheDocument();
+    expect(screen.getByTestId('tray-unread-counter')).toBeInTheDocument();
     expect(screen.getByTestId('flash')).toBeInTheDocument();
     expect(screen.getByTestId('browsers')).toBeInTheDocument();
     expect(screen.getByTestId('hw')).toBeInTheDocument();

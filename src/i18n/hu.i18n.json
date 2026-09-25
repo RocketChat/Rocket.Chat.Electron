@@ -286,6 +286,15 @@
         "title": "Tálcaikon",
         "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
       },
+      "trayIconUnreadCounter": {
+        "title": "Olvasatlanok számlálója a tálcaikonon",
+        "titleDarwin": "Olvasatlanok jelzése a menüsáv ikonján",
+        "description": "Az ikonon az olvasatlan üzenetek jelvénye jelenik meg a jelenléti állapotod helyett."
+      },
+      "menuBarUnreadCount": {
+        "title": "Olvasatlanok száma a menüsávon",
+        "description": "Az olvasatlan említések száma megjelenik a menüsáv ikonja mellett."
+      },
       "availableBrowsers": {
         "title": "Alapértelmezett böngésző",
         "description": "Annak kiválasztása, hogy melyik böngésző nyissa meg a külső hivatkozásokat az alkalmazásból. A rendszer alapértelmezettje az operációs rendszer beállításait használja.",

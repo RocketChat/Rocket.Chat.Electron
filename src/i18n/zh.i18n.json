@@ -22,6 +22,15 @@
         "auto": "跟随系统",
         "light": "浅色",
         "dark": "深色"
+      },
+      "trayIconUnreadCounter": {
+        "title": "托盘图标中的未读计数",
+        "titleDarwin": "菜单栏图标中的未读指示",
+        "description": "在图标上显示未读消息徽标，而不是你的在线状态。"
+      },
+      "menuBarUnreadCount": {
+        "title": "菜单栏中的未读数",
+        "description": "在菜单栏图标旁显示未读提及的数量。"
       }
     }
   },

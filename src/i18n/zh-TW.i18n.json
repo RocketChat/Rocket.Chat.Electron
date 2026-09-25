@@ -104,6 +104,15 @@
         "title": "系統匣圖示",
         "description": "顯示系統匣圖示。啟用系統匣圖示時，關閉視窗會將應用程式最小化到系統匣。否則，應用程式將會關閉。"
       },
+      "trayIconUnreadCounter": {
+        "title": "系統匣圖示中的未讀計數",
+        "titleDarwin": "選單列圖示中的未讀指示",
+        "description": "在圖示上顯示未讀訊息徽章，而不是你的上線狀態。"
+      },
+      "menuBarUnreadCount": {
+        "title": "選單列中的未讀數",
+        "description": "在選單列圖示旁顯示未讀提及的數量。"
+      },
       "availableBrowsers": {
         "title": "預設瀏覽器",
         "description": "選擇哪個瀏覽器將開啟此應用程式的外部連結。系統預設使用您操作系統的設定。",

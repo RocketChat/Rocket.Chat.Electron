@@ -110,6 +110,11 @@ const selectPersistableValuesB = createStructuredSelector({
   isNotificationQuickReplyEnabled: ({
     isNotificationQuickReplyEnabled,
   }: RootState) => isNotificationQuickReplyEnabled,
+  isTrayIconUnreadCounterEnabled: ({
+    isTrayIconUnreadCounterEnabled,
+  }: RootState) => isTrayIconUnreadCounterEnabled,
+  isMenuBarUnreadCountEnabled: ({ isMenuBarUnreadCountEnabled }: RootState) =>
+    isMenuBarUnreadCountEnabled,
 });
 
 export const selectPersistableValues = createSelector(

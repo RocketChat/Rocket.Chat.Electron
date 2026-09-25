@@ -22,6 +22,15 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Ulesne-teljar i systemstatusikonet",
+        "titleDarwin": "Ulesne-indikator i menylinjeikonet",
+        "description": "Vis merket for ulesne meldingar på ikonet i staden for tilstadestatusen din."
+      },
+      "menuBarUnreadCount": {
+        "title": "Tal på ulesne i menylinja",
+        "description": "Vis talet på ulesne omtalar ved sida av ikonet i menylinja."
       }
     }
   },

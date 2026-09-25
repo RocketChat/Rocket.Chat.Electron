@@ -22,6 +22,15 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Uleste-teller i systemstatusikonet",
+        "titleDarwin": "Uleste-indikator i menylinjeikonet",
+        "description": "Vis merket for uleste meldinger på ikonet i stedet for tilstedeværelsesstatusen din."
+      },
+      "menuBarUnreadCount": {
+        "title": "Antall uleste i menylinjen",
+        "description": "Vis antall uleste omtaler ved siden av ikonet i menylinjen."
       }
     }
   },

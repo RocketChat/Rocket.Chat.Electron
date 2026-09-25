@@ -10,7 +10,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { rimraf } from 'rimraf';
 
-import type { UserPresence } from './servers/common';
+import type { Server, UserPresence } from './servers/common';
 import DmgBackground from './ui/assets/DmgBackground';
 import NsisSideBar from './ui/assets/NsisSideBar';
 import AppIcon from './ui/icons/AppIcon';
@@ -21,6 +21,29 @@ import PresenceMenuIcon from './ui/icons/PresenceMenuIcon';
 import WindowsTrayIcon from './ui/icons/WindowsTrayIcon';
 
 const PRESENCES: UserPresence[] = ['online', 'away', 'busy', 'offline'];
+
+// Badges rendered for the opt-in unread counter tray icon: a dot for unread
+// messages, 1-9 mentions, and a shared "9+" for anything above.
+const UNREAD_COUNTER_BADGES: Server['badge'][] = [
+  '•',
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+];
+
+const getUnreadCounterFileName = (badge: Server['badge']): string =>
+  `notification-${
+    (badge === '•' && 'dot') ||
+    (typeof badge === 'number' && badge > 9 && 'plus-9') ||
+    String(badge)
+  }`;
 
 const convertSvgToPng = async (
   svg: string,
@@ -90,6 +113,7 @@ const createMacOSAppIcon = async (): Promise<void> => {
 
 const writeMacOSPresenceTrayIcon = async (
   props: {
+    notification?: boolean;
     presence?: UserPresence;
     disconnected?: boolean;
   },
@@ -118,6 +142,10 @@ const createMacOSTrayIcons = async (): Promise<void> => {
   }
 
   await writeMacOSPresenceTrayIcon({ disconnected: true }, 'disconnected');
+  await writeMacOSPresenceTrayIcon(
+    { notification: true },
+    'notificationTemplate'
+  );
 };
 
 const createDmgBackgrounds = async (): Promise<void> => {
@@ -152,6 +180,7 @@ const createWindowsAppIcons = async (): Promise<void> => {
 
 const writeWindowsTrayIcon = async (
   props: {
+    badge?: Server['badge'];
     presence?: UserPresence;
     disconnected?: boolean;
   },
@@ -171,6 +200,10 @@ const createWindowsTrayIcons = async (): Promise<void> => {
   }
 
   await writeWindowsTrayIcon({ disconnected: true }, 'disconnected');
+
+  for await (const badge of UNREAD_COUNTER_BADGES) {
+    await writeWindowsTrayIcon({ badge }, getUnreadCounterFileName(badge));
+  }
 };
 
 const createNsisSideBars = async (): Promise<void> => {
@@ -206,6 +239,7 @@ const createLinuxAppIcons = async (): Promise<void> => {
 
 const writeLinuxTrayIcon = async (
   props: {
+    badge?: Server['badge'];
     presence?: UserPresence;
     disconnected?: boolean;
   },
@@ -225,6 +259,10 @@ const createLinuxTrayIcons = async (): Promise<void> => {
   }
 
   await writeLinuxTrayIcon({ disconnected: true }, 'disconnected');
+
+  for await (const badge of UNREAD_COUNTER_BADGES) {
+    await writeLinuxTrayIcon({ badge }, getUnreadCounterFileName(badge));
+  }
 };
 
 const writePresenceTrayIcons = async (): Promise<void> => {
@@ -258,7 +296,24 @@ const createPresenceMenuIcons = async (): Promise<void> => {
   }
 };
 
+const writeUnreadCounterTrayIcons = async (): Promise<void> => {
+  await writeMacOSPresenceTrayIcon(
+    { notification: true },
+    'notificationTemplate'
+  );
+
+  for await (const badge of UNREAD_COUNTER_BADGES) {
+    await writeWindowsTrayIcon({ badge }, getUnreadCounterFileName(badge));
+    await writeLinuxTrayIcon({ badge }, getUnreadCounterFileName(badge));
+  }
+};
+
 const run = async (): Promise<void> => {
+  if (process.argv.includes('--unread-counter')) {
+    await writeUnreadCounterTrayIcons();
+    return;
+  }
+
   if (process.argv.includes('--presence')) {
     await writePresenceTrayIcons();
     return;

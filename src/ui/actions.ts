@@ -92,6 +92,10 @@ export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
 export const SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED =
   'settings/set-is-tray-icon-enabled-changed';
+export const SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED =
+  'settings/set-is-tray-icon-unread-counter-enabled-changed';
+export const SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED =
+  'settings/set-is-menu-bar-unread-count-enabled-changed';
 export const SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED =
   'settings/set-is-telephony-enabled-changed';
 export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
@@ -284,6 +288,8 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;

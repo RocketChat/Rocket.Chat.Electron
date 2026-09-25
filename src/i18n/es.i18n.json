@@ -273,6 +273,15 @@
         "title": "Icono de la bandeja",
         "description": "Muestra un icono en la bandeja del sistema. Si el icono de la bandeja está activo, la aplicación se minimizará a la bandeja al cerrarla. De lo contrario, cerrará la aplicación."
       },
+      "trayIconUnreadCounter": {
+        "title": "Contador de no leídos en el icono de la bandeja",
+        "titleDarwin": "Indicador de no leídos en el icono de la barra de menú",
+        "description": "Muestra la insignia de mensajes no leídos en el icono en lugar de tu estado de presencia."
+      },
+      "menuBarUnreadCount": {
+        "title": "Número de no leídos en la barra de menú",
+        "description": "Muestra el número de menciones no leídas junto al icono de la barra de menú."
+      },
       "availableBrowsers": {
         "title": "Navegador Predeterminado",
         "description": "Elija qué navegador abrirá los enlaces externos de esta aplicación. Predeterminado del Sistema usa la configuración de su sistema operativo.",

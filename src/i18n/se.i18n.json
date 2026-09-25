@@ -22,6 +22,15 @@
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Lohkkekeahtes dieđáhusaid lohku govažis",
+        "titleDarwin": "Lohkkekeahtes dieđáhusaid mearka fálloholgga govažis",
+        "description": "Čájet lohkkekeahtes dieđáhusaid mearkka govažis du stáhtusa sajis."
+      },
+      "menuBarUnreadCount": {
+        "title": "Lohkkekeahtes dieđáhusaid lohku fálloholggas",
+        "description": "Čájet lohkkekeahtes namuhemiid logu fálloholgga govaža bálddas."
       }
     }
   },

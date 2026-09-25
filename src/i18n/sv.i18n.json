@@ -282,6 +282,15 @@
         "title": "Ikon för brickan",
         "description": "Visa ikonen i systemfältet. Om ikonen är aktiv kommer appen att döljas i facket när den stängs. Annars avslutas programmet."
       },
+      "trayIconUnreadCounter": {
+        "title": "Olästa-räknare i ikonen för brickan",
+        "titleDarwin": "Olästa-indikator i menyfältsikonen",
+        "description": "Visa märket för olästa meddelanden på ikonen i stället för din närvarostatus."
+      },
+      "menuBarUnreadCount": {
+        "title": "Antal olästa i menyfältet",
+        "description": "Visa antalet olästa omnämnanden bredvid ikonen i menyfältet."
+      },
       "availableBrowsers": {
         "title": "Standardwebbläsare",
         "description": "Välj vilken webbläsare som ska öppna externa länkar från den här appen. Systemstandard använder inställningarna för ditt operativsystem.",

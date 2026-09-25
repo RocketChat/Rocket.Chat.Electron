@@ -261,6 +261,15 @@
         "title": "Icône de la barre d'état système",
         "description": "Afficher l'icône dans la barre d'état système. Si l'icône est active, l'application sera masquée dans la barre d'état lors de la fermeture. Sinon, elle sera complètement fermée."
       },
+      "trayIconUnreadCounter": {
+        "title": "Compteur de non-lus dans l'icône de la barre d'état système",
+        "titleDarwin": "Indicateur de non-lus dans l'icône de la barre de menus",
+        "description": "Affiche le badge des messages non lus sur l'icône à la place de votre statut de présence."
+      },
+      "menuBarUnreadCount": {
+        "title": "Nombre de non-lus dans la barre de menus",
+        "description": "Affiche le nombre de mentions non lues à côté de l'icône de la barre de menus."
+      },
       "availableBrowsers": {
         "title": "Navigateur par défaut",
         "description": "Choisissez quel navigateur ouvrira les liens externes de cette application. La valeur par défaut du système utilise les paramètres de votre système d'exploitation.",

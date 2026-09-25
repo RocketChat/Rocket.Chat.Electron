@@ -6,6 +6,7 @@ import { E2ePdfPreviewSizeLimit } from './features/E2ePdfPreviewSizeLimit';
 import { FlashFrame } from './features/FlashFrame';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
 import { MenuBar } from './features/MenuBar';
+import { MenuBarUnreadCount } from './features/MenuBarUnreadCount';
 import { MinimizeOnClose } from './features/MinimizeOnClose';
 import { NTLMCredentials } from './features/NTLMCredentials';
 import { NavigationLayout } from './features/NavigationLayout';
@@ -14,6 +15,7 @@ import { ReportErrors } from './features/ReportErrors';
 import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
+import { TrayIconUnreadCounter } from './features/TrayIconUnreadCounter';
 
 export const GeneralTab = () => {
   const isDarwin = process.platform === 'darwin';
@@ -30,6 +32,8 @@ export const GeneralTab = () => {
         <FieldGroup mbs='x24'>
           {isDarwin && <TransparentWindow />}
           <TrayIcon />
+          <TrayIconUnreadCounter />
+          {isDarwin && <MenuBarUnreadCount />}
           {isWin32 && <MinimizeOnClose />}
           {!isDarwin && <MenuBar />}
           <FlashFrame />

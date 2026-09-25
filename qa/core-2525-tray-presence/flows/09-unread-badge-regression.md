@@ -23,6 +23,13 @@ expected_result: The tray icon title/tooltip/badge overlay for unread mentions a
 
 # Unread Badge Behavior Is Unchanged By Presence
 
+Run this flow with the "Unread counter in tray icon" setting off (the
+default). With it on, the tray artwork follows flow 12 instead. On macOS,
+also keep "Unread count in menu bar" on (the default): press `Cmd+,`, and
+in the settings window's "General" section check that the toggle under
+"Unread indicator in menu bar extra" is on. With it off, the menu-bar number
+is hidden (flow 13).
+
 ## Review Basis
 
 - Comparison range: base `dev` (default branch) to head `feat/CORE-2525-tray-presence` (PR #3466); the complete range `dev..feat/CORE-2525-tray-presence` was reviewed for this pack.

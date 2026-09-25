@@ -22,6 +22,15 @@
         "auto": "Segui sistema",
         "light": "Chiaro",
         "dark": "Scuro"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Contatore dei non letti nell'icona della barra di sistema",
+        "titleDarwin": "Indicatore dei non letti nell'icona della barra dei menu",
+        "description": "Mostra il badge dei messaggi non letti sull'icona al posto del tuo stato di presenza."
+      },
+      "menuBarUnreadCount": {
+        "title": "Numero di non letti nella barra dei menu",
+        "description": "Mostra il numero di menzioni non lette accanto all'icona della barra dei menu."
       }
     }
   },

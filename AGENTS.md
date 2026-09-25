@@ -141,11 +141,17 @@ yarn workspaces:build        # Build all workspaces
   color/animation tokens, read `docs/desktop-ui-guidelines.md` — token
   semantics and traps, Fuselage geometry/timing facts, the button-dimming and
   SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
-- Tray icons are status-only on macOS, Windows and Linux: six states per
-  platform — `default`, `presence-{online,away,busy,offline}`, `disconnected`
-  (`src/ui/main/icons.ts`). The unread count is never baked into the tray
-  image; it lives on the Windows taskbar overlay (`rootWindow.ts`
-  `setOverlayIcon`), the macOS menu-bar title and the Linux tray tooltip.
+- Tray icons are status-only by default on macOS, Windows and Linux: six
+  states per platform — `default`, `presence-{online,away,busy,offline}`,
+  `disconnected` (`src/ui/main/icons.ts`). The unread count lives on the
+  Windows taskbar overlay (`rootWindow.ts` `setOverlayIcon`), the macOS
+  menu-bar title and the Linux tray tooltip. The opt-in
+  `isTrayIconUnreadCounterEnabled` setting (#3484) swaps presence for the
+  pre-4.17 badge assets (`notification-{dot,1..9,plus-9}`,
+  `notificationTemplate` on macOS; regenerate with
+  `yarn build-assets --unread-counter`); disconnected still wins. The
+  macOS-only `isMenuBarUnreadCountEnabled` setting (CORE-2703, default on)
+  hides the menu-bar title number; the Dock badge is unaffected.
 - Presence bullets reuse Fuselage `StatusBullet` glyphs
   (`src/ui/icons/PresenceBullet.tsx`: filled / clock cut-out / bar cut-out /
   hollow ring; `DisconnectedBadge.tsx`: filled amber with a bold `!`). Any

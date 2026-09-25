@@ -106,5 +106,20 @@ describe('servers/common', () => {
         false
       );
     });
+
+    it('does not match conference pages of another origin', () => {
+      expect(
+        isConferencePageUrl(
+          'https://evil.example/conference/abc',
+          'https://chat.example/'
+        )
+      ).toBe(false);
+      expect(
+        isConferencePageUrl(
+          'http://chat.example/conference/abc',
+          'https://chat.example/'
+        )
+      ).toBe(false);
+    });
   });
 });

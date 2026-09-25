@@ -46,8 +46,13 @@ export const isConferencePageUrl = (
   serverUrl: Server['url']
 ): boolean => {
   try {
-    const { pathname } = new URL(pageUrl);
-    const basePath = new URL(serverUrl).pathname.replace(/\/?$/, '/');
+    const page = new URL(pageUrl);
+    const server = new URL(serverUrl);
+    if (page.origin !== server.origin) {
+      return false;
+    }
+    const { pathname } = page;
+    const basePath = server.pathname.replace(/\/?$/, '/');
     return (
       pathname.startsWith(basePath) &&
       /^conference(\/|$)/.test(pathname.slice(basePath.length))

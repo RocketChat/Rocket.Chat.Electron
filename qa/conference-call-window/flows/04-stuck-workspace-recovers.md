@@ -10,8 +10,11 @@ qase:
   status: actual
   automation: manual
   qase_id: null
-requires: [machine_stuck_on_older_build, installed_branch_build]
-test_links: []
+requires: [machine_stuck_on_older_build, installed_branch_build, test-links-html]
+test_links:
+  [
+    'https://go.rocket.chat/conference?host=<workspace-host>&path=conference%2F<alias>%3Fscheduled%3Dtrue',
+  ]
 expected_result: After installing this build over a stuck installation, the workspace opens on a normal page without being removed and re-added.
 ---
 
@@ -32,7 +35,7 @@ expected_result: After installing this build over a stuck installation, the work
 
 | Step | Action | Test data | Expected result | Agent action |
 | --- | --- | --- | --- | --- |
-| 1 | On a machine with the previous Rocket.Chat Desktop version, get stuck: open a scheduled meeting link with `Desktop application` (as in CONF-QA-001), confirm the main window shows the meeting screen, then quit Rocket.Chat. Skip this step if the machine is already stuck. | Older build | Main window shows the meeting screen before quitting. | Reproduce the stuck state on the old build. |
+| 1 | On a machine with the previous Rocket.Chat Desktop version, get stuck: open `test-links.html` in the browser, fill in the workspace host and a valid scheduled-meeting alias, click the link labelled `go.rocket.chat scheduled meeting link`, click the blue `Desktop application` button and accept the browser's open prompt; confirm the main window shows the meeting screen, then quit Rocket.Chat. Skip this step if the machine is already stuck. | Older build | Main window shows the meeting screen before quitting. | Reproduce the stuck state on the old build. |
 | 2 | Install this branch's build over the existing installation. Do not remove the workspace. | Branch build | Installation completes. | Install over the old build. |
 | 3 | Start Rocket.Chat. | | The workspace opens on its home page or a room, with the room list visible. The meeting screen does not appear. | Launch and capture. |
 

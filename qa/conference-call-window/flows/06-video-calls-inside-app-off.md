@@ -37,7 +37,7 @@ expected_result: With Video calls inside app switched off, the meeting opens in 
 | Step | Action | Test data | Expected result | Agent action |
 | --- | --- | --- | --- | --- |
 | 1 | In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top, and switch `Video calls inside app` off. | | The toggle is off. | Disable the setting. |
-| 2 | Run CONF-QA-001 steps 1-3. | Workspace host, meeting alias | The meeting opens in the default web browser. No separate Rocket.Chat call window opens. | Open the link. |
+| 2 | Click any channel in the workspace's left room list. In the browser, open `test-links.html`, fill in the workspace host and a valid scheduled-meeting alias, then click the link labelled `go.rocket.chat scheduled meeting link`. On the white go.rocket.chat page, click the blue `Desktop application` button; if the browser asks to open Rocket.Chat, click its open/allow button. | Workspace host, meeting alias | The meeting opens in the default web browser. No separate Rocket.Chat call window opens. | Open the link. |
 | 3 | Switch back to the main Rocket.Chat window. | | The main window still shows the room with the room list. | Capture the main window. |
 | 4 | Switch `Video calls inside app` back on. | | The toggle is on. | Restore the setting. |
 

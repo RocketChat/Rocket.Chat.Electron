@@ -57,8 +57,11 @@ Evidence:
 Notes:
 ```
 
-Capture a screenshot of the main Rocket.Chat window and of the separate call
-window for every flow, and the app log file for any failure.
+Capture the screenshots listed in each flow's `Evidence` section: flows that
+open a separate call window need both the main window and the call window,
+CONF-QA-004 needs the main window before and after updating, and CONF-QA-006
+needs the browser tab and the main window. Attach the app log file for any
+failure.
 
 ## Folder Map
 

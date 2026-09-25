@@ -42,7 +42,7 @@ expected_result: With Rocket.Chat fully closed, the link starts the app and open
 | Step | Action | Test data | Expected result | Agent action |
 | --- | --- | --- | --- | --- |
 | 1 | Quit Rocket.Chat completely (Windows: right-click the tray icon, `Quit`; macOS: `Rocket.Chat` menu, `Quit Rocket.Chat`). Confirm no Rocket.Chat icon remains in the tray/dock. | | Rocket.Chat is not running. | Quit the app. |
-| 2 | In `test-links.html`, click `go.rocket.chat scheduled meeting link`, then click the blue `Desktop application` button and accept the browser's open prompt. | Workspace host, meeting alias | Rocket.Chat starts. | Open the link and hand off to the app. |
+| 2 | In the browser, open `test-links.html`, fill in the workspace host and a valid scheduled-meeting alias, click the link labelled `go.rocket.chat scheduled meeting link`, then click the blue `Desktop application` button and accept the browser's open prompt. | Workspace host, meeting alias | Rocket.Chat starts. | Open the link and hand off to the app. |
 | 3 | Wait for the main window to finish loading the workspace (up to about 30 seconds). | | One separate call window opens with the meeting (`Chat` panel with `Add people` on the left). The main window shows the workspace with its room list. | Count call windows; capture both windows. |
 
 ## Evidence

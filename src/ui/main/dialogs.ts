@@ -78,6 +78,18 @@ export const warnAboutUiOverrideRequiresDeveloperMode = async (
   });
 };
 
+export const warnAboutUiPreviewFailure = async (
+  reason: string,
+  parentWindow?: BrowserWindow
+): Promise<void> => {
+  await dialog.showMessageBox(parentWindow ?? (await getRootWindow()), {
+    type: 'error',
+    title: t('dialog.uiOverride.title'),
+    message: t('dialog.uiOverride.failed'),
+    detail: reason,
+  });
+};
+
 export const warnAboutInvalidServerUrl = (
   _serverUrl: string,
   _reason: string,

@@ -1,3 +1,5 @@
+import { pathToFileURL } from 'url';
+
 import type { WebContents } from 'electron';
 import { app } from 'electron';
 
@@ -15,10 +17,15 @@ import {
   askForUiOverride,
   warnAboutInvalidServerUrl,
   warnAboutUiOverrideRequiresDeveloperMode,
+  warnAboutUiPreviewFailure,
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { applyUiOverride } from '../ui/main/serverView/uiOverride';
+import {
+  getUiPreviewReference,
+  pullUiPreview,
+} from '../ui/main/serverView/uiPreviewPackage';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
 export type { TelephonyLink } from '../telephony/common';
@@ -260,35 +267,80 @@ const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {
   }
 };
 
-const performUiPreview = async ({
-  host,
+type UiPreviewParams = {
+  host?: string;
+  bundle?: string;
+  pr?: string;
+  sha?: string;
+};
+
+const resolveUiPreviewSource = ({
   bundle,
-}: {
-  host: string;
-  bundle: string;
-}): Promise<void> => {
+  pr,
+  sha,
+}: UiPreviewParams): { label: string; load: () => Promise<string> } | null => {
+  if (pr) {
+    if (!/^\d+$/.test(pr) || (sha && !/^[a-f0-9]{40}$/.test(sha))) {
+      return null;
+    }
+    const reference = getUiPreviewReference(sha ?? `pr-${pr}`);
+    return {
+      label: `PR #${pr} (${reference})`,
+      load: async () =>
+        pathToFileURL(await pullUiPreview(sha ?? `pr-${pr}`)).href,
+    };
+  }
+
+  if (!bundle) {
+    return null;
+  }
+  try {
+    const { protocol, href } = new URL(bundle);
+    return protocol === 'https:' || protocol === 'http:'
+      ? { label: href, load: async () => href }
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const performUiPreview = async (params: UiPreviewParams): Promise<void> => {
   if (!select(({ isDeveloperModeEnabled }) => isDeveloperModeEnabled)) {
     await warnAboutUiOverrideRequiresDeveloperMode();
     return;
   }
 
-  let bundleUrl: URL;
-  try {
-    bundleUrl = new URL(bundle);
-  } catch {
-    return;
-  }
-  if (bundleUrl.protocol !== 'https:' && bundleUrl.protocol !== 'http:') {
+  const source = resolveUiPreviewSource(params);
+  if (!source) {
     return;
   }
 
-  await performOnServer(host, async (serverUrl) => {
-    if (!(await askForUiOverride(serverUrl, bundleUrl.href))) {
+  const applyToServer = async (serverUrl: string): Promise<void> => {
+    if (!(await askForUiOverride(serverUrl, source.label))) {
       return;
     }
-    await getWebContents(serverUrl);
-    await applyUiOverride(serverUrl, bundleUrl.href);
-  });
+    try {
+      const bundleUrl = await source.load();
+      await getWebContents(serverUrl);
+      await applyUiOverride(serverUrl, bundleUrl, source.label);
+    } catch (error) {
+      await warnAboutUiPreviewFailure(
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  };
+
+  if (params.host) {
+    await performOnServer(params.host, applyToServer);
+    return;
+  }
+
+  const focusedServerUrl = select(({ currentView }) =>
+    typeof currentView === 'object' ? currentView.url : undefined
+  );
+  if (focusedServerUrl) {
+    await applyToServer(focusedServerUrl);
+  }
 };
 
 const processDeepLink = async (deepLink: string): Promise<void> => {
@@ -339,11 +391,12 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
     }
 
     case 'ui-preview': {
-      const host = args.get('host') ?? undefined;
-      const bundle = args.get('bundle') ?? undefined;
-      if (host && bundle) {
-        await performUiPreview({ host, bundle });
-      }
+      await performUiPreview({
+        host: args.get('host') ?? undefined,
+        bundle: args.get('bundle') ?? undefined,
+        pr: args.get('pr') ?? undefined,
+        sha: args.get('sha') ?? undefined,
+      });
       break;
     }
 

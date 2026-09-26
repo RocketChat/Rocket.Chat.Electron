@@ -1,6 +1,7 @@
 import path from 'path';
 
 import type {
+  BrowserWindowConstructorOptions,
   ContextMenuParams,
   Rectangle,
   NativeImage,
@@ -22,6 +23,7 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
 } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
+import { getPersistedValues } from '../../app/main/persistence';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import {
@@ -88,9 +90,55 @@ const platformTitleBarStyle =
     : 'default';
 
 const isMac = process.platform === 'darwin';
-// Linux client chrome is a plain rectangle under most WMs. Transparent + CSS
-// radius paints soft outer corners. Windows already gets DWM rounding — leave it.
-const usesLinuxClientChromeRounding = process.platform === 'linux';
+
+export const getRootWindowAppearanceOptions = ({
+  platform,
+  isTransparentWindowEnabled,
+  shouldUseDarkColors,
+}: {
+  platform: NodeJS.Platform;
+  isTransparentWindowEnabled: boolean;
+  shouldUseDarkColors: boolean;
+}): BrowserWindowConstructorOptions => {
+  if (platform === 'darwin') {
+    if (isTransparentWindowEnabled) {
+      return {
+        transparent: true,
+        backgroundColor: '#00000000',
+        vibrancy: 'sidebar',
+        visualEffectState: 'active',
+      };
+    }
+
+    return {
+      backgroundColor: shouldUseDarkColors ? '#2f343d' : '#ffffff',
+    };
+  }
+
+  if (platform === 'linux') {
+    // Linux client chrome is a plain rectangle under most WMs. Transparent +
+    // CSS radius paints soft outer corners. Windows gets DWM rounding.
+    return {
+      transparent: true,
+      backgroundColor: '#00000000',
+      hasShadow: true,
+    };
+  }
+
+  return {};
+};
+
+const isMacTransparencyEnabled = (): boolean => {
+  if (!isMac) {
+    return false;
+  }
+
+  try {
+    return getPersistedValues().isTransparentWindowEnabled === true;
+  } catch {
+    return false;
+  }
+};
 
 export const createRootWindow = (): void => {
   _rootWindow = new BrowserWindow({
@@ -102,20 +150,11 @@ export const createRootWindow = (): void => {
     ...(isMac ? { trafficLightPosition: { x: 12, y: 13 } } : {}),
     show: false,
     webPreferences,
-    ...(isMac
-      ? {
-          transparent: true,
-          vibrancy: 'sidebar',
-          visualEffectState: 'active',
-        }
-      : {}),
-    ...(usesLinuxClientChromeRounding
-      ? {
-          transparent: true,
-          backgroundColor: '#00000000',
-          hasShadow: true,
-        }
-      : {}),
+    ...getRootWindowAppearanceOptions({
+      platform: process.platform,
+      isTransparentWindowEnabled: isMacTransparencyEnabled(),
+      shouldUseDarkColors: nativeTheme.shouldUseDarkColors,
+    }),
   });
 
   // Block navigation to smb:// protocol

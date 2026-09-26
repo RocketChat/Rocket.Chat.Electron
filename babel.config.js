@@ -5,7 +5,7 @@ module.exports = {
       '@babel/preset-env',
       {
         targets: {
-          electron: 7,
+          electron: '42',
         },
       },
     ],
@@ -17,9 +17,5 @@ module.exports = {
     ],
     '@babel/preset-typescript',
   ],
-  plugins: [
-    '@babel/plugin-proposal-function-bind',
-    '@babel/plugin-proposal-class-properties',
-    '@babel/plugin-syntax-import-attributes',
-  ],
+  plugins: ['@babel/plugin-syntax-import-attributes'],
 };

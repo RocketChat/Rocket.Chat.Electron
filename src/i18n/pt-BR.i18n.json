@@ -307,7 +307,19 @@
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Escuro"
+      },
+      "uiPreview": {
+        "title": "Carregar um build da UI web",
+        "description": "Roda um build do cliente web do Rocket.Chat no lugar da UI do workspace, mantendo sua sessão. Informe o número de um PR do Rocket.Chat (baixado do ghcr.io) ou a URL de um bundle servido.",
+        "server": "Workspace",
+        "placeholder": "42364 ou http://127.0.0.1:4173/",
+        "load": "Carregar",
+        "restore": "Restaurar UI do servidor",
+        "active": "Ativo neste workspace: {{- label}}"
       }
+    },
+    "sections": {
+      "uiPreview": "Prévia de UI web"
     }
   },
   "error": {

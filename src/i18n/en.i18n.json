@@ -335,7 +335,8 @@
       "logging": "Logging",
       "telephony": "Telephony",
       "videoCalls": "Video calls",
-      "advanced": "Advanced"
+      "advanced": "Advanced",
+      "uiPreview": "Web UI preview"
     },
     "options": {
       "report": {
@@ -471,6 +472,15 @@
       "e2ePdfPreviewSizeLimit": {
         "title": "PDF preview size limit in encrypted rooms (MB)",
         "description": "Encrypted files are loaded into memory for previews. Files larger than this limit will be downloaded directly."
+      },
+      "uiPreview": {
+        "title": "Load a web UI build",
+        "description": "Run a Rocket.Chat web client build in place of the workspace's own UI, keeping your session. Enter a Rocket.Chat PR number (pulled from ghcr.io) or the URL of a served bundle.",
+        "server": "Workspace",
+        "placeholder": "42364 or http://127.0.0.1:4173/",
+        "load": "Load",
+        "restore": "Restore server UI",
+        "active": "Active on this workspace: {{- label}}"
       }
     },
     "appearance": "Appearance",

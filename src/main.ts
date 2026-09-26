@@ -78,6 +78,7 @@ import {
 } from './ui/main/rootWindow';
 import { startSecondaryWindowControlsHandler } from './ui/main/secondaryWindowControls';
 import { attachGuestWebContentsEvents } from './ui/main/serverView';
+import { setupUiPreviewIpc } from './ui/main/serverView/uiPreview';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
@@ -134,6 +135,7 @@ const start = async (): Promise<void> => {
   createRootWindow();
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
+  setupUiPreviewIpc();
   await showRootWindow();
 
   // Mark main window as stable - GPU crashes after this won't trigger fallback

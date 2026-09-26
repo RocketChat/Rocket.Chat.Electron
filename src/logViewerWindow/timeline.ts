@@ -7,12 +7,6 @@ export type TimelineBucket = {
   endTime: number;
   total: number;
   countsByLevel: Partial<Record<LogLevel, number>>;
-  /**
-   * Index of this bucket's newest entry in the source array. The list is
-   * newest-first, so this is the smallest index that landed here — clicking a
-   * bucket can scroll straight to it.
-   */
-  newestIndex: number;
 };
 
 export type Timeline = {
@@ -74,7 +68,6 @@ export const buildTimeline = (
       endTime: startTime + (index + 1) * bucketSpan,
       total: 0,
       countsByLevel: {},
-      newestIndex: -1,
     })
   );
 
@@ -95,9 +88,6 @@ export const buildTimeline = (
     bucket.total += 1;
     bucket.countsByLevel[entry.level] =
       (bucket.countsByLevel[entry.level] ?? 0) + 1;
-    if (bucket.newestIndex === -1 || index < bucket.newestIndex) {
-      bucket.newestIndex = index;
-    }
     if (bucket.total > peak) peak = bucket.total;
   });
 

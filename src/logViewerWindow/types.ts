@@ -62,13 +62,6 @@ export interface IClearLogsResponse {
   error?: string;
 }
 
-export interface IStatLogResponse {
-  success: boolean;
-  lastModifiedTime?: number;
-  size?: number;
-  error?: string;
-}
-
 export type LogEntryType = ILogEntryType;
 export type ReadLogsResponse = IReadLogsResponse;
 export type ReadLogsTailResponse = IReadLogsTailResponse;
@@ -88,15 +81,3 @@ export const parseLogLevel = (value: unknown): LogLevel => {
   const trimmed = value.trim().toLowerCase();
   return isLogLevel(trimmed) ? trimmed : 'info';
 };
-
-const LOG_LEVEL_ORDER: Record<LogLevel, number> = {
-  silly: 0,
-  verbose: 1,
-  debug: 2,
-  info: 3,
-  warn: 4,
-  error: 5,
-};
-
-export const isAtLeastLevel = (level: LogLevel, minLevel: LogLevel): boolean =>
-  LOG_LEVEL_ORDER[level] >= LOG_LEVEL_ORDER[minLevel];

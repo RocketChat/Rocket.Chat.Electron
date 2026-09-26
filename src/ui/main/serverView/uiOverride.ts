@@ -33,7 +33,7 @@ const serverRoutes = [
 const bundleAssetsPath = '/bundle/';
 
 // ponytail: in-memory only, so a restart always returns every server to its own UI.
-const overrides = new Map<string, string>();
+const overrides = new Map<string, { label: string }>();
 
 const escapeHtml = (value: string) =>
   value.replace(
@@ -137,7 +137,10 @@ const reloadServer = async (serverUrl: string, ses: Session) => {
   getWebContentsByServerUrl(serverUrl)?.reloadIgnoringCache();
 };
 
-export const hasUiOverride = (serverUrl: string) => overrides.has(serverUrl);
+export const listUiOverrides = (): Record<string, string> =>
+  Object.fromEntries(
+    [...overrides].map(([serverUrl, { label }]) => [serverUrl, label])
+  );
 
 export const applyUiOverride = async (
   serverUrl: string,
@@ -155,7 +158,7 @@ export const applyUiOverride = async (
     scheme,
     createHandler(ses, serverUrl, normalizedBundleUrl, label)
   );
-  overrides.set(serverUrl, normalizedBundleUrl);
+  overrides.set(serverUrl, { label });
 
   await reloadServer(serverUrl, ses);
 };

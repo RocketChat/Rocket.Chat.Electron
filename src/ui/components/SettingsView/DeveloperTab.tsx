@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { DebugLogging } from './features/DebugLogging';
 import { DetailedEventsLogging } from './features/DetailedEventsLogging';
+import { UiPreview } from './features/UiPreview';
 import { VerboseOutlookLogging } from './features/VerboseOutlookLogging';
 
 export const DeveloperTab = () => {
@@ -17,6 +18,10 @@ export const DeveloperTab = () => {
         <DebugLogging />
         <VerboseOutlookLogging />
         <DetailedEventsLogging />
+        <Box fontScale='h4' mbs='x24' mbe='x16' color='default'>
+          {t('settings.sections.uiPreview')}
+        </Box>
+        <UiPreview />
       </FieldGroup>
     </Box>
   );

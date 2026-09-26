@@ -7,7 +7,6 @@ import {
   warnAboutUiOverrideRequiresDeveloperMode,
   warnAboutUiPreviewFailure,
 } from '../dialogs';
-import { getRootWindow } from '../rootWindow';
 import {
   applyUiOverride,
   clearUiOverride,
@@ -92,18 +91,19 @@ export const requestUiPreview = async (
 };
 
 export const setupUiPreviewIpc = (): void => {
-  const isFromRootWindow = async (webContents: Electron.WebContents) =>
-    webContents === (await getRootWindow()).webContents;
+  // Only the app's own pages (the root and settings windows) may ask; server content is never file://.
+  const isFromAppPage = (webContents: Electron.WebContents) =>
+    webContents.getURL().startsWith('file://');
   const isKnownServer = (serverUrl: string) =>
     select(({ servers }) => servers.some((server) => server.url === serverUrl));
 
   handle('ui-preview/list', async (webContents) =>
-    (await isFromRootWindow(webContents)) ? listUiOverrides() : {}
+    isFromAppPage(webContents) ? listUiOverrides() : {}
   );
 
   handle('ui-preview/apply', async (webContents, serverUrl, input) => {
     if (
-      !(await isFromRootWindow(webContents)) ||
+      !isFromAppPage(webContents) ||
       !isKnownServer(serverUrl) ||
       !(await isUiPreviewAllowed())
     ) {
@@ -113,7 +113,7 @@ export const setupUiPreviewIpc = (): void => {
   });
 
   handle('ui-preview/restore', async (webContents, serverUrl) => {
-    if (await isFromRootWindow(webContents)) {
+    if (isFromAppPage(webContents)) {
       await clearUiOverride(serverUrl);
     }
   });

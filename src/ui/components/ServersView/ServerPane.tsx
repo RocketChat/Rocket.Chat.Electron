@@ -3,6 +3,7 @@ import { useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { isConferencePageUrl } from '../../../servers/common';
 import type { RootAction } from '../../../store/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
@@ -142,7 +143,10 @@ export const ServerPane = ({
     const shouldLoad = isSelected || userLoggedIn !== false;
 
     if (!webview.src && shouldLoad) {
-      webview.src = lastPath || serverUrl;
+      webview.src =
+        lastPath && !isConferencePageUrl(lastPath, serverUrl)
+          ? lastPath
+          : serverUrl;
     }
   }, [lastPath, serverUrl, isSelected, userLoggedIn]);
 

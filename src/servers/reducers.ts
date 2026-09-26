@@ -35,6 +35,7 @@ import {
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
 import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
+import { isConferencePageUrl } from './common';
 import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
@@ -260,7 +261,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case WEBVIEW_DID_NAVIGATE: {
       const { url, pageUrl } = action.payload;
-      if (pageUrl?.includes(url)) {
+      if (pageUrl?.includes(url) && !isConferencePageUrl(pageUrl, url)) {
         return upsert(state, { url, lastPath: pageUrl });
       }
 

@@ -1,0 +1,109 @@
+v2.id,suite_id,suite,suite_without_cases,title,description,preconditions,postconditions,severity,priority,status,automation,steps_type,tags,steps_actions,steps_data,steps_results
+"","1","Conference call window","1","","","","","","","","","","","","",""
+"","1","Conference call window","","Scheduled meeting link opens in the call window","Source flow: CONF-QA-001
+
+Choosing Desktop application on the go.rocket.chat page opens the meeting in a separate call window while the main window keeps showing the workspace.","installed_branch_build
+pexip_workspace_signed_in
+video_calls_inside_app_on
+test-links-html","- Screenshot of the call window at step 4.
+- Screenshot of the main window at step 5 and step 7.","critical","high","actual","manual","classic","CONF-QA-001,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_branch_build,requires:pexip_workspace_signed_in,requires:video_calls_inside_app_on,requires:test-links-html","1. ""In the main Rocket.Chat window, click any channel in the workspace's left room list so a normal room is open. Note the room name shown at the top of the room.""
+2. ""In the browser, open `test-links.html`, fill in the workspace host and a valid scheduled-meeting alias, then click the link labelled `go.rocket.chat scheduled meeting link`.""
+3. ""Click the blue `Desktop application` button in the middle of the page. If the browser shows a prompt asking to open Rocket.Chat, click its open/allow button.""
+4. ""Look for a new, separate window (it has its own title bar and taskbar/dock entry, next to the main Rocket.Chat window).""
+5. ""Switch back to the main Rocket.Chat window.""
+6. ""In the call window, leave the meeting with the meeting's own hang-up control.""
+7. ""Close the call window, then click another channel in the main window.""","1. ""Any channel
+Agent: Open a channel and record its name.""
+2. ""Workspace host, meeting alias
+Agent: Open the generated go.rocket.chat URL.""
+3. ""Agent: Click `Desktop application`; accept the protocol prompt.""
+4. ""Agent: Find the new call window and capture it.""
+5. ""Agent: Capture the main window.""
+6. ""Agent: Hang up in the call window.""
+7. ""Agent: Close call window; open another room.""","1. ""A normal room with its message list is shown; the workspace sidebar with the room list is visible on the left.""
+2. ""A white go.rocket.chat page opens with the Rocket.Chat logo, the text `Where do you want to open this link?`, the workspace link in blue, and two blue buttons: `Desktop application` and `Web application`.""
+3. ""Rocket.Chat comes to the front.""
+4. ""A separate call window shows the meeting: a `Chat` panel on the left with an `Add people` button (`Personen hinzufügen` in German) and the meeting video area on the right. No login screen and no """"not authorized"""" message appears in it.""
+5. ""The main window still shows the room from step 1 with the workspace sidebar and room list. It does NOT show the meeting, the `Chat` / `Add people` panel, or `You left the meeting`.""
+6. ""`You left the meeting` (`Sie haben das Meeting verlassen`) appears only inside the call window. The main window is unchanged.""
+7. ""The call window closes. The main window navigates normally."""
+"","1","Conference call window","","Conference link clicked inside a room opens in the call window","Source flow: CONF-QA-002
+
+Clicking a conference address posted in a room opens the meeting in the call window and the main window stays on the room.","installed_branch_build
+pexip_workspace_signed_in
+video_calls_inside_app_on
+test-links-html","- Screenshot of the posted message and of the main window after the click.
+- Screenshot of the call window.","critical","high","actual","manual","classic","CONF-QA-002,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_branch_build,requires:pexip_workspace_signed_in,requires:video_calls_inside_app_on,requires:test-links-html","1. ""In `test-links.html`, fill in the workspace host and a valid scheduled-meeting alias, then copy the text in the `Conference address to paste in a room` box.""
+2. ""In the main Rocket.Chat window, open any channel from the left room list, click the message composer at the bottom, paste the address and press Enter.""
+3. ""Click the link in the message you just sent.""
+4. ""Switch back to the main window.""
+5. ""Optional: if the room has a Pexip call message, open its call information and click the `URL:` address instead.""","1. ""Workspace host, meeting alias
+Agent: Copy the generated address.""
+2. ""Copied address
+Agent: Post the address as a message.""
+3. ""Agent: Click the posted link.""
+4. ""Agent: Capture the main window.""
+5. ""Existing call
+Agent: Click the call-info URL.""","1. ""The copied text looks like `https://<workspace-host>/conference/<alias>?scheduled=true`.""
+2. ""The message appears in the room with the address shown as a link.""
+3. ""A separate call window opens with the `Chat` panel (`Add people` button) on the left and the meeting video area on the right.""
+4. ""The main window shows the same room with the message list and the workspace sidebar. At most a very brief flash; it does not stay on the meeting screen.""
+5. ""Same result as steps 3-4."""
+"","1","Conference call window","","Reload and restart keep the workspace after a meeting","Source flow: CONF-QA-003
+
+Reload, force reload and an app restart after joining a meeting all show the workspace, never the meeting screen.","installed_branch_build
+pexip_workspace_signed_in
+conf_qa_001_done","- Screenshot of the main window after steps 2, 3 and 5.","critical","high","actual","manual","classic","CONF-QA-003,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_branch_build,requires:pexip_workspace_signed_in,requires:conf_qa_001_done","1. ""Run CONF-QA-001 up to step 5, keep the call window open, and note the room shown in the main window.""
+2. ""In the main window, open the `View` menu in the menu bar (Windows/Linux: press Alt if the menu bar is hidden) and click `Reload`.""
+3. ""Open the `View` menu again and click `Force reload`.""
+4. ""Right-click the workspace's icon in the left server list (or its tab at the top) and click `Force reload`.""
+5. ""Quit Rocket.Chat completely (Windows: right-click the tray icon, `Quit`; macOS: `Rocket.Chat` menu, `Quit Rocket.Chat`), then start it again.""","1. ""Agent: Complete CONF-QA-001 steps 1-5.""
+2. ""Agent: Trigger View > Reload.""
+3. ""Agent: Trigger View > Force reload.""
+4. ""Agent: Use the workspace context menu.""
+5. ""Agent: Quit and relaunch.""","1. ""Main window shows a room.""
+2. ""The workspace reloads and shows the same room, not the meeting.""
+3. ""The workspace reloads and shows a normal page, not the meeting.""
+4. ""Same as step 3.""
+5. ""The workspace opens on a normal page with the room list. The meeting screen does not appear."""
+"","1","Conference call window","","A workspace stuck on the meeting screen recovers after updating","Source flow: CONF-QA-004
+
+After installing this build over a stuck installation, the workspace opens on a normal page without being removed and re-added.","machine_stuck_on_older_build
+installed_branch_build","- Screenshot of the stuck state (step 1) and of the first launch after
+  updating (step 3).","major","high","actual","manual","classic","CONF-QA-004,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:machine_stuck_on_older_build,requires:installed_branch_build","1. ""On a machine with the previous Rocket.Chat Desktop version, get stuck: open a scheduled meeting link with `Desktop application` (as in CONF-QA-001), confirm the main window shows the meeting screen, then quit Rocket.Chat. Skip this step if the machine is already stuck.""
+2. ""Install this branch's build over the existing installation. Do not remove the workspace.""
+3. ""Start Rocket.Chat.""","1. ""Older build
+Agent: Reproduce the stuck state on the old build.""
+2. ""Branch build
+Agent: Install over the old build.""
+3. ""Agent: Launch and capture.""","1. ""Main window shows the meeting screen before quitting.""
+2. ""Installation completes.""
+3. ""The workspace opens on its home page or a room, with the room list visible. The meeting screen does not appear."""
+"","1","Conference call window","","Scheduled meeting link opens the call window when the app is closed","Source flow: CONF-QA-005
+
+With Rocket.Chat fully closed, the link starts the app and opens the meeting in the call window exactly once.","installed_branch_build
+pexip_workspace_signed_in
+video_calls_inside_app_on
+test-links-html","- Screenshot of both windows after step 3.","major","high","actual","manual","classic","CONF-QA-005,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_branch_build,requires:pexip_workspace_signed_in,requires:video_calls_inside_app_on,requires:test-links-html","1. ""Quit Rocket.Chat completely (Windows: right-click the tray icon, `Quit`; macOS: `Rocket.Chat` menu, `Quit Rocket.Chat`). Confirm no Rocket.Chat icon remains in the tray/dock.""
+2. ""In `test-links.html`, click `go.rocket.chat scheduled meeting link`, then click the blue `Desktop application` button and accept the browser's open prompt.""
+3. ""Wait for the main window to finish loading the workspace (up to about 30 seconds).""","1. ""Agent: Quit the app.""
+2. ""Workspace host, meeting alias
+Agent: Open the link and hand off to the app.""
+3. ""Agent: Count call windows; capture both windows.""","1. ""Rocket.Chat is not running.""
+2. ""Rocket.Chat starts.""
+3. ""One separate call window opens with the meeting (`Chat` panel with `Add people` on the left). The main window shows the workspace with its room list."""
+"","1","Conference call window","","Scheduled meeting link opens in the browser when video calls inside app is off","Source flow: CONF-QA-006
+
+With Video calls inside app switched off, the meeting opens in the default browser and the main window keeps the workspace.","installed_branch_build
+pexip_workspace_signed_in
+test-links-html","- Screenshot of the browser tab and of the main window.","major","medium","actual","manual","classic","CONF-QA-006,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_branch_build,requires:pexip_workspace_signed_in,requires:test-links-html","1. ""In the left vertical server list, click the three-dots/kebab button near the bottom edge below the server buttons, click `Settings`, click the `Voice & Video` tab near the top, and switch `Video calls inside app` off.""
+2. ""Run CONF-QA-001 steps 1-3.""
+3. ""Switch back to the main Rocket.Chat window.""
+4. ""Switch `Video calls inside app` back on.""","1. ""Agent: Disable the setting.""
+2. ""Workspace host, meeting alias
+Agent: Open the link.""
+3. ""Agent: Capture the main window.""
+4. ""Agent: Restore the setting.""","1. ""The toggle is off.""
+2. ""The meeting opens in the default web browser. No separate Rocket.Chat call window opens.""
+3. ""The main window still shows the room with the room list.""
+4. ""The toggle is on."""

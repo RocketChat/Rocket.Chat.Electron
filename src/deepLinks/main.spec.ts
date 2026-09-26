@@ -15,6 +15,7 @@ import {
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import { requestConferenceWindow } from '../ui/main/serverView/conferenceWindow';
 import { DEEP_LINKS_SERVER_ADDED } from './actions';
 import {
   parseTelephonyLink,
@@ -35,6 +36,10 @@ jest.mock('electron', () => ({
 }));
 jest.mock('../store');
 jest.mock('../ui/main/serverView');
+jest.mock('../ui/main/serverView/conferenceWindow', () => ({
+  ...jest.requireActual('../ui/main/serverView/conferenceWindow'),
+  requestConferenceWindow: jest.fn(),
+}));
 jest.mock('../servers/main');
 jest.mock('../ui/main/dialogs');
 jest.mock('../ui/main/rootWindow');
@@ -49,6 +54,10 @@ const listenMock = listen as jest.MockedFunction<typeof listen>;
 const getWebContentsByServerUrlMock =
   getWebContentsByServerUrl as jest.MockedFunction<
     typeof getWebContentsByServerUrl
+  >;
+const requestConferenceWindowMock =
+  requestConferenceWindow as jest.MockedFunction<
+    typeof requestConferenceWindow
   >;
 const resolveServerUrlMock = resolveServerUrl as jest.MockedFunction<
   typeof resolveServerUrl
@@ -1208,9 +1217,7 @@ describe('deepLinks/main.ts', () => {
       expect(mockWebContents.loadURL).not.toHaveBeenCalled();
     });
 
-    it('processes rocketchat://conference link when path is valid', async () => {
-      setupDeepLinks();
-
+    const runConferenceDeepLink = async (path: string) => {
       resolveServerUrlMock.mockResolvedValue([
         'https://chat.example.com',
         ServerUrlResolutionStatus.OK,
@@ -1225,19 +1232,54 @@ describe('deepLinks/main.ts', () => {
       process.argv = [
         'electron',
         '.',
-        'rocketchat://conference?host=https://chat.example.com&path=conference/room-1',
+        `rocketchat://conference?host=https://chat.example.com&path=${encodeURIComponent(path)}`,
       ];
 
       await processDeepLinksInArgs();
 
       process.argv = savedArgv;
+    };
+
+    it('sends a conference call page to the video call window instead of the server view', async () => {
+      setupDeepLinks();
+
+      await runConferenceDeepLink('conference/room-1?scheduled=true');
 
       expect(resolveServerUrlMock).toHaveBeenCalledWith(
         'https://chat.example.com'
       );
-      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+      expect(requestConferenceWindowMock).toHaveBeenCalledWith(
+        'https://chat.example.com',
+        mockWebContents,
+        'https://chat.example.com/conference/room-1?scheduled=true'
+      );
+    });
+
+    it('sends an embedded conference page to the video call window', async () => {
+      setupDeepLinks();
+
+      await runConferenceDeepLink('conference/room-1');
+
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+      expect(requestConferenceWindowMock).toHaveBeenCalledWith(
+        'https://chat.example.com',
+        mockWebContents,
         'https://chat.example.com/conference/room-1'
       );
+    });
+
+    it('keeps loading the callUrl conference redirect in the server view', async () => {
+      setupDeepLinks();
+
+      await runConferenceDeepLink(
+        'conference/room-1?callUrl=https://meet.example.com/abc'
+      );
+
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/conference/room-1?callUrl=https://meet.example.com/abc'
+      );
+      expect(requestConferenceWindowMock).not.toHaveBeenCalled();
     });
 
     it('skips conference deep links when path is invalid', async () => {

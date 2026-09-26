@@ -5,7 +5,7 @@ import {
   FieldLabel,
   TextInput,
 } from '@rocket.chat/fuselage';
-import type { ChangeEvent, FormEvent } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,9 +36,9 @@ export const UiPreviewRow = ({
 
   const isLoading = state.kind === 'loading';
 
-  const handleLoad = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!input.trim()) {
+  // Not a <form>: the settings sections already render inside one.
+  const handleLoad = async () => {
+    if (!input.trim() || isLoading) {
       return;
     }
     setState({ kind: 'loading' });
@@ -79,7 +79,7 @@ export const UiPreviewRow = ({
   })();
 
   return (
-    <Field is='form' onSubmit={handleLoad} mbe={16}>
+    <Field mbe={16}>
       <FieldLabel htmlFor={inputId}>{server.title ?? server.url}</FieldLabel>
       <Box fontScale='c1' color='hint'>
         {server.url}
@@ -92,13 +92,19 @@ export const UiPreviewRow = ({
           onChange={(event: ChangeEvent<HTMLInputElement>) =>
             setInput(event.currentTarget.value)
           }
+          onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              handleLoad();
+            }
+          }}
         />
         <Button
-          type='submit'
           primary
           mis={8}
           loading={isLoading}
           disabled={isLoading || !input.trim()}
+          onClick={handleLoad}
         >
           {t('settings.options.uiPreview.load')}
         </Button>

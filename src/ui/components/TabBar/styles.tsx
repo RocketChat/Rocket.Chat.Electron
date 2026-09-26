@@ -434,6 +434,14 @@ export const BadgeWrapper = styled.div`
   pointer-events: none;
 `;
 
+/* The UI preview badge takes the bottom-right corner, below the mention/
+   warning badge, so a vertical tab can show both. */
+export const PreviewBadgeWrapper = styled(BadgeWrapper)`
+  top: auto;
+  bottom: ${BADGE_ANCHOR_Y};
+  transform: translate(-50%, 50%);
+`;
+
 export const WindowControlsGroup = styled.div`
   display: flex;
   flex-direction: row;

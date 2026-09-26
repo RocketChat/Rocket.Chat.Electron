@@ -23,6 +23,9 @@ jest.mock('./features/DetailedEventsLogging', () => ({
 jest.mock('./features/VerboseOutlookLogging', () => ({
   VerboseOutlookLogging: () => <div data-testid='verbose-outlook' />,
 }));
+jest.mock('./features/UiPreview', () => ({
+  UiPreview: () => <div data-testid='ui-preview' />,
+}));
 
 jest.mock('./features/ThemeAppearance', () => ({
   ThemeAppearance: () => <div data-testid='theme-appearance' />,
@@ -95,12 +98,14 @@ describe('Settings tabs', () => {
     expect(screen.getByTestId('certificates-manager')).toBeInTheDocument();
   });
 
-  it('DeveloperTab renders logging section features', () => {
+  it('DeveloperTab renders logging and UI preview features', () => {
     render(<DeveloperTab />);
     expect(screen.getByText('settings.sections.logging')).toBeInTheDocument();
     expect(screen.getByTestId('debug-logging')).toBeInTheDocument();
     expect(screen.getByTestId('verbose-outlook')).toBeInTheDocument();
     expect(screen.getByTestId('detailed-events')).toBeInTheDocument();
+    expect(screen.getByText('settings.sections.uiPreview')).toBeInTheDocument();
+    expect(screen.getByTestId('ui-preview')).toBeInTheDocument();
   });
 
   it('GeneralTab mounts core settings groups', () => {

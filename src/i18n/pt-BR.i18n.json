@@ -148,6 +148,15 @@
     },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
+    },
+    "uiOverride": {
+      "title": "Carregar prévia de UI",
+      "message": "Carregar outra interface web para \"{{- host}}\"?",
+      "detail": "A interface será carregada de {{- bundle}} e rodará com sua sessão neste servidor. Continue apenas se confiar neste build. Use Exibir > Restaurar UI do servidor ou reinicie o app para voltar.",
+      "load": "Carregar UI",
+      "cancel": "Cancelar",
+      "developerModeRequired": "Ative Ajuda > Modo desenvolvedor para carregar prévias de UI.",
+      "failed": "Não foi possível carregar a prévia de UI."
     }
   },
   "documentViewer": {
@@ -298,7 +307,22 @@
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Escuro"
+      },
+      "uiPreview": {
+        "title": "Carregar um build da UI web",
+        "description": "Roda um build do cliente web do Rocket.Chat no lugar da UI de um workspace, mantendo sua sessão. Informe o número de um PR do Rocket.Chat (baixado do ghcr.io) ou a URL de um bundle servido.",
+        "placeholder": "42364 ou http://127.0.0.1:4173/",
+        "load": "Carregar",
+        "restore": "Restaurar UI do servidor",
+        "active": "Ativo neste workspace: {{- label}}",
+        "loading": "Baixando e aplicando…",
+        "failed": "Não foi possível carregar: {{- message}}",
+        "cancelled": "Cancelado.",
+        "inactive": "Usando a UI do servidor."
       }
+    },
+    "sections": {
+      "uiPreview": "Prévia de UI web"
     }
   },
   "error": {
@@ -359,7 +383,8 @@
     "windowMenu": "&Janela",
     "zoomIn": "Aumentar zoom",
     "zoomOut": "Diminuir zoom",
-    "simulateDisconnected": "Simular desconexão"
+    "simulateDisconnected": "Simular desconexão",
+    "restoreServerUi": "Restaurar UI do servidor"
   },
   "loadingError": {
     "title": "Servidor Falhou em Carregar",
@@ -449,7 +474,8 @@
       "canceled": "Cancelado",
       "failed": "Falhou",
       "dismiss": "Fechar"
-    }
+    },
+    "uiPreview": "Prévia de UI: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatação",

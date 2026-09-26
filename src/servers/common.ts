@@ -33,6 +33,8 @@ export type Server = {
   supportedVersionsValidatedAt?: Date;
   documentViewerOpenUrl?: string;
   documentViewerFormat?: string;
+  /** Label of the web UI preview loaded in place of the server's UI, if any. */
+  uiPreview?: string;
   presence?: UserPresence;
   presenceStatusText?: string;
   presenceConnection?: 'connected' | 'connecting' | 'disconnected';

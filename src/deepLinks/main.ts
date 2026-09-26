@@ -16,6 +16,11 @@ import {
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import type { UiPreviewSource } from '../ui/main/serverView/uiPreview';
+import {
+  isUiPreviewAllowed,
+  requestUiPreviewWithDialog,
+} from '../ui/main/serverView/uiPreview';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
 export type { TelephonyLink } from '../telephony/common';
@@ -257,6 +262,29 @@ const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {
   }
 };
 
+const performUiPreview = async ({
+  host,
+  ...source
+}: UiPreviewSource & { host?: string }): Promise<void> => {
+  if (!(await isUiPreviewAllowed())) {
+    return;
+  }
+
+  if (host) {
+    await performOnServer(host, async (serverUrl) => {
+      await requestUiPreviewWithDialog(serverUrl, source);
+    });
+    return;
+  }
+
+  const focusedServerUrl = select(({ currentView }) =>
+    typeof currentView === 'object' ? currentView.url : undefined
+  );
+  if (focusedServerUrl) {
+    await requestUiPreviewWithDialog(focusedServerUrl, source);
+  }
+};
+
 const processDeepLink = async (deepLink: string): Promise<void> => {
   const telephonyLink = parseTelephonyLink(deepLink);
   if (telephonyLink) {
@@ -301,6 +329,16 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
       if (host && path) {
         await performInvite({ host, path });
       }
+      break;
+    }
+
+    case 'ui-preview': {
+      await performUiPreview({
+        host: args.get('host') ?? undefined,
+        bundle: args.get('bundle') ?? undefined,
+        pr: args.get('pr') ?? undefined,
+        sha: args.get('sha') ?? undefined,
+      });
       break;
     }
 

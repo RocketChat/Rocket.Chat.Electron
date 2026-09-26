@@ -202,6 +202,15 @@
       "message": "Remove the stored decision for \"{{- domain}}\"? The next visit will ask you again.",
       "yes": "Remove",
       "cancel": "Cancel"
+    },
+    "uiOverride": {
+      "title": "Load UI preview",
+      "message": "Load a different web UI for \"{{- host}}\"?",
+      "detail": "The UI will be loaded from {{- bundle}} and will run with your session on this server. Only continue if you trust this build. Use View > Restore server UI or restart the app to go back.",
+      "load": "Load UI",
+      "cancel": "Cancel",
+      "developerModeRequired": "Enable Help > Developer Mode to load UI previews.",
+      "failed": "The UI preview could not be loaded."
     }
   },
   "documentViewer": {
@@ -326,7 +335,8 @@
       "logging": "Logging",
       "telephony": "Telephony",
       "videoCalls": "Video calls",
-      "advanced": "Advanced"
+      "advanced": "Advanced",
+      "uiPreview": "Web UI preview"
     },
     "options": {
       "report": {
@@ -462,6 +472,18 @@
       "e2ePdfPreviewSizeLimit": {
         "title": "PDF preview size limit in encrypted rooms (MB)",
         "description": "Encrypted files are loaded into memory for previews. Files larger than this limit will be downloaded directly."
+      },
+      "uiPreview": {
+        "title": "Load a web UI build",
+        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Enter a Rocket.Chat PR number (pulled from ghcr.io) or the URL of a served bundle.",
+        "placeholder": "42364 or http://127.0.0.1:4173/",
+        "load": "Load",
+        "restore": "Restore server UI",
+        "active": "Active on this workspace: {{- label}}",
+        "loading": "Downloading and applying…",
+        "failed": "Could not load: {{- message}}",
+        "cancelled": "Cancelled.",
+        "inactive": "Using the server's UI."
       }
     },
     "appearance": "Appearance",
@@ -541,7 +563,8 @@
     "viewMenu": "&View",
     "windowMenu": "&Window",
     "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out"
+    "zoomOut": "Zoom out",
+    "restoreServerUi": "Restore server UI"
   },
   "loadingError": {
     "title": "Server Failed to Load",
@@ -635,7 +658,8 @@
       "canceled": "Canceled",
       "failed": "Failed",
       "dismiss": "Dismiss"
-    }
+    },
+    "uiPreview": "UI preview: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatting",

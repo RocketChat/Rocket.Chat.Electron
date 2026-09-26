@@ -46,6 +46,7 @@ import { formatServerTitle } from '../components/utils/formatServerTitle';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
+import { clearUiOverride } from './serverView/uiOverride';
 
 const t = i18next.t.bind(i18next);
 
@@ -403,6 +404,17 @@ export const createViewMenu = createSelector(
           windows.forEach((window) => {
             window.webContents.toggleDevTools();
           });
+        },
+      },
+      {
+        id: 'restoreServerUi',
+        label: t('menus.restoreServerUi'),
+        enabled: typeof currentView === 'object' && !!currentView.url,
+        click: async () => {
+          const currentView = await getCurrentView();
+          if (typeof currentView === 'object' && !!currentView.url) {
+            await clearUiOverride(currentView.url);
+          }
         },
       },
       { type: 'separator' },

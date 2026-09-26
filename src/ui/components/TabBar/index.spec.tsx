@@ -311,6 +311,28 @@ describe('TabBar', () => {
     expect(tabs[1]).toHaveAttribute('tabindex', '-1');
   });
 
+  it('marks a server running a UI preview on its tab next to its mentions', () => {
+    const { container } = renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [
+          {
+            url: 'https://a.rocket.chat/',
+            title: 'Server A',
+            badge: 3,
+            userLoggedIn: true,
+            uiPreview: 'PR #42364',
+          },
+        ],
+      }),
+    });
+
+    const badges = [...container.querySelectorAll('.rcx-badge')];
+    expect(badges.map((badge) => badge.textContent)).toEqual(['UI', '3']);
+    expect(screen.getByRole('tab')).toHaveAccessibleName(
+      expect.stringContaining('tabBar.uiPreview')
+    );
+  });
+
   it('shows a warning badge for logged-out servers', () => {
     renderTabBar(<TabBar />, {
       preloadedState: buildState({

@@ -5,7 +5,7 @@ import { gunzipSync } from 'zlib';
 
 import { app, net } from 'electron';
 
-// Published by Rocket.Chat's `UI Preview Publish` workflow; public, so pulls need no GitHub login.
+// Published by Rocket.Chat's `UI Preview` workflow; public, so pulls need no GitHub login.
 const registry = 'https://ghcr.io';
 const repository = 'rocketchat/rocket.chat-web';
 

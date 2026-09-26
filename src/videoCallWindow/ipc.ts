@@ -1172,9 +1172,51 @@ const openVideoCallWindow = async (
   }
 };
 
+export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
+  if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+    console.warn('Video call window not available for dev tools');
+    return false;
+  }
+
+  try {
+    const webviewWebContents = await new Promise<WebContents | null>(
+      (resolve) => {
+        const checkForWebview = () => {
+          const allWebContents = webContents.getAllWebContents();
+
+          const webviewContents = allWebContents.find((wc: WebContents) => {
+            return wc.hostWebContents === videoCallWindow?.webContents;
+          });
+
+          if (webviewContents) {
+            resolve(webviewContents);
+          } else {
+            setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
+          }
+        };
+
+        checkForWebview();
+
+        setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
+      }
+    );
+
+    if (webviewWebContents && !webviewWebContents.isDestroyed()) {
+      console.log('Opening developer tools for video call webview');
+      webviewWebContents.openDevTools();
+      return true;
+    }
+    console.warn('Video call webview webContents not found or destroyed');
+    return false;
+  } catch (error) {
+    console.error('Error opening webview developer tools:', error);
+    return false;
+  }
+};
+
 export const startVideoCallWindowHandler = (): void => {
   // Sync IPC handler for provider name - used by jitsiBridge preload
-  // to skip initialization for non-Jitsi providers without async delay
+  // to skip ScreenObtainer install for non-Jitsi providers without async delay
   ipcMain.on('video-call-window/get-provider-sync', (event) => {
     event.returnValue = videoCallProviderName;
   });
@@ -1355,89 +1397,9 @@ export const startVideoCallWindowHandler = (): void => {
     return { success: false };
   });
 
-  handle('video-call-window/open-webview-dev-tools', async () => {
-    if (!videoCallWindow || videoCallWindow.isDestroyed()) {
-      console.warn('Video call window not available for dev tools');
-      return false;
-    }
-
-    try {
-      const webviewWebContents = await new Promise<WebContents | null>(
-        (resolve) => {
-          const checkForWebview = () => {
-            const allWebContents = webContents.getAllWebContents();
-
-            const webviewContents = allWebContents.find((wc) => {
-              return wc.hostWebContents === videoCallWindow?.webContents;
-            });
-
-            if (webviewContents) {
-              resolve(webviewContents);
-            } else {
-              setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
-            }
-          };
-
-          checkForWebview();
-
-          setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
-        }
-      );
-
-      if (webviewWebContents && !webviewWebContents.isDestroyed()) {
-        console.log('Opening developer tools for video call webview');
-        webviewWebContents.openDevTools();
-        return true;
-      }
-      console.warn('Video call webview webContents not found or destroyed');
-      return false;
-    } catch (error) {
-      console.error('Error opening webview developer tools:', error);
-      return false;
-    }
-  });
-};
-
-export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
-  if (!videoCallWindow || videoCallWindow.isDestroyed()) {
-    console.warn('Video call window not available for dev tools');
-    return false;
-  }
-
-  try {
-    const webviewWebContents = await new Promise<WebContents | null>(
-      (resolve) => {
-        const checkForWebview = () => {
-          const allWebContents = webContents.getAllWebContents();
-
-          const webviewContents = allWebContents.find((wc: WebContents) => {
-            return wc.hostWebContents === videoCallWindow?.webContents;
-          });
-
-          if (webviewContents) {
-            resolve(webviewContents);
-          } else {
-            setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
-          }
-        };
-
-        checkForWebview();
-
-        setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
-      }
-    );
-
-    if (webviewWebContents && !webviewWebContents.isDestroyed()) {
-      console.log('Opening developer tools for video call webview');
-      webviewWebContents.openDevTools();
-      return true;
-    }
-    console.warn('Video call webview webContents not found or destroyed');
-    return false;
-  } catch (error) {
-    console.error('Error opening webview developer tools:', error);
-    return false;
-  }
+  handle('video-call-window/open-webview-dev-tools', async () =>
+    openVideoCallWebviewDevTools()
+  );
 };
 
 export const cleanupVideoCallResources = () => {
@@ -1448,11 +1410,6 @@ export const cleanupVideoCallResources = () => {
   isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();
 };
-
-handle('video-call-window/test-ipc', async () => {
-  console.log('Video call window: IPC test request received');
-  return { success: true, timestamp: Date.now() };
-});
 
 handle('video-call-window/handshake', async () => {
   console.log('Video call window: Handshake request received');

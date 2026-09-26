@@ -5,7 +5,6 @@ import {
   setupApp,
   initializeScreenCaptureFallbackState,
   setupGpuCrashHandler,
-  markMainWindowStable,
 } from './app/main/app';
 import {
   mergePersistableValues,
@@ -118,7 +117,7 @@ const start = async (): Promise<void> => {
   performElectronStartup();
   setupDeepLinks();
 
-  // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
+  // BEFORE whenReady so early GPU failures are caught
   setupGpuCrashHandler();
 
   await app.whenReady();
@@ -134,10 +133,8 @@ const start = async (): Promise<void> => {
   setupOutlookLogger();
   setupDebugLoggingWatch();
 
-  // Initialize screen capture fallback state after store is available
   initializeScreenCaptureFallbackState();
 
-  // Set up electron-dl with our download tracking callbacks
   setupElectronDlWithTracking();
 
   const localStorage = await exportLocalStorage();
@@ -156,8 +153,6 @@ const start = async (): Promise<void> => {
   attachGuestWebContentsEvents();
   await showRootWindow();
 
-  // Mark main window as stable - GPU crashes after this won't trigger fallback
-  markMainWindowStable();
   watchMachineTheme();
   setupNotifications();
   attentionDrawing.setUp();

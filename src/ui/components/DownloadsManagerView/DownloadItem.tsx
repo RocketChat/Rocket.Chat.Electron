@@ -50,16 +50,17 @@ const DownloadItem = ({
       !receivedBytes ||
       !totalBytes ||
       !startTime ||
-      !endTime ||
       state !== 'progressing'
     ) {
       return undefined;
     }
 
-    return i18n.format(
-      (receivedBytes / (endTime - startTime)) * 1000,
-      'byteSpeed'
-    );
+    const elapsed = (endTime ?? Date.now()) - startTime;
+    if (elapsed <= 0) {
+      return undefined;
+    }
+
+    return i18n.format((receivedBytes / elapsed) * 1000, 'byteSpeed');
   }, [endTime, i18n, receivedBytes, startTime, state, totalBytes]);
 
   const estimatedTimeLeft = useMemo(() => {
@@ -67,14 +68,22 @@ const DownloadItem = ({
       !receivedBytes ||
       !totalBytes ||
       !startTime ||
-      !endTime ||
       state !== 'progressing'
     ) {
       return undefined;
     }
 
+    const elapsed = (endTime ?? Date.now()) - startTime;
+    if (elapsed <= 0) {
+      return undefined;
+    }
+
     const remainingBytes = totalBytes - receivedBytes;
-    const speed = receivedBytes / (endTime - startTime);
+    const speed = receivedBytes / elapsed;
+    if (speed <= 0) {
+      return undefined;
+    }
+
     return i18n.format(remainingBytes / speed, 'duration');
   }, [endTime, i18n, receivedBytes, startTime, state, totalBytes]);
 

@@ -55,7 +55,8 @@ const parseDeepLink = (
   }
 
   if (isGoUrlShortener(url)) {
-    const action = url.pathname;
+    // Custom protocol uses hostname (`auth`); HTTPS shortener uses pathname (`/auth`).
+    const action = url.pathname.replace(/^\/+/, '');
     const args = url.searchParams;
     return { action, args };
   }

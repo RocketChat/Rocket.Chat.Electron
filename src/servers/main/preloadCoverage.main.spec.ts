@@ -669,9 +669,13 @@ describe('preload modules coverage (node env)', () => {
     });
     require('../../videoCallWindow/preload/index');
     const api = exposeInMainWorld.mock.calls.find(
-      ([name]) => name === 'videoCallWindow'
+      ([name]) => name === 'RocketChatDesktop'
     )?.[1];
     expect(api).toBeDefined();
+    expect(exposeInMainWorld).not.toHaveBeenCalledWith(
+      'videoCallWindow',
+      expect.anything()
+    );
     api.openInMainWindow('/channel/general');
     api.openInMainWindow('https://evil.example');
     api.openInMainWindow('//host');

@@ -15,7 +15,7 @@ When a Pexip video call is opened from the Rocket.Chat Electron desktop app, the
 │  └── Opens Pexip in a dedicated video call window         │
 ├──────────────────────────────────────────────────────────┤
 │  Pexip Page (inside video call window)                    │
-│  └── Calls window.videoCallWindow.getAuthCredentials()    │
+│  └── Calls window.RocketChatDesktop.getAuthCredentials()  │
 │       → Returns { userId, authToken, serverUrl }          │
 │  └── Uses credentials to authenticate the RC iframe       │
 └──────────────────────────────────────────────────────────┘
@@ -23,7 +23,7 @@ When a Pexip video call is opened from the Rocket.Chat Electron desktop app, the
 
 ## API
 
-### `window.videoCallWindow.getAuthCredentials()`
+### `window.RocketChatDesktop.getAuthCredentials()`
 
 Returns a Promise that resolves to the user's credentials or `null`.
 

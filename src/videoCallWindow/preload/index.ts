@@ -11,7 +11,7 @@ const isRelativeRoute = (path: unknown): path is string =>
   !path.startsWith('/\\');
 
 // Expose any necessary APIs to the webview content
-contextBridge.exposeInMainWorld('videoCallWindow', {
+contextBridge.exposeInMainWorld('RocketChatDesktop', {
   // Navigate the main app window to an in-app route and bring it to the front.
   // `path` is a server-relative route, e.g. "/channel/general".
   openInMainWindow: (path: string) => {

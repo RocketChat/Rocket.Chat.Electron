@@ -516,3 +516,46 @@ describe('isInsideSomeScreen', () => {
     ).toBe(false);
   });
 });
+
+describe('getRootWindowAppearanceOptions', () => {
+  const { getRootWindowAppearanceOptions } = require('./rootWindow');
+
+  it('keeps the default macOS window opaque', () => {
+    expect(
+      getRootWindowAppearanceOptions({
+        platform: 'darwin',
+        isTransparentWindowEnabled: false,
+        shouldUseDarkColors: true,
+      })
+    ).toEqual({ backgroundColor: '#2f343d' });
+  });
+
+  it('enables macOS vibrancy only when transparency is enabled', () => {
+    expect(
+      getRootWindowAppearanceOptions({
+        platform: 'darwin',
+        isTransparentWindowEnabled: true,
+        shouldUseDarkColors: false,
+      })
+    ).toEqual({
+      transparent: true,
+      backgroundColor: '#00000000',
+      vibrancy: 'sidebar',
+      visualEffectState: 'active',
+    });
+  });
+
+  it('preserves transparent client chrome on Linux', () => {
+    expect(
+      getRootWindowAppearanceOptions({
+        platform: 'linux',
+        isTransparentWindowEnabled: false,
+        shouldUseDarkColors: false,
+      })
+    ).toEqual({
+      transparent: true,
+      backgroundColor: '#00000000',
+      hasShadow: true,
+    });
+  });
+});

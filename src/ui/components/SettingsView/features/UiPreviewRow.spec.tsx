@@ -17,17 +17,8 @@ jest.mock('../../../../ipc/renderer', () => ({
 
 const server = { url: 'https://open.rocket.chat/', title: 'Open' };
 
-const renderRow = (activeLabel?: string) => {
-  const onChanged = jest.fn().mockResolvedValue(undefined);
-  render(
-    <UiPreviewRow
-      server={server}
-      activeLabel={activeLabel}
-      onChanged={onChanged}
-    />
-  );
-  return { onChanged };
-};
+const renderRow = (uiPreview?: string) =>
+  render(<UiPreviewRow server={{ ...server, uiPreview }} />);
 
 const load = (value: string) => {
   fireEvent.change(
@@ -46,7 +37,7 @@ describe('UiPreviewRow', () => {
     jest
       .mocked(invoke)
       .mockResolvedValue({ status: 'failed', message: 'responded 403' });
-    const { onChanged } = renderRow();
+    renderRow();
 
     load('42364');
 
@@ -58,7 +49,6 @@ describe('UiPreviewRow', () => {
       server.url,
       '42364'
     );
-    await waitFor(() => expect(onChanged).toHaveBeenCalled());
   });
 
   it('shows the active preview and lets it be restored', async () => {

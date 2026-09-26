@@ -26,7 +26,6 @@ type ChannelToArgsMap = {
   'downloads/remove': (itemId: Download['itemId']) => void;
   'certificatesManager/remove': (domain: string) => void;
   'server-view/get-url': () => Server['url'] | undefined;
-  'ui-preview/list': () => Record<Server['url'], string>;
   'ui-preview/apply': (
     serverUrl: Server['url'],
     input: string

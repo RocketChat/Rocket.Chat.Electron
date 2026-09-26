@@ -13,7 +13,7 @@ import electronBuilderJson from '../../../electron-builder.json';
 // eslint-disable-next-line import/order, @typescript-eslint/no-unused-vars
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
-import { dispatch, listen } from '../../store';
+import { dispatch, listen, select } from '../../store';
 import { readSetting } from '../../store/readSetting';
 import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
@@ -32,6 +32,8 @@ import {
   APP_VERSION_SET,
   APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
 } from '../actions';
+import { selectPersistableValues } from '../selectors';
+import { flushPersistedValues, persistValues } from './persistence';
 
 export const packageJsonInformation = {
   productName: packageJson.productName,
@@ -367,6 +369,8 @@ export const setupApp = (): void => {
   });
 
   listen(SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED, () => {
+    persistValues(select(selectPersistableValues));
+    flushPersistedValues();
     relaunchApp();
   });
 

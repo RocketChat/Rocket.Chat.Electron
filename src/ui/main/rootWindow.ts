@@ -23,7 +23,6 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
 } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
-import { getPersistedValues } from '../../app/main/persistence';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import {
@@ -133,11 +132,9 @@ const isMacTransparencyEnabled = (): boolean => {
     return false;
   }
 
-  try {
-    return getPersistedValues().isTransparentWindowEnabled === true;
-  } catch {
-    return false;
-  }
+  return select(
+    ({ isTransparentWindowEnabled }) => isTransparentWindowEnabled === true
+  );
 };
 
 export const createRootWindow = (): void => {

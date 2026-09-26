@@ -62,6 +62,7 @@ type WorkspaceTabProps = {
   favicon: string | null;
   isSelected: boolean;
   badge?: '•' | number;
+  uiPreview?: string;
   userLoggedIn?: boolean;
   compact: boolean;
   orientation?: TabOrientation;
@@ -80,6 +81,7 @@ const WorkspaceTab = ({
   favicon,
   isSelected,
   badge,
+  uiPreview,
   userLoggedIn,
   compact,
   orientation = 'horizontal',
@@ -128,9 +130,11 @@ const WorkspaceTab = ({
   }${unreadSuffix}${shortcutSuffix}`;
   // Show the name on the first line and the address on a second line. When the
   // title is only the address, the primary line already is it, so skip line two.
-  const tooltipLines = tooltipName
-    ? [tooltipPrimaryLine, serverAddress]
-    : [tooltipPrimaryLine];
+  const tooltipLines = [
+    tooltipPrimaryLine,
+    ...(tooltipName ? [serverAddress] : []),
+    ...(uiPreview ? [t('tabBar.uiPreview', { label: uiPreview })] : []),
+  ];
   // The TooltipProvider renders each '\n'-separated line on its own row, so the
   // native title, the custom hover tooltip and the aria-label all stay in sync.
   const tooltipText = tooltipLines.join('\n');
@@ -173,13 +177,16 @@ const WorkspaceTab = ({
   const showLabel = !compact && !isVertical;
 
   // Exactly one badge at a time: a logged-out server's unread state is stale,
-  // so the login warning wins; otherwise a mention count beats the plain
-  // unread dot. The unread indicator itself depends on the layout: the
+  // so the login warning wins; then a loaded UI preview, which changes what
+  // the tab shows; otherwise a mention count beats the plain unread dot. The unread indicator itself depends on the layout: the
   // sidebar (vertical) gets the badge with the drawn dot, the tab strip
   // keeps the plain 8px ball.
   const badgeElement = ((): ReactNode => {
     if (!userLoggedIn) {
       return <TabBadge variant='warning'>!</TabBadge>;
+    }
+    if (uiPreview) {
+      return <TabBadge variant='danger'>UI</TabBadge>;
     }
     if (displayCount) {
       return <TabBadge variant='ghost'>{displayCount}</TabBadge>;

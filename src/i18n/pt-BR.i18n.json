@@ -474,7 +474,8 @@
       "canceled": "Cancelado",
       "failed": "Falhou",
       "dismiss": "Fechar"
-    }
+    },
+    "uiPreview": "Prévia de UI: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatação",

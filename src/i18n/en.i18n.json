@@ -658,7 +658,8 @@
       "canceled": "Canceled",
       "failed": "Failed",
       "dismiss": "Dismiss"
-    }
+    },
+    "uiPreview": "UI preview: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatting",

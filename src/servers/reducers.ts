@@ -34,7 +34,11 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
-import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
+import {
+  SERVERS_LOADED,
+  SERVER_DOCUMENT_VIEWER_OPEN_URL,
+  SERVER_UI_PREVIEW_CHANGED,
+} from './actions';
 import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
@@ -68,6 +72,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>
   | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>
+  | ActionOf<typeof SERVER_UI_PREVIEW_CHANGED>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR>
@@ -296,6 +301,8 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         url: ensureUrlFormat(server.url),
         documentViewerOpenUrl: '',
         documentViewerFormat: '',
+        // Previews live in memory only, so none survive a restart.
+        uiPreview: undefined,
       }));
     }
 
@@ -321,6 +328,13 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         documentViewerOpenUrl: documentUrl,
         documentViewerFormat: documentFormat ?? '',
       });
+    }
+
+    case SERVER_UI_PREVIEW_CHANGED: {
+      const { url, uiPreview } = action.payload;
+      return state.map((server) =>
+        server.url === url ? { ...server, uiPreview } : server
+      );
     }
 
     default:

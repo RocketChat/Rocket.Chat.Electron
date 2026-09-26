@@ -2,6 +2,8 @@ import type { Session } from 'electron';
 import { session } from 'electron';
 
 import { getWebContentsByServerUrl } from '.';
+import { SERVER_UI_PREVIEW_CHANGED } from '../../../servers/actions';
+import { dispatch } from '../../../store';
 
 // Paths the Rocket.Chat server answers itself; mirrors `serverRoutes` in apps/meteor/vite/vite.config.mts.
 const serverRoutes = [
@@ -33,16 +35,7 @@ const serverRoutes = [
 const bundleAssetsPath = '/bundle/';
 
 // ponytail: in-memory only, so a restart always returns every server to its own UI.
-const overrides = new Map<string, { label: string }>();
-
-const escapeHtml = (value: string) =>
-  value.replace(
-    /[&<>"']/g,
-    (char) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
-        char
-      ] as string
-  );
+const overrides = new Set<string>();
 
 const withTrailingSlash = (url: string) =>
   url.endsWith('/') ? url : `${url}/`;
@@ -64,25 +57,18 @@ export const isUiServedFromServer = (
 };
 
 // The Meteor server injects the runtime config and base path into its HTML; the static bundle's index.html has neither.
-export const prepareIndexHtml = (
-  html: string,
-  serverUrl: string,
-  label: string
-) => {
+export const prepareIndexHtml = (html: string, serverUrl: string) => {
   const { origin, pathname } = new URL(withTrailingSlash(serverUrl));
   const runtimeConfig = JSON.stringify({
     ROOT_URL: origin + pathname,
     ROOT_URL_PATH_PREFIX: pathname.replace(/\/$/, ''),
   });
-  const badge = `<div style="position:fixed;bottom:4px;right:4px;z-index:2147483647;pointer-events:none;padding:2px 6px;border-radius:4px;font:11px/16px monospace;background:#f5455c;color:#fff;opacity:.85">UI preview: ${escapeHtml(label)}</div>`;
-
   return html
     .replace(/<base href="[^"]*"\s*\/?>/, `<base href="${pathname}" />`)
     .replace(
       '<head>',
       `<head><script>window.__meteor_runtime_config__ = ${runtimeConfig};</script>`
-    )
-    .replace('</body>', `${badge}</body>`);
+    );
 };
 
 const passthrough = (ses: Session, request: Request) =>
@@ -93,7 +79,7 @@ const passthrough = (ses: Session, request: Request) =>
 
 // ponytail: every request of the server's scheme in this session goes through the main process while an override is active; fine for testing, not for daily use.
 const createHandler =
-  (ses: Session, serverUrl: string, bundleUrl: string, label: string) =>
+  (ses: Session, serverUrl: string, bundleUrl: string) =>
   async (request: Request): Promise<Response> => {
     const server = new URL(withTrailingSlash(serverUrl));
     const url = new URL(request.url);
@@ -124,10 +110,9 @@ const createHandler =
       return index;
     }
 
-    return new Response(
-      prepareIndexHtml(await index.text(), serverUrl, label),
-      { headers: { 'content-type': 'text/html; charset=utf-8' } }
-    );
+    return new Response(prepareIndexHtml(await index.text(), serverUrl), {
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
   };
 
 const reloadServer = async (serverUrl: string, ses: Session) => {
@@ -136,11 +121,6 @@ const reloadServer = async (serverUrl: string, ses: Session) => {
   await ses.clearCache();
   getWebContentsByServerUrl(serverUrl)?.reloadIgnoringCache();
 };
-
-export const listUiOverrides = (): Record<string, string> =>
-  Object.fromEntries(
-    [...overrides].map(([serverUrl, { label }]) => [serverUrl, label])
-  );
 
 export const applyUiOverride = async (
   serverUrl: string,
@@ -156,9 +136,13 @@ export const applyUiOverride = async (
   }
   ses.protocol.handle(
     scheme,
-    createHandler(ses, serverUrl, normalizedBundleUrl, label)
+    createHandler(ses, serverUrl, normalizedBundleUrl)
   );
-  overrides.set(serverUrl, { label });
+  overrides.add(serverUrl);
+  dispatch({
+    type: SERVER_UI_PREVIEW_CHANGED,
+    payload: { url: serverUrl, uiPreview: label },
+  });
 
   await reloadServer(serverUrl, ses);
 };
@@ -170,6 +154,10 @@ export const clearUiOverride = async (serverUrl: string) => {
 
   const ses = getServerSession(serverUrl);
   ses.protocol.unhandle(getScheme(serverUrl));
+  dispatch({
+    type: SERVER_UI_PREVIEW_CHANGED,
+    payload: { url: serverUrl, uiPreview: undefined },
+  });
 
   await reloadServer(serverUrl, ses);
 };

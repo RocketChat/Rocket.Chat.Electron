@@ -20,15 +20,10 @@ type RowState =
 
 type UiPreviewRowProps = {
   server: Server;
-  activeLabel: string | undefined;
-  onChanged: () => Promise<void>;
 };
 
-export const UiPreviewRow = ({
-  server,
-  activeLabel,
-  onChanged,
-}: UiPreviewRowProps) => {
+export const UiPreviewRow = ({ server }: UiPreviewRowProps) => {
+  const activeLabel = server.uiPreview;
   const { t } = useTranslation();
   const inputId = useId();
   const [input, setInput] = useState('');
@@ -44,14 +39,12 @@ export const UiPreviewRow = ({
     setState({ kind: 'loading' });
     const result = await invoke('ui-preview/apply', server.url, input.trim());
     setState({ kind: 'done', result });
-    await onChanged();
   };
 
   const handleRestore = async () => {
     setState({ kind: 'loading' });
     await invoke('ui-preview/restore', server.url);
     setState({ kind: 'idle' });
-    await onChanged();
   };
 
   const status = (() => {

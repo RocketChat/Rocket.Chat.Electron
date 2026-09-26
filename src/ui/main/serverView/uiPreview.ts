@@ -10,11 +10,7 @@ import {
   warnAboutUiOverrideRequiresDeveloperMode,
   warnAboutUiPreviewFailure,
 } from '../dialogs';
-import {
-  applyUiOverride,
-  clearUiOverride,
-  listUiOverrides,
-} from './uiOverride';
+import { applyUiOverride, clearUiOverride } from './uiOverride';
 import { getUiPreviewReference, pullUiPreview } from './uiPreviewPackage';
 
 export type UiPreviewSource = {
@@ -119,10 +115,6 @@ export const setupUiPreviewIpc = (): void => {
     webContents.getURL().startsWith('file://');
   const isKnownServer = (serverUrl: string) =>
     select(({ servers }) => servers.some((server) => server.url === serverUrl));
-
-  handle('ui-preview/list', async (webContents) =>
-    isFromAppPage(webContents) ? listUiOverrides() : {}
-  );
 
   handle(
     'ui-preview/apply',

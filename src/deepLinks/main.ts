@@ -19,7 +19,7 @@ import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import type { UiPreviewSource } from '../ui/main/serverView/uiPreview';
 import {
   isUiPreviewAllowed,
-  requestUiPreview,
+  requestUiPreviewWithDialog,
 } from '../ui/main/serverView/uiPreview';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
@@ -272,7 +272,7 @@ const performUiPreview = async ({
 
   if (host) {
     await performOnServer(host, async (serverUrl) => {
-      await requestUiPreview(serverUrl, source);
+      await requestUiPreviewWithDialog(serverUrl, source);
     });
     return;
   }
@@ -281,7 +281,7 @@ const performUiPreview = async ({
     typeof currentView === 'object' ? currentView.url : undefined
   );
   if (focusedServerUrl) {
-    await requestUiPreview(focusedServerUrl, source);
+    await requestUiPreviewWithDialog(focusedServerUrl, source);
   }
 };
 

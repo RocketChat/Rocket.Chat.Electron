@@ -4,6 +4,7 @@ import type { Download } from '../downloads/common';
 import type { OutlookEventsResponse } from '../outlookCalendar/type';
 import type { Server } from '../servers/common';
 import type { TelephonyDiagnostics } from '../telephony/diagnostics';
+import type { UiPreviewResult } from '../ui/main/serverView/uiPreview';
 import type { SystemIdleState } from '../userPresence/common';
 
 type ChannelToArgsMap = {
@@ -26,7 +27,10 @@ type ChannelToArgsMap = {
   'certificatesManager/remove': (domain: string) => void;
   'server-view/get-url': () => Server['url'] | undefined;
   'ui-preview/list': () => Record<Server['url'], string>;
-  'ui-preview/apply': (serverUrl: Server['url'], input: string) => boolean;
+  'ui-preview/apply': (
+    serverUrl: Server['url'],
+    input: string
+  ) => UiPreviewResult;
   'ui-preview/restore': (serverUrl: Server['url']) => void;
   'server-view/ready': () => void;
   'server-view/open-url-on-browser': (url: string) => void;

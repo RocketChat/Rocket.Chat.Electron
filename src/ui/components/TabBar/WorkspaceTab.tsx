@@ -24,6 +24,7 @@ import {
   Favicon,
   Initials,
   Label,
+  PreviewBadgeWrapper,
   ShortcutChip,
   Tab,
   TabBadge,
@@ -177,16 +178,13 @@ const WorkspaceTab = ({
   const showLabel = !compact && !isVertical;
 
   // Exactly one badge at a time: a logged-out server's unread state is stale,
-  // so the login warning wins; then a loaded UI preview, which changes what
-  // the tab shows; otherwise a mention count beats the plain unread dot. The unread indicator itself depends on the layout: the
+  // so the login warning wins; otherwise a mention count beats the plain
+  // unread dot. The unread indicator itself depends on the layout: the
   // sidebar (vertical) gets the badge with the drawn dot, the tab strip
   // keeps the plain 8px ball.
   const badgeElement = ((): ReactNode => {
     if (!userLoggedIn) {
       return <TabBadge variant='warning'>!</TabBadge>;
-    }
-    if (uiPreview) {
-      return <TabBadge variant='danger'>UI</TabBadge>;
     }
     if (displayCount) {
       return <TabBadge variant='ghost'>{displayCount}</TabBadge>;
@@ -200,6 +198,12 @@ const WorkspaceTab = ({
     }
     return null;
   })();
+
+  // Shown alongside the badge above, never instead of it: it says what the
+  // tab is running, not what is waiting in it.
+  const uiPreviewBadge = uiPreview ? (
+    <TabBadge variant='danger'>UI</TabBadge>
+  ) : null;
 
   return (
     <>
@@ -244,9 +248,17 @@ const WorkspaceTab = ({
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}
         {isVertical ? (
-          <BadgeWrapper>{badgeElement}</BadgeWrapper>
+          <>
+            <BadgeWrapper>{badgeElement}</BadgeWrapper>
+            {uiPreviewBadge && (
+              <PreviewBadgeWrapper>{uiPreviewBadge}</PreviewBadgeWrapper>
+            )}
+          </>
         ) : (
-          badgeElement
+          <>
+            {uiPreviewBadge}
+            {badgeElement}
+          </>
         )}
       </Tab>
       <Divider orientation={orientation}></Divider>

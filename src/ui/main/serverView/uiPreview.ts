@@ -1,5 +1,8 @@
 import { pathToFileURL } from 'url';
 
+import type { WebContents } from 'electron';
+import { BrowserWindow } from 'electron';
+
 import { handle } from '../../../ipc/main';
 import { select } from '../../../store';
 import {
@@ -55,8 +58,16 @@ export const parseUiPreviewInput = (input: string): UiPreviewSource => {
   return /^\d+$/.test(value) ? { pr: value } : { bundle: value };
 };
 
+export type UiPreviewResult =
+  | { status: 'applied'; label: string }
+  | { status: 'cancelled' }
+  | { status: 'failed'; message: string };
+
+const isDeveloperModeEnabled = () =>
+  select(({ isDeveloperModeEnabled }) => isDeveloperModeEnabled);
+
 export const isUiPreviewAllowed = async (): Promise<boolean> => {
-  if (select(({ isDeveloperModeEnabled }) => isDeveloperModeEnabled)) {
+  if (isDeveloperModeEnabled()) {
     return true;
   }
   await warnAboutUiOverrideRequiresDeveloperMode();
@@ -65,34 +76,46 @@ export const isUiPreviewAllowed = async (): Promise<boolean> => {
 
 export const requestUiPreview = async (
   serverUrl: string,
-  source: UiPreviewSource
-): Promise<boolean> => {
+  source: UiPreviewSource,
+  parentWindow?: BrowserWindow
+): Promise<UiPreviewResult> => {
   const resolved = resolveUiPreviewSource(source);
   if (!resolved) {
-    await warnAboutUiPreviewFailure(
-      `Not a PR number or an http(s) URL: ${source.bundle ?? source.pr ?? ''}`
-    );
-    return false;
+    return {
+      status: 'failed',
+      message: `Not a PR number or an http(s) URL: ${source.bundle ?? source.pr ?? ''}`,
+    };
   }
 
-  if (!(await askForUiOverride(serverUrl, resolved.label))) {
-    return false;
+  if (!(await askForUiOverride(serverUrl, resolved.label, parentWindow))) {
+    return { status: 'cancelled' };
   }
 
   try {
     await applyUiOverride(serverUrl, await resolved.load(), resolved.label);
-    return true;
+    return { status: 'applied', label: resolved.label };
   } catch (error) {
-    await warnAboutUiPreviewFailure(
-      error instanceof Error ? error.message : String(error)
-    );
-    return false;
+    return {
+      status: 'failed',
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+};
+
+// The deep link has no page to report into, so its failures become a dialog.
+export const requestUiPreviewWithDialog = async (
+  serverUrl: string,
+  source: UiPreviewSource
+): Promise<void> => {
+  const result = await requestUiPreview(serverUrl, source);
+  if (result.status === 'failed') {
+    await warnAboutUiPreviewFailure(result.message);
   }
 };
 
 export const setupUiPreviewIpc = (): void => {
   // Only the app's own pages (the root and settings windows) may ask; server content is never file://.
-  const isFromAppPage = (webContents: Electron.WebContents) =>
+  const isFromAppPage = (webContents: WebContents) =>
     webContents.getURL().startsWith('file://');
   const isKnownServer = (serverUrl: string) =>
     select(({ servers }) => servers.some((server) => server.url === serverUrl));
@@ -101,16 +124,22 @@ export const setupUiPreviewIpc = (): void => {
     isFromAppPage(webContents) ? listUiOverrides() : {}
   );
 
-  handle('ui-preview/apply', async (webContents, serverUrl, input) => {
-    if (
-      !isFromAppPage(webContents) ||
-      !isKnownServer(serverUrl) ||
-      !(await isUiPreviewAllowed())
-    ) {
-      return false;
+  handle(
+    'ui-preview/apply',
+    async (webContents, serverUrl, input): Promise<UiPreviewResult> => {
+      if (!isFromAppPage(webContents) || !isKnownServer(serverUrl)) {
+        return { status: 'failed', message: 'Request not allowed' };
+      }
+      if (!isDeveloperModeEnabled()) {
+        return { status: 'failed', message: 'Developer Mode is off' };
+      }
+      return requestUiPreview(
+        serverUrl,
+        parseUiPreviewInput(input),
+        BrowserWindow.fromWebContents(webContents) ?? undefined
+      );
     }
-    return requestUiPreview(serverUrl, parseUiPreviewInput(input));
-  });
+  );
 
   handle('ui-preview/restore', async (webContents, serverUrl) => {
     if (isFromAppPage(webContents)) {

@@ -13,6 +13,8 @@ import {
   WEBVIEW_UNREAD_CHANGED,
   WEBVIEW_USER_LOGGED_IN,
   WEBVIEW_FAVICON_CHANGED,
+  WEBVIEW_AUDIO_STATE_CHANGED,
+  WEBVIEW_AUDIO_MUTED_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
@@ -340,6 +342,28 @@ describe('servers reducer', () => {
     });
   });
 
+  describe('WEBVIEW_AUDIO_STATE_CHANGED', () => {
+    it('should set isAudible', () => {
+      const newState = servers([existing], {
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url, isAudible: true },
+      } as any);
+
+      expect(newState[0].isAudible).toBe(true);
+    });
+  });
+
+  describe('WEBVIEW_AUDIO_MUTED_CHANGED', () => {
+    it('should set isAudioMuted', () => {
+      const newState = servers([existing], {
+        type: WEBVIEW_AUDIO_MUTED_CHANGED,
+        payload: { url, isAudioMuted: true },
+      } as any);
+
+      expect(newState[0].isAudioMuted).toBe(true);
+    });
+  });
+
   describe('WEBVIEW_DID_NAVIGATE', () => {
     it('should set lastPath when pageUrl includes the server url', () => {
       const newState = servers([existing], {
@@ -435,6 +459,24 @@ describe('servers reducer', () => {
       expect(newState[0].url).toBe('https://open.rocket.chat/');
       expect(newState[0].documentViewerOpenUrl).toBe('');
       expect(newState[0].documentViewerFormat).toBe('');
+    });
+
+    it('should reset audio state flags', () => {
+      const newState = servers([], {
+        type: APP_SETTINGS_LOADED,
+        payload: {
+          servers: [
+            {
+              url: 'https://open.rocket.chat',
+              isAudible: true,
+              isAudioMuted: true,
+            },
+          ],
+        },
+      } as any);
+
+      expect(newState[0].isAudible).toBe(false);
+      expect(newState[0].isAudioMuted).toBe(false);
     });
 
     it('should fall back to current state when servers missing', () => {

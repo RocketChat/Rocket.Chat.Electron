@@ -1,9 +1,15 @@
 import type { Event, WebContents } from 'electron';
 
 import { isProtocolAllowed } from '../../../navigation/main';
-import { listen } from '../../../store';
+import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
-import { WEBVIEW_READY } from '../../actions';
+import {
+  SIDE_BAR_SERVER_TOGGLE_MUTE,
+  WEBVIEW_ATTACHED,
+  WEBVIEW_AUDIO_MUTED_CHANGED,
+  WEBVIEW_AUDIO_STATE_CHANGED,
+  WEBVIEW_READY,
+} from '../../actions';
 import { attachGuestWebContentsEvents } from './index';
 
 jest.mock('electron', () => ({
@@ -152,5 +158,271 @@ describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
     await Promise.resolve();
 
     expect(mockOpenExternal).not.toHaveBeenCalled();
+  });
+});
+
+describe('serverView audio state and mute handling', () => {
+  const mockListen = listen as unknown as jest.Mock;
+  const mockDispatch = dispatch as unknown as jest.Mock;
+  const mockSelect = select as unknown as jest.Mock;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    (
+      isProtocolAllowed as jest.MockedFunction<typeof isProtocolAllowed>
+    ).mockResolvedValue(true);
+
+    await attachGuestWebContentsEvents();
+  });
+
+  const getWebviewReadyCallback = () => {
+    const call = mockListen.mock.calls.find(
+      ([actionType]) => actionType === WEBVIEW_READY
+    );
+    return call?.[1] as (action: unknown) => void;
+  };
+
+  const getWebviewAttachedCallback = () => {
+    const call = mockListen.mock.calls.find(
+      ([actionType]) => actionType === WEBVIEW_ATTACHED
+    );
+    return call?.[1] as (action: unknown) => void;
+  };
+
+  it('dispatches WEBVIEW_AUDIO_STATE_CHANGED when the guest emits audio-state-changed', () => {
+    let audioStateHandler: ((event: { audible: boolean }) => void) | undefined;
+
+    const guestWebContents = {
+      addListener: jest.fn((event: string, handler: any) => {
+        if (event === 'audio-state-changed') {
+          audioStateHandler = handler;
+        }
+      }),
+      on: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      setAudioMuted: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+      session: { on: jest.fn() },
+    } as unknown as WebContents;
+
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockReturnValue(guestWebContents);
+
+    const webviewAttachedCallback = getWebviewAttachedCallback();
+    webviewAttachedCallback({
+      payload: { webContentsId: 1, url: 'https://open.rocket.chat' },
+    });
+
+    expect(audioStateHandler).toBeDefined();
+    audioStateHandler?.({ audible: true });
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: WEBVIEW_AUDIO_STATE_CHANGED,
+      payload: { url: 'https://open.rocket.chat', isAudible: true },
+    });
+  });
+
+  it('ignores a destroyed webview that has already been replaced for the same server', () => {
+    const serverUrl = 'https://open.rocket.chat';
+
+    const createGuest = () => {
+      const handlers: Record<string, (...args: any[]) => void> = {};
+      const guest = {
+        addListener: jest.fn((event: string, handler: any) => {
+          handlers[event] = handler;
+        }),
+        on: jest.fn(),
+        removeAllListeners: jest.fn(),
+        setWindowOpenHandler: jest.fn(),
+        setAudioMuted: jest.fn(),
+        isAudioMuted: jest.fn(() => false),
+        isDestroyed: jest.fn(() => false),
+        session: {
+          on: jest.fn(),
+          removeAllListeners: jest.fn(),
+          clearStorageData: jest.fn(),
+          flushStorageData: jest.fn(),
+        },
+      } as unknown as WebContents;
+      return { guest, handlers };
+    };
+
+    const mockFromId = jest.requireMock('electron').webContents
+      .fromId as jest.Mock;
+    const webviewAttachedCallback = getWebviewAttachedCallback();
+
+    const outgoing = createGuest();
+    mockFromId.mockReturnValue(outgoing.guest);
+    webviewAttachedCallback({ payload: { webContentsId: 1, url: serverUrl } });
+
+    const replacement = createGuest();
+    mockFromId.mockReturnValue(replacement.guest);
+    webviewAttachedCallback({ payload: { webContentsId: 2, url: serverUrl } });
+
+    mockDispatch.mockClear();
+    mockSelect.mockClear();
+
+    outgoing.handlers.destroyed?.();
+
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: WEBVIEW_AUDIO_STATE_CHANGED,
+      payload: { url: serverUrl, isAudible: false },
+    });
+    expect(outgoing.guest.session.clearStorageData).not.toHaveBeenCalled();
+    expect(outgoing.guest.session.flushStorageData).not.toHaveBeenCalled();
+
+    const toggleMuteCallback = mockListen.mock.calls.find(
+      ([actionType]) => actionType === SIDE_BAR_SERVER_TOGGLE_MUTE
+    )?.[1] as (action: unknown) => void;
+    toggleMuteCallback({ payload: serverUrl });
+
+    expect(replacement.guest.setAudioMuted).toHaveBeenCalledWith(true);
+    expect(outgoing.guest.setAudioMuted).not.toHaveBeenCalled();
+  });
+
+  describe('audible hold-off (debounce quiet gaps)', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    const attachAudioStateHandler = (): ((event: {
+      audible: boolean;
+    }) => void) => {
+      let audioStateHandler:
+        | ((event: { audible: boolean }) => void)
+        | undefined;
+
+      const guestWebContents = {
+        addListener: jest.fn((event: string, handler: any) => {
+          if (event === 'audio-state-changed') {
+            audioStateHandler = handler;
+          }
+        }),
+        on: jest.fn(),
+        setWindowOpenHandler: jest.fn(),
+        setAudioMuted: jest.fn(),
+        isDestroyed: jest.fn(() => false),
+        session: { on: jest.fn() },
+      } as unknown as WebContents;
+
+      (
+        jest.requireMock('electron').webContents.fromId as jest.Mock
+      ).mockReturnValue(guestWebContents);
+
+      const webviewAttachedCallback = getWebviewAttachedCallback();
+      webviewAttachedCallback({
+        payload: { webContentsId: 1, url: 'https://open.rocket.chat' },
+      });
+
+      expect(audioStateHandler).toBeDefined();
+      return audioStateHandler as (event: { audible: boolean }) => void;
+    };
+
+    it('does not dispatch isAudible:false immediately on a quiet gap', () => {
+      const audioStateHandler = attachAudioStateHandler();
+
+      audioStateHandler({ audible: true });
+      mockDispatch.mockClear();
+
+      audioStateHandler({ audible: false });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith({
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url: 'https://open.rocket.chat', isAudible: false },
+      });
+    });
+
+    it('dispatches isAudible:false after the hold window elapses', () => {
+      const audioStateHandler = attachAudioStateHandler();
+
+      audioStateHandler({ audible: true });
+      mockDispatch.mockClear();
+
+      audioStateHandler({ audible: false });
+      jest.advanceTimersByTime(2000);
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url: 'https://open.rocket.chat', isAudible: false },
+      });
+    });
+
+    it('cancels the pending false dispatch when audio resumes within the hold window', () => {
+      const audioStateHandler = attachAudioStateHandler();
+
+      audioStateHandler({ audible: true });
+      mockDispatch.mockClear();
+
+      audioStateHandler({ audible: false });
+      audioStateHandler({ audible: true });
+      jest.advanceTimersByTime(2000);
+
+      expect(mockDispatch).not.toHaveBeenCalledWith({
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url: 'https://open.rocket.chat', isAudible: false },
+      });
+    });
+  });
+
+  it('mutes the guest webContents on ready when the server is marked muted', () => {
+    mockSelect.mockReturnValue(true);
+
+    const guestWebContents = {
+      addListener: jest.fn(),
+      on: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      setAudioMuted: jest.fn(),
+      session: { setPermissionRequestHandler: jest.fn() },
+    } as unknown as WebContents;
+
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockReturnValue(guestWebContents);
+
+    const webviewReadyCallback = getWebviewReadyCallback();
+    webviewReadyCallback({
+      payload: { webContentsId: 1, url: 'https://open.rocket.chat' },
+    });
+
+    expect(guestWebContents.setAudioMuted).toHaveBeenCalledWith(true);
+  });
+
+  it('toggles mute and dispatches WEBVIEW_AUDIO_MUTED_CHANGED on SIDE_BAR_SERVER_TOGGLE_MUTE', () => {
+    const guestWebContents = {
+      addListener: jest.fn(),
+      on: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      setAudioMuted: jest.fn(),
+      isAudioMuted: jest.fn(() => false),
+      isDestroyed: jest.fn(() => false),
+      session: { on: jest.fn() },
+    } as unknown as WebContents;
+
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockReturnValue(guestWebContents);
+
+    const webviewAttachedCallback = getWebviewAttachedCallback();
+    webviewAttachedCallback({
+      payload: { webContentsId: 1, url: 'https://open.rocket.chat' },
+    });
+
+    const toggleMuteCall = mockListen.mock.calls.find(
+      ([actionType]) => actionType === SIDE_BAR_SERVER_TOGGLE_MUTE
+    );
+    const toggleMuteCallback = toggleMuteCall?.[1] as (action: unknown) => void;
+
+    toggleMuteCallback({ payload: 'https://open.rocket.chat' });
+
+    expect(guestWebContents.setAudioMuted).toHaveBeenCalledWith(true);
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: WEBVIEW_AUDIO_MUTED_CHANGED,
+      payload: { url: 'https://open.rocket.chat', isAudioMuted: true },
+    });
   });
 });

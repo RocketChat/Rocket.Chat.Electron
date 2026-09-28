@@ -144,6 +144,7 @@
     "copy": "Ко&піювати",
     "cut": "В&ирізати",
     "developerMode": "Режим розробника",
+    "simulateDisconnected": "Симулювати відключення",
     "documentation": "Документація",
     "editMenu": "&Редагувати",
     "fileMenu": "&Файл",
@@ -174,8 +175,7 @@
     "viewMenu": "&Вигляд",
     "windowMenu": "В&ікно",
     "zoomIn": "Збільшити",
-    "zoomOut": "Зменшити",
-    "simulateDisconnected": "Симулювати відключення"
+    "zoomOut": "Зменшити"
   },
   "loadingError": {
     "title": "Не вдалося завантажити сервер",

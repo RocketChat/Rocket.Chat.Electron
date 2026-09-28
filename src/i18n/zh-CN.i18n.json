@@ -114,11 +114,9 @@
       "clear": "清除筛选器",
       "all": "全部",
       "mimes": {
-        "images": "图片",
-        "videos": "视频",
-        "audios": "音频",
-        "texts": "文本",
-        "files": "文件"
+        "image": "图片",
+        "video": "视频",
+        "application": "文件"
       },
       "statuses": {
         "paused": "已暂停",
@@ -202,6 +200,7 @@
     "copy": "复制 (&C)",
     "cut": "剪切 (&T)",
     "developerMode": "开发者模式",
+    "simulateDisconnected": "模拟断开连接",
     "disableGpu": "禁用 GPU",
     "documentation": "文件",
     "downloads": "下载",
@@ -231,8 +230,7 @@
     "viewMenu": "显示 (&V)",
     "windowMenu": "窗口 (&W)",
     "zoomIn": "放大",
-    "zoomOut": "缩小",
-    "simulateDisconnected": "模拟断开连接"
+    "zoomOut": "缩小"
   },
   "loadingError": {
     "title": "服务器载入失败",

@@ -184,11 +184,9 @@
       "clear": "Szűrők törlése",
       "all": "Összes",
       "mimes": {
-        "images": "Képek",
-        "videos": "Videók",
-        "audios": "Hangok",
-        "texts": "Szövegek",
-        "files": "Fájlok"
+        "image": "Képek",
+        "video": "Videók",
+        "application": "Fájlok"
       },
       "statuses": {
         "paused": "Szüneteltetve",
@@ -345,6 +343,7 @@
     "copy": "&Másolás",
     "cut": "&Kivágás",
     "developerMode": "Fejlesztői mód",
+    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása",
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",
@@ -385,8 +384,7 @@
     "viewMenu": "&Nézet",
     "windowMenu": "&Ablak",
     "zoomIn": "Nagyítás",
-    "zoomOut": "Kicsinyítés",
-    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása"
+    "zoomOut": "Kicsinyítés"
   },
   "loadingError": {
     "title": "Kiszolgáló betöltése sikertelen",
@@ -574,13 +572,9 @@
   },
   "logViewer": {
     "title": "Naplómegjelenítő",
-    "aria": {
-      "logIcon": "Naplómegjelenítő ikon",
-      "entriesCount": "{{count}} naplóbejegyzés megjelenítve"
-    },
     "fileInfo": {
       "custom": "Egyéni",
-      "entries": "{{count}} bejegyzés",
+      "entries_other": "{{count}} bejegyzés",
       "entriesOfTotal": "{{count}} / {{total}} bejegyzés",
       "noEntries": "Nincsenek bejegyzések"
     },
@@ -593,7 +587,6 @@
       "copy": "Másolás",
       "save": "Mentés",
       "clear": "Törlés",
-      "close": "Bezárás",
       "clearFilters": "Szűrők törlése"
     },
     "controls": {
@@ -601,22 +594,11 @@
       "autoScrollToTop": "Automatikus görgetés a tetejére"
     },
     "placeholders": {
-      "loadAmount": "Betöltés mennyisége",
       "searchLogs": "Naplók keresése…",
-      "level": "Szint",
-      "context": "Környezet",
       "exchangeDebug": "Exchange hibakeresési szűrő"
     },
     "filters": {
-      "entryLimit": {
-        "last100": "Utolsó 100 bejegyzés",
-        "last500": "Utolsó 500 bejegyzés",
-        "last1000": "Utolsó 1000 bejegyzés",
-        "last5000": "Utolsó 5000 bejegyzés",
-        "all": "Összes bejegyzés"
-      },
       "level": {
-        "all": "Összes szint",
         "debug": "Hibakeresés",
         "info": "Információ",
         "warn": "Figyelmeztetés",
@@ -624,7 +606,6 @@
         "verbose": "Részletes"
       },
       "context": {
-        "all": "Összes környezet",
         "main": "Főfolyamat",
         "renderer": "Megjelenítő",
         "webview": "Webnézet",

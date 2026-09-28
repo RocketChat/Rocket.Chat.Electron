@@ -163,11 +163,9 @@
       "clear": "Tyhjennä suodattimet",
       "all": "Kaikki",
       "mimes": {
-        "images": "Kuvat",
-        "videos": "Videot",
-        "audios": "Äänet",
-        "texts": "Tekstit",
-        "files": "Tiedostot"
+        "image": "Kuvat",
+        "video": "Videot",
+        "application": "Tiedostot"
       },
       "statuses": {
         "paused": "Keskeytetty",
@@ -302,6 +300,7 @@
     "close": "Sulje",
     "copy": "&Kopioi",
     "cut": "&Leikkaa",
+    "simulateDisconnected": "Simuloi yhteyden katkeamista",
     "disableGpu": "Poista grafiikkasuoritin käytöstä",
     "documentation": "Oppaat",
     "downloads": "Lataukset",
@@ -336,8 +335,7 @@
     "viewMenu": "&Näytä",
     "windowMenu": "&Ikkuna",
     "zoomIn": "Lähennä",
-    "zoomOut": "Loitonna",
-    "simulateDisconnected": "Simuloi yhteyden katkeamista"
+    "zoomOut": "Loitonna"
   },
   "loadingError": {
     "title": "Palvelimen lataus epäonnistui",

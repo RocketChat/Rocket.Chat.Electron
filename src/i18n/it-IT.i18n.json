@@ -21,6 +21,9 @@
       }
     }
   },
+  "menus": {
+    "simulateDisconnected": "Simula disconnessione"
+  },
   "tabBar": {
     "workspaces": "Aree di lavoro",
     "addWorkspace": "Aggiungi area di lavoro",
@@ -59,6 +62,18 @@
       "dismiss": "Chiudi"
     }
   },
+  "tray": {
+    "presence": {
+      "status": "Stato",
+      "online": "Online",
+      "away": "Assente",
+      "busy": "Occupato",
+      "offline": "Offline",
+      "disconnected": "Disconnesso — tentativo di riconnessione...",
+      "signIn": "Accedi a {{- workspace}}",
+      "addWorkspace": "Aggiungi area di lavoro"
+    }
+  },
   "serverInfo": {
     "title": "Informazioni sul Server",
     "urlLabel": "URL:",
@@ -83,21 +98,6 @@
     "expiration": {
       "label": "Scadenza:",
       "expiresOn": "Scade il {{date}}"
-    }
-  },
-  "menus": {
-    "simulateDisconnected": "Simula disconnessione"
-  },
-  "tray": {
-    "presence": {
-      "status": "Stato",
-      "online": "Online",
-      "away": "Assente",
-      "busy": "Occupato",
-      "offline": "Offline",
-      "disconnected": "Disconnesso — tentativo di riconnessione...",
-      "signIn": "Accedi a {{- workspace}}",
-      "addWorkspace": "Aggiungi area di lavoro"
     }
   }
 }

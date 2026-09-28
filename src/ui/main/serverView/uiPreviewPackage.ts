@@ -96,11 +96,18 @@ export const pullUiPreview = async (tag: string): Promise<string> => {
     throw new Error(`${getUiPreviewReference(tag)} failed digest check`);
   }
 
-  const partialDir = `${dir}.partial`;
-  fs.rmSync(partialDir, { recursive: true, force: true });
-  extractTar(gunzipSync(blob), partialDir);
-  fs.rmSync(dir, { recursive: true, force: true });
-  fs.renameSync(partialDir, dir);
+  // Unique per pull, so a concurrent pull of the same digest never removes a completed bundle.
+  fs.mkdirSync(path.dirname(dir), { recursive: true });
+  const partialDir = fs.mkdtempSync(`${dir}.partial-`);
+  try {
+    extractTar(gunzipSync(blob), partialDir);
+    if (!fs.existsSync(path.join(dir, 'index.html'))) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      fs.renameSync(partialDir, dir);
+    }
+  } finally {
+    fs.rmSync(partialDir, { recursive: true, force: true });
+  }
 
   return dir;
 };

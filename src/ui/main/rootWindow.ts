@@ -78,19 +78,15 @@ export const getRootWindow = (): Promise<BrowserWindow> =>
     }, 300);
   });
 
-// Windows and Linux use client-side chrome (WindowControls in the shell).
+// Windows uses client-side chrome (WindowControls in the shell).
 // macOS keeps a hidden title bar so traffic lights can sit in the tab strip.
+// Linux uses native window manager frame / title bar.
 const platformTitleBarStyle =
-  process.platform === 'darwin' ||
-  process.platform === 'win32' ||
-  process.platform === 'linux'
+  process.platform === 'darwin' || process.platform === 'win32'
     ? 'hidden'
     : 'default';
 
 const isMac = process.platform === 'darwin';
-// Linux client chrome is a plain rectangle under most WMs. Transparent + CSS
-// radius paints soft outer corners. Windows already gets DWM rounding — leave it.
-const usesLinuxClientChromeRounding = process.platform === 'linux';
 
 export const createRootWindow = (): void => {
   _rootWindow = new BrowserWindow({
@@ -107,13 +103,6 @@ export const createRootWindow = (): void => {
           transparent: true,
           vibrancy: 'sidebar',
           visualEffectState: 'active',
-        }
-      : {}),
-    ...(usesLinuxClientChromeRounding
-      ? {
-          transparent: true,
-          backgroundColor: '#00000000',
-          hasShadow: true,
         }
       : {}),
   });

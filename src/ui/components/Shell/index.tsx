@@ -25,13 +25,7 @@ import { ServerSwitcher } from '../TopBar/ServerSwitcher';
 import { UpdateLabel } from '../TopBar/UpdateLabel';
 import { useShellTheme } from '../hooks/useShellTheme';
 import TooltipProvider from '../utils/TooltipProvider';
-import {
-  CLIENT_CHROME_CORNER_RADIUS_PX,
-  GlobalStyles,
-  WindowDragBar,
-} from './styles';
-
-const usesLinuxClientChromeRounding = process.platform === 'linux';
+import { GlobalStyles, WindowDragBar } from './styles';
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
@@ -40,10 +34,6 @@ export const Shell = () => {
   );
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
-  );
-  const isWindowExpanded = useSelector(
-    ({ rootWindowState }: RootState) =>
-      rootWindowState.maximized || rootWindowState.fullscreen
   );
 
   const shellTheme = useShellTheme();
@@ -82,40 +72,22 @@ export const Shell = () => {
         width='100%'
         maxWidth='100%'
         flexDirection='column'
-        style={
-          usesLinuxClientChromeRounding
-            ? {
-                // Soft outer corners on Linux only; drop when maximized.
-                borderRadius: isWindowExpanded
-                  ? 0
-                  : CLIENT_CHROME_CORNER_RADIUS_PX,
-                overflow: 'hidden',
-                boxSizing: 'border-box',
-                // Inset hairline stays inside the box (outer box-shadow was
-                // adding ~1px and caused a horizontal scrollbar on Linux).
-                boxShadow: isWindowExpanded
-                  ? undefined
-                  : 'inset 0 0 0 1px var(--rcx-color-shadow-elevation-border)',
-              }
-            : undefined
-        }
       >
-        {/* Windows + Linux: client-side window chrome (min/max/close in-strip). */}
-        {navigationLayout === 'tabs' &&
-          (process.platform === 'win32' || process.platform === 'linux') && (
-            <TabBar
-              leadingSlot={
-                <>
-                  <MeatballMenuButton />
-                  <UpdateLabel />
-                  <DownloadsIndicator />
-                </>
-              }
-              trailingSlot={<WindowControls />}
-            />
-          )}
-        {/* macOS tabs: system traffic lights; meatball/downloads/update trail. */}
-        {navigationLayout === 'tabs' && process.platform === 'darwin' && (
+        {/* Windows: client-side window chrome (min/max/close in-strip). */}
+        {navigationLayout === 'tabs' && process.platform === 'win32' && (
+          <TabBar
+            leadingSlot={
+              <>
+                <MeatballMenuButton />
+                <UpdateLabel />
+                <DownloadsIndicator />
+              </>
+            }
+            trailingSlot={<WindowControls />}
+          />
+        )}
+        {/* macOS and Linux tabs: meatball/downloads/update trail (no WindowControls). */}
+        {navigationLayout === 'tabs' && process.platform !== 'win32' && (
           <TabBar
             trailingSlot={
               <>
@@ -126,7 +98,8 @@ export const Shell = () => {
             }
           />
         )}
-        {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
+        {/* macOS and Linux non-tabs: WM or macOS handles decorations. */}
+        {navigationLayout !== 'tabs' && process.platform !== 'win32' && (
           <TopBar
             centerSlot={
               navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
@@ -139,23 +112,23 @@ export const Shell = () => {
             }
           />
         )}
-        {navigationLayout !== 'tabs' &&
-          (process.platform === 'win32' || process.platform === 'linux') && (
-            <TopBar
-              leadingSlot={
-                <>
-                  {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
-                  <UpdateLabel />
-                  <DownloadsIndicator compact />
-                </>
-              }
-              centerSlot={
-                navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
-              }
-              trailingSlot={<WindowControls />}
-              textAlignment='left'
-            />
-          )}
+        {/* Windows non-tabs: client-side TopBar with WindowControls. */}
+        {navigationLayout !== 'tabs' && process.platform === 'win32' && (
+          <TopBar
+            leadingSlot={
+              <>
+                {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
+                <UpdateLabel />
+                <DownloadsIndicator compact />
+              </>
+            }
+            centerSlot={
+              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+            }
+            trailingSlot={<WindowControls />}
+            textAlignment='left'
+          />
+        )}
         <Box display='flex' flexDirection='row' flexGrow={1}>
           {navigationLayout === 'sidebar' && (
             <TabBar

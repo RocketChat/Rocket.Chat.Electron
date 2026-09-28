@@ -1,6 +1,6 @@
 import path from 'path';
 
-import type { Event } from 'electron';
+import type { Event, Rectangle } from 'electron';
 import { app, BrowserWindow, dialog, screen } from 'electron';
 import i18next from 'i18next';
 
@@ -77,6 +77,20 @@ const getDefaultBounds = async (): Promise<{
   return { width, height, x, y };
 };
 
+/**
+ * A saved position may come from a narrower window, so the fixed-size window
+ * could otherwise open partly off the display it was left on.
+ */
+const clampToWorkArea = (
+  { x, y }: { x: number; y: number },
+  width: number,
+  height: number,
+  workArea: Rectangle
+): { x: number; y: number } => ({
+  x: Math.max(workArea.x, Math.min(x, workArea.x + workArea.width - width)),
+  y: Math.max(workArea.y, Math.min(y, workArea.y + workArea.height - height)),
+});
+
 const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
   const { width, height, x, y } = await getDefaultBounds();
 
@@ -85,7 +99,12 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
   // fixed, and a size persisted by an older, resizable build must not win.
   const savedBounds = getSavedWindowBounds('settings');
   const position = savedBounds
-    ? { x: savedBounds.x, y: savedBounds.y }
+    ? clampToWorkArea(
+        savedBounds,
+        width,
+        height,
+        screen.getDisplayMatching(savedBounds).workArea
+      )
     : { x, y };
 
   // Seeds the first paint only; the renderer then follows the setting live.

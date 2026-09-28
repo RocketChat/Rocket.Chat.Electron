@@ -115,6 +115,9 @@ jest.mock('electron', () => ({
       workAreaSize: { width: 1920, height: 1080 },
       workArea: { x: 0, y: 0, width: 1920, height: 1080 },
     })),
+    getDisplayMatching: jest.fn(() => ({
+      workArea: { x: 0, y: 0, width: 1920, height: 1080 },
+    })),
   },
 }));
 
@@ -267,6 +270,28 @@ describe('settings-window default sizing', () => {
     };
     expect(BrowserWindow).toHaveBeenCalledWith(
       expect.objectContaining({ x: 40, y: 60, width: 900, height: 720 })
+    );
+  });
+
+  it('keeps a position saved by a narrower window inside the work area', async () => {
+    const { getSavedWindowBounds } = jest.requireMock(
+      '../../ui/main/secondaryWindowState'
+    ) as { getSavedWindowBounds: jest.Mock };
+    getSavedWindowBounds.mockReturnValue({
+      x: 1500,
+      y: 700,
+      width: 400,
+      height: 300,
+    });
+
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ x: 1020, y: 360, width: 900, height: 720 })
     );
   });
 

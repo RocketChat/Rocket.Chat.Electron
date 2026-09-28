@@ -136,6 +136,15 @@
         "answerCall": "répondre aux appels",
         "recordMessage": "enregistrer des messages"
       }
+    },
+    "uiOverride": {
+      "title": "Charger un aperçu de l'interface",
+      "message": "Charger une autre interface web pour « {{- host}} » ?",
+      "detail": "L'interface sera chargée depuis {{- bundle}} et fonctionnera avec votre session sur ce serveur. Ne continuez que si vous faites confiance à ce build. Utilisez Voir > Restaurer l'interface du serveur ou redémarrez l'application pour revenir en arrière.",
+      "load": "Charger l'interface",
+      "cancel": "Annuler",
+      "developerModeRequired": "Activez Aide > Mode développeur pour charger des aperçus de l'interface.",
+      "failed": "L'aperçu de l'interface n'a pas pu être chargé."
     }
   },
   "documentViewer": {
@@ -292,7 +301,22 @@
         "auto": "Suivre le système",
         "light": "Clair",
         "dark": "Sombre"
+      },
+      "uiPreview": {
+        "title": "Charger un build de l'interface web",
+        "description": "Exécute un build du client web Rocket.Chat à la place de l'interface propre à un espace de travail, en conservant votre session. Saisissez un numéro de PR Rocket.Chat (récupéré depuis ghcr.io) ou l'URL d'un bundle servi.",
+        "placeholder": "42364 ou http://127.0.0.1:4173/",
+        "load": "Charger",
+        "restore": "Restaurer l'interface du serveur",
+        "active": "Actif sur cet espace de travail : {{- label}}",
+        "loading": "Téléchargement et application…",
+        "failed": "Chargement impossible : {{- message}}",
+        "cancelled": "Annulé.",
+        "inactive": "Utilisation de l'interface du serveur."
       }
+    },
+    "sections": {
+      "uiPreview": "Aperçu de l'interface web"
     }
   },
   "error": {
@@ -353,7 +377,8 @@
     "windowMenu": "&Fenêtre",
     "zoomIn": "Zoomer",
     "zoomOut": "Zoom arrière",
-    "simulateDisconnected": "Simuler une déconnexion"
+    "simulateDisconnected": "Simuler une déconnexion",
+    "restoreServerUi": "Restaurer l'interface du serveur"
   },
   "loadingError": {
     "title": "Echec du chargement du serveur",
@@ -428,7 +453,8 @@
       "canceled": "Annulé",
       "failed": "Échoué",
       "dismiss": "Fermer"
-    }
+    },
+    "uiPreview": "Aperçu de l'interface : {{- label}}"
   },
   "touchBar": {
     "formatting": "Mise en page",

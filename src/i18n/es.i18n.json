@@ -148,6 +148,15 @@
     },
     "supportedVersion": {
       "title": "Versión de espacio de trabajo no admitida"
+    },
+    "uiOverride": {
+      "title": "Cargar vista previa de la UI",
+      "message": "¿Cargar una interfaz web diferente para \"{{- host}}\"?",
+      "detail": "La interfaz se cargará desde {{- bundle}} y se ejecutará con tu sesión en este servidor. Continúa solo si confías en esta compilación. Usa Ver > Restaurar la UI del servidor o reinicia la aplicación para volver.",
+      "load": "Cargar UI",
+      "cancel": "Cancelar",
+      "developerModeRequired": "Activa Ayuda > Modo desarrollador para cargar vistas previas de la UI.",
+      "failed": "No se pudo cargar la vista previa de la UI."
     }
   },
   "documentViewer": {
@@ -317,7 +326,22 @@
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Oscuro"
+      },
+      "uiPreview": {
+        "title": "Cargar una compilación de la UI web",
+        "description": "Ejecuta una compilación del cliente web de Rocket.Chat en lugar de la UI propia de un espacio de trabajo, manteniendo tu sesión. Introduce un número de PR de Rocket.Chat (descargado de ghcr.io) o la URL de un bundle servido.",
+        "placeholder": "42364 o http://127.0.0.1:4173/",
+        "load": "Cargar",
+        "restore": "Restaurar la UI del servidor",
+        "active": "Activa en este espacio de trabajo: {{- label}}",
+        "loading": "Descargando y aplicando…",
+        "failed": "No se pudo cargar: {{- message}}",
+        "cancelled": "Cancelado.",
+        "inactive": "Usando la UI del servidor."
       }
+    },
+    "sections": {
+      "uiPreview": "Vista previa de la UI web"
     }
   },
   "error": {
@@ -378,7 +402,8 @@
     "windowMenu": "&Ventana",
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
-    "simulateDisconnected": "Simular desconexión"
+    "simulateDisconnected": "Simular desconexión",
+    "restoreServerUi": "Restaurar la UI del servidor"
   },
   "loadingError": {
     "title": "Fallo al cargar el servidor",
@@ -459,7 +484,8 @@
       "canceled": "Cancelada",
       "failed": "Fallida",
       "dismiss": "Cerrar"
-    }
+    },
+    "uiPreview": "Vista previa de la UI: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formato",

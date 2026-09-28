@@ -157,6 +157,15 @@
     },
     "supportedVersion": {
       "title": "A munkaterület verziója nem támogatott"
+    },
+    "uiOverride": {
+      "title": "Felhasználói felület előnézetének betöltése",
+      "message": "Másik webes felületet tölt be ehhez: „{{- host}}”?",
+      "detail": "A felület innen töltődik be: {{- bundle}}, és a munkameneteddel fut ezen a szerveren. Csak akkor folytasd, ha megbízol ebben a buildben. A visszatéréshez használd a(z) Nézet > Szerver felületének visszaállítása menüpontot, vagy indítsd újra az alkalmazást.",
+      "load": "Felület betöltése",
+      "cancel": "Mégse",
+      "developerModeRequired": "Kapcsold be a(z) Súgó > Fejlesztői mód menüpontot a felületelőnézetek betöltéséhez.",
+      "failed": "A felület előnézetét nem sikerült betölteni."
     }
   },
   "documentViewer": {
@@ -232,7 +241,8 @@
     "certificates": "Tanúsítványok",
     "developer": "Fejlesztő",
     "sections": {
-      "logging": "Naplózás"
+      "logging": "Naplózás",
+      "uiPreview": "Webes felület előnézete"
     },
     "options": {
       "report": {
@@ -334,6 +344,18 @@
       "verboseOutlookLogging": {
         "title": "Részletes Outlook naptár naplózás",
         "description": "Részletes Exchange/NTLM hibakeresési naplók engedélyezése az Outlook naptár integrációs problémáinak elhárításához."
+      },
+      "uiPreview": {
+        "title": "Webes felület buildjének betöltése",
+        "description": "A Rocket.Chat webes kliens egy buildjét futtatja a munkaterület saját felülete helyett, a munkamenet megtartásával. Adj meg egy Rocket.Chat PR-számot (a ghcr.io-ról töltődik le) vagy egy kiszolgált csomag URL-jét.",
+        "placeholder": "42364 vagy http://127.0.0.1:4173/",
+        "load": "Betöltés",
+        "restore": "Szerver felületének visszaállítása",
+        "active": "Aktív ezen a munkaterületen: {{- label}}",
+        "loading": "Letöltés és alkalmazás…",
+        "failed": "Nem sikerült betölteni: {{- message}}",
+        "cancelled": "Megszakítva.",
+        "inactive": "A szerver felülete van használatban."
       }
     }
   },
@@ -401,7 +423,8 @@
     "windowMenu": "&Ablak",
     "zoomIn": "Nagyítás",
     "zoomOut": "Kicsinyítés",
-    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása"
+    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása",
+    "restoreServerUi": "Szerver felületének visszaállítása"
   },
   "loadingError": {
     "title": "Kiszolgáló betöltése sikertelen",
@@ -493,7 +516,8 @@
       "canceled": "Megszakítva",
       "failed": "Sikertelen",
       "dismiss": "Bezárás"
-    }
+    },
+    "uiPreview": "Felület előnézete: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formázás",

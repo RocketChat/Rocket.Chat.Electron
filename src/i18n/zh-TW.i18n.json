@@ -73,6 +73,15 @@
       "title": "忽略更新",
       "message": "我們將會在下次有新的更新版本的時候通知您\n如果您改變主意想安裝此次更新，您可以從「關於」的選單中檢視更新",
       "ok": "好"
+    },
+    "uiOverride": {
+      "title": "載入介面預覽",
+      "message": "要為「{{- host}}」載入其他 Web 介面嗎？",
+      "detail": "介面將從 {{- bundle}} 載入，並以你在此伺服器上的工作階段執行。僅在你信任此建置時繼續。使用 檢視 > 還原伺服器介面 或重新啟動應用程式即可還原。",
+      "load": "載入介面",
+      "cancel": "取消",
+      "developerModeRequired": "請啟用 幫助 > 開發者模式 以載入介面預覽。",
+      "failed": "無法載入介面預覽。"
     }
   },
   "documentViewer": {
@@ -130,7 +139,22 @@
         "auto": "跟隨系統",
         "light": "淺色",
         "dark": "深色"
+      },
+      "uiPreview": {
+        "title": "載入 Web 介面建置",
+        "description": "在保留工作階段的情況下，以 Rocket.Chat Web 用戶端的某個建置取代工作區本身的介面。請輸入 Rocket.Chat PR 編號（從 ghcr.io 拉取）或已提供之套件的 URL。",
+        "placeholder": "42364 或 http://127.0.0.1:4173/",
+        "load": "載入",
+        "restore": "還原伺服器介面",
+        "active": "已在此工作區啟用：{{- label}}",
+        "loading": "正在下載並套用…",
+        "failed": "無法載入：{{- message}}",
+        "cancelled": "已取消。",
+        "inactive": "正在使用伺服器的介面。"
       }
+    },
+    "sections": {
+      "uiPreview": "Web 介面預覽"
     }
   },
   "error": {
@@ -183,7 +207,8 @@
     "windowMenu": "視窗 (&W)",
     "zoomIn": "放大",
     "zoomOut": "縮小",
-    "simulateDisconnected": "模擬中斷連線"
+    "simulateDisconnected": "模擬中斷連線",
+    "restoreServerUi": "還原伺服器介面"
   },
   "loadingError": {
     "title": "伺服器載入失敗",
@@ -233,7 +258,8 @@
       "canceled": "已取消",
       "failed": "失敗",
       "dismiss": "關閉"
-    }
+    },
+    "uiPreview": "介面預覽：{{- label}}"
   },
   "touchBar": {
     "formatting": "Formatting",

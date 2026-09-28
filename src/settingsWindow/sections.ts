@@ -115,6 +115,7 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.verboseOutlookLogging',
       'settings.options.detailedEventsLogging',
       'settings.options.debugLogging',
+      'settings.options.uiPreview',
     ],
     Component: AdvancedSection,
   },

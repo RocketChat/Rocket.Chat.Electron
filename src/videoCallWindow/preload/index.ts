@@ -10,8 +10,12 @@ const isRelativeRoute = (path: unknown): path is string =>
   !path.startsWith('//') &&
   !path.startsWith('/\\');
 
-// Expose any necessary APIs to the webview content
-contextBridge.exposeInMainWorld('videoCallWindow', {
+// Methods for the page loaded in the video call window's webview. They live
+// under RocketChatDesktop so the web app has a single bridge to look for, and
+// under `videoCall` because this window's surface is not the main window's:
+// the webview loads whatever URL the workspace's provider points at (Jitsi,
+// Pexip, the conference page), so nothing here may expose workspace state.
+const videoCall = {
   // Navigate the main app window to an in-app route and bring it to the front.
   // `path` is a server-relative route, e.g. "/channel/general".
   openInMainWindow: (path: string) => {
@@ -31,7 +35,6 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
   // Close the video call window. The renderer can't close a window the main
   // process created, so the main process does it.
   close: () => ipcRenderer.send('video-call-window/close'),
-  // Add methods here if needed for communication with the main process
   requestScreenSharing: async () => {
     // Directly invoke the screen picker
     await ipcRenderer.invoke('video-call-window/open-screen-picker');
@@ -44,11 +47,10 @@ contextBridge.exposeInMainWorld('videoCallWindow', {
       );
     });
   },
-  getAuthCredentials: async (): Promise<{
-    userId: string;
-    authToken: string;
-    serverUrl: string;
-  } | null> => {
-    return ipcRenderer.invoke('video-call-window/get-credentials');
-  },
-});
+};
+
+// Deliberately not declared on the global `Window`: the server webview's
+// preload already declares RocketChatDesktop with its own (much larger) shape,
+// and the two declarations would merge project-wide even though no context
+// ever sees both bridges.
+contextBridge.exposeInMainWorld('RocketChatDesktop', { videoCall });

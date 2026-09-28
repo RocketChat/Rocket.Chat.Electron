@@ -191,11 +191,9 @@
       "clear": "Tøm filtre",
       "all": "Alle",
       "mimes": {
-        "images": "Bilder",
-        "videos": "Videoer",
-        "audios": "Lyd",
-        "texts": "Tekster",
-        "files": "Filer"
+        "image": "Bilder",
+        "video": "Videoer",
+        "application": "Filer"
       },
       "statuses": {
         "paused": "Satt på pause",
@@ -359,6 +357,7 @@
     "copy": "Kopiere",
     "cut": "Kutt",
     "developerMode": "Utviklermodus",
+    "simulateDisconnected": "Simuler frakobling",
     "disableGpu": "Deaktiver GPU",
     "documentation": "Dokumentasjon",
     "downloads": "Nedlastinger",
@@ -398,8 +397,7 @@
     "viewMenu": "Visning",
     "windowMenu": "Vindu",
     "zoomIn": "Zoom inn",
-    "zoomOut": "Zoom ut",
-    "simulateDisconnected": "Simuler frakobling"
+    "zoomOut": "Zoom ut"
   },
   "loadingError": {
     "title": "Serveren kunne ikke lastes inn",

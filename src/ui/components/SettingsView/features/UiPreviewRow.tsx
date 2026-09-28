@@ -18,6 +18,14 @@ type RowState =
   | { kind: 'loading' }
   | { kind: 'done'; result: UiPreviewResult };
 
+const failedState = (error: unknown): RowState => ({
+  kind: 'done',
+  result: {
+    status: 'failed',
+    message: error instanceof Error ? error.message : String(error),
+  },
+});
+
 type UiPreviewRowProps = {
   server: Server;
 };
@@ -37,14 +45,22 @@ export const UiPreviewRow = ({ server }: UiPreviewRowProps) => {
       return;
     }
     setState({ kind: 'loading' });
-    const result = await invoke('ui-preview/apply', server.url, input.trim());
-    setState({ kind: 'done', result });
+    try {
+      const result = await invoke('ui-preview/apply', server.url, input.trim());
+      setState({ kind: 'done', result });
+    } catch (error) {
+      setState(failedState(error));
+    }
   };
 
   const handleRestore = async () => {
     setState({ kind: 'loading' });
-    await invoke('ui-preview/restore', server.url);
-    setState({ kind: 'idle' });
+    try {
+      await invoke('ui-preview/restore', server.url);
+      setState({ kind: 'idle' });
+    } catch (error) {
+      setState(failedState(error));
+    }
   };
 
   const status = (() => {

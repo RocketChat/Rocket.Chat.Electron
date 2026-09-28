@@ -66,6 +66,34 @@ describe('UiPreviewRow', () => {
     );
   });
 
+  it('reports a rejected load and lets it be retried', async () => {
+    jest.mocked(invoke).mockRejectedValue(new Error('dialog failed'));
+    renderRow();
+
+    load('42364');
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'settings.options.uiPreview.failed dialog failed'
+    );
+    expect(
+      screen.getByText('settings.options.uiPreview.load').closest('button')
+    ).toBeEnabled();
+  });
+
+  it('reports a rejected restore and lets it be retried', async () => {
+    jest.mocked(invoke).mockRejectedValue(new Error('clearCache failed'));
+    renderRow('PR #42364');
+
+    fireEvent.click(screen.getByText('settings.options.uiPreview.restore'));
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'settings.options.uiPreview.failed clearCache failed'
+    );
+    expect(
+      screen.getByText('settings.options.uiPreview.restore').closest('button')
+    ).toBeEnabled();
+  });
+
   it('says the server UI is in use when nothing is loaded', () => {
     renderRow();
 

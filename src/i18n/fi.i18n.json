@@ -136,6 +136,15 @@
         "answerCall": "vastata puheluun",
         "recordMessage": "tallentaa viestin"
       }
+    },
+    "uiOverride": {
+      "title": "Lataa käyttöliittymän esikatselu",
+      "message": "Ladataanko palvelimelle \"{{- host}}\" toinen verkkokäyttöliittymä?",
+      "detail": "Käyttöliittymä ladataan osoitteesta {{- bundle}}, ja se toimii istunnollasi tällä palvelimella. Jatka vain, jos luotat tähän koontiversioon. Palaa takaisin valitsemalla Näytä > Palauta palvelimen käyttöliittymä tai käynnistämällä sovellus uudelleen.",
+      "load": "Lataa käyttöliittymä",
+      "cancel": "Peruuta",
+      "developerModeRequired": "Ota Ohje > Developer Mode käyttöön ladataksesi käyttöliittymän esikatseluja.",
+      "failed": "Käyttöliittymän esikatselua ei voitu ladata."
     }
   },
   "documentViewer": {
@@ -292,7 +301,22 @@
         "auto": "Seuraa järjestelmää",
         "light": "Vaalea",
         "dark": "Tumma"
+      },
+      "uiPreview": {
+        "title": "Lataa verkkokäyttöliittymän koontiversio",
+        "description": "Suorittaa Rocket.Chat-verkkoasiakkaan koontiversion työtilan oman käyttöliittymän sijaan istuntosi säilyttäen. Anna Rocket.Chatin PR-numero (haetaan ghcr.io:sta) tai tarjoillun paketin URL-osoite.",
+        "placeholder": "42364 tai http://127.0.0.1:4173/",
+        "load": "Lataa",
+        "restore": "Palauta palvelimen käyttöliittymä",
+        "active": "Käytössä tässä työtilassa: {{- label}}",
+        "loading": "Ladataan ja otetaan käyttöön…",
+        "failed": "Lataus epäonnistui: {{- message}}",
+        "cancelled": "Peruttu.",
+        "inactive": "Käytetään palvelimen käyttöliittymää."
       }
+    },
+    "sections": {
+      "uiPreview": "Verkkokäyttöliittymän esikatselu"
     }
   },
   "error": {
@@ -352,7 +376,8 @@
     "windowMenu": "&Ikkuna",
     "zoomIn": "Lähennä",
     "zoomOut": "Loitonna",
-    "simulateDisconnected": "Simuloi yhteyden katkeamista"
+    "simulateDisconnected": "Simuloi yhteyden katkeamista",
+    "restoreServerUi": "Palauta palvelimen käyttöliittymä"
   },
   "loadingError": {
     "title": "Palvelimen lataus epäonnistui",
@@ -427,7 +452,8 @@
       "canceled": "Peruutettu",
       "failed": "Epäonnistui",
       "dismiss": "Sulje"
-    }
+    },
+    "uiPreview": "Käyttöliittymän esikatselu: {{- label}}"
   },
   "touchBar": {
     "formatting": "Muotoilu",

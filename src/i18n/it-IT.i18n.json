@@ -31,7 +31,22 @@
       "menuBarUnreadCount": {
         "title": "Numero di non letti nella barra dei menu",
         "description": "Mostra il numero di menzioni non lette accanto all'icona della barra dei menu."
+      },
+      "uiPreview": {
+        "title": "Carica una build dell'interfaccia web",
+        "description": "Esegue una build del client web di Rocket.Chat al posto dell'interfaccia di un workspace, mantenendo la tua sessione. Inserisci il numero di una PR di Rocket.Chat (scaricata da ghcr.io) o l'URL di un bundle servito.",
+        "placeholder": "42364 o http://127.0.0.1:4173/",
+        "load": "Carica",
+        "restore": "Ripristina l'interfaccia del server",
+        "active": "Attiva su questo workspace: {{- label}}",
+        "loading": "Download e applicazione in corso…",
+        "failed": "Impossibile caricare: {{- message}}",
+        "cancelled": "Annullato.",
+        "inactive": "In uso l'interfaccia del server."
       }
+    },
+    "sections": {
+      "uiPreview": "Anteprima dell'interfaccia web"
     }
   },
   "tabBar": {
@@ -70,7 +85,8 @@
       "canceled": "Annullato",
       "failed": "Non riuscito",
       "dismiss": "Chiudi"
-    }
+    },
+    "uiPreview": "Anteprima dell'interfaccia: {{- label}}"
   },
   "serverInfo": {
     "title": "Informazioni sul Server",
@@ -100,7 +116,8 @@
   },
   "menus": {
     "simulateDisconnected": "Simula disconnessione",
-    "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre"
+    "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre",
+    "restoreServerUi": "Ripristina l'interfaccia del server"
   },
   "tray": {
     "presence": {
@@ -112,6 +129,17 @@
       "disconnected": "Disconnesso — tentativo di riconnessione...",
       "signIn": "Accedi a {{- workspace}}",
       "addWorkspace": "Aggiungi area di lavoro"
+    }
+  },
+  "dialog": {
+    "uiOverride": {
+      "title": "Carica anteprima dell'interfaccia",
+      "message": "Caricare un'interfaccia web diversa per \"{{- host}}\"?",
+      "detail": "L'interfaccia verrà caricata da {{- bundle}} e verrà eseguita con la tua sessione su questo server. Continua solo se ti fidi di questa build. Usa View > Ripristina l'interfaccia del server o riavvia l'app per tornare indietro.",
+      "load": "Carica interfaccia",
+      "cancel": "Annulla",
+      "developerModeRequired": "Attiva Help > Developer Mode per caricare anteprime dell'interfaccia.",
+      "failed": "Impossibile caricare l'anteprima dell'interfaccia."
     }
   }
 }

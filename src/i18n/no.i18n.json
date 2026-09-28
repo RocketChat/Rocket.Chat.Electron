@@ -164,6 +164,15 @@
       "detail": "Denne handlingen kan ikke angres. Alle gjeldende loggoppføringer vil bli slettet permanent.",
       "yes": "Klar",
       "cancel": "Kansellere"
+    },
+    "uiOverride": {
+      "title": "Last inn forhåndsvisning av grensesnitt",
+      "message": "Laste inn et annet nettgrensesnitt for «{{- host}}»?",
+      "detail": "Grensesnittet lastes inn fra {{- bundle}} og kjører med økten din på denne serveren. Fortsett bare hvis du stoler på denne builden. Bruk Visning > Gjenopprett serverens grensesnitt eller start appen på nytt for å gå tilbake.",
+      "load": "Last inn grensesnitt",
+      "cancel": "Avbryt",
+      "developerModeRequired": "Slå på Hjelp > Utviklermodus for å laste inn forhåndsvisninger av grensesnitt.",
+      "failed": "Forhåndsvisningen av grensesnittet kunne ikke lastes inn."
     }
   },
   "documentViewer": {
@@ -239,7 +248,8 @@
     "certificates": "Sertifikater",
     "developer": "Utvikler",
     "sections": {
-      "logging": "Logging"
+      "logging": "Logging",
+      "uiPreview": "Forhåndsvisning av nettgrensesnitt"
     },
     "options": {
       "report": {
@@ -348,6 +358,18 @@
       },
       "detailedEventsLogging": {
         "title": "Detaljert hendelseslogging"
+      },
+      "uiPreview": {
+        "title": "Last inn en build av nettgrensesnittet",
+        "description": "Kjører en build av Rocket.Chat-nettklienten i stedet for arbeidsområdets eget grensesnitt, og beholder økten din. Skriv inn et PR-nummer fra Rocket.Chat (hentes fra ghcr.io) eller URL-en til en servert pakke.",
+        "placeholder": "42364 eller http://127.0.0.1:4173/",
+        "load": "Last inn",
+        "restore": "Gjenopprett serverens grensesnitt",
+        "active": "Aktiv i dette arbeidsområdet: {{- label}}",
+        "loading": "Laster ned og tar i bruk…",
+        "failed": "Kunne ikke laste inn: {{- message}}",
+        "cancelled": "Avbrutt.",
+        "inactive": "Bruker serverens grensesnitt."
       }
     }
   },
@@ -414,7 +436,8 @@
     "windowMenu": "Vindu",
     "zoomIn": "Zoom inn",
     "zoomOut": "Zoom ut",
-    "simulateDisconnected": "Simuler frakobling"
+    "simulateDisconnected": "Simuler frakobling",
+    "restoreServerUi": "Gjenopprett serverens grensesnitt"
   },
   "loadingError": {
     "title": "Serveren kunne ikke lastes inn",
@@ -506,7 +529,8 @@
       "canceled": "Kansellert",
       "failed": "Mislyktes",
       "dismiss": "Lukk"
-    }
+    },
+    "uiPreview": "Forhåndsvisning av grensesnitt: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatering",

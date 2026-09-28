@@ -94,6 +94,15 @@
         "answerCall": "通話に応答する",
         "recordMessage": "メッセージを録音する"
       }
+    },
+    "uiOverride": {
+      "title": "UI プレビューを読み込む",
+      "message": "「{{- host}}」に別の Web UI を読み込みますか？",
+      "detail": "UI は {{- bundle}} から読み込まれ、このサーバー上のあなたのセッションで実行されます。このビルドを信頼できる場合のみ続行してください。元に戻すには 表示 > サーバーの UI に戻す を使うか、アプリを再起動してください。",
+      "load": "UI を読み込む",
+      "cancel": "キャンセル",
+      "developerModeRequired": "UI プレビューを読み込むには ヘルプ > 開発者モード を有効にしてください。",
+      "failed": "UI プレビューを読み込めませんでした。"
     }
   },
   "documentViewer": {
@@ -138,7 +147,22 @@
       "menuBarUnreadCount": {
         "title": "メニューバーに未読数を表示",
         "description": "メニューバーアイコンの横に未読メンションの数を表示します。"
+      },
+      "uiPreview": {
+        "title": "Web UI のビルドを読み込む",
+        "description": "セッションを維持したまま、ワークスペース本来の UI の代わりに Rocket.Chat Web クライアントのビルドを実行します。Rocket.Chat の PR 番号（ghcr.io から取得）または配信中のバンドルの URL を入力してください。",
+        "placeholder": "42364 または http://127.0.0.1:4173/",
+        "load": "読み込む",
+        "restore": "サーバーの UI に戻す",
+        "active": "このワークスペースで有効: {{- label}}",
+        "loading": "ダウンロードして適用しています…",
+        "failed": "読み込めませんでした: {{- message}}",
+        "cancelled": "キャンセルしました。",
+        "inactive": "サーバーの UI を使用しています。"
       }
+    },
+    "sections": {
+      "uiPreview": "Web UI プレビュー"
     }
   },
   "error": {
@@ -191,7 +215,8 @@
     "windowMenu": "ウィンドウ (&W)",
     "zoomIn": "拡大",
     "zoomOut": "縮小",
-    "simulateDisconnected": "切断をシミュレート"
+    "simulateDisconnected": "切断をシミュレート",
+    "restoreServerUi": "サーバーの UI に戻す"
   },
   "loadingError": {
     "title": "サーバーの読み込みに失敗しました",
@@ -256,7 +281,8 @@
       "canceled": "キャンセル済み",
       "failed": "失敗",
       "dismiss": "閉じる"
-    }
+    },
+    "uiPreview": "UI プレビュー: {{- label}}"
   },
   "touchBar": {
     "formatting": "書式",

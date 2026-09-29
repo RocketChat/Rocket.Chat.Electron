@@ -47,6 +47,7 @@ import { formatServerTitle } from '../components/utils/formatServerTitle';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
+import { terminateIfUnresponsive } from './serverView/hangRecovery';
 import { clearUiOverride } from './serverView/uiOverride';
 
 const t = i18next.t.bind(i18next);
@@ -353,8 +354,21 @@ export const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
-          guestWebContents?.reload();
           const currentView = await getCurrentView();
+          if (
+            guestWebContents &&
+            typeof currentView === 'object' &&
+            terminateIfUnresponsive(guestWebContents)
+          ) {
+            guestWebContents.loadURL(currentView.url).catch((error) => {
+              console.error(
+                'Failed to reload unresponsive server view:',
+                error
+              );
+            });
+          } else {
+            guestWebContents?.reload();
+          }
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,

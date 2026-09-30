@@ -15,15 +15,24 @@ import { getUiPreviewReference, pullUiPreview } from './uiPreviewPackage';
 
 export type UiPreviewSource = {
   bundle?: string;
+  develop?: boolean;
   pr?: string;
   sha?: string;
 };
 
 export const resolveUiPreviewSource = ({
   bundle,
+  develop,
   pr,
   sha,
 }: UiPreviewSource): { label: string; load: () => Promise<string> } | null => {
+  if (develop) {
+    return {
+      label: `develop (${getUiPreviewReference('develop')})`,
+      load: async () => pathToFileURL(await pullUiPreview('develop')).href,
+    };
+  }
+
   if (pr) {
     if (!/^\d+$/.test(pr) || (sha && !/^[a-f0-9]{40}$/.test(sha))) {
       return null;
@@ -48,9 +57,12 @@ export const resolveUiPreviewSource = ({
   }
 };
 
-// The Settings field takes a PR number (`42364` or `#42364`) or a bundle URL.
+// The Settings field takes `develop`, a PR number (`42364` or `#42364`) or a bundle URL.
 export const parseUiPreviewInput = (input: string): UiPreviewSource => {
   const value = input.trim().replace(/^#/, '');
+  if (value.toLowerCase() === 'develop') {
+    return { develop: true };
+  }
   return /^\d+$/.test(value) ? { pr: value } : { bundle: value };
 };
 
@@ -79,7 +91,7 @@ export const requestUiPreview = async (
   if (!resolved) {
     return {
       status: 'failed',
-      message: `Not a PR number or an http(s) URL: ${source.bundle ?? source.pr ?? ''}`,
+      message: `Not develop, a PR number or an http(s) URL: ${source.bundle ?? source.pr ?? ''}`,
     };
   }
 

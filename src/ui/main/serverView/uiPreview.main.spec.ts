@@ -6,6 +6,10 @@ describe('parseUiPreviewInput', () => {
     expect(parseUiPreviewInput('#42364')).toEqual({ pr: '42364' });
   });
 
+  it('reads develop, in any case', () => {
+    expect(parseUiPreviewInput(' Develop ')).toEqual({ develop: true });
+  });
+
   it('reads anything else as a bundle URL', () => {
     expect(parseUiPreviewInput('http://127.0.0.1:4173/')).toEqual({
       bundle: 'http://127.0.0.1:4173/',
@@ -17,6 +21,12 @@ describe('resolveUiPreviewSource', () => {
   it('labels PR builds with their ghcr.io reference', () => {
     expect(resolveUiPreviewSource({ pr: '42364' })?.label).toBe(
       'PR #42364 (ghcr.io/rocketchat/rocket.chat-web:pr-42364)'
+    );
+  });
+
+  it('labels the develop build with its ghcr.io reference', () => {
+    expect(resolveUiPreviewSource({ develop: true })?.label).toBe(
+      'develop (ghcr.io/rocketchat/rocket.chat-web:develop)'
     );
   });
 

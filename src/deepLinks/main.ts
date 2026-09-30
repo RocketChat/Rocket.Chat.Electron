@@ -347,6 +347,7 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
       await performUiPreview({
         host: args.get('host') ?? undefined,
         bundle: args.get('bundle') ?? undefined,
+        develop: args.has('develop'),
         pr: args.get('pr') ?? undefined,
         sha: args.get('sha') ?? undefined,
       });

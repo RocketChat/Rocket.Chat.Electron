@@ -66,6 +66,9 @@ export const parseUiPreviewInput = (input: string): UiPreviewSource => {
   return /^\d+$/.test(value) ? { pr: value } : { bundle: value };
 };
 
+// ponytail: in-memory like the overrides themselves; an entry outlives a restore but is only read while a preview is shown.
+const activeSources = new Map<string, UiPreviewSource>();
+
 export type UiPreviewResult =
   | { status: 'applied'; label: string }
   | { status: 'cancelled' }
@@ -99,14 +102,38 @@ export const requestUiPreview = async (
     return { status: 'cancelled' };
   }
 
+  return applyUiPreview(serverUrl, source, resolved);
+};
+
+const applyUiPreview = async (
+  serverUrl: string,
+  source: UiPreviewSource,
+  { label, load }: { label: string; load: () => Promise<string> }
+): Promise<UiPreviewResult> => {
   try {
-    await applyUiOverride(serverUrl, await resolved.load(), resolved.label);
-    return { status: 'applied', label: resolved.label };
+    await applyUiOverride(serverUrl, await load(), label);
+    activeSources.set(serverUrl, source);
+    return { status: 'applied', label };
   } catch (error) {
     return {
       status: 'failed',
       message: error instanceof Error ? error.message : String(error),
     };
+  }
+};
+
+// Pulls the same source again, so a tag that moved on (`develop`, `pr-<n>`) loads its newest build without asking again.
+export const updateUiPreviewWithDialog = async (
+  serverUrl: string
+): Promise<void> => {
+  const source = activeSources.get(serverUrl);
+  const resolved = source && resolveUiPreviewSource(source);
+  if (!source || !resolved) {
+    return;
+  }
+  const result = await applyUiPreview(serverUrl, source, resolved);
+  if (result.status === 'failed') {
+    await warnAboutUiPreviewFailure(result.message);
   }
 };
 

@@ -623,6 +623,7 @@
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
       "copyCurrentUrl": "Copy URL",
+      "updateUiPreview": "Update UI preview",
       "reloadClearingCache": "Force reload",
       "serverInfo": "Server info",
       "supportedVersionsInfo": "Supported Versions Info",

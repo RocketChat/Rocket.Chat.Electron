@@ -443,6 +443,7 @@
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
       "copyCurrentUrl": "Copiar URL",
+      "updateUiPreview": "Atualizar prévia de UI",
       "reloadClearingCache": "Forçar recarregamento"
     },
     "tooltips": {

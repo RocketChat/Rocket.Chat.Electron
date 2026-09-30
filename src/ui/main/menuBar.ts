@@ -48,6 +48,7 @@ import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
 import { clearUiOverride } from './serverView/uiOverride';
+import { updateUiPreviewWithDialog } from './serverView/uiPreview';
 
 const t = i18next.t.bind(i18next);
 
@@ -1296,6 +1297,19 @@ export const getServerContextMenuTemplate = (
         });
       },
     },
+    ...on(!!server?.uiPreview, () => [
+      { type: 'separator' } as MenuItemConstructorOptions,
+      {
+        id: 'updateUiPreview',
+        label: t('sidebar.item.updateUiPreview'),
+        click: () => updateUiPreviewWithDialog(url),
+      } as MenuItemConstructorOptions,
+      {
+        id: 'restoreServerUi',
+        label: t('menus.restoreServerUi'),
+        click: () => clearUiOverride(url),
+      } as MenuItemConstructorOptions,
+    ]),
     // Isolate the destructive action in its own section. Native menus can't
     // color an item, so a separator is the only available emphasis.
     { type: 'separator' },

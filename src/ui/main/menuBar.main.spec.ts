@@ -700,6 +700,23 @@ describe('ui/main/menuBar', () => {
     });
   });
 
+  describe('server context menu on a UI preview', () => {
+    it('offers updating or restoring the preview only while one is shown', () => {
+      const idsFor = (uiPreview?: string) =>
+        getServerContextMenuTemplate(
+          'https://a.rocket.chat/',
+          [createServer('https://a.rocket.chat/', 'Server A', { uiPreview })],
+          false
+        ).map((item) => item.id);
+
+      expect(idsFor('develop')).toEqual(
+        expect.arrayContaining(['updateUiPreview', 'restoreServerUi'])
+      );
+      expect(idsFor()).not.toContain('updateUiPreview');
+      expect(idsFor()).not.toContain('restoreServerUi');
+    });
+  });
+
   describe('full template coverage', () => {
     it('builds app/edit/view/window/help menus for multi-server developer state', () => {
       const state = createState({

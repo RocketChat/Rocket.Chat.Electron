@@ -104,6 +104,13 @@ describe('updateUiPreviewWithDialog', () => {
     expect(warnAboutUiPreviewFailure).not.toHaveBeenCalled();
   });
 
+  it('starts the pull within the click, so a restore clicked after it wins', () => {
+    const update = updateUiPreviewWithDialog(url);
+
+    expect(applyUiOverride).toHaveBeenCalledWith(url, source);
+    return update;
+  });
+
   it('needs Developer Mode, like the other ways in', async () => {
     setDeveloperMode(false);
 

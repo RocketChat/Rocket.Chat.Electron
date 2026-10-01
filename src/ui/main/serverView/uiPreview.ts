@@ -137,9 +137,11 @@ export const updateUiPreviewWithDialog = async (
 
   updating.add(serverUrl);
   try {
-    if (!(await isUiPreviewAllowed())) {
+    if (!isDeveloperModeEnabled()) {
+      await warnAboutUiOverrideRequiresDeveloperMode();
       return;
     }
+    // Starts within the click, so a restore clicked after it always wins.
     const result = await applyUiPreview(serverUrl, source);
     if (result.status === 'failed') {
       await warnAboutUiPreviewFailure(result.message);

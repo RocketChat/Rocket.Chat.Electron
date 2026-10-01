@@ -5,6 +5,7 @@ import {
   applyUiOverride,
   clearUiOverride,
   getUiOverride,
+  getUiOverrideBundleUrls,
   isUiServedFromServer,
   prepareIndexHtml,
 } from './uiOverride';
@@ -55,10 +56,14 @@ describe('applyUiOverride', () => {
     unhandle: jest.fn(),
   };
 
+  const bundle =
+    (url: string, label = url) =>
+    async () => ({ url, label });
+
   const deferred = () => {
-    let resolve: (bundleUrl: string) => void = () => undefined;
-    const promise = new Promise<string>((done) => {
-      resolve = done;
+    let resolve: (url: string) => void = () => undefined;
+    const promise = new Promise<{ url: string; label: string }>((done) => {
+      resolve = (url) => done({ url, label: url });
     });
     return { load: () => promise, resolve };
   };
@@ -80,34 +85,40 @@ describe('applyUiOverride', () => {
   it('records the source it installed, so an update can load it again', async () => {
     const url = 'https://records.example.com/';
     knownServers(url);
-    const source = { label: 'develop', load: async () => 'file:///develop' };
+    const source = {
+      label: 'develop',
+      load: bundle('file:///previews/develop', 'develop @ b4560f6'),
+    };
 
-    await expect(applyUiOverride(url, source)).resolves.toBe(true);
+    await expect(applyUiOverride(url, source)).resolves.toBe(
+      'develop @ b4560f6'
+    );
 
     expect(protocol.handle).toHaveBeenCalledTimes(1);
     expect(getUiOverride(url)).toBe(source);
+    expect(getUiOverrideBundleUrls()).toContain('file:///previews/develop/');
     expect(dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ payload: { url, uiPreview: 'develop' } })
+      expect.objectContaining({
+        payload: { url, uiPreview: 'develop @ b4560f6' },
+      })
     );
   });
 
   it('drops a load that finishes after the server UI was restored', async () => {
     const url = 'https://restored.example.com/';
     knownServers(url);
-    await applyUiOverride(url, {
-      label: 'PR #1',
-      load: async () => 'file:///1',
-    });
+    await applyUiOverride(url, { label: 'PR #1', load: bundle('file:///1') });
     const update = deferred();
 
     const pending = applyUiOverride(url, { label: 'PR #1', load: update.load });
     await clearUiOverride(url);
     update.resolve('file:///1-newer');
 
-    await expect(pending).resolves.toBe(false);
+    await expect(pending).resolves.toBeNull();
     expect(protocol.handle).toHaveBeenCalledTimes(1);
     expect(protocol.unhandle).toHaveBeenCalledTimes(1);
     expect(getUiOverride(url)).toBeUndefined();
+    expect(getUiOverrideBundleUrls()).not.toContain('file:///1/');
   });
 
   it('keeps the newest of two overlapping loads', async () => {
@@ -121,8 +132,8 @@ describe('applyUiOverride', () => {
     second.resolve('file:///2');
     first.resolve('file:///1');
 
-    await expect(newer).resolves.toBe(true);
-    await expect(older).resolves.toBe(false);
+    await expect(newer).resolves.toBe('file:///2');
+    await expect(older).resolves.toBeNull();
     expect(protocol.handle).toHaveBeenCalledTimes(1);
     expect(getUiOverride(url)?.label).toBe('PR #2');
   });
@@ -132,8 +143,8 @@ describe('applyUiOverride', () => {
     knownServers();
 
     await expect(
-      applyUiOverride(url, { label: 'develop', load: async () => 'file:///d' })
-    ).resolves.toBe(false);
+      applyUiOverride(url, { label: 'develop', load: bundle('file:///d') })
+    ).resolves.toBeNull();
 
     expect(protocol.handle).not.toHaveBeenCalled();
     expect(getUiOverride(url)).toBeUndefined();

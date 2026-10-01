@@ -1,7 +1,8 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { gunzipSync } from 'zlib';
+import { promisify } from 'util';
+import { gunzip } from 'zlib';
 
 import { app, net } from 'electron';
 
@@ -12,10 +13,23 @@ const repository = 'rocketchat/rocket.chat-web';
 export const getUiPreviewReference = (tag: string) =>
   `ghcr.io/${repository}:${tag}`;
 
+const getUiPreviewsDir = () =>
+  path.join(app.getPath('userData'), 'ui-previews');
+
+// Bundles kept besides the ones in use, so switching between recent builds skips the download.
+const recentBundlesKept = 3;
+
+// A pull interrupted by a quit or crash leaves its `.partial-` directory behind; a live one is never this old.
+const abandonedPartialAgeMs = 60 * 60 * 1000;
+
 // ponytail: ustar only (files and directories), which is what the workflow writes with `tar --format=ustar`.
-export const extractTar = (tar: Buffer, targetDir: string): void => {
+// Async so writing a few thousand bundle files never blocks the main process; every path is checked before the first write.
+export const extractTar = async (
+  tar: Buffer,
+  targetDir: string
+): Promise<void> => {
   const root = path.resolve(targetDir);
-  fs.mkdirSync(root, { recursive: true });
+  const entries: Array<{ target: string; data?: Buffer }> = [];
 
   for (let offset = 0; offset + 512 <= tar.length; ) {
     const header = tar.subarray(offset, offset + 512);
@@ -42,11 +56,25 @@ export const extractTar = (tar: Buffer, targetDir: string): void => {
     }
 
     if (type === '5') {
-      fs.mkdirSync(target, { recursive: true });
+      entries.push({ target });
     } else if (type === '0') {
-      fs.mkdirSync(path.dirname(target), { recursive: true });
-      fs.writeFileSync(target, tar.subarray(dataStart, dataStart + size));
+      entries.push({ target, data: tar.subarray(dataStart, dataStart + size) });
     }
+  }
+
+  const write = async ({ target, data }: (typeof entries)[number]) => {
+    if (!data) {
+      await fs.promises.mkdir(target, { recursive: true });
+      return;
+    }
+    await fs.promises.mkdir(path.dirname(target), { recursive: true });
+    await fs.promises.writeFile(target, data);
+  };
+
+  await fs.promises.mkdir(root, { recursive: true });
+  for (const entry of entries) {
+    // eslint-disable-next-line no-await-in-loop -- one file at a time keeps open file handles bounded
+    await write(entry);
   }
 };
 
@@ -58,8 +86,14 @@ const fetchOk = async (url: string, init?: RequestInit) => {
   return response;
 };
 
+export type UiPreviewPackage = {
+  dir: string;
+  // The Rocket.Chat commit the bundle was built from, when the workflow recorded it.
+  revision?: string;
+};
+
 // Resolves to a local directory holding the bundle; each layer digest is extracted once and reused.
-export const pullUiPreview = async (tag: string): Promise<string> => {
+export const pullUiPreview = async (tag: string): Promise<UiPreviewPackage> => {
   const { token } = await (
     await fetchOk(`${registry}/token?scope=repository:${repository}:pull`)
   ).json();
@@ -80,9 +114,20 @@ export const pullUiPreview = async (tag: string): Promise<string> => {
   }
   const hash = digest.slice('sha256:'.length);
 
-  const dir = path.join(app.getPath('userData'), 'ui-previews', hash);
+  const annotatedRevision: unknown =
+    manifest.annotations?.['org.opencontainers.image.revision'];
+  const revision =
+    typeof annotatedRevision === 'string' &&
+    /^[a-f0-9]{7,40}$/.test(annotatedRevision)
+      ? annotatedRevision
+      : undefined;
+
+  const dir = path.join(getUiPreviewsDir(), hash);
   if (fs.existsSync(path.join(dir, 'index.html'))) {
-    return dir;
+    // Marks the bundle as recently used, so pruning keeps it.
+    const now = new Date();
+    await fs.promises.utimes(dir, now, now);
+    return { dir, revision };
   }
 
   const blob = Buffer.from(
@@ -97,17 +142,58 @@ export const pullUiPreview = async (tag: string): Promise<string> => {
   }
 
   // Unique per pull, so a concurrent pull of the same digest never removes a completed bundle.
-  fs.mkdirSync(path.dirname(dir), { recursive: true });
-  const partialDir = fs.mkdtempSync(`${dir}.partial-`);
+  await fs.promises.mkdir(path.dirname(dir), { recursive: true });
+  const partialDir = await fs.promises.mkdtemp(`${dir}.partial-`);
   try {
-    extractTar(gunzipSync(blob), partialDir);
+    await extractTar(await promisify(gunzip)(blob), partialDir);
+    // Synchronous from the check to the rename, so two pulls of one digest can't both move into place.
     if (!fs.existsSync(path.join(dir, 'index.html'))) {
       fs.rmSync(dir, { recursive: true, force: true });
       fs.renameSync(partialDir, dir);
     }
   } finally {
-    fs.rmSync(partialDir, { recursive: true, force: true });
+    await fs.promises.rm(partialDir, { recursive: true, force: true });
   }
 
-  return dir;
+  return { dir, revision };
+};
+
+// Keeps the bundles in use and the most recently pulled ones; every other extracted build is removed.
+export const pruneUiPreviews = async (inUse: string[]): Promise<void> => {
+  const root = getUiPreviewsDir();
+  const entries = await fs.promises
+    .readdir(root, { withFileTypes: true })
+    .catch(() => []);
+
+  const dirs = (
+    await Promise.all(
+      entries
+        .filter((entry) => entry.isDirectory())
+        .map(async ({ name }) => {
+          const dir = path.join(root, name);
+          // Gone already when a pull just moved or removed it.
+          const stats = await fs.promises.stat(dir).catch(() => undefined);
+          return stats && { name, dir, mtimeMs: stats.mtimeMs };
+        })
+    )
+  ).filter((entry) => entry !== undefined);
+
+  const bundles = dirs
+    .filter(({ name }) => /^[a-f0-9]{64}$/.test(name))
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+  const kept = new Set([
+    ...inUse.map((dir) => path.resolve(dir)),
+    ...bundles.slice(0, recentBundlesKept).map(({ dir }) => dir),
+  ]);
+  const abandonedPartials = dirs.filter(
+    ({ name, mtimeMs }) =>
+      /^[a-f0-9]{64}\.partial-/.test(name) &&
+      Date.now() - mtimeMs > abandonedPartialAgeMs
+  );
+
+  await Promise.all(
+    [...bundles.filter(({ dir }) => !kept.has(dir)), ...abandonedPartials].map(
+      ({ dir }) => fs.promises.rm(dir, { recursive: true, force: true })
+    )
+  );
 };

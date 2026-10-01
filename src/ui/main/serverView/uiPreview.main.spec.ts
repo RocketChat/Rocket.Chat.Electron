@@ -1,16 +1,24 @@
+import path from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+
 import { select } from '../../../store';
 import {
   askForUiOverride,
   warnAboutUiOverrideRequiresDeveloperMode,
   warnAboutUiPreviewFailure,
 } from '../dialogs';
-import { applyUiOverride, getUiOverride } from './uiOverride';
+import {
+  applyUiOverride,
+  getUiOverride,
+  getUiOverrideBundleUrls,
+} from './uiOverride';
 import {
   parseUiPreviewFlag,
   parseUiPreviewInput,
   resolveUiPreviewSource,
   updateUiPreviewWithDialog,
 } from './uiPreview';
+import { pruneUiPreviews, pullUiPreview } from './uiPreviewPackage';
 
 jest.mock('../../../store', () => ({ select: jest.fn() }));
 jest.mock('../dialogs', () => ({
@@ -22,6 +30,12 @@ jest.mock('./uiOverride', () => ({
   applyUiOverride: jest.fn(),
   clearUiOverride: jest.fn(),
   getUiOverride: jest.fn(),
+  getUiOverrideBundleUrls: jest.fn(() => []),
+}));
+jest.mock('./uiPreviewPackage', () => ({
+  ...jest.requireActual('./uiPreviewPackage'),
+  pruneUiPreviews: jest.fn(async () => undefined),
+  pullUiPreview: jest.fn(),
 }));
 
 describe('parseUiPreviewInput', () => {
@@ -51,6 +65,32 @@ describe('resolveUiPreviewSource', () => {
   it('labels the develop build with its ghcr.io reference', () => {
     expect(resolveUiPreviewSource({ develop: true })?.label).toBe(
       'develop (ghcr.io/rocketchat/rocket.chat-web:develop)'
+    );
+  });
+
+  it('names the commit of a pulled build once it is loaded', async () => {
+    const dir = path.resolve('ui-previews', 'a'.repeat(64));
+    (pullUiPreview as jest.Mock).mockResolvedValue({
+      dir,
+      revision: 'b4560f630e424ecbe109789991494988c046fb26',
+    });
+
+    await expect(
+      resolveUiPreviewSource({ develop: true })?.load()
+    ).resolves.toEqual({
+      url: pathToFileURL(dir).href,
+      label: 'develop @ b4560f6 (ghcr.io/rocketchat/rocket.chat-web:develop)',
+    });
+    expect(pullUiPreview).toHaveBeenCalledWith('develop');
+  });
+
+  it('keeps the plain label when the build recorded no commit', async () => {
+    (pullUiPreview as jest.Mock).mockResolvedValue({
+      dir: path.resolve('ui-previews', 'b'.repeat(64)),
+    });
+
+    expect((await resolveUiPreviewSource({ pr: '42364' })?.load())?.label).toBe(
+      'PR #42364 (ghcr.io/rocketchat/rocket.chat-web:pr-42364)'
     );
   });
 
@@ -93,7 +133,8 @@ describe('updateUiPreviewWithDialog', () => {
     jest.clearAllMocks();
     setDeveloperMode(true);
     (getUiOverride as jest.Mock).mockReturnValue(source);
-    (applyUiOverride as jest.Mock).mockResolvedValue(true);
+    (applyUiOverride as jest.Mock).mockResolvedValue('develop @ b4560f6');
+    (getUiOverrideBundleUrls as jest.Mock).mockReturnValue([]);
   });
 
   it('loads the shown source again without asking', async () => {
@@ -130,16 +171,16 @@ describe('updateUiPreviewWithDialog', () => {
   });
 
   it('drops a click while a pull for the same server is running', async () => {
-    let finish: (applied: boolean) => void = () => undefined;
+    let finish: (label: string) => void = () => undefined;
     (applyUiOverride as jest.Mock).mockReturnValueOnce(
-      new Promise<boolean>((resolve) => {
+      new Promise<string>((resolve) => {
         finish = resolve;
       })
     );
 
     const first = updateUiPreviewWithDialog(url);
     await updateUiPreviewWithDialog(url);
-    finish(true);
+    finish('develop @ b4560f6');
     await first;
     await updateUiPreviewWithDialog(url);
 
@@ -156,5 +197,34 @@ describe('updateUiPreviewWithDialog', () => {
     expect(warnAboutUiPreviewFailure).toHaveBeenCalledWith(
       'ghcr.io responded 503'
     );
+  });
+
+  it('removes the bundles no workspace uses once the update is shown', async () => {
+    const local = `${pathToFileURL(path.resolve('ui-previews', 'c'.repeat(64))).href}/`;
+    (getUiOverrideBundleUrls as jest.Mock).mockReturnValue([
+      local,
+      'http://127.0.0.1:4173/',
+    ]);
+
+    await updateUiPreviewWithDialog(url);
+
+    expect(pruneUiPreviews).toHaveBeenCalledWith([fileURLToPath(local)]);
+  });
+
+  it('leaves the bundles alone when a restore overtook the update', async () => {
+    (applyUiOverride as jest.Mock).mockResolvedValue(null);
+
+    await updateUiPreviewWithDialog(url);
+
+    expect(pruneUiPreviews).not.toHaveBeenCalled();
+    expect(warnAboutUiPreviewFailure).not.toHaveBeenCalled();
+  });
+
+  it('still shows the update when removing old bundles fails', async () => {
+    (pruneUiPreviews as jest.Mock).mockRejectedValueOnce(new Error('EBUSY'));
+
+    await updateUiPreviewWithDialog(url);
+
+    expect(warnAboutUiPreviewFailure).not.toHaveBeenCalled();
   });
 });

@@ -5,10 +5,16 @@ import { getWebContentsByServerUrl } from '.';
 import { SERVER_UI_PREVIEW_CHANGED } from '../../../servers/actions';
 import { dispatch, select } from '../../../store';
 
+export type UiOverrideBundle = {
+  url: string;
+  // Shown once loaded; can name the exact build, which the label asked about up front cannot know yet.
+  label: string;
+};
+
 export type UiOverrideSource = {
   label: string;
-  // Resolves to the bundle URL; an update calls it again, so a moving tag fetches its newest build.
-  load: () => Promise<string>;
+  // An update calls it again, so a moving tag fetches its newest build.
+  load: () => Promise<UiOverrideBundle>;
 };
 
 // Paths the Rocket.Chat server answers itself; mirrors `serverRoutes` in apps/meteor/vite/vite.config.mts.
@@ -41,7 +47,10 @@ const serverRoutes = [
 const bundleAssetsPath = '/bundle/';
 
 // ponytail: in-memory only, so a restart always returns every server to its own UI.
-const overrides = new Map<string, UiOverrideSource>();
+const overrides = new Map<
+  string,
+  { source: UiOverrideSource; bundleUrl: string }
+>();
 
 // Bumped by every apply and restore, so a load that finishes after a newer request is dropped.
 const generations = new Map<string, number>();
@@ -55,7 +64,11 @@ const nextGeneration = (serverUrl: string) => {
 const isKnownServer = (serverUrl: string) =>
   select(({ servers }) => servers.some((server) => server.url === serverUrl));
 
-export const getUiOverride = (serverUrl: string) => overrides.get(serverUrl);
+export const getUiOverride = (serverUrl: string) =>
+  overrides.get(serverUrl)?.source;
+
+export const getUiOverrideBundleUrls = () =>
+  [...overrides.values()].map(({ bundleUrl }) => bundleUrl);
 
 const withTrailingSlash = (url: string) =>
   url.endsWith('/') ? url : `${url}/`;
@@ -142,16 +155,17 @@ const reloadServer = async (serverUrl: string, ses: Session) => {
   getWebContentsByServerUrl(serverUrl)?.reloadIgnoringCache();
 };
 
-// Resolves to false when a restore, a newer apply or the server's removal overtook this one while it loaded.
+// Resolves to the label shown, or null when a restore, a newer apply or the server's removal overtook this one while it loaded.
 export const applyUiOverride = async (
   serverUrl: string,
   source: UiOverrideSource
-): Promise<boolean> => {
+): Promise<string | null> => {
   const generation = nextGeneration(serverUrl);
-  const bundleUrl = withTrailingSlash(await source.load());
+  const bundle = await source.load();
   if (generations.get(serverUrl) !== generation || !isKnownServer(serverUrl)) {
-    return false;
+    return null;
   }
+  const bundleUrl = withTrailingSlash(bundle.url);
 
   const ses = getServerSession(serverUrl);
   const scheme = getScheme(serverUrl);
@@ -160,14 +174,14 @@ export const applyUiOverride = async (
     ses.protocol.unhandle(scheme);
   }
   ses.protocol.handle(scheme, createHandler(ses, serverUrl, bundleUrl));
-  overrides.set(serverUrl, source);
+  overrides.set(serverUrl, { source, bundleUrl });
   dispatch({
     type: SERVER_UI_PREVIEW_CHANGED,
-    payload: { url: serverUrl, uiPreview: source.label },
+    payload: { url: serverUrl, uiPreview: bundle.label },
   });
 
   await reloadServer(serverUrl, ses);
-  return true;
+  return bundle.label;
 };
 
 export const clearUiOverride = async (serverUrl: string) => {

@@ -6,7 +6,7 @@ import { gzipSync } from 'zlib';
 
 import { app, net } from 'electron';
 
-import { extractTar, pullUiPreview } from './uiPreviewPackage';
+import { extractTar, pruneUiPreviews, pullUiPreview } from './uiPreviewPackage';
 
 const ustarEntry = (name: string, data = '', type = '0') => {
   const header = Buffer.alloc(512);
@@ -33,8 +33,8 @@ describe('extractTar', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  it('writes files and directories of a ustar archive', () => {
-    extractTar(
+  it('writes files and directories of a ustar archive', async () => {
+    await extractTar(
       tarOf(
         ustarEntry('./', '', '5'),
         ustarEntry('./index.html', '<html></html>'),
@@ -52,15 +52,30 @@ describe('extractTar', () => {
     );
   });
 
-  it('refuses entries that escape the target directory', () => {
-    expect(() =>
+  it('refuses entries that escape the target directory', async () => {
+    await expect(
       extractTar(tarOf(ustarEntry('../outside.js', 'x')), dir)
-    ).toThrow('Unsafe path');
+    ).rejects.toThrow('Unsafe path');
     expect(fs.existsSync(path.join(dir, '..', 'outside.js'))).toBe(false);
   });
 
-  it('skips links instead of following them', () => {
-    extractTar(tarOf(ustarEntry('./link', '', '2')), dir);
+  it('writes nothing from an archive with any unsafe entry', async () => {
+    const target = path.join(dir, 'bundle');
+
+    await expect(
+      extractTar(
+        tarOf(
+          ustarEntry('./index.html', '<html></html>'),
+          ustarEntry('../outside.js', 'x')
+        ),
+        target
+      )
+    ).rejects.toThrow('Unsafe path');
+    expect(fs.existsSync(target)).toBe(false);
+  });
+
+  it('skips links instead of following them', async () => {
+    await extractTar(tarOf(ustarEntry('./link', '', '2')), dir);
 
     expect(fs.existsSync(path.join(dir, 'link'))).toBe(false);
   });
@@ -111,13 +126,126 @@ describe('pullUiPreview', () => {
     await bothPullsMissedCache;
 
     blobGates[0]();
-    const dir = await first;
+    const { dir } = await first;
     const index = path.join(dir, 'index.html');
     const { ino } = fs.statSync(index);
 
     blobGates[1]();
-    expect(await second).toBe(dir);
+    expect((await second).dir).toBe(dir);
     expect(fs.statSync(index).ino).toBe(ino);
     expect(fs.readdirSync(path.dirname(dir))).toEqual([hash]);
+  });
+
+  const serveManifest = (manifest: object) =>
+    jest
+      .spyOn(net, 'fetch')
+      .mockImplementation(async (input) =>
+        String(input).includes('/token')
+          ? new Response(JSON.stringify({ token: 'anonymous' }))
+          : new Response(JSON.stringify(manifest))
+      );
+
+  const extractedBundle = (hash: string, usedAt: Date) => {
+    const dir = path.join(userData, 'ui-previews', hash);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'index.html'), '<html></html>');
+    fs.utimesSync(dir, usedAt, usedAt);
+    return dir;
+  };
+
+  it('reads the commit the bundle was built from', async () => {
+    const hash = 'a'.repeat(64);
+    extractedBundle(hash, new Date());
+    serveManifest({
+      annotations: {
+        'org.opencontainers.image.revision':
+          'b4560f630e424ecbe109789991494988c046fb26',
+      },
+      layers: [{ digest: `sha256:${hash}` }],
+    });
+
+    await expect(pullUiPreview('develop')).resolves.toEqual({
+      dir: path.join(userData, 'ui-previews', hash),
+      revision: 'b4560f630e424ecbe109789991494988c046fb26',
+    });
+  });
+
+  it('ignores a revision annotation that is not a commit', async () => {
+    const hash = 'b'.repeat(64);
+    extractedBundle(hash, new Date());
+    serveManifest({
+      annotations: { 'org.opencontainers.image.revision': '<script>' },
+      layers: [{ digest: `sha256:${hash}` }],
+    });
+
+    expect((await pullUiPreview('develop')).revision).toBeUndefined();
+  });
+
+  it('marks a reused bundle as recently used', async () => {
+    const hash = 'c'.repeat(64);
+    const dir = extractedBundle(hash, new Date('2026-01-01'));
+    serveManifest({ layers: [{ digest: `sha256:${hash}` }] });
+
+    await pullUiPreview('develop');
+
+    expect(Date.now() - fs.statSync(dir).mtimeMs).toBeLessThan(60_000);
+  });
+});
+
+describe('pruneUiPreviews', () => {
+  let userData: string;
+  let previews: string;
+
+  const at = (daysAgo: number) =>
+    new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+
+  const makeDir = (name: string, usedAt: Date) => {
+    const dir = path.join(previews, name);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.utimesSync(dir, usedAt, usedAt);
+    return dir;
+  };
+
+  beforeEach(() => {
+    userData = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-preview-user-'));
+    previews = path.join(userData, 'ui-previews');
+    jest.spyOn(app, 'getPath').mockReturnValue(userData);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    fs.rmSync(userData, { recursive: true, force: true });
+  });
+
+  it('keeps the bundles in use and the three most recent, removing the rest', async () => {
+    const inUse = makeDir('1'.repeat(64), at(30));
+    makeDir('2'.repeat(64), at(20));
+    makeDir('3'.repeat(64), at(3));
+    makeDir('4'.repeat(64), at(2));
+    makeDir('5'.repeat(64), at(1));
+
+    await pruneUiPreviews([`${inUse}/`]);
+
+    expect(fs.readdirSync(previews).sort()).toEqual([
+      '1'.repeat(64),
+      '3'.repeat(64),
+      '4'.repeat(64),
+      '5'.repeat(64),
+    ]);
+  });
+
+  it('removes an abandoned partial pull but not one still extracting', async () => {
+    makeDir(`${'6'.repeat(64)}.partial-old`, at(1));
+    makeDir(`${'7'.repeat(64)}.partial-live`, new Date());
+
+    await pruneUiPreviews([]);
+
+    expect(fs.readdirSync(previews)).toEqual([
+      `${'7'.repeat(64)}.partial-live`,
+    ]);
+  });
+
+  it('does nothing before the first pull', async () => {
+    await expect(pruneUiPreviews([])).resolves.toBeUndefined();
   });
 });

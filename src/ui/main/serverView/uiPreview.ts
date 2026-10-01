@@ -1,9 +1,10 @@
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 import type { WebContents } from 'electron';
 import { BrowserWindow } from 'electron';
 
 import { handle } from '../../../ipc/main';
+import { loggers } from '../../../logging/scopes';
 import { select } from '../../../store';
 import {
   askForUiOverride,
@@ -11,14 +12,40 @@ import {
   warnAboutUiPreviewFailure,
 } from '../dialogs';
 import type { UiOverrideSource } from './uiOverride';
-import { applyUiOverride, clearUiOverride, getUiOverride } from './uiOverride';
-import { getUiPreviewReference, pullUiPreview } from './uiPreviewPackage';
+import {
+  applyUiOverride,
+  clearUiOverride,
+  getUiOverride,
+  getUiOverrideBundleUrls,
+} from './uiOverride';
+import {
+  getUiPreviewReference,
+  pruneUiPreviews,
+  pullUiPreview,
+} from './uiPreviewPackage';
 
 export type UiPreviewSource = {
   bundle?: string;
   develop?: boolean;
   pr?: string;
   sha?: string;
+};
+
+// Once pulled, the label names the commit, so an update shows whether a newer build arrived.
+const fromRegistry = (name: string, tag: string): UiOverrideSource => {
+  const reference = getUiPreviewReference(tag);
+  return {
+    label: `${name} (${reference})`,
+    load: async () => {
+      const { dir, revision } = await pullUiPreview(tag);
+      return {
+        url: pathToFileURL(dir).href,
+        label: revision
+          ? `${name} @ ${revision.slice(0, 7)} (${reference})`
+          : `${name} (${reference})`,
+      };
+    },
+  };
 };
 
 export const resolveUiPreviewSource = ({
@@ -28,21 +55,14 @@ export const resolveUiPreviewSource = ({
   sha,
 }: UiPreviewSource): UiOverrideSource | null => {
   if (develop) {
-    return {
-      label: `develop (${getUiPreviewReference('develop')})`,
-      load: async () => pathToFileURL(await pullUiPreview('develop')).href,
-    };
+    return fromRegistry('develop', 'develop');
   }
 
   if (pr) {
     if (!/^\d+$/.test(pr) || (sha && !/^[a-f0-9]{40}$/.test(sha))) {
       return null;
     }
-    const tag = sha ?? `pr-${pr}`;
-    return {
-      label: `PR #${pr} (${getUiPreviewReference(tag)})`,
-      load: async () => pathToFileURL(await pullUiPreview(tag)).href,
-    };
+    return fromRegistry(`PR #${pr}`, sha ?? `pr-${pr}`);
   }
 
   if (!bundle) {
@@ -51,7 +71,7 @@ export const resolveUiPreviewSource = ({
   try {
     const { protocol, href } = new URL(bundle);
     return protocol === 'https:' || protocol === 'http:'
-      ? { label: href, load: async () => href }
+      ? { label: href, load: async () => ({ url: href, label: href }) }
       : null;
   } catch {
     return null;
@@ -107,14 +127,27 @@ export const requestUiPreview = async (
   return applyUiPreview(serverUrl, resolved);
 };
 
+// Removes the bundles no workspace uses any more; a failure only costs disk space, so it never fails the apply.
+const pruneUnusedBundles = () =>
+  pruneUiPreviews(
+    getUiOverrideBundleUrls()
+      .filter((url) => url.startsWith('file:'))
+      .map((url) => fileURLToPath(url))
+  ).catch((error) =>
+    loggers.ui.warn('Failed to remove unused UI preview bundles', error)
+  );
+
 const applyUiPreview = async (
   serverUrl: string,
   source: UiOverrideSource
 ): Promise<UiPreviewResult> => {
   try {
-    return (await applyUiOverride(serverUrl, source))
-      ? { status: 'applied', label: source.label }
-      : { status: 'cancelled' };
+    const label = await applyUiOverride(serverUrl, source);
+    if (label === null) {
+      return { status: 'cancelled' };
+    }
+    void pruneUnusedBundles();
+    return { status: 'applied', label };
   } catch (error) {
     return {
       status: 'failed',

@@ -39,7 +39,6 @@ Chromium (which powers Electron) selects its display server during native initia
 - Environment variable checks in JavaScript run too late
 - The only reliable fix is a shell wrapper that sets flags **before** the binary starts
 
-For technical details, see [linux-wayland-bug-postmortem.md](./linux-wayland-bug-postmortem.md).
 
 ## Wayland Support
 

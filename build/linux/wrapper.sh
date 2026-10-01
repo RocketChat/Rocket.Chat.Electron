@@ -1,7 +1,7 @@
 #!/bin/bash
 # Rocket.Chat Desktop - Linux Display Server Wrapper
 # Ensures proper display server selection before Chromium initializes.
-# See docs/linux-wayland-bug-postmortem.md for technical details.
+# See docs/linux-display-server.md for technical details.
 
 set -euo pipefail
 

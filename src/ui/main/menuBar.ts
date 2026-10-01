@@ -7,6 +7,7 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { DOWNLOADS_SIMULATION_REQUESTED } from '../../downloads/actions';
+import { loggers } from '../../logging/scopes';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -1302,12 +1303,20 @@ export const getServerContextMenuTemplate = (
       {
         id: 'updateUiPreview',
         label: t('sidebar.item.updateUiPreview'),
-        click: () => updateUiPreviewWithDialog(url),
+        click: () => {
+          updateUiPreviewWithDialog(url).catch((error) =>
+            loggers.ui.error('Failed to update the UI preview', error)
+          );
+        },
       } as MenuItemConstructorOptions,
       {
         id: 'restoreServerUi',
         label: t('menus.restoreServerUi'),
-        click: () => clearUiOverride(url),
+        click: () => {
+          clearUiOverride(url).catch((error) =>
+            loggers.ui.error('Failed to restore the server UI', error)
+          );
+        },
       } as MenuItemConstructorOptions,
     ]),
     // Isolate the destructive action in its own section. Native menus can't

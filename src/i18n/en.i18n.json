@@ -488,7 +488,7 @@
       },
       "uiPreview": {
         "title": "Load a web UI build",
-        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Enter `develop` or a Rocket.Chat PR number (both pulled from ghcr.io), or the URL of a served bundle.",
+        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Enter \"develop\" or a Rocket.Chat PR number (both pulled from ghcr.io), or the URL of a served bundle.",
         "placeholder": "develop, 42364 or http://127.0.0.1:4173/",
         "load": "Load",
         "restore": "Restore server UI",

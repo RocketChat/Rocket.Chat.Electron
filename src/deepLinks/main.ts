@@ -23,6 +23,7 @@ import {
 import type { UiPreviewSource } from '../ui/main/serverView/uiPreview';
 import {
   isUiPreviewAllowed,
+  parseUiPreviewFlag,
   requestUiPreviewWithDialog,
 } from '../ui/main/serverView/uiPreview';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
@@ -347,7 +348,7 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
       await performUiPreview({
         host: args.get('host') ?? undefined,
         bundle: args.get('bundle') ?? undefined,
-        develop: args.has('develop'),
+        develop: parseUiPreviewFlag(args.get('develop')),
         pr: args.get('pr') ?? undefined,
         sha: args.get('sha') ?? undefined,
       });

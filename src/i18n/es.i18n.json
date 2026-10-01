@@ -329,8 +329,8 @@
       },
       "uiPreview": {
         "title": "Cargar una compilación de la UI web",
-        "description": "Ejecuta una compilación del cliente web de Rocket.Chat en lugar de la UI propia de un espacio de trabajo, manteniendo tu sesión. Introduce un número de PR de Rocket.Chat (descargado de ghcr.io) o la URL de un bundle servido.",
-        "placeholder": "42364 o http://127.0.0.1:4173/",
+        "description": "Ejecuta una compilación del cliente web de Rocket.Chat en lugar de la UI propia de un espacio de trabajo, manteniendo tu sesión. Introduce \"develop\" o un número de PR de Rocket.Chat (ambos descargados de ghcr.io), o la URL de un bundle servido.",
+        "placeholder": "develop, 42364 o http://127.0.0.1:4173/",
         "load": "Cargar",
         "restore": "Restaurar la UI del servidor",
         "active": "Activa en este espacio de trabajo: {{- label}}",
@@ -445,7 +445,8 @@
       "openDevTools": "Abrir Herramientas de desarrollo",
       "clearCache": "Borrar caché",
       "clearStorageData": "Borrar datos de almacenamiento",
-      "copyCurrentUrl": "Copiar URL actual"
+      "copyCurrentUrl": "Copiar URL actual",
+      "updateUiPreview": "Actualizar vista previa de la UI"
     }
   },
   "tabBar": {

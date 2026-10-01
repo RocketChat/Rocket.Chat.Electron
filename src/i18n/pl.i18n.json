@@ -175,8 +175,8 @@
       },
       "uiPreview": {
         "title": "Wczytaj kompilację interfejsu webowego",
-        "description": "Uruchamia kompilację klienta webowego Rocket.Chat zamiast własnego interfejsu przestrzeni roboczej, zachowując Twoją sesję. Wpisz numer PR Rocket.Chat (pobierany z ghcr.io) lub adres URL udostępnianego pakietu.",
-        "placeholder": "42364 lub http://127.0.0.1:4173/",
+        "description": "Uruchamia kompilację klienta webowego Rocket.Chat zamiast własnego interfejsu przestrzeni roboczej, zachowując Twoją sesję. Wpisz „develop” lub numer PR Rocket.Chat (oba pobierane z ghcr.io) albo adres URL udostępnianego pakietu.",
+        "placeholder": "develop, 42364 lub http://127.0.0.1:4173/",
         "load": "Wczytaj",
         "restore": "Przywróć interfejs serwera",
         "active": "Aktywny w tej przestrzeni roboczej: {{- label}}",
@@ -277,7 +277,8 @@
     "item": {
       "reload": "Przeładuj serwer",
       "remove": "Usuń serwer",
-      "openDevTools": "Otwórz Narzędzia deweloperskie"
+      "openDevTools": "Otwórz Narzędzia deweloperskie",
+      "updateUiPreview": "Aktualizuj podgląd interfejsu"
     }
   },
   "tabBar": {

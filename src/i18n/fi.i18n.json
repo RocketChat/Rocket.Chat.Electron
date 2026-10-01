@@ -304,8 +304,8 @@
       },
       "uiPreview": {
         "title": "Lataa verkkokäyttöliittymän koontiversio",
-        "description": "Suorittaa Rocket.Chat-verkkoasiakkaan koontiversion työtilan oman käyttöliittymän sijaan istuntosi säilyttäen. Anna Rocket.Chatin PR-numero (haetaan ghcr.io:sta) tai tarjoillun paketin URL-osoite.",
-        "placeholder": "42364 tai http://127.0.0.1:4173/",
+        "description": "Suorittaa Rocket.Chat-verkkoasiakkaan koontiversion työtilan oman käyttöliittymän sijaan istuntosi säilyttäen. Anna \"develop\" tai Rocket.Chatin PR-numero (molemmat haetaan ghcr.io:sta) tai tarjoillun paketin URL-osoite.",
+        "placeholder": "develop, 42364 tai http://127.0.0.1:4173/",
         "load": "Lataa",
         "restore": "Palauta palvelimen käyttöliittymä",
         "active": "Käytössä tässä työtilassa: {{- label}}",
@@ -413,7 +413,8 @@
       "remove": "Poista palvelin",
       "openDevTools": "Avaa DevTools",
       "clearCache": "Tyhjennä välimuisti",
-      "clearStorageData": "Tyhjennä tallennustiedot"
+      "clearStorageData": "Tyhjennä tallennustiedot",
+      "updateUiPreview": "Päivitä käyttöliittymän esikatselu"
     }
   },
   "tabBar": {

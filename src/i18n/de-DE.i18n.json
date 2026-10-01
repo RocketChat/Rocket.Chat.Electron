@@ -306,8 +306,8 @@
       },
       "uiPreview": {
         "title": "Einen Web-UI-Build laden",
-        "description": "Führt einen Build des Rocket.Chat-Webclients anstelle der eigenen Oberfläche eines Workspaces aus und behält deine Sitzung bei. Gib eine Rocket.Chat-PR-Nummer (von ghcr.io bezogen) oder die URL eines bereitgestellten Bundles ein.",
-        "placeholder": "42364 oder http://127.0.0.1:4173/",
+        "description": "Führt einen Build des Rocket.Chat-Webclients anstelle der eigenen Oberfläche eines Workspaces aus und behält deine Sitzung bei. Gib „develop“ oder eine Rocket.Chat-PR-Nummer (beide von ghcr.io bezogen) oder die URL eines bereitgestellten Bundles ein.",
+        "placeholder": "develop, 42364 oder http://127.0.0.1:4173/",
         "load": "Laden",
         "restore": "Server-UI wiederherstellen",
         "active": "Aktiv in diesem Workspace: {{- label}}",
@@ -415,7 +415,8 @@
       "remove": "Server entfernen",
       "openDevTools": "DevTools öffnen",
       "clearCache": "Cache leeren",
-      "clearStorageData": "Speicherdaten löschen"
+      "clearStorageData": "Speicherdaten löschen",
+      "updateUiPreview": "UI-Vorschau aktualisieren"
     }
   },
   "tabBar": {

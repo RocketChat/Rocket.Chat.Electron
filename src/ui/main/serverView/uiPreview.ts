@@ -10,7 +10,8 @@ import {
   warnAboutUiOverrideRequiresDeveloperMode,
   warnAboutUiPreviewFailure,
 } from '../dialogs';
-import { applyUiOverride, clearUiOverride } from './uiOverride';
+import type { UiOverrideSource } from './uiOverride';
+import { applyUiOverride, clearUiOverride, getUiOverride } from './uiOverride';
 import { getUiPreviewReference, pullUiPreview } from './uiPreviewPackage';
 
 export type UiPreviewSource = {
@@ -25,7 +26,7 @@ export const resolveUiPreviewSource = ({
   develop,
   pr,
   sha,
-}: UiPreviewSource): { label: string; load: () => Promise<string> } | null => {
+}: UiPreviewSource): UiOverrideSource | null => {
   if (develop) {
     return {
       label: `develop (${getUiPreviewReference('develop')})`,
@@ -66,8 +67,9 @@ export const parseUiPreviewInput = (input: string): UiPreviewSource => {
   return /^\d+$/.test(value) ? { pr: value } : { bundle: value };
 };
 
-// ponytail: in-memory like the overrides themselves; an entry outlives a restore but is only read while a preview is shown.
-const activeSources = new Map<string, UiPreviewSource>();
+// The deep link takes `develop`, `develop=true` or `develop=1`; any other value leaves `pr` or `bundle` in charge.
+export const parseUiPreviewFlag = (value: string | null): boolean =>
+  value !== null && /^(|true|1)$/i.test(value);
 
 export type UiPreviewResult =
   | { status: 'applied'; label: string }
@@ -102,18 +104,17 @@ export const requestUiPreview = async (
     return { status: 'cancelled' };
   }
 
-  return applyUiPreview(serverUrl, source, resolved);
+  return applyUiPreview(serverUrl, resolved);
 };
 
 const applyUiPreview = async (
   serverUrl: string,
-  source: UiPreviewSource,
-  { label, load }: { label: string; load: () => Promise<string> }
+  source: UiOverrideSource
 ): Promise<UiPreviewResult> => {
   try {
-    await applyUiOverride(serverUrl, await load(), label);
-    activeSources.set(serverUrl, source);
-    return { status: 'applied', label };
+    return (await applyUiOverride(serverUrl, source))
+      ? { status: 'applied', label: source.label }
+      : { status: 'cancelled' };
   } catch (error) {
     return {
       status: 'failed',
@@ -122,18 +123,29 @@ const applyUiPreview = async (
   }
 };
 
+// One pull per server at a time; a click while one runs is dropped rather than queued.
+const updating = new Set<string>();
+
 // Pulls the same source again, so a tag that moved on (`develop`, `pr-<n>`) loads its newest build without asking again.
 export const updateUiPreviewWithDialog = async (
   serverUrl: string
 ): Promise<void> => {
-  const source = activeSources.get(serverUrl);
-  const resolved = source && resolveUiPreviewSource(source);
-  if (!source || !resolved) {
+  const source = getUiOverride(serverUrl);
+  if (!source || updating.has(serverUrl)) {
     return;
   }
-  const result = await applyUiPreview(serverUrl, source, resolved);
-  if (result.status === 'failed') {
-    await warnAboutUiPreviewFailure(result.message);
+
+  updating.add(serverUrl);
+  try {
+    if (!(await isUiPreviewAllowed())) {
+      return;
+    }
+    const result = await applyUiPreview(serverUrl, source);
+    if (result.status === 'failed') {
+      await warnAboutUiPreviewFailure(result.message);
+    }
+  } finally {
+    updating.delete(serverUrl);
   }
 };
 

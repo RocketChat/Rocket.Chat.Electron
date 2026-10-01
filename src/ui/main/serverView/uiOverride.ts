@@ -3,7 +3,13 @@ import { session } from 'electron';
 
 import { getWebContentsByServerUrl } from '.';
 import { SERVER_UI_PREVIEW_CHANGED } from '../../../servers/actions';
-import { dispatch } from '../../../store';
+import { dispatch, select } from '../../../store';
+
+export type UiOverrideSource = {
+  label: string;
+  // Resolves to the bundle URL; an update calls it again, so a moving tag fetches its newest build.
+  load: () => Promise<string>;
+};
 
 // Paths the Rocket.Chat server answers itself; mirrors `serverRoutes` in apps/meteor/vite/vite.config.mts.
 const serverRoutes = [
@@ -35,7 +41,21 @@ const serverRoutes = [
 const bundleAssetsPath = '/bundle/';
 
 // ponytail: in-memory only, so a restart always returns every server to its own UI.
-const overrides = new Set<string>();
+const overrides = new Map<string, UiOverrideSource>();
+
+// Bumped by every apply and restore, so a load that finishes after a newer request is dropped.
+const generations = new Map<string, number>();
+
+const nextGeneration = (serverUrl: string) => {
+  const generation = (generations.get(serverUrl) ?? 0) + 1;
+  generations.set(serverUrl, generation);
+  return generation;
+};
+
+const isKnownServer = (serverUrl: string) =>
+  select(({ servers }) => servers.some((server) => server.url === serverUrl));
+
+export const getUiOverride = (serverUrl: string) => overrides.get(serverUrl);
 
 const withTrailingSlash = (url: string) =>
   url.endsWith('/') ? url : `${url}/`;
@@ -122,32 +142,36 @@ const reloadServer = async (serverUrl: string, ses: Session) => {
   getWebContentsByServerUrl(serverUrl)?.reloadIgnoringCache();
 };
 
+// Resolves to false when a restore, a newer apply or the server's removal overtook this one while it loaded.
 export const applyUiOverride = async (
   serverUrl: string,
-  bundleUrl: string,
-  label = bundleUrl
-) => {
+  source: UiOverrideSource
+): Promise<boolean> => {
+  const generation = nextGeneration(serverUrl);
+  const bundleUrl = withTrailingSlash(await source.load());
+  if (generations.get(serverUrl) !== generation || !isKnownServer(serverUrl)) {
+    return false;
+  }
+
   const ses = getServerSession(serverUrl);
   const scheme = getScheme(serverUrl);
-  const normalizedBundleUrl = withTrailingSlash(bundleUrl);
 
   if (ses.protocol.isProtocolHandled(scheme)) {
     ses.protocol.unhandle(scheme);
   }
-  ses.protocol.handle(
-    scheme,
-    createHandler(ses, serverUrl, normalizedBundleUrl)
-  );
-  overrides.add(serverUrl);
+  ses.protocol.handle(scheme, createHandler(ses, serverUrl, bundleUrl));
+  overrides.set(serverUrl, source);
   dispatch({
     type: SERVER_UI_PREVIEW_CHANGED,
-    payload: { url: serverUrl, uiPreview: label },
+    payload: { url: serverUrl, uiPreview: source.label },
   });
 
   await reloadServer(serverUrl, ses);
+  return true;
 };
 
 export const clearUiOverride = async (serverUrl: string) => {
+  nextGeneration(serverUrl);
   if (!overrides.delete(serverUrl)) {
     return;
   }

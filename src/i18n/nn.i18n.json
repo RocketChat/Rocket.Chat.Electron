@@ -34,8 +34,8 @@
       },
       "uiPreview": {
         "title": "Last inn ein build av nettgrensesnittet",
-        "description": "Køyrer ein build av Rocket.Chat-nettklienten i staden for det eigne grensesnittet til arbeidsområdet, og held på økta di. Skriv inn eit PR-nummer frå Rocket.Chat (henta frå ghcr.io) eller URL-en til ein servert pakke.",
-        "placeholder": "42364 eller http://127.0.0.1:4173/",
+        "description": "Køyrer ein build av Rocket.Chat-nettklienten i staden for det eigne grensesnittet til arbeidsområdet, og held på økta di. Skriv inn «develop» eller eit PR-nummer frå Rocket.Chat (begge henta frå ghcr.io), eller URL-en til ein servert pakke.",
+        "placeholder": "develop, 42364 eller http://127.0.0.1:4173/",
         "load": "Last inn",
         "restore": "Gjenopprett grensesnittet til tenaren",
         "active": "Aktiv i dette arbeidsområdet: {{- label}}",
@@ -79,6 +79,11 @@
     "simulateDisconnected": "Simuler fråkopling",
     "resetWindowBounds": "Nullstill vindaugsstorleikar og -posisjonar",
     "restoreServerUi": "Gjenopprett grensesnittet til tenaren"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Oppdater førehandsvising av grensesnitt"
+    }
   },
   "tray": {
     "presence": {

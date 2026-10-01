@@ -34,8 +34,8 @@
       },
       "uiPreview": {
         "title": "Carica una build dell'interfaccia web",
-        "description": "Esegue una build del client web di Rocket.Chat al posto dell'interfaccia di un workspace, mantenendo la tua sessione. Inserisci il numero di una PR di Rocket.Chat (scaricata da ghcr.io) o l'URL di un bundle servito.",
-        "placeholder": "42364 o http://127.0.0.1:4173/",
+        "description": "Esegue una build del client web di Rocket.Chat al posto dell'interfaccia di un workspace, mantenendo la tua sessione. Inserisci \"develop\" o il numero di una PR di Rocket.Chat (entrambi scaricati da ghcr.io), oppure l'URL di un bundle servito.",
+        "placeholder": "develop, 42364 o http://127.0.0.1:4173/",
         "load": "Carica",
         "restore": "Ripristina l'interfaccia del server",
         "active": "Attiva su questo workspace: {{- label}}",
@@ -118,6 +118,11 @@
     "simulateDisconnected": "Simula disconnessione",
     "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre",
     "restoreServerUi": "Ripristina l'interfaccia del server"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Aggiorna anteprima dell'interfaccia"
+    }
   },
   "tray": {
     "presence": {

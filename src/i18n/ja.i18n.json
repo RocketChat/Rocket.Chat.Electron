@@ -150,8 +150,8 @@
       },
       "uiPreview": {
         "title": "Web UI のビルドを読み込む",
-        "description": "セッションを維持したまま、ワークスペース本来の UI の代わりに Rocket.Chat Web クライアントのビルドを実行します。Rocket.Chat の PR 番号（ghcr.io から取得）または配信中のバンドルの URL を入力してください。",
-        "placeholder": "42364 または http://127.0.0.1:4173/",
+        "description": "セッションを維持したまま、ワークスペース本来の UI の代わりに Rocket.Chat Web クライアントのビルドを実行します。「develop」または Rocket.Chat の PR 番号（いずれも ghcr.io から取得）、もしくは配信中のバンドルの URL を入力してください。",
+        "placeholder": "develop、42364 または http://127.0.0.1:4173/",
         "load": "読み込む",
         "restore": "サーバーの UI に戻す",
         "active": "このワークスペースで有効: {{- label}}",
@@ -243,7 +243,8 @@
     "item": {
       "reload": "サーバーを再読み込み",
       "remove": "サーバーを削除",
-      "openDevTools": "開発ツールを開く"
+      "openDevTools": "開発ツールを開く",
+      "updateUiPreview": "UI プレビューを更新"
     }
   },
   "tabBar": {

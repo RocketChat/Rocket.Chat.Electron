@@ -163,8 +163,8 @@
       },
       "uiPreview": {
         "title": "Bir web arayüzü derlemesi yükle",
-        "description": "Oturumunuzu koruyarak bir çalışma alanının kendi arayüzü yerine Rocket.Chat web istemcisinin bir derlemesini çalıştırır. Bir Rocket.Chat PR numarası (ghcr.io üzerinden çekilir) veya sunulan bir paketin URL adresini girin.",
-        "placeholder": "42364 veya http://127.0.0.1:4173/",
+        "description": "Oturumunuzu koruyarak bir çalışma alanının kendi arayüzü yerine Rocket.Chat web istemcisinin bir derlemesini çalıştırır. \"develop\" değerini, bir Rocket.Chat PR numarasını (ikisi de ghcr.io üzerinden çekilir) veya sunulan bir paketin URL adresini girin.",
+        "placeholder": "develop, 42364 veya http://127.0.0.1:4173/",
         "load": "Yükle",
         "restore": "Sunucu arayüzünü geri yükle",
         "active": "Bu çalışma alanında etkin: {{- label}}",
@@ -261,7 +261,8 @@
     "item": {
       "reload": "Sunucuyu yeniden yükle",
       "remove": "Sunucuyu sil",
-      "openDevTools": "DevTools aç"
+      "openDevTools": "DevTools aç",
+      "updateUiPreview": "Arayüz önizlemesini güncelle"
     }
   },
   "tabBar": {

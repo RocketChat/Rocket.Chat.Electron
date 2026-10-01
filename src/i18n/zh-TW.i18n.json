@@ -142,8 +142,8 @@
       },
       "uiPreview": {
         "title": "載入 Web 介面建置",
-        "description": "在保留工作階段的情況下，以 Rocket.Chat Web 用戶端的某個建置取代工作區本身的介面。請輸入 Rocket.Chat PR 編號（從 ghcr.io 拉取）或已提供之套件的 URL。",
-        "placeholder": "42364 或 http://127.0.0.1:4173/",
+        "description": "在保留工作階段的情況下，以 Rocket.Chat Web 用戶端的某個建置取代工作區本身的介面。請輸入「develop」或 Rocket.Chat PR 編號（皆從 ghcr.io 拉取），或已提供之套件的 URL。",
+        "placeholder": "develop、42364 或 http://127.0.0.1:4173/",
         "load": "載入",
         "restore": "還原伺服器介面",
         "active": "已在此工作區啟用：{{- label}}",
@@ -220,7 +220,8 @@
     "item": {
       "reload": "重新載入伺服器",
       "remove": "移除伺服器",
-      "openDevTools": "開啟開發工具"
+      "openDevTools": "開啟開發工具",
+      "updateUiPreview": "更新介面預覽"
     }
   },
   "tabBar": {

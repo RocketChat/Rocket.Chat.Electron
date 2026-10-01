@@ -304,8 +304,8 @@
       },
       "uiPreview": {
         "title": "Charger un build de l'interface web",
-        "description": "Exécute un build du client web Rocket.Chat à la place de l'interface propre à un espace de travail, en conservant votre session. Saisissez un numéro de PR Rocket.Chat (récupéré depuis ghcr.io) ou l'URL d'un bundle servi.",
-        "placeholder": "42364 ou http://127.0.0.1:4173/",
+        "description": "Exécute un build du client web Rocket.Chat à la place de l'interface propre à un espace de travail, en conservant votre session. Saisissez « develop » ou un numéro de PR Rocket.Chat (tous deux récupérés depuis ghcr.io), ou l'URL d'un bundle servi.",
+        "placeholder": "develop, 42364 ou http://127.0.0.1:4173/",
         "load": "Charger",
         "restore": "Restaurer l'interface du serveur",
         "active": "Actif sur cet espace de travail : {{- label}}",
@@ -414,7 +414,8 @@
       "remove": "Retirer le serveur",
       "openDevTools": "Ouvrir DevTools",
       "clearCache": "Vider le cache",
-      "clearStorageData": "Effacer les données de stockage"
+      "clearStorageData": "Effacer les données de stockage",
+      "updateUiPreview": "Mettre à jour l'aperçu de l'interface"
     }
   },
   "tabBar": {

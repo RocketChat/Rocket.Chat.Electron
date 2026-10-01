@@ -1,4 +1,17 @@
-import { isUiServedFromServer, prepareIndexHtml } from './uiOverride';
+import { session } from 'electron';
+
+import { dispatch, select } from '../../../store';
+import {
+  applyUiOverride,
+  clearUiOverride,
+  getUiOverride,
+  isUiServedFromServer,
+  prepareIndexHtml,
+} from './uiOverride';
+
+jest.mock('electron', () => ({ session: { fromPartition: jest.fn() } }));
+jest.mock('.', () => ({ getWebContentsByServerUrl: jest.fn() }));
+jest.mock('../../../store', () => ({ dispatch: jest.fn(), select: jest.fn() }));
 
 const viteIndex =
   '<!DOCTYPE html><html><head><base href="/" /><script type="module" src="/bundle/index-abc.js"></script></head><body><div id="react-root"></div></body></html>';
@@ -32,5 +45,97 @@ describe('isUiServedFromServer', () => {
   it('lets client routes load the preview UI', () => {
     expect(isUiServedFromServer('/home', '')).toBe(false);
     expect(isUiServedFromServer('/chat/channel/general', '/chat')).toBe(false);
+  });
+});
+
+describe('applyUiOverride', () => {
+  const protocol = {
+    isProtocolHandled: jest.fn(() => false),
+    handle: jest.fn(),
+    unhandle: jest.fn(),
+  };
+
+  const deferred = () => {
+    let resolve: (bundleUrl: string) => void = () => undefined;
+    const promise = new Promise<string>((done) => {
+      resolve = done;
+    });
+    return { load: () => promise, resolve };
+  };
+
+  const knownServers = (...urls: string[]) =>
+    (select as jest.Mock).mockImplementation((selector) =>
+      selector({ servers: urls.map((url) => ({ url })) })
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (session.fromPartition as jest.Mock).mockReturnValue({
+      protocol,
+      clearStorageData: jest.fn(async () => undefined),
+      clearCache: jest.fn(async () => undefined),
+    });
+  });
+
+  it('records the source it installed, so an update can load it again', async () => {
+    const url = 'https://records.example.com/';
+    knownServers(url);
+    const source = { label: 'develop', load: async () => 'file:///develop' };
+
+    await expect(applyUiOverride(url, source)).resolves.toBe(true);
+
+    expect(protocol.handle).toHaveBeenCalledTimes(1);
+    expect(getUiOverride(url)).toBe(source);
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ payload: { url, uiPreview: 'develop' } })
+    );
+  });
+
+  it('drops a load that finishes after the server UI was restored', async () => {
+    const url = 'https://restored.example.com/';
+    knownServers(url);
+    await applyUiOverride(url, {
+      label: 'PR #1',
+      load: async () => 'file:///1',
+    });
+    const update = deferred();
+
+    const pending = applyUiOverride(url, { label: 'PR #1', load: update.load });
+    await clearUiOverride(url);
+    update.resolve('file:///1-newer');
+
+    await expect(pending).resolves.toBe(false);
+    expect(protocol.handle).toHaveBeenCalledTimes(1);
+    expect(protocol.unhandle).toHaveBeenCalledTimes(1);
+    expect(getUiOverride(url)).toBeUndefined();
+  });
+
+  it('keeps the newest of two overlapping loads', async () => {
+    const url = 'https://overlap.example.com/';
+    knownServers(url);
+    const first = deferred();
+    const second = deferred();
+
+    const older = applyUiOverride(url, { label: 'PR #1', load: first.load });
+    const newer = applyUiOverride(url, { label: 'PR #2', load: second.load });
+    second.resolve('file:///2');
+    first.resolve('file:///1');
+
+    await expect(newer).resolves.toBe(true);
+    await expect(older).resolves.toBe(false);
+    expect(protocol.handle).toHaveBeenCalledTimes(1);
+    expect(getUiOverride(url)?.label).toBe('PR #2');
+  });
+
+  it('drops a load for a server removed while it was pulling', async () => {
+    const url = 'https://removed.example.com/';
+    knownServers();
+
+    await expect(
+      applyUiOverride(url, { label: 'develop', load: async () => 'file:///d' })
+    ).resolves.toBe(false);
+
+    expect(protocol.handle).not.toHaveBeenCalled();
+    expect(getUiOverride(url)).toBeUndefined();
   });
 });

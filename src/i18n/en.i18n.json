@@ -488,8 +488,8 @@
       },
       "uiPreview": {
         "title": "Load a web UI build",
-        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Enter a Rocket.Chat PR number (pulled from ghcr.io) or the URL of a served bundle.",
-        "placeholder": "42364 or http://127.0.0.1:4173/",
+        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Enter \"develop\" or a Rocket.Chat PR number (both pulled from ghcr.io), or the URL of a served bundle.",
+        "placeholder": "develop, 42364 or http://127.0.0.1:4173/",
         "load": "Load",
         "restore": "Restore server UI",
         "active": "Active on this workspace: {{- label}}",
@@ -623,6 +623,7 @@
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
       "copyCurrentUrl": "Copy URL",
+      "updateUiPreview": "Update UI preview",
       "reloadClearingCache": "Force reload",
       "serverInfo": "Server info",
       "supportedVersionsInfo": "Supported Versions Info",

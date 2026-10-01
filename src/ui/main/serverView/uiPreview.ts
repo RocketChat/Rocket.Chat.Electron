@@ -10,20 +10,30 @@ import {
   warnAboutUiOverrideRequiresDeveloperMode,
   warnAboutUiPreviewFailure,
 } from '../dialogs';
-import { applyUiOverride, clearUiOverride } from './uiOverride';
+import type { UiOverrideSource } from './uiOverride';
+import { applyUiOverride, clearUiOverride, getUiOverride } from './uiOverride';
 import { getUiPreviewReference, pullUiPreview } from './uiPreviewPackage';
 
 export type UiPreviewSource = {
   bundle?: string;
+  develop?: boolean;
   pr?: string;
   sha?: string;
 };
 
 export const resolveUiPreviewSource = ({
   bundle,
+  develop,
   pr,
   sha,
-}: UiPreviewSource): { label: string; load: () => Promise<string> } | null => {
+}: UiPreviewSource): UiOverrideSource | null => {
+  if (develop) {
+    return {
+      label: `develop (${getUiPreviewReference('develop')})`,
+      load: async () => pathToFileURL(await pullUiPreview('develop')).href,
+    };
+  }
+
   if (pr) {
     if (!/^\d+$/.test(pr) || (sha && !/^[a-f0-9]{40}$/.test(sha))) {
       return null;
@@ -48,11 +58,18 @@ export const resolveUiPreviewSource = ({
   }
 };
 
-// The Settings field takes a PR number (`42364` or `#42364`) or a bundle URL.
+// The Settings field takes `develop`, a PR number (`42364` or `#42364`) or a bundle URL.
 export const parseUiPreviewInput = (input: string): UiPreviewSource => {
   const value = input.trim().replace(/^#/, '');
+  if (value.toLowerCase() === 'develop') {
+    return { develop: true };
+  }
   return /^\d+$/.test(value) ? { pr: value } : { bundle: value };
 };
+
+// The deep link takes `develop`, `develop=true` or `develop=1`; any other value leaves `pr` or `bundle` in charge.
+export const parseUiPreviewFlag = (value: string | null): boolean =>
+  value !== null && /^(|true|1)$/i.test(value);
 
 export type UiPreviewResult =
   | { status: 'applied'; label: string }
@@ -79,7 +96,7 @@ export const requestUiPreview = async (
   if (!resolved) {
     return {
       status: 'failed',
-      message: `Not a PR number or an http(s) URL: ${source.bundle ?? source.pr ?? ''}`,
+      message: `Not develop, a PR number or an http(s) URL: ${source.bundle ?? source.pr ?? ''}`,
     };
   }
 
@@ -87,14 +104,50 @@ export const requestUiPreview = async (
     return { status: 'cancelled' };
   }
 
+  return applyUiPreview(serverUrl, resolved);
+};
+
+const applyUiPreview = async (
+  serverUrl: string,
+  source: UiOverrideSource
+): Promise<UiPreviewResult> => {
   try {
-    await applyUiOverride(serverUrl, await resolved.load(), resolved.label);
-    return { status: 'applied', label: resolved.label };
+    return (await applyUiOverride(serverUrl, source))
+      ? { status: 'applied', label: source.label }
+      : { status: 'cancelled' };
   } catch (error) {
     return {
       status: 'failed',
       message: error instanceof Error ? error.message : String(error),
     };
+  }
+};
+
+// One pull per server at a time; a click while one runs is dropped rather than queued.
+const updating = new Set<string>();
+
+// Pulls the same source again, so a tag that moved on (`develop`, `pr-<n>`) loads its newest build without asking again.
+export const updateUiPreviewWithDialog = async (
+  serverUrl: string
+): Promise<void> => {
+  const source = getUiOverride(serverUrl);
+  if (!source || updating.has(serverUrl)) {
+    return;
+  }
+
+  updating.add(serverUrl);
+  try {
+    if (!isDeveloperModeEnabled()) {
+      await warnAboutUiOverrideRequiresDeveloperMode();
+      return;
+    }
+    // Starts within the click, so a restore clicked after it always wins.
+    const result = await applyUiPreview(serverUrl, source);
+    if (result.status === 'failed') {
+      await warnAboutUiPreviewFailure(result.message);
+    }
+  } finally {
+    updating.delete(serverUrl);
   }
 };
 

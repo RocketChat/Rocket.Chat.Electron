@@ -347,8 +347,8 @@
       },
       "uiPreview": {
         "title": "Webes felület buildjének betöltése",
-        "description": "A Rocket.Chat webes kliens egy buildjét futtatja a munkaterület saját felülete helyett, a munkamenet megtartásával. Adj meg egy Rocket.Chat PR-számot (a ghcr.io-ról töltődik le) vagy egy kiszolgált csomag URL-jét.",
-        "placeholder": "42364 vagy http://127.0.0.1:4173/",
+        "description": "A Rocket.Chat webes kliens egy buildjét futtatja a munkaterület saját felülete helyett, a munkamenet megtartásával. Írd be a „develop” szót vagy egy Rocket.Chat PR-számot (mindkettő a ghcr.io-ról töltődik le), illetve egy kiszolgált csomag URL-jét.",
+        "placeholder": "develop, 42364 vagy http://127.0.0.1:4173/",
         "load": "Betöltés",
         "restore": "Szerver felületének visszaállítása",
         "active": "Aktív ezen a munkaterületen: {{- label}}",
@@ -468,6 +468,7 @@
       "clearCache": "Gyorsítótár törlése",
       "clearStorageData": "Tárolóadatok törlése",
       "copyCurrentUrl": "Jelenlegi URL másolása",
+      "updateUiPreview": "Felhasználói felület előnézetének frissítése",
       "reloadClearingCache": "Kényszerített újratöltés",
       "serverInfo": "Kiszolgálóinformációk",
       "supportedVersionsInfo": "Támogatott verziók információi"

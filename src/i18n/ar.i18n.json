@@ -34,8 +34,8 @@
       },
       "uiPreview": {
         "title": "تحميل إصدار من واجهة الويب",
-        "description": "يشغّل إصدارًا من عميل ويب Rocket.Chat بدلًا من واجهة مساحة العمل، مع الإبقاء على جلستك. أدخل رقم طلب دمج (PR) في Rocket.Chat (يُسحب من ghcr.io) أو عنوان URL لحزمة مُقدَّمة.",
-        "placeholder": "42364 أو http://127.0.0.1:4173/",
+        "description": "يشغّل إصدارًا من عميل ويب Rocket.Chat بدلًا من واجهة مساحة العمل، مع الإبقاء على جلستك. أدخل \"develop\" أو رقم طلب دمج (PR) في Rocket.Chat (يُسحب كلاهما من ghcr.io)، أو عنوان URL لحزمة مُقدَّمة.",
+        "placeholder": "develop، 42364 أو http://127.0.0.1:4173/",
         "load": "تحميل",
         "restore": "استعادة واجهة الخادم",
         "active": "نشطة في مساحة العمل هذه: {{- label}}",
@@ -79,6 +79,11 @@
     "simulateDisconnected": "محاكاة قطع الاتصال",
     "resetWindowBounds": "إعادة تعيين أحجام النوافذ ومواضعها",
     "restoreServerUi": "استعادة واجهة الخادم"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "تحديث معاينة الواجهة"
+    }
   },
   "tray": {
     "presence": {

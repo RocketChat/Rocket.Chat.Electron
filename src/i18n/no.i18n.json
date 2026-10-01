@@ -361,8 +361,8 @@
       },
       "uiPreview": {
         "title": "Last inn en build av nettgrensesnittet",
-        "description": "Kjører en build av Rocket.Chat-nettklienten i stedet for arbeidsområdets eget grensesnitt, og beholder økten din. Skriv inn et PR-nummer fra Rocket.Chat (hentes fra ghcr.io) eller URL-en til en servert pakke.",
-        "placeholder": "42364 eller http://127.0.0.1:4173/",
+        "description": "Kjører en build av Rocket.Chat-nettklienten i stedet for arbeidsområdets eget grensesnitt, og beholder økten din. Skriv inn «develop» eller et PR-nummer fra Rocket.Chat (begge hentes fra ghcr.io), eller URL-en til en servert pakke.",
+        "placeholder": "develop, 42364 eller http://127.0.0.1:4173/",
         "load": "Last inn",
         "restore": "Gjenopprett serverens grensesnitt",
         "active": "Aktiv i dette arbeidsområdet: {{- label}}",
@@ -481,6 +481,7 @@
       "clearCache": "Tøm buffer",
       "clearStorageData": "Fjern lagringsdata",
       "copyCurrentUrl": "Kopier gjeldende URL",
+      "updateUiPreview": "Oppdater forhåndsvisning av grensesnitt",
       "reloadClearingCache": "Tving omlasting",
       "serverInfo": "Serverinfo",
       "supportedVersionsInfo": "Informasjon om støttede versjoner"

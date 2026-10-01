@@ -324,8 +324,8 @@
       },
       "uiPreview": {
         "title": "Carregar um build da UI web",
-        "description": "Roda um build do cliente web do Rocket.Chat no lugar da UI de um workspace, mantendo sua sessão. Informe o número de um PR do Rocket.Chat (baixado do ghcr.io) ou a URL de um bundle servido.",
-        "placeholder": "42364 ou http://127.0.0.1:4173/",
+        "description": "Roda um build do cliente web do Rocket.Chat no lugar da UI de um workspace, mantendo sua sessão. Informe \"develop\" ou o número de um PR do Rocket.Chat (ambos baixados do ghcr.io), ou a URL de um bundle servido.",
+        "placeholder": "develop, 42364 ou http://127.0.0.1:4173/",
         "load": "Carregar",
         "restore": "Restaurar UI do servidor",
         "active": "Ativo neste workspace: {{- label}}",
@@ -443,6 +443,7 @@
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
       "copyCurrentUrl": "Copiar URL",
+      "updateUiPreview": "Atualizar prévia de UI",
       "reloadClearingCache": "Forçar recarregamento"
     },
     "tooltips": {

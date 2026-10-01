@@ -111,7 +111,14 @@ const start = async (): Promise<void> => {
   setUserDataDirectory();
   applySystemCertificates();
 
-  logger.info('Starting Rocket.Chat Desktop application');
+  logger.info(
+    'Starting Rocket.Chat Desktop application',
+    JSON.stringify({
+      version: app.getVersion(),
+      userData: app.getPath('userData'),
+      startHidden: app.commandLine.hasSwitch('start-hidden'),
+    })
+  );
 
   setupWebContentsLogging();
 

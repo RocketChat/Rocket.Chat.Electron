@@ -509,6 +509,7 @@ describe('deepLinks/main.ts', () => {
   describe('processDeepLink telephony routing', () => {
     const mockBrowserWindow = {
       isVisible: jest.fn(() => true),
+      isMinimized: jest.fn(() => false),
       focus: jest.fn(),
       showInactive: jest.fn(),
     };
@@ -668,6 +669,7 @@ describe('deepLinks/main.ts', () => {
     it('shows hidden root window when processing second-instance deep links', async () => {
       const hiddenWindow = {
         isVisible: jest.fn(() => false),
+        isMinimized: jest.fn(() => false),
         focus: jest.fn(),
         showInactive: jest.fn(),
       };
@@ -1293,6 +1295,7 @@ describe('deepLinks/main.ts', () => {
   describe('isTelephonyEnabled gate for tel: deep links', () => {
     const mockBrowserWindow = {
       isVisible: jest.fn(() => true),
+      isMinimized: jest.fn(() => false),
       focus: jest.fn(),
       showInactive: jest.fn(),
     };

@@ -1,3 +1,5 @@
+import { spawn } from 'child_process';
+
 import { getAvailableBrowsers, launchBrowser } from 'detect-browsers';
 import type { Browser } from 'detect-browsers';
 import { shell } from 'electron';
@@ -49,6 +51,78 @@ const loadBrowsersLazy = (): Promise<Browser[]> => {
   return browserLoadPromise;
 };
 
+const getCleanEnvForLinux = (): Record<string, string | undefined> => {
+  const cleanEnv = { ...process.env };
+  const varsToRemove = [
+    'APPDIR',
+    'APPIMAGE',
+    'LD_LIBRARY_PATH',
+    'APPIMAGE_SILENT_INSTALL',
+    'APPIMAGE_START_CWD',
+    'GDK_BACKEND',
+  ];
+
+  for (const key of varsToRemove) {
+    delete cleanEnv[key];
+  }
+
+  return cleanEnv;
+};
+
+const linuxOpenExternal = (url: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const child = spawn('xdg-open', [url], {
+      detached: true,
+      env: getCleanEnvForLinux(),
+      stdio: 'ignore',
+    });
+
+    child.on('error', (error) => {
+      console.error('Failed to open xdg-open', error);
+      // Fallback to electron's shell.openExternal
+      shell.openExternal(url).then(resolve).catch(reject);
+    });
+
+    child.unref();
+    resolve();
+  });
+};
+
+const withCleanEnv = async <T>(action: () => Promise<T>): Promise<T> => {
+  if (process.platform !== 'linux') {
+    return action();
+  }
+
+  const originalEnv: Record<string, string | undefined> = {};
+  const varsToRemove = [
+    'APPDIR',
+    'APPIMAGE',
+    'LD_LIBRARY_PATH',
+    'APPIMAGE_SILENT_INSTALL',
+    'APPIMAGE_START_CWD',
+    'GDK_BACKEND',
+  ];
+
+  for (const key of varsToRemove) {
+    if (process.env[key] !== undefined) {
+      originalEnv[key] = process.env[key];
+      delete process.env[key];
+    }
+  }
+
+  try {
+    return await action();
+  } finally {
+    for (const key of varsToRemove) {
+      if (originalEnv[key] !== undefined) {
+        process.env[key] = originalEnv[key];
+      } else {
+        delete process.env[key];
+      }
+    }
+  }
+};
+
 /**
  * Launches a URL in the selected browser from settings or falls back to system default
  *
@@ -56,12 +130,19 @@ const loadBrowsersLazy = (): Promise<Browser[]> => {
  * @returns Promise that resolves when the browser is launched
  */
 export const openExternal = async (url: string): Promise<void> => {
+  const systemOpenExternal = (url: string): Promise<void> => {
+    if (process.platform === 'linux') {
+      return linuxOpenExternal(url);
+    }
+    return shell.openExternal(url);
+  };
+
   // Get the selected browser from settings
   const selectedBrowser = readSetting('selectedBrowser');
 
   // If no specific browser is selected, use the system default
   if (!selectedBrowser) {
-    return shell.openExternal(url);
+    return systemOpenExternal(url);
   }
 
   try {
@@ -74,18 +155,18 @@ export const openExternal = async (url: string): Promise<void> => {
     );
 
     if (browser) {
-      // Launch the selected browser with the URL
-      return launchBrowser(browser, url);
+      // Launch the selected browser with the URL using a clean environment
+      return withCleanEnv(() => launchBrowser(browser, url));
     }
     // If the selected browser isn't available, fall back to system default
     console.warn(
       `Selected browser "${selectedBrowser}" not found, using system default.`
     );
-    return shell.openExternal(url);
+    return systemOpenExternal(url);
   } catch (error) {
     console.error('Error launching browser:', error);
     // Fall back to shell.openExternal on error
-    return shell.openExternal(url);
+    return systemOpenExternal(url);
   }
 };
 

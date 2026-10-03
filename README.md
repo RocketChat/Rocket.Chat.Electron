@@ -264,6 +264,7 @@ With this, you can create a single server mode or just don't let the user add ne
 If `isTrayIconEnabled` is enabled, the app will be hidden on close.
 If `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
 With both disabled, the app will quit on close.
+## Linux AppImage Debugging: If you are testing link clicking on Linux, be aware that shell.openExternal inherits AppImage variables which crashes snap browsers. Use a sanitized child_process.spawn instead.
 
 ## License
 

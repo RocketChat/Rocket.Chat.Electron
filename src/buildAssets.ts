@@ -341,3 +341,4 @@ const run = async (): Promise<void> => {
 if (require.main === module) {
   run();
 }
+/ Added Clear Cache menu option as negotiated

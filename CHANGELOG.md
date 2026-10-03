@@ -1,3 +1,11 @@
+# Changelog
+
+4.x release notes live on
+[GitHub Releases](https://github.com/RocketChat/Rocket.Chat.Electron/releases).
+This file is historical through **3.7.3** and is not updated for 4.x.
+
+---
+
 ## [3.7.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.7.2...3.7.3) (2021-12-27)
 
 

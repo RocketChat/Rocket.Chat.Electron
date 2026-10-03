@@ -18,4 +18,5 @@ export default {
   'uk-UA': (): Promise<Resource> => import('./uk-UA.i18n.json'),
   'zh-CN': (): Promise<Resource> => import('./zh-CN.i18n.json'),
   'zh-TW': (): Promise<Resource> => import('./zh-TW.i18n.json'),
+  'ml': (): Promise<Resource> => import('./ml.i18n.json'),
 } as const;

@@ -161,7 +161,7 @@
     "fsevents": "2.3.3"
   },
   "engines": {
-    "node": ">=24.11.1"
+    "node": ">=22.0.0"
   },
   "devEngines": {
     "runtime": {

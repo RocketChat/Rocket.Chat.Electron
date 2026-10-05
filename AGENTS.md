@@ -180,6 +180,9 @@ yarn workspaces:build        # Build all workspaces
   not discovered by the current `testMatch`.
 - Verify new specs with `yarn test --listTests --runTestsByPath <file>` when
   discovery is uncertain.
+- Run specs through `yarn test <path>`: the script carries `--forceExit` and
+  `xvfb-maybe`. A bare `npx jest` lacks `--forceExit` and has hung after
+  the suite passed.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation.
   It forces `--maxWorkers=1` and spawns one Electron process per spec file,
   so the only CI parallelism is cross-job `--shard`; after the transform fix

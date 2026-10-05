@@ -458,6 +458,79 @@ describe('refreshUiPreview', () => {
     });
   });
 
+  it('waits for a pull already running on the workspace, then reloads it if it is still behind', async () => {
+    publish('b');
+    (getUiOverrideServerUrls as jest.Mock).mockReturnValue([url]);
+    (getUiOverrideVersion as jest.Mock).mockReturnValue(digestOf('a'));
+    let finishRunning: (label: string) => void = () => undefined;
+    (applyUiOverride as jest.Mock).mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        finishRunning = resolve;
+      })
+    );
+    const running = updateUiPreviewWithDialog(url);
+
+    const refresh = refreshUiPreview('42364');
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(applyUiOverride).toHaveBeenCalledTimes(1);
+    finishRunning('PR #42364 @ e38ea69');
+    await running;
+
+    await expect(refresh).resolves.toEqual({ status: 'updated' });
+    expect(applyUiOverride).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not reload a workspace the running pull already brought to the build', async () => {
+    publish('b');
+    (getUiOverrideServerUrls as jest.Mock).mockReturnValue([url]);
+    let version = digestOf('a');
+    (getUiOverrideVersion as jest.Mock).mockImplementation(() => version);
+    let finishRunning: (label: string) => void = () => undefined;
+    (applyUiOverride as jest.Mock).mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        finishRunning = resolve;
+      })
+    );
+    const running = updateUiPreviewWithDialog(url);
+
+    const refresh = refreshUiPreview('42364');
+    await new Promise((resolve) => setImmediate(resolve));
+    version = digestOf('b');
+    finishRunning('PR #42364 @ 760b6b6');
+    await running;
+
+    await expect(refresh).resolves.toEqual({ status: 'updated' });
+    expect(applyUiOverride).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not report a reload that a restore cancelled', async () => {
+    publish('b');
+    let restored = false;
+    (getUiOverrideServerUrls as jest.Mock).mockImplementation(() =>
+      restored ? [] : [url]
+    );
+    (applyUiOverride as jest.Mock).mockImplementation(async () => {
+      restored = true;
+      return null;
+    });
+
+    await expect(refreshUiPreview('42364')).resolves.toEqual({
+      status: 'updated',
+    });
+  });
+
+  it('reports a workspace left on an older build when its reload could not run', async () => {
+    publish('b');
+    (getUiOverrideServerUrls as jest.Mock).mockReturnValue([url]);
+    (getUiOverrideVersion as jest.Mock).mockReturnValue(digestOf('a'));
+    (getUiOverride as jest.Mock).mockReturnValue(undefined);
+
+    await expect(refreshUiPreview('42364')).resolves.toEqual({
+      status: 'failed',
+      message: `${url} still runs an older build; refresh again`,
+    });
+  });
+
   it('reports a registry failure and keeps the listed build', async () => {
     (inspectUiPreview as jest.Mock).mockRejectedValue(
       new Error('ghcr.io responded 503')

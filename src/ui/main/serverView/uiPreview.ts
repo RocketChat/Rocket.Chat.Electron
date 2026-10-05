@@ -205,7 +205,7 @@ const applyUiPreview = async (
 };
 
 // One pull per server at a time; a request while one runs is dropped rather than queued.
-const updating = new Set<string>();
+const updating = new Map<string, Promise<UiPreviewResult>>();
 
 // Pulls the same source again, so a tag that moved on (`develop`, `pr-<n>`) loads its newest build without asking again.
 // Resolves to null when nothing is applied or a pull for the server is already running.
@@ -217,10 +217,11 @@ const updateUiPreview = async (
     return null;
   }
 
-  updating.add(serverUrl);
+  // Starts within the call, so a restore requested after it always wins.
+  const update = applyUiPreview(serverUrl, source);
+  updating.set(serverUrl, update);
   try {
-    // Starts within the call, so a restore requested after it always wins.
-    return await applyUiPreview(serverUrl, source);
+    return await update;
   } finally {
     updating.delete(serverUrl);
   }
@@ -297,14 +298,32 @@ export const refreshUiPreview = async (
     recordBuild(build);
 
     // A served bundle names no version, so a workspace running one always reloads.
-    const stale = getUiOverrideServerUrls(build.input).filter(
-      (serverUrl) =>
-        !build.digest || getUiOverrideVersion(serverUrl) !== build.digest
-    );
-    const results = await Promise.all(stale.map(updateUiPreview));
+    const isBehind = (serverUrl: string) =>
+      getUiOverrideServerUrls(build.input).includes(serverUrl) &&
+      (!build.digest || getUiOverrideVersion(serverUrl) !== build.digest);
+
+    // A pull already running for a workspace may have read the tag before it moved, so it is awaited and checked again.
+    const reload = async (serverUrl: string) => {
+      await updating.get(serverUrl);
+      return isBehind(serverUrl) ? updateUiPreview(serverUrl) : null;
+    };
+
+    const stale = getUiOverrideServerUrls(build.input).filter(isBehind);
+    const results = await Promise.all(stale.map(reload));
     const failed = results.find((result) => result?.status === 'failed');
     if (failed?.status === 'failed') {
       return failed;
+    }
+
+    // A reload pulls after the inspection, so an applied or superseded one holds this build or a newer one.
+    const left = stale.filter(
+      (serverUrl, index) => !results[index] && isBehind(serverUrl)
+    );
+    if (left.length > 0) {
+      return {
+        status: 'failed',
+        message: `${left.join(', ')} still runs an older build; refresh again`,
+      };
     }
 
     return stale.length === 0 && listed?.digest === build.digest

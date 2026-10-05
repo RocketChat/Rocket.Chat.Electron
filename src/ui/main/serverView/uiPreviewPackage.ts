@@ -86,33 +86,49 @@ const fetchOk = async (url: string, init?: RequestInit) => {
   return response;
 };
 
-export type UiPreviewPackage = {
-  dir: string;
+export type UiPreviewBuild = {
+  // The bundle layer's digest, which changes with every published build.
+  digest: string;
   // The Rocket.Chat commit the bundle was built from, when the workflow recorded it.
   revision?: string;
+  // When the workflow published the build, as an ISO date.
+  createdAt?: string;
 };
 
-// Resolves to a local directory holding the bundle; each layer digest is extracted once and reused.
-export const pullUiPreview = async (tag: string): Promise<UiPreviewPackage> => {
+export type UiPreviewPackage = UiPreviewBuild & {
+  dir: string;
+};
+
+const authorize = async () => {
   const { token } = await (
     await fetchOk(`${registry}/token?scope=repository:${repository}:pull`)
   ).json();
-  const headers = { Authorization: `Bearer ${token}` };
+  return { Authorization: `Bearer ${token}` };
+};
 
-  const manifest = await (
-    await fetchOk(`${registry}/v2/${repository}/manifests/${tag}`, {
-      headers: {
-        ...headers,
-        Accept: 'application/vnd.oci.image.manifest.v1+json',
-      },
-    })
-  ).json();
+const readManifest = async (
+  tag: string,
+  headers: Record<string, string>
+): Promise<UiPreviewBuild> => {
+  const url = `${registry}/v2/${repository}/manifests/${tag}`;
+  const response = await net.fetch(url, {
+    headers: {
+      ...headers,
+      Accept: 'application/vnd.oci.image.manifest.v1+json',
+    },
+  });
+  if (response.status === 404) {
+    throw new Error(`${getUiPreviewReference(tag)} was not found`);
+  }
+  if (!response.ok) {
+    throw new Error(`${url} responded ${response.status}`);
+  }
+  const manifest = await response.json();
 
   const digest: unknown = manifest.layers?.[0]?.digest;
   if (typeof digest !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(digest)) {
     throw new Error(`${getUiPreviewReference(tag)} has no bundle layer`);
   }
-  const hash = digest.slice('sha256:'.length);
 
   const annotatedRevision: unknown =
     manifest.annotations?.['org.opencontainers.image.revision'];
@@ -122,12 +138,34 @@ export const pullUiPreview = async (tag: string): Promise<UiPreviewPackage> => {
       ? annotatedRevision
       : undefined;
 
+  const annotatedCreatedAt: unknown =
+    manifest.annotations?.['org.opencontainers.image.created'];
+  const createdAt =
+    typeof annotatedCreatedAt === 'string' &&
+    !Number.isNaN(Date.parse(annotatedCreatedAt))
+      ? new Date(annotatedCreatedAt).toISOString()
+      : undefined;
+
+  return { digest, revision, createdAt };
+};
+
+// Reads the manifest only, so checking a tag never downloads its bundle.
+export const inspectUiPreview = async (tag: string): Promise<UiPreviewBuild> =>
+  readManifest(tag, await authorize());
+
+// Resolves to a local directory holding the bundle; each layer digest is extracted once and reused.
+export const pullUiPreview = async (tag: string): Promise<UiPreviewPackage> => {
+  const headers = await authorize();
+  const build = await readManifest(tag, headers);
+  const { digest } = build;
+  const hash = digest.slice('sha256:'.length);
+
   const dir = path.join(getUiPreviewsDir(), hash);
   if (fs.existsSync(path.join(dir, 'index.html'))) {
     // Marks the bundle as recently used, so pruning keeps it.
     const now = new Date();
     await fs.promises.utimes(dir, now, now);
-    return { dir, revision };
+    return { ...build, dir };
   }
 
   const blob = Buffer.from(
@@ -155,7 +193,7 @@ export const pullUiPreview = async (tag: string): Promise<UiPreviewPackage> => {
     await fs.promises.rm(partialDir, { recursive: true, force: true });
   }
 
-  return { dir, revision };
+  return { ...build, dir };
 };
 
 // Keeps the bundles in use and the most recently pulled ones; every other extracted build is removed.

@@ -9,9 +9,13 @@ export type UiOverrideBundle = {
   url: string;
   // Shown once loaded; can name the exact build, which the label asked about up front cannot know yet.
   label: string;
+  // Names the exact build when the source knows it, so a refresh can tell whether a newer one was published.
+  version?: string;
 };
 
 export type UiOverrideSource = {
+  // The Settings input that loads this source again.
+  key: string;
   label: string;
   // An update calls it again, so a moving tag fetches its newest build.
   load: () => Promise<UiOverrideBundle>;
@@ -49,7 +53,7 @@ const bundleAssetsPath = '/bundle/';
 // ponytail: in-memory only, so a restart always returns every server to its own UI.
 const overrides = new Map<
   string,
-  { source: UiOverrideSource; bundleUrl: string }
+  { source: UiOverrideSource; bundleUrl: string; version?: string }
 >();
 
 // Bumped by every apply and restore, so a load that finishes after a newer request is dropped.
@@ -67,8 +71,16 @@ const isKnownServer = (serverUrl: string) =>
 export const getUiOverride = (serverUrl: string) =>
   overrides.get(serverUrl)?.source;
 
+export const getUiOverrideVersion = (serverUrl: string) =>
+  overrides.get(serverUrl)?.version;
+
 export const getUiOverrideBundleUrls = () =>
   [...overrides.values()].map(({ bundleUrl }) => bundleUrl);
+
+export const getUiOverrideServerUrls = (key: string) =>
+  [...overrides]
+    .filter(([, { source }]) => source.key === key)
+    .map(([serverUrl]) => serverUrl);
 
 const withTrailingSlash = (url: string) =>
   url.endsWith('/') ? url : `${url}/`;
@@ -174,10 +186,14 @@ export const applyUiOverride = async (
     ses.protocol.unhandle(scheme);
   }
   ses.protocol.handle(scheme, createHandler(ses, serverUrl, bundleUrl));
-  overrides.set(serverUrl, { source, bundleUrl });
+  overrides.set(serverUrl, { source, bundleUrl, version: bundle.version });
   dispatch({
     type: SERVER_UI_PREVIEW_CHANGED,
-    payload: { url: serverUrl, uiPreview: bundle.label },
+    payload: {
+      url: serverUrl,
+      uiPreview: bundle.label,
+      uiPreviewSource: source.key,
+    },
   });
 
   await reloadServer(serverUrl, ses);
@@ -194,7 +210,11 @@ export const clearUiOverride = async (serverUrl: string) => {
   ses.protocol.unhandle(getScheme(serverUrl));
   dispatch({
     type: SERVER_UI_PREVIEW_CHANGED,
-    payload: { url: serverUrl, uiPreview: undefined },
+    payload: {
+      url: serverUrl,
+      uiPreview: undefined,
+      uiPreviewSource: undefined,
+    },
   });
 
   await reloadServer(serverUrl, ses);

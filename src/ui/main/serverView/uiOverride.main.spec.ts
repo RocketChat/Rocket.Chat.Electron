@@ -6,6 +6,8 @@ import {
   clearUiOverride,
   getUiOverride,
   getUiOverrideBundleUrls,
+  getUiOverrideServerUrls,
+  getUiOverrideVersion,
   isUiServedFromServer,
   prepareIndexHtml,
 } from './uiOverride';
@@ -57,8 +59,8 @@ describe('applyUiOverride', () => {
   };
 
   const bundle =
-    (url: string, label = url) =>
-    async () => ({ url, label });
+    (url: string, label = url, version?: string) =>
+    async () => ({ url, label, version });
 
   const deferred = () => {
     let resolve: (url: string) => void = () => undefined;
@@ -86,8 +88,9 @@ describe('applyUiOverride', () => {
     const url = 'https://records.example.com/';
     knownServers(url);
     const source = {
+      key: 'develop',
       label: 'develop',
-      load: bundle('file:///previews/develop', 'develop @ b4560f6'),
+      load: bundle('file:///previews/develop', 'develop @ b4560f6', 'sha256:d'),
     };
 
     await expect(applyUiOverride(url, source)).resolves.toBe(
@@ -97,9 +100,15 @@ describe('applyUiOverride', () => {
     expect(protocol.handle).toHaveBeenCalledTimes(1);
     expect(getUiOverride(url)).toBe(source);
     expect(getUiOverrideBundleUrls()).toContain('file:///previews/develop/');
+    expect(getUiOverrideVersion(url)).toBe('sha256:d');
+    expect(getUiOverrideServerUrls('develop')).toContain(url);
     expect(dispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: { url, uiPreview: 'develop @ b4560f6' },
+        payload: {
+          url,
+          uiPreview: 'develop @ b4560f6',
+          uiPreviewSource: 'develop',
+        },
       })
     );
   });
@@ -107,10 +116,18 @@ describe('applyUiOverride', () => {
   it('drops a load that finishes after the server UI was restored', async () => {
     const url = 'https://restored.example.com/';
     knownServers(url);
-    await applyUiOverride(url, { label: 'PR #1', load: bundle('file:///1') });
+    await applyUiOverride(url, {
+      key: '1',
+      label: 'PR #1',
+      load: bundle('file:///1'),
+    });
     const update = deferred();
 
-    const pending = applyUiOverride(url, { label: 'PR #1', load: update.load });
+    const pending = applyUiOverride(url, {
+      key: '1',
+      label: 'PR #1',
+      load: update.load,
+    });
     await clearUiOverride(url);
     update.resolve('file:///1-newer');
 
@@ -119,6 +136,12 @@ describe('applyUiOverride', () => {
     expect(protocol.unhandle).toHaveBeenCalledTimes(1);
     expect(getUiOverride(url)).toBeUndefined();
     expect(getUiOverrideBundleUrls()).not.toContain('file:///1/');
+    expect(getUiOverrideServerUrls('1')).not.toContain(url);
+    expect(dispatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        payload: { url, uiPreview: undefined, uiPreviewSource: undefined },
+      })
+    );
   });
 
   it('keeps the newest of two overlapping loads', async () => {
@@ -127,8 +150,16 @@ describe('applyUiOverride', () => {
     const first = deferred();
     const second = deferred();
 
-    const older = applyUiOverride(url, { label: 'PR #1', load: first.load });
-    const newer = applyUiOverride(url, { label: 'PR #2', load: second.load });
+    const older = applyUiOverride(url, {
+      key: '1',
+      label: 'PR #1',
+      load: first.load,
+    });
+    const newer = applyUiOverride(url, {
+      key: '2',
+      label: 'PR #2',
+      load: second.load,
+    });
     second.resolve('file:///2');
     first.resolve('file:///1');
 
@@ -143,7 +174,11 @@ describe('applyUiOverride', () => {
     knownServers();
 
     await expect(
-      applyUiOverride(url, { label: 'develop', load: bundle('file:///d') })
+      applyUiOverride(url, {
+        key: 'develop',
+        label: 'develop',
+        load: bundle('file:///d'),
+      })
     ).resolves.toBeNull();
 
     expect(protocol.handle).not.toHaveBeenCalled();

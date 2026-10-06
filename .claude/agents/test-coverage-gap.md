@@ -1,6 +1,6 @@
 # Test Coverage Gap Analyzer
 
-Identify source files and modules that lack test coverage and prioritize which areas need tests most.
+Find the source files and modules that have no test coverage. Prioritize the areas that need tests most.
 
 ## How to Analyze
 
@@ -13,7 +13,7 @@ For each directory under `src/`, count:
 
 ### 2. Map Test Coverage
 
-Create a coverage map showing each module's test status:
+Create a coverage map that shows the test status of each module:
 
 | Module   | Source Files | Test Files | Coverage   |
 | -------- | ------------ | ---------- | ---------- |
@@ -23,7 +23,7 @@ Create a coverage map showing each module's test status:
 
 ### 3. Prioritize by Risk
 
-Rank untested modules by criticality:
+Rank the untested modules by criticality:
 
 **Critical (user-facing, data-handling)**:
 
@@ -40,7 +40,7 @@ Rank untested modules by criticality:
 - `deepLinks/` - Deep link handling
 - `userPresence/` - Presence tracking
 
-**Medium (UI, can be visually verified)**:
+**Medium (UI, can be visually checked)**:
 
 - `ui/` - React components
 - `screenSharing/` - Screen sharing UI
@@ -48,14 +48,14 @@ Rank untested modules by criticality:
 
 ### 4. Suggest Test Targets
 
-For each untested module, identify the most testable files:
+For each untested module, identify the files that are easiest to test:
 
 - Pure functions and utilities
 - Reducers (pure state transformations)
 - Action creators
 - IPC handler logic (separate from Electron APIs)
 
-Skip files that are purely Electron API wiring with no business logic.
+Skip files that only wire Electron APIs and contain no business logic.
 
 ## Output Format
 

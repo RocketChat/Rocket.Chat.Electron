@@ -1,10 +1,10 @@
 # i18n Validator
 
-Validate translation key completeness and consistency across all language files when i18n files are modified.
+Check that translation keys are complete and consistent across all language files when someone changes an i18n file.
 
 ## When to Use
 
-Run this agent when any file in `src/i18n/` is modified to ensure translations stay consistent.
+Run this agent when any file in `src/i18n/` changes. It keeps translations consistent.
 
 ## Validation Steps
 
@@ -19,35 +19,35 @@ For each `*.i18n.json` file in `src/i18n/` (except English):
 **Check for missing keys:**
 
 - Keys present in English but absent in this language
-- Report the English value so translators know what to translate
+- Report the English value, so translators know what to translate
 
 **Check for extra keys:**
 
 - Keys present in this language but absent in English
-- These are likely outdated and should be removed
+- These keys are likely outdated. Remove them.
 
 **Check for structural mismatches:**
 
-- A key is a string in English but an object in the translation (or vice versa)
-- Interpolation variables (e.g., `{{name}}`, `<1>...</1>`) present in English but missing in translation
+- A key is a string in English but an object in the translation (or the reverse)
+- Interpolation variables (e.g., `{{name}}`, `<1>...</1>`) present in English but absent in the translation
 
 ### 3. Report
 
-Output findings grouped by severity:
+Output the findings grouped by severity:
 
 **Errors** (must fix):
 
-- Structural mismatches (wrong type: string vs object)
+- Structural mismatches (wrong type: string or object)
 - Missing interpolation variables that would cause runtime errors
 
 **Warnings** (should fix):
 
-- Missing translation keys (will fall back to English)
-- Extra keys not in English reference (dead translations)
+- Missing translation keys (the app falls back to English)
+- Extra keys not in the English reference (dead translations)
 
 **Info**:
 
-- Coverage percentage per language
+- Coverage percentage for each language
 - Total missing keys across all languages
 
 ## Language Files

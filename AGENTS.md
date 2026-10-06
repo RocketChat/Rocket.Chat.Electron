@@ -48,7 +48,9 @@ yarn workspaces:build        # Build all workspaces
   ONE job per platform may set `upload_update_metadata: 'true'` (nsis, dmg,
   AppImage) — the `latest*.yml` a job uploads lists only the files that job
   built, so a second uploader replaces it with a partial list and breaks
-  auto-update. `workflow_dispatch` on that workflow is a signed dry run with
+  auto-update. `yarn lint` enforces this (`update-metadata-uploader`). An
+  omitted input counts as `'true'`, the action's default.
+  `workflow_dispatch` on that workflow is a signed dry run with
   no release; use it before trusting a workflow/action change with a tag.
   The release action reads `mode`, `targets` and `upload_update_metadata`
   inputs (`workspaces/desktop-release-action/action.yml`).
@@ -64,7 +66,8 @@ yarn workspaces:build        # Build all workspaces
   - Yarn patch protocol: `.yarn/patches/`, currently for `@ewsjs/xhr`
     (configured in `package.json`).
   - `patch-package`: `patches/`, currently for `@kayahr/jest-electron-runner`.
-- Never add `@ewsjs/xhr` patches to `patches/`; that creates CI conflicts.
+- Never add `@ewsjs/xhr` patches to `patches/`. That creates CI conflicts.
+  `yarn lint` enforces this (`ewsjs-patch-location`).
 - The `desktop-release-action`'s dev/snapshot code paths (`releaseDevelopment`
   / `releaseSnapshot`) are intentionally dead — do not rebuild its `dist/`
   bundle just to remove them.
@@ -83,6 +86,11 @@ yarn workspaces:build        # Build all workspaces
   `26080`, the second same-month build is `26081`. Check the current value
   and the date of its last bump (`git log -p --follow -- electron-builder.json`)
   before incrementing — do not guess an arbitrary increment.
+  `yarn lint` enforces these checks (`mac-bundle-version`). A malformed or
+  lowered value fails. A `package.json` version change without a
+  `bundleVersion` change only warns, because tagged releases have shipped that
+  way (4.15.0–4.15.4 all `26060`, 4.17.0 kept alpha.2's `26082`). Git does not
+  record which builds went to the App Store.
 - `yarn build-assets` re-encodes every PNG/ICO it touches, including ones
   whose source did not change; commit only the assets whose SVG/component
   changed and `git checkout --` the rest (byte noise otherwise floods the
@@ -346,6 +354,45 @@ Use worktrees to avoid disrupting another working directory:
 mkdir -p ../Rocket.Chat.Electron-worktrees
 git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch dev
 ```
+
+### Rules Enforced By `yarn lint`
+
+`scripts/check-agent-rules.ts` (pure checks in `scripts/agentRules.lib.ts`)
+runs as the last `yarn lint` step, locally and in validate-pr. Each failure
+names the rule and the fix. It compares against the merge-base with
+`origin/dev` locally and `HEAD^1` in CI (`--base <ref>` overrides). `scripts/`
+is outside the root `tsc` and eslint. Type-check it with
+`npx tsc -p scripts/tsconfig.json`.
+
+| Rule | Enforced by |
+|---|---|
+| `@ewsjs/xhr` is patched only in `.yarn/patches/`, never `patches/` | `ewsjs-patch-location` (error) |
+| One update-metadata uploader per platform in `build-release.yml`, and it builds nsis / dmg / AppImage | `update-metadata-uploader` (error) |
+| `mac.bundleVersion` is `YYMM` + one digit and never goes down | `mac-bundle-version` (error) |
+| A `package.json` version change also bumps `mac.bundleVersion` | `mac-bundle-version` (warning) |
+
+### Where Text Search Misses Impact
+
+Searching for a function or symbol name misses these couplings. Search the
+literal string or directory too:
+
+- String IPC channel names: `'servers/fetch-info'` is invoked in
+  `src/servers/main.ts` and handled in `src/servers/renderer.ts` with no
+  import between them (typed in `src/ipc/channels.ts`).
+- Redux action type strings: `SERVERS_LOADED = 'servers/loaded'`
+  (`src/servers/actions.ts`) crosses processes through
+  `redux/action-dispatched` (`src/store/ipc.ts`). Find reducers by the
+  constant (`src/servers/reducers.ts`, `src/ui/reducers/currentView.ts`), not
+  by the dispatching function.
+- electron-store / persisted keys: state keys listed in
+  `src/app/PersistableValues.ts` are users' `config.json` keys.
+  `readSetting('isNTLMCredentialsEnabled')` (`src/app/main/app.ts`) reads one
+  by string before the store exists. Renaming a key needs an entry in that
+  file's `migrations`.
+- The two patch directories: `.yarn/patches/@ewsjs-xhr-npm-2.0.2-*.patch` and
+  `patches/@kayahr+jest-electron-runner+29.14.0.patch` change code under
+  `node_modules/`. ripgrep (and tools built on it) skips hidden directories
+  such as `.yarn/` and `.github/` unless run with `--hidden`.
 
 ### Working Principles
 

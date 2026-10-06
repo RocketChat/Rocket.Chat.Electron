@@ -21,7 +21,7 @@ paths) are macOS-specific by design. No Windows variants.
 - You need computed styles, bounding boxes, or DOM structure from the live
   renderer.
 
-## Before connecting — the three pitfalls
+## Before connecting — the pitfalls
 
 1. **Watcher restarts kill everything.** The rollup watcher restarts the
    whole app when ANY bundle rebuilds (including after a subagent's last
@@ -42,6 +42,46 @@ paths) are macOS-specific by design. No Windows variants.
    freshly staged files from the git index. Don't reindex during a
    verification run; when you do reindex, use
    `node .gitnexus/run.cjs analyze --index-only`.
+
+## Doctor — is this instance worth driving?
+
+Run before the first drive, and again after any drive that surprised you.
+A leftover Electron from another worktree keeps port 9339, so a green drive
+can be proving the wrong build.
+
+```bash
+pid=$(lsof -nP -iTCP:9339 -sTCP:LISTEN -t | head -1)
+[ -n "$pid" ] || echo "FAIL: nothing listens on 9339 — start yarn start"
+ps -o command= -p "$pid" | grep -qF "$(git rev-parse --show-toplevel)/node_modules/electron" \
+  && echo "OK: 9339 is this worktree's Electron (pid $pid)" \
+  || echo "FAIL: 9339 belongs to $(ps -o command= -p "$pid")"
+```
+
+`yarn start` spawns `<worktree>/node_modules/electron/…/Electron --inspect=9339 .`
+(`rollup.config.mjs`), so the listener's command line names its worktree. On
+FAIL, quit the other instance (`pkill -f "<other-worktree>/node_modules/electron"`),
+then start fresh here and wait for `waiting for changes`.
+
+## Proving a fix — before and after
+
+A fix is proven when the running app shows the symptom on the base and its
+absence on the patch. Read each run the same way. Tests and a clean
+compile are not this proof.
+
+1. Write down the broken end state and the correct end state as one value
+   the script can read, plus a screenshot region. Examples of the value: a DOM
+   attribute, a Redux slice, a window property.
+2. Base (the PR's base branch, or the commit before a merged fix): drive the
+   reported path through real menus and UI. Read the value, reset, and repeat.
+   Two reproductions or there is no baseline.
+3. Patch, same profile and data: drive the same path twice, read the same
+   value, capture the same region.
+4. Verdict: **Confirmed** (base broken twice, patch correct twice),
+   **Insufficient** (patch still broken), or **Inconclusive** (base did not
+   reproduce, or one side could not run). Inconclusive claims nothing.
+
+Report the base and patch revisions, the value read on each run, and the
+screenshot paths.
 
 ## The script
 

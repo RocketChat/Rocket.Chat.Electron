@@ -322,7 +322,13 @@
         "loading": "Téléchargement et application…",
         "failed": "Chargement impossible : {{- message}}",
         "cancelled": "Annulé.",
-        "inactive": "Utilisation de l'interface du serveur."
+        "inactive": "Utilisation de l'interface du serveur.",
+        "pullRequestState": {
+          "open": "Ouverte",
+          "draft": "Brouillon",
+          "merged": "Fusionnée",
+          "closed": "Fermée"
+        }
       }
     },
     "sections": {

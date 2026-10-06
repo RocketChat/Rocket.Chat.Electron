@@ -33,6 +33,7 @@ import {
   inspectUiPreview,
   pruneUiPreviews,
   pullUiPreview,
+  readUiPreviewPullRequest,
 } from './uiPreviewPackage';
 
 jest.mock('../../../store', () => ({ dispatch: jest.fn(), select: jest.fn() }));
@@ -54,6 +55,7 @@ jest.mock('./uiPreviewPackage', () => ({
   inspectUiPreview: jest.fn(),
   pruneUiPreviews: jest.fn(async () => undefined),
   pullUiPreview: jest.fn(),
+  readUiPreviewPullRequest: jest.fn(),
 }));
 
 const digestOf = (char: string) => `sha256:${char.repeat(64)}`;
@@ -313,6 +315,55 @@ describe('addUiPreview', () => {
     });
   });
 
+  it('lists a PR build with its title and state on GitHub', async () => {
+    (inspectUiPreview as jest.Mock).mockResolvedValue({
+      digest: digestOf('a'),
+    });
+    (readUiPreviewPullRequest as jest.Mock).mockResolvedValue({
+      title: 'ci: publish PR UI previews',
+      state: 'merged',
+    });
+
+    await expect(addUiPreview('42364')).resolves.toEqual({ status: 'added' });
+
+    expect(readUiPreviewPullRequest).toHaveBeenCalledWith('42364');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: UI_PREVIEW_HISTORY_ENTRY_ADDED,
+      payload: {
+        input: '42364',
+        label: 'PR #42364',
+        digest: digestOf('a'),
+        pullRequest: { title: 'ci: publish PR UI previews', state: 'merged' },
+      },
+    });
+  });
+
+  it('lists a PR build without its PR when GitHub does not answer', async () => {
+    (inspectUiPreview as jest.Mock).mockResolvedValue({
+      digest: digestOf('a'),
+    });
+    (readUiPreviewPullRequest as jest.Mock).mockRejectedValue(
+      new Error('responded 403')
+    );
+
+    await expect(addUiPreview('42364')).resolves.toEqual({ status: 'added' });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: UI_PREVIEW_HISTORY_ENTRY_ADDED,
+      payload: { input: '42364', label: 'PR #42364', digest: digestOf('a') },
+    });
+  });
+
+  it('asks GitHub nothing for develop', async () => {
+    (inspectUiPreview as jest.Mock).mockResolvedValue({
+      digest: digestOf('a'),
+    });
+
+    await addUiPreview('develop');
+
+    expect(readUiPreviewPullRequest).not.toHaveBeenCalled();
+  });
+
   it('lists nothing when the registry has no such build', async () => {
     (inspectUiPreview as jest.Mock).mockRejectedValue(
       new Error('ghcr.io/rocketchat/rocket.chat-web:pr-1 was not found')
@@ -390,6 +441,7 @@ describe('refreshUiPreview', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (readUiPreviewPullRequest as jest.Mock).mockResolvedValue(undefined);
     setHistory([listed]);
     (getUiOverride as jest.Mock).mockReturnValue(source);
     (getUiOverrideServerUrls as jest.Mock).mockReturnValue([]);
@@ -405,6 +457,19 @@ describe('refreshUiPreview', () => {
       status: 'current',
     });
     expect(applyUiOverride).not.toHaveBeenCalled();
+  });
+
+  it('reads the PR again, so a renamed or merged PR shows it', async () => {
+    publish('a');
+    const pullRequest = { title: 'Renamed', state: 'merged' };
+    (readUiPreviewPullRequest as jest.Mock).mockResolvedValue(pullRequest);
+
+    await refreshUiPreview('42364');
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: UI_PREVIEW_HISTORY_ENTRY_UPDATED,
+      payload: { ...listed, pullRequest },
+    });
   });
 
   it('lists a newer build without loading it where the entry is not applied', async () => {

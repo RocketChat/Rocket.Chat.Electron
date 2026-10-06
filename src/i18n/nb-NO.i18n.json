@@ -52,7 +52,13 @@
         "loading": "Laster ned og tar i bruk…",
         "failed": "Kunne ikke laste inn: {{- message}}",
         "cancelled": "Avbrutt.",
-        "inactive": "Bruker serverens grensesnitt."
+        "inactive": "Bruker serverens grensesnitt.",
+        "pullRequestState": {
+          "open": "Åpen",
+          "draft": "Utkast",
+          "merged": "Flettet",
+          "closed": "Lukket"
+        }
       }
     },
     "sections": {

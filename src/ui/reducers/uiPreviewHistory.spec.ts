@@ -65,6 +65,31 @@ describe('uiPreviewHistory reducer', () => {
       ).toEqual([entry('develop'), entry('42364', 'sha256:b')]);
     });
 
+    it('keeps the listed PR when the update carries none', () => {
+      const pullRequest = { title: 'A title', state: 'open' as const };
+
+      expect(
+        uiPreviewHistory([{ ...entry('42364', 'sha256:a'), pullRequest }], {
+          type: UI_PREVIEW_HISTORY_ENTRY_UPDATED,
+          payload: entry('42364', 'sha256:b'),
+        })
+      ).toEqual([{ ...entry('42364', 'sha256:b'), pullRequest }]);
+    });
+
+    it('replaces the listed PR with a newer reading', () => {
+      const merged = { title: 'New', state: 'merged' as const };
+
+      expect(
+        uiPreviewHistory(
+          [{ ...entry('42364'), pullRequest: { title: 'Old', state: 'open' } }],
+          {
+            type: UI_PREVIEW_HISTORY_ENTRY_UPDATED,
+            payload: { ...entry('42364'), pullRequest: merged },
+          }
+        )
+      ).toEqual([{ ...entry('42364'), pullRequest: merged }]);
+    });
+
     it('never lists a build that is not listed', () => {
       expect(
         uiPreviewHistory([entry('develop')], {

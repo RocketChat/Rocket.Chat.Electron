@@ -6,6 +6,11 @@ import { gunzip } from 'zlib';
 
 import { app, net } from 'electron';
 
+import type {
+  UiPreviewPullRequest,
+  UiPreviewPullRequestState,
+} from '../../common';
+
 // Published by Rocket.Chat's `UI Preview` workflow; public, so pulls need no GitHub login.
 const registry = 'https://ghcr.io';
 const repository = 'rocketchat/rocket.chat-web';
@@ -147,6 +152,42 @@ const readManifest = async (
       : undefined;
 
   return { digest, revision, createdAt };
+};
+
+// GitHub's API answers without a login, up to 60 requests an hour per address.
+export const readUiPreviewPullRequest = async (
+  pr: string
+): Promise<UiPreviewPullRequest | undefined> => {
+  const response = await fetchOk(
+    `https://api.github.com/repos/RocketChat/Rocket.Chat/pulls/${pr}`,
+    { headers: { Accept: 'application/vnd.github+json' } }
+  );
+  const {
+    title,
+    state,
+    draft,
+    merged_at: mergedAt,
+  }: {
+    title?: unknown;
+    state?: unknown;
+    draft?: unknown;
+    merged_at?: unknown;
+  } = await response.json();
+  if (typeof title !== 'string' || !title.trim()) {
+    return undefined;
+  }
+
+  // A merged PR is also closed, and a closed draft reads as closed.
+  const readState = (): UiPreviewPullRequestState => {
+    if (mergedAt) {
+      return 'merged';
+    }
+    if (state === 'closed') {
+      return 'closed';
+    }
+    return draft === true ? 'draft' : 'open';
+  };
+  return { title: title.trim(), state: readState() };
 };
 
 // Reads the manifest only, so checking a tag never downloads its bundle.

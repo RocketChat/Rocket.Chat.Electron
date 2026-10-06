@@ -38,11 +38,17 @@ export const uiPreviewHistory: Reducer<
     }
 
     // In place, and only for a listed entry, so a refresh never reorders or revives one.
+    // An update without the PR keeps the one listed, as GitHub may not have answered.
     case UI_PREVIEW_HISTORY_ENTRY_UPDATED: {
       const entry = action.payload;
-      return state.map((listed) =>
-        listed.input === entry.input ? entry : listed
-      );
+      return state.map((listed) => {
+        if (listed.input !== entry.input) {
+          return listed;
+        }
+        return entry.pullRequest || !listed.pullRequest
+          ? entry
+          : { ...entry, pullRequest: listed.pullRequest };
+      });
     }
 
     case UI_PREVIEW_HISTORY_ENTRY_REMOVED:

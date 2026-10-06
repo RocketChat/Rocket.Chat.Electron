@@ -506,7 +506,13 @@
         "loading": "Downloading and applying…",
         "failed": "Could not load: {{- message}}",
         "cancelled": "Cancelled.",
-        "inactive": "Using the server's UI."
+        "inactive": "Using the server's UI.",
+        "pullRequestState": {
+          "open": "Open",
+          "draft": "Draft",
+          "merged": "Merged",
+          "closed": "Closed"
+        }
       }
     },
     "appearance": "Appearance",

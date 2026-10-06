@@ -322,7 +322,13 @@
         "loading": "Ladataan ja otetaan käyttöön…",
         "failed": "Lataus epäonnistui: {{- message}}",
         "cancelled": "Peruttu.",
-        "inactive": "Käytetään palvelimen käyttöliittymää."
+        "inactive": "Käytetään palvelimen käyttöliittymää.",
+        "pullRequestState": {
+          "open": "Avoin",
+          "draft": "Luonnos",
+          "merged": "Yhdistetty",
+          "closed": "Suljettu"
+        }
       }
     },
     "sections": {

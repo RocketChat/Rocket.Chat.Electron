@@ -52,7 +52,13 @@
         "loading": "Viežžá ja váldá atnui…",
         "failed": "Ii sáhttán viežžat: {{- message}}",
         "cancelled": "Gaskkalduhttojuvvon.",
-        "inactive": "Geavaha bálvvá geavaheaddjilaktta."
+        "inactive": "Geavaha bálvvá geavaheaddjilaktta.",
+        "pullRequestState": {
+          "open": "Rabas",
+          "draft": "Konseapta",
+          "merged": "Ovttastuvvon",
+          "closed": "Giddejuvvon"
+        }
       }
     },
     "sections": {

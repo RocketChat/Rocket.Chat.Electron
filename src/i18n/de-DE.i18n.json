@@ -324,7 +324,13 @@
         "loading": "Wird heruntergeladen und angewendet…",
         "failed": "Laden fehlgeschlagen: {{- message}}",
         "cancelled": "Abgebrochen.",
-        "inactive": "Die UI des Servers wird verwendet."
+        "inactive": "Die UI des Servers wird verwendet.",
+        "pullRequestState": {
+          "open": "Offen",
+          "draft": "Entwurf",
+          "merged": "Zusammengeführt",
+          "closed": "Geschlossen"
+        }
       }
     },
     "sections": {

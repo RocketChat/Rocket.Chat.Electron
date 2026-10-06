@@ -220,7 +220,13 @@
         "loading": "正在下载并应用…",
         "failed": "无法加载：{{- message}}",
         "cancelled": "已取消。",
-        "inactive": "正在使用服务器的界面。"
+        "inactive": "正在使用服务器的界面。",
+        "pullRequestState": {
+          "open": "开放",
+          "draft": "草稿",
+          "merged": "已合并",
+          "closed": "已关闭"
+        }
       }
     },
     "sections": {

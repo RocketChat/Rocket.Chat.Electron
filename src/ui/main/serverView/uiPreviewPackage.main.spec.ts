@@ -11,6 +11,7 @@ import {
   inspectUiPreview,
   pruneUiPreviews,
   pullUiPreview,
+  readUiPreviewPullRequest,
 } from './uiPreviewPackage';
 
 const ustarEntry = (name: string, data = '', type = '0') => {
@@ -322,5 +323,63 @@ describe('pruneUiPreviews', () => {
 
   it('does nothing before the first pull', async () => {
     await expect(pruneUiPreviews([])).resolves.toBeUndefined();
+  });
+});
+
+describe('readUiPreviewPullRequest', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const answer = (body: Record<string, unknown>) =>
+    jest
+      .spyOn(net, 'fetch')
+      .mockResolvedValue(new Response(JSON.stringify(body)));
+
+  it('reads the title and state of a Rocket.Chat PR from GitHub', async () => {
+    const fetch = answer({
+      title: ' ci: publish PR UI previews ',
+      state: 'open',
+      draft: false,
+      merged_at: null,
+    });
+
+    await expect(readUiPreviewPullRequest('42364')).resolves.toEqual({
+      title: 'ci: publish PR UI previews',
+      state: 'open',
+    });
+    expect(String(fetch.mock.calls[0][0])).toBe(
+      'https://api.github.com/repos/RocketChat/Rocket.Chat/pulls/42364'
+    );
+  });
+
+  it.each([
+    [{ state: 'open', draft: true, merged_at: null }, 'draft'],
+    [
+      { state: 'closed', draft: false, merged_at: '2026-09-30T21:38:39Z' },
+      'merged',
+    ],
+    [{ state: 'closed', draft: false, merged_at: null }, 'closed'],
+    [{ state: 'closed', draft: true, merged_at: null }, 'closed'],
+  ])('reads %j as %s', async (fields, state) => {
+    answer({ title: 'A title', ...fields });
+
+    expect((await readUiPreviewPullRequest('1'))?.state).toBe(state);
+  });
+
+  it('reads nothing from an answer without a title', async () => {
+    answer({ title: 42, state: 'open' });
+
+    await expect(readUiPreviewPullRequest('1')).resolves.toBeUndefined();
+  });
+
+  it('fails when GitHub refuses, as it does past its rate limit', async () => {
+    jest
+      .spyOn(net, 'fetch')
+      .mockResolvedValue(new Response('', { status: 403 }));
+
+    await expect(readUiPreviewPullRequest('1')).rejects.toThrow(
+      'responded 403'
+    );
   });
 });

@@ -77,6 +77,34 @@ describe('UiPreviewHistory', () => {
     jest.mocked(invoke).mockReset();
   });
 
+  it('names a PR build by its state and title, in full on hover', () => {
+    renderHistory({
+      history: [
+        {
+          ...pr,
+          pullRequest: { title: 'ci: publish PR UI previews', state: 'merged' },
+        },
+      ],
+    });
+
+    const entry = entryNamed('PR #42364');
+    expect(
+      entry.getByText('settings.options.uiPreview.pullRequestState.merged')
+    ).toBeInTheDocument();
+    expect(
+      entry.getByTitle('PR #42364 · ci: publish PR UI previews')
+    ).toHaveTextContent(/^ci: publish PR UI previews$/);
+  });
+
+  it('names a PR build by its number alone until GitHub describes it', () => {
+    renderHistory();
+
+    expect(entryNamed('PR #42364').queryByTitle(/^PR #42364 ·/)).toBeNull();
+    expect(
+      screen.getByRole('group', { name: 'PR #42364' })
+    ).not.toHaveTextContent('pullRequestState');
+  });
+
   it('asks for a build to be checked and clears the field once it is listed', async () => {
     jest.mocked(invoke).mockResolvedValue({ status: 'added' });
     renderHistory({ history: [] });

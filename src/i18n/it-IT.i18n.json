@@ -52,7 +52,13 @@
         "loading": "Download e applicazione in corso…",
         "failed": "Impossibile caricare: {{- message}}",
         "cancelled": "Annullato.",
-        "inactive": "In uso l'interfaccia del server."
+        "inactive": "In uso l'interfaccia del server.",
+        "pullRequestState": {
+          "open": "Aperta",
+          "draft": "Bozza",
+          "merged": "Unita",
+          "closed": "Chiusa"
+        }
       }
     },
     "sections": {

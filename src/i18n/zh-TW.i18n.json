@@ -160,7 +160,13 @@
         "loading": "正在下載並套用…",
         "failed": "無法載入：{{- message}}",
         "cancelled": "已取消。",
-        "inactive": "正在使用伺服器的介面。"
+        "inactive": "正在使用伺服器的介面。",
+        "pullRequestState": {
+          "open": "開放",
+          "draft": "草稿",
+          "merged": "已合併",
+          "closed": "已關閉"
+        }
       }
     },
     "sections": {

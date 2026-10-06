@@ -52,7 +52,13 @@
         "loading": "Lastar ned og tek i bruk…",
         "failed": "Kunne ikkje laste inn: {{- message}}",
         "cancelled": "Avbrote.",
-        "inactive": "Brukar grensesnittet til tenaren."
+        "inactive": "Brukar grensesnittet til tenaren.",
+        "pullRequestState": {
+          "open": "Open",
+          "draft": "Utkast",
+          "merged": "Fletta",
+          "closed": "Lukka"
+        }
       }
     },
     "sections": {

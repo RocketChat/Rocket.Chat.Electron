@@ -365,7 +365,13 @@
         "loading": "Letöltés és alkalmazás…",
         "failed": "Nem sikerült betölteni: {{- message}}",
         "cancelled": "Megszakítva.",
-        "inactive": "A szerver felülete van használatban."
+        "inactive": "A szerver felülete van használatban.",
+        "pullRequestState": {
+          "open": "Nyitott",
+          "draft": "Piszkozat",
+          "merged": "Egyesítve",
+          "closed": "Lezárva"
+        }
       }
     }
   },

@@ -193,7 +193,13 @@
         "loading": "Pobieranie i stosowanie…",
         "failed": "Nie udało się wczytać: {{- message}}",
         "cancelled": "Anulowano.",
-        "inactive": "Używany jest interfejs serwera."
+        "inactive": "Używany jest interfejs serwera.",
+        "pullRequestState": {
+          "open": "Otwarty",
+          "draft": "Szkic",
+          "merged": "Scalony",
+          "closed": "Zamknięty"
+        }
       }
     },
     "sections": {

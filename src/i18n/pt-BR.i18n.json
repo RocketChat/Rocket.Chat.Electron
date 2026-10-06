@@ -342,7 +342,13 @@
         "loading": "Baixando e aplicando…",
         "failed": "Não foi possível carregar: {{- message}}",
         "cancelled": "Cancelado.",
-        "inactive": "Usando a UI do servidor."
+        "inactive": "Usando a UI do servidor.",
+        "pullRequestState": {
+          "open": "Aberto",
+          "draft": "Rascunho",
+          "merged": "Mesclado",
+          "closed": "Fechado"
+        }
       }
     },
     "sections": {

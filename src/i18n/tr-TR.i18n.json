@@ -181,7 +181,13 @@
         "loading": "İndiriliyor ve uygulanıyor…",
         "failed": "Yüklenemedi: {{- message}}",
         "cancelled": "İptal edildi.",
-        "inactive": "Sunucunun arayüzü kullanılıyor."
+        "inactive": "Sunucunun arayüzü kullanılıyor.",
+        "pullRequestState": {
+          "open": "Açık",
+          "draft": "Taslak",
+          "merged": "Birleştirildi",
+          "closed": "Kapalı"
+        }
       }
     },
     "sections": {

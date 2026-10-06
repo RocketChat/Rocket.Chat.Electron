@@ -168,7 +168,13 @@
         "loading": "ダウンロードして適用しています…",
         "failed": "読み込めませんでした: {{- message}}",
         "cancelled": "キャンセルしました。",
-        "inactive": "サーバーの UI を使用しています。"
+        "inactive": "サーバーの UI を使用しています。",
+        "pullRequestState": {
+          "open": "オープン",
+          "draft": "ドラフト",
+          "merged": "マージ済み",
+          "closed": "クローズ"
+        }
       }
     },
     "sections": {

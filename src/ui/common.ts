@@ -12,6 +12,15 @@ export type UiPreviewHistoryEntry = {
   digest?: string;
   revision?: string;
   createdAt?: string;
+  // PR builds only: the PR as GitHub last described it.
+  pullRequest?: UiPreviewPullRequest;
+};
+
+export type UiPreviewPullRequestState = 'open' | 'draft' | 'merged' | 'closed';
+
+export type UiPreviewPullRequest = {
+  title: string;
+  state: UiPreviewPullRequestState;
 };
 
 export type RootWindowIcon = {

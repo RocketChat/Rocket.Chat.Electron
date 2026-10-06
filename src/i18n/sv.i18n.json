@@ -356,7 +356,13 @@
         "loading": "Laddar ned och tillämpar…",
         "failed": "Kunde inte läsa in: {{- message}}",
         "cancelled": "Avbrutet.",
-        "inactive": "Serverns gränssnitt används."
+        "inactive": "Serverns gränssnitt används.",
+        "pullRequestState": {
+          "open": "Öppen",
+          "draft": "Utkast",
+          "merged": "Sammanfogad",
+          "closed": "Stängd"
+        }
       }
     },
     "sections": {

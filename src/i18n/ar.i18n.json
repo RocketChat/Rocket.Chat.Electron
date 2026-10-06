@@ -52,7 +52,13 @@
         "loading": "جارٍ التنزيل والتطبيق…",
         "failed": "تعذّر التحميل: {{- message}}",
         "cancelled": "تم الإلغاء.",
-        "inactive": "تُستخدم واجهة الخادم."
+        "inactive": "تُستخدم واجهة الخادم.",
+        "pullRequestState": {
+          "open": "مفتوح",
+          "draft": "مسودة",
+          "merged": "مدمج",
+          "closed": "مغلق"
+        }
       }
     },
     "sections": {

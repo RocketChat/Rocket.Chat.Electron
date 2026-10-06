@@ -1,4 +1,4 @@
-import { Box, Button, IconButton } from '@rocket.chat/fuselage';
+import { Box, Button, IconButton, Tag } from '@rocket.chat/fuselage';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
@@ -8,7 +8,10 @@ import { invoke } from '../../../../ipc/renderer';
 import type { Server } from '../../../../servers/common';
 import type { RootAction } from '../../../../store/actions';
 import { UI_PREVIEW_HISTORY_ENTRY_REMOVED } from '../../../actions';
-import type { UiPreviewHistoryEntry } from '../../../common';
+import type {
+  UiPreviewHistoryEntry,
+  UiPreviewPullRequestState,
+} from '../../../common';
 import type {
   UiPreviewHistoryResult,
   UiPreviewResult,
@@ -18,6 +21,14 @@ export type Status = { color: string; text: string } | null;
 
 export const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
+
+// Merged takes GitHub's purple; closed reads as a warning only in its text.
+const pullRequestTagVariants = {
+  open: 'primary',
+  draft: 'secondary',
+  merged: 'featured',
+  closed: 'secondary-danger',
+} as const satisfies Record<UiPreviewPullRequestState, string>;
 
 type UiPreviewHistoryItemProps = {
   entry: UiPreviewHistoryEntry;
@@ -100,6 +111,8 @@ export const UiPreviewHistoryItem = ({
     dispatch({ type: UI_PREVIEW_HISTORY_ENTRY_REMOVED, payload: entry.input });
   };
 
+  const { pullRequest } = entry;
+
   const details = [
     entry.revision?.slice(0, 7),
     entry.createdAt &&
@@ -128,12 +141,33 @@ export const UiPreviewHistoryItem = ({
       role='group'
     >
       <Box display='flex' flexDirection='column' flexGrow={1} minWidth={0}>
-        <Box fontScale='p2m' color='default' withTruncatedText>
-          {entry.label}
+        <Box display='flex' alignItems='center' minWidth={0}>
+          <Box fontScale='p2m' color='default' minWidth={0} withTruncatedText>
+            {entry.label}
+          </Box>
+          {pullRequest && (
+            <Box flexShrink={0} mis={8}>
+              <Tag variant={pullRequestTagVariants[pullRequest.state]}>
+                {t(
+                  `settings.options.uiPreview.pullRequestState.${pullRequest.state}`
+                )}
+              </Tag>
+            </Box>
+          )}
+          {details && (
+            <Box fontScale='c1' color='hint' flexShrink={0} mis={8}>
+              {details}
+            </Box>
+          )}
         </Box>
-        {details && (
-          <Box fontScale='c1' color='hint'>
-            {details}
+        {pullRequest && (
+          <Box
+            fontScale='c1'
+            color='hint'
+            withTruncatedText
+            title={`${entry.label} · ${pullRequest.title}`}
+          >
+            {pullRequest.title}
           </Box>
         )}
         {activeOn && (

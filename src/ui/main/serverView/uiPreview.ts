@@ -30,6 +30,7 @@ import {
   inspectUiPreview,
   pruneUiPreviews,
   pullUiPreview,
+  readUiPreviewPullRequest,
 } from './uiPreviewPackage';
 
 export type UiPreviewSource = {
@@ -40,7 +41,7 @@ export type UiPreviewSource = {
 };
 
 // `key` is the Settings input that brings the source back, which also keys its history entry.
-type RegistryTarget = { key: string; name: string; tag: string };
+type RegistryTarget = { key: string; name: string; tag: string; pr?: string };
 type BundleTarget = { key: string; name: string; url: string };
 
 const describeUiPreviewSource = ({
@@ -62,6 +63,7 @@ const describeUiPreviewSource = ({
       key: sha ? `${pr}@${sha}` : pr,
       name: `PR #${pr}`,
       tag: sha ?? `pr-${pr}`,
+      pr,
     };
   }
 
@@ -243,13 +245,27 @@ export const updateUiPreviewWithDialog = async (
   }
 };
 
+// The PR only decorates the entry, so a GitHub failure never stops a build from being listed.
+const readPullRequest = async (pr: string) => {
+  try {
+    return await readUiPreviewPullRequest(pr);
+  } catch (error) {
+    loggers.ui.warn(`Failed to read PR #${pr} from GitHub`, error);
+    return undefined;
+  }
+};
+
 // Confirms the build exists without downloading it: a tag's manifest, or a served bundle's index.html.
 const inspectTarget = async (
   target: RegistryTarget | BundleTarget
 ): Promise<UiPreviewHistoryEntry> => {
   const { key: input, name: label } = target;
   if ('tag' in target) {
-    return { input, label, ...(await inspectUiPreview(target.tag)) };
+    const [build, pullRequest] = await Promise.all([
+      inspectUiPreview(target.tag),
+      target.pr ? readPullRequest(target.pr) : undefined,
+    ]);
+    return { input, label, ...build, ...(pullRequest && { pullRequest }) };
   }
 
   const index = new URL(

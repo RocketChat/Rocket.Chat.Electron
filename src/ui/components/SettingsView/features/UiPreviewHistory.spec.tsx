@@ -100,9 +100,11 @@ describe('UiPreviewHistory', () => {
 
     add('1');
 
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'settings.options.uiPreview.failed ghcr.io/rocketchat/rocket.chat-web:pr-1 was not found'
-    );
+    expect(
+      await screen.findByText(
+        'settings.options.uiPreview.failed ghcr.io/rocketchat/rocket.chat-web:pr-1 was not found'
+      )
+    ).toHaveAttribute('role', 'status');
     expect(
       screen.getByPlaceholderText('settings.options.uiPreview.placeholder')
     ).toHaveValue('1');
@@ -195,10 +197,10 @@ describe('UiPreviewHistory', () => {
     );
 
     expect(
-      await entryNamed('PR #42364').findByRole('status')
-    ).toHaveTextContent(
-      'settings.options.uiPreview.failed ghcr.io responded 503'
-    );
+      await entryNamed('PR #42364').findByText(
+        'settings.options.uiPreview.failed ghcr.io responded 503'
+      )
+    ).toHaveAttribute('role', 'status');
   });
 
   it('removes a build from the list', () => {

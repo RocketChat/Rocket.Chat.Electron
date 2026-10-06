@@ -46,9 +46,11 @@ describe('UiPreviewRow', () => {
 
     fireEvent.click(screen.getByText('settings.options.uiPreview.restore'));
 
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'settings.options.uiPreview.failed clearCache failed'
-    );
+    expect(
+      await screen.findByText(
+        'settings.options.uiPreview.failed clearCache failed'
+      )
+    ).toHaveAttribute('role', 'status');
     expect(
       screen.getByText('settings.options.uiPreview.restore').closest('button')
     ).toBeEnabled();

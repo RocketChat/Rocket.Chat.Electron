@@ -1,11 +1,14 @@
 # QA Packs
 
 This folder contains structured QA packs for feature branches and release
-checks. A QA pack is more than documentation: it can include manual flows,
+checks. A QA pack is more than documentation. It can include manual flows,
 static click targets, helper scripts, and result-capture guidance.
 
 Use `qa/<feature-slug>/` for each feature or release area. Keep the slug short,
 lowercase, and specific, for example `qa/telephony-deeplink/`.
+
+`qa/AGENTS.md` holds the full rules for authoring QA flows. This file holds the
+pack layout and the flow schema.
 
 ## Pack Structure
 
@@ -15,7 +18,7 @@ lowercase, and specific, for example `qa/telephony-deeplink/`.
 | `flows/`          | Yes         | One Markdown file per scenario                                        |
 | `test-links.html` | When useful | Static browser page for protocol/deep-link/manual click targets       |
 | `scripts/`        | Optional    | Small helper scripts for repeatable environment checks                |
-| `results/`        | Optional    | Local evidence notes; do not commit run-specific artifacts by default |
+| `results/`        | Optional    | Local evidence notes. Do not commit run-specific artifacts by default |
 
 ## Flow Files
 
@@ -27,22 +30,23 @@ flows/02-enable-disable-gating.md
 flows/10-windows-default-apps.md
 ```
 
-Each flow must be readable by a tester who knows nothing about the feature and
-structured enough for an agent to reproduce. Use YAML frontmatter followed by
+A tester who knows nothing about the feature must be able to read each flow.
+An agent must be able to reproduce it. Use YAML frontmatter followed by
 standard sections.
 
-Before writing steps, inspect the feature implementation. The flow should be
-derived from the UI that will actually appear, not from memory or product
-intuition. Check the changed components, i18n strings, menu definitions, modal
-buttons, icons, platform branches, tests, and any helper pages. If the UI is not
-clear from code, stop and inspect more context before writing the flow.
+Before you write steps, inspect the feature implementation. Derive the flow
+from the UI that will actually appear, not from memory or product intuition.
+Check the changed components, i18n strings, menu definitions, modal buttons,
+icons, platform branches, tests, and any helper pages. If the UI is not clear
+from code, inspect more context before you write the flow.
 
-For branch-specific QA packs, record the exact comparison range before deriving
-flows: base branch, head branch or commit, and whether the whole range was
-reviewed. Classify changed Desktop surfaces by user-visible risk, then write a
-falsifiable hypothesis for each flow. The hypothesis should be provable by the
-smallest useful proof: existing tests, targeted tests, local UI repro, OS-level
-repro, or code-path proof when runtime validation is not practical.
+For branch-specific QA packs, record the exact comparison range before you
+derive flows. Record the base branch and the head branch or commit. Record
+whether you reviewed the whole range. Classify changed Desktop surfaces by
+user-visible risk. Then write a falsifiable hypothesis for each flow. Prove the
+hypothesis with the smallest useful proof. Use existing tests, targeted tests,
+local UI repro, or OS-level repro. Use code-path proof when runtime validation
+is not practical.
 
 Required frontmatter keys:
 
@@ -81,8 +85,8 @@ regression coverage.
 
 Keep Qase fields under the `qase` block. `qase.priority`, `qase.severity`,
 `qase.status`, and `qase.automation` must use slugs configured in the target
-Qase workspace. Leave `qase.qase_id` empty until a case already exists in Qase;
-Qase owns generated case IDs, while the repo owns `FEATURE-QA-###` source IDs.
+Qase workspace. Leave `qase.qase_id` empty until the case exists in Qase. Qase
+owns generated case IDs. The repo owns `FEATURE-QA-###` source IDs.
 
 The steps table maps directly to Qase classic steps:
 
@@ -91,10 +95,10 @@ The steps table maps directly to Qase classic steps:
 - `Expected result` -> `steps_results`
 
 For new UI, do not assume QA knows the app. The step itself must explain how to
-reach the feature from visible UI. Write steps as if a visual agent will execute
-them from a screenshot. Include the screen region, relative position, icon
-shape, nearby UI, visible label after the click, and visual confirmation that
-the tester is in the right place.
+reach the feature from visible UI. Write each step for a visual agent that
+executes it from a screenshot. Include the screen region, relative position,
+icon shape, nearby UI, and visible label after the click. Include a visual
+confirmation that the tester is in the right place.
 
 Do not use hidden labels as the primary instruction. If a menu title or tooltip
 only appears after hover/click, first describe the visible anchor that lets the
@@ -122,18 +126,17 @@ Click a tooltip-only menu title without describing the visible icon.
 
 Add a static HTML file when QA needs clickable browser actions, protocol links,
 deep links, downloads, or copyable sample data. The HTML must work from disk
-without a dev server and should label every link with its purpose and expected
-result.
+without a dev server. Label every link with its purpose and expected result.
 
 ## Helper Scripts
 
-Scripts should be small, deterministic, and safe by default. Prefer read-only
-checks. If a script changes OS or app state, the flow must explicitly say so and
-describe how to undo or verify the change.
+Keep scripts small, deterministic, and safe by default. Prefer read-only
+checks. If a script changes OS or app state, the flow must say so and describe
+how to undo or check the change.
 
 Common scripts:
 
-- `node qa/scripts/validate-flows.mjs qa/<pack>` validates the local source
+- `node qa/scripts/validate-flows.mjs qa/<pack>` checks the local source
   format before review or export.
 - `node qa/scripts/export-qase-csv.mjs qa/<pack>` writes
   `qa/<pack>/exports/qase-import.csv` for Qase source type `Qase.io`.
@@ -155,9 +158,9 @@ Evidence:
 Notes:
 ```
 
-Use `confirmed` only when the behavior was reproduced with evidence. Use
-`suspected` when the code path is credible but not fully reproduced. Use
-`blocked` when platform, permissions, environment, or build access prevents
+Use `confirmed` only when you reproduced the behavior with evidence. Use
+`suspected` when the code path is credible but you did not fully reproduce it.
+Use `blocked` when platform, permissions, environment, or build access prevents
 validation.
 
 Do not commit screenshots, logs, diagnostics JSON, or machine-specific results
@@ -167,3 +170,9 @@ unless a release owner explicitly asks for them.
 
 - `qa/telephony-deeplink/` covers telephony `tel:` / `callto:` links, settings,
   diagnostics, workspace selection, default handlers, and installer policy.
+- `qa/conference-call-window/` covers how Desktop opens `/conference/...` call
+  pages in a separate window.
+- `qa/core-2525-tray-presence/` covers the tray and menu-bar presence icon and
+  the tray context menu.
+- `qa/supported-versions/` covers startup behavior that allows, warns about, or
+  blocks a server based on its supported version.

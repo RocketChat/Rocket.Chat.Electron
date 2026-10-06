@@ -374,11 +374,20 @@ describe('readUiPreviewPullRequest', () => {
   });
 
   it('gives up on a GitHub that does not answer in time', async () => {
-    const fetch = answer({ title: 'A title', state: 'open' });
+    const timeout = jest
+      .spyOn(AbortSignal, 'timeout')
+      .mockReturnValue(AbortSignal.abort(new Error('timed out')));
+    jest.spyOn(net, 'fetch').mockImplementation(
+      (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          if (init?.signal?.aborted) {
+            reject(init.signal.reason);
+          }
+        })
+    );
 
-    await readUiPreviewPullRequest('1');
-
-    expect(fetch.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+    await expect(readUiPreviewPullRequest('1')).rejects.toThrow('timed out');
+    expect(timeout).toHaveBeenCalledWith(5000);
   });
 
   it('fails when GitHub refuses, as it does past its rate limit', async () => {

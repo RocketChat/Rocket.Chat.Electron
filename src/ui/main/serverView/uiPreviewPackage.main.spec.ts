@@ -373,6 +373,14 @@ describe('readUiPreviewPullRequest', () => {
     await expect(readUiPreviewPullRequest('1')).resolves.toBeUndefined();
   });
 
+  it('gives up on a GitHub that does not answer in time', async () => {
+    const fetch = answer({ title: 'A title', state: 'open' });
+
+    await readUiPreviewPullRequest('1');
+
+    expect(fetch.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it('fails when GitHub refuses, as it does past its rate limit', async () => {
     jest
       .spyOn(net, 'fetch')

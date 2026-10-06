@@ -154,13 +154,19 @@ const readManifest = async (
   return { digest, revision, createdAt };
 };
 
+// The PR only decorates a listed build, so a slow GitHub never holds up adding or refreshing it.
+const pullRequestTimeoutMs = 5000;
+
 // GitHub's API answers without a login, up to 60 requests an hour per address.
 export const readUiPreviewPullRequest = async (
   pr: string
 ): Promise<UiPreviewPullRequest | undefined> => {
   const response = await fetchOk(
     `https://api.github.com/repos/RocketChat/Rocket.Chat/pulls/${pr}`,
-    { headers: { Accept: 'application/vnd.github+json' } }
+    {
+      headers: { Accept: 'application/vnd.github+json' },
+      signal: AbortSignal.timeout(pullRequestTimeoutMs),
+    }
   );
   const {
     title,

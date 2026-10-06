@@ -39,6 +39,23 @@ describe('uiPreviewHistory reducer', () => {
       ).toEqual([entry('42364', 'sha256:b'), entry('develop')]);
     });
 
+    it('keeps the listed PR when a source added again carries none', () => {
+      const pullRequest = { title: 'A title', state: 'open' as const };
+
+      expect(
+        uiPreviewHistory(
+          [entry('develop'), { ...entry('42364'), pullRequest }],
+          {
+            type: UI_PREVIEW_HISTORY_ENTRY_ADDED,
+            payload: entry('42364', 'sha256:b'),
+          }
+        )
+      ).toEqual([
+        { ...entry('42364', 'sha256:b'), pullRequest },
+        entry('develop'),
+      ]);
+    });
+
     it('drops the entry added longest ago past twenty', () => {
       const listed = Array.from({ length: 20 }, (_, index) =>
         entry(String(index + 1))

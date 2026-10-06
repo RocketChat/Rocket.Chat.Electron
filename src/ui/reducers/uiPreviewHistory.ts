@@ -18,6 +18,15 @@ type UiPreviewHistoryAction =
 // Bounds the persisted list; adding past it drops the entry added longest ago.
 const maxEntries = 20;
 
+// An entry read without the PR keeps the one listed, as GitHub may not have answered.
+const keepPullRequest = (
+  entry: UiPreviewHistoryEntry,
+  listed: UiPreviewHistoryEntry | undefined
+): UiPreviewHistoryEntry =>
+  entry.pullRequest || !listed?.pullRequest
+    ? entry
+    : { ...entry, pullRequest: listed.pullRequest };
+
 /**
  * The web UI builds listed in Settings, newest addition first, keyed by input.
  *
@@ -31,24 +40,19 @@ export const uiPreviewHistory: Reducer<
   switch (action.type) {
     case UI_PREVIEW_HISTORY_ENTRY_ADDED: {
       const entry = action.payload;
+      const listed = state.find(({ input }) => input === entry.input);
       return [
-        entry,
+        keepPullRequest(entry, listed),
         ...state.filter(({ input }) => input !== entry.input),
       ].slice(0, maxEntries);
     }
 
     // In place, and only for a listed entry, so a refresh never reorders or revives one.
-    // An update without the PR keeps the one listed, as GitHub may not have answered.
     case UI_PREVIEW_HISTORY_ENTRY_UPDATED: {
       const entry = action.payload;
-      return state.map((listed) => {
-        if (listed.input !== entry.input) {
-          return listed;
-        }
-        return entry.pullRequest || !listed.pullRequest
-          ? entry
-          : { ...entry, pullRequest: listed.pullRequest };
-      });
+      return state.map((listed) =>
+        listed.input === entry.input ? keepPullRequest(entry, listed) : listed
+      );
     }
 
     case UI_PREVIEW_HISTORY_ENTRY_REMOVED:

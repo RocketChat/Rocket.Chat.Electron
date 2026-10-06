@@ -366,19 +366,41 @@ search, tests and careful review instead.
 
 ## Reindex
 
-- Reindex only at a quiet point, with
+- Reindex only from the main checkout, at a quiet point, with
   `node .gitnexus/run.cjs analyze --index-only`. No `.gitnexus/run.cjs` yet?
   Run `npx gitnexus analyze --index-only` (if npm 11 crashes, run
   `npm i -g gitnexus`, see #1939).
+  - Do not run `analyze` inside a linked worktree. It registers a second
+    index under the same name, `Rocket.Chat.Electron`. Lookups by that name
+    then fail with "Multiple registered repos match", and the extra index
+    goes stale. To remove one, run `gitnexus clean --force` in that worktree.
   - `--index-only` skips every generated file. Without it, `analyze`
     rewrites the generated skills in `.claude/skills/gitnexus/`.
   - `.gitnexusrc` sets `skipAgentsMd`, so that `analyze` does not rewrite this
     block and does not create a root `CLAUDE.md`. Keep that setting. A
     GitNexus version that ignores `.gitnexusrc` creates `CLAUDE.md`. Delete
     it if that happens.
-  - A background `analyze` changes worktree git state. It can silently drop
-    freshly staged files from the index, and it can touch watched sources,
-    which restarts a running `yarn start` app during a verification.
+  - Keep the quiet point. A background `analyze` was suspected of dropping
+    freshly staged files and of restarting a running `yarn start`. Upstream
+    could not reproduce it (GitNexus #2906).
+
+## Worktrees
+
+The MCP server serves the index of the main checkout, and it diffs the
+checkout that the session was started from. This stays true when you edit
+files in a linked worktree.
+
+- Pass `repo: "Rocket.Chat.Electron"` to every tool. A session started
+  inside a worktree fails without it.
+- Pass `worktree: "<absolute worktree path>"` to `detect_changes`. Without
+  it, a session started in the main checkout diffs the main checkout and
+  misses every change in the worktree.
+- `query`, `context` and `impact` describe the main checkout at its indexed
+  commit. `list_repos` shows that commit and how far it is behind. For a
+  symbol that your branch adds or changes, read the source.
+- `detect_changes` maps changed lines to symbols through that same index. A
+  stale index can name the wrong symbol, so reindex the main checkout before
+  a review that depends on exact symbols.
 
 ## Always Do
 

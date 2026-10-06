@@ -148,7 +148,7 @@
 - Expect this to recur as the suite grows: raising the ceiling buys headroom, it does not
   stop the accumulation. If it returns, do NOT just raise the number again — the real fix is
   upstream disposing each child as its target finishes instead of at end-of-run. Note that
-  `workerIdleMemoryLimit` does NOT help: Jest recycles *worker processes* after a test, and
+  `workerIdleMemoryLimit` does NOT help: Jest recycles _worker processes_ after a test, and
   at `--maxWorkers=1` with this custom runner there is no worker to recycle.
 - Affected files: .github/workflows/validate-pr.yml, .github/workflows/build-release.yml,
   package.json, patches/@kayahr+jest-electron-runner+29.14.0.patch.

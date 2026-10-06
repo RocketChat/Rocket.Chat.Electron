@@ -21,6 +21,7 @@ Read `src/i18n/en.i18n.json` and extract all keys (including nested keys using d
 ### 2. Scan All Languages
 
 For each `*.i18n.json` file in `src/i18n/` (except `en.i18n.json`):
+
 1. Extract all keys using the same dot notation
 2. Compare against the English reference
 3. Record:

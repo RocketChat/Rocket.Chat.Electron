@@ -9,13 +9,13 @@ lowercase, and specific, for example `qa/telephony-deeplink/`.
 
 ## Pack Structure
 
-| Path | Required | Purpose |
-| --- | --- | --- |
-| `README.md` | Yes | Entry point, prerequisites, smoke order, result format |
-| `flows/` | Yes | One Markdown file per scenario |
-| `test-links.html` | When useful | Static browser page for protocol/deep-link/manual click targets |
-| `scripts/` | Optional | Small helper scripts for repeatable environment checks |
-| `results/` | Optional | Local evidence notes; do not commit run-specific artifacts by default |
+| Path              | Required    | Purpose                                                               |
+| ----------------- | ----------- | --------------------------------------------------------------------- |
+| `README.md`       | Yes         | Entry point, prerequisites, smoke order, result format                |
+| `flows/`          | Yes         | One Markdown file per scenario                                        |
+| `test-links.html` | When useful | Static browser page for protocol/deep-link/manual click targets       |
+| `scripts/`        | Optional    | Small helper scripts for repeatable environment checks                |
+| `results/`        | Optional    | Local evidence notes; do not commit run-specific artifacts by default |
 
 ## Flow Files
 

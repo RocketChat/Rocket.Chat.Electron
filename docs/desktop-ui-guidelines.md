@@ -16,14 +16,14 @@ to represent the themed value: tokens resolve differently per theme (e.g.
 
 Semantic guide (hard-won):
 
-| Intent | Token | Notes |
-|---|---|---|
-| Accent / progress / links | `--rcx-color-font-info` | The blue used by the downloads arc and dot |
-| Solid status dot | `--rcx-color-status-bullet-online` | Presence green, made for small solid dots |
-| Solid blue badge | `--rcx-color-badge-background-level-2` | The unread-badge blue (blue-500 `#156FF5` base) |
-| **Trap**: `status-background-*` | — | Pale pastel *badge backgrounds* meant to sit behind darker text; washed out as a solid dot on a light titlebar |
-| Icon button glyph color | `--rcx-color-button-icon-color` → `--rcx-button-secondary-color` → `--rcx-color-button-font-on-secondary` | Copy this exact chain (from `.rcx-button--icon` in fuselage.css) for custom buttons that must match Fuselage `IconButton`s; `color: inherit` resolves to black in dark theme |
-| Subtle stroke/track | `currentColor` + `stroke-opacity: 0.2` | Theme-proof; explicit "light" tokens read wrong on one of the themes |
+| Intent                          | Token                                                                                                     | Notes                                                                                                                                                                        |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accent / progress / links       | `--rcx-color-font-info`                                                                                   | The blue used by the downloads arc and dot                                                                                                                                   |
+| Solid status dot                | `--rcx-color-status-bullet-online`                                                                        | Presence green, made for small solid dots                                                                                                                                    |
+| Solid blue badge                | `--rcx-color-badge-background-level-2`                                                                    | The unread-badge blue (blue-500 `#156FF5` base)                                                                                                                              |
+| **Trap**: `status-background-*` | —                                                                                                         | Pale pastel _badge backgrounds_ meant to sit behind darker text; washed out as a solid dot on a light titlebar                                                               |
+| Icon button glyph color         | `--rcx-color-button-icon-color` → `--rcx-button-secondary-color` → `--rcx-color-button-font-on-secondary` | Copy this exact chain (from `.rcx-button--icon` in fuselage.css) for custom buttons that must match Fuselage `IconButton`s; `color: inherit` resolves to black in dark theme |
+| Subtle stroke/track             | `currentColor` + `stroke-opacity: 0.2`                                                                    | Theme-proof; explicit "light" tokens read wrong on one of the themes                                                                                                         |
 
 ## Fuselage geometry facts
 
@@ -35,7 +35,7 @@ Semantic guide (hard-won):
   as an annulus between r=11 and r=13 centered on (16,16) — i.e. a
   mid-radius-12, stroke-2 ring.
 - Percent text that must not jitter: monospace + `font-variant-numeric:
-  tabular-nums` + `min-width: 3ch` (two digits + `%`; 100% simply grows the
+tabular-nums` + `min-width: 3ch` (two digits + `%`; 100% simply grows the
   pill) — the `UpdateLabel` convention; reuse it, don't invent widths.
 - Fuselage `Select` (and other react-aria-backed inputs) requires a visible
   label, `aria-label`, or `aria-labelledby` — react-aria's `useSelect` only
@@ -62,9 +62,9 @@ CSS:
   buttons, 0.75-scaled artwork) passed only by TopBar layouts.
 - `TabBarButtonWrapper` dims every descendant `button` to **`opacity: 0.6`**
   at rest (hover restores 1). Consequences:
-  - Progress/status artwork rendered *inside* the button inherits the
+  - Progress/status artwork rendered _inside_ the button inherits the
     dimming and looks translucent next to overlay artwork. Either render
-    overlays as absolutely-positioned siblings *outside* the button, or
+    overlays as absolutely-positioned siblings _outside_ the button, or
     override the dimming for attention states.
   - To override: `&&[data-attr='...'] { opacity: 1; }` on the styled button
     (doubled component class + attribute = specificity 0-3-0, beats the
@@ -94,10 +94,10 @@ CSS:
   DOM attribute looks correct. Rules:
   - Put start-angle rotation as an attribute on the circle itself.
   - Never set an unconditional CSS `transform-origin`; for spin animations
-    use `transform-box: fill-box; transform-origin: center;` applied *only*
+    use `transform-box: fill-box; transform-origin: center;` applied _only_
     while animating.
 - Progress arcs: `stroke-dasharray = circumference`, `stroke-dashoffset =
-  circumference × (1 − progress)`, `transition: stroke-dashoffset 200ms` for
+circumference × (1 − progress)`, `transition: stroke-dashoffset 200ms` for
   smooth fill; indeterminate = fixed quarter arc + 1s linear spin. `progress`
   here is normalized to `0–1` — the update store publishes `0–100`, so divide
   by `100` before applying the formula.

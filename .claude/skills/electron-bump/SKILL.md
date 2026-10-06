@@ -46,11 +46,13 @@ Automates a safe Electron upgrade for **this repo** (Rocket.Chat.Electron). Plan
 Dispatch a `researcher` to gather the authoritative breaking-changes list, and a `finder` to confirm the current coupled surface (it may have drifted since this skill was written).
 
 **Researcher brief** — fetch and distill, for the range CURRENT → TARGET:
+
 - Electron breaking-changes doc: `https://www.electronjs.org/docs/latest/breaking-changes` (covers planned + past removals). Also each major's release blog `https://www.electronjs.org/blog/electron-<major>-0`.
 - The bundled **Node.js** and **Chromium** versions for the target release (from `https://releases.electronjs.org/` or the release blog). Node major bump → may need `@types/node` bump + `node-version` in CI.
 - Return a flat list: every breaking/deprecated/removed API in range, each tagged `removed | behavior-change | deprecated`, with the Electron version it landed in.
 
 **Finder brief** — re-confirm the coupled surface in the repo (do not trust this doc blindly; verify):
+
 - Electron version declarations, electron-builder config, CI `node-version` pins.
 - Direct `from 'electron'` imports and which modules dominate.
 - Presence of Electron-coupled patches in `.yarn/patches/` or `patches/`.
@@ -58,17 +60,17 @@ Dispatch a `researcher` to gather the authoritative breaking-changes list, and a
 
 ### Coupled-surface hint map (WHERE to look — never trust any value here as current)
 
-This lists the *kinds of places* coupled to the Electron version, so the finder knows where to look. It is a hint map, not a source of truth: every concrete value (version numbers, bundle ids, pinned Node) MUST come from the finder reading the repo live this run, never from this table. Treat anything specific below as "last seen" only.
+This lists the _kinds of places_ coupled to the Electron version, so the finder knows where to look. It is a hint map, not a source of truth: every concrete value (version numbers, bundle ids, pinned Node) MUST come from the finder reading the repo live this run, never from this table. Treat anything specific below as "last seen" only.
 
-| What | Where | Notes |
-|------|-------|-------|
-| Electron version | `package.json` → `devDependencies.electron` | primary |
-| electron-builder | `package.json` → `devDependencies.electron-builder` | must stay compatible with target Electron major |
-| Builder config | `electron-builder.json` | inspect live. A `mac.bundleVersion` (and similar build ids) exists here but is an APP build id, NOT Electron-coupled — do not bump it for an Electron upgrade unless packaging actually requires it. |
-| CI Node pin | `.github/workflows/build-release.yml`, `pull-request-build.yml`, `validate-pr.yml` | `node-version:` key; bump if target's bundled Node major changes |
-| @types/node | `package.json` | bump to match bundled Node major on major Electron bumps |
-| Runtime version read | `src/ui/main/serverView/index.ts` (`process.versions.electron`) | sanity-check still valid |
-| Cert docs | `docs/corporate-certificate-configuration.md` | references Node TLS API availability per Electron version |
+| What                 | Where                                                                              | Notes                                                                                                                                                                                                |
+| -------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Electron version     | `package.json` → `devDependencies.electron`                                        | primary                                                                                                                                                                                              |
+| electron-builder     | `package.json` → `devDependencies.electron-builder`                                | must stay compatible with target Electron major                                                                                                                                                      |
+| Builder config       | `electron-builder.json`                                                            | inspect live. A `mac.bundleVersion` (and similar build ids) exists here but is an APP build id, NOT Electron-coupled — do not bump it for an Electron upgrade unless packaging actually requires it. |
+| CI Node pin          | `.github/workflows/build-release.yml`, `pull-request-build.yml`, `validate-pr.yml` | `node-version:` key; bump if target's bundled Node major changes                                                                                                                                     |
+| @types/node          | `package.json`                                                                     | bump to match bundled Node major on major Electron bumps                                                                                                                                             |
+| Runtime version read | `src/ui/main/serverView/index.ts` (`process.versions.electron`)                    | sanity-check still valid                                                                                                                                                                             |
+| Cert docs            | `docs/corporate-certificate-configuration.md`                                      | references Node TLS API availability per Electron version                                                                                                                                            |
 
 **Patches**: none Electron-coupled as of E40 (`@ewsjs/xhr` and `@kayahr/jest-electron-runner` are unrelated — see CLAUDE.md). **Native deps**: none (pure JS/TS, no ABI risk). Re-verify both via the finder.
 
@@ -76,12 +78,12 @@ This lists the *kinds of places* coupled to the Electron version, so the finder 
 
 GitNexus-query each before assuming safe. Known hot callsites as of E40:
 
-| API | Risk | Known callsites |
-|-----|------|-----------------|
-| `session.setPermissionRequestHandler` | HIGH | `src/ui/main/serverView/index.ts`, `src/videoCallWindow/ipc.ts` |
-| `desktopCapturer.getSources` | MEDIUM | `src/screenSharing/*` |
-| `contextBridge` | MEDIUM | `src/preload.ts`, `src/videoCallWindow/preload/index.ts` |
-| `screen` / display | MEDIUM | `src/logViewerWindow/ipc.ts`, `src/videoCallWindow/ipc.ts` |
+| API                                   | Risk   | Known callsites                                                 |
+| ------------------------------------- | ------ | --------------------------------------------------------------- |
+| `session.setPermissionRequestHandler` | HIGH   | `src/ui/main/serverView/index.ts`, `src/videoCallWindow/ipc.ts` |
+| `desktopCapturer.getSources`          | MEDIUM | `src/screenSharing/*`                                           |
+| `contextBridge`                       | MEDIUM | `src/preload.ts`, `src/videoCallWindow/preload/index.ts`        |
+| `screen` / display                    | MEDIUM | `src/logViewerWindow/ipc.ts`, `src/videoCallWindow/ipc.ts`      |
 
 Not currently used as of E40 (`webContents.printToPDF`, `remote` module, `BrowserView`/`WebContentsView`) — treat as a hint, not an exclusion list: if the researcher reports one of these as breaking for this range, verify via GitNexus rather than skipping it outright.
 
@@ -96,6 +98,7 @@ For each breaking/removed/changed API the researcher returned, find whether and 
 3. `mcp__gitnexus__impact({ target: "<symbol>", direction: "upstream", repo: "Rocket.Chat.Electron" })` to get the blast radius before editing. **Report HIGH/CRITICAL risk to the user.**
 
 Produce, per breaking change, one of:
+
 - **Not used** — no action.
 - **Used, mechanical fix** — exact files + line-level change.
 - **Used, needs judgment** — flag for the plan, describe the decision.

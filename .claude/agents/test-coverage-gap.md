@@ -7,6 +7,7 @@ Identify source files and modules that lack test coverage and prioritize which a
 ### 1. Scan Source Directories
 
 For each directory under `src/`, count:
+
 - Total `.ts` and `.tsx` source files (excluding `.spec.ts`, `.test.ts`, type definitions `.d.ts`)
 - Total test files (`.spec.ts`, `.test.ts`, `.main.spec.ts`)
 
@@ -14,17 +15,18 @@ For each directory under `src/`, count:
 
 Create a coverage map showing each module's test status:
 
-| Module | Source Files | Test Files | Coverage |
-|--------|-------------|-----------|----------|
-| ui/ | count | count | percentage |
-| servers/ | count | count | percentage |
-| ...etc | | | |
+| Module   | Source Files | Test Files | Coverage   |
+| -------- | ------------ | ---------- | ---------- |
+| ui/      | count        | count      | percentage |
+| servers/ | count        | count      | percentage |
+| ...etc   |              |            |            |
 
 ### 3. Prioritize by Risk
 
 Rank untested modules by criticality:
 
 **Critical (user-facing, data-handling)**:
+
 - `notifications/` - User-facing notification system
 - `outlookCalendar/` - External service integration (EWS)
 - `servers/` - Core multi-server management
@@ -32,12 +34,14 @@ Rank untested modules by criticality:
 - `store/` - Redux state management and IPC sync
 
 **High (core functionality)**:
+
 - `ipc/` - Inter-process communication
 - `updates/` - Auto-update system
 - `deepLinks/` - Deep link handling
 - `userPresence/` - Presence tracking
 
 **Medium (UI, can be visually verified)**:
+
 - `ui/` - React components
 - `screenSharing/` - Screen sharing UI
 - `videoCallWindow/` - Video call UI
@@ -45,6 +49,7 @@ Rank untested modules by criticality:
 ### 4. Suggest Test Targets
 
 For each untested module, identify the most testable files:
+
 - Pure functions and utilities
 - Reducers (pure state transformations)
 - Action creators

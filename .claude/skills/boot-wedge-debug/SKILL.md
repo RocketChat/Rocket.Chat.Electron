@@ -54,13 +54,13 @@ Then inspect the interesting incident in full: `probe`, `timeline`,
 
 ### Reading the report
 
-| Field | Wedge signature |
-|---|---|
-| `reason` | `boot-deadline-exceeded` = 90s without the version signal after a main-frame navigation. `injected-recovery-exhausted` = both auto-recoveries failed. `render-process-gone` / `unresponsive` = process-level death. |
-| `probe.requireType` | `"function"` + `probe.infoModule: "broken: …"` = module registry incomplete (the classic wedge). `"undefined"` = page never got to Meteor at all. |
-| `probe.recoveryAttempts` | How many auto-recoveries ran this session (`null` = none). |
-| `probe.serviceWorkerControlled` | Whether a SW controls the page. Compare with `serviceWorkers` (running SWs in the session). |
-| `timeline` | Look for `injected-recovery-triggered` → `did-navigate` → whether `server-version-updated` ever follows. |
+| Field                           | Wedge signature                                                                                                                                                                                                     |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reason`                        | `boot-deadline-exceeded` = 90s without the version signal after a main-frame navigation. `injected-recovery-exhausted` = both auto-recoveries failed. `render-process-gone` / `unresponsive` = process-level death. |
+| `probe.requireType`             | `"function"` + `probe.infoModule: "broken: …"` = module registry incomplete (the classic wedge). `"undefined"` = page never got to Meteor at all.                                                                   |
+| `probe.recoveryAttempts`        | How many auto-recoveries ran this session (`null` = none).                                                                                                                                                          |
+| `probe.serviceWorkerControlled` | Whether a SW controls the page. Compare with `serviceWorkers` (running SWs in the session).                                                                                                                         |
+| `timeline`                      | Look for `injected-recovery-triggered` → `did-navigate` → whether `server-version-updated` ever follows.                                                                                                            |
 
 A healthy boot never produces a report. Navigation failures with a visible
 ErrorView (e.g. invalid TLS cert) are deliberately excluded.
@@ -94,12 +94,12 @@ Also useful live:
 
 ## Step 3 — Map findings to action
 
-| Finding | Conclusion / next fix |
-|---|---|
-| Rung 2 cures | SW/cache layer — auto-recovery in `injected.ts` should have handled it; check why it didn't fire (counter exhausted? recovery log lines in report console?). |
-| Only rung 3 or 4 cures | Broken state lives in the renderer process → implement/verify the escalation: recreate the webview after recovery attempts exhaust (see PR #3436 "next steps"). |
-| `render-process-gone` reports | Different class of bug — check `details` in timeline (reason: crashed/oom/killed) and processMetrics. |
-| Report shows recovery triggered then `server-version-updated` | Auto-recovery worked; no action, the system healed itself. |
+| Finding                                                       | Conclusion / next fix                                                                                                                                           |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rung 2 cures                                                  | SW/cache layer — auto-recovery in `injected.ts` should have handled it; check why it didn't fire (counter exhausted? recovery log lines in report console?).    |
+| Only rung 3 or 4 cures                                        | Broken state lives in the renderer process → implement/verify the escalation: recreate the webview after recovery attempts exhaust (see PR #3436 "next steps"). |
+| `render-process-gone` reports                                 | Different class of bug — check `details` in timeline (reason: crashed/oom/killed) and processMetrics.                                                           |
+| Report shows recovery triggered then `server-version-updated` | Auto-recovery worked; no action, the system healed itself.                                                                                                      |
 
 ## Step 4 — Land the fix
 
@@ -123,4 +123,4 @@ Also useful live:
   `setVersion` from `setServerInfo` (wired in PR #3436 — it was dead code
   before).
 - The re-render loop fix (PR #3435) is a separate branch; a `Maximum update
-  depth exceeded` storm in a build without it is that bug, not a regression.
+depth exceeded` storm in a build without it is that bug, not a regression.

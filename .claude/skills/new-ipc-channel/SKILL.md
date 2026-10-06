@@ -31,6 +31,7 @@ Add any needed imports at the top of the file if the types reference domain-spec
 ### 2. Add Main Process Handler
 
 Identify the correct main process file based on the channel domain:
+
 - `downloads/*` → `src/downloads/main.ts`
 - `notifications/*` → `src/notifications/main.ts`
 - `servers/*` → `src/servers/main.ts`
@@ -47,6 +48,7 @@ If this channel is called from the renderer process, add the invoke call in the 
 ### 4. Verify
 
 Run type checking to ensure the new channel compiles:
+
 ```bash
 npx tsc --noEmit
 ```

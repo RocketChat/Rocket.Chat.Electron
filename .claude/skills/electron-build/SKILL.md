@@ -17,6 +17,7 @@ Build, lint, and test the Rocket.Chat Electron app. Uses git worktrees to avoid 
 ### 1. Setup
 
 If `skip-worktree` is not "true":
+
 1. Create a worktree from the current branch:
    ```bash
    mkdir -p ../Rocket.Chat.Electron-worktrees
@@ -44,21 +45,23 @@ All tests must pass before building.
 ### 4. Build
 
 Build the app bundle:
+
 ```bash
 yarn build
 ```
 
 Then build platform packages if requested:
 
-| Platform | Command |
-|----------|---------|
-| macOS | `yarn build-mac` |
-| Windows | `yarn build-win` (includes `--x64 --ia32 --arm64`) |
-| Linux | `yarn build-linux` |
+| Platform | Command                                            |
+| -------- | -------------------------------------------------- |
+| macOS    | `yarn build-mac`                                   |
+| Windows  | `yarn build-win` (includes `--x64 --ia32 --arm64`) |
+| Linux    | `yarn build-linux`                                 |
 
 ### 5. Workspace Build
 
 If changes touch `workspaces/desktop-release-action/`:
+
 ```bash
 yarn workspaces:build
 rm -rf workspaces/desktop-release-action/dist/dist
@@ -67,6 +70,7 @@ rm -rf workspaces/desktop-release-action/dist/dist
 ### 6. Cleanup
 
 If a worktree was created:
+
 ```bash
 git worktree remove ../Rocket.Chat.Electron-worktrees/build-$(git branch --show-current)
 ```
@@ -74,6 +78,7 @@ git worktree remove ../Rocket.Chat.Electron-worktrees/build-$(git branch --show-
 ## Report
 
 After completion, report:
+
 - Lint status (pass/fail with error count)
 - Test status (pass/fail with test count)
 - Build status and output location

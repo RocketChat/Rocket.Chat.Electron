@@ -155,6 +155,7 @@ export const TabBar = ({
               userLoggedIn={server.userLoggedIn}
               isAudible={server.isAudible}
               isAudioMuted={server.isAudioMuted}
+              mediaCapture={server.mediaCapture}
               compact={compact}
               orientation={orientation}
               shortcutNumber={shortcutNumber}

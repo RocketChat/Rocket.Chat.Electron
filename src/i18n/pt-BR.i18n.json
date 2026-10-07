@@ -479,7 +479,12 @@
       "addWorkspace": "Adicionar workspace ({{shortcut}}+N)",
       "settingsMenu": "Personalizar e controlar app",
       "audioPlaying": "Reproduzindo áudio",
-      "audioMuted": "Silenciado"
+      "audioMuted": "Silenciado",
+      "muteWorkspace": "Silenciar workspace",
+      "unmuteWorkspace": "Reativar som do workspace",
+      "captureScreen": "Compartilhando tela",
+      "captureCamera": "Câmera ligada",
+      "captureMicrophone": "Microfone ligado"
     }
   },
   "tabBar": {

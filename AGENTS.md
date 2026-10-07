@@ -234,7 +234,7 @@ hooks, `settings.json`).
     getters.
   - A read of a `const` inside a `jest.mock` factory fails, because swc's
     hoisting hits the temporal dead zone.
-- `jest.config.js` excludes 18 preload/renderer specs under `--coverage`.
+- `jest.config.js` excludes 19 preload/renderer specs under `--coverage`.
   Keep at least one CI leg on plain `yarn test` (today: the windows and macos
   shards). Otherwise those specs gate nothing.
 - validate-pr runs the ubuntu shards on `ubuntu-24.04-arm`.

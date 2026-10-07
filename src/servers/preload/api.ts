@@ -14,12 +14,14 @@ import {
   clearOutlookCredentials,
   setUserToken,
 } from '../../outlookCalendar/preload';
+import { dispatch } from '../../store';
 import { onTelephonyCallRequested } from '../../telephony/preload';
+import { WEBVIEW_MEDIA_CAPTURE_CHANGED } from '../../ui/actions';
 import {
   reassertUserPresenceDetection,
   setUserPresenceDetection,
 } from '../../userPresence/preload';
-import type { Server } from '../common';
+import type { MediaCaptureState, Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import {
@@ -45,13 +47,31 @@ import {
 import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
 import { isUiPreviewActive } from './uiPreview';
-import { setUrlResolver } from './urls';
+import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
 
 type ServerInfo = {
   version: string;
+};
+
+const isMediaCaptureState = (value: unknown): value is MediaCaptureState =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as MediaCaptureState).camera === 'boolean' &&
+  typeof (value as MediaCaptureState).microphone === 'boolean' &&
+  typeof (value as MediaCaptureState).screen === 'boolean';
+
+const reportMediaCapture = (state: MediaCaptureState): void => {
+  if (!isMediaCaptureState(state)) {
+    return;
+  }
+
+  dispatch({
+    type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+    payload: { url: getServerUrl(), source: 'workspace', state },
+  });
 };
 
 export let serverInfo: ServerInfo;
@@ -84,6 +104,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
       statusText?: string
     ) => void
   ) => void;
+  reportMediaCapture: (state: MediaCaptureState) => void;
 };
 
 declare global {
@@ -117,6 +138,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserRoles,
   setUserPresence,
   onPresenceChangeRequested,
+  reportMediaCapture,
   setUserThemeAppearance,
   createNotification,
   destroyNotification,

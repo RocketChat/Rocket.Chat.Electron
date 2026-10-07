@@ -1,6 +1,10 @@
 import type { WebContents } from 'electron';
 
-import type { Server } from '../servers/common';
+import type {
+  MediaCaptureSource,
+  MediaCaptureState,
+  Server,
+} from '../servers/common';
 import type {
   NavigationLayout,
   RootWindowIcon,
@@ -66,6 +70,7 @@ export const WEBVIEW_BECAME_RESPONSIVE = 'webview/became-responsive';
 export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_AUDIO_STATE_CHANGED = 'webview/audio-state-changed';
 export const WEBVIEW_AUDIO_MUTED_CHANGED = 'webview/audio-muted-changed';
+export const WEBVIEW_MEDIA_CAPTURE_CHANGED = 'webview/media-capture-changed';
 export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';
 export const WEBVIEW_MESSAGE_BOX_BLURRED = 'webview/message-box-blurred';
 export const WEBVIEW_MESSAGE_BOX_FOCUSED = 'webview/message-box-focused';
@@ -253,6 +258,11 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_AUDIO_MUTED_CHANGED]: {
     url: Server['url'];
     isAudioMuted: boolean;
+  };
+  [WEBVIEW_MEDIA_CAPTURE_CHANGED]: {
+    url: Server['url'];
+    source: MediaCaptureSource;
+    state: MediaCaptureState | null;
   };
   [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;

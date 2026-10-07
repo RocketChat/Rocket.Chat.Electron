@@ -7,6 +7,7 @@ import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop } from './servers/preload/api';
 import { listenToConferenceWindowRequests } from './servers/preload/conferenceWindow';
+import { listenToMediaCaptureReports } from './servers/preload/mediaCapture';
 import { listenToNavigateToRouteRequests } from './servers/preload/navigateToRoute';
 import { listenToPresenceChangeRequests } from './servers/preload/presence';
 import { setServerUrl } from './servers/preload/urls';
@@ -61,6 +62,7 @@ const start = async (): Promise<void> => {
   window.removeEventListener('load', start);
 
   setServerUrl(serverUrl);
+  listenToMediaCaptureReports();
 
   await whenReady();
 

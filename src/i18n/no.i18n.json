@@ -519,7 +519,12 @@
       "addWorkspace": "Legg til server ({{shortcut}}+N)",
       "settingsMenu": "Tilpass og kontroller appen",
       "audioPlaying": "Spiller av lyd",
-      "audioMuted": "Dempet"
+      "audioMuted": "Dempet",
+      "muteWorkspace": "Demp server",
+      "unmuteWorkspace": "Opphev demping av server",
+      "captureScreen": "Deler skjermen",
+      "captureCamera": "Kamera på",
+      "captureMicrophone": "Mikrofon på"
     }
   },
   "tabBar": {

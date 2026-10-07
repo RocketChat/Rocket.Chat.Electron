@@ -499,7 +499,12 @@
       "addWorkspace": "Lägg till arbetsyta ({{shortcut}}+N)",
       "settingsMenu": "Anpassa och kontrollera appen",
       "audioPlaying": "Spelar upp ljud",
-      "audioMuted": "Ljudlös"
+      "audioMuted": "Ljudlös",
+      "muteWorkspace": "Stäng av ljud för arbetsytan",
+      "unmuteWorkspace": "Slå på ljud för arbetsytan",
+      "captureScreen": "Delar skärmen",
+      "captureCamera": "Kamera på",
+      "captureMicrophone": "Mikrofon på"
     }
   },
   "tabBar": {

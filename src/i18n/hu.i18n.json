@@ -506,7 +506,12 @@
       "addWorkspace": "Munkaterület hozzáadása ({{shortcut}}+N)",
       "settingsMenu": "Az alkalmazás személyre szabása és vezérlése",
       "audioPlaying": "Hang lejátszása",
-      "audioMuted": "Némítva"
+      "audioMuted": "Némítva",
+      "muteWorkspace": "Munkaterület némítása",
+      "unmuteWorkspace": "Munkaterület némításának feloldása",
+      "captureScreen": "Képernyő megosztása",
+      "captureCamera": "Kamera bekapcsolva",
+      "captureMicrophone": "Mikrofon bekapcsolva"
     }
   },
   "tabBar": {

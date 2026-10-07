@@ -89,7 +89,10 @@ jest.mock('electron', () => ({
   contextBridge: {
     exposeInMainWorld: (...args: any[]) => (exposeInMainWorld as any)(...args),
   },
-  webFrame: { setZoomFactor: jest.fn() },
+  webFrame: {
+    setZoomFactor: jest.fn(),
+    executeJavaScript: jest.fn(() => Promise.resolve()),
+  },
   clipboard: {
     writeText: jest.fn(),
     readText: jest.fn(() => 'clip'),

@@ -1,5 +1,18 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webFrame } from 'electron';
+
+import type { MediaCaptureState } from '../../servers/common';
+import { MEDIA_CAPTURE_HOOK_SCRIPT } from '../../servers/preload/mediaCapture';
 import './jitsiBridge';
+
+// Same hook as the workspace webview preload. The page's main world is
+// isolated from this preload, so the hook is injected into it and reports back
+// through `RocketChatDesktop.videoCall.reportMediaCapture` below.
+webFrame.executeJavaScript(MEDIA_CAPTURE_HOOK_SCRIPT).catch((error) => {
+  console.error(
+    '[Rocket.Chat Desktop] Failed to inject media capture hook in video call window:',
+    error
+  );
+});
 
 // Accept only in-app relative routes ("/..."), rejecting absolute URLs,
 // protocol-relative URLs ("//host") and the backslash variant ("/\\host") so
@@ -46,6 +59,10 @@ const videoCall = {
         }
       );
     });
+  },
+  // Called by the media capture hook injected above.
+  reportMediaCapture: (state: MediaCaptureState) => {
+    ipcRenderer.send('video-call-window/media-capture-changed', state);
   },
 };
 

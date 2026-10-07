@@ -118,9 +118,11 @@ const select = jest.fn((..._a: any[]) => ({
   isAutoOpenEnabled: false,
 }));
 const dispatchLocal = jest.fn((..._a: any[]) => undefined);
+const dispatch = jest.fn((..._a: any[]) => undefined);
 jest.mock('../../store', () => ({
   select: (...a: any[]) => select(...a),
   dispatchLocal: (...a: any[]) => dispatchLocal(...a),
+  dispatch: (...a: any[]) => dispatch(...a),
 }));
 
 // --- remaining leaf imports of ipc.ts: keep them inert ---
@@ -848,6 +850,104 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         listener({ sender: { hostWebContents: null } })
       ).not.toThrow();
     });
+  });
+
+  // -------------------------------------------------------------------------
+  // media-capture-changed: 'video-call-window/media-capture-changed' (ipcMain.on)
+  // -------------------------------------------------------------------------
+  describe('media-capture-changed', () => {
+    const getMediaCaptureHandler = async () => {
+      await loadModule();
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/media-capture-changed'
+      );
+      if (!call)
+        throw new Error('media-capture-changed listener not registered');
+      return call[1] as (event: unknown, state: unknown) => void;
+    };
+
+    it('dispatches WEBVIEW_MEDIA_CAPTURE_CHANGED for the shared session server', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1));
+
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/media-capture-changed'
+      );
+      const listener = call[1] as (event: unknown, state: unknown) => void;
+
+      listener({}, { camera: true, microphone: false, screen: false });
+
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'webview/media-capture-changed',
+        payload: {
+          url: 'https://chat.example',
+          source: 'videoCall',
+          state: { camera: true, microphone: false, screen: false },
+        },
+      });
+    });
+
+    it('does nothing when there is no active shared-session call', async () => {
+      const listener = await getMediaCaptureHandler();
+
+      listener({}, { camera: true, microphone: false, screen: false });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for a malformed payload', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1));
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/media-capture-changed'
+      );
+      const listener = call[1] as (event: unknown, state: unknown) => void;
+
+      listener({}, { camera: 'yes' });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // teardown: the 'closed' event clears the videoCall media capture source for
+  // a shared session, so the tab indicator drops when the call window closes.
+  // -------------------------------------------------------------------------
+  it("clears the 'videoCall' media capture source on window close (shared session)", async () => {
+    getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+    const { openWindow } = await loadModule();
+    await open(openWindow, makeCallerWc(1));
+
+    fire(createdWindows[0].listeners, 'closed');
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'webview/media-capture-changed',
+      payload: {
+        url: 'https://chat.example',
+        source: 'videoCall',
+        state: null,
+      },
+    });
+  });
+
+  it('does not dispatch a clear on close for a fallback (non-shared) session', async () => {
+    getServerUrlByWebContentsId.mockReturnValue(undefined);
+    const { openWindow } = await loadModule();
+    await open(openWindow, makeCallerWc(1));
+
+    fire(createdWindows[0].listeners, 'closed');
+
+    expect(dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'webview/media-capture-changed' })
+    );
   });
 
   // -------------------------------------------------------------------------

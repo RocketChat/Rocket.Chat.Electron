@@ -34,10 +34,7 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
-import {
-  SERVERS_LOADED,
-  SERVER_UI_PREVIEW_CHANGED,
-} from './actions';
+import { SERVERS_LOADED, SERVER_UI_PREVIEW_CHANGED } from './actions';
 import { isConferencePageUrl } from './common';
 import type { Server } from './common';
 

@@ -42,7 +42,6 @@ describe('isAddNewServersEnabled', () => {
   });
 });
 
-
 describe('isDebugLoggingEnabled', () => {
   it('starts disabled and applies SETTINGS_SET_DEBUG_LOGGING_CHANGED', () => {
     expect(

@@ -495,7 +495,6 @@ describe('servers reducer', () => {
     });
   });
 
-
   describe('immutability', () => {
     it('should not mutate the original state array on upsert', () => {
       const state = [existing];

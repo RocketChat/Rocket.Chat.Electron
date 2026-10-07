@@ -159,7 +159,9 @@ describe('currentView reducer', () => {
     ).toEqual({ url: 'https://added.example' });
 
     expect(
-      currentView('add-new-server', { type: 'UNKNOWN_CURRENT_VIEW_ACTION' } as any)
+      currentView('add-new-server', {
+        type: 'UNKNOWN_CURRENT_VIEW_ACTION',
+      } as any)
     ).toEqual('add-new-server');
 
     expect(
@@ -374,7 +376,6 @@ describe('openDialog reducer', () => {
     ).toBe('outlook-credentials');
   });
 });
-
 
 describe('rootWindowIcon', () => {
   it('defaults null and sets icon payload', () => {

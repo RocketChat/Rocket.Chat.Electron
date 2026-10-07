@@ -22,7 +22,47 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Uleste-teller i systemstatusikonet",
+        "titleDarwin": "Uleste-indikator i menylinjeikonet",
+        "description": "Vis merket for uleste meldinger på ikonet i stedet for tilstedeværelsesstatusen din."
+      },
+      "menuBarUnreadCount": {
+        "title": "Antall uleste i menylinjen",
+        "description": "Vis antall uleste omtaler ved siden av ikonet i menylinjen."
+      },
+      "uiPreview": {
+        "title": "Last inn en build av nettgrensesnittet",
+        "description": "Kjører en build av Rocket.Chat-nettklienten i stedet for arbeidsområdets eget grensesnitt, og beholder økten din. Legg til «develop» eller et PR-nummer fra Rocket.Chat (begge hentes fra ghcr.io), eller URL-en til en servert pakke, og ta den deretter i bruk i et arbeidsområde. Å oppdatere en oppføring ser etter en nyere build og laster inn arbeidsområdene som bruker den, på nytt.",
+        "placeholder": "develop, 42364 eller http://127.0.0.1:4173/",
+        "add": "Legg til",
+        "adding": "Sjekker at builden finnes…",
+        "applyTo": "Ta i bruk i",
+        "apply": "Ta i bruk",
+        "refresh": "Se etter en nyere build",
+        "refreshing": "Ser etter en nyere build…",
+        "current": "Allerede den nyeste builden.",
+        "updated": "Oppdatert til den nyeste builden.",
+        "remove": "Fjern fra listen",
+        "builtAt": "bygget {{- date}}",
+        "activeOn": "Aktiv i {{- workspaces}}",
+        "restore": "Gjenopprett serverens grensesnitt",
+        "active": "Aktiv i dette arbeidsområdet: {{- label}}",
+        "loading": "Laster ned og tar i bruk…",
+        "failed": "Kunne ikke laste inn: {{- message}}",
+        "cancelled": "Avbrutt.",
+        "inactive": "Bruker serverens grensesnitt.",
+        "pullRequestState": {
+          "open": "Åpen",
+          "draft": "Utkast",
+          "merged": "Flettet",
+          "closed": "Lukket"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Forhåndsvisning av nettgrensesnitt"
     }
   },
   "serverInfo": {
@@ -53,7 +93,13 @@
   },
   "menus": {
     "simulateDisconnected": "Simuler frakobling",
-    "resetWindowBounds": "Tilbakestill vindusstørrelser og -posisjoner"
+    "resetWindowBounds": "Tilbakestill vindusstørrelser og -posisjoner",
+    "restoreServerUi": "Gjenopprett serverens grensesnitt"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Oppdater forhåndsvisning av grensesnitt"
+    }
   },
   "tray": {
     "presence": {
@@ -66,5 +112,19 @@
       "signIn": "Logg på {{- workspace}}",
       "addWorkspace": "Legg til arbeidsområde"
     }
+  },
+  "dialog": {
+    "uiOverride": {
+      "title": "Last inn forhåndsvisning av grensesnitt",
+      "message": "Laste inn et annet nettgrensesnitt for «{{- host}}»?",
+      "detail": "Grensesnittet lastes inn fra {{- bundle}} og kjører med økten din på denne serveren. Fortsett bare hvis du stoler på denne builden. Bruk View > Gjenopprett serverens grensesnitt eller start appen på nytt for å gå tilbake.",
+      "load": "Last inn grensesnitt",
+      "cancel": "Avbryt",
+      "developerModeRequired": "Slå på Help > Developer Mode for å laste inn forhåndsvisninger av grensesnitt.",
+      "failed": "Forhåndsvisningen av grensesnittet kunne ikke lastes inn."
+    }
+  },
+  "tabBar": {
+    "uiPreview": "Forhåndsvisning av grensesnitt: {{- label}}"
   }
 }

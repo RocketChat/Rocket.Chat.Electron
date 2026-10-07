@@ -48,6 +48,8 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     labelKey: 'settings.general',
     settingKeys: [
       'settings.options.trayIcon',
+      'settings.options.trayIconUnreadCounter',
+      'settings.options.menuBarUnreadCount',
       'settings.options.minimizeOnClose',
       'settings.options.menubar',
       'settings.options.flashFrame',
@@ -69,6 +71,7 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.themeAppearance',
       'settings.options.navigation',
       'settings.options.transparentWindow',
+      'settings.options.uiPreview',
     ],
     Component: AppearanceSection,
   },

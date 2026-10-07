@@ -31,10 +31,37 @@ export type Server = {
   supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   expirationMessageLastTimeShown?: Date;
   supportedVersionsValidatedAt?: Date;
+  /** Label of the web UI preview loaded in place of the server's UI, if any. */
+  uiPreview?: string;
+  /** Settings input of that preview, which keys its UI preview history entry. */
+  uiPreviewSource?: string;
   presence?: UserPresence;
   presenceStatusText?: string;
   presenceConnection?: 'connected' | 'connecting' | 'disconnected';
   presenceSupported?: boolean;
+};
+
+// Conference pages host a call and are built to run in their own window; a
+// server view restored onto one has no way back to the app.
+export const isConferencePageUrl = (
+  pageUrl: string,
+  serverUrl: Server['url']
+): boolean => {
+  try {
+    const page = new URL(pageUrl);
+    const server = new URL(serverUrl);
+    if (page.origin !== server.origin) {
+      return false;
+    }
+    const { pathname } = page;
+    const basePath = server.pathname.replace(/\/?$/, '/');
+    return (
+      pathname.startsWith(basePath) &&
+      /^conference(\/|$)/.test(pathname.slice(basePath.length))
+    );
+  } catch {
+    return false;
+  }
 };
 
 export const enum ServerUrlResolutionStatus {

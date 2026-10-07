@@ -40,6 +40,7 @@ import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelera
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
 import { isLogViewerWindowOpen } from '../ui/reducers/isLogViewerWindowOpen';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
+import { isMenuBarUnreadCountEnabled } from '../ui/reducers/isMenuBarUnreadCountEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
 import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnabled';
@@ -50,6 +51,7 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isTelephonyEnabled } from '../ui/reducers/isTelephonyEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isTrayIconUnreadCounterEnabled } from '../ui/reducers/isTrayIconUnreadCounterEnabled';
 import { isVerboseOutlookLoggingEnabled } from '../ui/reducers/isVerboseOutlookLoggingEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
@@ -60,6 +62,7 @@ import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
 import { secondaryWindowStates } from '../ui/reducers/secondaryWindowStates';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
+import { uiPreviewHistory } from '../ui/reducers/uiPreviewHistory';
 import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
@@ -101,6 +104,8 @@ export const rootReducer = combineReducers({
   isSettingsWindowOpen,
   navigationLayout,
   isTrayIconEnabled,
+  isTrayIconUnreadCounterEnabled,
+  isMenuBarUnreadCountEnabled,
   isMinimizeOnCloseEnabled,
   isUpdatePanelOpen,
   isUpdatingAllowed,
@@ -114,6 +119,7 @@ export const rootReducer = combineReducers({
   secondaryWindowStates,
   selectedBrowser,
   servers,
+  uiPreviewHistory,
   userThemePreference,
   skippedUpdateVersion,
   trustedCertificates,

@@ -8,7 +8,12 @@ import { watch, select, Service, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 import type { ActiveServerPresence } from '../selectors';
-import { selectGlobalBadge, selectActiveServerPresence } from '../selectors';
+import {
+  selectGlobalBadge,
+  selectActiveServerPresence,
+  selectIsTrayIconUnreadCounterEnabled,
+  selectIsMenuBarUnreadCountEnabled,
+} from '../selectors';
 import {
   getTrayIconPath,
   getAppIconPath,
@@ -265,17 +270,22 @@ const createTrayIcon = (): Tray => {
 const loadTrayImage = (
   badge: Server['badge'],
   presence: UserPresence | undefined,
-  disconnected: boolean
+  disconnected: boolean,
+  showUnreadCounter: boolean
 ): ReturnType<typeof nativeImage.createFromPath> => {
   const imagePath = getTrayIconPath({
     platform: process.platform,
     badge,
     presence,
     disconnected,
+    showUnreadCounter,
   });
   const image = nativeImage.createFromPath(imagePath);
 
-  if (process.platform === 'darwin' && (presence || disconnected)) {
+  if (
+    process.platform === 'darwin' &&
+    (disconnected || (presence && !showUnreadCounter))
+  ) {
     return applyMacOSMenuBarGlyphAppearance(image);
   }
 
@@ -284,18 +294,27 @@ const loadTrayImage = (
 
 const updateTrayIconImage = (
   trayIcon: Tray,
-  badge: Server['badge'],
-  presence: UserPresence | undefined,
-  disconnected: boolean
+  globalBadge: Server['badge'],
+  activeServerPresence: ActiveServerPresence,
+  showUnreadCounter: boolean
 ): void => {
-  trayIcon.setImage(loadTrayImage(badge, presence, disconnected));
+  trayIcon.setImage(
+    loadTrayImage(
+      globalBadge,
+      getActivePresenceForIcon(activeServerPresence),
+      isDisconnectedForIcon(activeServerPresence),
+      showUnreadCounter
+    )
+  );
 };
 
 const updateTrayIconTitle = (
   trayIcon: Tray,
-  globalBadge: Server['badge']
+  globalBadge: Server['badge'],
+  showUnreadCount: boolean
 ): void => {
-  const title = Number.isInteger(globalBadge) ? String(globalBadge) : '';
+  const title =
+    showUnreadCount && Number.isInteger(globalBadge) ? String(globalBadge) : '';
   trayIcon.setTitle(title);
 };
 
@@ -403,14 +422,17 @@ const manageTrayIcon = async (): Promise<() => void> => {
   };
 
   const unwatchGlobalBadge = watch(selectGlobalBadge, (globalBadge) => {
-    const activeServerPresence = select(selectActiveServerPresence);
     updateTrayIconImage(
       trayIcon,
       globalBadge,
-      getActivePresenceForIcon(activeServerPresence),
-      isDisconnectedForIcon(activeServerPresence)
+      select(selectActiveServerPresence),
+      select(selectIsTrayIconUnreadCounterEnabled)
     );
-    updateTrayIconTitle(trayIcon, globalBadge);
+    updateTrayIconTitle(
+      trayIcon,
+      globalBadge,
+      select(selectIsMenuBarUnreadCountEnabled)
+    );
     updateTrayIconToolTip(trayIcon, globalBadge);
   });
 
@@ -426,14 +448,31 @@ const manageTrayIcon = async (): Promise<() => void> => {
     (activeServerPresence) => {
       const isRootWindowVisible = select(selectIsRootWindowVisible);
       refreshMenu(isRootWindowVisible, isRootWindowVisible);
-
-      const globalBadge = select(selectGlobalBadge);
       updateTrayIconImage(
         trayIcon,
-        globalBadge,
-        getActivePresenceForIcon(activeServerPresence),
-        isDisconnectedForIcon(activeServerPresence)
+        select(selectGlobalBadge),
+        activeServerPresence,
+        select(selectIsTrayIconUnreadCounterEnabled)
       );
+    }
+  );
+
+  const unwatchIsTrayIconUnreadCounterEnabled = watch(
+    selectIsTrayIconUnreadCounterEnabled,
+    (showUnreadCounter) => {
+      updateTrayIconImage(
+        trayIcon,
+        select(selectGlobalBadge),
+        select(selectActiveServerPresence),
+        showUnreadCounter
+      );
+    }
+  );
+
+  const unwatchIsMenuBarUnreadCountEnabled = watch(
+    selectIsMenuBarUnreadCountEnabled,
+    (showUnreadCount) => {
+      updateTrayIconTitle(trayIcon, select(selectGlobalBadge), showUnreadCount);
     }
   );
 
@@ -441,6 +480,8 @@ const manageTrayIcon = async (): Promise<() => void> => {
     unwatchGlobalBadge();
     unwatchIsRootWindowVisible();
     unwatchActiveServerPresence();
+    unwatchIsTrayIconUnreadCounterEnabled();
+    unwatchIsMenuBarUnreadCountEnabled();
     trayIcon.destroy();
   };
 };

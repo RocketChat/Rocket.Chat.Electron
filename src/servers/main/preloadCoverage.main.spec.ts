@@ -141,7 +141,7 @@ const installDomGlobals = (): void => {
     head: {
       ...head,
       appendChild: jest.fn((el: any) => {
-        // Resolve script loads immediately so loadJitsiScript does not hang
+        // Resolve script loads immediately so no injected script hangs a test
         if (el && typeof el.onload === 'function') {
           queueMicrotask(() => el.onload());
         }
@@ -660,8 +660,8 @@ describe('preload modules coverage (node env)', () => {
     });
     require('../../videoCallWindow/preload/index');
     const api = exposeInMainWorld.mock.calls.find(
-      ([name]) => name === 'videoCallWindow'
-    )?.[1];
+      ([name]) => name === 'RocketChatDesktop'
+    )?.[1]?.videoCall;
     expect(api).toBeDefined();
     api.openInMainWindow('/channel/general');
     api.openInMainWindow('https://evil.example');
@@ -669,7 +669,6 @@ describe('preload modules coverage (node env)', () => {
     api.close();
     ipcInvoke.mockResolvedValue(undefined);
     await api.requestScreenSharing();
-    await api.getAuthCredentials();
   });
 
   it('installs JitsiMeetScreenObtainer for jitsi provider', () => {

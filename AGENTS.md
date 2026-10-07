@@ -176,6 +176,9 @@ hooks, `settings.json`).
     `testEnvironment: 'node'`.
   - When you are not sure that Jest finds a new spec, run
     `yarn test --listTests --runTestsByPath <file>`.
+  - Run specs with `yarn test <path>`. The script adds `--forceExit` and
+    `xvfb-maybe`. A bare `npx jest` has no `--forceExit`, and it has hung
+    after the suite passed.
 - Tests run on Windows, macOS and Linux CI. Make each change and each spec
   work on all three platforms.
 - For platform-specific APIs, prefer optional chaining and fallbacks to

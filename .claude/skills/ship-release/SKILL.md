@@ -48,6 +48,9 @@ irreversible step (merge, tag push, release publish) explicitly.
   release counts as buildable. No partial releases.
 - A release without the full asset matrix (below) is NOT done. Report
   exactly which assets are missing.
+- The rules above are the complete blocker list. Put untranslated
+  non-English strings and manual Windows or Linux spot checks in the report
+  as notes. They block only when the user names them as blockers.
 - Monitor CI in the background (`run_in_background` Bash or `watcher`).
   NEVER block the session with foreground polling.
 - Create tags with `yarn release:tag` (`scripts/release-tag.ts`).
@@ -64,7 +67,10 @@ irreversible step (merge, tag push, release publish) explicitly.
    also fetch the relevant `release/X.Y.x`.
 2. List the latest tags, sorted by semver and not by creation date. An alpha
    or an older version created later can otherwise look newest:
-   `git tag --sort=-v:refname | head -5`.
+   `git -c versionsort.suffix=- tag --list '[0-9]*' --sort=-v:refname | head -5`.
+   The `[0-9]*` filter drops the legacy `v4.12.1-alpha.*` and `release-test`
+   tags. A plain version sort ranks them above every real release. The
+   suffix setting ranks `4.17.0` above `4.17.0-alpha.3`.
 3. Resolve TARGET and its type from the argument, or propose one:
    - No pre-release suffix and the latest tag on that `X.Y` line is an
      alpha → **stable promotion**.

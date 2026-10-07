@@ -20,6 +20,7 @@ const COVERAGE_INCOMPATIBLE_SPECS = [
   '<rootDir>/src/servers/preload/__tests__/documentViewer.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/favicon.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/internalVideoChatWindow.spec.ts',
+  '<rootDir>/src/servers/preload/__tests__/mediaCapture.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/presence.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/sidebar.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/uniqueID.spec.ts',

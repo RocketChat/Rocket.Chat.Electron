@@ -31,8 +31,6 @@ export type Server = {
   supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   expirationMessageLastTimeShown?: Date;
   supportedVersionsValidatedAt?: Date;
-  documentViewerOpenUrl?: string;
-  documentViewerFormat?: string;
   /** Label of the web UI preview loaded in place of the server's UI, if any. */
   uiPreview?: string;
   /** Settings input of that preview, which keys its UI preview history entry. */

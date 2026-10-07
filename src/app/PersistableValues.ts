@@ -152,9 +152,9 @@ type PersistableValues_4_18_0 = PersistableValues_4_17_0 & {
   uiPreviewHistory: UiPreviewHistoryEntry[];
 };
 
-export type PersistableValues = Pick<
+export type PersistableValues = Omit<
   PersistableValues_4_18_0,
-  keyof PersistableValues_4_18_0
+  'isSideBarEnabled' | 'lastSelectedServerUrl'
 >;
 
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */

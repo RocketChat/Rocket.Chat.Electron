@@ -366,6 +366,7 @@
     "settings": "Настройки",
     "editMenu": "&Правка",
     "fileMenu": "&Файл",
+    "findInPage": "&Найти…",
     "forward": "Вперед",
     "helpMenu": "&Справка",
     "hide": "Скрыть {{- appName}}",
@@ -398,6 +399,14 @@
     "zoomOut": "Уменьшить",
     "simulateDisconnected": "Симулировать отключение",
     "restoreServerUi": "Вернуть интерфейс сервера"
+  },
+  "findInPage": {
+    "placeholder": "Найти на странице",
+    "matchCount": "{{current}} из {{total}}",
+    "noMatches": "Совпадений нет",
+    "previous": "Предыдущее совпадение",
+    "next": "Следующее совпадение",
+    "close": "Закрыть"
   },
   "loadingError": {
     "title": "Не удалось загрузить сервер",

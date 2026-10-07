@@ -388,6 +388,7 @@
     "settings": "Configuración",
     "editMenu": "&Editar",
     "fileMenu": "&Archivo",
+    "findInPage": "&Buscar…",
     "forward": "&Avanzar",
     "helpMenu": "&Ayuda",
     "hide": "Ocultar {{- appName}}",
@@ -420,6 +421,14 @@
     "zoomOut": "Alejar",
     "simulateDisconnected": "Simular desconexión",
     "restoreServerUi": "Restaurar la UI del servidor"
+  },
+  "findInPage": {
+    "placeholder": "Buscar en la página",
+    "matchCount": "{{current}} de {{total}}",
+    "noMatches": "Sin coincidencias",
+    "previous": "Coincidencia anterior",
+    "next": "Coincidencia siguiente",
+    "close": "Cerrar"
   },
   "loadingError": {
     "title": "Fallo al cargar el servidor",

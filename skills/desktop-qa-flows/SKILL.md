@@ -5,12 +5,12 @@ description: Create or review Qase-ready QA flows for Rocket.Chat Desktop PRs an
 
 # Desktop QA Flows
 
-Use this skill when asked to create, review, or improve QA flows for a
-Rocket.Chat Desktop PR, branch, release candidate, or changed feature.
+Use this skill to create, review, or improve QA flows for a Rocket.Chat
+Desktop PR, branch, release candidate, or changed feature.
 
 ## Canonical References
 
-Read these before authoring flows:
+Read these files before you author flows:
 
 - `AGENTS.md`
 - `qa/AGENTS.md`
@@ -24,7 +24,7 @@ repeatable PR workflow.
 
 1. Lock the comparison range: base branch, head branch or commit, and whether
    the requested range is fully in scope.
-2. Inspect the changed implementation before writing steps: changed files,
+2. Inspect the changed implementation before you write steps: changed files,
    commits, tests, React components, Fuselage icons, i18n labels, menu
    definitions, modal buttons, platform guards, docs, installers, and helper
    pages.
@@ -43,22 +43,23 @@ repeatable PR workflow.
    existing pack.
 8. Write every branch-derived flow with `## Review Basis`: comparison range,
    changed surface, user-visible risk, hypothesis, and smallest useful proof.
-9. Keep every step visually findable. Put screen region, relative position, icon
-   shape, nearby UI, visible labels, and confirmation state directly in the
-   `Action` cell.
+9. Make every step visually findable. Put screen region, relative position,
+   icon shape, nearby UI, visible labels, and confirmation state directly in
+   the `Action` cell.
 10. Add static helper HTML or read-only scripts when they reduce ambiguity for
-    clickable links, protocol handlers, OS checks, or repeated evidence capture.
+    clickable links, protocol handlers, OS checks, or repeated evidence
+    capture.
 
 ## Coverage Rules
 
-- Do not claim full QA unless the full requested comparison range was checked.
+- Do not claim full QA unless you checked the full requested comparison range.
 - Mark unchanged or already-covered surfaces explicitly in the summary.
 - Classify result findings as `confirmed`, `suspected`, or `blocked`.
 - If runtime validation is not practical, use the smallest useful proof: an
   existing test, targeted test, local UI repro, OS-level repro, or code-path
   proof.
-- Keep Qase source IDs in the repo and leave generated Qase IDs empty until a
-  case already exists in Qase.
+- Keep Qase source IDs in the repo. Leave generated Qase IDs empty until the
+  case exists in Qase.
 
 ## Validation
 
@@ -70,4 +71,4 @@ node qa/scripts/export-qase-csv.mjs qa/<pack>
 git diff --check
 ```
 
-Report any unvalidated pack or partial surface review clearly.
+Report each unvalidated pack and each partial surface review.

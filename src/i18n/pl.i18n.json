@@ -106,6 +106,15 @@
         "answerCall": "odbierania połączeń",
         "recordMessage": "nagrywania wiadomości"
       }
+    },
+    "uiOverride": {
+      "title": "Wczytaj podgląd interfejsu",
+      "message": "Wczytać inny interfejs webowy dla „{{- host}}”?",
+      "detail": "Interfejs zostanie wczytany z {{- bundle}} i będzie działał z Twoją sesją na tym serwerze. Kontynuuj tylko, jeśli ufasz tej kompilacji. Aby wrócić, użyj Widok > Przywróć interfejs serwera lub uruchom aplikację ponownie.",
+      "load": "Wczytaj interfejs",
+      "cancel": "Anuluj",
+      "developerModeRequired": "Włącz Pomoc > Tryb programisty, aby wczytywać podglądy interfejsu.",
+      "failed": "Nie udało się wczytać podglądu interfejsu."
     }
   },
   "documentViewer": {
@@ -137,6 +146,15 @@
         "title": "Ikona zasobnika",
         "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
       },
+      "trayIconUnreadCounter": {
+        "title": "Licznik nieprzeczytanych na ikonie zasobnika",
+        "titleDarwin": "Wskaźnik nieprzeczytanych na ikonie paska menu",
+        "description": "Pokazuj na ikonie plakietkę nieprzeczytanych wiadomości zamiast statusu obecności."
+      },
+      "menuBarUnreadCount": {
+        "title": "Liczba nieprzeczytanych na pasku menu",
+        "description": "Pokazuj liczbę nieprzeczytanych wzmianek obok ikony na pasku menu."
+      },
       "availableBrowsers": {
         "title": "Domyślna przeglądarka",
         "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne z tej aplikacji. Ustawienie domyślne systemu używa ustawień Twojego systemu operacyjnego.",
@@ -154,7 +172,38 @@
         "auto": "Zgodnie z systemem",
         "light": "Jasny",
         "dark": "Ciemny"
+      },
+      "uiPreview": {
+        "title": "Wczytaj kompilację interfejsu webowego",
+        "description": "Uruchamia kompilację klienta webowego Rocket.Chat zamiast własnego interfejsu przestrzeni roboczej, zachowując Twoją sesję. Dodaj „develop” lub numer PR Rocket.Chat (oba pobierane z ghcr.io) albo adres URL udostępnianego pakietu, a następnie zastosuj go w przestrzeni roboczej. Odświeżenie pozycji sprawdza, czy jest nowsza kompilacja, i przeładowuje przestrzenie robocze, które jej używają.",
+        "placeholder": "develop, 42364 lub http://127.0.0.1:4173/",
+        "add": "Dodaj",
+        "adding": "Sprawdzanie, czy kompilacja istnieje…",
+        "applyTo": "Zastosuj w",
+        "apply": "Zastosuj",
+        "refresh": "Sprawdź, czy jest nowsza kompilacja",
+        "refreshing": "Sprawdzanie, czy jest nowsza kompilacja…",
+        "current": "To już najnowsza kompilacja.",
+        "updated": "Zaktualizowano do najnowszej kompilacji.",
+        "remove": "Usuń z listy",
+        "builtAt": "zbudowano {{- date}}",
+        "activeOn": "Aktywny w: {{- workspaces}}",
+        "restore": "Przywróć interfejs serwera",
+        "active": "Aktywny w tej przestrzeni roboczej: {{- label}}",
+        "loading": "Pobieranie i stosowanie…",
+        "failed": "Nie udało się wczytać: {{- message}}",
+        "cancelled": "Anulowano.",
+        "inactive": "Używany jest interfejs serwera.",
+        "pullRequestState": {
+          "open": "Otwarty",
+          "draft": "Szkic",
+          "merged": "Scalony",
+          "closed": "Zamknięty"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Podgląd interfejsu webowego"
     }
   },
   "error": {
@@ -211,7 +260,8 @@
     "windowMenu": "&Okno",
     "zoomIn": "Przybliż",
     "zoomOut": "Oddal",
-    "simulateDisconnected": "Symuluj rozłączenie"
+    "simulateDisconnected": "Symuluj rozłączenie",
+    "restoreServerUi": "Przywróć interfejs serwera"
   },
   "loadingError": {
     "title": "Błąd ładowania serwera",
@@ -243,7 +293,8 @@
     "item": {
       "reload": "Przeładuj serwer",
       "remove": "Usuń serwer",
-      "openDevTools": "Otwórz Narzędzia deweloperskie"
+      "openDevTools": "Otwórz Narzędzia deweloperskie",
+      "updateUiPreview": "Aktualizuj podgląd interfejsu"
     }
   },
   "tabBar": {
@@ -282,7 +333,8 @@
       "canceled": "Anulowano",
       "failed": "Nie udało się",
       "dismiss": "Zamknij"
-    }
+    },
+    "uiPreview": "Podgląd interfejsu: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatowanie",

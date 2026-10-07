@@ -5,6 +5,7 @@ import {
   electronBuilderJsonInformation,
   packageJsonInformation,
 } from '../app/main/app';
+import { loggers } from '../logging/scopes';
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
@@ -16,6 +17,16 @@ import {
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import {
+  isConferenceCallPageUrl,
+  requestConferenceWindow,
+} from '../ui/main/serverView/conferenceWindow';
+import type { UiPreviewSource } from '../ui/main/serverView/uiPreview';
+import {
+  isUiPreviewAllowed,
+  parseUiPreviewFlag,
+  requestUiPreviewWithDialog,
+} from '../ui/main/serverView/uiPreview';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
 export type { TelephonyLink } from '../telephony/common';
@@ -235,8 +246,15 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
     if (!/^conference\//.test(path)) {
       return;
     }
+    const { href } = new URL(path, serverUrl);
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
+
+    if (isConferenceCallPageUrl(href, serverUrl)) {
+      requestConferenceWindow(serverUrl, webContents, href);
+      return;
+    }
+
+    webContents.loadURL(href);
   });
 
 const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {
@@ -254,6 +272,29 @@ const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {
   const userId = args.get('userId') ?? undefined;
   if (host && token && userId) {
     await performAuthentication({ host, token, userId });
+  }
+};
+
+const performUiPreview = async ({
+  host,
+  ...source
+}: UiPreviewSource & { host?: string }): Promise<void> => {
+  if (!(await isUiPreviewAllowed())) {
+    return;
+  }
+
+  if (host) {
+    await performOnServer(host, async (serverUrl) => {
+      await requestUiPreviewWithDialog(serverUrl, source);
+    });
+    return;
+  }
+
+  const focusedServerUrl = select(({ currentView }) =>
+    typeof currentView === 'object' ? currentView.url : undefined
+  );
+  if (focusedServerUrl) {
+    await requestUiPreviewWithDialog(focusedServerUrl, source);
   }
 };
 
@@ -304,6 +345,17 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
       break;
     }
 
+    case 'ui-preview': {
+      await performUiPreview({
+        host: args.get('host') ?? undefined,
+        bundle: args.get('bundle') ?? undefined,
+        develop: parseUiPreviewFlag(args.get('develop')),
+        pr: args.get('pr') ?? undefined,
+        sha: args.get('sha') ?? undefined,
+      });
+      break;
+    }
+
     case 'conference': {
       const host = args.get('host') ?? undefined;
       const path = args.get('path') ?? undefined;
@@ -346,6 +398,14 @@ export const setupDeepLinks = (): void => {
     event.preventDefault();
 
     const browserWindow = await getRootWindow();
+
+    loggers.ui.info(
+      'Second instance launched; revealing the running root window',
+      JSON.stringify({
+        isVisible: browserWindow?.isVisible(),
+        isMinimized: browserWindow?.isMinimized(),
+      })
+    );
 
     if (browserWindow && !browserWindow.isVisible()) {
       browserWindow.showInactive();

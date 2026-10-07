@@ -43,7 +43,15 @@ yarn workspaces:build        # Build all workspaces
 - Never back-merge `master` or a `release/X.Y.x` branch into `dev`.
 - Tags are created only via `yarn release:tag` (channel-aware guard).
   Release builds trigger on semver tag pushes only and always produce a
-  draft release for a human to review and publish.
+  draft release for a human to review and publish. `build-release.yml` is a
+  `prepare` job (creates the draft) plus seven parallel packaging jobs; only
+  ONE job per platform may set `upload_update_metadata: 'true'` (nsis, dmg,
+  AppImage) — the `latest*.yml` a job uploads lists only the files that job
+  built, so a second uploader replaces it with a partial list and breaks
+  auto-update. `workflow_dispatch` on that workflow is a signed dry run with
+  no release; use it before trusting a workflow/action change with a tag.
+  The release action reads `mode`, `targets` and `upload_update_metadata`
+  inputs (`workspaces/desktop-release-action/action.yml`).
 - Version invariant: `package.json` on `dev` always equals the newest tag
   cut from `dev`'s own line (the first alpha of a new cycle bumps straight
   to `X.(Y+1).0-alpha.1`).
@@ -141,11 +149,17 @@ yarn workspaces:build        # Build all workspaces
   color/animation tokens, read `docs/desktop-ui-guidelines.md` — token
   semantics and traps, Fuselage geometry/timing facts, the button-dimming and
   SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
-- Tray icons are status-only on macOS, Windows and Linux: six states per
-  platform — `default`, `presence-{online,away,busy,offline}`, `disconnected`
-  (`src/ui/main/icons.ts`). The unread count is never baked into the tray
-  image; it lives on the Windows taskbar overlay (`rootWindow.ts`
-  `setOverlayIcon`), the macOS menu-bar title and the Linux tray tooltip.
+- Tray icons are status-only by default on macOS, Windows and Linux: six
+  states per platform — `default`, `presence-{online,away,busy,offline}`,
+  `disconnected` (`src/ui/main/icons.ts`). The unread count lives on the
+  Windows taskbar overlay (`rootWindow.ts` `setOverlayIcon`), the macOS
+  menu-bar title and the Linux tray tooltip. The opt-in
+  `isTrayIconUnreadCounterEnabled` setting (#3484) swaps presence for the
+  pre-4.17 badge assets (`notification-{dot,1..9,plus-9}`,
+  `notificationTemplate` on macOS; regenerate with
+  `yarn build-assets --unread-counter`); disconnected still wins. The
+  macOS-only `isMenuBarUnreadCountEnabled` setting (CORE-2703, default on)
+  hides the menu-bar title number; the Dock badge is unaffected.
 - Presence bullets reuse Fuselage `StatusBullet` glyphs
   (`src/ui/icons/PresenceBullet.tsx`: filled / clock cut-out / bar cut-out /
   hollow ring; `DisconnectedBadge.tsx`: filled amber with a bold `!`). Any
@@ -167,6 +181,31 @@ yarn workspaces:build        # Build all workspaces
 - Verify new specs with `yarn test --listTests --runTestsByPath <file>` when
   discovery is uncertain.
 - Uses `@kayahr/jest-electron-runner` for Electron environment simulation.
+  It forces `--maxWorkers=1` and spawns one Electron process per spec file,
+  so the only CI parallelism is cross-job `--shard`; after the transform fix
+  that spawn is most of each shard's ~3 min. Do NOT reach for more workers,
+  runner classes or a faster transformer to cut that floor.
+- ts-jest runs transpile-only (`tsconfig: { isolatedModules: true }` inline
+  in `jest.config.js`, `tsconfig.json` untouched). Do NOT switch back to
+  `preset: 'ts-jest'`: the default builds a type-checking Program per spec
+  file and CI has no warm Jest cache, which made the Test step 4× slower.
+  Type errors in specs are caught by `tsc --noEmit` in `yarn lint`.
+- Do NOT switch the transformer to `@swc/jest` without first fixing the two
+  spec patterns it breaks: assigning onto `require(mod).fn` (swc emits
+  read-only getters) and reading a `const` inside a `jest.mock` factory
+  (swc's hoisting hits the temporal dead zone). Measured gain is ~20 s per
+  shard. Story: `docs/postmortem-validate-pr-ci-speed.md`.
+- `jest.config.js` excludes 18 preload/renderer specs under `--coverage`.
+  Keep at least one CI leg running plain `yarn test` (today: windows and
+  macos shards) or those specs gate nothing.
+- validate-pr runs the ubuntu shards on `ubuntu-24.04-arm`. Cache keys MUST
+  include `runner.arch` (both arches report `runner.os == Linux`), and the
+  test job sets `PUPPETEER_SKIP_DOWNLOAD` because puppeteer's postinstall has
+  no arm64 Linux Chromium; puppeteer is only used by `yarn build-assets`.
+- Before blaming CI runners for a slowdown, pull per-step timings
+  (`gh run view <id> --json jobs`) across months. In Sep 2026 the Windows
+  Test step had gone from 1 min to 27 min purely from suite growth plus
+  per-file type-checking; runners were unchanged.
 - Tests run on Windows, macOS, and Linux CI — always verify cross-platform
   behavior.
 - UI changes need runtime/visual verification — component tests cannot see

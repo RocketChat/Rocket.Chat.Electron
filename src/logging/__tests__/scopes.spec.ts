@@ -71,6 +71,7 @@ describe('logging/scopes', () => {
       'videoCall',
       'servers',
       'logViewer',
+      'persistence',
     ]);
     loggers.main.info('shared');
     expect(logInfo).toHaveBeenCalledWith('[worker]', '[main]', 'shared');

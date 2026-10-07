@@ -6,7 +6,13 @@ import { gzipSync } from 'zlib';
 
 import { app, net } from 'electron';
 
-import { extractTar, pruneUiPreviews, pullUiPreview } from './uiPreviewPackage';
+import {
+  extractTar,
+  inspectUiPreview,
+  pruneUiPreviews,
+  pullUiPreview,
+  readUiPreviewPullRequest,
+} from './uiPreviewPackage';
 
 const ustarEntry = (name: string, data = '', type = '0') => {
   const header = Buffer.alloc(512);
@@ -153,11 +159,12 @@ describe('pullUiPreview', () => {
     return dir;
   };
 
-  it('reads the commit the bundle was built from', async () => {
+  it('reads the commit and date the bundle was built from', async () => {
     const hash = 'a'.repeat(64);
     extractedBundle(hash, new Date());
     serveManifest({
       annotations: {
+        'org.opencontainers.image.created': '2026-10-05T13:39:01Z',
         'org.opencontainers.image.revision':
           'b4560f630e424ecbe109789991494988c046fb26',
       },
@@ -166,7 +173,9 @@ describe('pullUiPreview', () => {
 
     await expect(pullUiPreview('develop')).resolves.toEqual({
       dir: path.join(userData, 'ui-previews', hash),
+      digest: `sha256:${hash}`,
       revision: 'b4560f630e424ecbe109789991494988c046fb26',
+      createdAt: '2026-10-05T13:39:01.000Z',
     });
   });
 
@@ -189,6 +198,73 @@ describe('pullUiPreview', () => {
     await pullUiPreview('develop');
 
     expect(Date.now() - fs.statSync(dir).mtimeMs).toBeLessThan(60_000);
+  });
+});
+
+describe('inspectUiPreview', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const serve = (manifest: Response) =>
+    jest
+      .spyOn(net, 'fetch')
+      .mockImplementation(async (input) =>
+        String(input).includes('/token')
+          ? new Response(JSON.stringify({ token: 'anonymous' }))
+          : manifest
+      );
+
+  it('reads a build from its manifest without downloading the bundle', async () => {
+    const fetch = serve(
+      new Response(
+        JSON.stringify({
+          annotations: {
+            'org.opencontainers.image.created': '2026-10-05T13:39:01Z',
+            'org.opencontainers.image.revision':
+              '2bee37da3d2921b09545dbf73b1ca1434ef2d2d0',
+          },
+          layers: [{ digest: `sha256:${'d'.repeat(64)}` }],
+        })
+      )
+    );
+
+    await expect(inspectUiPreview('develop')).resolves.toEqual({
+      digest: `sha256:${'d'.repeat(64)}`,
+      revision: '2bee37da3d2921b09545dbf73b1ca1434ef2d2d0',
+      createdAt: '2026-10-05T13:39:01.000Z',
+    });
+    expect(fetch.mock.calls.map(([input]) => String(input))).toEqual([
+      'https://ghcr.io/token?scope=repository:rocketchat/rocket.chat-web:pull',
+      'https://ghcr.io/v2/rocketchat/rocket.chat-web/manifests/develop',
+    ]);
+  });
+
+  it('ignores a created annotation that is not a date', async () => {
+    serve(
+      new Response(
+        JSON.stringify({
+          annotations: { 'org.opencontainers.image.created': 'yesterday' },
+          layers: [{ digest: `sha256:${'d'.repeat(64)}` }],
+        })
+      )
+    );
+
+    expect((await inspectUiPreview('develop')).createdAt).toBeUndefined();
+  });
+
+  it('names a tag the registry does not have', async () => {
+    serve(new Response('{}', { status: 404 }));
+
+    await expect(inspectUiPreview('pr-1')).rejects.toThrow(
+      'ghcr.io/rocketchat/rocket.chat-web:pr-1 was not found'
+    );
+  });
+
+  it('reports any other registry failure with its status', async () => {
+    serve(new Response('', { status: 503 }));
+
+    await expect(inspectUiPreview('develop')).rejects.toThrow('responded 503');
   });
 });
 
@@ -247,5 +323,80 @@ describe('pruneUiPreviews', () => {
 
   it('does nothing before the first pull', async () => {
     await expect(pruneUiPreviews([])).resolves.toBeUndefined();
+  });
+});
+
+describe('readUiPreviewPullRequest', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const answer = (body: Record<string, unknown>) =>
+    jest
+      .spyOn(net, 'fetch')
+      .mockResolvedValue(new Response(JSON.stringify(body)));
+
+  it('reads the title and state of a Rocket.Chat PR from GitHub', async () => {
+    const fetch = answer({
+      title: ' ci: publish PR UI previews ',
+      state: 'open',
+      draft: false,
+      merged_at: null,
+    });
+
+    await expect(readUiPreviewPullRequest('42364')).resolves.toEqual({
+      title: 'ci: publish PR UI previews',
+      state: 'open',
+    });
+    expect(String(fetch.mock.calls[0][0])).toBe(
+      'https://api.github.com/repos/RocketChat/Rocket.Chat/pulls/42364'
+    );
+  });
+
+  it.each([
+    [{ state: 'open', draft: true, merged_at: null }, 'draft'],
+    [
+      { state: 'closed', draft: false, merged_at: '2026-09-30T21:38:39Z' },
+      'merged',
+    ],
+    [{ state: 'closed', draft: false, merged_at: null }, 'closed'],
+    [{ state: 'closed', draft: true, merged_at: null }, 'closed'],
+  ])('reads %j as %s', async (fields, state) => {
+    answer({ title: 'A title', ...fields });
+
+    expect((await readUiPreviewPullRequest('1'))?.state).toBe(state);
+  });
+
+  it('reads nothing from an answer without a title', async () => {
+    answer({ title: 42, state: 'open' });
+
+    await expect(readUiPreviewPullRequest('1')).resolves.toBeUndefined();
+  });
+
+  it('gives up on a GitHub that does not answer in time', async () => {
+    const timeout = jest
+      .spyOn(AbortSignal, 'timeout')
+      .mockReturnValue(AbortSignal.abort(new Error('timed out')));
+    jest.spyOn(net, 'fetch').mockImplementation(
+      (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          if (init?.signal?.aborted) {
+            reject(init.signal.reason);
+          }
+        })
+    );
+
+    await expect(readUiPreviewPullRequest('1')).rejects.toThrow('timed out');
+    expect(timeout).toHaveBeenCalledWith(5000);
+  });
+
+  it('fails when GitHub refuses, as it does past its rate limit', async () => {
+    jest
+      .spyOn(net, 'fetch')
+      .mockResolvedValue(new Response('', { status: 403 }));
+
+    await expect(readUiPreviewPullRequest('1')).rejects.toThrow(
+      'responded 403'
+    );
   });
 });

@@ -8,7 +8,6 @@ import { HardwareAcceleration } from '../../ui/components/SettingsView/features/
 import { ReportErrors } from '../../ui/components/SettingsView/features/ReportErrors';
 import { ResetWindowBounds } from '../../ui/components/SettingsView/features/ResetWindowBounds';
 import { SettingGroupDivider } from '../../ui/components/SettingsView/features/SettingGroupDivider';
-import { UiPreview } from '../../ui/components/SettingsView/features/UiPreview';
 import { UpdateChannel } from '../../ui/components/SettingsView/features/UpdateChannel';
 import { VerboseOutlookLogging } from '../../ui/components/SettingsView/features/VerboseOutlookLogging';
 
@@ -62,12 +61,6 @@ export const AdvancedSection = () => {
             <DebugLogging />
             <VerboseOutlookLogging />
             <DetailedEventsLogging />
-          </FieldGroup>
-
-          <SettingGroupDivider />
-
-          <FieldGroup>
-            <UiPreview />
           </FieldGroup>
         </>
       )}

@@ -14,6 +14,7 @@ import {
   WEBVIEW_USER_LOGGED_IN,
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
+  WEBVIEW_BECAME_RESPONSIVE,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
   WEBVIEW_ATTACHED,
@@ -387,6 +388,18 @@ describe('servers reducer', () => {
       const failed: Server = { url, failed: true };
       const newState = servers([failed], {
         type: WEBVIEW_DID_START_LOADING,
+        payload: { url },
+      } as any);
+
+      expect(newState[0].failed).toBe(false);
+    });
+  });
+
+  describe('WEBVIEW_BECAME_RESPONSIVE', () => {
+    it('should clear the failed flag', () => {
+      const failed: Server = { url, failed: true };
+      const newState = servers([failed], {
+        type: WEBVIEW_BECAME_RESPONSIVE,
         payload: { url },
       } as any);
 

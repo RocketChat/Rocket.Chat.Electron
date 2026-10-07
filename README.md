@@ -65,7 +65,7 @@ add the options below:
 Prerequisites:
 
 - [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Node.js](https://nodejs.org) >= 24.11.1
+- [Node.js](https://nodejs.org) >= 22.0.0
 - [Yarn](http://yarnpkg.com/) >= 4.0.2
 
 Now just clone and start the app:

@@ -64,6 +64,8 @@ export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_DID_START_LOADING = 'webview/did-start-loading';
 export const WEBVIEW_BECAME_RESPONSIVE = 'webview/became-responsive';
 export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
+export const WEBVIEW_AUDIO_STATE_CHANGED = 'webview/audio-state-changed';
+export const WEBVIEW_AUDIO_MUTED_CHANGED = 'webview/audio-muted-changed';
 export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';
 export const WEBVIEW_MESSAGE_BOX_BLURRED = 'webview/message-box-blurred';
 export const WEBVIEW_MESSAGE_BOX_FOCUSED = 'webview/message-box-focused';
@@ -174,6 +176,7 @@ export const SIDE_BAR_SERVER_COPY_URL = 'side-bar/server-copy-url';
 export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
 export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
+export const SIDE_BAR_SERVER_TOGGLE_MUTE = 'side-bar/server-toggle-mute';
 export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
 export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
@@ -230,6 +233,7 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_SERVER_OPEN_DEV_TOOLS]: Server['url'];
   [SIDE_BAR_SERVER_FORCE_RELOAD]: Server['url'];
   [SIDE_BAR_SERVER_REMOVE]: Server['url'];
+  [SIDE_BAR_SERVER_TOGGLE_MUTE]: Server['url'];
   [WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR]: Server['url'];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
     | 'bold'
@@ -245,6 +249,11 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
   [WEBVIEW_BECAME_RESPONSIVE]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
+  [WEBVIEW_AUDIO_STATE_CHANGED]: { url: Server['url']; isAudible: boolean };
+  [WEBVIEW_AUDIO_MUTED_CHANGED]: {
+    url: Server['url'];
+    isAudioMuted: boolean;
+  };
   [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;

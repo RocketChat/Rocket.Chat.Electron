@@ -39,6 +39,8 @@ export type Server = {
   presenceStatusText?: string;
   presenceConnection?: 'connected' | 'connecting' | 'disconnected';
   presenceSupported?: boolean;
+  isAudible?: boolean;
+  isAudioMuted?: boolean;
 };
 
 // Conference pages host a call and are built to run in their own window; a

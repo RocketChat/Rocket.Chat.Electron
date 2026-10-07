@@ -1,22 +1,31 @@
-import type { UserPresence } from '../../servers/common';
+import type { Server, UserPresence } from '../../servers/common';
 import AppIcon from './AppIcon';
+import Badge from './Badge';
 import DisconnectedBadge from './DisconnectedBadge';
 import PresenceBullet from './PresenceBullet';
 import PresenceBulletCutout from './PresenceBulletCutout';
 
 type LinuxTrayIconProps = {
+  badge?: Server['badge'];
   presence?: UserPresence;
   disconnected?: boolean;
 };
 
-// Linux is status-only, same as macOS/Windows — the unread count lives in
-// the tray tooltip instead of the icon.
-const LinuxTrayIcon = ({ presence, disconnected }: LinuxTrayIconProps) => {
+// Status-only by default, same as macOS/Windows — the unread count lives in
+// the tray tooltip. `badge` is passed only when the user opted into the
+// unread counter tray icon, which replaces the presence bullet.
+const LinuxTrayIcon = ({
+  badge,
+  presence,
+  disconnected,
+}: LinuxTrayIconProps) => {
   let overlay;
   let cutout;
   if (disconnected) {
     overlay = <DisconnectedBadge />;
     cutout = <PresenceBulletCutout />;
+  } else if (badge) {
+    overlay = <Badge value={badge} />;
   } else if (presence) {
     overlay = <PresenceBullet presence={presence} />;
     cutout = <PresenceBulletCutout />;

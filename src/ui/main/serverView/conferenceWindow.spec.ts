@@ -19,6 +19,7 @@ jest.mock('electron', () => ({
   clipboard: { writeText: jest.fn() },
   Menu: { buildFromTemplate: jest.fn(() => ({ popup: jest.fn() })) },
   webContents: { fromId: jest.fn() },
+  powerMonitor: { on: jest.fn(), off: jest.fn() },
 }));
 
 jest.mock('../../../app/main/dev', () => ({
@@ -87,6 +88,7 @@ const createServerWebContents = () => {
     },
     loadURL: jest.fn(() => Promise.resolve()),
     send: jest.fn(),
+    once: jest.fn(),
     isDestroyed: jest.fn(() => false),
   };
   return { serverWebContents, listeners };

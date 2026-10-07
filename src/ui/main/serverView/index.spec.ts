@@ -65,6 +65,11 @@ jest.mock('./popupMenu', () => ({
   createPopupMenuForServerView: jest.fn(),
 }));
 
+jest.mock('./hangRecovery', () => ({
+  ...jest.requireActual('./hangRecovery'),
+  startHeartbeat: jest.fn(() => ({ reset: jest.fn() })),
+}));
+
 describe('serverView attachGuestWebContentsEvents will-navigate guard', () => {
   const mockIsProtocolAllowed = isProtocolAllowed as jest.MockedFunction<
     typeof isProtocolAllowed

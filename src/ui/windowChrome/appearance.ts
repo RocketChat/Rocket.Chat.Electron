@@ -39,12 +39,14 @@ export const TRAFFIC_LIGHTS_INSET =
   TRAFFIC_LIGHTS_X + TRAFFIC_LIGHTS_WIDTH + 16;
 
 /**
- * Width of the Windows caption buttons drawn into the toolbar: three 46px
- * buttons, the metric the OS itself uses. The toolbar reserves as much again at
- * its leading edge so the title stays centred in the window rather than in what
- * is left of it.
+ * Width of the Windows caption buttons drawn into the toolbar: 46px each, the
+ * metric the OS itself uses, times minimise, close and — unless the window is
+ * fixed-size — maximise. The toolbar reserves as much again at its leading edge
+ * so the title stays centred in the window rather than in what is left of it.
  */
-export const WINDOW_CONTROLS_WIDTH = 46 * 3;
+const WINDOW_CONTROL_BUTTON_WIDTH = 46;
+export const windowControlsWidth = (isMaximizable = true): number =>
+  WINDOW_CONTROL_BUTTON_WIDTH * (isMaximizable ? 3 : 2);
 
 /**
  * Window options that hand the title bar over to the toolbar, matching what the

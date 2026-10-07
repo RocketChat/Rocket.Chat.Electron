@@ -9,13 +9,13 @@ For the conceptual overview, see `development-and-release-flow.md`.
 
 ## Branch model
 
-| Event | Where | Mechanics |
-|---|---|---|
-| Feature/fix PR | → `dev` (default branch) | squash-merge |
-| Alpha `X.Y.0-alpha.N` | on `dev` | bump PR on `dev` → tag the `dev` tip via `yarn release:tag` |
-| Stable `X.Y.0` | `dev` → `master` | bump PR on `dev` first, then a release PR `dev`→`master` merged with a **true merge commit** (`gh pr merge --merge`, never squash), tag the merge commit |
-| Patch `X.Y.Z` | `release/X.Y.x` | branch cut from the stable tag `X.Y.0`; fixes land on `dev` first and are cherry-picked down; bump + tag on the release branch |
-| Back-merges | **never** (one exception below) | bump-on-dev-first keeps `master` a pure superset of `dev` |
+| Event                 | Where                           | Mechanics                                                                                                                                                |
+| --------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feature/fix PR        | → `dev` (default branch)        | squash-merge                                                                                                                                             |
+| Alpha `X.Y.0-alpha.N` | on `dev`                        | bump PR on `dev` → tag the `dev` tip via `yarn release:tag`                                                                                              |
+| Stable `X.Y.0`        | `dev` → `master`                | bump PR on `dev` first, then a release PR `dev`→`master` merged with a **true merge commit** (`gh pr merge --merge`, never squash), tag the merge commit |
+| Patch `X.Y.Z`         | `release/X.Y.x`                 | branch cut from the stable tag `X.Y.0`; fixes land on `dev` first and are cherry-picked down; bump + tag on the release branch                           |
+| Back-merges           | **never** (one exception below) | bump-on-dev-first keeps `master` a pure superset of `dev`                                                                                                |
 
 Do not use `release/<version>-alpha.N` (or any alpha) branch naming —
 `release/` is reserved exclusively for patch lines (`release/4.16.x`, etc.).
@@ -23,11 +23,11 @@ Alpha work stays on `dev`; it never gets its own long-lived branch.
 
 ## How channels work
 
-| Channel | Version Format | Who Gets It |
-|---------|---------------|-------------|
-| Stable | `4.12.0` | All users (default) |
-| Beta | `4.12.0-beta.1` | Beta opt-in users |
-| Alpha | `4.12.0-alpha.1` | Alpha opt-in users |
+| Channel | Version Format   | Who Gets It         |
+| ------- | ---------------- | ------------------- |
+| Stable  | `4.12.0`         | All users (default) |
+| Beta    | `4.12.0-beta.1`  | Beta opt-in users   |
+| Alpha   | `4.12.0-alpha.1` | Alpha opt-in users  |
 
 Every release — stable, beta, or alpha — uploads the same update metadata
 (`latest.yml`, `latest-mac.yml`, `latest-linux.yml`); there is no
@@ -107,11 +107,29 @@ Alphas are cut directly from `dev` — no dedicated branch.
    the latest tag in-channel, then tags HEAD and pushes.
 
 4. CI builds automatically: pushing a semver tag is the **only** trigger for
-   release builds (`build-release.yml` no longer runs on branch pushes). The
-   workflow builds for all platforms, generates `latest.yml`,
-   `latest-mac.yml`, `latest-linux.yml` metadata, and creates a **draft**
-   GitHub release marked as Pre-release — that Pre-release flag, not the
-   metadata file name, is what keeps the build away from stable clients.
+   release builds (`build-release.yml` no longer runs on branch pushes). A
+   `prepare` job creates the **draft** GitHub release for the tag, then seven
+   packaging jobs run in parallel and upload into it: `windows-nsis`,
+   `windows-msi`, `windows-appx`, `macos-dmg` (dmg + zip + pkg, universal,
+   notarized), `macos-mas`, `linux-appimage` (AppImage + deb + rpm + tar.gz)
+   and `linux-snap` (also publishes to the Snapcraft channel for the
+   version). Exactly one job per platform uploads the electron-updater
+   metadata (`latest.yml` from `windows-nsis`, `latest-mac.yml` from
+   `macos-dmg`, `latest-linux.yml` from `linux-appimage`): the metadata lists
+   the files that job built, so a second uploader would replace it with a
+   partial list. The draft is marked Pre-release for alpha/beta/rc tags — that
+   flag, not the metadata file name, is what keeps the build away from stable
+   clients. Lint and the Jest suite do not run here; `yarn release:tag` only
+   accepts a HEAD that is already on `dev`, `master` or a `release/*` branch,
+   all of which are gated by `validate-pr.yml`.
+
+   **Dry run without a tag.** `build-release.yml` also accepts
+   `workflow_dispatch`, which is always a dry run. Run it from any branch
+   (`gh workflow run build-release.yml --ref <branch>`): every packaging job
+   builds and signs its targets exactly as a tag push would, skips GitHub
+   releases and Snapcraft, and uploads its `dist/` as a `dry-run-<job>`
+   workflow artifact. Use it to exercise a workflow or release-action change
+   before it is trusted with a real tag.
 
 5. Publish the release: open the draft on GitHub Releases, review the notes,
    click "Publish release". Nothing is visible to any client until a human
@@ -192,11 +210,11 @@ The setting is persisted automatically and survives app restarts.
 
 Create `update.json` in the user data directory:
 
-| Platform | Location |
-|----------|----------|
-| Windows | `%APPDATA%\Rocket.Chat\update.json` |
-| macOS | `~/Library/Application Support/Rocket.Chat/update.json` |
-| Linux | `~/.config/Rocket.Chat/update.json` |
+| Platform | Location                                                |
+| -------- | ------------------------------------------------------- |
+| Windows  | `%APPDATA%\Rocket.Chat\update.json`                     |
+| macOS    | `~/Library/Application Support/Rocket.Chat/update.json` |
+| Linux    | `~/.config/Rocket.Chat/update.json`                     |
 
 Content for alpha channel:
 

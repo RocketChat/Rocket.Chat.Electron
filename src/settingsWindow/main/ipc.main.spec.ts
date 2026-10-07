@@ -43,10 +43,13 @@ jest.mock('../../ui/main/secondaryWindowFocus', () => ({
 jest.mock('../../ui/main/secondaryWindowState', () => ({
   getSavedWindowBounds: jest.fn(() => undefined),
   watchWindowBounds: jest.fn(),
+  onWindowBoundsReset: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../ui/windowChrome/appearance', () => ({
   NOT_FULL_SCREENABLE: {},
+  SIDEBAR_WIDTH: 248,
+  CARD_INSET: 4,
   getTitleBarOptions: jest.fn(() => ({})),
 }));
 
@@ -110,6 +113,9 @@ jest.mock('electron', () => ({
   screen: {
     getDisplayNearestPoint: jest.fn(() => ({
       workAreaSize: { width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1080 },
+    })),
+    getDisplayMatching: jest.fn(() => ({
       workArea: { x: 0, y: 0, width: 1920, height: 1080 },
     })),
   },
@@ -184,6 +190,128 @@ describe('settings-window/confirm-remove-certificate', () => {
 
     await expect(confirmHandler()({} as never, 'example.test')).resolves.toBe(
       true
+    );
+  });
+});
+
+describe('settings-window/reset-window-bounds', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    handleRegistry.clear();
+    createdWindows.length = 0;
+  });
+
+  it('dispatches WINDOW_BOUNDS_RESET', async () => {
+    const { startSettingsWindowHandler } = await loadIpc();
+    const { dispatch } = jest.requireMock('../../store') as {
+      dispatch: jest.Mock;
+    };
+    startSettingsWindowHandler();
+
+    const handler = handleRegistry.get('settings-window/reset-window-bounds');
+    if (!handler) {
+      throw new Error('reset-window-bounds was not registered');
+    }
+    await handler({} as never);
+
+    expect(dispatch).toHaveBeenCalledWith({ type: 'window-bounds/reset' });
+  });
+});
+
+describe('settings-window default sizing', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    handleRegistry.clear();
+    createdWindows.length = 0;
+  });
+
+  it('opens at the fixed default size when the screen has room', async () => {
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 900, height: 720 })
+    );
+  });
+
+  it('is not resizable or maximizable', async () => {
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ resizable: false, maximizable: false })
+    );
+  });
+
+  it('restores a saved position but never a saved size', async () => {
+    const { getSavedWindowBounds } = jest.requireMock(
+      '../../ui/main/secondaryWindowState'
+    ) as { getSavedWindowBounds: jest.Mock };
+    getSavedWindowBounds.mockReturnValue({
+      x: 40,
+      y: 60,
+      width: 1400,
+      height: 1000,
+    });
+
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ x: 40, y: 60, width: 900, height: 720 })
+    );
+  });
+
+  it('keeps a position saved by a narrower window inside the work area', async () => {
+    const { getSavedWindowBounds } = jest.requireMock(
+      '../../ui/main/secondaryWindowState'
+    ) as { getSavedWindowBounds: jest.Mock };
+    getSavedWindowBounds.mockReturnValue({
+      x: 1500,
+      y: 700,
+      width: 400,
+      height: 300,
+    });
+
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ x: 1020, y: 360, width: 900, height: 720 })
+    );
+  });
+
+  it('clamps to the work area when the display is smaller than the default', async () => {
+    const { screen } = jest.requireMock('electron') as {
+      screen: { getDisplayNearestPoint: jest.Mock };
+    };
+    screen.getDisplayNearestPoint.mockReturnValue({
+      workAreaSize: { width: 800, height: 600 },
+      workArea: { x: 0, y: 0, width: 800, height: 600 },
+    });
+
+    const { openSettingsWindow } = await loadIpc();
+    await openSettingsWindow();
+
+    const { BrowserWindow } = jest.requireMock('electron') as {
+      BrowserWindow: jest.Mock;
+    };
+    expect(BrowserWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 800, height: 600 })
     );
   });
 });

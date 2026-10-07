@@ -7,6 +7,7 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { DOWNLOADS_SIMULATION_REQUESTED } from '../../downloads/actions';
+import { loggers } from '../../logging/scopes';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -41,11 +42,14 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
+  WINDOW_BOUNDS_RESET,
 } from '../actions';
 import { formatServerTitle } from '../components/utils/formatServerTitle';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
+import { clearUiOverride } from './serverView/uiOverride';
+import { updateUiPreviewWithDialog } from './serverView/uiPreview';
 
 const t = i18next.t.bind(i18next);
 
@@ -405,6 +409,17 @@ export const createViewMenu = createSelector(
           });
         },
       },
+      {
+        id: 'restoreServerUi',
+        label: t('menus.restoreServerUi'),
+        enabled: typeof currentView === 'object' && !!currentView.url,
+        click: async () => {
+          const currentView = await getCurrentView();
+          if (typeof currentView === 'object' && !!currentView.url) {
+            await clearUiOverride(currentView.url);
+          }
+        },
+      },
       { type: 'separator' },
       {
         id: 'back',
@@ -559,6 +574,13 @@ export const createViewMenu = createSelector(
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.setZoomLevel(0);
+        },
+      },
+      {
+        id: 'resetWindowBounds',
+        label: t('menus.resetWindowBounds'),
+        click: () => {
+          dispatch({ type: WINDOW_BOUNDS_RESET });
         },
       },
       {
@@ -1276,6 +1298,27 @@ export const getServerContextMenuTemplate = (
         });
       },
     },
+    ...on(!!server?.uiPreview, () => [
+      { type: 'separator' } as MenuItemConstructorOptions,
+      {
+        id: 'updateUiPreview',
+        label: t('sidebar.item.updateUiPreview'),
+        click: () => {
+          updateUiPreviewWithDialog(url).catch((error) =>
+            loggers.ui.error('Failed to update the UI preview', error)
+          );
+        },
+      } as MenuItemConstructorOptions,
+      {
+        id: 'restoreServerUi',
+        label: t('menus.restoreServerUi'),
+        click: () => {
+          clearUiOverride(url).catch((error) =>
+            loggers.ui.error('Failed to restore the server UI', error)
+          );
+        },
+      } as MenuItemConstructorOptions,
+    ]),
     // Isolate the destructive action in its own section. Native menus can't
     // color an item, so a separator is the only available emphasis.
     { type: 'separator' },

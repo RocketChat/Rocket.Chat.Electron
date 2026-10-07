@@ -7,8 +7,9 @@ export const setupSnapcraft = (): Promise<void> =>
     await run(`sudo snap install snapcraft --classic --channel stable`);
   });
 
-export const packOnLinux = (): Promise<void> =>
-  runElectronBuilder(`--linux tar.gz deb rpm snap AppImage`);
+export const packOnLinux = (
+  targets = 'tar.gz deb rpm snap AppImage'
+): Promise<void> => runElectronBuilder(`--linux ${targets}`);
 
 const snapChannels = ['edge', 'beta', 'candidate', 'stable'] as const;
 

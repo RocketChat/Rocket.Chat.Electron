@@ -1,6 +1,7 @@
 import { screen } from 'electron';
 
-import { select } from '../../store';
+import { listen, select } from '../../store';
+import type * as SecondaryWindowStateModule from './secondaryWindowState';
 import { getSavedWindowBounds } from './secondaryWindowState';
 
 jest.mock('electron', () => ({
@@ -10,9 +11,11 @@ jest.mock('electron', () => ({
 jest.mock('../../store', () => ({
   select: jest.fn(),
   dispatch: jest.fn(),
+  listen: jest.fn(),
 }));
 
 const mockSelect = select as jest.MockedFunction<typeof select>;
+const mockListen = listen as jest.MockedFunction<typeof listen>;
 const mockGetAllDisplays = screen.getAllDisplays as jest.Mock;
 
 const withSaved = (bounds: unknown) => {
@@ -73,5 +76,69 @@ describe('getSavedWindowBounds', () => {
     );
 
     expect(getSavedWindowBounds('settings')).toBeUndefined();
+  });
+});
+
+describe('onWindowBoundsReset', () => {
+  // The listen() subscription is a lazily-created module-level singleton
+  // shared across every registration, so each test re-imports the module in
+  // isolation to get a clean singleton instead of leaking state between tests.
+  const loadModule = () => {
+    let mod!: typeof SecondaryWindowStateModule;
+    jest.isolateModules(() => {
+      mod = require('./secondaryWindowState');
+    });
+    return mod;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('invokes registered recenter callbacks when the reset action fires', () => {
+    let resetListener: () => void = () => undefined;
+    mockListen.mockImplementation((_type: any, listener: any) => {
+      resetListener = listener;
+      return jest.fn();
+    });
+
+    const { onWindowBoundsReset: register } = loadModule();
+    const settingsRecenter = jest.fn();
+    const downloadsRecenter = jest.fn();
+
+    register('settings', settingsRecenter);
+    register('downloads', downloadsRecenter);
+
+    resetListener();
+
+    expect(settingsRecenter).toHaveBeenCalledTimes(1);
+    expect(downloadsRecenter).toHaveBeenCalledTimes(1);
+  });
+
+  it('only subscribes to the store once across multiple registrations', () => {
+    mockListen.mockReturnValue(jest.fn());
+
+    const { onWindowBoundsReset: register } = loadModule();
+    register('settings', jest.fn());
+    register('downloads', jest.fn());
+
+    expect(mockListen).toHaveBeenCalledTimes(1);
+  });
+
+  it('unsubscribing stops that window from being recentred', () => {
+    let resetListener: () => void = () => undefined;
+    mockListen.mockImplementation((_type: any, listener: any) => {
+      resetListener = listener;
+      return jest.fn();
+    });
+
+    const { onWindowBoundsReset: register } = loadModule();
+    const settingsRecenter = jest.fn();
+    const unsubscribe = register('settings', settingsRecenter);
+
+    unsubscribe();
+    resetListener();
+
+    expect(settingsRecenter).not.toHaveBeenCalled();
   });
 });

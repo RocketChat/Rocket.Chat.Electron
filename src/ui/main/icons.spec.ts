@@ -370,4 +370,101 @@ describe('getTrayIconPath', () => {
       ).toBe(getTrayIconPath({ platform: 'win32', presence: 'online' }));
     });
   });
+
+  describe('unread counter tray icon (showUnreadCounter)', () => {
+    const tray = (...segments: string[]) =>
+      path.join('/app', 'app', 'images', 'tray', ...segments);
+
+    it.each([
+      ['•', 'notification-dot'],
+      [1, 'notification-1'],
+      [9, 'notification-9'],
+      [10, 'notification-plus-9'],
+      [42, 'notification-plus-9'],
+    ] as const)(
+      'maps badge %p to the %s asset on win32 and linux',
+      (badge, name) => {
+        expect(
+          getTrayIconPath({ platform: 'win32', badge, showUnreadCounter: true })
+        ).toBe(tray('win32', `${name}.ico`));
+        expect(
+          getTrayIconPath({ platform: 'linux', badge, showUnreadCounter: true })
+        ).toBe(tray('linux', `${name}.png`));
+      }
+    );
+
+    it('uses the notification template on darwin for any badge', () => {
+      for (const badge of ['•', 1, 10] as const) {
+        expect(
+          getTrayIconPath({
+            platform: 'darwin',
+            badge,
+            showUnreadCounter: true,
+          })
+        ).toBe(tray('darwin', 'notificationTemplate.png'));
+      }
+    });
+
+    it('ignores presence, showing the unread badge instead', () => {
+      expect(
+        getTrayIconPath({
+          platform: 'win32',
+          badge: 3,
+          presence: 'busy',
+          showUnreadCounter: true,
+        })
+      ).toBe(tray('win32', 'notification-3.ico'));
+      expect(
+        getTrayIconPath({
+          platform: 'darwin',
+          badge: '•',
+          presence: 'online',
+          showUnreadCounter: true,
+        })
+      ).toBe(tray('darwin', 'notificationTemplate.png'));
+    });
+
+    it('shows the default icon, not presence, when there are no unreads', () => {
+      expect(
+        getTrayIconPath({
+          platform: 'win32',
+          presence: 'online',
+          showUnreadCounter: true,
+        })
+      ).toBe(tray('win32', 'default.ico'));
+      expect(
+        getTrayIconPath({
+          platform: 'linux',
+          presence: 'away',
+          showUnreadCounter: true,
+        })
+      ).toBe(tray('linux', 'default.png'));
+      expect(
+        getTrayIconPath({
+          platform: 'darwin',
+          presence: 'online',
+          showUnreadCounter: true,
+        })
+      ).toBe(tray('darwin', 'defaultTemplate.png'));
+    });
+
+    it('still shows the disconnected icon when disconnected', () => {
+      expect(
+        getTrayIconPath({
+          platform: 'win32',
+          badge: 5,
+          disconnected: true,
+          showUnreadCounter: true,
+        })
+      ).toBe(tray('win32', 'disconnected.ico'));
+      expect(
+        getTrayIconPath({
+          platform: 'darwin',
+          badge: 5,
+          disconnected: true,
+          showUnreadCounter: true,
+        })
+      ).toBe(tray('darwin', 'disconnected.png'));
+    });
+  });
 });

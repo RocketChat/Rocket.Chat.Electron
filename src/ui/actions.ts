@@ -1,7 +1,12 @@
 import type { WebContents } from 'electron';
 
 import type { Server } from '../servers/common';
-import type { NavigationLayout, RootWindowIcon, WindowState } from './common';
+import type {
+  NavigationLayout,
+  RootWindowIcon,
+  UiPreviewHistoryEntry,
+  WindowState,
+} from './common';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
@@ -92,6 +97,10 @@ export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
 export const SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED =
   'settings/set-is-tray-icon-enabled-changed';
+export const SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED =
+  'settings/set-is-tray-icon-unread-counter-enabled-changed';
+export const SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED =
+  'settings/set-is-menu-bar-unread-count-enabled-changed';
 export const SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED =
   'settings/set-is-telephony-enabled-changed';
 export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
@@ -111,6 +120,11 @@ export const DOWNLOADS_WINDOW_OPEN_STATE_CHANGED =
 export const SETTINGS_WINDOW_OPEN_STATE_CHANGED =
   'settings-window/open-state-changed';
 export const SECONDARY_WINDOW_STATE_CHANGED = 'secondary-window/state-changed';
+export const UI_PREVIEW_HISTORY_ENTRY_ADDED = 'ui-preview-history/entry-added';
+export const UI_PREVIEW_HISTORY_ENTRY_UPDATED =
+  'ui-preview-history/entry-updated';
+export const UI_PREVIEW_HISTORY_ENTRY_REMOVED =
+  'ui-preview-history/entry-removed';
 export const SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED =
   'settings/set-is-video-call-devtools-auto-open-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED =
@@ -182,6 +196,7 @@ export const WINDOW_CONTROLS_MINIMIZE_CLICKED =
 export const WINDOW_CONTROLS_MAXIMIZE_CLICKED =
   'window-controls/maximize-clicked';
 export const WINDOW_CONTROLS_CLOSE_CLICKED = 'window-controls/close-clicked';
+export const WINDOW_BOUNDS_RESET = 'window-bounds/reset';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -283,6 +298,8 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
@@ -291,6 +308,9 @@ export type UiActionTypeToPayloadMap = {
   [LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED]: boolean;
   [DOWNLOADS_WINDOW_OPEN_STATE_CHANGED]: boolean;
   [SETTINGS_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [UI_PREVIEW_HISTORY_ENTRY_ADDED]: UiPreviewHistoryEntry;
+  [UI_PREVIEW_HISTORY_ENTRY_UPDATED]: UiPreviewHistoryEntry;
+  [UI_PREVIEW_HISTORY_ENTRY_REMOVED]: UiPreviewHistoryEntry['input'];
   [SECONDARY_WINDOW_STATE_CHANGED]: {
     id: string;
     bounds: { x: number; y: number; width: number; height: number };
@@ -368,4 +388,5 @@ export type UiActionTypeToPayloadMap = {
   [WINDOW_CONTROLS_MINIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_MAXIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_CLOSE_CLICKED]: void;
+  [WINDOW_BOUNDS_RESET]: void;
 };

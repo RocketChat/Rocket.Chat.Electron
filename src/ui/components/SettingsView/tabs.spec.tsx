@@ -23,6 +23,9 @@ jest.mock('./features/DetailedEventsLogging', () => ({
 jest.mock('./features/VerboseOutlookLogging', () => ({
   VerboseOutlookLogging: () => <div data-testid='verbose-outlook' />,
 }));
+jest.mock('./features/UiPreview', () => ({
+  UiPreview: () => <div data-testid='ui-preview' />,
+}));
 
 jest.mock('./features/ThemeAppearance', () => ({
   ThemeAppearance: () => <div data-testid='theme-appearance' />,
@@ -32,6 +35,12 @@ jest.mock('./features/NavigationLayout', () => ({
 }));
 jest.mock('./features/TrayIcon', () => ({
   TrayIcon: () => <div data-testid='tray' />,
+}));
+jest.mock('./features/MenuBarUnreadCount', () => ({
+  MenuBarUnreadCount: () => <div data-testid='menu-bar-unread-count' />,
+}));
+jest.mock('./features/TrayIconUnreadCounter', () => ({
+  TrayIconUnreadCounter: () => <div data-testid='tray-unread-counter' />,
 }));
 jest.mock('./features/FlashFrame', () => ({
   FlashFrame: () => <div data-testid='flash' />,
@@ -95,18 +104,21 @@ describe('Settings tabs', () => {
     expect(screen.getByTestId('certificates-manager')).toBeInTheDocument();
   });
 
-  it('DeveloperTab renders logging section features', () => {
+  it('DeveloperTab renders logging and UI preview features', () => {
     render(<DeveloperTab />);
     expect(screen.getByText('settings.sections.logging')).toBeInTheDocument();
     expect(screen.getByTestId('debug-logging')).toBeInTheDocument();
     expect(screen.getByTestId('verbose-outlook')).toBeInTheDocument();
     expect(screen.getByTestId('detailed-events')).toBeInTheDocument();
+    expect(screen.getByText('settings.sections.uiPreview')).toBeInTheDocument();
+    expect(screen.getByTestId('ui-preview')).toBeInTheDocument();
   });
 
   it('GeneralTab mounts core settings groups', () => {
     render(<GeneralTab />);
     expect(screen.getByTestId('nav-layout')).toBeInTheDocument();
     expect(screen.getByTestId('tray')).toBeInTheDocument();
+    expect(screen.getByTestId('tray-unread-counter')).toBeInTheDocument();
     expect(screen.getByTestId('flash')).toBeInTheDocument();
     expect(screen.getByTestId('browsers')).toBeInTheDocument();
     expect(screen.getByTestId('hw')).toBeInTheDocument();

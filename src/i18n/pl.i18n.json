@@ -231,6 +231,7 @@
     "documentation": "Dokumentacja",
     "editMenu": "&Edycja",
     "fileMenu": "&Plik",
+    "findInPage": "&Znajdź…",
     "forward": "&Do przodu",
     "helpMenu": "Po&moc",
     "hide": "Ukryj {{- appName}}",
@@ -262,6 +263,14 @@
     "zoomOut": "Oddal",
     "simulateDisconnected": "Symuluj rozłączenie",
     "restoreServerUi": "Przywróć interfejs serwera"
+  },
+  "findInPage": {
+    "placeholder": "Znajdź na stronie",
+    "matchCount": "{{current}} z {{total}}",
+    "noMatches": "Brak wyników",
+    "previous": "Poprzedni wynik",
+    "next": "Następny wynik",
+    "close": "Zamknij"
   },
   "loadingError": {
     "title": "Błąd ładowania serwera",

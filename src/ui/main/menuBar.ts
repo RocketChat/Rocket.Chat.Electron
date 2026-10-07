@@ -22,6 +22,7 @@ import {
   APP_MENU_TRIGGERED,
   CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
+  MENU_BAR_FIND_IN_PAGE_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
   MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
@@ -49,6 +50,7 @@ import { formatServerTitle } from '../components/utils/formatServerTitle';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
+import { terminateIfUnresponsive } from './serverView/hangRecovery';
 import { clearUiOverride } from './serverView/uiOverride';
 import { updateUiPreviewWithDialog } from './serverView/uiPreview';
 
@@ -306,6 +308,21 @@ export const createEditMenu = createSelector(
         label: t('menus.selectAll'),
         role: 'selectAll',
       },
+      { type: 'separator' },
+      {
+        id: 'findInPage',
+        label: t('menus.findInPage'),
+        accelerator: 'CommandOrControl+F',
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          dispatch({ type: MENU_BAR_FIND_IN_PAGE_CLICKED });
+        },
+      },
     ],
   })
 );
@@ -355,9 +372,25 @@ export const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+R',
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const guestWebContents = await getCurrentViewWebcontents();
-          guestWebContents?.reload();
           const currentView = await getCurrentView();
+          const guestWebContents =
+            typeof currentView === 'object' && currentView.url
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          if (
+            guestWebContents &&
+            typeof currentView === 'object' &&
+            terminateIfUnresponsive(guestWebContents)
+          ) {
+            guestWebContents.loadURL(currentView.url).catch((error) => {
+              console.error(
+                'Failed to reload unresponsive server view:',
+                error
+              );
+            });
+          } else {
+            guestWebContents?.reload();
+          }
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,
@@ -625,6 +658,10 @@ export const createViewMenu = createSelector(
 const selectWindowDeps = createStructuredSelector({
   servers: ({ servers }: RootState) => servers,
   currentView: ({ currentView }: RootState) => currentView,
+  isDownloadsWindowOpen: ({ isDownloadsWindowOpen }: RootState) =>
+    isDownloadsWindowOpen,
+  isSettingsWindowOpen: ({ isSettingsWindowOpen }: RootState) =>
+    isSettingsWindowOpen,
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
   }: RootState) => isShowWindowOnUnreadChangedEnabled,
@@ -645,6 +682,8 @@ export const createWindowMenu = createSelector(
   ({
     servers,
     currentView,
+    isDownloadsWindowOpen,
+    isSettingsWindowOpen,
     isShowWindowOnUnreadChangedEnabled,
     isAddNewServersEnabled,
   }): MenuItemConstructorOptions => ({
@@ -720,7 +759,8 @@ export const createWindowMenu = createSelector(
       {
         id: 'downloads',
         label: t('menus.downloads'),
-        checked: currentView === 'downloads',
+        type: 'checkbox',
+        checked: isDownloadsWindowOpen,
         accelerator: 'CommandOrControl+D',
         click: async () => {
           const browserWindow = await getRootWindow();
@@ -735,7 +775,8 @@ export const createWindowMenu = createSelector(
       {
         id: 'settings',
         label: t('menus.settings'),
-        checked: currentView === 'settings',
+        type: 'checkbox',
+        checked: isSettingsWindowOpen,
         accelerator: 'CommandOrControl+,',
         click: async () => {
           const browserWindow = await getRootWindow();

@@ -132,6 +132,7 @@
   },
   "menus": {
     "simulateDisconnected": "Simula disconnessione",
+    "findInPage": "&Trova…",
     "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre",
     "restoreServerUi": "Ripristina l'interfaccia del server"
   },
@@ -151,6 +152,14 @@
       "signIn": "Accedi a {{- workspace}}",
       "addWorkspace": "Aggiungi area di lavoro"
     }
+  },
+  "findInPage": {
+    "placeholder": "Trova nella pagina",
+    "matchCount": "{{current}} di {{total}}",
+    "noMatches": "Nessuna corrispondenza",
+    "previous": "Corrispondenza precedente",
+    "next": "Corrispondenza successiva",
+    "close": "Chiudi"
   },
   "dialog": {
     "uiOverride": {

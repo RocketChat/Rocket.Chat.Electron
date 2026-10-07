@@ -28,13 +28,12 @@ export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED =
   'menu-bar/add-new-server-clicked';
+export const MENU_BAR_FIND_IN_PAGE_CLICKED = 'menu-bar/find-in-page-clicked';
 export const MENU_BAR_SELECT_SERVER_CLICKED = 'menu-bar/select-server-clicked';
 export const MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED =
   'menu-bar/toggle-is-menu-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED =
   'menu-bar/toggle-is-show-window-on-unread-changed-enabled-clicked';
-export const MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED =
-  'menu-bar/toggle-is-side-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED =
@@ -67,6 +66,7 @@ export const WEBVIEW_ATTACHED = 'webview/attached';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_DID_START_LOADING = 'webview/did-start-loading';
+export const WEBVIEW_BECAME_RESPONSIVE = 'webview/became-responsive';
 export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_AUDIO_STATE_CHANGED = 'webview/audio-state-changed';
 export const WEBVIEW_AUDIO_MUTED_CHANGED = 'webview/audio-muted-changed';
@@ -110,8 +110,6 @@ export const SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED =
   'settings/set-is-menu-bar-unread-count-enabled-changed';
 export const SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED =
   'settings/set-is-telephony-enabled-changed';
-export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
-  'settings/set-is-side-bar-enabled-changed';
 export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
   'settings/set-is-menu-bar-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED =
@@ -217,10 +215,10 @@ export type UiActionTypeToPayloadMap = {
   [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
+  [MENU_BAR_FIND_IN_PAGE_CLICKED]: void;
   [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
-  [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED]: boolean;
@@ -254,6 +252,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
+  [WEBVIEW_BECAME_RESPONSIVE]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
   [WEBVIEW_AUDIO_STATE_CHANGED]: { url: Server['url']; isAudible: boolean };
   [WEBVIEW_AUDIO_MUTED_CHANGED]: {
@@ -265,7 +264,7 @@ export type UiActionTypeToPayloadMap = {
     source: MediaCaptureSource;
     state: MediaCaptureState | null;
   };
-  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' | 'downloads' };
+  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
   [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: void;
@@ -320,7 +319,6 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED]: boolean;
-  [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED]: boolean;

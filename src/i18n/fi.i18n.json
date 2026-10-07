@@ -362,6 +362,7 @@
     "settings": "Asetukset",
     "editMenu": "M&uokkaa",
     "fileMenu": "Tie&dosto",
+    "findInPage": "&Etsi…",
     "forward": "V&älitä",
     "helpMenu": "&Ohje",
     "hide": "Piilota {{- appName}}",
@@ -394,6 +395,14 @@
     "zoomOut": "Loitonna",
     "simulateDisconnected": "Simuloi yhteyden katkeamista",
     "restoreServerUi": "Palauta palvelimen käyttöliittymä"
+  },
+  "findInPage": {
+    "placeholder": "Etsi sivulta",
+    "matchCount": "{{current}} / {{total}}",
+    "noMatches": "Ei osumia",
+    "previous": "Edellinen osuma",
+    "next": "Seuraava osuma",
+    "close": "Sulje"
   },
   "loadingError": {
     "title": "Palvelimen lataus epäonnistui",

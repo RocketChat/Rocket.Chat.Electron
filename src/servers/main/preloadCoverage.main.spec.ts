@@ -674,57 +674,46 @@ describe('preload modules coverage (node env)', () => {
     await api.requestScreenSharing();
   });
 
-  it('covers jitsiBridge initialize and helpers', async () => {
+  it('installs JitsiMeetScreenObtainer for jitsi provider', () => {
     ipcSendSync.mockReturnValue('jitsi');
     require('../../videoCallWindow/preload/jitsiBridge');
-    const b = (window as any).jitsiBridge;
-    expect(b).toBeTruthy();
-    await b.initializeJitsiApi({ domain: '', roomName: '' });
-    await b.initializeJitsiApi({
-      domain: 'meet.jit.si',
-      roomName: 'RoomName',
-    });
-    await b.initializeJitsiApi({
-      domain: 'meet.jit.si',
-      roomName: 'RoomName',
-    });
-    expect(b.isInitialized()).toBe(true);
-    expect(document.head.appendChild).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        src: expect.stringContaining('external_api.js'),
-      })
-    );
-    expect(b.getCurrentDomain()).toBe('meet.jit.si');
-    expect(b.getCurrentRoomName()).toBe('RoomName');
-    await b.startScreenSharing();
-    await b.getJitsiVersion();
 
     const obtainer = (window as any).JitsiMeetScreenObtainer;
-    if (obtainer?.openDesktopPicker) {
-      const success = jest.fn();
-      const error = jest.fn();
-      obtainer.openDesktopPicker({}, success, error);
-      const onHandler = (ipcOn.mock.calls as any[]).find(
+    expect(obtainer?.openDesktopPicker).toBeDefined();
+
+    const success = jest.fn();
+    const error = jest.fn();
+    obtainer.openDesktopPicker({}, success, error);
+    const onHandler = (ipcOn.mock.calls as any[]).find(
+      ([ch]) => ch === 'video-call-window/screen-sharing-source-responded'
+    )?.[1];
+    onHandler?.({}, 'screen:0:0');
+    expect(success).toHaveBeenCalledWith('screen:0:0', 'screen');
+
+    obtainer.openDesktopPicker({}, success, error);
+    obtainer.openDesktopPicker({}, success, error);
+    expect(error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Screen sharing request already in progress',
+      })
+    );
+
+    const onHandler2 = (ipcOn.mock.calls as any[])
+      .filter(
         ([ch]) => ch === 'video-call-window/screen-sharing-source-responded'
-      )?.[1];
-      onHandler?.({}, 'screen:0:0');
-      obtainer.openDesktopPicker({}, success, error);
-      obtainer.openDesktopPicker({}, success, error);
-      const onHandler2 = (ipcOn.mock.calls as any[])
-        .filter(
-          ([ch]) => ch === 'video-call-window/screen-sharing-source-responded'
-        )
-        .pop()?.[1];
-      onHandler2?.({}, null);
-    }
-    b.endCall();
-    b.dispose();
-    expect(window.addEventListener).toHaveBeenCalled();
+      )
+      .pop()?.[1];
+    onHandler2?.({}, null);
+    expect(error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'gum.screensharing_user_canceled',
+      })
+    );
   });
 
-  it('skips jitsiBridge when provider is not jitsi', () => {
+  it('skips ScreenObtainer install when provider is not jitsi', () => {
     ipcSendSync.mockReturnValue('pexip');
-    const mod = require('../../videoCallWindow/preload/jitsiBridge');
-    expect(mod.default).toBeNull();
+    require('../../videoCallWindow/preload/jitsiBridge');
+    expect((window as any).JitsiMeetScreenObtainer).toBeUndefined();
   });
 });

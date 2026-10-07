@@ -219,6 +219,7 @@
     "documentation": "Dökümantasyon",
     "editMenu": "&Düzenle",
     "fileMenu": "&Dosya",
+    "findInPage": "&Bul…",
     "forward": "&İleri",
     "helpMenu": "&Yardım",
     "learnMore": "Daha fazlasını öğren",
@@ -246,6 +247,14 @@
     "zoomOut": "Uzaklaştır",
     "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et",
     "restoreServerUi": "Sunucu arayüzünü geri yükle"
+  },
+  "findInPage": {
+    "placeholder": "Sayfada bul",
+    "matchCount": "{{current}} / {{total}}",
+    "noMatches": "Eşleşme yok",
+    "previous": "Önceki eşleşme",
+    "next": "Sonraki eşleşme",
+    "close": "Kapat"
   },
   "loadingError": {
     "title": "Sunucu yüklenirken hata oluştu",

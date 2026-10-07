@@ -417,6 +417,7 @@
     "settings": "Innstillinger",
     "editMenu": "Redigere",
     "fileMenu": "Fil",
+    "findInPage": "&Finn…",
     "forward": "Framover",
     "helpMenu": "Hjelp",
     "hide": "Skjul {{- appName}}",
@@ -454,6 +455,14 @@
     "zoomOut": "Zoom ut",
     "simulateDisconnected": "Simuler frakobling",
     "restoreServerUi": "Gjenopprett serverens grensesnitt"
+  },
+  "findInPage": {
+    "placeholder": "Finn på siden",
+    "matchCount": "{{current}} av {{total}}",
+    "noMatches": "Ingen treff",
+    "previous": "Forrige treff",
+    "next": "Neste treff",
+    "close": "Lukk"
   },
   "loadingError": {
     "title": "Serveren kunne ikke lastes inn",

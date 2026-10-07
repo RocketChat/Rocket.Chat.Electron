@@ -1403,7 +1403,10 @@ describe('deepLinks/main.ts', () => {
           'https://go.rocket.chat/conference?host=https://chat.example.com&path=conference/room-1'
         );
 
-        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+        expect(requestConferenceWindowMock).toHaveBeenCalledWith(
+          'https://chat.example.com',
+          mockWebContents,
           'https://chat.example.com/conference/room-1'
         );
       });

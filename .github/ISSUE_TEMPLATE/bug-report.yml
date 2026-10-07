@@ -14,6 +14,9 @@ body:
 
         For better global communication, English is the language used.
 
+        Attach a [Log Viewer](https://github.com/RocketChat/Rocket.Chat.Electron/blob/dev/docs/troubleshooting.md)
+        export when possible (**Help → Open Log Viewer**).
+
   - type: checkboxes
     attributes:
       label: Search before asking
@@ -43,7 +46,28 @@ body:
       label: Operating System Version
       description: >
         Please specify the version of the operating system.
-      placeholder: Windows 10, macOS 10.15, Ubuntu 18.04
+        Desktop requires macOS 12+, Windows 10+, or Ubuntu 22.04+ (or equivalent).
+      placeholder: macOS 14+, Windows 11, Ubuntu 22.04
+
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: Installation type
+      description: >
+        Where the app was installed from. Updates differ by source
+        (see [How updates work by install source](https://github.com/RocketChat/Rocket.Chat.Electron/blob/dev/README.md#how-updates-work-by-install-source)).
+      options:
+        - Mac App Store
+        - Microsoft Store (AppX)
+        - MSI
+        - NSIS (.exe)
+        - Snap
+        - AppImage
+        - DMG / PKG (GitHub)
+        - deb / rpm
+        - Other / unknown
+    validations:
+      required: true
 
   - type: dropdown
     id: browser-tested
@@ -61,8 +85,9 @@ body:
     attributes:
       label: Rocket.Chat Desktop App Version
       description: >
-        Please specify the version of the Rocket.Chat Desktop App.
-      placeholder: 3.8.9
+        Please specify the version of the Rocket.Chat Desktop App
+        (Help → About). Latest stable is 4.16.x.
+      placeholder: 4.16.x
     validations:
       required: true
 
@@ -70,9 +95,11 @@ body:
     attributes:
       label: Rocket.Chat Server Version
       description: >
-        Please specify the version of the Rocket.Chat Rocket.Chat ([Server](https://github.com/RocketChat/Rocket.Chat/releases))
-          - You could check your Rocket.Chat server's version by going to `<your server>/api/info`, e.g. [http://localhost:3000/api/info](http://localhost:3000/api/info)
-      placeholder: 4.8.2
+        Please specify the version of the connected Rocket.Chat
+        [workspace](https://github.com/RocketChat/Rocket.Chat/releases)
+        (`<your server>/api/info`). Desktop compatibility is that of the
+        connected workspace.
+      placeholder: 7.x
     validations:
       required: true
 
@@ -112,6 +139,19 @@ body:
       placeholder: A clear and concise description of what you expected to happen.
 
   - type: textarea
+    id: log-viewer-export
+    attributes:
+      label: Log Viewer export
+      description: |
+        Open **Help → Open Log Viewer**, reproduce the issue, then use
+        **Copy** or **Save**. See [docs/troubleshooting.md](https://github.com/RocketChat/Rocket.Chat.Electron/blob/dev/docs/troubleshooting.md)
+        for paths if the viewer is unavailable.
+
+        Paste here inside a fenced block, or wrap a long dump in
+        `<details><summary>logs</summary> … </details>`.
+      placeholder: Paste Log Viewer export or main.log excerpt
+
+  - type: textarea
     attributes:
       label: Anything else
       description: |
@@ -119,10 +159,7 @@ body:
             - Once?
             - Every time?
             - Only when certain conditions are met?
-        2. Any relevant logs to include?
-            - Put them here inside fenced \``` \``` blocks
-            - Or put them inside a collapsible details tag if it's too long, like so:
-              - `<details><summary>x.log</summary> lots of stuff </details>`
+        2. Any other context (workspace URL redacted, screen recordings, etc.)
       placeholder: Anything else we need to know?
 
   - type: checkboxes

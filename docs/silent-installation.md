@@ -2,6 +2,11 @@
 
 This document provides comprehensive instructions for silent/unattended installation of the Rocket.Chat Desktop application across all supported operating systems.
 
+Platform minimums and published formats must match the README (4.16.0 as of 2026-08-18): macOS 12+, Ubuntu 22.04+ or equivalent, Linux **x64 only**, no published Flatpak. **MSI is the enterprise default** on Windows — see [enterprise-deployment.md](./enterprise-deployment.md) for MSI properties (`DISABLE_AUTO_UPDATES`, SCCM/Intune). Do not duplicate that runbook here.
+
+How each install source receives updates:
+[How updates work by install source](../README.md#how-updates-work-by-install-source).
+
 ## Table of Contents
 
 - [Supported Platforms](#supported-platforms)
@@ -17,7 +22,7 @@ This document provides comprehensive instructions for silent/unattended installa
   - [Red Hat/Fedora (.rpm)](#red-hatfedora-rpm)
   - [AppImage](#appimage)
   - [Snap](#snap)
-  - [Flatpak](#flatpak)
+  - [Flatpak (builder target only)](#flatpak-builder-target-only)
 - [Post-Installation Configuration](#post-installation-configuration)
   - [Server Configuration (servers.json)](#server-configuration-serversjson)
   - [Settings Override (overridden-settings.json)](#settings-override-overridden-settingsjson)
@@ -31,21 +36,21 @@ This document provides comprehensive instructions for silent/unattended installa
 
 ## Supported Platforms
 
-| Platform | Installer Types                   | Silent Install Support            |
-| -------- | --------------------------------- | --------------------------------- |
-| Windows  | NSIS (.exe), MSI (.msi)           | Full support                      |
-| macOS    | PKG (.pkg), DMG (.dmg)            | Full support (PKG), Partial (DMG) |
-| Linux    | DEB, RPM, AppImage, Snap, Flatpak | Full support                      |
+| Platform | Installer Types              | Silent Install Support            |
+| -------- | ---------------------------- | --------------------------------- |
+| Windows  | NSIS (.exe), MSI (.msi)      | Full support. MSI for enterprise. |
+| macOS    | PKG (.pkg), DMG (.dmg)       | Full support (PKG), Partial (DMG) |
+| Linux    | DEB, RPM, AppImage, Snap     | Full support. x64 only.           |
 
 ---
 
 ## System Requirements
 
-| Platform | Minimum OS Version              | Architecture        | Disk Space |
-| -------- | ------------------------------- | ------------------- | ---------- |
-| Windows  | Windows 10 or later             | x64, ia32, arm64    | ~200 MB    |
-| macOS    | macOS 10.15 (Catalina) or later | x64, arm64 (M1/M2)  | ~250 MB    |
-| Linux    | Ubuntu 20.04 / RHEL 8 or later  | x64, arm64          | ~200 MB    |
+| Platform | Minimum OS Version              | Architecture                    | Disk Space |
+| -------- | ------------------------------- | ------------------------------- | ---------- |
+| Windows  | Windows 10 or later             | x64, ia32, arm64                | ~200 MB    |
+| macOS    | macOS 12 (Monterey) or later    | Universal (x64 + Apple Silicon) | ~250 MB    |
+| Linux    | Ubuntu 22.04+ or equivalent     | x64 only (amd64 / x86_64)       | ~200 MB    |
 
 ### Network Requirements
 
@@ -58,7 +63,12 @@ This document provides comprehensive instructions for silent/unattended installa
 
 ### NSIS Installer (.exe)
 
-The NSIS installer is the recommended method for Windows installations. It supports full silent installation with customizable options.
+The NSIS installer (`.exe`) is the usual choice for interactive or
+end-user installs. It supports full silent installation with customizable
+options.
+
+**For enterprise (SCCM, Intune, GPO, SYSTEM-context), use the MSI.** See
+[enterprise-deployment.md](./enterprise-deployment.md).
 
 #### Basic Silent Installation
 
@@ -82,31 +92,31 @@ rocketchat-<version>-win-x64.exe /S
 **Silent install for current user:**
 
 ```cmd
-rocketchat-4.11.1-win-x64.exe /S
+rocketchat-4.16.0-win-x64.exe /S
 ```
 
 **Silent install for all users:**
 
 ```cmd
-rocketchat-4.11.1-win-x64.exe /S /allusers
+rocketchat-4.16.0-win-x64.exe /S /allusers
 ```
 
 **Silent install with auto-updates disabled:**
 
 ```cmd
-rocketchat-4.11.1-win-x64.exe /S /disableAutoUpdates
+rocketchat-4.16.0-win-x64.exe /S /disableAutoUpdates
 ```
 
 **Silent install to custom directory:**
 
 ```cmd
-rocketchat-4.11.1-win-x64.exe /S /D=C:\Apps\RocketChat
+rocketchat-4.16.0-win-x64.exe /S /D=C:\Apps\RocketChat
 ```
 
 **Full enterprise deployment (all users, no updates, custom path):**
 
 ```cmd
-rocketchat-4.11.1-win-x64.exe /S /allusers /disableAutoUpdates /D=C:\Program Files\RocketChat
+rocketchat-4.16.0-win-x64.exe /S /allusers /disableAutoUpdates /D=C:\Program Files\RocketChat
 ```
 
 #### Silent Uninstallation
@@ -128,7 +138,10 @@ rocketchat-4.11.1-win-x64.exe /S /allusers /disableAutoUpdates /D=C:\Program Fil
 
 ### MSI Installer (.msi)
 
-The MSI installer is ideal for enterprise deployments using Group Policy, SCCM, Intune, or other deployment tools.
+The MSI installer is the **enterprise default** (Group Policy, SCCM,
+Intune, or other SYSTEM-context tools). Public MSI properties such as
+`DISABLE_AUTO_UPDATES` are documented in
+[enterprise-deployment.md](./enterprise-deployment.md).
 
 #### Basic Silent Installation
 
@@ -160,49 +173,49 @@ msiexec /i rocketchat-<version>-win-x64.msi /quiet
 **Silent install (no UI):**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /qn
+msiexec /i rocketchat-4.16.0-win-x64.msi /qn
 ```
 
 **Silent install with progress bar:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /passive
+msiexec /i rocketchat-4.16.0-win-x64.msi /passive
 ```
 
 **Silent install for all users:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /qn ALLUSERS=1
+msiexec /i rocketchat-4.16.0-win-x64.msi /qn ALLUSERS=1
 ```
 
 **Silent install with logging:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /qn /l*v C:\Logs\rocketchat-install.log
+msiexec /i rocketchat-4.16.0-win-x64.msi /qn /l*v C:\Logs\rocketchat-install.log
 ```
 
 **Silent install with custom directory:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /qn TARGETDIR="C:\Apps\RocketChat"
+msiexec /i rocketchat-4.16.0-win-x64.msi /qn TARGETDIR="C:\Apps\RocketChat"
 ```
 
 **Silent install without restart:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /qn /norestart
+msiexec /i rocketchat-4.16.0-win-x64.msi /qn /norestart
 ```
 
 **Full enterprise deployment:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /qn ALLUSERS=1 /norestart /l*v C:\Logs\install.log
+msiexec /i rocketchat-4.16.0-win-x64.msi /qn ALLUSERS=1 /norestart /l*v C:\Logs\install.log
 ```
 
 #### Silent Uninstallation
 
 ```cmd
-msiexec /x rocketchat-4.11.1-win-x64.msi /qn
+msiexec /x rocketchat-4.16.0-win-x64.msi /qn
 ```
 
 Or by product code:
@@ -240,19 +253,19 @@ sudo installer -pkg rocketchat-<version>-mac.pkg -target /
 **Silent install to main disk:**
 
 ```bash
-sudo installer -pkg rocketchat-4.11.1-mac.pkg -target /
+sudo installer -pkg rocketchat-4.16.0-mac.pkg -target /
 ```
 
 **Silent install with verbose output:**
 
 ```bash
-sudo installer -pkg rocketchat-4.11.1-mac.pkg -target / -verboseR
+sudo installer -pkg rocketchat-4.16.0-mac.pkg -target / -verboseR
 ```
 
 **Silent install with logging:**
 
 ```bash
-sudo installer -pkg rocketchat-4.11.1-mac.pkg -target / -dumplog 2>&1 | tee /tmp/rocketchat-install.log
+sudo installer -pkg rocketchat-4.16.0-mac.pkg -target / -dumplog 2>&1 | tee /tmp/rocketchat-install.log
 ```
 
 #### Installation Path
@@ -270,7 +283,7 @@ DMG files require mounting and copying. This can be automated with a script.
 ```bash
 #!/bin/bash
 
-DMG_FILE="rocketchat-4.11.1-mac.dmg"
+DMG_FILE="rocketchat-4.16.0-mac.dmg"
 MOUNT_POINT="/Volumes/Rocket.Chat"
 APP_NAME="Rocket.Chat.app"
 INSTALL_PATH="/Applications"
@@ -293,7 +306,7 @@ echo "Rocket.Chat installed successfully"
 #### One-liner Installation
 
 ```bash
-hdiutil attach rocketchat-4.11.1-mac.dmg -nobrowse -quiet && \
+hdiutil attach rocketchat-4.16.0-mac.dmg -nobrowse -quiet && \
 cp -R "/Volumes/Rocket.Chat/Rocket.Chat.app" /Applications/ && \
 hdiutil detach "/Volumes/Rocket.Chat" -quiet
 ```
@@ -320,7 +333,7 @@ sudo apt install ./rocketchat-<version>-linux-amd64.deb -y
 
 ```bash
 export DEBIAN_FRONTEND=noninteractive
-sudo apt install ./rocketchat-4.11.1-linux-amd64.deb -y
+sudo apt install ./rocketchat-4.16.0-linux-amd64.deb -y
 ```
 
 #### Silent Uninstallation
@@ -442,29 +455,16 @@ sudo snap remove rocketchat-desktop
 
 ---
 
-### Flatpak
+### Flatpak (builder target only)
 
-#### Installation
+4.16.0 does **not** publish a Flatpak. `flatpak` remains an
+electron-builder `linux.target` in `electron-builder.json` for local or
+CI packaging experiments. There is no first-party Flathub/GitHub Flatpak
+asset to silent-install.
 
-```bash
-# Add Flathub repository (if not already added)
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-# Install Rocket.Chat
-flatpak install flathub chat.rocket.RocketChat -y
-```
-
-#### System-wide Installation
-
-```bash
-sudo flatpak install --system flathub chat.rocket.RocketChat -y
-```
-
-#### Silent Uninstallation
-
-```bash
-flatpak uninstall chat.rocket.RocketChat -y
-```
+Do not document or run `flatpak install flathub …` as a Rocket.Chat
+Desktop install path. Use AppImage, deb, rpm, or Snap from GitHub /
+Snap Store instead.
 
 ---
 
@@ -663,12 +663,12 @@ EOF
   tasks:
     - name: Install Rocket.Chat (Debian/Ubuntu)
       apt:
-        deb: 'https://github.com/RocketChat/Rocket.Chat.Electron/releases/download/4.11.1/rocketchat-4.11.1-linux-amd64.deb'
+        deb: 'https://github.com/RocketChat/Rocket.Chat.Electron/releases/download/4.16.0/rocketchat-4.16.0-linux-amd64.deb'
       when: ansible_os_family == "Debian"
 
     - name: Install Rocket.Chat (RHEL/Fedora)
       dnf:
-        name: 'https://github.com/RocketChat/Rocket.Chat.Electron/releases/download/4.11.1/rocketchat-4.11.1-linux-x86_64.rpm'
+        name: 'https://github.com/RocketChat/Rocket.Chat.Electron/releases/download/4.16.0/rocketchat-4.16.0-linux-x86_64.rpm'
         state: present
         disable_gpg_check: yes
       when: ansible_os_family == "RedHat"
@@ -703,7 +703,7 @@ RUN apt-get update && apt-get install -y \
     libsecret-1-0
 
 RUN wget -O /tmp/rocketchat.deb \
-    https://github.com/RocketChat/Rocket.Chat.Electron/releases/download/4.11.1/rocketchat-4.11.1-linux-amd64.deb && \
+    https://github.com/RocketChat/Rocket.Chat.Electron/releases/download/4.16.0/rocketchat-4.16.0-linux-amd64.deb && \
     apt-get install -y /tmp/rocketchat.deb && \
     rm /tmp/rocketchat.deb
 
@@ -817,11 +817,11 @@ sudo apt install -f
 
 | Format   | Command                   | Silent Flag   | Example                                             |
 | -------- | ------------------------- | ------------- | --------------------------------------------------- |
-| DEB      | `apt install` / `dpkg -i` | `-y`          | `sudo apt install ./app.deb -y`                     |
-| RPM      | `dnf install` / `rpm -i`  | `-y`          | `sudo dnf install ./app.rpm -y`                     |
-| AppImage | `chmod +x` + `./`         | N/A           | `./app.AppImage`                                    |
-| Snap     | `snap install`            | (none needed) | `sudo snap install rocketchat-desktop`              |
-| Flatpak  | `flatpak install`         | `-y`          | `flatpak install flathub chat.rocket.RocketChat -y` |
+| DEB      | `apt install` / `dpkg -i` | `-y`          | `sudo apt install ./app.deb -y`        |
+| RPM      | `dnf install` / `rpm -i`  | `-y`          | `sudo dnf install ./app.rpm -y`        |
+| AppImage | `chmod +x` + `./`         | N/A           | `./app.AppImage`                       |
+| Snap     | `snap install`            | (none needed) | `sudo snap install rocketchat-desktop` |
+| Flatpak  | *(not published)*         | —             | Builder target only; no 4.16.0 asset   |
 
 ---
 
@@ -833,7 +833,7 @@ sudo apt install -f
 
 ```cmd
 @echo off
-rocketchat-4.11.1-win-x64.exe /S /allusers
+rocketchat-4.16.0-win-x64.exe /S /allusers
 if %ERRORLEVEL% NEQ 0 (
     echo Installation failed with error code %ERRORLEVEL%
     exit /b %ERRORLEVEL%
@@ -844,7 +844,7 @@ echo Installation completed successfully
 **Windows (PowerShell):**
 
 ```powershell
-$process = Start-Process -FilePath "rocketchat-4.11.1-win-x64.exe" -ArgumentList "/S", "/allusers" -Wait -PassThru
+$process = Start-Process -FilePath "rocketchat-4.16.0-win-x64.exe" -ArgumentList "/S", "/allusers" -Wait -PassThru
 if ($process.ExitCode -ne 0) {
     Write-Error "Installation failed with exit code: $($process.ExitCode)"
     exit $process.ExitCode
@@ -858,7 +858,7 @@ Write-Host "Installation completed successfully"
 #!/bin/bash
 set -e
 
-if sudo installer -pkg rocketchat-4.11.1-mac.pkg -target / -verboseR; then
+if sudo installer -pkg rocketchat-4.16.0-mac.pkg -target / -verboseR; then
     echo "Installation completed successfully"
 else
     echo "Installation failed. Check /var/log/install.log for details"
@@ -871,19 +871,19 @@ fi
 **Windows MSI with detailed logging:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /l*v "C:\Logs\rocketchat-%date:~-4,4%%date:~-10,2%%date:~-7,2%.log" /qn
+msiexec /i rocketchat-4.16.0-win-x64.msi /l*v "C:\Logs\rocketchat-%date:~-4,4%%date:~-10,2%%date:~-7,2%.log" /qn
 ```
 
 **macOS PKG with logging:**
 
 ```bash
-sudo installer -pkg rocketchat-4.11.1-mac.pkg -target / -dumplog 2>&1 | tee /var/log/rocketchat-install.log
+sudo installer -pkg rocketchat-4.16.0-mac.pkg -target / -dumplog 2>&1 | tee /var/log/rocketchat-install.log
 ```
 
 **Linux with logging:**
 
 ```bash
-sudo apt install ./rocketchat-4.11.1-linux-amd64.deb -y 2>&1 | tee /var/log/rocketchat-install.log
+sudo apt install ./rocketchat-4.16.0-linux-amd64.deb -y 2>&1 | tee /var/log/rocketchat-install.log
 ```
 
 ---
@@ -919,6 +919,6 @@ sudo apt install ./rocketchat-4.11.1-linux-amd64.deb -y 2>&1 | tee /var/log/rock
 
 ## Version Information
 
-- **Document Version**: 1.1
-- **Last Updated**: January 2025
-- **Applies To**: Rocket.Chat Desktop 4.x and later
+- **Document Version**: 1.2
+- **Last Updated**: August 2026
+- **Applies To**: Rocket.Chat Desktop 4.16.0 and later (aligned with README)

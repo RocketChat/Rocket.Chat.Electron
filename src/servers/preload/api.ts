@@ -17,7 +17,10 @@ import {
 import { dispatch } from '../../store';
 import { onTelephonyCallRequested } from '../../telephony/preload';
 import { WEBVIEW_MEDIA_CAPTURE_CHANGED } from '../../ui/actions';
-import { setUserPresenceDetection } from '../../userPresence/preload';
+import {
+  reassertUserPresenceDetection,
+  setUserPresenceDetection,
+} from '../../userPresence/preload';
 import type { MediaCaptureState, Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
@@ -43,6 +46,7 @@ import {
 } from './sidebar';
 import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
+import { isUiPreviewActive } from './uiPreview';
 import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
@@ -80,12 +84,14 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   closeCustomNotification: (id: unknown) => void;
   openInBrowser: (url: string) => void;
   getE2ePdfPreviewSizeLimit: () => number;
+  isUiPreviewActive: () => boolean;
   onTelephonyCallRequested: (
     callback: (payload: { phoneNumber: string; rawUri: string }) => void
   ) => void;
   supportedDocumentViewerFormats: () => string[];
   onNavigateToRoute: (callback: (path: string) => void) => void;
   setUserRoles: (roles: string[]) => void;
+  reassertUserPresenceDetection: () => void;
   setUserPresence: (payload: {
     presence: Server['presence'];
     presenceStatusText: Server['presenceStatusText'];
@@ -127,6 +133,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setBackground,
   setTitle,
   setUserPresenceDetection,
+  reassertUserPresenceDetection,
   setUserLoggedIn,
   setUserRoles,
   setUserPresence,
@@ -151,6 +158,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   supportedDocumentViewerFormats,
   openInBrowser,
   reloadServer,
+  isUiPreviewActive,
   getE2ePdfPreviewSizeLimit,
   onTelephonyCallRequested,
   onNavigateToRoute,

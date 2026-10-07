@@ -28,6 +28,7 @@ import {
   Favicon,
   Initials,
   Label,
+  PreviewBadgeWrapper,
   ShortcutChip,
   SpeakerButton,
   Tab,
@@ -67,6 +68,7 @@ type WorkspaceTabProps = {
   favicon: string | null;
   isSelected: boolean;
   badge?: '•' | number;
+  uiPreview?: string;
   userLoggedIn?: boolean;
   isAudible?: boolean;
   isAudioMuted?: boolean;
@@ -88,6 +90,7 @@ const WorkspaceTab = ({
   favicon,
   isSelected,
   badge,
+  uiPreview,
   userLoggedIn,
   isAudible,
   isAudioMuted,
@@ -181,9 +184,11 @@ const WorkspaceTab = ({
   }${unreadSuffix}${audioSuffix}${captureSuffix}${shortcutSuffix}`;
   // Show the name on the first line and the address on a second line. When the
   // title is only the address, the primary line already is it, so skip line two.
-  const tooltipLines = tooltipName
-    ? [tooltipPrimaryLine, serverAddress]
-    : [tooltipPrimaryLine];
+  const tooltipLines = [
+    tooltipPrimaryLine,
+    ...(tooltipName ? [serverAddress] : []),
+    ...(uiPreview ? [t('tabBar.uiPreview', { label: uiPreview })] : []),
+  ];
   // The TooltipProvider renders each '\n'-separated line on its own row, so the
   // native title, the custom hover tooltip and the aria-label all stay in sync.
   const tooltipText = tooltipLines.join('\n');
@@ -199,18 +204,36 @@ const WorkspaceTab = ({
     dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
   };
 
-  const handleContextMenu = (event: MouseEvent): void => {
-    event.preventDefault();
+  const openContextMenuAt = (x: number, y: number): void => {
     dispatch({
       type: SERVER_CONTEXT_MENU_TRIGGERED,
-      payload: { x: event.clientX, y: event.clientY, url },
+      payload: { x, y, url },
     });
+  };
+
+  const handleContextMenu = (event: MouseEvent): void => {
+    event.preventDefault();
+    openContextMenuAt(event.clientX, event.clientY);
   };
 
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       handleClick();
+      return;
+    }
+
+    // The context menu holds every per-workspace action (mute, reload, remove),
+    // and was mouse-only because it is positioned from pointer coordinates.
+    // ContextMenu/Shift+F10 is the platform keyboard equivalent; anchor it to
+    // the focused tab's own box so it opens where the tab is.
+    if (
+      event.key === 'ContextMenu' ||
+      (event.shiftKey && event.key === 'F10')
+    ) {
+      event.preventDefault();
+      const { left, bottom } = event.currentTarget.getBoundingClientRect();
+      openContextMenuAt(left, bottom);
     }
   };
 
@@ -225,14 +248,6 @@ const WorkspaceTab = ({
   const handleToggleMuteClick = (event: MouseEvent): void => {
     event.stopPropagation();
     dispatch({ type: SIDE_BAR_SERVER_TOGGLE_MUTE, payload: url });
-  };
-
-  const handleToggleMuteKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      event.stopPropagation();
-      dispatch({ type: SIDE_BAR_SERVER_TOGGLE_MUTE, payload: url });
-    }
   };
 
   const isVertical = orientation === 'vertical';
@@ -263,20 +278,19 @@ const WorkspaceTab = ({
   // Horizontal tab-strip only: in the vertical sidebar the indicator would
   // hang off the 32px tab corner alongside the badge, so it is intentionally
   // omitted there — the tooltip audio suffix still covers that layout.
+  // The tab itself is a native button, so the speaker cannot be a focusable
+  // widget: a button allows no interactive descendants, and nesting one makes
+  // the tab's own name and state unreliable in screen readers. It stays a
+  // presentational status icon that mutes on click; the keyboard path to mute
+  // is ContextMenu/Shift+F10 on the focused tab, which opens the context menu
+  // and its "Mute workspace" checkbox. The tab tooltip and aria-label already
+  // carry the audio/muted state.
   const showSpeaker = !isVertical && (isAudible || isAudioMuted);
   const speakerElement = showSpeaker ? (
     <SpeakerButton
-      role='button'
-      tabIndex={0}
+      aria-hidden='true'
       data-muted={isAudioMuted ? 'true' : 'false'}
-      aria-label={
-        isAudioMuted
-          ? t('sidebar.tooltips.unmuteWorkspace')
-          : t('sidebar.tooltips.muteWorkspace')
-      }
-      aria-pressed={!!isAudioMuted}
       onClick={handleToggleMuteClick}
-      onKeyDown={handleToggleMuteKeyDown}
     >
       <Icon name={isAudioMuted ? 'volume-off' : 'volume'} size='x12' />
     </SpeakerButton>
@@ -291,6 +305,12 @@ const WorkspaceTab = ({
     <CaptureIndicator aria-hidden='true' data-capture='rec'>
       <Icon name='rec' size='x16' />
     </CaptureIndicator>
+  ) : null;
+
+  // Shown alongside the badge above, never instead of it: it says what the
+  // tab is running, not what is waiting in it.
+  const uiPreviewBadge = uiPreview ? (
+    <TabBadge variant='danger'>UI</TabBadge>
   ) : null;
 
   return (
@@ -336,9 +356,15 @@ const WorkspaceTab = ({
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}
         {isVertical ? (
-          <BadgeWrapper>{badgeElement}</BadgeWrapper>
+          <>
+            <BadgeWrapper>{badgeElement}</BadgeWrapper>
+            {uiPreviewBadge && (
+              <PreviewBadgeWrapper>{uiPreviewBadge}</PreviewBadgeWrapper>
+            )}
+          </>
         ) : (
           <>
+            {uiPreviewBadge}
             {badgeElement}
             {captureElement}
             {speakerElement}

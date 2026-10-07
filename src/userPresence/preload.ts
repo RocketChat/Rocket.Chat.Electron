@@ -5,6 +5,7 @@ import { SYSTEM_SUSPENDING, SYSTEM_LOCKING_SCREEN } from './actions';
 import type { SystemIdleState } from './common';
 
 let detachCallbacks: () => void;
+let reassert: () => void = () => undefined;
 
 const attachCallbacks = ({
   isAutoAwayEnabled,
@@ -28,7 +29,26 @@ const attachCallbacks = ({
   );
 
   let pollingTimer: ReturnType<typeof setTimeout>;
-  let prevState: SystemIdleState;
+  let prevState: SystemIdleState | undefined;
+
+  const reportSystemIdleState = async (force: boolean): Promise<void> => {
+    if (!isAutoAwayEnabled || !idleThreshold) {
+      return;
+    }
+
+    const state = await invoke(
+      'power-monitor/get-system-idle-state',
+      idleThreshold
+    );
+
+    if (!force && prevState === state) {
+      return;
+    }
+
+    prevState = state;
+    setUserOnline(state === 'active' || state === 'unknown');
+  };
+
   const pollSystemIdleState = async (): Promise<void> => {
     if (!isAutoAwayEnabled || !idleThreshold) {
       return;
@@ -36,26 +56,24 @@ const attachCallbacks = ({
 
     pollingTimer = setTimeout(pollSystemIdleState, 2000);
 
-    const state = await invoke(
-      'power-monitor/get-system-idle-state',
-      idleThreshold
-    );
-
-    if (prevState === state) {
-      return;
-    }
-
-    const isOnline = state === 'active' || state === 'unknown';
-    setUserOnline(isOnline);
-
-    prevState = state;
+    await reportSystemIdleState(false);
   };
 
   pollSystemIdleState();
 
+  // After a websocket reconnection the server writes `online` for the new
+  // session. The poller only reports OS idle transitions, so a user who
+  // stayed idle across the drop would remain `online` until the next
+  // transition. This lets the page ask for an unconditional report once the
+  // connection and login have settled.
+  reassert = (): void => {
+    void reportSystemIdleState(true);
+  };
+
   return (): void => {
     unsubscribeFromPowerMonitorEvents();
     clearTimeout(pollingTimer);
+    reassert = () => undefined;
   };
 };
 
@@ -66,4 +84,8 @@ export const setUserPresenceDetection = (options: {
 }): void => {
   detachCallbacks?.();
   detachCallbacks = attachCallbacks(options);
+};
+
+export const reassertUserPresenceDetection = (): void => {
+  reassert();
 };

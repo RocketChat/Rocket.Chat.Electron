@@ -465,11 +465,14 @@ export const SpeakerButton = styled.span`
     --rcx-badge-colors-ghost-color,
     var(--rcx-color-font-pure-white, #fff)
   );
+`;
 
-  &:focus-visible {
-    outline: 1px solid currentColor;
-    outline-offset: 1px;
-  }
+/* The UI preview badge takes the bottom-right corner, below the mention/
+   warning badge, so a vertical tab can show both. */
+export const PreviewBadgeWrapper = styled(BadgeWrapper)`
+  top: auto;
+  bottom: ${BADGE_ANCHOR_Y};
+  transform: translate(-50%, 50%);
 `;
 
 /* Camera/microphone/screen-share indicator, sibling of SpeakerButton: a single

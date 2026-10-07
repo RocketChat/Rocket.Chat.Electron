@@ -41,6 +41,10 @@ export type Server = {
   supportedVersionsValidatedAt?: Date;
   documentViewerOpenUrl?: string;
   documentViewerFormat?: string;
+  /** Label of the web UI preview loaded in place of the server's UI, if any. */
+  uiPreview?: string;
+  /** Settings input of that preview, which keys its UI preview history entry. */
+  uiPreviewSource?: string;
   presence?: UserPresence;
   presenceStatusText?: string;
   presenceConnection?: 'connected' | 'connecting' | 'disconnected';
@@ -48,6 +52,29 @@ export type Server = {
   isAudible?: boolean;
   isAudioMuted?: boolean;
   mediaCapture?: Partial<Record<MediaCaptureSource, MediaCaptureState>>;
+};
+
+// Conference pages host a call and are built to run in their own window; a
+// server view restored onto one has no way back to the app.
+export const isConferencePageUrl = (
+  pageUrl: string,
+  serverUrl: Server['url']
+): boolean => {
+  try {
+    const page = new URL(pageUrl);
+    const server = new URL(serverUrl);
+    if (page.origin !== server.origin) {
+      return false;
+    }
+    const { pathname } = page;
+    const basePath = server.pathname.replace(/\/?$/, '/');
+    return (
+      pathname.startsWith(basePath) &&
+      /^conference(\/|$)/.test(pathname.slice(basePath.length))
+    );
+  } catch {
+    return false;
+  }
 };
 
 export const enum ServerUrlResolutionStatus {

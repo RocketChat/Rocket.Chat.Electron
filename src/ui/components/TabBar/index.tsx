@@ -151,6 +151,7 @@ export const TabBar = ({
               favicon={server.favicon ?? null}
               isSelected={server.selected}
               badge={server.badge}
+              uiPreview={server.uiPreview}
               userLoggedIn={server.userLoggedIn}
               isAudible={server.isAudible}
               isAudioMuted={server.isAudioMuted}

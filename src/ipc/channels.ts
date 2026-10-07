@@ -4,6 +4,10 @@ import type { Download } from '../downloads/common';
 import type { OutlookEventsResponse } from '../outlookCalendar/type';
 import type { MediaCaptureState, Server } from '../servers/common';
 import type { TelephonyDiagnostics } from '../telephony/diagnostics';
+import type {
+  UiPreviewHistoryResult,
+  UiPreviewResult,
+} from '../ui/main/serverView/uiPreview';
 import type { SystemIdleState } from '../userPresence/common';
 
 type ChannelToArgsMap = {
@@ -25,13 +29,20 @@ type ChannelToArgsMap = {
   'downloads/remove': (itemId: Download['itemId']) => void;
   'certificatesManager/remove': (domain: string) => void;
   'server-view/get-url': () => Server['url'] | undefined;
+  'ui-preview/apply': (
+    serverUrl: Server['url'],
+    input: string
+  ) => UiPreviewResult;
+  'ui-preview/restore': (serverUrl: Server['url']) => void;
+  'ui-preview/add': (input: string) => UiPreviewHistoryResult;
+  'ui-preview/refresh': (input: string) => UiPreviewHistoryResult;
   'server-view/ready': () => void;
   'server-view/open-url-on-browser': (url: string) => void;
+  'server-view/take-pending-conference': () => string | null;
   'video-call-window/open-window': (
     url: string,
     options?: {
       providerName?: string;
-      credentials?: { userId: string; authToken: string };
     }
   ) => void;
   'video-call-window/open-url': (url: string) => void;
@@ -56,11 +67,6 @@ type ChannelToArgsMap = {
   'video-call-window/webview-loading': () => { success: boolean };
   'video-call-window/webview-ready': () => { success: boolean };
   'video-call-window/webview-failed': (error: string) => { success: boolean };
-  'video-call-window/get-credentials': () => {
-    userId: string;
-    authToken: string;
-    serverUrl: string;
-  } | null;
   'video-call-window/get-language': () => {
     success: boolean;
     language: string;
@@ -146,6 +152,7 @@ type ChannelToArgsMap = {
   'settings-window/open-window': () => void;
   'settings-window/close-requested': () => void;
   'settings-window/confirm-remove-certificate': (domain: string) => boolean;
+  'settings-window/reset-window-bounds': () => void;
   'downloads-window/open-window': () => void;
   'downloads-window/close-requested': () => void;
   'downloads-window/confirm-clear-all': () => boolean;

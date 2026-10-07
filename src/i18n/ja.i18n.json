@@ -94,6 +94,15 @@
         "answerCall": "通話に応答する",
         "recordMessage": "メッセージを録音する"
       }
+    },
+    "uiOverride": {
+      "title": "UI プレビューを読み込む",
+      "message": "「{{- host}}」に別の Web UI を読み込みますか？",
+      "detail": "UI は {{- bundle}} から読み込まれ、このサーバー上のあなたのセッションで実行されます。このビルドを信頼できる場合のみ続行してください。元に戻すには 表示 > サーバーの UI に戻す を使うか、アプリを再起動してください。",
+      "load": "UI を読み込む",
+      "cancel": "キャンセル",
+      "developerModeRequired": "UI プレビューを読み込むには ヘルプ > 開発者モード を有効にしてください。",
+      "failed": "UI プレビューを読み込めませんでした。"
     }
   },
   "documentViewer": {
@@ -115,6 +124,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "ウィンドウのサイズと位置をリセット",
+        "description": "アプリとそのウィンドウの配置を忘れます。各ウィンドウは次回表示時に既定のサイズで中央に開きます。"
+      },
       "transparentWindow": {
         "title": "透明ウィンドウ効果",
         "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
@@ -125,7 +138,47 @@
         "auto": "システムに従う",
         "light": "ライト",
         "dark": "ダーク"
+      },
+      "trayIconUnreadCounter": {
+        "title": "トレイアイコンに未読数を表示",
+        "titleDarwin": "メニューバーアイコンに未読を表示",
+        "description": "アイコンにプレゼンスステータスの代わりに未読メッセージのバッジを表示します。"
+      },
+      "menuBarUnreadCount": {
+        "title": "メニューバーに未読数を表示",
+        "description": "メニューバーアイコンの横に未読メンションの数を表示します。"
+      },
+      "uiPreview": {
+        "title": "Web UI のビルドを読み込む",
+        "description": "セッションを維持したまま、ワークスペース本来の UI の代わりに Rocket.Chat Web クライアントのビルドを実行します。「develop」または Rocket.Chat の PR 番号（いずれも ghcr.io から取得）、もしくは配信中のバンドルの URL を追加し、ワークスペースに適用してください。項目を更新すると新しいビルドを確認し、それを使用しているワークスペースを再読み込みします。",
+        "placeholder": "develop、42364 または http://127.0.0.1:4173/",
+        "add": "追加",
+        "adding": "ビルドが存在するか確認しています…",
+        "applyTo": "適用先",
+        "apply": "適用",
+        "refresh": "新しいビルドを確認",
+        "refreshing": "新しいビルドを確認しています…",
+        "current": "すでに最新のビルドです。",
+        "updated": "最新のビルドに更新しました。",
+        "remove": "一覧から削除",
+        "builtAt": "{{- date}} にビルド",
+        "activeOn": "有効: {{- workspaces}}",
+        "restore": "サーバーの UI に戻す",
+        "active": "このワークスペースで有効: {{- label}}",
+        "loading": "ダウンロードして適用しています…",
+        "failed": "読み込めませんでした: {{- message}}",
+        "cancelled": "キャンセルしました。",
+        "inactive": "サーバーの UI を使用しています。",
+        "pullRequestState": {
+          "open": "オープン",
+          "draft": "ドラフト",
+          "merged": "マージ済み",
+          "closed": "クローズ"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Web UI プレビュー"
     }
   },
   "error": {
@@ -164,6 +217,7 @@
     "reload": "再読み込み(&R)",
     "reportIssue": "問題を報告する",
     "resetAppData": "アプリデータをリセット",
+    "resetWindowBounds": "ウィンドウのサイズと位置をリセット",
     "resetZoom": "ズームをリセット",
     "selectAll": "全て選択 (&A)",
     "showFullScreen": "全画面",
@@ -177,7 +231,8 @@
     "windowMenu": "ウィンドウ (&W)",
     "zoomIn": "拡大",
     "zoomOut": "縮小",
-    "simulateDisconnected": "切断をシミュレート"
+    "simulateDisconnected": "切断をシミュレート",
+    "restoreServerUi": "サーバーの UI に戻す"
   },
   "loadingError": {
     "title": "サーバーの読み込みに失敗しました",
@@ -204,7 +259,8 @@
     "item": {
       "reload": "サーバーを再読み込み",
       "remove": "サーバーを削除",
-      "openDevTools": "開発ツールを開く"
+      "openDevTools": "開発ツールを開く",
+      "updateUiPreview": "UI プレビューを更新"
     }
   },
   "tabBar": {
@@ -242,7 +298,8 @@
       "canceled": "キャンセル済み",
       "failed": "失敗",
       "dismiss": "閉じる"
-    }
+    },
+    "uiPreview": "UI プレビュー: {{- label}}"
   },
   "touchBar": {
     "formatting": "書式",

@@ -551,6 +551,7 @@
     "checkForUpdates": "Check for updates",
     "editMenu": "&Edit",
     "fileMenu": "&File",
+    "findInPage": "&Find…",
     "forward": "&Forward",
     "helpMenu": "&Help",
     "hide": "Hide {{- appName}}",
@@ -595,6 +596,14 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "restoreServerUi": "Restore server UI"
+  },
+  "findInPage": {
+    "placeholder": "Find in page",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "previous": "Previous match",
+    "next": "Next match",
+    "close": "Close"
   },
   "loadingError": {
     "title": "Server Failed to Load",

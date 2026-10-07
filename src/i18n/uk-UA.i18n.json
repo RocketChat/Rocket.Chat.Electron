@@ -200,6 +200,7 @@
     "documentation": "Документація",
     "editMenu": "&Редагувати",
     "fileMenu": "&Файл",
+    "findInPage": "&Знайти…",
     "forward": "Вперед",
     "helpMenu": "&Довідка",
     "hide": "Приховати {{- appName}}",
@@ -231,6 +232,14 @@
     "zoomOut": "Зменшити",
     "simulateDisconnected": "Симулювати відключення",
     "restoreServerUi": "Повернути інтерфейс сервера"
+  },
+  "findInPage": {
+    "placeholder": "Знайти на сторінці",
+    "matchCount": "{{current}} з {{total}}",
+    "noMatches": "Збігів немає",
+    "previous": "Попередній збіг",
+    "next": "Наступний збіг",
+    "close": "Закрити"
   },
   "loadingError": {
     "title": "Не вдалося завантажити сервер",

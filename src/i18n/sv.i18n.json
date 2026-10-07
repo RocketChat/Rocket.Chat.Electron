@@ -397,6 +397,7 @@
     "settings": "Inställningar",
     "editMenu": "&Editera",
     "fileMenu": "&Fil",
+    "findInPage": "&Sök…",
     "forward": "&Framåt",
     "helpMenu": "&Hjälp",
     "hide": "Göm {{- appName}}",
@@ -434,6 +435,14 @@
     "zoomOut": "Zooma ut",
     "simulateDisconnected": "Simulera frånkoppling",
     "restoreServerUi": "Återställ serverns gränssnitt"
+  },
+  "findInPage": {
+    "placeholder": "Sök på sidan",
+    "matchCount": "{{current}} av {{total}}",
+    "noMatches": "Inga träffar",
+    "previous": "Föregående träff",
+    "next": "Nästa träff",
+    "close": "Stäng"
   },
   "loadingError": {
     "title": "Servern kunde inte laddas",

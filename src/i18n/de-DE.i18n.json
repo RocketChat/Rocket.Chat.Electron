@@ -365,6 +365,7 @@
     "settings": "Einstellungen",
     "editMenu": "&Bearbeiten",
     "fileMenu": "&Datei",
+    "findInPage": "&Suchen…",
     "forward": "&Nach vorne",
     "helpMenu": "&Hilfe",
     "hide": "Ausblenden {{- appName}}",
@@ -396,6 +397,14 @@
     "zoomOut": "Verkleinern",
     "simulateDisconnected": "Verbindungsabbruch simulieren",
     "restoreServerUi": "Server-UI wiederherstellen"
+  },
+  "findInPage": {
+    "placeholder": "Auf Seite suchen",
+    "matchCount": "{{current}} von {{total}}",
+    "noMatches": "Keine Treffer",
+    "previous": "Vorheriger Treffer",
+    "next": "Nächster Treffer",
+    "close": "Schließen"
   },
   "loadingError": {
     "title": "Server konnte nicht geladen werden",

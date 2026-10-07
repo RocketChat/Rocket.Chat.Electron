@@ -198,6 +198,7 @@
     "documentation": "文件",
     "editMenu": "編輯 (&E)",
     "fileMenu": "檔案 (&F)",
+    "findInPage": "尋找(&F)…",
     "forward": "下一步 (&F)",
     "helpMenu": "幫助 (&H)",
     "learnMore": "了解更多",
@@ -225,6 +226,14 @@
     "zoomOut": "縮小",
     "simulateDisconnected": "模擬中斷連線",
     "restoreServerUi": "還原伺服器介面"
+  },
+  "findInPage": {
+    "placeholder": "在頁面中尋找",
+    "matchCount": "{{current}} / {{total}}",
+    "noMatches": "無相符項目",
+    "previous": "上一個相符項目",
+    "next": "下一個相符項目",
+    "close": "關閉"
   },
   "loadingError": {
     "title": "伺服器載入失敗",

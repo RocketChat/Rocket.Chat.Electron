@@ -46,6 +46,9 @@ push, release publish) is gated on explicit user approval.
   the release counts as buildable. No partial releases.
 - A release without the full asset matrix (below) is NOT done — report
   exactly which assets are missing.
+- The rules above are the complete blocker list. Untranslated non-English
+  strings and manual Windows/Linux spot checks go in the report as notes;
+  they block only when the user names them as blockers.
 - Monitor CI in the background (`run_in_background` Bash or `watcher`) —
   never block the session polling in foreground.
 - Tags always go through `yarn release:tag` (`scripts/release-tag.ts`),
@@ -62,7 +65,10 @@ push, release publish) is gated on explicit user approval.
    relevant `release/X.Y.x` for a patch).
 2. Latest tags, semver-sorted (not by creation date — an alpha or an older
    version created later can otherwise look newest):
-   `git tag --sort=-v:refname | head -5`.
+   `git -c versionsort.suffix=- tag --list '[0-9]*' --sort=-v:refname | head -5`.
+   The `[0-9]*` filter drops legacy `v4.12.1-alpha.*` and `release-test`
+   tags, which a plain version sort ranks above every real release; the
+   suffix setting ranks `4.17.0` above `4.17.0-alpha.3`.
 3. Resolve TARGET and its type from the arg, or propose one:
    - No pre-release suffix and the latest tag on that `X.Y` line is an
      alpha → **stable promotion**.

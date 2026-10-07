@@ -192,6 +192,21 @@ describe('setupUpdateLabelFlow — windows check-for-updates path', () => {
         openStorePage: openStorePageImpl,
       }));
 
+      // A second electron-log instance in this isolated registry would
+      // re-register its IPC handler on the real ipcMain and throw.
+      jest.doMock('../logging/scopes', () => {
+        const logger = {
+          debug: jest.fn(),
+          info: jest.fn(),
+          warn: jest.fn(),
+          error: jest.fn(),
+        };
+        return {
+          createScopedLogger: () => logger,
+          loggers: new Proxy({}, { get: () => logger }),
+        };
+      });
+
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const mainModule = require('./main') as typeof MainModule;
       setupUpdateLabelFlow = mainModule.setupUpdateLabelFlow;

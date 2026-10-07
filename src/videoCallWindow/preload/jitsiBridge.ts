@@ -272,64 +272,19 @@ class JitsiBridgeImpl implements JitsiBridge {
     this.displayName = config.displayName || '';
     this.options = config.options || {};
 
-    try {
-      // Load the external API script if needed
-      if (!window.JitsiMeetExternalAPI) {
-        await this.loadJitsiScript(this.domain);
-      }
+    // No External API instance is created, so its script is not loaded: an
+    // instance would add a second iframe next to the one already on the page.
+    // Loading the script anyway fetched `<domain>/external_api.js` from every
+    // page the detection matched, including the workspace's own
+    // `/conference/` page, where it fails and the detection retries on every
+    // DOM mutation. The screen obtainer is already installed in the
+    // constructor.
+    this.setupMessageEventListener();
 
-      console.log('JitsiBridge: Creating Jitsi Meet External API instance');
+    this.isApiInitialized = true;
+    console.log('JitsiBridge: initialized for', this.domain);
 
-      // We don't actually create a new instance with the External API
-      // because we don't want to create a new iframe when one might already exist
-      // Instead, we just initialize our event listeners for the existing iframe
-
-      // The screen obtainer is already installed in the constructor.
-      // Set up message event listener for any other window messages.
-      this.setupMessageEventListener();
-
-      this.isApiInitialized = true;
-      console.log(
-        'JitsiBridge: Jitsi Meet External API initialized successfully'
-      );
-
-      return true;
-    } catch (error) {
-      console.error(
-        'JitsiBridge: Error initializing Jitsi Meet External API:',
-        error
-      );
-      return false;
-    }
-  }
-
-  /**
-   * Load the Jitsi Meet External API script
-   */
-  private async loadJitsiScript(domain: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      // Ensure we use https
-      const protocol =
-        window.location.protocol === 'https:' ? 'https:' : 'https:';
-      script.src = `${protocol}//${domain}/external_api.js`;
-      script.async = true;
-
-      script.onload = () => {
-        console.log('JitsiBridge: Jitsi Meet External API script loaded');
-        resolve();
-      };
-
-      script.onerror = (error) => {
-        console.error(
-          'JitsiBridge: Error loading Jitsi Meet External API script:',
-          error
-        );
-        reject(error);
-      };
-
-      document.head.appendChild(script);
-    });
+    return true;
   }
 
   /**

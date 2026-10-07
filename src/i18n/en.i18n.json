@@ -202,6 +202,15 @@
       "message": "Remove the stored decision for \"{{- domain}}\"? The next visit will ask you again.",
       "yes": "Remove",
       "cancel": "Cancel"
+    },
+    "uiOverride": {
+      "title": "Load UI preview",
+      "message": "Load a different web UI for \"{{- host}}\"?",
+      "detail": "The UI will be loaded from {{- bundle}} and will run with your session on this server. Only continue if you trust this build. Use View > Restore server UI or restart the app to go back.",
+      "load": "Load UI",
+      "cancel": "Cancel",
+      "developerModeRequired": "Enable Help > Developer Mode to load UI previews.",
+      "failed": "The UI preview could not be loaded."
     }
   },
   "documentViewer": {
@@ -326,7 +335,8 @@
       "logging": "Logging",
       "telephony": "Telephony",
       "videoCalls": "Video calls",
-      "advanced": "Advanced"
+      "advanced": "Advanced",
+      "uiPreview": "Web UI preview"
     },
     "options": {
       "report": {
@@ -391,6 +401,15 @@
         "titleDarwin": "Menu bar extra",
         "description": "Show tray icon on system tray. Instead of quitting, app is hidden to tray on close when enabled.",
         "descriptionDarwin": "Show app icon in menu bar."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Unread counter in tray icon",
+        "titleDarwin": "Unread indicator in menu bar extra",
+        "description": "Show the unread messages badge on the icon instead of your presence status."
+      },
+      "menuBarUnreadCount": {
+        "title": "Unread count in menu bar",
+        "description": "Show the number of unread mentions next to the menu bar extra."
       },
       "availableBrowsers": {
         "title": "Default browser",
@@ -466,6 +485,34 @@
       "e2ePdfPreviewSizeLimit": {
         "title": "PDF preview size limit in encrypted rooms (MB)",
         "description": "Encrypted files are loaded into memory for previews. Files larger than this limit will be downloaded directly."
+      },
+      "uiPreview": {
+        "title": "Load a web UI build",
+        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Add \"develop\" or a Rocket.Chat PR number (both pulled from ghcr.io), or the URL of a served bundle, then apply it to a workspace. Refreshing an entry checks for a newer build and reloads the workspaces running it.",
+        "placeholder": "develop, 42364 or http://127.0.0.1:4173/",
+        "add": "Add",
+        "adding": "Checking that the build exists…",
+        "applyTo": "Apply to",
+        "apply": "Apply",
+        "refresh": "Check for a newer build",
+        "refreshing": "Checking for a newer build…",
+        "current": "Already the newest build.",
+        "updated": "Updated to the newest build.",
+        "remove": "Remove from the list",
+        "builtAt": "built {{- date}}",
+        "activeOn": "Active on {{- workspaces}}",
+        "restore": "Restore server UI",
+        "active": "Active on this workspace: {{- label}}",
+        "loading": "Downloading and applying…",
+        "failed": "Could not load: {{- message}}",
+        "cancelled": "Cancelled.",
+        "inactive": "Using the server's UI.",
+        "pullRequestState": {
+          "open": "Open",
+          "draft": "Draft",
+          "merged": "Merged",
+          "closed": "Closed"
+        }
       }
     },
     "appearance": "Appearance",
@@ -546,7 +593,8 @@
     "viewMenu": "&View",
     "windowMenu": "&Window",
     "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out"
+    "zoomOut": "Zoom out",
+    "restoreServerUi": "Restore server UI"
   },
   "loadingError": {
     "title": "Server Failed to Load",
@@ -591,6 +639,7 @@
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
       "copyCurrentUrl": "Copy URL",
+      "updateUiPreview": "Update UI preview",
       "reloadClearingCache": "Force reload",
       "serverInfo": "Server info",
       "supportedVersionsInfo": "Supported Versions Info",
@@ -640,7 +689,8 @@
       "canceled": "Canceled",
       "failed": "Failed",
       "dismiss": "Dismiss"
-    }
+    },
+    "uiPreview": "UI preview: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatting",

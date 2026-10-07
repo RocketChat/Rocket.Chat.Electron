@@ -66,6 +66,8 @@ document.
 | 9     | `flows/09-unread-badge-regression.md`     | Windows, Linux, macOS |
 | 10    | `flows/10-badge-and-presence-combined.md` | Windows, Linux, macOS |
 | 11    | `flows/11-rate-limit-rapid-clicks.md`     | Windows, Linux, macOS |
+| 12    | `flows/12-unread-counter-setting.md`      | Windows, Linux, macOS |
+| 13    | `flows/13-menu-bar-unread-count.md`       | macOS                 |
 
 ## Flow Result Format
 

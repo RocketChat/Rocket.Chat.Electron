@@ -44,6 +44,7 @@ import {
 } from './sidebar';
 import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
+import { isUiPreviewActive } from './uiPreview';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
@@ -63,6 +64,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   closeCustomNotification: (id: unknown) => void;
   openInBrowser: (url: string) => void;
   getE2ePdfPreviewSizeLimit: () => number;
+  isUiPreviewActive: () => boolean;
   onTelephonyCallRequested: (
     callback: (payload: { phoneNumber: string; rawUri: string }) => void
   ) => void;
@@ -134,6 +136,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   supportedDocumentViewerFormats,
   openInBrowser,
   reloadServer,
+  isUiPreviewActive,
   getE2ePdfPreviewSizeLimit,
   onTelephonyCallRequested,
   onNavigateToRoute,

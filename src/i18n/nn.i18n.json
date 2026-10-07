@@ -22,7 +22,47 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Ulesne-teljar i systemstatusikonet",
+        "titleDarwin": "Ulesne-indikator i menylinjeikonet",
+        "description": "Vis merket for ulesne meldingar på ikonet i staden for tilstadestatusen din."
+      },
+      "menuBarUnreadCount": {
+        "title": "Tal på ulesne i menylinja",
+        "description": "Vis talet på ulesne omtalar ved sida av ikonet i menylinja."
+      },
+      "uiPreview": {
+        "title": "Last inn ein build av nettgrensesnittet",
+        "description": "Køyrer ein build av Rocket.Chat-nettklienten i staden for det eigne grensesnittet til arbeidsområdet, og held på økta di. Legg til «develop» eller eit PR-nummer frå Rocket.Chat (begge henta frå ghcr.io), eller URL-en til ein servert pakke, og ta han deretter i bruk i eit arbeidsområde. Å oppdatere ei oppføring ser etter ein nyare build og lastar inn att arbeidsområda som brukar han.",
+        "placeholder": "develop, 42364 eller http://127.0.0.1:4173/",
+        "add": "Legg til",
+        "adding": "Sjekkar at builden finst…",
+        "applyTo": "Ta i bruk i",
+        "apply": "Ta i bruk",
+        "refresh": "Sjå etter ein nyare build",
+        "refreshing": "Ser etter ein nyare build…",
+        "current": "Allereie den nyaste builden.",
+        "updated": "Oppdatert til den nyaste builden.",
+        "remove": "Fjern frå lista",
+        "builtAt": "bygd {{- date}}",
+        "activeOn": "Aktiv i {{- workspaces}}",
+        "restore": "Gjenopprett grensesnittet til tenaren",
+        "active": "Aktiv i dette arbeidsområdet: {{- label}}",
+        "loading": "Lastar ned og tek i bruk…",
+        "failed": "Kunne ikkje laste inn: {{- message}}",
+        "cancelled": "Avbrote.",
+        "inactive": "Brukar grensesnittet til tenaren.",
+        "pullRequestState": {
+          "open": "Open",
+          "draft": "Utkast",
+          "merged": "Fletta",
+          "closed": "Lukka"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Førehandsvising av nettgrensesnitt"
     }
   },
   "serverInfo": {
@@ -53,7 +93,13 @@
   },
   "menus": {
     "simulateDisconnected": "Simuler fråkopling",
-    "resetWindowBounds": "Nullstill vindaugsstorleikar og -posisjonar"
+    "resetWindowBounds": "Nullstill vindaugsstorleikar og -posisjonar",
+    "restoreServerUi": "Gjenopprett grensesnittet til tenaren"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Oppdater førehandsvising av grensesnitt"
+    }
   },
   "tray": {
     "presence": {
@@ -66,5 +112,19 @@
       "signIn": "Logg på {{- workspace}}",
       "addWorkspace": "Legg til arbeidsområde"
     }
+  },
+  "dialog": {
+    "uiOverride": {
+      "title": "Last inn førehandsvising av grensesnitt",
+      "message": "Laste inn eit anna nettgrensesnitt for «{{- host}}»?",
+      "detail": "Grensesnittet vert lasta inn frå {{- bundle}} og køyrer med økta di på denne tenaren. Hald berre fram om du stoler på denne builden. Bruk View > Gjenopprett grensesnittet til tenaren eller start appen på nytt for å gå tilbake.",
+      "load": "Last inn grensesnitt",
+      "cancel": "Avbryt",
+      "developerModeRequired": "Slå på Help > Developer Mode for å laste inn førehandsvisingar av grensesnitt.",
+      "failed": "Førehandsvisinga av grensesnittet kunne ikkje lastast inn."
+    }
+  },
+  "tabBar": {
+    "uiPreview": "Førehandsvising av grensesnitt: {{- label}}"
   }
 }

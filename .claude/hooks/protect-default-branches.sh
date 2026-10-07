@@ -1,7 +1,7 @@
 #!/bin/bash
-# Deny direct commits/pushes to dev/master and force-pushes to dev/master
-# (AGENTS.md: never commit or push directly to dev/master — create a branch,
-# test, open a PR).
+# Deny direct commits/pushes to dev/master/release/*, any push refspec that
+# targets them, and force-pushes to dev/master (AGENTS.md: never commit or
+# push directly to those branches — create a branch, test, open a PR).
 
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
@@ -20,6 +20,27 @@ if echo "$LOWER" | grep -Eq 'git[[:space:]]+push' \
   exit 0
 fi
 
+# Any push refspec whose destination is dev/master/release/*, from any branch
+# (e.g. 'git push origin HEAD:dev', 'git push origin dev', 'origin :master').
+set -f
+while IFS= read -r PUSH_CMD; do
+  SEEN_REMOTE=0
+  for WORD in ${PUSH_CMD#git*push}; do
+    case "$WORD" in -*) continue ;; esac
+    if [ "$SEEN_REMOTE" = "0" ]; then SEEN_REMOTE=1; continue; fi
+    DEST="${WORD#+}"
+    DEST="${DEST##*:}"
+    DEST="${DEST#refs/heads/}"
+    case "$DEST" in
+      dev|master|release/*)
+        echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"AGENTS.md: never push directly to dev/master/release/* — push a branch and open a PR."}}'
+        exit 0
+        ;;
+    esac
+  done
+done < <(echo "$LOWER" | grep -oE 'git[[:space:]]+push[^;&|]*')
+set +f
+
 # Only care about actual commit/push subcommands, not --help/log/etc.
 IS_COMMIT=$(echo "$LOWER" | grep -Eq 'git[[:space:]]+commit([[:space:]]|$)' && echo 1 || echo 0)
 IS_PUSH=$(echo "$LOWER" | grep -Eq 'git[[:space:]]+push([[:space:]]|$)' && echo 1 || echo 0)
@@ -37,9 +58,11 @@ fi
 
 BRANCH="${HOOK_TEST_BRANCH:-$(git -C "${CLAUDE_PROJECT_DIR:-.}" branch --show-current 2>/dev/null)}"
 
-if [ "$BRANCH" = "dev" ] || [ "$BRANCH" = "master" ]; then
-  echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"AGENTS.md: never commit or push directly to dev/master — create a branch and open a PR."}}'
-  exit 0
-fi
+case "$BRANCH" in
+  dev|master|release/*)
+    echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"AGENTS.md: never commit or push directly to dev/master/release/* — create a branch and open a PR."}}'
+    exit 0
+    ;;
+esac
 
 exit 0

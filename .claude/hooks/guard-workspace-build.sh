@@ -29,4 +29,12 @@ if echo "$LOWER" | grep -Eq 'yarn[[:space:]]+workspace[[:space:]]+[^[:space:]]+[
   exit 0
 fi
 
+# Pattern 3: directory-selected builds that never cd — yarn --cwd / npm --prefix
+# pointing at workspaces/<name>, in any option order, with a build invocation.
+if echo "$LOWER" | grep -Eq '(yarn|npm)[[:space:]].*(--cwd|--prefix)[[:space:]=]+(\./)?workspaces/' \
+  && echo "$LOWER" | grep -Eq '(^|[[:space:]])build([[:space:]]|$)'; then
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$DENY_REASON\"}}"
+  exit 0
+fi
+
 exit 0

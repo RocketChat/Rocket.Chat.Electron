@@ -7,8 +7,11 @@ disable-model-invocation: true
 # i18n Translate
 
 Developers edit only `src/i18n/en.i18n.json` while a feature is in
-progress. When the feature is finished, this skill translates every new
-or changed key into all other locale files in one pass. Lingohub reviews
+progress. When the feature is finished, this skill translates every newly
+added key into all other locale files in one pass. It handles additions
+only: if an existing English value changed in meaning, update that key in
+the other locales by hand in the same PR (the parity check cannot see
+value changes). Lingohub reviews
 the translations afterward (its bot commits "Language update from
 Lingohub") — this skill does not need to be perfect, just correct and
 consistent.

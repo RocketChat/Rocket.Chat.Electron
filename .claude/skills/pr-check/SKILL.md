@@ -22,7 +22,11 @@ Writing: no invented metrics).
 ```bash
 git branch --show-current
 git diff --stat dev...HEAD
+git diff --name-only dev...HEAD
 ```
+
+Use the `--name-only` list (full paths) for every file-selection decision
+below; `--stat` abbreviates long paths and is only for the summary.
 
 Fail this check (and stop) if the current branch is `dev` or `master` —
 per AGENTS.md, never commit or open a PR directly from either.
@@ -52,7 +56,7 @@ it fails.
 
 ### 4. Targeted tests
 
-Map every changed file under `src/**` (from the `git diff --stat`
+Map every changed file under `src/**` (from the `git diff --name-only`
 output in step 1) to its spec file(s):
 
 - Same directory: `<name>.spec.ts(x)` or `<name>.main.spec.ts` next to
@@ -81,7 +85,7 @@ do not broaden it further.
 
 ### 5. i18n parity
 
-If `git diff --stat dev...HEAD` shows `src/i18n/en.i18n.json` changed:
+If `git diff --name-only dev...HEAD` lists `src/i18n/en.i18n.json`:
 
 ```bash
 git diff dev...HEAD -- src/i18n/en.i18n.json
@@ -96,11 +100,11 @@ before opening the PR. If `en.i18n.json` did not change, mark this check
 
 ### 6. Packaging
 
-If `git diff --stat dev...HEAD` shows `electron-builder.json` or the
-`build` section of `package.json` changed:
+If `git diff --name-only dev...HEAD` lists `electron-builder.json` or
+`package.json` (check that its diff touches the `build` section):
 
 ```bash
-git diff dev...HEAD -- electron-builder.json
+git diff dev...HEAD -- electron-builder.json package.json
 ```
 
 Confirm the `win.target` entries still list `arch: ["x64", "ia32", "arm64"]`

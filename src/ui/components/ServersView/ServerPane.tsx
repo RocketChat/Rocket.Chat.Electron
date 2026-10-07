@@ -166,7 +166,6 @@ export const ServerPane = ({
     } else {
       webview?.blur();
     }
-    // setDocumentViewerActive(true);
   }, [isSelected]);
 
   useEffect(() => {

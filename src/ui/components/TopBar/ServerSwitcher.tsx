@@ -84,14 +84,9 @@ export const ServerSwitcher = () => {
     (server) => !server.selected && Boolean(server.badge)
   );
 
-  // The title reflects whichever view is open — a server, or one of the utility
-  // pages (settings / downloads / add server).
+  // The title reflects whichever view is open — a server, or the add-server page.
   const label = (() => {
     switch (currentView) {
-      case 'settings':
-        return t('sidebar.settings');
-      case 'downloads':
-        return t('sidebar.downloads');
       case 'add-new-server':
         return t('sidebar.addNewServer');
       default:

@@ -5,14 +5,12 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store/rootReducer';
 import { AddServerView } from '../AddServerView';
 import { ClearCacheDialog } from '../ClearCacheDialog';
-import DownloadsManagerView from '../DownloadsManagerView';
 import { OutlookCredentialsDialog } from '../OutlookCredentialsDialog';
 import { RootScreenSharePicker } from '../RootScreenSharePicker';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { ServerInfoModal } from '../ServerInfoModal';
 import { ServersView } from '../ServersView';
-import { SettingsView } from '../SettingsView';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TabBar } from '../TabBar';
 import { MeatballMenuButton } from '../TabBar/MeatballMenuButton';
@@ -183,8 +181,6 @@ export const Shell = () => {
           >
             <ServersView />
             <AddServerView />
-            <DownloadsManagerView />
-            <SettingsView />
           </Box>
         </Box>
       </Box>

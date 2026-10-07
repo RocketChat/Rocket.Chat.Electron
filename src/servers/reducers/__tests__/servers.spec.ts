@@ -28,7 +28,7 @@ import {
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
 } from '../../../ui/actions';
-import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../actions';
+import { SERVERS_LOADED } from '../../actions';
 import type { Server } from '../../common';
 import { servers } from '../../reducers';
 
@@ -450,15 +450,13 @@ describe('servers reducer', () => {
   });
 
   describe('APP_SETTINGS_LOADED', () => {
-    it('should normalize urls and reset document viewer fields', () => {
+    it('should normalize urls', () => {
       const newState = servers([], {
         type: APP_SETTINGS_LOADED,
         payload: { servers: [{ url: 'https://open.rocket.chat' }] },
       } as any);
 
       expect(newState[0].url).toBe('https://open.rocket.chat/');
-      expect(newState[0].documentViewerOpenUrl).toBe('');
-      expect(newState[0].documentViewerFormat).toBe('');
     });
 
     it('should fall back to current state when servers missing', () => {
@@ -507,31 +505,6 @@ describe('servers reducer', () => {
       } as any);
 
       expect(newState[0].outlookCredentials).toBe(outlookCredentials);
-    });
-  });
-
-  describe('SERVER_DOCUMENT_VIEWER_OPEN_URL', () => {
-    it('should set document viewer url and format', () => {
-      const newState = servers([existing], {
-        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-        payload: {
-          server: url,
-          documentUrl: 'https://doc/',
-          documentFormat: 'pdf',
-        },
-      } as any);
-
-      expect(newState[0].documentViewerOpenUrl).toBe('https://doc/');
-      expect(newState[0].documentViewerFormat).toBe('pdf');
-    });
-
-    it('should default documentViewerFormat to empty string when not provided', () => {
-      const newState = servers([existing], {
-        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-        payload: { server: url, documentUrl: 'https://doc/' },
-      } as any);
-
-      expect(newState[0].documentViewerFormat).toBe('');
     });
   });
 

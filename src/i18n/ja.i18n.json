@@ -150,15 +150,31 @@
       },
       "uiPreview": {
         "title": "Web UI のビルドを読み込む",
-        "description": "セッションを維持したまま、ワークスペース本来の UI の代わりに Rocket.Chat Web クライアントのビルドを実行します。「develop」または Rocket.Chat の PR 番号（いずれも ghcr.io から取得）、もしくは配信中のバンドルの URL を入力してください。",
+        "description": "セッションを維持したまま、ワークスペース本来の UI の代わりに Rocket.Chat Web クライアントのビルドを実行します。「develop」または Rocket.Chat の PR 番号（いずれも ghcr.io から取得）、もしくは配信中のバンドルの URL を追加し、ワークスペースに適用してください。項目を更新すると新しいビルドを確認し、それを使用しているワークスペースを再読み込みします。",
         "placeholder": "develop、42364 または http://127.0.0.1:4173/",
-        "load": "読み込む",
+        "add": "追加",
+        "adding": "ビルドが存在するか確認しています…",
+        "applyTo": "適用先",
+        "apply": "適用",
+        "refresh": "新しいビルドを確認",
+        "refreshing": "新しいビルドを確認しています…",
+        "current": "すでに最新のビルドです。",
+        "updated": "最新のビルドに更新しました。",
+        "remove": "一覧から削除",
+        "builtAt": "{{- date}} にビルド",
+        "activeOn": "有効: {{- workspaces}}",
         "restore": "サーバーの UI に戻す",
         "active": "このワークスペースで有効: {{- label}}",
         "loading": "ダウンロードして適用しています…",
         "failed": "読み込めませんでした: {{- message}}",
         "cancelled": "キャンセルしました。",
-        "inactive": "サーバーの UI を使用しています。"
+        "inactive": "サーバーの UI を使用しています。",
+        "pullRequestState": {
+          "open": "オープン",
+          "draft": "ドラフト",
+          "merged": "マージ済み",
+          "closed": "クローズ"
+        }
       }
     },
     "sections": {

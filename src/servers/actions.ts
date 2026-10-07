@@ -23,5 +23,6 @@ export type ServersActionTypeToPayloadMap = {
   [SERVER_UI_PREVIEW_CHANGED]: {
     url: Server['url'];
     uiPreview: string | undefined;
+    uiPreviewSource: string | undefined;
   };
 };

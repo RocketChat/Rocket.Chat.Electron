@@ -488,15 +488,31 @@
       },
       "uiPreview": {
         "title": "Load a web UI build",
-        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Enter \"develop\" or a Rocket.Chat PR number (both pulled from ghcr.io), or the URL of a served bundle.",
+        "description": "Run a Rocket.Chat web client build in place of a workspace's own UI, keeping your session. Add \"develop\" or a Rocket.Chat PR number (both pulled from ghcr.io), or the URL of a served bundle, then apply it to a workspace. Refreshing an entry checks for a newer build and reloads the workspaces running it.",
         "placeholder": "develop, 42364 or http://127.0.0.1:4173/",
-        "load": "Load",
+        "add": "Add",
+        "adding": "Checking that the build exists…",
+        "applyTo": "Apply to",
+        "apply": "Apply",
+        "refresh": "Check for a newer build",
+        "refreshing": "Checking for a newer build…",
+        "current": "Already the newest build.",
+        "updated": "Updated to the newest build.",
+        "remove": "Remove from the list",
+        "builtAt": "built {{- date}}",
+        "activeOn": "Active on {{- workspaces}}",
         "restore": "Restore server UI",
         "active": "Active on this workspace: {{- label}}",
         "loading": "Downloading and applying…",
         "failed": "Could not load: {{- message}}",
         "cancelled": "Cancelled.",
-        "inactive": "Using the server's UI."
+        "inactive": "Using the server's UI.",
+        "pullRequestState": {
+          "open": "Open",
+          "draft": "Draft",
+          "merged": "Merged",
+          "closed": "Closed"
+        }
       }
     },
     "appearance": "Appearance",

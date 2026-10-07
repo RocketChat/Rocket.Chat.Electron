@@ -8,6 +8,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "Máhcat lásiid sturrodagaid ja sajiid",
+        "description": "Vajálduhttá gos áppa ja dan láset ledje. Juohke láse rahppo standárdsturrodagas, guovdu, boahtte háve go čájehuvvo."
+      },
       "transparentWindow": {
         "title": "Genomskinlig fönstereffekt",
         "description": "Aktivera inbyggd vibrans/genomskinlighetseffekt för fönstret. Kräver omstart för att tillämpa."
@@ -18,7 +22,47 @@
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Lohkkekeahtes dieđáhusaid lohku govažis",
+        "titleDarwin": "Lohkkekeahtes dieđáhusaid mearka fálloholgga govažis",
+        "description": "Čájet lohkkekeahtes dieđáhusaid mearkka govažis du stáhtusa sajis."
+      },
+      "menuBarUnreadCount": {
+        "title": "Lohkkekeahtes dieđáhusaid lohku fálloholggas",
+        "description": "Čájet lohkkekeahtes namuhemiid logu fálloholgga govaža bálddas."
+      },
+      "uiPreview": {
+        "title": "Viečča web-geavaheaddjilaktta builda",
+        "description": "Vuodjá Rocket.Chat web-klienta builda bargobáikki iežas geavaheaddjilavtta sajis, ja doallá du sešuvnna. Lasit \"develop\" dahje Rocket.Chat PR-nummira (goappašagat viežžojuvvojit ghcr.io:s), dahje bálvaluvvon páhka URL-čujuhusa, ja de váldde dan atnui bargobáikkis. Go ođasmahtát merkoštusa, de dat ohcá ođđasut builda ja viežžá ođđasit bargobáikkiid mat dan geavahit.",
+        "placeholder": "develop, 42364 dahje http://127.0.0.1:4173/",
+        "add": "Lasit",
+        "adding": "Dárkkista ahte builda gávdno…",
+        "applyTo": "Váldde atnui dás",
+        "apply": "Váldde atnui",
+        "refresh": "Oza ođđasut builda",
+        "refreshing": "Ohcá ođđasut builda…",
+        "current": "Juo ođđaseamos builda.",
+        "updated": "Ođasmahttojuvvon ođđaseamos buildii.",
+        "remove": "Sihko listtus",
+        "builtAt": "ráhkaduvvon {{- date}}",
+        "activeOn": "Aktiiva: {{- workspaces}}",
+        "restore": "Máhcat bálvvá geavaheaddjilaktta",
+        "active": "Aktiiva dán bargobáikkis: {{- label}}",
+        "loading": "Viežžá ja váldá atnui…",
+        "failed": "Ii sáhttán viežžat: {{- message}}",
+        "cancelled": "Gaskkalduhttojuvvon.",
+        "inactive": "Geavaha bálvvá geavaheaddjilaktta.",
+        "pullRequestState": {
+          "open": "Rabas",
+          "draft": "Konseapta",
+          "merged": "Ovttastuvvon",
+          "closed": "Giddejuvvon"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Web-geavaheaddjilakta-ovdačájáhus"
     }
   },
   "serverInfo": {
@@ -48,7 +92,14 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "Simuler čađaheami"
+    "simulateDisconnected": "Simuler čađaheami",
+    "resetWindowBounds": "Máhcat lásiid sturrodagaid ja sajiid",
+    "restoreServerUi": "Máhcat bálvvá geavaheaddjilaktta"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Ođasmahte geavaheaddjilaktta ovdačájáhusa"
+    }
   },
   "tray": {
     "presence": {
@@ -61,5 +112,19 @@
       "signIn": "Čálihuvvo {{- workspace}} bargobáikái",
       "addWorkspace": "Lasit bargobáikki"
     }
+  },
+  "dialog": {
+    "uiOverride": {
+      "title": "Viečča geavaheaddjilaktta ovdačájáhusa",
+      "message": "Viežžat eará web-geavaheaddjilaktta \"{{- host}}\" várás?",
+      "detail": "Geavaheaddjilakta viežžojuvvo {{- bundle}} čujuhusas ja doaibmá du sešuvnnain dán bálvvás. Joatkke dušše jus luhtet dán buildii. Geavat View > Máhcat bálvvá geavaheaddjilaktta dahje álggat prográmma ođđasit máhccat.",
+      "load": "Viečča geavaheaddjilaktta",
+      "cancel": "Gaskkalduhte",
+      "developerModeRequired": "Doaimmat Help > Developer Mode vai sáhtát viežžat geavaheaddjilakta-ovdačájáhusaid.",
+      "failed": "Ii sáhttán viežžat geavaheaddjilakta-ovdačájáhusa."
+    }
+  },
+  "tabBar": {
+    "uiPreview": "Geavaheaddjilakta-ovdačájáhus: {{- label}}"
   }
 }

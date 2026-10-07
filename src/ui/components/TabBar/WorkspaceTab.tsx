@@ -26,6 +26,7 @@ import {
   Favicon,
   Initials,
   Label,
+  PreviewBadgeWrapper,
   ShortcutChip,
   SpeakerButton,
   Tab,
@@ -65,6 +66,7 @@ type WorkspaceTabProps = {
   favicon: string | null;
   isSelected: boolean;
   badge?: '•' | number;
+  uiPreview?: string;
   userLoggedIn?: boolean;
   isAudible?: boolean;
   isAudioMuted?: boolean;
@@ -85,6 +87,7 @@ const WorkspaceTab = ({
   favicon,
   isSelected,
   badge,
+  uiPreview,
   userLoggedIn,
   isAudible,
   isAudioMuted,
@@ -149,9 +152,11 @@ const WorkspaceTab = ({
   }${unreadSuffix}${audioSuffix}${shortcutSuffix}`;
   // Show the name on the first line and the address on a second line. When the
   // title is only the address, the primary line already is it, so skip line two.
-  const tooltipLines = tooltipName
-    ? [tooltipPrimaryLine, serverAddress]
-    : [tooltipPrimaryLine];
+  const tooltipLines = [
+    tooltipPrimaryLine,
+    ...(tooltipName ? [serverAddress] : []),
+    ...(uiPreview ? [t('tabBar.uiPreview', { label: uiPreview })] : []),
+  ];
   // The TooltipProvider renders each '\n'-separated line on its own row, so the
   // native title, the custom hover tooltip and the aria-label all stay in sync.
   const tooltipText = tooltipLines.join('\n');
@@ -259,6 +264,12 @@ const WorkspaceTab = ({
     </SpeakerButton>
   ) : null;
 
+  // Shown alongside the badge above, never instead of it: it says what the
+  // tab is running, not what is waiting in it.
+  const uiPreviewBadge = uiPreview ? (
+    <TabBadge variant='danger'>UI</TabBadge>
+  ) : null;
+
   return (
     <>
       <Tab
@@ -302,9 +313,15 @@ const WorkspaceTab = ({
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}
         {isVertical ? (
-          <BadgeWrapper>{badgeElement}</BadgeWrapper>
+          <>
+            <BadgeWrapper>{badgeElement}</BadgeWrapper>
+            {uiPreviewBadge && (
+              <PreviewBadgeWrapper>{uiPreviewBadge}</PreviewBadgeWrapper>
+            )}
+          </>
         ) : (
           <>
+            {uiPreviewBadge}
             {badgeElement}
             {speakerElement}
           </>

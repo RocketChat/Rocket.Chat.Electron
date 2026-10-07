@@ -49,6 +49,11 @@ import {
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
+import {
+  isConferenceCallPageUrl,
+  requestConferenceWindow,
+  takePendingConferenceUrl,
+} from './conferenceWindow';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
 
@@ -357,13 +362,46 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  // Whatever brings the server view onto a conference call page (a link to it
+  // posted in a room, the web client's router, a redirect), the call moves to
+  // the video call window and the server view returns to where it was.
+  const moveConferenceCallPageOut = (pageUrl: string): boolean => {
+    if (!isConferenceCallPageUrl(pageUrl, serverUrl)) {
+      return false;
+    }
+
+    requestConferenceWindow(serverUrl, guestWebContents, pageUrl);
+
+    setImmediate(() => {
+      if (guestWebContents.isDestroyed()) {
+        return;
+      }
+      const { navigationHistory } = guestWebContents;
+      if (navigationHistory.canGoBack()) {
+        navigationHistory.goBack();
+        return;
+      }
+      guestWebContents.loadURL(serverUrl);
+    });
+
+    return true;
+  };
+
+  const handleDidNavigate = (_event: Event, pageUrl: string): void => {
+    moveConferenceCallPageOut(pageUrl);
+  };
+
   const handleDidNavigateInPage = (
     _event: Event,
     pageUrl: string,
-    _isMainFrame: boolean,
+    isMainFrame: boolean,
     _frameProcessId: number,
     _frameRoutingId: number
   ): void => {
+    if (isMainFrame && moveConferenceCallPageOut(pageUrl)) {
+      return;
+    }
+
     dispatch({
       type: WEBVIEW_DID_NAVIGATE,
       payload: {
@@ -444,6 +482,7 @@ const initializeServerWebContentsAfterAttach = (
 
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
+  guestWebContents.addListener('did-navigate', handleDidNavigate);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
   guestWebContents.addListener('audio-state-changed', handleAudioStateChanged);
@@ -697,6 +736,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       Array.from(webContentsByServerUrl.entries()).find(
         ([, v]) => v === webContents
       )?.[0]
+  );
+
+  handle('server-view/take-pending-conference', async (webContents) =>
+    takePendingConferenceUrl(
+      Array.from(webContentsByServerUrl.entries()).find(
+        ([, v]) => v === webContents
+      )?.[0]
+    )
   );
 
   let injectableCode: string | undefined;

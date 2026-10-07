@@ -20,35 +20,9 @@ const server = { url: 'https://open.rocket.chat/', title: 'Open' };
 const renderRow = (uiPreview?: string) =>
   render(<UiPreviewRow server={{ ...server, uiPreview }} />);
 
-const load = (value: string) => {
-  fireEvent.change(
-    screen.getByPlaceholderText('settings.options.uiPreview.placeholder'),
-    { target: { value } }
-  );
-  fireEvent.click(screen.getByText('settings.options.uiPreview.load'));
-};
-
 describe('UiPreviewRow', () => {
   beforeEach(() => {
     jest.mocked(invoke).mockReset();
-  });
-
-  it('reports why a preview could not be loaded', async () => {
-    jest
-      .mocked(invoke)
-      .mockResolvedValue({ status: 'failed', message: 'responded 403' });
-    renderRow();
-
-    load('42364');
-
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'settings.options.uiPreview.failed responded 403'
-    );
-    expect(invoke).toHaveBeenCalledWith(
-      'ui-preview/apply',
-      server.url,
-      '42364'
-    );
   });
 
   it('shows the active preview and lets it be restored', async () => {
@@ -66,29 +40,17 @@ describe('UiPreviewRow', () => {
     );
   });
 
-  it('reports a rejected load and lets it be retried', async () => {
-    jest.mocked(invoke).mockRejectedValue(new Error('dialog failed'));
-    renderRow();
-
-    load('42364');
-
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'settings.options.uiPreview.failed dialog failed'
-    );
-    expect(
-      screen.getByText('settings.options.uiPreview.load').closest('button')
-    ).toBeEnabled();
-  });
-
   it('reports a rejected restore and lets it be retried', async () => {
     jest.mocked(invoke).mockRejectedValue(new Error('clearCache failed'));
     renderRow('PR #42364');
 
     fireEvent.click(screen.getByText('settings.options.uiPreview.restore'));
 
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'settings.options.uiPreview.failed clearCache failed'
-    );
+    expect(
+      await screen.findByText(
+        'settings.options.uiPreview.failed clearCache failed'
+      )
+    ).toHaveAttribute('role', 'status');
     expect(
       screen.getByText('settings.options.uiPreview.restore').closest('button')
     ).toBeEnabled();
@@ -100,5 +62,8 @@ describe('UiPreviewRow', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       'settings.options.uiPreview.inactive'
     );
+    expect(
+      screen.getByText('settings.options.uiPreview.restore').closest('button')
+    ).toBeDisabled();
   });
 });

@@ -34,15 +34,31 @@
       },
       "uiPreview": {
         "title": "Carica una build dell'interfaccia web",
-        "description": "Esegue una build del client web di Rocket.Chat al posto dell'interfaccia di un workspace, mantenendo la tua sessione. Inserisci \"develop\" o il numero di una PR di Rocket.Chat (entrambi scaricati da ghcr.io), oppure l'URL di un bundle servito.",
+        "description": "Esegue una build del client web di Rocket.Chat al posto dell'interfaccia di un workspace, mantenendo la tua sessione. Aggiungi \"develop\" o il numero di una PR di Rocket.Chat (entrambi scaricati da ghcr.io), oppure l'URL di un bundle servito, poi applicalo a un workspace. Aggiornare una voce cerca una build più recente e ricarica i workspace che la usano.",
         "placeholder": "develop, 42364 o http://127.0.0.1:4173/",
-        "load": "Carica",
+        "add": "Aggiungi",
+        "adding": "Verifica dell'esistenza della build…",
+        "applyTo": "Applica a",
+        "apply": "Applica",
+        "refresh": "Cerca una build più recente",
+        "refreshing": "Ricerca di una build più recente…",
+        "current": "È già la build più recente.",
+        "updated": "Aggiornata alla build più recente.",
+        "remove": "Rimuovi dall'elenco",
+        "builtAt": "creata il {{- date}}",
+        "activeOn": "Attiva su {{- workspaces}}",
         "restore": "Ripristina l'interfaccia del server",
         "active": "Attiva su questo workspace: {{- label}}",
         "loading": "Download e applicazione in corso…",
         "failed": "Impossibile caricare: {{- message}}",
         "cancelled": "Annullato.",
-        "inactive": "In uso l'interfaccia del server."
+        "inactive": "In uso l'interfaccia del server.",
+        "pullRequestState": {
+          "open": "Aperta",
+          "draft": "Bozza",
+          "merged": "Unita",
+          "closed": "Chiusa"
+        }
       }
     },
     "sections": {

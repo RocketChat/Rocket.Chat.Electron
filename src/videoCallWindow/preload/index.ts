@@ -49,8 +49,23 @@ const videoCall = {
   },
 };
 
+// The conference page is the workspace's own web client, which reads a defined
+// RocketChatDesktop as "running in the main window" and calls these setters
+// without checking that they exist (`RocketChatDesktop?.setUrlResolver(...)`).
+// They belong to the main window, so here they do nothing; without them the
+// page throws while it boots.
+const mainWindowOnlySetters = {
+  setUrlResolver: () => undefined,
+  setFavicon: () => undefined,
+  setTitle: () => undefined,
+  setUserPresenceDetection: () => undefined,
+};
+
 // Deliberately not declared on the global `Window`: the server webview's
 // preload already declares RocketChatDesktop with its own (much larger) shape,
 // and the two declarations would merge project-wide even though no context
 // ever sees both bridges.
-contextBridge.exposeInMainWorld('RocketChatDesktop', { videoCall });
+contextBridge.exposeInMainWorld('RocketChatDesktop', {
+  ...mainWindowOnlySetters,
+  videoCall,
+});

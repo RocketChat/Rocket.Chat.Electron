@@ -8,6 +8,7 @@ import type {
 } from 'electron';
 import {
   app,
+  autoUpdater,
   BrowserWindow,
   Menu,
   nativeImage,
@@ -609,7 +610,13 @@ export const setupRootWindow = (): void => {
     );
   }
 
-  app.addListener('before-quit', () => {
+  let isTornDown = false;
+  const tearDown = (): void => {
+    if (isTornDown) {
+      return;
+    }
+    isTornDown = true;
+
     unsubscribers.forEach((unsubscriber) => {
       try {
         unsubscriber();
@@ -617,7 +624,13 @@ export const setupRootWindow = (): void => {
         console.warn('Unsubscriber error during quit:', error);
       }
     });
-  });
+  };
+
+  app.addListener('before-quit', tearDown);
+  // On macOS, quitAndInstall() closes every window before emitting
+  // before-quit, so the close guard has to be released here as well or the
+  // restart into a downloaded update never happens.
+  autoUpdater.addListener('before-quit-for-update', tearDown);
 };
 
 const createRootWindowContextMenu = ({

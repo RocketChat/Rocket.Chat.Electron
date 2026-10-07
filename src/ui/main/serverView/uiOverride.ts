@@ -9,9 +9,13 @@ export type UiOverrideBundle = {
   url: string;
   // Shown once loaded; can name the exact build, which the label asked about up front cannot know yet.
   label: string;
+  // Names the exact build when the source knows it, so a refresh can tell whether a newer one was published.
+  version?: string;
 };
 
 export type UiOverrideSource = {
+  // The Settings input that loads this source again.
+  key: string;
   label: string;
   // An update calls it again, so a moving tag fetches its newest build.
   load: () => Promise<UiOverrideBundle>;
@@ -49,7 +53,12 @@ const bundleAssetsPath = '/bundle/';
 // ponytail: in-memory only, so a restart always returns every server to its own UI.
 const overrides = new Map<
   string,
-  { source: UiOverrideSource; bundleUrl: string }
+  {
+    source: UiOverrideSource;
+    bundleUrl: string;
+    version?: string;
+    loads: Set<AbortController>;
+  }
 >();
 
 // Bumped by every apply and restore, so a load that finishes after a newer request is dropped.
@@ -67,8 +76,16 @@ const isKnownServer = (serverUrl: string) =>
 export const getUiOverride = (serverUrl: string) =>
   overrides.get(serverUrl)?.source;
 
+export const getUiOverrideVersion = (serverUrl: string) =>
+  overrides.get(serverUrl)?.version;
+
 export const getUiOverrideBundleUrls = () =>
   [...overrides.values()].map(({ bundleUrl }) => bundleUrl);
+
+export const getUiOverrideServerUrls = (key: string) =>
+  [...overrides]
+    .filter(([, { source }]) => source.key === key)
+    .map(([serverUrl]) => serverUrl);
 
 const withTrailingSlash = (url: string) =>
   url.endsWith('/') ? url : `${url}/`;
@@ -104,21 +121,83 @@ export const prepareIndexHtml = (html: string, serverUrl: string) => {
     );
 };
 
-const passthrough = (ses: Session, request: Request) =>
-  ses.fetch(request, {
-    bypassCustomProtocolHandlers: true,
-    credentials: 'include',
+// protocol.handle gives the handler a Request without an abort signal, and a page that drops a response (a media element, an aborted fetch) does not cancel the load behind it.
+// Its unread body then holds the connection's flow-control window, and once a few pile up every request to the server stalls.
+// So each load gets its own controller, aborted when Electron cancels the body or the override goes away.
+export const passthrough = async (
+  ses: Session,
+  request: Request,
+  loads: Set<AbortController>
+): Promise<Response> => {
+  const controller = new AbortController();
+  loads.add(controller);
+  const release = () => loads.delete(controller);
+
+  let response: Response;
+  try {
+    response = await ses.fetch(request, {
+      bypassCustomProtocolHandlers: true,
+      credentials: 'include',
+      signal: controller.signal,
+    });
+  } catch (error) {
+    release();
+    throw error;
+  }
+
+  if (!response.body) {
+    release();
+    return response;
+  }
+
+  const reader = response.body.getReader();
+  const body = new ReadableStream<Uint8Array>({
+    async pull(stream) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          release();
+          stream.close();
+          return;
+        }
+        stream.enqueue(value);
+      } catch (error) {
+        release();
+        stream.error(error);
+      }
+    },
+    cancel(reason) {
+      release();
+      controller.abort(reason);
+    },
   });
+
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+};
+
+const abortLoads = (loads: Set<AbortController> | undefined) => {
+  loads?.forEach((controller) => controller.abort());
+  loads?.clear();
+};
 
 // ponytail: every request of the server's scheme in this session goes through the main process while an override is active; fine for testing, not for daily use.
 const createHandler =
-  (ses: Session, serverUrl: string, bundleUrl: string) =>
+  (
+    ses: Session,
+    serverUrl: string,
+    bundleUrl: string,
+    loads: Set<AbortController>
+  ) =>
   async (request: Request): Promise<Response> => {
     const server = new URL(withTrailingSlash(serverUrl));
     const url = new URL(request.url);
 
     if (url.origin !== server.origin || request.method !== 'GET') {
-      return passthrough(ses, request);
+      return passthrough(ses, request, loads);
     }
 
     if (url.pathname.startsWith(bundleAssetsPath)) {
@@ -132,7 +211,7 @@ const createHandler =
       !isDocument ||
       isUiServedFromServer(url.pathname, server.pathname.replace(/\/$/, ''))
     ) {
-      return passthrough(ses, request);
+      return passthrough(ses, request, loads);
     }
 
     const index = await ses.fetch(new URL('index.html', bundleUrl).href, {
@@ -173,11 +252,22 @@ export const applyUiOverride = async (
   if (ses.protocol.isProtocolHandled(scheme)) {
     ses.protocol.unhandle(scheme);
   }
-  ses.protocol.handle(scheme, createHandler(ses, serverUrl, bundleUrl));
-  overrides.set(serverUrl, { source, bundleUrl });
+  abortLoads(overrides.get(serverUrl)?.loads);
+  const loads = new Set<AbortController>();
+  ses.protocol.handle(scheme, createHandler(ses, serverUrl, bundleUrl, loads));
+  overrides.set(serverUrl, {
+    source,
+    bundleUrl,
+    version: bundle.version,
+    loads,
+  });
   dispatch({
     type: SERVER_UI_PREVIEW_CHANGED,
-    payload: { url: serverUrl, uiPreview: bundle.label },
+    payload: {
+      url: serverUrl,
+      uiPreview: bundle.label,
+      uiPreviewSource: source.key,
+    },
   });
 
   await reloadServer(serverUrl, ses);
@@ -186,15 +276,23 @@ export const applyUiOverride = async (
 
 export const clearUiOverride = async (serverUrl: string) => {
   nextGeneration(serverUrl);
-  if (!overrides.delete(serverUrl)) {
+  const override = overrides.get(serverUrl);
+  if (!override) {
     return;
   }
+  overrides.delete(serverUrl);
 
   const ses = getServerSession(serverUrl);
   ses.protocol.unhandle(getScheme(serverUrl));
+  // Loads the preview started outlive the handler; the server's own UI would queue behind them.
+  abortLoads(override.loads);
   dispatch({
     type: SERVER_UI_PREVIEW_CHANGED,
-    payload: { url: serverUrl, uiPreview: undefined },
+    payload: {
+      url: serverUrl,
+      uiPreview: undefined,
+      uiPreviewSource: undefined,
+    },
   });
 
   await reloadServer(serverUrl, ses);

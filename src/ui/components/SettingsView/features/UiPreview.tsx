@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../../store/rootReducer';
+import { UiPreviewHistory } from './UiPreviewHistory';
 import { UiPreviewRow } from './UiPreviewRow';
 
 type UiPreviewProps = {
@@ -24,6 +25,7 @@ export const UiPreview = (props: UiPreviewProps) => {
       <Box fontScale='p2' color='hint' mbe={16}>
         {t('settings.options.uiPreview.description')}
       </Box>
+      <UiPreviewHistory servers={servers} />
       {servers.map((server) => (
         <UiPreviewRow key={server.url} server={server} />
       ))}

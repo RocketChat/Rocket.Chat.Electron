@@ -21,26 +21,45 @@ import { packOnLinux, setupSnapcraft, uploadSnap } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
 import { packOnWindows } from './windows/index';
 
+const targets = core.getInput('targets').trim();
+const mode = core.getInput('mode') || 'build';
+const uploadUpdateMetadata =
+  (core.getInput('upload_update_metadata') || 'true') !== 'false';
+
 const pack = async () => {
   switch (process.platform) {
     case 'linux':
-      await setupSnapcraft();
-      await packOnLinux();
+      if (!targets || targets.split(/\s+/).includes('snap')) {
+        await setupSnapcraft();
+      }
+      await packOnLinux(targets || undefined);
       break;
 
     case 'darwin':
       await disableSpotlightIndexing();
-      await packOnMacOS();
+      await packOnMacOS(targets);
       break;
 
     case 'win32':
-      await packOnWindows();
+      await packOnWindows(targets);
       break;
   }
 };
 
-const getFilesToUpload = () =>
-  fg([
+const UPDATE_METADATA_FILES = [
+  'dist/latest.yml',
+  'dist/latest-mac.yml',
+  'dist/latest-linux.yml',
+  'dist/alpha.yml',
+  'dist/alpha-mac.yml',
+  'dist/alpha-linux.yml',
+  'dist/beta.yml',
+  'dist/beta-mac.yml',
+  'dist/beta-linux.yml',
+];
+
+const getFilesToUpload = async () => {
+  const files = await fg([
     'dist/latest-linux.yml',
     'dist/*.tar.gz',
     'dist/*.snap',
@@ -65,6 +84,16 @@ const getFilesToUpload = () =>
     'dist/beta-mac.yml',
     'dist/beta-linux.yml',
   ]);
+
+  if (uploadUpdateMetadata) {
+    return files;
+  }
+
+  // This job does not own the electron-updater metadata for its platform;
+  // uploading a yml that lists only this job's artifacts would overwrite the
+  // owner's complete one.
+  return files.filter((file) => !UPDATE_METADATA_FILES.includes(file));
+};
 
 const releaseDevelopment = async (commitSha: string) => {
   await pack();
@@ -133,6 +162,14 @@ const releaseSnapshot = async (commitSha: string) => {
 };
 
 const releaseTagged = async (version: SemVer, commitSha: string) => {
+  if (mode === 'prepare') {
+    const draft = await getTaggedRelease(version, commitSha);
+    core.info(
+      `draft release ${draft.id} ready for ${version.version}; nothing to pack in prepare mode`
+    );
+    return;
+  }
+
   await pack();
 
   const release = await getTaggedRelease(version, commitSha);
@@ -163,6 +200,14 @@ const releaseTagged = async (version: SemVer, commitSha: string) => {
 };
 
 const start = async () => {
+  if (mode === 'dry-run') {
+    core.info(
+      `dry-run mode: packing targets "${targets || '(all)'}" without publishing`
+    );
+    await pack();
+    return;
+  }
+
   if (github.context.eventName !== 'push') {
     core.warning(
       `this action should be used in push events (eventName="${github.context.eventName}")`

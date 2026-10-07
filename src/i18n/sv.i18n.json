@@ -157,6 +157,15 @@
     },
     "supportedVersion": {
       "title": "Versionen av arbetsytan stöds inte"
+    },
+    "uiOverride": {
+      "title": "Läs in förhandsvisning av gränssnitt",
+      "message": "Läsa in ett annat webbgränssnitt för ”{{- host}}”?",
+      "detail": "Gränssnittet läses in från {{- bundle}} och körs med din session på den här servern. Fortsätt bara om du litar på det här bygget. Använd Visa > Återställ serverns gränssnitt eller starta om appen för att gå tillbaka.",
+      "load": "Läs in gränssnitt",
+      "cancel": "Avbryt",
+      "developerModeRequired": "Aktivera Hjälp > Utvecklarläge för att läsa in förhandsvisningar av gränssnitt.",
+      "failed": "Förhandsvisningen av gränssnittet kunde inte läsas in."
     }
   },
   "documentViewer": {
@@ -251,6 +260,10 @@
         "title": "Hårdvaruacceleration",
         "description": "Aktiverar användning av hårdvaruacceleration när sådan finns tillgänglig. Programmet laddas om vid ändring."
       },
+      "resetWindowBounds": {
+        "title": "Återställ fönsterstorlekar och -positioner",
+        "description": "Glömmer var appen och dess fönster var placerade. Varje fönster öppnas i standardstorlek, centrerat, nästa gång det visas."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Reservläge för videosamtal",
         "description": "Stänger av Windows Graphics Capture så att delning fungerar i RDP-sessioner. Appen startas om när du ändrar valet.",
@@ -278,6 +291,15 @@
       "trayIcon": {
         "title": "Ikon för brickan",
         "description": "Visa ikonen i systemfältet. Om ikonen är aktiv kommer appen att döljas i facket när den stängs. Annars avslutas programmet."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Olästa-räknare i ikonen för brickan",
+        "titleDarwin": "Olästa-indikator i menyfältsikonen",
+        "description": "Visa märket för olästa meddelanden på ikonen i stället för din närvarostatus."
+      },
+      "menuBarUnreadCount": {
+        "title": "Antal olästa i menyfältet",
+        "description": "Visa antalet olästa omnämnanden bredvid ikonen i menyfältet."
       },
       "availableBrowsers": {
         "title": "Standardwebbläsare",
@@ -313,7 +335,38 @@
         "auto": "Följ system",
         "light": "Ljus",
         "dark": "Mörk"
+      },
+      "uiPreview": {
+        "title": "Läs in ett bygge av webbgränssnittet",
+        "description": "Kör ett bygge av Rocket.Chats webbklient i stället för arbetsytans eget gränssnitt och behåller din session. Lägg till ”develop” eller ett PR-nummer från Rocket.Chat (båda hämtas från ghcr.io), eller URL:en till ett serverat paket, och tillämpa det sedan på en arbetsyta. Att uppdatera en post söker efter ett nyare bygge och läser in arbetsytorna som använder det på nytt.",
+        "placeholder": "develop, 42364 eller http://127.0.0.1:4173/",
+        "add": "Lägg till",
+        "adding": "Kontrollerar att bygget finns…",
+        "applyTo": "Tillämpa på",
+        "apply": "Tillämpa",
+        "refresh": "Sök efter ett nyare bygge",
+        "refreshing": "Söker efter ett nyare bygge…",
+        "current": "Redan det senaste bygget.",
+        "updated": "Uppdaterat till det senaste bygget.",
+        "remove": "Ta bort från listan",
+        "builtAt": "byggt {{- date}}",
+        "activeOn": "Aktiv på {{- workspaces}}",
+        "restore": "Återställ serverns gränssnitt",
+        "active": "Aktiv på den här arbetsytan: {{- label}}",
+        "loading": "Laddar ned och tillämpar…",
+        "failed": "Kunde inte läsa in: {{- message}}",
+        "cancelled": "Avbrutet.",
+        "inactive": "Serverns gränssnitt används.",
+        "pullRequestState": {
+          "open": "Öppen",
+          "draft": "Utkast",
+          "merged": "Sammanfogad",
+          "closed": "Stängd"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Förhandsvisning av webbgränssnitt"
     }
   },
   "error": {
@@ -344,7 +397,7 @@
     "settings": "Inställningar",
     "editMenu": "&Editera",
     "fileMenu": "&Fil",
-    "findInPage": "&Find…",
+    "findInPage": "&Sök…",
     "forward": "&Framåt",
     "helpMenu": "&Hjälp",
     "hide": "Göm {{- appName}}",
@@ -360,6 +413,7 @@
     "reloadClearingCache": "Tvinga fram omladdning",
     "reportIssue": "Rapportera problem",
     "resetAppData": "Återställ appdata",
+    "resetWindowBounds": "Återställ fönsterstorlekar och -positioner",
     "resetZoom": "Återställ zoom",
     "selectAll": "Välj alla",
     "services": "Tjänster",
@@ -379,15 +433,16 @@
     "windowMenu": "&Fönster",
     "zoomIn": "Zooma in",
     "zoomOut": "Zooma ut",
-    "simulateDisconnected": "Simulera frånkoppling"
+    "simulateDisconnected": "Simulera frånkoppling",
+    "restoreServerUi": "Återställ serverns gränssnitt"
   },
   "findInPage": {
-    "placeholder": "Find in page",
-    "matchCount": "{{current}} of {{total}}",
-    "noMatches": "No matches",
-    "previous": "Previous match",
-    "next": "Next match",
-    "close": "Close"
+    "placeholder": "Sök på sidan",
+    "matchCount": "{{current}} av {{total}}",
+    "noMatches": "Inga träffar",
+    "previous": "Föregående träff",
+    "next": "Nästa träff",
+    "close": "Stäng"
   },
   "loadingError": {
     "title": "Servern kunde inte laddas",
@@ -431,6 +486,7 @@
       "clearCache": "Rensa cacheminnet",
       "clearStorageData": "Rensa lagringsdata",
       "copyCurrentUrl": "Kopiera aktuell URL",
+      "updateUiPreview": "Uppdatera förhandsvisning av gränssnitt",
       "reloadClearingCache": "Tvinga fram omladdning",
       "serverInfo": "Serverinformation",
       "supportedVersionsInfo": "Information om versioner som stöds"
@@ -479,7 +535,8 @@
       "canceled": "Avbruten",
       "failed": "Misslyckades",
       "dismiss": "Stäng"
-    }
+    },
+    "uiPreview": "Förhandsvisning av gränssnitt: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatering",

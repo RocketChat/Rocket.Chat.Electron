@@ -136,6 +136,15 @@
         "answerCall": "répondre aux appels",
         "recordMessage": "enregistrer des messages"
       }
+    },
+    "uiOverride": {
+      "title": "Charger un aperçu de l'interface",
+      "message": "Charger une autre interface web pour « {{- host}} » ?",
+      "detail": "L'interface sera chargée depuis {{- bundle}} et fonctionnera avec votre session sur ce serveur. Ne continuez que si vous faites confiance à ce build. Utilisez Voir > Restaurer l'interface du serveur ou redémarrez l'application pour revenir en arrière.",
+      "load": "Charger l'interface",
+      "cancel": "Annuler",
+      "developerModeRequired": "Activez Aide > Mode développeur pour charger des aperçus de l'interface.",
+      "failed": "L'aperçu de l'interface n'a pas pu être chargé."
     }
   },
   "documentViewer": {
@@ -230,6 +239,10 @@
         "title": "Accélération matérielle",
         "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
       },
+      "resetWindowBounds": {
+        "title": "Réinitialiser la taille et la position des fenêtres",
+        "description": "Oublie l’emplacement de l’application et de ses fenêtres. Chaque fenêtre s’ouvrira à sa taille par défaut, centrée, la prochaine fois qu’elle sera affichée."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Solution de capture d'écran pour les appels vidéo",
         "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option.",
@@ -258,6 +271,15 @@
         "title": "Icône de la barre d'état système",
         "description": "Afficher l'icône dans la barre d'état système. Si l'icône est active, l'application sera masquée dans la barre d'état lors de la fermeture. Sinon, elle sera complètement fermée."
       },
+      "trayIconUnreadCounter": {
+        "title": "Compteur de non-lus dans l'icône de la barre d'état système",
+        "titleDarwin": "Indicateur de non-lus dans l'icône de la barre de menus",
+        "description": "Affiche le badge des messages non lus sur l'icône à la place de votre statut de présence."
+      },
+      "menuBarUnreadCount": {
+        "title": "Nombre de non-lus dans la barre de menus",
+        "description": "Affiche le nombre de mentions non lues à côté de l'icône de la barre de menus."
+      },
       "availableBrowsers": {
         "title": "Navigateur par défaut",
         "description": "Choisissez quel navigateur ouvrira les liens externes de cette application. La valeur par défaut du système utilise les paramètres de votre système d'exploitation.",
@@ -279,7 +301,38 @@
         "auto": "Suivre le système",
         "light": "Clair",
         "dark": "Sombre"
+      },
+      "uiPreview": {
+        "title": "Charger un build de l'interface web",
+        "description": "Exécute un build du client web Rocket.Chat à la place de l'interface propre à un espace de travail, en conservant votre session. Ajoutez « develop » ou un numéro de PR Rocket.Chat (tous deux récupérés depuis ghcr.io), ou l'URL d'un bundle servi, puis appliquez-le à un espace de travail. Actualiser une entrée recherche un build plus récent et recharge les espaces de travail qui l'utilisent.",
+        "placeholder": "develop, 42364 ou http://127.0.0.1:4173/",
+        "add": "Ajouter",
+        "adding": "Vérification de l'existence du build…",
+        "applyTo": "Appliquer à",
+        "apply": "Appliquer",
+        "refresh": "Rechercher un build plus récent",
+        "refreshing": "Recherche d'un build plus récent…",
+        "current": "C'est déjà le build le plus récent.",
+        "updated": "Mis à jour vers le build le plus récent.",
+        "remove": "Retirer de la liste",
+        "builtAt": "généré le {{- date}}",
+        "activeOn": "Actif sur {{- workspaces}}",
+        "restore": "Restaurer l'interface du serveur",
+        "active": "Actif sur cet espace de travail : {{- label}}",
+        "loading": "Téléchargement et application…",
+        "failed": "Chargement impossible : {{- message}}",
+        "cancelled": "Annulé.",
+        "inactive": "Utilisation de l'interface du serveur.",
+        "pullRequestState": {
+          "open": "Ouverte",
+          "draft": "Brouillon",
+          "merged": "Fusionnée",
+          "closed": "Fermée"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Aperçu de l'interface web"
     }
   },
   "error": {
@@ -310,7 +363,7 @@
     "settings": "Paramètres",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
-    "findInPage": "&Find…",
+    "findInPage": "&Rechercher…",
     "forward": "&Suivant",
     "helpMenu": "&Aide",
     "hide": "Masquer {{- appName}}",
@@ -325,6 +378,7 @@
     "reload": "Recharger",
     "reportIssue": "Signaler un problème",
     "resetAppData": "Effacer les données de l'application",
+    "resetWindowBounds": "Réinitialiser la taille et la position des fenêtres",
     "resetZoom": "Réinitialiser le zoom",
     "selectAll": "Sélectionner tout",
     "services": "Services",
@@ -340,15 +394,16 @@
     "windowMenu": "&Fenêtre",
     "zoomIn": "Zoomer",
     "zoomOut": "Zoom arrière",
-    "simulateDisconnected": "Simuler une déconnexion"
+    "simulateDisconnected": "Simuler une déconnexion",
+    "restoreServerUi": "Restaurer l'interface du serveur"
   },
   "findInPage": {
-    "placeholder": "Find in page",
-    "matchCount": "{{current}} of {{total}}",
-    "noMatches": "No matches",
-    "previous": "Previous match",
-    "next": "Next match",
-    "close": "Close"
+    "placeholder": "Rechercher dans la page",
+    "matchCount": "{{current}} sur {{total}}",
+    "noMatches": "Aucun résultat",
+    "previous": "Résultat précédent",
+    "next": "Résultat suivant",
+    "close": "Fermer"
   },
   "loadingError": {
     "title": "Echec du chargement du serveur",
@@ -384,7 +439,8 @@
       "remove": "Retirer le serveur",
       "openDevTools": "Ouvrir DevTools",
       "clearCache": "Vider le cache",
-      "clearStorageData": "Effacer les données de stockage"
+      "clearStorageData": "Effacer les données de stockage",
+      "updateUiPreview": "Mettre à jour l'aperçu de l'interface"
     }
   },
   "tabBar": {
@@ -423,7 +479,8 @@
       "canceled": "Annulé",
       "failed": "Échoué",
       "dismiss": "Fermer"
-    }
+    },
+    "uiPreview": "Aperçu de l'interface : {{- label}}"
   },
   "touchBar": {
     "formatting": "Mise en page",

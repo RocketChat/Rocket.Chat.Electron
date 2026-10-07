@@ -272,4 +272,39 @@ describe('ServerPane', () => {
       screen.queryByPlaceholderText('findInPage.placeholder')
     ).not.toBeInTheDocument();
   });
+
+  it('closes the find bar without focusing the webview when the pane is deselected', () => {
+    const props = {
+      lastPath: undefined,
+      serverUrl: 'https://open.rocket.chat',
+      isFailed: false,
+      isSupported: true,
+      title: 'Community',
+    };
+    const { rerender } = render(
+      <Provider store={makeStore()}>
+        <ServerPane {...props} isSelected />
+      </Provider>
+    );
+
+    emit(MENU_BAR_FIND_IN_PAGE_CLICKED);
+    expect(
+      screen.getByPlaceholderText('findInPage.placeholder')
+    ).toBeInTheDocument();
+
+    mockWebviewFns.focus.mockClear();
+    rerender(
+      <Provider store={makeStore()}>
+        <ServerPane {...props} isSelected={false} />
+      </Provider>
+    );
+
+    expect(mockWebviewFns.stopFindInPage).toHaveBeenCalledWith(
+      'clearSelection'
+    );
+    expect(
+      screen.queryByPlaceholderText('findInPage.placeholder')
+    ).not.toBeInTheDocument();
+    expect(mockWebviewFns.focus).not.toHaveBeenCalled();
+  });
 });

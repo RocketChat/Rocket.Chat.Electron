@@ -142,6 +142,9 @@
   (GitHub-hosted runners have >= 7 GB), and `--detectOpenHandles` removed from the `test` /
   `test:coverage` scripts — it retains async resource references by design in order to
   report them. It is still available as `yarn test:debug` when actually debugging handles.
+- Since `validate-pr.yml` shards the suite (`--shard=N/2`, CORE-2657) each test job only
+  retains half the suite's children, which roughly halves the per-job peak; `build-release.yml`
+  still runs the whole suite in one job.
 - Expect this to recur as the suite grows: raising the ceiling buys headroom, it does not
   stop the accumulation. If it returns, do NOT just raise the number again — the real fix is
   upstream disposing each child as its target finishes instead of at end-of-run. Note that

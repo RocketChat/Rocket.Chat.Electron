@@ -43193,7 +43193,7 @@ var linux_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _ar
 const setupSnapcraft = () => lib_core.group('Setup Snapcraft', () => linux_awaiter(void 0, void 0, void 0, function* () {
     yield run(`sudo snap install snapcraft --classic --channel stable`);
 }));
-const packOnLinux = () => runElectronBuilder(`--linux tar.gz deb rpm snap AppImage`);
+const packOnLinux = (targets = 'tar.gz deb rpm snap AppImage') => runElectronBuilder(`--linux ${targets}`);
 const snapChannels = ['edge', 'beta', 'candidate', 'stable'];
 const uploadSnap = (snapFilePath, level) => linux_awaiter(void 0, void 0, void 0, function* () {
     const channels = snapChannels.slice(0, snapChannels.indexOf(level) + 1);
@@ -43206,7 +43206,7 @@ const uploadSnap = (snapFilePath, level) => linux_awaiter(void 0, void 0, void 0
 
 
 const disableSpotlightIndexing = () => lib_core.group('Disable Spotlight indexing (to avoid errors of DMG generation)', () => run(`sudo mdutil -a -i off`));
-const packOnMacOS = () => runElectronBuilder(`--mac --universal`, {
+const packOnMacOS = (targets = '') => runElectronBuilder(`--mac ${targets} --universal`.replace(/\s+/g, ' '), {
     CSC_LINK: lib_core.getInput('mac_csc_link'),
     CSC_KEY_PASSWORD: lib_core.getInput('mac_csc_key_password'),
     FORCE_NOTARIZE: 'true',
@@ -43230,8 +43230,12 @@ var certificates_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 
 const addCertToStore = (store_1, certPath_1, ...args_1) => certificates_awaiter(void 0, [store_1, certPath_1, ...args_1], void 0, function* (store, certPath, user = true) {
-    if (!certPath || !external_fs_.existsSync(certPath)) {
-        lib_core.info(`Certificate file not found or not provided: ${certPath}`);
+    if (!certPath) {
+        lib_core.debug('Certificate path not provided, skipping.');
+        return;
+    }
+    if (!external_fs_.existsSync(certPath)) {
+        lib_core.info(`Certificate file not found: ${certPath}`);
         return;
     }
     const userFlag = user ? '-user ' : '';
@@ -43275,7 +43279,7 @@ const verifyCertificateInStore = (certSha1) => certificates_awaiter(void 0, void
         lib_core.info('✅ Certificate reports having a private key');
     }
     else {
-        lib_core.info('⚠️ Certificate does NOT have a private key - this is expected for KMS');
+        lib_core.info('⚠ Certificate does NOT have a private key - this is expected for KMS');
     }
 });
 const setupCertificates = () => certificates_awaiter(void 0, void 0, void 0, function* () {
@@ -43403,70 +43407,8 @@ const installKmsCngProvider = () => kms_provider_awaiter(void 0, void 0, void 0,
     lib_core.info('Google Cloud KMS CNG provider setup completed');
 });
 
-;// CONCATENATED MODULE: ./src/windows/signing-tools.ts
-var signing_tools_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-
-
-
-const findSigntool = () => signing_tools_awaiter(void 0, void 0, void 0, function* () {
-    lib_core.info('Searching for signtool.exe in Windows SDK...');
-    const sdkPath = `${process.env['ProgramFiles(x86)']}\\Windows Kits\\10\\bin`;
-    if (!external_fs_.existsSync(sdkPath)) {
-        throw new Error('Windows SDK path not found');
-    }
-    // Find signtool.exe in the SDK
-    const findSigntoolCmd = `powershell -Command "Get-ChildItem -Path '${sdkPath}' -Include 'signtool.exe' -Recurse -ErrorAction SilentlyContinue | Sort-Object { $_.Directory.Name } -Descending | Select-Object -First 1 | Select-Object -ExpandProperty FullName"`;
-    const signtoolPath = yield runAndBuffer(findSigntoolCmd);
-    if (!signtoolPath || signtoolPath.trim() === '') {
-        throw new Error('signtool.exe not found in Windows SDK');
-    }
-    const binPath = external_path_.dirname(signtoolPath.trim());
-    lib_core.info(`✅ Found signtool.exe at: ${signtoolPath.trim()}`);
-    // Add to PATH
-    lib_core.addPath(binPath);
-    process.env.PATH = `${binPath};${process.env.PATH}`;
-    // Store the full path for electron-builder
-    lib_core.exportVariable('SIGNTOOL_PATH', signtoolPath.trim());
-});
-const installJsign = () => signing_tools_awaiter(void 0, void 0, void 0, function* () {
-    lib_core.info('Installing OpenJDK 11...');
-    yield exec.exec('choco', ['install', 'openjdk11', '-y', '--no-progress']);
-    // Refresh environment to pick up Java
-    yield exec.exec('refreshenv');
-    // Verify Java installation and add to PATH
-    const javaHomeCmd = `powershell -Command "[System.Environment]::GetEnvironmentVariable('JAVA_HOME', 'Machine')"`;
-    const javaHome = yield runAndBuffer(javaHomeCmd);
-    if (javaHome &&
-        external_fs_.existsSync(external_path_.join(javaHome.trim(), 'bin', 'java.exe'))) {
-        lib_core.info(`Java found at: ${javaHome.trim()}`);
-        const javaBinPath = external_path_.join(javaHome.trim(), 'bin');
-        lib_core.addPath(javaBinPath);
-        process.env.PATH = `${javaBinPath};${process.env.PATH}`;
-        process.env.JAVA_HOME = javaHome.trim();
-    }
-    else {
-        throw new Error('Java installation not found or JAVA_HOME not set');
-    }
-    lib_core.info('Installing jsign...');
-    yield exec.exec('choco', ['install', 'jsign', '-y', '--no-progress']);
-    // Refresh environment variables to pick up PATH changes from jsign
-    yield exec.exec('refreshenv');
-    // Add jsign to PATH
-    const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools';
-    lib_core.addPath(jsignPath);
-    process.env.PATH = `${jsignPath};${process.env.PATH}`;
-});
-
+// EXTERNAL MODULE: external "util"
+var external_util_ = __nccwpck_require__(9023);
 ;// CONCATENATED MODULE: ../../node_modules/@isaacs/balanced-match/dist/esm/index.js
 const balanced = (a, b, str) => {
     const ma = a instanceof RegExp ? maybeMatch(a, str) : a;
@@ -51482,8 +51424,6 @@ const esm_glob = Object.assign(glob_, {
 });
 esm_glob.glob = esm_glob;
 //# sourceMappingURL=index.js.map
-// EXTERNAL MODULE: external "util"
-var external_util_ = __nccwpck_require__(9023);
 ;// CONCATENATED MODULE: ./src/windows/sign-packages.ts
 var sign_packages_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -51524,7 +51464,13 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         const files = sync(pattern, {
             cwd: distPath,
             absolute: true,
-            ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**', '**/win-ia32-unpacked/**', '**/win-arm64-unpacked/**']
+            ignore: [
+                '**/node_modules/**',
+                '**/temp/**',
+                '**/win-unpacked/**',
+                '**/win-ia32-unpacked/**',
+                '**/win-arm64-unpacked/**',
+            ],
         });
         filesToSign.push(...files);
     }
@@ -51562,7 +51508,7 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
             const { stdout, stderr } = yield execAsync(`node -e "${scriptContent.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, {
                 cwd: process.cwd(),
                 env: Object.assign(Object.assign({}, process.env), { WIN_KMS_KEY_RESOURCE: kmsKeyResource, WIN_CERT_FILE: certFile, GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS, CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON }),
-                maxBuffer: 10 * 1024 * 1024 // 10MB buffer for output
+                maxBuffer: 10 * 1024 * 1024, // 10MB buffer for output
             });
             if (stdout)
                 lib_core.info(stdout);
@@ -51588,7 +51534,7 @@ const signPackageType = (distPath, pattern, description) => sign_packages_awaite
     core.info(`Signing ${description}...`);
     const files = glob.sync(pattern, {
         cwd: distPath,
-        absolute: true
+        absolute: true,
     });
     if (files.length === 0) {
         core.warning(`No ${description} found to sign`);
@@ -51597,6 +51543,70 @@ const signPackageType = (distPath, pattern, description) => sign_packages_awaite
     for (const file of files) {
         yield signBuiltPackages(path.dirname(file));
     }
+});
+
+;// CONCATENATED MODULE: ./src/windows/signing-tools.ts
+var signing_tools_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+
+
+const findSigntool = () => signing_tools_awaiter(void 0, void 0, void 0, function* () {
+    lib_core.info('Searching for signtool.exe in Windows SDK...');
+    const sdkPath = `${process.env['ProgramFiles(x86)']}\\Windows Kits\\10\\bin`;
+    if (!external_fs_.existsSync(sdkPath)) {
+        throw new Error('Windows SDK path not found');
+    }
+    // Find signtool.exe in the SDK
+    const findSigntoolCmd = `powershell -Command "Get-ChildItem -Path '${sdkPath}' -Include 'signtool.exe' -Recurse -ErrorAction SilentlyContinue | Sort-Object { $_.Directory.Name } -Descending | Select-Object -First 1 | Select-Object -ExpandProperty FullName"`;
+    const signtoolPath = yield runAndBuffer(findSigntoolCmd);
+    if (!signtoolPath || signtoolPath.trim() === '') {
+        throw new Error('signtool.exe not found in Windows SDK');
+    }
+    const binPath = external_path_.dirname(signtoolPath.trim());
+    lib_core.info(`✅ Found signtool.exe at: ${signtoolPath.trim()}`);
+    // Add to PATH
+    lib_core.addPath(binPath);
+    process.env.PATH = `${binPath};${process.env.PATH}`;
+    // Store the full path for electron-builder
+    lib_core.exportVariable('SIGNTOOL_PATH', signtoolPath.trim());
+});
+const installJsign = () => signing_tools_awaiter(void 0, void 0, void 0, function* () {
+    lib_core.info('Installing OpenJDK 11...');
+    yield exec.exec('choco', ['install', 'openjdk11', '-y', '--no-progress']);
+    // Refresh environment to pick up Java
+    yield exec.exec('refreshenv');
+    // Verify Java installation and add to PATH
+    const javaHomeCmd = `powershell -Command "[System.Environment]::GetEnvironmentVariable('JAVA_HOME', 'Machine')"`;
+    const javaHome = yield runAndBuffer(javaHomeCmd);
+    if (javaHome &&
+        external_fs_.existsSync(external_path_.join(javaHome.trim(), 'bin', 'java.exe'))) {
+        lib_core.info(`Java found at: ${javaHome.trim()}`);
+        const javaBinPath = external_path_.join(javaHome.trim(), 'bin');
+        lib_core.addPath(javaBinPath);
+        process.env.PATH = `${javaBinPath};${process.env.PATH}`;
+        process.env.JAVA_HOME = javaHome.trim();
+    }
+    else {
+        throw new Error('Java installation not found or JAVA_HOME not set');
+    }
+    lib_core.info('Installing jsign...');
+    yield exec.exec('choco', ['install', 'jsign', '-y', '--no-progress']);
+    // Refresh environment variables to pick up PATH changes from jsign
+    yield exec.exec('refreshenv');
+    // Add jsign to PATH
+    const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools';
+    lib_core.addPath(jsignPath);
+    process.env.PATH = `${jsignPath};${process.env.PATH}`;
 });
 
 // EXTERNAL MODULE: external "crypto"
@@ -55705,7 +55715,9 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 
 
 
-const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
+const packOnWindows = (...args_1) => windows_awaiter(void 0, [...args_1], void 0, function* (targets = '') {
+    const targetList = targets ? targets.split(/\s+/) : ['nsis', 'msi', 'appx'];
+    const buildsInstallers = targetList.includes('nsis') || targetList.includes('msi');
     try {
         // Find and setup signtool
         yield findSigntool();
@@ -55741,24 +55753,33 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         process.env.GCLOUD_PATH = gcloudPath;
         lib_core.info('Building Windows packages...');
         lib_core.info('Executables will be signed by electron-builder via winSignKms.js');
-        lib_core.info('Building NSIS installer...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
-        lib_core.info('Building MSI installer...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
-        lib_core.info('Building AppX package...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
+        // One electron-builder invocation per target keeps the per-target
+        // failure isolation of the original sequential flow; a job that is
+        // given a single target (the split workflow) runs exactly one.
+        for (const target of targetList) {
+            lib_core.info(`Building ${target} package...`);
+            yield runElectronBuilder(`--x64 --ia32 --arm64 --win ${target}`, buildEnv);
+        }
         lib_core.info('✅ All Windows packages built successfully');
         const distPath = external_path_.resolve(process.cwd(), 'dist');
         lib_core.info('Verifying executable signatures...');
         yield verifyExecutableSignature(distPath);
-        lib_core.info('Installing KMS CNG provider for installer signing...');
-        yield installKmsCngProvider();
-        lib_core.info('Signing installer packages...');
-        yield signBuiltPackages(distPath);
-        lib_core.info('Verifying installer signatures...');
-        yield verifyInstallerSignatures(distPath);
-        lib_core.info('Updating latest.yml with correct checksums...');
-        yield updateYamlChecksums(distPath);
+        if (buildsInstallers) {
+            // AppX is Store-signed; jsign/KMS only applies to nsis exe and msi.
+            lib_core.info('Installing KMS CNG provider for installer signing...');
+            yield installKmsCngProvider();
+            lib_core.info('Signing installer packages...');
+            yield signBuiltPackages(distPath);
+            lib_core.info('Verifying installer signatures...');
+            yield verifyInstallerSignatures(distPath);
+        }
+        else {
+            lib_core.info('No nsis/msi targets in this job, skipping installer signing');
+        }
+        if (targetList.includes('nsis')) {
+            lib_core.info('Updating latest.yml with correct checksums...');
+            yield updateYamlChecksums(distPath);
+        }
         lib_core.info('✅ Windows packages built, signed, and verified successfully');
     }
     catch (error) {
@@ -55787,46 +55808,71 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 
 
 
+const targets = lib_core.getInput('targets').trim();
+const mode = lib_core.getInput('mode') || 'build';
+const uploadUpdateMetadata = (lib_core.getInput('upload_update_metadata') || 'true') !== 'false';
 const pack = () => src_awaiter(void 0, void 0, void 0, function* () {
     switch (process.platform) {
         case 'linux':
-            yield setupSnapcraft();
-            yield packOnLinux();
+            if (!targets || targets.split(/\s+/).includes('snap')) {
+                yield setupSnapcraft();
+            }
+            yield packOnLinux(targets || undefined);
             break;
         case 'darwin':
             yield disableSpotlightIndexing();
-            yield packOnMacOS();
+            yield packOnMacOS(targets);
             break;
         case 'win32':
-            yield packOnWindows();
+            yield packOnWindows(targets);
             break;
     }
 });
-const getFilesToUpload = () => out_default()([
-    'dist/latest-linux.yml',
-    'dist/*.tar.gz',
-    'dist/*.snap',
-    'dist/*.deb',
-    'dist/*.rpm',
-    'dist/latest-mac.yml',
-    'dist/*.pkg',
-    'dist/*.zip',
-    'dist/*.dmg',
-    'dist/*.dmg.blockmap',
-    'dist/mas-universal/*.pkg',
+const UPDATE_METADATA_FILES = [
     'dist/latest.yml',
-    'dist/*.appx',
-    'dist/*.msi',
-    'dist/*.exe',
-    'dist/*.exe.blockmap',
-    'dist/*.AppImage',
+    'dist/latest-mac.yml',
+    'dist/latest-linux.yml',
     'dist/alpha.yml',
     'dist/alpha-mac.yml',
     'dist/alpha-linux.yml',
     'dist/beta.yml',
     'dist/beta-mac.yml',
     'dist/beta-linux.yml',
-]);
+];
+const getFilesToUpload = () => src_awaiter(void 0, void 0, void 0, function* () {
+    const files = yield out_default()([
+        'dist/latest-linux.yml',
+        'dist/*.tar.gz',
+        'dist/*.snap',
+        'dist/*.deb',
+        'dist/*.rpm',
+        'dist/latest-mac.yml',
+        'dist/*.pkg',
+        'dist/*.zip',
+        'dist/*.dmg',
+        'dist/*.dmg.blockmap',
+        'dist/mas-universal/*.pkg',
+        'dist/latest.yml',
+        'dist/*.appx',
+        'dist/*.msi',
+        'dist/*.exe',
+        'dist/*.exe.blockmap',
+        'dist/*.AppImage',
+        'dist/alpha.yml',
+        'dist/alpha-mac.yml',
+        'dist/alpha-linux.yml',
+        'dist/beta.yml',
+        'dist/beta-mac.yml',
+        'dist/beta-linux.yml',
+    ]);
+    if (uploadUpdateMetadata) {
+        return files;
+    }
+    // This job does not own the electron-updater metadata for its platform;
+    // uploading a yml that lists only this job's artifacts would overwrite the
+    // owner's complete one.
+    return files.filter((file) => !UPDATE_METADATA_FILES.includes(file));
+});
 const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
     yield pack();
     const release = yield getDevelopmentRelease(commitSha);
@@ -55838,7 +55884,7 @@ const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, fu
     }
     else {
         const filesToUpload = yield getFilesToUpload();
-        const expectedAssetNames = filesToUpload.map(path => (0,external_path_.basename)(path));
+        const expectedAssetNames = filesToUpload.map((path) => (0,external_path_.basename)(path));
         yield clearStaleAssets(release.id, expectedAssetNames);
     }
     const assets = yield getReleaseAssets(release.id);
@@ -55864,7 +55910,7 @@ const releaseSnapshot = (commitSha) => src_awaiter(void 0, void 0, void 0, funct
     }
     else {
         const filesToUpload = yield getFilesToUpload();
-        const expectedAssetNames = filesToUpload.map(path => (0,external_path_.basename)(path));
+        const expectedAssetNames = filesToUpload.map((path) => (0,external_path_.basename)(path));
         yield clearStaleAssets(release.id, expectedAssetNames);
     }
     const assets = yield getReleaseAssets(release.id);
@@ -55880,6 +55926,11 @@ const releaseSnapshot = (commitSha) => src_awaiter(void 0, void 0, void 0, funct
     }
 });
 const releaseTagged = (version, commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
+    if (mode === 'prepare') {
+        const draft = yield getTaggedRelease(version, commitSha);
+        lib_core.info(`draft release ${draft.id} ready for ${version.version}; nothing to pack in prepare mode`);
+        return;
+    }
     yield pack();
     const release = yield getTaggedRelease(version, commitSha);
     if (!release.draft) {
@@ -55901,6 +55952,11 @@ const releaseTagged = (version, commitSha) => src_awaiter(void 0, void 0, void 0
     }
 });
 const start = () => src_awaiter(void 0, void 0, void 0, function* () {
+    if (mode === 'dry-run') {
+        lib_core.info(`dry-run mode: packing targets "${targets || '(all)'}" without publishing`);
+        yield pack();
+        return;
+    }
     if (github.context.eventName !== 'push') {
         lib_core.warning(`this action should be used in push events (eventName="${github.context.eventName}")`);
         return;

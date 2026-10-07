@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { isConferencePageUrl } from '../../../servers/common';
 import { listen } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import {
@@ -155,7 +156,10 @@ export const ServerPane = ({
     const shouldLoad = isSelected || userLoggedIn !== false;
 
     if (!webview.src && shouldLoad) {
-      webview.src = lastPath || serverUrl;
+      webview.src =
+        lastPath && !isConferencePageUrl(lastPath, serverUrl)
+          ? lastPath
+          : serverUrl;
     }
   }, [lastPath, serverUrl, isSelected, userLoggedIn]);
 
@@ -190,7 +194,7 @@ export const ServerPane = ({
     };
   }, [serverUrl]);
 
-  const closeFindBar = (): void => {
+  const closeFindBar = (restoreFocus = true): void => {
     const webview = webviewRef.current;
     try {
       webview?.stopFindInPage('clearSelection');
@@ -200,7 +204,9 @@ export const ServerPane = ({
     setIsFindBarOpen(false);
     setFindQuery('');
     setFindResult({ activeMatchOrdinal: 0, matches: 0 });
-    webview?.focus();
+    if (restoreFocus) {
+      webview?.focus();
+    }
   };
 
   useEffect(() => {
@@ -239,7 +245,7 @@ export const ServerPane = ({
 
   useEffect(() => {
     if (!isSelected && isFindBarOpen) {
-      closeFindBar();
+      closeFindBar(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSelected]);
@@ -357,7 +363,7 @@ export const ServerPane = ({
           matches={findResult.matches}
           onNext={handleFindNext}
           onPrevious={handleFindPrevious}
-          onClose={closeFindBar}
+          onClose={() => closeFindBar()}
           inputRef={findInputRef}
         />
       )}

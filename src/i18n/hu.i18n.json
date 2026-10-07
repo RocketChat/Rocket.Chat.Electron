@@ -157,6 +157,15 @@
     },
     "supportedVersion": {
       "title": "A munkaterület verziója nem támogatott"
+    },
+    "uiOverride": {
+      "title": "Felhasználói felület előnézetének betöltése",
+      "message": "Másik webes felületet tölt be ehhez: „{{- host}}”?",
+      "detail": "A felület innen töltődik be: {{- bundle}}, és a munkameneteddel fut ezen a szerveren. Csak akkor folytasd, ha megbízol ebben a buildben. A visszatéréshez használd a(z) Nézet > Szerver felületének visszaállítása menüpontot, vagy indítsd újra az alkalmazást.",
+      "load": "Felület betöltése",
+      "cancel": "Mégse",
+      "developerModeRequired": "Kapcsold be a(z) Súgó > Fejlesztői mód menüpontot a felületelőnézetek betöltéséhez.",
+      "failed": "A felület előnézetét nem sikerült betölteni."
     }
   },
   "documentViewer": {
@@ -232,7 +241,8 @@
     "certificates": "Tanúsítványok",
     "developer": "Fejlesztő",
     "sections": {
-      "logging": "Naplózás"
+      "logging": "Naplózás",
+      "uiPreview": "Webes felület előnézete"
     },
     "options": {
       "report": {
@@ -254,6 +264,10 @@
       "hardwareAcceleration": {
         "title": "Hardveres gyorsítás",
         "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
+      },
+      "resetWindowBounds": {
+        "title": "Ablakméretek és -pozíciók visszaállítása",
+        "description": "Elfelejti, hol helyezkedett el az alkalmazás és annak ablakai. Minden ablak a következő megjelenítéskor alapértelmezett méretben, középre igazítva nyílik meg."
       },
       "videoCallScreenCaptureFallback": {
         "title": "Tartalék képernyőrögzítés a videohívásokhoz",
@@ -282,6 +296,15 @@
       "trayIcon": {
         "title": "Tálcaikon",
         "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Olvasatlanok számlálója a tálcaikonon",
+        "titleDarwin": "Olvasatlanok jelzése a menüsáv ikonján",
+        "description": "Az ikonon az olvasatlan üzenetek jelvénye jelenik meg a jelenléti állapotod helyett."
+      },
+      "menuBarUnreadCount": {
+        "title": "Olvasatlanok száma a menüsávon",
+        "description": "Az olvasatlan említések száma megjelenik a menüsáv ikonja mellett."
       },
       "availableBrowsers": {
         "title": "Alapértelmezett böngésző",
@@ -321,6 +344,34 @@
       "verboseOutlookLogging": {
         "title": "Részletes Outlook naptár naplózás",
         "description": "Részletes Exchange/NTLM hibakeresési naplók engedélyezése az Outlook naptár integrációs problémáinak elhárításához."
+      },
+      "uiPreview": {
+        "title": "Webes felület buildjének betöltése",
+        "description": "A Rocket.Chat webes kliens egy buildjét futtatja a munkaterület saját felülete helyett, a munkamenet megtartásával. Add hozzá a „develop” szót vagy egy Rocket.Chat PR-számot (mindkettő a ghcr.io-ról töltődik le), illetve egy kiszolgált csomag URL-jét, majd alkalmazd egy munkaterületre. Egy elem frissítése újabb buildet keres, és újratölti az azt használó munkaterületeket.",
+        "placeholder": "develop, 42364 vagy http://127.0.0.1:4173/",
+        "add": "Hozzáadás",
+        "adding": "A build meglétének ellenőrzése…",
+        "applyTo": "Alkalmazás erre",
+        "apply": "Alkalmazás",
+        "refresh": "Újabb build keresése",
+        "refreshing": "Újabb build keresése…",
+        "current": "Ez már a legújabb build.",
+        "updated": "Frissítve a legújabb buildre.",
+        "remove": "Eltávolítás a listából",
+        "builtAt": "készült: {{- date}}",
+        "activeOn": "Aktív itt: {{- workspaces}}",
+        "restore": "Szerver felületének visszaállítása",
+        "active": "Aktív ezen a munkaterületen: {{- label}}",
+        "loading": "Letöltés és alkalmazás…",
+        "failed": "Nem sikerült betölteni: {{- message}}",
+        "cancelled": "Megszakítva.",
+        "inactive": "A szerver felülete van használatban.",
+        "pullRequestState": {
+          "open": "Nyitott",
+          "draft": "Piszkozat",
+          "merged": "Egyesítve",
+          "closed": "Lezárva"
+        }
       }
     }
   },
@@ -352,7 +403,7 @@
     "settings": "Beállítások",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
-    "findInPage": "&Find…",
+    "findInPage": "&Keresés…",
     "forward": "&Előre",
     "helpMenu": "&Súgó",
     "hide": "A {{- appName}} elrejtése",
@@ -368,6 +419,7 @@
     "reloadClearingCache": "Kényszerített újratöltés",
     "reportIssue": "Probléma jelentése",
     "resetAppData": "Alkalmazásadatok visszaállítása",
+    "resetWindowBounds": "Ablakméretek és -pozíciók visszaállítása",
     "resetZoom": "Nagyítás visszaállítása",
     "selectAll": "Öss&zes kijelölése",
     "services": "Szolgáltatások",
@@ -388,15 +440,16 @@
     "windowMenu": "&Ablak",
     "zoomIn": "Nagyítás",
     "zoomOut": "Kicsinyítés",
-    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása"
+    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása",
+    "restoreServerUi": "Szerver felületének visszaállítása"
   },
   "findInPage": {
-    "placeholder": "Find in page",
-    "matchCount": "{{current}} of {{total}}",
-    "noMatches": "No matches",
-    "previous": "Previous match",
-    "next": "Next match",
-    "close": "Close"
+    "placeholder": "Keresés az oldalon",
+    "matchCount": "{{current}} / {{total}}",
+    "noMatches": "Nincs találat",
+    "previous": "Előző találat",
+    "next": "Következő találat",
+    "close": "Bezárás"
   },
   "loadingError": {
     "title": "Kiszolgáló betöltése sikertelen",
@@ -440,6 +493,7 @@
       "clearCache": "Gyorsítótár törlése",
       "clearStorageData": "Tárolóadatok törlése",
       "copyCurrentUrl": "Jelenlegi URL másolása",
+      "updateUiPreview": "Felhasználói felület előnézetének frissítése",
       "reloadClearingCache": "Kényszerített újratöltés",
       "serverInfo": "Kiszolgálóinformációk",
       "supportedVersionsInfo": "Támogatott verziók információi"
@@ -488,7 +542,8 @@
       "canceled": "Megszakítva",
       "failed": "Sikertelen",
       "dismiss": "Bezárás"
-    }
+    },
+    "uiPreview": "Felület előnézete: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formázás",

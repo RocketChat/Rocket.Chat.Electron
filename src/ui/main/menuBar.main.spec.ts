@@ -133,11 +133,13 @@ const createServer = (
 const createState = (overrides: Partial<RootState> = {}): RootState =>
   ({
     servers: [],
-    currentView: 'downloads',
+    currentView: 'add-new-server',
     isTrayIconEnabled: true,
     isMenuBarEnabled: true,
     isAddNewServersEnabled: true,
     isShowWindowOnUnreadChangedEnabled: false,
+    isDownloadsWindowOpen: false,
+    isSettingsWindowOpen: false,
     isDeveloperModeEnabled: true,
     isVideoCallDevtoolsAutoOpenEnabled: false,
     isPresenceDisconnectionSimulated: false,
@@ -159,11 +161,13 @@ jest.mock('../../store', () => ({
   select: jest.fn((selector: (state: any) => unknown) =>
     selector({
       servers: [],
-      currentView: 'downloads',
+      currentView: 'add-new-server',
       isTrayIconEnabled: true,
       isMenuBarEnabled: true,
       isAddNewServersEnabled: true,
       isShowWindowOnUnreadChangedEnabled: false,
+      isDownloadsWindowOpen: false,
+      isSettingsWindowOpen: false,
       isDeveloperModeEnabled: true,
       isVideoCallDevtoolsAutoOpenEnabled: false,
       isPresenceDisconnectionSimulated: false,

@@ -102,13 +102,6 @@ export const mergePersistableValues = async (
     };
   }
 
-  if (localStorage['sidebar-closed']) {
-    values = {
-      ...values,
-      isSideBarEnabled: localStorage['sidebar-closed'] !== 'true',
-    };
-  }
-
   if (localStorage.hideTray) {
     values = {
       ...values,

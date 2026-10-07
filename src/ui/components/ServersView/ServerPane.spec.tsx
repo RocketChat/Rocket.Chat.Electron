@@ -74,7 +74,6 @@ export const mockWebviewFns = {
 };
 
 jest.mock('./styles', () => ({
-  DocumentViewerWrapper: ({ children }: any) => <div>{children}</div>,
   StyledWebView: forwardRef((props: any, ref: any) => (
     <div
       ref={(node: any) => {

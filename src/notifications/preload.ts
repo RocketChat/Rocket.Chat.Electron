@@ -28,10 +28,20 @@ const normalizeIconUrl = (iconUrl: string): string => {
   return iconUrl;
 };
 
+// Mirror main's notificationRoutingMeta bound so Action Center replies still
+// have a landing pad without unbounded growth across long sessions.
+const MAX_EVENT_HANDLERS = 200;
+
 const eventHandlers = new Map<
   unknown,
   (eventDescriptor: { type: string; detail?: unknown }) => void
 >();
+
+const retainHandlersAfterDismiss = (): boolean => process.platform === 'win32';
+
+const releaseEventHandler = (id: unknown): void => {
+  eventHandlers.delete(id);
+};
 
 export const createNotification = async ({
   title,
@@ -66,7 +76,7 @@ export const createNotification = async ({
     onEvent?.({ type: event.type, detail: event.detail })
   );
 
-  if (eventHandlers.size > 500) {
+  if (eventHandlers.size > MAX_EVENT_HANDLERS) {
     const oldestId = eventHandlers.keys().next().value;
     if (oldestId !== undefined) {
       eventHandlers.delete(oldestId);
@@ -78,7 +88,13 @@ export const createNotification = async ({
 
 export const destroyNotification = (id: unknown): void => {
   dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
-  eventHandlers.delete(id);
+
+  // Windows Action Center cards stay repliable after banner timeout / close().
+  // Main keeps win32 routing meta through dismiss; free the preload handler
+  // here and late replies have nowhere to land. Reclaim via reply/action or LRU.
+  if (!retainHandlersAfterDismiss()) {
+    releaseEventHandler(id);
+  }
 };
 
 export const dispatchCustomNotification = async (
@@ -144,6 +160,7 @@ export const listenToNotificationsRequests = (): void => {
     } = action;
     const eventHandler = eventHandlers.get(id);
     eventHandler?.({ type: 'reply', detail: { reply } });
+    releaseEventHandler(id);
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action) => {
@@ -152,5 +169,6 @@ export const listenToNotificationsRequests = (): void => {
     } = action;
     const eventHandler = eventHandlers.get(id);
     eventHandler?.({ type: 'action', detail: { index } });
+    releaseEventHandler(id);
   });
 };

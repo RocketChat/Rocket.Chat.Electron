@@ -35,11 +35,7 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
-import {
-  SERVERS_LOADED,
-  SERVER_DOCUMENT_VIEWER_OPEN_URL,
-  SERVER_UI_PREVIEW_CHANGED,
-} from './actions';
+import { SERVERS_LOADED, SERVER_UI_PREVIEW_CHANGED } from './actions';
 import { isConferencePageUrl } from './common';
 import type { Server } from './common';
 
@@ -83,7 +79,6 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
-  | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
@@ -303,8 +298,6 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return servers.map((server: Server) => ({
         ...server,
         url: ensureUrlFormat(server.url),
-        documentViewerOpenUrl: '',
-        documentViewerFormat: '',
         // Previews live in memory only, so none survive a restart.
         uiPreview: undefined,
         uiPreviewSource: undefined,
@@ -324,15 +317,6 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case OUTLOOK_CALENDAR_SAVE_CREDENTIALS: {
       const { url, outlookCredentials } = action.payload;
       return upsert(state, { url, outlookCredentials });
-    }
-
-    case SERVER_DOCUMENT_VIEWER_OPEN_URL: {
-      const { server, documentUrl, documentFormat } = action.payload;
-      return upsert(state, {
-        url: server,
-        documentViewerOpenUrl: documentUrl,
-        documentViewerFormat: documentFormat ?? '',
-      });
     }
 
     case SERVER_UI_PREVIEW_CHANGED: {

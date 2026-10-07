@@ -1,1 +1,0 @@
-export { CertificatesManager } from './CertificatesManager';

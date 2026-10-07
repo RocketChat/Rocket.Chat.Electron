@@ -63,6 +63,7 @@ export const WEBVIEW_ATTACHED = 'webview/attached';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_DID_START_LOADING = 'webview/did-start-loading';
+export const WEBVIEW_BECAME_RESPONSIVE = 'webview/became-responsive';
 export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_AUDIO_STATE_CHANGED = 'webview/audio-state-changed';
 export const WEBVIEW_AUDIO_MUTED_CHANGED = 'webview/audio-muted-changed';
@@ -249,6 +250,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
+  [WEBVIEW_BECAME_RESPONSIVE]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
   [WEBVIEW_AUDIO_STATE_CHANGED]: { url: Server['url']; isAudible: boolean };
   [WEBVIEW_AUDIO_MUTED_CHANGED]: {

@@ -5,11 +5,12 @@ description: Scaffold a new IPC channel with proper TypeScript types
 
 # New IPC Channel
 
-Add a new type-safe IPC channel to the Rocket.Chat Electron app. This scaffolds the channel definition, main process handler, and renderer invoke call.
+Add a new type-safe IPC channel to the Rocket.Chat Electron app. This skill
+creates the channel definition, the handler, and the invoke call.
 
 ## Arguments (required)
 
-- `name`: Channel name using domain/action format (e.g., `downloads/clear-all`, `notifications/dismiss`)
+- `name`: Channel name in domain/action format (e.g., `downloads/clear-all`, `notifications/dismiss`)
 - `args`: TypeScript argument types (e.g., `(itemId: string)` or `()` for no args)
 - `return`: TypeScript return type (e.g., `void`, `boolean`, `{ success: boolean }`)
 
@@ -17,7 +18,7 @@ Add a new type-safe IPC channel to the Rocket.Chat Electron app. This scaffolds 
 
 ### 1. Add Channel Type Definition
 
-Edit `src/ipc/channels.ts` and add the new channel to the `ChannelToArgsMap` type:
+Edit `src/ipc/channels.ts`. Add the new channel to the `ChannelToArgsMap` type:
 
 ```typescript
 type ChannelToArgsMap = {
@@ -26,38 +27,47 @@ type ChannelToArgsMap = {
 };
 ```
 
-Add any needed imports at the top of the file if the types reference domain-specific types.
+If the types reference domain-specific types, add the imports at the top of the file.
 
-### 2. Add Main Process Handler
+### 2. Pick the Direction
 
-Identify the correct main process file based on the channel domain:
+A channel can go either way. `src/ipc/main.ts` and `src/ipc/renderer.ts` each export a `handle` and an `invoke`:
+
+- **The renderer calls the main process.** Register the handler with `handle` from `src/ipc/main.ts`. Its handler gets the caller's `webContents` as the first argument. Call the channel with `invoke` from `src/ipc/renderer.ts`.
+- **The main process calls the renderer.** Register the handler with `handle` from `src/ipc/renderer.ts`. Call the channel with `invoke` from `src/ipc/main.ts`, which takes the target `webContents` as the first argument. Examples: `notifications/fetch-icon` and `servers/fetch-info`.
+
+### 3. Add the Handler
+
+Put the handler next to the existing handlers of its domain:
+
 - `downloads/*` → `src/downloads/main.ts`
-- `notifications/*` → `src/notifications/main.ts`
-- `servers/*` → `src/servers/main.ts`
-- `video-call-window/*` → `src/videoCallWindow/main.ts`
-- `outlook-calendar/*` → `src/outlookCalendar/main.ts`
-- `document-viewer/*` → `src/documentViewer/main.ts`
+- `notifications/*` → `src/notifications/renderer.ts` (the main process calls the renderer)
+- `servers/*` → `src/servers/renderer.ts` (the main process calls the renderer)
+- `video-call-window/*` → `src/videoCallWindow/ipc.ts`
+- `outlook-calendar/*` → `src/outlookCalendar/ipc.ts`
+- `document-viewer/*` → `src/documentViewer/ipc.ts`
 
-Add the handler using the existing pattern in that file. Look at sibling handlers for the correct pattern - they use `ipcMain.handle` or the project's `handle` wrapper from `src/ipc/main.ts`.
+Use the project's `handle` wrapper, like the existing handlers. Call `ipcMain.handle` directly only when the file already does.
 
-### 3. Add Renderer Invoke (if needed)
+### 4. Add the Invoke Call
 
-If this channel is called from the renderer process, add the invoke call in the appropriate renderer file or in `src/ipc/renderer.ts` following the existing pattern.
+Add the `invoke` call on the calling side, next to the code that needs the result. Follow the existing pattern.
 
-### 4. Verify
+### 5. Check
 
-Run type checking to ensure the new channel compiles:
+Run the type check to make sure the new channel compiles:
+
 ```bash
 npx tsc --noEmit
 ```
 
 ## Pattern Reference
 
-The IPC system uses a centralized type map (`ChannelToArgsMap`) that enforces type safety between main and renderer processes. The `Channel` and `Handler` types are derived from this map:
+The IPC system uses one central type map (`ChannelToArgsMap`). The map enforces type safety between the main and renderer processes. The `Channel` and `Handler` types come from this map:
 
 ```typescript
 export type Channel = keyof ChannelToArgsMap;
 export type Handler<N extends Channel> = ChannelToArgsMap[N];
 ```
 
-All 71+ existing channels follow the `'domain/action'` naming convention.
+Name each channel `'domain/action'`, like the existing channels.

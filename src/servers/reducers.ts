@@ -22,6 +22,7 @@ import {
   WEBVIEW_AUDIO_STATE_CHANGED,
   WEBVIEW_AUDIO_MUTED_CHANGED,
   WEBVIEW_DID_START_LOADING,
+  WEBVIEW_BECAME_RESPONSIVE,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
   WEBVIEW_ATTACHED,
@@ -73,6 +74,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_AUDIO_MUTED_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
+  | ActionOf<typeof WEBVIEW_BECAME_RESPONSIVE>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
   | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>
@@ -287,7 +289,8 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return state;
     }
 
-    case WEBVIEW_DID_START_LOADING: {
+    case WEBVIEW_DID_START_LOADING:
+    case WEBVIEW_BECAME_RESPONSIVE: {
       const { url } = action.payload;
       return upsert(state, { url, failed: false });
     }

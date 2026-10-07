@@ -10,6 +10,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "mcp__gitnexus__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gitnexus-scope.cjs",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -25,7 +35,7 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck.sh",
             "timeout": 60,
-            "async": true
+            "asyncRewake": true
           }
         ]
       }

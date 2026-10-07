@@ -4,10 +4,16 @@
  * so the bridge name and surface are asserted here rather than left to the
  * coverage spec.
  */
+import {
+  installMediaCaptureHook,
+  MEDIA_CAPTURE_HOOK_SCRIPT,
+} from '../../servers/preload/mediaCapture';
+
 const exposeInMainWorld = jest.fn();
 const ipcInvoke = jest.fn(async (..._args: any[]) => undefined);
 const ipcSend = jest.fn();
 const ipcOnce = jest.fn();
+const executeJavaScript = jest.fn(async (..._args: any[]) => undefined);
 
 jest.mock('electron', () => ({
   contextBridge: {
@@ -19,6 +25,9 @@ jest.mock('electron', () => ({
     once: (...args: any[]) => (ipcOnce as any)(...args),
     on: jest.fn(),
     sendSync: jest.fn(() => 'jitsi'),
+  },
+  webFrame: {
+    executeJavaScript: (...args: any[]) => (executeJavaScript as any)(...args),
   },
 }));
 
@@ -48,12 +57,13 @@ describe('video call window preload bridge', () => {
     );
   });
 
-  it('exposes only the three supported methods', () => {
+  it('exposes only the four supported methods', () => {
     const videoCall = loadBridge();
 
     expect(Object.keys(videoCall).sort()).toEqual([
       'close',
       'openInMainWindow',
+      'reportMediaCapture',
       'requestScreenSharing',
     ]);
   });
@@ -95,6 +105,47 @@ describe('video call window preload bridge', () => {
     const videoCall = loadBridge();
 
     expect(videoCall.getAuthCredentials).toBeUndefined();
+  });
+
+  // The hook runs in the page's main world and finds the bridge by name. A
+  // wrong name there fails silently in the app, so drive the real hook against
+  // the real bridge this preload exposes.
+  it('receives camera reports from the injected media capture hook through RocketChatDesktop.videoCall', async () => {
+    loadBridge();
+    const bridge = exposeInMainWorld.mock.calls.find(
+      ([name]) => name === 'RocketChatDesktop'
+    )?.[1];
+
+    expect(executeJavaScript).toHaveBeenCalledWith(MEDIA_CAPTURE_HOOK_SCRIPT);
+    expect(MEDIA_CAPTURE_HOOK_SCRIPT).toContain(
+      installMediaCaptureHook.toString()
+    );
+
+    const stream = {
+      getTracks: () => [
+        { kind: 'video', readyState: 'live', addEventListener: jest.fn() },
+      ],
+    };
+    const pageWindow = {
+      RocketChatDesktop: bridge,
+      navigator: {
+        mediaDevices: {
+          getUserMedia: jest.fn(async (..._args: any[]) => stream),
+        },
+      },
+    };
+    (global as any).window = pageWindow;
+    try {
+      installMediaCaptureHook();
+      await pageWindow.navigator.mediaDevices.getUserMedia({ video: true });
+    } finally {
+      delete (global as any).window;
+    }
+
+    expect(ipcSend).toHaveBeenCalledWith(
+      'video-call-window/media-capture-changed',
+      { camera: true, microphone: false, screen: false }
+    );
   });
 
   describe('openInMainWindow', () => {

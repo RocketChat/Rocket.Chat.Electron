@@ -166,9 +166,11 @@ describe('servers/preload/mediaCapture hook script', () => {
     expect(reportMediaCapture).toHaveBeenCalledTimes(1);
   });
 
-  it('also reports through window.videoCallWindow.reportMediaCapture when present', async () => {
+  it('reports through RocketChatDesktop.videoCall.reportMediaCapture in the video call window', async () => {
     const videoCallReport = jest.fn();
-    (window as any).videoCallWindow = { reportMediaCapture: videoCallReport };
+    (window as any).RocketChatDesktop = {
+      videoCall: { reportMediaCapture: videoCallReport },
+    };
 
     const videoTrack = createFakeTrack('video');
     getUserMediaMock.mockResolvedValue(createFakeStream([videoTrack]));

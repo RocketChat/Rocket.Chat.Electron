@@ -15,10 +15,11 @@ type MediaCaptureState = {
  * reliable signal is patching `getUserMedia`/`getDisplayMedia` and tracking
  * the returned MediaStreamTracks' lifecycle ourselves.
  *
- * Reused verbatim by the video-call window's preload — that is why it reports
- * through BOTH `window.RocketChatDesktop?.reportMediaCapture` (workspace
- * webview bridge) and `window.videoCallWindow?.reportMediaCapture` (video
- * call window bridge); whichever bridge exists in that page picks it up.
+ * Reused verbatim by the video-call window's preload. Both windows expose a
+ * `RocketChatDesktop` bridge, but in different shapes: the workspace webview
+ * has `RocketChatDesktop.reportMediaCapture`, and the video call window has
+ * `RocketChatDesktop.videoCall.reportMediaCapture`. The hook reports through
+ * the one that exists in that page.
  *
  * Has no closed-over references outside the global `window`, since its
  * `.toString()` is executed verbatim in the page's main world by
@@ -67,11 +68,11 @@ export function installMediaCaptureHook(): void {
       return;
     }
     lastReported = state;
-    if (typeof win.RocketChatDesktop?.reportMediaCapture === 'function') {
-      win.RocketChatDesktop.reportMediaCapture(state);
-    }
-    if (typeof win.videoCallWindow?.reportMediaCapture === 'function') {
-      win.videoCallWindow.reportMediaCapture(state);
+    const bridge = win.RocketChatDesktop;
+    if (typeof bridge?.reportMediaCapture === 'function') {
+      bridge.reportMediaCapture(state);
+    } else if (typeof bridge?.videoCall?.reportMediaCapture === 'function') {
+      bridge.videoCall.reportMediaCapture(state);
     }
   };
 

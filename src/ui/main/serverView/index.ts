@@ -8,6 +8,7 @@ import type {
   Input,
   MediaAccessPermissionRequest,
   OpenExternalPermissionRequest,
+  RenderProcessGoneDetails,
   UploadFile,
   UploadRawData,
   WebContents,
@@ -17,6 +18,7 @@ import { app, clipboard, webContents } from 'electron';
 
 import { setupPreloadReload } from '../../../app/main/dev';
 import { handle } from '../../../ipc/main';
+import { loggers } from '../../../logging/scopes';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewScreenSharing';
@@ -29,6 +31,7 @@ import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_READY,
+  WEBVIEW_BECAME_RESPONSIVE,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
@@ -50,6 +53,13 @@ import {
   requestConferenceWindow,
   takePendingConferenceUrl,
 } from './conferenceWindow';
+import {
+  consumeRecoveryKill,
+  markResponsive,
+  markUnresponsive,
+  startHeartbeat,
+  terminateIfUnresponsive,
+} from './hangRecovery';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
 
@@ -253,6 +263,7 @@ export const serverReloadView = async (
   if (!guestWebContents) {
     return;
   }
+  terminateIfUnresponsive(guestWebContents);
   try {
     await guestWebContents.loadURL(url);
   } catch (error) {
@@ -330,6 +341,61 @@ const initializeServerWebContentsAfterAttach = (
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
       payload: { url: serverUrl, isMainFrame },
+    });
+  };
+
+  // A hung or crashed renderer leaves a frozen or blank pane with no way out;
+  // the failure view replaces it and its reload starts a fresh renderer.
+  const isServerStillAdded = (): boolean =>
+    select(({ servers }) => servers.some((server) => server.url === serverUrl));
+
+  const handleUnresponsive = (): void => {
+    markUnresponsive(guestWebContents);
+    loggers.servers.warn(`Server view became unresponsive: ${serverUrl}`);
+    if (!isServerStillAdded()) {
+      return;
+    }
+    dispatch({
+      type: WEBVIEW_DID_FAIL_LOAD,
+      payload: { url: serverUrl, isMainFrame: true },
+    });
+  };
+
+  const handleResponsive = (): void => {
+    markResponsive(guestWebContents);
+    loggers.servers.info(`Server view became responsive again: ${serverUrl}`);
+    if (!isServerStillAdded()) {
+      return;
+    }
+    dispatch({ type: WEBVIEW_BECAME_RESPONSIVE, payload: { url: serverUrl } });
+  };
+
+  const heartbeat = startHeartbeat(guestWebContents, {
+    onStall: handleUnresponsive,
+    onRecover: handleResponsive,
+  });
+
+  const handleRenderProcessGone = (
+    _event: Event,
+    details: RenderProcessGoneDetails
+  ): void => {
+    heartbeat.reset();
+    markResponsive(guestWebContents);
+    if (consumeRecoveryKill(guestWebContents)) {
+      return;
+    }
+    if (details.reason === 'clean-exit') {
+      return;
+    }
+    loggers.servers.error(
+      `Server view renderer is gone (${details.reason}, exit code ${details.exitCode}): ${serverUrl}`
+    );
+    if (guestWebContents.isDestroyed() || !isServerStillAdded()) {
+      return;
+    }
+    dispatch({
+      type: WEBVIEW_DID_FAIL_LOAD,
+      payload: { url: serverUrl, isMainFrame: true },
     });
   };
 
@@ -422,6 +488,9 @@ const initializeServerWebContentsAfterAttach = (
 
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
+  guestWebContents.addListener('unresponsive', handleUnresponsive);
+  guestWebContents.addListener('responsive', handleResponsive);
+  guestWebContents.addListener('render-process-gone', handleRenderProcessGone);
   guestWebContents.addListener('did-navigate', handleDidNavigate);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
@@ -594,6 +663,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     if (!guestWebContents) {
       return;
     }
+    terminateIfUnresponsive(guestWebContents);
     guestWebContents.loadURL(action.payload.url).catch((error) => {
       console.error('Failed to load URL for guestWebContents:', error);
     });

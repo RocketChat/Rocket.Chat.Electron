@@ -17,9 +17,10 @@ description: "Use when the user asks how code works, wants to understand archite
 
 Step 1 discovers what is indexed; every call after it must say which of those
 it means. With one indexed repository, use the examples below as written. With
-more than one, pass `repo` on every call: an omitted `repo` normally errors,
-but under an MCP policy with a configured default it resolves to that default
-silently. If you cannot tell which repository is meant, stop and ask. Report
+more than one, pass `repo` on every repo-scoped call: an omitted `repo`
+normally errors, but it can resolve silently to the registered repository that
+contains the MCP process directory, or to a default set in the MCP
+configuration. If you cannot tell which repository is meant, stop and ask. Report
 the bound repository and index freshness alongside your explanation.
 
 `list_repos` is paginated, so page with `offset: pagination.nextOffset` until
@@ -96,5 +97,6 @@ with a single one.
 5. Answer, noting: Repository my-app, index current
 ```
 
-Had step 1 returned two repositories, every call above would carry
-`repo: "my-app"`.
+Had step 1 returned two repositories, every repo-scoped tool call above would
+carry `repo: "my-app"`. `list_repos` takes no `repo`, and a `gitnexus://repo/...`
+resource read names its repository in the URI.

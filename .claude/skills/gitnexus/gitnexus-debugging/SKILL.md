@@ -19,8 +19,9 @@ A root cause traced in the wrong repository is a wrong root cause.
 
 Call `list_repos {}` before the first tool call. With one indexed repository,
 use the examples below as written. With more than one, pass `repo` on every
-call: an omitted `repo` normally errors, but under an MCP policy with a
-configured default it resolves to that default silently. If you cannot tell
+call: an omitted `repo` normally errors, but it can resolve silently to the
+registered repository that contains the MCP process directory, or to a default
+set in the MCP configuration. If you cannot tell
 which repository is meant, stop and ask. This matters most for `cypher`, whose
 statement carries no in-band hint of which database it ran against.
 

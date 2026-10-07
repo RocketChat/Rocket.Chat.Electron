@@ -7,7 +7,7 @@
 // repositories indexed", and a session started in the main checkout diffs
 // the main checkout and misses every worktree change. This hook fills in a
 // missing `repo` (the main checkout path) and, for `detect_changes`, a
-// missing `worktree`. It never overrides a value that the call already has.
+// missing `worktree` (only when `repo` is this project). It never overrides a value that the call already has.
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -30,6 +30,10 @@ const REPO_TOOLS = new Set([
 ]);
 
 const readGitPaths = (cwd) => {
+  const env = { ...process.env };
+  delete env.GIT_DIR;
+  delete env.GIT_WORK_TREE;
+  delete env.GIT_COMMON_DIR;
   const result = spawnSync(
     'git',
     [
@@ -39,7 +43,7 @@ const readGitPaths = (cwd) => {
       '--git-dir',
       '--git-common-dir',
     ],
-    { cwd, encoding: 'utf-8', timeout: 3000, windowsHide: true }
+    { cwd, env, encoding: 'utf-8', timeout: 3000, windowsHide: true }
   );
   if (result.status !== 0) return null;
   const [toplevel, gitDir, commonDir] = result.stdout.trim().split('\n');
@@ -63,7 +67,16 @@ const scope = (input) => {
   if (!toolInput.repo && fs.existsSync(path.join(mainCheckout, '.gitnexus'))) {
     added.repo = mainCheckout;
   }
-  if (tool === 'detect_changes' && !toolInput.worktree && inLinkedWorktree) {
+  const repoIsThisProject =
+    !toolInput.repo ||
+    path.resolve(toolInput.repo) === mainCheckout ||
+    toolInput.repo === path.basename(mainCheckout);
+  if (
+    tool === 'detect_changes' &&
+    !toolInput.worktree &&
+    inLinkedWorktree &&
+    repoIsThisProject
+  ) {
     added.worktree = git.toplevel;
   }
   if (Object.keys(added).length === 0) return null;

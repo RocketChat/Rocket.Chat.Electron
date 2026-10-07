@@ -5,6 +5,7 @@ import {
   electronBuilderJsonInformation,
   packageJsonInformation,
 } from '../app/main/app';
+import { loggers } from '../logging/scopes';
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
@@ -23,6 +24,7 @@ import {
 import type { UiPreviewSource } from '../ui/main/serverView/uiPreview';
 import {
   isUiPreviewAllowed,
+  parseUiPreviewFlag,
   requestUiPreviewWithDialog,
 } from '../ui/main/serverView/uiPreview';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
@@ -347,6 +349,7 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
       await performUiPreview({
         host: args.get('host') ?? undefined,
         bundle: args.get('bundle') ?? undefined,
+        develop: parseUiPreviewFlag(args.get('develop')),
         pr: args.get('pr') ?? undefined,
         sha: args.get('sha') ?? undefined,
       });
@@ -395,6 +398,14 @@ export const setupDeepLinks = (): void => {
     event.preventDefault();
 
     const browserWindow = await getRootWindow();
+
+    loggers.ui.info(
+      'Second instance launched; revealing the running root window',
+      JSON.stringify({
+        isVisible: browserWindow?.isVisible(),
+        isMinimized: browserWindow?.isMinimized(),
+      })
+    );
 
     if (browserWindow && !browserWindow.isVisible()) {
       browserWindow.showInactive();

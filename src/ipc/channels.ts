@@ -4,7 +4,10 @@ import type { Download } from '../downloads/common';
 import type { OutlookEventsResponse } from '../outlookCalendar/type';
 import type { Server } from '../servers/common';
 import type { TelephonyDiagnostics } from '../telephony/diagnostics';
-import type { UiPreviewResult } from '../ui/main/serverView/uiPreview';
+import type {
+  UiPreviewHistoryResult,
+  UiPreviewResult,
+} from '../ui/main/serverView/uiPreview';
 import type { SystemIdleState } from '../userPresence/common';
 
 type ChannelToArgsMap = {
@@ -31,6 +34,8 @@ type ChannelToArgsMap = {
     input: string
   ) => UiPreviewResult;
   'ui-preview/restore': (serverUrl: Server['url']) => void;
+  'ui-preview/add': (input: string) => UiPreviewHistoryResult;
+  'ui-preview/refresh': (input: string) => UiPreviewHistoryResult;
   'server-view/ready': () => void;
   'server-view/open-url-on-browser': (url: string) => void;
   'server-view/take-pending-conference': () => string | null;

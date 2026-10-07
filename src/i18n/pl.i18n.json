@@ -175,15 +175,31 @@
       },
       "uiPreview": {
         "title": "Wczytaj kompilację interfejsu webowego",
-        "description": "Uruchamia kompilację klienta webowego Rocket.Chat zamiast własnego interfejsu przestrzeni roboczej, zachowując Twoją sesję. Wpisz numer PR Rocket.Chat (pobierany z ghcr.io) lub adres URL udostępnianego pakietu.",
-        "placeholder": "42364 lub http://127.0.0.1:4173/",
-        "load": "Wczytaj",
+        "description": "Uruchamia kompilację klienta webowego Rocket.Chat zamiast własnego interfejsu przestrzeni roboczej, zachowując Twoją sesję. Dodaj „develop” lub numer PR Rocket.Chat (oba pobierane z ghcr.io) albo adres URL udostępnianego pakietu, a następnie zastosuj go w przestrzeni roboczej. Odświeżenie pozycji sprawdza, czy jest nowsza kompilacja, i przeładowuje przestrzenie robocze, które jej używają.",
+        "placeholder": "develop, 42364 lub http://127.0.0.1:4173/",
+        "add": "Dodaj",
+        "adding": "Sprawdzanie, czy kompilacja istnieje…",
+        "applyTo": "Zastosuj w",
+        "apply": "Zastosuj",
+        "refresh": "Sprawdź, czy jest nowsza kompilacja",
+        "refreshing": "Sprawdzanie, czy jest nowsza kompilacja…",
+        "current": "To już najnowsza kompilacja.",
+        "updated": "Zaktualizowano do najnowszej kompilacji.",
+        "remove": "Usuń z listy",
+        "builtAt": "zbudowano {{- date}}",
+        "activeOn": "Aktywny w: {{- workspaces}}",
         "restore": "Przywróć interfejs serwera",
         "active": "Aktywny w tej przestrzeni roboczej: {{- label}}",
         "loading": "Pobieranie i stosowanie…",
         "failed": "Nie udało się wczytać: {{- message}}",
         "cancelled": "Anulowano.",
-        "inactive": "Używany jest interfejs serwera."
+        "inactive": "Używany jest interfejs serwera.",
+        "pullRequestState": {
+          "open": "Otwarty",
+          "draft": "Szkic",
+          "merged": "Scalony",
+          "closed": "Zamknięty"
+        }
       }
     },
     "sections": {
@@ -277,7 +293,8 @@
     "item": {
       "reload": "Przeładuj serwer",
       "remove": "Usuń serwer",
-      "openDevTools": "Otwórz Narzędzia deweloperskie"
+      "openDevTools": "Otwórz Narzędzia deweloperskie",
+      "updateUiPreview": "Aktualizuj podgląd interfejsu"
     }
   },
   "tabBar": {

@@ -163,15 +163,31 @@
       },
       "uiPreview": {
         "title": "Bir web arayüzü derlemesi yükle",
-        "description": "Oturumunuzu koruyarak bir çalışma alanının kendi arayüzü yerine Rocket.Chat web istemcisinin bir derlemesini çalıştırır. Bir Rocket.Chat PR numarası (ghcr.io üzerinden çekilir) veya sunulan bir paketin URL adresini girin.",
-        "placeholder": "42364 veya http://127.0.0.1:4173/",
-        "load": "Yükle",
+        "description": "Oturumunuzu koruyarak bir çalışma alanının kendi arayüzü yerine Rocket.Chat web istemcisinin bir derlemesini çalıştırır. \"develop\" değerini, bir Rocket.Chat PR numarasını (ikisi de ghcr.io üzerinden çekilir) veya sunulan bir paketin URL adresini ekleyin, ardından bir çalışma alanına uygulayın. Bir girişi yenilemek daha yeni bir derleme arar ve onu kullanan çalışma alanlarını yeniden yükler.",
+        "placeholder": "develop, 42364 veya http://127.0.0.1:4173/",
+        "add": "Ekle",
+        "adding": "Derlemenin var olup olmadığı denetleniyor…",
+        "applyTo": "Şuna uygula",
+        "apply": "Uygula",
+        "refresh": "Daha yeni bir derleme ara",
+        "refreshing": "Daha yeni bir derleme aranıyor…",
+        "current": "Zaten en yeni derleme.",
+        "updated": "En yeni derlemeye güncellendi.",
+        "remove": "Listeden kaldır",
+        "builtAt": "derlenme: {{- date}}",
+        "activeOn": "Etkin: {{- workspaces}}",
         "restore": "Sunucu arayüzünü geri yükle",
         "active": "Bu çalışma alanında etkin: {{- label}}",
         "loading": "İndiriliyor ve uygulanıyor…",
         "failed": "Yüklenemedi: {{- message}}",
         "cancelled": "İptal edildi.",
-        "inactive": "Sunucunun arayüzü kullanılıyor."
+        "inactive": "Sunucunun arayüzü kullanılıyor.",
+        "pullRequestState": {
+          "open": "Açık",
+          "draft": "Taslak",
+          "merged": "Birleştirildi",
+          "closed": "Kapalı"
+        }
       }
     },
     "sections": {
@@ -261,7 +277,8 @@
     "item": {
       "reload": "Sunucuyu yeniden yükle",
       "remove": "Sunucuyu sil",
-      "openDevTools": "DevTools aç"
+      "openDevTools": "DevTools aç",
+      "updateUiPreview": "Arayüz önizlemesini güncelle"
     }
   },
   "tabBar": {

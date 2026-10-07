@@ -307,6 +307,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         documentViewerFormat: '',
         // Previews live in memory only, so none survive a restart.
         uiPreview: undefined,
+        uiPreviewSource: undefined,
       }));
     }
 
@@ -335,9 +336,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     }
 
     case SERVER_UI_PREVIEW_CHANGED: {
-      const { url, uiPreview } = action.payload;
+      const { url, uiPreview, uiPreviewSource } = action.payload;
       return state.map((server) =>
-        server.url === url ? { ...server, uiPreview } : server
+        server.url === url ? { ...server, uiPreview, uiPreviewSource } : server
       );
     }
 

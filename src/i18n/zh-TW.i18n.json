@@ -142,15 +142,31 @@
       },
       "uiPreview": {
         "title": "載入 Web 介面建置",
-        "description": "在保留工作階段的情況下，以 Rocket.Chat Web 用戶端的某個建置取代工作區本身的介面。請輸入 Rocket.Chat PR 編號（從 ghcr.io 拉取）或已提供之套件的 URL。",
-        "placeholder": "42364 或 http://127.0.0.1:4173/",
-        "load": "載入",
+        "description": "在保留工作階段的情況下，以 Rocket.Chat Web 用戶端的某個建置取代工作區本身的介面。請新增「develop」或 Rocket.Chat PR 編號（皆從 ghcr.io 拉取），或已提供之套件的 URL，再將其套用到工作區。重新整理某個項目會檢查是否有較新的建置，並重新載入正在使用它的工作區。",
+        "placeholder": "develop、42364 或 http://127.0.0.1:4173/",
+        "add": "新增",
+        "adding": "正在檢查建置是否存在…",
+        "applyTo": "套用到",
+        "apply": "套用",
+        "refresh": "檢查較新的建置",
+        "refreshing": "正在檢查較新的建置…",
+        "current": "已經是最新的建置。",
+        "updated": "已更新到最新的建置。",
+        "remove": "從清單中移除",
+        "builtAt": "建置於 {{- date}}",
+        "activeOn": "已在 {{- workspaces}} 啟用",
         "restore": "還原伺服器介面",
         "active": "已在此工作區啟用：{{- label}}",
         "loading": "正在下載並套用…",
         "failed": "無法載入：{{- message}}",
         "cancelled": "已取消。",
-        "inactive": "正在使用伺服器的介面。"
+        "inactive": "正在使用伺服器的介面。",
+        "pullRequestState": {
+          "open": "開放",
+          "draft": "草稿",
+          "merged": "已合併",
+          "closed": "已關閉"
+        }
       }
     },
     "sections": {
@@ -220,7 +236,8 @@
     "item": {
       "reload": "重新載入伺服器",
       "remove": "移除伺服器",
-      "openDevTools": "開啟開發工具"
+      "openDevTools": "開啟開發工具",
+      "updateUiPreview": "更新介面預覽"
     }
   },
   "tabBar": {

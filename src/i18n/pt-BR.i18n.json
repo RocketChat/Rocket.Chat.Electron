@@ -324,15 +324,31 @@
       },
       "uiPreview": {
         "title": "Carregar um build da UI web",
-        "description": "Roda um build do cliente web do Rocket.Chat no lugar da UI de um workspace, mantendo sua sessão. Informe o número de um PR do Rocket.Chat (baixado do ghcr.io) ou a URL de um bundle servido.",
-        "placeholder": "42364 ou http://127.0.0.1:4173/",
-        "load": "Carregar",
+        "description": "Roda um build do cliente web do Rocket.Chat no lugar da UI de um workspace, mantendo sua sessão. Adicione \"develop\" ou o número de um PR do Rocket.Chat (ambos baixados do ghcr.io), ou a URL de um bundle servido, e depois aplique-o a um workspace. Atualizar um item procura um build mais novo e recarrega os workspaces que o usam.",
+        "placeholder": "develop, 42364 ou http://127.0.0.1:4173/",
+        "add": "Adicionar",
+        "adding": "Verificando se o build existe…",
+        "applyTo": "Aplicar em",
+        "apply": "Aplicar",
+        "refresh": "Procurar um build mais novo",
+        "refreshing": "Procurando um build mais novo…",
+        "current": "Já é o build mais novo.",
+        "updated": "Atualizado para o build mais novo.",
+        "remove": "Remover da lista",
+        "builtAt": "gerado em {{- date}}",
+        "activeOn": "Ativo em {{- workspaces}}",
         "restore": "Restaurar UI do servidor",
         "active": "Ativo neste workspace: {{- label}}",
         "loading": "Baixando e aplicando…",
         "failed": "Não foi possível carregar: {{- message}}",
         "cancelled": "Cancelado.",
-        "inactive": "Usando a UI do servidor."
+        "inactive": "Usando a UI do servidor.",
+        "pullRequestState": {
+          "open": "Aberto",
+          "draft": "Rascunho",
+          "merged": "Mesclado",
+          "closed": "Fechado"
+        }
       }
     },
     "sections": {
@@ -443,6 +459,7 @@
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
       "copyCurrentUrl": "Copiar URL",
+      "updateUiPreview": "Atualizar prévia de UI",
       "reloadClearingCache": "Forçar recarregamento"
     },
     "tooltips": {

@@ -34,15 +34,31 @@
       },
       "uiPreview": {
         "title": "加载 Web 界面构建",
-        "description": "在保留会话的情况下，用 Rocket.Chat Web 客户端的某个构建替代工作区自身的界面。请输入 Rocket.Chat PR 编号（从 ghcr.io 拉取）或已托管包的 URL。",
-        "placeholder": "42364 或 http://127.0.0.1:4173/",
-        "load": "加载",
+        "description": "在保留会话的情况下，用 Rocket.Chat Web 客户端的某个构建替代工作区自身的界面。请添加“develop”或 Rocket.Chat PR 编号（均从 ghcr.io 拉取），或已托管包的 URL，然后将其应用到工作区。刷新某个条目会检查是否有更新的构建，并重新加载正在使用它的工作区。",
+        "placeholder": "develop、42364 或 http://127.0.0.1:4173/",
+        "add": "添加",
+        "adding": "正在检查构建是否存在…",
+        "applyTo": "应用到",
+        "apply": "应用",
+        "refresh": "检查更新的构建",
+        "refreshing": "正在检查更新的构建…",
+        "current": "已经是最新的构建。",
+        "updated": "已更新到最新的构建。",
+        "remove": "从列表中移除",
+        "builtAt": "构建于 {{- date}}",
+        "activeOn": "已在 {{- workspaces}} 启用",
         "restore": "恢复服务器界面",
         "active": "已在此工作区启用：{{- label}}",
         "loading": "正在下载并应用…",
         "failed": "无法加载：{{- message}}",
         "cancelled": "已取消。",
-        "inactive": "正在使用服务器的界面。"
+        "inactive": "正在使用服务器的界面。",
+        "pullRequestState": {
+          "open": "开放",
+          "draft": "草稿",
+          "merged": "已合并",
+          "closed": "已关闭"
+        }
       }
     },
     "sections": {
@@ -79,6 +95,11 @@
     "simulateDisconnected": "模拟断开连接",
     "resetWindowBounds": "重置窗口大小和位置",
     "restoreServerUi": "恢复服务器界面"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "更新界面预览"
+    }
   },
   "tray": {
     "presence": {

@@ -1,9 +1,15 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { gunzipSync } from 'zlib';
+import { promisify } from 'util';
+import { gunzip } from 'zlib';
 
 import { app, net } from 'electron';
+
+import type {
+  UiPreviewPullRequest,
+  UiPreviewPullRequestState,
+} from '../../common';
 
 // Published by Rocket.Chat's `UI Preview` workflow; public, so pulls need no GitHub login.
 const registry = 'https://ghcr.io';
@@ -12,10 +18,23 @@ const repository = 'rocketchat/rocket.chat-web';
 export const getUiPreviewReference = (tag: string) =>
   `ghcr.io/${repository}:${tag}`;
 
+const getUiPreviewsDir = () =>
+  path.join(app.getPath('userData'), 'ui-previews');
+
+// Bundles kept besides the ones in use, so switching between recent builds skips the download.
+const recentBundlesKept = 3;
+
+// A pull interrupted by a quit or crash leaves its `.partial-` directory behind; a live one is never this old.
+const abandonedPartialAgeMs = 60 * 60 * 1000;
+
 // ponytail: ustar only (files and directories), which is what the workflow writes with `tar --format=ustar`.
-export const extractTar = (tar: Buffer, targetDir: string): void => {
+// Async so writing a few thousand bundle files never blocks the main process; every path is checked before the first write.
+export const extractTar = async (
+  tar: Buffer,
+  targetDir: string
+): Promise<void> => {
   const root = path.resolve(targetDir);
-  fs.mkdirSync(root, { recursive: true });
+  const entries: Array<{ target: string; data?: Buffer }> = [];
 
   for (let offset = 0; offset + 512 <= tar.length; ) {
     const header = tar.subarray(offset, offset + 512);
@@ -42,11 +61,25 @@ export const extractTar = (tar: Buffer, targetDir: string): void => {
     }
 
     if (type === '5') {
-      fs.mkdirSync(target, { recursive: true });
+      entries.push({ target });
     } else if (type === '0') {
-      fs.mkdirSync(path.dirname(target), { recursive: true });
-      fs.writeFileSync(target, tar.subarray(dataStart, dataStart + size));
+      entries.push({ target, data: tar.subarray(dataStart, dataStart + size) });
     }
+  }
+
+  const write = async ({ target, data }: (typeof entries)[number]) => {
+    if (!data) {
+      await fs.promises.mkdir(target, { recursive: true });
+      return;
+    }
+    await fs.promises.mkdir(path.dirname(target), { recursive: true });
+    await fs.promises.writeFile(target, data);
+  };
+
+  await fs.promises.mkdir(root, { recursive: true });
+  for (const entry of entries) {
+    // eslint-disable-next-line no-await-in-loop -- one file at a time keeps open file handles bounded
+    await write(entry);
   }
 };
 
@@ -58,31 +91,128 @@ const fetchOk = async (url: string, init?: RequestInit) => {
   return response;
 };
 
-// Resolves to a local directory holding the bundle; each layer digest is extracted once and reused.
-export const pullUiPreview = async (tag: string): Promise<string> => {
+export type UiPreviewBuild = {
+  // The bundle layer's digest, which changes with every published build.
+  digest: string;
+  // The Rocket.Chat commit the bundle was built from, when the workflow recorded it.
+  revision?: string;
+  // When the workflow published the build, as an ISO date.
+  createdAt?: string;
+};
+
+export type UiPreviewPackage = UiPreviewBuild & {
+  dir: string;
+};
+
+const authorize = async () => {
   const { token } = await (
     await fetchOk(`${registry}/token?scope=repository:${repository}:pull`)
   ).json();
-  const headers = { Authorization: `Bearer ${token}` };
+  return { Authorization: `Bearer ${token}` };
+};
 
-  const manifest = await (
-    await fetchOk(`${registry}/v2/${repository}/manifests/${tag}`, {
-      headers: {
-        ...headers,
-        Accept: 'application/vnd.oci.image.manifest.v1+json',
-      },
-    })
-  ).json();
+const readManifest = async (
+  tag: string,
+  headers: Record<string, string>
+): Promise<UiPreviewBuild> => {
+  const url = `${registry}/v2/${repository}/manifests/${tag}`;
+  const response = await net.fetch(url, {
+    headers: {
+      ...headers,
+      Accept: 'application/vnd.oci.image.manifest.v1+json',
+    },
+  });
+  if (response.status === 404) {
+    throw new Error(`${getUiPreviewReference(tag)} was not found`);
+  }
+  if (!response.ok) {
+    throw new Error(`${url} responded ${response.status}`);
+  }
+  const manifest = await response.json();
 
   const digest: unknown = manifest.layers?.[0]?.digest;
   if (typeof digest !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(digest)) {
     throw new Error(`${getUiPreviewReference(tag)} has no bundle layer`);
   }
+
+  const annotatedRevision: unknown =
+    manifest.annotations?.['org.opencontainers.image.revision'];
+  const revision =
+    typeof annotatedRevision === 'string' &&
+    /^[a-f0-9]{7,40}$/.test(annotatedRevision)
+      ? annotatedRevision
+      : undefined;
+
+  const annotatedCreatedAt: unknown =
+    manifest.annotations?.['org.opencontainers.image.created'];
+  const createdAt =
+    typeof annotatedCreatedAt === 'string' &&
+    !Number.isNaN(Date.parse(annotatedCreatedAt))
+      ? new Date(annotatedCreatedAt).toISOString()
+      : undefined;
+
+  return { digest, revision, createdAt };
+};
+
+// The PR only decorates a listed build, so a slow GitHub never holds up adding or refreshing it.
+const pullRequestTimeoutMs = 5000;
+
+// GitHub's API answers without a login, up to 60 requests an hour per address.
+export const readUiPreviewPullRequest = async (
+  pr: string
+): Promise<UiPreviewPullRequest | undefined> => {
+  const response = await fetchOk(
+    `https://api.github.com/repos/RocketChat/Rocket.Chat/pulls/${pr}`,
+    {
+      headers: { Accept: 'application/vnd.github+json' },
+      signal: AbortSignal.timeout(pullRequestTimeoutMs),
+    }
+  );
+  const {
+    title,
+    state,
+    draft,
+    merged_at: mergedAt,
+  }: {
+    title?: unknown;
+    state?: unknown;
+    draft?: unknown;
+    merged_at?: unknown;
+  } = await response.json();
+  if (typeof title !== 'string' || !title.trim()) {
+    return undefined;
+  }
+
+  // A merged PR is also closed, and a closed draft reads as closed.
+  const readState = (): UiPreviewPullRequestState => {
+    if (mergedAt) {
+      return 'merged';
+    }
+    if (state === 'closed') {
+      return 'closed';
+    }
+    return draft === true ? 'draft' : 'open';
+  };
+  return { title: title.trim(), state: readState() };
+};
+
+// Reads the manifest only, so checking a tag never downloads its bundle.
+export const inspectUiPreview = async (tag: string): Promise<UiPreviewBuild> =>
+  readManifest(tag, await authorize());
+
+// Resolves to a local directory holding the bundle; each layer digest is extracted once and reused.
+export const pullUiPreview = async (tag: string): Promise<UiPreviewPackage> => {
+  const headers = await authorize();
+  const build = await readManifest(tag, headers);
+  const { digest } = build;
   const hash = digest.slice('sha256:'.length);
 
-  const dir = path.join(app.getPath('userData'), 'ui-previews', hash);
+  const dir = path.join(getUiPreviewsDir(), hash);
   if (fs.existsSync(path.join(dir, 'index.html'))) {
-    return dir;
+    // Marks the bundle as recently used, so pruning keeps it.
+    const now = new Date();
+    await fs.promises.utimes(dir, now, now);
+    return { ...build, dir };
   }
 
   const blob = Buffer.from(
@@ -97,17 +227,58 @@ export const pullUiPreview = async (tag: string): Promise<string> => {
   }
 
   // Unique per pull, so a concurrent pull of the same digest never removes a completed bundle.
-  fs.mkdirSync(path.dirname(dir), { recursive: true });
-  const partialDir = fs.mkdtempSync(`${dir}.partial-`);
+  await fs.promises.mkdir(path.dirname(dir), { recursive: true });
+  const partialDir = await fs.promises.mkdtemp(`${dir}.partial-`);
   try {
-    extractTar(gunzipSync(blob), partialDir);
+    await extractTar(await promisify(gunzip)(blob), partialDir);
+    // Synchronous from the check to the rename, so two pulls of one digest can't both move into place.
     if (!fs.existsSync(path.join(dir, 'index.html'))) {
       fs.rmSync(dir, { recursive: true, force: true });
       fs.renameSync(partialDir, dir);
     }
   } finally {
-    fs.rmSync(partialDir, { recursive: true, force: true });
+    await fs.promises.rm(partialDir, { recursive: true, force: true });
   }
 
-  return dir;
+  return { ...build, dir };
+};
+
+// Keeps the bundles in use and the most recently pulled ones; every other extracted build is removed.
+export const pruneUiPreviews = async (inUse: string[]): Promise<void> => {
+  const root = getUiPreviewsDir();
+  const entries = await fs.promises
+    .readdir(root, { withFileTypes: true })
+    .catch(() => []);
+
+  const dirs = (
+    await Promise.all(
+      entries
+        .filter((entry) => entry.isDirectory())
+        .map(async ({ name }) => {
+          const dir = path.join(root, name);
+          // Gone already when a pull just moved or removed it.
+          const stats = await fs.promises.stat(dir).catch(() => undefined);
+          return stats && { name, dir, mtimeMs: stats.mtimeMs };
+        })
+    )
+  ).filter((entry) => entry !== undefined);
+
+  const bundles = dirs
+    .filter(({ name }) => /^[a-f0-9]{64}$/.test(name))
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+  const kept = new Set([
+    ...inUse.map((dir) => path.resolve(dir)),
+    ...bundles.slice(0, recentBundlesKept).map(({ dir }) => dir),
+  ]);
+  const abandonedPartials = dirs.filter(
+    ({ name, mtimeMs }) =>
+      /^[a-f0-9]{64}\.partial-/.test(name) &&
+      Date.now() - mtimeMs > abandonedPartialAgeMs
+  );
+
+  await Promise.all(
+    [...bundles.filter(({ dir }) => !kept.has(dir)), ...abandonedPartials].map(
+      ({ dir }) => fs.promises.rm(dir, { recursive: true, force: true })
+    )
+  );
 };

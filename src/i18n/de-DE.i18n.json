@@ -306,15 +306,31 @@
       },
       "uiPreview": {
         "title": "Einen Web-UI-Build laden",
-        "description": "Führt einen Build des Rocket.Chat-Webclients anstelle der eigenen Oberfläche eines Workspaces aus und behält deine Sitzung bei. Gib eine Rocket.Chat-PR-Nummer (von ghcr.io bezogen) oder die URL eines bereitgestellten Bundles ein.",
-        "placeholder": "42364 oder http://127.0.0.1:4173/",
-        "load": "Laden",
+        "description": "Führt einen Build des Rocket.Chat-Webclients anstelle der eigenen Oberfläche eines Workspaces aus und behält deine Sitzung bei. Füge „develop“ oder eine Rocket.Chat-PR-Nummer (beide von ghcr.io bezogen) oder die URL eines bereitgestellten Bundles hinzu und wende es dann auf einen Workspace an. Das Aktualisieren eines Eintrags sucht nach einem neueren Build und lädt die Workspaces neu, die ihn verwenden.",
+        "placeholder": "develop, 42364 oder http://127.0.0.1:4173/",
+        "add": "Hinzufügen",
+        "adding": "Es wird geprüft, ob der Build existiert…",
+        "applyTo": "Anwenden auf",
+        "apply": "Anwenden",
+        "refresh": "Nach einem neueren Build suchen",
+        "refreshing": "Es wird nach einem neueren Build gesucht…",
+        "current": "Bereits der neueste Build.",
+        "updated": "Auf den neuesten Build aktualisiert.",
+        "remove": "Aus der Liste entfernen",
+        "builtAt": "erstellt am {{- date}}",
+        "activeOn": "Aktiv in {{- workspaces}}",
         "restore": "Server-UI wiederherstellen",
         "active": "Aktiv in diesem Workspace: {{- label}}",
         "loading": "Wird heruntergeladen und angewendet…",
         "failed": "Laden fehlgeschlagen: {{- message}}",
         "cancelled": "Abgebrochen.",
-        "inactive": "Die UI des Servers wird verwendet."
+        "inactive": "Die UI des Servers wird verwendet.",
+        "pullRequestState": {
+          "open": "Offen",
+          "draft": "Entwurf",
+          "merged": "Zusammengeführt",
+          "closed": "Geschlossen"
+        }
       }
     },
     "sections": {
@@ -415,7 +431,8 @@
       "remove": "Server entfernen",
       "openDevTools": "DevTools öffnen",
       "clearCache": "Cache leeren",
-      "clearStorageData": "Speicherdaten löschen"
+      "clearStorageData": "Speicherdaten löschen",
+      "updateUiPreview": "UI-Vorschau aktualisieren"
     }
   },
   "tabBar": {

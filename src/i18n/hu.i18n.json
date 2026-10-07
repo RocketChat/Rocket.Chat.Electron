@@ -347,15 +347,31 @@
       },
       "uiPreview": {
         "title": "Webes felület buildjének betöltése",
-        "description": "A Rocket.Chat webes kliens egy buildjét futtatja a munkaterület saját felülete helyett, a munkamenet megtartásával. Adj meg egy Rocket.Chat PR-számot (a ghcr.io-ról töltődik le) vagy egy kiszolgált csomag URL-jét.",
-        "placeholder": "42364 vagy http://127.0.0.1:4173/",
-        "load": "Betöltés",
+        "description": "A Rocket.Chat webes kliens egy buildjét futtatja a munkaterület saját felülete helyett, a munkamenet megtartásával. Add hozzá a „develop” szót vagy egy Rocket.Chat PR-számot (mindkettő a ghcr.io-ról töltődik le), illetve egy kiszolgált csomag URL-jét, majd alkalmazd egy munkaterületre. Egy elem frissítése újabb buildet keres, és újratölti az azt használó munkaterületeket.",
+        "placeholder": "develop, 42364 vagy http://127.0.0.1:4173/",
+        "add": "Hozzáadás",
+        "adding": "A build meglétének ellenőrzése…",
+        "applyTo": "Alkalmazás erre",
+        "apply": "Alkalmazás",
+        "refresh": "Újabb build keresése",
+        "refreshing": "Újabb build keresése…",
+        "current": "Ez már a legújabb build.",
+        "updated": "Frissítve a legújabb buildre.",
+        "remove": "Eltávolítás a listából",
+        "builtAt": "készült: {{- date}}",
+        "activeOn": "Aktív itt: {{- workspaces}}",
         "restore": "Szerver felületének visszaállítása",
         "active": "Aktív ezen a munkaterületen: {{- label}}",
         "loading": "Letöltés és alkalmazás…",
         "failed": "Nem sikerült betölteni: {{- message}}",
         "cancelled": "Megszakítva.",
-        "inactive": "A szerver felülete van használatban."
+        "inactive": "A szerver felülete van használatban.",
+        "pullRequestState": {
+          "open": "Nyitott",
+          "draft": "Piszkozat",
+          "merged": "Egyesítve",
+          "closed": "Lezárva"
+        }
       }
     }
   },
@@ -468,6 +484,7 @@
       "clearCache": "Gyorsítótár törlése",
       "clearStorageData": "Tárolóadatok törlése",
       "copyCurrentUrl": "Jelenlegi URL másolása",
+      "updateUiPreview": "Felhasználói felület előnézetének frissítése",
       "reloadClearingCache": "Kényszerített újratöltés",
       "serverInfo": "Kiszolgálóinformációk",
       "supportedVersionsInfo": "Támogatott verziók információi"

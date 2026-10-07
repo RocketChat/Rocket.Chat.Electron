@@ -64,6 +64,7 @@ import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
 import { secondaryWindowStates } from '../ui/reducers/secondaryWindowStates';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
+import { uiPreviewHistory } from '../ui/reducers/uiPreviewHistory';
 import { userThemePreference } from '../ui/reducers/userThemePreference';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
@@ -121,6 +122,7 @@ export const rootReducer = combineReducers({
   secondaryWindowStates,
   selectedBrowser,
   servers,
+  uiPreviewHistory,
   userThemePreference,
   skippedUpdateVersion,
   trustedCertificates,

@@ -304,15 +304,31 @@
       },
       "uiPreview": {
         "title": "Lataa verkkokäyttöliittymän koontiversio",
-        "description": "Suorittaa Rocket.Chat-verkkoasiakkaan koontiversion työtilan oman käyttöliittymän sijaan istuntosi säilyttäen. Anna Rocket.Chatin PR-numero (haetaan ghcr.io:sta) tai tarjoillun paketin URL-osoite.",
-        "placeholder": "42364 tai http://127.0.0.1:4173/",
-        "load": "Lataa",
+        "description": "Suorittaa Rocket.Chat-verkkoasiakkaan koontiversion työtilan oman käyttöliittymän sijaan istuntosi säilyttäen. Lisää \"develop\" tai Rocket.Chatin PR-numero (molemmat haetaan ghcr.io:sta) tai tarjoillun paketin URL-osoite ja ota se sitten käyttöön työtilassa. Kohteen päivittäminen etsii uudemman koontiversion ja lataa uudelleen työtilat, jotka käyttävät sitä.",
+        "placeholder": "develop, 42364 tai http://127.0.0.1:4173/",
+        "add": "Lisää",
+        "adding": "Tarkistetaan, että koontiversio on olemassa…",
+        "applyTo": "Ota käyttöön työtilassa",
+        "apply": "Ota käyttöön",
+        "refresh": "Etsi uudempi koontiversio",
+        "refreshing": "Etsitään uudempaa koontiversiota…",
+        "current": "Tämä on jo uusin koontiversio.",
+        "updated": "Päivitetty uusimpaan koontiversioon.",
+        "remove": "Poista luettelosta",
+        "builtAt": "koottu {{- date}}",
+        "activeOn": "Käytössä: {{- workspaces}}",
         "restore": "Palauta palvelimen käyttöliittymä",
         "active": "Käytössä tässä työtilassa: {{- label}}",
         "loading": "Ladataan ja otetaan käyttöön…",
         "failed": "Lataus epäonnistui: {{- message}}",
         "cancelled": "Peruttu.",
-        "inactive": "Käytetään palvelimen käyttöliittymää."
+        "inactive": "Käytetään palvelimen käyttöliittymää.",
+        "pullRequestState": {
+          "open": "Avoin",
+          "draft": "Luonnos",
+          "merged": "Yhdistetty",
+          "closed": "Suljettu"
+        }
       }
     },
     "sections": {
@@ -413,7 +429,8 @@
       "remove": "Poista palvelin",
       "openDevTools": "Avaa DevTools",
       "clearCache": "Tyhjennä välimuisti",
-      "clearStorageData": "Tyhjennä tallennustiedot"
+      "clearStorageData": "Tyhjennä tallennustiedot",
+      "updateUiPreview": "Päivitä käyttöliittymän esikatselu"
     }
   },
   "tabBar": {

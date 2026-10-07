@@ -1,7 +1,12 @@
 import type { WebContents } from 'electron';
 
 import type { Server } from '../servers/common';
-import type { NavigationLayout, RootWindowIcon, WindowState } from './common';
+import type {
+  NavigationLayout,
+  RootWindowIcon,
+  UiPreviewHistoryEntry,
+  WindowState,
+} from './common';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
@@ -116,6 +121,11 @@ export const DOWNLOADS_WINDOW_OPEN_STATE_CHANGED =
 export const SETTINGS_WINDOW_OPEN_STATE_CHANGED =
   'settings-window/open-state-changed';
 export const SECONDARY_WINDOW_STATE_CHANGED = 'secondary-window/state-changed';
+export const UI_PREVIEW_HISTORY_ENTRY_ADDED = 'ui-preview-history/entry-added';
+export const UI_PREVIEW_HISTORY_ENTRY_UPDATED =
+  'ui-preview-history/entry-updated';
+export const UI_PREVIEW_HISTORY_ENTRY_REMOVED =
+  'ui-preview-history/entry-removed';
 export const SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED =
   'settings/set-is-video-call-devtools-auto-open-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED =
@@ -300,6 +310,9 @@ export type UiActionTypeToPayloadMap = {
   [LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED]: boolean;
   [DOWNLOADS_WINDOW_OPEN_STATE_CHANGED]: boolean;
   [SETTINGS_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [UI_PREVIEW_HISTORY_ENTRY_ADDED]: UiPreviewHistoryEntry;
+  [UI_PREVIEW_HISTORY_ENTRY_UPDATED]: UiPreviewHistoryEntry;
+  [UI_PREVIEW_HISTORY_ENTRY_REMOVED]: UiPreviewHistoryEntry['input'];
   [SECONDARY_WINDOW_STATE_CHANGED]: {
     id: string;
     bounds: { x: number; y: number; width: number; height: number };

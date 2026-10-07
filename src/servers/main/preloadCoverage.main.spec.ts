@@ -141,7 +141,7 @@ const installDomGlobals = (): void => {
     head: {
       ...head,
       appendChild: jest.fn((el: any) => {
-        // Resolve script loads immediately so loadJitsiScript does not hang
+        // Resolve script loads immediately so no injected script hangs a test
         if (el && typeof el.onload === 'function') {
           queueMicrotask(() => el.onload());
         }
@@ -203,15 +203,6 @@ const installDomGlobals = (): void => {
         return null;
       }),
       setItem: jest.fn(),
-    },
-    // Pre-install so initializeJitsiApi skips script load path when set
-    JitsiMeetExternalAPI: function MockJitsi() {
-      return {
-        executeCommand: jest.fn(),
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        dispose: jest.fn(),
-      };
     },
   };
 
@@ -695,6 +686,11 @@ describe('preload modules coverage (node env)', () => {
       roomName: 'RoomName',
     });
     expect(b.isInitialized()).toBe(true);
+    expect(document.head.appendChild).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        src: expect.stringContaining('external_api.js'),
+      })
+    );
     expect(b.getCurrentDomain()).toBe('meet.jit.si');
     expect(b.getCurrentRoomName()).toBe('RoomName');
     await b.startScreenSharing();

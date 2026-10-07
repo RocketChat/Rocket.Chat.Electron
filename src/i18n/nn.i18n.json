@@ -34,15 +34,31 @@
       },
       "uiPreview": {
         "title": "Last inn ein build av nettgrensesnittet",
-        "description": "Køyrer ein build av Rocket.Chat-nettklienten i staden for det eigne grensesnittet til arbeidsområdet, og held på økta di. Skriv inn «develop» eller eit PR-nummer frå Rocket.Chat (begge henta frå ghcr.io), eller URL-en til ein servert pakke.",
+        "description": "Køyrer ein build av Rocket.Chat-nettklienten i staden for det eigne grensesnittet til arbeidsområdet, og held på økta di. Legg til «develop» eller eit PR-nummer frå Rocket.Chat (begge henta frå ghcr.io), eller URL-en til ein servert pakke, og ta han deretter i bruk i eit arbeidsområde. Å oppdatere ei oppføring ser etter ein nyare build og lastar inn att arbeidsområda som brukar han.",
         "placeholder": "develop, 42364 eller http://127.0.0.1:4173/",
-        "load": "Last inn",
+        "add": "Legg til",
+        "adding": "Sjekkar at builden finst…",
+        "applyTo": "Ta i bruk i",
+        "apply": "Ta i bruk",
+        "refresh": "Sjå etter ein nyare build",
+        "refreshing": "Ser etter ein nyare build…",
+        "current": "Allereie den nyaste builden.",
+        "updated": "Oppdatert til den nyaste builden.",
+        "remove": "Fjern frå lista",
+        "builtAt": "bygd {{- date}}",
+        "activeOn": "Aktiv i {{- workspaces}}",
         "restore": "Gjenopprett grensesnittet til tenaren",
         "active": "Aktiv i dette arbeidsområdet: {{- label}}",
         "loading": "Lastar ned og tek i bruk…",
         "failed": "Kunne ikkje laste inn: {{- message}}",
         "cancelled": "Avbrote.",
-        "inactive": "Brukar grensesnittet til tenaren."
+        "inactive": "Brukar grensesnittet til tenaren.",
+        "pullRequestState": {
+          "open": "Open",
+          "draft": "Utkast",
+          "merged": "Fletta",
+          "closed": "Lukka"
+        }
       }
     },
     "sections": {

@@ -34,15 +34,31 @@
       },
       "uiPreview": {
         "title": "Viečča web-geavaheaddjilaktta builda",
-        "description": "Vuodjá Rocket.Chat web-klienta builda bargobáikki iežas geavaheaddjilavtta sajis, ja doallá du sešuvnna. Čále \"develop\" dahje Rocket.Chat PR-nummira (goappašagat viežžojuvvojit ghcr.io:s), dahje bálvaluvvon páhka URL-čujuhusa.",
+        "description": "Vuodjá Rocket.Chat web-klienta builda bargobáikki iežas geavaheaddjilavtta sajis, ja doallá du sešuvnna. Lasit \"develop\" dahje Rocket.Chat PR-nummira (goappašagat viežžojuvvojit ghcr.io:s), dahje bálvaluvvon páhka URL-čujuhusa, ja de váldde dan atnui bargobáikkis. Go ođasmahtát merkoštusa, de dat ohcá ođđasut builda ja viežžá ođđasit bargobáikkiid mat dan geavahit.",
         "placeholder": "develop, 42364 dahje http://127.0.0.1:4173/",
-        "load": "Viečča",
+        "add": "Lasit",
+        "adding": "Dárkkista ahte builda gávdno…",
+        "applyTo": "Váldde atnui dás",
+        "apply": "Váldde atnui",
+        "refresh": "Oza ođđasut builda",
+        "refreshing": "Ohcá ođđasut builda…",
+        "current": "Juo ođđaseamos builda.",
+        "updated": "Ođasmahttojuvvon ođđaseamos buildii.",
+        "remove": "Sihko listtus",
+        "builtAt": "ráhkaduvvon {{- date}}",
+        "activeOn": "Aktiiva: {{- workspaces}}",
         "restore": "Máhcat bálvvá geavaheaddjilaktta",
         "active": "Aktiiva dán bargobáikkis: {{- label}}",
         "loading": "Viežžá ja váldá atnui…",
         "failed": "Ii sáhttán viežžat: {{- message}}",
         "cancelled": "Gaskkalduhttojuvvon.",
-        "inactive": "Geavaha bálvvá geavaheaddjilaktta."
+        "inactive": "Geavaha bálvvá geavaheaddjilaktta.",
+        "pullRequestState": {
+          "open": "Rabas",
+          "draft": "Konseapta",
+          "merged": "Ovttastuvvon",
+          "closed": "Giddejuvvon"
+        }
       }
     },
     "sections": {

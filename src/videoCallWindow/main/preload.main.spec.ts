@@ -58,6 +58,36 @@ describe('video call window preload bridge', () => {
     ]);
   });
 
+  // The conference page is the workspace's web client. It calls these on any
+  // defined RocketChatDesktop without checking they exist, and threw on boot
+  // when only `videoCall` was exposed.
+  it('exposes the main-window setters the web client calls unconditionally, as no-ops', () => {
+    loadBridge();
+    const bridge = exposeInMainWorld.mock.calls.find(
+      ([name]) => name === 'RocketChatDesktop'
+    )?.[1];
+
+    expect(Object.keys(bridge).sort()).toEqual([
+      'setFavicon',
+      'setTitle',
+      'setUrlResolver',
+      'setUserPresenceDetection',
+      'videoCall',
+    ]);
+    expect(() => {
+      bridge.setUrlResolver(() => 'https://open.rocket.chat/');
+      bridge.setFavicon('https://open.rocket.chat/favicon.svg');
+      bridge.setTitle('Rocket.Chat');
+      bridge.setUserPresenceDetection({
+        isAutoAwayEnabled: true,
+        idleThreshold: 300,
+        setUserOnline: jest.fn(),
+      });
+    }).not.toThrow();
+    expect(ipcInvoke).not.toHaveBeenCalled();
+    expect(ipcSend).not.toHaveBeenCalled();
+  });
+
   // Removed deliberately: it handed the user's session token to whatever page
   // the webview had loaded, which is a third-party provider on the Jitsi/Pexip
   // paths. Nothing calls it. See CORE-2704.

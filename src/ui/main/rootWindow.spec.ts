@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { app, screen } from 'electron';
+import { app, autoUpdater, screen } from 'electron';
 
 jest.mock('electron', () => ({
   app: {
@@ -8,6 +8,9 @@ jest.mock('electron', () => ({
     name: 'Test App',
     getAppPath: jest.fn(() => '/app'),
     commandLine: { hasSwitch: jest.fn(() => false) },
+  },
+  autoUpdater: {
+    addListener: jest.fn(),
   },
   BrowserWindow: jest.fn(),
   nativeImage: {
@@ -474,6 +477,58 @@ describe('rootWindow close event handler', () => {
       const { setupRootWindow } = require('./rootWindow');
 
       expect(() => setupRootWindow()).not.toThrow();
+    });
+  });
+
+  describe('quit for update', () => {
+    const findListener = (emitter: any, eventName: string) =>
+      emitter.addListener.mock.calls.find(
+        (call: any) => call[0] === eventName
+      )?.[1];
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        configurable: true,
+      });
+      selectMock.mockImplementation((selector: any) =>
+        selector({ isTrayIconEnabled: true })
+      );
+    });
+
+    it('releases the close guard when a quit-for-update starts', async () => {
+      const { setupRootWindow } = require('./rootWindow');
+      require('./rootWindow').getRootWindow = jest
+        .fn()
+        .mockResolvedValue(mockWindow);
+
+      setupRootWindow();
+      await Promise.resolve();
+
+      const onBeforeQuitForUpdate = findListener(
+        autoUpdater,
+        'before-quit-for-update'
+      );
+      expect(onBeforeQuitForUpdate).toBeDefined();
+
+      onBeforeQuitForUpdate();
+
+      expect(mockWindow.removeAllListeners).toHaveBeenCalledTimes(1);
+    });
+
+    it('tears down only once when before-quit follows the quit-for-update', async () => {
+      const { setupRootWindow } = require('./rootWindow');
+      require('./rootWindow').getRootWindow = jest
+        .fn()
+        .mockResolvedValue(mockWindow);
+
+      setupRootWindow();
+      await Promise.resolve();
+
+      findListener(autoUpdater, 'before-quit-for-update')();
+      findListener(app, 'before-quit')();
+
+      expect(mockWindow.removeAllListeners).toHaveBeenCalledTimes(1);
     });
   });
 });

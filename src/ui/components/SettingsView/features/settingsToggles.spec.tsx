@@ -12,6 +12,8 @@ import {
   SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED,
   SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
   SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED,
+  SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED,
+  SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED,
   SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED,
   SETTINGS_SET_REPORT_OPT_IN_CHANGED,
   SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED,
@@ -21,9 +23,11 @@ import { DetailedEventsLogging } from './DetailedEventsLogging';
 import { FlashFrame } from './FlashFrame';
 import { HardwareAcceleration } from './HardwareAcceleration';
 import { InternalVideoChatWindow } from './InternalVideoChatWindow';
+import { MenuBarUnreadCount } from './MenuBarUnreadCount';
 import { ReportErrors } from './ReportErrors';
 import { TransparentWindow } from './TransparentWindow';
 import { TrayIcon } from './TrayIcon';
+import { TrayIconUnreadCounter } from './TrayIconUnreadCounter';
 import { VerboseOutlookLogging } from './VerboseOutlookLogging';
 import { VideoCallWindowPersistence } from './VideoCallWindowPersistence';
 
@@ -91,6 +95,20 @@ const simpleToggles: ToggleCase[] = [
     actionType: SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED,
   },
   {
+    name: 'TrayIconUnreadCounter',
+    component: TrayIconUnreadCounter,
+    stateKey: 'isTrayIconUnreadCounterEnabled',
+    actionType: SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED,
+    extraState: { isTrayIconEnabled: true },
+  },
+  {
+    name: 'MenuBarUnreadCount',
+    component: MenuBarUnreadCount,
+    stateKey: 'isMenuBarUnreadCountEnabled',
+    actionType: SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED,
+    extraState: { isTrayIconEnabled: true },
+  },
+  {
     name: 'TransparentWindow',
     component: TransparentWindow,
     stateKey: 'isTransparentWindowEnabled',
@@ -150,3 +168,23 @@ describe.each(simpleToggles)(
     });
   }
 );
+
+describe('TrayIconUnreadCounter', () => {
+  it('is disabled while the tray icon is turned off', () => {
+    renderWithState(TrayIconUnreadCounter, {
+      isTrayIconEnabled: false,
+      isTrayIconUnreadCounterEnabled: false,
+    });
+    expect(screen.getByRole('checkbox')).toBeDisabled();
+  });
+});
+
+describe('MenuBarUnreadCount', () => {
+  it('is disabled while the menu bar extra is turned off', () => {
+    renderWithState(MenuBarUnreadCount, {
+      isTrayIconEnabled: false,
+      isMenuBarUnreadCountEnabled: true,
+    });
+    expect(screen.getByRole('checkbox')).toBeDisabled();
+  });
+});

@@ -122,6 +122,13 @@ const start = async () => {
   if (typeof window.require !== 'function') {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
 
+    if (window.RocketChatDesktop.isUiPreviewActive()) {
+      console.warn(
+        '[Rocket.Chat Desktop] The UI preview client has no window.require; desktop integrations are off and boot recovery is skipped.'
+      );
+      return;
+    }
+
     if (totalRetryTime >= MAX_RETRY_TIME) {
       attemptBootRecovery(
         `Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available`

@@ -9,6 +9,7 @@ import {
   getUiOverrideServerUrls,
   getUiOverrideVersion,
   isUiServedFromServer,
+  passthrough,
   prepareIndexHtml,
 } from './uiOverride';
 
@@ -51,6 +52,83 @@ describe('isUiServedFromServer', () => {
   });
 });
 
+// A response whose body never ends, like a media download the page stopped reading.
+const pendingResponse = () =>
+  new Response(new ReadableStream<Uint8Array>({ pull: () => undefined }), {
+    status: 206,
+    headers: { 'content-range': 'bytes 0-9/100' },
+  });
+
+const sessionFetching = (respond: () => Promise<Response>) => {
+  const signals: AbortSignal[] = [];
+  const fetch = jest.fn(async (_request: Request, init: RequestInit) => {
+    signals.push(init.signal as AbortSignal);
+    return respond();
+  });
+  return { ses: { fetch } as unknown as Electron.Session, fetch, signals };
+};
+
+describe('passthrough', () => {
+  const request = () =>
+    new Request('https://open.rocket.chat/file-upload/a.mov');
+
+  it('aborts the load when the page drops the response', async () => {
+    const { ses, signals } = sessionFetching(async () => pendingResponse());
+    const loads = new Set<AbortController>();
+
+    const response = await passthrough(ses, request(), loads);
+    expect(loads.size).toBe(1);
+    await response.body?.cancel();
+
+    expect(signals[0].aborted).toBe(true);
+    expect(loads.size).toBe(0);
+  });
+
+  it('releases the load once the page reads the body to the end', async () => {
+    const { ses, signals } = sessionFetching(
+      async () => new Response('{"version":"8.0.0"}')
+    );
+    const loads = new Set<AbortController>();
+
+    const response = await passthrough(ses, request(), loads);
+
+    await expect(response.text()).resolves.toBe('{"version":"8.0.0"}');
+    expect(signals[0].aborted).toBe(false);
+    expect(loads.size).toBe(0);
+  });
+
+  it('keeps the status and headers of the server response', async () => {
+    const { ses } = sessionFetching(async () => pendingResponse());
+
+    const response = await passthrough(ses, request(), new Set());
+
+    expect(response.status).toBe(206);
+    expect(response.headers.get('content-range')).toBe('bytes 0-9/100');
+    await response.body?.cancel();
+  });
+
+  it('returns a response without a body as it is', async () => {
+    const empty = new Response(null, { status: 204 });
+    const { ses } = sessionFetching(async () => empty);
+    const loads = new Set<AbortController>();
+
+    await expect(passthrough(ses, request(), loads)).resolves.toBe(empty);
+    expect(loads.size).toBe(0);
+  });
+
+  it('releases the load when the request fails', async () => {
+    const { ses } = sessionFetching(async () => {
+      throw new Error('net::ERR_CONNECTION_RESET');
+    });
+    const loads = new Set<AbortController>();
+
+    await expect(passthrough(ses, request(), loads)).rejects.toThrow(
+      'net::ERR_CONNECTION_RESET'
+    );
+    expect(loads.size).toBe(0);
+  });
+});
+
 describe('applyUiOverride', () => {
   const protocol = {
     isProtocolHandled: jest.fn(() => false),
@@ -79,6 +157,7 @@ describe('applyUiOverride', () => {
     jest.clearAllMocks();
     (session.fromPartition as jest.Mock).mockReturnValue({
       protocol,
+      fetch: jest.fn(async () => pendingResponse()),
       clearStorageData: jest.fn(async () => undefined),
       clearCache: jest.fn(async () => undefined),
     });
@@ -183,5 +262,52 @@ describe('applyUiOverride', () => {
 
     expect(protocol.handle).not.toHaveBeenCalled();
     expect(getUiOverride(url)).toBeUndefined();
+  });
+
+  const startLoad = async (url: string) => {
+    const handler = protocol.handle.mock.calls[
+      protocol.handle.mock.calls.length - 1
+    ][1] as (request: Request) => Promise<Response>;
+    const { results } = (session.fromPartition as jest.Mock).mock;
+    const { fetch } = results[results.length - 1].value as {
+      fetch: jest.Mock;
+    };
+    await handler(new Request(new URL('api/v1/me', url)));
+    return fetch.mock.calls[fetch.mock.calls.length - 1][1]
+      .signal as AbortSignal;
+  };
+
+  it("aborts the preview's loads when the server UI is restored", async () => {
+    const url = 'https://aborted-on-restore.example.com/';
+    knownServers(url);
+    await applyUiOverride(url, {
+      key: '1',
+      label: 'PR #1',
+      load: bundle('file:///1'),
+    });
+    const signal = await startLoad(url);
+
+    await clearUiOverride(url);
+
+    expect(signal.aborted).toBe(true);
+  });
+
+  it("aborts the previous preview's loads when another one is applied", async () => {
+    const url = 'https://aborted-on-apply.example.com/';
+    knownServers(url);
+    await applyUiOverride(url, {
+      key: '1',
+      label: 'PR #1',
+      load: bundle('file:///1'),
+    });
+    const signal = await startLoad(url);
+
+    await applyUiOverride(url, {
+      key: '2',
+      label: 'PR #2',
+      load: bundle('file:///2'),
+    });
+
+    expect(signal.aborted).toBe(true);
   });
 });

@@ -355,8 +355,11 @@ export const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+R',
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const guestWebContents = await getCurrentViewWebcontents();
           const currentView = await getCurrentView();
+          const guestWebContents =
+            typeof currentView === 'object' && currentView.url
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
           if (
             guestWebContents &&
             typeof currentView === 'object' &&

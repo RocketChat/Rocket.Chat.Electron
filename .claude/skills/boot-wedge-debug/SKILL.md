@@ -42,12 +42,13 @@ path: `[bootWatchdog] enabled — … appended to <path>`.
 Summarize the incidents:
 
 ```bash
+WATCHDOG_LOG=<path from the startup line, or from the list above>
 python3 -c "
-import json
-for l in open('$HOME/Library/Logs/Rocket.Chat/boot-watchdog.jsonl'):
+import json, sys
+for l in open(sys.argv[1]):
     r = json.loads(l)
     print(r['ts'], r['reason'], r['serverUrl'], '| probe:', json.dumps(r.get('probe'))[:120])
-"
+" "$WATCHDOG_LOG"
 ```
 
 Then read the interesting incident in full: `probe`, `timeline`,
@@ -89,7 +90,7 @@ Also useful live:
 - SW registrations: eval `navigator.serviceWorker.getRegistrations().then(rs => JSON.stringify(rs.map(r => r.scope)))`
 - Test the manual cure ladder. Record which rung works, because it localizes the broken layer:
   1. menu **View → Reload** (plain reload — historically never cures)
-  2. menu **View → Force reload** (menu item id `reloadClearingCache`, = what auto-recovery does)
+  2. menu **View → Force reload** (menu item id `reloadClearingCache`; choose **Keep login data** to match auto-recovery, because **Delete login data** clears all storage)
   3. remove and re-add the workspace (recreates the `<webview>` → fresh renderer process)
   4. full app restart (historically always cures)
 

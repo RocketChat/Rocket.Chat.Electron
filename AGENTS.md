@@ -188,7 +188,7 @@ hooks, `settings.json`).
     process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.() ?? 1000}`;
   ```
 
-  Mock only when defensive code is not possible. These Linux-only APIs need
+  Mock only when defensive code is not possible. These POSIX-only APIs (undefined on Windows) need
   it: `process.getuid()`, `process.getgid()`, `process.geteuid()` and
   `process.getegid()`.
 
@@ -390,8 +390,9 @@ The MCP server serves the index of the main checkout, and it diffs the
 checkout that the session was started from. This stays true when you edit
 files in a linked worktree.
 
-- Pass `repo: "Rocket.Chat.Electron"` to every tool. A session started
-  inside a worktree fails without it.
+- Pass `repo: "Rocket.Chat.Electron"` to every repo-scoped tool. Do not pass
+  it to `list_repos`, which takes only `limit` and `offset`. A session started
+  inside a worktree can fail without it.
 - Pass `worktree: "<absolute worktree path>"` to `detect_changes`. Without
   it, a session started in the main checkout diffs the main checkout and
   misses every change in the worktree.

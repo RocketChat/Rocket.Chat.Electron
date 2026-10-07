@@ -179,10 +179,10 @@ open questions, ask them now.
 
 ## Phase 4 — Branch & apply (after approval)
 
-1. Create a worktree off dev:
+1. Fetch `origin dev` and create a worktree off `origin/dev`:
    ```bash
    mkdir -p ../Rocket.Chat.Electron-worktrees
-   git worktree add ../Rocket.Chat.Electron-worktrees/electron-<TARGET> -b chore/electron-<TARGET> dev
+   git worktree add ../Rocket.Chat.Electron-worktrees/electron-<TARGET> -b chore/electron-<TARGET> origin/dev
    ```
    Work in that worktree for the rest of the skill.
 2. Bump the version:

@@ -79,11 +79,15 @@
   The only available hook is `session.setCertificateVerifyProc()` via `getNetSession()`.
   The public `autoUpdater` singleton does not expose it. Pinning would therefore require access to
   electron-updater internals. It would be fragile across version upgrades. More importantly,
-  electron-updater already verifies the integrity and authenticity of downloaded update
-  artifacts with code-signature verification. Windows uses `verifyUpdateCodeSignature`.
-  macOS/AppImage use built-in signature validation. A network-level MITM attacker cannot get a forged or
-  malicious build installed even without TLS pinning. The attacker would need a validly-signed
-  Rocket.Chat build, a materially higher bar than a CA compromise. GitHub has previously
+  electron-updater verifies downloaded update artifacts on two platforms. Windows uses
+  `verifyUpdateCodeSignature`. macOS uses the code-signature validation of the system
+  updater. A network-level MITM attacker cannot get a forged build installed there even
+  without TLS pinning. The attacker would need a validly-signed Rocket.Chat build, a
+  materially higher bar than a CA compromise. AppImage is different: electron-updater
+  checks the downloaded file only against the sha512 checksum in the update manifest
+  (`latest-linux.yml`), and the project does not use signed update manifests. An attacker
+  who can replace both the manifest and the AppImage on the TLS path can install a
+  forged AppImage. This Linux gap is accepted together with the decision below. GitHub has previously
   rotated certificates on `objects.githubusercontent.com` in ways that broke clients with
   pinned certs/CAs (see GitHub community discussion #50963 on release downloads that failed after a
   cert rotation). Hacker News also discussed incidents of GitHub User Content certificate expiry.
@@ -92,7 +96,8 @@
   is a full auto-update outage until a new client version ships through some other channel.
 - Decision: Do not implement certificate pinning for the auto-updater. Pinning would mitigate
   one risk: CA compromise or MITM on the update channel. HTTPS, the system trust store and
-  code-signature verification of the downloaded artifact already cover most of that risk.
+  code-signature verification of the downloaded artifact (Windows and macOS) already cover
+  most of that risk.
   The blast radius of a stale or broken pin exceeds the risk it would remove.
 - Affected files: electron-builder.json (update feed config). No source changes made.
 

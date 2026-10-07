@@ -33,7 +33,8 @@ If `skip-worktree` is not "true":
 yarn lint
 ```
 
-Fix each lint error before you continue.
+`yarn lint` runs ESLint and `tsc --noEmit`. Fix each lint and type error
+before you continue.
 
 ### 3. Test
 

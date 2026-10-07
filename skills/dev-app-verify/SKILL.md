@@ -116,6 +116,8 @@ const REQ = 'process.mainModule.require';
 // parent. In a live check, `getAllWindows()` listed the newest window first,
 // and a parent or title check returned an open Downloads window. Use this
 // exact expression for every operation below. Do not re-derive it.
+// Run it only after the root window is created. During startup, a hidden
+// temporary window also loads `app/index.html` until the root window replaces it.
 const ROOT_WINDOW = `${REQ}('electron').BrowserWindow.getAllWindows()
   .find((w) => !w.isDestroyed()
     && w.webContents.getURL().includes('/app/index.html'))`;

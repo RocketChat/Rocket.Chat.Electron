@@ -192,8 +192,10 @@ Cut alphas directly from `dev`. There is no dedicated branch.
    The guard checks that the commit of an alpha tag is an ancestor of
    `origin/dev` or of a `release/*` branch. See "Tagging with `yarn release:tag`" for all guards.
 
-4. CI builds automatically. A semver tag push is the **only** trigger for
-   release builds (`build-release.yml` does not run on branch pushes).
+4. CI builds automatically. A semver tag push is the only trigger for a
+   publishable release build (`build-release.yml` does not run on branch
+   pushes). A manual `workflow_dispatch` run is a dry run from a branch and
+   does not publish a release.
 
    - A `prepare` job creates the **draft** GitHub release for the tag.
    - Then seven packaging jobs run in parallel and upload into the draft.
@@ -384,9 +386,10 @@ Typical release progression:
 - Users must enable Developer Mode explicitly and select the alpha/beta
   channel.
 - Alpha and beta releases are marked as "Pre-release" on GitHub.
-- All release builds trigger **only** on semver tag pushes (never branch
-  pushes). They always produce a **draft** release, and a human reviews and
-  publishes it explicitly. No client receives a release before that.
+- A semver tag push (never a branch push) creates a **draft** release, and a
+  human reviews and publishes it explicitly. No client receives a release
+  before that. A manual `workflow_dispatch` run is a dry run and publishes
+  nothing.
 - The app persists the channel selection, and it survives restarts.
 - Users can switch channels at any time in App settings.
 

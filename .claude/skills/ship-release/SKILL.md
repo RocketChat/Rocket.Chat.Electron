@@ -138,10 +138,15 @@ irreversible step (merge, tag push, release publish) explicitly.
    ```sh
    git fetch origin --tags
    git ls-remote --heads origin release/<X.Y.x> # check if it already exists
+   RELEASE_WT=$(pwd)/../Rocket.Chat.Electron-worktrees/release-<X.Y.x>
    # if missing:
-   git worktree add ../Rocket.Chat.Electron-worktrees/release-<X.Y.x> -b release/<X.Y.x> <X.Y.0>
+   git worktree add "$RELEASE_WT" -b release/<X.Y.x> <X.Y.0>
    git push origin release/<X.Y.x>
+   # if it already exists:
+   git fetch origin release/<X.Y.x>
+   git worktree add "$RELEASE_WT" -b release/<X.Y.x> origin/release/<X.Y.x>
    ```
+   Run every command below inside `$RELEASE_WT`.
 2. Cherry-pick the target fixes from `dev` onto the release branch, in a
    worktree checked out to `release/<X.Y.x>`:
    ```sh
@@ -298,9 +303,10 @@ land. Then continue with Phase 4 on the new run. `gh release delete` without
 tag explicitly. Keep the two steps separate, so that a failed release
 deletion never leaves a tag on the old commit.
 
-If you wrote the fix directly on the release branch, forward-port it to
+If you wrote the fix directly on a `release/X.Y.x` branch, forward-port it to
 `dev` with a cherry-pick PR (Phase 6 step 4). Otherwise a toolchain fix like
-this also breaks the next `dev` release.
+this also breaks the next `dev` release. A fix for a stable tag on `master`
+lands on `dev` first. NEVER back-merge `master` into `dev`.
 
 ## Phase 5 — Check release & publish
 

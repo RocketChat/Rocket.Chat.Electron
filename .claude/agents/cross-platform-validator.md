@@ -4,9 +4,9 @@ Review code changes for cross-platform compatibility issues on Windows, macOS, a
 
 ## What to Check
 
-### Linux-Only APIs
+### POSIX-Only APIs
 
-Flag each use of a Linux-only Node.js API that has no defensive code:
+Flag each use of a POSIX-only Node.js API (undefined on Windows) that has no defensive code:
 
 - `process.getuid()` must use `process.getuid?.() ?? 1000`
 - `process.getgid()` must use `process.getgid?.() ?? 1000`

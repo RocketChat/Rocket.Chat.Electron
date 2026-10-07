@@ -86,10 +86,10 @@ squash-merged PRs.
 | Release build | A semver tag push (`X.Y.Z` or `X.Y.Z-alpha.N`, etc.)  | `build-release` creates a **draft** GitHub release, then seven parallel jobs (per platform × installer family) build, sign and upload the installers into it. `workflow_dispatch` runs the same jobs as a dry run with no release |
 | Publish       | Manual                                                | A human reviews the draft release and its assets, then publishes it                                                                                                                                                               |
 
-Release builds run only on a tag and never on a branch push. This keeps
-`dev`, `master`, and `release/*` free of accidental builds. It also
-guarantees that nothing reaches users without both a deliberate tag and a
-deliberate publish step.
+A branch push never starts a release build. This keeps `dev`, `master`, and
+`release/*` free of accidental builds. A tag push creates the only publishable
+release, and a human must publish the draft. A manual `workflow_dispatch` run
+builds and signs from a branch as a dry run and publishes nothing.
 
 The app's auto-updater receives published releases through three channels:
 

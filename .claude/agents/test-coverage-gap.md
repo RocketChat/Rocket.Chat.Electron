@@ -15,11 +15,11 @@ For each directory under `src/`, count:
 
 Create a coverage map that shows the test status of each module:
 
-| Module   | Source Files | Test Files | Coverage   |
-| -------- | ------------ | ---------- | ---------- |
-| ui/      | count        | count      | percentage |
-| servers/ | count        | count      | percentage |
-| ...etc   |              |            |            |
+| Module   | Source Files | Test Files | Test-file ratio           |
+| -------- | ------------ | ---------- | ------------------------- |
+| ui/      | count        | count      | test files / source files |
+| servers/ | count        | count      | test files / source files |
+| ...etc   |              |            |                           |
 
 ### 3. Prioritize by Risk
 

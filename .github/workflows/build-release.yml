@@ -80,33 +80,9 @@ jobs:
           # Exactly one job per platform owns the electron-updater metadata
           # (latest*.yml): the one that builds the artifact the updater
           # downloads. The others would overwrite it with a partial file list.
-          - os: windows-latest
-            name: windows-nsis
-            targets: nsis
-            update_metadata: 'true'
-          - os: windows-latest
-            name: windows-msi
-            targets: msi
-            update_metadata: 'false'
-          - os: windows-latest
-            name: windows-appx
-            targets: appx
-            update_metadata: 'false'
-          - os: macos-latest
-            name: macos-dmg
-            targets: dmg zip pkg
-            update_metadata: 'true'
           - os: macos-latest
             name: macos-mas
             targets: mas
-            update_metadata: 'false'
-          - os: ubuntu-latest
-            name: linux-appimage
-            targets: AppImage deb rpm tar.gz
-            update_metadata: 'true'
-          - os: ubuntu-latest
-            name: linux-snap
-            targets: snap
             update_metadata: 'false'
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}

@@ -595,6 +595,7 @@
     "permissionDenied": "A képernyő-rögzítési engedély megtagadva",
     "permissionRequired": "Képernyő-rögzítési engedély szükséges a képernyő megosztásához.",
     "permissionInstructions": "Engedélyezze a rendszerbeállításokban, és próbálja meg újra.",
+    "permissionAlreadyOnHint": "Már be van kapcsolva? Jelölje ki a Rocket.Chat elemet a listában, távolítsa el a mínusz (−) gombbal, majd lépjen ki a Rocket.Chatből és nyissa meg újra. Ezután ossza meg újra a képernyőjét, és engedélyezze a hozzáférést, amikor a macOS rákérdez.",
     "title": "Képernyő megosztása",
     "entireScreen": "Teljes képernyő",
     "applicationWindow": "Alkalmazásablak",

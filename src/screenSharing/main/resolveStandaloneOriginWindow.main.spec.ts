@@ -34,6 +34,7 @@ jest.mock('../screenRecordingPermission', () => ({
 
 jest.mock('../desktopCapturerCache', () => ({
   prewarmDesktopCapturerCache: jest.fn(),
+  prewarmDesktopCapturerCacheIfPermitted: jest.fn(),
 }));
 
 const fromFrameMock = webContents.fromFrame as jest.MockedFunction<

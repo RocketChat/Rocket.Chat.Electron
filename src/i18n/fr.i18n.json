@@ -524,6 +524,7 @@
     "permissionDenied": "Permission d'Enregistrement d'Écran Refusée",
     "permissionRequired": "La permission d'enregistrement d'écran est requise pour partager votre écran.",
     "permissionInstructions": "Veuillez l'activer dans les préférences système et réessayer.",
+    "permissionAlreadyOnHint": "Déjà activé ? Sélectionnez Rocket.Chat dans cette liste, supprimez-le avec le bouton moins (−), puis quittez et rouvrez Rocket.Chat. Partagez ensuite à nouveau votre écran et autorisez l’accès lorsque macOS le demande.",
     "title": "Partager votre écran",
     "entireScreen": "Votre écran entier",
     "applicationWindow": "Fenêtre d'application",

@@ -751,6 +751,7 @@
     "permissionDenied": "Screen Recording Permission Denied",
     "permissionRequired": "Screen recording permission is required to share your screen.",
     "permissionInstructions": "Please enable it in your system preferences and try again.",
+    "permissionAlreadyOnHint": "Already turned on? Select Rocket.Chat in that list, remove it with the minus (−) button, and quit and reopen Rocket.Chat. Then share your screen again and allow access when macOS asks.",
     "openSystemPreferences": "Open System Preferences",
     "title": "Share your screen",
     "entireScreen": "Your entire screen",

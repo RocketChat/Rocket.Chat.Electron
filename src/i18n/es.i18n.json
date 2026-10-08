@@ -555,6 +555,7 @@
     "permissionDenied": "Permiso de Grabación de Pantalla Denegado",
     "permissionRequired": "Se requiere permiso de grabación de pantalla para compartir tu pantalla.",
     "permissionInstructions": "Por favor, actívalo en las preferencias del sistema e inténtalo de nuevo.",
+    "permissionAlreadyOnHint": "¿Ya está activado? Selecciona Rocket.Chat en esa lista, elimínalo con el botón menos (−), y cierra y vuelve a abrir Rocket.Chat. Después comparte tu pantalla de nuevo y permite el acceso cuando macOS lo pida.",
     "title": "Compartir tu pantalla",
     "entireScreen": "Tu pantalla completa",
     "applicationWindow": "Ventana de aplicación",

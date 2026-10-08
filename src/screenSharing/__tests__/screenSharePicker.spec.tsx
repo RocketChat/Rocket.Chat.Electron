@@ -187,6 +187,57 @@ describe('ScreenSharePicker', () => {
     });
   });
 
+  describe('stale permission hint', () => {
+    const originalPlatform = process.platform;
+
+    const renderDenied = async () => {
+      invoke.mockImplementation(async (channel: string) => {
+        if (channel.includes('permission')) return false;
+        if (channel === 'desktop-capturer-get-sources') return sources;
+        return undefined;
+      });
+      let setVisible: ((v: boolean) => void) | undefined;
+      const view = render(
+        <ScreenSharePicker
+          onMounted={(fn) => {
+            setVisible = fn;
+          }}
+        />
+      );
+      await act(async () => {
+        setVisible?.(true);
+      });
+      await waitFor(() => {
+        expect(
+          screen.getByText('screenSharing.permissionDenied')
+        ).toBeInTheDocument();
+      });
+      return view;
+    };
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', { value: originalPlatform });
+    });
+
+    it('tells macOS users how to reset a grant that is on but not applied', async () => {
+      Object.defineProperty(process, 'platform', { value: 'darwin' });
+      const { container } = await renderDenied();
+
+      expect(container.textContent).toContain(
+        'screenSharing.permissionAlreadyOnHint'
+      );
+    });
+
+    it('does not show the macOS hint on Windows', async () => {
+      Object.defineProperty(process, 'platform', { value: 'win32' });
+      const { container } = await renderDenied();
+
+      expect(container.textContent).not.toContain(
+        'screenSharing.permissionAlreadyOnHint'
+      );
+    });
+  });
+
   it('handles fetchSources failure without crashing', async () => {
     invoke.mockImplementation(async (channel: string) => {
       if (channel.includes('permission')) return true;

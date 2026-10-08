@@ -588,6 +588,7 @@
     "permissionDenied": "Tillstånd för skärminspelning har nekats",
     "permissionRequired": "Tillstånd för skärminspelning krävs för att dela din skärm.",
     "permissionInstructions": "Aktivera det i dina systeminställningar och försök igen.",
+    "permissionAlreadyOnHint": "Är det redan aktiverat? Markera Rocket.Chat i listan, ta bort det med minusknappen (−) och avsluta och öppna Rocket.Chat igen. Dela sedan skärmen igen och tillåt åtkomst när macOS frågar.",
     "title": "Dela din skärm",
     "entireScreen": "Hela skärmen",
     "applicationWindow": "Applikationsfönster",

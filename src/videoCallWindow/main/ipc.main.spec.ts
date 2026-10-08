@@ -139,7 +139,7 @@ jest.mock('../../screenSharing/desktopCapturerCache', () => ({
     cached: false,
     pending: false,
   })),
-  prewarmDesktopCapturerCache: jest.fn(),
+  prewarmDesktopCapturerCacheIfPermitted: jest.fn(),
 }));
 jest.mock('../../screenSharing/screenRecordingPermission', () => ({
   checkScreenRecordingPermission: jest.fn(() => Promise.resolve(true)),

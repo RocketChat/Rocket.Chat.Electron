@@ -568,6 +568,7 @@
     "permissionDenied": "Permissão de Gravação de Tela Negada",
     "permissionRequired": "A permissão de gravação de tela é necessária para compartilhar sua tela.",
     "permissionInstructions": "Por favor, ative-a nas preferências do sistema e tente novamente.",
+    "permissionAlreadyOnHint": "Já está ativado? Selecione o Rocket.Chat nessa lista, remova-o com o botão de menos (−) e feche e abra o Rocket.Chat de novo. Depois compartilhe a tela novamente e permita o acesso quando o macOS pedir.",
     "title": "Compartilhar sua tela",
     "entireScreen": "Toda sua tela",
     "applicationWindow": "Janela de aplicativo",

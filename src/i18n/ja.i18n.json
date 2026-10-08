@@ -346,6 +346,7 @@
     "permissionDenied": "画面収録権限が拒否されました",
     "permissionRequired": "画面を共有するには画面収録権限が必要です。",
     "permissionInstructions": "システム環境設定で有効にして、もう一度お試しください。",
+    "permissionAlreadyOnHint": "すでにオンになっていますか？ 一覧で Rocket.Chat を選択し、マイナス（−）ボタンで削除してから、Rocket.Chat を終了して再度開いてください。その後もう一度画面を共有し、macOS に求められたらアクセスを許可してください。",
     "title": "画面を共有する",
     "entireScreen": "画面全体",
     "applicationWindow": "アプリケーションウィンドウ",

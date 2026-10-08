@@ -323,6 +323,7 @@
     "permissionDenied": "螢幕錄製權限被拒絕",
     "permissionRequired": "需要螢幕錄製權限才能共享您的螢幕。",
     "permissionInstructions": "請在系統偏好設定中啟用它，然後重試。",
+    "permissionAlreadyOnHint": "已經開啟？在該清單中選取 Rocket.Chat，用減號（−）按鈕將其移除，然後結束並重新開啟 Rocket.Chat。之後再次分享螢幕，並在 macOS 詢問時允許存取。",
     "title": "共享您的螢幕",
     "entireScreen": "您的整個螢幕",
     "applicationWindow": "應用程式視窗",

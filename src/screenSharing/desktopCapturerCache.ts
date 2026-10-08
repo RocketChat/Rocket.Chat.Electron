@@ -1,6 +1,7 @@
 import { desktopCapturer } from 'electron';
 
 import { handle } from '../ipc/main';
+import { checkScreenRecordingPermission } from './screenRecordingPermission';
 
 const STALE_THRESHOLD = 5000;
 const ENUMERATION_COOLDOWN = 4000;
@@ -141,6 +142,16 @@ export const prewarmDesktopCapturerCache = (): void => {
   }
   void scheduleRefresh(stalestBucket());
 };
+
+// Enumerating sources makes macOS show the Screen Recording prompt, so
+// warm-ups that run without a user action (workspace setup, video call
+// window load) wait until the permission is already granted. A share
+// request still enumerates, and prompts, when the user asks to share.
+export const prewarmDesktopCapturerCacheIfPermitted =
+  async (): Promise<void> => {
+    if (!(await checkScreenRecordingPermission())) return;
+    prewarmDesktopCapturerCache();
+  };
 
 export const clearDesktopCapturerCache = (): void => {
   buckets.screens = null;

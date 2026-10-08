@@ -39,14 +39,9 @@ export const InternalVideoChatWindow = (
     <ToggleField
       id={isInternalVideoChatWindowEnabledId}
       label={t('settings.options.internalVideoChatWindow.title')}
-      description={
-        process.mas
-          ? t('settings.options.internalVideoChatWindow.masDescription')
-          : t('settings.options.internalVideoChatWindow.description')
-      }
+      description={t('settings.options.internalVideoChatWindow.description')}
       checked={isInternalVideoChatWindowEnabled}
       onChange={handleChange}
-      disabled={process.mas}
       className={props.className}
     />
   );

@@ -235,7 +235,7 @@ describe('PersistableValues migrations', () => {
 
     setProcessMas(true);
     const mas384 = migrations['>=3.8.4'](win37 as any);
-    expect(mas384.isInternalVideoChatWindowEnabled).toBe(false);
+    expect(mas384.isInternalVideoChatWindowEnabled).toBe(true);
   });
 
   it('applies remaining migration defaults through 4.15.0', () => {

@@ -271,8 +271,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Öppna videochatt i programfönstret",
-        "description": "Om den är aktiverad öppnas videochatten i programmets fönster i stället för i standardwebbläsaren. För <strong>Google Meet</strong> och <strong>Jitsi</strong> stöds dock inte skärminspelning i Electron-applikationer, så de kommer alltid att öppnas i webbläsaren oavsett denna inställning.",
-        "masDescription": "Detta alternativ är inaktiverat när det installeras från Mac App Store. Av säkerhetsskäl öppnas Video Chat alltid i webbläsaren som standard."
+        "description": "Om den är aktiverad öppnas videochatten i programmets fönster i stället för i standardwebbläsaren. För <strong>Google Meet</strong> och <strong>Jitsi</strong> stöds dock inte skärminspelning i Electron-applikationer, så de kommer alltid att öppnas i webbläsaren oavsett denna inställning."
       },
       "minimizeOnClose": {
         "title": "Minimera vid stängning",

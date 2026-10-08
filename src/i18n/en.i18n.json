@@ -372,8 +372,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Video calls inside app",
-        "description": "Open video calls inside app window instead of browser. Google Meet and Jitsi calls can only open in browser.",
-        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, video calls always open in the browser by default."
+        "description": "Open video calls inside app window instead of browser. Google Meet and Jitsi calls can only open in browser."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",

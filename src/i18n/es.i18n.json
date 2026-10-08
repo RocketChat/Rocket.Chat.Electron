@@ -262,8 +262,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Abrir videollamada en la ventana de la aplicación",
-        "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong> y <strong>Jitsi</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirán en el navegador independientemente de esta configuración.",
-        "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store; por razones de seguridad, las videollamadas se abrirán en el navegador de forma predeterminada."
+        "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong> y <strong>Jitsi</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirán en el navegador independientemente de esta configuración."
       },
       "minimizeOnClose": {
         "title": "Minimizar al cerrar",

@@ -673,6 +673,32 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     );
   };
 
+  // Windows and Linux deliver the mouse back/forward side buttons to the
+  // window as app commands, so the webview never sees them as input.
+  rootWindow.addListener('app-command', (_event, command) => {
+    if (command !== 'browser-backward' && command !== 'browser-forward') {
+      return;
+    }
+
+    const currentView = select(({ currentView }) => currentView);
+    if (typeof currentView !== 'object') {
+      return;
+    }
+
+    const guestWebContents = getWebContentsByServerUrl(currentView.url);
+    if (!guestWebContents || guestWebContents.isDestroyed()) {
+      return;
+    }
+
+    const { navigationHistory } = guestWebContents;
+    if (command === 'browser-backward' && navigationHistory.canGoBack()) {
+      navigationHistory.goBack();
+    }
+    if (command === 'browser-forward' && navigationHistory.canGoForward()) {
+      navigationHistory.goForward();
+    }
+  });
+
   listen(WEBVIEW_READY, (action) => {
     const guestWebContents = webContents.fromId(
       action.payload.webContentsId

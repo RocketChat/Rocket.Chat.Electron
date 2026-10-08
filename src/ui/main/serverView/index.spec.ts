@@ -53,12 +53,13 @@ jest.mock('../mediaPermissions', () => ({
   handleMediaPermissionRequest: jest.fn(),
 }));
 
+const mockRootWindow = {
+  addListener: jest.fn(),
+  webContents: { addListener: jest.fn() },
+};
+
 jest.mock('../rootWindow', () => ({
-  getRootWindow: jest.fn(() =>
-    Promise.resolve({
-      webContents: { addListener: jest.fn() },
-    })
-  ),
+  getRootWindow: jest.fn(() => Promise.resolve(mockRootWindow)),
 }));
 
 jest.mock('./popupMenu', () => ({
@@ -429,5 +430,102 @@ describe('serverView audio state and mute handling', () => {
       type: WEBVIEW_AUDIO_MUTED_CHANGED,
       payload: { url: 'https://open.rocket.chat', isAudioMuted: true },
     });
+  });
+});
+
+describe('serverView mouse back/forward app commands', () => {
+  const serverUrl = 'https://mouse-buttons.rocket.chat';
+  const mockListen = listen as unknown as jest.Mock;
+  const mockSelect = select as unknown as jest.Mock;
+
+  let appCommandHandler: (event: Event, command: string) => void;
+  let navigationHistory: {
+    canGoBack: jest.Mock;
+    canGoForward: jest.Mock;
+    goBack: jest.Mock;
+    goForward: jest.Mock;
+  };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+
+    await attachGuestWebContentsEvents();
+
+    appCommandHandler = mockRootWindow.addListener.mock.calls.find(
+      ([eventName]) => eventName === 'app-command'
+    )?.[1];
+
+    navigationHistory = {
+      canGoBack: jest.fn(() => true),
+      canGoForward: jest.fn(() => true),
+      goBack: jest.fn(),
+      goForward: jest.fn(),
+    };
+
+    const guestWebContents = {
+      addListener: jest.fn(),
+      on: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+      session: { on: jest.fn() },
+      navigationHistory,
+    } as unknown as WebContents;
+
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockReturnValue(guestWebContents);
+
+    const webviewAttachedCallback = mockListen.mock.calls.find(
+      ([actionType]) => actionType === WEBVIEW_ATTACHED
+    )?.[1] as (action: unknown) => void;
+    webviewAttachedCallback({ payload: { webContentsId: 1, url: serverUrl } });
+
+    mockSelect.mockImplementation((selector) =>
+      selector({ currentView: { url: serverUrl } })
+    );
+  });
+
+  const event = {} as Event;
+
+  it('goes back in the current server view on browser-backward', () => {
+    appCommandHandler(event, 'browser-backward');
+
+    expect(navigationHistory.goBack).toHaveBeenCalledTimes(1);
+    expect(navigationHistory.goForward).not.toHaveBeenCalled();
+  });
+
+  it('goes forward in the current server view on browser-forward', () => {
+    appCommandHandler(event, 'browser-forward');
+
+    expect(navigationHistory.goForward).toHaveBeenCalledTimes(1);
+    expect(navigationHistory.goBack).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when there is no history entry to go to', () => {
+    navigationHistory.canGoBack.mockReturnValue(false);
+    navigationHistory.canGoForward.mockReturnValue(false);
+
+    appCommandHandler(event, 'browser-backward');
+    appCommandHandler(event, 'browser-forward');
+
+    expect(navigationHistory.goBack).not.toHaveBeenCalled();
+    expect(navigationHistory.goForward).not.toHaveBeenCalled();
+  });
+
+  it('ignores other app commands', () => {
+    appCommandHandler(event, 'media-play-pause');
+
+    expect(navigationHistory.goBack).not.toHaveBeenCalled();
+    expect(navigationHistory.goForward).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when no server view is selected', () => {
+    mockSelect.mockImplementation((selector) =>
+      selector({ currentView: 'add-new-server' })
+    );
+
+    appCommandHandler(event, 'browser-backward');
+
+    expect(navigationHistory.goBack).not.toHaveBeenCalled();
   });
 });

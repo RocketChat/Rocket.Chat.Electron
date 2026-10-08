@@ -7,7 +7,10 @@ import { logger } from '../../logging';
 import { select, dispatch, watch } from '../../store';
 import { getSystemCertificateStatus } from '../../systemCertificates';
 import { normalizeNumber } from '../../ui/main/rootWindow';
-import { MENU_BAR_DEFAULT_REVISION } from '../PersistableValues';
+import {
+  MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION,
+  MENU_BAR_DEFAULT_REVISION,
+} from '../PersistableValues';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import {
@@ -176,6 +179,34 @@ export const mergePersistableValues = async (
       };
     }
     setPersistedMeta('menuBarDefaultRevision', MENU_BAR_DEFAULT_REVISION);
+  }
+
+  // One-shot policy: Mac App Store builds used to force the internal video
+  // call window off. Turn it on once; a later user choice or an
+  // overridden-settings.json value still wins.
+  if (process.mas) {
+    const appliedMasVideoCallRevision = getPersistedMeta(
+      'masInternalVideoChatWindowDefaultRevision',
+      0
+    );
+    if (
+      appliedMasVideoCallRevision <
+      MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION
+    ) {
+      const isOverridden =
+        'isInternalVideoChatWindowEnabled' in userDataPersistableOverrides ||
+        'isInternalVideoChatWindowEnabled' in appAsarPersistableOverrides;
+      if (!isOverridden) {
+        values = {
+          ...values,
+          isInternalVideoChatWindowEnabled: true,
+        };
+      }
+      setPersistedMeta(
+        'masInternalVideoChatWindowDefaultRevision',
+        MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION
+      );
+    }
   }
 
   const mergedOverrides: Record<string, unknown> = {

@@ -73,16 +73,20 @@ describe('servers/preload/internalVideoChatWindow', () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  it('falls back to external open when running from MAS build', () => {
+  it('opens the internal window when running from MAS build', () => {
     safeSelectMock.mockReturnValue(true);
     setProcessMas(true);
 
     openInternalVideoChatWindow('https://chat.example', {
-      providerName: 'googlemeet',
+      providerName: 'jitsi',
     });
 
-    expect(openExternalMock).toHaveBeenCalledWith('https://chat.example/');
-    expect(invokeMock).not.toHaveBeenCalled();
+    expect(invokeMock).toHaveBeenCalledWith(
+      'video-call-window/open-window',
+      'https://chat.example/',
+      { providerName: 'jitsi' }
+    );
+    expect(openExternalMock).not.toHaveBeenCalled();
   });
 
   it('opens jitsi calls on the dedicated invoke path', () => {

@@ -744,7 +744,6 @@ const start = async () => {
           );
           window.open = (url, name, features = '') => {
             if (
-              !process.mas &&
               window.RocketChatDesktop.getInternalVideoChatWindowEnabled() &&
               typeof url === 'string' &&
               jitsiDomain.length > 0 &&

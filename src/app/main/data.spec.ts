@@ -1,7 +1,10 @@
 import fs from 'fs';
 
 import * as store from '../../store';
-import { MENU_BAR_DEFAULT_REVISION } from '../PersistableValues';
+import {
+  MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION,
+  MENU_BAR_DEFAULT_REVISION,
+} from '../PersistableValues';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { mergePersistableValues } from './data';
 import {
@@ -189,6 +192,117 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isMenuBarEnabled: true,
+        }),
+      });
+      expect(setPersistedMeta).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Mac App Store internal video call window default', () => {
+    const processMasDescriptor = Object.getOwnPropertyDescriptor(
+      process,
+      'mas'
+    );
+
+    const mockMasRevision = (revision: number) => {
+      (getPersistedMeta as jest.Mock).mockImplementation(
+        (key: string, fallback: unknown) => {
+          if (key === 'masInternalVideoChatWindowDefaultRevision') {
+            return revision;
+          }
+          if (key === 'menuBarDefaultRevision') {
+            return MENU_BAR_DEFAULT_REVISION;
+          }
+          return fallback;
+        }
+      );
+    };
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'mas', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
+      mockSelect.mockReturnValue({
+        ...mockInitialValues,
+        isInternalVideoChatWindowEnabled: false,
+      });
+    });
+
+    afterEach(() => {
+      if (processMasDescriptor) {
+        Object.defineProperty(process, 'mas', processMasDescriptor);
+      } else {
+        delete (process as { mas?: boolean }).mas;
+      }
+    });
+
+    it('one-shot: turns the internal window on when the revision is stale', async () => {
+      mockMasRevision(0);
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isInternalVideoChatWindowEnabled: true,
+        }),
+      });
+      expect(setPersistedMeta).toHaveBeenCalledWith(
+        'masInternalVideoChatWindowDefaultRevision',
+        MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION
+      );
+    });
+
+    it('one-shot: keeps the user choice after the revision is applied', async () => {
+      mockMasRevision(MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION);
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isInternalVideoChatWindowEnabled: false,
+        }),
+      });
+      expect(setPersistedMeta).not.toHaveBeenCalled();
+    });
+
+    it('one-shot: keeps an overridden-settings.json value', async () => {
+      mockMasRevision(0);
+      (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify({ isInternalVideoChatWindowEnabled: false })
+      );
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isInternalVideoChatWindowEnabled: false,
+        }),
+      });
+      expect(setPersistedMeta).toHaveBeenCalledWith(
+        'masInternalVideoChatWindowDefaultRevision',
+        MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION
+      );
+    });
+
+    it('does nothing outside the Mac App Store build', async () => {
+      Object.defineProperty(process, 'mas', {
+        value: false,
+        writable: true,
+        configurable: true,
+      });
+      mockMasRevision(0);
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isInternalVideoChatWindowEnabled: false,
         }),
       });
       expect(setPersistedMeta).not.toHaveBeenCalled();

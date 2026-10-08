@@ -160,6 +160,9 @@ export type PersistableValues = Omit<
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */
 export const MENU_BAR_DEFAULT_REVISION = 1;
 
+/** Mac App Store builds stored the internal video call window as off; turn it on once. */
+export const MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION = 1;
+
 export const migrations = {
   '>=3.1.0': (before: PersistableValues_0_0_0): PersistableValues_3_1_0 => {
     const { currentServerUrl, ...rest } = before;
@@ -189,7 +192,7 @@ export const migrations = {
   }),
   '>=3.8.4': (before: PersistableValues_3_8_1): PersistableValues_3_8_4 => ({
     ...before,
-    isInternalVideoChatWindowEnabled: !process.mas,
+    isInternalVideoChatWindowEnabled: true,
     isAddNewServersEnabled: true,
   }),
   '>=3.8.7': (before: PersistableValues_3_8_4): PersistableValues_3_8_7 => ({

@@ -77,50 +77,30 @@ const linuxOpenExternal = (url: string): Promise<void> => {
       stdio: 'ignore',
     });
 
+    let fallbackTriggered = false;
+    const triggerFallback = () => {
+      if (fallbackTriggered) return;
+      fallbackTriggered = true;
+      shell.openExternal(url).then(resolve).catch(reject);
+    };
+
     child.on('error', (error) => {
       console.error('Failed to open xdg-open', error);
-      // Fallback to electron's shell.openExternal
-      shell.openExternal(url).then(resolve).catch(reject);
+      triggerFallback();
+    });
+
+    child.on('close', (code) => {
+      if (fallbackTriggered) return;
+      if (code !== 0) {
+        console.error(`xdg-open exited with code ${code}`);
+        triggerFallback();
+      } else {
+        resolve();
+      }
     });
 
     child.unref();
-    resolve();
   });
-};
-
-const withCleanEnv = async <T>(action: () => Promise<T>): Promise<T> => {
-  if (process.platform !== 'linux') {
-    return action();
-  }
-
-  const originalEnv: Record<string, string | undefined> = {};
-  const varsToRemove = [
-    'APPDIR',
-    'APPIMAGE',
-    'LD_LIBRARY_PATH',
-    'APPIMAGE_SILENT_INSTALL',
-    'APPIMAGE_START_CWD',
-    'GDK_BACKEND',
-  ];
-
-  for (const key of varsToRemove) {
-    if (process.env[key] !== undefined) {
-      originalEnv[key] = process.env[key];
-      delete process.env[key];
-    }
-  }
-
-  try {
-    return await action();
-  } finally {
-    for (const key of varsToRemove) {
-      if (originalEnv[key] !== undefined) {
-        process.env[key] = originalEnv[key];
-      } else {
-        delete process.env[key];
-      }
-    }
-  }
 };
 
 /**
@@ -155,8 +135,25 @@ export const openExternal = async (url: string): Promise<void> => {
     );
 
     if (browser) {
-      // Launch the selected browser with the URL using a clean environment
-      return withCleanEnv(() => launchBrowser(browser, url));
+      if (process.platform === 'linux') {
+        return new Promise((resolve, reject) => {
+          const child = spawn(browser.executable, [url], {
+            detached: true,
+            env: getCleanEnvForLinux(),
+            stdio: 'ignore',
+          });
+          child.on('error', reject);
+          child.on('close', (code) => {
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(new Error(`Browser exited with code ${code}`));
+            }
+          });
+          child.unref();
+        });
+      }
+      return await launchBrowser(browser, url);
     }
     // If the selected browser isn't available, fall back to system default
     console.warn(

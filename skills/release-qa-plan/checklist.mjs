@@ -110,7 +110,7 @@ const parseFlow = (absolutePath, order, priorityOverride) => {
 const reusedFlowIds = () => {
   const readme = fs.readFileSync(path.join(pack, 'README.md'), 'utf8');
   const section = readme.match(
-    /^## Reused flows\s*$([\s\S]*?)(?=^## |(?![\s\S]))/m
+    /^## Reused flows\s*$([\s\S]*?)(?=^## |(?![\s\S]))/im
   );
   if (!section) return [];
   return [...section[1].matchAll(/^- `?([A-Z0-9-]+-QA-\d+)`?(.*)$/gm)].map(

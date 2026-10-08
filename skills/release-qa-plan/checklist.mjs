@@ -74,41 +74,85 @@ const buildUnderTest = () => {
   return match[1].replace(/[`*]/g, '');
 };
 
+const parseFlow = (absolutePath, order, priorityOverride) => {
+  const file = path.relative(pack, absolutePath);
+  const content = fs.readFileSync(absolutePath, 'utf8');
+  const frontmatter = YAML.parse(
+    content.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? ''
+  );
+  if (!frontmatter?.id) fail(`${file}: frontmatter.id is missing`);
+  const packages = (frontmatter.packages ?? []).map((name) =>
+    String(name).toLowerCase()
+  );
+  for (const name of packages) {
+    if (!PACKAGE_PLATFORM[name]) {
+      fail(
+        `${file}: unknown package "${name}" (use ${Object.keys(PACKAGE_PLATFORM).join(', ')})`
+      );
+    }
+  }
+  const targets = packages.length
+    ? packages
+    : (frontmatter.platforms ?? []).map(String);
+  return {
+    id: frontmatter.id,
+    title: frontmatter.title,
+    priority: priorityOverride ?? frontmatter.priority ?? 'medium',
+    file,
+    order,
+    targets,
+  };
+};
+
+// Flows from other packs that this pack reuses. The README lists them in a
+// `## Reused flows` section, one per line: `- CONF-QA-001` or
+// `- CONF-QA-001 priority: release`.
+const reusedFlowIds = () => {
+  const readme = fs.readFileSync(path.join(pack, 'README.md'), 'utf8');
+  const section = readme.match(
+    /^## Reused flows\s*$([\s\S]*?)(?=^## |(?![\s\S]))/m
+  );
+  if (!section) return [];
+  return [...section[1].matchAll(/^- `?([A-Z0-9-]+-QA-\d+)`?(.*)$/gm)].map(
+    ([, id, rest]) => ({ id, priority: rest.match(/priority:\s*(\w+)/)?.[1] })
+  );
+};
+
 const readFlows = () => {
   const flowsDir = path.join(pack, 'flows');
   if (!fs.existsSync(flowsDir)) fail(`${packArg}: flows/ is missing`);
-  return fs
+  const own = fs
     .readdirSync(flowsDir)
     .filter((file) => file.endsWith('.md'))
     .sort()
-    .map((file, order) => {
-      const content = fs.readFileSync(path.join(flowsDir, file), 'utf8');
-      const frontmatter = YAML.parse(
-        content.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? ''
-      );
-      if (!frontmatter?.id) fail(`flows/${file}: frontmatter.id is missing`);
-      const packages = (frontmatter.packages ?? []).map((name) =>
-        String(name).toLowerCase()
-      );
-      for (const name of packages) {
-        if (!PACKAGE_PLATFORM[name]) {
-          fail(
-            `flows/${file}: unknown package "${name}" (use ${Object.keys(PACKAGE_PLATFORM).join(', ')})`
-          );
-        }
-      }
-      const targets = packages.length
-        ? packages
-        : (frontmatter.platforms ?? []).map(String);
-      return {
-        id: frontmatter.id,
-        title: frontmatter.title,
-        priority: frontmatter.priority ?? 'medium',
-        file: `flows/${file}`,
-        order,
-        targets,
-      };
+    .map((file, order) => parseFlow(path.join(flowsDir, file), order));
+
+  const reused = reusedFlowIds();
+  if (!reused.length) return own;
+  const qaDir = path.dirname(pack);
+  const elsewhere = fs
+    .readdirSync(qaDir)
+    .filter((name) => path.join(qaDir, name) !== pack)
+    .flatMap((name) => {
+      const dir = path.join(qaDir, name, 'flows');
+      return fs.existsSync(dir)
+        ? fs
+            .readdirSync(dir)
+            .filter((file) => file.endsWith('.md'))
+            .map((file) => path.join(dir, file))
+        : [];
     });
+  const byId = new Map(elsewhere.map((file) => [parseFlow(file, 0).id, file]));
+  return own.concat(
+    reused.map(({ id, priority }, index) => {
+      if (!byId.has(id)) {
+        fail(
+          `README "Reused flows" lists ${id}, but no flow under qa/ has that id`
+        );
+      }
+      return parseFlow(byId.get(id), own.length + index, priority);
+    })
+  );
 };
 
 const platformOf = (target) => PACKAGE_PLATFORM[target] ?? target;

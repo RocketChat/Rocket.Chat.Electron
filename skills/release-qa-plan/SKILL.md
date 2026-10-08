@@ -102,21 +102,50 @@ For each PR that needs coverage, in collector order:
    did not test, or puts under "Known limitations", needs a flow step. If
    it gets no step, write in the coverage table why it stays open.
 4. Name the user-visible surface and the platforms. Use the risk classes in
-   `skills/desktop-qa-flows/SKILL.md`, step 3.
+   `skills/desktop-qa-flows/SKILL.md`, step 3. Write down who can reach the
+   change: a setting, Developer Mode, a platform, or a package type. For
+   example, the MAS build has no in-app call window. For a gated feature,
+   add a flow that proves that a user who never opens the gate sees no
+   change.
 5. Write one falsifiable hypothesis: user action, expected behavior,
    failure mode, platform.
 6. Search `qa/*/flows/*.md` for a flow that already proves the hypothesis.
-   If one exists, reference it by ID. Do not copy it.
+   If one exists, reference it by ID. Do not copy it. Add its ID to the
+   README `## Reused flows` section, so that the checklist runs it (Phase 2).
 7. Group the PRs by surface. Write one flow for each user-visible
    hypothesis, not one for each PR. One flow can cover many PRs.
 8. A change can have no user-visible effect, for example dead-code removal.
    For such a change, write the reason in the coverage table. Name the smoke
    flow that would show a regression.
+9. A fix in the update path (download, restart, install) runs in the
+   **old** version, the one that updates. To test it, start from the
+   earlier prerelease that already has the fix, and update to the build
+   under test. An update from the last stable runs the old code, and can
+   still show the old bug.
 
 ## Phase 2 — Write the pack
 
 Make `qa/release-<X.Y.Z>/` as the `qa/README.md` pack structure says.
 Use the flow IDs `REL<major><minor>-QA-NNN`, for example `REL418-QA-001`.
+
+Flow rules that the tools enforce, or that broke flows in the 4.18.0 run:
+
+- Write the build tag only in the README. A flow says "the build under
+  test", so a new prerelease does not make it stale.
+- `priority`: `smoke` is for the baseline flows. `release` is for behavior
+  that every user on a platform can hit. `high` is for a new feature or
+  fix. `medium` is for a narrow or tester-only path. The checklist runs them in
+  this order.
+- Do not put `|` in a table cell, not even as `\|`. `validate-flows.mjs`
+  splits the cell there.
+- Do not write "Open Settings" alone. Give the path: "Press Command+,
+  (macOS) or Ctrl+, (Windows, Linux)". The keyboard shortcut is the same on
+  all platforms and in all versions since 4.17.
+- `requires` tokens are free text. List each token that the pack uses in
+  the README prerequisites, with what the tester must prepare.
+- Some test data can expire, for example a PR number with a preview build
+  or a meeting alias. Put it in a README `## Test data` table, with the
+  date that you checked it.
 
 A flow that depends on the package type lists the packages in its
 frontmatter, in `packages:`. The names are `dmg`, `pkg`, `mas`, `exe`, `msi`,
@@ -132,6 +161,9 @@ smallest scope that can fail alone: one flow is one item to mark done.
 - The range (`<base>..<head>` at the short SHA) and a coverage statement.
 - The install matrix: package × OS × the flows to run on it.
 - The smoke order.
+- `## Reused flows`: one line per flow from another pack, `- CONF-QA-001`
+  or `- CONF-QA-001 priority: release`. The checklist makes items for them.
+- `## Prerequisites` and `## Test data` (see the flow rules above).
 - The coverage table: `PR | Change | Surface | Platforms | Covered by`.
   Every `user-facing` and `packaging` row from the collector appears here,
   with flow IDs or the reason that no flow is necessary.
@@ -140,8 +172,9 @@ smallest scope that can fail alone: one flow is one item to mark done.
 Baseline flows (`flows/0N-*`). Write them for each release, from the code
 of this release:
 
-1. **Fresh install, per package.** The app installs, starts, and
-   **About** shows the version of the build under test. To check the
+1. **Fresh install, per package.** The app installs and starts. The
+   bottom of the App settings sidebar (Command+, or Ctrl+,) shows the version
+   of the build under test. Windows and Linux have no About item. To check the
    signature on macOS, run `codesign -dv --verbose=2` and `spctl -a -vv` on
    the `.app`. On Windows, use the installer **Properties › Digital
    Signatures** tab.
@@ -169,10 +202,17 @@ node skills/release-qa-plan/collect-changes.mjs --check qa/release-<X.Y.Z>
 node qa/scripts/validate-flows.mjs qa/release-<X.Y.Z>
 node qa/scripts/export-qase-csv.mjs qa/release-<X.Y.Z>
 ~/.claude/skills/asd-ste100/scripts/ste-lint.py qa/release-<X.Y.Z>/README.md
+for f in qa/release-<X.Y.Z>/flows/*.md; do
+  awk 'NR==1&&/^---$/{fm=1;next} fm&&/^---$/{fm=0;next} !fm' "$f" > /tmp/flow-body.md
+  ~/.claude/skills/asd-ste100/scripts/ste-lint.py /tmp/flow-body.md
+done
 git diff --check
 ```
 
-All of them must pass. When a new prerelease is cut, run the collector
+All of them must pass. Lint the flow bodies without the frontmatter: the
+linter reads the YAML block as one long sentence. A hard finding can stay
+only when it quotes the product: a UI string, a log line, an OS feature
+name. Then say so in the report. When a new prerelease is cut, run the collector
 again. `--check` fails until you add the new PRs and the new build tag.
 Then run `checklist.mjs sync` (Phase 4).
 
@@ -219,7 +259,8 @@ The steps on each machine:
 CFBundleShortVersionString`), signature, and logs. The macOS log is
    `~/Library/Logs/Rocket.Chat/main.log` for the `dmg` and `pkg` builds, and
    `~/Library/Containers/chat.rocket/Data/Library/Logs/Rocket.Chat/main.log`
-   for MAS and TestFlight. The in-app **Log Viewer** works on all platforms.
+   for MAS and TestFlight. On Windows and Linux, use **Help › Open Log
+   Viewer**, which works on all platforms.
 3. UI steps need a tester or a visual agent. The port-9339 inspector
    (`dev-app-verify`) is for `yarn start` only, not for an installed build.
    Do not use a software-rendered VM for screen capture (`AGENTS.md`,

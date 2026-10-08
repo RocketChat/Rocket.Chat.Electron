@@ -523,6 +523,7 @@
     "permissionDenied": "Näytön nauhoituslupa evätty",
     "permissionRequired": "Näytön nauhoituslupa vaaditaan näytön jakamiseen.",
     "permissionInstructions": "Ole hyvä ja ota se käyttöön järjestelmäasetuksissa ja yritä uudelleen.",
+    "permissionAlreadyOnHint": "Onko se jo päällä? Valitse Rocket.Chat luettelosta, poista se miinuspainikkeella (−) ja sulje ja avaa Rocket.Chat uudelleen. Jaa sitten näyttösi uudelleen ja salli käyttö, kun macOS kysyy.",
     "title": "Jaa näyttösi",
     "entireScreen": "Koko näyttösi",
     "applicationWindow": "Sovellusikkuna",

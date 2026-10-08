@@ -365,6 +365,7 @@
     "permissionDenied": "Ekran Kaydetme İzni Reddedildi",
     "permissionRequired": "Ekranınızı paylaşmak için ekran kaydetme izni gereklidir.",
     "permissionInstructions": "Lütfen sistem tercihlerinizde etkinleştirin ve tekrar deneyin.",
+    "permissionAlreadyOnHint": "Zaten açık mı? Listede Rocket.Chat'i seçin, eksi (−) düğmesiyle kaldırın, ardından Rocket.Chat'ten çıkıp yeniden açın. Sonra ekranınızı tekrar paylaşın ve macOS sorduğunda erişime izin verin.",
     "title": "Ekranınızı paylaşın",
     "entireScreen": "Tüm ekranınız",
     "applicationWindow": "Uygulama penceresi",

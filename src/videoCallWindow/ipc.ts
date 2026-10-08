@@ -16,7 +16,7 @@ import { ScreenSharingRequestTracker } from '../screenSharing/ScreenSharingReque
 import {
   clearDesktopCapturerCache,
   getDesktopCapturerCacheStatus,
-  prewarmDesktopCapturerCache,
+  prewarmDesktopCapturerCacheIfPermitted,
 } from '../screenSharing/desktopCapturerCache';
 import { requestViaPickerWindow } from '../screenSharing/popoutPickerRequest';
 import type {
@@ -1528,6 +1528,6 @@ handle('video-call-window/get-language', async () => {
 });
 
 handle('video-call-window/prewarm-capturer-cache', async () => {
-  prewarmDesktopCapturerCache();
+  await prewarmDesktopCapturerCacheIfPermitted();
   return { success: true };
 });

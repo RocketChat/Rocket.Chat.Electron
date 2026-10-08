@@ -608,6 +608,7 @@
     "permissionDenied": "Tillatelse til skjermopptak nektet",
     "permissionRequired": "Tillatelse til skjermopptak kreves for å dele skjermen din.",
     "permissionInstructions": "Vennligst aktiver det i systeminnstillingene dine og prøv på nytt.",
+    "permissionAlreadyOnHint": "Er det allerede slått på? Velg Rocket.Chat i listen, fjern det med minusknappen (−), og avslutt og åpne Rocket.Chat på nytt. Del deretter skjermen igjen og tillat tilgang når macOS spør.",
     "title": "Del skjermen din",
     "entireScreen": "Hele skjermen din",
     "applicationWindow": "Programvindu",

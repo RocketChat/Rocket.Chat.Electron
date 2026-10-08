@@ -4,6 +4,7 @@ import type { ScreenPickerProvider } from '../screenPicker/types';
 
 jest.mock('../desktopCapturerCache', () => ({
   prewarmDesktopCapturerCache: jest.fn(),
+  prewarmDesktopCapturerCacheIfPermitted: jest.fn(),
 }));
 
 jest.mock('../../ipc/main', () => ({
@@ -101,7 +102,7 @@ const loadModule = async () => {
   const cache = await import('../desktopCapturerCache');
   return {
     setupServerViewDisplayMedia: sut.setupServerViewDisplayMedia,
-    prewarmMock: cache.prewarmDesktopCapturerCache as jest.Mock,
+    prewarmMock: cache.prewarmDesktopCapturerCacheIfPermitted as jest.Mock,
   };
 };
 
@@ -111,7 +112,7 @@ describe('setupServerViewDisplayMedia — cache warming gate', () => {
     jest.clearAllMocks();
   });
 
-  it('skips prewarmDesktopCapturerCache for portal provider (Linux/Wayland)', async () => {
+  it('skips the cache warm-up for portal provider (Linux/Wayland)', async () => {
     detectPickerType.mockReturnValue('portal');
     const { setupServerViewDisplayMedia, prewarmMock } = await loadModule();
 
@@ -128,7 +129,7 @@ describe('setupServerViewDisplayMedia — cache warming gate', () => {
     expect(prewarmMock).not.toHaveBeenCalled();
   });
 
-  it('calls prewarmDesktopCapturerCache for internal provider', async () => {
+  it('warms the cache through the permission-gated prewarm for internal provider', async () => {
     detectPickerType.mockReturnValue('internal');
     const { setupServerViewDisplayMedia, prewarmMock } = await loadModule();
 

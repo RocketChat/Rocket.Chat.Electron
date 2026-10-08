@@ -525,6 +525,7 @@
     "permissionDenied": "Bildschirmaufnahme-Berechtigung verweigert",
     "permissionRequired": "Die Bildschirmaufnahme-Berechtigung ist erforderlich, um Ihren Bildschirm zu teilen.",
     "permissionInstructions": "Bitte aktivieren Sie diese in den Systemeinstellungen und versuchen Sie es erneut.",
+    "permissionAlreadyOnHint": "Bereits aktiviert? Wähle Rocket.Chat in dieser Liste aus, entferne es mit der Minus-Taste (−) und beende Rocket.Chat und öffne es erneut. Teile dann deinen Bildschirm noch einmal und erlaube den Zugriff, wenn macOS danach fragt.",
     "title": "Bildschirm teilen",
     "entireScreen": "Ihr gesamter Bildschirm",
     "applicationWindow": "Anwendungsfenster",

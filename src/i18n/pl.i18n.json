@@ -387,6 +387,7 @@
     "permissionDenied": "Odmowa uprawnień do nagrywania ekranu",
     "permissionRequired": "Uprawnienie do nagrywania ekranu jest wymagane, aby udostępnić ekran.",
     "permissionInstructions": "Włącz je w preferencjach systemowych i spróbuj ponownie.",
+    "permissionAlreadyOnHint": "Już włączone? Zaznacz Rocket.Chat na tej liście, usuń go przyciskiem minus (−), a następnie zamknij i ponownie otwórz Rocket.Chat. Potem ponownie udostępnij ekran i zezwól na dostęp, gdy macOS o to poprosi.",
     "title": "Udostępnij swój ekran",
     "entireScreen": "Cały ekran",
     "applicationWindow": "Okno aplikacji",

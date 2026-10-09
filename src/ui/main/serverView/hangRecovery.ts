@@ -18,14 +18,34 @@ export const markResponsive = (webContents: WebContents): void => {
 export const isUnresponsive = (webContents: WebContents): boolean =>
   unresponsiveWebContents.has(webContents);
 
-export const terminateIfUnresponsive = (webContents: WebContents): boolean => {
+export const RECOVERY_KILL_TIMEOUT_MS = 10_000;
+
+// The kill is asynchronous: a load started before the stuck renderer is gone
+// fails with ERR_FAILED and leaves the view crashed, so resolve only once the
+// renderer has exited.
+export const terminateIfUnresponsive = async (
+  webContents: WebContents
+): Promise<boolean> => {
   if (webContents.isDestroyed() || !unresponsiveWebContents.has(webContents)) {
     return false;
   }
 
   unresponsiveWebContents.delete(webContents);
   killedForRecovery.add(webContents);
-  webContents.forcefullyCrashRenderer();
+
+  await new Promise<void>((resolve) => {
+    const done = (): void => {
+      clearTimeout(timer);
+      webContents.removeListener('render-process-gone', done);
+      webContents.removeListener('destroyed', done);
+      resolve();
+    };
+    const timer = setTimeout(done, RECOVERY_KILL_TIMEOUT_MS);
+    webContents.once('render-process-gone', done);
+    webContents.once('destroyed', done);
+    webContents.forcefullyCrashRenderer();
+  });
+
   return true;
 };
 

@@ -294,7 +294,10 @@ hooks, `settings.json`).
 Before you create or change a QA asset under `qa/`, read `qa/AGENTS.md`. It
 holds the authoring rules, the template and the validation commands. For a QA
 pass on a Desktop PR, branch or release candidate, follow
-`skills/desktop-qa-flows/SKILL.md`.
+`skills/desktop-qa-flows/SKILL.md`. Before a stable promotion, make the
+release QA pack with `skills/release-qa-plan/SKILL.md`. Its collector
+(`collect-changes.mjs --check`) fails when a change from the last stable tag
+to `dev` has no flow, or when the build under test does not contain it.
 
 ## Code Style
 

@@ -1,2 +1,7 @@
 /node_modules
 /app
+
+# validate-flows.mjs and export-qase-csv.mjs match the flow steps table
+# header exactly; Prettier pads the columns and breaks the match.
+/qa/flow-template.md
+/qa/*/flows/*.md

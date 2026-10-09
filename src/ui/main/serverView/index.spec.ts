@@ -207,6 +207,7 @@ describe('serverView audio state and mute handling', () => {
       setWindowOpenHandler: jest.fn(),
       setAudioMuted: jest.fn(),
       isDestroyed: jest.fn(() => false),
+      isLoading: jest.fn(() => false),
       session: { on: jest.fn() },
     } as unknown as WebContents;
 
@@ -243,6 +244,7 @@ describe('serverView audio state and mute handling', () => {
         setAudioMuted: jest.fn(),
         isAudioMuted: jest.fn(() => false),
         isDestroyed: jest.fn(() => false),
+        isLoading: jest.fn(() => false),
         session: {
           on: jest.fn(),
           removeAllListeners: jest.fn(),
@@ -312,6 +314,7 @@ describe('serverView audio state and mute handling', () => {
         setWindowOpenHandler: jest.fn(),
         setAudioMuted: jest.fn(),
         isDestroyed: jest.fn(() => false),
+        isLoading: jest.fn(() => false),
         session: { on: jest.fn() },
       } as unknown as WebContents;
 
@@ -405,6 +408,7 @@ describe('serverView audio state and mute handling', () => {
       setAudioMuted: jest.fn(),
       isAudioMuted: jest.fn(() => false),
       isDestroyed: jest.fn(() => false),
+      isLoading: jest.fn(() => false),
       session: { on: jest.fn() },
     } as unknown as WebContents;
 

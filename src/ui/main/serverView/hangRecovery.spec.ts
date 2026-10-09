@@ -13,6 +13,11 @@ import {
   RECOVERY_KILL_TIMEOUT_MS,
 } from './hangRecovery';
 import { attachGuestWebContentsEvents } from './index';
+import {
+  HELD_NAVIGATION_RETRY_MS,
+  REACHABILITY_PROBE_DELAY_MS,
+  RECONNECT_PROBE_INTERVAL_MS,
+} from './stuckNavigation';
 
 jest.mock('electron', () => ({
   app: {
@@ -69,6 +74,8 @@ const listenerFor = (actionType: string) =>
     action: unknown
   ) => void;
 
+const mockLoggers = jest.requireMock('../../../logging/scopes').loggers;
+
 const createGuestWebContents = () => {
   const handlers = new Map<string, ((...args: unknown[]) => void)[]>();
   const register = (event: string, handler: any) => {
@@ -86,12 +93,15 @@ const createGuestWebContents = () => {
     on: jest.fn(),
     removeAllListeners: jest.fn(),
     session: {
+      fetch: jest.fn(() => Promise.resolve({ status: 200 })),
       on: jest.fn(),
       removeAllListeners: jest.fn(),
       flushStorageData: jest.fn(),
       clearStorageData: jest.fn(),
     },
     isDestroyed: jest.fn(() => false),
+    isLoading: jest.fn(() => false),
+    isWaitingForResponse: jest.fn(() => false),
     forcefullyCrashRenderer: jest.fn(),
     loadURL: jest.fn(() => Promise.resolve()),
     executeJavaScript: jest.fn(() => Promise.resolve(0)),
@@ -221,6 +231,117 @@ describe('server view hang and crash recovery', () => {
       type: WEBVIEW_DID_FAIL_LOAD,
       payload: { url: SERVER_URL, isMainFrame: true },
     });
+  });
+
+  it('logs a main-frame load failure and shows the failure view', () => {
+    emit('did-fail-load', -106, 'ERR_INTERNET_DISCONNECTED', SERVER_URL, true);
+
+    expect(mockLoggers.servers.warn).toHaveBeenCalledWith(
+      `Server view failed to load (ERR_INTERNET_DISCONNECTED, -106): ${SERVER_URL}`
+    );
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: WEBVIEW_DID_FAIL_LOAD,
+      payload: { url: SERVER_URL, isMainFrame: true },
+    });
+  });
+
+  it('reloads as soon as the server answers after a network failure', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    guest.session.fetch
+      .mockRejectedValueOnce(new Error('net::ERR_INTERNET_DISCONNECTED'))
+      .mockResolvedValue({ status: 200 });
+    emit('did-fail-load', -106, 'ERR_INTERNET_DISCONNECTED', SERVER_URL, true);
+
+    await jest.advanceTimersByTimeAsync(RECONNECT_PROBE_INTERVAL_MS);
+    expect(guest.loadURL).not.toHaveBeenCalled();
+
+    await jest.advanceTimersByTimeAsync(RECONNECT_PROBE_INTERVAL_MS);
+    expect(guest.loadURL).toHaveBeenCalledWith(SERVER_URL);
+    expect(guest.session.fetch).toHaveBeenCalledWith(
+      SERVER_URL,
+      expect.objectContaining({ credentials: 'omit' })
+    );
+    jest.spyOn(Math, 'random').mockRestore();
+  });
+
+  it('stops waiting for the server once another load starts', async () => {
+    guest.session.fetch.mockRejectedValueOnce(
+      new Error('net::ERR_INTERNET_DISCONNECTED')
+    );
+    emit('did-fail-load', -106, 'ERR_INTERNET_DISCONNECTED', SERVER_URL, true);
+    emit('did-start-loading');
+
+    await jest.advanceTimersByTimeAsync(RECONNECT_PROBE_INTERVAL_MS * 3);
+
+    expect(guest.session.fetch).not.toHaveBeenCalled();
+    expect(guest.loadURL).not.toHaveBeenCalled();
+  });
+
+  it('does not wait for the server after a failure that is not about the network', async () => {
+    emit('did-fail-load', -201, 'ERR_CERT_DATE_INVALID', SERVER_URL, true);
+
+    await jest.advanceTimersByTimeAsync(RECONNECT_PROBE_INTERVAL_MS * 3);
+
+    expect(guest.session.fetch).not.toHaveBeenCalled();
+  });
+
+  describe('a navigation that never gets its response', () => {
+    const startHeldNavigation = () => {
+      guest.isLoading.mockReturnValue(true);
+      guest.isWaitingForResponse.mockReturnValue(true);
+      // Electron passes the navigation details on the event object itself.
+      guest.addListener.mock.calls
+        .filter(([event]) => event === 'did-start-navigation')
+        .forEach(([, handler]) =>
+          handler({ isMainFrame: true, isSameDocument: false })
+        );
+    };
+
+    it('shows the failure view when the server is unreachable', async () => {
+      guest.session.fetch.mockRejectedValue(
+        new Error('net::ERR_NAME_NOT_RESOLVED')
+      );
+      startHeldNavigation();
+
+      await jest.advanceTimersByTimeAsync(REACHABILITY_PROBE_DELAY_MS);
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: WEBVIEW_DID_FAIL_LOAD,
+        payload: { url: SERVER_URL, isMainFrame: true },
+      });
+    });
+
+    it('clears the failure view when the page commits after all', async () => {
+      guest.session.fetch.mockRejectedValue(
+        new Error('net::ERR_NAME_NOT_RESOLVED')
+      );
+      startHeldNavigation();
+      await jest.advanceTimersByTimeAsync(REACHABILITY_PROBE_DELAY_MS);
+
+      emit('did-navigate', SERVER_URL);
+
+      expect(mockDispatch).toHaveBeenLastCalledWith({
+        type: WEBVIEW_BECAME_RESPONSIVE,
+        payload: { url: SERVER_URL },
+      });
+      await jest.advanceTimersByTimeAsync(RECONNECT_PROBE_INTERVAL_MS * 5);
+      expect(guest.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('loads the page again when the server answers', async () => {
+      startHeldNavigation();
+
+      await jest.advanceTimersByTimeAsync(HELD_NAVIGATION_RETRY_MS);
+
+      expect(guest.loadURL).toHaveBeenCalledWith(SERVER_URL);
+      expect(failLoadDispatches()).toHaveLength(0);
+    });
+  });
+
+  it('does not log subframe load failures', () => {
+    emit('did-fail-load', -105, 'ERR_NAME_NOT_RESOLVED', SERVER_URL, false);
+
+    expect(mockLoggers.servers.warn).not.toHaveBeenCalled();
   });
 
   it('ignores a clean renderer exit', () => {

@@ -496,6 +496,17 @@ export const setupUpdateLabelFlow = (): void => {
   });
 };
 
+// electron-updater allows prereleases whenever the running version has a
+// prerelease id, so an alpha build on the stable channel matches no GitHub
+// release. Its `channel` setter also turns downgrades on, which would offer
+// that alpha build the previous stable. Set all three together: a channel
+// change only ever moves the app forward.
+const applyUpdateChannel = (channel: string): void => {
+  autoUpdater.channel = channel;
+  autoUpdater.allowPrerelease = channel === 'alpha' || channel === 'beta';
+  autoUpdater.allowDowngrade = false;
+};
+
 export const setupUpdates = async (): Promise<void> => {
   // This is necessary to make the updater work in development mode
   if (process.env.NODE_ENV === 'development') {
@@ -574,22 +585,11 @@ export const setupUpdates = async (): Promise<void> => {
     return;
   }
 
-  // Set initial channel
-  autoUpdater.channel = updateChannel;
+  applyUpdateChannel(updateChannel);
 
-  // Enable prerelease updates for alpha and beta channels
-  if (updateChannel === 'alpha' || updateChannel === 'beta') {
-    autoUpdater.allowPrerelease = true;
-  }
-
-  // Listen for channel changes
   listen(ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED, async (action) => {
     const newChannel = action.payload;
-    autoUpdater.channel = newChannel;
-
-    // Enable prerelease updates for alpha and beta channels
-    autoUpdater.allowPrerelease =
-      newChannel === 'alpha' || newChannel === 'beta';
+    applyUpdateChannel(newChannel);
 
     dispatch({
       type: UPDATES_CHANNEL_CHANGED,

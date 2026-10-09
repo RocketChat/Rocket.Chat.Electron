@@ -150,6 +150,12 @@ type PersistableValues_4_18_0 = PersistableValues_4_17_0 & {
   isTrayIconUnreadCounterEnabled: boolean;
   isMenuBarUnreadCountEnabled: boolean;
   uiPreviewHistory: UiPreviewHistoryEntry[];
+  /**
+   * Linux-only opt-in: use the native window-manager title bar instead of the
+   * client-side chrome introduced in #3450. Off by default so existing users
+   * keep their current experience. Requires a restart to take effect.
+   */
+  isLinuxSystemTitleBarEnabled: boolean;
 };
 
 export type PersistableValues = Omit<
@@ -309,5 +315,12 @@ export const migrations = {
   '>=4.17.0': (before: PersistableValues_4_16_2): PersistableValues_4_17_0 => ({
     ...before,
     isNotificationQuickReplyEnabled: true,
+  }),
+  '>=4.18.0': (before: PersistableValues_4_17_0): PersistableValues_4_18_0 => ({
+    ...before,
+    isTrayIconUnreadCounterEnabled: false,
+    isMenuBarUnreadCountEnabled: false,
+    uiPreviewHistory: [],
+    isLinuxSystemTitleBarEnabled: false,
   }),
 };

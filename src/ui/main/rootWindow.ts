@@ -80,23 +80,36 @@ export const getRootWindow = (): Promise<BrowserWindow> =>
     }, 300);
   });
 
-// Windows uses client-side chrome (WindowControls in the shell).
+// Windows and Linux use client-side chrome (WindowControls in the shell);
+// both therefore need a hidden title bar so the WM does not add a second frame.
 // macOS keeps a hidden title bar so traffic lights can sit in the tab strip.
-// Linux uses native window manager frame / title bar.
-const platformTitleBarStyle =
-  process.platform === 'darwin' || process.platform === 'win32'
-    ? 'hidden'
-    : 'default';
+// Exception: when the Linux user has opted into the system title bar the WM
+// frame is used instead, so we switch to 'default'.
+const buildTitleBarStyle = (): 'hidden' | 'default' => {
+  if (process.platform === 'linux') {
+    const isSystemTitleBar = select(
+      ({ isLinuxSystemTitleBarEnabled }: RootState) =>
+        isLinuxSystemTitleBarEnabled
+    );
+    return isSystemTitleBar ? 'default' : 'hidden';
+  }
+  // darwin and win32 always use hidden
+  return 'hidden';
+};
 
 const isMac = process.platform === 'darwin';
 
 export const createRootWindow = (): void => {
+  const titleBarStyle = buildTitleBarStyle();
+  const isLinuxSystemTitleBar =
+    process.platform === 'linux' && titleBarStyle === 'default';
+
   _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,
     minWidth: 400,
     minHeight: 400,
-    titleBarStyle: platformTitleBarStyle,
+    titleBarStyle,
     ...(isMac ? { trafficLightPosition: { x: 12, y: 13 } } : {}),
     show: false,
     webPreferences,
@@ -107,6 +120,9 @@ export const createRootWindow = (): void => {
           visualEffectState: 'active',
         }
       : {}),
+    // When Linux uses its own WM frame, keep the window opaque so the native
+    // decorations are not affected by any transparency settings.
+    ...(isLinuxSystemTitleBar ? { transparent: false } : {}),
   });
 
   // Block navigation to smb:// protocol

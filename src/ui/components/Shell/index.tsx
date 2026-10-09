@@ -33,8 +33,17 @@ export const Shell = () => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
+  const isLinuxSystemTitleBarEnabled = useSelector(
+    ({ isLinuxSystemTitleBarEnabled }: RootState) =>
+      isLinuxSystemTitleBarEnabled
+  );
 
   const shellTheme = useShellTheme();
+
+  // Whether this Linux window is using the native WM title bar (opt-in).
+  // When false (the default), Linux uses client-side chrome like Windows.
+  const isLinuxNativeFrame =
+    process.platform === 'linux' && isLinuxSystemTitleBarEnabled;
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -84,8 +93,8 @@ export const Shell = () => {
             trailingSlot={<WindowControls />}
           />
         )}
-        {/* macOS and Linux tabs: meatball/downloads/update trail (no WindowControls). */}
-        {navigationLayout === 'tabs' && process.platform !== 'win32' && (
+        {/* macOS tabs: meatball/downloads/update trail (no WindowControls). */}
+        {navigationLayout === 'tabs' && process.platform === 'darwin' && (
           <TabBar
             trailingSlot={
               <>
@@ -96,8 +105,37 @@ export const Shell = () => {
             }
           />
         )}
-        {/* macOS and Linux non-tabs: WM or macOS handles decorations. */}
-        {navigationLayout !== 'tabs' && process.platform !== 'win32' && (
+        {/* Linux tabs (default client-side chrome): meatball/downloads/update trail + WindowControls. */}
+        {navigationLayout === 'tabs' &&
+          process.platform === 'linux' &&
+          !isLinuxNativeFrame && (
+            <TabBar
+              leadingSlot={
+                <>
+                  <MeatballMenuButton />
+                  <UpdateLabel />
+                  <DownloadsIndicator />
+                </>
+              }
+              trailingSlot={<WindowControls />}
+            />
+          )}
+        {/* Linux tabs (native WM frame): no WindowControls since WM provides them. */}
+        {navigationLayout === 'tabs' &&
+          process.platform === 'linux' &&
+          isLinuxNativeFrame && (
+            <TabBar
+              trailingSlot={
+                <>
+                  <UpdateLabel />
+                  <DownloadsIndicator />
+                  <MeatballMenuButton />
+                </>
+              }
+            />
+          )}
+        {/* macOS non-tabs: WM or macOS handles decorations. */}
+        {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
           <TopBar
             centerSlot={
               navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
@@ -127,6 +165,46 @@ export const Shell = () => {
             textAlignment='left'
           />
         )}
+        {/* Linux non-tabs (default client-side chrome): TopBar with WindowControls. */}
+        {navigationLayout !== 'tabs' &&
+          process.platform === 'linux' &&
+          !isLinuxNativeFrame && (
+            <TopBar
+              leadingSlot={
+                <>
+                  {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
+                  <UpdateLabel />
+                  <DownloadsIndicator compact />
+                </>
+              }
+              centerSlot={
+                navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+              }
+              trailingSlot={<WindowControls />}
+              textAlignment='left'
+            />
+          )}
+        {/* Linux non-tabs (native WM frame): no client-side controls; WM provides decorations. */}
+        {navigationLayout !== 'tabs' &&
+          process.platform === 'linux' &&
+          isLinuxNativeFrame && (
+            <TopBar
+              leadingSlot={
+                navigationLayout === 'hidden' ? (
+                  <MeatballMenuButton tiny />
+                ) : undefined
+              }
+              centerSlot={
+                navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+              }
+              trailingSlot={
+                <>
+                  <UpdateLabel />
+                  <DownloadsIndicator compact />
+                </>
+              }
+            />
+          )}
         <Box display='flex' flexDirection='row' flexGrow={1}>
           {navigationLayout === 'sidebar' && (
             <TabBar

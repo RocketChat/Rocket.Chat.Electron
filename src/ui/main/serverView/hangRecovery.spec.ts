@@ -7,7 +7,11 @@ import {
   WEBVIEW_BECAME_RESPONSIVE,
   WEBVIEW_DID_FAIL_LOAD,
 } from '../../actions';
-import { HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS } from './hangRecovery';
+import {
+  HEARTBEAT_INTERVAL_MS,
+  HEARTBEAT_TIMEOUT_MS,
+  RECOVERY_KILL_TIMEOUT_MS,
+} from './hangRecovery';
 import { attachGuestWebContentsEvents } from './index';
 
 jest.mock('electron', () => ({
@@ -73,6 +77,12 @@ const createGuestWebContents = () => {
   const guest = {
     addListener: jest.fn(register),
     once: jest.fn(register),
+    removeListener: jest.fn((event: string, handler: any) => {
+      handlers.set(
+        event,
+        (handlers.get(event) ?? []).filter((h) => h !== handler)
+      );
+    }),
     on: jest.fn(),
     removeAllListeners: jest.fn(),
     session: {
@@ -154,20 +164,33 @@ describe('server view hang and crash recovery', () => {
     });
   });
 
-  it('kills the hung renderer before reloading from the failure view', () => {
+  it('reloads from the failure view only after the killed renderer exits', async () => {
     emit('unresponsive');
     clickErrorViewReload();
+    await flushPromises();
 
     expect(guest.forcefullyCrashRenderer).toHaveBeenCalledTimes(1);
+    expect(guest.loadURL).not.toHaveBeenCalled();
+
+    emit('render-process-gone', { reason: 'killed', exitCode: 9 });
+    await flushPromises();
+
     expect(guest.loadURL).toHaveBeenCalledWith(SERVER_URL);
-    expect(
-      guest.forcefullyCrashRenderer.mock.invocationCallOrder[0]
-    ).toBeLessThan(guest.loadURL.mock.invocationCallOrder[0]);
   });
 
-  it('does not report the renderer it killed for recovery as a crash', () => {
+  it('reloads anyway when the killed renderer never reports its exit', async () => {
     emit('unresponsive');
     clickErrorViewReload();
+
+    await jest.advanceTimersByTimeAsync(RECOVERY_KILL_TIMEOUT_MS);
+
+    expect(guest.loadURL).toHaveBeenCalledWith(SERVER_URL);
+  });
+
+  it('does not report the renderer it killed for recovery as a crash', async () => {
+    emit('unresponsive');
+    clickErrorViewReload();
+    await flushPromises();
     mockDispatch.mockClear();
 
     emit('render-process-gone', { reason: 'killed', exitCode: 9 });
@@ -175,8 +198,9 @@ describe('server view hang and crash recovery', () => {
     expect(failLoadDispatches()).toHaveLength(0);
   });
 
-  it('reloads a responsive renderer without killing it', () => {
+  it('reloads a responsive renderer without killing it', async () => {
     clickErrorViewReload();
+    await flushPromises();
 
     expect(guest.forcefullyCrashRenderer).not.toHaveBeenCalled();
     expect(guest.loadURL).toHaveBeenCalledWith(SERVER_URL);
@@ -244,11 +268,14 @@ describe('server view hang and crash recovery', () => {
       expect(failLoadDispatches()).toHaveLength(1);
     });
 
-    it('lets the failure view kill the renderer it found stuck', () => {
+    it('lets the failure view kill the renderer it found stuck', async () => {
       hangRenderer();
       jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS);
 
       clickErrorViewReload();
+      await flushPromises();
+      emit('render-process-gone', { reason: 'killed', exitCode: 9 });
+      await flushPromises();
 
       expect(guest.forcefullyCrashRenderer).toHaveBeenCalledTimes(1);
       expect(guest.loadURL).toHaveBeenCalledWith(SERVER_URL);
@@ -277,11 +304,14 @@ describe('server view hang and crash recovery', () => {
       expect(failLoadDispatches()).toHaveLength(0);
     });
 
-    it('watches the fresh renderer after a recovery kill', () => {
+    it('watches the fresh renderer after a recovery kill', async () => {
       hangRenderer();
       jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS);
       clickErrorViewReload();
+      await flushPromises();
       emit('render-process-gone', { reason: 'killed', exitCode: 9 });
+      await flushPromises();
+      expect(guest.loadURL).toHaveBeenCalledWith(SERVER_URL);
       mockDispatch.mockClear();
 
       hangRenderer();

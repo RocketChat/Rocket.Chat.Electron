@@ -380,7 +380,7 @@ export const createViewMenu = createSelector(
           if (
             guestWebContents &&
             typeof currentView === 'object' &&
-            terminateIfUnresponsive(guestWebContents)
+            (await terminateIfUnresponsive(guestWebContents))
           ) {
             guestWebContents.loadURL(currentView.url).catch((error) => {
               console.error(

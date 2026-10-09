@@ -273,7 +273,7 @@ export const serverReloadView = async (
   if (!guestWebContents) {
     return;
   }
-  terminateIfUnresponsive(guestWebContents);
+  await terminateIfUnresponsive(guestWebContents);
   try {
     await guestWebContents.loadURL(url);
   } catch (error) {
@@ -734,12 +734,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     );
   });
 
-  listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
+  listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, async (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
     if (!guestWebContents) {
       return;
     }
-    terminateIfUnresponsive(guestWebContents);
+    await terminateIfUnresponsive(guestWebContents);
     guestWebContents.loadURL(action.payload.url).catch((error) => {
       console.error('Failed to load URL for guestWebContents:', error);
     });

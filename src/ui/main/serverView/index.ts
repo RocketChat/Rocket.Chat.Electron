@@ -67,6 +67,12 @@ import {
 } from './hangRecovery';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
+import type { ReconnectBackoff } from './stuckNavigation';
+import {
+  isUnreachableError,
+  waitUntilReachable,
+  watchStuckNavigation,
+} from './stuckNavigation';
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
@@ -352,7 +358,46 @@ const initializeServerWebContentsAfterAttach = (
     webviewSession.flushStorageData();
   });
 
+  // While the server is unreachable, keep probing it and reload the moment
+  // it answers, instead of waiting for the OS online event or the failure
+  // view's countdown. Any load that starts in the meantime takes over.
+  let stopWaitingForServer: (() => void) | undefined;
+  const reconnectBackoff: ReconnectBackoff = { serverFailures: 0 };
+
+  const stopReconnecting = (): void => {
+    stopWaitingForServer?.();
+    stopWaitingForServer = undefined;
+  };
+
+  const reloadServerView = async (): Promise<void> => {
+    await terminateIfUnresponsive(guestWebContents);
+    if (guestWebContents.isDestroyed()) {
+      return;
+    }
+    // A failure here is reported by did-fail-load; an abort means another
+    // load took over.
+    guestWebContents.loadURL(serverUrl).catch(() => undefined);
+  };
+
+  const reloadWhenReachable = (): void => {
+    stopReconnecting();
+    stopWaitingForServer = waitUntilReachable(guestWebContents, serverUrl, {
+      onReachable: () => {
+        stopWaitingForServer = undefined;
+        loggers.servers.info(`Server is reachable again: ${serverUrl}`);
+        reloadServerView();
+      },
+      backoff: reconnectBackoff,
+    });
+  };
+
+  guestWebContents.addListener('destroyed', stopReconnecting);
+  guestWebContents.addListener('did-navigate', () => {
+    reconnectBackoff.serverFailures = 0;
+  });
+
   const handleDidStartLoading = (): void => {
+    stopReconnecting();
     dispatch({ type: WEBVIEW_DID_START_LOADING, payload: { url: serverUrl } });
     rootWindow.webContents.send(WEBVIEW_DID_START_LOADING, serverUrl);
   };
@@ -360,8 +405,8 @@ const initializeServerWebContentsAfterAttach = (
   const handleDidFailLoad = (
     _event: Event,
     errorCode: number,
-    _errorDescription: string,
-    _validatedURL: string,
+    errorDescription: string,
+    validatedURL: string,
     isMainFrame: boolean,
     _frameProcessId: number,
     _frameRoutingId: number
@@ -371,6 +416,15 @@ const initializeServerWebContentsAfterAttach = (
         'Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004'
       );
       return;
+    }
+
+    if (isMainFrame) {
+      loggers.servers.warn(
+        `Server view failed to load (${errorDescription}, ${errorCode}): ${validatedURL}`
+      );
+      if (isUnreachableError(errorDescription)) {
+        reloadWhenReachable();
+      }
     }
 
     dispatch({
@@ -408,6 +462,42 @@ const initializeServerWebContentsAfterAttach = (
   const heartbeat = startHeartbeat(guestWebContents, {
     onStall: handleUnresponsive,
     onRecover: handleResponsive,
+  });
+
+  watchStuckNavigation(guestWebContents, serverUrl, {
+    onStuck: (reason, isUnreachable) => {
+      loggers.servers.warn(
+        `Server view is stuck loading (${reason}): ${serverUrl}`
+      );
+      if (!isServerStillAdded()) {
+        return;
+      }
+      dispatch({
+        type: WEBVIEW_DID_FAIL_LOAD,
+        payload: { url: serverUrl, isMainFrame: true },
+      });
+      if (isUnreachable) {
+        reloadWhenReachable();
+      }
+    },
+    onHeld: () => {
+      loggers.servers.warn(
+        `Server view is held loading although the server answers, loading it again: ${serverUrl}`
+      );
+      reloadServerView();
+    },
+    onRecovered: () => {
+      loggers.servers.info(`Server view loaded after all: ${serverUrl}`);
+      stopReconnecting();
+      if (!isServerStillAdded()) {
+        return;
+      }
+      // Clears the failure view, as for a renderer that recovers.
+      dispatch({
+        type: WEBVIEW_BECAME_RESPONSIVE,
+        payload: { url: serverUrl },
+      });
+    },
   });
 
   const handleRenderProcessGone = (

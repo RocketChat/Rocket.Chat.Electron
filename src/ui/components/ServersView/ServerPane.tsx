@@ -184,6 +184,13 @@ export const ServerPane = ({
   useEffect(() => {
     const handleOnline = () => {
       ipcRenderer.invoke('refresh-supported-versions', serverUrl);
+
+      if (isFailed) {
+        dispatch({
+          type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+          payload: { url: serverUrl },
+        });
+      }
     };
 
     window.addEventListener('online', handleOnline);
@@ -191,7 +198,7 @@ export const ServerPane = ({
     return () => {
       window.removeEventListener('online', handleOnline);
     };
-  }, [serverUrl]);
+  }, [dispatch, isFailed, serverUrl]);
 
   const closeFindBar = (restoreFocus = true): void => {
     const webview = webviewRef.current;

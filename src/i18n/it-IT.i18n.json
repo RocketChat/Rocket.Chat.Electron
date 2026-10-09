@@ -8,6 +8,10 @@
   },
   "settings": {
     "options": {
+      "resetWindowBounds": {
+        "title": "Ripristina dimensioni e posizioni delle finestre",
+        "description": "Dimentica dove erano posizionate l’app e le sue finestre. Ogni finestra si aprirà alla dimensione predefinita, centrata, la prossima volta che verrà mostrata."
+      },
       "transparentWindow": {
         "title": "Effetto finestra trasparente",
         "description": "Abilita l'effetto nativo di vibrazione/trasparenza per la finestra. Richiede il riavvio per applicare."
@@ -18,7 +22,47 @@
         "auto": "Segui sistema",
         "light": "Chiaro",
         "dark": "Scuro"
+      },
+      "trayIconUnreadCounter": {
+        "title": "Contatore dei non letti nell'icona della barra di sistema",
+        "titleDarwin": "Indicatore dei non letti nell'icona della barra dei menu",
+        "description": "Mostra il badge dei messaggi non letti sull'icona al posto del tuo stato di presenza."
+      },
+      "menuBarUnreadCount": {
+        "title": "Numero di non letti nella barra dei menu",
+        "description": "Mostra il numero di menzioni non lette accanto all'icona della barra dei menu."
+      },
+      "uiPreview": {
+        "title": "Carica una build dell'interfaccia web",
+        "description": "Esegue una build del client web di Rocket.Chat al posto dell'interfaccia di un workspace, mantenendo la tua sessione. Aggiungi \"develop\" o il numero di una PR di Rocket.Chat (entrambi scaricati da ghcr.io), oppure l'URL di un bundle servito, poi applicalo a un workspace. Aggiornare una voce cerca una build più recente e ricarica i workspace che la usano.",
+        "placeholder": "develop, 42364 o http://127.0.0.1:4173/",
+        "add": "Aggiungi",
+        "adding": "Verifica dell'esistenza della build…",
+        "applyTo": "Applica a",
+        "apply": "Applica",
+        "refresh": "Cerca una build più recente",
+        "refreshing": "Ricerca di una build più recente…",
+        "current": "È già la build più recente.",
+        "updated": "Aggiornata alla build più recente.",
+        "remove": "Rimuovi dall'elenco",
+        "builtAt": "creata il {{- date}}",
+        "activeOn": "Attiva su {{- workspaces}}",
+        "restore": "Ripristina l'interfaccia del server",
+        "active": "Attiva su questo workspace: {{- label}}",
+        "loading": "Download e applicazione in corso…",
+        "failed": "Impossibile caricare: {{- message}}",
+        "cancelled": "Annullato.",
+        "inactive": "In uso l'interfaccia del server.",
+        "pullRequestState": {
+          "open": "Aperta",
+          "draft": "Bozza",
+          "merged": "Unita",
+          "closed": "Chiusa"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Anteprima dell'interfaccia web"
     }
   },
   "tabBar": {
@@ -57,7 +101,8 @@
       "canceled": "Annullato",
       "failed": "Non riuscito",
       "dismiss": "Chiudi"
-    }
+    },
+    "uiPreview": "Anteprima dell'interfaccia: {{- label}}"
   },
   "serverInfo": {
     "title": "Informazioni sul Server",
@@ -86,7 +131,15 @@
     }
   },
   "menus": {
-    "simulateDisconnected": "Simula disconnessione"
+    "simulateDisconnected": "Simula disconnessione",
+    "findInPage": "&Trova…",
+    "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre",
+    "restoreServerUi": "Ripristina l'interfaccia del server"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Aggiorna anteprima dell'interfaccia"
+    }
   },
   "tray": {
     "presence": {
@@ -98,6 +151,25 @@
       "disconnected": "Disconnesso — tentativo di riconnessione...",
       "signIn": "Accedi a {{- workspace}}",
       "addWorkspace": "Aggiungi area di lavoro"
+    }
+  },
+  "findInPage": {
+    "placeholder": "Trova nella pagina",
+    "matchCount": "{{current}} di {{total}}",
+    "noMatches": "Nessuna corrispondenza",
+    "previous": "Corrispondenza precedente",
+    "next": "Corrispondenza successiva",
+    "close": "Chiudi"
+  },
+  "dialog": {
+    "uiOverride": {
+      "title": "Carica anteprima dell'interfaccia",
+      "message": "Caricare un'interfaccia web diversa per \"{{- host}}\"?",
+      "detail": "L'interfaccia verrà caricata da {{- bundle}} e verrà eseguita con la tua sessione su questo server. Continua solo se ti fidi di questa build. Usa View > Ripristina l'interfaccia del server o riavvia l'app per tornare indietro.",
+      "load": "Carica interfaccia",
+      "cancel": "Annulla",
+      "developerModeRequired": "Attiva Help > Developer Mode per caricare anteprime dell'interfaccia.",
+      "failed": "Impossibile caricare l'anteprima dell'interfaccia."
     }
   }
 }

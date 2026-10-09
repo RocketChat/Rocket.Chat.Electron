@@ -303,12 +303,34 @@ describe('TabBar', () => {
 
   it('falls back tabindex to the first tab when no server is selected', () => {
     renderTabBar(<TabBar />, {
-      preloadedState: buildState({ currentView: 'settings' }),
+      preloadedState: buildState({ currentView: 'add-new-server' }),
     });
 
     const tabs = screen.getAllByRole('tab');
     expect(tabs[0]).toHaveAttribute('tabindex', '0');
     expect(tabs[1]).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('marks a server running a UI preview on its tab next to its mentions', () => {
+    const { container } = renderTabBar(<TabBar />, {
+      preloadedState: buildState({
+        servers: [
+          {
+            url: 'https://a.rocket.chat/',
+            title: 'Server A',
+            badge: 3,
+            userLoggedIn: true,
+            uiPreview: 'PR #42364',
+          },
+        ],
+      }),
+    });
+
+    const badges = [...container.querySelectorAll('.rcx-badge')];
+    expect(badges.map((badge) => badge.textContent)).toEqual(['UI', '3']);
+    expect(screen.getByRole('tab')).toHaveAccessibleName(
+      expect.stringContaining('tabBar.uiPreview')
+    );
   });
 
   it('shows a warning badge for logged-out servers', () => {

@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { app, screen } from 'electron';
+import { app, autoUpdater, screen } from 'electron';
 
 jest.mock('electron', () => ({
   app: {
     quit: jest.fn(),
     addListener: jest.fn(),
     name: 'Test App',
+    getAppPath: jest.fn(() => '/app'),
+    commandLine: { hasSwitch: jest.fn(() => false) },
+  },
+  autoUpdater: {
+    addListener: jest.fn(),
   },
   BrowserWindow: jest.fn(),
   nativeImage: {
@@ -473,6 +478,217 @@ describe('rootWindow close event handler', () => {
 
       expect(() => setupRootWindow()).not.toThrow();
     });
+  });
+
+  describe('quit for update', () => {
+    const findListener = (emitter: any, eventName: string) =>
+      emitter.addListener.mock.calls.find(
+        (call: any) => call[0] === eventName
+      )?.[1];
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        configurable: true,
+      });
+      selectMock.mockImplementation((selector: any) =>
+        selector({ isTrayIconEnabled: true })
+      );
+    });
+
+    it('releases the close guard when a quit-for-update starts', async () => {
+      const { setupRootWindow } = require('./rootWindow');
+      require('./rootWindow').getRootWindow = jest
+        .fn()
+        .mockResolvedValue(mockWindow);
+
+      setupRootWindow();
+      await Promise.resolve();
+
+      const onBeforeQuitForUpdate = findListener(
+        autoUpdater,
+        'before-quit-for-update'
+      );
+      expect(onBeforeQuitForUpdate).toBeDefined();
+
+      onBeforeQuitForUpdate();
+
+      expect(mockWindow.removeAllListeners).toHaveBeenCalledTimes(1);
+    });
+
+    it('tears down only once when before-quit follows the quit-for-update', async () => {
+      const { setupRootWindow } = require('./rootWindow');
+      require('./rootWindow').getRootWindow = jest
+        .fn()
+        .mockResolvedValue(mockWindow);
+
+      setupRootWindow();
+      await Promise.resolve();
+
+      findListener(autoUpdater, 'before-quit-for-update')();
+      findListener(app, 'before-quit')();
+
+      expect(mockWindow.removeAllListeners).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+describe('applyRootWindowState', () => {
+  const { applyRootWindowState } = require('./rootWindow');
+  const { loggers } = require('../../logging/scopes');
+
+  const savedState = {
+    focused: false,
+    visible: false,
+    maximized: false,
+    minimized: false,
+    fullscreen: false,
+    normal: true,
+    bounds: { x: 100, y: 100, width: 1000, height: 600 },
+  };
+
+  let mockWindow: any;
+  let infoSpy: jest.SpyInstance;
+
+  const applyWith = (isTrayIconEnabled: boolean) => {
+    (require('../../store').select as jest.Mock).mockImplementation(
+      (selector: (state: unknown) => unknown) =>
+        selector({ rootWindowState: savedState, isTrayIconEnabled })
+    );
+    applyRootWindowState(mockWindow);
+    const [, details] = infoSpy.mock.calls.find(
+      ([message]) => message === 'Root window state applied'
+    );
+    return JSON.parse(details);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (screen.getAllDisplays as jest.Mock).mockReturnValue([
+      { bounds: { x: 0, y: 0, width: 1920, height: 1080 } },
+    ]);
+    mockWindow = {
+      isVisible: jest.fn(() => false),
+      isMinimized: jest.fn(() => false),
+      setBounds: jest.fn(),
+      maximize: jest.fn(),
+      minimize: jest.fn(),
+      setFullScreen: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+    };
+    infoSpy = jest.spyOn(loggers.ui, 'info').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    infoSpy.mockRestore();
+  });
+
+  it('logs that a saved hidden state keeps the window in the tray', () => {
+    const details = applyWith(true);
+
+    expect(mockWindow.show).not.toHaveBeenCalled();
+    expect(details).toMatchObject({
+      savedVisible: false,
+      isTrayIconEnabled: true,
+      isRecentered: false,
+      bounds: { x: 100, y: 100, width: 1000, height: 600 },
+      shown: false,
+      isVisible: false,
+    });
+  });
+
+  it('logs that the window is shown when the tray icon is disabled', () => {
+    const details = applyWith(false);
+
+    expect(mockWindow.show).toHaveBeenCalled();
+    expect(details).toMatchObject({
+      savedVisible: false,
+      isTrayIconEnabled: false,
+      shown: true,
+    });
+  });
+});
+
+describe('showRootWindow', () => {
+  const rootWindowModule = require('./rootWindow');
+  const { loggers } = require('../../logging/scopes');
+  const originalGetRootWindow = rootWindowModule.getRootWindow;
+
+  let mockWindow: any;
+  let emitReadyToShow: () => void;
+  let infoSpy: jest.SpyInstance;
+
+  const launch = async () => {
+    const shown = rootWindowModule.showRootWindow();
+    await Promise.resolve();
+    emitReadyToShow();
+    await shown;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (screen.getAllDisplays as jest.Mock).mockReturnValue([
+      { bounds: { x: 0, y: 0, width: 1920, height: 1080 } },
+    ]);
+    (require('../../store').select as jest.Mock).mockImplementation(
+      (selector: (state: unknown) => unknown) =>
+        selector({
+          rootWindowState: {
+            focused: true,
+            visible: false,
+            maximized: false,
+            minimized: false,
+            fullscreen: false,
+            normal: true,
+            bounds: { x: 100, y: 100, width: 1000, height: 600 },
+          },
+          isTrayIconEnabled: true,
+        })
+    );
+    mockWindow = {
+      webContents: { on: jest.fn() },
+      loadFile: jest.fn(),
+      once: jest.fn((event: string, listener: () => void) => {
+        if (event === 'ready-to-show') emitReadyToShow = listener;
+      }),
+      addListener: jest.fn(),
+      isVisible: jest.fn(() => false),
+      isMinimized: jest.fn(() => false),
+      isDestroyed: jest.fn(() => false),
+      setBounds: jest.fn(),
+      maximize: jest.fn(),
+      minimize: jest.fn(),
+      setFullScreen: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      focus: jest.fn(),
+    };
+    rootWindowModule.getRootWindow = jest.fn().mockResolvedValue(mockWindow);
+    infoSpy = jest.spyOn(loggers.ui, 'info').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    rootWindowModule.getRootWindow = originalGetRootWindow;
+    infoSpy.mockRestore();
+  });
+
+  it('opens the window on launch even if it was last hidden in the tray', async () => {
+    await launch();
+
+    expect(mockWindow.show).toHaveBeenCalled();
+    expect(mockWindow.hide).not.toHaveBeenCalled();
+  });
+
+  it('keeps the window in the tray when launched with --start-hidden', async () => {
+    (app.commandLine.hasSwitch as jest.Mock).mockImplementation(
+      (name: string) => name === 'start-hidden'
+    );
+
+    await launch();
+
+    expect(mockWindow.show).not.toHaveBeenCalled();
+    expect(mockWindow.hide).toHaveBeenCalled();
   });
 });
 

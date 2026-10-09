@@ -4,7 +4,7 @@ import { DEFAULT_E2E_PDF_PREVIEW_SIZE_LIMIT_MB } from '../constants';
 import type { Download } from '../downloads/common';
 import type { Server } from '../servers/common';
 import type { TelephonyGlobalShortcutConfig } from '../telephony/actions';
-import type { WindowState } from '../ui/common';
+import type { UiPreviewHistoryEntry, WindowState } from '../ui/common';
 
 type PersistableValues_0_0_0 = {
   currentServerUrl: string;
@@ -146,9 +146,15 @@ type PersistableValues_4_17_0 = PersistableValues_4_16_2 & {
   isNotificationQuickReplyEnabled: boolean;
 };
 
-export type PersistableValues = Pick<
-  PersistableValues_4_17_0,
-  keyof PersistableValues_4_17_0
+type PersistableValues_4_18_0 = PersistableValues_4_17_0 & {
+  isTrayIconUnreadCounterEnabled: boolean;
+  isMenuBarUnreadCountEnabled: boolean;
+  uiPreviewHistory: UiPreviewHistoryEntry[];
+};
+
+export type PersistableValues = Omit<
+  PersistableValues_4_18_0,
+  'isSideBarEnabled' | 'lastSelectedServerUrl'
 >;
 
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */

@@ -8,15 +8,18 @@ import type {
   Input,
   MediaAccessPermissionRequest,
   OpenExternalPermissionRequest,
+  RenderProcessGoneDetails,
   UploadFile,
   UploadRawData,
   WebContents,
+  WebContentsAudioStateChangedEventParams,
   WebPreferences,
 } from 'electron';
 import { app, clipboard, webContents } from 'electron';
 
 import { setupPreloadReload } from '../../../app/main/dev';
 import { handle } from '../../../ipc/main';
+import { loggers } from '../../../logging/scopes';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewScreenSharing';
@@ -29,6 +32,7 @@ import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_READY,
+  WEBVIEW_BECAME_RESPONSIVE,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
@@ -41,16 +45,37 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  SIDE_BAR_SERVER_TOGGLE_MUTE,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
+  WEBVIEW_AUDIO_STATE_CHANGED,
+  WEBVIEW_AUDIO_MUTED_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
 } from '../../actions';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
+import {
+  isConferenceCallPageUrl,
+  requestConferenceWindow,
+  takePendingConferenceUrl,
+} from './conferenceWindow';
+import {
+  consumeRecoveryKill,
+  markResponsive,
+  markUnresponsive,
+  startHeartbeat,
+  terminateIfUnresponsive,
+} from './hangRecovery';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
 const VIDEO_CALL_PRELOAD_PATH = 'app/preload/preload.js';
+
+// Chrome keeps its tab audio icon for ~2s after audio goes quiet, so a brief
+// silent gap mid speech (observed ~500ms mid voice-message on the dev app)
+// doesn't blink the indicator off and back on.
+const AUDIBLE_HOLD_MS = 2000;
 
 /**
  * Determines if a webview is a video call webview based on partition and frame name.
@@ -248,6 +273,7 @@ export const serverReloadView = async (
   if (!guestWebContents) {
     return;
   }
+  await terminateIfUnresponsive(guestWebContents);
   try {
     await guestWebContents.loadURL(url);
   } catch (error) {
@@ -266,6 +292,8 @@ const initializeServerWebContentsAfterAttach = (
 ): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
   attachBootWatchdog(serverUrl, guestWebContents);
+
+  let audibleHoldTimer: NodeJS.Timeout | undefined;
 
   const webviewSession = guestWebContents.session;
 
@@ -287,7 +315,30 @@ const initializeServerWebContentsAfterAttach = (
   guestWebContents.addListener('destroyed', () => {
     guestWebContents.removeAllListeners();
     webviewSession.removeAllListeners();
+
+    if (audibleHoldTimer) {
+      clearTimeout(audibleHoldTimer);
+      audibleHoldTimer = undefined;
+    }
+
+    // A replacement webview for the same server may already have attached and
+    // taken over the mapping. The outgoing webContents must not clear state
+    // that now belongs to its replacement.
+    if (webContentsByServerUrl.get(serverUrl) !== guestWebContents) {
+      return;
+    }
+
     webContentsByServerUrl.delete(serverUrl);
+
+    dispatch({
+      type: WEBVIEW_AUDIO_STATE_CHANGED,
+      payload: { url: serverUrl, isAudible: false },
+    });
+
+    dispatch({
+      type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+      payload: { url: serverUrl, source: 'workspace', state: null },
+    });
 
     const canPurge = select(
       ({ servers }) => !servers.some((server) => server.url === serverUrl)
@@ -328,13 +379,101 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  // A hung or crashed renderer leaves a frozen or blank pane with no way out;
+  // the failure view replaces it and its reload starts a fresh renderer.
+  const isServerStillAdded = (): boolean =>
+    select(({ servers }) => servers.some((server) => server.url === serverUrl));
+
+  const handleUnresponsive = (): void => {
+    markUnresponsive(guestWebContents);
+    loggers.servers.warn(`Server view became unresponsive: ${serverUrl}`);
+    if (!isServerStillAdded()) {
+      return;
+    }
+    dispatch({
+      type: WEBVIEW_DID_FAIL_LOAD,
+      payload: { url: serverUrl, isMainFrame: true },
+    });
+  };
+
+  const handleResponsive = (): void => {
+    markResponsive(guestWebContents);
+    loggers.servers.info(`Server view became responsive again: ${serverUrl}`);
+    if (!isServerStillAdded()) {
+      return;
+    }
+    dispatch({ type: WEBVIEW_BECAME_RESPONSIVE, payload: { url: serverUrl } });
+  };
+
+  const heartbeat = startHeartbeat(guestWebContents, {
+    onStall: handleUnresponsive,
+    onRecover: handleResponsive,
+  });
+
+  const handleRenderProcessGone = (
+    _event: Event,
+    details: RenderProcessGoneDetails
+  ): void => {
+    heartbeat.reset();
+    markResponsive(guestWebContents);
+    if (consumeRecoveryKill(guestWebContents)) {
+      return;
+    }
+    if (details.reason === 'clean-exit') {
+      return;
+    }
+    loggers.servers.error(
+      `Server view renderer is gone (${details.reason}, exit code ${details.exitCode}): ${serverUrl}`
+    );
+    if (guestWebContents.isDestroyed() || !isServerStillAdded()) {
+      return;
+    }
+    dispatch({
+      type: WEBVIEW_DID_FAIL_LOAD,
+      payload: { url: serverUrl, isMainFrame: true },
+    });
+  };
+
+  // Whatever brings the server view onto a conference call page (a link to it
+  // posted in a room, the web client's router, a redirect), the call moves to
+  // the video call window and the server view returns to where it was.
+  const moveConferenceCallPageOut = (pageUrl: string): boolean => {
+    if (!isConferenceCallPageUrl(pageUrl, serverUrl)) {
+      return false;
+    }
+
+    requestConferenceWindow(serverUrl, guestWebContents, pageUrl);
+
+    setImmediate(() => {
+      if (guestWebContents.isDestroyed()) {
+        return;
+      }
+      const { navigationHistory } = guestWebContents;
+      if (navigationHistory.canGoBack()) {
+        navigationHistory.goBack();
+        return;
+      }
+      guestWebContents.loadURL(serverUrl);
+    });
+
+    return true;
+  };
+
+  const handleDidNavigate = (_event: Event, pageUrl: string): void => {
+    moveConferenceCallPageOut(pageUrl);
+  };
+
   const handleDidNavigateInPage = (
     _event: Event,
     pageUrl: string,
-    _isMainFrame: boolean,
+    isMainFrame: boolean,
     _frameProcessId: number,
     _frameRoutingId: number
   ): void => {
+    if (isMainFrame && moveConferenceCallPageOut(pageUrl)) {
+      return;
+    }
+
     dispatch({
       type: WEBVIEW_DID_NAVIGATE,
       payload: {
@@ -382,10 +521,46 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  const handleAudioStateChanged = (
+    event: Event<WebContentsAudioStateChangedEventParams>
+  ): void => {
+    if (event.audible) {
+      if (audibleHoldTimer) {
+        clearTimeout(audibleHoldTimer);
+        audibleHoldTimer = undefined;
+      }
+      dispatch({
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url: serverUrl, isAudible: true },
+      });
+      return;
+    }
+
+    if (audibleHoldTimer) {
+      return;
+    }
+
+    audibleHoldTimer = setTimeout(() => {
+      audibleHoldTimer = undefined;
+      if (guestWebContents.isDestroyed()) {
+        return;
+      }
+      dispatch({
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url: serverUrl, isAudible: false },
+      });
+    }, AUDIBLE_HOLD_MS);
+  };
+
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
+  guestWebContents.addListener('unresponsive', handleUnresponsive);
+  guestWebContents.addListener('responsive', handleResponsive);
+  guestWebContents.addListener('render-process-gone', handleRenderProcessGone);
+  guestWebContents.addListener('did-navigate', handleDidNavigate);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
+  guestWebContents.addListener('audio-state-changed', handleAudioStateChanged);
 };
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {
@@ -512,6 +687,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
     setupServerViewDisplayMedia(guestWebContents);
 
+    const isAudioMuted = select(
+      ({ servers }) =>
+        servers.find((server) => server.url === action.payload.url)
+          ?.isAudioMuted
+    );
+    if (isAudioMuted) {
+      guestWebContents.setAudioMuted(true);
+    }
+
     // Download handling is now managed by electron-dl in main.ts
     // and integrated with our downloads system via setupDownloads()
 
@@ -550,11 +734,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     );
   });
 
-  listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
+  listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, async (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
     if (!guestWebContents) {
       return;
     }
+    await terminateIfUnresponsive(guestWebContents);
     guestWebContents.loadURL(action.payload.url).catch((error) => {
       console.error('Failed to load URL for guestWebContents:', error);
     });
@@ -593,6 +778,19 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     });
   });
 
+  listen(SIDE_BAR_SERVER_TOGGLE_MUTE, (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    if (!guestWebContents || guestWebContents.isDestroyed()) {
+      return;
+    }
+    const next = !guestWebContents.isAudioMuted();
+    guestWebContents.setAudioMuted(next);
+    dispatch({
+      type: WEBVIEW_AUDIO_MUTED_CHANGED,
+      payload: { url: action.payload, isAudioMuted: next },
+    });
+  });
+
   listen(CERTIFICATES_CLEARED, () => {
     for (const serverViewWebContents of webContentsByServerUrl.values()) {
       serverViewWebContents.reloadIgnoringCache();
@@ -614,6 +812,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       Array.from(webContentsByServerUrl.entries()).find(
         ([, v]) => v === webContents
       )?.[0]
+  );
+
+  handle('server-view/take-pending-conference', async (webContents) =>
+    takePendingConferenceUrl(
+      Array.from(webContentsByServerUrl.entries()).find(
+        ([, v]) => v === webContents
+      )?.[0]
+    )
   );
 
   let injectableCode: string | undefined;

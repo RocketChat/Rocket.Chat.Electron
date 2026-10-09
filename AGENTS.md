@@ -1,386 +1,460 @@
 # Agent Instructions
 
-These instructions apply to the repository root. More specific `AGENTS.md`
-files in subdirectories override or extend this file. This is the canonical
-guidance file for all coding agents (Codex, Claude Code, Cursor, Hermes,
-GitHub agents, etc.) — `CLAUDE.md` imports it and adds only Claude-specific
-content, if any.
+This file is the project guide for every coding agent: Claude Code, Codex,
+Cursor, Hermes, GitHub agents and others. It applies to the whole repository.
+An `AGENTS.md` file in a subdirectory adds rules for the files under it.
+
+**Keep all project guidance in this file.** The repository has no `CLAUDE.md`
+on purpose. Claude Code 2.1.277 and later reads `AGENTS.md` only when no
+`CLAUDE.md` exists, so a root `CLAUDE.md` hides this file from Claude Code.
+Put guidance here also when a request says "add this to CLAUDE.md". If a tool
+creates a root `CLAUDE.md`, move its useful content into this file and delete
+`CLAUDE.md`. Claude-specific configuration lives in `.claude/` (skills, agents,
+hooks, `settings.json`).
 
 ## Project Basics
 
-- TypeScript codebase. Use TypeScript strict mode for all new code unless
-  explicitly told otherwise.
-- Run root commands from the repository root. Do not run `yarn build` inside
-  workspace directories — it creates incorrect output structures. Always use
-  root commands.
+- Write all new code in TypeScript strict mode, unless the request says
+  otherwise.
+- Run `yarn` commands from the repository root. Do not run `yarn build` inside
+  a workspace directory, because it writes an incorrect output structure.
 - Common commands:
 
-```sh
-yarn install && yarn start   # Dev mode
-yarn build                   # Rollup compile to app/
-yarn lint && yarn test       # Lint + test
-yarn workspaces:build        # Build all workspaces
-```
+  ```sh
+  yarn install && yarn start   # Dev mode
+  yarn build                   # Rollup compile to app/
+  yarn lint && yarn test       # Lint + test
+  yarn workspaces:build        # Build all workspaces
+  ```
 
-- After building `desktop-release-action`, remove the nested dist:
-  `rm -rf workspaces/desktop-release-action/dist/dist` — the action only
-  needs `workspaces/desktop-release-action/dist/index.js`.
-- `app/` mirrors `src/public` (the `syncPublicAssets()` rollup plugin):
-  files removed from `src/public` are purged from `app/` on build, and
-  `yarn start`'s watcher rebuilds/relaunches when `src/public` assets change.
+- After you build `desktop-release-action`, delete the nested dist with
+  `rm -rf workspaces/desktop-release-action/dist/dist`. The action needs only
+  `workspaces/desktop-release-action/dist/index.js`.
+- `app/` mirrors `src/public` through the `syncPublicAssets()` rollup plugin.
+  A build purges from `app/` each file that you delete from `src/public`. The
+  `yarn start` watcher rebuilds and relaunches the app when a `src/public`
+  asset changes.
 
 ## Branching Model
 
-- `dev` is the default branch. ALL feature and fix PRs target `dev` and are
-  squash-merged.
-- `master` holds only released code. It advances only via a `dev`→`master`
-  release PR merged with a true merge commit (`gh pr merge --merge`) —
-  NEVER squash a release PR; squashing forks history permanently.
-- `release/X.Y.x` branches are patch lines for a shipped stable version.
-  Fixes land on `dev` first and are cherry-picked onto the release branch.
-  A hotfix authored directly on a release branch must be forward-ported to
-  `dev` immediately via a cherry-pick PR.
+- `dev` is the default branch. ALL feature and fix PRs target `dev`, and they
+  are squash-merged.
+- `master` holds only released code. It advances only through a `dev`→`master`
+  release PR that is merged with a true merge commit
+  (`gh pr merge --merge`). NEVER squash a release PR. A squash forks the
+  history permanently.
+- A `release/X.Y.x` branch is the patch line for a shipped stable version.
+  A fix lands on `dev` first, and then is cherry-picked onto the release
+  branch. When you write a hotfix directly on a release branch, forward-port it
+  to `dev` immediately with a cherry-pick PR.
 - Never back-merge `master` or a `release/X.Y.x` branch into `dev`.
-- Tags are created only via `yarn release:tag` (channel-aware guard).
-  Release builds trigger on semver tag pushes only and always produce a
-  draft release for a human to review and publish.
-- Version invariant: `package.json` on `dev` always equals the newest tag
-  cut from `dev`'s own line (the first alpha of a new cycle bumps straight
-  to `X.(Y+1).0-alpha.1`).
-- Details: `docs/development-and-release-flow.md` (conceptual overview),
+- Version invariant: `package.json` on `dev` always equals the newest tag cut
+  from the `dev` line. The first alpha of a new cycle bumps straight to
+  `X.(Y+1).0-alpha.1`.
+- Details: `docs/development-and-release-flow.md` (concepts) and
   `docs/release-process.md` (exact commands).
 
 ## Patches And Builds
 
-- Do not confuse the two patch systems:
-  - Yarn patch protocol: `.yarn/patches/`, currently for `@ewsjs/xhr`
-    (configured in `package.json`).
-  - `patch-package`: `patches/`, currently for `@kayahr/jest-electron-runner`.
-- Never add `@ewsjs/xhr` patches to `patches/`; that creates CI conflicts.
-- The `desktop-release-action`'s dev/snapshot code paths (`releaseDevelopment`
-  / `releaseSnapshot`) are intentionally dead — do not rebuild its `dist/`
-  bundle just to remove them.
-- Windows builds must include all architectures: `x64`, `ia32`, and `arm64`.
-- Code signing uses Google Cloud KMS in two phases:
-  1. Build packages without signing (empty env vars).
-  2. Sign built packages using `jsign` with Google Cloud KMS.
-
-  This prevents MSI build failures from KMS CNG provider conflicts.
+- The repository uses two patch systems. Put each patch in the system that
+  already owns its package:
+  - Yarn patch protocol: `.yarn/patches/`, configured in `package.json`. Today
+    it patches `@ewsjs/xhr` and `app-builder-lib` (the macOS keychain fix from
+    #3499).
+  - `patch-package`: `patches/`. Today it patches
+    `@kayahr/jest-electron-runner`.
+- Never add an `@ewsjs/xhr` patch to `patches/`. That causes CI conflicts.
+- The dev and snapshot code paths of `desktop-release-action`
+  (`releaseDevelopment` / `releaseSnapshot`) are dead on purpose. Do not
+  rebuild its `dist/` bundle only to delete them.
+- Windows builds must include all three architectures: `x64`, `ia32` and
+  `arm64`.
+- Code signing uses Google Cloud KMS in two phases. This prevents MSI build
+  failures from KMS CNG provider conflicts.
+  1. Build the packages without signing (empty env vars).
+  2. Sign the built packages with `jsign` and Google Cloud KMS.
 - `electron-builder.json`'s `mac.bundleVersion` (macOS `CFBundleVersion`) is
-  independent from `package.json`'s `version` and must be bumped on every
-  release that ships to the App Store / gets notarized — Apple requires each
-  submission's `CFBundleVersion` to strictly increase over the last one.
-  Format: `YYMM` + a single-digit build counter that resets to `0` at the
-  start of each month, e.g. the first build shipped in August 2026 is
-  `26080`, the second same-month build is `26081`. Check the current value
-  and the date of its last bump (`git log -p --follow -- electron-builder.json`)
-  before incrementing — do not guess an arbitrary increment.
-- `yarn build-assets` re-encodes every PNG/ICO it touches, including ones
-  whose source did not change; commit only the assets whose SVG/component
-  changed and `git checkout --` the rest (byte noise otherwise floods the
-  diff).
+  independent from the `version` in `package.json`. Bump it on every release
+  that ships to the App Store or gets notarized. Apple requires each
+  submission's `CFBundleVersion` to be higher than the last one.
+  - Format: `YYMM` plus a single-digit build counter that resets to `0` each
+    month. Example: the first build shipped in August 2026 is `26080`, and the
+    second build in the same month is `26081`.
+  - Before you increment it, read the current value and the date of its last
+    bump (`git log -p --follow -- electron-builder.json`). Do not guess.
+- `yarn build-assets` re-encodes every PNG and ICO that it touches, also when
+  the source did not change. Commit only the assets whose SVG or component
+  changed, and `git checkout --` the rest. Otherwise byte noise floods the
+  diff.
 
 ## Releases And Tagging
 
-- **Always create release tags with `yarn release:tag`** — never hand-rolled
-  `git tag` + `git push`. The script (`scripts/release-tag.ts`) reads the
-  version from `package.json`, fetches the refs allowed for that version's
-  channel, and fails closed (exit 1) on every unsafe case. Tagging by hand
-  skips all of it.
-- Which remote refs are allowed depends on the channel: prerelease tags
-  (alpha/beta/rc — any version with a prerelease id) must have HEAD as an
-  ancestor of `origin/dev` or any `origin/release/*` branch; stable tags
-  (no prerelease id) must have HEAD as an ancestor of `origin/master` or any
-  `origin/release/*` branch. `origin/release/*` branches are discovered via
-  `git ls-remote --heads origin 'release/*'` at run time.
-- Guards, and how to override each:
-
-  | Guard | Override |
-  |---|---|
-  | Invalid semver in `package.json` | none |
-  | HEAD not an ancestor of an allowed ref for its channel | `--allow-unverified-ref` |
-  | Tag already exists | none — not even `--force` |
-  | Version not greater than latest tag **in its channel** | `--force` |
-
-- Channel (stable / alpha / beta / candidate) is detected from the version and
-  compared only within itself, so an alpha never blocks a stable or vice versa.
-- Flags: `--yes` / `-y` skips the confirmation prompt (also skipped
-  automatically when `CI=true`); `--help` lists everything. Without `--yes` the
-  prompt reads a real TTY, so piping `echo y` is unreliable — use the flag.
-- Tag the **squashed merge/bump commit on the branch the channel expects**
-  (dev for prereleases; master, or a `release/X.Y.x` branch for patch
-  releases, for stables), never a pre-merge bump commit on an unmerged
-  branch — that ships the wrong tree. The ref-ancestor guard enforces this;
-  if it fires, fix the checkout rather than overriding it.
-- A fresh worktree has no `node_modules`, so the script dies with
+- **Create release tags only with `yarn release:tag`.** Do not tag with a
+  manual `git tag` and `git push`. The script (`scripts/release-tag.ts`) checks
+  the version, the channel and the allowed remote refs, and it fails closed.
+  A manual tag skips all of those checks.
+- Tag the squashed merge commit or bump commit on the branch that the channel
+  expects. That is `dev` for a prerelease, and `master` or a `release/X.Y.x` branch
+  for a stable release. Never tag a pre-merge bump commit on an unmerged
+  branch, because that ships the wrong tree.
+- When a guard fires, treat it as a real finding: report it and fix the cause.
+  Use `--force` or `--allow-unverified-ref` only when the release owner
+  explicitly agrees.
+- A fresh worktree has no `node_modules`, and the script fails with
   `Couldn't find the node_modules state file (findPackageLocation)`. Run
-  `yarn install` in the worktree — never work around it by tagging by hand.
-- If a guard fires, treat it as a real finding: report it and fix the cause.
-  Do not reach for `--force` or `--allow-unverified-ref` without the
-  release owner explicitly agreeing.
-- Tag names are the bare version (`4.16.0`, no `v` prefix). `build-release.yml`
-  triggers on any tag push, and the auto-updater feed derives from
-  `package.json`'s version, which MUST match the tag.
-- Pure tag/channel logic lives in `scripts/releaseTag.lib.ts` and is unit
-  tested (`scripts/releaseTag.lib.spec.ts`); `release-tag.ts` keeps the I/O.
-  Script specs run under their own Jest project (`testEnvironment: 'node'`).
-- The full end-to-end flow (notes, bump PR, merge, tag, CI, asset matrix, Jira
-  release sync) is driven by the `ship-release` skill.
+  `yarn install` in the worktree. Never tag by hand to work around it.
+- A tag name is the bare version (`4.16.0`, no `v` prefix). It MUST equal the
+  `version` in `package.json`, because the auto-updater feed derives from that
+  version.
+- A tag push starts `build-release.yml`, which always creates a draft release
+  for a human to review and publish. The workflow has a `prepare` job (creates
+  the draft) and seven parallel packaging jobs.
+  - Only ONE packaging job per platform may set
+    `upload_update_metadata: 'true'` (nsis, dmg, AppImage). The `latest*.yml`
+    that a job uploads lists only the files that the job built. A second
+    uploader replaces the file with a partial list and breaks auto-update.
+  - `workflow_dispatch` on that workflow is a signed dry run that creates no
+    release. Run it before you trust a change to the workflow or the action
+    with a real tag. The action reads its `mode`, `targets` and
+    `upload_update_metadata` inputs from
+    `workspaces/desktop-release-action/action.yml`.
+- Full reference (guard table, overrides, channel rules, flags):
+  `docs/release-process.md`. The `ship-release` skill drives the end-to-end
+  flow: notes, bump PR, merge, tag, CI, asset matrix and Jira release sync.
 
 ## UI Work
 
-- Use Fuselage components from `@rocket.chat/fuselage` for UI work unless the
-  design requires something Fuselage does not provide.
-- Check `Theme.d.ts` for valid color tokens before using Fuselage colors.
-- Reference: [Fuselage Storybook](https://rocketchat.github.io/fuselage) and
-  [Rocket.Chat main repo](https://github.com/RocketChat/Rocket.Chat) for usage
-  patterns.
-- Verify library props, APIs, and tokens against official docs or local
-  `.d.ts` files instead of assuming.
-- Before styling tab bar/titlebar controls, custom SVG artwork, or picking
-  color/animation tokens, read `docs/desktop-ui-guidelines.md` — token
-  semantics and traps, Fuselage geometry/timing facts, the button-dimming and
-  SVG transform-origin pitfalls, and layout rules learned in PRs #3441/#3443.
-- Tray icons are status-only on macOS, Windows and Linux: six states per
-  platform — `default`, `presence-{online,away,busy,offline}`, `disconnected`
-  (`src/ui/main/icons.ts`). The unread count is never baked into the tray
-  image; it lives on the Windows taskbar overlay (`rootWindow.ts`
-  `setOverlayIcon`), the macOS menu-bar title and the Linux tray tooltip.
-- Presence bullets reuse Fuselage `StatusBullet` glyphs
-  (`src/ui/icons/PresenceBullet.tsx`: filled / clock cut-out / bar cut-out /
-  hollow ring; `DisconnectedBadge.tsx`: filled amber with a bold `!`). Any
-  overlay with transparent cut-outs or a hollow shape MUST pass `AppIcon`'s
-  `cutout` prop (`PresenceBulletCutout`), otherwise the rocket shows through
-  the holes.
-- Tray-menu bullet icons are 12pt assets under `src/public/images/presence/`
-  (regenerate with `yarn build-assets --presence-menu-icons`), matching
-  Fuselage's 12px bullet next to 14px text.
+- Use Fuselage components from `@rocket.chat/fuselage` for UI work, unless the
+  design needs something that Fuselage does not provide.
+- Check `Theme.d.ts` for valid color tokens before you use a Fuselage color.
+- For usage patterns, see the
+  [Fuselage Storybook](https://rocketchat.github.io/fuselage) and the
+  [Rocket.Chat main repo](https://github.com/RocketChat/Rocket.Chat).
+- Check library props, APIs and tokens in the official docs or the local
+  `.d.ts` files. Do not assume them.
+- Read `docs/desktop-ui-guidelines.md` before you style tab bar or titlebar
+  controls, draw custom SVG artwork, or pick color or animation tokens. It
+  holds the token semantics and traps, and the Fuselage geometry and timing
+  facts. It also holds the button-dimming and SVG transform-origin pitfalls,
+  and the layout rules from PRs #3441/#3443.
+- Tray icons show status only, by default, on macOS, Windows and Linux. Each
+  platform has six states: `default`, `presence-{online,away,busy,offline}`
+  and `disconnected` (`src/ui/main/icons.ts`).
+  - The unread count shows on the Windows taskbar overlay (`rootWindow.ts`
+    `setOverlayIcon`), in the macOS menu-bar title and in the Linux tray
+    tooltip.
+  - The opt-in `isTrayIconUnreadCounterEnabled` setting (#3484) replaces
+    presence with the pre-4.17 badge assets: `notification-{dot,1..9,plus-9}`,
+    and `notificationTemplate` on macOS. Regenerate them with
+    `yarn build-assets --unread-counter`. The disconnected state still wins.
+  - The macOS-only `isMenuBarUnreadCountEnabled` setting (CORE-2703, default
+    on) hides the number in the menu-bar title. It does not change the Dock
+    badge.
+- Presence bullets reuse the Fuselage `StatusBullet` glyphs:
+  `src/ui/icons/PresenceBullet.tsx` (filled / clock cut-out / bar cut-out /
+  hollow ring) and `DisconnectedBadge.tsx` (filled amber with a bold `!`).
+  Any overlay with transparent cut-outs or a hollow shape MUST pass the
+  `cutout` prop of `AppIcon` (`PresenceBulletCutout`). Otherwise the rocket
+  shows through the holes.
+- Tray-menu bullet icons are 12pt assets under `src/public/images/presence/`.
+  They match the 12px Fuselage bullet next to 14px text. Regenerate them with
+  `yarn build-assets --presence-menu-icons`.
 
 ## Testing
 
-- Renderer specs use `*.spec.ts` / `*.spec.tsx`.
-- Main-process specs use `*.main.spec.ts`.
-- Renderer specs must live in a Jest-matched nested path, for example
-  `src/<module>/<subdir>/*.spec.ts(x)` or
-  `src/<module>/renderer.spec.ts(x)`. Flat `src/<module>/*.spec.ts` files are
-  not discovered by the current `testMatch`.
-- Verify new specs with `yarn test --listTests --runTestsByPath <file>` when
-  discovery is uncertain.
-- Uses `@kayahr/jest-electron-runner` for Electron environment simulation.
-- Tests run on Windows, macOS, and Linux CI — always verify cross-platform
-  behavior.
-- UI changes need runtime/visual verification — component tests cannot see
-  paint (a clipped SVG passes every DOM assertion). Use the `dev-app-verify`
-  skill (`skills/dev-app-verify/SKILL.md`) to drive and screenshot the running
-  `yarn start` app via the port-9339 inspector, and the Developer Mode menu
-  items (`Simulate Update Flow` / `Simulate Download` / `Simulate
-  Disconnected`) to exercise the flows without real downloads/updates.
-  `Simulate Disconnected` is a Developer menu checkbox that forces the active
-  workspace's presence connection to `disconnected` read-side only — the real
-  connection stays up — so the disconnected tray icon and menu line can be
-  checked without dropping the network.
-- Screen-capture / WebRTC / portal behavior CANNOT be validated in
-  software-rendered VMs — Chromium gates the PipeWire capture path on
-  hardware GL (the gate moves between Electron versions). Validate on
-  hardware GL (GPU passthrough or physical machine) and prefer dbus-level
-  assertions (`org.freedesktop.portal.ScreenCast` requests) over dialog
-  visibility, which is portal/boot-state flaky. Full story:
-  `docs/postmortem-screen-picker-startup-enumeration.md`
-- Prefer optional chaining and fallbacks for platform-specific APIs:
+- Spec names and locations decide which Jest project runs a spec
+  (`testMatch` in `jest.config.js`):
+  - Main-process specs live under `src/<module>/main/` (named
+    `*.main.spec.ts` by convention), or they are named
+    `src/<module>/main.spec.ts`. The `main/` directory selects the
+    main-process runner, not the `.main.spec.ts` suffix.
+  - Renderer specs (`*.spec.ts` / `*.spec.tsx`) live in a nested path such as
+    `src/<module>/<subdir>/*.spec.ts(x)`, or they are named
+    `src/<module>/renderer.spec.ts(x)`. Jest does not discover any other flat
+    `src/<module>/*.spec.ts` file.
+  - Specs under `scripts/` run in their own Jest project, with
+    `testEnvironment: 'node'`.
+  - When you are not sure that Jest finds a new spec, run
+    `yarn test --listTests --runTestsByPath <file>`.
+  - Run specs with `yarn test <path>`. The script adds `--forceExit` and
+    `xvfb-maybe`. A bare `npx jest` has no `--forceExit`, and it has hung
+    after the suite passed.
+- Tests run on Windows, macOS and Linux CI. Make each change and each spec
+  work on all three platforms.
+- For platform-specific APIs, prefer optional chaining and fallbacks to
+  mocks:
 
-```typescript
-// PREFERRED — works on all platforms without mocks
-const uid = process.getuid?.() ?? 1000;
-const runtimeDir = process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.() ?? 1000}`;
-```
+  ```typescript
+  // PREFERRED — works on all platforms without mocks
+  const uid = process.getuid?.() ?? 1000;
+  const runtimeDir =
+    process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.() ?? 1000}`;
+  ```
 
-  Only mock when defensive coding isn't possible. Linux-only APIs requiring
-  this: `process.getuid()`, `process.getgid()`, `process.geteuid()`,
+  Mock only when defensive code is not possible. These POSIX-only APIs (undefined on Windows) need
+  it: `process.getuid()`, `process.getgid()`, `process.geteuid()` and
   `process.getegid()`.
+
+- UI changes need runtime or visual verification, because component tests
+  cannot see paint. A clipped SVG passes every DOM assertion.
+  - Use the `dev-app-verify` skill (`skills/dev-app-verify/SKILL.md`) to drive
+    and screenshot the running `yarn start` app through the port-9339
+    inspector.
+  - Use the Developer Mode menu items `Simulate Update Flow`,
+    `Simulate Download` and `Simulate Disconnected` to run those flows without
+    real downloads or updates.
+  - `Simulate Disconnected` is a Developer menu checkbox. It forces the
+    presence connection of the active workspace to `disconnected` on the read
+    side only, and the real connection stays up. Use it to check the
+    disconnected tray icon and menu line without a network drop.
+- You CANNOT test screen capture, WebRTC or portal behavior in a
+  software-rendered VM. Chromium gates the PipeWire capture path on hardware
+  GL, and the gate moves between Electron versions. Test on hardware GL (GPU
+  passthrough or a physical machine). Assert at the dbus level
+  (`org.freedesktop.portal.ScreenCast` requests), not on dialog visibility,
+  which is flaky across portal and boot states. Full story:
+  `docs/postmortem-screen-picker-startup-enumeration.md`.
+
+### Test runner and CI speed
+
+- `@kayahr/jest-electron-runner` simulates the Electron environment. It forces
+  `--maxWorkers=1` and spawns one Electron process per spec file. The only CI
+  parallelism is the cross-job `--shard`, and since the transform fix that
+  spawn is most of each shard's ~3 min. Do NOT try more workers, other runner
+  classes or a faster transformer to cut that floor.
+- ts-jest runs transpile-only (`tsconfig: { isolatedModules: true }` inline in
+  `jest.config.js`, with `tsconfig.json` unchanged). Do NOT switch back to
+  `preset: 'ts-jest'`. That default builds a type-checking Program per spec
+  file, CI has no warm Jest cache, and the Test step became 4× slower.
+  `tsc --noEmit` in `yarn lint` catches type errors in specs.
+- Do NOT switch the transformer to `@swc/jest` before you fix the two spec
+  patterns that it breaks. The measured gain is ~20 s per shard. Story:
+  `docs/postmortem-validate-pr-ci-speed.md`.
+  - An assignment onto `require(mod).fn` fails, because swc emits read-only
+    getters.
+  - A read of a `const` inside a `jest.mock` factory fails, because swc's
+    hoisting hits the temporal dead zone.
+- `jest.config.js` excludes 19 preload/renderer specs under `--coverage`.
+  Keep at least one CI leg on plain `yarn test` (today: the windows and macos
+  shards). Otherwise those specs gate nothing.
+- validate-pr runs the ubuntu shards on `ubuntu-24.04-arm`.
+  - Cache keys MUST include `runner.arch`, because both architectures report
+    `runner.os == Linux`.
+  - The test job sets `PUPPETEER_SKIP_DOWNLOAD`, because the puppeteer
+    postinstall has no arm64 Linux Chromium. Only `yarn build-assets` uses
+    puppeteer.
+- Before you blame the CI runners for a slowdown, compare the per-step
+  timings (`gh run view <id> --json jobs`) across months. In Sep 2026 the
+  Windows Test step had grown from 1 min to 27 min only from suite growth and
+  per-file type-checking. The runners did not change.
 
 ## Windows Notifications
 
-- A Windows Action Center card stays repliable indefinitely, and Electron emits
-  the JS `close` event when the banner times out
-  (`NotificationDismissed(should_destroy=false)`). Calling `close()` on the
-  instance does NOT remove the card. Do NOT tie per-notification state — reply
-  routing, target webContents, preload event handlers — to a `close` or dismiss
-  signal, or replies typed later are dropped. Keep it (bounded) until the app
-  decides the notification is finished.
-- The web client auto-closes every desktop notification 10s after showing it
-  (`useNotification.ts`; the server never sends `duration`, so the fallback is
-  always used). Expect that close to arrive while the card is still on screen.
+- A Windows Action Center card stays repliable with no time limit. Electron
+  emits the JS `close` event when the banner times out
+  (`NotificationDismissed(should_destroy=false)`), and a call to `close()` on
+  the instance does NOT remove the card.
+  - Keep per-notification state (reply routing, target webContents, preload
+    event handlers) until the app decides that the notification is finished.
+    Keep that state bounded.
+  - Do NOT tie that state to a `close` or dismiss signal. If you do, the app
+    drops replies that the user types later.
+- The web client closes every desktop notification 10s after it shows it
+  (`useNotification.ts`). The server never sends `duration`, so the client
+  always uses that fallback. Expect that close while the card is still on
+  screen.
 - Only reply and action-button interactions carry activation arguments
-  (`type=...&tag=<id>`, read via `Notification.handleActivation`, win32).
+  (`type=...&tag=<id>`, read through `Notification.handleActivation`, win32).
   A click on the toast body carries none and arrives ONLY as the instance
-  `click` event — keep that listener unconditional.
-- `Notification.handleActivation` REPLACES the stored callback rather than
-  adding one. A debug probe that registers its own handler silently
-  unregisters the app's — do not use it to observe production behavior.
-- Enter does NOT submit a toast reply; only the toast's Reply button does, and
-  the card closes on submit whether or not the app received anything. Assert
-  replies by querying the server for the message, never by watching the UI.
+  `click` event. Keep that listener unconditional.
+- `Notification.handleActivation` REPLACES the stored callback. It does not
+  add one. A debug probe that registers its own handler silently unregisters
+  the app's handler. Do not use such a probe to observe production behavior.
+- Enter does NOT submit a toast reply. Only the Reply button of the toast
+  does, and the card closes on submit whether or not the app received the
+  reply. To check a reply, query the server for the message. Do not trust the
+  UI.
 - Log dropped activations through `loggers.notifications`
-  (`src/logging/scopes.ts`). `console.warn` from the main process is invisible
-  in packaged builds, which makes a dropped reply untraceable in the field.
+  (`src/logging/scopes.ts`). Packaged builds do not show `console.warn` from
+  the main process, so a dropped reply would leave no trace in the field.
 - Full investigation history:
   `docs/postmortem-notification-quick-reply-sup-1097.md`.
 
 ## Startup Debugging
 
-- `yarn start` relaunches Electron once per rollup bundle for the first
-  ~60 s (each `writeBundle` restarts the app), so the tray/menu-bar icon
-  flickers or is absent until `waiting for changes` prints. Judge tray state
-  only after that, and `pkill` orphaned worktree Electrons first — a
-  leftover instance keeps port 9339 and shows a second menu-bar icon.
+- For the first ~60 s, `yarn start` relaunches Electron once per rollup bundle
+  (each `writeBundle` restarts the app). Until `waiting for changes` prints,
+  the tray or menu-bar icon flickers or is absent. Judge the tray state only
+  after that line.
+- Before you judge the tray, `pkill` orphaned worktree Electrons. A leftover
+  instance keeps port 9339 and shows a second menu-bar icon.
 
 ## QA Flow Authoring
 
-When creating or updating QA assets under `qa/`, read these first:
-
-- `skills/desktop-qa-flows/SKILL.md` when the task is for a Desktop PR, branch,
-  or release-candidate QA pass. This file is plain Markdown and can be used by
-  any agent, including Codex, Claude, Hermes, Cursor, and GitHub agents, when
-  explicitly pointed to it. It decides whether to update existing flows, add
-  new flows, or create a new `qa/<feature-slug>/` pack based on changed
-  user-visible risk.
-- `qa/README.md`
-- `qa/AGENTS.md`
-- `qa/flow-template.md`
-
-QA flows must be executable by a QA engineer or visual agent that knows nothing
-about the feature. Do not guess where UI lives. Derive every user-facing step
-from the implementation, not product intuition: changed React components,
-Fuselage icons, i18n labels, menu definitions, modal buttons, platform
-branches, tests, and helper pages.
-
-For branch-specific QA packs, lock the comparison range before deriving flows:
-record the base branch, head branch or commit, and whether the whole requested
-range was reviewed. Do not claim complete QA coverage for a partial review.
-Classify changed Desktop surfaces by user-visible risk — Electron main
-process, protocol handlers, OS default handlers, settings UI, menus, modals,
-packaging/installers, startup, shortcuts, workspace routing, i18n, and layout
-— then turn each risk into a falsifiable hypothesis the flow proves or
-disproves. Prefer the smallest useful proof: existing tests, targeted tests,
-local UI repro, OS-level repro, or code-path proof when runtime validation is
-not practical.
-
-Write the visible path directly in the flow step `Action` cell. Do not create
-separate navigation sections or ask testers to open another file for basic UI
-discovery. Include screen region, relative position, icon shape, nearby UI,
-visible labels after interaction, and the visual confirmation state. If a
-label only appears as a tooltip or after clicking a menu, describe the visible
-anchor first.
-
-For Qase compatibility, keep the flow table columns aligned with
-`qa/flow-template.md` and validate QA packs with:
-
-```sh
-node qa/scripts/validate-flows.mjs qa/<pack>
-node qa/scripts/export-qase-csv.mjs qa/<pack>
-```
+Before you create or change a QA asset under `qa/`, read `qa/AGENTS.md`. It
+holds the authoring rules, the template and the validation commands. For a QA
+pass on a Desktop PR, branch or release candidate, follow
+`skills/desktop-qa-flows/SKILL.md`.
 
 ## Code Style
 
 - TypeScript strict mode.
 - React functional components with hooks.
-- Redux actions follow FSA (Flux Standard Action) shape.
-- File naming: camelCase for files, PascalCase for components.
-- No unnecessary comments — self-documenting code through clear naming.
-- Prefer editing existing files over creating new abstractions unless the new
-  abstraction removes real complexity or matches an existing pattern.
+- Redux actions follow the FSA (Flux Standard Action) shape.
+- File names: camelCase for files, PascalCase for components.
+- Write self-documenting code with clear names. Add a comment only when the
+  code cannot say why.
+- Prefer an edit to an existing file over a new abstraction. Add an
+  abstraction only when it removes real complexity or matches an existing
+  pattern.
 
 ## Git And Verification
 
-- Never commit or push without explicit user permission — "fix this" does NOT
-  mean "commit it".
-- Never commit directly to `master`, `dev`, or `release/X.Y.x` — create a
-  branch, test, open a PR.
-- Read-only git operations (status, diff, log) are always fine.
-- Show what will be committed before committing.
+- Commit or push only when the user explicitly asks for it. "Fix this" does
+  NOT mean "commit it".
+- Never commit directly to `master`, `dev` or `release/X.Y.x`. Create a
+  branch, test, and open a PR.
+- Read-only git operations (status, diff, log) need no permission.
+- Show what you will commit before you commit.
 
 ### Worktrees
 
-Use worktrees to avoid disrupting another working directory:
+Use a worktree, so that you do not disturb another working directory. Start
+it from the current remote `dev`, because a local `dev` can be stale:
 
 ```bash
 mkdir -p ../Rocket.Chat.Electron-worktrees
-git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch dev
+git fetch origin dev
+git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch origin/dev
 ```
 
 ### Working Principles
 
-- **Understand before changing** — understand WHY code is written that way.
-  Working code is correct until proven otherwise. If unsure, ASK.
-- **Verify your work** — run tests, check types (`npx tsc --noEmit`),
-  demonstrate correctness. Never mark a task done without proving it works.
-- **Diagnose before iterating** — when approaches fail, analyze WHY before
-  trying the next one. Don't cycle through 3+ approaches blindly.
-- **Always verify libraries** — check official docs and `.d.ts` files in
-  `node_modules/`. Never assume props, tokens, or APIs work without
-  verification.
-- Verify work with the narrowest meaningful checks first, then broader checks
-  when risk or shared behavior justifies it.
-- If GitNexus tooling is available, use the GitNexus section below for
-  impact analysis and affected-scope checks. If it is unavailable, do not
-  block progress solely on that tool; compensate with local code search,
-  tests, and careful review.
-- Reindex GitNexus with `node .gitnexus/run.cjs analyze --index-only` and
-  only at quiet points: a plain `analyze` rewrites the gitnexus blocks in
-  `AGENTS.md`/`CLAUDE.md` (stats churn in tracked files), and a background
-  analyze mutates worktree git state — it can silently drop freshly staged
-  files from the index and touch watched sources, restarting a running
-  `yarn start` app mid-verification.
+- **Understand before you change.** Find out WHY the code is written that way.
+  Working code is correct until proven otherwise. If you are not sure, ASK.
+- **Verify your work.** Run the tests and the type check (`npx tsc --noEmit`),
+  and show that the change works. Start with the narrowest meaningful check.
+  Broaden the checks when the risk or the shared behavior justifies it. Never
+  mark a task done before you prove that it works.
+- **Diagnose before you iterate.** When an approach fails, find WHY before you
+  try the next one. Do not cycle blindly through 3 or more approaches.
+- **Check libraries.** Read the official docs and the `.d.ts` files in
+  `node_modules/`. Never assume that a prop, token or API works.
 
 ## Writing
 
-- Avoid subjective descriptors ("smart", "excellent", "dumb").
+- Do not use subjective descriptors ("smart", "excellent", "dumb").
 - Use measurable descriptions: "reduced memory usage", "improved by X%".
-- Never invent metrics — no estimated time spent, no speculated user counts.
-  Only include numbers from actual logs, error messages, or documented
-  sources.
-- PR descriptions: straightforward language, focus on what changed and why.
+- Never invent metrics: no estimated time spent, no speculated user counts.
+  Use only numbers from real logs, error messages or documented sources.
+- PR descriptions: use straightforward language, and focus on what changed
+  and why.
+- PR descriptions and commit bodies are public. Do not include internal
+  references: Jira or Zoho Desk links and ticket text, customer names, support
+  conversations. Do not include notes about local developer tools either
+  (GitNexus, agent workflow, ledgers). A bare Jira key in the title or subject is the accepted
+  convention. Everything else about the ticket stays internal.
+- Write instructions for agents (this file, nested `AGENTS.md` files, skills)
+  in short active sentences: one instruction per sentence, and no semicolons.
 
 <!-- gitnexus:start -->
+
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Rocket.Chat.Electron**. Use the GitNexus MCP tools to understand code, assess impact, and navigate safely — read `gitnexus://repo/Rocket.Chat.Electron/context` for current index stats and staleness.
+This project is indexed by GitNexus as **Rocket.Chat.Electron**. Use the
+GitNexus MCP tools to understand code, assess impact and navigate safely. Read
+`gitnexus://repo/Rocket.Chat.Electron/context` for the current index stats and
+staleness. If GitNexus is not available, do not block on it. Use local code
+search, tests and careful review instead.
 
-> Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
+## Reindex
+
+- Reindex only from the main checkout, at a quiet point, with
+  `node .gitnexus/run.cjs analyze --index-only`. No `.gitnexus/run.cjs` yet?
+  Run `npx gitnexus analyze --index-only` (if npm 11 crashes, run
+  `npm i -g gitnexus`, see #1939).
+  - Do not run `analyze` inside a linked worktree. It registers a second
+    index under the same name, `Rocket.Chat.Electron`. Lookups by that name
+    then fail with "Multiple registered repos match", and the extra index
+    goes stale. To remove one, run `gitnexus clean --force` in that worktree.
+  - `--index-only` skips every generated file. Without it, `analyze`
+    rewrites the generated skills in `.claude/skills/gitnexus/`.
+  - `.gitnexusrc` sets `skipAgentsMd`, so that `analyze` does not rewrite this
+    block and does not create a root `CLAUDE.md`. Keep that setting. A
+    GitNexus version that ignores `.gitnexusrc` creates `CLAUDE.md`. Delete
+    it if that happens.
+  - Keep the quiet point. A background `analyze` was suspected of dropping
+    freshly staged files and of restarting a running `yarn start`. Upstream
+    could not reproduce it (GitNexus #2906).
+
+## Worktrees
+
+The MCP server serves the index of the main checkout, and it diffs the
+checkout that the session was started from. This stays true when you edit
+files in a linked worktree.
+
+- Pass `repo: "Rocket.Chat.Electron"` to every repo-scoped tool. Do not pass
+  it to `list_repos`, which takes only `limit` and `offset`. A session started
+  inside a worktree can fail without it.
+- Pass `worktree: "<absolute worktree path>"` to `detect_changes`. Without
+  it, a session started in the main checkout diffs the main checkout and
+  misses every change in the worktree.
+- `query`, `context` and `impact` describe the main checkout at its indexed
+  commit. `list_repos` shows that commit and how far it is behind. For a
+  symbol that your branch adds or changes, read the source.
+- `detect_changes` maps changed lines to symbols through that same index. A
+  stale index can name the wrong symbol, so reindex the main checkout before
+  a review that depends on exact symbols.
 
 ## Always Do
 
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "dev"})`.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `context({name: "symbolName"})`.
+- **MUST run impact analysis before you edit any symbol.** Before you change a
+  function, class or method, run
+  `impact({target: "symbolName", direction: "upstream"})`. Report the blast
+  radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `detect_changes()` before you commit**, to check that your
+  changes affect only the expected symbols and execution flows.
+  - For a regression review against the branch point, pass the merge base:
+    run `git fetch origin dev && git merge-base origin/dev HEAD`, then
+    `detect_changes({scope: "compare", base_ref: "<merge-base sha>"})`.
+  - `compare` runs `git diff <base_ref>` against the working tree. A stale
+    local `dev`, or an `origin/dev` that moved past the branch point, adds
+    changes that are not yours to the result.
+- **MUST warn the user** when impact analysis returns HIGH or CRITICAL risk,
+  before you continue with the edits.
+- To explore unfamiliar code, use `query({query: "concept"})` to find
+  execution flows, not grep. It returns results grouped by process and ranked
+  by relevance.
+- For full context on one symbol (callers, callees, the execution flows that
+  it is part of), use `context({name: "symbolName"})`.
 
 ## Never Do
 
-- NEVER edit a function, class, or method without first running `impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
-- NEVER commit changes without running `detect_changes()` to check affected scope.
+- NEVER edit a function, class or method before you run `impact` on it.
+- NEVER ignore a HIGH or CRITICAL risk warning from impact analysis.
+- NEVER rename symbols with find-and-replace. Use `rename`, which understands
+  the call graph.
+- NEVER commit changes before you run `detect_changes()` to check the affected
+  scope.
 
 ## Resources
 
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/Rocket.Chat.Electron/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/Rocket.Chat.Electron/clusters` | All functional areas |
-| `gitnexus://repo/Rocket.Chat.Electron/processes` | All execution flows |
-| `gitnexus://repo/Rocket.Chat.Electron/process/{name}` | Step-by-step execution trace |
+| Resource                                              | Use for                                  |
+| ----------------------------------------------------- | ---------------------------------------- |
+| `gitnexus://repo/Rocket.Chat.Electron/context`        | Codebase overview, check index freshness |
+| `gitnexus://repo/Rocket.Chat.Electron/clusters`       | All functional areas                     |
+| `gitnexus://repo/Rocket.Chat.Electron/processes`      | All execution flows                      |
+| `gitnexus://repo/Rocket.Chat.Electron/process/{name}` | Step-by-step execution trace             |
 
 ## CLI
 
-| Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+| Task                                         | Read this skill file                                        |
+| -------------------------------------------- | ----------------------------------------------------------- |
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md`       |
+| Blast radius / "What breaks if I change X?"  | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?"             | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md`       |
+| Rename / extract / split / refactor          | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md`     |
+| Tools, resources, schema reference           | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md`           |
+| Index, status, clean, wiki CLI commands      | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md`             |
 
 <!-- gitnexus:end -->

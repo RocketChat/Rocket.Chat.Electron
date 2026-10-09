@@ -20,6 +20,8 @@ import {
   selectServerSwitcherMenuTemplate,
 } from './menuBar';
 import { getRootWindow } from './rootWindow';
+import { clearUiOverride } from './serverView/uiOverride';
+import { updateUiPreviewWithDialog } from './serverView/uiPreview';
 
 jest.mock('electron', () => ({
   app: {
@@ -102,6 +104,14 @@ jest.mock('./rootWindow', () => ({
   getRootWindow: jest.fn(async () => mockBrowserWindow),
 }));
 
+jest.mock('./serverView/uiOverride', () => ({
+  clearUiOverride: jest.fn(async () => undefined),
+}));
+
+jest.mock('./serverView/uiPreview', () => ({
+  updateUiPreviewWithDialog: jest.fn(async () => undefined),
+}));
+
 jest.mock('./serverView', () => ({
   getWebContentsByServerUrl: jest.fn(() => ({
     reload: jest.fn(),
@@ -123,11 +133,13 @@ const createServer = (
 const createState = (overrides: Partial<RootState> = {}): RootState =>
   ({
     servers: [],
-    currentView: 'downloads',
+    currentView: 'add-new-server',
     isTrayIconEnabled: true,
     isMenuBarEnabled: true,
     isAddNewServersEnabled: true,
     isShowWindowOnUnreadChangedEnabled: false,
+    isDownloadsWindowOpen: false,
+    isSettingsWindowOpen: false,
     isDeveloperModeEnabled: true,
     isVideoCallDevtoolsAutoOpenEnabled: false,
     isPresenceDisconnectionSimulated: false,
@@ -149,11 +161,13 @@ jest.mock('../../store', () => ({
   select: jest.fn((selector: (state: any) => unknown) =>
     selector({
       servers: [],
-      currentView: 'downloads',
+      currentView: 'add-new-server',
       isTrayIconEnabled: true,
       isMenuBarEnabled: true,
       isAddNewServersEnabled: true,
       isShowWindowOnUnreadChangedEnabled: false,
+      isDownloadsWindowOpen: false,
+      isSettingsWindowOpen: false,
       isDeveloperModeEnabled: true,
       isVideoCallDevtoolsAutoOpenEnabled: false,
       isPresenceDisconnectionSimulated: false,
@@ -697,6 +711,48 @@ describe('ui/main/menuBar', () => {
 
       const removeIndex = template.findIndex((item) => item.id === 'remove');
       expect(template[removeIndex - 1]?.type).toBe('separator');
+    });
+  });
+
+  describe('server context menu on a UI preview', () => {
+    it('offers updating or restoring the preview only while one is shown', () => {
+      const idsFor = (uiPreview?: string) =>
+        getServerContextMenuTemplate(
+          'https://a.rocket.chat/',
+          [createServer('https://a.rocket.chat/', 'Server A', { uiPreview })],
+          false
+        ).map((item) => item.id);
+
+      expect(idsFor('develop')).toEqual(
+        expect.arrayContaining(['updateUiPreview', 'restoreServerUi'])
+      );
+      expect(idsFor()).not.toContain('updateUiPreview');
+      expect(idsFor()).not.toContain('restoreServerUi');
+    });
+
+    it('updates or restores the tab the menu was opened on', () => {
+      const template = getServerContextMenuTemplate(
+        'https://b.rocket.chat/',
+        [
+          createServer('https://a.rocket.chat/', 'Server A', {
+            uiPreview: 'develop',
+          }),
+          createServer('https://b.rocket.chat/', 'Server B', {
+            uiPreview: 'PR #1',
+          }),
+        ],
+        false
+      );
+      const click = (id: string) =>
+        (template.find((item) => item.id === id)?.click as () => void)();
+
+      click('updateUiPreview');
+      click('restoreServerUi');
+
+      expect(updateUiPreviewWithDialog).toHaveBeenCalledWith(
+        'https://b.rocket.chat/'
+      );
+      expect(clearUiOverride).toHaveBeenCalledWith('https://b.rocket.chat/');
     });
   });
 

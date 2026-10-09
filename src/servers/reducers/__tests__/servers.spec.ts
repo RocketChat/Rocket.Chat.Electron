@@ -13,7 +13,11 @@ import {
   WEBVIEW_UNREAD_CHANGED,
   WEBVIEW_USER_LOGGED_IN,
   WEBVIEW_FAVICON_CHANGED,
+  WEBVIEW_AUDIO_STATE_CHANGED,
+  WEBVIEW_AUDIO_MUTED_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
   WEBVIEW_DID_START_LOADING,
+  WEBVIEW_BECAME_RESPONSIVE,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
   WEBVIEW_ATTACHED,
@@ -27,7 +31,7 @@ import {
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
 } from '../../../ui/actions';
-import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../actions';
+import { SERVERS_LOADED } from '../../actions';
 import type { Server } from '../../common';
 import { servers } from '../../reducers';
 
@@ -340,6 +344,101 @@ describe('servers reducer', () => {
     });
   });
 
+  describe('WEBVIEW_AUDIO_STATE_CHANGED', () => {
+    it('should set isAudible', () => {
+      const newState = servers([existing], {
+        type: WEBVIEW_AUDIO_STATE_CHANGED,
+        payload: { url, isAudible: true },
+      } as any);
+
+      expect(newState[0].isAudible).toBe(true);
+    });
+  });
+
+  describe('WEBVIEW_AUDIO_MUTED_CHANGED', () => {
+    it('should set isAudioMuted', () => {
+      const newState = servers([existing], {
+        type: WEBVIEW_AUDIO_MUTED_CHANGED,
+        payload: { url, isAudioMuted: true },
+      } as any);
+
+      expect(newState[0].isAudioMuted).toBe(true);
+    });
+  });
+
+  describe('WEBVIEW_MEDIA_CAPTURE_CHANGED', () => {
+    it('should set the media capture state for a source', () => {
+      const newState = servers([existing], {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: {
+          url,
+          source: 'workspace',
+          state: { camera: true, microphone: false, screen: false },
+        },
+      } as any);
+
+      expect(newState[0].mediaCapture).toEqual({
+        workspace: { camera: true, microphone: false, screen: false },
+      });
+    });
+
+    it('should merge a second source alongside an existing one', () => {
+      const withWorkspace: Server = {
+        ...existing,
+        mediaCapture: {
+          workspace: { camera: true, microphone: false, screen: false },
+        },
+      };
+
+      const newState = servers([withWorkspace], {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: {
+          url,
+          source: 'videoCall',
+          state: { camera: false, microphone: true, screen: false },
+        },
+      } as any);
+
+      expect(newState[0].mediaCapture).toEqual({
+        workspace: { camera: true, microphone: false, screen: false },
+        videoCall: { camera: false, microphone: true, screen: false },
+      });
+    });
+
+    it('should clear a source when state is null', () => {
+      const withBoth: Server = {
+        ...existing,
+        mediaCapture: {
+          workspace: { camera: true, microphone: false, screen: false },
+          videoCall: { camera: false, microphone: true, screen: false },
+        },
+      };
+
+      const newState = servers([withBoth], {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: { url, source: 'workspace', state: null },
+      } as any);
+
+      expect(newState[0].mediaCapture).toEqual({
+        videoCall: { camera: false, microphone: true, screen: false },
+      });
+    });
+
+    it('should not modify state for an unknown url', () => {
+      const state = [existing];
+      const newState = servers(state, {
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: {
+          url: 'https://unknown.rocket.chat/',
+          source: 'workspace',
+          state: { camera: true, microphone: false, screen: false },
+        },
+      } as any);
+
+      expect(newState).toBe(state);
+    });
+  });
+
   describe('WEBVIEW_DID_NAVIGATE', () => {
     it('should set lastPath when pageUrl includes the server url', () => {
       const newState = servers([existing], {
@@ -360,6 +459,17 @@ describe('servers reducer', () => {
       expect(newState).toBe(state);
     });
 
+    it('should not store a conference page as lastPath', () => {
+      const state = [{ ...existing, lastPath: `${url}home` }];
+      const newState = servers(state, {
+        type: WEBVIEW_DID_NAVIGATE,
+        payload: { url, pageUrl: `${url}conference/abc?scheduled=true` },
+      } as any);
+
+      expect(newState).toBe(state);
+      expect(newState[0].lastPath).toBe(`${url}home`);
+    });
+
     it('should return unchanged state when pageUrl is undefined', () => {
       const state = [existing];
       const newState = servers(state, {
@@ -376,6 +486,18 @@ describe('servers reducer', () => {
       const failed: Server = { url, failed: true };
       const newState = servers([failed], {
         type: WEBVIEW_DID_START_LOADING,
+        payload: { url },
+      } as any);
+
+      expect(newState[0].failed).toBe(false);
+    });
+  });
+
+  describe('WEBVIEW_BECAME_RESPONSIVE', () => {
+    it('should clear the failed flag', () => {
+      const failed: Server = { url, failed: true };
+      const newState = servers([failed], {
+        type: WEBVIEW_BECAME_RESPONSIVE,
         payload: { url },
       } as any);
 
@@ -423,18 +545,74 @@ describe('servers reducer', () => {
 
       expect(newState[0].url).toBe('https://open.rocket.chat/');
     });
+
+    it('should reset audio state flags and mediaCapture for a persisted server', () => {
+      const newState = servers([], {
+        type: SERVERS_LOADED,
+        payload: {
+          servers: [
+            {
+              url: 'https://open.rocket.chat',
+              isAudible: true,
+              isAudioMuted: true,
+              mediaCapture: {
+                workspace: { camera: true, microphone: false, screen: false },
+              },
+            },
+          ],
+        },
+      } as any);
+
+      expect(newState[0].isAudible).toBe(false);
+      expect(newState[0].isAudioMuted).toBe(false);
+      expect(newState[0].mediaCapture).toBeUndefined();
+    });
   });
 
   describe('APP_SETTINGS_LOADED', () => {
-    it('should normalize urls and reset document viewer fields', () => {
+    it('should normalize urls', () => {
       const newState = servers([], {
         type: APP_SETTINGS_LOADED,
         payload: { servers: [{ url: 'https://open.rocket.chat' }] },
       } as any);
 
       expect(newState[0].url).toBe('https://open.rocket.chat/');
-      expect(newState[0].documentViewerOpenUrl).toBe('');
-      expect(newState[0].documentViewerFormat).toBe('');
+    });
+
+    it('should reset audio state flags', () => {
+      const newState = servers([], {
+        type: APP_SETTINGS_LOADED,
+        payload: {
+          servers: [
+            {
+              url: 'https://open.rocket.chat',
+              isAudible: true,
+              isAudioMuted: true,
+            },
+          ],
+        },
+      } as any);
+
+      expect(newState[0].isAudible).toBe(false);
+      expect(newState[0].isAudioMuted).toBe(false);
+    });
+
+    it('should reset mediaCapture', () => {
+      const newState = servers([], {
+        type: APP_SETTINGS_LOADED,
+        payload: {
+          servers: [
+            {
+              url: 'https://open.rocket.chat',
+              mediaCapture: {
+                workspace: { camera: true, microphone: false, screen: false },
+              },
+            },
+          ],
+        },
+      } as any);
+
+      expect(newState[0].mediaCapture).toBeUndefined();
     });
 
     it('should fall back to current state when servers missing', () => {
@@ -483,31 +661,6 @@ describe('servers reducer', () => {
       } as any);
 
       expect(newState[0].outlookCredentials).toBe(outlookCredentials);
-    });
-  });
-
-  describe('SERVER_DOCUMENT_VIEWER_OPEN_URL', () => {
-    it('should set document viewer url and format', () => {
-      const newState = servers([existing], {
-        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-        payload: {
-          server: url,
-          documentUrl: 'https://doc/',
-          documentFormat: 'pdf',
-        },
-      } as any);
-
-      expect(newState[0].documentViewerOpenUrl).toBe('https://doc/');
-      expect(newState[0].documentViewerFormat).toBe('pdf');
-    });
-
-    it('should default documentViewerFormat to empty string when not provided', () => {
-      const newState = servers([existing], {
-        type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-        payload: { server: url, documentUrl: 'https://doc/' },
-      } as any);
-
-      expect(newState[0].documentViewerFormat).toBe('');
     });
   });
 

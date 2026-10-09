@@ -2,7 +2,10 @@ import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../../app/actions';
 import type { ActionOf } from '../../store/actions';
-import { SECONDARY_WINDOW_STATE_CHANGED } from '../actions';
+import {
+  SECONDARY_WINDOW_STATE_CHANGED,
+  WINDOW_BOUNDS_RESET,
+} from '../actions';
 
 export type SecondaryWindowStates = Record<
   string,
@@ -11,7 +14,8 @@ export type SecondaryWindowStates = Record<
 
 type SecondaryWindowStatesAction =
   | ActionOf<typeof SECONDARY_WINDOW_STATE_CHANGED>
-  | ActionOf<typeof APP_SETTINGS_LOADED>;
+  | ActionOf<typeof APP_SETTINGS_LOADED>
+  | ActionOf<typeof WINDOW_BOUNDS_RESET>;
 
 /**
  * Where each secondary window was last placed, keyed by window.
@@ -29,6 +33,9 @@ export const secondaryWindowStates: Reducer<
       if (!id || !bounds) return state;
       return { ...state, [id]: bounds };
     }
+
+    case WINDOW_BOUNDS_RESET:
+      return {};
 
     case APP_SETTINGS_LOADED: {
       const { secondaryWindowStates = state } = action.payload;

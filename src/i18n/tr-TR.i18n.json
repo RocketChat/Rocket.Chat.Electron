@@ -94,6 +94,15 @@
         "answerCall": "aramaları yanıtlamak",
         "recordMessage": "mesaj kaydetmek"
       }
+    },
+    "uiOverride": {
+      "title": "Arayüz önizlemesini yükle",
+      "message": "\"{{- host}}\" için farklı bir web arayüzü yüklensin mi?",
+      "detail": "Arayüz {{- bundle}} adresinden yüklenecek ve bu sunucudaki oturumunuzla çalışacak. Yalnızca bu derlemeye güveniyorsanız devam edin. Geri dönmek için Görünüm > Sunucu arayüzünü geri yükle seçeneğini kullanın veya uygulamayı yeniden başlatın.",
+      "load": "Arayüzü yükle",
+      "cancel": "İptal",
+      "developerModeRequired": "Arayüz önizlemelerini yüklemek için Yardım > Geliştirici Modu seçeneğini açın.",
+      "failed": "Arayüz önizlemesi yüklenemedi."
     }
   },
   "documentViewer": {
@@ -117,9 +126,22 @@
     "title": "Ayarlar",
     "general": "Genel",
     "options": {
+      "resetWindowBounds": {
+        "title": "Pencere boyutlarını ve konumlarını sıfırla",
+        "description": "Uygulamanın ve pencerelerinin nereye yerleştirildiğini unutur. Her pencere bir sonraki gösterilişinde varsayılan boyutunda ve ortalanmış olarak açılır."
+      },
       "trayIcon": {
         "title": "Görev çubuğu ikonu",
         "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Görev çubuğu ikonunda okunmamış sayacı",
+        "titleDarwin": "Menü çubuğu ikonunda okunmamış göstergesi",
+        "description": "İkonda çevrimiçi durumunuz yerine okunmamış mesaj rozetini gösterir."
+      },
+      "menuBarUnreadCount": {
+        "title": "Menü çubuğunda okunmamış sayısı",
+        "description": "Okunmamış bahsetmelerin sayısını menü çubuğu ikonunun yanında gösterir."
       },
       "availableBrowsers": {
         "title": "Varsayılan Tarayıcı",
@@ -138,7 +160,38 @@
         "auto": "Sistemi takip et",
         "light": "Açık",
         "dark": "Koyu"
+      },
+      "uiPreview": {
+        "title": "Bir web arayüzü derlemesi yükle",
+        "description": "Oturumunuzu koruyarak bir çalışma alanının kendi arayüzü yerine Rocket.Chat web istemcisinin bir derlemesini çalıştırır. \"develop\" değerini, bir Rocket.Chat PR numarasını (ikisi de ghcr.io üzerinden çekilir) veya sunulan bir paketin URL adresini ekleyin, ardından bir çalışma alanına uygulayın. Bir girişi yenilemek daha yeni bir derleme arar ve onu kullanan çalışma alanlarını yeniden yükler.",
+        "placeholder": "develop, 42364 veya http://127.0.0.1:4173/",
+        "add": "Ekle",
+        "adding": "Derlemenin var olup olmadığı denetleniyor…",
+        "applyTo": "Şuna uygula",
+        "apply": "Uygula",
+        "refresh": "Daha yeni bir derleme ara",
+        "refreshing": "Daha yeni bir derleme aranıyor…",
+        "current": "Zaten en yeni derleme.",
+        "updated": "En yeni derlemeye güncellendi.",
+        "remove": "Listeden kaldır",
+        "builtAt": "derlenme: {{- date}}",
+        "activeOn": "Etkin: {{- workspaces}}",
+        "restore": "Sunucu arayüzünü geri yükle",
+        "active": "Bu çalışma alanında etkin: {{- label}}",
+        "loading": "İndiriliyor ve uygulanıyor…",
+        "failed": "Yüklenemedi: {{- message}}",
+        "cancelled": "İptal edildi.",
+        "inactive": "Sunucunun arayüzü kullanılıyor.",
+        "pullRequestState": {
+          "open": "Açık",
+          "draft": "Taslak",
+          "merged": "Birleştirildi",
+          "closed": "Kapalı"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Web arayüzü önizlemesi"
     }
   },
   "error": {
@@ -166,6 +219,7 @@
     "documentation": "Dökümantasyon",
     "editMenu": "&Düzenle",
     "fileMenu": "&Dosya",
+    "findInPage": "&Bul…",
     "forward": "&İleri",
     "helpMenu": "&Yardım",
     "learnMore": "Daha fazlasını öğren",
@@ -177,6 +231,7 @@
     "reload": "&Yeniden yükle",
     "reportIssue": "Hata bildir",
     "resetAppData": "Uygulama verisini sıfırla",
+    "resetWindowBounds": "Pencere Boyutlarını ve Konumlarını Sıfırla",
     "resetZoom": "Görünümü sıfırla",
     "selectAll": "Tümünü seç",
     "showFullScreen": "Tam ekran",
@@ -190,7 +245,16 @@
     "windowMenu": "&Pencereler",
     "zoomIn": "Yakınlaştır",
     "zoomOut": "Uzaklaştır",
-    "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et"
+    "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et",
+    "restoreServerUi": "Sunucu arayüzünü geri yükle"
+  },
+  "findInPage": {
+    "placeholder": "Sayfada bul",
+    "matchCount": "{{current}} / {{total}}",
+    "noMatches": "Eşleşme yok",
+    "previous": "Önceki eşleşme",
+    "next": "Sonraki eşleşme",
+    "close": "Kapat"
   },
   "loadingError": {
     "title": "Sunucu yüklenirken hata oluştu",
@@ -222,7 +286,8 @@
     "item": {
       "reload": "Sunucuyu yeniden yükle",
       "remove": "Sunucuyu sil",
-      "openDevTools": "DevTools aç"
+      "openDevTools": "DevTools aç",
+      "updateUiPreview": "Arayüz önizlemesini güncelle"
     }
   },
   "tabBar": {
@@ -261,7 +326,8 @@
       "canceled": "İptal",
       "failed": "Başarısız",
       "dismiss": "Kapat"
-    }
+    },
+    "uiPreview": "Arayüz önizlemesi: {{- label}}"
   },
   "touchBar": {
     "formatting": "Bçimlendiriliyor",
@@ -299,6 +365,7 @@
     "permissionDenied": "Ekran Kaydetme İzni Reddedildi",
     "permissionRequired": "Ekranınızı paylaşmak için ekran kaydetme izni gereklidir.",
     "permissionInstructions": "Lütfen sistem tercihlerinizde etkinleştirin ve tekrar deneyin.",
+    "permissionAlreadyOnHint": "Zaten açık mı? Listede Rocket.Chat'i seçin, eksi (−) düğmesiyle kaldırın, ardından Rocket.Chat'ten çıkıp yeniden açın. Sonra ekranınızı tekrar paylaşın ve macOS sorduğunda erişime izin verin.",
     "title": "Ekranınızı paylaşın",
     "entireScreen": "Tüm ekranınız",
     "applicationWindow": "Uygulama penceresi",

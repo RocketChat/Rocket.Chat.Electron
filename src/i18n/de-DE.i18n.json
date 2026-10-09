@@ -129,6 +129,15 @@
         "answerCall": "Anrufe entgegennehmen",
         "recordMessage": "Nachrichten aufnehmen"
       }
+    },
+    "uiOverride": {
+      "title": "UI-Vorschau laden",
+      "message": "Eine andere Web-Oberfläche für „{{- host}}“ laden?",
+      "detail": "Die Oberfläche wird von {{- bundle}} geladen und läuft mit deiner Sitzung auf diesem Server. Fahre nur fort, wenn du diesem Build vertraust. Nutze Darstellung > Server-UI wiederherstellen oder starte die App neu, um zurückzukehren.",
+      "load": "UI laden",
+      "cancel": "Abbrechen",
+      "developerModeRequired": "Aktiviere Hilfe > Entwicklermodus, um UI-Vorschauen zu laden.",
+      "failed": "Die UI-Vorschau konnte nicht geladen werden."
     }
   },
   "documentViewer": {
@@ -223,6 +232,10 @@
         "title": "Hardware-Beschleunigung",
         "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
       },
+      "resetWindowBounds": {
+        "title": "Fenstergrößen und -positionen zurücksetzen",
+        "description": "Vergisst, wo die App und ihre Fenster platziert waren. Jedes Fenster öffnet sich beim nächsten Anzeigen zentriert in seiner Standardgröße."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
         "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
@@ -249,6 +262,15 @@
       "trayIcon": {
         "title": "Taskleistensymbol",
         "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Zähler für Ungelesenes im Taskleistensymbol",
+        "titleDarwin": "Hinweis auf Ungelesenes im Menüleistensymbol",
+        "description": "Zeigt das Abzeichen für ungelesene Nachrichten statt deines Anwesenheitsstatus auf dem Symbol an."
+      },
+      "menuBarUnreadCount": {
+        "title": "Anzahl ungelesener Nachrichten in der Menüleiste",
+        "description": "Zeigt die Anzahl ungelesener Erwähnungen neben dem Menüleistensymbol an."
       },
       "availableBrowsers": {
         "title": "Standard-Browser",
@@ -280,7 +302,38 @@
         "auto": "System folgen",
         "light": "Hell",
         "dark": "Dunkel"
+      },
+      "uiPreview": {
+        "title": "Einen Web-UI-Build laden",
+        "description": "Führt einen Build des Rocket.Chat-Webclients anstelle der eigenen Oberfläche eines Workspaces aus und behält deine Sitzung bei. Füge „develop“ oder eine Rocket.Chat-PR-Nummer (beide von ghcr.io bezogen) oder die URL eines bereitgestellten Bundles hinzu und wende es dann auf einen Workspace an. Das Aktualisieren eines Eintrags sucht nach einem neueren Build und lädt die Workspaces neu, die ihn verwenden.",
+        "placeholder": "develop, 42364 oder http://127.0.0.1:4173/",
+        "add": "Hinzufügen",
+        "adding": "Es wird geprüft, ob der Build existiert…",
+        "applyTo": "Anwenden auf",
+        "apply": "Anwenden",
+        "refresh": "Nach einem neueren Build suchen",
+        "refreshing": "Es wird nach einem neueren Build gesucht…",
+        "current": "Bereits der neueste Build.",
+        "updated": "Auf den neuesten Build aktualisiert.",
+        "remove": "Aus der Liste entfernen",
+        "builtAt": "erstellt am {{- date}}",
+        "activeOn": "Aktiv in {{- workspaces}}",
+        "restore": "Server-UI wiederherstellen",
+        "active": "Aktiv in diesem Workspace: {{- label}}",
+        "loading": "Wird heruntergeladen und angewendet…",
+        "failed": "Laden fehlgeschlagen: {{- message}}",
+        "cancelled": "Abgebrochen.",
+        "inactive": "Die UI des Servers wird verwendet.",
+        "pullRequestState": {
+          "open": "Offen",
+          "draft": "Entwurf",
+          "merged": "Zusammengeführt",
+          "closed": "Geschlossen"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Web-UI-Vorschau"
     }
   },
   "error": {
@@ -311,6 +364,7 @@
     "settings": "Einstellungen",
     "editMenu": "&Bearbeiten",
     "fileMenu": "&Datei",
+    "findInPage": "&Suchen…",
     "forward": "&Nach vorne",
     "helpMenu": "&Hilfe",
     "hide": "Ausblenden {{- appName}}",
@@ -324,6 +378,7 @@
     "reload": "&Neu laden",
     "reportIssue": "Problem melden",
     "resetAppData": "Appdaten löschen",
+    "resetWindowBounds": "Fenstergrößen und -positionen zurücksetzen",
     "resetZoom": "Originalgröße",
     "selectAll": "Alle auswählen",
     "services": "Dienstleistungen",
@@ -339,7 +394,16 @@
     "windowMenu": "&Fenster",
     "zoomIn": "Vergrößern",
     "zoomOut": "Verkleinern",
-    "simulateDisconnected": "Verbindungsabbruch simulieren"
+    "simulateDisconnected": "Verbindungsabbruch simulieren",
+    "restoreServerUi": "Server-UI wiederherstellen"
+  },
+  "findInPage": {
+    "placeholder": "Auf Seite suchen",
+    "matchCount": "{{current}} von {{total}}",
+    "noMatches": "Keine Treffer",
+    "previous": "Vorheriger Treffer",
+    "next": "Nächster Treffer",
+    "close": "Schließen"
   },
   "loadingError": {
     "title": "Server konnte nicht geladen werden",
@@ -375,7 +439,8 @@
       "remove": "Server entfernen",
       "openDevTools": "DevTools öffnen",
       "clearCache": "Cache leeren",
-      "clearStorageData": "Speicherdaten löschen"
+      "clearStorageData": "Speicherdaten löschen",
+      "updateUiPreview": "UI-Vorschau aktualisieren"
     }
   },
   "tabBar": {
@@ -414,7 +479,8 @@
       "canceled": "Abgebrochen",
       "failed": "Fehlgeschlagen",
       "dismiss": "Schließen"
-    }
+    },
+    "uiPreview": "UI-Vorschau: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatierung",
@@ -458,6 +524,7 @@
     "permissionDenied": "Bildschirmaufnahme-Berechtigung verweigert",
     "permissionRequired": "Die Bildschirmaufnahme-Berechtigung ist erforderlich, um Ihren Bildschirm zu teilen.",
     "permissionInstructions": "Bitte aktivieren Sie diese in den Systemeinstellungen und versuchen Sie es erneut.",
+    "permissionAlreadyOnHint": "Bereits aktiviert? Wähle Rocket.Chat in dieser Liste aus, entferne es mit der Minus-Taste (−) und beende Rocket.Chat und öffne es erneut. Teile dann deinen Bildschirm noch einmal und erlaube den Zugriff, wenn macOS danach fragt.",
     "title": "Bildschirm teilen",
     "entireScreen": "Ihr gesamter Bildschirm",
     "applicationWindow": "Anwendungsfenster",

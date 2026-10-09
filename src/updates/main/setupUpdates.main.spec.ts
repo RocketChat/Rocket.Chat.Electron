@@ -12,11 +12,22 @@ import {
 const listeners = new Map<string, Function>();
 const select = jest.fn();
 const dispatch = jest.fn();
+// Mirrors electron-updater: the constructor allows prereleases when the
+// running version has a prerelease id, and the `channel` setter always
+// turns `allowDowngrade` on.
 const autoUpdater = {
   logger: null as unknown,
   autoDownload: false,
-  allowPrerelease: false,
-  channel: 'latest',
+  allowPrerelease: true,
+  allowDowngrade: false,
+  _channel: null as string | null,
+  get channel(): string | null {
+    return this._channel;
+  },
+  set channel(value: string | null) {
+    this._channel = value;
+    this.allowDowngrade = true;
+  },
   checkForUpdates: jest.fn(async () => undefined),
   checkForUpdatesAndNotify: jest.fn(async () => undefined),
   quitAndInstall: jest.fn(),
@@ -113,6 +124,9 @@ describe('updates/setupUpdates', () => {
       })
     );
     (fs.promises.readFile as jest.Mock).mockResolvedValue('{}');
+    autoUpdater.allowPrerelease = true;
+    autoUpdater.allowDowngrade = false;
+    autoUpdater._channel = null;
   });
 
   afterEach(() => {
@@ -164,5 +178,60 @@ describe('updates/setupUpdates', () => {
   it('loads update.json configuration files', async () => {
     await setupUpdates();
     expect(fs.promises.readFile).toHaveBeenCalled();
+  });
+
+  describe('update channel', () => {
+    const withChannel = (updateChannel: string) =>
+      select.mockImplementation((selector: any) =>
+        selector({
+          isUpdatingEnabled: true,
+          doCheckForUpdatesOnStartup: false,
+          skippedUpdateVersion: null,
+          updateChannel,
+          isEachUpdatesSettingConfigurable: true,
+          isUpdatingAllowed: true,
+          newUpdateVersion: null,
+        })
+      );
+
+    it('turns prereleases and downgrades off on the stable channel', async () => {
+      withChannel('latest');
+      await setupUpdates();
+      expect(autoUpdater.channel).toBe('latest');
+      expect(autoUpdater.allowPrerelease).toBe(false);
+      expect(autoUpdater.allowDowngrade).toBe(false);
+    });
+
+    it.each(['alpha', 'beta'])(
+      'allows prereleases but no downgrades on the %s channel',
+      async (channel) => {
+        withChannel(channel);
+        await setupUpdates();
+        expect(autoUpdater.channel).toBe(channel);
+        expect(autoUpdater.allowPrerelease).toBe(true);
+        expect(autoUpdater.allowDowngrade).toBe(false);
+      }
+    );
+
+    it('keeps the same rules when the user changes the channel', async () => {
+      withChannel('alpha');
+      await setupUpdates();
+
+      await listeners.get(ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED)?.({
+        type: ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
+        payload: 'latest',
+      });
+      expect(autoUpdater.channel).toBe('latest');
+      expect(autoUpdater.allowPrerelease).toBe(false);
+      expect(autoUpdater.allowDowngrade).toBe(false);
+
+      await listeners.get(ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED)?.({
+        type: ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
+        payload: 'beta',
+      });
+      expect(autoUpdater.channel).toBe('beta');
+      expect(autoUpdater.allowPrerelease).toBe(true);
+      expect(autoUpdater.allowDowngrade).toBe(false);
+    });
   });
 });

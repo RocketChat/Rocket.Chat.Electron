@@ -20,6 +20,7 @@ const COVERAGE_INCOMPATIBLE_SPECS = [
   '<rootDir>/src/servers/preload/__tests__/documentViewer.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/favicon.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/internalVideoChatWindow.spec.ts',
+  '<rootDir>/src/servers/preload/__tests__/mediaCapture.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/presence.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/sidebar.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/uniqueID.spec.ts',
@@ -35,6 +36,15 @@ const COVERAGE_INCOMPATIBLE_SPECS = [
 
 const isCoverageRun = process.argv.includes('--coverage');
 
+// Transpile-only ts-jest: every spec is compiled as an isolated module instead
+// of building a full type-checking Program per file. Cold-cache transform time
+// drops by roughly 60%, and CI always runs cold. Type errors in specs are still
+// caught by `tsc --noEmit` in `yarn lint`, which covers src/** including specs.
+// Passed as inline compiler options so tsconfig.json itself is unchanged.
+const tsJestTransform = {
+  '^.+\\.tsx?$': ['ts-jest', { tsconfig: { isolatedModules: true } }],
+};
+
 module.exports = {
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -49,7 +59,7 @@ module.exports = {
   coveragePathIgnorePatterns: ['/node_modules/', '/app/', '/dist/'],
   projects: [
     {
-      preset: 'ts-jest',
+      transform: tsJestTransform,
       errorOnDeprecated: true,
       runner: '@kayahr/jest-electron-runner',
       testEnvironment: '@kayahr/jest-electron-runner/environment',
@@ -62,7 +72,7 @@ module.exports = {
       setupFilesAfterEnv: ['./src/.jest/setup.ts'],
     },
     {
-      preset: 'ts-jest',
+      transform: tsJestTransform,
       errorOnDeprecated: true,
       runner: '@kayahr/jest-electron-runner/main',
       testEnvironment: 'node',
@@ -75,7 +85,7 @@ module.exports = {
       setupFilesAfterEnv: ['./src/.jest/setup.ts'],
     },
     {
-      preset: 'ts-jest',
+      transform: tsJestTransform,
       errorOnDeprecated: true,
       testEnvironment: 'node',
       testMatch: ['<rootDir>/scripts/**/*.(spec|test).ts'],

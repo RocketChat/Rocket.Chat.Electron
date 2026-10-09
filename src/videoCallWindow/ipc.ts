@@ -16,7 +16,7 @@ import { ScreenSharingRequestTracker } from '../screenSharing/ScreenSharingReque
 import {
   clearDesktopCapturerCache,
   getDesktopCapturerCacheStatus,
-  prewarmDesktopCapturerCache,
+  prewarmDesktopCapturerCacheIfPermitted,
 } from '../screenSharing/desktopCapturerCache';
 import { requestViaPickerWindow } from '../screenSharing/popoutPickerRequest';
 import type {
@@ -29,8 +29,12 @@ import {
   resolveStandaloneOriginWindow,
   setupServerViewDisplayMedia,
 } from '../screenSharing/serverViewScreenSharing';
-import { select, dispatchLocal } from '../store';
-import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
+import type { MediaCaptureState } from '../servers/common';
+import { select, dispatch, dispatchLocal } from '../store';
+import {
+  VIDEO_CALL_WINDOW_STATE_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
+} from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
@@ -70,11 +74,6 @@ let activeCall: ActiveCall | null = null;
 // Serializes open-window requests so two near-simultaneous opens can't both pass
 // the destruction/existing-window guards and race into `new BrowserWindow`.
 let openWindowQueue: Promise<unknown> = Promise.resolve();
-let videoCallCredentials: {
-  userId: string;
-  authToken: string;
-  serverUrl: string;
-} | null = null;
 let videoCallProviderName: string | null = null;
 
 const videoCallScreenSharingTracker = new ScreenSharingRequestTracker(
@@ -160,6 +159,21 @@ const restoreServerViewHandler = async (
   }
 };
 
+// Clears the 'videoCall' media capture source for the call's originating
+// server so the tab indicator drops the moment the call window closes,
+// instead of lingering on whatever capture state was last reported. No-op for
+// isolated/fallback sessions (no server url to key the state on). Safe to call
+// from every teardown path — the same idempotency reasoning as
+// `restoreServerViewHandler` applies (last-writer-wins reducer merge).
+const clearVideoCallMediaCapture = (call: ActiveCall | null): void => {
+  if (!call?.isSharedSession) return;
+  const serverUrl = call.partition.replace(/^persist:/, '');
+  dispatch({
+    type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+    payload: { url: serverUrl, source: 'videoCall', state: null },
+  });
+};
+
 const cleanupVideoCallWindow = () => {
   const capturedCall = activeCall;
   if (
@@ -211,6 +225,7 @@ const cleanupVideoCallWindow = () => {
       // Restore the server-view display-media handler that this call's unified
       // handler took over (no-op on isolated/fallback sessions).
       void restoreServerViewHandler(capturedCall);
+      clearVideoCallMediaCapture(capturedCall);
 
       // Tear down screen sharing (active + queued) before removing window
       // listeners — silent cleanup() would orphan a popout-parented picker
@@ -242,9 +257,6 @@ const cleanupVideoCallWindow = () => {
       }
     }
   }
-
-  // Clear credentials immediately during cleanup
-  videoCallCredentials = null;
 
   // Use setTimeout to ensure this cleanup happens after any window events are processed
   setTimeout(() => {
@@ -320,6 +332,101 @@ const handleVideoCallWindowOpen = ({
     return { action: 'allow' };
   }
   return { action: 'deny' };
+};
+
+// Window-open policy for the conference (guest) webview only. Unlike the host
+// page above, an http(s) popup here isn't always a plain external link — SSO
+// providers (e.g. Pexip's IdP login flow) rely on `window.open` handing
+// control back to the opener via `window.opener`, which only works if the
+// popup is a real (sandboxed) Electron child window. Tab-target links
+// (middle-click / ctrl-click) still go to the system browser; dangerous
+// schemes are still denied.
+type WindowOpenDetails = {
+  url: string;
+  disposition: string;
+};
+const handleConferenceWebviewWindowOpen = ({
+  url,
+  disposition,
+}: WindowOpenDetails):
+  | { action: 'deny' }
+  | {
+      action: 'allow';
+      overrideBrowserWindowOptions?: Electron.BrowserWindowConstructorOptions;
+    } => {
+  if (disposition === 'foreground-tab' || disposition === 'background-tab') {
+    isProtocolAllowed(url).then((allowed) => {
+      if (allowed) {
+        openExternal(url);
+      }
+    });
+    return { action: 'deny' };
+  }
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        show: false,
+        autoHideMenuBar: true,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+          sandbox: true,
+          webviewTag: false,
+        },
+      },
+    };
+  }
+
+  const lower = url.toLowerCase();
+  if (ALLOWED_POPUP_SCHEMES.some((scheme) => lower.startsWith(scheme))) {
+    return { action: 'allow' };
+  }
+  return { action: 'deny' };
+};
+
+// Shared by the conference webview's own `will-navigate`/`will-redirect` and
+// any popup child window it spawns: send external-protocol target="_self"
+// navigations (mailto:, tel:, custom schemes) — whether page-initiated
+// (`will-navigate`) or a server-side redirect (`will-redirect`) — to the
+// browser; http(s)/file/data/about/blob navigations stay in place so auth
+// redirects and the conference's own flows keep working.
+const handleConferenceWillNavigate = (event: Event, navUrl: string): void => {
+  try {
+    const { protocol } = new URL(navUrl);
+    if (
+      !['http:', 'https:', 'file:', 'data:', 'about:', 'blob:'].includes(
+        protocol
+      )
+    ) {
+      event.preventDefault();
+      isProtocolAllowed(navUrl).then((allowed) => {
+        if (allowed) {
+          openExternal(navUrl);
+        }
+      });
+    }
+  } catch {
+    // Ignore unparseable URLs.
+  }
+};
+
+// Applies the conference guest's popup policy (window-open handler,
+// will-navigate/will-redirect guards) to a popup window, and recurses via
+// `did-create-window` so every descendant popup (a popup opened from a
+// popup, and so on) gets the same wiring — a grandchild can't slip through
+// unpoliced just because it wasn't opened directly from the webview.
+const attachConferencePopupPolicy = (childWindow: BrowserWindow): void => {
+  childWindow.once('ready-to-show', () => {
+    childWindow.show();
+  });
+  childWindow.webContents.setWindowOpenHandler(
+    handleConferenceWebviewWindowOpen
+  );
+  childWindow.webContents.on('will-navigate', handleConferenceWillNavigate);
+  childWindow.webContents.on('will-redirect', handleConferenceWillNavigate);
+  childWindow.webContents.on('did-create-window', attachConferencePopupPolicy);
 };
 
 const setupWebviewHandlers = (webContents: WebContents) => {
@@ -400,32 +507,23 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     webviewWebContents: WebContents
   ): void => {
     // Route external links opened from the conference (target="_blank" /
-    // window.open) to the system browser instead of spawning a new Electron
-    // window, mirroring the main app window.
-    webviewWebContents.setWindowOpenHandler(handleVideoCallWindowOpen);
+    // window.open) to a sandboxed Electron popup window for plain http(s)
+    // (needed for SSO/IdP login flows such as Pexip, which rely on
+    // window.opener), and to the system browser for tab-target links and
+    // in-app popup schemes otherwise. See handleConferenceWebviewWindowOpen.
+    webviewWebContents.setWindowOpenHandler(handleConferenceWebviewWindowOpen);
 
     // Send external-protocol target="_self" navigations (mailto:, tel:, custom
     // schemes) to the browser too; http(s) self-navigations stay in the webview
     // so the conference's own flows (auth redirects, etc.) keep working.
-    webviewWebContents.on('will-navigate', (event: Event, navUrl: string) => {
-      try {
-        const { protocol } = new URL(navUrl);
-        if (
-          !['http:', 'https:', 'file:', 'data:', 'about:', 'blob:'].includes(
-            protocol
-          )
-        ) {
-          event.preventDefault();
-          isProtocolAllowed(navUrl).then((allowed) => {
-            if (allowed) {
-              openExternal(navUrl);
-            }
-          });
-        }
-      } catch {
-        // Ignore unparseable URLs.
-      }
-    });
+    webviewWebContents.on('will-navigate', handleConferenceWillNavigate);
+    webviewWebContents.on('will-redirect', handleConferenceWillNavigate);
+
+    // A guest-webview popup (e.g. an SSO/IdP login window) is created hidden
+    // to avoid a white flash, and the same policy is applied to every
+    // descendant popup (a popup opened from this popup, and so on) via
+    // attachConferencePopupPolicy's own did-create-window registration.
+    webviewWebContents.on('did-create-window', attachConferencePopupPolicy);
 
     // Media (mic/cam) permission requests from the conference originate in the
     // webview's session, NOT the host window's, so the handler must live on the
@@ -518,7 +616,6 @@ const openVideoCallWindow = async (
   url: string,
   options?: {
     providerName?: string;
-    credentials?: { userId: string; authToken: string };
   }
 ): Promise<void> => {
   console.log('Video call window: Open-window handler called with URL:', url);
@@ -543,22 +640,7 @@ const openVideoCallWindow = async (
     return;
   }
 
-  // Store provider name and credentials
   videoCallProviderName = options?.providerName ?? null;
-  videoCallCredentials = null;
-  if (options?.providerName === 'pexip' && options?.credentials) {
-    try {
-      const serverOrigin = new URL(_wc.getURL()).origin;
-      videoCallCredentials = {
-        userId: options.credentials.userId,
-        authToken: options.credentials.authToken,
-        serverUrl: serverOrigin,
-      };
-    } catch {
-      // _wc.getURL() may not be a valid URL in edge cases
-      videoCallCredentials = null;
-    }
-  }
 
   if (isVideoCallWindowDestroying) {
     console.log('Waiting for video call window destruction to complete...');
@@ -797,9 +879,9 @@ const openVideoCallWindow = async (
       // display-media handler. Restore the plain server-view handler so
       // main-app screen sharing keeps working (no-op on isolated sessions).
       void restoreServerViewHandler(capturedCall);
+      clearVideoCallMediaCapture(capturedCall);
 
-      // Clear credentials and provider on close
-      videoCallCredentials = null;
+      // Clear provider on close
       videoCallProviderName = null;
 
       // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
@@ -981,6 +1063,7 @@ const openVideoCallWindow = async (
     // never fires — restore the server-view handler here too (idempotent).
     webContents.on('render-process-gone', () => {
       void restoreServerViewHandler(capturedCall);
+      clearVideoCallMediaCapture(capturedCall);
     });
 
     // Set the pending URL after window is created to prevent race condition with cleanup
@@ -1086,9 +1169,51 @@ const openVideoCallWindow = async (
   }
 };
 
+export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
+  if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+    console.warn('Video call window not available for dev tools');
+    return false;
+  }
+
+  try {
+    const webviewWebContents = await new Promise<WebContents | null>(
+      (resolve) => {
+        const checkForWebview = () => {
+          const allWebContents = webContents.getAllWebContents();
+
+          const webviewContents = allWebContents.find((wc: WebContents) => {
+            return wc.hostWebContents === videoCallWindow?.webContents;
+          });
+
+          if (webviewContents) {
+            resolve(webviewContents);
+          } else {
+            setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
+          }
+        };
+
+        checkForWebview();
+
+        setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
+      }
+    );
+
+    if (webviewWebContents && !webviewWebContents.isDestroyed()) {
+      console.log('Opening developer tools for video call webview');
+      webviewWebContents.openDevTools();
+      return true;
+    }
+    console.warn('Video call webview webContents not found or destroyed');
+    return false;
+  } catch (error) {
+    console.error('Error opening webview developer tools:', error);
+    return false;
+  }
+};
+
 export const startVideoCallWindowHandler = (): void => {
   // Sync IPC handler for provider name - used by jitsiBridge preload
-  // to skip initialization for non-Jitsi providers without async delay
+  // to skip ScreenObtainer install for non-Jitsi providers without async delay
   ipcMain.on('video-call-window/get-provider-sync', (event) => {
     event.returnValue = videoCallProviderName;
   });
@@ -1109,6 +1234,35 @@ export const startVideoCallWindowHandler = (): void => {
       win.close();
     }
   });
+
+  // Reported by the media capture hook script injected into the call
+  // window's page (see src/videoCallWindow/preload/index.ts). Attributes the
+  // state to the call's originating server via `activeCall`'s partition —
+  // the call window itself has no server url of its own.
+  ipcMain.on(
+    'video-call-window/media-capture-changed',
+    (_event, state: MediaCaptureState) => {
+      if (
+        typeof state !== 'object' ||
+        state === null ||
+        typeof state.camera !== 'boolean' ||
+        typeof state.microphone !== 'boolean' ||
+        typeof state.screen !== 'boolean'
+      ) {
+        return;
+      }
+
+      if (!activeCall?.isSharedSession) {
+        return;
+      }
+
+      const serverUrl = activeCall.partition.replace(/^persist:/, '');
+      dispatch({
+        type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+        payload: { url: serverUrl, source: 'videoCall', state },
+      });
+    }
+  );
 
   handle('video-call-window/screen-recording-is-permission-granted', async () =>
     checkScreenRecordingPermission()
@@ -1269,89 +1423,9 @@ export const startVideoCallWindowHandler = (): void => {
     return { success: false };
   });
 
-  handle('video-call-window/open-webview-dev-tools', async () => {
-    if (!videoCallWindow || videoCallWindow.isDestroyed()) {
-      console.warn('Video call window not available for dev tools');
-      return false;
-    }
-
-    try {
-      const webviewWebContents = await new Promise<WebContents | null>(
-        (resolve) => {
-          const checkForWebview = () => {
-            const allWebContents = webContents.getAllWebContents();
-
-            const webviewContents = allWebContents.find((wc) => {
-              return wc.hostWebContents === videoCallWindow?.webContents;
-            });
-
-            if (webviewContents) {
-              resolve(webviewContents);
-            } else {
-              setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
-            }
-          };
-
-          checkForWebview();
-
-          setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
-        }
-      );
-
-      if (webviewWebContents && !webviewWebContents.isDestroyed()) {
-        console.log('Opening developer tools for video call webview');
-        webviewWebContents.openDevTools();
-        return true;
-      }
-      console.warn('Video call webview webContents not found or destroyed');
-      return false;
-    } catch (error) {
-      console.error('Error opening webview developer tools:', error);
-      return false;
-    }
-  });
-};
-
-export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
-  if (!videoCallWindow || videoCallWindow.isDestroyed()) {
-    console.warn('Video call window not available for dev tools');
-    return false;
-  }
-
-  try {
-    const webviewWebContents = await new Promise<WebContents | null>(
-      (resolve) => {
-        const checkForWebview = () => {
-          const allWebContents = webContents.getAllWebContents();
-
-          const webviewContents = allWebContents.find((wc: WebContents) => {
-            return wc.hostWebContents === videoCallWindow?.webContents;
-          });
-
-          if (webviewContents) {
-            resolve(webviewContents);
-          } else {
-            setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
-          }
-        };
-
-        checkForWebview();
-
-        setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
-      }
-    );
-
-    if (webviewWebContents && !webviewWebContents.isDestroyed()) {
-      console.log('Opening developer tools for video call webview');
-      webviewWebContents.openDevTools();
-      return true;
-    }
-    console.warn('Video call webview webContents not found or destroyed');
-    return false;
-  } catch (error) {
-    console.error('Error opening webview developer tools:', error);
-    return false;
-  }
+  handle('video-call-window/open-webview-dev-tools', async () =>
+    openVideoCallWebviewDevTools()
+  );
 };
 
 export const cleanupVideoCallResources = () => {
@@ -1362,11 +1436,6 @@ export const cleanupVideoCallResources = () => {
   isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();
 };
-
-handle('video-call-window/test-ipc', async () => {
-  console.log('Video call window: IPC test request received');
-  return { success: true, timestamp: Date.now() };
-});
 
 handle('video-call-window/handshake', async () => {
   console.log('Video call window: Handshake request received');
@@ -1444,21 +1513,6 @@ handle('video-call-window/webview-failed', async (_webContents, error) => {
   return { success: true };
 });
 
-handle('video-call-window/get-credentials', async (callerWebContents) => {
-  // Only return credentials to the video call window's webview
-  const isAuthorizedCaller =
-    !!videoCallWindow &&
-    !videoCallWindow.isDestroyed() &&
-    (callerWebContents.id === videoCallWindow.webContents.id ||
-      callerWebContents.hostWebContents?.id === videoCallWindow.webContents.id);
-
-  if (!isAuthorizedCaller || !videoCallCredentials) {
-    return null;
-  }
-
-  return videoCallCredentials;
-});
-
 handle('video-call-window/get-language', async () => {
   console.log('Video call window: Language request received');
 
@@ -1474,6 +1528,6 @@ handle('video-call-window/get-language', async () => {
 });
 
 handle('video-call-window/prewarm-capturer-cache', async () => {
-  prewarmDesktopCapturerCache();
+  await prewarmDesktopCapturerCacheIfPermitted();
   return { success: true };
 });

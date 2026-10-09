@@ -7,6 +7,7 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { DOWNLOADS_SIMULATION_REQUESTED } from '../../downloads/actions';
+import { loggers } from '../../logging/scopes';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -21,6 +22,7 @@ import {
   APP_MENU_TRIGGERED,
   CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
+  MENU_BAR_FIND_IN_PAGE_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
   MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
@@ -39,13 +41,18 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  SIDE_BAR_SERVER_TOGGLE_MUTE,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
+  WINDOW_BOUNDS_RESET,
 } from '../actions';
 import { formatServerTitle } from '../components/utils/formatServerTitle';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
+import { terminateIfUnresponsive } from './serverView/hangRecovery';
+import { clearUiOverride } from './serverView/uiOverride';
+import { updateUiPreviewWithDialog } from './serverView/uiPreview';
 
 const t = i18next.t.bind(i18next);
 
@@ -301,6 +308,21 @@ export const createEditMenu = createSelector(
         label: t('menus.selectAll'),
         role: 'selectAll',
       },
+      { type: 'separator' },
+      {
+        id: 'findInPage',
+        label: t('menus.findInPage'),
+        accelerator: 'CommandOrControl+F',
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          dispatch({ type: MENU_BAR_FIND_IN_PAGE_CLICKED });
+        },
+      },
     ],
   })
 );
@@ -350,9 +372,25 @@ export const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+R',
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const guestWebContents = await getCurrentViewWebcontents();
-          guestWebContents?.reload();
           const currentView = await getCurrentView();
+          const guestWebContents =
+            typeof currentView === 'object' && currentView.url
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          if (
+            guestWebContents &&
+            typeof currentView === 'object' &&
+            (await terminateIfUnresponsive(guestWebContents))
+          ) {
+            guestWebContents.loadURL(currentView.url).catch((error) => {
+              console.error(
+                'Failed to reload unresponsive server view:',
+                error
+              );
+            });
+          } else {
+            guestWebContents?.reload();
+          }
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,
@@ -403,6 +441,17 @@ export const createViewMenu = createSelector(
           windows.forEach((window) => {
             window.webContents.toggleDevTools();
           });
+        },
+      },
+      {
+        id: 'restoreServerUi',
+        label: t('menus.restoreServerUi'),
+        enabled: typeof currentView === 'object' && !!currentView.url,
+        click: async () => {
+          const currentView = await getCurrentView();
+          if (typeof currentView === 'object' && !!currentView.url) {
+            await clearUiOverride(currentView.url);
+          }
         },
       },
       { type: 'separator' },
@@ -562,6 +611,13 @@ export const createViewMenu = createSelector(
         },
       },
       {
+        id: 'resetWindowBounds',
+        label: t('menus.resetWindowBounds'),
+        click: () => {
+          dispatch({ type: WINDOW_BOUNDS_RESET });
+        },
+      },
+      {
         id: 'zoomIn',
         label: t('menus.zoomIn'),
         accelerator: 'CommandOrControl+=',
@@ -602,6 +658,10 @@ export const createViewMenu = createSelector(
 const selectWindowDeps = createStructuredSelector({
   servers: ({ servers }: RootState) => servers,
   currentView: ({ currentView }: RootState) => currentView,
+  isDownloadsWindowOpen: ({ isDownloadsWindowOpen }: RootState) =>
+    isDownloadsWindowOpen,
+  isSettingsWindowOpen: ({ isSettingsWindowOpen }: RootState) =>
+    isSettingsWindowOpen,
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
   }: RootState) => isShowWindowOnUnreadChangedEnabled,
@@ -622,6 +682,8 @@ export const createWindowMenu = createSelector(
   ({
     servers,
     currentView,
+    isDownloadsWindowOpen,
+    isSettingsWindowOpen,
     isShowWindowOnUnreadChangedEnabled,
     isAddNewServersEnabled,
   }): MenuItemConstructorOptions => ({
@@ -697,7 +759,8 @@ export const createWindowMenu = createSelector(
       {
         id: 'downloads',
         label: t('menus.downloads'),
-        checked: currentView === 'downloads',
+        type: 'checkbox',
+        checked: isDownloadsWindowOpen,
         accelerator: 'CommandOrControl+D',
         click: async () => {
           const browserWindow = await getRootWindow();
@@ -712,7 +775,8 @@ export const createWindowMenu = createSelector(
       {
         id: 'settings',
         label: t('menus.settings'),
-        checked: currentView === 'settings',
+        type: 'checkbox',
+        checked: isSettingsWindowOpen,
         accelerator: 'CommandOrControl+,',
         click: async () => {
           const browserWindow = await getRootWindow();
@@ -1250,6 +1314,15 @@ export const getServerContextMenuTemplate = (
       },
     },
     {
+      id: 'muteWorkspace',
+      type: 'checkbox',
+      label: t('sidebar.item.muteWorkspace'),
+      checked: !!server?.isAudioMuted,
+      click: () => {
+        dispatch({ type: SIDE_BAR_SERVER_TOGGLE_MUTE, payload: url });
+      },
+    },
+    {
       id: 'openDevTools',
       label: t('sidebar.item.openDevTools'),
       accelerator:
@@ -1276,6 +1349,27 @@ export const getServerContextMenuTemplate = (
         });
       },
     },
+    ...on(!!server?.uiPreview, () => [
+      { type: 'separator' } as MenuItemConstructorOptions,
+      {
+        id: 'updateUiPreview',
+        label: t('sidebar.item.updateUiPreview'),
+        click: () => {
+          updateUiPreviewWithDialog(url).catch((error) =>
+            loggers.ui.error('Failed to update the UI preview', error)
+          );
+        },
+      } as MenuItemConstructorOptions,
+      {
+        id: 'restoreServerUi',
+        label: t('menus.restoreServerUi'),
+        click: () => {
+          clearUiOverride(url).catch((error) =>
+            loggers.ui.error('Failed to restore the server UI', error)
+          );
+        },
+      } as MenuItemConstructorOptions,
+    ]),
     // Isolate the destructive action in its own section. Native menus can't
     // color an item, so a separator is the only available emphasis.
     { type: 'separator' },

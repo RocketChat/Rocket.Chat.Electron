@@ -1,11 +1,10 @@
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 
 import {
   performElectronStartup,
   setupApp,
   initializeScreenCaptureFallbackState,
   setupGpuCrashHandler,
-  markMainWindowStable,
 } from './app/main/app';
 import {
   mergePersistableValues,
@@ -78,6 +77,7 @@ import {
 } from './ui/main/rootWindow';
 import { startSecondaryWindowControlsHandler } from './ui/main/secondaryWindowControls';
 import { attachGuestWebContentsEvents } from './ui/main/serverView';
+import { setupUiPreviewIpc } from './ui/main/serverView/uiPreview';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
@@ -87,18 +87,45 @@ import {
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
+/**
+ * Startup can fail before any window exists, which otherwise looks like the
+ * app silently refusing to launch. `showErrorBox` is used because it is the
+ * only dialog available before `app.whenReady()` resolves.
+ */
+const showStartupFailureDialog = (error: unknown): void => {
+  const detail = error instanceof Error ? error.message : String(error);
+
+  try {
+    dialog.showErrorBox(
+      'Rocket.Chat could not start',
+      `${detail}\n\nIf this keeps happening, please report it with the log file at:\n${app.getPath(
+        'logs'
+      )}`
+    );
+  } catch (dialogError) {
+    logger.error('Failed to show the startup failure dialog', dialogError);
+  }
+};
+
 const start = async (): Promise<void> => {
   setUserDataDirectory();
   applySystemCertificates();
 
-  logger.info('Starting Rocket.Chat Desktop application');
+  logger.info(
+    'Starting Rocket.Chat Desktop application',
+    JSON.stringify({
+      version: app.getVersion(),
+      userData: app.getPath('userData'),
+      startHidden: app.commandLine.hasSwitch('start-hidden'),
+    })
+  );
 
   setupWebContentsLogging();
 
   performElectronStartup();
   setupDeepLinks();
 
-  // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
+  // BEFORE whenReady so early GPU failures are caught
   setupGpuCrashHandler();
 
   await app.whenReady();
@@ -114,10 +141,8 @@ const start = async (): Promise<void> => {
   setupOutlookLogger();
   setupDebugLoggingWatch();
 
-  // Initialize screen capture fallback state after store is available
   initializeScreenCaptureFallbackState();
 
-  // Set up electron-dl with our download tracking callbacks
   setupElectronDlWithTracking();
 
   const localStorage = await exportLocalStorage();
@@ -134,10 +159,9 @@ const start = async (): Promise<void> => {
   createRootWindow();
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
+  setupUiPreviewIpc();
   await showRootWindow();
 
-  // Mark main window as stable - GPU crashes after this won't trigger fallback
-  markMainWindowStable();
   watchMachineTheme();
   setupNotifications();
   attentionDrawing.setUp();
@@ -198,5 +222,6 @@ const start = async (): Promise<void> => {
 
 start().catch((error) => {
   logger.error('Failed to start application', error);
+  showStartupFailureDialog(error);
   app.exit(1);
 });

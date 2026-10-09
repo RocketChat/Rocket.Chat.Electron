@@ -148,6 +148,15 @@
     },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
+    },
+    "uiOverride": {
+      "title": "Carregar prévia de UI",
+      "message": "Carregar outra interface web para \"{{- host}}\"?",
+      "detail": "A interface será carregada de {{- bundle}} e rodará com sua sessão neste servidor. Continue apenas se confiar neste build. Use Exibir > Restaurar UI do servidor ou reinicie o app para voltar.",
+      "load": "Carregar UI",
+      "cancel": "Cancelar",
+      "developerModeRequired": "Ative Ajuda > Modo desenvolvedor para carregar prévias de UI.",
+      "failed": "Não foi possível carregar a prévia de UI."
     }
   },
   "documentViewer": {
@@ -237,6 +246,10 @@
         "title": "Aceleração de hardware",
         "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
       },
+      "resetWindowBounds": {
+        "title": "Redefinir tamanhos e posições das janelas",
+        "description": "Esquece onde o aplicativo e suas janelas foram posicionados. Cada janela abre no tamanho padrão, centralizada, na próxima vez em que for exibida."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Fallback de captura para videochamadas",
         "description": "Desativa o Windows Graphics Capture para que o compartilhamento funcione em sessões RDP. O aplicativo reinicia ao mudar esta opção.",
@@ -263,6 +276,15 @@
       "trayIcon": {
         "title": "Ícone da bandeja",
         "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Contador de não lidas no ícone da bandeja",
+        "titleDarwin": "Indicador de não lidas no ícone da barra de menus",
+        "description": "Mostra o indicador de mensagens não lidas no ícone em vez do seu status de presença."
+      },
+      "menuBarUnreadCount": {
+        "title": "Contagem de não lidas na barra de menus",
+        "description": "Mostra o número de menções não lidas ao lado do ícone na barra de menus."
       },
       "availableBrowsers": {
         "title": "Navegador Padrão",
@@ -298,7 +320,38 @@
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Escuro"
+      },
+      "uiPreview": {
+        "title": "Carregar um build da UI web",
+        "description": "Roda um build do cliente web do Rocket.Chat no lugar da UI de um workspace, mantendo sua sessão. Adicione \"develop\" ou o número de um PR do Rocket.Chat (ambos baixados do ghcr.io), ou a URL de um bundle servido, e depois aplique-o a um workspace. Atualizar um item procura um build mais novo e recarrega os workspaces que o usam.",
+        "placeholder": "develop, 42364 ou http://127.0.0.1:4173/",
+        "add": "Adicionar",
+        "adding": "Verificando se o build existe…",
+        "applyTo": "Aplicar em",
+        "apply": "Aplicar",
+        "refresh": "Procurar um build mais novo",
+        "refreshing": "Procurando um build mais novo…",
+        "current": "Já é o build mais novo.",
+        "updated": "Atualizado para o build mais novo.",
+        "remove": "Remover da lista",
+        "builtAt": "gerado em {{- date}}",
+        "activeOn": "Ativo em {{- workspaces}}",
+        "restore": "Restaurar UI do servidor",
+        "active": "Ativo neste workspace: {{- label}}",
+        "loading": "Baixando e aplicando…",
+        "failed": "Não foi possível carregar: {{- message}}",
+        "cancelled": "Cancelado.",
+        "inactive": "Usando a UI do servidor.",
+        "pullRequestState": {
+          "open": "Aberto",
+          "draft": "Rascunho",
+          "merged": "Mesclado",
+          "closed": "Fechado"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Prévia de UI web"
     }
   },
   "error": {
@@ -329,6 +382,7 @@
     "settings": "Configurações",
     "editMenu": "&Editar",
     "fileMenu": "&Arquivo",
+    "findInPage": "&Localizar…",
     "forward": "&Avançar",
     "helpMenu": "Aj&uda",
     "hide": "Ocultar {{- appName}}",
@@ -344,6 +398,7 @@
     "reloadClearingCache": "Forçar recarregamento",
     "reportIssue": "Reportar problema",
     "resetAppData": "Limpar dados do aplicativo",
+    "resetWindowBounds": "Redefinir tamanhos e posições das janelas",
     "resetZoom": "Redefinir zoom",
     "selectAll": "&Selecionar tudo",
     "services": "Serviços",
@@ -359,7 +414,16 @@
     "windowMenu": "&Janela",
     "zoomIn": "Aumentar zoom",
     "zoomOut": "Diminuir zoom",
-    "simulateDisconnected": "Simular desconexão"
+    "simulateDisconnected": "Simular desconexão",
+    "restoreServerUi": "Restaurar UI do servidor"
+  },
+  "findInPage": {
+    "placeholder": "Localizar na página",
+    "matchCount": "{{current}} de {{total}}",
+    "noMatches": "Nenhuma correspondência",
+    "previous": "Correspondência anterior",
+    "next": "Próxima correspondência",
+    "close": "Fechar"
   },
   "loadingError": {
     "title": "Servidor Falhou em Carregar",
@@ -403,14 +467,23 @@
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
       "copyCurrentUrl": "Copiar URL",
-      "reloadClearingCache": "Forçar recarregamento"
+      "updateUiPreview": "Atualizar prévia de UI",
+      "reloadClearingCache": "Forçar recarregamento",
+      "muteWorkspace": "Silenciar workspace"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} mensagem não lida",
       "unreadMessages": "{{- count}} mensagens não lidas",
       "userNotLoggedIn": "Não conectado",
       "addWorkspace": "Adicionar workspace ({{shortcut}}+N)",
-      "settingsMenu": "Personalizar e controlar app"
+      "settingsMenu": "Personalizar e controlar app",
+      "audioPlaying": "Reproduzindo áudio",
+      "audioMuted": "Silenciado",
+      "muteWorkspace": "Silenciar workspace",
+      "unmuteWorkspace": "Reativar som do workspace",
+      "captureScreen": "Compartilhando tela",
+      "captureCamera": "Câmera ligada",
+      "captureMicrophone": "Microfone ligado"
     }
   },
   "tabBar": {
@@ -449,7 +522,8 @@
       "canceled": "Cancelado",
       "failed": "Falhou",
       "dismiss": "Fechar"
-    }
+    },
+    "uiPreview": "Prévia de UI: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatação",
@@ -493,6 +567,7 @@
     "permissionDenied": "Permissão de Gravação de Tela Negada",
     "permissionRequired": "A permissão de gravação de tela é necessária para compartilhar sua tela.",
     "permissionInstructions": "Por favor, ative-a nas preferências do sistema e tente novamente.",
+    "permissionAlreadyOnHint": "Já está ativado? Selecione o Rocket.Chat nessa lista, remova-o com o botão de menos (−) e feche e abra o Rocket.Chat de novo. Depois compartilhe a tela novamente e permita o acesso quando o macOS pedir.",
     "title": "Compartilhar sua tela",
     "entireScreen": "Toda sua tela",
     "applicationWindow": "Janela de aplicativo",

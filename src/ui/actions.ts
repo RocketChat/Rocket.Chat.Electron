@@ -1,7 +1,16 @@
 import type { WebContents } from 'electron';
 
-import type { Server } from '../servers/common';
-import type { NavigationLayout, RootWindowIcon, WindowState } from './common';
+import type {
+  MediaCaptureSource,
+  MediaCaptureState,
+  Server,
+} from '../servers/common';
+import type {
+  NavigationLayout,
+  RootWindowIcon,
+  UiPreviewHistoryEntry,
+  WindowState,
+} from './common';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
@@ -19,13 +28,12 @@ export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED =
   'menu-bar/add-new-server-clicked';
+export const MENU_BAR_FIND_IN_PAGE_CLICKED = 'menu-bar/find-in-page-clicked';
 export const MENU_BAR_SELECT_SERVER_CLICKED = 'menu-bar/select-server-clicked';
 export const MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED =
   'menu-bar/toggle-is-menu-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED =
   'menu-bar/toggle-is-show-window-on-unread-changed-enabled-clicked';
-export const MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED =
-  'menu-bar/toggle-is-side-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED =
@@ -58,7 +66,11 @@ export const WEBVIEW_ATTACHED = 'webview/attached';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_DID_START_LOADING = 'webview/did-start-loading';
+export const WEBVIEW_BECAME_RESPONSIVE = 'webview/became-responsive';
 export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
+export const WEBVIEW_AUDIO_STATE_CHANGED = 'webview/audio-state-changed';
+export const WEBVIEW_AUDIO_MUTED_CHANGED = 'webview/audio-muted-changed';
+export const WEBVIEW_MEDIA_CAPTURE_CHANGED = 'webview/media-capture-changed';
 export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';
 export const WEBVIEW_MESSAGE_BOX_BLURRED = 'webview/message-box-blurred';
 export const WEBVIEW_MESSAGE_BOX_FOCUSED = 'webview/message-box-focused';
@@ -92,10 +104,12 @@ export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
 export const SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED =
   'settings/set-is-tray-icon-enabled-changed';
+export const SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED =
+  'settings/set-is-tray-icon-unread-counter-enabled-changed';
+export const SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED =
+  'settings/set-is-menu-bar-unread-count-enabled-changed';
 export const SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED =
   'settings/set-is-telephony-enabled-changed';
-export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
-  'settings/set-is-side-bar-enabled-changed';
 export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
   'settings/set-is-menu-bar-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED =
@@ -111,6 +125,11 @@ export const DOWNLOADS_WINDOW_OPEN_STATE_CHANGED =
 export const SETTINGS_WINDOW_OPEN_STATE_CHANGED =
   'settings-window/open-state-changed';
 export const SECONDARY_WINDOW_STATE_CHANGED = 'secondary-window/state-changed';
+export const UI_PREVIEW_HISTORY_ENTRY_ADDED = 'ui-preview-history/entry-added';
+export const UI_PREVIEW_HISTORY_ENTRY_UPDATED =
+  'ui-preview-history/entry-updated';
+export const UI_PREVIEW_HISTORY_ENTRY_REMOVED =
+  'ui-preview-history/entry-removed';
 export const SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED =
   'settings/set-is-video-call-devtools-auto-open-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED =
@@ -162,6 +181,7 @@ export const SIDE_BAR_SERVER_COPY_URL = 'side-bar/server-copy-url';
 export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
 export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
+export const SIDE_BAR_SERVER_TOGGLE_MUTE = 'side-bar/server-toggle-mute';
 export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
 export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
@@ -182,6 +202,7 @@ export const WINDOW_CONTROLS_MINIMIZE_CLICKED =
 export const WINDOW_CONTROLS_MAXIMIZE_CLICKED =
   'window-controls/maximize-clicked';
 export const WINDOW_CONTROLS_CLOSE_CLICKED = 'window-controls/close-clicked';
+export const WINDOW_BOUNDS_RESET = 'window-bounds/reset';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -194,10 +215,10 @@ export type UiActionTypeToPayloadMap = {
   [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
+  [MENU_BAR_FIND_IN_PAGE_CLICKED]: void;
   [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
-  [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED]: boolean;
@@ -217,6 +238,7 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_SERVER_OPEN_DEV_TOOLS]: Server['url'];
   [SIDE_BAR_SERVER_FORCE_RELOAD]: Server['url'];
   [SIDE_BAR_SERVER_REMOVE]: Server['url'];
+  [SIDE_BAR_SERVER_TOGGLE_MUTE]: Server['url'];
   [WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR]: Server['url'];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
     | 'bold'
@@ -230,8 +252,19 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
+  [WEBVIEW_BECAME_RESPONSIVE]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
-  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' | 'downloads' };
+  [WEBVIEW_AUDIO_STATE_CHANGED]: { url: Server['url']; isAudible: boolean };
+  [WEBVIEW_AUDIO_MUTED_CHANGED]: {
+    url: Server['url'];
+    isAudioMuted: boolean;
+  };
+  [WEBVIEW_MEDIA_CAPTURE_CHANGED]: {
+    url: Server['url'];
+    source: MediaCaptureSource;
+    state: MediaCaptureState | null;
+  };
+  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
   [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: void;
@@ -283,14 +316,18 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_TRAY_ICON_UNREAD_COUNTER_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_MENU_BAR_UNREAD_COUNT_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TELEPHONY_ENABLED_CHANGED]: boolean;
-  [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED]: boolean;
   [LOG_VIEWER_WINDOW_OPEN_STATE_CHANGED]: boolean;
   [DOWNLOADS_WINDOW_OPEN_STATE_CHANGED]: boolean;
   [SETTINGS_WINDOW_OPEN_STATE_CHANGED]: boolean;
+  [UI_PREVIEW_HISTORY_ENTRY_ADDED]: UiPreviewHistoryEntry;
+  [UI_PREVIEW_HISTORY_ENTRY_UPDATED]: UiPreviewHistoryEntry;
+  [UI_PREVIEW_HISTORY_ENTRY_REMOVED]: UiPreviewHistoryEntry['input'];
   [SECONDARY_WINDOW_STATE_CHANGED]: {
     id: string;
     bounds: { x: number; y: number; width: number; height: number };
@@ -368,4 +405,5 @@ export type UiActionTypeToPayloadMap = {
   [WINDOW_CONTROLS_MINIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_MAXIMIZE_CLICKED]: void;
   [WINDOW_CONTROLS_CLOSE_CLICKED]: void;
+  [WINDOW_BOUNDS_RESET]: void;
 };

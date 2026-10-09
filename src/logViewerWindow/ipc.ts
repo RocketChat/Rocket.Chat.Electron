@@ -17,6 +17,7 @@ import { watchWindowControls } from '../ui/main/secondaryWindowControls';
 import { focusSecondaryWindow } from '../ui/main/secondaryWindowFocus';
 import {
   getSavedWindowBounds,
+  onWindowBoundsReset,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
 import {
@@ -25,9 +26,10 @@ import {
 } from '../ui/windowChrome/appearance';
 import {
   TRANSPARENCY_CHANNEL,
+  WINDOW_DEFAULT_HEIGHT,
+  WINDOW_DEFAULT_WIDTH,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
-  WINDOW_SIZE_MULTIPLIER,
 } from './constants';
 
 const t = i18next.t.bind(i18next);
@@ -86,6 +88,42 @@ const validateLogFilePath = (
   }
 
   return { valid: true };
+};
+
+type AuthorizedLogPathResult =
+  | { ok: true; logPath: string }
+  | { ok: false; error: string };
+
+/**
+ * Resolves the default log path, or an absolute `.log`/`.txt` path that is
+ * either the default or was previously picked through the file dialog.
+ */
+const resolveAuthorizedLogPath = (
+  filePath?: string
+): AuthorizedLogPathResult => {
+  if (!filePath) {
+    return { ok: true, logPath: getLogFilePath() };
+  }
+
+  const validation = validateLogFilePath(filePath);
+  if (!validation.valid) {
+    return { ok: false, error: validation.error ?? 'Invalid log file path' };
+  }
+
+  const normalizedPath = path.normalize(filePath);
+  const defaultLogPath = path.normalize(getLogFilePath());
+  if (
+    normalizedPath !== defaultLogPath &&
+    !allowedLogPaths.has(normalizedPath)
+  ) {
+    return {
+      ok: false,
+      error:
+        'Log file not authorized. Please select it via the file dialog first.',
+    };
+  }
+
+  return { ok: true, logPath: normalizedPath };
 };
 
 const LOG_ENTRY_REGEX = /^\[([^\]]+)\]\s+\[([^\]]+)\]/;
@@ -151,7 +189,16 @@ export const trimBufferToLastNewline = (
 /** Set while a window is being built; see `createLogViewerWindow`. */
 let pendingCreation: Promise<void> | null = null;
 
-const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
+/**
+ * Centred on the display nearest the main window, sized to the fixed default
+ * but never larger than the work area of the display it opens on.
+ */
+const getDefaultBounds = async (): Promise<{
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}> => {
   const mainWindow = await getRootWindow();
   const winBounds = await mainWindow.getNormalBounds();
 
@@ -165,11 +212,10 @@ const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
     y: centeredWindowPosition.y,
   });
 
-  const width = Math.round(
-    actualScreen.workAreaSize.width * WINDOW_SIZE_MULTIPLIER
-  );
-  const height = Math.round(
-    actualScreen.workAreaSize.height * WINDOW_SIZE_MULTIPLIER
+  const width = Math.min(actualScreen.workAreaSize.width, WINDOW_DEFAULT_WIDTH);
+  const height = Math.min(
+    actualScreen.workAreaSize.height,
+    WINDOW_DEFAULT_HEIGHT
   );
   const x = Math.round(
     (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
@@ -177,6 +223,12 @@ const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
   const y = Math.round(
     (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
   );
+
+  return { width, height, x, y };
+};
+
+const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
+  const { width, height, x, y } = await getDefaultBounds();
 
   // Where the reader last left this window, falling back to centred on the
   // display nearest the main window.
@@ -310,6 +362,11 @@ export const startLogViewerWindowHandler = (): void => {
     logViewerWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
   });
 
+  onWindowBoundsReset('logViewer', async () => {
+    if (!logViewerWindow || logViewerWindow.isDestroyed()) return;
+    logViewerWindow.setBounds(await getDefaultBounds());
+  });
+
   handle('log-viewer-window/open-window', openLogViewerWindow);
 
   handle('log-viewer-window/close-requested', async () => {
@@ -360,28 +417,11 @@ export const startLogViewerWindowHandler = (): void => {
     'log-viewer-window/read-logs',
     async (_, options?: { filePath?: string; limit?: number | 'all' }) => {
       try {
-        let logPath: string;
-        if (options?.filePath) {
-          const validation = validateLogFilePath(options.filePath);
-          if (!validation.valid) {
-            return { success: false, error: validation.error };
-          }
-          const normalizedPath = path.normalize(options.filePath);
-          const defaultLogPath = path.normalize(getLogFilePath());
-          if (
-            normalizedPath !== defaultLogPath &&
-            !allowedLogPaths.has(normalizedPath)
-          ) {
-            return {
-              success: false,
-              error:
-                'Log file not authorized. Please select it via the file dialog first.',
-            };
-          }
-          logPath = normalizedPath;
-        } else {
-          logPath = getLogFilePath();
+        const resolved = resolveAuthorizedLogPath(options?.filePath);
+        if (!resolved.ok) {
+          return { success: false, error: resolved.error };
         }
+        const { logPath } = resolved;
         const limit = options?.limit;
 
         if (!(await pathExists(logPath))) {
@@ -436,28 +476,11 @@ export const startLogViewerWindowHandler = (): void => {
     'log-viewer-window/stat-log',
     async (_, options?: { filePath?: string }) => {
       try {
-        let logPath: string;
-        if (options?.filePath) {
-          const validation = validateLogFilePath(options.filePath);
-          if (!validation.valid) {
-            return { success: false, error: validation.error };
-          }
-          const normalizedPath = path.normalize(options.filePath);
-          const defaultLogPath = path.normalize(getLogFilePath());
-          if (
-            normalizedPath !== defaultLogPath &&
-            !allowedLogPaths.has(normalizedPath)
-          ) {
-            return {
-              success: false,
-              error:
-                'Log file not authorized. Please select it via the file dialog first.',
-            };
-          }
-          logPath = normalizedPath;
-        } else {
-          logPath = getLogFilePath();
+        const resolved = resolveAuthorizedLogPath(options?.filePath);
+        if (!resolved.ok) {
+          return { success: false, error: resolved.error };
         }
+        const { logPath } = resolved;
 
         if (!(await pathExists(logPath))) {
           return { success: false, error: 'Log file does not exist' };
@@ -480,28 +503,11 @@ export const startLogViewerWindowHandler = (): void => {
     'log-viewer-window/read-logs-tail',
     async (_, options: { fromByte: number; filePath?: string }) => {
       try {
-        let logPath: string;
-        if (options.filePath) {
-          const validation = validateLogFilePath(options.filePath);
-          if (!validation.valid) {
-            return { success: false, error: validation.error };
-          }
-          const normalizedPath = path.normalize(options.filePath);
-          const defaultLogPath = path.normalize(getLogFilePath());
-          if (
-            normalizedPath !== defaultLogPath &&
-            !allowedLogPaths.has(normalizedPath)
-          ) {
-            return {
-              success: false,
-              error:
-                'Log file not authorized. Please select it via the file dialog first.',
-            };
-          }
-          logPath = normalizedPath;
-        } else {
-          logPath = getLogFilePath();
+        const resolved = resolveAuthorizedLogPath(options.filePath);
+        if (!resolved.ok) {
+          return { success: false, error: resolved.error };
         }
+        const { logPath } = resolved;
 
         if (!(await pathExists(logPath))) {
           return { success: false, error: 'Log file does not exist' };
@@ -565,28 +571,11 @@ export const startLogViewerWindowHandler = (): void => {
     'log-viewer-window/reveal-log-file',
     async (_, options?: { filePath?: string }) => {
       try {
-        let logPath: string;
-        if (options?.filePath) {
-          const validation = validateLogFilePath(options.filePath);
-          if (!validation.valid) {
-            return { success: false, error: validation.error };
-          }
-          const normalizedPath = path.normalize(options.filePath);
-          const defaultLogPath = path.normalize(getLogFilePath());
-          if (
-            normalizedPath !== defaultLogPath &&
-            !allowedLogPaths.has(normalizedPath)
-          ) {
-            return {
-              success: false,
-              error:
-                'Log file not authorized. Please select it via the file dialog first.',
-            };
-          }
-          logPath = normalizedPath;
-        } else {
-          logPath = getLogFilePath();
+        const resolved = resolveAuthorizedLogPath(options?.filePath);
+        if (!resolved.ok) {
+          return { success: false, error: resolved.error };
         }
+        const { logPath } = resolved;
 
         if (!(await pathExists(logPath))) {
           return { success: false, error: 'Log file does not exist' };

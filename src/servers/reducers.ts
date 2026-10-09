@@ -19,7 +19,11 @@ import {
   WEBVIEW_USER_ROLES_CHANGED,
   WEBVIEW_USER_PRESENCE_CHANGED,
   WEBVIEW_FAVICON_CHANGED,
+  WEBVIEW_AUDIO_STATE_CHANGED,
+  WEBVIEW_AUDIO_MUTED_CHANGED,
+  WEBVIEW_MEDIA_CAPTURE_CHANGED,
   WEBVIEW_DID_START_LOADING,
+  WEBVIEW_BECAME_RESPONSIVE,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_READY,
   WEBVIEW_ATTACHED,
@@ -34,7 +38,8 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
-import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
+import { SERVERS_LOADED, SERVER_UI_PREVIEW_CHANGED } from './actions';
+import { isConferencePageUrl } from './common';
 import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
@@ -62,12 +67,17 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_USER_PRESENCE_CHANGED>
   | ActionOf<typeof WEBVIEW_ALLOWED_REDIRECTS_CHANGED>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
+  | ActionOf<typeof WEBVIEW_AUDIO_STATE_CHANGED>
+  | ActionOf<typeof WEBVIEW_AUDIO_MUTED_CHANGED>
+  | ActionOf<typeof WEBVIEW_MEDIA_CAPTURE_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
+  | ActionOf<typeof WEBVIEW_BECAME_RESPONSIVE>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
   | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>
   | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>
+  | ActionOf<typeof SERVER_UI_PREVIEW_CHANGED>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR>
@@ -75,7 +85,6 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
-  | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
   | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
@@ -258,16 +267,43 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, favicon });
     }
 
+    case WEBVIEW_AUDIO_STATE_CHANGED: {
+      const { url, isAudible } = action.payload;
+      return update(state, { url, isAudible });
+    }
+
+    case WEBVIEW_AUDIO_MUTED_CHANGED: {
+      const { url, isAudioMuted } = action.payload;
+      return update(state, { url, isAudioMuted });
+    }
+
+    case WEBVIEW_MEDIA_CAPTURE_CHANGED: {
+      const { url, source, state: captureState } = action.payload;
+      const index = state.findIndex((server) => server.url === url);
+      if (index === -1) {
+        return state;
+      }
+      const server = state[index];
+      const nextMediaCapture = { ...server.mediaCapture };
+      if (captureState === null) {
+        delete nextMediaCapture[source];
+      } else {
+        nextMediaCapture[source] = captureState;
+      }
+      return update(state, { url, mediaCapture: nextMediaCapture });
+    }
+
     case WEBVIEW_DID_NAVIGATE: {
       const { url, pageUrl } = action.payload;
-      if (pageUrl?.includes(url)) {
+      if (pageUrl?.includes(url) && !isConferencePageUrl(pageUrl, url)) {
         return upsert(state, { url, lastPath: pageUrl });
       }
 
       return state;
     }
 
-    case WEBVIEW_DID_START_LOADING: {
+    case WEBVIEW_DID_START_LOADING:
+    case WEBVIEW_BECAME_RESPONSIVE: {
       const { url } = action.payload;
       return upsert(state, { url, failed: false });
     }
@@ -286,6 +322,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return servers.map((server: Server) => ({
         ...server,
         url: ensureUrlFormat(server.url),
+        isAudible: false,
+        isAudioMuted: false,
+        mediaCapture: undefined,
       }));
     }
 
@@ -294,8 +333,12 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return servers.map((server: Server) => ({
         ...server,
         url: ensureUrlFormat(server.url),
-        documentViewerOpenUrl: '',
-        documentViewerFormat: '',
+        isAudible: false,
+        isAudioMuted: false,
+        mediaCapture: undefined,
+        // Previews live in memory only, so none survive a restart.
+        uiPreview: undefined,
+        uiPreviewSource: undefined,
       }));
     }
 
@@ -314,13 +357,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, outlookCredentials });
     }
 
-    case SERVER_DOCUMENT_VIEWER_OPEN_URL: {
-      const { server, documentUrl, documentFormat } = action.payload;
-      return upsert(state, {
-        url: server,
-        documentViewerOpenUrl: documentUrl,
-        documentViewerFormat: documentFormat ?? '',
-      });
+    case SERVER_UI_PREVIEW_CHANGED: {
+      const { url, uiPreview, uiPreviewSource } = action.payload;
+      return state.map((server) =>
+        server.url === url ? { ...server, uiPreview, uiPreviewSource } : server
+      );
     }
 
     default:

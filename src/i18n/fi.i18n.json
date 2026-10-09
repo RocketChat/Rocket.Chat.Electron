@@ -136,6 +136,15 @@
         "answerCall": "vastata puheluun",
         "recordMessage": "tallentaa viestin"
       }
+    },
+    "uiOverride": {
+      "title": "Lataa käyttöliittymän esikatselu",
+      "message": "Ladataanko palvelimelle \"{{- host}}\" toinen verkkokäyttöliittymä?",
+      "detail": "Käyttöliittymä ladataan osoitteesta {{- bundle}}, ja se toimii istunnollasi tällä palvelimella. Jatka vain, jos luotat tähän koontiversioon. Palaa takaisin valitsemalla Näytä > Palauta palvelimen käyttöliittymä tai käynnistämällä sovellus uudelleen.",
+      "load": "Lataa käyttöliittymä",
+      "cancel": "Peruuta",
+      "developerModeRequired": "Ota Ohje > Developer Mode käyttöön ladataksesi käyttöliittymän esikatseluja.",
+      "failed": "Käyttöliittymän esikatselua ei voitu ladata."
     }
   },
   "documentViewer": {
@@ -230,6 +239,10 @@
         "title": "Laitteistokiihdytys",
         "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
       },
+      "resetWindowBounds": {
+        "title": "Palauta ikkunoiden koot ja sijainnit",
+        "description": "Unohtaa, mihin sovellus ja sen ikkunat oli sijoitettu. Jokainen ikkuna avautuu seuraavan kerran oletuskoossaan keskitettynä."
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Videopuhelujen varanäyttökaappaus",
         "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
@@ -257,6 +270,15 @@
         "title": "Ilmaisinalueen kuvake",
         "description": "Näytä ilmaisinalueen kuvake ilmaisinalueella. Jos ilmaisinalueen kuvake on käytössä, sovellus piilotetaan suljettaessa ilmaisinalueelle. Muutoin sovellus suljetaan."
       },
+      "trayIconUnreadCounter": {
+        "title": "Lukemattomien laskuri ilmaisinalueen kuvakkeessa",
+        "titleDarwin": "Lukemattomien ilmaisin valikkopalkin kuvakkeessa",
+        "description": "Näytä lukemattomien viestien merkki kuvakkeessa läsnäolotilasi sijaan."
+      },
+      "menuBarUnreadCount": {
+        "title": "Lukemattomien määrä valikkopalkissa",
+        "description": "Näytä lukemattomien mainintojen määrä valikkopalkin kuvakkeen vieressä."
+      },
       "availableBrowsers": {
         "title": "Oletusselain",
         "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta. Järjestelmän oletus käyttää käyttöjärjestelmäsi asetuksia.",
@@ -278,7 +300,38 @@
         "auto": "Seuraa järjestelmää",
         "light": "Vaalea",
         "dark": "Tumma"
+      },
+      "uiPreview": {
+        "title": "Lataa verkkokäyttöliittymän koontiversio",
+        "description": "Suorittaa Rocket.Chat-verkkoasiakkaan koontiversion työtilan oman käyttöliittymän sijaan istuntosi säilyttäen. Lisää \"develop\" tai Rocket.Chatin PR-numero (molemmat haetaan ghcr.io:sta) tai tarjoillun paketin URL-osoite ja ota se sitten käyttöön työtilassa. Kohteen päivittäminen etsii uudemman koontiversion ja lataa uudelleen työtilat, jotka käyttävät sitä.",
+        "placeholder": "develop, 42364 tai http://127.0.0.1:4173/",
+        "add": "Lisää",
+        "adding": "Tarkistetaan, että koontiversio on olemassa…",
+        "applyTo": "Ota käyttöön työtilassa",
+        "apply": "Ota käyttöön",
+        "refresh": "Etsi uudempi koontiversio",
+        "refreshing": "Etsitään uudempaa koontiversiota…",
+        "current": "Tämä on jo uusin koontiversio.",
+        "updated": "Päivitetty uusimpaan koontiversioon.",
+        "remove": "Poista luettelosta",
+        "builtAt": "koottu {{- date}}",
+        "activeOn": "Käytössä: {{- workspaces}}",
+        "restore": "Palauta palvelimen käyttöliittymä",
+        "active": "Käytössä tässä työtilassa: {{- label}}",
+        "loading": "Ladataan ja otetaan käyttöön…",
+        "failed": "Lataus epäonnistui: {{- message}}",
+        "cancelled": "Peruttu.",
+        "inactive": "Käytetään palvelimen käyttöliittymää.",
+        "pullRequestState": {
+          "open": "Avoin",
+          "draft": "Luonnos",
+          "merged": "Yhdistetty",
+          "closed": "Suljettu"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Verkkokäyttöliittymän esikatselu"
     }
   },
   "error": {
@@ -308,6 +361,7 @@
     "settings": "Asetukset",
     "editMenu": "M&uokkaa",
     "fileMenu": "Tie&dosto",
+    "findInPage": "&Etsi…",
     "forward": "V&älitä",
     "helpMenu": "&Ohje",
     "hide": "Piilota {{- appName}}",
@@ -322,6 +376,7 @@
     "reload": "La&taa uudelleen",
     "reportIssue": "Ilmoita ongelmasta",
     "resetAppData": "Nollaa sovelluksen tiedot",
+    "resetWindowBounds": "Palauta ikkunoiden koot ja sijainnit",
     "resetZoom": "Nollaa zoomaus",
     "selectAll": "V&alitse kaikki",
     "services": "Palvelut",
@@ -337,7 +392,16 @@
     "windowMenu": "&Ikkuna",
     "zoomIn": "Lähennä",
     "zoomOut": "Loitonna",
-    "simulateDisconnected": "Simuloi yhteyden katkeamista"
+    "simulateDisconnected": "Simuloi yhteyden katkeamista",
+    "restoreServerUi": "Palauta palvelimen käyttöliittymä"
+  },
+  "findInPage": {
+    "placeholder": "Etsi sivulta",
+    "matchCount": "{{current}} / {{total}}",
+    "noMatches": "Ei osumia",
+    "previous": "Edellinen osuma",
+    "next": "Seuraava osuma",
+    "close": "Sulje"
   },
   "loadingError": {
     "title": "Palvelimen lataus epäonnistui",
@@ -373,7 +437,8 @@
       "remove": "Poista palvelin",
       "openDevTools": "Avaa DevTools",
       "clearCache": "Tyhjennä välimuisti",
-      "clearStorageData": "Tyhjennä tallennustiedot"
+      "clearStorageData": "Tyhjennä tallennustiedot",
+      "updateUiPreview": "Päivitä käyttöliittymän esikatselu"
     }
   },
   "tabBar": {
@@ -412,7 +477,8 @@
       "canceled": "Peruutettu",
       "failed": "Epäonnistui",
       "dismiss": "Sulje"
-    }
+    },
+    "uiPreview": "Käyttöliittymän esikatselu: {{- label}}"
   },
   "touchBar": {
     "formatting": "Muotoilu",
@@ -456,6 +522,7 @@
     "permissionDenied": "Näytön nauhoituslupa evätty",
     "permissionRequired": "Näytön nauhoituslupa vaaditaan näytön jakamiseen.",
     "permissionInstructions": "Ole hyvä ja ota se käyttöön järjestelmäasetuksissa ja yritä uudelleen.",
+    "permissionAlreadyOnHint": "Onko se jo päällä? Valitse Rocket.Chat luettelosta, poista se miinuspainikkeella (−) ja sulje ja avaa Rocket.Chat uudelleen. Jaa sitten näyttösi uudelleen ja salli käyttö, kun macOS kysyy.",
     "title": "Jaa näyttösi",
     "entireScreen": "Koko näyttösi",
     "applicationWindow": "Sovellusikkuna",

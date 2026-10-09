@@ -1,3 +1,4 @@
+import { Icon } from '@rocket.chat/fuselage';
 import type {
   DragEvent,
   FocusEvent,
@@ -8,10 +9,12 @@ import type {
 import { useContext, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { Server } from '../../../servers/common';
 import { dispatch } from '../../../store';
 import {
   SERVER_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_SERVER_SELECTED,
+  SIDE_BAR_SERVER_TOGGLE_MUTE,
 } from '../../actions';
 import { isDarwin } from '../../utils/platform';
 import { TooltipContext } from '../utils/TooltipContext';
@@ -20,11 +23,14 @@ import { getServerPanelId, getServerTabId } from '../utils/getServerDomId';
 import { getServerInitials } from '../utils/getServerInitials';
 import {
   BadgeWrapper,
+  CaptureIndicator,
   Divider,
   Favicon,
   Initials,
   Label,
+  PreviewBadgeWrapper,
   ShortcutChip,
+  SpeakerButton,
   Tab,
   TabBadge,
   UnreadDot,
@@ -62,7 +68,11 @@ type WorkspaceTabProps = {
   favicon: string | null;
   isSelected: boolean;
   badge?: '•' | number;
+  uiPreview?: string;
   userLoggedIn?: boolean;
+  isAudible?: boolean;
+  isAudioMuted?: boolean;
+  mediaCapture?: Server['mediaCapture'];
   compact: boolean;
   orientation?: TabOrientation;
   shortcutNumber: string | null;
@@ -80,7 +90,11 @@ const WorkspaceTab = ({
   favicon,
   isSelected,
   badge,
+  uiPreview,
   userLoggedIn,
+  isAudible,
+  isAudioMuted,
+  mediaCapture,
   compact,
   orientation = 'horizontal',
   shortcutNumber,
@@ -121,16 +135,60 @@ const WorkspaceTab = ({
 
   const unreadSuffix = getUnreadSuffix();
 
+  const getAudioSuffix = (): string => {
+    if (isAudioMuted) {
+      return ` — ${t('sidebar.tooltips.audioMuted')}`;
+    }
+
+    if (isAudible) {
+      return ` — ${t('sidebar.tooltips.audioPlaying')}`;
+    }
+
+    return '';
+  };
+
+  const audioSuffix = getAudioSuffix();
+
+  // OR each boolean across every reporting source (workspace webview + video
+  // call window) — either one actively capturing is enough to show the state.
+  const activeCapture = {
+    camera: Object.values(mediaCapture ?? {}).some((state) => state.camera),
+    microphone: Object.values(mediaCapture ?? {}).some(
+      (state) => state.microphone
+    ),
+    screen: Object.values(mediaCapture ?? {}).some((state) => state.screen),
+  };
+
+  // A single 'rec' glyph covers all three capture states — it no longer
+  // distinguishes which device is active (the tooltip suffix below still
+  // does, via the three i18n labels).
+  const anyCapture =
+    activeCapture.screen || activeCapture.camera || activeCapture.microphone;
+
+  const getCaptureSuffix = (): string => {
+    const labels = [
+      activeCapture.screen && t('sidebar.tooltips.captureScreen'),
+      activeCapture.camera && t('sidebar.tooltips.captureCamera'),
+      activeCapture.microphone && t('sidebar.tooltips.captureMicrophone'),
+    ].filter((label): label is string => Boolean(label));
+
+    return labels.length > 0 ? ` — ${labels.join(', ')}` : '';
+  };
+
+  const captureSuffix = getCaptureSuffix();
+
   const serverAddress = url.replace(/\/+$/, '');
   const tooltipName = removeServerAddress(title, serverAddress);
   const tooltipPrimaryLine = `${
     tooltipName || serverAddress
-  }${unreadSuffix}${shortcutSuffix}`;
+  }${unreadSuffix}${audioSuffix}${captureSuffix}${shortcutSuffix}`;
   // Show the name on the first line and the address on a second line. When the
   // title is only the address, the primary line already is it, so skip line two.
-  const tooltipLines = tooltipName
-    ? [tooltipPrimaryLine, serverAddress]
-    : [tooltipPrimaryLine];
+  const tooltipLines = [
+    tooltipPrimaryLine,
+    ...(tooltipName ? [serverAddress] : []),
+    ...(uiPreview ? [t('tabBar.uiPreview', { label: uiPreview })] : []),
+  ];
   // The TooltipProvider renders each '\n'-separated line on its own row, so the
   // native title, the custom hover tooltip and the aria-label all stay in sync.
   const tooltipText = tooltipLines.join('\n');
@@ -146,18 +204,36 @@ const WorkspaceTab = ({
     dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
   };
 
-  const handleContextMenu = (event: MouseEvent): void => {
-    event.preventDefault();
+  const openContextMenuAt = (x: number, y: number): void => {
     dispatch({
       type: SERVER_CONTEXT_MENU_TRIGGERED,
-      payload: { x: event.clientX, y: event.clientY, url },
+      payload: { x, y, url },
     });
+  };
+
+  const handleContextMenu = (event: MouseEvent): void => {
+    event.preventDefault();
+    openContextMenuAt(event.clientX, event.clientY);
   };
 
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       handleClick();
+      return;
+    }
+
+    // The context menu holds every per-workspace action (mute, reload, remove),
+    // and was mouse-only because it is positioned from pointer coordinates.
+    // ContextMenu/Shift+F10 is the platform keyboard equivalent; anchor it to
+    // the focused tab's own box so it opens where the tab is.
+    if (
+      event.key === 'ContextMenu' ||
+      (event.shiftKey && event.key === 'F10')
+    ) {
+      event.preventDefault();
+      const { left, bottom } = event.currentTarget.getBoundingClientRect();
+      openContextMenuAt(left, bottom);
     }
   };
 
@@ -167,6 +243,11 @@ const WorkspaceTab = ({
 
   const handleBlur = (): void => {
     tooltip.close();
+  };
+
+  const handleToggleMuteClick = (event: MouseEvent): void => {
+    event.stopPropagation();
+    dispatch({ type: SIDE_BAR_SERVER_TOGGLE_MUTE, payload: url });
   };
 
   const isVertical = orientation === 'vertical';
@@ -193,6 +274,44 @@ const WorkspaceTab = ({
     }
     return null;
   })();
+
+  // Horizontal tab-strip only: in the vertical sidebar the indicator would
+  // hang off the 32px tab corner alongside the badge, so it is intentionally
+  // omitted there — the tooltip audio suffix still covers that layout.
+  // The tab itself is a native button, so the speaker cannot be a focusable
+  // widget: a button allows no interactive descendants, and nesting one makes
+  // the tab's own name and state unreliable in screen readers. It stays a
+  // presentational status icon that mutes on click; the keyboard path to mute
+  // is ContextMenu/Shift+F10 on the focused tab, which opens the context menu
+  // and its "Mute workspace" checkbox. The tab tooltip and aria-label already
+  // carry the audio/muted state.
+  const showSpeaker = !isVertical && (isAudible || isAudioMuted);
+  const speakerElement = showSpeaker ? (
+    <SpeakerButton
+      aria-hidden='true'
+      data-muted={isAudioMuted ? 'true' : 'false'}
+      onClick={handleToggleMuteClick}
+    >
+      <Icon name={isAudioMuted ? 'volume-off' : 'volume'} size='x12' />
+    </SpeakerButton>
+  ) : null;
+
+  // Horizontal tab-strip only, same rule as the speaker indicator above. No
+  // click action: this is a read-only status glyph, so it carries no
+  // role='button', no handlers, and is aria-hidden — the capture state is
+  // exposed to assistive tech via the tab's own tooltip/aria-label suffix.
+  const showCapture = !isVertical && anyCapture;
+  const captureElement = showCapture ? (
+    <CaptureIndicator aria-hidden='true' data-capture='rec'>
+      <Icon name='rec' size='x16' />
+    </CaptureIndicator>
+  ) : null;
+
+  // Shown alongside the badge above, never instead of it: it says what the
+  // tab is running, not what is waiting in it.
+  const uiPreviewBadge = uiPreview ? (
+    <TabBadge variant='danger'>UI</TabBadge>
+  ) : null;
 
   return (
     <>
@@ -237,9 +356,19 @@ const WorkspaceTab = ({
           <ShortcutChip>{shortcutNumber}</ShortcutChip>
         )}
         {isVertical ? (
-          <BadgeWrapper>{badgeElement}</BadgeWrapper>
+          <>
+            <BadgeWrapper>{badgeElement}</BadgeWrapper>
+            {uiPreviewBadge && (
+              <PreviewBadgeWrapper>{uiPreviewBadge}</PreviewBadgeWrapper>
+            )}
+          </>
         ) : (
-          badgeElement
+          <>
+            {uiPreviewBadge}
+            {badgeElement}
+            {captureElement}
+            {speakerElement}
+          </>
         )}
       </Tab>
       <Divider orientation={orientation}></Divider>

@@ -625,7 +625,7 @@ const createWebview = (url: string, partition?: string | null): void => {
   webview.setAttribute('preload', preloadPath);
   webview.setAttribute(
     'webpreferences',
-    'nodeIntegration,nativeWindowOpen=true'
+    'nodeIntegration=false,contextIsolation=true,nativeWindowOpen=true'
   );
   webview.setAttribute('allowpopups', 'true');
   // Partition is supplied by the main process (which owns the default).

@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 
-const sanitize = (args: any[]) => JSON.parse(JSON.stringify(args));
+const sanitize = (args: any[]) => structuredClone(args);
 
 // Define allowed channels for the webview preload environment.
 // This prevents the untrusted server view from exploiting the contextBridge
@@ -68,8 +68,16 @@ const originalInvoke = ipcRenderer.invoke.bind(ipcRenderer);
 const originalOn = ipcRenderer.on.bind(ipcRenderer);
 const originalSendSync = ipcRenderer.sendSync.bind(ipcRenderer);
 
+const isAllowedChannel = (channel: string) => {
+  if (ALLOWED_CHANNELS.has(channel)) {
+    return true;
+  }
+  const match = channel.match(/^([^@]+)@[\w-]+$/);
+  return !!match && ALLOWED_CHANNELS.has(match[1]);
+};
+
 ipcRenderer.send = (channel, ...args) => {
-  if (!ALLOWED_CHANNELS.has(channel) && !channel.includes('@')) {
+  if (!isAllowedChannel(channel)) {
     console.warn(`Blocked unauthorized IPC send channel: ${channel}`);
     return;
   }
@@ -93,7 +101,7 @@ ipcRenderer.sendSync = (channel, ...args) => {
 };
 
 ipcRenderer.on = (channel, listener) => {
-  if (!ALLOWED_CHANNELS.has(channel) && !channel.includes('@')) {
+  if (!isAllowedChannel(channel)) {
     console.warn(`Blocked unauthorized IPC on channel: ${channel}`);
     return ipcRenderer;
   }

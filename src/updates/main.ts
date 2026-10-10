@@ -652,15 +652,14 @@ export const setupUpdates = async (): Promise<void> => {
           const { stdout } = await execFileAsync('powershell.exe', [
             '-NoProfile',
             '-Command',
-            `Get-AuthenticodeSignature "${downloadedFile}" | Select-Object -ExpandProperty Status`,
+            '& { Get-AuthenticodeSignature -LiteralPath $args[0] | Select-Object -ExpandProperty Status }',
+            downloadedFile,
           ]);
           if (!stdout.includes('Valid')) {
             throw new Error(
               `Signature verification failed on Windows: ${stdout}`
             );
           }
-        } else if (process.platform === 'darwin') {
-          await execFileAsync('codesign', ['-v', downloadedFile]);
         }
       } catch (err: any) {
         console.error('Update integrity check failed, discarding update:', err);

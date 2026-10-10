@@ -99,12 +99,13 @@ const initManager = () => {
     let shellTimer: NodeJS.Timeout | null = null;
     let workspaceTimer: NodeJS.Timeout | null = null;
     fs.watch(userDataPath, (_eventType, filename) => {
-      if (filename === 'custom-shell.css') {
+      if (!filename || filename === 'custom-shell.css') {
         if (shellTimer) clearTimeout(shellTimer);
         shellTimer = setTimeout(() => {
           reloadCache('shell', 'custom-shell.css');
         }, 100);
-      } else if (filename === 'custom.css') {
+      }
+      if (!filename || filename === 'custom.css') {
         if (workspaceTimer) clearTimeout(workspaceTimer);
         workspaceTimer = setTimeout(() => {
           reloadCache('workspace', 'custom.css');

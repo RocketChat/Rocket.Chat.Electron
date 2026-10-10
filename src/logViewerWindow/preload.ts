@@ -14,6 +14,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
 
 const ALLOWED_ON_CHANNELS = new Set([
   'transparency-enabled', // This is the TRANSPARENCY_CHANNEL string from constants
+  'log-viewer-window/transparency-changed',
 ]);
 
 const logViewer = {

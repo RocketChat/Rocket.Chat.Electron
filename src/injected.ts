@@ -287,6 +287,7 @@ const start = async () => {
       console.log(
         `[Rocket.Chat Desktop] ${moduleName} module loaded successfully`
       );
+      setupReactiveFeatures();
     } catch (error) {
       console.log(
         `[Rocket.Chat Desktop] Failed to load ${moduleName} module:`,
@@ -332,11 +333,13 @@ const start = async () => {
           '[Rocket.Chat Desktop] Presence module resolved without the expected store/listen API; presence will be reported as unsupported'
         );
         presenceModuleResolved = false;
+        setupReactiveFeatures();
         return;
       }
       Presence = (module as { Presence: unknown }).Presence;
       presenceModuleResolved = true;
       console.log('[Rocket.Chat Desktop] Presence module loaded successfully');
+      setupReactiveFeatures();
     })
     .catch(() => {
       console.warn(
@@ -345,6 +348,7 @@ const start = async () => {
         )}); presence will be reported as unsupported`
       );
       presenceModuleResolved = false;
+      setupReactiveFeatures();
     });
 
   // Initialize non-module dependent features immediately
@@ -1052,14 +1056,6 @@ const start = async () => {
 
   // Call setupReactiveFeatures immediately and then dynamically detect app loads
   setupReactiveFeatures();
-  const observer = new MutationObserver(() => {
-    setupReactiveFeatures();
-  });
-  
-  const targetNode = document.querySelector('[data-reactroot]') || document.getElementById('react-root') || document.body;
-  if (targetNode) {
-    observer.observe(targetNode, { childList: true, subtree: true });
-  }
   console.log('[Rocket.Chat Desktop] Injected');
 };
 

@@ -22,10 +22,11 @@ export const useTransparency = (channel: string): boolean => {
       setIsEnabled(Boolean(enabled));
     };
 
-    // Use contextBridge if available (nodeIntegration: false)
     const bridge = (window as any).RocketChatDesktop?.logViewer;
     if (bridge) {
-      const unsubscribe = bridge.on(channel, handleChange);
+      const unsubscribe = bridge.on(channel, (enabled: boolean) =>
+        handleChange(null, enabled)
+      );
       return unsubscribe;
     }
 

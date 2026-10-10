@@ -1,3 +1,5 @@
+import { spawn } from 'child_process';
+
 import { getAvailableBrowsers, launchBrowser } from 'detect-browsers';
 import { shell } from 'electron';
 
@@ -17,6 +19,13 @@ jest.mock('electron', () => ({
   },
 }));
 
+jest.mock('child_process', () => ({
+  spawn: jest.fn(() => ({
+    on: jest.fn(),
+    unref: jest.fn(),
+  })),
+}));
+
 jest.mock('../../store', () => ({
   dispatch: jest.fn(),
 }));
@@ -30,6 +39,17 @@ const mockLaunchBrowser = launchBrowser as jest.Mock;
 const mockOpenExternal = shell.openExternal as jest.Mock;
 const mockDispatch = dispatch as jest.Mock;
 const mockReadSetting = readSetting as jest.Mock;
+const mockSpawn = spawn as jest.Mock;
+
+let originalPlatform: string;
+beforeAll(() => {
+  originalPlatform = process.platform;
+});
+afterAll(() => {
+  Object.defineProperty(process, 'platform', {
+    value: originalPlatform,
+  });
+});
 
 // browserLauncher caches state in module scope, so re-require it per test
 // to exercise the lazy-load / promise-caching paths from a clean slate.
@@ -47,6 +67,7 @@ const firefoxBrowser = { browser: 'firefox', name: 'Firefox' } as any;
 beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
+  Object.defineProperty(process, 'platform', { value: 'darwin' });
   mockOpenExternal.mockResolvedValue(undefined);
   mockLaunchBrowser.mockResolvedValue(undefined);
   jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -197,6 +218,127 @@ describe('openExternal', () => {
       'Error launching browser:',
       expect.any(Error)
     );
+  });
+
+  describe('on Linux', () => {
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'linux' });
+    });
+
+    it('spawns xdg-open directly instead of using shell.openExternal', async () => {
+      mockReadSetting.mockReturnValue(undefined);
+
+      const envKeys = [
+        'APPDIR',
+        'APPIMAGE',
+        'LD_LIBRARY_PATH',
+        'APPIMAGE_SILENT_INSTALL',
+        'APPIMAGE_START_CWD',
+        'GDK_BACKEND',
+      ] as const;
+      const originalEnv = Object.fromEntries(
+        envKeys.map((key) => [key, process.env[key]])
+      );
+      envKeys.forEach((key) => {
+        process.env[key] = `sentinel-${key}`;
+      });
+
+      try {
+        const mockChildProcess = {
+          on: jest.fn(),
+          unref: jest.fn(),
+        };
+        mockSpawn.mockReturnValueOnce(mockChildProcess);
+
+        const { openExternal } = loadModule();
+
+        const promise = openExternal('https://example.com');
+
+        const closeCallback = mockChildProcess.on.mock.calls.find(
+          (call) => call[0] === 'close'
+        )[1];
+        closeCallback(0);
+
+        await promise;
+
+        expect(mockOpenExternal).not.toHaveBeenCalled();
+        expect(mockSpawn).toHaveBeenCalledWith(
+          'xdg-open',
+          ['https://example.com'],
+          {
+            detached: true,
+            env: expect.any(Object),
+            stdio: 'ignore',
+          }
+        );
+
+        // Verify the environment is cleaned up
+        const envArgs = mockSpawn.mock.calls[0][2].env;
+        expect(envArgs.APPDIR).toBeUndefined();
+        expect(envArgs.APPIMAGE).toBeUndefined();
+        expect(envArgs.LD_LIBRARY_PATH).toBeUndefined();
+        expect(envArgs.APPIMAGE_SILENT_INSTALL).toBeUndefined();
+        expect(envArgs.APPIMAGE_START_CWD).toBeUndefined();
+        expect(envArgs.GDK_BACKEND).toBeUndefined();
+      } finally {
+        envKeys.forEach((key) => {
+          const originalValue = originalEnv[key];
+          if (originalValue === undefined) {
+            delete process.env[key];
+          } else {
+            process.env[key] = originalValue;
+          }
+        });
+      }
+    });
+
+    it('falls back to shell.openExternal if xdg-open fails', async () => {
+      mockReadSetting.mockReturnValue(undefined);
+
+      const mockChildProcess = {
+        on: jest.fn(),
+        unref: jest.fn(),
+      };
+      mockSpawn.mockReturnValueOnce(mockChildProcess);
+
+      const { openExternal } = loadModule();
+
+      const promise = openExternal('https://example.com');
+
+      // Simulate spawn error
+      const errorCallback = mockChildProcess.on.mock.calls.find(
+        (call) => call[0] === 'error'
+      )[1];
+      errorCallback(new Error('spawn error'));
+
+      await promise;
+
+      expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com');
+    });
+
+    it('falls back to shell.openExternal if xdg-open exits with non-zero code', async () => {
+      mockReadSetting.mockReturnValue(undefined);
+
+      const mockChildProcess = {
+        on: jest.fn(),
+        unref: jest.fn(),
+      };
+      mockSpawn.mockReturnValueOnce(mockChildProcess);
+
+      const { openExternal } = loadModule();
+
+      const promise = openExternal('https://example.com');
+
+      // Simulate non-zero exit code
+      const closeCallback = mockChildProcess.on.mock.calls.find(
+        (call) => call[0] === 'close'
+      )[1];
+      closeCallback(1);
+
+      await promise;
+
+      expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com');
+    });
   });
 });
 

@@ -2,7 +2,6 @@ import { Box, Icon } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 
 import { WindowToolbar } from '../ui/windowChrome/WindowToolbar';
-import { legacyInvoke, legacyMaximizedSubscribe } from '../ui/windowChrome/legacyWindowBindings';
 
 /**
  * Title only. Clearing the list lives in the status bar next to the count it
@@ -12,10 +11,7 @@ export const DownloadsToolbar = () => {
   const { t } = useTranslation();
 
   return (
-    <WindowToolbar
-      invokeAction={legacyInvoke}
-      subscribeMaximized={legacyMaximizedSubscribe}
-    >
+    <WindowToolbar>
       <Icon name='circle-arrow-down' size='x16' color='hint' />
       <Box
         marginInlineStart='x4'

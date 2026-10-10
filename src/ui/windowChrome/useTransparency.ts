@@ -1,8 +1,29 @@
 import { useEffect, useState } from 'react';
 
 import { isDarwin, readInitialTransparency } from './appearance';
-import type { BridgeSubscribe } from './logViewerBridge';
-import { getLogViewerBridge } from './logViewerBridge';
+
+type WindowWithBridge = {
+  RocketChatDesktop?: {
+    logViewer?: {
+      on: (
+        eventChannel: string,
+        listener: (...args: unknown[]) => void
+      ) => () => void;
+    };
+  };
+  require?: (module: string) => {
+    ipcRenderer?: {
+      on: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+      off: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+    };
+  };
+};
 
 /**
  * Whether the window should let the desktop show through.
@@ -16,41 +37,36 @@ import { getLogViewerBridge } from './logViewerBridge';
  * Seeded from the page query so the first paint already matches, then kept in
  * step with the setting by the main process over `channel`.
  */
-/**
- * Tracks the transparency setting pushed by the main process over `channel`.
- *
- * The hook never imports `electron` so the sandboxed Log Viewer bundle can
- * load it. Callers in non-sandboxed windows pass their legacy `subscribe`;
- * otherwise the `RocketChatDesktop.logViewer` bridge is used when present.
- */
-export const useTransparency = (
-  channel: string,
-  subscribe?: BridgeSubscribe
-): boolean => {
+export const useTransparency = (channel: string): boolean => {
   const [isEnabled, setIsEnabled] = useState(readInitialTransparency);
 
   useEffect(() => {
-    const resolveSubscribe = (): BridgeSubscribe | undefined => {
-      if (subscribe) {
-        return subscribe;
-      }
-      const bridge = getLogViewerBridge();
-      if (bridge) {
-        return (eventChannel, listener) =>
-          bridge.on(eventChannel, (enabled: unknown) => {
-            listener(Boolean(enabled));
-          });
-      }
-      return undefined;
+    const handleChange = (_event: unknown, ...args: unknown[]): void => {
+      setIsEnabled(Boolean(args[0]));
     };
 
-    const activeSubscribe = resolveSubscribe();
-    if (!activeSubscribe) {
-      return;
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    const win = window as unknown as WindowWithBridge;
+
+    const bridge = win.RocketChatDesktop?.logViewer;
+    if (bridge) {
+      return bridge.on(channel, (enabled: unknown) => {
+        handleChange(null, enabled);
+      });
     }
 
-    return activeSubscribe(channel, setIsEnabled);
-  }, [channel, subscribe]);
+    const ipcRenderer = win.require?.('electron')?.ipcRenderer;
+    if (ipcRenderer) {
+      ipcRenderer.on(channel, handleChange);
+      return () => {
+        ipcRenderer.off(channel, handleChange);
+      };
+    }
+
+    return undefined;
+  }, [channel]);
 
   // Vibrancy only reads as a material on macOS; elsewhere the window is opaque
   // regardless of the setting, matching how the main window treats it.

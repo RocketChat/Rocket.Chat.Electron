@@ -10,8 +10,65 @@ import {
   WindowControlsGroup,
 } from '../components/TabBar/styles';
 import { WINDOW_MAXIMIZED_CHANNEL } from './channels';
-import type { BridgeInvoke, BridgeSubscribe } from './logViewerBridge';
-import { getLogViewerBridge } from './logViewerBridge';
+
+type WindowWithBridge = {
+  RocketChatDesktop?: {
+    logViewer?: {
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+      on: (
+        eventChannel: string,
+        listener: (...args: unknown[]) => void
+      ) => () => void;
+    };
+  };
+  require?: (module: string) => {
+    ipcRenderer?: {
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+      on: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+      off: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+    };
+  };
+};
+
+const getIpcBridge = () => {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+  const win = window as unknown as WindowWithBridge;
+
+  if (win.RocketChatDesktop?.logViewer) {
+    return {
+      invoke: (channel: string, ...args: unknown[]) =>
+        win.RocketChatDesktop!.logViewer!.invoke(channel, ...args),
+      subscribe: (channel: string, listener: (val: boolean) => void) =>
+        win.RocketChatDesktop!.logViewer!.on(channel, (val) =>
+          listener(Boolean(val))
+        ),
+    };
+  }
+
+  const ipcRenderer = win.require?.('electron')?.ipcRenderer;
+  if (ipcRenderer) {
+    return {
+      invoke: (channel: string, ...args: unknown[]) =>
+        ipcRenderer.invoke(channel, ...args),
+      subscribe: (channel: string, listener: (val: boolean) => void) => {
+        const handler = (_: unknown, ...args: unknown[]) =>
+          listener(Boolean(args[0]));
+        ipcRenderer.on(channel, handler);
+        return () => ipcRenderer.off(channel, handler);
+      },
+    };
+  }
+
+  return undefined;
+};
 
 /**
  * Minimise, maximise and close, drawn into the toolbar on the platforms whose
@@ -26,45 +83,34 @@ import { getLogViewerBridge } from './logViewerBridge';
 type WindowControlsProps = {
   /** Fixed-size windows cannot maximise, so they show no button for it. */
   isMaximizable?: boolean;
-  /** Legacy invoke for non-sandboxed windows. Defaults to the bridge. */
-  invokeAction?: BridgeInvoke;
-  /** Legacy maximized subscription for non-sandboxed windows. */
-  subscribeMaximized?: BridgeSubscribe;
 };
 
 export const WindowControls = ({
   isMaximizable = true,
-  invokeAction,
-  subscribeMaximized,
 }: WindowControlsProps) => {
   const { t } = useTranslation();
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
     let isCurrent = true;
-    const bridge = getLogViewerBridge();
-    const invokeFn: BridgeInvoke | undefined =
-      invokeAction ?? bridge?.invoke.bind(bridge);
-    const subscribeFn: BridgeSubscribe | undefined =
-      subscribeMaximized ??
-      (bridge
-        ? (channel, listener) =>
-            bridge.on(channel, (maximized: unknown) => {
-              listener(Boolean(maximized));
-            })
-        : undefined);
+    const bridge = getIpcBridge();
 
-    invokeFn?.('secondary-window/is-maximized').then((maximized) => {
-      if (isCurrent) setIsMaximized(Boolean(maximized));
-    });
+    bridge
+      ?.invoke('secondary-window/is-maximized')
+      .then((maximized) => {
+        if (isCurrent) {
+          setIsMaximized(Boolean(maximized));
+        }
+      })
+      .catch(() => {});
 
-    if (!subscribeFn) {
+    if (!bridge) {
       return () => {
         isCurrent = false;
       };
     }
 
-    const unsubscribe = subscribeFn(
+    const unsubscribe = bridge.subscribe(
       WINDOW_MAXIMIZED_CHANNEL,
       setIsMaximized
     );
@@ -72,26 +118,19 @@ export const WindowControls = ({
       isCurrent = false;
       unsubscribe();
     };
-  }, [invokeAction, subscribeMaximized]);
+  }, []);
 
   const handleMinimize = useCallback(() => {
-    const bridge = getLogViewerBridge();
-    (invokeAction ?? bridge?.invoke.bind(bridge))?.(
-      'secondary-window/minimize'
-    );
-  }, [invokeAction]);
+    getIpcBridge()?.invoke('secondary-window/minimize');
+  }, []);
 
   const handleMaximize = useCallback(() => {
-    const bridge = getLogViewerBridge();
-    (invokeAction ?? bridge?.invoke.bind(bridge))?.(
-      'secondary-window/toggle-maximize'
-    );
-  }, [invokeAction]);
+    getIpcBridge()?.invoke('secondary-window/toggle-maximize');
+  }, []);
 
   const handleClose = useCallback(() => {
-    const bridge = getLogViewerBridge();
-    (invokeAction ?? bridge?.invoke.bind(bridge))?.('secondary-window/close');
-  }, [invokeAction]);
+    getIpcBridge()?.invoke('secondary-window/close');
+  }, []);
 
   const maximizeLabel = isMaximized
     ? t('tabBar.windowControls.restore')

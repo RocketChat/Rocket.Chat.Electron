@@ -28,7 +28,7 @@ const ALLOWED_ON_CHANNELS = new Set([
  * @returns A plain structured clone, preserving `undefined`.
  */
 const cloneArg = (arg: unknown): unknown =>
-  arg !== undefined ? JSON.parse(JSON.stringify(arg)) : undefined;
+  arg !== undefined ? structuredClone(arg) : undefined;
 
 const logViewer = {
   /**

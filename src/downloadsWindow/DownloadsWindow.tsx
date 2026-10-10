@@ -33,7 +33,6 @@ import {
   toggleFacet,
 } from '../ui/windowChrome/filters';
 import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
-import { legacyTransparencySubscribe } from '../ui/windowChrome/legacyWindowBindings';
 import { useTransparency } from '../ui/windowChrome/useTransparency';
 import { DownloadRow } from './DownloadRow';
 import { DownloadsSidebar } from './DownloadsSidebar';
@@ -58,10 +57,7 @@ type DownloadsWindowProps = {
 
 export const DownloadsWindow = ({ paletteTheme }: DownloadsWindowProps) => {
   const { t } = useTranslation();
-  const isTransparent = useTransparency(
-    TRANSPARENCY_CHANNEL,
-    legacyTransparencySubscribe
-  );
+  const isTransparent = useTransparency(TRANSPARENCY_CHANNEL);
   const surfaces = useMemo(
     () => resolveSurfaces(paletteTheme, isTransparent),
     [paletteTheme, isTransparent]

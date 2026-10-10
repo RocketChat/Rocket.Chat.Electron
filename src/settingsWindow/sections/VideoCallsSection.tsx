@@ -11,7 +11,7 @@ export const VideoCallsSection = () => (
       <InternalVideoChatWindow />
       <VideoCallWindowPersistence />
       {process.platform === 'win32' && <ScreenCaptureFallback />}
-      {!process.mas && <ClearPermittedScreenCaptureServers />}
+      <ClearPermittedScreenCaptureServers />
     </FieldGroup>
   </Box>
 );

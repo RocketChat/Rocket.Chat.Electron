@@ -53,6 +53,7 @@ export const createNotification = async ({
   title: string;
   subtitle?: string;
   notificationType?: 'voice' | 'text';
+  restoreWindow?: boolean;
   category?: 'DOWNLOADS' | 'SERVER';
   onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
@@ -108,6 +109,7 @@ export const dispatchCustomNotification = async (
     icon: payload.avatar,
     tag: notificationId,
     requireInteraction: payload.requireInteraction,
+    restoreWindow: payload.restoreWindow,
     notificationType: type,
   });
 };

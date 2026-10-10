@@ -282,10 +282,30 @@ const updateNotification = async (
   return id;
 };
 
+const restoreRootWindow = async (): Promise<void> => {
+  try {
+    const window = await getRootWindow();
+    if (!window.isDestroyed() && window.isMinimized()) {
+      window.restore();
+      window.show();
+      window.focus();
+    }
+  } catch (error) {
+    loggers.notifications.warn(
+      'Could not restore window for notification',
+      error
+    );
+  }
+};
+
 const handleCreateEvent = async (
   { tag, ...options }: ExtendedNotificationOptions,
   ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
+  if (options.restoreWindow) {
+    await restoreRootWindow();
+  }
+
   if (tag && notifications.has(tag)) {
     return updateNotification(tag, options);
   }

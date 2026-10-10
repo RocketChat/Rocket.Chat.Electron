@@ -105,6 +105,11 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
     ) => void
   ) => void;
   reportMediaCapture: (state: MediaCaptureState) => void;
+  logViewer?: {
+    invoke: (channel: string, ...args: unknown[]) => Promise<any>;
+    on: (channel: string, listener: (...args: unknown[]) => void) => () => void;
+    sendSync: (channel: string, ...args: unknown[]) => unknown;
+  };
 };
 
 declare global {

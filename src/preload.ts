@@ -1,3 +1,5 @@
+import './ipc/sanitize';
+
 import { contextBridge, webFrame } from 'electron';
 
 import { invoke } from './ipc/renderer';

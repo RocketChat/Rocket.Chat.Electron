@@ -16,7 +16,20 @@ import {
   useLocalStorage,
   useDebouncedValue,
 } from '@rocket.chat/fuselage-hooks';
-import { ipcRenderer } from 'electron';
+// import { ipcRenderer } from 'electron';
+
+declare global {
+  interface Window {
+    RocketChatDesktop: {
+      logViewer: {
+        invoke: (channel: string, ...args: any[]) => Promise<any>;
+        on: (channel: string, listener: (...args: any[]) => void) => () => void;
+        sendSync: (channel: string, ...args: any[]) => any;
+      };
+    };
+  }
+}
+
 import type { ChangeEvent } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -266,7 +279,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     setIsLoading(true);
     try {
       setLoadError(null);
-      const response = (await ipcRenderer.invoke(
+      const response = (await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/read-logs',
         {
           limit: 'all',
@@ -614,7 +627,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
   useEffect(() => {
     const fetchMapping = async () => {
       try {
-        const response = (await ipcRenderer.invoke(
+        const response = (await window.RocketChatDesktop.logViewer.invoke(
           'log-viewer-window/get-server-mapping'
         )) as { success: boolean; mapping: Record<string, string> };
         if (response?.success) {
@@ -647,7 +660,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
     if (!isStreaming || !currentLogFile.isDefaultLog) return;
 
     try {
-      const statResponse = (await ipcRenderer.invoke(
+      const statResponse = (await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/stat-log',
         { filePath: undefined }
       )) as { success: boolean; lastModifiedTime?: number; size?: number };
@@ -674,7 +687,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
       }
 
       // Incremental read: only fetch new bytes appended since last read
-      const tailResponse = (await ipcRenderer.invoke(
+      const tailResponse = (await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/read-logs-tail',
         { fromByte: previousSize }
       )) as ReadLogsTailResponse;
@@ -833,7 +846,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   const handleOpenLogFile = useCallback(async () => {
     try {
-      const response = (await ipcRenderer.invoke(
+      const response = (await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/select-log-file'
       )) as SelectFileResponse;
       if (response?.success && response.filePath) {
@@ -870,7 +883,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
 
   const handleRevealLogFile = useCallback(async () => {
     try {
-      const response = (await ipcRenderer.invoke(
+      const response = (await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/reveal-log-file',
         {
           filePath: currentLogFile.isDefaultLog
@@ -895,12 +908,12 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
       return;
     }
     try {
-      const confirmed = await ipcRenderer.invoke(
+      const confirmed = await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/confirm-clear-logs'
       );
       if (!confirmed) return;
 
-      const response = (await ipcRenderer.invoke(
+      const response = (await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/clear-logs'
       )) as ClearLogsResponse;
       if (response?.success) {
@@ -931,7 +944,7 @@ function LogViewerWindow({ paletteTheme }: LogViewerWindowProps) {
         .toISOString()
         .slice(0, 19)
         .replace(/:/g, '-');
-      const response = (await ipcRenderer.invoke(
+      const response = (await window.RocketChatDesktop.logViewer.invoke(
         'log-viewer-window/save-logs',
         {
           content: logText,

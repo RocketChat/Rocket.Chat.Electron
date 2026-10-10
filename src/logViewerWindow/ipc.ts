@@ -259,8 +259,10 @@ const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
         }
       : {}),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      preload: path.join(app.getAppPath(), 'app/logViewerWindow/preload.js'),
     },
     show: false,
   });

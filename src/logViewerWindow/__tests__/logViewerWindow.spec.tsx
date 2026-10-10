@@ -8,13 +8,15 @@ const invoke = jest.fn();
 const on = jest.fn();
 const removeListener = jest.fn();
 
-jest.mock('electron', () => ({
-  ipcRenderer: {
-    invoke: (...args: any[]) => invoke(...args),
-    on: (...args: any[]) => on(...args),
-    removeListener: (...args: any[]) => removeListener(...args),
-  },
-}));
+beforeAll(() => {
+  (window as any).RocketChatDesktop = {
+    logViewer: {
+      invoke: (...args: any[]) => invoke(...args),
+      on: (...args: any[]) => on(...args),
+      removeListener: (...args: any[]) => removeListener(...args),
+    },
+  };
+});
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({

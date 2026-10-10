@@ -1,17 +1,39 @@
 import fs from 'fs';
+import util from 'util';
 
 import { ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED } from '../../ui/actions';
 // eslint-disable-next-line import/order
 import {
   UPDATE_SKIPPED,
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+  UPDATES_ERROR_THROWN,
   UPDATES_INSTALL_REQUESTED,
   UPDATES_SKIP_REQUESTED,
+  UPDATES_UPDATE_DOWNLOADED,
 } from '../actions';
 
 const listeners = new Map<string, Function>();
+const autoUpdaterListeners = new Map<string, (...args: unknown[]) => unknown>();
 const select = jest.fn();
 const dispatch = jest.fn();
+const mockExecFileAsync = jest.fn();
+const mockExecFile = Object.assign(
+  jest.fn((...args: unknown[]) => {
+    const callback = args[args.length - 1];
+    if (typeof callback === 'function') {
+      mockExecFileAsync(...args.slice(0, -1))
+        .then((res: unknown) =>
+          (callback as (...cbArgs: unknown[]) => void)(null, res)
+        )
+        .catch((err: unknown) =>
+          (callback as (...cbArgs: unknown[]) => void)(err)
+        );
+    }
+  }),
+  { [util.promisify.custom]: mockExecFileAsync }
+);
+const mockUnlinkSync = jest.fn();
+
 // Mirrors electron-updater: the constructor allows prereleases when the
 // running version has a prerelease id, and the `channel` setter always
 // turns `allowDowngrade` on.
@@ -32,18 +54,27 @@ const autoUpdater = {
   checkForUpdatesAndNotify: jest.fn(async () => undefined),
   quitAndInstall: jest.fn(),
   downloadUpdate: jest.fn(async () => undefined),
-  on: jest.fn(),
+  on: jest.fn((event: string, fn: (...args: unknown[]) => unknown) => {
+    autoUpdaterListeners.set(event, fn);
+  }),
   once: jest.fn(),
-  addListener: jest.fn(),
+  addListener: jest.fn((event: string, fn: (...args: unknown[]) => unknown) => {
+    autoUpdaterListeners.set(event, fn);
+  }),
   removeListener: jest.fn(),
   removeAllListeners: jest.fn(),
   updateConfigPath: '',
 };
 
+jest.mock('child_process', () => ({
+  execFile: (...args: unknown[]) => mockExecFile(...args),
+}));
+
 jest.mock('fs', () => ({
   promises: {
     readFile: jest.fn(async () => '{}'),
   },
+  unlinkSync: (...args: unknown[]) => mockUnlinkSync(...args),
 }));
 
 jest.mock('electron', () => ({
@@ -51,6 +82,8 @@ jest.mock('electron', () => ({
     getAppPath: jest.fn(() => '/app'),
     getPath: jest.fn(() => '/userData'),
     isPackaged: true,
+    listeners: jest.fn(() => []),
+    removeAllListeners: jest.fn(),
   },
   BrowserWindow: {
     getAllWindows: jest.fn(() => []),
@@ -99,6 +132,7 @@ describe('updates/setupUpdates', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     listeners.clear();
+    autoUpdaterListeners.clear();
     Object.defineProperty(process, 'platform', {
       value: 'win32',
       configurable: true,
@@ -232,6 +266,54 @@ describe('updates/setupUpdates', () => {
       expect(autoUpdater.channel).toBe('beta');
       expect(autoUpdater.allowPrerelease).toBe(true);
       expect(autoUpdater.allowDowngrade).toBe(false);
+    });
+  });
+
+  describe('update signature verification', () => {
+    it('verifies valid Windows signature and dispatches UPDATES_UPDATE_DOWNLOADED', async () => {
+      mockExecFileAsync.mockResolvedValueOnce({ stdout: 'Valid\r\n' });
+      await setupUpdates();
+
+      const listener = autoUpdaterListeners.get('update-downloaded');
+      expect(listener).toBeDefined();
+
+      await listener?.({ downloadedFile: 'C:\\path\\to\\installer.exe' });
+
+      expect(mockExecFileAsync).toHaveBeenCalledWith(
+        'powershell.exe',
+        expect.arrayContaining(['-NoProfile', '-NonInteractive', '-Command']),
+        expect.objectContaining({
+          env: expect.objectContaining({
+            ROCKETCHAT_UPDATE_FILE: 'C:\\path\\to\\installer.exe',
+          }),
+        })
+      );
+      expect(dispatch).toHaveBeenCalledWith({
+        type: UPDATES_UPDATE_DOWNLOADED,
+      });
+      expect(mockUnlinkSync).not.toHaveBeenCalled();
+    });
+
+    it('discards unverified installer, dispatches error, and halts install', async () => {
+      mockExecFileAsync.mockResolvedValueOnce({ stdout: 'HashMismatch\r\n' });
+      await setupUpdates();
+
+      const listener = autoUpdaterListeners.get('update-downloaded');
+      expect(listener).toBeDefined();
+
+      await listener?.({ downloadedFile: 'C:\\path\\to\\tampered.exe' });
+
+      expect(mockUnlinkSync).toHaveBeenCalledWith('C:\\path\\to\\tampered.exe');
+      expect(dispatch).toHaveBeenCalledWith({
+        type: UPDATES_ERROR_THROWN,
+        payload: expect.objectContaining({
+          message:
+            'Update signature verification failed. The update has been discarded for your safety.',
+        }),
+      });
+      expect(dispatch).not.toHaveBeenCalledWith({
+        type: UPDATES_UPDATE_DOWNLOADED,
+      });
     });
   });
 });

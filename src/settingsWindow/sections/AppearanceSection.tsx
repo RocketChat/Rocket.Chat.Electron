@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/rootReducer';
 import { NavigationLayout } from '../../ui/components/SettingsView/features/NavigationLayout';
 import { SettingGroupDivider } from '../../ui/components/SettingsView/features/SettingGroupDivider';
+import { SystemTitleBar } from '../../ui/components/SettingsView/features/SystemTitleBar';
 import { ThemeAppearance } from '../../ui/components/SettingsView/features/ThemeAppearance';
 import { TransparentWindow } from '../../ui/components/SettingsView/features/TransparentWindow';
 import { UiPreview } from '../../ui/components/SettingsView/features/UiPreview';
@@ -21,6 +22,7 @@ export const AppearanceSection = () => {
         <ThemeAppearance />
         <NavigationLayout />
         {isDarwin && <TransparentWindow />}
+        {process.platform === 'linux' && <SystemTitleBar />}
       </FieldGroup>
 
       {isDeveloperModeEnabled && (

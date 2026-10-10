@@ -159,6 +159,7 @@ const buildState = (overrides: Record<string, unknown> = {}) =>
     machineTheme: 'light',
     userThemePreference: 'auto',
     isTransparentWindowEnabled: false,
+    isLinuxSystemTitleBarEnabled: false,
     navigationLayout: 'sidebar',
     rootWindowState: {
       focused: true,
@@ -404,18 +405,21 @@ describe('Shell', () => {
     });
   });
 
-  describe('linux chrome (Windows-parity client decorations)', () => {
+  describe('linux chrome — default (client-side, matching #3450 behavior)', () => {
     let restorePlatform: () => void;
 
     afterEach(() => {
       restorePlatform?.();
     });
 
-    it('mounts the meatball menu and window controls as TabBar slots when navigationLayout is tabs', () => {
+    it('mounts the meatball menu and window controls when navigationLayout is tabs', () => {
       restorePlatform = setPlatform('linux');
 
       renderWithStore(<Shell />, {
-        preloadedState: buildState({ navigationLayout: 'tabs' }),
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
       });
 
       expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
@@ -428,11 +432,13 @@ describe('Shell', () => {
       restorePlatform = setPlatform('linux');
 
       renderWithStore(<Shell />, {
-        preloadedState: buildState({ navigationLayout: 'sidebar' }),
+        preloadedState: buildState({
+          navigationLayout: 'sidebar',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
       });
 
       expect(screen.getByTestId('top-bar')).toBeInTheDocument();
-      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
       expect(screen.getByTestId('window-controls')).toBeInTheDocument();
       expect(screen.getByTestId('tab-bar')).toHaveAttribute(
         'data-orientation',
@@ -441,17 +447,80 @@ describe('Shell', () => {
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
     });
 
-    it('puts the meatball menu and window controls on the TopBar with no TabBar when navigationLayout is hidden', () => {
+    it('puts the meatball menu on the TopBar with window controls and no TabBar when navigationLayout is hidden', () => {
       restorePlatform = setPlatform('linux');
 
       renderWithStore(<Shell />, {
-        preloadedState: buildState({ navigationLayout: 'hidden' }),
+        preloadedState: buildState({
+          navigationLayout: 'hidden',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('linux chrome — system title bar opt-in (native WM decorations)', () => {
+    let restorePlatform: () => void;
+
+    afterEach(() => {
+      restorePlatform?.();
+    });
+
+    it('mounts the meatball menu on the trailing slot with no window controls when navigationLayout is tabs', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
+      });
+
+      expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
+    });
+
+    it('mounts the TopBar without window controls plus the vertical TabBar meatball when navigationLayout is sidebar', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'sidebar',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+      expect(screen.getByTestId('tab-bar')).toHaveAttribute(
+        'data-orientation',
+        'vertical'
+      );
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+    });
+
+    it('mounts the TopBar with ServerSwitcher, without in-app window controls and no TabBar when navigationLayout is hidden', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'hidden',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
       });
 
       expect(screen.getByTestId('top-bar')).toBeInTheDocument();
       expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
-      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
       expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: 'tabBar.workspaces' })
@@ -535,8 +604,7 @@ describe('Shell', () => {
     });
 
     it('still renders exactly one instance regardless of developer mode', () => {
-      // Shell's non-tabs TopBar branches are gated on darwin/win32 only (a
-      // pre-existing platform split, unrelated to developer mode) — pin the
+      // Shell's non-tabs TopBar branches are gated on darwin/win32/linux — pin the
       // platform like every sibling test in this block so the assertion
       // doesn't depend on the CI runner's actual process.platform (this test
       // is about developer mode, not platform).

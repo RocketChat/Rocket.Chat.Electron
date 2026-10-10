@@ -271,7 +271,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Öppna videochatt i programfönstret",
-        "description": "Om den är aktiverad öppnas videochatten i programmets fönster i stället för i standardwebbläsaren. För <strong>Google Meet</strong> och <strong>Jitsi</strong> stöds dock inte skärminspelning i Electron-applikationer, så de kommer alltid att öppnas i webbläsaren oavsett denna inställning."
+        "description": "Om den är aktiverad öppnas videochatten i programmets fönster i stället för i standardwebbläsaren. För <strong>Google Meet</strong> stöds dock inte skärminspelning i Electron-applikationer, så det kommer alltid att öppnas i webbläsaren oavsett denna inställning."
       },
       "minimizeOnClose": {
         "title": "Minimera vid stängning",

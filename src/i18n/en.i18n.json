@@ -372,7 +372,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Video calls inside app",
-        "description": "Open video calls inside app window instead of browser. Google Meet and Jitsi calls can only open in browser."
+        "description": "Open video calls inside app window instead of browser. Google Meet calls can only open in browser."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",

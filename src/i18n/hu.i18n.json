@@ -276,7 +276,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása az alkalmazásablakban",
-        "description": "Ha engedélyezve van, akkor a videócsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyő rögzítése nem támogatott az Electron alkalmazásokban, így azok ettől a beállítástól függetlenül mindig a böngészőben nyílnak meg."
+        "description": "Ha engedélyezve van, akkor a videócsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> esetében a képernyő rögzítése nem támogatott az Electron alkalmazásokban, így az ettől a beállítástól függetlenül mindig a böngészőben nyílik meg."
       },
       "minimizeOnClose": {
         "title": "Kis méret bezáráskor",

@@ -250,7 +250,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Avaa videokeskustelu sovellusikkunaan",
-        "description": "Jos käytössä, videokeskustelu avautuu sovelluksen ikkunaan oletusselaimen sijaan. Kuitenkin <strong>Google Meet</strong> ja <strong>Jitsi</strong> -palveluissa ruuduntallennus ei ole tuettu Electron-sovelluksissa, joten ne avautuvat aina selaimessa tästä asetuksesta riippumatta."
+        "description": "Jos käytössä, videokeskustelu avautuu sovelluksen ikkunaan oletusselaimen sijaan. Kuitenkin <strong>Google Meet</strong> -palvelussa ruuduntallennus ei ole tuettu Electron-sovelluksissa, joten se avautuu aina selaimessa tästä asetuksesta riippumatta."
       },
       "minimizeOnClose": {
         "title": "Pienennä suljettaessa",

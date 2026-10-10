@@ -257,7 +257,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
-        "description": "Se ativado, o Chat de Vídeo será aberto na janela do aplicativo em vez do navegador padrão. No entanto, para <strong>Google Meet</strong> e <strong>Jitsi</strong>, a gravação de tela não é suportada em aplicativos Electron, então eles sempre serão abertos no navegador independentemente desta configuração."
+        "description": "Se ativado, o Chat de Vídeo será aberto na janela do aplicativo em vez do navegador padrão. No entanto, para <strong>Google Meet</strong>, a gravação de tela não é suportada em aplicativos Electron, então ele sempre será aberto no navegador independentemente desta configuração."
       },
       "minimizeOnClose": {
         "title": "Minimizar ao fechar",

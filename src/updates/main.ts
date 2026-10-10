@@ -1,5 +1,7 @@
+import { execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
@@ -640,7 +642,42 @@ export const setupUpdates = async (): Promise<void> => {
     });
   });
 
-  autoUpdater.addListener('update-downloaded', async () => {
+  autoUpdater.addListener('update-downloaded', async (info: any) => {
+    const downloadedFile = info?.downloadedFile;
+    if (downloadedFile) {
+      try {
+        const execFileAsync = promisify(execFile);
+
+        if (process.platform === 'win32') {
+          const { stdout } = await execFileAsync('powershell.exe', [
+            '-NoProfile',
+            '-Command',
+            `Get-AuthenticodeSignature "${downloadedFile}" | Select-Object -ExpandProperty Status`,
+          ]);
+          if (!stdout.includes('Valid')) {
+            throw new Error(
+              `Signature verification failed on Windows: ${stdout}`
+            );
+          }
+        } else if (process.platform === 'darwin') {
+          await execFileAsync('codesign', ['-v', downloadedFile]);
+        }
+      } catch (err: any) {
+        console.error('Update integrity check failed, discarding update:', err);
+        try {
+          fs.unlinkSync(downloadedFile);
+        } catch (e) {
+          // ignore cleanup errors
+        }
+        dispatchUpdateError(
+          new Error(
+            'Update signature verification failed. The update has been discarded for your safety.'
+          )
+        );
+        return;
+      }
+    }
+
     dispatch({ type: UPDATES_UPDATE_DOWNLOADED });
 
     // Downloads started from the titlebar label surface the restart action in

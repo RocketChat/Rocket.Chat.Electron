@@ -1050,10 +1050,16 @@ const start = async () => {
     }
   };
 
-  // Call setupReactiveFeatures immediately and then periodically check for new modules
+  // Call setupReactiveFeatures immediately and then dynamically detect app loads
   setupReactiveFeatures();
-  setInterval(setupReactiveFeatures, 1000); // Check every second for newly loaded modules
-
+  const observer = new MutationObserver(() => {
+    setupReactiveFeatures();
+  });
+  
+  const targetNode = document.querySelector('[data-reactroot]') || document.getElementById('react-root') || document.body;
+  if (targetNode) {
+    observer.observe(targetNode, { childList: true, subtree: true });
+  }
   console.log('[Rocket.Chat Desktop] Injected');
 };
 

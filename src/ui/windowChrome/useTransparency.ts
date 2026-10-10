@@ -31,6 +31,7 @@ export const useTransparency = (channel: string): boolean => {
 
     // Fallback for non-isolated windows (nodeIntegration: true)
     try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcRenderer } = require('electron');
       ipcRenderer.on(channel, handleChange);
       return () => {

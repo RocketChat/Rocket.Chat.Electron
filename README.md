@@ -5,8 +5,8 @@
 [![GitHub All Releases](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
 ![GitHub](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)
 
-Desktop application for [Rocket.Chat][] available for macOS, Windows and Linux
-using [Electron][].
+Desktop application for [Rocket.Chat][], available for macOS, Windows, and Linux,
+built using [Electron][].
 
 ![Rocket.Chat Desktop App](https://user-images.githubusercontent.com/2263066/91490997-c0bd0c80-e889-11ea-92c7-2cbcc3aabc98.png)
 
@@ -31,8 +31,8 @@ We'd love to hear about [your experience][] and potentially feature it on our
 
 ### Subscribe for Updates
 
-Once a month our marketing team releases an email update with news about product
-releases, company related topics, events and use cases. [Sign Up!][]
+Once a month, our marketing team sends an email update featuring product
+releases, company-related topics, events, and use cases.
 
 ---
 
@@ -50,7 +50,7 @@ Launch the installer and follow the instructions to install.
 
 ### Windows Options
 
-On Windows you can run a silent install by adding the `/S` flag. You can also
+On Windows, you can run a silent installation by adding the `/S` flag. You can also
 add the options below:
 
 - `/S` - Silent install
@@ -82,7 +82,7 @@ yarn start
 The source is located in the `src` folder. Everything in this folder will be
 built automatically when running the app with `yarn start`.
 
-The build process compiles all stuff from the `src` folder and puts it into the
+The build process compiles all files from the `src` folder and puts it into the
 `app` folder, so after the build has finished, your `app` folder contains the
 full, runnable application.
 
@@ -93,7 +93,7 @@ rewritten in TypeScript 5 to address issues regarding maintainability.
 
 ### The build pipeline
 
-The build process is founded upon [rollup][] bundler. There are three entry files
+The build process is based on the [rollup][] bundler. There are three entry files
 for your code:
 
 - `src/main.ts`, the script running at the main Electron process, orchestrating
@@ -143,14 +143,13 @@ for all files in `src` directory that match the glob pattern
 
 ### Making a release
 
-To package your app into an installer use command:
+To package your app into an installer, use the following command:
 
 ```sh
 yarn release
 ```
 
-It will start the packaging process for operating system you are running this
-command on. Ready for distribution file will be outputted to `dist` directory.
+It will start the packaging process for the operating system on which you are running this command. Ready for distribution file will be outputted to `dist` directory.
 
 All packaging actions are handled by [electron-builder][]. It has a lot of
 [customization options][].

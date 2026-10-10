@@ -656,6 +656,8 @@ const initializeServerWebContentsAfterAttach = (
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {
   const rootWindow = await getRootWindow();
+  let nextWebviewIsVideoCall = false;
+
   const handleWillAttachWebview = (
     _event: Event,
     webPreferences: WebPreferences,
@@ -666,6 +668,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       _params.partition,
       _params.frameName
     );
+    nextWebviewIsVideoCall = isVideoCall;
     const preloadPath = resolvePreloadPath(isVideoCall);
     if (preloadPath) {
       webPreferences.preload = preloadPath;
@@ -691,7 +694,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     if (process.env.NODE_ENV === 'development') {
       setupPreloadReload(webContents);
     }
-    setupWorkspaceCss(webContents);
+
+    if (!nextWebviewIsVideoCall) {
+      setupWorkspaceCss(webContents);
+    }
 
     webContents.setWindowOpenHandler(({ url, frameName, disposition }) => {
       if (

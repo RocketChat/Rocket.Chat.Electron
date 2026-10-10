@@ -20,34 +20,39 @@ const activeKeys = new WeakMap<WebContents, string>();
 
 let managerInitialized = false;
 
-const applyCssToWebContents = async (
-  webContents: WebContents,
-  target: CssTarget
-) => {
-  if (webContents.isDestroyed()) {
-    registry[target].delete(webContents);
-    return;
-  }
+const applyPromises = new WeakMap<WebContents, Promise<void>>();
 
-  const currentKey = activeKeys.get(webContents);
-  if (currentKey) {
-    try {
-      await webContents.removeInsertedCSS(currentKey);
-    } catch (err) {
-      // Ignore errors if css is already cleared by navigation
+const applyCssToWebContents = (webContents: WebContents, target: CssTarget) => {
+  const currentPromise = applyPromises.get(webContents) || Promise.resolve();
+  const newPromise = currentPromise.then(async () => {
+    if (webContents.isDestroyed()) {
+      registry[target].delete(webContents);
+      return;
     }
-    activeKeys.delete(webContents);
-  }
 
-  const css = cssCache[target];
-  if (css && css.trim().length > 0) {
-    try {
-      const key = await webContents.insertCSS(css);
-      activeKeys.set(webContents, key);
-    } catch (err) {
-      console.error(`[CustomCSS] Failed to insert ${target} CSS:`, err);
+    const currentKey = activeKeys.get(webContents);
+    if (currentKey) {
+      try {
+        await webContents.removeInsertedCSS(currentKey);
+      } catch (err) {
+        // Ignore errors if css is already cleared by navigation
+      }
+      activeKeys.delete(webContents);
     }
-  }
+
+    const css = cssCache[target];
+    if (css && css.trim().length > 0) {
+      try {
+        const key = await webContents.insertCSS(css);
+        activeKeys.set(webContents, key);
+      } catch (err) {
+        console.error(`[CustomCSS] Failed to insert ${target} CSS:`, err);
+      }
+    }
+  });
+
+  applyPromises.set(webContents, newPromise);
+  return newPromise;
 };
 
 const applyCssToAll = (target: CssTarget) => {
@@ -78,14 +83,18 @@ const initManager = () => {
 
   // Watch directory for changes to those files
   try {
-    let debounceTimer: NodeJS.Timeout | null = null;
+    let shellTimer: NodeJS.Timeout | null = null;
+    let workspaceTimer: NodeJS.Timeout | null = null;
     fs.watch(userDataPath, (_eventType, filename) => {
-      if (filename === 'custom-shell.css' || filename === 'custom.css') {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          if (filename === 'custom-shell.css')
-            reloadCache('shell', 'custom-shell.css');
-          if (filename === 'custom.css') reloadCache('workspace', 'custom.css');
+      if (filename === 'custom-shell.css') {
+        if (shellTimer) clearTimeout(shellTimer);
+        shellTimer = setTimeout(() => {
+          reloadCache('shell', 'custom-shell.css');
+        }, 100);
+      } else if (filename === 'custom.css') {
+        if (workspaceTimer) clearTimeout(workspaceTimer);
+        workspaceTimer = setTimeout(() => {
+          reloadCache('workspace', 'custom.css');
         }, 100);
       }
     });

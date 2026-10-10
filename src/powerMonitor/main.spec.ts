@@ -17,6 +17,7 @@ jest.mock('electron', () => ({
 describe('powerMonitor setupFrameRateThrottling', () => {
   let mockWc1: any;
   let mockWc2: any;
+  let mockOffscreenWc: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -26,20 +27,31 @@ describe('powerMonitor setupFrameRateThrottling', () => {
     mockWc1 = {
       id: 1,
       isDestroyed: jest.fn(() => false),
+      getType: jest.fn(() => 'window'),
       setFrameRate: jest.fn(),
       setBackgroundThrottling: jest.fn(),
-      getWebPreferences: jest.fn(() => ({ backgroundThrottling: false })),
+      getBackgroundThrottling: jest.fn(() => false),
     };
 
     mockWc2 = {
       id: 2,
       isDestroyed: jest.fn(() => false),
+      getType: jest.fn(() => 'webview'),
       setFrameRate: jest.fn(),
       setBackgroundThrottling: jest.fn(),
-      getWebPreferences: jest.fn(() => ({ backgroundThrottling: true })),
+      getBackgroundThrottling: jest.fn(() => true),
     };
 
-    mockWebContents.push(mockWc1, mockWc2);
+    mockOffscreenWc = {
+      id: 3,
+      isDestroyed: jest.fn(() => false),
+      getType: jest.fn(() => 'offscreen'),
+      setFrameRate: jest.fn(),
+      setBackgroundThrottling: jest.fn(),
+      getBackgroundThrottling: jest.fn(() => true),
+    };
+
+    mockWebContents.push(mockWc1, mockWc2, mockOffscreenWc);
 
     jest.resetModules();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -53,46 +65,53 @@ describe('powerMonitor setupFrameRateThrottling', () => {
     expect(powerListeners.has('unlock-screen')).toBe(true);
   });
 
-  it('throttles frame rate to 10 FPS and preserves original background throttling on suspend', () => {
+  it('throttles normal-rendered contents via setBackgroundThrottling and offscreen contents via setFrameRate on suspend', () => {
     powerListeners.get('suspend')?.();
 
-    expect(mockWc1.setFrameRate).toHaveBeenCalledWith(10);
     expect(mockWc1.setBackgroundThrottling).toHaveBeenCalledWith(true);
+    expect(mockWc1.setFrameRate).not.toHaveBeenCalled();
 
-    expect(mockWc2.setFrameRate).toHaveBeenCalledWith(10);
     expect(mockWc2.setBackgroundThrottling).toHaveBeenCalledWith(true);
+    expect(mockWc2.setFrameRate).not.toHaveBeenCalled();
+
+    expect(mockOffscreenWc.setBackgroundThrottling).toHaveBeenCalledWith(true);
+    expect(mockOffscreenWc.setFrameRate).toHaveBeenCalledWith(10);
   });
 
-  it('restores frame rate to 60 FPS and restores original background throttling on resume', () => {
+  it('restores original background throttling on resume and restores offscreen frame rate', () => {
     powerListeners.get('suspend')?.();
 
-    mockWc1.setFrameRate.mockClear();
     mockWc1.setBackgroundThrottling.mockClear();
-    mockWc2.setFrameRate.mockClear();
     mockWc2.setBackgroundThrottling.mockClear();
+    mockOffscreenWc.setBackgroundThrottling.mockClear();
+    mockOffscreenWc.setFrameRate.mockClear();
 
     powerListeners.get('resume')?.();
 
-    expect(mockWc1.setFrameRate).toHaveBeenCalledWith(60);
     expect(mockWc1.setBackgroundThrottling).toHaveBeenCalledWith(false);
+    expect(mockWc1.setFrameRate).not.toHaveBeenCalled();
 
-    expect(mockWc2.setFrameRate).toHaveBeenCalledWith(60);
     expect(mockWc2.setBackgroundThrottling).toHaveBeenCalledWith(true);
+    expect(mockWc2.setFrameRate).not.toHaveBeenCalled();
+
+    expect(mockOffscreenWc.setBackgroundThrottling).toHaveBeenCalledWith(true);
+    expect(mockOffscreenWc.setFrameRate).toHaveBeenCalledWith(60);
   });
 
   it('handles destroyed web contents gracefully', () => {
     const destroyedWc = {
-      id: 3,
+      id: 4,
       isDestroyed: jest.fn(() => true),
+      getType: jest.fn(() => 'window'),
       setFrameRate: jest.fn(),
       setBackgroundThrottling: jest.fn(),
     };
     mockWebContents.push(destroyedWc);
 
     expect(() => powerListeners.get('lock-screen')?.()).not.toThrow();
-    expect(destroyedWc.setFrameRate).not.toHaveBeenCalled();
+    expect(destroyedWc.setBackgroundThrottling).not.toHaveBeenCalled();
 
     expect(() => powerListeners.get('unlock-screen')?.()).not.toThrow();
-    expect(destroyedWc.setFrameRate).not.toHaveBeenCalled();
+    expect(destroyedWc.setBackgroundThrottling).not.toHaveBeenCalled();
   });
 });

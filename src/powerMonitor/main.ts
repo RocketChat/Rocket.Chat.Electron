@@ -8,14 +8,16 @@ export const setupFrameRateThrottling = (): void => {
       try {
         if (wc.isDestroyed()) return;
 
-        wc.setFrameRate(10);
+        if ((wc as any).getType?.() === 'offscreen') {
+          wc.setFrameRate(10);
+        }
 
         if (!originalBackgroundThrottling.has(wc.id)) {
-          const prefs = (wc as any).getWebPreferences?.();
-          originalBackgroundThrottling.set(
-            wc.id,
-            prefs?.backgroundThrottling ?? true
-          );
+          const original =
+            (wc as any).getBackgroundThrottling?.() ??
+            (wc as any).getWebPreferences?.()?.backgroundThrottling ??
+            true;
+          originalBackgroundThrottling.set(wc.id, original);
         }
         wc.setBackgroundThrottling(true);
       } catch (error) {
@@ -29,7 +31,9 @@ export const setupFrameRateThrottling = (): void => {
       try {
         if (wc.isDestroyed()) return;
 
-        wc.setFrameRate(60);
+        if ((wc as any).getType?.() === 'offscreen') {
+          wc.setFrameRate(60);
+        }
 
         const original = originalBackgroundThrottling.get(wc.id);
         if (original !== undefined) {

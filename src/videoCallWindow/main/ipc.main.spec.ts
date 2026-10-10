@@ -1384,4 +1384,43 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(createdWindows).toHaveLength(2);
     });
   });
+
+  describe('isSameConferenceUrl', () => {
+    it.each([
+      [
+        'a different fragment',
+        'https://meet.example/room#config.startWithAudioMuted=true',
+        'https://meet.example/room',
+        true,
+      ],
+      [
+        'a different query',
+        'https://chat.example/conference/new?rid=room-1',
+        'https://chat.example/conference/new?rid=room-2',
+        false,
+      ],
+      [
+        'a different path',
+        'https://chat.example/conference/call-1',
+        'https://chat.example/conference/call-2',
+        false,
+      ],
+      [
+        'a different origin',
+        'https://chat.example/conference/call-1',
+        'https://other.example/conference/call-1',
+        false,
+      ],
+      [
+        'an unparseable URL',
+        'not a url',
+        'https://chat.example/conference/call-1',
+        false,
+      ],
+    ])('compares URLs with %s', async (_case, a, b, expected) => {
+      const { mod } = await loadModule();
+
+      expect(mod.isSameConferenceUrl(a, b)).toBe(expected);
+    });
+  });
 });

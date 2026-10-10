@@ -39,15 +39,19 @@ hooks, `settings.json`).
 
 - `dev` is the default branch. ALL feature and fix PRs target `dev`, and they
   are squash-merged.
-- `master` holds only released code. It advances only through a `dev`→`master`
-  release PR that is merged with a true merge commit
-  (`gh pr merge --merge`). NEVER squash a release PR. A squash forks the
-  history permanently.
+- `master` holds only released code, and its tip is always the latest stable
+  release. It advances through a `dev`→`master` release PR, and through a
+  `release/X.Y.x`→`master` PR after each patch of the newest stable minor.
+  Merge both with a true merge commit (`gh pr merge --merge`). NEVER squash
+  them. A squash forks the history permanently.
 - A `release/X.Y.x` branch is the patch line for a shipped stable version.
   A fix lands on `dev` first, and then is cherry-picked onto the release
   branch. When you write a hotfix directly on a release branch, forward-port it
   to `dev` immediately with a cherry-pick PR.
-- Never back-merge `master` or a `release/X.Y.x` branch into `dev`.
+- Never back-merge `master` or a `release/X.Y.x` branch into `dev`. When the
+  `dev`→`master` release PR conflicts (the patch version bump on `master`),
+  never resolve it in the GitHub UI. Use a promotion branch, as
+  `docs/release-process.md` describes.
 - Version invariant: `package.json` on `dev` always equals the newest tag cut
   from the `dev` line. The first alpha of a new cycle bumps straight to
   `X.(Y+1).0-alpha.1`.

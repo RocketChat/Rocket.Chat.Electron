@@ -20,11 +20,11 @@ irreversible step (merge, tag push, release publish) explicitly.
 
 ## Release types at a glance
 
-| Type                  | Bump branch cut from                                           | Bump PR targets                         | Merge method                                                        | Tag lands on          |
-| --------------------- | -------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------- | --------------------- |
-| Alpha `X.Y.0-alpha.N` | fresh `origin/dev`                                             | `dev`                                   | squash                                                              | `dev` tip             |
-| Stable `X.Y.0`        | fresh `origin/dev`                                             | `dev`, then a release PR `dev`→`master` | bump PR squash, release PR **merge commit** (`gh pr merge --merge`) | `master` merge commit |
-| Patch `X.Y.Z`         | `release/X.Y.x` (cut from tag `X.Y.0` if it doesn't exist yet) | `release/X.Y.x`                         | squash                                                              | `release/X.Y.x` tip   |
+| Type                  | Bump branch cut from                                           | Bump PR targets                                     | Merge method                                                         | Tag lands on          |
+| --------------------- | -------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------- | --------------------- |
+| Alpha `X.Y.0-alpha.N` | fresh `origin/dev`                                             | `dev`                                               | squash                                                               | `dev` tip             |
+| Stable `X.Y.0`        | fresh `origin/dev`                                             | `dev`, then a release PR `dev`→`master`             | bump PR squash, release PR **merge commit** (`gh pr merge --merge`)  | `master` merge commit |
+| Patch `X.Y.Z`         | `release/X.Y.x` (cut from tag `X.Y.0` if it doesn't exist yet) | `release/X.Y.x`, then a PR `release/X.Y.x`→`master` | bump PR squash, `master` PR **merge commit** (`gh pr merge --merge`) | `release/X.Y.x` tip   |
 
 ## Hard rules
 
@@ -136,6 +136,24 @@ irreversible step (merge, tag push, release publish) explicitly.
    Use the shipped-changes list from Phase 1 as the body. **GATE: show the PR
    URL and the checks status. STOP until the user explicitly approves the
    promotion merge.** History becomes irreversible at this point.
+
+   If the PR conflicts, `master` has a patch version bump that `dev` does
+   not have. NEVER resolve it in the GitHub UI, because that merges
+   `master` into `dev`. Close the PR and use a promotion branch:
+
+   ```sh
+   git -C "$RELEASE_WT" switch -c promote/<version> origin/dev
+   git -C "$RELEASE_WT" merge origin/master
+   git -C "$RELEASE_WT" checkout --ours -- package.json   # keep TARGET from dev
+   git -C "$RELEASE_WT" add package.json
+   git -C "$RELEASE_WT" commit --no-edit
+   git -C "$RELEASE_WT" diff origin/dev
+   ```
+
+   **GATE: show the remaining diff from `dev`.** A fix in it is a hotfix
+   that nobody forward-ported to `dev`. STOP, and forward-port it first.
+   Then push `promote/<version>` and open the release PR from it into
+   `master`.
 
 ### Patch
 
@@ -346,11 +364,20 @@ lands on `dev` first. NEVER back-merge `master` into `dev`.
 3. **Stable only**: check that `dev`'s `package.json` still equals TARGET
    (the version invariant). It should, because the bump happened on `dev`
    before the promotion.
-4. **Patch only**: you may have written the fix directly on the release
+4. **Patch only**: merge the release branch into `master`, so that `master`
+   holds the latest stable release. Skip this for a patch on an older line
+   (for example `4.16.2` after `4.17.0` shipped).
+   ```sh
+   gh pr create --base master --head release/<X.Y.x> --title "chore: merge <version> into master"
+   ```
+   **GATE: STOP until the user says merge.** Merge with
+   `gh pr merge <PR> --merge` (a true merge commit, NEVER squash). Branch
+   protection typically needs `--admin`.
+5. **Patch only**: you may have written the fix directly on the release
    branch (not cherry-picked from `dev`). If so, remind the user to
    forward-port it to `dev` with a small cherry-pick PR. This is the one exception to the
    never-back-merge rule.
-5. Optional (ask): transition linked Jira tickets to Done (desktop tickets:
+6. Optional (ask): transition linked Jira tickets to Done (desktop tickets:
    assignee Jean, component Electron) and comment the release URL on shipped
    PRs.
 

@@ -20,6 +20,7 @@ const ALLOWED_CHANNELS = new Set([
   'server-view/ready',
   'server-view/open-url-on-browser',
   'server-view/take-pending-conference',
+  'server-view/conference-requested',
   'video-call-window/open-window',
   'video-call-window/open-url',
   'video-call-window/open-in-main-window',
@@ -58,6 +59,7 @@ const ALLOWED_CHANNELS = new Set([
   'screen-picker/screen-recording-is-permission-granted',
   'screen-picker/open-url',
   'telephony/get-diagnostics',
+  'telephony/call-requested',
   'presence/change-requested',
   'navigate-to-route',
   'log-viewer-window/get-server-tag',
@@ -84,10 +86,10 @@ ipcRenderer.send = (channel: string, ...args: unknown[]) => {
   originalSend(channel, ...sanitize(args));
 };
 
-ipcRenderer.invoke = (channel: string, ...args: unknown[]) => {
+ipcRenderer.invoke = async (channel: string, ...args: unknown[]) => {
   if (!ALLOWED_CHANNELS.has(channel)) {
     console.warn(`Blocked unauthorized IPC invoke channel: ${channel}`);
-    return Promise.reject(new Error('Unauthorized IPC'));
+    throw new Error('Unauthorized IPC');
   }
   return originalInvoke(channel, ...sanitize(args));
 };

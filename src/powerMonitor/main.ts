@@ -1,6 +1,6 @@
 import { powerMonitor, webContents } from 'electron';
 
-export const setupPowerMonitor = (): void => {
+export const setupFrameRateThrottling = (): void => {
   const throttleFrameRates = (fps: number) => {
     webContents.getAllWebContents().forEach((wc) => {
       try {

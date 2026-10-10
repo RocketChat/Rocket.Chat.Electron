@@ -43,7 +43,7 @@ import {
   stopOutlookCalendarSync,
 } from './outlookCalendar/ipc';
 import { setupOutlookLogger } from './outlookCalendar/logger';
-import { setupPowerMonitor } from './powerMonitor/main';
+import { setupFrameRateThrottling } from './powerMonitor/main';
 import { handleDesktopCapturerGetSources } from './screenSharing/desktopCapturerCache';
 import { setupScreenSharing } from './screenSharing/main';
 import { startServerViewScreenSharingHandler } from './screenSharing/serverViewScreenSharing';
@@ -156,7 +156,7 @@ const start = async (): Promise<void> => {
   setupApp();
 
   setupMainErrorHandling();
-  setupPowerMonitor();
+  setupFrameRateThrottling();
 
   createRootWindow();
   startOutlookCalendarUrlHandler();

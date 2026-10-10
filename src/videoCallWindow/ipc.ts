@@ -610,6 +610,52 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     });
 };
 
+/**
+ * Whether two URLs open the same conference: the same page, whatever the
+ * fragment. Unparseable URLs are never the same.
+ */
+export const isSameConferenceUrl = (a: string, b: string): boolean => {
+  try {
+    const first = new URL(a);
+    const second = new URL(b);
+    return (
+      first.origin === second.origin &&
+      first.pathname === second.pathname &&
+      first.search === second.search
+    );
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * What the call window's webview shows now. It can have moved on in-page from
+ * the URL the window was opened for: the web client's conference start page
+ * replaces its own address with the conference's once the conference exists.
+ */
+const getVideoCallWebviewUrl = (): string | null => {
+  const host = videoCallWindow?.webContents;
+  if (!host) {
+    return null;
+  }
+
+  const guest = webContents
+    .getAllWebContents()
+    .find((wc: WebContents) => wc.hostWebContents === host);
+
+  return guest && !guest.isDestroyed() ? guest.getURL() : null;
+};
+
+/**
+ * Whether the open call window is already on the conference at `url`, by the
+ * URL it was opened for or by what it shows now. Reopening it would tear the
+ * call down and join it again, so the others in it see this user freeze.
+ */
+const isShowingConference = (url: string): boolean =>
+  [activeCall?.url, getVideoCallWebviewUrl()].some(
+    (shown) => !!shown && isSameConferenceUrl(shown, url)
+  );
+
 // eslint-disable-next-line complexity
 const openVideoCallWindow = async (
   _wc: WebContents,
@@ -627,7 +673,7 @@ const openVideoCallWindow = async (
     videoCallWindow &&
     !videoCallWindow.isDestroyed() &&
     !isVideoCallWindowDestroying &&
-    activeCall?.url === url
+    isShowingConference(url)
   ) {
     console.log(
       'Video call window: same conference already open, focusing existing window'

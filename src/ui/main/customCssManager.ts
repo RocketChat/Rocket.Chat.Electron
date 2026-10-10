@@ -61,13 +61,26 @@ const applyCssToAll = (target: CssTarget) => {
   }
 };
 
+const generationCounter: Record<CssTarget, number> = {
+  shell: 0,
+  workspace: 0,
+};
+
 const reloadCache = async (target: CssTarget, filename: string) => {
+  const currentGen = ++generationCounter[target];
   const filePath = path.join(app.getPath('userData'), filename);
+  let content = '';
   try {
-    cssCache[target] = await fs.promises.readFile(filePath, 'utf8');
+    content = await fs.promises.readFile(filePath, 'utf8');
   } catch (err) {
-    cssCache[target] = ''; // file removed or unreadable
+    content = ''; // file removed or unreadable
   }
+
+  if (generationCounter[target] !== currentGen) {
+    return;
+  }
+
+  cssCache[target] = content;
   applyCssToAll(target);
 };
 

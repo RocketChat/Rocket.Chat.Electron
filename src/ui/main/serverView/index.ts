@@ -299,7 +299,6 @@ const initializeServerWebContentsAfterAttach = (
 ): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
   attachBootWatchdog(serverUrl, guestWebContents);
-  setupWorkspaceCss(guestWebContents);
 
   let audibleHoldTimer: NodeJS.Timeout | undefined;
 
@@ -692,6 +691,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     if (process.env.NODE_ENV === 'development') {
       setupPreloadReload(webContents);
     }
+    setupWorkspaceCss(webContents);
 
     webContents.setWindowOpenHandler(({ url, frameName, disposition }) => {
       if (

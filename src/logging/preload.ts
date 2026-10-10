@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+// import { ipcRenderer } from 'electron';
 import log from 'electron-log/renderer';
 
 import { getProcessContext, getComponentContext } from './context';
@@ -12,10 +12,20 @@ try {
   let serverTag = '';
   if (processContext === 'renderer:webview' && typeof window !== 'undefined') {
     try {
-      const result = ipcRenderer.sendSync(
-        'log-viewer-window/get-server-tag',
-        window.location?.origin || ''
-      );
+      let result;
+      const bridge = (window as any).RocketChatDesktop?.logViewer;
+      if (bridge) {
+        result = bridge.sendSync(
+          'log-viewer-window/get-server-tag',
+          window.location?.origin || ''
+        );
+      } else {
+        const { ipcRenderer } = require('electron');
+        result = ipcRenderer.sendSync(
+          'log-viewer-window/get-server-tag',
+          window.location?.origin || ''
+        );
+      }
       if (result) {
         serverTag = ` [${result}]`;
       }

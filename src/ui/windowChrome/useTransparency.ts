@@ -1,4 +1,3 @@
-import { ipcRenderer } from 'electron';
 import { useEffect, useState } from 'react';
 
 import { isDarwin, readInitialTransparency } from './appearance';
@@ -23,10 +22,24 @@ export const useTransparency = (channel: string): boolean => {
       setIsEnabled(Boolean(enabled));
     };
 
-    ipcRenderer.on(channel, handleChange);
-    return () => {
-      ipcRenderer.off(channel, handleChange);
-    };
+    // Use contextBridge if available (nodeIntegration: false)
+    const bridge = (window as any).RocketChatDesktop?.logViewer;
+    if (bridge) {
+      const unsubscribe = bridge.on(channel, handleChange);
+      return unsubscribe;
+    }
+
+    // Fallback for non-isolated windows (nodeIntegration: true)
+    try {
+      const { ipcRenderer } = require('electron');
+      ipcRenderer.on(channel, handleChange);
+      return () => {
+        ipcRenderer.off(channel, handleChange);
+      };
+    } catch (error) {
+      console.warn('Failed to subscribe to transparency changes:', error);
+      return () => {};
+    }
   }, [channel]);
 
   // Vibrancy only reads as a material on macOS; elsewhere the window is opaque

@@ -12,6 +12,11 @@ import { WindowToolbar } from '../ui/windowChrome/WindowToolbar';
 import type { PaletteTheme } from '../ui/windowChrome/appearance';
 import { getCardStyle, resolveSurfaces } from '../ui/windowChrome/appearance';
 import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
+import {
+  legacyInvoke,
+  legacyMaximizedSubscribe,
+  legacyTransparencySubscribe,
+} from '../ui/windowChrome/legacyWindowBindings';
 import { useTransparency } from '../ui/windowChrome/useTransparency';
 import { DOCUMENT_CHANNEL, TRANSPARENCY_CHANNEL } from './constants';
 import type { DocumentDescriptor } from './document';
@@ -25,7 +30,10 @@ export const DocumentViewerWindow = ({
   paletteTheme,
 }: DocumentViewerWindowProps) => {
   const { t } = useTranslation();
-  const isTransparent = useTransparency(TRANSPARENCY_CHANNEL);
+  const isTransparent = useTransparency(
+    TRANSPARENCY_CHANNEL,
+    legacyTransparencySubscribe
+  );
   const surfaces = useMemo(
     () => resolveSurfaces(paletteTheme, isTransparent),
     [paletteTheme, isTransparent]
@@ -115,6 +123,8 @@ export const DocumentViewerWindow = ({
         style={{ backgroundColor: surfaces.panel }}
       >
         <WindowToolbar
+          invokeAction={legacyInvoke}
+          subscribeMaximized={legacyMaximizedSubscribe}
           actions={
             <>
               {isMarkdown && (

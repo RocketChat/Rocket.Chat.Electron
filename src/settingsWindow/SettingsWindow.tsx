@@ -9,6 +9,7 @@ import { WindowToolbar } from '../ui/windowChrome/WindowToolbar';
 import type { PaletteTheme } from '../ui/windowChrome/appearance';
 import { getCardStyle, resolveSurfaces } from '../ui/windowChrome/appearance';
 import { WindowChromeGlobalStyles } from '../ui/windowChrome/styles';
+import { legacyInvoke, legacyMaximizedSubscribe, legacyTransparencySubscribe } from '../ui/windowChrome/legacyWindowBindings';
 import { useTransparency } from '../ui/windowChrome/useTransparency';
 import {
   SETTINGS_TABPANEL_ID,
@@ -29,7 +30,10 @@ type SettingsWindowProps = {
 
 export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
   const { t } = useTranslation();
-  const isTransparent = useTransparency(TRANSPARENCY_CHANNEL);
+  const isTransparent = useTransparency(
+    TRANSPARENCY_CHANNEL,
+    legacyTransparencySubscribe
+  );
   const surfaces = useMemo(
     () => resolveSurfaces(paletteTheme, isTransparent),
     [paletteTheme, isTransparent]
@@ -143,7 +147,11 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
         width='100%'
         style={{ backgroundColor: surfaces.panel }}
       >
-        <WindowToolbar isMaximizable={false}>
+        <WindowToolbar
+          isMaximizable={false}
+          invokeAction={legacyInvoke}
+          subscribeMaximized={legacyMaximizedSubscribe}
+        >
           <Icon name='cog' size='x16' color='hint' />
           <Box
             marginInlineStart='x4'

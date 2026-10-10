@@ -1,8 +1,6 @@
-import { ipcRenderer } from 'electron';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { invoke } from '../../ipc/renderer';
 import { CloseGlyph } from '../components/TabBar/CloseGlyph';
 import { MaximizeGlyph } from '../components/TabBar/MaximizeGlyph';
 import { MinimizeGlyph } from '../components/TabBar/MinimizeGlyph';
@@ -12,6 +10,8 @@ import {
   WindowControlsGroup,
 } from '../components/TabBar/styles';
 import { WINDOW_MAXIMIZED_CHANNEL } from './channels';
+import type { BridgeInvoke, BridgeSubscribe } from './logViewerBridge';
+import { getLogViewerBridge } from './logViewerBridge';
 
 /**
  * Minimise, maximise and close, drawn into the toolbar on the platforms whose
@@ -26,43 +26,72 @@ import { WINDOW_MAXIMIZED_CHANNEL } from './channels';
 type WindowControlsProps = {
   /** Fixed-size windows cannot maximise, so they show no button for it. */
   isMaximizable?: boolean;
+  /** Legacy invoke for non-sandboxed windows. Defaults to the bridge. */
+  invokeAction?: BridgeInvoke;
+  /** Legacy maximized subscription for non-sandboxed windows. */
+  subscribeMaximized?: BridgeSubscribe;
 };
 
 export const WindowControls = ({
   isMaximizable = true,
+  invokeAction,
+  subscribeMaximized,
 }: WindowControlsProps) => {
   const { t } = useTranslation();
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
     let isCurrent = true;
+    const bridge = getLogViewerBridge();
+    const invokeFn: BridgeInvoke | undefined =
+      invokeAction ?? bridge?.invoke.bind(bridge);
+    const subscribeFn: BridgeSubscribe | undefined =
+      subscribeMaximized ??
+      (bridge
+        ? (channel, listener) =>
+            bridge.on(channel, (maximized: unknown) => {
+              listener(Boolean(maximized));
+            })
+        : undefined);
 
-    invoke('secondary-window/is-maximized').then((maximized) => {
-      if (isCurrent) setIsMaximized(maximized);
+    invokeFn?.('secondary-window/is-maximized').then((maximized) => {
+      if (isCurrent) setIsMaximized(Boolean(maximized));
     });
 
-    const handleChange = (_event: unknown, maximized: boolean): void => {
-      setIsMaximized(Boolean(maximized));
-    };
+    if (!subscribeFn) {
+      return () => {
+        isCurrent = false;
+      };
+    }
 
-    ipcRenderer.on(WINDOW_MAXIMIZED_CHANNEL, handleChange);
+    const unsubscribe = subscribeFn(
+      WINDOW_MAXIMIZED_CHANNEL,
+      setIsMaximized
+    );
     return () => {
       isCurrent = false;
-      ipcRenderer.off(WINDOW_MAXIMIZED_CHANNEL, handleChange);
+      unsubscribe();
     };
-  }, []);
+  }, [invokeAction, subscribeMaximized]);
 
   const handleMinimize = useCallback(() => {
-    invoke('secondary-window/minimize');
-  }, []);
+    const bridge = getLogViewerBridge();
+    (invokeAction ?? bridge?.invoke.bind(bridge))?.(
+      'secondary-window/minimize'
+    );
+  }, [invokeAction]);
 
   const handleMaximize = useCallback(() => {
-    invoke('secondary-window/toggle-maximize');
-  }, []);
+    const bridge = getLogViewerBridge();
+    (invokeAction ?? bridge?.invoke.bind(bridge))?.(
+      'secondary-window/toggle-maximize'
+    );
+  }, [invokeAction]);
 
   const handleClose = useCallback(() => {
-    invoke('secondary-window/close');
-  }, []);
+    const bridge = getLogViewerBridge();
+    (invokeAction ?? bridge?.invoke.bind(bridge))?.('secondary-window/close');
+  }, [invokeAction]);
 
   const maximizeLabel = isMaximized
     ? t('tabBar.windowControls.restore')

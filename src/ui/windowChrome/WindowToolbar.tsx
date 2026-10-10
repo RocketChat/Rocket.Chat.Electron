@@ -18,6 +18,8 @@ const leadingInset = (isMaximizable: boolean): number => {
   return 12;
 };
 
+import type { BridgeInvoke, BridgeSubscribe } from './logViewerBridge';
+
 export type WindowToolbarProps = {
   /** Centred title area. */
   children: ReactNode;
@@ -28,6 +30,10 @@ export type WindowToolbarProps = {
    * button for it rather than showing one that does nothing.
    */
   isMaximizable?: boolean;
+  /** Legacy invoke for non-sandboxed windows. Defaults to the bridge. */
+  invokeAction?: BridgeInvoke;
+  /** Legacy maximized subscription for non-sandboxed windows. */
+  subscribeMaximized?: BridgeSubscribe;
 };
 
 /**
@@ -41,6 +47,8 @@ export const WindowToolbar = ({
   children,
   actions,
   isMaximizable = true,
+  invokeAction,
+  subscribeMaximized,
 }: WindowToolbarProps) => (
   <Box
     display='flex'
@@ -75,6 +83,12 @@ export const WindowToolbar = ({
         {actions}
       </Box>
     )}
-    {isWindows && <WindowControls isMaximizable={isMaximizable} />}
+    {isWindows && (
+      <WindowControls
+        isMaximizable={isMaximizable}
+        invokeAction={invokeAction}
+        subscribeMaximized={subscribeMaximized}
+      />
+    )}
   </Box>
 );

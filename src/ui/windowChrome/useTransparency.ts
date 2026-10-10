@@ -23,6 +23,26 @@ export const useTransparency = (channel: string): boolean => {
       setIsEnabled(Boolean(enabled));
     };
 
+    const bridge = (
+      window as unknown as {
+        RocketChatDesktop?: {
+          logViewer?: {
+            on: (
+              eventChannel: string,
+              listener: (...args: unknown[]) => void
+            ) => () => void;
+          };
+        };
+      }
+    ).RocketChatDesktop?.logViewer;
+
+    if (bridge) {
+      const unsubscribe = bridge.on(channel, (enabled: unknown) => {
+        handleChange(null, Boolean(enabled));
+      });
+      return unsubscribe;
+    }
+
     ipcRenderer.on(channel, handleChange);
     return () => {
       ipcRenderer.off(channel, handleChange);

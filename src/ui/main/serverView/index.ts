@@ -51,6 +51,7 @@ import {
   WEBVIEW_AUDIO_MUTED_CHANGED,
   WEBVIEW_MEDIA_CAPTURE_CHANGED,
 } from '../../actions';
+import { setupWorkspaceCss } from '../customCssManager';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
 import {
@@ -298,6 +299,7 @@ const initializeServerWebContentsAfterAttach = (
 ): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
   attachBootWatchdog(serverUrl, guestWebContents);
+  setupWorkspaceCss(guestWebContents);
 
   let audibleHoldTimer: NodeJS.Timeout | undefined;
 

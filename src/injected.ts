@@ -287,6 +287,7 @@ const start = async () => {
       console.log(
         `[Rocket.Chat Desktop] ${moduleName} module loaded successfully`
       );
+      setupReactiveFeatures();
     } catch (error) {
       console.log(
         `[Rocket.Chat Desktop] Failed to load ${moduleName} module:`,
@@ -337,6 +338,7 @@ const start = async () => {
       Presence = (module as { Presence: unknown }).Presence;
       presenceModuleResolved = true;
       console.log('[Rocket.Chat Desktop] Presence module loaded successfully');
+      setupReactiveFeatures();
     })
     .catch(() => {
       console.warn(
@@ -345,6 +347,7 @@ const start = async () => {
         )}); presence will be reported as unsupported`
       );
       presenceModuleResolved = false;
+      setupReactiveFeatures();
     });
 
   // Initialize non-module dependent features immediately
@@ -1050,9 +1053,8 @@ const start = async () => {
     }
   };
 
-  // Call setupReactiveFeatures immediately and then periodically check for new modules
+  // Call setupReactiveFeatures immediately
   setupReactiveFeatures();
-  setInterval(setupReactiveFeatures, 1000); // Check every second for newly loaded modules
 
   console.log('[Rocket.Chat Desktop] Injected');
 };

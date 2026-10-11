@@ -10,7 +10,8 @@ the model and the reasoning behind it.
 
 The project uses three kinds of branches with distinct roles.
 
-- `master` holds only released code. Every commit on it corresponds to
+- `master` holds only released code. Its tip is always the latest stable
+  release, patch releases included. Every commit on it corresponds to
   something that has shipped or is about to ship.
 - `dev` is where all development converges. Every feature and fix merges
   there first, and alpha releases are tagged directly from it.
@@ -23,12 +24,12 @@ This separation keeps `master` a stable, auditable history of what shipped.
 
 ## Branch roles
 
-| Branch               | Purpose                                                                             | Who merges into it                      | Merge method        |
-| -------------------- | ----------------------------------------------------------------------------------- | --------------------------------------- | ------------------- |
-| `dev`                | Default branch. Integration point for all feature and fix PRs. Source of alpha tags | Any contributor via PR review           | Squash              |
-| `master`             | Released code only. Moves forward only through a `dev`→`master` release merge       | Release manager, at promotion time      | True merge commit   |
-| `release/X.Y.x`      | Patch line for a shipped stable version. Receives cherry-picked fixes from `dev`    | Release manager, when preparing a patch | Squash              |
-| Feature/fix branches | Short-lived. One change per branch. Opened against `dev`                            | The author, via PR                      | Squash (into `dev`) |
+| Branch               | Purpose                                                                                                                | Who merges into it                              | Merge method        |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------- |
+| `dev`                | Default branch. Integration point for all feature and fix PRs. Source of alpha tags                                    | Any contributor via PR review                   | Squash              |
+| `master`             | Released code only. Its tip is the latest stable release. Gets `dev` at promotion and `release/X.Y.x` after each patch | Release manager, at promotion and after a patch | True merge commit   |
+| `release/X.Y.x`      | Patch line for a shipped stable version. Receives cherry-picked fixes from `dev`                                       | Release manager, when preparing a patch         | Squash              |
+| Feature/fix branches | Short-lived. One change per branch. Opened against `dev`                                                               | The author, via PR                              | Squash (into `dev`) |
 
 ## Lifecycle of a change
 
@@ -45,7 +46,9 @@ A typical change follows this path:
 4. If someone finds a defect in a shipped stable version, the fix merges
    into `dev` as usual. Then the fix is cherry-picked onto the corresponding
    `release/X.Y.x` branch and released as a patch (`X.Y.Z`). If the branch
-   does not exist, create it from the `X.Y.0` tag.
+   does not exist, create it from the `X.Y.0` tag. After the patch is
+   published, the release branch merges into `master` with a true merge
+   commit, so `master` always holds the latest stable release.
 
 ```mermaid
 ---
@@ -72,6 +75,8 @@ gitGraph
   checkout release/4.16.x
   commit id: "cherry-pick fix"
   commit id: "bump to 4.16.1" tag: "4.16.1"
+  checkout master
+  merge release/4.16.x id: "patch 4.16.1"
 ```
 
 The diagram omits the individual squash commits that make up "feature
@@ -117,9 +122,11 @@ in sync:
 ## Rules that keep the model consistent
 
 - **Never back-merge.** `master` and `release/X.Y.x` branches never merge
-  back into `dev`. Two practices keep `master` a pure superset of `dev`'s
-  history: bump `dev` before every promotion, and cherry-pick fixes downward
-  from `dev` to patch lines. The single exception is a hotfix that someone
+  back into `dev`. Two practices make sure that `dev` already has every
+  change that `master` gets: bump `dev` before every promotion, and
+  cherry-pick fixes downward from `dev` to patch lines. The patch version
+  bumps are the only expected difference. The next promotion resolves them
+  on a promotion branch, never with a merge into `dev`. The single exception is a hotfix that someone
   authors directly on a `release/X.Y.x` branch. Forward-port it to `dev`
   immediately with a small cherry-pick PR, so that the next promotion does
   not lose it.

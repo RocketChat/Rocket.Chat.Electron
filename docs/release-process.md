@@ -9,13 +9,13 @@ For the conceptual overview, see `development-and-release-flow.md`.
 
 ## Branch model
 
-| Event                 | Where                           | Mechanics                                                                                                                                                |
-| --------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Feature/fix PR        | → `dev` (default branch)        | squash-merge                                                                                                                                             |
-| Alpha `X.Y.0-alpha.N` | on `dev`                        | bump PR on `dev` → tag the `dev` tip via `yarn release:tag`                                                                                              |
-| Stable `X.Y.0`        | `dev` → `master`                | bump PR on `dev` first, then a release PR `dev`→`master` merged with a **true merge commit** (`gh pr merge --merge`, never squash), tag the merge commit |
-| Patch `X.Y.Z`         | `release/X.Y.x`                 | branch cut from the stable tag `X.Y.0`. Fixes land on `dev` first and are cherry-picked down. Bump and tag on the release branch                         |
-| Back-merges           | **never** (one exception below) | bump-on-dev-first keeps `master` a pure superset of `dev`                                                                                                |
+| Event                 | Where                           | Mechanics                                                                                                                                                                                              |
+| --------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Feature/fix PR        | → `dev` (default branch)        | squash-merge                                                                                                                                                                                           |
+| Alpha `X.Y.0-alpha.N` | on `dev`                        | bump PR on `dev` → tag the `dev` tip via `yarn release:tag`                                                                                                                                            |
+| Stable `X.Y.0`        | `dev` → `master`                | bump PR on `dev` first, then a release PR `dev`→`master` merged with a **true merge commit** (`gh pr merge --merge`, never squash), tag the merge commit                                               |
+| Patch `X.Y.Z`         | `release/X.Y.x`                 | branch cut from the stable tag `X.Y.0`. Fixes land on `dev` first and are cherry-picked down. Bump and tag on the release branch. Then merge the release branch into `master` with a true merge commit |
+| Back-merges           | **never** (one exception below) | `master` and `release/X.Y.x` never merge into `dev`                                                                                                                                                    |
 
 Do not use `release/<version>-alpha.N` (or any alpha) branch naming.
 `release/` is reserved exclusively for patch lines (`release/4.16.x`, etc.).
@@ -239,6 +239,29 @@ Cut alphas directly from `dev`. There is no dedicated branch.
    squash it. A squash of a release PR forks history permanently. `master`
    would stop being a subset of `dev`'s commit graph, and every future diff
    between the branches becomes unreadable.
+
+   If the release PR has a conflict, do NOT resolve it in the GitHub UI. The
+   UI resolves a conflict by a merge of `master` into `dev`, which is a
+   back-merge. After a patch release, `master` has a version bump that `dev`
+   does not have, so `package.json` conflicts. Resolve it on a promotion
+   branch:
+
+   ```bash
+   git switch -c promote/4.17.0 origin/dev
+   git merge origin/master
+   git checkout --ours -- package.json   # keep the version from dev
+   git add package.json
+   git commit
+   git diff origin/dev                   # read every remaining difference
+   git push origin promote/4.17.0
+   ```
+
+   Every remaining difference from `dev` must be a change that is on
+   `master` only on purpose. If a fix shows, someone wrote a hotfix on a
+   release branch and did not forward-port it. Forward-port it to `dev`
+   first. Then open the release PR from `promote/X.Y.0` into `master`, and
+   merge it with a true merge commit.
+
 3. **Tag the merge commit on `master`** with `yarn release:tag`. The
    channel-aware guard checks that a stable tag points at a commit that is
    an ancestor of `origin/master` or a `release/*` branch.
@@ -272,15 +295,28 @@ Cut alphas directly from `dev`. There is no dedicated branch.
    branch, in addition to `origin/master`.
 5. CI builds and drafts the release the same way. Publish after you check
    the assets.
+6. **Merge the release branch into `master`.** After you publish, open a PR
+   from `release/X.Y.x` into `master`. Merge it with `gh pr merge --merge`, a
+   **true merge commit**. NEVER squash it. `master` then always holds the
+   latest stable release.
+
+   Do this only for the patch line of the newest stable minor. A patch for
+   an older line stays on its release branch, for example `4.16.2` after
+   `4.17.0` shipped. `master` must not go back to an older version.
 
 ## The never-back-merge rule
 
 `master` never merges back into `dev`. A `release/X.Y.x` branch never merges
-back into `dev` either. Two practices keep `master` a pure superset of
-`dev`'s history, so that nothing on `master` needs to flow back:
+back into `dev` either. Two practices make sure that `dev` already has every
+change that `master` gets, so that nothing on `master` needs to flow back:
 
 - Bump `dev` before the promotion to `master`.
 - Cherry-pick fixes down to patch lines from `dev`, and never the reverse.
+
+A patch release merges its release branch into `master`, so `master` gets
+the patch version bump, which `dev` never has. This is the expected
+difference between the branches. The next promotion resolves it on a
+promotion branch (see "Promoting to a stable release").
 
 **Single exception**: you may author a hotfix directly on a `release/X.Y.x`
 branch, and not on `dev` with a cherry-pick down. You MUST forward-port such

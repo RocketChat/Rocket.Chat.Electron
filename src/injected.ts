@@ -333,6 +333,7 @@ const start = async () => {
           '[Rocket.Chat Desktop] Presence module resolved without the expected store/listen API; presence will be reported as unsupported'
         );
         presenceModuleResolved = false;
+        setupReactiveFeatures();
         return;
       }
       Presence = (module as { Presence: unknown }).Presence;

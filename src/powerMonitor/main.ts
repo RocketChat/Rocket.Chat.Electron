@@ -3,6 +3,8 @@ import { powerMonitor, webContents } from 'electron';
 export const setupFrameRateThrottling = (): void => {
   const originalBackgroundThrottling = new Map<number, boolean>();
   const originalFrameRates = new Map<number, number>();
+  let isSuspended = false;
+  let isScreenLocked = false;
 
   const throttle = () => {
     webContents.getAllWebContents().forEach((wc) => {
@@ -32,6 +34,10 @@ export const setupFrameRateThrottling = (): void => {
   };
 
   const restore = () => {
+    if (isSuspended || isScreenLocked) {
+      return;
+    }
+
     webContents.getAllWebContents().forEach((wc) => {
       try {
         if (wc.isDestroyed()) return;
@@ -55,9 +61,23 @@ export const setupFrameRateThrottling = (): void => {
     });
   };
 
-  powerMonitor.on('suspend', throttle);
-  powerMonitor.on('lock-screen', throttle);
+  powerMonitor.on('suspend', () => {
+    isSuspended = true;
+    throttle();
+  });
 
-  powerMonitor.on('resume', restore);
-  powerMonitor.on('unlock-screen', restore);
+  powerMonitor.on('lock-screen', () => {
+    isScreenLocked = true;
+    throttle();
+  });
+
+  powerMonitor.on('resume', () => {
+    isSuspended = false;
+    restore();
+  });
+
+  powerMonitor.on('unlock-screen', () => {
+    isScreenLocked = false;
+    restore();
+  });
 };

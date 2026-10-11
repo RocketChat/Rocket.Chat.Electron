@@ -115,4 +115,19 @@ describe('powerMonitor setupFrameRateThrottling', () => {
     expect(() => powerListeners.get('unlock-screen')?.()).not.toThrow();
     expect(destroyedWc.setBackgroundThrottling).not.toHaveBeenCalled();
   });
+
+  it('does not restore settings on resume if screen remains locked', () => {
+    powerListeners.get('lock-screen')?.();
+    powerListeners.get('suspend')?.();
+
+    mockWc1.setBackgroundThrottling.mockClear();
+
+    // System resumes, but screen is still locked
+    powerListeners.get('resume')?.();
+    expect(mockWc1.setBackgroundThrottling).not.toHaveBeenCalled();
+
+    // Now screen unlocks
+    powerListeners.get('unlock-screen')?.();
+    expect(mockWc1.setBackgroundThrottling).toHaveBeenCalledWith(false);
+  });
 });

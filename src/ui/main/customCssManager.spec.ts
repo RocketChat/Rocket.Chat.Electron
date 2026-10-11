@@ -19,6 +19,32 @@ jest.mock('electron', () => ({
   },
 }));
 
+const realSetTimeout = global.setTimeout;
+
+const waitFor = async (
+  assertion: () => void | Promise<void>,
+  timeoutMs = 2000,
+  intervalMs = 10
+): Promise<void> => {
+  const startTime = Date.now();
+  let lastError: unknown;
+  while (Date.now() - startTime < timeoutMs) {
+    try {
+      /* eslint-disable-next-line no-await-in-loop */
+      await assertion();
+      return;
+    } catch (err) {
+      lastError = err;
+      /* eslint-disable-next-line no-await-in-loop */
+      await new Promise((resolve) => realSetTimeout(resolve, intervalMs));
+    }
+  }
+  throw (
+    lastError ??
+    new Error(`Timed out waiting for assertion after ${timeoutMs}ms`)
+  );
+};
+
 describe('customCssManager', () => {
   let tempDir: string;
   let customCssPath: string;
@@ -26,6 +52,7 @@ describe('customCssManager', () => {
   let watchListener: ((eventType: string, filename: string) => void) | null =
     null;
   let customCssManager: typeof CustomCssManager;
+  let readFileSpy: jest.SpyInstance;
 
   const createMockWebContents = () => {
     const listeners = new Map<string, (...args: any[]) => void>();
@@ -60,6 +87,7 @@ describe('customCssManager', () => {
 
   beforeEach(() => {
     jest.resetModules();
+    jest.useFakeTimers();
     watchListener = null;
 
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rc-css-test-'));
@@ -72,10 +100,13 @@ describe('customCssManager', () => {
       return { close: jest.fn() } as any;
     });
 
+    readFileSpy = jest.spyOn(fs.promises, 'readFile');
+
     customCssManager = require('./customCssManager');
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
@@ -91,9 +122,9 @@ describe('customCssManager', () => {
     const wc = createMockWebContents();
     customCssManager.setupWorkspaceCss(wc);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(wc.insertCSS).toHaveBeenCalledWith(css);
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledWith(css);
+    });
   });
 
   it('injects initial shell CSS when file exists', async () => {
@@ -103,9 +134,9 @@ describe('customCssManager', () => {
     const wc = createMockWebContents();
     customCssManager.setupShellCss(wc);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(wc.insertCSS).toHaveBeenCalledWith(css);
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledWith(css);
+    });
   });
 
   it('re-applies CSS when did-finish-load fires on webContents', async () => {
@@ -115,14 +146,16 @@ describe('customCssManager', () => {
     const wc = createMockWebContents();
     customCssManager.setupWorkspaceCss(wc);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    expect(wc.insertCSS).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledTimes(1);
+    });
 
     // Trigger reload
     wc.emit('did-finish-load');
-    await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(wc.insertCSS).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('updates CSS on live file changes via fs.watch', async () => {
@@ -133,20 +166,23 @@ describe('customCssManager', () => {
     const wc = createMockWebContents();
     customCssManager.setupWorkspaceCss(wc);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    expect(wc.insertCSS).toHaveBeenCalledWith(initialCss);
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledWith(initialCss);
+    });
 
     fs.writeFileSync(customCssPath, updatedCss, 'utf8');
     expect(watchListener).toBeDefined();
     watchListener!('change', 'custom.css');
 
-    // Wait for debounce (100ms) + execution
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Advance 100ms debounce timer explicitly
+    jest.advanceTimersByTime(100);
 
-    expect(wc.removeInsertedCSS).toHaveBeenCalledWith(
-      `key-${initialCss.length}`
-    );
-    expect(wc.insertCSS).toHaveBeenCalledWith(updatedCss);
+    await waitFor(() => {
+      expect(wc.removeInsertedCSS).toHaveBeenCalledWith(
+        `key-${initialCss.length}`
+      );
+      expect(wc.insertCSS).toHaveBeenCalledWith(updatedCss);
+    });
   });
 
   it('debounces rapid file changes', async () => {
@@ -156,17 +192,24 @@ describe('customCssManager', () => {
     const wc = createMockWebContents();
     customCssManager.setupWorkspaceCss(wc);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalled();
+    });
     (wc.insertCSS as jest.Mock).mockClear();
 
     // Trigger multiple watch events rapidly
     watchListener!('change', 'custom.css');
+    jest.advanceTimersByTime(50);
     watchListener!('change', 'custom.css');
+    jest.advanceTimersByTime(50);
     watchListener!('change', 'custom.css');
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Advance remaining debounce time
+    jest.advanceTimersByTime(100);
 
-    expect(wc.insertCSS).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('cleans up CSS when file is removed', async () => {
@@ -176,16 +219,19 @@ describe('customCssManager', () => {
     const wc = createMockWebContents();
     customCssManager.setupWorkspaceCss(wc);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    expect(wc.insertCSS).toHaveBeenCalledWith(css);
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledWith(css);
+    });
 
     // Delete file
     fs.unlinkSync(customCssPath);
     watchListener!('change', 'custom.css');
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    jest.advanceTimersByTime(100);
 
-    expect(wc.removeInsertedCSS).toHaveBeenCalledWith(`key-${css.length}`);
+    await waitFor(() => {
+      expect(wc.removeInsertedCSS).toHaveBeenCalledWith(`key-${css.length}`);
+    });
   });
 
   it('stops applying CSS when webContents is destroyed', async () => {
@@ -195,16 +241,24 @@ describe('customCssManager', () => {
     const wc = createMockWebContents();
     customCssManager.setupWorkspaceCss(wc);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await waitFor(() => {
+      expect(wc.insertCSS).toHaveBeenCalledWith(css);
+    });
     (wc.insertCSS as jest.Mock).mockClear();
 
     wc.destroy();
 
     // Trigger file update after destruction
     fs.writeFileSync(customCssPath, 'body { padding: 20px; }', 'utf8');
+    readFileSpy.mockClear();
     watchListener!('change', 'custom.css');
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    jest.advanceTimersByTime(100);
+
+    // Bounded poll for readFile to ensure the reloadCache cycle finished
+    await waitFor(() => {
+      expect(readFileSpy).toHaveBeenCalled();
+    });
 
     expect(wc.insertCSS).not.toHaveBeenCalled();
   });

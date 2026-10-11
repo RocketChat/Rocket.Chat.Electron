@@ -315,5 +315,45 @@ describe('updates/setupUpdates', () => {
         type: UPDATES_UPDATE_DOWNLOADED,
       });
     });
+
+    it('fails closed when downloadedFile is missing on Windows', async () => {
+      await setupUpdates();
+
+      const listener = autoUpdaterListeners.get('update-downloaded');
+      expect(listener).toBeDefined();
+
+      await listener?.({});
+
+      expect(mockExecFileAsync).not.toHaveBeenCalled();
+      expect(dispatch).toHaveBeenCalledWith({
+        type: UPDATES_ERROR_THROWN,
+        payload: expect.objectContaining({
+          message:
+            'Update signature verification failed. The update has been discarded for your safety.',
+        }),
+      });
+      expect(dispatch).not.toHaveBeenCalledWith({
+        type: UPDATES_UPDATE_DOWNLOADED,
+      });
+    });
+
+    it('skips signature verification on non-Windows platforms', async () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'darwin',
+        configurable: true,
+      });
+
+      await setupUpdates();
+
+      const listener = autoUpdaterListeners.get('update-downloaded');
+      expect(listener).toBeDefined();
+
+      await listener?.({ downloadedFile: '/path/to/update.pkg' });
+
+      expect(mockExecFileAsync).not.toHaveBeenCalled();
+      expect(dispatch).toHaveBeenCalledWith({
+        type: UPDATES_UPDATE_DOWNLOADED,
+      });
+    });
   });
 });

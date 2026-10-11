@@ -90,6 +90,7 @@ const createServerWebContents = () => {
     send: jest.fn(),
     once: jest.fn(),
     isDestroyed: jest.fn(() => false),
+    isLoading: jest.fn(() => false),
   };
   return { serverWebContents, listeners };
 };

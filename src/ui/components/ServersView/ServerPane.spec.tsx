@@ -41,6 +41,7 @@ jest.mock('electron', () => ({
     on: jest.fn(),
     removeListener: jest.fn(),
     send: jest.fn(),
+    invoke: jest.fn(),
   },
 }));
 
@@ -140,6 +141,59 @@ describe('ServerPane', () => {
       type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
       payload: { url: 'https://open.rocket.chat' },
     });
+  });
+
+  it('reloads a failed server view when the network comes back', () => {
+    const store = makeStore();
+    const spy = jest.spyOn(store, 'dispatch');
+    render(
+      <Provider store={store}>
+        <ServerPane
+          lastPath={undefined}
+          serverUrl='https://open.rocket.chat'
+          isSelected
+          isFailed
+          isSupported
+          title='Community'
+        />
+      </Provider>
+    );
+
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+
+    expect(spy).toHaveBeenCalledWith({
+      type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+      payload: { url: 'https://open.rocket.chat' },
+    });
+  });
+
+  it('does not reload a loaded server view when the network comes back', () => {
+    const store = makeStore();
+    const spy = jest.spyOn(store, 'dispatch');
+    render(
+      <Provider store={store}>
+        <ServerPane
+          lastPath={undefined}
+          serverUrl='https://open.rocket.chat'
+          isSelected
+          isFailed={false}
+          isSupported
+          title='Community'
+        />
+      </Provider>
+    );
+
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+
+    expect(spy).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+      })
+    );
   });
 
   it('shows unsupported server when not supported', () => {

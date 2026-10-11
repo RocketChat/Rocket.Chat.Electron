@@ -1,6 +1,6 @@
 # Development & Testing Scripts
 
-This directory contains automation scripts for testing Rocket.Chat Desktop on Linux and Windows.
+The repository's `scripts/` directory contains automation scripts for testing Rocket.Chat Desktop on Linux and Windows.
 
 ## Linux Testing Scripts
 

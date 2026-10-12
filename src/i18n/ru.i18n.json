@@ -166,11 +166,9 @@
       "clear": "Очистить фильтры",
       "all": "Все",
       "mimes": {
-        "images": "Изображения",
-        "videos": "Видео",
-        "audios": "Аудиозаписи",
-        "texts": "Тексты",
-        "files": "Файлы"
+        "image": "Изображения",
+        "video": "Видео",
+        "application": "Файлы"
       },
       "statuses": {
         "paused": "На паузе",
@@ -212,6 +210,9 @@
     "title": "Настройки",
     "general": "Общее",
     "certificates": "Сертификаты",
+    "sections": {
+      "uiPreview": "Предпросмотр веб-интерфейса"
+    },
     "options": {
       "report": {
         "title": "Сообщать об ошибках разработчикам",
@@ -332,9 +333,6 @@
           "closed": "Закрыт"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Предпросмотр веб-интерфейса"
     }
   },
   "error": {
@@ -359,6 +357,7 @@
     "copy": "&Копировать",
     "cut": "В&ырезать",
     "developerMode": "Режим разработчика",
+    "simulateDisconnected": "Симулировать отключение",
     "disableGpu": "Отключить GPU",
     "documentation": "Документация",
     "downloads": "Загрузки",
@@ -396,7 +395,6 @@
     "windowMenu": "&Окна",
     "zoomIn": "Увеличить",
     "zoomOut": "Уменьшить",
-    "simulateDisconnected": "Симулировать отключение",
     "restoreServerUi": "Вернуть интерфейс сервера"
   },
   "findInPage": {

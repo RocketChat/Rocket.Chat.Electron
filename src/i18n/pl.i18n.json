@@ -137,6 +137,9 @@
   "settings": {
     "title": "Ustawienia",
     "general": "Ogólne",
+    "sections": {
+      "uiPreview": "Podgląd interfejsu webowego"
+    },
     "options": {
       "resetWindowBounds": {
         "title": "Zresetuj rozmiary i położenie okien",
@@ -201,9 +204,6 @@
           "closed": "Zamknięty"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Podgląd interfejsu webowego"
     }
   },
   "error": {
@@ -228,6 +228,7 @@
     "copy": "&Kopiuj",
     "cut": "&Wytnij",
     "developerMode": "Tryb programisty",
+    "simulateDisconnected": "Symuluj rozłączenie",
     "documentation": "Dokumentacja",
     "editMenu": "&Edycja",
     "fileMenu": "&Plik",
@@ -261,7 +262,6 @@
     "windowMenu": "&Okno",
     "zoomIn": "Przybliż",
     "zoomOut": "Oddal",
-    "simulateDisconnected": "Symuluj rozłączenie",
     "restoreServerUi": "Przywróć interfejs serwera"
   },
   "findInPage": {

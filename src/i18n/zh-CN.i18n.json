@@ -123,11 +123,9 @@
       "clear": "清除筛选器",
       "all": "全部",
       "mimes": {
-        "images": "图片",
-        "videos": "视频",
-        "audios": "音频",
-        "texts": "文本",
-        "files": "文件"
+        "image": "图片",
+        "video": "视频",
+        "application": "文件"
       },
       "statuses": {
         "paused": "已暂停",
@@ -157,6 +155,9 @@
   },
   "settings": {
     "title": "设置",
+    "sections": {
+      "uiPreview": "Web 界面预览"
+    },
     "options": {
       "report": {
         "title": "向开发者报告错误",
@@ -180,6 +181,15 @@
         "description": "如果启用，视频通话将在应用程序窗口中打开，而不是在默认浏览器中打开。但是，对于<strong>Google Meet</strong>和<strong>Jitsi</strong>，Electron应用程序不支持屏幕录制，所以无论此设置如何，它们始终会在浏览器中打开。",
         "masDescription": "从Mac App Store安装时此选项被禁用。出于安全原因，视频通话将始终默认在浏览器中打开。"
       },
+      "trayIconUnreadCounter": {
+        "title": "托盘图标中的未读计数",
+        "titleDarwin": "菜单栏图标中的未读指示",
+        "description": "在图标上显示未读消息徽标，而不是你的在线状态。"
+      },
+      "menuBarUnreadCount": {
+        "title": "菜单栏中的未读数",
+        "description": "在菜单栏图标旁显示未读提及的数量。"
+      },
       "transparentWindow": {
         "title": "透明窗口效果",
         "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
@@ -190,15 +200,6 @@
         "auto": "跟随系统",
         "light": "浅色",
         "dark": "深色"
-      },
-      "trayIconUnreadCounter": {
-        "title": "托盘图标中的未读计数",
-        "titleDarwin": "菜单栏图标中的未读指示",
-        "description": "在图标上显示未读消息徽标，而不是你的在线状态。"
-      },
-      "menuBarUnreadCount": {
-        "title": "菜单栏中的未读数",
-        "description": "在菜单栏图标旁显示未读提及的数量。"
       },
       "uiPreview": {
         "title": "加载 Web 界面构建",
@@ -228,9 +229,6 @@
           "closed": "已关闭"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Web 界面预览"
     }
   },
   "error": {
@@ -255,6 +253,7 @@
     "copy": "复制 (&C)",
     "cut": "剪切 (&T)",
     "developerMode": "开发者模式",
+    "simulateDisconnected": "模拟断开连接",
     "disableGpu": "禁用 GPU",
     "documentation": "文件",
     "downloads": "下载",
@@ -287,7 +286,6 @@
     "windowMenu": "窗口 (&W)",
     "zoomIn": "放大",
     "zoomOut": "缩小",
-    "simulateDisconnected": "模拟断开连接",
     "restoreServerUi": "恢复服务器界面"
   },
   "findInPage": {

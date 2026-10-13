@@ -37,6 +37,10 @@ required="${PR_WATCH_REQUIRED:-test (macos-latest, 1);test (macos-latest, 2);tes
 # Comments are reported from launch time onward; PR_WATCH_SINCE (ISO 8601 UTC)
 # moves the window back, mainly for testing the comment output format.
 since="${PR_WATCH_SINCE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+# Each endpoint keeps its own window, so a failed fetch of one does not
+# skip or repeat the comments of the other.
+since_inline="$since"
+since_issue="$since"
 prev=""
 
 strip() {
@@ -47,31 +51,47 @@ strip() {
 }
 
 while true; do
+  # Taken before the fetches, so a comment created during a fetch falls
+  # inside the next window.
   now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-  cur="$(gh pr checks "$pr" -R "$repo" --json name,bucket 2>/dev/null | jq -r '.[] | "\(.name): \(.bucket)"' | sort)" || true
+  # gh pr checks exits non-zero while checks are pending or failing, so its
+  # exit code cannot tell a failed fetch. Accept only a JSON array, and keep
+  # the previous state otherwise.
+  checks="$(gh pr checks "$pr" -R "$repo" --json name,bucket 2>/dev/null)"
+  if printf '%s' "$checks" | jq -e 'type == "array"' >/dev/null 2>&1; then
+    cur="$(printf '%s' "$checks" | jq -r '.[] | "\(.name): \(.bucket)"' | sort)"
+  else
+    cur="$prev"
+  fi
   if [ "$cur" != "$prev" ]; then
     comm -13 <(printf '%s\n' "$prev") <(printf '%s\n' "$cur") | grep -v '^$' | sed 's/^/CHECK /'
     prev="$cur"
   fi
 
+  # Advance a window only after its fetch succeeds, so a failed poll
+  # retries the same window instead of losing its comments.
   # -c keeps each comment as one JSON string (newlines escaped), so one
   # comment becomes exactly one event line.
-  gh api "repos/$repo/pulls/$pr/comments?since=$since" 2>/dev/null \
-    | jq -c '.[] | select(.user.login | test("coderabbit"; "i")) | "\(.path):\(.line // .original_line) \(.body)"' \
-    | while IFS= read -r js; do printf 'COMMENT %s\n' "$(printf '%s' "$js" | strip)"; done
+  if inline="$(gh api "repos/$repo/pulls/$pr/comments?since=$since_inline" 2>/dev/null)"; then
+    printf '%s' "$inline" \
+      | jq -c '.[] | select(.user.login | test("coderabbit"; "i")) | "\(.path):\(.line // .original_line) \(.body)"' \
+      | while IFS= read -r js; do printf 'COMMENT %s\n' "$(printf '%s' "$js" | strip)"; done
+    since_inline="$now"
+  fi
 
   # CodeRabbit edits its summary comment in place, so `since` matches it on
   # every update; only report when the actionable line actually changed.
-  review="$(gh api "repos/$repo/issues/$pr/comments?since=$since" 2>/dev/null \
-    | jq -r '.[] | select(.user.login | test("coderabbit"; "i")) | .body' \
-    | grep -iE 'actionable comments|no actionable' | tail -1 | jq -Rs . | strip)"
-  if [ -n "$review" ] && [ "$review" != "${last_review:-}" ]; then
-    printf 'REVIEW %s\n' "$review"
-    last_review="$review"
+  if issue="$(gh api "repos/$repo/issues/$pr/comments?since=$since_issue" 2>/dev/null)"; then
+    review="$(printf '%s' "$issue" \
+      | jq -r '.[] | select(.user.login | test("coderabbit"; "i")) | .body' \
+      | grep -iE 'actionable comments|no actionable' | tail -1 | jq -Rs . | strip)"
+    if [ -n "$review" ] && [ "$review" != "${last_review:-}" ]; then
+      printf 'REVIEW %s\n' "$review"
+      last_review="$review"
+    fi
+    since_issue="$now"
   fi
-
-  since="$now"
 
   missing=0
   IFS=';' read -r -a req <<< "$required"

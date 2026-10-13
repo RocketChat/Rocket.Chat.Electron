@@ -24,18 +24,20 @@ gh pr view --json number --jq '.number'
 ### 1. Fetch unresolved CodeRabbit threads
 
 ```bash
-gh api graphql -f query='
-query($owner:String!, $repo:String!, $pr:Int!) {
+gh api graphql --paginate -f query='
+query($owner:String!, $repo:String!, $pr:Int!, $endCursor:String) {
   repository(owner:$owner, name:$repo) {
     pullRequest(number:$pr) {
-      reviewThreads(first: 100) {
+      reviewThreads(first: 100, after: $endCursor) {
+        pageInfo { hasNextPage endCursor }
         nodes {
           id
           isResolved
           isOutdated
           path
           line
-          comments(first: 10) {
+          comments(first: 100) {
+            pageInfo { hasNextPage endCursor }
             nodes {
               author { login }
               body
@@ -52,9 +54,30 @@ query($owner:String!, $repo:String!, $pr:Int!) {
         | select(.isResolved == false)'
 ```
 
-Threads with more than 10 comments need a second page
-(`comments(first: 10, after: $cursor)`) — check `comments.pageInfo` if a
-thread looks truncated. Note `isOutdated` per thread; an outdated thread
+`--paginate` requests the next page of threads until `hasNextPage` is
+false. It reads the first `pageInfo` in the response. Keep the
+`reviewThreads` `pageInfo` above `nodes` so that it comes first.
+
+A thread can have more comments than one page holds. If the
+`comments.pageInfo.hasNextPage` of a thread is true, fetch the remaining
+comments. Pass the `endCursor` of that thread as the start cursor:
+
+```bash
+gh api graphql --paginate -f query='
+query($id:ID!, $endCursor:String) {
+  node(id:$id) {
+    ... on PullRequestReviewThread {
+      comments(first: 100, after: $endCursor) {
+        pageInfo { hasNextPage endCursor }
+        nodes { author { login } body url }
+      }
+    }
+  }
+}' -f id=<THREAD_ID> -f endCursor=<COMMENTS_END_CURSOR> \
+  --jq '.data.node.comments.nodes[]'
+```
+
+Note `isOutdated` per thread; an outdated thread
 still needs a decision, just flag it as possibly stale (the line moved).
 
 ### 2. Classify each thread

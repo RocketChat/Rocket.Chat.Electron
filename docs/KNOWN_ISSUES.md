@@ -182,3 +182,39 @@
 - Affected files: src/injected.ts (presence read/write bridge), src/ui/main/trayIcon.ts.
 - Reference: CORE-2525. Checked against Rocket.Chat @ 8.8.0-develop source and confirmed
   live against open.rocket.chat (server 8.8).
+
+## Yarn 4.6.0 + Git ≥ 2.52 on `windows-latest` runners intermittently breaks `yarn install` on git dependencies
+
+- Status: Confirmed (PR #3444 CI, 2026-08-12). It hit `build (windows-latest)` and
+  `check (windows-latest)` on different runs of the same commit. Other Windows jobs on the same
+  commit installed correctly. Yarn 4.12.0 fixes it upstream. We still pin `yarn@4.6.0`.
+- Symptom: `yarn install` fails in the resolution step, when it clones the git dependency
+  `@electron/node-gyp`. The errors are `Error: invalid key:  core.autocrlf` (note the double
+  space) and `Fatal Error: unable to write parameters to config file`, with git exit code 128.
+- Root cause: Yarn < 4.12.0 gives `-c core.autocrlf=false` to `git clone` as one quoted token.
+  Git 2.52+ parses the key with a leading space and rejects it. The failure is intermittent,
+  because GitHub is in the middle of a Windows runner image rollout. The runners have
+  different Git versions (2.54.0 failed). See yarnpkg/berry#6982 (fix: yarnpkg/berry#6983,
+  released in Yarn 4.12.0) and git-for-windows/git discussion #5959.
+- Workaround: re-run the failed job. A runner with an older Git installs correctly. Durable
+  fix: bump the pinned Yarn (`packageManager`, `.yarnrc.yml` `yarnPath`, vendored
+  `.yarn/releases/yarn-*.cjs`) to ≥ 4.12.0 in a separate toolchain PR.
+- Affected files: package.json (`packageManager`), .yarnrc.yml, .yarn/releases/,
+  .github/workflows (each job that runs `yarn install` on `windows-latest`).
+- Reference: PR #3444 CI runs 31633895840 and 31642227209. yarnpkg/berry#6982.
+
+## GitHub releases downloads of the Electron zip intermittently EOF in CI packaging steps
+
+- Status: Confirmed (PR #3444 CI, 2026-08-12). It hit `check (ubuntu-latest)`,
+  `build (ubuntu-latest)` and `check (windows-latest)` across runs. Each job passed on re-run.
+- Symptom: the `electron-builder` or `electron-builder --dir` step fails after all tests pass.
+  The errors are
+  `Get "https://github.com/electron/electron/releases/download/vX.Y.Z/electron-vX.Y.Z-<platform>.zip": EOF`
+  and `app-builder process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE`.
+- Root cause: the GitHub releases CDN drops the connection during the download, inside the
+  app-builder downloader. The failure is transient and not related to the code of the PR.
+- Workaround: re-run the failed job (`gh run rerun <run-id> --failed`). To tell it apart from a
+  real failure, look at the failing step. It is the packaging or download step, and the Jest
+  summary before it is green.
+- Affected files: .github/workflows (packaging steps on all three platforms).
+- Reference: PR #3444 CI runs 31633895840 and 31642227209.

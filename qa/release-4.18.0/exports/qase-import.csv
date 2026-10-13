@@ -1,0 +1,1286 @@
+v2.id,suite_id,suite,suite_without_cases,title,description,preconditions,postconditions,severity,priority,status,automation,steps_type,tags,steps_actions,steps_data,steps_results
+"","1","Release 4.18.0 / Install and upgrade","1","","","","","","","","","","","","",""
+"","2","Release 4.18.0 / Video calls","1","","","","","","","","","","","","",""
+"","3","Release 4.18.0 / Workspaces","1","","","","","","","","","","","","",""
+"","4","Release 4.18.0 / Web UI previews","1","","","","","","","","","","","","",""
+"","5","Release 4.18.0 / App shell","1","","","","","","","","","","","","",""
+"","1","Release 4.18.0 / Install and upgrade","","Each package installs, starts, and shows the build under test","Source flow: REL418-QA-001
+
+The package installs without a security warning, the app starts, and the settings window shows the version of the build under test.","installed_prerelease_build","- The package file name and size.
+- The installer signature (Windows) or the `codesign` and `spctl` output
+  (macOS).
+- A screenshot of the settings sidebar with the version.","critical","high","actual","manual","classic","REL418-QA-001,source:repo-qa,platform:macos,platform:windows,platform:linux,requires:installed_prerelease_build","1. ""Remove Rocket.Chat from the machine if it is installed. On macOS, drag Rocket.Chat from Applications to the Trash. On Windows, use Settings > Apps. On Linux, use the package manager.""
+2. ""Download the package for this target from the GitHub release of the build under test (see `Build under test` in the pack README). For `mas`, install the build from TestFlight instead.""
+3. ""Install the package with the normal method for its type. dmg: open it and drag Rocket.Chat to Applications. pkg: double-click it and complete the installer. exe and msi: double-click them. appx: double-click it and click Install. AppImage: make it executable. deb, rpm, snap: install them with the package manager. tar.gz: extract it.""
+4. ""Start Rocket.Chat from the Launchpad or Applications folder (macOS), the Start menu (Windows), or the application menu or the AppImage file (Linux).""
+5. ""Press Command+, on macOS or Ctrl+, on Windows and Linux. The App settings window opens. Look at the bottom of its left sidebar, under the section list.""
+6. ""On macOS only, check the signature and the notarization of the installed app.""
+7. ""Quit Rocket.Chat. On macOS, click the Rocket.Chat menu at the left of the menu bar, then click Quit Rocket.Chat. On Windows and Linux, click the File menu at the top left of the window, then click Quit Rocket.Chat.""","1. ""A machine with no Rocket.Chat install.
+Agent: Check that `/Applications/Rocket.Chat.app` (macOS), the Apps list (Windows), or the package (`dpkg -l rocketchat`, `rpm -q rocketchat`, `snap list rocketchat`) is absent.""
+2. ""`gh release download <build under test> -p '<pattern>' -D <new empty folder>`. Patterns: `*-mac.dmg`, `*-mac.pkg`, `*-win-x64.exe` (or `-ia32`, `-arm64`, or the universal `*-win.exe`), `*-win-x64.msi`, `*-win-x64.appx`, `*.AppImage`, `*.deb`, `*.rpm`, `*.snap`, `*.tar.gz`.
+Agent: Run the `gh release download` command and record the file name and size.""
+3. ""`sudo apt install ./<file>.deb`, `sudo dnf install ./<file>.rpm`, `sudo snap install --dangerous ./<file>.snap`, `chmod +x <file>.AppImage`.
+Agent: Record the install output. On Windows, right-click the installer, click Properties, and open the Digital Signatures tab. Record the signer.""
+4. ""None.
+Agent: Take a screenshot of the main window.""
+5. ""None.
+Agent: Take a screenshot of the sidebar bottom. On macOS, run `defaults read /Applications/Rocket.Chat.app/Contents/Info.plist CFBundleShortVersionString` and expect the version of the build under test.""
+6. ""`codesign -dv --verbose=2 /Applications/Rocket.Chat.app` and `spctl -a -vv /Applications/Rocket.Chat.app`.
+Agent: Run both commands and paste the output in the evidence.""
+7. ""None.
+Agent: Check the process list (`pgrep -l Rocket.Chat` on macOS and Linux, Task Manager on Windows).""","1. ""No Rocket.Chat app is on the machine.""
+2. ""The file is on the disk.""
+3. ""The install completes. macOS shows no """"cannot be opened"""" or """"damaged"""" message. The Windows installer shows the publisher name, not """"Unknown publisher"""".""
+4. ""The main window opens. It shows the add-workspace screen.""
+5. ""The bottom of the sidebar shows the version of the build under test and a copyright line.""
+6. ""`codesign` shows the Rocket.Chat Developer ID team (dmg, pkg) or the App Store identity (mas). For dmg and pkg, `spctl` shows `accepted` and `source=Notarized Developer ID`.""
+7. ""The app closes. No Rocket.Chat process stays."""
+"","1","Release 4.18.0 / Install and upgrade","","Installing over 4.17.4 keeps workspaces, sign-in, and settings","Source flow: REL418-QA-002
+
+After the build-under-test package installs over 4.17.4, the same workspaces open signed in and the changed settings keep their values.","installed_prerelease_build
+last_stable_4_17_4_package","- Screenshots of the version before and after the upgrade.
+- Screenshots of the server list and the settings after the upgrade.","critical","high","actual","manual","classic","REL418-QA-002,source:repo-qa,platform:macos,platform:windows,platform:linux,requires:installed_prerelease_build,requires:last_stable_4_17_4_package","1. ""Install Rocket.Chat 4.17.4 with the same package type as this target. For `mas`, install the App Store version.""
+2. ""Add two workspaces. On the add-workspace screen, type the first URL in the field labeled """"Enter your server URL"""" and click Connect. Sign in. Then press Command+N (macOS) or Ctrl+N (Windows, Linux) to add the second workspace, and sign in.""
+3. ""Change three settings that you can see again later. Press Command+, (macOS) or Ctrl+, (Windows, Linux). In the App settings window, change the theme in the Appearance section. In the General section, change one switch. Then move and resize the main window.""
+4. ""Quit Rocket.Chat. On macOS, click the Rocket.Chat menu at the left of the menu bar, then click Quit Rocket.Chat. On Windows and Linux, click the File menu at the top left of the window, then click Quit Rocket.Chat.""
+5. ""Install the build-under-test package of the same type over 4.17.4. Do not remove 4.17.4 first. For `mas`, install the TestFlight build. For AppImage, start the new AppImage file.""
+6. ""Start Rocket.Chat.""
+7. ""Click each workspace icon in the left vertical server list.""
+8. ""Press Command+, (macOS) or Ctrl+, (Windows, Linux). Look at the bottom of the left sidebar, then open the sections that you changed in step 3.""","1. ""`gh release download 4.17.4 -p '<pattern>' -D <new empty folder>`. Use the patterns of REL418-QA-001, step 2.
+Agent: Take a screenshot of the version.""
+2. ""Two workspace URLs and accounts.
+Agent: Record the two URLs.""
+3. ""Theme: Dark. Note the switch name and its new value.
+Agent: Take a screenshot of each changed section.""
+4. ""None.
+Agent: Check the process list.""
+5. ""The build-under-test package from REL418-QA-001, step 2.
+Agent: Record the install output.""
+6. ""None.
+Agent: Take a screenshot of the main window.""
+7. ""None.
+Agent: Take a screenshot of each workspace.""
+8. ""None.
+Agent: Take a screenshot of the version and the settings.""","1. ""Rocket.Chat 4.17.4 starts. Press Command+, (macOS) or Ctrl+, (Windows, Linux). The bottom of the left sidebar in App settings shows `4.17.4`.""
+2. ""The left vertical server list shows two workspace icons. Both workspaces show the signed-in home page.""
+3. ""The settings keep the new values.""
+4. ""No Rocket.Chat process stays.""
+5. ""The install completes with no message about existing data.""
+6. ""The main window opens at the same size and position as in step 3. The left vertical server list shows the same two workspaces, in the same order.""
+7. ""Each workspace opens signed in. No sign-in page shows.""
+8. ""The sidebar shows the version of the build under test. The theme and the switch keep the values from step 3."""
+"","1","Release 4.18.0 / Install and upgrade","","The in-app updater moves 4.17.4 to the build under test","Source flow: REL418-QA-003
+
+4.17.4 on the Alpha channel finds the build under test, downloads it, restarts into it, and keeps the workspaces and settings.","last_stable_4_17_4_package
+published_prerelease","- Screenshots of the update message, the dialog, and the label states.
+- The version after the update.
+- The main log of the updated app. macOS:
+  `~/Library/Logs/Rocket.Chat/main.log`. Use Help > Open Log Viewer on all
+  platforms.","critical","high","actual","manual","classic","REL418-QA-003,source:repo-qa,platform:macos,platform:windows,platform:linux,requires:last_stable_4_17_4_package,requires:published_prerelease","1. ""Install Rocket.Chat 4.17.4 with this package type, add one workspace, and sign in. On the add-workspace screen, type the URL in the field labeled """"Enter your server URL"""" and click Connect.""
+2. ""Turn on Developer Mode. Click the Help menu in the menu bar (macOS) or at the top of the window (Windows, Linux). Click Developer Mode.""
+3. ""Press Command+, (macOS) or Ctrl+, (Windows, Linux). In the left sidebar of the App settings window, click Advanced. Find the field labeled """"Update channel"""" at the top of the section. Select """"Alpha (Experimental)"""".""
+4. ""In the left sidebar, click General. Click the button labeled """"Check for updates now"""".""
+5. ""In the main window, click the """"Update"""" label at the right end of the top bar.""
+6. ""Click """"Install update"""". Wait for the download.""
+7. ""Click """"Restart to update"""". If the app is still open after 30 seconds, quit it from the menu. On macOS, click Rocket.Chat > Quit Rocket.Chat. On Windows and Linux, click File > Quit Rocket.Chat. Then start the app again.""
+8. ""Press Command+, (macOS) or Ctrl+, (Windows, Linux). Look at the bottom of the left sidebar. Then click Advanced.""","1. ""`gh release download 4.17.4 -p '<pattern>' -D <new empty folder>`. Patterns: `*-mac.dmg`, `*-win.exe`, `*.AppImage`.
+Agent: Take a screenshot.""
+2. ""None.
+Agent: Take a screenshot of the Help menu.""
+3. ""Channel: Alpha (Experimental).
+Agent: Take a screenshot of the field.""
+4. ""None.
+Agent: Take a screenshot of the message and the label.""
+5. ""None.
+Agent: Take a screenshot of the dialog.""
+6. ""None.
+Agent: Take a screenshot of each label state.""
+7. ""None.
+Agent: Record whether the app quit by itself, and on which OS.""
+8. ""None.
+Agent: Take a screenshot of the version and the channel.""","1. ""The workspace opens signed in.""
+2. ""Developer Mode shows a check mark the next time you open the Help menu.""
+3. ""The field shows """"Alpha (Experimental)"""".""
+4. ""The text """"Version 4.18.0-alpha.N is available"""" shows near the button, where N is the build under test. A label """"Update"""" shows at the right end of the top bar of the main window.""
+5. ""A dialog """"New version is available"""" opens. It shows """"Current version"""" 4.17.4 and """"New version"""" equal to the build under test, with the buttons """"Install update"""" and """"Skip this version"""".""
+6. ""The top bar label shows """"Updating…"""" with a percentage, then """"Restart to update"""".""
+7. ""The app starts again. The workspace from step 1 opens signed in.""
+8. ""The sidebar shows the build under test. """"Update channel"""" still shows """"Alpha (Experimental)""""."""
+"","1","Release 4.18.0 / Install and upgrade","","Core daily use works on the installed build","Source flow: REL418-QA-004
+
+A user can sign in, send and receive messages, get and click a notification, download a file, use the tray icon, and quit and reopen with the state kept.","installed_prerelease_build
+two_accounts_same_workspace","- Screenshots of each step.
+- The Log Viewer content, saved to a file, if a step fails.","critical","high","actual","manual","classic","REL418-QA-004,source:repo-qa,platform:macos,platform:windows,platform:linux,requires:installed_prerelease_build,requires:two_accounts_same_workspace","1. ""Start Rocket.Chat. On the add-workspace screen, type the URL in the field labeled """"Enter your server URL"""" and click Connect. Sign in.""
+2. ""Open a direct message with account B. Type a message in the composer at the bottom of the room and press Enter.""
+3. ""Click another app so that Rocket.Chat is not the front window. From a second device, sign in as account B and send a direct message to account A.""
+4. ""Click the notification.""
+5. ""Upload a small file in the room: click the plus button at the left of the composer and select a file. Then click the file in the room to download it.""
+6. ""Press Command+D (macOS) or Ctrl+D (Windows, Linux).""
+7. ""Find the Rocket.Chat icon on macOS in the menu bar at the top right. On Windows, find it in the notification area at the bottom right. On Linux, find it in the top panel. Click it.""
+8. ""Quit Rocket.Chat. On macOS, click the Rocket.Chat menu at the left of the menu bar, then click Quit Rocket.Chat. On Windows and Linux, click the File menu at the top left of the window, then click Quit Rocket.Chat. Start the app again.""
+9. ""Click the Help menu and click Open Log Viewer.""","1. ""Workspace URL and account A.
+Agent: Take a screenshot.""
+2. ""Account B.
+Agent: Take a screenshot.""
+3. ""Text: """"smoke notification"""".
+Agent: Take a screenshot of the notification.""
+4. ""None.
+Agent: Take a screenshot.""
+5. ""A text file of less than 1 MB.
+Agent: Record the file name.""
+6. ""None.
+Agent: Take a screenshot of the Downloads window.""
+7. ""None.
+Agent: Take a screenshot. Existing tray flows: CORE-2525-QA-001 to CORE-2525-QA-013.""
+8. ""None.
+Agent: Take a screenshot.""
+9. ""None.
+Agent: Take a screenshot.""","1. ""The workspace home page shows. A workspace icon shows in the left vertical server list.""
+2. ""The message shows in the room once.""
+3. ""The OS shows a notification with the text. On macOS and Windows, the app icon (Dock or taskbar) shows an unread count.""
+4. ""Rocket.Chat comes to the front and opens the direct message with account B.""
+5. ""The file downloads.""
+6. ""The Downloads window opens and lists the file from step 5 as complete.""
+7. ""A menu opens with the presence options and Quit, or the main window comes to the front.""
+8. ""The main window opens. The workspace opens signed in, on the last room.""
+9. ""The Log Viewer window opens and shows log lines from this session."""
+"","1","Release 4.18.0 / Install and upgrade","","Store builds check the store and never use the in-app updater","Source flow: REL418-QA-005
+
+On a store build, ""Check for updates now"" asks the store, shows a result, and the app never downloads an update by itself.","installed_prerelease_build","- Screenshots of the check result and the store page.
+- The log file.","major","high","actual","manual","classic","REL418-QA-005,source:repo-qa,platform:macos,platform:windows,platform:linux,requires:installed_prerelease_build","1. ""Install the store package. mas: install the build from TestFlight. appx: double-click the `.appx` file and click Install. snap: install the `.snap` file.""
+2. ""Press Command+, (macOS) or Ctrl+, (Windows, Linux). In the left sidebar of the App settings window, click General. Find the button labeled """"Check for updates now"""".""
+3. ""Click """"Check for updates now"""".""
+4. ""If a store button shows, click it.""
+5. ""Click the Help menu and click Open Log Viewer. Search the log for """"electron-updater"""" and """"latest"""".""","1. ""`sudo snap install --dangerous ./<file>.snap`.
+Agent: Take a screenshot.""
+2. ""None.
+Agent: Take a screenshot of the General section.""
+3. ""None.
+Agent: Take a screenshot of the result.""
+4. ""None.
+Agent: Take a screenshot.""
+5. ""None.
+Agent: Save the log. On mas, the log file is `~/Library/Containers/chat.rocket/Data/Library/Logs/Rocket.Chat/main.log`.""","1. ""The app starts.""
+2. ""The button shows.""
+3. ""Two results are valid. The app shows """"No updates are available."""" Or the app shows """"Version X is available"""" with a button. The button opens the store (""""Open App Store"""", """"Open Microsoft Store"""", or """"Open Snap Store""""). The app does not start a download.""
+4. ""The store app or the store web page opens on the Rocket.Chat listing.""
+5. ""The log has no electron-updater lines and no request for `latest-mac.yml`, `latest.yml`, or `latest-linux.yml`."""
+"","2","Release 4.18.0 / Video calls","","Conference links open in the call window on the installed build","Source flow: REL418-QA-020
+
+A conference link opens a separate call window. The main window stays on the workspace after reload and restart.","installed_prerelease_build
+pexip_workspace_signed_in
+video_calls_inside_app_on","- Screenshot of the call window at step 3.
+- Screenshot of the main window at step 4 and step 6.","major","high","actual","manual","classic","REL418-QA-020,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build,requires:pexip_workspace_signed_in,requires:video_calls_inside_app_on","1. ""Start the installed Rocket.Chat app. In the left vertical server list, click the three-dots button near the bottom, click `Settings`, and click the `Voice & Video` tab. Find the row `Video calls inside app`.""
+2. ""Close Settings. In the workspace, click a channel in the left room list. Note the room name.""
+3. ""In the message composer, send a message with a conference link. Click the link in the sent message.""
+4. ""Click the main Rocket.Chat window.""
+5. ""Close the call window. In the main window, press `Cmd+R` (macOS) or `Ctrl+R` (Windows, Linux).""
+6. ""Quit the app fully (`Cmd+Q` on macOS, `File > Quit` on Windows and Linux). Start it again.""","1. ""Workspace with Pexip, signed in
+Agent: Open Settings and read the switch state.""
+2. ""Any channel
+Agent: Open a channel and record its name.""
+3. ""`https://<workspace-host>/conference/<alias>?scheduled=true`
+Agent: Send the link, click it, and find the new window.""
+4. ""Agent: Capture the main window.""
+5. ""Agent: Close the call window, reload, and capture.""
+6. ""Agent: Quit, relaunch, and capture.""","1. ""The switch for `Video calls inside app` is on.""
+2. ""A normal room with a message list is open.""
+3. ""A separate call window opens with its own title bar. It shows the meeting screen.""
+4. ""The main window still shows the room from step 2 with the room list on the left. It does not show the meeting screen.""
+5. ""The main window reloads and shows the workspace room list. No call window opens.""
+6. ""The app opens on the workspace, not on the meeting screen. No call window opens."""
+"","2","Release 4.18.0 / Video calls","","Sign-in popup in the call window opens as an app window and completes","Source flow: REL418-QA-021
+
+The sign-in popup opens as an app window, returns the result to the call, and closes.","installed_prerelease_build
+pexip_workspace_signed_in
+video_calls_inside_app_on
+pexip_sso_identity_provider","- Screenshot at step 3 that shows the popup window and the call window.
+- Screenshot of the call window at step 4.","major","high","actual","manual","classic","REL418-QA-021,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build,requires:pexip_workspace_signed_in,requires:video_calls_inside_app_on,requires:pexip_sso_identity_provider","1. ""In the installed app, check that `Video calls inside app` is on: left server list, three-dots button near the bottom, `Settings`, `Voice & Video` tab.""
+2. ""Close Settings. In a room, send a conference link and click it.""
+3. ""In the call window, click the sign-in with SSO control of the meeting page.""
+4. ""Sign in with the test account in the new window.""
+5. ""In the call window, find a link on the meeting page. Middle-click it (or hold `Cmd` on macOS or `Ctrl` on Windows and Linux and click it).""
+6. ""Close the call window.""","1. ""Pexip workspace that uses an SSO identity provider
+Agent: Read the switch state.""
+2. ""`https://<workspace-host>/conference/<alias>`
+Agent: Send and click the link.""
+3. ""Agent: Click the control. Capture all open windows.""
+4. ""SSO test account
+Agent: Sign in and capture the call window.""
+5. ""Any http(s) link on the page
+Agent: Click with the modifier and check the browser.""
+6. ""Agent: Close the window.""","1. ""The switch is on.""
+2. ""The call window opens. The meeting page asks the guest to sign in with SSO.""
+3. ""A new window opens with its own title bar, in front of the call window. It shows the identity-provider login page. The system browser does not open.""
+4. ""The new window closes by itself. The call window shows the meeting as signed in.""
+5. ""The link opens in the default system browser. No new app window opens.""
+6. ""The call window closes. The main window stays the same."""
+"","2","Release 4.18.0 / Video calls","","Call window boots without console errors and keeps a minimal bridge","Source flow: REL418-QA-022
+
+The call page logs no TypeError and no script error. The bridge has no credential method.","installed_prerelease_build
+pexip_workspace_signed_in
+video_calls_inside_app_on","- Screenshot of the DevTools console at step 3.
+- Copied output of steps 4 and 5.","major","high","actual","manual","classic","REL418-QA-022,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build,requires:pexip_workspace_signed_in,requires:video_calls_inside_app_on","1. ""In the menu bar open `Help`, then `Video Call Tools`, then click `Auto-open DevTools` to add a check mark. On Windows and Linux, press `Alt` to show a hidden menu bar.""
+2. ""In a room, send a conference link and click it.""
+3. ""In the DevTools window, click the `Console` tab. Read all red entries.""
+4. ""In the console prompt, type `Object.keys(window.RocketChatDesktop.videoCall)` and press Enter.""
+5. ""Type `typeof window.videoCallWindow` and press Enter. Then type `typeof window.RocketChatDesktop.videoCall.getAuthCredentials` and press Enter.""
+6. ""Type `window.RocketChatDesktop.videoCall.openInMainWindow('/home')` and press Enter.""
+7. ""Open the call window again with the same link. In the console, type `window.RocketChatDesktop.videoCall.close()` and press Enter.""
+8. ""In the menu bar open `Help`, `Video Call Tools`, and click `Auto-open DevTools` to clear the check mark.""","1. ""Agent: Open the menu and toggle the item.""
+2. ""`https://<workspace-host>/conference/new?rid=GENERAL`
+Agent: Send and click the link.""
+3. ""Agent: Read the console text and search for these strings.""
+4. ""Agent: Run the command and copy the output.""
+5. ""Agent: Run both commands and copy the output.""
+6. ""Agent: Run the command. Capture the main window.""
+7. ""Agent: Run the command and check that the window closes.""
+8. ""Agent: Toggle the item.""","1. ""`Auto-open DevTools` shows a check mark.""
+2. ""A call window opens. A DevTools window opens next to it.""
+3. ""The console shows no `TypeError`. It shows no `setUrlResolver is not a function`, no `setUserPresenceDetection is not a function`, no `Error loading Jitsi Meet External API script`, and no `Refused to execute script`.""
+4. ""The result shows `close`, `openInMainWindow`, and `requestScreenSharing`.""
+5. ""Both results show `""""undefined""""`.""
+6. ""The main window comes to the front on the `/home` page of the workspace. The call window closes or stays, with no error in the console.""
+7. ""The call window closes.""
+8. ""The check mark is gone."""
+"","2","Release 4.18.0 / Video calls","","Screen sharing from a call still works","Source flow: REL418-QA-023
+
+The picker lists sources and the other participant sees the shared content.","installed_prerelease_build
+pexip_workspace_signed_in
+video_calls_inside_app_on
+hardware_graphics_machine
+second_participant","- Screenshot of the picker at step 2.
+- Screenshot or answer from the second participant at step 4.","major","high","actual","manual","classic","REL418-QA-023,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build,requires:pexip_workspace_signed_in,requires:video_calls_inside_app_on,requires:hardware_graphics_machine,requires:second_participant","1. ""Start a call from a conference link in a room so that the call window opens. Ask a second person to join the same call on another device.""
+2. ""In the call window, click the screen share control of the meeting toolbar. If the system asks for Screen Recording or screen access, allow it. On macOS, quit and reopen the app after you allow it, and start again from step 1.""
+3. ""In the picker, select a screen thumbnail on the `Your entire screen` tab. Click `Share`.""
+4. ""Ask the second participant what they see.""
+5. ""Stop sharing with the share control of the meeting toolbar. Repeat steps 2 and 3 with the `Application window` tab and one window.""","1. ""`https://<workspace-host>/conference/<alias>`
+Agent: Open the call window.""
+2. ""Agent: Click the share control. Capture the picker.""
+3. ""Agent: Select a source and click Share.""
+4. ""Agent: Get the answer or a screenshot.""
+5. ""One open application window
+Agent: Repeat with a window source.""","1. ""The call window shows the meeting. The second participant is in the call.""
+2. ""A picker window opens with the title `Share your screen`. It has the tabs `Your entire screen` and `Application window`, and the buttons `Cancel` and `Share`.""
+3. ""The picker closes. The call shows that you share your screen.""
+4. ""The second participant sees your screen.""
+5. ""The shared window shows for the second participant. After you stop, the share ends."""
+"","2","Release 4.18.0 / Video calls","","macOS asks for Screen Recording only when the user shares","Source flow: REL418-QA-024
+
+Launch shows no Screen Recording prompt. The first share request shows it.","installed_prerelease_build
+macos_screen_recording_not_granted","- Screenshot of the screen at step 3 and step 4 (no dialog. Step 4 is on `dmg` and `pkg` only).
+- Output of step 5.
+- Screenshot of the dialog at step 6.","major","high","actual","manual","classic","REL418-QA-024,source:repo-qa,platform:macos,requires:installed_prerelease_build,requires:macos_screen_recording_not_granted","1. ""Quit Rocket.Chat. Open Terminal and run the command in the test data. The command clears the Screen Recording record of the app.""
+2. ""In Terminal, run the command in the test data to note the log size before launch.""
+3. ""Open Rocket.Chat from the Applications folder. The app must have at least one signed-in workspace. Wait 30 seconds.""
+4. ""Run this step on `dmg` and `pkg` only. The Mac App Store build has no in-app call window, and calls open in the browser. On `mas`, go to step 5. Click a conference link in a room so that the call window opens. Wait 10 seconds.""
+5. ""In Terminal, run the log check in the test data.""
+6. ""On `dmg` and `pkg`, click the screen share control of the meeting toolbar in the call window. On `mas`, there is no call window, so open the workspace DevTools (`View`, `Open DevTools`, or `Cmd+Option+I`). Click the `Console` tab, type `navigator.mediaDevices.getDisplayMedia({video: true})`, and press Enter.""
+7. ""Allow the access in the macOS dialog, or open System Settings, `Privacy & Security`, `Screen & System Audio Recording`, and switch on `Rocket.Chat`. Quit and reopen Rocket.Chat. Share again.""","1. ""`tccutil reset ScreenCapture chat.rocket`
+Agent: Run the command and copy the output.""
+2. ""`wc -l ~/Library/Logs/Rocket.Chat/main.log` (`dmg`, `pkg`) or `wc -l ~/Library/Containers/chat.rocket/Data/Library/Logs/Rocket.Chat/main.log` (`mas`)
+Agent: Run the command and store the number.""
+3. ""Agent: Launch and capture the whole screen.""
+4. ""`https://<workspace-host>/conference/<alias>`
+Agent: Click the link and capture the screen.""
+5. ""`tail -n +<count from step 2> <log path>`
+Agent: Run the command and search the output.""
+6. ""Agent: Click the control or run the command. Capture the screen.""
+7. ""Agent: Grant the access, relaunch, and capture.""","1. ""The command prints `Successfully reset ScreenCapture approval status for chat.rocket`.""
+2. ""A line count shows. Note it.""
+3. ""The app opens on the workspace. No macOS dialog about Screen Recording appears.""
+4. ""The call window opens. No macOS dialog about Screen Recording appears.""
+5. ""The output has no line with `Failed to get sources`.""
+6. ""A macOS dialog asks to allow Rocket.Chat to record the screen. Or the picker shows the red box `Screen Recording Permission Denied`.""
+7. ""The picker lists screens. On the next launch, no macOS dialog appears."""
+"","2","Release 4.18.0 / Video calls","","macOS picker shows the reset hint when the grant does not apply","Source flow: REL418-QA-025
+
+The macOS picker shows the extra line about the minus button. Windows and Linux do not.","installed_prerelease_build
+macos_screen_recording_not_granted","- Screenshot of the red box at step 3 and step 4.
+- Screenshot of the System Settings list before and after step 5.","normal","medium","actual","manual","classic","REL418-QA-025,source:repo-qa,platform:macos,requires:installed_prerelease_build,requires:macos_screen_recording_not_granted","1. ""Install the `dmg` build, start it, open a call, and share the screen once. Allow access when macOS asks. Quit the app.""
+2. ""Install the `mas` build (TestFlight) over the `dmg` build. Start it. The Mac App Store build has no in-app call window, so open the workspace DevTools: `View`, `Open DevTools` (`Cmd+Option+I`). Click the `Console` tab.""
+3. ""On `mas`, type `navigator.mediaDevices.getDisplayMedia({video: true})` in the console and press Enter. The workspace window then shows the picker.""
+4. ""Read the last line of the red box.""
+5. ""Click `Open System Preferences`. In the list, select `Rocket.Chat` and click the minus (−) button below the list. Quit Rocket.Chat and start it again.""
+6. ""Run the same `getDisplayMedia` command in the DevTools console again, as in step 3. Click `Allow` in the macOS dialog.""
+7. ""For a quick platform check, open the picker on Windows or Linux with screen access denied, if you can.""","1. ""`dmg` build, signed-in workspace
+Agent: Install, share, and capture the list.""
+2. ""`mas` build
+Agent: Install, start, and open DevTools.""
+3. ""Agent: Run the command and capture the picker.""
+4. ""Agent: Capture the box and compare the text.""
+5. ""Agent: Follow the text and capture the list.""
+6. ""Agent: Share and capture the picker.""
+7. ""Windows or Linux build
+Agent: Capture the picker if it shows.""","1. ""Sharing works. System Settings, `Screen & System Audio Recording` lists `Rocket.Chat` as on.""
+2. ""The DevTools window shows the `Console` tab.""
+3. ""The picker opens with the title `Share your screen`. A red box with the title `Screen Recording Permission Denied` fills the body. It says `Screen recording permission is required to share your screen.` and has the link `Open System Preferences`.""
+4. ""The last line reads `Already turned on? Select Rocket.Chat in that list, remove it with the minus (−) button, and quit and reopen Rocket.Chat. Then share your screen again and allow access when macOS asks.`""
+5. ""System Settings opens on the Screen Recording list. The entry is gone.""
+6. ""The picker lists screens and sharing works.""
+7. ""The hint line does not appear. On Linux and Windows the red box can be absent when no permission is required."""
+"","3","Release 4.18.0 / Workspaces","","A hung workspace shows the failure view and Reload recovers it","Source flow: REL418-QA-030
+
+A workspace page that is stuck in a loop is replaced by the ""Server Failed to Load"" view within about 30 seconds, and Reload (button or countdown) loads a working page.","installed_prerelease_build","- Screenshot of the failure view from step 4.
+- Screenshot of the loaded workspace from step 5.
+- The two log lines from step 8.
+- Note the elapsed time between step 3 and the failure view.","major","high","actual","manual","classic","REL418-QA-030,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed build. Make sure one signed-in workspace tab is selected in the tab strip at the top of the window. Do not use `yarn start`.""
+2. ""Right-click the selected workspace tab in the top tab strip. In the menu that opens, click `Open DevTools`. In the DevTools panel, click the `Console` tab.""
+3. ""Click the console prompt. Type the loop below and press Enter. Do not click the workspace page after this step.""
+4. ""Wait up to 30 seconds. Look at the main window.""
+5. ""Click the blue `Reload (N)` button while N is above 5.""
+6. ""Click in the message composer of the workspace. Type a few letters.""
+7. ""Do steps 2 and 3 again. After the failure view shows, do not click anything. Wait until N reaches 0.""
+8. ""Open the main log. On macOS, run `grep """"became unresponsive"""" ~/Library/Logs/Rocket.Chat/main.log`. On Windows, open `%APPDATA%\Rocket.Chat\logs\main.log`. On Linux, open `~/.config/Rocket.Chat/logs/main.log`.""","1. ""One workspace, signed in
+Agent: Start the installed app and select the workspace tab.""
+2. ""Agent: Open the tab context menu and choose `Open DevTools`.""
+3. ""`while(true){}`
+Agent: Evaluate the loop in the workspace DevTools console.""
+4. ""Agent: Wait. Capture the pane after 30 seconds and read the visible text.""
+5. ""Agent: Click `Reload`. Capture the pane when it is loaded.""
+6. ""`abc`
+Agent: Type in the composer and read it back.""
+7. ""Agent: Wait 60 seconds after the failure view shows. Check that the page loads.""
+8. ""Log text `Server view became unresponsive`
+Agent: Search the log file for the line.""","1. ""The workspace page shows the room list and a room.""
+2. ""A DevTools panel opens with a console prompt at the bottom.""
+3. ""The console prompt does not return. The workspace page does not react to the mouse.""
+4. ""The workspace page is replaced by a full-pane failure view. It shows the text `Houston, we have a problem`, the text `Server Failed to Load`, and a blue button `Reload (N)` where N counts down from 60.""
+5. ""A small spinner replaces the button. Then the workspace page loads again and is signed in. The failure view is gone.""
+6. ""The letters appear in the composer. The page reacts to input.""
+7. ""At 0 the button changes to the spinner, and the workspace page loads again without any click.""
+8. ""The log has at least two lines with `Server view became unresponsive` and the workspace URL."""
+"","3","Release 4.18.0 / Workspaces","","Failure view clears when the page recovers and also appears for a background workspace","Source flow: REL418-QA-031
+
+The failure view disappears when a stalled page answers again, and a stalled workspace in the background shows the failure view when the user opens its tab.","installed_prerelease_build","- Screenshots of steps 3, 4, 7, and 8.
+- Note the time when the failure view appeared and when it cleared in step 4.","major","high","actual","manual","classic","REL418-QA-031,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed build with two signed-in workspaces. They show as two tabs in the strip at the top of the window. Select the first tab.""
+2. ""Right-click tab A. Click `Open DevTools`. In the DevTools panel, click the `Console` tab. Type the command and press Enter. Do not click the workspace page after this step.""
+3. ""Wait. Look at the main window every 5 seconds.""
+4. ""Keep waiting. Do not click `Reload`. The loop ends at 40 seconds.""
+5. ""Right-click tab A. Click `Open DevTools` if the panel is closed. In the `Console` tab, type the command and press Enter.""
+6. ""Click tab B in the top tab strip at once. Work in workspace B for 30 seconds. Open a room and type in the composer.""
+7. ""Click tab A.""
+8. ""Click the blue `Reload (N)` button.""","1. ""Workspace A and workspace B
+Agent: Start the app and select tab A.""
+2. ""`const end=Date.now()+40000;while(Date.now()<end){}`
+Agent: Evaluate the 40-second loop in the console of workspace A.""
+3. ""Agent: Capture the pane at 30 seconds.""
+4. ""Agent: Capture the pane at 55 seconds.""
+5. ""`while(true){}`
+Agent: Evaluate the endless loop in workspace A.""
+6. ""Agent: Select tab B and type in its composer.""
+7. ""Agent: Select tab A and capture the pane.""
+8. ""Agent: Click `Reload` and capture the loaded page.""","1. ""Workspace A shows its room list.""
+2. ""The workspace page stops reacting.""
+3. ""Between 15 and 30 seconds, the pane changes to the failure view: `Houston, we have a problem`, `Server Failed to Load`, and a blue button `Reload (N)`.""
+4. ""Within 10 seconds after the loop ends, the failure view disappears and the workspace page shows again. The page keeps its room and its scroll position. No new page load is needed.""
+5. ""The workspace page stops reacting.""
+6. ""Workspace B reacts to input. Tab B is selected.""
+7. ""Workspace A shows the failure view (`Server Failed to Load`). It does not show a frozen page.""
+8. ""The spinner shows. Then workspace A loads again and is signed in."""
+"","3","Release 4.18.0 / Workspaces","","Tab menu Reload and View Reload recover a hung workspace","Source flow: REL418-QA-032
+
+Reload from the workspace tab menu and Reload from the View menu both load a working page when the workspace is hung.","installed_prerelease_build","- Screenshots after steps 3, 4, and 6.","major","high","actual","manual","classic","REL418-QA-032,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed build with one signed-in workspace tab selected in the top tab strip.""
+2. ""Right-click the tab. Click `Open DevTools`. In the `Console` tab, type the command and press Enter. Do not click the workspace page.""
+3. ""Wait up to 30 seconds.""
+4. ""Right-click the workspace tab in the top strip. In the menu, click `Reload`.""
+5. ""Repeat steps 2 and 3.""
+6. ""Open the `View` menu. On macOS it is in the menu bar at the top of the screen. On Windows and Linux it is in the menu bar at the top of the window. If the menu bar is hidden, press Alt. Click `Reload`.""
+7. ""Click in the message composer and type a few letters.""","1. ""One workspace
+Agent: Start the app and select the tab.""
+2. ""`while(true){}`
+Agent: Evaluate the loop in the workspace console.""
+3. ""Agent: Wait and capture the pane.""
+4. ""Agent: Choose `Reload` in the tab context menu. Capture the page.""
+5. ""`while(true){}`
+Agent: Repeat the loop and wait.""
+6. ""Agent: Choose `View` > `Reload`. Capture the page.""
+7. ""`abc`
+Agent: Type in the composer and read it back.""","1. ""The workspace page shows.""
+2. ""The workspace page stops reacting.""
+3. ""The failure view shows: `Server Failed to Load` and the button `Reload (N)`.""
+4. ""The workspace page loads again and is signed in. The failure view is gone.""
+5. ""The failure view shows again.""
+6. ""The workspace page loads again and is signed in. The failure view is gone.""
+7. ""The letters appear in the composer."""
+"","3","Release 4.18.0 / Workspaces","","Find in page opens with Cmd+F or Ctrl+F and searches the workspace","Source flow: REL418-QA-033
+
+The Edit menu item Find… and the Cmd+F or Ctrl+F shortcut open a find bar that counts, steps through, and clears matches in the active workspace.","installed_prerelease_build","- Screenshot of the bar with a counter (step 3).
+- Screenshot of the `No matches` state (step 6).
+- Screenshot of the composer and the bar after step 8.","major","high","actual","manual","classic","REL418-QA-033,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed build with one signed-in workspace. Open a room that has many messages with a common word. Click the room name in the left room list.""
+2. ""Open the `Edit` menu. On macOS it is in the menu bar at the top of the screen. On Windows and Linux it is in the menu bar at the top of the window. If the menu bar is hidden, press Alt first. Click `Find…`. It is the last item of the menu, below a separator line.""
+3. ""Type the word in the text field.""
+4. ""Press Enter. Press Enter again. Then press Shift+Enter.""
+5. ""Click the down arrow button. Click the up arrow button.""
+6. ""Select all text in the field. Type a word that is not on the page.""
+7. ""Press Escape.""
+8. ""Click in the message composer at the bottom of the room. Type a few letters. Press Cmd+F on macOS, or Ctrl+F on Windows and Linux. Type the word.""
+9. ""With the bar open, press the shortcut again. Type a different word.""
+10. ""Click the cross button in the bar.""
+11. ""Windows and Linux only. Open the `View` menu. Click `Menu bar` to turn it off. Click in the workspace page. Press Ctrl+F.""
+12. ""Only with a second workspace. Open the bar in the first workspace and type a word. Click the second workspace tab in the top strip. Click the first tab again.""","1. ""A room with the word `the` in many messages
+Agent: Open the room.""
+2. ""Agent: Open `Edit` and choose `Find…`. Capture the bar.""
+3. ""`the`
+Agent: Type the word and read the counter.""
+4. ""Agent: Press the keys and read the counter after each press.""
+5. ""Agent: Click the buttons and read the counter.""
+6. ""`zzqqxx`
+Agent: Replace the text and read the counter.""
+7. ""Agent: Press Escape and capture the page.""
+8. ""Composer text `hello`, find word `the`
+Agent: Focus the composer, press the shortcut, type, and read both fields.""
+9. ""`message`
+Agent: Press the shortcut again, type, and read the counter.""
+10. ""Agent: Click the cross.""
+11. ""Agent: Toggle `View` > `Menu bar`, press Ctrl+F, and capture the bar.""
+12. ""`the`
+Agent: Switch the tabs and capture the first workspace.""","1. ""The room shows its messages.""
+2. ""A small bar shows at the top-right corner of the workspace page. The bar has a text field with the grey hint `Find in page`. Three small icon buttons sit to its right: an up arrow, a down arrow, and a cross. The cursor blinks in the text field.""
+3. ""The page shows highlighted matches. The right end of the text field shows a counter such as `1 of 12`. The first match is highlighted in a stronger color. The field keeps the focus after each letter.""
+4. ""The counter goes to `2 of N`, then `3 of N`, then back to `2 of N`. The stronger highlight moves to each match.""
+5. ""The counter goes up by one for the down arrow and down by one for the up arrow.""
+6. ""The counter shows `No matches`. The page has no highlight.""
+7. ""The bar closes. All highlights are gone.""
+8. ""The bar opens. The new letters go into the bar field and not into the composer. The composer text stays `hello`.""
+9. ""The text in the field is selected on the second press. The typed word replaces it. The counter updates.""
+10. ""The bar closes. Highlights are gone.""
+11. ""The bar opens and the field has the focus, with the menu bar hidden. Press Escape to close it. Turn `Menu bar` on again.""
+12. ""The bar is closed in the first workspace. No highlight is left on the page."""
+"","3","Release 4.18.0 / Workspaces","","Workspace tab shows an audio indicator that mutes the workspace on click","Source flow: REL418-QA-034
+
+A tab shows a speaker badge while its workspace plays sound. Click mutes and unmutes it. The tab menu Mute workspace item does the same. A restart starts unmuted.","installed_prerelease_build","- Screenshots of the tab strip for steps 3, 5, 8, 10, and 16.
+- Tooltip text for steps 4 and 6.","major","high","actual","manual","classic","REL418-QA-034,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed build with two signed-in workspaces. Open the `View` menu, then `Workspace switcher`, then click `Tabs`.""
+2. ""Click tab B in the top strip, so workspace B is selected and workspace A is in the background.""
+3. ""Right-click tab A. Click `Open DevTools`. In the DevTools panel, click the `Console` tab. Type the command and press Enter. Keep the system volume audible.""
+4. ""Hover over tab A.""
+5. ""Click the speaker badge on tab A.""
+6. ""Hover over tab A.""
+7. ""Click the slashed speaker badge.""
+8. ""In the DevTools console of workspace A, type the command and press Enter. Wait 3 seconds.""
+9. ""Right-click tab A. Look at the menu.""
+10. ""Click `Mute workspace`. In the console, start the tone again with the command from step 3, but use new variable names.""
+11. ""Right-click tab A. Click `Mute workspace` again.""
+12. ""Press Tab on the keyboard until tab A has the focus ring. Press Shift+F10. On a Mac keyboard without the function row mode, press Shift+Fn+F10.""
+13. ""Start the tone with the command from step 10 but use new variable names. Click the speaker badge on tab A to mute.""
+14. ""Quit the app (Cmd+Q on macOS, File > Quit on Windows and Linux). Start it again. Look at the tab strip.""
+15. ""Right-click tab A. Click `Open DevTools`. In the console, start the tone with new variable names.""
+16. ""Open the `View` menu, then `Workspace switcher`, then `Sidebar`. Hover over the icon of workspace A in the sidebar.""
+17. ""Set `Workspace switcher` back to `Tabs`. In the console of workspace A, type `o4.stop()` and press Enter.""","1. ""Workspace A and workspace B
+Agent: Set the switcher to `Tabs`.""
+2. ""Agent: Select tab B.""
+3. ""`var c=new AudioContext(),o=c.createOscillator();o.connect(c.destination);o.start()`
+Agent: Evaluate the command in the console of workspace A. Capture the tab strip.""
+4. ""Agent: Hover the tab and read the tooltip.""
+5. ""Agent: Click the badge. Capture the strip.""
+6. ""Agent: Hover the tab and read the tooltip.""
+7. ""Agent: Click the badge. Capture the strip.""
+8. ""`o.stop()`
+Agent: Evaluate `o.stop()` and capture after 3 seconds.""
+9. ""Agent: Open the tab context menu.""
+10. ""`var c2=new AudioContext(),o2=c2.createOscillator();o2.connect(c2.destination);o2.start()`
+Agent: Check the item. Start the tone. Capture the strip.""
+11. ""Agent: Uncheck the item.""
+12. ""Agent: Focus the tab and send Shift+F10.""
+13. ""`var c3=new AudioContext(),o3=c3.createOscillator();o3.connect(c3.destination);o3.start()`
+Agent: Start the tone and click the badge.""
+14. ""Agent: Quit, restart, and capture the strip.""
+15. ""`var c4=new AudioContext(),o4=c4.createOscillator();o4.connect(c4.destination);o4.start()`
+Agent: Start the tone and capture the strip.""
+16. ""Agent: Switch the layout, hover, and read the tooltip.""
+17. ""`o4.stop()`
+Agent: Restore the layout and stop the tone.""","1. ""Two tabs show in a strip at the top of the window.""
+2. ""Tab B is the selected tab.""
+3. ""A steady tone plays. Tab A shows a small round grey badge with a speaker icon at its right end. Tab B stays selected. If no tone plays, play an audio file that is attached in a room of workspace A instead.""
+4. ""The tooltip ends the first line with `— Playing audio`.""
+5. ""The tone stops. The badge changes to a speaker with a slash. Tab B stays selected.""
+6. ""The tooltip first line ends with `— Muted`.""
+7. ""The tone plays again. The badge is the plain speaker again.""
+8. ""The tone stops. About 2 seconds later the badge goes away.""
+9. ""The menu has a checkbox item `Mute workspace` between `Copy URL` and `Open DevTools`. It is not checked.""
+10. ""No sound plays. Tab A shows the slashed speaker badge.""
+11. ""The tone plays. The badge is the plain speaker.""
+12. ""The tab menu opens below tab A. It has `Mute workspace`. Press Escape to close it.""
+13. ""The badge is the slashed speaker. No sound plays.""
+14. ""Tab A has no badge.""
+15. ""The tone plays. Tab A shows the plain speaker badge, not the slashed one.""
+16. ""The sidebar shows a square icon for each workspace. No speaker badge shows. The tooltip first line ends with `— Playing audio`.""
+17. ""The tone stops."""
+"","3","Release 4.18.0 / Workspaces","","Workspace tab shows a red record icon while camera, microphone or screen is captured","Source flow: REL418-QA-035
+
+A tab shows one red record icon while its workspace or its video call window captures a camera, microphone or screen. The icon goes away when capture stops, and a restart shows no stale icon.","installed_prerelease_build","- Screenshots of the tab strip for steps 2, 4, 6, 7, 9, and 10.
+- Tooltip text for steps 3, 4, 5, and 7.","major","high","actual","manual","classic","REL418-QA-035,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed build with two signed-in workspaces. Open `View`, `Workspace switcher`, `Tabs`. Click tab B in the top strip. Workspace A stays in the background.""
+2. ""Right-click tab A. Click `Open DevTools`. In the DevTools panel, click the `Console` tab. Type the command and press Enter. If the system asks for microphone access, allow it.""
+3. ""Hover over tab A.""
+4. ""In the console, type the command and press Enter. If the system asks for camera access, allow it.""
+5. ""In the console, type the command and press Enter.""
+6. ""In the console, type the command and press Enter.""
+7. ""In the console, type the command and press Enter. In the screen picker that opens, choose one screen and confirm. On macOS, allow screen recording in System Settings if the system asks.""
+8. ""In the console, type the command and press Enter.""
+9. ""Click tab A to select it. Open a room. Start a video call from the room header (the camera icon button, if the server shows it). Allow the microphone and camera in the call window. Join the call. Look at tab A in the main window.""
+10. ""Close the call window.""
+11. ""In the console of workspace A, run the command from step 2 again with the name `mic3`.""
+12. ""Quit the app (Cmd+Q on macOS, File > Quit on Windows and Linux). Start it again.""
+13. ""Right-click tab A. Click `Open DevTools`. In the console, run the command. Open `View`, `Workspace switcher`, `Sidebar`. Hover over the icon of workspace A.""
+14. ""In the console, type `mic4.getTracks().forEach(t=>t.stop())` and press Enter. Set `Workspace switcher` back to `Tabs`.""","1. ""Workspace A and workspace B
+Agent: Set the layout and select tab B.""
+2. ""`var mic=await navigator.mediaDevices.getUserMedia({audio:true})`
+Agent: Evaluate the command. Capture the tab strip.""
+3. ""Agent: Hover and read the tooltip.""
+4. ""`var cam=await navigator.mediaDevices.getUserMedia({video:true})`
+Agent: Evaluate the command. Hover and read the tooltip.""
+5. ""`mic.getTracks().forEach(t=>t.stop())`
+Agent: Evaluate the command. Hover and read the tooltip.""
+6. ""`cam.getTracks().forEach(t=>t.stop())`
+Agent: Evaluate the command. Capture the strip.""
+7. ""`var scr=await navigator.mediaDevices.getDisplayMedia({video:true})`
+Agent: Evaluate the command. Choose a screen. Capture the strip.""
+8. ""`scr.getTracks().forEach(t=>t.stop())`
+Agent: Evaluate the command. Capture the strip.""
+9. ""A server with video calls
+Agent: Start the call. Capture both windows.""
+10. ""Agent: Close the window. Capture the strip.""
+11. ""`var mic3=await navigator.mediaDevices.getUserMedia({audio:true})`
+Agent: Evaluate the command.""
+12. ""Agent: Quit, restart, and capture the strip.""
+13. ""`var mic4=await navigator.mediaDevices.getUserMedia({audio:true})`
+Agent: Run the command, switch the layout, hover, and read the tooltip.""
+14. ""`mic4.getTracks().forEach(t=>t.stop())`
+Agent: Stop the track and restore the layout.""","1. ""Tab B is selected.""
+2. ""Tab A shows one small red icon at its right end. It is a filled circle with a ring (a record mark). The icon is red, not grey.""
+3. ""The tooltip first line ends with `— Microphone on`.""
+4. ""Tab A still shows one red icon, not two. The tooltip ends with `— Camera on, Microphone on`.""
+5. ""The red icon stays. The tooltip ends with `— Camera on`.""
+6. ""The red icon goes away.""
+7. ""Tab A shows the red icon. The tooltip ends with `— Sharing screen`.""
+8. ""The red icon goes away.""
+9. ""A separate call window opens. Tab A shows the red icon while the call window uses the microphone or camera.""
+10. ""The red icon goes away from tab A within 5 seconds.""
+11. ""The red icon shows on tab A.""
+12. ""After the restart, tab A shows no red icon.""
+13. ""The sidebar shows no red icon. The tooltip first line ends with `— Microphone on`.""
+14. ""The tab strip shows again with no red icon."""
+"","3","Release 4.18.0 / Workspaces","","https go.rocket.chat links passed to the app open the workspace page","Source flow: REL418-QA-036
+
+A go.rocket.chat room or invite link given to the installed app as a command-line argument opens that page in the matching workspace, the same as the rocketchat:// link.","installed_prerelease_build","- Screenshot of the room header after step 2 and step 6.
+- Screenshot of the `Add Server` dialog from step 5.
+- The exact command that you ran on each platform.","normal","medium","actual","manual","classic","REL418-QA-036,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed build. Select a signed-in workspace tab. Open a room other than `general`. Write down the workspace address as `<host>`, for example `https://chat.example.com`.""
+2. ""Open a terminal. Run the installed app executable with the room link as the only argument. macOS: `""""/Applications/Rocket.Chat.app/Contents/MacOS/Rocket.Chat"""" """"<link>""""`. Windows PowerShell: `& """"$env:LOCALAPPDATA\Programs\Rocket.Chat\Rocket.Chat.exe"""" """"<link>""""` (for an all-users install use `C:\Program Files\Rocket.Chat\Rocket.Chat.exe`). Linux: `rocketchat-desktop """"<link>""""` (AppImage: run the `.AppImage` file).""
+3. ""Run the same command with the invite link.""
+4. ""Run the command with the custom protocol link as a control.""
+5. ""Run the command with a link to a workspace that is not in the app. Use another valid Rocket.Chat address.""
+6. ""Quit the app (Cmd+Q on macOS, File > Quit on Windows and Linux). Run the command from step 2 again.""
+7. ""Only on a workspace set up as in CONF-QA-001. Run the command with a scheduled meeting link.""","1. ""A workspace `<host>` with a public channel named `general`
+Agent: Start the app and select the workspace.""
+2. ""`https://go.rocket.chat/room?host=<host>&path=channel/general`
+Agent: Run the command. Capture the window.""
+3. ""`https://go.rocket.chat/invite?host=<host>&path=invite/abc123`
+Agent: Run the command. Capture the window.""
+4. ""`rocketchat://room?host=<host>&path=channel/general`
+Agent: Run the command. Capture the window.""
+5. ""`https://go.rocket.chat/room?host=<other-host>&path=channel/general`
+Agent: Run the command. Capture the dialog. Click `Cancel`.""
+6. ""`https://go.rocket.chat/room?host=<host>&path=channel/general`
+Agent: Quit. Run the command. Capture the window after 30 seconds.""
+7. ""`https://go.rocket.chat/conference?host=<host>&path=conference%2F<alias>%3Fscheduled%3Dtrue`
+Agent: Run the command. Capture both windows.""","1. ""The workspace shows the other room.""
+2. ""The command returns. The Rocket.Chat window comes to the front. The workspace page loads the room `general`. The room name `general` shows in the room header.""
+3. ""The workspace page loads an invite page. A bad invite shows an error text about the invite.""
+4. ""The room `general` loads, the same as in step 2.""
+5. ""A dialog titled `Add Server` asks `Do you want to add """"<other-host>"""" to your list of servers?` with the buttons `Add` and `Cancel`. Click `Cancel`. No tab is added.""
+6. ""The app starts. After the workspace loads, the room `general` shows.""
+7. ""A separate call window opens. The main window keeps the workspace page."""
+"","3","Release 4.18.0 / Workspaces","","Workspace behind HTTP basic authentication loads with the saved credentials","Source flow: REL418-QA-037
+
+A workspace whose address holds a user name and password loads without a prompt, even when other workspaces are listed before it.","installed_prerelease_build","- Screenshot of the second workspace after step 3 and step 6.
+- The `curl` result from step 1.","normal","medium","actual","manual","classic","REL418-QA-037,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Prepare a Rocket.Chat server behind a reverse proxy that asks for HTTP basic authentication. Use a user name and a password. Prepare a normal workspace without basic authentication.""
+2. ""Start the installed build with no workspaces (use a new profile, or remove the workspaces from the tab menu `Remove`). In the field `Enter your server URL`, type the normal address. Click `Connect`. Sign in.""
+3. ""Click the plus button `Add workspace` at the right end of the tab strip. In the field `Enter your server URL`, type the protected address with the credentials in it. Click `Connect`.""
+4. ""Click the first tab. Then click the second tab again.""
+5. ""With the second tab selected, open the `View` menu and click `Reload`.""
+6. ""Quit the app (Cmd+Q on macOS, File > Quit on Windows and Linux). Start it again. Click the second tab.""","1. ""Protected server `https://protected.example.com` with user `qa-user` and password `qa-pass`. Normal server `https://normal.example.com`
+Agent: Confirm with `curl -s -o /dev/null -w """"%{http_code}"""" https://protected.example.com` that the answer is 401.""
+2. ""`https://normal.example.com`
+Agent: Add the normal workspace.""
+3. ""`https://qa-user:qa-pass@protected.example.com`
+Agent: Add the workspace. Capture the page.""
+4. ""Agent: Switch the tabs. Capture the page.""
+5. ""Agent: Choose `View` > `Reload`. Capture the page.""
+6. ""Agent: Restart the app. Select the tab. Capture the page.""","1. ""Opening the protected address in a browser shows the browser's own sign-in prompt.""
+2. ""The normal workspace shows as the first tab.""
+3. ""The protected workspace shows as the second tab. Its page loads and shows the Rocket.Chat sign-in screen. No credential prompt shows.""
+4. ""The second workspace shows its page again with no prompt and no failure view.""
+5. ""The page reloads and shows the sign-in screen with no prompt and no failure view (`Server Failed to Load`).""
+6. ""The second workspace loads with no prompt."""
+"","3","Release 4.18.0 / Workspaces","","An idle user stays away after the connection drops, on servers 7.10.0 and later","Source flow: REL418-QA-038
+
+After the app drops and restores its connection, the idle user stays away on the server. Activity then makes the user online.","installed_prerelease_build","- `users.info` status values with times for steps 5, 6, and 7.
+- The server version from step 1 for each run.","major","high","actual","manual","classic","REL418-QA-038,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Pick the server. In the app, right-click its tab and click `Server info`. Read the line `Version:`. Run this flow once for a server of version 8.8.0 or later, and once for a server from 7.10.0 to 8.7.x.""
+2. ""Set the test user preferences with the web API: `POST <host>/api/v1/users.setPreferences` with the user's `X-Auth-Token` and `X-User-Id` headers.""
+3. ""Start the installed build. Sign in as the test user in this workspace. Select the workspace tab. In a browser on another device, or in a private browser window on the same machine, sign in as an admin user.""
+4. ""In the app, right-click the workspace tab. Click `Open DevTools`. Click the `Console` tab. Type the command and press Enter. Close the DevTools panel. Do not touch the keyboard or mouse of this machine after this step.""
+5. ""Wait 90 seconds. On the admin side, look up the test user's status with `GET <host>/api/v1/users.info?username=<test user>` or in the admin user list.""
+6. ""Wait until 150 seconds after step 4. Do not touch this machine. On the admin side, check the status again.""
+7. ""Move the mouse on the machine with the app. Wait 15 seconds. On the admin side, check the status.""
+8. ""Run the flow again with the second server version.""","1. ""Server version
+Agent: Read the version in the dialog.""
+2. ""Body `{""""data"""":{""""enableAutoAway"""":true,""""idleTimeLimit"""":60}}`
+Agent: Run the request with `curl`.""
+3. ""Test user and admin user
+Agent: Sign in on both sides.""
+4. ""`setTimeout(()=>{Meteor.disconnect();setTimeout(()=>Meteor.reconnect(),10000)},100000)`
+Agent: Evaluate the command.""
+5. ""`status` field
+Agent: Poll `users.info` from the admin session.""
+6. ""`status` field
+Agent: Poll `users.info` at 150 seconds.""
+7. ""`status` field
+Agent: Poll `users.info`.""
+8. ""Agent: Repeat.""","1. ""The version is 7.10.0 or later.""
+2. ""The answer has `""""success"""": true`.""
+3. ""The app shows the workspace with the test user. The admin session is ready.""
+4. ""The console accepts the command.""
+5. ""`status` is `away`. The yellow dot shows for the user.""
+6. ""`status` is still `away`. It did not change to `online` after the drop at 100 seconds and the return at 110 seconds.""
+7. ""`status` is `online`.""
+8. ""The same results as in steps 5, 6, and 7."""
+"","3","Release 4.18.0 / Workspaces","","Idle presence still works on servers older than 7.10.0","Source flow: REL418-QA-039
+
+On a server older than 7.10.0 the idle user becomes away, stays away after a reconnect, and becomes online again after activity.","installed_prerelease_build","- `users.info` status values with times for steps 5, 6, and 7.
+- The server version from step 1.","major","high","actual","manual","classic","REL418-QA-039,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""In the app, right-click the tab of the old server. Click `Server info`. Read the line `Version:`.""
+2. ""Set the test user preferences with the web API: `POST <host>/api/v1/users.setPreferences` with the user's `X-Auth-Token` and `X-User-Id` headers.""
+3. ""Sign in as the test user in the app. Select the workspace tab. In a browser on another device, sign in as an admin user.""
+4. ""Right-click the workspace tab. Click `Open DevTools`. Click the `Console` tab. Type the command and press Enter. Close the DevTools panel. Do not touch the keyboard or mouse of this machine after this step.""
+5. ""Wait 90 seconds. On the admin side, read the status of the test user with `GET <host>/api/v1/users.info?username=<test user>`.""
+6. ""Wait until 150 seconds after step 4. Check the status again.""
+7. ""Move the mouse on the machine with the app. Wait 15 seconds. Check the status.""","1. ""Server version below 7.10.0
+Agent: Read the version in the dialog.""
+2. ""Body `{""""data"""":{""""enableAutoAway"""":true,""""idleTimeLimit"""":60}}`
+Agent: Run the request with `curl`.""
+3. ""Test user and admin user
+Agent: Sign in on both sides.""
+4. ""`setTimeout(()=>{Meteor.disconnect();setTimeout(()=>Meteor.reconnect(),10000)},100000)`
+Agent: Evaluate the command.""
+5. ""`status` field
+Agent: Poll `users.info`.""
+6. ""`status` field
+Agent: Poll `users.info`.""
+7. ""`status` field
+Agent: Poll `users.info`.""","1. ""The version is lower than 7.10.0.""
+2. ""The answer has `""""success"""": true`.""
+3. ""The app shows the workspace. The admin session is ready.""
+4. ""The console accepts the command.""
+5. ""`status` is `away`.""
+6. ""`status` is still `away`.""
+7. ""`status` is `online`."""
+"","4","Release 4.18.0 / Web UI previews","","Web UI preview stays hidden and idle with Developer Mode off","Source flow: REL418-QA-040
+
+A user who never turns on Developer Mode sees no web UI preview control, badge, or menu item, and the app starts no preview download.","installed_prerelease_build","- Screenshot of Settings > Appearance, scrolled to the bottom.
+- Screenshot of the tab context menu.
+- Directory listing of the app data folder.
+- Log search result for `ui-preview` and `ghcr.io`.","major","high","actual","manual","classic","REL418-QA-040,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Quit the app. Install the build under test over a profile that never used Developer Mode, or on a clean profile. Start the app. Add one workspace and sign in.""
+2. ""Open the Help menu. Look at the item named Developer Mode.""
+3. ""Open the app settings window. On macOS, use the app name menu at the top left, then Preferences. On Windows and Linux, use File, then App settings. In the left list, click Appearance (palette icon). Scroll to the bottom of the page.""
+4. ""In the settings window, click the search box at the top of the left list (placeholder """"Search settings"""") and type `UI build`. If the list shows Appearance with the matching setting name, click it.""
+5. ""Close the settings window. Look at the workspace tab in the tab bar. Hover the tab for one second.""
+6. ""Right-click the workspace tab.""
+7. ""Open the View menu. Click Restore server UI. Watch the workspace for 10 seconds.""
+8. ""Open the Help menu and click Open Log Viewer. Search the log for the text `ui-preview` and for `ghcr.io`.""
+9. ""Quit the app. In a file manager or shell, open the app data folder and look for a folder named `ui-previews`. The macOS folder is `~/Library/Application Support/Rocket.Chat`. The Windows folder is `%APPDATA%\Rocket.Chat`. The Linux folder is `~/.config/Rocket.Chat`.""","1. ""Any workspace you can sign in to.
+Agent: Start the app, add the workspace, and sign in.""
+2. ""None.
+Agent: Read the menu item state.""
+3. ""None.
+Agent: Open Settings, select Appearance, and search the page text for """"Load a web UI build"""".""
+4. ""`UI build`
+Agent: Type the text, read the list, open the match, and search the page text.""
+5. ""None.
+Agent: Capture the tab and read the tooltip text.""
+6. ""None.
+Agent: Open the tab context menu and read the item labels.""
+7. ""None.
+Agent: Click the item. Compare the page before and after, and read the workspace URL and scroll position.""
+8. ""`ui-preview`, `ghcr.io`
+Agent: Read the log viewer text, or read the main log file.""
+9. ""Use `ls` on macOS and Linux, or `dir` on Windows.
+Agent: Run the directory listing and check for the folder name.""","1. ""The workspace loads and shows its normal chat page.""
+2. ""Developer Mode has no check mark.""
+3. ""The page shows theme, navigation layout, and (on macOS) transparent window controls. No section titled """"Load a web UI build"""" and no text box with the hint """"develop, 42364 or http://127.0.0.1:4173/"""" shows.""
+4. ""The search is not gated by Developer Mode, so Appearance can show with the matching name """"Load a web UI build"""". After you click it, the page still has no """"Load a web UI build"""" control. Record whether the match shows.""
+5. ""The tab has no red badge with the letters """"UI"""" at its bottom-right corner. The tooltip has no line that starts with """"UI preview:"""".""
+6. ""The menu shows no """"Update UI preview"""" item and no """"Restore server UI"""" item. Press Escape to close it.""
+7. ""The workspace does not reload. Your place in the chat stays. No dialog shows.""
+8. ""The log has no line about a UI preview and no request to ghcr.io.""
+9. ""No `ui-previews` folder exists in the app data folder."""
+"","4","Release 4.18.0 / Web UI previews","","UI preview deep link is refused with Developer Mode off","Source flow: REL418-QA-041
+
+A rocketchat://ui-preview link with Developer Mode off shows one information dialog and changes nothing.","installed_prerelease_build","- Screenshot of the information dialog.
+- Screenshot of the workspace tab after the dialog closes.
+- Directory listing of the app data folder.","major","high","actual","manual","classic","REL418-QA-041,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the app with one workspace signed in. Open the Help menu. Make sure Developer Mode has no check mark. If it has one, click it once.""
+2. ""Open a terminal. Run the command for your OS. On macOS: `open 'rocketchat://ui-preview?develop'`. On Windows (cmd): `start """""""" """"rocketchat://ui-preview?develop""""`. On Linux: `xdg-open 'rocketchat://ui-preview?develop'`.""
+3. ""Click OK in the dialog.""
+4. ""Look at the workspace tab and the workspace page. Hover the tab.""
+5. ""Run the command again with a pull request link: `rocketchat://ui-preview?pr=42364`.""
+6. ""Open the app data folder (macOS `~/Library/Application Support/Rocket.Chat`, Windows `%APPDATA%\Rocket.Chat`, Linux `~/.config/Rocket.Chat`). Look for a folder named `ui-previews`.""","1. ""None.
+Agent: Read the menu item state and click it if it has a check mark.""
+2. ""`rocketchat://ui-preview?develop`
+Agent: Run the command and read the dialog title and text.""
+3. ""None.
+Agent: Click OK and check for other dialogs.""
+4. ""None.
+Agent: Capture the tab and read the tooltip.""
+5. ""`rocketchat://ui-preview?pr=42364`
+Agent: Run the command and read the dialog.""
+6. ""None.
+Agent: List the folder.""","1. ""Developer Mode has no check mark.""
+2. ""The app window comes to the front. One dialog shows. Its title is """"Load UI preview"""". Its text is """"Enable Help > Developer Mode to load UI previews."""" The dialog has an OK button.""
+3. ""The dialog closes. No second dialog shows. No dialog with the buttons """"Load UI"""" and """"Cancel"""" shows.""
+4. ""The workspace did not reload. The tab has no red """"UI"""" badge. The tooltip has no line that starts with """"UI preview:"""".""
+5. ""The same information dialog shows. Click OK. Nothing else changes.""
+6. ""No `ui-previews` folder exists."""
+"","4","Release 4.18.0 / Web UI previews","","Add web UI builds to the Settings list","Source flow: REL418-QA-042
+
+Settings lists develop and PR builds only after the registry confirms they exist, and shows commit, build date, and PR state.","installed_prerelease_build","- Screenshot of the list with the develop row and the PR row.
+- Screenshot of the ""was not found"" message.
+- The commit and date shown on each row.","major","high","actual","manual","classic","REL418-QA-042,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the app with one workspace signed in. Open the Help menu and click Developer Mode so that it has a check mark.""
+2. ""Open the app settings window (macOS: app name menu, Preferences. Windows and Linux: File, App settings). Click Appearance (palette icon) in the left list. Scroll to the bottom.""
+3. ""Click the text box, type `develop`, and click Add.""
+4. ""Type `DEVELOP` in capital letters and click Add.""
+5. ""Type an open Rocket.Chat pull request number and press Enter.""
+6. ""Type `#` followed by the same number and click Add.""
+7. ""Type `1` and click Add.""
+8. ""Edit the box: add one more character to `1`.""
+9. ""Clear the box. Type `ftp://example.com/x` and click Add.""
+10. ""Clear the box. Type `http://127.0.0.1:1/` and click Add.""
+11. ""Click the trash icon button on the PR row. Hover it first.""","1. ""None.
+Agent: Click the menu item and read its state.""
+2. ""None.
+Agent: Open Settings, select Appearance, and read the section.""
+3. ""`develop`
+Agent: Type, click Add, and read the new row.""
+4. ""`DEVELOP`
+Agent: Add the text and count the rows named develop.""
+5. ""Number of an open PR that has a web preview build, for example `42364`.
+Agent: Type the number, press Enter, and read the row.""
+6. ""`#42364`
+Agent: Add the text and count the rows.""
+7. ""`1`
+Agent: Add the text and read the red text and the box value.""
+8. ""`12x`
+Agent: Type and check the text.""
+9. ""`ftp://example.com/x`
+Agent: Add the text and read the red text.""
+10. ""`http://127.0.0.1:1/`
+Agent: Add the text and read the red text.""
+11. ""None.
+Agent: Hover, click, and count the rows.""","1. ""Developer Mode has a check mark.""
+2. ""A section titled """"Load a web UI build"""" shows below a divider. It has a description, a text box with the hint """"develop, 42364 or http://127.0.0.1:4173/"""", and a blue Add button. The Add button is disabled while the box is empty. Below it, a row for the workspace shows """"Using the server's UI."""" and a disabled Restore server UI button.""
+3. ""The text """"Checking that the build exists…"""" shows for a moment. The box then clears. A row shows the name """"develop"""", a short commit of 7 characters, and a date like """"built Oct 5, 2026, 10:39 AM"""". The row has an Apply button, a refresh icon button, and a trash icon button on the right.""
+4. ""No second """"develop"""" row shows. The existing """"develop"""" row stays, at the top of the list.""
+5. ""The box clears. A row shows """"PR #<number>"""", a tag with the PR state (Open, Draft, Merged, or Closed), the short commit, and the build date. The PR title shows on a second line. The new row is above """"develop"""".""
+6. ""No second row shows for the same PR. The existing row moves to the top.""
+7. ""Red text under the box reads """"Could not load: ghcr.io/rocketchat/rocket.chat-web:pr-1 was not found"""". The box keeps the value `1`. No row is added.""
+8. ""The red text goes away at once.""
+9. ""Red text reads """"Could not load: Not develop, a PR number or an http(s) URL: ftp://example.com/x"""". No row is added.""
+10. ""Red text under the box starts with """"Could not load:"""". No row is added.""
+11. ""The tooltip reads """"Remove from the list"""". The row goes away. The """"develop"""" row stays."""
+"","4","Release 4.18.0 / Web UI previews","","Apply and restore a web UI build from Settings","Source flow: REL418-QA-043
+
+Apply asks for confirmation, loads the build into the workspace with a UI badge and commit label, keeps the session, and Restore server UI returns the server UI.","installed_prerelease_build","- Screenshot of the confirmation dialog.
+- Screenshot of the tab with the ""UI"" badge and its tooltip.
+- Screenshot of the workspace page with the preview and after Restore.
+- Main log lines for the apply, if shown.","major","high","actual","manual","classic","REL418-QA-043,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the app with one workspace signed in. Open the Help menu and make sure Developer Mode has a check mark. Open the app settings window, click Appearance, and scroll to """"Load a web UI build"""". Add `develop` to the list (type it, click Add).""
+2. ""Click Apply on the """"develop"""" row.""
+3. ""Click Cancel.""
+4. ""Click Apply again. Click Load UI.""
+5. ""Look at the workspace row for your workspace in the same section.""
+6. ""Close the settings window. Look at the workspace tab. Hover it for one second.""
+7. ""Look at the workspace page. Wait 40 seconds.""
+8. ""Open a room. Send a short message. Open the room list and open a second room.""
+9. ""Open the app settings window, click Appearance, scroll down, and click Restore server UI on your workspace row.""
+10. ""Close the settings window. Wait 40 seconds.""","1. ""`develop`
+Agent: Prepare the state and read the row.""
+2. ""None.
+Agent: Click Apply and read the dialog.""
+3. ""None.
+Agent: Click Cancel and read the row text.""
+4. ""None.
+Agent: Click Load UI and watch the row.""
+5. ""None.
+Agent: Read both texts.""
+6. ""None.
+Agent: Capture the tab and read the tooltip.""
+7. ""None.
+Agent: Capture the page and check for the room list.""
+8. ""`QA preview test`
+Agent: Send the message and open the room.""
+9. ""None.
+Agent: Click the button and read the row and tab.""
+10. ""None.
+Agent: Capture the page and check the room list.""","1. ""A row named """"develop"""" shows with an Apply button.""
+2. ""A native dialog shows with a warning icon. Its title is """"Load UI preview"""". Its text is `Load a different web UI for """"<workspace address>""""?`. Its detail names `develop (ghcr.io/rocketchat/rocket.chat-web:develop)` and says it runs with your session. The buttons are """"Load UI"""" and """"Cancel"""". """"Cancel"""" is the default.""
+3. ""The dialog closes. Text under the row reads """"Cancelled."""" The workspace tab has no """"UI"""" badge.""
+4. ""The row shows """"Downloading and applying…"""" and a spinner on Apply. The app stays responsive. After a few seconds the row text goes away.""
+5. ""The row text is green: """"Active on this workspace: develop @ <7 characters> (ghcr.io/rocketchat/rocket.chat-web:develop)"""". The Restore server UI button is enabled. The """"develop"""" list row shows """"Active on <workspace name>"""".""
+6. ""A red badge with the letters """"UI"""" shows at the bottom-right corner of the tab. The tooltip has a last line """"UI preview: develop @ <7 characters> (ghcr.io/rocketchat/rocket.chat-web:develop)"""".""
+7. ""The web client shows and you are still signed in. No login page shows. Room list and messages load.""
+8. ""The message sends and shows in the room. The second room opens.""
+9. ""The workspace page reloads. The row text becomes """"Using the server's UI."""" The Restore button is disabled. The tab loses its """"UI"""" badge.""
+10. ""The server's own web UI loads and you are still signed in. The page does not wait with no end."""
+"","4","Release 4.18.0 / Web UI previews","","UI preview deep links load the named build","Source flow: REL418-QA-044
+
+Deep links with develop, pr, sha, bundle, and host load the right build after one confirmation, and bad values fail with a visible message.","installed_prerelease_build","- Screenshot of each dialog (steps 2, 6, 7, 8).
+- Screenshot of both tabs after step 11.
+- The terminal commands you ran.","major","high","actual","manual","classic","REL418-QA-044,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the app with one workspace signed in. Open the Help menu and make sure Developer Mode has a check mark. Write down the workspace address.""
+2. ""In a terminal run the command for your OS. macOS: `open 'rocketchat://ui-preview?develop'`. Windows (cmd): `start """""""" """"rocketchat://ui-preview?develop""""`. Linux: `xdg-open 'rocketchat://ui-preview?develop'`.""
+3. ""Click Load UI. Wait 15 seconds. Hover the workspace tab.""
+4. ""Open the View menu and click Restore server UI. Wait for the page to reload.""
+5. ""Run the same command with `rocketchat://ui-preview?develop=1`. Click Cancel in the dialog.""
+6. ""Run the command with an open pull request number: `rocketchat://ui-preview?pr=42364`. Click Cancel.""
+7. ""Run the command with a pinned commit: `rocketchat://ui-preview?pr=42364&sha=0000000000000000000000000000000000000000`. On macOS and Linux, keep the quotes around the link. Click Load UI if the dialog shows.""
+8. ""Run the command with a bad value: `rocketchat://ui-preview?pr=abc`.""
+9. ""Run the command with no source: `rocketchat://ui-preview`.""
+10. ""Run the command with a host that is not a Rocket.Chat server: `rocketchat://ui-preview?develop&host=https://not-added.example.com`.""
+11. ""Add a second workspace. Switch to the first workspace. Run the command with the second workspace address: `rocketchat://ui-preview?develop&host=<second workspace address>`. Click Load UI.""
+12. ""Open the View menu and click Restore server UI once for the second workspace (switch to it first).""","1. ""None.
+Agent: Read the menu item state.""
+2. ""`rocketchat://ui-preview?develop`
+Agent: Run the command and read the dialog.""
+3. ""None.
+Agent: Click Load UI, capture the tab, and read the tooltip.""
+4. ""None.
+Agent: Click the item and check the tab.""
+5. ""`rocketchat://ui-preview?develop=1`
+Agent: Run, read, and click Cancel.""
+6. ""`rocketchat://ui-preview?pr=42364`
+Agent: Run and read the dialog.""
+7. ""`rocketchat://ui-preview?pr=42364&sha=0000000000000000000000000000000000000000`
+Agent: Run, click Load UI, and read the failure dialog.""
+8. ""`rocketchat://ui-preview?pr=abc`
+Agent: Run and read the dialog.""
+9. ""`rocketchat://ui-preview`
+Agent: Run and read the dialog.""
+10. ""`rocketchat://ui-preview?develop&host=https://not-added.example.com`
+Agent: Run and record the dialog text.""
+11. ""`rocketchat://ui-preview?develop&host=<second workspace address>`
+Agent: Run, read the dialog, and capture both tabs.""
+12. ""None.
+Agent: Switch, click the item, and check the tab.""","1. ""Developer Mode has a check mark.""
+2. ""The app comes to the front. A dialog titled """"Load UI preview"""" shows `Load a different web UI for """"<workspace address>""""?`. The detail names `develop (ghcr.io/rocketchat/rocket.chat-web:develop)`.""
+3. ""A red """"UI"""" badge shows on the tab. The tooltip has """"UI preview: develop @ <7 characters> (ghcr.io/rocketchat/rocket.chat-web:develop)"""". The page shows the web client, signed in.""
+4. ""The badge goes away. The server UI loads.""
+5. ""The same dialog shows. After Cancel the tab has no badge.""
+6. ""The dialog detail names `PR #42364 (ghcr.io/rocketchat/rocket.chat-web:pr-42364)`.""
+7. ""The dialog shows. After Load UI, a dialog shows. Its title is """"Load UI preview"""". Its text is """"The UI preview could not be loaded."""" It gives a reason that says the build """"was not found"""". The tab has no badge.""
+8. ""A dialog shows. Its text is """"The UI preview could not be loaded."""" It gives a reason that starts """"Not develop, a PR number or an http(s) URL"""". No confirmation dialog shows.""
+9. ""The same failure dialog as step 8 shows. Nothing loads.""
+10. ""An """"Invalid Host"""" dialog shows (the same dialog as for a room link with a bad host). No """"Load UI preview"""" dialog shows. Nothing loads. Record the dialog text.""
+11. ""The dialog names the second workspace. After Load UI, only the second workspace tab has the """"UI"""" badge. The first tab has none.""
+12. ""The badge goes away on the second tab."""
+"","4","Release 4.18.0 / Web UI previews","","Update and restore a web UI build from the workspace tab menu","Source flow: REL418-QA-045
+
+The tab menu offers Update UI preview and Restore server UI only on a workspace that runs a preview, and both work.","installed_prerelease_build","- Screenshot of the tab menu with a preview, and without.
+- Screenshot of the tab tooltip after Update.
+- Screenshot of the dialog in step 7.","major","high","actual","manual","classic","REL418-QA-045,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the app with two workspaces signed in. Open the Help menu and make sure Developer Mode has a check mark.""
+2. ""Open the app settings window (macOS: app name menu, Preferences. Windows and Linux: File, App settings). Click Appearance (palette icon). Scroll to """"Load a web UI build"""". Add `develop`. Choose the first workspace in the """"Apply to"""" selector. Click Apply. Click Load UI. Close Settings.""
+3. ""Right-click the first workspace tab.""
+4. ""Right-click the second workspace tab.""
+5. ""Right-click the first tab. Click Update UI preview. Wait 30 seconds.""
+6. ""Right-click the first tab and click Update UI preview two times in a row within one second.""
+7. ""Open the Help menu and click Developer Mode to clear the check mark. Right-click the first tab and click Update UI preview.""
+8. ""Click Developer Mode again so it has a check mark. Right-click the first tab and click Restore server UI. Wait 40 seconds.""
+9. ""Apply the build again (as in step 2). Open the View menu and click Restore server UI while the first workspace is in view.""","1. ""Two workspaces.
+Agent: Read the tab bar.""
+2. ""`develop`
+Agent: Apply the build and capture both tabs.""
+3. ""None.
+Agent: Right-click and read the item labels.""
+4. ""None.
+Agent: Right-click and read the labels.""
+5. ""None.
+Agent: Click the item and watch the page and the tooltip.""
+6. ""None.
+Agent: Click twice and read the final page.""
+7. ""None.
+Agent: Turn the setting off, click the item, and read the dialog.""
+8. ""None.
+Agent: Click the item, then check the tab and the page.""
+9. ""None.
+Agent: Apply, click the menu item, and check the tab.""","1. ""Two tabs show in the tab bar.""
+2. ""The first tab shows a red """"UI"""" badge. The second tab has none.""
+3. ""A menu shows. Below """"Server info"""" and a divider, it lists """"Update UI preview"""" and """"Restore server UI"""". A divider and """"Remove"""" follow.""
+4. ""The menu has no """"Update UI preview"""" and no """"Restore server UI"""". Press Escape.""
+5. ""No confirmation dialog shows. The workspace reloads and loads the web client again. You stay signed in. The """"UI"""" badge stays. The tooltip still shows """"UI preview: develop @ <7 characters> (...)"""".""
+6. ""The workspace reloads once or twice, without an error dialog, and ends on the web client.""
+7. ""A dialog titled """"Load UI preview"""" shows """"Enable Help > Developer Mode to load UI previews."""" Click OK. The workspace does not reload.""
+8. ""The workspace reloads. The """"UI"""" badge goes away. The server UI loads, signed in.""
+9. ""The same result as step 8: the badge goes away and the server UI loads."""
+"","4","Release 4.18.0 / Web UI previews","","Refresh, persist, and apply a build to a chosen workspace","Source flow: REL418-QA-046
+
+Refresh reloads a workspace only when the build is newer, the list survives a restart while the workspace returns to the server UI, and the Apply to selector targets the chosen workspace.","installed_prerelease_build","- Screenshot of the list with ""Active on"" text.
+- Screenshot of the list after the restart.
+- The result text for each Refresh click.","normal","medium","actual","manual","classic","REL418-QA-046,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the app with two workspaces signed in. Open the Help menu and make sure Developer Mode has a check mark. Open the app settings window (macOS: app name menu, Preferences. Windows and Linux: File, App settings). Click Appearance (palette icon), and scroll to """"Load a web UI build"""". Add `develop` and an open PR number.""
+2. ""Look at the """"Apply to"""" label above the list.""
+3. ""In the """"Apply to"""" selector, choose the workspace that is not in view. Click Apply on the """"develop"""" row. Click Load UI.""
+4. ""Hover the refresh icon button (two arrows in a circle) on the """"develop"""" row. Click it.""
+5. ""Click the refresh icon button on the row for the PR build, which no workspace runs.""
+6. ""Click Refresh on the """"develop"""" row again.""
+7. ""In """"Apply to"""", choose the other workspace. Click Apply on the PR row. Click Load UI.""
+8. ""Quit the app fully. On macOS use Cmd+Q. On Windows and Linux use File, Quit. Start it again. Open the app settings window (macOS: app name menu, Preferences. Windows and Linux: File, App settings). Click Appearance (palette icon), and scroll to the section.""
+9. ""Click the trash icon button on the PR row. Quit and start the app again. Open the section.""
+10. ""Turn your network off. Click the refresh icon button on the """"develop"""" row. Turn the network on again.""","1. ""`develop`, `42364`
+Agent: Add both builds and read the rows.""
+2. ""None.
+Agent: Read the selector.""
+3. ""None.
+Agent: Choose, apply, and read the rows and tabs.""
+4. ""None.
+Agent: Click the button and read the result.""
+5. ""None.
+Agent: Click it and watch the tabs.""
+6. ""None.
+Agent: Click it and watch the tab.""
+7. ""None.
+Agent: Apply and capture both tabs.""
+8. ""None.
+Agent: Restart and read the section and tabs.""
+9. ""None.
+Agent: Remove, restart, and read the list.""
+10. ""None.
+Agent: Disable the network, click, and read the text.""","1. ""Two rows show in the list.""
+2. ""A labeled selector """"Apply to"""" shows with a drop-down. It lists both workspaces by name. It shows the workspace that was in view when you opened Settings.""
+3. ""The dialog names the workspace you chose. After Load UI, the """"develop"""" row shows """"Active on <chosen workspace name>"""" in green. Only that workspace row shows """"Active on this workspace: develop @ ..."""". The other tab has no badge.""
+4. ""The tooltip reads """"Check for a newer build"""". While it runs, the row shows """"Checking for a newer build…"""" and all three buttons are disabled. The result is """"Already the newest build."""" or """"Updated to the newest build."""" Record which one shows.""
+5. ""The result is """"Already the newest build."""" or """"Updated to the newest build."""". No workspace reloads.""
+6. ""The result is """"Already the newest build."""". The workspace does not reload.""
+7. ""The """"Active on"""" line of the PR row names the second workspace. Both workspaces now show """"UI"""" badges.""
+8. ""The list still has both rows with the commit and build date. The rows have no """"Active on"""" line. Both workspaces show """"Using the server's UI."""" Both tabs have no """"UI"""" badge.""
+9. ""Only the """"develop"""" row stays after the restart.""
+10. ""The row shows red text that starts """"Could not load:"""". The app does not hang."""
+"","4","Release 4.18.0 / Web UI previews","","A running web UI preview does not trigger boot-recovery reloads or request stalls","Source flow: REL418-QA-047
+
+A workspace with a preview loads once, stays loaded for 2 minutes, keeps its cookies, and still answers after the page cancels requests.","installed_prerelease_build","- Page screenshots at 30, 60, and 90 seconds.
+- Log Viewer lines for `window.require`.
+- The size of the video used in step 6, or the reason step 6 is blocked.","major","high","actual","manual","classic","REL418-QA-047,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the app with one workspace signed in. Open the Help menu and make sure Developer Mode has a check mark. Open Help, then Open Log Viewer, and keep that window open to the side.""
+2. ""Open the app settings window (macOS: app name menu, Preferences. Windows and Linux: File, App settings). Click Appearance (palette icon), scroll to """"Load a web UI build"""", add `develop`, click Apply, and click Load UI. Close Settings. Start a timer.""
+3. ""Watch the workspace for 2 minutes without a click.""
+4. ""In the Log Viewer, search for `window.require`.""
+5. ""Open the View menu and click Reload (or press the reload key shown on the item). Wait 40 seconds.""
+6. ""Open a room that has a large video attachment. Scroll the attachment into view, then scroll it away at once. Do this 15 times. Then open three other rooms one after the other and send a message in one.""
+7. ""Open the View menu and click Restore server UI. Wait 40 seconds.""
+8. ""Without a preview, wait 2 minutes with the workspace open.""","1. ""None.
+Agent: Open the Log Viewer.""
+2. ""`develop`
+Agent: Apply and start the timer.""
+3. ""None.
+Agent: Capture the page at each time and compare the page title and scroll position.""
+4. ""`window.require`
+Agent: Search the log and count the lines.""
+5. ""None.
+Agent: Reload, wait, and read the log.""
+6. ""A room with a video larger than 20 MB.
+Agent: Repeat the scroll, then open rooms and send the message.""
+7. ""None.
+Agent: Restore and capture the page.""
+8. ""None.
+Agent: Wait and read the log.""","1. ""The Log Viewer window shows log lines.""
+2. ""The workspace tab shows a red """"UI"""" badge. The web client loads and you are signed in.""
+3. ""The page does not reload and does not go blank at 30 seconds, 60 seconds, or 90 seconds. You stay signed in. Typing in the message box still works.""
+4. ""One line reads """"The UI preview client has no window.require; desktop integrations are off and boot recovery is skipped."""" The line shows once for each page load. No line says boot recovery is clearing data or reloading the server.""
+5. ""The page reloads once. It stays on the web client. You stay signed in. The warning from step 4 shows once more.""
+6. ""After all the scrolls, each room opens within 5 seconds and the message sends. No room stays on a loading spinner.""
+7. ""The server UI loads, you stay signed in, and the page does not wait with no end. The badge goes away.""
+8. ""The workspace stays loaded. The log has no recovery reload."""
+"","4","Release 4.18.0 / Web UI previews","","Pulling a web UI build keeps the app responsive and old bundles are pruned","Source flow: REL418-QA-048
+
+The app stays responsive during a pull, and the ui-previews folder keeps only the bundles in use plus the three most recent.","installed_prerelease_build","- Directory listings from steps 4 and 6.
+- A note of the longest freeze that you saw in step 3.","normal","medium","actual","manual","classic","REL418-QA-048,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Quit the app. Delete the `ui-previews` folder in the app data folder if it exists (macOS `~/Library/Application Support/Rocket.Chat`, Windows `%APPDATA%\Rocket.Chat`, Linux `~/.config/Rocket.Chat`). Start the app with two workspaces signed in. Turn on Developer Mode in the Help menu.""
+2. ""Open the app settings window (macOS: app name menu, Preferences. Windows and Linux: File, App settings). Click Appearance (palette icon), and scroll to """"Load a web UI build"""". Add `develop` and four different PR numbers that have web preview builds.""
+3. ""Click Apply on the first PR row. Click Load UI. While the row shows """"Downloading and applying…"""", click the other workspace tab, then click back. Open the View menu.""
+4. ""List the `ui-previews` folder.""
+5. ""In Settings, click Apply on the second PR row, then the third, fourth, and `develop` row in turn. Click Load UI each time. Wait for each pull to end. Use the same workspace each time.""
+6. ""List the `ui-previews` folder again.""
+7. ""Click Apply on the first PR row again. Click Load UI.""
+8. ""Open the View menu and click Restore server UI.""","1. ""None.
+Agent: Delete the folder and start the app.""
+2. ""`develop`, and 4 PR numbers, for example `42364` and `42601` and two more
+Agent: Add the builds and list the folder.""
+3. ""None.
+Agent: Apply and switch tabs while the row shows the loading text.""
+4. ""Run `ls` on macOS and Linux, or `dir` on Windows.
+Agent: List the folder.""
+5. ""None.
+Agent: Apply the builds in order.""
+6. ""Run `ls` or `dir`.
+Agent: List the folder and count the folders.""
+7. ""None.
+Agent: Apply and check the tab.""
+8. ""None.
+Agent: Restore and list the folder.""","1. ""The app starts. The folder does not exist.""
+2. ""Five rows show. The `ui-previews` folder still does not exist, because Add downloads nothing.""
+3. ""The tab switch and the menu respond at once, with no pause of more than 1 second. After the pull the """"UI"""" badge shows.""
+4. ""One folder with a long name (a digest) exists. It holds files such as `index.html`. No folder name starts with `.partial-`.""
+5. ""Each apply ends with a """"UI"""" badge.""
+6. ""The folder holds at most 4 digest folders: the one in use and the three most recently used. The first PR build is gone. No `.partial-` folder shows.""
+7. ""The build loads again (the app pulls it again). The """"UI"""" badge shows.""
+8. ""The server UI loads. The `ui-previews` folder is unchanged."""
+"","5","Release 4.18.0 / App shell","","Reset Window Sizes And Positions Recenters The App Windows","Source flow: REL418-QA-050
+
+The Settings button and the View menu item both move the main window and each open secondary window to the center at the default size, and a window that was closed opens centered the next time.","installed_prerelease_build","- Screenshots of the screen after step 1, step 5, step 7 and step 8.
+- The platform, the display resolution and the scale factor.","normal","high","actual","manual","classic","REL418-QA-050,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed app. Drag the main window by its title bar to the bottom-right corner of the screen. Drag its edge to make it small.""
+2. ""Open the settings window. On macOS, click the """"Rocket.Chat"""" menu at the top-left of the menu bar and click """"Preferences"""". On Windows and Linux, press `Ctrl+,`. Drag the settings window to the top-left corner of the screen.""
+3. ""Open the log viewer. Click the """"Help"""" menu in the menu bar. Click """"Open Log Viewer"""". Drag the log viewer window to the top-right corner.""
+4. ""In the settings window, click """"Advanced"""" in the left list. Scroll to the secondary button """"Reset window sizes and positions"""". Read the gray hint under the button. Click the button.""
+5. ""Compare the main window with the screen.""
+6. ""Close the settings window and the log viewer window. Drag the main window to a corner again. Click the """"View"""" menu in the menu bar. Click """"Reset Window Sizes and Positions"""". This item is next to """"Reset zoom"""".""
+7. ""Maximize the main window (green button on macOS, square button on Windows). Click """"View"""", then """"Reset Window Sizes and Positions"""".""
+8. ""Open the settings window and the log viewer window again with the same steps as steps 2 and 3.""
+9. ""Windows and Linux with two displays only: move the main window to the second display. Click """"View"""", then """"Reset Window Sizes and Positions"""".""","1. ""Any workspace added
+Agent: Move the window with the OS window API.""
+2. ""None
+Agent: Press the shortcut. Move the window.""
+3. ""None
+Agent: Press `Ctrl+Shift+L` (`Cmd+Shift+L` on macOS). Move the window.""
+4. ""None
+Agent: Click the button and read the window bounds.""
+5. ""None
+Agent: Compare the bounds with the display work area.""
+6. ""None
+Agent: Click the menu item.""
+7. ""Maximized window
+Agent: Maximize the window, click the item, read the state.""
+8. ""None
+Agent: Open the windows and read the bounds.""
+9. ""Two displays
+Agent: Read the display of the window.""","1. ""The main window is small and sits in a screen corner.""
+2. ""A window titled """"App settings"""" opens. The window sits in the top-left corner.""
+3. ""The """"Log Viewer"""" window opens and sits in the top-right corner.""
+4. ""The hint says """"Forget where the app and its windows were placed. Each window opens at its default size, centered, the next time it is shown."""" After the click, the main window, the settings window and the log viewer window move to the center of the screen.""
+5. ""The main window has its default size, and its center is near the center of the work area. It does not sit under the taskbar or the Dock.""
+6. ""The main window returns to the center.""
+7. ""The main window leaves the maximized state. It shows centered at its default size.""
+8. ""Both windows open at the center of the screen at their default size. They do not open in the corners.""
+9. ""The main window centers on its own display or on the primary display. No part of the window sits off screen."""
+"","5","Release 4.18.0 / App shell","","Settings Window Opens At A Fixed Size And Cannot Be Resized","Source flow: REL418-QA-051
+
+The settings window always opens at 900 by 720 points (or the content width, if larger) and cannot be resized or maximized. On Windows the title bar shows only minimize and close.","installed_prerelease_build","- Screenshot of the window controls (step 3) on each platform.
+- Screenshot of ""Appearance"" and ""Advanced"" sections.
+- The window size from step 1 and step 6.","normal","medium","actual","manual","classic","REL418-QA-051,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Open the settings window. On macOS, click the """"Rocket.Chat"""" menu and click """"Preferences"""". On Windows and Linux, press `Ctrl+,`.""
+2. ""Move the pointer to the right edge and to the bottom-right corner of the settings window. Drag.""
+3. ""Look at the window controls. On macOS, look at the three round buttons at the top-left. On Windows, look at the top-right of the window.""
+4. ""Double-click the title bar.""
+5. ""Click each item in the left list in turn. The items are """"General"""", """"Appearance"""", """"Certificates"""", """"Telephony"""", """"Video calls"""" and """"Advanced"""". Look at the right panel.""
+6. ""Close the window. Open it again. Drag it to the left side of the screen first, then close it, then open it again.""
+7. ""In the settings window, click """"Advanced"""". Click """"Reset window sizes and positions"""".""","1. ""Profile from 4.17.x, if available
+Agent: Open the window and read its bounds.""
+2. ""None
+Agent: Try `setBounds` by drag. Read the size.""
+3. ""None
+Agent: Read the visible controls.""
+4. ""None
+Agent: Double-click and read the size.""
+5. ""None
+Agent: Click each item and capture a screenshot.""
+6. ""None
+Agent: Reopen and compare the bounds.""
+7. ""None
+Agent: Click and compare the size.""","1. ""A window titled """"App settings"""" opens. Its size is about 900 by 720. A small screen work area makes it smaller.""
+2. ""The pointer shows no resize cursor. The window size does not change.""
+3. ""macOS: the green button is gray or does not zoom the window when you click it. Windows: only the minimize (dash) and close (X) buttons show. No square maximize button shows.""
+4. ""The window does not maximize.""
+5. ""Every section shows without clipped text or controls. The """"Appearance"""" section shows its theme thumbnails in one row.""
+6. ""The window opens at the same size as in step 1. It opens at the position where you left it.""
+7. ""The settings window moves to the center. Its size does not change."""
+"","5","Release 4.18.0 / App shell","","App Starts When The Settings File Cannot Be Written Atomically","Source flow: REL418-QA-052
+
+On a Windows profile whose settings folder is a redirected network path, the app starts, shows its window, and keeps saving settings. On a normal profile the app starts and writes settings as before.","installed_prerelease_build","- Screenshot of the main window after step 5.
+- The log lines from steps 4 and 7.
+- The type of the profile (local or redirected) and the share type.","major","high","actual","manual","classic","REL418-QA-052,source:repo-qa,platform:windows,requires:installed_prerelease_build","1. ""Install the build under test on a normal Windows profile. Start the app.""
+2. ""Click the """"Window"""" menu in the menu bar. Click """"App settings"""". Click """"General"""" in the left list. Change one toggle, for example """"Tray icon"""". Close the settings window.""
+3. ""Quit the app. Click the """"File"""" menu and click """"Quit Rocket.Chat"""". Start the app again. Open the settings window.""
+4. ""Click the """"Help"""" menu. Click """"Open Log Viewer"""". In the search field """"Search logs..."""" type `settings store`.""
+5. ""On the lab machine with a redirected profile, where `%APPDATA%` points to a network share, install the build under test. Start the app.""
+6. ""Change one toggle in the settings window as in step 2. Quit and start the app again.""
+7. ""Open the log viewer as in step 4. Search for `non-atomic`.""
+8. ""If the app showed an error dialog at startup in step 5, read the dialog.""","1. ""Local profile
+Agent: Start the app and wait for the window.""
+2. ""One toggle changed
+Agent: Change the toggle and read the value.""
+3. ""None
+Agent: Restart and read the value.""
+4. ""`settings store`
+Agent: Search the log and read the levels.""
+5. ""Redirected profile (UNC path)
+Agent: Start the app and wait for the window.""
+6. ""One toggle changed
+Agent: Restart and read the value.""
+7. ""`non-atomic`
+Agent: Search the log and copy the lines.""
+8. ""Dialog text
+Agent: Capture the dialog.""","1. ""The main window opens.""
+2. ""The toggle keeps its new value.""
+3. ""The toggle from step 2 has the new value. The window opened at once.""
+4. ""No line with level Error shows for the settings store.""
+5. ""The main window opens. No error dialog shows.""
+6. ""The toggle keeps its new value after the restart.""
+7. ""If the share rejected the atomic rename, a warning line """"Atomic write of the settings store failed; retrying without atomic rename"""" shows. A second line follows: """"Recovered the settings store using non-atomic writes"""". If the share did not reject the rename, no line shows, and this step passes with a note.""
+8. ""The dialog names the error and the log location. The app is not blocked silently. Record this as a failure of step 5 and attach the log."""
+"","5","Release 4.18.0 / App shell","","App Window Opens On Every Launch, And --start-hidden Keeps The Tray Start","Source flow: REL418-QA-053
+
+After the user quits while the window is hidden in the tray, the next normal launch shows the window. A launch with --start-hidden and the tray icon on starts with the window hidden. The log records the window decision.","installed_prerelease_build","- Screenshot after step 4 and after step 5.
+- The log entries from steps 8 and 9.
+- The package type and OS.","major","high","actual","manual","classic","REL418-QA-053,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build","1. ""Start the installed app. Open the settings window (macOS: """"Rocket.Chat"""" menu, """"Preferences"""". Windows and Linux: `Ctrl+,`). In the left list click """"General"""". Find the toggle """"Tray icon"""" (macOS: """"Menu bar extra""""). Turn it on. Close the settings window.""
+2. ""Close the main window with the window close button. On macOS, click the red button.""
+3. ""Quit the app from the tray. Right-click the tray icon (macOS: click the icon in the menu bar). Click the last item """"Quit"""".""
+4. ""Launch the app again the normal way: from the Start menu, the Applications folder or the application launcher. Do not add any option.""
+5. ""Close the window as in step 2. Quit from the tray as in step 3. Start the app from a terminal with the option `--start-hidden`. macOS: `open -a Rocket.Chat --args --start-hidden`. Windows: run the installed `Rocket.Chat.exe --start-hidden`. Linux: run the installed launcher with `--start-hidden`.""
+6. ""Click the tray icon to show the window. Right-click the icon (macOS: click the icon in the menu bar). Click """"Show"""" in the menu.""
+7. ""Turn the tray icon off in the settings window (step 1, """"General"""", toggle off). Quit with the """"File"""" menu """"Quit Rocket.Chat"""" (macOS: `Cmd+Q`). Start the app with `--start-hidden`.""
+8. ""Click the """"Help"""" menu. Click """"Open Log Viewer"""". In the search field """"Search logs..."""" type `Root window state applied`. Click the newest entry.""
+9. ""In the same search field type `Starting Rocket.Chat Desktop application`.""
+10. ""With the app running, start a second copy from the launcher.""","1. ""Tray icon on
+Agent: Read `isTrayIconEnabled` from the settings.""
+2. ""None
+Agent: Close the window and check the process.""
+3. ""None
+Agent: Click """"Quit"""" and check that the process ended.""
+4. ""No command-line option
+Agent: Launch the app and read the window visibility.""
+5. ""`--start-hidden`, tray icon on
+Agent: Launch with the option and read the window visibility.""
+6. ""None
+Agent: Click the item and read the visibility.""
+7. ""Tray icon off, `--start-hidden`
+Agent: Launch and read the visibility.""
+8. ""`Root window state applied`
+Agent: Search the log and copy the entry.""
+9. ""`Starting Rocket.Chat Desktop application`
+Agent: Search and copy the entries.""
+10. ""Second launch
+Agent: Launch again and count the processes.""","1. ""The tray icon shows in the notification area (Windows), system tray (Linux) or the menu bar at the top-right (macOS).""
+2. ""The main window disappears. The app keeps running. The tray icon stays.""
+3. ""The app process ends. The tray icon disappears.""
+4. ""The main window shows and has focus. It does not start as tray only.""
+5. ""No main window shows. The tray icon shows.""
+6. ""The main window shows.""
+7. ""The main window shows, The app has no tray icon, so the window must show.""
+8. ""The entry lists the saved visible state, the saved bounds, the tray setting, `shown` and `isVisible`. For the normal launch in step 4, `shown` is `true`.""
+9. ""The entry lists `version` 4.18.0-alpha.6, `userData` and `startHidden`. The line for step 5 shows `startHidden` as `true`. A line """"Root window hidden at startup by --start-hidden"""" exists for step 5.""
+10. ""No second window process stays. The first window comes to the front."""
+"","5","Release 4.18.0 / App shell","","Restart To Update Quits And Relaunches The App On macOS","Source flow: REL418-QA-054
+
+Click ""Restart to update"" in the title bar. The app quits, installs the downloaded update and starts again with the new version.","earlier_prerelease_with_fix_4_18_0_alpha_5","- Screenshots of the pill in the states from steps 3, 4 and 5.
+- The About dialog from step 8.
+- The version of the older build and the target build.
+- The main log: `~/Library/Logs/Rocket.Chat/main.log`, the lines around the update.","major","high","actual","manual","classic","REL418-QA-054,source:repo-qa,platform:macos,requires:earlier_prerelease_with_fix_4_18_0_alpha_5","1. ""Install the `dmg` of 4.18.0-alpha.5. That build already has the fix (#3543 is in 4.18.0-alpha.3 and later), so the restart runs the fixed code. Start the app. Add one workspace and sign in.""
+2. ""Click the """"Help"""" menu, then """"Developer Mode"""", to turn it on. Open the settings window with `Cmd+,`. Click """"Advanced"""" in the left list. Find """"Update channel"""". Select the channel that holds the target build.""
+3. ""In the settings window, click """"General"""" in the left list. Click the button labeled """"Check for updates now"""". Then look at the top bar of the main window, at the right of the workspace tabs.""
+4. ""Click the """"Update"""" pill. A dialog opens. Click """"Install update"""".""
+5. ""Wait until the download ends.""
+6. ""Click the """"Restart to update"""" pill. Watch the Dock.""
+7. ""Wait up to 60 seconds.""
+8. ""Click the """"Rocket.Chat"""" menu at the top-left of the menu bar. Click """"About Rocket.Chat"""".""
+9. ""Run `pgrep -fl Rocket.Chat` in a terminal.""","1. ""`gh release download 4.18.0-alpha.5 -p '*-mac.dmg' -D <new empty folder>`
+Agent: Install and start the app.""
+2. ""Channel with the target build
+Agent: Toggle the menu item and set the channel.""
+3. ""None
+Agent: Click the button and read the message and the pill.""
+4. ""None
+Agent: Click the pill and the button. Read the pill text.""
+5. ""None
+Agent: Poll the pill text.""
+6. ""None
+Agent: Click the pill. Check that the process ended in 30 seconds.""
+7. ""None
+Agent: Wait and read the process list.""
+8. ""None
+Agent: Read the About dialog and the workspace list.""
+9. ""None
+Agent: Run the command and read the output.""","1. ""The app shows its main window with the workspace.""
+2. ""Developer Mode shows a check mark. """"Update channel"""" shows the selected channel.""
+3. ""The text """"Version X is available"""" shows near the button, where X is the build under test. A pill with the text """"Update"""" shows in the top bar.""
+4. ""The pill changes to """"Updating… N%"""" and fills from the left.""
+5. ""The pill shows the text """"Restart to update"""".""
+6. ""The main window closes. The Rocket.Chat icon leaves the Dock. The app process ends. It does not stay as a hidden app.""
+7. ""The app starts again by itself and shows the main window.""
+8. ""The version is the target version. The workspace and the sign-in are still there.""
+9. ""Only one set of processes of the new version runs. No old-version process stays."""
+"","5","Release 4.18.0 / App shell","","Windows Notification Reply Still Reaches The Room After The Banner Is Dismissed","Source flow: REL418-QA-055
+
+A reply typed in the Action Center card after the banner timed out posts to the same room. The sender sees it on the server.","installed_prerelease_build
+logged_in_session
+second_account_for_messages","- Screenshots of the toast (step 3) and of the Action Center card (step 5).
+- The server messages of the two rooms with their time stamps.
+- The log search result of step 8.","major","high","actual","manual","classic","REL418-QA-055,source:repo-qa,platform:windows,requires:installed_prerelease_build,requires:logged_in_session,requires:second_account_for_messages","1. ""Start the installed app on Windows. Sign in to a workspace with account A. Turn off Windows Focus Assist and """"Do not disturb"""".""
+2. ""In a browser, sign in as account B. Open a direct message to account A. Put the app window in the background: click another app so the Rocket.Chat window is not in front.""
+3. ""As account B, send the message `reply test 1`. Watch the bottom-right of the screen.""
+4. ""Wait until the banner leaves the screen without a click. This takes about 10 seconds or more. Do not click the toast.""
+5. ""Press `Win+N` to open the notification center. Find the card for the message `reply test 1`. Click the text field in the card. Type `reply from action center`. Click the """"Reply"""" button in the card. Do not press Enter.""
+6. ""In the browser as account B, look at the direct message with account A.""
+7. ""Repeat steps 3 to 6 with the message `reply test 2` in a different room, if the second account has one. Wait 2 minutes before step 5.""
+8. ""Open the app log: click the """"Help"""" menu, """"Open Log Viewer"""". Search for `reply`.""","1. ""Account A in the app, account B in a browser
+Agent: Start the app and sign in.""
+2. ""Account B in the browser
+Agent: Focus another window.""
+3. ""`reply test 1`
+Agent: Send the message and capture the screen.""
+4. ""None
+Agent: Wait and capture the screen.""
+5. ""`reply from action center`
+Agent: Open the center and click through the card.""
+6. ""None
+Agent: Query the room messages by the server API.""
+7. ""`reply test 2`, a wait of 2 minutes
+Agent: Query both rooms by the server API.""
+8. ""`reply`
+Agent: Search the log and read the lines.""","1. ""The main window shows the workspace.""
+2. ""The app window is not focused.""
+3. ""A toast banner shows with the text of the message and a text field with a """"Reply"""" button.""
+4. ""The banner is gone.""
+5. ""The card closes after the click.""
+6. ""The message `reply from action center` shows as sent by account A within a few seconds. It shows once only.""
+7. ""The reply posts to the room of that notification, not to the room of step 6.""
+8. ""No line says the app dropped a reply."""
+"","5","Release 4.18.0 / App shell","","Settings, Downloads And Log Viewer Windows Work After The Dead Code Removal","Source flow: REL418-QA-056
+
+The settings window, the downloads window and the log viewer open from the menu, the shortcuts and the workspace bar. The app keeps the last workspace after a restart, and quits cleanly.","installed_prerelease_build
+logged_in_session","- Screenshots of the three windows and of the ""Window"" menu check marks.
+- The platform and the package type.","normal","medium","actual","manual","classic","REL418-QA-056,source:repo-qa,platform:windows,platform:macos,platform:linux,requires:installed_prerelease_build,requires:logged_in_session","1. ""Start the installed app with two workspaces added. Click the second workspace in the workspace list.""
+2. ""Open the settings window: press `Ctrl+,` (macOS: `Cmd+,`). Open the """"Window"""" menu in the menu bar.""
+3. ""In the settings window, click each item in the left list: """"General"""", """"Appearance"""", """"Certificates"""", """"Telephony"""", """"Video calls"""", """"Advanced"""".""
+4. ""Close the settings window. Open the """"Window"""" menu.""
+5. ""Open the downloads window: press `Ctrl+D` (macOS: `Cmd+D`). Open the """"Window"""" menu.""
+6. ""Close the downloads window. In the workspace, send a file in a room, then click the file link to download it. Open the downloads window again.""
+7. ""Open the log viewer: click the """"Help"""" menu, """"Open Log Viewer"""".""
+8. ""In the log viewer, type `Starting` in the field """"Search logs..."""".  Click an entry with the """"+N more lines"""" text, then click """"Show less"""". Click the button """"Save"""".""
+9. ""In the log viewer click """"Open log file"""" and choose the main log file in the file dialog. Click """"Default log"""" afterwards.""
+10. ""Quit the app (`Cmd+Q` on macOS, """"File"""" menu, """"Quit Rocket.Chat"""" on Windows and Linux). Start it again.""","1. ""Two workspaces
+Agent: Start the app and read the active workspace.""
+2. ""None
+Agent: Press the shortcut and read the menu state.""
+3. ""None
+Agent: Click each item and capture a screenshot.""
+4. ""None
+Agent: Read the menu state.""
+5. ""None
+Agent: Press the shortcut and read the menu state.""
+6. ""One small file
+Agent: Download a file and read the list.""
+7. ""None
+Agent: Press `Ctrl+Shift+L` and read the entries.""
+8. ""`Starting`
+Agent: Type, click and read the list.""
+9. ""Main log file
+Agent: Choose the file and read the result.""
+10. ""None
+Agent: Restart and read the active workspace.""","1. ""The second workspace shows. No error dialog shows at startup.""
+2. ""A window titled """"App settings"""" opens. In the """"Window"""" menu, the item """"App settings"""" has a check mark.""
+3. ""Each section loads its controls. No section is empty or shows an error.""
+4. ""The check mark of """"App settings"""" is gone.""
+5. ""A window titled """"Downloads"""" opens. In the """"Window"""" menu, the item """"Downloads"""" has a check mark.""
+6. ""The file shows in the list of the downloads window with its name.""
+7. ""A window titled """"Log Viewer"""" opens. It lists log entries and the label """"Live"""" shows.""
+8. ""The list filters to matching entries. The viewer highlights matching text. A long entry expands and collapses. The button """"Save"""" writes a file or shows the label """"Saved"""".""
+9. ""The chosen file loads and """"Default log"""" returns to the main log. The viewer does not crash.""
+10. ""The app starts with the second workspace selected as before. No error dialog shows."""

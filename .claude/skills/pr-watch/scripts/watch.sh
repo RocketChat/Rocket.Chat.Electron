@@ -69,11 +69,12 @@ while true; do
     prev="$cur"
   fi
 
-  # Advance a window only after its fetch succeeds, so a failed poll
-  # retries the same window instead of losing its comments.
+  # Advance a window only after every page of its fetch succeeds, so a
+  # failed poll retries the same window instead of losing its comments.
+  # --paginate prints one JSON array per page, and `.[]` reads each one.
   # -c keeps each comment as one JSON string (newlines escaped), so one
   # comment becomes exactly one event line.
-  if inline="$(gh api "repos/$repo/pulls/$pr/comments?since=$since_inline" 2>/dev/null)"; then
+  if inline="$(gh api --paginate "repos/$repo/pulls/$pr/comments?since=$since_inline&per_page=100" 2>/dev/null)"; then
     printf '%s' "$inline" \
       | jq -c '.[] | select(.user.login | test("coderabbit"; "i")) | "\(.path):\(.line // .original_line) \(.body)"' \
       | while IFS= read -r js; do printf 'COMMENT %s\n' "$(printf '%s' "$js" | strip)"; done
@@ -82,7 +83,7 @@ while true; do
 
   # CodeRabbit edits its summary comment in place, so `since` matches it on
   # every update; only report when the actionable line actually changed.
-  if issue="$(gh api "repos/$repo/issues/$pr/comments?since=$since_issue" 2>/dev/null)"; then
+  if issue="$(gh api --paginate "repos/$repo/issues/$pr/comments?since=$since_issue&per_page=100" 2>/dev/null)"; then
     review="$(printf '%s' "$issue" \
       | jq -r '.[] | select(.user.login | test("coderabbit"; "i")) | .body' \
       | grep -iE 'actionable comments|no actionable' | tail -1 | jq -Rs . | strip)"

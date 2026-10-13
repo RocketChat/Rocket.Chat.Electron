@@ -34,7 +34,7 @@ Record: path, branch/detached, dirty (non-empty `status --porcelain`
 output) or clean, ignored paths, and last commit date/age.
 
 The plain `status --porcelain` output does not show ignored files.
-`git worktree remove` deletes ignored files without a warning, for
+`git worktree remove` also removes ignored files without a warning, for
 example a local `.env`. Put the ignored paths of each candidate in the
 step 6 table. Show regenerable output (`node_modules/`, `app/`, `dist/`)
 as one summary entry. List every other ignored path by name. The user

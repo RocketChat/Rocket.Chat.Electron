@@ -116,7 +116,8 @@ while IFS= read -r SEGMENT; do
   SUBCOMMAND=""
   while next_token; do
     case "$TOKEN" in
-      -C) next_token && SEG_C="$TOKEN" ;;
+      # Git resolves each -C relative to the previous one.
+      -C) next_token && SEG_C=$(resolve_path "$TOKEN" "${SEG_C:-${CD_DIR:-$BASE_DIR}}") ;;
       -c) next_token ;;
       -*) ;;
       *) SUBCOMMAND="$TOKEN"; break ;;
@@ -124,7 +125,7 @@ while IFS= read -r SEGMENT; do
   done
   case "$SUBCOMMAND" in
     commit|push)
-      [ -n "$SEG_C" ] && GIT_DIR_ARG=$(resolve_path "$SEG_C" "${CD_DIR:-$BASE_DIR}")
+      [ -n "$SEG_C" ] && GIT_DIR_ARG="$SEG_C"
       break
       ;;
   esac

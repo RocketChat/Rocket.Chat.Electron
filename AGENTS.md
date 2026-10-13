@@ -298,7 +298,8 @@ hooks, `settings.json`).
   on `did-start-loading`. That event fires for subframes and resources, and
   it causes false boot-failure reports.
 - When a workspace stays on the loading throbber (the "boot wedge"), read
-  `~/Library/Logs/Rocket.Chat/boot-watchdog.jsonl` first. Then follow
+  `boot-watchdog.jsonl` first. It is in Electron's `app.getPath('logs')`
+  directory (`~/Library/Logs/Rocket.Chat/` on macOS). Then follow
   `.claude/skills/boot-wedge-debug/SKILL.md` (live CDP autopsy, cure ladder).
   Full investigation history: `docs/postmortem-webview-boot-wedge.md`.
 - A startup `Maximum update depth exceeded` storm depends on data (unread

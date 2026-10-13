@@ -97,12 +97,13 @@ Also useful live:
 
 ## Step 3 — Map findings to action
 
-| Finding                                                       | Conclusion / next fix                                                                                                                                                                                      |
-| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rung 2 cures                                                  | SW/cache layer. Auto-recovery in `injected.ts` should have handled it. Find why it did not fire (counter exhausted? recovery log lines in the report console?).                                            |
-| Only rung 3 or 4 cures                                        | The broken state lives in the renderer process. Implement the escalation: recreate the webview after the recovery attempts exhaust. No code does this yet (see the post-mortem, "What this does NOT fix"). |
-| `render-process-gone` reports                                 | Different class of bug. Check `details` in the timeline (reason: crashed/oom/killed) and processMetrics.                                                                                                   |
-| Report shows recovery triggered then `server-version-updated` | Auto-recovery worked. Take no action: the system healed itself.                                                                                                                                            |
+| Finding                                                       | Conclusion / next fix                                                                                                                                                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Rung 2 cures                                                  | SW/cache layer. Auto-recovery in `injected.ts` should have handled it. Find why it did not fire (counter exhausted? recovery log lines in the report console?).                                                                            |
+| Only rung 3 cures                                             | Recreating the webview cures the wedge. This supports a renderer-local failure. Implement the escalation: recreate the webview after the recovery attempts exhaust. No code does this yet (see the post-mortem, "What this does NOT fix"). |
+| Only rung 4 cures                                             | A full app restart also resets the main process, the session and every other webview. It does not isolate the renderer. Use the watchdog report and more tests to find the broken layer before you choose an escalation.                   |
+| `render-process-gone` reports                                 | Different class of bug. Check `details` in the timeline (reason: crashed/oom/killed) and processMetrics.                                                                                                                                   |
+| Report shows recovery triggered then `server-version-updated` | Auto-recovery worked. Take no action: the system healed itself.                                                                                                                                                                            |
 
 ## Step 4 — Land the fix
 
@@ -126,6 +127,7 @@ Also useful live:
 - `WEBVIEW_SERVER_VERSION_UPDATED` is the boot-success signal. `setVersion`
   dispatches it from `setServerInfo` (wired in PR #3436 — it was dead code
   before).
-- PRs #3435 and #3437 fixed the `Maximum update depth exceeded` storm in
-  4.16.0. If the storm comes back in a newer build, treat it as a regression.
+- PR #3437 fixed the `Maximum update depth exceeded` storm in 4.16.0. PR #3435
+  only reduced it, and the storm still reproduced after #3435 merged. If the
+  storm comes back in a newer build, treat it as a regression.
   The post-mortem (attempt 6) explains how unread-badge data triggered it.

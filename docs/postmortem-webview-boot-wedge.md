@@ -12,14 +12,16 @@ error storm firing shortly after startup.
 - Users hitting the wedge saw a workspace tab stuck on the loading spinner
   indefinitely; plain reload (⌘R) did not cure it, so the only remedy was
   restarting the whole app. As of 4.16.0, the app detects the failure and
-  auto-recovers with a cache-clearing reload (max 2 attempts per session).
+  attempts recovery with a cache-clearing reload (max 2 attempts per session).
+  That reload did not cure the one wedge observed after the fix (Attempt 4).
 - The error storm crashed `TabBar` rendering when it fired. Validation after
   the fix: 0 errors across the startup window, versus 10–14 errors in six
   consecutive pre-fix runs under the same account state.
 - A forensic boot watchdog now captures a full autopsy (timeline, in-page
   probe, service-worker state, last 150 console messages) whenever a boot
-  exceeds its deadline — so any future occurrence arrives with evidence
-  attached instead of a verbal report.
+  exceeds its deadline while the watchdog is enabled, so those runs include
+  evidence instead of relying on a verbal report. It is off by default in
+  production builds.
 
 ## Timeline
 
@@ -152,8 +154,8 @@ eliminates the class.
 
 Three deliberate reproduction attempts failed. Instead of waiting to catch
 the wedge live again, PR #3436 shipped a watchdog that writes a full
-forensic report on every future occurrence — converting an unreproducible
-bug into a data-collection problem. The next report reads back with probe
+forensic report on every occurrence in a run where it is enabled —
+converting an unreproducible bug into a data-collection problem. The next report reads back with probe
 state, service-worker registrations, and the console buffer already
 attached.
 
@@ -198,4 +200,6 @@ boot-success signal is `WEBVIEW_SERVER_VERSION_UPDATED` (dispatched by
 - PR #3437 — unread-badge dispatch storm root cause and three-layer fix
 - `.claude/skills/boot-wedge-debug/SKILL.md` — live-autopsy runbook (CDP eval, cure
   ladder, watchdog report reading)
-- `~/Library/Logs/Rocket.Chat/boot-watchdog.jsonl` — forensic reports
+- `boot-watchdog.jsonl` in Electron's `app.getPath('logs')` directory
+  (`~/Library/Logs/Rocket.Chat/` on macOS) — forensic reports. The skill lists
+  the Windows and Linux paths.

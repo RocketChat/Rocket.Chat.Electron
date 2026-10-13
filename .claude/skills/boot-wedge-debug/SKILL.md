@@ -40,6 +40,9 @@ The directory is Electron's `app.getPath('logs')`. In dev the app name may be
 `Electron` instead of `Rocket.Chat`. At startup the watchdog prints the exact
 path: `[bootWatchdog] enabled — … appended to <path>`.
 
+If the watchdog was disabled for the run, it wrote no report for it. Skip to
+Step 2.
+
 Summarize the incidents:
 
 ```bash

@@ -21,7 +21,7 @@ export const openInternalVideoChatWindow = (
   if (!allowedProtocols.includes(validUrl.protocol)) {
     return;
   }
-  if (!process.mas && getInternalVideoChatWindowEnabled()) {
+  if (getInternalVideoChatWindowEnabled()) {
     switch (options?.providerName) {
       case 'jitsi':
         // window.open(validUrl.href, 'Video Call', 'scrollbars=true');

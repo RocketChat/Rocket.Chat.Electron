@@ -1319,4 +1319,108 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(guest.session.setPermissionRequestHandler).not.toHaveBeenCalled();
     });
   });
+
+  // -------------------------------------------------------------------------
+  // open — the same conference focuses the open window instead of recreating it
+  // -------------------------------------------------------------------------
+  describe('reopening the conference the window is already on', () => {
+    const startUrl = 'https://chat.example/conference/new?rid=room-1';
+    const conferenceUrl = 'https://chat.example/conference/call-1';
+
+    /** The webview inside the open call window, showing `shown`. */
+    const showInWebview = async (shown: string) => {
+      const { webContents } = (await import('electron')) as any;
+      const host = createdWindows[0].webContents;
+      webContents.getAllWebContents.mockReturnValue([
+        {
+          hostWebContents: host,
+          getURL: jest.fn(() => shown),
+          isDestroyed: jest.fn(() => false),
+        },
+      ]);
+    };
+
+    it('focuses the window opened for the same URL', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), conferenceUrl);
+
+      await open(openWindow, makeCallerWc(1), conferenceUrl);
+
+      expect(createdWindows).toHaveLength(1);
+      expect((createdWindows[0] as any).close).not.toHaveBeenCalled();
+      expect((createdWindows[0] as any).focus).toHaveBeenCalled();
+    });
+
+    // A call the user starts opens at the start page, which replaces its own
+    // address with the conference's once the conference exists — so the URL the
+    // window was opened for no longer names the call it is in.
+    it('focuses the window whose webview has moved in-page to the conference', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), startUrl);
+      await showInWebview(conferenceUrl);
+
+      await open(openWindow, makeCallerWc(1), conferenceUrl);
+
+      expect(createdWindows).toHaveLength(1);
+      expect((createdWindows[0] as any).close).not.toHaveBeenCalled();
+      expect((createdWindows[0] as any).focus).toHaveBeenCalled();
+    });
+
+    it('replaces the window for a different conference', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), startUrl);
+      await showInWebview(conferenceUrl);
+
+      await open(
+        openWindow,
+        makeCallerWc(1),
+        'https://chat.example/conference/call-2'
+      );
+
+      expect((createdWindows[0] as any).close).toHaveBeenCalled();
+      expect(createdWindows).toHaveLength(2);
+    });
+  });
+
+  describe('isSameConferenceUrl', () => {
+    it.each([
+      [
+        'a different fragment',
+        'https://meet.example/room#config.startWithAudioMuted=true',
+        'https://meet.example/room',
+        true,
+      ],
+      [
+        'a different query',
+        'https://chat.example/conference/new?rid=room-1',
+        'https://chat.example/conference/new?rid=room-2',
+        false,
+      ],
+      [
+        'a different path',
+        'https://chat.example/conference/call-1',
+        'https://chat.example/conference/call-2',
+        false,
+      ],
+      [
+        'a different origin',
+        'https://chat.example/conference/call-1',
+        'https://other.example/conference/call-1',
+        false,
+      ],
+      [
+        'an unparseable URL',
+        'not a url',
+        'https://chat.example/conference/call-1',
+        false,
+      ],
+    ])('compares URLs with %s', async (_case, a, b, expected) => {
+      const { mod } = await loadModule();
+
+      expect(mod.isSameConferenceUrl(a, b)).toBe(expected);
+    });
+  });
 });

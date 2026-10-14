@@ -66,7 +66,7 @@ describe('injected.ts boot recovery', () => {
     expect(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)).toBe('1');
   });
 
-  describe('on a server that keeps rocketchat.info at the app root (8.10+)', () => {
+  describe('module paths across server versions', () => {
     let desktop: Record<string, jest.Mock>;
 
     const loadWithModules = (modules: Record<string, unknown>) => {
@@ -149,6 +149,29 @@ describe('injected.ts boot recovery', () => {
 
       settings.change('Site_Name', 'Renamed');
       expect(desktop.setTitle).toHaveBeenLastCalledWith('Renamed');
+    });
+
+    it('keeps the app/utils path and the Tracker-reactive settings get on servers before 7.11', async () => {
+      const values: Record<string, unknown> = {
+        Assets_favicon: { url: 'custom.png', defaultUrl: 'favicon.svg' },
+        Site_Name: 'Legacy',
+      };
+      loadWithModules({
+        '/app/utils/rocketchat.info': { Info: { version: '7.10.15' } },
+        '/app/settings/client/index.ts': {
+          settings: { get: (key: string) => values[key] },
+        },
+        'meteor/tracker': { Tracker: { autorun: (fn: () => void) => fn() } },
+      });
+
+      await jest.advanceTimersByTimeAsync(2_000);
+
+      expect(reloadServer).not.toHaveBeenCalled();
+      expect(desktop.setServerInfo).toHaveBeenCalledWith({
+        version: '7.10.15',
+      });
+      expect(desktop.setFavicon).toHaveBeenLastCalledWith('custom.png');
+      expect(desktop.setTitle).toHaveBeenLastCalledWith('Legacy');
     });
   });
 

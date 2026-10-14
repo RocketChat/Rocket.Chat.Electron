@@ -111,6 +111,15 @@ const resetBootRecovery = (): void => {
   }
 };
 
+// The session permission handler denies `clipboard-sanitized-write`, so the
+// native writeText always fails. Route it through the main process before any
+// module lookup: copy must keep working when the boot below gives up.
+// navigator.clipboard is undefined outside secure contexts (plain HTTP).
+if (navigator.clipboard) {
+  navigator.clipboard.writeText = async (...args) =>
+    window.RocketChatDesktop.writeTextToClipboard(...args);
+}
+
 let startRetryCount = 0;
 let totalRetryTime = 0;
 const MAX_RETRY_TIME = 30000; // Maximum 30 seconds total retry time
@@ -164,24 +173,30 @@ const start = async () => {
   startRetryCount = 0;
   totalRetryTime = 0;
 
+  // Rocket.Chat 8.10 moved the file from app/utils/ to the app root.
+  const serverInfoModulePaths = [
+    '/app/utils/rocketchat.info',
+    '/rocketchat.info',
+  ];
+
   let serverInfo: any = {};
   try {
-    ({ Info: serverInfo = {} } = await tryRequire(
-      '/app/utils/rocketchat.info'
+    ({ Info: serverInfo = {} } = await tryRequireFirstOf(
+      serverInfoModulePaths
     ));
   } catch (error) {
     // window.require exists but the module registry is incomplete — the
     // webapp boot is wedged (stuck throbber) and only a cache-clearing
     // reload recovers it.
     attemptBootRecovery(
-      "Failed to require '/app/utils/rocketchat.info' after retries"
+      `Failed to require ${serverInfoModulePaths.join(' or ')} after retries`
     );
     return;
   }
 
   if (!serverInfo.version) {
     attemptBootRecovery(
-      "Required '/app/utils/rocketchat.info' returned no server version"
+      'The rocketchat.info module returned no server version'
     );
     return;
   }
@@ -228,8 +243,8 @@ const start = async () => {
     : 'meteor/konecty:user-presence';
 
   const settingsModulePath = (() => {
-    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-    //   return '/app/settings/client';
+    if (versionIsGreaterOrEqualsTo(serverInfo.version, '7.11.0'))
+      return '/client/lib/settings/index.ts';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
       return '/app/settings/client/index.ts';
     return '/app/settings';
@@ -272,6 +287,23 @@ const start = async () => {
   // the presence module" (false), so the tray can degrade to hiding presence
   // instead of showing a permanently blank state.
   let presenceModuleResolved: boolean | null = null;
+
+  // Before 7.11 the client settings expose a Tracker-reactive `get`. From 7.11
+  // they are a store with `peek` and a change-only `observe`, and 8.x has no
+  // Tracker-reactive accessor at all.
+  const watchSetting = <T = any>(
+    key: string,
+    callback: (value: T | undefined) => void
+  ): void => {
+    if (typeof settings.get === 'function') {
+      Tracker.autorun(() => callback(settings.get(key)));
+      return;
+    }
+    callback(settings.peek(key));
+    settings.observe(key, (_key: string, value: T | undefined) =>
+      callback(value)
+    );
+  };
 
   // Load modules asynchronously without blocking
   const loadModule = async (
@@ -346,15 +378,6 @@ const start = async () => {
       );
       presenceModuleResolved = false;
     });
-
-  // Initialize non-module dependent features immediately
-  // navigator.clipboard is undefined outside secure contexts (plain HTTP
-  // workspaces), so guard the patch or the whole start() chain throws here
-  // and never reaches the Notification shim below.
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText = async (...args) =>
-      window.RocketChatDesktop.writeTextToClipboard(...args);
-  }
 
   console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
@@ -720,8 +743,8 @@ const start = async () => {
     }
 
     if (Tracker && settings && !setupFlags.faviconUpdates) {
-      Tracker.autorun(() => {
-        const { url, defaultUrl } = settings.get('Assets_favicon') || {};
+      watchSetting('Assets_favicon', (value) => {
+        const { url, defaultUrl } = value || {};
         window.RocketChatDesktop.setFavicon(url || defaultUrl);
       });
       setupFlags.faviconUpdates = true;
@@ -826,8 +849,7 @@ const start = async () => {
     }
 
     if (Tracker && settings && !setupFlags.titleUpdates) {
-      Tracker.autorun(() => {
-        const siteName = settings.get('Site_Name');
+      watchSetting('Site_Name', (siteName) => {
         window.RocketChatDesktop.setTitle(siteName);
       });
       setupFlags.titleUpdates = true;

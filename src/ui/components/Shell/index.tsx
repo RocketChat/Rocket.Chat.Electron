@@ -23,13 +23,7 @@ import { ServerSwitcher } from '../TopBar/ServerSwitcher';
 import { UpdateLabel } from '../TopBar/UpdateLabel';
 import { useShellTheme } from '../hooks/useShellTheme';
 import TooltipProvider from '../utils/TooltipProvider';
-import {
-  CLIENT_CHROME_CORNER_RADIUS_PX,
-  GlobalStyles,
-  WindowDragBar,
-} from './styles';
-
-const usesLinuxClientChromeRounding = process.platform === 'linux';
+import { GlobalStyles, WindowDragBar } from './styles';
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
@@ -39,12 +33,17 @@ export const Shell = () => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
-  const isWindowExpanded = useSelector(
-    ({ rootWindowState }: RootState) =>
-      rootWindowState.maximized || rootWindowState.fullscreen
+  const isLinuxSystemTitleBarEnabled = useSelector(
+    ({ isLinuxSystemTitleBarEnabled }: RootState) =>
+      isLinuxSystemTitleBarEnabled
   );
 
   const shellTheme = useShellTheme();
+
+  // Whether this Linux window is using the native WM title bar (opt-in).
+  // When false (the default), Linux uses client-side chrome like Windows.
+  const isLinuxNativeFrame =
+    process.platform === 'linux' && isLinuxSystemTitleBarEnabled;
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -80,39 +79,21 @@ export const Shell = () => {
         width='100%'
         maxWidth='100%'
         flexDirection='column'
-        style={
-          usesLinuxClientChromeRounding
-            ? {
-                // Soft outer corners on Linux only; drop when maximized.
-                borderRadius: isWindowExpanded
-                  ? 0
-                  : CLIENT_CHROME_CORNER_RADIUS_PX,
-                overflow: 'hidden',
-                boxSizing: 'border-box',
-                // Inset hairline stays inside the box (outer box-shadow was
-                // adding ~1px and caused a horizontal scrollbar on Linux).
-                boxShadow: isWindowExpanded
-                  ? undefined
-                  : 'inset 0 0 0 1px var(--rcx-color-shadow-elevation-border)',
-              }
-            : undefined
-        }
       >
-        {/* Windows + Linux: client-side window chrome (min/max/close in-strip). */}
-        {navigationLayout === 'tabs' &&
-          (process.platform === 'win32' || process.platform === 'linux') && (
-            <TabBar
-              leadingSlot={
-                <>
-                  <MeatballMenuButton />
-                  <UpdateLabel />
-                  <DownloadsIndicator />
-                </>
-              }
-              trailingSlot={<WindowControls />}
-            />
-          )}
-        {/* macOS tabs: system traffic lights; meatball/downloads/update trail. */}
+        {/* Windows: client-side window chrome (min/max/close in-strip). */}
+        {navigationLayout === 'tabs' && process.platform === 'win32' && (
+          <TabBar
+            leadingSlot={
+              <>
+                <MeatballMenuButton />
+                <UpdateLabel />
+                <DownloadsIndicator />
+              </>
+            }
+            trailingSlot={<WindowControls />}
+          />
+        )}
+        {/* macOS tabs: meatball/downloads/update trail (no WindowControls). */}
         {navigationLayout === 'tabs' && process.platform === 'darwin' && (
           <TabBar
             trailingSlot={
@@ -124,6 +105,36 @@ export const Shell = () => {
             }
           />
         )}
+        {/* Linux tabs (default client-side chrome): meatball/downloads/update trail + WindowControls. */}
+        {navigationLayout === 'tabs' &&
+          process.platform === 'linux' &&
+          !isLinuxNativeFrame && (
+            <TabBar
+              leadingSlot={
+                <>
+                  <MeatballMenuButton />
+                  <UpdateLabel />
+                  <DownloadsIndicator />
+                </>
+              }
+              trailingSlot={<WindowControls />}
+            />
+          )}
+        {/* Linux tabs (native WM frame): no WindowControls since WM provides them. */}
+        {navigationLayout === 'tabs' &&
+          process.platform === 'linux' &&
+          isLinuxNativeFrame && (
+            <TabBar
+              trailingSlot={
+                <>
+                  <UpdateLabel />
+                  <DownloadsIndicator />
+                  <MeatballMenuButton />
+                </>
+              }
+            />
+          )}
+        {/* macOS non-tabs: WM or macOS handles decorations. */}
         {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
           <TopBar
             centerSlot={
@@ -137,8 +148,27 @@ export const Shell = () => {
             }
           />
         )}
+        {/* Windows non-tabs: client-side TopBar with WindowControls. */}
+        {navigationLayout !== 'tabs' && process.platform === 'win32' && (
+          <TopBar
+            leadingSlot={
+              <>
+                {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
+                <UpdateLabel />
+                <DownloadsIndicator compact />
+              </>
+            }
+            centerSlot={
+              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+            }
+            trailingSlot={<WindowControls />}
+            textAlignment='left'
+          />
+        )}
+        {/* Linux non-tabs (default client-side chrome): TopBar with WindowControls. */}
         {navigationLayout !== 'tabs' &&
-          (process.platform === 'win32' || process.platform === 'linux') && (
+          process.platform === 'linux' &&
+          !isLinuxNativeFrame && (
             <TopBar
               leadingSlot={
                 <>
@@ -152,6 +182,27 @@ export const Shell = () => {
               }
               trailingSlot={<WindowControls />}
               textAlignment='left'
+            />
+          )}
+        {/* Linux non-tabs (native WM frame): no client-side controls; WM provides decorations. */}
+        {navigationLayout !== 'tabs' &&
+          process.platform === 'linux' &&
+          isLinuxNativeFrame && (
+            <TopBar
+              leadingSlot={
+                navigationLayout === 'hidden' ? (
+                  <MeatballMenuButton tiny />
+                ) : undefined
+              }
+              centerSlot={
+                navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+              }
+              trailingSlot={
+                <>
+                  <UpdateLabel />
+                  <DownloadsIndicator compact />
+                </>
+              }
             />
           )}
         <Box display='flex' flexDirection='row' flexGrow={1}>

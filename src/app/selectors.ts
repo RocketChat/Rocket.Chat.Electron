@@ -113,6 +113,8 @@ const selectPersistableValuesB = createStructuredSelector({
   isMenuBarUnreadCountEnabled: ({ isMenuBarUnreadCountEnabled }: RootState) =>
     isMenuBarUnreadCountEnabled,
   uiPreviewHistory: ({ uiPreviewHistory }: RootState) => uiPreviewHistory,
+  isLinuxSystemTitleBarEnabled: ({ isLinuxSystemTitleBarEnabled }: RootState) =>
+    isLinuxSystemTitleBarEnabled,
 });
 
 export const selectPersistableValues = createSelector(

@@ -4,6 +4,7 @@ import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
 import type { PresenceStoreEntry } from './servers/preload/presenceSnapshot';
 import { buildPresenceSnapshot } from './servers/preload/presenceSnapshot';
 import { hasUsablePresenceApi } from './servers/preload/presenceSupport';
+import { createUserStatusSender } from './servers/preload/userStatusSender';
 
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
@@ -964,25 +965,16 @@ const start = async () => {
             '[Rocket.Chat Desktop] setUserStatus request deferred: rate limit (1/s) not yet elapsed, will send latest status once elapsed'
           );
         },
-        send: ({ status, statusText }) => {
-          if (!Meteor.call) return;
-
-          Meteor.call('setUserStatus', status, statusText, (err: any) => {
-            if (!err) return;
-
-            if (
-              err.error === 'error-not-allowed' ||
-              err.error === 'error-status-not-allowed'
-            ) {
-              console.warn(
-                `[Rocket.Chat Desktop] setUserStatus rejected: ${err.error}`
-              );
-              return;
-            }
-
-            console.error('[Rocket.Chat Desktop] setUserStatus failed', err);
-          });
-        },
+        send: createUserStatusSender({
+          callMethod: Meteor.call?.bind(Meteor),
+          getServerUrl: () => Meteor.absoluteUrl(),
+          getCredentials: () => {
+            const userId = Meteor.userId?.();
+            const authToken =
+              Meteor._localStorage?.getItem('Meteor.loginToken');
+            return userId && authToken ? { userId, authToken } : null;
+          },
+        }),
       });
 
       // No local refresh needed after a change request: the server broadcasts

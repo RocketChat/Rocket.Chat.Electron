@@ -66,13 +66,16 @@ const PROBE_EXPRESSION = `JSON.stringify({
   title: document.title,
   requireType: typeof window.require,
   infoModule: (() => {
-    try {
-      return typeof window.require === 'function'
-        ? Boolean(window.require('/app/utils/rocketchat.info').Info)
-        : 'no-require';
-    } catch (error) {
-      return 'broken: ' + (error && error.message);
+    if (typeof window.require !== 'function') return 'no-require';
+    let lastError;
+    for (const path of ['/rocketchat.info', '/app/utils/rocketchat.info']) {
+      try {
+        return Boolean(window.require(path).Info);
+      } catch (error) {
+        lastError = error;
+      }
     }
+    return 'broken: ' + (lastError && lastError.message);
   })(),
   recoveryAttempts: (() => {
     try {

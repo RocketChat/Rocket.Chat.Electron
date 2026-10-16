@@ -1,8 +1,6 @@
-import { ipcRenderer } from 'electron';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { invoke } from '../../ipc/renderer';
 import { CloseGlyph } from '../components/TabBar/CloseGlyph';
 import { MaximizeGlyph } from '../components/TabBar/MaximizeGlyph';
 import { MinimizeGlyph } from '../components/TabBar/MinimizeGlyph';
@@ -12,6 +10,65 @@ import {
   WindowControlsGroup,
 } from '../components/TabBar/styles';
 import { WINDOW_MAXIMIZED_CHANNEL } from './channels';
+
+type WindowWithBridge = {
+  RocketChatDesktop?: {
+    logViewer?: {
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+      on: (
+        eventChannel: string,
+        listener: (...args: unknown[]) => void
+      ) => () => void;
+    };
+  };
+  require?: (module: string) => {
+    ipcRenderer?: {
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+      on: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+      off: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+    };
+  };
+};
+
+const getIpcBridge = () => {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+  const win = window as unknown as WindowWithBridge;
+
+  if (win.RocketChatDesktop?.logViewer) {
+    return {
+      invoke: (channel: string, ...args: unknown[]) =>
+        win.RocketChatDesktop!.logViewer!.invoke(channel, ...args),
+      subscribe: (channel: string, listener: (val: boolean) => void) =>
+        win.RocketChatDesktop!.logViewer!.on(channel, (val) =>
+          listener(Boolean(val))
+        ),
+    };
+  }
+
+  const ipcRenderer = win.require?.('electron')?.ipcRenderer;
+  if (ipcRenderer) {
+    return {
+      invoke: (channel: string, ...args: unknown[]) =>
+        ipcRenderer.invoke(channel, ...args),
+      subscribe: (channel: string, listener: (val: boolean) => void) => {
+        const handler = (_: unknown, ...args: unknown[]) =>
+          listener(Boolean(args[0]));
+        ipcRenderer.on(channel, handler);
+        return () => ipcRenderer.off(channel, handler);
+      },
+    };
+  }
+
+  return undefined;
+};
 
 /**
  * Minimise, maximise and close, drawn into the toolbar on the platforms whose
@@ -36,32 +93,43 @@ export const WindowControls = ({
 
   useEffect(() => {
     let isCurrent = true;
+    const bridge = getIpcBridge();
 
-    invoke('secondary-window/is-maximized').then((maximized) => {
-      if (isCurrent) setIsMaximized(maximized);
-    });
+    bridge
+      ?.invoke('secondary-window/is-maximized')
+      .then((maximized) => {
+        if (isCurrent) {
+          setIsMaximized(Boolean(maximized));
+        }
+      })
+      .catch(() => {});
 
-    const handleChange = (_event: unknown, maximized: boolean): void => {
-      setIsMaximized(Boolean(maximized));
-    };
+    if (!bridge) {
+      return () => {
+        isCurrent = false;
+      };
+    }
 
-    ipcRenderer.on(WINDOW_MAXIMIZED_CHANNEL, handleChange);
+    const unsubscribe = bridge.subscribe(
+      WINDOW_MAXIMIZED_CHANNEL,
+      setIsMaximized
+    );
     return () => {
       isCurrent = false;
-      ipcRenderer.off(WINDOW_MAXIMIZED_CHANNEL, handleChange);
+      unsubscribe();
     };
   }, []);
 
   const handleMinimize = useCallback(() => {
-    invoke('secondary-window/minimize');
+    getIpcBridge()?.invoke('secondary-window/minimize');
   }, []);
 
   const handleMaximize = useCallback(() => {
-    invoke('secondary-window/toggle-maximize');
+    getIpcBridge()?.invoke('secondary-window/toggle-maximize');
   }, []);
 
   const handleClose = useCallback(() => {
-    invoke('secondary-window/close');
+    getIpcBridge()?.invoke('secondary-window/close');
   }, []);
 
   const maximizeLabel = isMaximized

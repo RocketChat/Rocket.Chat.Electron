@@ -10,9 +10,15 @@ const setup = ({
   credentials = { userId: 'u1', authToken: 't1' },
 }: {
   methodError?: { error?: unknown; reason?: unknown };
-  response?: { ok: boolean; status: number; json: () => Promise<unknown> };
+  response?: {
+    ok: boolean;
+    status: number;
+    json: () => Promise<unknown>;
+    headers?: { get: (name: string) => string | null };
+  };
   credentials?: { userId: string; authToken: string } | null;
 } = {}) => {
+  let currentCredentials = credentials;
   const callMethod = jest.fn(
     (
       _method: string,
@@ -26,9 +32,12 @@ const setup = ({
     callMethod,
     fetchFn: fetchFn as unknown as typeof fetch,
     getServerUrl: () => 'https://chat.example.com/sub/',
-    getCredentials: () => credentials,
+    getCredentials: () => currentCredentials,
   });
-  return { callMethod, fetchFn, send };
+  const setCredentials = (next: typeof credentials) => {
+    currentCredentials = next;
+  };
+  return { callMethod, fetchFn, send, setCredentials };
 };
 
 describe('createUserStatusSender', () => {
@@ -127,6 +136,110 @@ describe('createUserStatusSender', () => {
     });
 
     send({ status: 'busy' });
+    await flush();
+
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  describe('when users.setStatus is rate limited', () => {
+    const rateLimited = (resetInMs: number) => ({
+      ok: false,
+      status: 429,
+      json: async () => ({ success: false }),
+      headers: {
+        get: (name: string) =>
+          name === 'X-RateLimit-Reset' ? String(Date.now() + resetInMs) : null,
+      },
+    });
+
+    beforeEach(() => {
+      jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+
+    it('retries the status after the limit resets', async () => {
+      const { fetchFn, send } = setup({
+        methodError: { error: 404 },
+        response: rateLimited(5000),
+      });
+
+      send({ status: 'away' });
+      await flushPromises();
+      expect(fetchFn).toHaveBeenCalledTimes(1);
+
+      fetchFn.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+      });
+      jest.advanceTimersByTime(4999);
+      await flushPromises();
+      expect(fetchFn).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(1);
+      await flushPromises();
+      expect(fetchFn).toHaveBeenCalledTimes(2);
+      expect(JSON.parse(fetchFn.mock.calls[1][1].body)).toEqual({
+        status: 'away',
+      });
+    });
+
+    it('drops the pending retry when a newer status is sent', async () => {
+      const { fetchFn, send } = setup({
+        methodError: { error: 404 },
+        response: rateLimited(5000),
+      });
+
+      send({ status: 'away' });
+      await flushPromises();
+
+      fetchFn.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+      });
+      send({ status: 'busy' });
+      await flushPromises();
+      jest.advanceTimersByTime(60_000);
+      await flushPromises();
+
+      expect(fetchFn).toHaveBeenCalledTimes(2);
+      expect(JSON.parse(fetchFn.mock.calls[1][1].body)).toEqual({
+        status: 'busy',
+      });
+    });
+
+    it('does not retry for a different user', async () => {
+      const { fetchFn, send, setCredentials } = setup({
+        methodError: { error: 404 },
+        response: rateLimited(5000),
+      });
+
+      send({ status: 'away' });
+      await flushPromises();
+      setCredentials({ userId: 'u2', authToken: 't2' });
+      jest.advanceTimersByTime(5000);
+      await flushPromises();
+
+      expect(fetchFn).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('skips the REST fallback when the user changed before the method replied', async () => {
+    let reply: Callback = () => undefined;
+    const { callMethod, fetchFn, send, setCredentials } = setup();
+    callMethod.mockImplementation((_m, _s, _t, cb) => {
+      reply = cb;
+    });
+
+    send({ status: 'busy' });
+    setCredentials({ userId: 'u2', authToken: 't2' });
+    reply({ error: 404 });
     await flush();
 
     expect(fetchFn).not.toHaveBeenCalled();

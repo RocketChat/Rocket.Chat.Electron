@@ -83,7 +83,7 @@ node .claude/skills/boot-wedge-debug/cdp-eval.mjs <server-host> "JSON.stringify(
   readyState: document.readyState,
   title: document.title,
   requireType: typeof window.require,
-  infoModule: (()=>{let err;for(const p of ['/rocketchat.info','/app/utils/rocketchat.info']){try{return !!window.require(p).Info}catch(e){err=e}}return 'broken: '+err.message})(),
+  infoModule: (()=>{let err,loaded=false;for(const p of ['/rocketchat.info','/app/utils/rocketchat.info']){try{if(window.require(p).Info)return true;loaded=true}catch(e){err=e}}return loaded?false:'broken: '+err.message})(),
   recoveryAttempts: sessionStorage.getItem('rocketChatDesktopBootRecoveryAttempts'),
   swControlled: !!navigator.serviceWorker?.controller
 })"

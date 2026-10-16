@@ -15,7 +15,8 @@ It records the six attempts and what is still open.
 
 Sometimes a workspace webview never finishes booting: the Rocket.Chat throbber
 spins forever. Its console shows `Cannot find module '/app/utils/rocketchat.info'`
-(Meteor module registry incomplete) and often a ServiceWorker
+(`/rocketchat.info` on Rocket.Chat 8.10 and later) because the Meteor module
+registry is incomplete and often a ServiceWorker
 `InvalidStateError`. A plain reload (⌘R = `webContents.reload()`) never cures
 it. Historically only a full app restart did. `src/injected.ts` now
 recovers automatically with a force reload that clears the service worker and
@@ -82,7 +83,7 @@ node .claude/skills/boot-wedge-debug/cdp-eval.mjs <server-host> "JSON.stringify(
   readyState: document.readyState,
   title: document.title,
   requireType: typeof window.require,
-  infoModule: (()=>{try{return !!window.require('/app/utils/rocketchat.info').Info}catch(e){return 'broken: '+e.message}})(),
+  infoModule: (()=>{let err,loaded=false;for(const p of ['/rocketchat.info','/app/utils/rocketchat.info']){try{if(window.require(p).Info)return true;loaded=true}catch(e){err=e}}return loaded?false:'broken: '+err.message})(),
   recoveryAttempts: sessionStorage.getItem('rocketChatDesktopBootRecoveryAttempts'),
   swControlled: !!navigator.serviceWorker?.controller
 })"

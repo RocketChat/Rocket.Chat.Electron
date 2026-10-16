@@ -1,0 +1,52 @@
+# MarkdownLM and Lun CI/CD Workflow.
+#
+# Automatically synchronizes repository markdown files into the MarkdownLM
+# knowledge base on push to `dev`, and enforces engineering rules and
+# invariants on pull requests merging into `dev`.
+name: lun
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: read
+
+concurrency:
+  group: lun-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lun-ci:
+    name: rule-enforcement
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Lun
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          LUN_INSTALL_DIR="$HOME/.local/bin" curl -fsSL https://markdownlm.com/install/lun | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run Lun CI
+        env:
+          MDLM_API_KEY: ${{ secrets.MDLM_API_KEY }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Running Lun rule enforcement on pull request..."
+            lun ci --base "origin/${{ github.base_ref }}"
+          else
+            echo "Synchronizing repository markdown files with MarkdownLM..."
+            lun ci
+          fi

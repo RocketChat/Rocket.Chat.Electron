@@ -162,6 +162,28 @@ export const isRequestFromKnownServer = (
   }
 };
 
+/**
+ * Fullscreen also accepts a subframe of a server page. Embedded players
+ * (YouTube, Vimeo) request fullscreen from their own cross-origin iframe, and
+ * Blink lets an iframe ask only when the embedding page delegated it with
+ * `allowfullscreen`. The embedding page is the trusted server, so its origin
+ * decides.
+ */
+export const isFullscreenRequestAllowed = (
+  {
+    requestingUrl,
+    isMainFrame,
+    topLevelUrl,
+  }: {
+    requestingUrl: string | undefined;
+    isMainFrame: boolean;
+    topLevelUrl: string | undefined;
+  },
+  servers: ReadonlyArray<Pick<Server, 'url'>>
+): boolean =>
+  isRequestFromKnownServer(requestingUrl, servers) ||
+  (!isMainFrame && isRequestFromKnownServer(topLevelUrl, servers));
+
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
@@ -183,7 +205,7 @@ export const setupServerViewPermissionHandler = (
   rootWindow: BrowserWindow
 ): void => {
   guestWebContents.session.setPermissionRequestHandler(
-    async (_webContents, permission, callback, details) => {
+    async (requestingWebContents, permission, callback, details) => {
       if (process.env.NODE_ENV === 'development') {
         console.log('Permission request', permission, details);
       }
@@ -213,11 +235,26 @@ export const setupServerViewPermissionHandler = (
           return;
 
         case 'geolocation':
-        case 'notifications':
-        case 'fullscreen': {
+        case 'notifications': {
           const { requestingUrl } = details;
           const servers = select(({ servers }) => servers);
           callback(isRequestFromKnownServer(requestingUrl, servers));
+          return;
+        }
+
+        case 'fullscreen': {
+          const { requestingUrl, isMainFrame } = details;
+          const servers = select(({ servers }) => servers);
+          callback(
+            isFullscreenRequestAllowed(
+              {
+                requestingUrl,
+                isMainFrame,
+                topLevelUrl: requestingWebContents?.getURL(),
+              },
+              servers
+            )
+          );
           return;
         }
 

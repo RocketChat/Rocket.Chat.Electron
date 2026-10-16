@@ -48,13 +48,33 @@ describe('video call window preload bridge', () => {
     jest.clearAllMocks();
   });
 
-  it('exposes its methods under RocketChatDesktop, not a second global', () => {
+  it('exposes its methods under RocketChatDesktop', () => {
     const videoCall = loadBridge();
 
     expect(videoCall).toBeDefined();
-    expect(exposeInMainWorld.mock.calls.map(([name]) => name)).not.toContain(
-      'videoCallWindow'
-    );
+  });
+
+  // Servers that predate Rocket.Chat #42692 read only `window.videoCallWindow`.
+  // Without it, leaving a call loads `/home` in the call window instead of
+  // closing it (DMV2-32), and conference chat links miss the main window.
+  it('also exposes the same methods under the deprecated videoCallWindow global', () => {
+    const videoCall = loadBridge();
+    const legacy = exposeInMainWorld.mock.calls.find(
+      ([name]) => name === 'videoCallWindow'
+    )?.[1];
+
+    expect(legacy).toBe(videoCall);
+  });
+
+  it('closes the window through the deprecated videoCallWindow global', () => {
+    loadBridge();
+    const legacy = exposeInMainWorld.mock.calls.find(
+      ([name]) => name === 'videoCallWindow'
+    )?.[1];
+
+    legacy.close();
+
+    expect(ipcSend).toHaveBeenCalledWith('video-call-window/close');
   });
 
   it('exposes only the four supported methods', () => {

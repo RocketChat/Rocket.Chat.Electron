@@ -1257,6 +1257,18 @@ export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
   }
 };
 
+const bringRootWindowToFront = async (): Promise<void> => {
+  const rootWindow = await getRootWindow();
+  if (!rootWindow || rootWindow.isDestroyed()) {
+    return;
+  }
+  if (rootWindow.isMinimized()) {
+    rootWindow.restore();
+  }
+  rootWindow.show();
+  rootWindow.focus();
+};
+
 export const startVideoCallWindowHandler = (): void => {
   // Sync IPC handler for provider name - used by jitsiBridge preload
   // to skip ScreenObtainer install for non-Jitsi providers without async delay
@@ -1268,7 +1280,8 @@ export const startVideoCallWindowHandler = (): void => {
   // renderer's window.close() can't close a window the main process created, so
   // it asks via this fire-and-forget channel. We resolve the window from the
   // sender (the webview guest's host window), so a renderer can only close its
-  // own window.
+  // own window. The page asks for this when the user leaves the call, so the
+  // main window comes back to the front for them to carry on.
   ipcMain.on('video-call-window/close', (event) => {
     const { sender } = event;
     const win =
@@ -1278,6 +1291,12 @@ export const startVideoCallWindowHandler = (): void => {
         : null);
     if (win && !win.isDestroyed()) {
       win.close();
+      bringRootWindowToFront().catch((error) =>
+        console.warn(
+          'Video call window: could not focus the main window:',
+          error
+        )
+      );
     }
   });
 
@@ -1371,15 +1390,7 @@ export const startVideoCallWindowHandler = (): void => {
         return;
       }
 
-      // Bring the main window to the foreground.
-      const rootWindow = await getRootWindow();
-      if (rootWindow && !rootWindow.isDestroyed()) {
-        if (rootWindow.isMinimized()) {
-          rootWindow.restore();
-        }
-        rootWindow.show();
-        rootWindow.focus();
-      }
+      await bringRootWindowToFront();
 
       // Client-side route change. NOT a loadURL — that would hard-reload the
       // SPA. The web client listens for this event and calls its router.

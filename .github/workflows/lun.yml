@@ -10,7 +10,7 @@ on:
     branches: [dev]
   pull_request:
     branches: [dev]
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
 
 permissions:
   contents: read
@@ -36,7 +36,8 @@ jobs:
       - name: Install Lun
         run: |
           mkdir -p "$HOME/.local/bin"
-          LUN_INSTALL_DIR="$HOME/.local/bin" curl -fsSL https://markdownlm.com/install/lun | sh
+          export LUN_INSTALL_DIR="$HOME/.local/bin"
+          curl -fsSL https://markdownlm.com/install/lun | sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Run Lun CI

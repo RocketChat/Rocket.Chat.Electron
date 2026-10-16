@@ -1,5 +1,5 @@
-import type { NotificationAction } from 'electron';
-
+import type { NotificationActionOption } from './notifications/common';
+import { resolveNotificationAction } from './notifications/resolveNotificationAction';
 import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
 import type { PresenceStoreEntry } from './servers/preload/presenceSnapshot';
 import { buildPresenceSnapshot } from './servers/preload/presenceSnapshot';
@@ -413,7 +413,7 @@ const start = async () => {
       Object.assign(this, { title, ...options });
     }
 
-    actions: readonly NotificationAction[] = [];
+    actions: readonly NotificationActionOption[] = [];
 
     badge = '';
 
@@ -552,6 +552,13 @@ const start = async () => {
 
       if (isReplyEvent(type, detail)) {
         (mainWorldEvent as any).response = detail.reply;
+      }
+
+      if (type === 'action') {
+        (mainWorldEvent as any).action = resolveNotificationAction(
+          this.actions,
+          detail
+        );
       }
       this.dispatchEvent(mainWorldEvent);
     };

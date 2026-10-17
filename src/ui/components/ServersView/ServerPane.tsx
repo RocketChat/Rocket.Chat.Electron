@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import { isConferencePageUrl } from '../../../servers/common';
+import { getServerLoadUrl, isConferencePageUrl } from '../../../servers/common';
 import { listen } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import {
@@ -159,7 +159,7 @@ export const ServerPane = ({
       webview.src =
         lastPath && !isConferencePageUrl(lastPath, serverUrl)
           ? lastPath
-          : serverUrl;
+          : getServerLoadUrl(serverUrl);
     }
   }, [lastPath, serverUrl, isSelected, userLoggedIn]);
 

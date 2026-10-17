@@ -153,6 +153,17 @@ describe('ui/main/dialogs', () => {
     );
   });
 
+  it('does not reject when the root window is gone', async () => {
+    getRootWindowMock.mockRejectedValue(
+      new Error('Root window has been destroyed')
+    );
+
+    await expect(
+      warnAboutInvalidServerUrl('https://bad.example', '')
+    ).resolves.toBeUndefined();
+    expect(showMessageBox).not.toHaveBeenCalled();
+  });
+
   it('asks for certificate trust and maps yes/no', async () => {
     showMessageBox.mockResolvedValue({
       response: 0,

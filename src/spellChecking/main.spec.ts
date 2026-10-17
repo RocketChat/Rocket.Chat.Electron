@@ -1,22 +1,28 @@
-import { createMainReduxStore, dispatch } from '../store';
-import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
+import { app, session, webContents } from 'electron';
+
+import { listen } from '../store';
+import {
+  SPELL_CHECKING_LANGUAGE_TOGGLED,
+  SPELL_CHECKING_TOGGLED,
+} from './actions';
 import { setupSpellChecking } from './main';
 
 jest.mock('../store', () => ({
-  createMainReduxStore: jest.fn(),
-  dispatch: jest.fn(),
   listen: jest.fn(),
 }));
 
 jest.mock('electron', () => ({
   app: {
     whenReady: jest.fn(async () => undefined),
+    on: jest.fn(),
   },
   session: {
     defaultSession: {
       availableSpellCheckerLanguages: ['en-US'],
       setSpellCheckerLanguages: jest.fn(),
       getSpellCheckerLanguages: jest.fn(() => ['en-US']),
+      setSpellCheckerEnabled: jest.fn(),
+      isSpellCheckerEnabled: jest.fn(() => true),
     },
   },
   webContents: {
@@ -24,23 +30,74 @@ jest.mock('electron', () => ({
   },
 }));
 
+const createSession = () => ({
+  setSpellCheckerLanguages: jest.fn(),
+  setSpellCheckerEnabled: jest.fn(),
+});
+
+const getListener = (type: string) =>
+  (listen as jest.Mock).mock.calls.find(
+    ([actionType]) => actionType === type
+  )?.[1];
+
+const flush = () => new Promise((resolve) => setImmediate(resolve));
+
 describe('setupSpellChecking', () => {
-  beforeAll(() => {
-    createMainReduxStore();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('works', async () => {
+  it('ignores languages that the session does not support', async () => {
     await setupSpellChecking();
-  });
-
-  it('handles invalid languages', async () => {
-    await setupSpellChecking();
-    dispatch({
+    getListener(SPELL_CHECKING_LANGUAGE_TOGGLED)({
       type: SPELL_CHECKING_LANGUAGE_TOGGLED,
-      payload: {
-        name: 'wtf',
-        enabled: true,
-      },
+      payload: { name: 'wtf', enabled: true },
     });
+    await flush();
+
+    expect(
+      session.defaultSession.setSpellCheckerLanguages
+    ).toHaveBeenLastCalledWith(['en-US']);
+  });
+
+  it('turns spell check off in every session, and keeps the languages', async () => {
+    const serverSession = createSession();
+    (webContents.getAllWebContents as jest.Mock).mockReturnValue([
+      { session: serverSession },
+    ]);
+
+    await setupSpellChecking();
+    (session.defaultSession.setSpellCheckerLanguages as jest.Mock).mockClear();
+    serverSession.setSpellCheckerLanguages.mockClear();
+
+    getListener(SPELL_CHECKING_TOGGLED)({
+      type: SPELL_CHECKING_TOGGLED,
+      payload: false,
+    });
+    await flush();
+
+    expect(session.defaultSession.setSpellCheckerEnabled).toHaveBeenCalledWith(
+      false
+    );
+    expect(serverSession.setSpellCheckerEnabled).toHaveBeenCalledWith(false);
+    expect(
+      session.defaultSession.setSpellCheckerLanguages
+    ).not.toHaveBeenCalled();
+    expect(serverSession.setSpellCheckerLanguages).not.toHaveBeenCalled();
+  });
+
+  it('applies the current on/off state to sessions created later', async () => {
+    (session.defaultSession.isSpellCheckerEnabled as jest.Mock).mockReturnValue(
+      false
+    );
+    await setupSpellChecking();
+
+    const onSessionCreated = (app.on as jest.Mock).mock.calls.find(
+      ([event]) => event === 'session-created'
+    )?.[1];
+    const newSession = createSession();
+    onSessionCreated(newSession);
+
+    expect(newSession.setSpellCheckerEnabled).toHaveBeenCalledWith(false);
   });
 });

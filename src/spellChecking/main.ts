@@ -1,3 +1,4 @@
+import type { Session } from 'electron';
 import { app, session, webContents } from 'electron';
 
 import { listen } from '../store';
@@ -21,16 +22,31 @@ const setSpellCheckerLanguages = async (
   });
 };
 
+const setSpellCheckerEnabled = async (enabled: boolean): Promise<void> => {
+  await app.whenReady();
+
+  const sessions = new Set<Session>([session.defaultSession]);
+  webContents.getAllWebContents().forEach((webContents) => {
+    sessions.add(webContents.session);
+  });
+  sessions.forEach((session) => session.setSpellCheckerEnabled(enabled));
+};
+
 export const setupSpellChecking = async (): Promise<void> => {
   setSpellCheckerLanguages(
     new Set(session.defaultSession.getSpellCheckerLanguages())
   );
 
-  listen(SPELL_CHECKING_TOGGLED, (action) => {
-    const spellCheckerLanguages = new Set(
-      action.payload ? session.defaultSession.getSpellCheckerLanguages() : []
+  // Each server webview has its own persist:<url> partition, so a session
+  // created after the toggle must copy the on/off state of the default one.
+  app.on('session-created', (createdSession) => {
+    createdSession.setSpellCheckerEnabled(
+      session.defaultSession.isSpellCheckerEnabled()
     );
-    setSpellCheckerLanguages(spellCheckerLanguages);
+  });
+
+  listen(SPELL_CHECKING_TOGGLED, (action) => {
+    setSpellCheckerEnabled(action.payload);
   });
 
   listen(SPELL_CHECKING_LANGUAGE_TOGGLED, (action) => {

@@ -124,9 +124,32 @@ describe('ui/main/dialogs', () => {
     );
   });
 
-  it('warns about invalid server URLs by throwing', async () => {
-    expect(() => warnAboutInvalidServerUrl('x', 'y')).toThrow(
-      'not implemented'
+  it('shows an Invalid Host error dialog for an invalid server URL', async () => {
+    const parent = getMockWindow();
+    showMessageBox.mockResolvedValue({ response: 0 } as never);
+
+    await expect(
+      warnAboutInvalidServerUrl('https://bad.example', 'timeout', parent)
+    ).resolves.toBeUndefined();
+    expect(parent.show).toHaveBeenCalled();
+    expect(showMessageBox).toHaveBeenCalledWith(parent, {
+      type: 'error',
+      title: 'dialog.addServerError.title',
+      message: 'dialog.addServerError.message',
+      detail: 'timeout',
+    });
+  });
+
+  it('shows the Invalid Host dialog on the root window when no parent is given', async () => {
+    const root = getMockWindow();
+    getRootWindowMock.mockResolvedValue(root);
+    showMessageBox.mockResolvedValue({ response: 0 } as never);
+
+    await warnAboutInvalidServerUrl('https://bad.example', '');
+
+    expect(showMessageBox).toHaveBeenCalledWith(
+      root,
+      expect.objectContaining({ type: 'error', detail: undefined })
     );
   });
 

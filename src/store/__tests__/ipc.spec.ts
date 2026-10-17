@@ -71,6 +71,30 @@ describe('store/ipc', () => {
     expect(next).toHaveBeenCalledTimes(2);
   });
 
+  it('adds one destroyed listener per webContents across repeated initial-state calls', async () => {
+    const next = jest.fn((_action) => _action);
+    const middleware = forwardToRenderers(createApi())(next);
+
+    const destroyedListeners: Array<() => void> = [];
+    const webContents = {
+      id: 12,
+      addListener: jest.fn((_event, callback: () => void) => {
+        destroyedListeners.push(callback);
+      }),
+    } as unknown as WebContents;
+
+    for (let reload = 0; reload < 11; reload++) {
+      // eslint-disable-next-line no-await-in-loop
+      await mainHandlers['redux/get-initial-state'](webContents);
+    }
+
+    expect(webContents.addListener).toHaveBeenCalledTimes(1);
+
+    destroyedListeners.forEach((listener) => listener());
+    middleware({ type: 'BROADCAST' } as any);
+    expect(invokeFromMainMock).not.toHaveBeenCalled();
+  });
+
   it('dispatches actions from main IPC with webContents host metadata and action IPC precedence', async () => {
     const api = createApi();
     forwardToRenderers(api)(jest.fn((_action) => _action));

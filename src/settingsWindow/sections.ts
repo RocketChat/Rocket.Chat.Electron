@@ -17,6 +17,22 @@ export type SettingsSectionId =
   | 'videoCalls'
   | 'advanced';
 
+/** What decides whether a section renders a setting. */
+export type SettingAvailabilityContext = {
+  isDeveloperModeEnabled: boolean;
+  canUpdate: boolean;
+  platform: NodeJS.Platform;
+};
+
+type SettingAvailability = (context: SettingAvailabilityContext) => boolean;
+
+const developerModeOnly: SettingAvailability = ({ isDeveloperModeEnabled }) =>
+  isDeveloperModeEnabled;
+const onPlatform =
+  (...platforms: NodeJS.Platform[]): SettingAvailability =>
+  ({ platform }) =>
+    platforms.includes(platform);
+
 /** Every section is handed the window's surfaces; most ignore them. */
 export type SettingsSectionProps = {
   surfaces: Surfaces;
@@ -38,6 +54,13 @@ export type SettingsSectionDefinition = {
    * no change at all.
    */
   settingKeys: string[];
+  /**
+   * The conditions under which the section renders a listed setting. A key
+   * with no entry always renders. Keep each entry equal to the condition in
+   * the section component, so search never finds a setting the reader cannot
+   * see.
+   */
+  settingAvailability?: Partial<Record<string, SettingAvailability>>;
   Component: ComponentType<SettingsSectionProps>;
 };
 
@@ -61,6 +84,13 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'dialog.about.checkUpdates',
       'dialog.about.checkUpdatesOnStart',
     ],
+    settingAvailability: {
+      'settings.options.menuBarUnreadCount': onPlatform('darwin'),
+      'settings.options.minimizeOnClose': onPlatform('win32'),
+      'settings.options.menubar': ({ platform }) =>
+        platform !== 'darwin' && platform !== 'win32',
+      'settings.options.ntlmCredentials': onPlatform('win32'),
+    },
     Component: GeneralSection,
   },
   {
@@ -73,6 +103,10 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.transparentWindow',
       'settings.options.uiPreview',
     ],
+    settingAvailability: {
+      'settings.options.transparentWindow': onPlatform('darwin'),
+      'settings.options.uiPreview': developerModeOnly,
+    },
     Component: AppearanceSection,
   },
   {
@@ -103,6 +137,9 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.videoCallScreenCaptureFallback',
       'settings.options.clearPermittedScreenCaptureServers',
     ],
+    settingAvailability: {
+      'settings.options.videoCallScreenCaptureFallback': onPlatform('win32'),
+    },
     Component: VideoCallsSection,
   },
   {
@@ -117,6 +154,15 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.detailedEventsLogging',
       'settings.options.debugLogging',
     ],
+    settingAvailability: {
+      'dialog.about.updateChannel.label': ({
+        isDeveloperModeEnabled,
+        canUpdate,
+      }) => isDeveloperModeEnabled && canUpdate,
+      'settings.options.verboseOutlookLogging': developerModeOnly,
+      'settings.options.detailedEventsLogging': developerModeOnly,
+      'settings.options.debugLogging': developerModeOnly,
+    },
     Component: AdvancedSection,
   },
 ];

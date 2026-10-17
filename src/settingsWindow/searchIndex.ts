@@ -1,3 +1,8 @@
+import type {
+  SettingAvailabilityContext,
+  SettingsSectionDefinition,
+} from './sections';
+
 /** Minimal shape of i18next's `t`, so this stays testable without i18next. */
 export type Translate = (
   key: string,
@@ -54,3 +59,18 @@ export const collectSettingSearchTexts = (
     texts,
   };
 };
+
+/**
+ * The keys of a section that search may match: the ones the section renders
+ * in this context. A hidden setting must not be a search result (CORE-2782).
+ */
+export const getSearchableSettingKeys = (
+  section: Pick<
+    SettingsSectionDefinition,
+    'settingKeys' | 'settingAvailability'
+  >,
+  context: SettingAvailabilityContext
+): string[] =>
+  section.settingKeys.filter(
+    (key) => section.settingAvailability?.[key]?.(context) ?? true
+  );

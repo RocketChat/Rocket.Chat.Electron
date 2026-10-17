@@ -26,6 +26,7 @@ import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewSc
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
 import { attachBootWatchdog } from '../../../servers/bootWatchdog';
 import type { Server } from '../../../servers/common';
+import { getServerLoadUrl, redactServerUrl } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
 import {
@@ -318,7 +319,7 @@ export const serverReloadView = async (
   }
   await terminateIfUnresponsive(guestWebContents);
   try {
-    await guestWebContents.loadURL(url);
+    await guestWebContents.loadURL(getServerLoadUrl(url));
   } catch (error) {
     console.error('Failed to load URL for guestWebContents:', error);
   }
@@ -413,7 +414,9 @@ const initializeServerWebContentsAfterAttach = (
     }
     // A failure here is reported by did-fail-load; an abort means another
     // load took over.
-    guestWebContents.loadURL(serverUrl).catch(() => undefined);
+    guestWebContents
+      .loadURL(getServerLoadUrl(serverUrl))
+      .catch(() => undefined);
   };
 
   const reloadWhenReachable = (): void => {
@@ -421,7 +424,9 @@ const initializeServerWebContentsAfterAttach = (
     stopWaitingForServer = waitUntilReachable(guestWebContents, serverUrl, {
       onReachable: () => {
         stopWaitingForServer = undefined;
-        loggers.servers.info(`Server is reachable again: ${serverUrl}`);
+        loggers.servers.info(
+          `Server is reachable again: ${redactServerUrl(serverUrl)}`
+        );
         reloadServerView();
       },
       backoff: reconnectBackoff,
@@ -477,7 +482,9 @@ const initializeServerWebContentsAfterAttach = (
 
   const handleUnresponsive = (): void => {
     markUnresponsive(guestWebContents);
-    loggers.servers.warn(`Server view became unresponsive: ${serverUrl}`);
+    loggers.servers.warn(
+      `Server view became unresponsive: ${redactServerUrl(serverUrl)}`
+    );
     if (!isServerStillAdded()) {
       return;
     }
@@ -489,7 +496,9 @@ const initializeServerWebContentsAfterAttach = (
 
   const handleResponsive = (): void => {
     markResponsive(guestWebContents);
-    loggers.servers.info(`Server view became responsive again: ${serverUrl}`);
+    loggers.servers.info(
+      `Server view became responsive again: ${redactServerUrl(serverUrl)}`
+    );
     if (!isServerStillAdded()) {
       return;
     }
@@ -524,7 +533,9 @@ const initializeServerWebContentsAfterAttach = (
       reloadServerView();
     },
     onRecovered: () => {
-      loggers.servers.info(`Server view loaded after all: ${serverUrl}`);
+      loggers.servers.info(
+        `Server view loaded after all: ${redactServerUrl(serverUrl)}`
+      );
       stopReconnecting();
       if (!isServerStillAdded()) {
         return;
@@ -550,7 +561,7 @@ const initializeServerWebContentsAfterAttach = (
       return;
     }
     loggers.servers.error(
-      `Server view renderer is gone (${details.reason}, exit code ${details.exitCode}): ${serverUrl}`
+      `Server view renderer is gone (${details.reason}, exit code ${details.exitCode}): ${redactServerUrl(serverUrl)}`
     );
     if (guestWebContents.isDestroyed() || !isServerStillAdded()) {
       return;
@@ -580,7 +591,7 @@ const initializeServerWebContentsAfterAttach = (
         navigationHistory.goBack();
         return;
       }
-      guestWebContents.loadURL(serverUrl);
+      guestWebContents.loadURL(getServerLoadUrl(serverUrl));
     });
 
     return true;
@@ -867,9 +878,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       return;
     }
     await terminateIfUnresponsive(guestWebContents);
-    guestWebContents.loadURL(action.payload.url).catch((error) => {
-      console.error('Failed to load URL for guestWebContents:', error);
-    });
+    guestWebContents
+      .loadURL(getServerLoadUrl(action.payload.url))
+      .catch((error) => {
+        console.error('Failed to load URL for guestWebContents:', error);
+      });
   });
 
   listen(SIDE_BAR_SERVER_RELOAD, (action) => {

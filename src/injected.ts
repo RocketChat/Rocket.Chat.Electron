@@ -380,202 +380,6 @@ const start = async () => {
       presenceModuleResolved = false;
     });
 
-  console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
-
-  window.Notification = class RocketChatDesktopNotification
-    extends EventTarget
-    implements Notification
-  {
-    static readonly permission: NotificationPermission = 'granted';
-
-    static readonly maxActions: number =
-      process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
-
-    static requestPermission(): Promise<NotificationPermission> {
-      return Promise.resolve(RocketChatDesktopNotification.permission);
-    }
-
-    #destroy?: Promise<() => void>;
-
-    constructor(
-      title: string,
-      options: NotificationOptions & { canReply?: boolean } = {}
-    ) {
-      super();
-
-      this.#destroy = window.RocketChatDesktop.createNotification({
-        title,
-        ...options,
-        onEvent: this.handleEvent,
-      }).then((id) => () => {
-        window.RocketChatDesktop.destroyNotification(id);
-      });
-
-      Object.assign(this, { title, ...options });
-    }
-
-    actions: readonly NotificationActionOption[] = [];
-
-    badge = '';
-
-    body = '';
-
-    data: any = undefined;
-
-    dir: NotificationDirection = 'auto';
-
-    icon = '';
-
-    image = '';
-
-    lang = document.documentElement.lang;
-
-    #onclick: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onclick() {
-      return this.#onclick;
-    }
-
-    set onclick(value) {
-      if (this.#onclick) {
-        this.removeEventListener('click', this.#onclick);
-      }
-
-      this.#onclick = value;
-
-      if (this.#onclick) {
-        this.addEventListener('click', this.#onclick);
-      }
-    }
-
-    #onclose: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onclose() {
-      return this.#onclose;
-    }
-
-    set onclose(value) {
-      if (this.#onclose) {
-        this.removeEventListener('close', this.#onclose);
-      }
-
-      this.#onclose = value;
-
-      if (this.#onclose) {
-        this.addEventListener('close', this.#onclose);
-      }
-    }
-
-    #onerror: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onerror() {
-      return this.#onerror;
-    }
-
-    set onerror(value) {
-      if (this.#onerror) {
-        this.removeEventListener('error', this.#onerror);
-      }
-
-      this.#onerror = value;
-
-      if (this.#onerror) {
-        this.addEventListener('error', this.#onerror);
-      }
-    }
-
-    #onshow: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onshow() {
-      return this.#onshow;
-    }
-
-    set onshow(value) {
-      if (this.#onshow) {
-        this.removeEventListener('show', this.#onshow);
-      }
-
-      this.#onshow = value;
-
-      if (this.#onshow) {
-        this.addEventListener('show', this.#onshow);
-      }
-    }
-
-    #onaction: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onaction() {
-      return this.#onaction;
-    }
-
-    set onaction(value) {
-      if (this.#onaction) {
-        this.removeEventListener('action', this.#onaction);
-      }
-
-      this.#onaction = value;
-
-      if (this.#onaction) {
-        this.addEventListener('action', this.#onaction);
-      }
-    }
-
-    requireInteraction = false;
-
-    silent = false;
-
-    tag = '';
-
-    timestamp: number = Date.now();
-
-    title = '';
-
-    vibrate: readonly number[] = [];
-
-    private handleEvent = ({
-      type,
-      detail,
-    }: {
-      type: string;
-      detail: unknown;
-    }): void => {
-      const mainWorldEvent = new CustomEvent(type, { detail });
-
-      const isReplyEvent = (
-        type: string,
-        detail: unknown
-      ): detail is { reply: string } =>
-        type === 'reply' &&
-        typeof detail === 'object' &&
-        detail !== null &&
-        'reply' in detail &&
-        typeof (detail as { reply: string }).reply === 'string';
-
-      if (isReplyEvent(type, detail)) {
-        (mainWorldEvent as any).response = detail.reply;
-      }
-
-      if (type === 'action') {
-        (mainWorldEvent as any).action = resolveNotificationAction(
-          this.actions,
-          detail
-        );
-      }
-      this.dispatchEvent(mainWorldEvent);
-    };
-
-    close(): void {
-      if (!this.#destroy) {
-        return;
-      }
-
-      this.#destroy?.then((destroy) => {
-        this.#destroy = undefined;
-        destroy();
-      });
-    }
-  };
-
   // Track which features have been setup to avoid duplicates
   const setupFlags = {
     urlResolver: false,
@@ -1076,6 +880,210 @@ const start = async () => {
 
   console.log('[Rocket.Chat Desktop] Injected');
 };
+
+// The web client reads window.Notification when AppLayout first renders
+// (useNotificationPermission) and stores the result. On a plain-HTTP server
+// the native class does not exist (secure contexts only), so this override
+// must not wait for window.require or the server info below.
+const installDesktopNotification = (): void => {
+  console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
+
+  window.Notification = class RocketChatDesktopNotification
+    extends EventTarget
+    implements Notification
+  {
+    static readonly permission: NotificationPermission = 'granted';
+
+    static readonly maxActions: number =
+      process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
+
+    static requestPermission(): Promise<NotificationPermission> {
+      return Promise.resolve(RocketChatDesktopNotification.permission);
+    }
+
+    #destroy?: Promise<() => void>;
+
+    constructor(
+      title: string,
+      options: NotificationOptions & { canReply?: boolean } = {}
+    ) {
+      super();
+
+      this.#destroy = window.RocketChatDesktop.createNotification({
+        title,
+        ...options,
+        onEvent: this.handleEvent,
+      }).then((id) => () => {
+        window.RocketChatDesktop.destroyNotification(id);
+      });
+
+      Object.assign(this, { title, ...options });
+    }
+
+    actions: readonly NotificationActionOption[] = [];
+
+    badge = '';
+
+    body = '';
+
+    data: any = undefined;
+
+    dir: NotificationDirection = 'auto';
+
+    icon = '';
+
+    image = '';
+
+    lang = document.documentElement.lang;
+
+    #onclick: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onclick() {
+      return this.#onclick;
+    }
+
+    set onclick(value) {
+      if (this.#onclick) {
+        this.removeEventListener('click', this.#onclick);
+      }
+
+      this.#onclick = value;
+
+      if (this.#onclick) {
+        this.addEventListener('click', this.#onclick);
+      }
+    }
+
+    #onclose: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onclose() {
+      return this.#onclose;
+    }
+
+    set onclose(value) {
+      if (this.#onclose) {
+        this.removeEventListener('close', this.#onclose);
+      }
+
+      this.#onclose = value;
+
+      if (this.#onclose) {
+        this.addEventListener('close', this.#onclose);
+      }
+    }
+
+    #onerror: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onerror() {
+      return this.#onerror;
+    }
+
+    set onerror(value) {
+      if (this.#onerror) {
+        this.removeEventListener('error', this.#onerror);
+      }
+
+      this.#onerror = value;
+
+      if (this.#onerror) {
+        this.addEventListener('error', this.#onerror);
+      }
+    }
+
+    #onshow: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onshow() {
+      return this.#onshow;
+    }
+
+    set onshow(value) {
+      if (this.#onshow) {
+        this.removeEventListener('show', this.#onshow);
+      }
+
+      this.#onshow = value;
+
+      if (this.#onshow) {
+        this.addEventListener('show', this.#onshow);
+      }
+    }
+
+    #onaction: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onaction() {
+      return this.#onaction;
+    }
+
+    set onaction(value) {
+      if (this.#onaction) {
+        this.removeEventListener('action', this.#onaction);
+      }
+
+      this.#onaction = value;
+
+      if (this.#onaction) {
+        this.addEventListener('action', this.#onaction);
+      }
+    }
+
+    requireInteraction = false;
+
+    silent = false;
+
+    tag = '';
+
+    timestamp: number = Date.now();
+
+    title = '';
+
+    vibrate: readonly number[] = [];
+
+    private handleEvent = ({
+      type,
+      detail,
+    }: {
+      type: string;
+      detail: unknown;
+    }): void => {
+      const mainWorldEvent = new CustomEvent(type, { detail });
+
+      const isReplyEvent = (
+        type: string,
+        detail: unknown
+      ): detail is { reply: string } =>
+        type === 'reply' &&
+        typeof detail === 'object' &&
+        detail !== null &&
+        'reply' in detail &&
+        typeof (detail as { reply: string }).reply === 'string';
+
+      if (isReplyEvent(type, detail)) {
+        (mainWorldEvent as any).response = detail.reply;
+      }
+
+      if (type === 'action') {
+        (mainWorldEvent as any).action = resolveNotificationAction(
+          this.actions,
+          detail
+        );
+      }
+      this.dispatchEvent(mainWorldEvent);
+    };
+
+    close(): void {
+      if (!this.#destroy) {
+        return;
+      }
+
+      this.#destroy?.then((destroy) => {
+        this.#destroy = undefined;
+        destroy();
+      });
+    }
+  };
+};
+
+installDesktopNotification();
 
 start().catch((error) => {
   console.error('[Rocket.Chat Desktop] Injected.ts failed to start:', error);

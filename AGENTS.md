@@ -358,6 +358,26 @@ git fetch origin dev
 git worktree add ../Rocket.Chat.Electron-worktrees/feature-name -b new-branch origin/dev
 ```
 
+### One Task, One Worktree, One PR
+
+This rule applies to every task, and most of all to long agent loops (for
+example the awesomeness loop). It keeps each change small enough to review
+alone.
+
+- Do each task in its own worktree, on its own branch, from a freshly fetched
+  `origin/dev`. A task is one Jira ticket or one GitHub issue.
+- Name the branch `<type>/<KEY-or-issue>-<slug>`. Examples:
+  `fix/CORE-2785-tray-tooltip`, `fix/2644-download-folder`.
+- Open one PR for each task. Do not put two tasks in one PR.
+- Put a follow-up for a task (a review comment, a CI failure, a missed case)
+  on the same branch and PR.
+- A loop branch (`awesomeness/<date>`) holds only the loop journal and loop
+  chores. Do not commit product changes to it, and do not push it.
+- Run the checks for a task (specs, `tsc`, lint, the dev app, VM tests) in
+  that task's worktree. Then each check sees only that task.
+- Remove a task worktree with `git worktree remove` after its PR merges
+  or closes.
+
 ### Working Principles
 
 - **Understand before you change.** Find out WHY the code is written that way.

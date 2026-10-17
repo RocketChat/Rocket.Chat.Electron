@@ -74,4 +74,47 @@ describe('servers/fetch-info', () => {
     expect(effectiveUrl).toStrictEqual('http://localhost:3000/subdir/');
     expect(version).toStrictEqual(serverVersion);
   });
+
+  describe('with credentials in the URL', () => {
+    it('does not send the credentials inside the request URL', async () => {
+      await fetchInfo('http://user:pass@localhost:3000/');
+
+      const requestedUrls = (global.fetch as jest.Mock).mock.calls.map(
+        ([input]) => String(input)
+      );
+      expect(requestedUrls).toStrictEqual([
+        'http://localhost:3000/',
+        'http://localhost:3000/api/info',
+      ]);
+    });
+
+    it('sends the credentials as a Basic authorization header', async () => {
+      await fetchInfo('http://user:pass@localhost:3000/');
+
+      for (const [, init] of (global.fetch as jest.Mock).mock.calls) {
+        expect(new Headers(init?.headers).get('Authorization')).toBe(
+          `Basic ${btoa('user:pass')}`
+        );
+      }
+    });
+
+    it('keeps the credentials in the resolved URL', async () => {
+      const [effectiveUrl, version] = await fetchInfo(
+        'http://user:pass@localhost:3000/redirect'
+      );
+      expect(effectiveUrl).toStrictEqual(
+        'http://user:pass@localhost:3000/subdir/'
+      );
+      expect(version).toStrictEqual(serverVersion);
+    });
+
+    it('does not move the credentials to a redirect on another host', async () => {
+      redirects['http://localhost:3000/elsewhere'] = 'http://other.host/';
+
+      const [effectiveUrl] = await fetchInfo(
+        'http://user:pass@localhost:3000/elsewhere'
+      );
+      expect(effectiveUrl).toStrictEqual('http://other.host/');
+    });
+  });
 });

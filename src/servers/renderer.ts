@@ -14,7 +14,13 @@ export const fetchInfo = async (
 ): Promise<[urlHref: string, version: string]> => {
   const url = new URL(urlHref);
 
-  const { username, password } = url;
+  // Chromium's fetch rejects a URL that includes credentials, so they travel
+  // as a Basic header and come back into the resolved URL for the login
+  // handler (src/navigation/main.ts).
+  const { username, password, host } = url;
+  url.username = '';
+  url.password = '';
+
   const headers = new Headers();
 
   if (username && password) {
@@ -28,8 +34,11 @@ export const fetchInfo = async (
   }
 
   const endpoint = new URL('api/info', homeResponse.url);
+  const isSameHost = endpoint.host === host;
 
-  const apiInfoResponse = await fetch(endpoint.href, { headers });
+  const apiInfoResponse = await fetch(endpoint.href, {
+    headers: isSameHost ? headers : undefined,
+  });
 
   if (!apiInfoResponse.ok) {
     throw new Error(apiInfoResponse.statusText);
@@ -44,7 +53,14 @@ export const fetchInfo = async (
     throw new Error();
   }
 
-  return [new URL('..', apiInfoResponse.url).href, responseBody.version];
+  const resolvedUrl = new URL('..', apiInfoResponse.url);
+
+  if (resolvedUrl.host === host) {
+    resolvedUrl.username = username;
+    resolvedUrl.password = password;
+  }
+
+  return [resolvedUrl.href, responseBody.version];
 };
 
 type RootWindowIconParams = {

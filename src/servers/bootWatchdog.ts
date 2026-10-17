@@ -6,6 +6,7 @@ import type { WebContents } from 'electron';
 
 import { listen } from '../store';
 import { WEBVIEW_SERVER_VERSION_UPDATED } from '../ui/actions';
+import { redactServerUrl } from './common';
 
 const BOOT_DEADLINE_MS = 90_000;
 const CONSOLE_BUFFER_LIMIT = 150;
@@ -148,7 +149,7 @@ const writeReport = async (
   const report = {
     ts: now(),
     reason,
-    serverUrl,
+    serverUrl: redactServerUrl(serverUrl),
     appVersion: app.getVersion(),
     electronVersion: process.versions.electron,
     pageUrl: destroyed ? undefined : webContents.getURL(),
@@ -167,7 +168,7 @@ const writeReport = async (
       `${JSON.stringify(report)}\n`
     );
     console.warn(
-      `[bootWatchdog] ${reason} for ${serverUrl} — report appended to ${reportFilePath()}`
+      `[bootWatchdog] ${reason} for ${redactServerUrl(serverUrl)} — report appended to ${reportFilePath()}`
     );
   } catch (error) {
     console.error('[bootWatchdog] failed to write report:', error);

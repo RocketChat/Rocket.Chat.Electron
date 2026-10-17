@@ -1,5 +1,6 @@
 import {
   getServerLoadUrl,
+  redactServerUrl,
   isConferencePageUrl,
   isServerUrlResolutionResult,
   ServerUrlResolutionStatus,
@@ -142,6 +143,14 @@ describe('servers/common', () => {
 
     it('returns a value that is not a URL unchanged', () => {
       expect(getServerLoadUrl('not a url')).toBe('not a url');
+    });
+  });
+
+  describe('redactServerUrl', () => {
+    it('removes the password of a workspace URL for logs', () => {
+      expect(redactServerUrl('https://user:secret@chat.example.com/')).toBe(
+        'https://chat.example.com/'
+      );
     });
   });
 });

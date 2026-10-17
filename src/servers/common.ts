@@ -93,6 +93,9 @@ export const getServerLoadUrl = (serverUrl: Server['url']): string => {
   }
 };
 
+// Logs and reports must not hold the password of a credentialed workspace URL.
+export const redactServerUrl = getServerLoadUrl;
+
 export const enum ServerUrlResolutionStatus {
   OK = 'ok',
   INVALID_URL = 'invalid-url',

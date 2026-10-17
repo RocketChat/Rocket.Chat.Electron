@@ -116,5 +116,30 @@ describe('servers/fetch-info', () => {
       );
       expect(effectiveUrl).toStrictEqual('http://other.host/');
     });
+
+    it('decodes percent-encoded credentials for the Basic header', async () => {
+      const [effectiveUrl] = await fetchInfo(
+        'http://user:p%40ss@localhost:3000/'
+      );
+
+      for (const [, init] of (global.fetch as jest.Mock).mock.calls) {
+        expect(new Headers(init?.headers).get('Authorization')).toBe(
+          `Basic ${btoa('user:p@ss')}`
+        );
+      }
+      expect(effectiveUrl).toStrictEqual('http://user:p%40ss@localhost:3000/');
+    });
+
+    it('does not send the credentials to a redirect from HTTPS to HTTP', async () => {
+      redirects['https://chat.example.com/'] = 'http://chat.example.com/';
+
+      const [effectiveUrl] = await fetchInfo(
+        'https://user:pass@chat.example.com/'
+      );
+
+      const [, apiInfoInit] = (global.fetch as jest.Mock).mock.calls[1];
+      expect(new Headers(apiInfoInit?.headers).get('Authorization')).toBeNull();
+      expect(effectiveUrl).toStrictEqual('http://chat.example.com/');
+    });
   });
 });

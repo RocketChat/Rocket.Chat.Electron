@@ -9,6 +9,16 @@ import { ROOT_WINDOW_ICON_CHANGED } from '../ui/actions';
 import Badge from '../ui/icons/Badge';
 import type { Server } from './common';
 
+// URL userinfo is percent-encoded (`p%40ss`), and the Basic header needs the
+// raw value (`p@ss`).
+const decodeUserInfo = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 export const fetchInfo = async (
   urlHref: string
 ): Promise<[urlHref: string, version: string]> => {
@@ -17,14 +27,17 @@ export const fetchInfo = async (
   // Chromium's fetch rejects a URL that includes credentials, so they travel
   // as a Basic header and come back into the resolved URL for the login
   // handler (src/navigation/main.ts).
-  const { username, password, host } = url;
+  const { username, password, origin } = url;
   url.username = '';
   url.password = '';
 
   const headers = new Headers();
 
   if (username && password) {
-    headers.append('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
+    headers.append(
+      'Authorization',
+      `Basic ${btoa(`${decodeUserInfo(username)}:${decodeUserInfo(password)}`)}`
+    );
   }
 
   const homeResponse = await fetch(url.href, { headers });
@@ -34,10 +47,12 @@ export const fetchInfo = async (
   }
 
   const endpoint = new URL('api/info', homeResponse.url);
-  const isSameHost = endpoint.host === host;
+  // An origin check, not a host check: a redirect from HTTPS to HTTP on the
+  // same host must not get the credentials.
+  const isSameOrigin = endpoint.origin === origin;
 
   const apiInfoResponse = await fetch(endpoint.href, {
-    headers: isSameHost ? headers : undefined,
+    headers: isSameOrigin ? headers : undefined,
   });
 
   if (!apiInfoResponse.ok) {
@@ -55,7 +70,7 @@ export const fetchInfo = async (
 
   const resolvedUrl = new URL('..', apiInfoResponse.url);
 
-  if (resolvedUrl.host === host) {
+  if (resolvedUrl.origin === origin) {
     resolvedUrl.username = username;
     resolvedUrl.password = password;
   }

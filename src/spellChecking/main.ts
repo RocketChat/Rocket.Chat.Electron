@@ -22,10 +22,17 @@ const setSpellCheckerLanguages = async (
   });
 };
 
+// A server session can outlive its webview: Electron reuses it for the next
+// webview of the same partition and does not emit session-created again.
+const createdSessions = new Set<Session>();
+
 const setSpellCheckerEnabled = async (enabled: boolean): Promise<void> => {
   await app.whenReady();
 
-  const sessions = new Set<Session>([session.defaultSession]);
+  const sessions = new Set<Session>([
+    session.defaultSession,
+    ...createdSessions,
+  ]);
   webContents.getAllWebContents().forEach((webContents) => {
     sessions.add(webContents.session);
   });
@@ -40,6 +47,7 @@ export const setupSpellChecking = async (): Promise<void> => {
   // Each server webview has its own persist:<url> partition, so a session
   // created after the toggle must copy the on/off state of the default one.
   app.on('session-created', (createdSession) => {
+    createdSessions.add(createdSession);
     createdSession.setSpellCheckerEnabled(
       session.defaultSession.isSpellCheckerEnabled()
     );

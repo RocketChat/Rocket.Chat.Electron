@@ -9,16 +9,32 @@
 !endif
 
 !ifdef BUILD_UNINSTALLER
-  Function un.AddAppData
-    RMDir /r "$APPDATA\Rocket.Chat"
-  FunctionEnd
-
   ; Using the read me setting to add option to remove app data
   !define MUI_FINISHPAGE_SHOWREADME
   !define MUI_FINISHPAGE_SHOWREADME_TEXT "Remove user data"
   !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
   !define MUI_FINISHPAGE_SHOWREADME_FUNCTION un.AddAppData
 !endif
+
+; electron-builder reads this file before LogicLib and $installMode exist, so
+; the function lives in customHeader, which it inserts after both.
+!macro customHeader
+  !ifdef BUILD_UNINSTALLER
+    Function un.AddAppData
+      ; Electron keeps user data per user, also for a per-machine install,
+      ; where the uninstaller's $APPDATA points to ProgramData.
+      ${if} $installMode == "all"
+        SetShellVarContext current
+      ${endif}
+      RMDir /r "$APPDATA\${APP_FILENAME}"
+      ; The installer copy and the downloaded updates of electron-updater.
+      RMDir /r "$LOCALAPPDATA\${APP_PACKAGE_NAME}-updater"
+      ${if} $installMode == "all"
+        SetShellVarContext all
+      ${endif}
+    FunctionEnd
+  !endif
+!macroend
 
 !macro customInstall
   ; Remove dangling reference of version 2.13.1

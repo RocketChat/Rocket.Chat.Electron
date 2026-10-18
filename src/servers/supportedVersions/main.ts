@@ -201,6 +201,26 @@ const getServerInfo = async (url: string): Promise<ServerInfo> => {
   return response.data;
 };
 
+// An axios error keeps the request config, and its URL can hold the
+// workspace credentials. Log only the status or the error code.
+const describeRequestError = (error: unknown): string => {
+  if (typeof error !== 'object' || error === null) {
+    return 'unknown error';
+  }
+  const { response, code, name } = error as {
+    response?: { status?: unknown };
+    code?: unknown;
+    name?: unknown;
+  };
+  if (typeof response?.status === 'number') {
+    return `HTTP ${response.status}`;
+  }
+  if (typeof code === 'string') {
+    return code;
+  }
+  return typeof name === 'string' ? name : 'unknown error';
+};
+
 const getUniqueId = async (
   url: string,
   version: string
@@ -225,8 +245,7 @@ const getUniqueId = async (
     return value;
   } catch (error) {
     console.warn(
-      `Error fetching unique ID for server ${redactServerUrl(url)}:`,
-      error
+      `Error fetching unique ID for server ${redactServerUrl(url)}: ${describeRequestError(error)}`
     );
     return null;
   }

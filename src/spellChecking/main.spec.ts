@@ -164,6 +164,25 @@ describe('setupSpellChecking', () => {
     expect(idleSession.setSpellCheckerEnabled).toHaveBeenCalledWith(false);
   });
 
+  it('changes the languages of a server session that has no webContents at the moment', async () => {
+    (webContents.getAllWebContents as jest.Mock).mockReturnValue([]);
+    await setupSpellChecking();
+
+    const onSessionCreated = (app.on as jest.Mock).mock.calls.find(
+      ([event]) => event === 'session-created'
+    )?.[1];
+    const idleSession = createSession();
+    onSessionCreated(idleSession);
+
+    getListener(SPELL_CHECKING_LANGUAGE_TOGGLED)({
+      type: SPELL_CHECKING_LANGUAGE_TOGGLED,
+      payload: { name: 'en-US', enabled: false },
+    });
+    await flush();
+
+    expect(idleSession.setSpellCheckerLanguages).toHaveBeenLastCalledWith([]);
+  });
+
   it('applies the current on/off state to sessions created later', async () => {
     (session.defaultSession.isSpellCheckerEnabled as jest.Mock).mockReturnValue(
       false

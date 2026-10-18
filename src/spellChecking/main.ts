@@ -7,6 +7,10 @@ import {
   SPELL_CHECKING_TOGGLED,
 } from './actions';
 
+// A server session can outlive its webview: Electron reuses it for the next
+// webview of the same partition and does not emit session-created again.
+const createdSessions = new Set<Session>();
+
 const setSpellCheckerLanguages = async (
   languages: Set<string>
 ): Promise<void> => {
@@ -16,7 +20,10 @@ const setSpellCheckerLanguages = async (
     session.defaultSession.availableSpellCheckerLanguages.includes(language)
   );
 
-  const sessions = new Set<Session>([session.defaultSession]);
+  const sessions = new Set<Session>([
+    session.defaultSession,
+    ...createdSessions,
+  ]);
   webContents.getAllWebContents().forEach((webContents) => {
     sessions.add(webContents.session);
   });
@@ -30,10 +37,6 @@ const setSpellCheckerLanguages = async (
     }
   });
 };
-
-// A server session can outlive its webview: Electron reuses it for the next
-// webview of the same partition and does not emit session-created again.
-const createdSessions = new Set<Session>();
 
 const setSpellCheckerEnabled = async (enabled: boolean): Promise<void> => {
   await app.whenReady();

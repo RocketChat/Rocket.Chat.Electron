@@ -30,4 +30,16 @@ describe('Linux desktop entry', () => {
     // ("Rocket.Chat"), which no longer matches and hides the dock icon.
     expect(electronBuilder.linux.desktop.entry.StartupWMClass).toBe(wmClass);
   });
+
+  it('gives Electron the desktop file name that the deb and rpm packages install', () => {
+    const packageJson = readJson('package.json');
+    const electronBuilder = readJson('electron-builder.json');
+
+    // electron-builder installs the deb and rpm entry as
+    // `<linux.executableName>.desktop`. On Wayland the window app_id is the
+    // Electron desktop name, and it must match that file name.
+    const installedDesktopFile = `${electronBuilder.linux.executableName}.desktop`;
+
+    expect(packageJson.desktopName).toBe(installedDesktopFile);
+  });
 });

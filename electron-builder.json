@@ -134,7 +134,7 @@
         "Name": "Rocket.Chat",
         "Comment": "Official Rocket.Chat Desktop Client",
         "GenericName": "Rocket.Chat",
-        "StartupWMClass": "rocket-chat",
+        "StartupWMClass": "rocketchat-desktop",
         "Categories": "GNOME;GTK;Network;InstantMessaging",
         "MimeType": "x-scheme-handler/rocketchat;x-scheme-handler/callto;x-scheme-handler/tel;"
       }

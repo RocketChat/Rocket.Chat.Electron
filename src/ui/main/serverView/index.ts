@@ -513,7 +513,7 @@ const initializeServerWebContentsAfterAttach = (
   watchStuckNavigation(guestWebContents, serverUrl, {
     onStuck: (reason, isUnreachable) => {
       loggers.servers.warn(
-        `Server view is stuck loading (${reason}): ${serverUrl}`
+        `Server view is stuck loading (${reason}): ${redactServerUrl(serverUrl)}`
       );
       if (!isServerStillAdded()) {
         return;
@@ -528,7 +528,9 @@ const initializeServerWebContentsAfterAttach = (
     },
     onHeld: () => {
       loggers.servers.warn(
-        `Server view is held loading although the server answers, loading it again: ${serverUrl}`
+        `Server view is held loading although the server answers, loading it again: ${redactServerUrl(
+          serverUrl
+        )}`
       );
       reloadServerView();
     },

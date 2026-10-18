@@ -33,7 +33,34 @@ jest.mock('electron', () => ({
 const createSession = () => ({
   setSpellCheckerLanguages: jest.fn(),
   setSpellCheckerEnabled: jest.fn(),
+  isSpellCheckerEnabled: jest.fn(() => true),
 });
+
+// On Windows and Linux, Electron's setSpellCheckerLanguages turns spell check
+// on when the list is not empty, and off when it is empty.
+const emulateElectronSession = (
+  target: {
+    setSpellCheckerLanguages: jest.Mock;
+    setSpellCheckerEnabled: jest.Mock;
+    isSpellCheckerEnabled: jest.Mock;
+  },
+  initiallyEnabled: boolean
+) => {
+  let enabled = initiallyEnabled;
+  target.isSpellCheckerEnabled.mockImplementation(() => enabled);
+  target.setSpellCheckerEnabled.mockImplementation((value: boolean) => {
+    enabled = value;
+  });
+  target.setSpellCheckerLanguages.mockImplementation((languages: string[]) => {
+    enabled = languages.length > 0;
+  });
+};
+
+const defaultSessionMock = session.defaultSession as unknown as {
+  setSpellCheckerLanguages: jest.Mock;
+  setSpellCheckerEnabled: jest.Mock;
+  isSpellCheckerEnabled: jest.Mock;
+};
 
 const getListener = (type: string) =>
   (listen as jest.Mock).mock.calls.find(
@@ -45,6 +72,37 @@ const flush = () => new Promise((resolve) => setImmediate(resolve));
 describe('setupSpellChecking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    defaultSessionMock.setSpellCheckerLanguages.mockImplementation(() => {});
+    defaultSessionMock.setSpellCheckerEnabled.mockImplementation(() => {});
+    defaultSessionMock.isSpellCheckerEnabled.mockImplementation(() => true);
+    (webContents.getAllWebContents as jest.Mock).mockReturnValue([]);
+  });
+
+  it('keeps spell check off at startup when the user turned it off', async () => {
+    const serverSession = createSession();
+    emulateElectronSession(defaultSessionMock, false);
+    emulateElectronSession(serverSession, false);
+    (webContents.getAllWebContents as jest.Mock).mockReturnValue([
+      { session: serverSession },
+    ]);
+
+    await setupSpellChecking();
+    await flush();
+
+    expect(defaultSessionMock.setSpellCheckerLanguages).toHaveBeenCalledWith([
+      'en-US',
+    ]);
+    expect(defaultSessionMock.isSpellCheckerEnabled()).toBe(false);
+    expect(serverSession.isSpellCheckerEnabled()).toBe(false);
+  });
+
+  it('keeps spell check on at startup when it was on', async () => {
+    emulateElectronSession(defaultSessionMock, true);
+
+    await setupSpellChecking();
+    await flush();
+
+    expect(defaultSessionMock.isSpellCheckerEnabled()).toBe(true);
   });
 
   it('ignores languages that the session does not support', async () => {

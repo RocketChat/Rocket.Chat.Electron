@@ -16,9 +16,18 @@ const setSpellCheckerLanguages = async (
     session.defaultSession.availableSpellCheckerLanguages.includes(language)
   );
 
-  session.defaultSession.setSpellCheckerLanguages(filteredLanguages);
+  const sessions = new Set<Session>([session.defaultSession]);
   webContents.getAllWebContents().forEach((webContents) => {
-    webContents.session.setSpellCheckerLanguages(filteredLanguages);
+    sessions.add(webContents.session);
+  });
+  sessions.forEach((target) => {
+    // On Windows and Linux, Electron turns spell check on when the language
+    // list is not empty. Keep it off when the user turned it off.
+    const wasEnabled = target.isSpellCheckerEnabled();
+    target.setSpellCheckerLanguages(filteredLanguages);
+    if (!wasEnabled && filteredLanguages.length > 0) {
+      target.setSpellCheckerEnabled(false);
+    }
   });
 };
 

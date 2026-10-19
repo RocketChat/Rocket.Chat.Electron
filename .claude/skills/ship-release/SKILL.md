@@ -377,9 +377,26 @@ lands on `dev` first. NEVER back-merge `master` into `dev`.
    branch (not cherry-picked from `dev`). If so, remind the user to
    forward-port it to `dev` with a small cherry-pick PR. This is the one exception to the
    never-back-merge rule.
-6. Optional (ask): transition linked Jira tickets to Done (desktop tickets:
-   assignee Jean, component Electron) and comment the release URL on shipped
-   PRs.
+6. **Every release, after publish**: move the Jira tickets that the release
+   ships. Do not ask first. The release approval covers this step.
+
+   - A prerelease (alpha, beta) moves each ticket to `Ready for QA`, so QA
+     can test it in that build.
+   - A stable release (also a patch) moves each ticket to `Done`.
+   - The script finds the keys in the commit messages since the previous tag
+     (the previous stable tag for a stable release). It moves tickets forward
+     only and skips each ticket that is already at or past the target.
+
+   ```sh
+   source ~/.claude/skills/jira/jira-env.sh
+   .claude/skills/ship-release/jira-release-sync.py <version>          # dry run
+   .claude/skills/ship-release/jira-release-sync.py <version> --apply
+   ```
+
+   Read the dry run before you apply. If it lists a ticket that the release
+   does not fix (a key quoted in a commit body only as a reference), stop and
+   ask. Put the moved tickets in the Phase 6 report. Optional (ask): comment
+   the release URL on shipped PRs.
 
 ## Failure modes
 

@@ -1,0 +1,19 @@
+src/servers/preload/presence.ts
+  s_6c3ed16cc29ab0::t_c37b66fd5c71f1 5-6,8-15,18-20,23-27,36-48,50-53,63,68-82,102-111,113,116-121,132-138,140-142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a5a7e58eb2e7c38b7492abc283ee5773b6396df9",
+  "prompts": {},
+  "sessions": {
+    "s_6c3ed16cc29ab0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "22e04f78-f6a3-4049-ab45-40472cecafa9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Ricardo Garim <rswarovsky@gmail.com>"
+    }
+  }
+}

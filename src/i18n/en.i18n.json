@@ -461,7 +461,8 @@
       },
       "systemTitleBar": {
         "title": "Use system title bar",
-        "description": "Use the window manager's native title bar and decorations instead of the in-app window controls. Requires a restart to take effect."
+        "description": "Use the window manager's native title bar and decorations instead of the in-app window controls.",
+        "hint": "Requires a restart to take effect."
       },
       "themeAppearance": {
         "title": "Theme",

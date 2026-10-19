@@ -1,5 +1,6 @@
 import { Box, PaletteStyleTag } from '@rocket.chat/fuselage';
-import { useLayoutEffect } from 'react';
+import type { CSSProperties } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
@@ -23,7 +24,28 @@ import { ServerSwitcher } from '../TopBar/ServerSwitcher';
 import { UpdateLabel } from '../TopBar/UpdateLabel';
 import { useShellTheme } from '../hooks/useShellTheme';
 import TooltipProvider from '../utils/TooltipProvider';
-import { GlobalStyles, WindowDragBar } from './styles';
+import {
+  CLIENT_CHROME_CORNER_RADIUS_PX,
+  GlobalStyles,
+  WindowDragBar,
+} from './styles';
+
+const getShellOuterBoxStyle = (
+  usesRounding: boolean,
+  isExpanded: boolean
+): CSSProperties | undefined => {
+  if (!usesRounding) {
+    return undefined;
+  }
+  return {
+    borderRadius: isExpanded ? 0 : CLIENT_CHROME_CORNER_RADIUS_PX,
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    boxShadow: isExpanded
+      ? undefined
+      : 'inset 0 0 0 1px var(--rcx-color-shadow-elevation-border)',
+  };
+};
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
@@ -37,13 +59,28 @@ export const Shell = () => {
     ({ isLinuxSystemTitleBarEnabled }: RootState) =>
       isLinuxSystemTitleBarEnabled
   );
+  const isWindowExpanded = useSelector(
+    ({ rootWindowState }: RootState) =>
+      rootWindowState.maximized || rootWindowState.fullscreen
+  );
 
   const shellTheme = useShellTheme();
 
-  // Whether this Linux window is using the native WM title bar (opt-in).
-  // When false (the default), Linux uses client-side chrome like Windows.
-  const isLinuxNativeFrame =
-    process.platform === 'linux' && isLinuxSystemTitleBarEnabled;
+  // The window frame is set when the BrowserWindow is created and cannot change
+  // dynamically. To keep the shell controls and outer styling matched to the
+  // frame until the next restart, capture whether this Linux window has a native
+  // frame on initial mount.
+  const [isLinuxNativeFrame] = useState(
+    () => process.platform === 'linux' && isLinuxSystemTitleBarEnabled
+  );
+
+  // Linux client chrome uses transparent background, CSS border-radius and
+  // hairline border when not maximized (Windows already gets DWM rounding).
+  const usesLinuxClientChromeRounding =
+    process.platform === 'linux' && !isLinuxNativeFrame;
+
+  const isClientDecorated =
+    process.platform === 'win32' || usesLinuxClientChromeRounding;
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -67,11 +104,15 @@ export const Shell = () => {
         selector=':root'
         // tagId='sidebar-palette'
       />
-      <GlobalStyles isTransparentWindowEnabled={isTransparentWindowEnabled} />
+      <GlobalStyles
+        isTransparentWindowEnabled={isTransparentWindowEnabled}
+        usesLinuxClientChromeRounding={usesLinuxClientChromeRounding}
+      />
       {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
         <WindowDragBar />
       )}
       <Box
+        data-testid='shell-outer-box'
         bg={isTransparentWindowEnabled ? 'transparent' : 'surface-neutral'}
         display='flex'
         flexWrap='nowrap'
@@ -79,9 +120,13 @@ export const Shell = () => {
         width='100%'
         maxWidth='100%'
         flexDirection='column'
+        style={getShellOuterBoxStyle(
+          usesLinuxClientChromeRounding,
+          isWindowExpanded
+        )}
       >
-        {/* Windows: client-side window chrome (min/max/close in-strip). */}
-        {navigationLayout === 'tabs' && process.platform === 'win32' && (
+        {/* Client-decorated tabs (Windows, Linux default): window controls in-strip. */}
+        {navigationLayout === 'tabs' && isClientDecorated && (
           <TabBar
             leadingSlot={
               <>
@@ -93,8 +138,8 @@ export const Shell = () => {
             trailingSlot={<WindowControls />}
           />
         )}
-        {/* macOS tabs: meatball/downloads/update trail (no WindowControls). */}
-        {navigationLayout === 'tabs' && process.platform === 'darwin' && (
+        {/* Native-decorated tabs (macOS traffic lights, Linux system title bar): trailing controls. */}
+        {navigationLayout === 'tabs' && !isClientDecorated && (
           <TabBar
             trailingSlot={
               <>
@@ -105,51 +150,8 @@ export const Shell = () => {
             }
           />
         )}
-        {/* Linux tabs (default client-side chrome): meatball/downloads/update trail + WindowControls. */}
-        {navigationLayout === 'tabs' &&
-          process.platform === 'linux' &&
-          !isLinuxNativeFrame && (
-            <TabBar
-              leadingSlot={
-                <>
-                  <MeatballMenuButton />
-                  <UpdateLabel />
-                  <DownloadsIndicator />
-                </>
-              }
-              trailingSlot={<WindowControls />}
-            />
-          )}
-        {/* Linux tabs (native WM frame): no WindowControls since WM provides them. */}
-        {navigationLayout === 'tabs' &&
-          process.platform === 'linux' &&
-          isLinuxNativeFrame && (
-            <TabBar
-              trailingSlot={
-                <>
-                  <UpdateLabel />
-                  <DownloadsIndicator />
-                  <MeatballMenuButton />
-                </>
-              }
-            />
-          )}
-        {/* macOS non-tabs: WM or macOS handles decorations. */}
-        {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
-          <TopBar
-            centerSlot={
-              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
-            }
-            trailingSlot={
-              <>
-                <UpdateLabel />
-                <DownloadsIndicator compact />
-              </>
-            }
-          />
-        )}
-        {/* Windows non-tabs: client-side TopBar with WindowControls. */}
-        {navigationLayout !== 'tabs' && process.platform === 'win32' && (
+        {/* Client-decorated non-tabs (Windows, Linux default): TopBar with WindowControls. */}
+        {navigationLayout !== 'tabs' && isClientDecorated && (
           <TopBar
             leadingSlot={
               <>
@@ -165,26 +167,21 @@ export const Shell = () => {
             textAlignment='left'
           />
         )}
-        {/* Linux non-tabs (default client-side chrome): TopBar with WindowControls. */}
-        {navigationLayout !== 'tabs' &&
-          process.platform === 'linux' &&
-          !isLinuxNativeFrame && (
-            <TopBar
-              leadingSlot={
-                <>
-                  {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
-                  <UpdateLabel />
-                  <DownloadsIndicator compact />
-                </>
-              }
-              centerSlot={
-                navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
-              }
-              trailingSlot={<WindowControls />}
-              textAlignment='left'
-            />
-          )}
-        {/* Linux non-tabs (native WM frame): no client-side controls; WM provides decorations. */}
+        {/* macOS non-tabs: system traffic lights; trailing update/downloads. */}
+        {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
+          <TopBar
+            centerSlot={
+              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+            }
+            trailingSlot={
+              <>
+                <UpdateLabel />
+                <DownloadsIndicator compact />
+              </>
+            }
+          />
+        )}
+        {/* Linux non-tabs (native WM frame): WM provides decorations; meatball preserved in hidden layout. */}
         {navigationLayout !== 'tabs' &&
           process.platform === 'linux' &&
           isLinuxNativeFrame && (

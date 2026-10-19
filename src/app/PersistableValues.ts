@@ -316,11 +316,4 @@ export const migrations = {
     ...before,
     isNotificationQuickReplyEnabled: true,
   }),
-  '>=4.18.0': (before: PersistableValues_4_17_0): PersistableValues_4_18_0 => ({
-    ...before,
-    isTrayIconUnreadCounterEnabled: false,
-    isMenuBarUnreadCountEnabled: false,
-    uiPreviewHistory: [],
-    isLinuxSystemTitleBarEnabled: false,
-  }),
 };

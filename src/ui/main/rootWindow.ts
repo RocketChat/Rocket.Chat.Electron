@@ -103,6 +103,10 @@ export const createRootWindow = (): void => {
   const titleBarStyle = buildTitleBarStyle();
   const isLinuxSystemTitleBar =
     process.platform === 'linux' && titleBarStyle === 'default';
+  // Linux client chrome is a plain rectangle under most WMs. Transparent + CSS
+  // radius paints soft outer corners. Windows already gets DWM rounding — leave it.
+  const usesLinuxClientChromeRounding =
+    process.platform === 'linux' && !isLinuxSystemTitleBar;
 
   _rootWindow = new BrowserWindow({
     width: 1000,
@@ -120,9 +124,13 @@ export const createRootWindow = (): void => {
           visualEffectState: 'active',
         }
       : {}),
-    // When Linux uses its own WM frame, keep the window opaque so the native
-    // decorations are not affected by any transparency settings.
-    ...(isLinuxSystemTitleBar ? { transparent: false } : {}),
+    ...(usesLinuxClientChromeRounding
+      ? {
+          transparent: true,
+          backgroundColor: '#00000000',
+          hasShadow: true,
+        }
+      : {}),
   });
 
   // Block navigation to smb:// protocol

@@ -1,5 +1,6 @@
 import { Shell } from '.';
-import { renderWithStore, screen } from '../../test-utils';
+import { SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED } from '../../actions';
+import { act, renderWithStore, screen } from '../../test-utils';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -140,14 +141,18 @@ jest.mock('@rocket.chat/fuselage', () => {
 
 jest.mock('./styles', () => ({
   __esModule: true,
+  CLIENT_CHROME_CORNER_RADIUS_PX: 10,
   GlobalStyles: ({
     isTransparentWindowEnabled,
+    usesLinuxClientChromeRounding,
   }: {
     isTransparentWindowEnabled?: boolean;
+    usesLinuxClientChromeRounding?: boolean;
   }) => (
     <div
       data-testid='global-styles'
       data-transparent={String(!!isTransparentWindowEnabled)}
+      data-linux-rounding={String(!!usesLinuxClientChromeRounding)}
     />
   ),
   WindowDragBar: () => <div data-testid='window-drag-bar' />,
@@ -462,6 +467,55 @@ describe('Shell', () => {
       expect(screen.getByTestId('window-controls')).toBeInTheDocument();
       expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
     });
+
+    it('applies client chrome rounding and border shadow when window is not maximized', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          isLinuxSystemTitleBarEnabled: false,
+          rootWindowState: { maximized: false, fullscreen: false },
+        }),
+      });
+
+      expect(screen.getByTestId('global-styles')).toHaveAttribute(
+        'data-linux-rounding',
+        'true'
+      );
+      const outerBox = screen.getByTestId('shell-outer-box');
+      expect(outerBox.style.borderRadius).toBe('10px');
+      expect(outerBox.style.boxShadow).toContain(
+        'var(--rcx-color-shadow-elevation-border)'
+      );
+    });
+
+    it('drops border radius and shadow when maximized', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          isLinuxSystemTitleBarEnabled: false,
+          rootWindowState: { maximized: true, fullscreen: false },
+        }),
+      });
+
+      const outerBox = screen.getByTestId('shell-outer-box');
+      expect(outerBox.style.borderRadius).toBe('0px');
+      expect(outerBox.style.boxShadow).toBe('');
+    });
+
+    it('does not render WindowDragBar under client chrome', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'sidebar',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
+      });
+
+      expect(screen.queryByTestId('window-drag-bar')).not.toBeInTheDocument();
+    });
   });
 
   describe('linux chrome — system title bar opt-in (native WM decorations)', () => {
@@ -525,6 +579,70 @@ describe('Shell', () => {
       expect(
         screen.getByRole('button', { name: 'tabBar.workspaces' })
       ).toBeInTheDocument();
+    });
+
+    it('disables client chrome rounding and does not render WindowDragBar under native frame', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          isLinuxSystemTitleBarEnabled: true,
+          navigationLayout: 'sidebar',
+        }),
+      });
+
+      expect(screen.getByTestId('global-styles')).toHaveAttribute(
+        'data-linux-rounding',
+        'false'
+      );
+      expect(screen.queryByTestId('window-drag-bar')).not.toBeInTheDocument();
+      const outerBox = screen.getByTestId('shell-outer-box');
+      expect(outerBox.style.borderRadius).toBe('');
+      expect(outerBox.style.boxShadow).toBe('');
+    });
+
+    it('keeps shell controls matched to initial frame style when isLinuxSystemTitleBarEnabled is toggled without restart', () => {
+      restorePlatform = setPlatform('linux');
+
+      const { store } = renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
+      });
+
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+
+      act(() => {
+        store.dispatch({
+          type: SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED,
+          payload: true,
+        });
+      });
+
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+    });
+
+    it('keeps native frame styling without shell controls when toggled off without restart', () => {
+      restorePlatform = setPlatform('linux');
+
+      const { store } = renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
+      });
+
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+
+      act(() => {
+        store.dispatch({
+          type: SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED,
+          payload: false,
+        });
+      });
+
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
     });
   });
 

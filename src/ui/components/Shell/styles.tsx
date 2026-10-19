@@ -5,13 +5,15 @@ import { isDarwin } from '../../utils/platform';
 
 type GlobalStylesProps = {
   isTransparentWindowEnabled: boolean;
+  usesLinuxClientChromeRounding?: boolean;
 };
 
 export const GlobalStyles = ({
   isTransparentWindowEnabled,
+  usesLinuxClientChromeRounding = false,
 }: GlobalStylesProps) => {
   const backgroundColor =
-    isDarwin && isTransparentWindowEnabled
+    (isDarwin && isTransparentWindowEnabled) || usesLinuxClientChromeRounding
       ? 'transparent'
       : 'var(--rcx-color-surface-sidebar, #2f343d)';
 
@@ -61,6 +63,9 @@ export const GlobalStyles = ({
     />
   );
 };
+
+/** Outer shell radius for client-decorated windows (not maximized). */
+export const CLIENT_CHROME_CORNER_RADIUS_PX = 10;
 
 export const WindowDragBar = styled.div`
   position: fixed;

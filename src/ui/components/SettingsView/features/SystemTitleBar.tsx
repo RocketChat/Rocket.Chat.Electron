@@ -45,6 +45,7 @@ export const SystemTitleBar = (props: SystemTitleBarProps) => {
       id={id}
       label={t('settings.options.systemTitleBar.title')}
       description={t('settings.options.systemTitleBar.description')}
+      hint={t('settings.options.systemTitleBar.hint')}
       checked={isLinuxSystemTitleBarEnabled}
       onChange={handleChange}
       className={props.className}

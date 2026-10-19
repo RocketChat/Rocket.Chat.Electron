@@ -103,6 +103,7 @@ describe('ui/main/trayIcon', () => {
       isVisible: () => true,
       show: jest.fn(),
       hide: jest.fn(),
+      on: jest.fn(),
     });
     select.mockImplementation((selector: any) => {
       if (typeof selector === 'function') {
@@ -409,6 +410,42 @@ describe('ui/main/trayIcon', () => {
       watchCallbacks.get(selectIsMenuBarUnreadCountEnabled)?.(true);
 
       expect(trayMethods.setTitle).toHaveBeenLastCalledWith('7');
+    });
+  });
+  describe('tray icon click (GH #2535)', () => {
+    const originalPlatform = process.platform;
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', { value: originalPlatform });
+    });
+
+    it('shows and focuses a visible window that another app covers', async () => {
+      Object.defineProperty(process, 'platform', { value: 'win32' });
+      const coveredWindow = {
+        isVisible: () => true,
+        isMinimized: () => false,
+        isFocused: () => false,
+        show: jest.fn(),
+        hide: jest.fn(),
+        focus: jest.fn(),
+        restore: jest.fn(),
+        on: jest.fn(),
+      };
+      getRootWindow.mockResolvedValue(coveredWindow);
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const service = require('./trayIcon').default;
+      service.setUp();
+      await new Promise((r) => setTimeout(r, 20));
+
+      const clickListener = trayMethods.addListener.mock.calls.find(
+        ([event]) => event === 'click'
+      )?.[1];
+      expect(clickListener).toBeDefined();
+      await clickListener();
+
+      expect(coveredWindow.hide).not.toHaveBeenCalled();
+      expect(coveredWindow.show).toHaveBeenCalled();
+      expect(coveredWindow.focus).toHaveBeenCalled();
     });
   });
 });

@@ -1,7 +1,29 @@
-import { ipcRenderer } from 'electron';
 import { useEffect, useState } from 'react';
 
 import { isDarwin, readInitialTransparency } from './appearance';
+
+type WindowWithBridge = {
+  RocketChatDesktop?: {
+    logViewer?: {
+      on: (
+        eventChannel: string,
+        listener: (...args: unknown[]) => void
+      ) => () => void;
+    };
+  };
+  require?: (module: string) => {
+    ipcRenderer?: {
+      on: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+      off: (
+        channel: string,
+        listener: (event: unknown, ...args: unknown[]) => void
+      ) => void;
+    };
+  };
+};
 
 /**
  * Whether the window should let the desktop show through.
@@ -19,14 +41,31 @@ export const useTransparency = (channel: string): boolean => {
   const [isEnabled, setIsEnabled] = useState(readInitialTransparency);
 
   useEffect(() => {
-    const handleChange = (_event: unknown, enabled: boolean): void => {
-      setIsEnabled(Boolean(enabled));
+    const handleChange = (_event: unknown, ...args: unknown[]): void => {
+      setIsEnabled(Boolean(args[0]));
     };
 
-    ipcRenderer.on(channel, handleChange);
-    return () => {
-      ipcRenderer.off(channel, handleChange);
-    };
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    const win = window as unknown as WindowWithBridge;
+
+    const bridge = win.RocketChatDesktop?.logViewer;
+    if (bridge) {
+      return bridge.on(channel, (enabled: unknown) => {
+        handleChange(null, enabled);
+      });
+    }
+
+    const ipcRenderer = win.require?.('electron')?.ipcRenderer;
+    if (ipcRenderer) {
+      ipcRenderer.on(channel, handleChange);
+      return () => {
+        ipcRenderer.off(channel, handleChange);
+      };
+    }
+
+    return undefined;
   }, [channel]);
 
   // Vibrancy only reads as a material on macOS; elsewhere the window is opaque

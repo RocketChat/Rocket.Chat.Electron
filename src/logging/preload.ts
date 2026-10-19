@@ -12,10 +12,27 @@ try {
   let serverTag = '';
   if (processContext === 'renderer:webview' && typeof window !== 'undefined') {
     try {
-      const result = ipcRenderer.sendSync(
-        'log-viewer-window/get-server-tag',
-        window.location?.origin || ''
-      );
+      let result;
+      const bridge = (
+        window as unknown as {
+          RocketChatDesktop?: {
+            logViewer?: {
+              sendSync: (channel: string, ...args: unknown[]) => unknown;
+            };
+          };
+        }
+      ).RocketChatDesktop?.logViewer;
+      if (bridge) {
+        result = bridge.sendSync(
+          'log-viewer-window/get-server-tag',
+          window.location?.origin || ''
+        );
+      } else {
+        result = ipcRenderer.sendSync(
+          'log-viewer-window/get-server-tag',
+          window.location?.origin || ''
+        );
+      }
       if (result) {
         serverTag = ` [${result}]`;
       }

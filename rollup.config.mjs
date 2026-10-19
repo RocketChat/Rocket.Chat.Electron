@@ -527,6 +527,37 @@ export default [
     ],
   },
   {
+    external: makeExternal(['@bugsnag/js']),
+    input: 'src/logViewerWindow/preload.ts',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+      run(),
+    ],
+    output: [
+      {
+        dir: 'app/logViewerWindow',
+        entryFileNames: 'preload.js',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
     external: makeExternal([
       '@bugsnag/js',
       'marked',

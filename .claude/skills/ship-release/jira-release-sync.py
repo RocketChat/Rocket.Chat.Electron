@@ -29,6 +29,7 @@ import urllib.request
 # "CONF-QA-001", which is not the Jira key QA-001.
 KEY_RE = re.compile(r"(?<![\w-])[A-Z][A-Z0-9]+-\d+(?![\w-])")
 QA_OR_LATER = {"ready for qa", "in qa", "qa tested"}
+TIMEOUT_SECONDS = 30
 
 
 def git(*args):
@@ -66,8 +67,11 @@ def jira_config():
         sys.exit(
             "Jira credentials missing. Run: source ~/.claude/skills/jira/jira-env.sh"
         )
+    server = server.rstrip("/")
+    if not server.startswith("https://"):
+        sys.exit(f"Jira server must use https: {server}")
     auth = base64.b64encode(f"{login}:{token}".encode()).decode()
-    return server.rstrip("/"), auth
+    return server, auth
 
 
 def request(server, auth, method, path, body=None):
@@ -81,24 +85,29 @@ def request(server, auth, method, path, body=None):
             "Content-Type": "application/json",
         },
     )
-    with urllib.request.urlopen(req) as res:
+    with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as res:
         data = res.read()
         return json.loads(data) if data else None
 
 
+def error_text(e):
+    return str(e.code) if isinstance(e, urllib.error.HTTPError) else str(e)
+
+
 def plan(issue, transitions, target, stable):
+    """Return (transition, note, ok). ok is False when the ticket cannot move."""
     status = issue["fields"]["status"]
     name = status["name"]
     if status["statusCategory"]["key"] == "done":
-        return None, f"skip: already {name}"
+        return None, f"skip: already {name}", True
     if not stable and name.lower() in QA_OR_LATER:
-        return None, f"skip: already {name}"
+        return None, f"skip: already {name}", True
     match = next(
         (t for t in transitions if t["to"]["name"].lower() == target.lower()), None
     )
     if not match:
-        return None, f"skip: no transition to {target} from {name}"
-    return match, f"{name} -> {match['to']['name']}"
+        return None, f"FAILED: no transition to {target} from {name}", False
+    return match, f"{name} -> {match['to']['name']}", True
 
 
 def main():
@@ -120,10 +129,12 @@ def main():
         try:
             issue = request(server, auth, "GET", f"issue/{key}?fields=status,summary")
             transitions = request(server, auth, "GET", f"issue/{key}/transitions")
-        except urllib.error.HTTPError as e:
-            print(f"{key}: skip: cannot read ({e.code})")
+        except (urllib.error.URLError, TimeoutError) as e:
+            print(f"{key}: FAILED: cannot read ({error_text(e)})")
+            failed = True
             continue
-        transition, note = plan(issue, transitions["transitions"], target, stable)
+        transition, note, ok = plan(issue, transitions["transitions"], target, stable)
+        failed = failed or not ok
         summary = issue["fields"]["summary"][:70]
         if transition and args.apply:
             try:
@@ -135,8 +146,8 @@ def main():
                     {"transition": {"id": transition["id"]}},
                 )
                 note += " (done)"
-            except urllib.error.HTTPError as e:
-                note += f" (FAILED {e.code})"
+            except (urllib.error.URLError, TimeoutError) as e:
+                note += f" (FAILED {error_text(e)})"
                 failed = True
         elif transition:
             note += " (dry run)"

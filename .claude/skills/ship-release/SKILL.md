@@ -395,7 +395,9 @@ lands on `dev` first. NEVER back-merge `master` into `dev`.
 
    Read the dry run before you apply. If it lists a ticket that the release
    does not fix (a key quoted in a commit body only as a reference), stop and
-   ask. Put the moved tickets in the Phase 6 report. Optional (ask): comment
+   ask. A `FAILED` line (Jira cannot read the ticket, or its workflow has no
+   transition to the target) makes the script exit 1. Report each `FAILED`
+   ticket and move it by hand. Put the moved tickets in the Phase 6 report. Optional (ask): comment
    the release URL on shipped PRs.
 
 ## Failure modes

@@ -36,7 +36,8 @@ const selectHasHideOnTrayNotificationShown = ({
 
 const requestPresenceChange = (
   activeServerPresence: ActiveServerPresence,
-  presence: UserPresence
+  presence: UserPresence,
+  customStatusId?: string
 ): void => {
   const server = select(({ servers }: RootState): Server | undefined =>
     servers.find((s) => s.url === activeServerPresence.url)
@@ -47,7 +48,12 @@ const requestPresenceChange = (
   }
 
   const targetWebContents = webContents.fromId(server.webContentsId);
-  targetWebContents?.send(PRESENCE_CHANGE_REQUESTED_CHANNEL, presence);
+  targetWebContents?.send(
+    PRESENCE_CHANGE_REQUESTED_CHANNEL,
+    presence,
+    undefined,
+    customStatusId
+  );
 };
 
 const showRootWindow = async (): Promise<void> => {
@@ -69,6 +75,25 @@ const PRESENCE_OPTIONS: { presence: UserPresence; labelKey: string }[] = [
   { presence: 'offline', labelKey: 'tray.presence.offline' },
 ];
 
+const formatStatusExpiration = (expiresAt: string): string | undefined => {
+  const date = new Date(expiresAt);
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  if (date.toDateString() === new Date().toDateString()) {
+    return date.toLocaleTimeString(i18next.language, {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  return date.toLocaleString(i18next.language, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+};
+
 const buildPresenceMenuItems = (
   activeServerPresence: ActiveServerPresence
 ): MenuItemConstructorOptions[] => {
@@ -77,6 +102,9 @@ const buildPresenceMenuItems = (
     title,
     presence,
     statusText,
+    statusExpiresAt,
+    availableStatuses,
+    customStatuses,
     connection,
     supported,
     loggedIn,
@@ -121,18 +149,42 @@ const buildPresenceMenuItems = (
     connection === 'disconnected' || connection === 'connecting';
   const isConnected = !isDisconnected;
 
-  const submenu: MenuItemConstructorOptions[] = PRESENCE_OPTIONS.map(
+  const options = availableStatuses
+    ? PRESENCE_OPTIONS.filter((option) =>
+        availableStatuses.includes(option.presence)
+      )
+    : PRESENCE_OPTIONS;
+
+  const submenu: MenuItemConstructorOptions[] = options.map(
     ({ presence: optionPresence, labelKey }) => ({
       label: t(labelKey),
       icon: nativeImage.createFromPath(getPresenceMenuIconPath(optionPresence)),
       type: 'radio',
-      checked: presence === optionPresence,
+      checked: !statusText && !statusExpiresAt && presence === optionPresence,
       enabled: isConnected,
       click: () => {
         requestPresenceChange(activeServerPresence, optionPresence);
       },
     })
   );
+
+  if (customStatuses?.length) {
+    submenu.push(
+      { type: 'separator' },
+      ...customStatuses.map(
+        ({ id, name, status }): MenuItemConstructorOptions => ({
+          label: name,
+          icon: nativeImage.createFromPath(getPresenceMenuIconPath(status)),
+          type: 'radio',
+          checked: statusText === name,
+          enabled: isConnected,
+          click: () => {
+            requestPresenceChange(activeServerPresence, status, id);
+          },
+        })
+      )
+    );
+  }
 
   const currentOption = PRESENCE_OPTIONS.find(
     (option) => option.presence === presence
@@ -148,7 +200,7 @@ const buildPresenceMenuItems = (
           getPresenceMenuIconPath(currentOption.presence)
         ),
       }),
-      submenu,
+      ...(submenu.length > 0 ? { submenu } : { enabled: false }),
     },
   ];
 
@@ -162,6 +214,16 @@ const buildPresenceMenuItems = (
   if (statusText) {
     items.push({
       label: statusText,
+      enabled: false,
+    });
+  }
+
+  const expiration = statusExpiresAt
+    ? formatStatusExpiration(statusExpiresAt)
+    : undefined;
+  if (expiration) {
+    items.push({
+      label: t('tray.presence.expiresAt', { time: expiration }),
       enabled: false,
     });
   }

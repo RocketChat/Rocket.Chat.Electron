@@ -57,6 +57,9 @@ export type ActiveServerPresence = {
   title?: string;
   presence?: UserPresence;
   statusText?: string;
+  statusExpiresAt?: string;
+  availableStatuses?: UserPresence[];
+  customStatuses?: Server['presenceCustomStatuses'];
   connection?: 'connected' | 'connecting' | 'disconnected';
   supported?: boolean;
   loggedIn?: boolean;
@@ -104,6 +107,9 @@ export const selectActiveServerPresence = createSelector(
       title: activeServer.title,
       presence: activeServer.presence,
       statusText: activeServer.presenceStatusText,
+      statusExpiresAt: activeServer.presenceStatusExpiresAt,
+      availableStatuses: activeServer.presenceAvailableStatuses,
+      customStatuses: activeServer.presenceCustomStatuses,
       connection: isPresenceDisconnectionSimulated
         ? 'disconnected'
         : activeServer.presenceConnection,

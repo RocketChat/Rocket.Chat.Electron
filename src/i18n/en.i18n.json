@@ -738,7 +738,8 @@
       "offline": "Offline",
       "disconnected": "Disconnected — trying to reconnect...",
       "signIn": "Sign in to {{- workspace}}",
-      "addWorkspace": "Add workspace"
+      "addWorkspace": "Add workspace",
+      "expiresAt": "Until {{- time}}"
     }
   },
   "taskbar": {

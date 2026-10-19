@@ -55,6 +55,13 @@ type ActiveServerPresence = {
   title?: string;
   presence?: 'online' | 'away' | 'busy' | 'offline';
   statusText?: string;
+  statusExpiresAt?: string;
+  availableStatuses?: ('online' | 'away' | 'busy' | 'offline')[];
+  customStatuses?: {
+    id: string;
+    name: string;
+    status: 'online' | 'away' | 'busy' | 'offline';
+  }[];
   connection?: 'connected' | 'connecting' | 'disconnected';
   supported?: boolean;
   loggedIn?: boolean;
@@ -379,5 +386,94 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
     const radios = template.filter((item) => item.type === 'radio');
     expect(radios).toHaveLength(0);
     expect(findItem(template, 'tray.presence.signIn:My Server')).toBeDefined();
+  });
+
+  describe('with presence reported by the web client', () => {
+    const connectedPresence = {
+      hasServers: true,
+      url: 'https://server.test',
+      connection: 'connected' as const,
+      loggedIn: true,
+      supported: true,
+    };
+
+    it('offers only the statuses the user can select', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'online',
+          availableStatuses: ['online', 'away', 'busy'],
+        })
+      );
+
+      const rootItem = findPresenceRootItem(template);
+      expect(rootItem.submenu.map((item: any) => item.label)).toEqual([
+        'tray.presence.online',
+        'tray.presence.away',
+        'tray.presence.busy',
+      ]);
+    });
+
+    it('marks the active custom status, not a preset, and shows when it ends', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'busy',
+          statusText: 'In a meeting',
+          statusExpiresAt: '2026-10-19T18:00:00.000Z',
+          customStatuses: [
+            { id: 'meeting', name: 'In a meeting', status: 'busy' },
+            { id: 'lunch', name: 'Lunch', status: 'away' },
+          ],
+        })
+      );
+
+      const { submenu } = findPresenceRootItem(template);
+      expect(submenu.slice(0, 4).some((item: any) => item.checked)).toBe(false);
+      expect(findItem(template, 'tray.presence.expiresAt')).toMatchObject({
+        enabled: false,
+      });
+
+      const customItems = submenu.slice(-2);
+      expect(customItems).toMatchObject([
+        { label: 'In a meeting', type: 'radio', checked: true },
+        { label: 'Lunch', type: 'radio', checked: false },
+      ]);
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { select } = require('../../store');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { webContents } = require('electron');
+      const send = jest.fn();
+      select.mockReturnValueOnce({
+        url: 'https://server.test',
+        webContentsId: 7,
+      });
+      webContents.fromId.mockReturnValueOnce({ send });
+
+      customItems[1].click();
+
+      expect(send).toHaveBeenCalledWith(
+        'presence/change-requested',
+        'away',
+        undefined,
+        'lunch'
+      );
+    });
+
+    it('disables the status item when no status can be selected', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'online',
+          availableStatuses: [],
+        })
+      );
+
+      expect(findPresenceRootItem(template)).toBeUndefined();
+      expect(findItem(template, 'tray.presence.online')).toMatchObject({
+        enabled: false,
+      });
+    });
   });
 });

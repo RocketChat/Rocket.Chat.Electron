@@ -37,7 +37,17 @@ import {
 } from './internalVideoChatWindow';
 import { onNavigateToRoute } from './navigateToRoute';
 import { openInBrowser } from './openInBrowser';
-import { onPresenceChangeRequested, setUserPresence } from './presence';
+import type {
+  DesktopUserPresence,
+  DesktopUserStatusChangeRequest,
+} from './presence';
+import {
+  onPresenceChangeRequested,
+  onUserPresenceStateReported,
+  setUserPresence,
+  setUserPresenceState,
+  setUserStatusChangeHandler,
+} from './presence';
 import { reloadServer } from './reloadServer';
 import {
   setBackground,
@@ -104,6 +114,11 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
       statusText?: string
     ) => void
   ) => void;
+  setUserPresenceState: (presence: DesktopUserPresence) => void;
+  onUserPresenceStateReported: (callback: () => void) => void;
+  setUserStatusChangeHandler: (
+    handler: (request: DesktopUserStatusChangeRequest) => Promise<void>
+  ) => void;
   reportMediaCapture: (state: MediaCaptureState) => void;
 };
 
@@ -138,6 +153,9 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserRoles,
   setUserPresence,
   onPresenceChangeRequested,
+  setUserPresenceState,
+  onUserPresenceStateReported,
+  setUserStatusChangeHandler,
   reportMediaCapture,
   setUserThemeAppearance,
   createNotification,

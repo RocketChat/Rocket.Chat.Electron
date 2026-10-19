@@ -297,6 +297,9 @@ export type UiActionTypeToPayloadMap = {
     presenceStatusText: Server['presenceStatusText'];
     presenceConnection: Server['presenceConnection'];
     presenceSupported: Server['presenceSupported'];
+    presenceStatusExpiresAt?: Server['presenceStatusExpiresAt'];
+    presenceAvailableStatuses?: Server['presenceAvailableStatuses'];
+    presenceCustomStatuses?: Server['presenceCustomStatuses'];
   };
   [WEBVIEW_GIT_COMMIT_HASH_CHECK]: {
     url: Server['url'];

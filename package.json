@@ -51,7 +51,8 @@
     ".:lint-fix:eslint": "eslint --fix .",
     "workspaces:build": "yarn workspaces foreach -At run build",
     "release:tag": "ts-node -O '{\"module\":\"commonjs\"}' scripts/release-tag.ts",
-    "release:tag:win": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/release-tag.ts"
+    "release:tag:win": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/release-tag.ts",
+    "probe:web-signals": "ts-node -O '{\"module\":\"commonjs\"}' scripts/web-signals-probe.ts"
   },
   "dependencies": {
     "@bugsnag/js": "~8.8.1",

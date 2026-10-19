@@ -1,4 +1,15 @@
 {
+  "dialog": {
+    "uiOverride": {
+      "title": "Last inn forhåndsvisning av grensesnitt",
+      "message": "Laste inn et annet nettgrensesnitt for «{{- host}}»?",
+      "detail": "Grensesnittet lastes inn fra {{- bundle}} og kjører med økten din på denne serveren. Fortsett bare hvis du stoler på denne builden. Bruk View > Gjenopprett serverens grensesnitt eller start appen på nytt for å gå tilbake.",
+      "load": "Last inn grensesnitt",
+      "cancel": "Avbryt",
+      "developerModeRequired": "Slå på Help > Developer Mode for å laste inn forhåndsvisninger av grensesnitt.",
+      "failed": "Forhåndsvisningen av grensesnittet kunne ikke lastes inn."
+    }
+  },
   "documentViewer": {
     "title": {
       "pdf": "PDF-visning",
@@ -7,10 +18,22 @@
     "back": "Tilbake"
   },
   "settings": {
+    "sections": {
+      "uiPreview": "Forhåndsvisning av nettgrensesnitt"
+    },
     "options": {
       "resetWindowBounds": {
         "title": "Tilbakestill vindusstørrelser og -posisjoner",
         "description": "Glemmer hvor appen og vinduene dens var plassert. Hvert vindu åpnes i standardstørrelse, sentrert, neste gang det vises."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Uleste-teller i systemstatusikonet",
+        "titleDarwin": "Uleste-indikator i menylinjeikonet",
+        "description": "Vis merket for uleste meldinger på ikonet i stedet for tilstedeværelsesstatusen din."
+      },
+      "menuBarUnreadCount": {
+        "title": "Antall uleste i menylinjen",
+        "description": "Vis antall uleste omtaler ved siden av ikonet i menylinjen."
       },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
@@ -22,15 +45,6 @@
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"
-      },
-      "trayIconUnreadCounter": {
-        "title": "Uleste-teller i systemstatusikonet",
-        "titleDarwin": "Uleste-indikator i menylinjeikonet",
-        "description": "Vis merket for uleste meldinger på ikonet i stedet for tilstedeværelsesstatusen din."
-      },
-      "menuBarUnreadCount": {
-        "title": "Antall uleste i menylinjen",
-        "description": "Vis antall uleste omtaler ved siden av ikonet i menylinjen."
       },
       "uiPreview": {
         "title": "Last inn en build av nettgrensesnittet",
@@ -60,9 +74,31 @@
           "closed": "Lukket"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Forhåndsvisning av nettgrensesnitt"
+    }
+  },
+  "menus": {
+    "simulateDisconnected": "Simuler frakobling",
+    "resetWindowBounds": "Tilbakestill vindusstørrelser og -posisjoner",
+    "restoreServerUi": "Gjenopprett serverens grensesnitt"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Oppdater forhåndsvisning av grensesnitt"
+    }
+  },
+  "tabBar": {
+    "uiPreview": "Forhåndsvisning av grensesnitt: {{- label}}"
+  },
+  "tray": {
+    "presence": {
+      "status": "Status",
+      "online": "Pålogget",
+      "away": "Borte",
+      "busy": "Opptatt",
+      "offline": "Frakoblet",
+      "disconnected": "Frakoblet — prøver å koble til på nytt...",
+      "signIn": "Logg på {{- workspace}}",
+      "addWorkspace": "Legg til arbeidsområde"
     }
   },
   "serverInfo": {
@@ -90,41 +126,5 @@
       "label": "Utløpsdato:",
       "expiresOn": "Utløper {{date}}"
     }
-  },
-  "menus": {
-    "simulateDisconnected": "Simuler frakobling",
-    "resetWindowBounds": "Tilbakestill vindusstørrelser og -posisjoner",
-    "restoreServerUi": "Gjenopprett serverens grensesnitt"
-  },
-  "sidebar": {
-    "item": {
-      "updateUiPreview": "Oppdater forhåndsvisning av grensesnitt"
-    }
-  },
-  "tray": {
-    "presence": {
-      "status": "Status",
-      "online": "Pålogget",
-      "away": "Borte",
-      "busy": "Opptatt",
-      "offline": "Frakoblet",
-      "disconnected": "Frakoblet — prøver å koble til på nytt...",
-      "signIn": "Logg på {{- workspace}}",
-      "addWorkspace": "Legg til arbeidsområde"
-    }
-  },
-  "dialog": {
-    "uiOverride": {
-      "title": "Last inn forhåndsvisning av grensesnitt",
-      "message": "Laste inn et annet nettgrensesnitt for «{{- host}}»?",
-      "detail": "Grensesnittet lastes inn fra {{- bundle}} og kjører med økten din på denne serveren. Fortsett bare hvis du stoler på denne builden. Bruk View > Gjenopprett serverens grensesnitt eller start appen på nytt for å gå tilbake.",
-      "load": "Last inn grensesnitt",
-      "cancel": "Avbryt",
-      "developerModeRequired": "Slå på Help > Developer Mode for å laste inn forhåndsvisninger av grensesnitt.",
-      "failed": "Forhåndsvisningen av grensesnittet kunne ikke lastes inn."
-    }
-  },
-  "tabBar": {
-    "uiPreview": "Forhåndsvisning av grensesnitt: {{- label}}"
   }
 }

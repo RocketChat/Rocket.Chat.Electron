@@ -1,4 +1,15 @@
 {
+  "dialog": {
+    "uiOverride": {
+      "title": "Carica anteprima dell'interfaccia",
+      "message": "Caricare un'interfaccia web diversa per \"{{- host}}\"?",
+      "detail": "L'interfaccia verrà caricata da {{- bundle}} e verrà eseguita con la tua sessione su questo server. Continua solo se ti fidi di questa build. Usa View > Ripristina l'interfaccia del server o riavvia l'app per tornare indietro.",
+      "load": "Carica interfaccia",
+      "cancel": "Annulla",
+      "developerModeRequired": "Attiva Help > Developer Mode per caricare anteprime dell'interfaccia.",
+      "failed": "Impossibile caricare l'anteprima dell'interfaccia."
+    }
+  },
   "documentViewer": {
     "title": {
       "pdf": "Visualizzatore PDF",
@@ -7,10 +18,22 @@
     "back": "Indietro"
   },
   "settings": {
+    "sections": {
+      "uiPreview": "Anteprima dell'interfaccia web"
+    },
     "options": {
       "resetWindowBounds": {
         "title": "Ripristina dimensioni e posizioni delle finestre",
         "description": "Dimentica dove erano posizionate l’app e le sue finestre. Ogni finestra si aprirà alla dimensione predefinita, centrata, la prossima volta che verrà mostrata."
+      },
+      "trayIconUnreadCounter": {
+        "title": "Contatore dei non letti nell'icona della barra di sistema",
+        "titleDarwin": "Indicatore dei non letti nell'icona della barra dei menu",
+        "description": "Mostra il badge dei messaggi non letti sull'icona al posto del tuo stato di presenza."
+      },
+      "menuBarUnreadCount": {
+        "title": "Numero di non letti nella barra dei menu",
+        "description": "Mostra il numero di menzioni non lette accanto all'icona della barra dei menu."
       },
       "transparentWindow": {
         "title": "Effetto finestra trasparente",
@@ -22,15 +45,6 @@
         "auto": "Segui sistema",
         "light": "Chiaro",
         "dark": "Scuro"
-      },
-      "trayIconUnreadCounter": {
-        "title": "Contatore dei non letti nell'icona della barra di sistema",
-        "titleDarwin": "Indicatore dei non letti nell'icona della barra dei menu",
-        "description": "Mostra il badge dei messaggi non letti sull'icona al posto del tuo stato di presenza."
-      },
-      "menuBarUnreadCount": {
-        "title": "Numero di non letti nella barra dei menu",
-        "description": "Mostra il numero di menzioni non lette accanto all'icona della barra dei menu."
       },
       "uiPreview": {
         "title": "Carica una build dell'interfaccia web",
@@ -60,9 +74,25 @@
           "closed": "Chiusa"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Anteprima dell'interfaccia web"
+    }
+  },
+  "menus": {
+    "simulateDisconnected": "Simula disconnessione",
+    "findInPage": "&Trova…",
+    "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre",
+    "restoreServerUi": "Ripristina l'interfaccia del server"
+  },
+  "findInPage": {
+    "placeholder": "Trova nella pagina",
+    "matchCount": "{{current}} di {{total}}",
+    "noMatches": "Nessuna corrispondenza",
+    "previous": "Corrispondenza precedente",
+    "next": "Corrispondenza successiva",
+    "close": "Chiudi"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "Aggiorna anteprima dell'interfaccia"
     }
   },
   "tabBar": {
@@ -104,6 +134,18 @@
     },
     "uiPreview": "Anteprima dell'interfaccia: {{- label}}"
   },
+  "tray": {
+    "presence": {
+      "status": "Stato",
+      "online": "Online",
+      "away": "Assente",
+      "busy": "Occupato",
+      "offline": "Offline",
+      "disconnected": "Disconnesso — tentativo di riconnessione...",
+      "signIn": "Accedi a {{- workspace}}",
+      "addWorkspace": "Aggiungi area di lavoro"
+    }
+  },
   "serverInfo": {
     "title": "Informazioni sul Server",
     "urlLabel": "URL:",
@@ -128,48 +170,6 @@
     "expiration": {
       "label": "Scadenza:",
       "expiresOn": "Scade il {{date}}"
-    }
-  },
-  "menus": {
-    "simulateDisconnected": "Simula disconnessione",
-    "findInPage": "&Trova…",
-    "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre",
-    "restoreServerUi": "Ripristina l'interfaccia del server"
-  },
-  "sidebar": {
-    "item": {
-      "updateUiPreview": "Aggiorna anteprima dell'interfaccia"
-    }
-  },
-  "tray": {
-    "presence": {
-      "status": "Stato",
-      "online": "Online",
-      "away": "Assente",
-      "busy": "Occupato",
-      "offline": "Offline",
-      "disconnected": "Disconnesso — tentativo di riconnessione...",
-      "signIn": "Accedi a {{- workspace}}",
-      "addWorkspace": "Aggiungi area di lavoro"
-    }
-  },
-  "findInPage": {
-    "placeholder": "Trova nella pagina",
-    "matchCount": "{{current}} di {{total}}",
-    "noMatches": "Nessuna corrispondenza",
-    "previous": "Corrispondenza precedente",
-    "next": "Corrispondenza successiva",
-    "close": "Chiudi"
-  },
-  "dialog": {
-    "uiOverride": {
-      "title": "Carica anteprima dell'interfaccia",
-      "message": "Caricare un'interfaccia web diversa per \"{{- host}}\"?",
-      "detail": "L'interfaccia verrà caricata da {{- bundle}} e verrà eseguita con la tua sessione su questo server. Continua solo se ti fidi di questa build. Usa View > Ripristina l'interfaccia del server o riavvia l'app per tornare indietro.",
-      "load": "Carica interfaccia",
-      "cancel": "Annulla",
-      "developerModeRequired": "Attiva Help > Developer Mode per caricare anteprime dell'interfaccia.",
-      "failed": "Impossibile caricare l'anteprima dell'interfaccia."
     }
   }
 }

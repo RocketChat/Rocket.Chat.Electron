@@ -44,6 +44,23 @@
       }
     },
     {
+      "files": ["src/**/*.ts", "src/**/*.tsx"],
+      "excludedFiles": ["src/injected.ts", "**/__tests__/**", "**/*.spec.ts", "**/*.spec.tsx"],
+      "rules": {
+        "no-restricted-properties": [
+          "error",
+          { "object": "describe", "property": "only" },
+          { "object": "it", "property": "only" },
+          { "object": "context", "property": "only" },
+          {
+            "object": "window",
+            "property": "require",
+            "message": "The Vite web client has no window.require. Read the web client's window events in the preload (src/servers/preload/webClientEvents.ts) or a RocketChatDesktop bridge call. Only the frozen legacy code in src/injected.ts may use it."
+          }
+        ]
+      }
+    },
+    {
       "files": ["**/*.stories.js", "**/*.stories.jsx", "**/*.stories.ts", "**/*.stories.tsx", "**/*.spec.tsx"],
       "rules": {
         "react/display-name": "off",

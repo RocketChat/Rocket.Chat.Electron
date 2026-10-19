@@ -51,6 +51,7 @@ import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
+import { markWebClientBooted, setUnreadAlertEnabled } from './webClientEvents';
 
 type ServerInfo = {
   version: string;
@@ -105,6 +106,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
     ) => void
   ) => void;
   reportMediaCapture: (state: MediaCaptureState) => void;
+  setUnreadAlertEnabled: (enabled: boolean) => void;
 };
 
 declare global {
@@ -123,12 +125,14 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   },
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
+    markWebClientBooted();
     cb(_serverInfo);
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },
   setUrlResolver,
   setBadge,
+  setUnreadAlertEnabled,
   setFavicon,
   setBackground,
   setTitle,

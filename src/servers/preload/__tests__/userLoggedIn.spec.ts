@@ -51,6 +51,17 @@ describe('servers/preload/userLoggedIn', () => {
     expect(clearUserRoles).not.toHaveBeenCalled();
   });
 
+  it('ignores a repeat of the same state', () => {
+    setUserLoggedIn(true);
+    dispatchMock.mockClear();
+    updateUserRolesMock.mockClear();
+
+    setUserLoggedIn(true);
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+    expect(updateUserRoles).not.toHaveBeenCalled();
+  });
+
   it('dispatches logged-out state and clears roles', () => {
     setUserLoggedIn(false);
 

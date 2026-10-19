@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires -- injected.ts runs on
    import, so each test loads a fresh copy inside jest.isolateModules */
 
-const BOOT_RECOVERY_ATTEMPTS_KEY = 'rocketChatDesktopBootRecoveryAttempts';
-
-describe('injected.ts boot recovery', () => {
+describe('injected.ts', () => {
   const originalRequire = window.require;
   const originalDesktop = window.RocketChatDesktop;
   let reloadServer: jest.Mock;
@@ -15,9 +13,8 @@ describe('injected.ts boot recovery', () => {
       writable: true,
     });
 
-  const loadInjected = (isUiPreviewActive: () => boolean) => {
+  const loadInjected = () => {
     window.RocketChatDesktop = {
-      isUiPreviewActive,
       reloadServer,
     } as unknown as Window['RocketChatDesktop'];
     jest.isolateModules(() => {
@@ -43,27 +40,25 @@ describe('injected.ts boot recovery', () => {
     window.RocketChatDesktop = originalDesktop;
   });
 
-  it('skips the retries and the cache-clearing reload while a UI preview runs', async () => {
-    loadInjected(() => true);
+  it('never reloads when window.require never appears', async () => {
+    loadInjected();
 
     await jest.advanceTimersByTimeAsync(60_000);
 
     expect(reloadServer).not.toHaveBeenCalled();
-    expect(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)).toBe(
-      null
-    );
     expect(console.warn).toHaveBeenCalledTimes(1);
   });
 
-  it('still recovers a server UI that never exposes window.require', async () => {
-    loadInjected(() => false);
+  it('replaces Notification even when window.require never appears', () => {
+    const nativeNotification = window.Notification;
+    try {
+      loadInjected();
 
-    await jest.advanceTimersByTimeAsync(29_000);
-    expect(reloadServer).not.toHaveBeenCalled();
-
-    await jest.advanceTimersByTimeAsync(2_000);
-    expect(reloadServer).toHaveBeenCalledTimes(1);
-    expect(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)).toBe('1');
+      expect(window.Notification).not.toBe(nativeNotification);
+      expect(window.Notification.permission).toBe('granted');
+    } finally {
+      window.Notification = nativeNotification;
+    }
   });
 
   describe('module paths across server versions', () => {
@@ -79,9 +74,7 @@ describe('injected.ts boot recovery', () => {
       desktop = {};
       window.RocketChatDesktop = new Proxy(desktop, {
         get: (target, property: string) => {
-          target[property] ??= jest.fn(() =>
-            property === 'isUiPreviewActive' ? false : undefined
-          );
+          target[property] ??= jest.fn();
           return target[property];
         },
       }) as unknown as Window['RocketChatDesktop'];
@@ -151,6 +144,25 @@ describe('injected.ts boot recovery', () => {
       expect(desktop.setTitle).toHaveBeenLastCalledWith('Renamed');
     });
 
+    it('pushes the unreadAlert preference of the user to the preload badge', async () => {
+      loadWithModules({
+        '/rocketchat.info': { Info: { version: '8.10.0' } },
+        'meteor/meteor': {
+          Meteor: {
+            userId: () => 'user',
+            status: () => ({ connected: true }),
+            user: () => ({ settings: { preferences: { unreadAlert: false } } }),
+          },
+        },
+        'meteor/tracker': { Tracker: { autorun: (fn: () => void) => fn() } },
+      });
+
+      await jest.advanceTimersByTimeAsync(2_000);
+
+      expect(desktop.setUnreadAlertEnabled).toHaveBeenLastCalledWith(false);
+      expect(desktop.setUserLoggedIn).toBeUndefined();
+    });
+
     it('keeps the app/utils path and the Tracker-reactive settings get on servers before 7.11', async () => {
       const values: Record<string, unknown> = {
         Assets_favicon: { url: 'custom.png', defaultUrl: 'favicon.svg' },
@@ -173,18 +185,5 @@ describe('injected.ts boot recovery', () => {
       expect(desktop.setFavicon).toHaveBeenLastCalledWith('custom.png');
       expect(desktop.setTitle).toHaveBeenLastCalledWith('Legacy');
     });
-  });
-
-  it('asks again on every retry, so a store that was not ready yet still counts', async () => {
-    const isUiPreviewActive = jest
-      .fn<boolean, []>()
-      .mockReturnValueOnce(false)
-      .mockReturnValue(true);
-    loadInjected(isUiPreviewActive);
-
-    await jest.advanceTimersByTimeAsync(60_000);
-
-    expect(isUiPreviewActive).toHaveBeenCalledTimes(2);
-    expect(reloadServer).not.toHaveBeenCalled();
   });
 });

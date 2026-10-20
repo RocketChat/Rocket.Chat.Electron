@@ -187,5 +187,69 @@ describe('injected.ts', () => {
       expect(desktop.setFavicon).toHaveBeenLastCalledWith('custom.png');
       expect(desktop.setTitle).toHaveBeenLastCalledWith('Legacy');
     });
+
+    it('keeps the status text when a presence update has no text, and clears it when the text is empty', async () => {
+      type Entry = { _id: string; status: string; statusText?: unknown };
+      const store = new Map<string, Entry>();
+      let notifyUser: ((entry: Entry) => void) | undefined;
+      // Same merge as the presence store of the web client.
+      const notify = (update: Entry) => {
+        store.set(update._id, { ...store.get(update._id), ...update });
+        notifyUser?.(store.get(update._id) as Entry);
+      };
+      const Presence = {
+        store,
+        listen: (_uid: string, handler: (entry: Entry) => void) => {
+          notifyUser = handler;
+        },
+        get: async (uid: string) => store.get(uid),
+        stop: jest.fn(),
+      };
+      notify({ _id: 'user', status: 'online', statusText: 'WFH' });
+
+      loadWithModules({
+        '/rocketchat.info': { Info: { version: '8.3.8' } },
+        '/client/lib/presence.ts': { Presence },
+        'meteor/meteor': {
+          Meteor: {
+            userId: () => 'user',
+            status: () => ({ status: 'connected' }),
+            user: () => null,
+          },
+        },
+        'meteor/tracker': { Tracker: { autorun: (fn: () => void) => fn() } },
+      });
+      await jest.advanceTimersByTimeAsync(2_000);
+
+      const lastSnapshot = () => desktop.setUserPresence.mock.lastCall?.[0];
+      expect(lastSnapshot()).toMatchObject({
+        presence: 'online',
+        presenceStatusText: 'WFH',
+      });
+
+      // A status change without a text: the stream sends no third value.
+      notify({ _id: 'user', status: 'busy', statusText: undefined });
+      expect(lastSnapshot()).toMatchObject({
+        presence: 'busy',
+        presenceStatusText: 'WFH',
+      });
+      notify({ _id: 'user', status: 'away', statusText: null });
+      expect(lastSnapshot()).toMatchObject({
+        presence: 'away',
+        presenceStatusText: 'WFH',
+      });
+
+      // The user cleared the text.
+      notify({ _id: 'user', status: 'away', statusText: '' });
+      expect(lastSnapshot()).toMatchObject({
+        presence: 'away',
+        presenceStatusText: undefined,
+      });
+      notify({ _id: 'user', status: 'busy', statusText: undefined });
+      expect(lastSnapshot()).toMatchObject({
+        presence: 'busy',
+        presenceStatusText: undefined,
+      });
+    });
   });
 });

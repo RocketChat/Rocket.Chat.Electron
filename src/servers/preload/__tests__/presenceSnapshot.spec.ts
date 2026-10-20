@@ -1,6 +1,7 @@
 import {
   buildPresenceSnapshot,
   mapConnectionStatus,
+  mergePresenceStoreEntry,
 } from '../presenceSnapshot';
 
 describe('mapConnectionStatus', () => {
@@ -164,5 +165,51 @@ describe('buildPresenceSnapshot', () => {
       presenceConnection: 'connected',
       presenceSupported: true,
     });
+  });
+});
+
+describe('mergePresenceStoreEntry', () => {
+  const previous = { _id: 'u1', status: 'online', statusText: 'WFH' };
+
+  it.each([
+    ['undefined', undefined],
+    ['null', null],
+  ])(
+    'keeps the last text when the update has %s as text',
+    (_case, statusText) => {
+      expect(
+        mergePresenceStoreEntry(previous, {
+          _id: 'u1',
+          status: 'busy',
+          statusText,
+        })
+      ).toEqual({ _id: 'u1', status: 'busy', statusText: 'WFH' });
+    }
+  );
+
+  it('keeps the last text when the update has no text field', () => {
+    expect(
+      mergePresenceStoreEntry(previous, { _id: 'u1', status: 'away' })
+    ).toEqual({ _id: 'u1', status: 'away', statusText: 'WFH' });
+  });
+
+  it('clears the text when the update has an empty text', () => {
+    expect(
+      mergePresenceStoreEntry(previous, {
+        _id: 'u1',
+        status: 'online',
+        statusText: '',
+      })
+    ).toEqual({ _id: 'u1', status: 'online', statusText: '' });
+  });
+
+  it('does not keep the text of another user', () => {
+    expect(
+      mergePresenceStoreEntry(previous, { _id: 'u2', status: 'busy' })
+    ).toEqual({ _id: 'u2', status: 'busy' });
+  });
+
+  it('forgets the text when the store drops the entry', () => {
+    expect(mergePresenceStoreEntry(previous, undefined)).toBeNull();
   });
 });

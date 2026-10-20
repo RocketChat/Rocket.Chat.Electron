@@ -10,6 +10,7 @@ export type UnreadBadgeTracker = {
   onSubscriptionChanged: (detail: unknown) => void;
   onUnreadChanged: (detail: unknown) => void;
   setUnreadAlertEnabled: (enabled: boolean) => void;
+  stop: () => void;
 };
 
 // Server boot floods the unread events: the webapp fires one
@@ -40,6 +41,7 @@ export const createUnreadBadgeTracker = (
   let pendingAggregateInvalidation = false;
   let lastAggregateCount: number | undefined;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let stopped = false;
 
   const resolve = (): Server['badge'] => {
     let unreadCount = 0;
@@ -89,6 +91,9 @@ export const createUnreadBadgeTracker = (
     aggregateCount?: number,
     invalidateAggregate = false
   ): void => {
+    if (stopped) {
+      return;
+    }
     if (aggregateCount !== undefined) {
       pendingAggregateCount = aggregateCount;
     }
@@ -127,6 +132,15 @@ export const createUnreadBadgeTracker = (
       }
       unreadAlertEnabled = enabled;
       schedule();
+    },
+    // Drops a pending recompute too, so a stale value cannot overwrite the
+    // badge of the new owner.
+    stop: () => {
+      stopped = true;
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+      }
     },
   };
 };

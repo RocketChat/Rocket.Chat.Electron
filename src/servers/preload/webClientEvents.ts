@@ -67,6 +67,16 @@ export const onWebClientBooted = (callback: () => void): void => {
   bootedCallbacks.push(callback);
 };
 
+// Rocket.Chat 9.x calls RocketChatDesktop.setBadge with the badge it resolved
+// itself, with the user's `unreadAlert` preference applied. The first call
+// shows that the web client owns the badge, so the unread events stop. Older
+// servers never call it and keep the events. The pre-7.8.0 legacy Session
+// autorun also calls it, and there it is the badge source too.
+export const setBadgeFromWebClient = (badge: Server['badge']): void => {
+  unreadBadge.stop();
+  sendBadge(badge);
+};
+
 export const setUnreadAlertEnabled = (enabled: boolean): void => {
   unreadBadge.setUnreadAlertEnabled(enabled);
 };

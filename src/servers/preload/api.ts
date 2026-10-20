@@ -22,7 +22,6 @@ import {
   setUserPresenceDetection,
 } from '../../userPresence/preload';
 import type { MediaCaptureState, Server } from '../common';
-import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import {
   openDocumentViewer,
@@ -51,7 +50,11 @@ import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
-import { extendBootTimer, setUnreadAlertEnabled } from './webClientEvents';
+import {
+  extendBootTimer,
+  setBadgeFromWebClient,
+  setUnreadAlertEnabled,
+} from './webClientEvents';
 
 type ServerInfo = {
   version: string;
@@ -131,7 +134,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
     setVersion(_serverInfo.version);
   },
   setUrlResolver,
-  setBadge,
+  setBadge: setBadgeFromWebClient,
   setUnreadAlertEnabled,
   setFavicon,
   setBackground,

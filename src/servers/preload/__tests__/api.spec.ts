@@ -134,6 +134,15 @@ describe('servers/preload api bridge', () => {
     expect(ready).toHaveBeenCalledWith({ version: '10.0.1' });
   });
 
+  it('routes the web client setBadge through the event bridge', async () => {
+    const { setBadgeFromWebClient } = await import('../webClientEvents');
+    const { setBadge } = RocketChatDesktop as unknown as { setBadge: unknown };
+    // A failed function comparison cannot cross the runner's IPC, so compare
+    // to a boolean.
+    expect(typeof setBadge).toBe('function');
+    expect(setBadge === setBadgeFromWebClient).toBe(true);
+  });
+
   it('forwards URL resolver registration', () => {
     const resolver = (path?: string): string => `https://server.local${path}`;
     RocketChatDesktop.setUrlResolver(resolver);

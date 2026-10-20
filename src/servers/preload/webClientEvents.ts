@@ -18,6 +18,7 @@ export const BOOT_SIGNAL_TIMEOUT_MS = 30_000;
 let connected = false;
 let booted = false;
 let bootTimer: ReturnType<typeof setTimeout> | null = null;
+let bootTimerExtended = false;
 let pendingBadge: { badge: Server['badge'] } | undefined;
 let userLoggedIn: boolean | undefined;
 const bootedCallbacks: Array<() => void> = [];
@@ -41,9 +42,11 @@ const sendUserLoggedIn = (): void => {
   setUserLoggedIn(userLoggedIn);
 };
 
-// Called on the web client's `startup` event, and by setServerInfo() for
-// servers older than the event.
-export const markWebClientBooted = (): void => {
+// Only the web client's `startup` event counts as a boot. Every server since
+// 1.0.0 fires it. The legacy integration calls setServerInfo() as soon as the
+// entry bundle runs, before the root layout mounts, so server info is no proof
+// that the boot finished.
+const markWebClientBooted = (): void => {
   if (booted) {
     return;
   }
@@ -98,6 +101,15 @@ const isServerPage = (): boolean => {
   }
 };
 
+const startBootTimer = (): void => {
+  bootTimer = setTimeout(() => {
+    bootTimer = null;
+    attemptBootRecovery(
+      `The web client fired no startup event within ${BOOT_SIGNAL_TIMEOUT_MS}ms`
+    );
+  }, BOOT_SIGNAL_TIMEOUT_MS);
+};
+
 // A wedged boot (stale service worker or cache serving a broken bundle) never
 // mounts the web client's root layout, so `startup` never fires and only a
 // cache-clearing reload recovers it.
@@ -113,10 +125,18 @@ export const connectWebClientEvents = (): void => {
   if (booted || bootTimer !== null || !isServerPage()) {
     return;
   }
-  bootTimer = setTimeout(() => {
-    bootTimer = null;
-    attemptBootRecovery(
-      `The web client fired no startup event within ${BOOT_SIGNAL_TIMEOUT_MS}ms`
-    );
-  }, BOOT_SIGNAL_TIMEOUT_MS);
+  startBootTimer();
+};
+
+// The legacy integration calls setServerInfo() when the entry bundle runs.
+// The web client then still waits for the server (settings, login) before it
+// fires `startup`, so a slow but healthy server gets one more full period.
+// A boot that wedges after this point still gets the reload.
+export const extendBootTimer = (): void => {
+  if (booted || bootTimer === null || bootTimerExtended) {
+    return;
+  }
+  bootTimerExtended = true;
+  clearTimeout(bootTimer);
+  startBootTimer();
 };

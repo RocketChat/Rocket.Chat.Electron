@@ -51,7 +51,7 @@ import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
-import { markWebClientBooted, setUnreadAlertEnabled } from './webClientEvents';
+import { extendBootTimer, setUnreadAlertEnabled } from './webClientEvents';
 
 type ServerInfo = {
   version: string;
@@ -126,7 +126,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);
-    markWebClientBooted();
+    extendBootTimer();
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },

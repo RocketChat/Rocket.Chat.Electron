@@ -155,9 +155,25 @@ describe('servers/preload/webClientEvents', () => {
     expect(reloadServer).not.toHaveBeenCalled();
   });
 
-  it('counts server info from the legacy integration as a boot', () => {
+  it('gives one more period after server info, then still reloads a wedged boot', () => {
     bridge.connectWebClientEvents();
-    bridge.markWebClientBooted();
+    jest.advanceTimersByTime(bridge.BOOT_SIGNAL_TIMEOUT_MS - 1_000);
+    bridge.extendBootTimer();
+    bridge.extendBootTimer();
+
+    jest.advanceTimersByTime(bridge.BOOT_SIGNAL_TIMEOUT_MS - 1);
+    expect(reloadServer).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+    expect(reloadServer).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reload a slow boot that fires startup after server info', () => {
+    bridge.connectWebClientEvents();
+    jest.advanceTimersByTime(bridge.BOOT_SIGNAL_TIMEOUT_MS - 1_000);
+    bridge.extendBootTimer();
+    jest.advanceTimersByTime(bridge.BOOT_SIGNAL_TIMEOUT_MS - 1_000);
+    replay(LOGGED_OUT_BOOT);
     jest.advanceTimersByTime(60_000);
 
     expect(reloadServer).not.toHaveBeenCalled();

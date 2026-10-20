@@ -84,9 +84,9 @@ const start = async (): Promise<void> => {
   listenToConferenceWindowRequests();
   listenToPresenceChangeRequests();
 
-  // A server that runs the Vite client never calls setServerInfo(), because
-  // it has no `window.require` for the injected script, so its `startup`
-  // event must also be enough.
+  // A Vite client without `window.require` never calls setServerInfo(),
+  // because the injected script cannot run there, so its `startup` event must
+  // also be enough.
   let integrationsStarted = false;
   const startIntegrations = (source: string): void => {
     if (integrationsStarted) {

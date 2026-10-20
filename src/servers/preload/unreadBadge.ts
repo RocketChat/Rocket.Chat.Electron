@@ -37,6 +37,7 @@ export const createUnreadBadgeTracker = (
   // default and the legacy integration pushes the real value when it can.
   let unreadAlertEnabled = true;
   let pendingAggregateCount: number | undefined;
+  let pendingAggregateInvalidation = false;
   let lastAggregateCount: number | undefined;
   let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -71,17 +72,27 @@ export const createUnreadBadgeTracker = (
       clearTimeout(timer);
       timer = null;
     }
-    // Only the latest `unread-changed` of a burst is authoritative. A burst
-    // with no aggregate keeps no stale total from an earlier burst either.
-    lastAggregateCount = pendingAggregateCount;
+    // Only the latest `unread-changed` of a burst is authoritative. A room
+    // change or an invalid payload with no new aggregate drops the earlier
+    // total, because it can be stale. A preference change alone keeps it.
+    if (pendingAggregateCount !== undefined) {
+      lastAggregateCount = pendingAggregateCount;
+    } else if (pendingAggregateInvalidation) {
+      lastAggregateCount = undefined;
+    }
     pendingAggregateCount = undefined;
+    pendingAggregateInvalidation = false;
     send(resolve());
   };
 
-  const schedule = (aggregateCount?: number): void => {
+  const schedule = (
+    aggregateCount?: number,
+    invalidateAggregate = false
+  ): void => {
     if (aggregateCount !== undefined) {
       pendingAggregateCount = aggregateCount;
     }
+    pendingAggregateInvalidation ||= invalidateAggregate;
     if (timer !== null) {
       return;
     }
@@ -101,14 +112,14 @@ export const createUnreadBadgeTracker = (
         alert: subscription.alert,
         unreadAlert: subscription.unreadAlert,
       });
-      schedule();
+      schedule(undefined, true);
     },
     onUnreadChanged: (detail) => {
-      schedule(
-        typeof detail === 'number' && Number.isFinite(detail)
-          ? detail
-          : undefined
-      );
+      if (typeof detail === 'number' && Number.isFinite(detail)) {
+        schedule(detail);
+        return;
+      }
+      schedule(undefined, true);
     },
     setUnreadAlertEnabled: (enabled) => {
       if (enabled === unreadAlertEnabled) {

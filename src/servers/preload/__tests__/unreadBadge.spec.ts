@@ -67,6 +67,35 @@ describe('servers/preload/unreadBadge', () => {
     expect(send).toHaveBeenLastCalledWith(0);
   });
 
+  it('keeps the aggregate count when only the preference changes', () => {
+    tracker.onSubscriptionChanged({ rid: 'room', unread: 2 });
+    tracker.onUnreadChanged(6);
+    jest.advanceTimersByTime(100);
+    expect(send).toHaveBeenLastCalledWith(6);
+
+    tracker.setUnreadAlertEnabled(false);
+    jest.advanceTimersByTime(100);
+    expect(send).toHaveBeenLastCalledWith(6);
+  });
+
+  it('drops the aggregate count on a room change or an invalid payload', () => {
+    tracker.onSubscriptionChanged({ rid: 'room', unread: 2 });
+    tracker.onUnreadChanged(6);
+    jest.advanceTimersByTime(100);
+
+    tracker.onSubscriptionChanged({ rid: 'room', unread: 1 });
+    jest.advanceTimersByTime(100);
+    expect(send).toHaveBeenLastCalledWith(1);
+
+    tracker.onUnreadChanged(6);
+    jest.advanceTimersByTime(100);
+    expect(send).toHaveBeenLastCalledWith(6);
+
+    tracker.onUnreadChanged('7');
+    jest.advanceTimersByTime(100);
+    expect(send).toHaveBeenLastCalledWith(1);
+  });
+
   it('counts details that are not an unread payload as no unread', () => {
     tracker.onSubscriptionChanged(null);
     tracker.onSubscriptionChanged({ unread: 3 });

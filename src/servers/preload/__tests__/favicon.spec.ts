@@ -101,6 +101,71 @@ describe('servers/preload/favicon', () => {
     });
   });
 
+  describe('when the web client sets a URL resolver', () => {
+    const originalImage = global.Image;
+
+    afterEach(() => {
+      global.Image = originalImage;
+    });
+
+    const stubImage = (): { src: string } => {
+      const mockImage = { src: '', addEventListener: jest.fn() };
+      const originalCreateElement = document.createElement.bind(document);
+      (
+        jest.spyOn(document, 'createElement' as any) as jest.Mock
+      ).mockImplementation((tag: string) =>
+        tag === 'canvas'
+          ? ({ getContext: () => ({}) } as unknown as HTMLElement)
+          : originalCreateElement(tag)
+      );
+      global.Image = jest.fn(
+        () => mockImage as unknown as HTMLImageElement
+      ) as unknown as typeof Image;
+      return mockImage;
+    };
+
+    beforeEach(() => {
+      getAbsoluteUrlMock.mockReset();
+      getAbsoluteUrlMock.mockImplementation(
+        (path = '') => `https://server.local/chat/${path.replace(/^\/+/, '')}`
+      );
+    });
+
+    it.each([
+      ['https://server.local/images/logo/icon.svg'],
+      ['https://server.local/chat/assets/favicon.svg'],
+      ['http://cdn.local/favicon.png'],
+      ['data:image/png;base64,abc'],
+    ])('uses the absolute URL %s as it is', (faviconUrl) => {
+      const mockImage = stubImage();
+      const { setFavicon } = loadModule();
+
+      setFavicon(faviconUrl);
+
+      expect(mockImage.src).toBe(faviconUrl);
+      expect(getAbsoluteUrlMock).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['assets/favicon.svg', 'https://server.local/chat/assets/favicon.svg'],
+      [
+        '/images/logo/icon.svg',
+        'https://server.local/chat/images/logo/icon.svg',
+      ],
+    ])(
+      'resolves the relative path %s through the resolver',
+      (faviconPath, expected) => {
+        const mockImage = stubImage();
+        const { setFavicon } = loadModule();
+
+        setFavicon(faviconPath);
+
+        expect(getAbsoluteUrlMock).toHaveBeenCalledWith(faviconPath);
+        expect(mockImage.src).toBe(expected);
+      }
+    );
+  });
+
   it('ignores non-string URLs', () => {
     const { setFavicon } = loadModule();
 

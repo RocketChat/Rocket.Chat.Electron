@@ -16,6 +16,7 @@ import {
   listenToWebClientEvents,
   onWebClientBooted,
 } from './servers/preload/webClientEvents';
+import { markPreloadReady } from './servers/preload/whenPreloadReady';
 import { createRendererReduxStore, listen } from './store';
 import { listenToTelephonyRequests } from './telephony/preload';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
@@ -75,6 +76,8 @@ const start = async (): Promise<void> => {
 
   await createRendererReduxStore();
 
+  markPreloadReady();
+
   await invoke('server-view/ready');
 
   connectWebClientEvents();
@@ -84,9 +87,9 @@ const start = async (): Promise<void> => {
   listenToConferenceWindowRequests();
   listenToPresenceChangeRequests();
 
-  // A server that runs the Vite client never calls setServerInfo(), because
-  // it has no `window.require` for the injected script, so its `startup`
-  // event must also be enough.
+  // A Vite client without `window.require` never calls setServerInfo(),
+  // because the injected script cannot run there, so its `startup` event must
+  // also be enough.
   let integrationsStarted = false;
   const startIntegrations = (source: string): void => {
     if (integrationsStarted) {

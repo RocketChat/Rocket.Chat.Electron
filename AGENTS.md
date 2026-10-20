@@ -218,6 +218,14 @@ hooks, `settings.json`).
   (`org.freedesktop.portal.ScreenCast` requests), not on dialog visibility,
   which is flaky across portal and boot states. Full story:
   `docs/postmortem-screen-picker-startup-enumeration.md`.
+- The desktop app reads the web client's `window` events (`startup`,
+  `unread-changed*`, `status-changed`, `Custom_Script_Logged_In` and
+  `Custom_Script_Logged_Out`). Before you change code that reads them, run
+  `yarn probe:web-signals --server <url>` against a disposable server. The
+  probe checks the Meteor build and the Vite build. Follow the
+  `web-signals-probe` skill (`skills/web-signals-probe/SKILL.md`). Do not read
+  `Custom_Script_On_Logout`, because the Meteor build does not fire it on a
+  forced logout.
 
 ### Test runner and CI speed
 

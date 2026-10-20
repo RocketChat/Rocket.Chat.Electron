@@ -51,7 +51,7 @@ import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
 import {
-  markWebClientBooted,
+  extendBootTimer,
   setBadgeFromWebClient,
   setUnreadAlertEnabled,
 } from './webClientEvents';
@@ -129,7 +129,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);
-    markWebClientBooted();
+    extendBootTimer();
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },

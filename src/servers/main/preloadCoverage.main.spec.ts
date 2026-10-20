@@ -231,6 +231,9 @@ describe('preload modules coverage (node env)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetModules();
+    // The real preload opens the bridge queue after it creates the store.
+    // These setters run as if that start already happened.
+    require('../preload/whenPreloadReady').markPreloadReady();
     installDomGlobals();
     request.mockResolvedValue('notif-id');
     ipcInvoke.mockResolvedValue(undefined);

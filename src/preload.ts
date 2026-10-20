@@ -11,6 +11,7 @@ import { listenToMediaCaptureReports } from './servers/preload/mediaCapture';
 import { listenToNavigateToRouteRequests } from './servers/preload/navigateToRoute';
 import { listenToPresenceChangeRequests } from './servers/preload/presence';
 import { setServerUrl } from './servers/preload/urls';
+import { markPreloadReady } from './servers/preload/whenPreloadReady';
 import { createRendererReduxStore, listen } from './store';
 import { listenToTelephonyRequests } from './telephony/preload';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
@@ -67,6 +68,8 @@ const start = async (): Promise<void> => {
   await whenReady();
 
   await createRendererReduxStore();
+
+  markPreloadReady();
 
   await invoke('server-view/ready');
 

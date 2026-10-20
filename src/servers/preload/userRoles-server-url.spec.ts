@@ -3,6 +3,11 @@ import { dispatch } from '../../store';
 import { getServerUrl } from './urls';
 import { clearUserRoles, updateUserRoles } from './userRoles';
 
+// These cases cover a ready preload. whenPreloadReady.spec.ts covers early calls.
+jest.mock('./whenPreloadReady', () => ({
+  runWhenPreloadReady: (_key: string, fn: () => void) => fn(),
+}));
+
 jest.mock('../../store', () => ({
   dispatch: jest.fn(),
 }));

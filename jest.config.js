@@ -27,6 +27,7 @@ const COVERAGE_INCOMPATIBLE_SPECS = [
   '<rootDir>/src/servers/preload/__tests__/uniqueID.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/userLoggedIn.spec.ts',
   '<rootDir>/src/servers/preload/__tests__/webClientEvents.spec.ts',
+  '<rootDir>/src/servers/preload/__tests__/whenPreloadReady.spec.ts',
   '<rootDir>/src/servers/preload/userRoles-server-url.spec.ts',
   '<rootDir>/src/servers/preload/userRoles.spec.ts',
   '<rootDir>/src/store/__tests__/index.spec.ts',

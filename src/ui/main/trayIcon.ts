@@ -173,9 +173,11 @@ const buildPresenceMenuItems = (
     })
   );
 
+  // The custom statuses stay in the radio group of the standard statuses. A
+  // separator starts a second group, and when the menu opens, Electron checks
+  // the first item of a group that has no checked item (macOS and Windows).
   if (customStatuses?.length) {
     submenu.push(
-      { type: 'separator' },
       ...customStatuses.map(
         (customStatus): MenuItemConstructorOptions => ({
           label: customStatus.name,

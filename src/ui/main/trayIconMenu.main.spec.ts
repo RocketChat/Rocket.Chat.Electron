@@ -509,6 +509,54 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       ]);
     });
 
+    // Electron puts consecutive radio items in one group, and a separator
+    // starts a new group. When a menu opens, Electron checks the first item
+    // of each group that has no checked item (macOS and Windows).
+    const radioGroups = (items: any[]) =>
+      items.reduce<any[][]>(
+        (groups, item, index) => {
+          if (item.type === 'separator') {
+            groups.push([]);
+          } else if (item.type === 'radio') {
+            groups[groups.length - 1].push(item);
+          }
+          return index === items.length - 1
+            ? groups.filter((group) => group.length > 0)
+            : groups;
+        },
+        [[]]
+      );
+
+    it.each([
+      ['a standard status', { presence: 'online' as const }],
+      ['a custom status', { presence: 'away' as const, statusText: 'Lunch' }],
+      [
+        'a status message that is not a custom status',
+        { presence: 'busy' as const, statusText: 'WFH' },
+      ],
+    ])(
+      'gives the status radios exactly one checked item with %s',
+      (_case, presence) => {
+        const template = buildMenuTemplate(
+          baseState({
+            ...connectedPresence,
+            ...presence,
+            customStatuses: [
+              { id: 'meeting', name: 'In a meeting', status: 'busy' },
+              { id: 'lunch', name: 'Lunch', status: 'away' },
+            ],
+          })
+        );
+
+        const { submenu } = findPresenceRootItem(template);
+        const groups = radioGroups(submenu);
+        expect(groups).toHaveLength(1);
+        expect(
+          groups[0].filter((item: any) => item.checked).map((i: any) => i.label)
+        ).toHaveLength(1);
+      }
+    );
+
     it('hides the end time of a status that already expired', () => {
       const template = buildMenuTemplate(
         baseState({

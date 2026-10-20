@@ -462,19 +462,25 @@ const start = async () => {
     }
   };
 
+  // Each module lookup gives up after its backoff. Once all of them settle, no
+  // module can arrive any more.
+  const moduleLoads: Promise<void>[] = [];
+
   // Start loading all modules in parallel (non-blocking)
-  loadModule('meteor/meteor', 'Meteor', (value) => {
-    Meteor = value.Meteor;
-  });
-  loadModule('meteor/session', 'Session', (value) => {
-    Session = value.Session;
-  });
-  loadModule('meteor/tracker', 'Tracker', (value) => {
-    Tracker = value.Tracker;
-  });
-  loadModule(settingsModulePath, 'Settings', (value) => {
-    settings = value.settings;
-  });
+  moduleLoads.push(
+    loadModule('meteor/meteor', 'Meteor', (value) => {
+      Meteor = value.Meteor;
+    }),
+    loadModule('meteor/session', 'Session', (value) => {
+      Session = value.Session;
+    }),
+    loadModule('meteor/tracker', 'Tracker', (value) => {
+      Tracker = value.Tracker;
+    }),
+    loadModule(settingsModulePath, 'Settings', (value) => {
+      settings = value.settings;
+    })
+  );
   // Since Rocket.Chat 7.10.0 the web client registers the idle detector itself
   // (apps/meteor/client/lib/userPresence.ts) and the meteor-user-presence
   // package no longer exists, so these modules are only needed for the legacy
@@ -484,15 +490,28 @@ const start = async () => {
     '7.10.0'
   );
   if (usesLegacyPresenceDetection) {
-    loadModule(utilsModulePath, 'Utils', (value) => {
-      getUserPreference = value.getUserPreference;
-    });
-    loadModule(userPresenceModulePath, 'UserPresence', (value) => {
-      UserPresence = value.UserPresence;
-    });
+    moduleLoads.push(
+      loadModule(utilsModulePath, 'Utils', (value) => {
+        getUserPreference = value.getUserPreference;
+      }),
+      loadModule(userPresenceModulePath, 'UserPresence', (value) => {
+        UserPresence = value.UserPresence;
+      })
+    );
   }
 
-  tryRequireFirstOf(presenceModulePaths)
+  // Pre-7.8.0 servers publish the badge through the Meteor Session, and
+  // pre-6.4.0 servers have a sidebar background setting.
+  const usesSessionBadge = !versionIsGreaterOrEqualsTo(
+    serverInfo.version,
+    '7.8.0'
+  );
+  const usesSidebarBackground = !versionIsGreaterOrEqualsTo(
+    serverInfo.version,
+    '6.4.0'
+  );
+
+  const presenceModuleLoad = tryRequireFirstOf(presenceModulePaths)
     .then((module) => {
       if (!hasUsablePresenceApi(module)) {
         console.warn(
@@ -513,6 +532,7 @@ const start = async () => {
       );
       presenceModuleResolved = false;
     });
+  moduleLoads.push(presenceModuleLoad);
 
   // Track which features have been setup to avoid duplicates
   const setupFlags = {
@@ -544,12 +564,7 @@ const start = async () => {
     // Session reactive dict. On 7.8.0+ this key is gone (Session.get('unread')
     // resolves to undefined) and the preload's unread events own the badge, so
     // running this autorun there would clear the badge with setBadge(undefined).
-    if (
-      !versionIsGreaterOrEqualsTo(serverInfo.version, '7.8.0') &&
-      Tracker &&
-      Session &&
-      !setupFlags.badgeUpdates
-    ) {
+    if (usesSessionBadge && Tracker && Session && !setupFlags.badgeUpdates) {
       Tracker.autorun(() => {
         const unread = Session.get('unread');
         window.RocketChatDesktop.setBadge(unread);
@@ -611,7 +626,7 @@ const start = async () => {
     }
 
     if (
-      !versionIsGreaterOrEqualsTo(serverInfo.version, '6.4.0') &&
+      usesSidebarBackground &&
       Tracker &&
       settings &&
       !setupFlags.backgroundSettings
@@ -898,9 +913,41 @@ const start = async () => {
     }
   };
 
+  // Features that this server version never sets up. No step sets
+  // `themeAppearance`.
+  const skippedFeatures: Array<keyof typeof setupFlags> = ['themeAppearance'];
+  if (!usesSessionBadge) skippedFeatures.push('badgeUpdates');
+  if (!usesSidebarBackground) skippedFeatures.push('backgroundSettings');
+  if (!usesLegacyPresenceDetection) skippedFeatures.push('userPresence');
+
+  const isSetupDone = (): boolean =>
+    (Object.keys(setupFlags) as Array<keyof typeof setupFlags>).every(
+      (feature) => setupFlags[feature] || skippedFeatures.includes(feature)
+    );
+
   // Call setupReactiveFeatures immediately and then periodically check for new modules
   setupReactiveFeatures();
-  setInterval(setupReactiveFeatures, 1000); // Check every second for newly loaded modules
+  const setupTimer = setInterval(() => {
+    setupReactiveFeatures();
+    if (isSetupDone()) {
+      clearInterval(setupTimer);
+    }
+  }, 1000);
+
+  // The setup steps read only the modules above. After the last lookup
+  // settles, one more pass sets up all that this page can provide, so the
+  // check does not run for the life of the page.
+  Promise.all(moduleLoads)
+    .then(() => {
+      clearInterval(setupTimer);
+      setupReactiveFeatures();
+    })
+    .catch((error) => {
+      console.error(
+        '[Rocket.Chat Desktop] Injected.ts failed to set up the legacy integrations:',
+        error
+      );
+    });
 
   console.log('[Rocket.Chat Desktop] Injected');
 };

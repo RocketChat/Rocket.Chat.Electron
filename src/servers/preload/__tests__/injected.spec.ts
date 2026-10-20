@@ -65,12 +65,13 @@ describe('injected.ts', () => {
     let desktop: Record<string, jest.Mock>;
 
     const loadWithModules = (modules: Record<string, unknown>) => {
-      setWindowRequire((path: string) => {
+      const requireMock = jest.fn((path: string) => {
         if (!(path in modules)) {
           throw new Error(`Cannot find module '${path}'`);
         }
         return modules[path];
       });
+      setWindowRequire(requireMock);
       desktop = {};
       window.RocketChatDesktop = new Proxy(desktop, {
         get: (target, property: string) => {
@@ -81,6 +82,7 @@ describe('injected.ts', () => {
       jest.isolateModules(() => {
         require('../../../injected');
       });
+      return requireMock;
     };
 
     const createSettingsStore = (values: Record<string, unknown>) => {
@@ -98,6 +100,154 @@ describe('injected.ts', () => {
           observers.get(key)?.(key, value),
       };
     };
+
+    describe('setup check', () => {
+      const tracker = { Tracker: { autorun: (fn: () => void) => fn() } };
+      const meteor = {
+        Meteor: {
+          absoluteUrl: () => 'https://open.example/',
+          userId: () => 'user',
+          status: () => ({ connected: true, status: 'connected' }),
+          user: () => ({}),
+          loggingIn: () => false,
+          call: () => undefined,
+        },
+      };
+      const session = { Session: { get: () => 0 } };
+      const presence = {
+        Presence: {
+          store: new Map(),
+          listen: () => undefined,
+          get: () => Promise.resolve(undefined),
+          stop: () => undefined,
+        },
+      };
+
+      // Advances the clock and returns the window.require calls made in it.
+      const countRequireCallsIn = async (
+        requireMock: jest.Mock,
+        milliseconds: number
+      ) => {
+        const before = requireMock.mock.calls.length;
+        await jest.advanceTimersByTimeAsync(milliseconds);
+        return requireMock.mock.calls.length - before;
+      };
+
+      it('stops once every feature of an 8.10 server is set up', async () => {
+        const requireMock = loadWithModules({
+          '/rocketchat.info': { Info: { version: '8.10.0' } },
+          'meteor/meteor': meteor,
+          'meteor/session': session,
+          'meteor/tracker': tracker,
+          '/client/lib/settings/index.ts': {
+            settings: createSettingsStore({ Site_Name: 'Open' }),
+          },
+          '/client/lib/presence.ts': presence,
+        });
+
+        await jest.advanceTimersByTimeAsync(2_000);
+
+        expect(desktop.setTitle).toHaveBeenLastCalledWith('Open');
+        expect(desktop.setUnreadAlertEnabled).toHaveBeenLastCalledWith(true);
+        expect(desktop.setUserLoggedIn).toHaveBeenLastCalledWith(true);
+        expect(desktop.setUserPresence).toHaveBeenCalled();
+        expect(desktop.setBadge?.mock.calls ?? []).toHaveLength(0);
+        expect(jest.getTimerCount()).toBe(0);
+        expect(await countRequireCallsIn(requireMock, 60_000)).toBe(0);
+      });
+
+      it('stops once every feature is set up while a lookup that no feature needs still retries', async () => {
+        const setIntervalSpy = jest.spyOn(globalThis, 'setInterval');
+        const clearIntervalSpy = jest.spyOn(globalThis, 'clearInterval');
+        // 8.10 has no Session badge, so a missing Session module blocks no
+        // feature. Its lookup retries for about 31 seconds.
+        loadWithModules({
+          '/rocketchat.info': { Info: { version: '8.10.0' } },
+          'meteor/meteor': meteor,
+          'meteor/tracker': tracker,
+          '/client/lib/settings/index.ts': {
+            settings: createSettingsStore({ Site_Name: 'Open' }),
+          },
+          '/client/lib/presence.ts': presence,
+        });
+
+        await jest.advanceTimersByTimeAsync(2_000);
+
+        expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+        expect(clearIntervalSpy).toHaveBeenCalledWith(
+          setIntervalSpy.mock.results[0].value
+        );
+      });
+
+      it('stops once every feature of a 7.10.15 server is set up', async () => {
+        const values: Record<string, unknown> = { Site_Name: 'Legacy' };
+        const requireMock = loadWithModules({
+          '/app/utils/rocketchat.info': { Info: { version: '7.10.15' } },
+          'meteor/meteor': meteor,
+          'meteor/session': session,
+          'meteor/tracker': tracker,
+          '/app/settings/client/index.ts': {
+            settings: { get: (key: string) => values[key] },
+          },
+          '/client/lib/presence.ts': presence,
+        });
+
+        await jest.advanceTimersByTimeAsync(2_000);
+
+        expect(desktop.setTitle).toHaveBeenLastCalledWith('Legacy');
+        expect(desktop.setUserLoggedIn).toHaveBeenLastCalledWith(true);
+        expect(jest.getTimerCount()).toBe(0);
+        expect(await countRequireCallsIn(requireMock, 60_000)).toBe(0);
+      });
+
+      it('sets up the Session badge, background and idle detector of a 6.3 server, then stops', async () => {
+        const values: Record<string, unknown> = {
+          Site_Name: 'Old',
+          Assets_background: { defaultUrl: 'background.png' },
+        };
+        const requireMock = loadWithModules({
+          '/app/utils/rocketchat.info': { Info: { version: '6.3.0' } },
+          'meteor/meteor': meteor,
+          'meteor/session': session,
+          'meteor/tracker': tracker,
+          '/app/settings/client/index.ts': {
+            settings: { get: (key: string) => values[key] },
+          },
+          '/app/utils/client/index.ts': { getUserPreference: () => true },
+          'meteor/rocketchat:user-presence': {
+            UserPresence: { start: () => undefined },
+          },
+        });
+
+        // The presence module does not exist on 6.3, so its lookup retries
+        // for about 31 seconds before the presence step can run.
+        await jest.advanceTimersByTimeAsync(40_000);
+
+        expect(desktop.setBadge).toHaveBeenLastCalledWith(0);
+        expect(desktop.setBackground).toHaveBeenLastCalledWith(
+          'background.png'
+        );
+        expect(desktop.setUserPresenceDetection).toHaveBeenCalled();
+        expect(desktop.setUserPresence).toHaveBeenCalled();
+        expect(jest.getTimerCount()).toBe(0);
+        expect(await countRequireCallsIn(requireMock, 60_000)).toBe(0);
+      });
+
+      it('stops after the module lookups give up when the page answers only the server info', async () => {
+        const requireMock = loadWithModules({
+          '/rocketchat.info': { Info: { version: '9.0.0' } },
+        });
+
+        await jest.advanceTimersByTimeAsync(40_000);
+
+        expect(desktop.setServerInfo).toHaveBeenCalledWith({
+          version: '9.0.0',
+        });
+        expect(desktop.setTitle?.mock.calls ?? []).toHaveLength(0);
+        expect(jest.getTimerCount()).toBe(0);
+        expect(await countRequireCallsIn(requireMock, 60_000)).toBe(0);
+      });
+    });
 
     it('routes clipboard writes to the main process even when the boot gives up', async () => {
       const nativeWriteText = navigator.clipboard.writeText;

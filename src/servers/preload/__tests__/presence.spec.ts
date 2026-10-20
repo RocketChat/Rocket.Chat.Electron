@@ -345,6 +345,58 @@ describe('servers/preload/presence', () => {
     });
 
     it.each([
+      [
+        'an Error',
+        new Error('Unknown user status: lunch'),
+        'Status change failed: Unknown user status: lunch',
+      ],
+      [
+        'a REST error body',
+        {
+          success: false,
+          error: 'Not allowed [error-not-allowed]',
+          errorType: 'error-not-allowed',
+        },
+        'Status change failed: error-not-allowed Not allowed [error-not-allowed]',
+      ],
+      [
+        'a copy of an HTTP response',
+        { status: 429, statusText: 'Too Many Requests' },
+        'Status change failed: 429 Too Many Requests',
+      ],
+      ['an object with no known field', {}, 'Status change failed: {}'],
+    ])(
+      'logs the details of a rejected change when the handler rejects with %s',
+      async (_case, rejection, message) => {
+        const { presence, ipcOn } = loadPresence();
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {
+          // The rejected change logs a warning on purpose.
+        });
+
+        try {
+          presence.listenToPresenceChangeRequests();
+          presence.setUserStatusChangeHandler(() => Promise.reject(rejection));
+          const [, listener] = ipcOn.mock.calls.find(
+            ([channel]: [string]) => channel === 'presence/change-requested'
+          );
+          listener({}, 'away');
+          // The handler call and its rejection take a few microtasks.
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls[0]).toEqual([
+            `[Rocket.Chat Desktop] ${message}`,
+          ]);
+        } finally {
+          warn.mockRestore();
+        }
+      }
+    );
+
+    it.each([
       ['returns no promise', jest.fn(() => undefined), 0],
       [
         'throws',

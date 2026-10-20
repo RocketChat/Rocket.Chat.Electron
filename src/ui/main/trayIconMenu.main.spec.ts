@@ -137,6 +137,30 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
     });
   });
 
+  it('keeps the current presence checked when the user has a status message', () => {
+    const template = buildMenuTemplate(
+      baseState({
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'online',
+        statusText: 'WFH',
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+      })
+    );
+
+    const radios = findPresenceRootItem(template).submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
+    expect(radios.map((item: any) => item.checked)).toEqual([
+      true,
+      false,
+      false,
+      false,
+    ]);
+  });
+
   it('disables submenu radios and shows a disconnected line when connecting', () => {
     const template = buildMenuTemplate(
       baseState({
@@ -420,7 +444,7 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
           ...connectedPresence,
           presence: 'busy',
           statusText: 'In a meeting',
-          statusExpiresAt: '2026-10-19T18:00:00.000Z',
+          statusExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
           customStatuses: [
             { id: 'meeting', name: 'In a meeting', status: 'busy' },
             { id: 'lunch', name: 'Lunch', status: 'away' },
@@ -459,6 +483,43 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
         undefined,
         'lunch'
       );
+    });
+
+    it('does not mark a custom status that only shares its name with the status message', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'online',
+          statusText: 'Lunch',
+          customStatuses: [{ id: 'lunch', name: 'Lunch', status: 'away' }],
+        })
+      );
+
+      const { submenu } = findPresenceRootItem(template);
+      expect(
+        submenu
+          .filter((item: any) => item.type === 'radio')
+          .map((item: any) => [item.label, item.checked])
+      ).toEqual([
+        ['tray.presence.online', true],
+        ['tray.presence.away', false],
+        ['tray.presence.busy', false],
+        ['tray.presence.offline', false],
+        ['Lunch', false],
+      ]);
+    });
+
+    it('hides the end time of a status that already expired', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'busy',
+          statusText: 'In a meeting',
+          statusExpiresAt: new Date(Date.now() - 60 * 1000).toISOString(),
+        })
+      );
+
+      expect(findItem(template, 'tray.presence.expiresAt')).toBeUndefined();
     });
 
     it('disables the status item when no status can be selected', () => {

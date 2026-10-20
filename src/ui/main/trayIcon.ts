@@ -77,7 +77,7 @@ const PRESENCE_OPTIONS: { presence: UserPresence; labelKey: string }[] = [
 
 const formatStatusExpiration = (expiresAt: string): string | undefined => {
   const date = new Date(expiresAt);
-  if (Number.isNaN(date.getTime())) {
+  if (Number.isNaN(date.getTime()) || date.getTime() <= Date.now()) {
     return undefined;
   }
 
@@ -155,12 +155,17 @@ const buildPresenceMenuItems = (
       )
     : PRESENCE_OPTIONS;
 
+  const activeCustomStatus = customStatuses?.find(
+    (customStatus) =>
+      customStatus.name === statusText && customStatus.status === presence
+  );
+
   const submenu: MenuItemConstructorOptions[] = options.map(
     ({ presence: optionPresence, labelKey }) => ({
       label: t(labelKey),
       icon: nativeImage.createFromPath(getPresenceMenuIconPath(optionPresence)),
       type: 'radio',
-      checked: !statusText && !statusExpiresAt && presence === optionPresence,
+      checked: !activeCustomStatus && presence === optionPresence,
       enabled: isConnected,
       click: () => {
         requestPresenceChange(activeServerPresence, optionPresence);
@@ -172,14 +177,20 @@ const buildPresenceMenuItems = (
     submenu.push(
       { type: 'separator' },
       ...customStatuses.map(
-        ({ id, name, status }): MenuItemConstructorOptions => ({
-          label: name,
-          icon: nativeImage.createFromPath(getPresenceMenuIconPath(status)),
+        (customStatus): MenuItemConstructorOptions => ({
+          label: customStatus.name,
+          icon: nativeImage.createFromPath(
+            getPresenceMenuIconPath(customStatus.status)
+          ),
           type: 'radio',
-          checked: statusText === name,
+          checked: customStatus === activeCustomStatus,
           enabled: isConnected,
           click: () => {
-            requestPresenceChange(activeServerPresence, status, id);
+            requestPresenceChange(
+              activeServerPresence,
+              customStatus.status,
+              customStatus.id
+            );
           },
         })
       )

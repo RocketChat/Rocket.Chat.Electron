@@ -22,7 +22,6 @@ import {
   setUserPresenceDetection,
 } from '../../userPresence/preload';
 import type { MediaCaptureState, Server } from '../common';
-import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import {
   openDocumentViewer,
@@ -61,6 +60,11 @@ import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
+import {
+  extendBootTimer,
+  setBadgeFromWebClient,
+  setUnreadAlertEnabled,
+} from './webClientEvents';
 
 type ServerInfo = {
   version: string;
@@ -120,6 +124,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
     handler: (request: DesktopUserStatusChangeRequest) => Promise<void>
   ) => void;
   reportMediaCapture: (state: MediaCaptureState) => void;
+  setUnreadAlertEnabled: (enabled: boolean) => void;
 };
 
 declare global {
@@ -139,11 +144,13 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);
+    extendBootTimer();
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },
   setUrlResolver,
-  setBadge,
+  setBadge: setBadgeFromWebClient,
+  setUnreadAlertEnabled,
   setFavicon,
   setBackground,
   setTitle,

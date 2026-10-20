@@ -137,3 +137,45 @@ The script will exit with a non-zero status code if any step fails. Common issue
 - The app runs in the background; use `kill <PID>` to stop it
 - This script is intended for development/testing purposes only
 
+
+### `web-signals-probe.ts`
+
+Checks that a Rocket.Chat server's web client still fires the `window`
+events that the desktop app reads. The events are `startup`,
+`unread-changed`, `unread-changed-by-subscription`, `status-changed`,
+`Custom_Script_Logged_In`, `Custom_Script_Logged_Out` and `notification`.
+The probe records each event in the page world and in an isolated world. The
+isolated world receives what a preload receives.
+
+#### Usage
+
+```bash
+yarn probe:web-signals --server <url> [--build meteor|vite|both] [--out report.json]
+```
+
+- `meteor` loads the client that the server serves.
+- `vite` loads the standalone client bundle from
+  `ghcr.io/rocketchat/rocket.chat-web:<tag>` (`--bundle-tag`, default
+  `develop`). It routes requests the same way as the desktop UI preview.
+- Run `yarn probe:web-signals --help` for all options.
+
+#### What it does
+
+1. Logs in as the admin through REST, and creates a `web-signals-sender`
+   user.
+2. Loads the client logged out, then again with the admin token in
+   `localStorage`.
+3. Sends a direct message to the admin from the sender.
+4. Sets the admin status to `busy` through REST.
+5. Logs the admin out of every session through `users.logout`.
+6. Compares the events of each phase with the expected list in
+   `scripts/webSignals.lib.ts`. It exits with code 1 when an event is
+   missing in either world.
+
+#### Notes
+
+- Use a disposable server, for example a mosdat server
+  (`mosdat_server_provision develop`). Step 5 logs the admin out
+  everywhere.
+- The probe does not expect `Custom_Script_On_Logout`. The Meteor build does
+  not fire it on a forced logout.

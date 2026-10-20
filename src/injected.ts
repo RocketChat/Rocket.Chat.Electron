@@ -54,64 +54,6 @@ const tryRequireFirstOf = <T = any>(paths: string[]) =>
     throw new Error(`None of the module paths resolved: ${paths.join(', ')}`);
   });
 
-const BOOT_RECOVERY_ATTEMPTS_KEY = 'rocketChatDesktopBootRecoveryAttempts';
-const MAX_BOOT_RECOVERY_ATTEMPTS = 2;
-
-const getBootRecoveryAttempts = (): number => {
-  try {
-    return (
-      Number(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)) || 0
-    );
-  } catch (error) {
-    return 0;
-  }
-};
-
-// Reloading in place never recovers a wedged webview (stale service worker or
-// cache keeps serving a broken bundle), so recovery goes through
-// reloadServer(), which clears the service worker and cache storage before
-// reloading. The sessionStorage counter survives those reloads and caps the
-// attempts, so a genuinely broken server degrades instead of reload-looping.
-const attemptBootRecovery = (reason: string): void => {
-  const attempts = getBootRecoveryAttempts();
-
-  if (attempts >= MAX_BOOT_RECOVERY_ATTEMPTS) {
-    console.error(
-      `[Rocket.Chat Desktop] ${reason}. Boot recovery attempts exhausted (${attempts}); giving up. Restart the app or use "Reload Clearing Cache" to retry.`
-    );
-    return;
-  }
-
-  try {
-    window.sessionStorage.setItem(
-      BOOT_RECOVERY_ATTEMPTS_KEY,
-      String(attempts + 1)
-    );
-  } catch (error) {
-    // Without a persisted counter every reload would read zero attempts and
-    // recover again, forever — safer to not recover at all.
-    console.error(
-      `[Rocket.Chat Desktop] ${reason}. Boot recovery is disabled because sessionStorage is unavailable.`
-    );
-    return;
-  }
-
-  console.error(
-    `[Rocket.Chat Desktop] ${reason}. Triggering force reload with cache clear to recover (attempt ${
-      attempts + 1
-    } of ${MAX_BOOT_RECOVERY_ATTEMPTS})...`
-  );
-  window.RocketChatDesktop.reloadServer();
-};
-
-const resetBootRecovery = (): void => {
-  try {
-    window.sessionStorage.removeItem(BOOT_RECOVERY_ATTEMPTS_KEY);
-  } catch (error) {
-    // sessionStorage unavailable; nothing to reset
-  }
-};
-
 // The session permission handler denies `clipboard-sanitized-write`, so the
 // native writeText always fails. Route it through the main process before any
 // module lookup: copy must keep working when the boot below gives up.
@@ -120,6 +62,205 @@ if (navigator.clipboard) {
   navigator.clipboard.writeText = async (...args) =>
     window.RocketChatDesktop.writeTextToClipboard(...args);
 }
+
+// The Notification class and the clipboard use only the desktop bridge, so
+// they apply on every server, also when the boot below finds no
+// `window.require` (the Vite client).
+console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
+
+window.Notification = class RocketChatDesktopNotification
+  extends EventTarget
+  implements Notification
+{
+  static readonly permission: NotificationPermission = 'granted';
+
+  static readonly maxActions: number =
+    process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
+
+  static requestPermission(): Promise<NotificationPermission> {
+    return Promise.resolve(RocketChatDesktopNotification.permission);
+  }
+
+  #destroy?: Promise<() => void>;
+
+  constructor(
+    title: string,
+    options: NotificationOptions & { canReply?: boolean } = {}
+  ) {
+    super();
+
+    this.#destroy = window.RocketChatDesktop.createNotification({
+      title,
+      ...options,
+      onEvent: this.handleEvent,
+    }).then((id) => () => {
+      window.RocketChatDesktop.destroyNotification(id);
+    });
+
+    Object.assign(this, { title, ...options });
+  }
+
+  actions: readonly NotificationActionOption[] = [];
+
+  badge = '';
+
+  body = '';
+
+  data: any = undefined;
+
+  dir: NotificationDirection = 'auto';
+
+  icon = '';
+
+  image = '';
+
+  lang = document.documentElement.lang;
+
+  #onclick: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onclick() {
+    return this.#onclick;
+  }
+
+  set onclick(value) {
+    if (this.#onclick) {
+      this.removeEventListener('click', this.#onclick);
+    }
+
+    this.#onclick = value;
+
+    if (this.#onclick) {
+      this.addEventListener('click', this.#onclick);
+    }
+  }
+
+  #onclose: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onclose() {
+    return this.#onclose;
+  }
+
+  set onclose(value) {
+    if (this.#onclose) {
+      this.removeEventListener('close', this.#onclose);
+    }
+
+    this.#onclose = value;
+
+    if (this.#onclose) {
+      this.addEventListener('close', this.#onclose);
+    }
+  }
+
+  #onerror: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onerror() {
+    return this.#onerror;
+  }
+
+  set onerror(value) {
+    if (this.#onerror) {
+      this.removeEventListener('error', this.#onerror);
+    }
+
+    this.#onerror = value;
+
+    if (this.#onerror) {
+      this.addEventListener('error', this.#onerror);
+    }
+  }
+
+  #onshow: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onshow() {
+    return this.#onshow;
+  }
+
+  set onshow(value) {
+    if (this.#onshow) {
+      this.removeEventListener('show', this.#onshow);
+    }
+
+    this.#onshow = value;
+
+    if (this.#onshow) {
+      this.addEventListener('show', this.#onshow);
+    }
+  }
+
+  #onaction: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onaction() {
+    return this.#onaction;
+  }
+
+  set onaction(value) {
+    if (this.#onaction) {
+      this.removeEventListener('action', this.#onaction);
+    }
+
+    this.#onaction = value;
+
+    if (this.#onaction) {
+      this.addEventListener('action', this.#onaction);
+    }
+  }
+
+  requireInteraction = false;
+
+  silent = false;
+
+  tag = '';
+
+  timestamp: number = Date.now();
+
+  title = '';
+
+  vibrate: readonly number[] = [];
+
+  private handleEvent = ({
+    type,
+    detail,
+  }: {
+    type: string;
+    detail: unknown;
+  }): void => {
+    const mainWorldEvent = new CustomEvent(type, { detail });
+
+    const isReplyEvent = (
+      type: string,
+      detail: unknown
+    ): detail is { reply: string } =>
+      type === 'reply' &&
+      typeof detail === 'object' &&
+      detail !== null &&
+      'reply' in detail &&
+      typeof (detail as { reply: string }).reply === 'string';
+
+    if (isReplyEvent(type, detail)) {
+      (mainWorldEvent as any).response = detail.reply;
+    }
+
+    if (type === 'action') {
+      (mainWorldEvent as any).action = resolveNotificationAction(
+        this.actions,
+        detail
+      );
+    }
+    this.dispatchEvent(mainWorldEvent);
+  };
+
+  close(): void {
+    if (!this.#destroy) {
+      return;
+    }
+
+    this.#destroy?.then((destroy) => {
+      this.#destroy = undefined;
+      destroy();
+    });
+  }
+};
 
 let startRetryCount = 0;
 let totalRetryTime = 0;
@@ -132,16 +273,12 @@ const start = async () => {
   if (typeof window.require !== 'function') {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
 
-    if (window.RocketChatDesktop.isUiPreviewActive()) {
-      console.warn(
-        '[Rocket.Chat Desktop] The UI preview client has no window.require; desktop integrations are off and boot recovery is skipped.'
-      );
-      return;
-    }
-
+    // The Vite client never has window.require. Boot recovery belongs to the
+    // preload (webClientEvents.ts), which waits for the `startup` event, so
+    // these legacy integrations only stop here.
     if (totalRetryTime >= MAX_RETRY_TIME) {
-      attemptBootRecovery(
-        `Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available`
+      console.warn(
+        `[Rocket.Chat Desktop] window.require is not available after ${MAX_RETRY_TIME}ms; legacy integrations are off.`
       );
       return;
     }
@@ -186,23 +323,20 @@ const start = async () => {
       serverInfoModulePaths
     ));
   } catch (error) {
-    // window.require exists but the module registry is incomplete — the
-    // webapp boot is wedged (stuck throbber) and only a cache-clearing
-    // reload recovers it.
-    attemptBootRecovery(
-      `Failed to require ${serverInfoModulePaths.join(' or ')} after retries`
+    console.warn(
+      `[Rocket.Chat Desktop] Failed to require ${serverInfoModulePaths.join(
+        ' or '
+      )} after retries; legacy integrations are off.`
     );
     return;
   }
 
   if (!serverInfo.version) {
-    attemptBootRecovery(
-      'The rocketchat.info module returned no server version'
+    console.warn(
+      '[Rocket.Chat Desktop] The rocketchat.info module returned no server version; legacy integrations are off.'
     );
     return;
   }
-
-  resetBootRecovery();
 
   console.log('[Rocket.Chat Desktop] Injected.ts serverInfo', serverInfo);
 
@@ -380,207 +514,11 @@ const start = async () => {
       presenceModuleResolved = false;
     });
 
-  console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
-
-  window.Notification = class RocketChatDesktopNotification
-    extends EventTarget
-    implements Notification
-  {
-    static readonly permission: NotificationPermission = 'granted';
-
-    static readonly maxActions: number =
-      process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
-
-    static requestPermission(): Promise<NotificationPermission> {
-      return Promise.resolve(RocketChatDesktopNotification.permission);
-    }
-
-    #destroy?: Promise<() => void>;
-
-    constructor(
-      title: string,
-      options: NotificationOptions & { canReply?: boolean } = {}
-    ) {
-      super();
-
-      this.#destroy = window.RocketChatDesktop.createNotification({
-        title,
-        ...options,
-        onEvent: this.handleEvent,
-      }).then((id) => () => {
-        window.RocketChatDesktop.destroyNotification(id);
-      });
-
-      Object.assign(this, { title, ...options });
-    }
-
-    actions: readonly NotificationActionOption[] = [];
-
-    badge = '';
-
-    body = '';
-
-    data: any = undefined;
-
-    dir: NotificationDirection = 'auto';
-
-    icon = '';
-
-    image = '';
-
-    lang = document.documentElement.lang;
-
-    #onclick: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onclick() {
-      return this.#onclick;
-    }
-
-    set onclick(value) {
-      if (this.#onclick) {
-        this.removeEventListener('click', this.#onclick);
-      }
-
-      this.#onclick = value;
-
-      if (this.#onclick) {
-        this.addEventListener('click', this.#onclick);
-      }
-    }
-
-    #onclose: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onclose() {
-      return this.#onclose;
-    }
-
-    set onclose(value) {
-      if (this.#onclose) {
-        this.removeEventListener('close', this.#onclose);
-      }
-
-      this.#onclose = value;
-
-      if (this.#onclose) {
-        this.addEventListener('close', this.#onclose);
-      }
-    }
-
-    #onerror: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onerror() {
-      return this.#onerror;
-    }
-
-    set onerror(value) {
-      if (this.#onerror) {
-        this.removeEventListener('error', this.#onerror);
-      }
-
-      this.#onerror = value;
-
-      if (this.#onerror) {
-        this.addEventListener('error', this.#onerror);
-      }
-    }
-
-    #onshow: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onshow() {
-      return this.#onshow;
-    }
-
-    set onshow(value) {
-      if (this.#onshow) {
-        this.removeEventListener('show', this.#onshow);
-      }
-
-      this.#onshow = value;
-
-      if (this.#onshow) {
-        this.addEventListener('show', this.#onshow);
-      }
-    }
-
-    #onaction: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onaction() {
-      return this.#onaction;
-    }
-
-    set onaction(value) {
-      if (this.#onaction) {
-        this.removeEventListener('action', this.#onaction);
-      }
-
-      this.#onaction = value;
-
-      if (this.#onaction) {
-        this.addEventListener('action', this.#onaction);
-      }
-    }
-
-    requireInteraction = false;
-
-    silent = false;
-
-    tag = '';
-
-    timestamp: number = Date.now();
-
-    title = '';
-
-    vibrate: readonly number[] = [];
-
-    private handleEvent = ({
-      type,
-      detail,
-    }: {
-      type: string;
-      detail: unknown;
-    }): void => {
-      const mainWorldEvent = new CustomEvent(type, { detail });
-
-      const isReplyEvent = (
-        type: string,
-        detail: unknown
-      ): detail is { reply: string } =>
-        type === 'reply' &&
-        typeof detail === 'object' &&
-        detail !== null &&
-        'reply' in detail &&
-        typeof (detail as { reply: string }).reply === 'string';
-
-      if (isReplyEvent(type, detail)) {
-        (mainWorldEvent as any).response = detail.reply;
-      }
-
-      if (type === 'action') {
-        (mainWorldEvent as any).action = resolveNotificationAction(
-          this.actions,
-          detail
-        );
-      }
-      this.dispatchEvent(mainWorldEvent);
-    };
-
-    close(): void {
-      if (!this.#destroy) {
-        return;
-      }
-
-      this.#destroy?.then((destroy) => {
-        this.#destroy = undefined;
-        destroy();
-      });
-    }
-  };
-
   // Track which features have been setup to avoid duplicates
   const setupFlags = {
     urlResolver: false,
     badgeUpdates: false,
-    unreadChangedEvent: false,
+    unreadAlertPreference: false,
     faviconUpdates: false,
     jitsiIntegration: false,
     backgroundSettings: false,
@@ -594,15 +532,6 @@ const start = async () => {
     userPresenceReassert: false,
   };
 
-  // Per-subscription unread state, accumulated from the
-  // `unread-changed-by-subscription` global event so the badge can reproduce
-  // the server's alert-only "•" indicator. Lives outside setupReactiveFeatures
-  // so it survives the periodic re-invocation below.
-  const unreadSubscriptions = new Map<
-    string,
-    { unread: number; alert?: boolean; unreadAlert?: string }
-  >();
-
   // Setup reactive features that depend on modules (with polling)
   // eslint-disable-next-line complexity
   const setupReactiveFeatures = () => {
@@ -613,7 +542,7 @@ const start = async () => {
 
     // Pre-7.8.0 only: those servers still publish the badge through the Meteor
     // Session reactive dict. On 7.8.0+ this key is gone (Session.get('unread')
-    // resolves to undefined) and the global-event path below owns the badge, so
+    // resolves to undefined) and the preload's unread events own the badge, so
     // running this autorun there would clear the badge with setBadge(undefined).
     if (
       !versionIsGreaterOrEqualsTo(serverInfo.version, '7.8.0') &&
@@ -628,126 +557,16 @@ const start = async () => {
       setupFlags.badgeUpdates = true;
     }
 
-    // Servers >= 7.x removed `unread` from the Meteor Session reactive dict
-    // (RocketChat/Rocket.Chat#36001), which is why the Session autorun above is
-    // gated to pre-7.8.0. Those servers no longer expose the badge through
-    // Meteor at all, but they still broadcast it through two global
-    // CustomEvents on window, mirroring the server's own `useUnread` hook:
-    //   - `unread-changed-by-subscription`: fires per subscription whenever its
-    //     unread-relevant fields change, carrying { rid, unread, alert,
-    //     unreadAlert }. We accumulate these into `unreadSubscriptions` to
-    //     rebuild the alert-only "•" indicator that the numeric count alone
-    //     cannot represent.
-    //   - `unread-changed`: fires on every recompute with the aggregate count.
-    //     We use it as the recompute trigger and the source of truth for the
-    //     numeric total.
-    // The badge value is resolved exactly as the server's `useUnread` does:
-    // a positive count wins, otherwise an alert-only "•", otherwise no badge.
-    // Registered independently of the Meteor modules so it works even when they
-    // never load.
-    if (!setupFlags.unreadChangedEvent) {
-      // `aggregateCount`, when provided, is the authoritative total carried by
-      // the `unread-changed` event. The per-subscription map is incremental and
-      // only sees rooms that changed after the listener attached, so it can
-      // undercount; we prefer the aggregate for the numeric total and use the
-      // map solely to rebuild the alert-only "•" indicator.
-      // Server boot floods this path: the webapp fires one
-      // `unread-changed-by-subscription` event per room when it starts, and
-      // dispatching a badge update for each one storms the root window's
-      // Redux store hard enough that React aborts with "Maximum update depth
-      // exceeded". Recomputes are therefore coalesced into a single
-      // trailing-edge call, and the dispatch is skipped entirely when the
-      // resolved badge value did not change.
-      const BADGE_COALESCE_MS = 100;
-      let resolveBadgeTimer: ReturnType<typeof setTimeout> | null = null;
-      let pendingAggregateCount: number | undefined;
-      let lastSentBadge: number | '•' | undefined;
-      let hasSentBadge = false;
-
-      const resolveBadge = (aggregateCount?: number): void => {
-        let unreadCount = 0;
-        let alertIndicator: '•' | undefined;
-
-        // The user's `unreadAlert` preference only influences rooms left on the
-        // default. No global event carries it, so we read it from the Meteor
-        // user document when available and fall back to the server's shipped
-        // default of `true`.
-        const unreadAlertEnabled =
-          Meteor?.user?.()?.settings?.preferences?.unreadAlert ?? true;
-
-        for (const subscription of unreadSubscriptions.values()) {
-          const { unread, alert, unreadAlert } = subscription;
-          if (alert || unread > 0) {
-            if (
-              alert === true &&
-              unreadAlert !== 'nothing' &&
-              (unreadAlert === 'all' || unreadAlertEnabled !== false)
-            ) {
-              alertIndicator = '•';
-            }
-            unreadCount += unread;
-          }
-        }
-
-        const total =
-          aggregateCount !== undefined && aggregateCount > unreadCount
-            ? aggregateCount
-            : unreadCount;
-
-        const badge = total > 0 ? total : alertIndicator ?? 0;
-        if (hasSentBadge && badge === lastSentBadge) {
-          return;
-        }
-        hasSentBadge = true;
-        lastSentBadge = badge;
-        window.RocketChatDesktop.setBadge(badge);
-      };
-
-      const scheduleResolveBadge = (aggregateCount?: number): void => {
-        if (aggregateCount !== undefined) {
-          pendingAggregateCount = aggregateCount;
-        }
-        if (resolveBadgeTimer !== null) {
-          return;
-        }
-        resolveBadgeTimer = setTimeout(() => {
-          resolveBadgeTimer = null;
-          const aggregate = pendingAggregateCount;
-          pendingAggregateCount = undefined;
-          resolveBadge(aggregate);
-        }, BADGE_COALESCE_MS);
-      };
-
-      window.addEventListener('unread-changed-by-subscription', (event) => {
-        const subscription = (
-          event as CustomEvent<{
-            rid?: string;
-            unread?: number;
-            alert?: boolean;
-            unreadAlert?: string;
-          }>
-        ).detail;
-        if (!subscription?.rid) {
-          return;
-        }
-        unreadSubscriptions.set(subscription.rid, {
-          unread: subscription.unread ?? 0,
-          alert: subscription.alert,
-          unreadAlert: subscription.unreadAlert,
-        });
-        scheduleResolveBadge();
+    // The unread events feed the badge in the preload (webClientEvents.ts).
+    // No event carries the user's `unreadAlert` preference, so it is pushed
+    // from here when Meteor is available.
+    if (Tracker && Meteor && !setupFlags.unreadAlertPreference) {
+      Tracker.autorun(() => {
+        window.RocketChatDesktop.setUnreadAlertEnabled(
+          Meteor.user?.()?.settings?.preferences?.unreadAlert !== false
+        );
       });
-
-      window.addEventListener('unread-changed', (event) => {
-        const { detail } = event as CustomEvent<number | undefined>;
-        const aggregateCount =
-          typeof detail === 'number' && Number.isFinite(detail)
-            ? detail
-            : undefined;
-        scheduleResolveBadge(aggregateCount);
-      });
-
-      setupFlags.unreadChangedEvent = true;
+      setupFlags.unreadAlertPreference = true;
     }
 
     if (Tracker && settings && !setupFlags.faviconUpdates) {

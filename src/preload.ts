@@ -9,7 +9,10 @@ import { RocketChatDesktop } from './servers/preload/api';
 import { listenToConferenceWindowRequests } from './servers/preload/conferenceWindow';
 import { listenToMediaCaptureReports } from './servers/preload/mediaCapture';
 import { listenToNavigateToRouteRequests } from './servers/preload/navigateToRoute';
-import { listenToPresenceChangeRequests } from './servers/preload/presence';
+import {
+  listenToPresenceChangeRequests,
+  markPresenceStoreReady,
+} from './servers/preload/presence';
 import { setServerUrl } from './servers/preload/urls';
 import {
   connectWebClientEvents,
@@ -77,6 +80,7 @@ const start = async (): Promise<void> => {
   await createRendererReduxStore();
 
   markPreloadReady();
+  markPresenceStoreReady();
 
   await invoke('server-view/ready');
 

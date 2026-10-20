@@ -772,7 +772,16 @@ const start = async () => {
         }
       };
 
+      let presenceStateReported = false;
+
+      window.RocketChatDesktop.onUserPresenceStateReported(() => {
+        presenceStateReported = true;
+        subscribeToPresence(null);
+      });
+
       Tracker.autorun(() => {
+        if (presenceStateReported) return;
+
         const uid: string | null = Meteor.userId();
         const conn = Meteor.status();
 

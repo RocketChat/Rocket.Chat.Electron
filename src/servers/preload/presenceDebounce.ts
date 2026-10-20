@@ -11,6 +11,7 @@ export const shouldDebouncePresenceCall = (
 export type PresenceCall = {
   status: string;
   statusText?: string;
+  customStatusId?: string;
 };
 
 export const createPresenceRateLimiter = (options: {

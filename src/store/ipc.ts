@@ -17,10 +17,13 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   const renderers = new Set<WebContents>();
 
   handleOnMain('redux/get-initial-state', async (webContents) => {
-    renderers.add(webContents);
-    webContents.addListener('destroyed', () => {
-      renderers.delete(webContents);
-    });
+    // A reload or navigation keeps the same webContents and asks again.
+    if (!renderers.has(webContents)) {
+      renderers.add(webContents);
+      webContents.addListener('destroyed', () => {
+        renderers.delete(webContents);
+      });
+    }
 
     return api.getState();
   });

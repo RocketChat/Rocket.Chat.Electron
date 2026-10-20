@@ -90,6 +90,42 @@ describe('servers/preload api bridge', () => {
     expect(ready).toHaveBeenCalledWith({ version: '10.0.0' });
   });
 
+  // Every server since 1.0.0 fires `startup`. The legacy integration can call
+  // setServerInfo before the web client mounts, for example on a Vite build
+  // with a minimal `window.require`, so only `startup` stops the boot watchdog.
+  it('waits for the startup event, not server info, to count a boot', async () => {
+    const { onWebClientBooted, listenToWebClientEvents } = await import(
+      '../webClientEvents'
+    );
+    const added: Array<[string, EventListenerOrEventListenerObject]> = [];
+    const addEventListener = window.addEventListener.bind(window);
+    jest
+      .spyOn(window, 'addEventListener')
+      .mockImplementation((type, listener, options) => {
+        added.push([type, listener]);
+        addEventListener(type, listener, options);
+      });
+    listenToWebClientEvents();
+    const ready = jest.fn();
+    const booted = jest.fn();
+    RocketChatDesktop.onReady(ready);
+    onWebClientBooted(booted);
+
+    RocketChatDesktop.setServerInfo({ version: '8.10.0' });
+
+    expect(ready).toHaveBeenCalledWith({ version: '8.10.0' });
+    expect(booted).not.toHaveBeenCalled();
+
+    window.dispatchEvent(new CustomEvent('startup', { detail: true }));
+
+    expect(booted).toHaveBeenCalledTimes(1);
+
+    added.forEach(([type, listener]) =>
+      window.removeEventListener(type, listener)
+    );
+    jest.restoreAllMocks();
+  });
+
   it('calls late waiters immediately when info is already known', () => {
     const ready = jest.fn();
     RocketChatDesktop.setServerInfo({ version: '10.0.1' });

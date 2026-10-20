@@ -7,6 +7,9 @@ import type * as WebClientEvents from '../webClientEvents';
 jest.mock('../badge', () => ({ setBadge: jest.fn() }));
 jest.mock('../userLoggedIn', () => ({ setUserLoggedIn: jest.fn() }));
 jest.mock('../reloadServer', () => ({ reloadServer: jest.fn() }));
+jest.mock('../urls', () => ({
+  getServerUrl: jest.fn(() => `${window.location.origin}/`),
+}));
 
 type Bridge = typeof WebClientEvents;
 
@@ -53,6 +56,7 @@ describe('servers/preload/webClientEvents', () => {
   let setBadge: jest.Mock;
   let setUserLoggedIn: jest.Mock;
   let reloadServer: jest.Mock;
+  let getServerUrl: jest.Mock;
 
   const load = () => {
     jest.isolateModules(() => {
@@ -60,6 +64,7 @@ describe('servers/preload/webClientEvents', () => {
       ({ setBadge } = require('../badge'));
       ({ setUserLoggedIn } = require('../userLoggedIn'));
       ({ reloadServer } = require('../reloadServer'));
+      ({ getServerUrl } = require('../urls'));
     });
     bridge.listenToWebClientEvents();
   };
@@ -167,6 +172,15 @@ describe('servers/preload/webClientEvents', () => {
     jest.advanceTimersByTime(1);
     expect(reloadServer).toHaveBeenCalledTimes(1);
     expect(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)).toBe('1');
+  });
+
+  it('does not reload a page of another origin, such as an SSO login page', () => {
+    getServerUrl.mockReturnValue('https://chat.example.com/');
+    bridge.connectWebClientEvents();
+
+    jest.advanceTimersByTime(60_000);
+
+    expect(reloadServer).not.toHaveBeenCalled();
   });
 
   it('stops recovering after the attempt cap', () => {

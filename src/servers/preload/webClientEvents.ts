@@ -2,6 +2,7 @@ import type { Server } from '../common';
 import { setBadge } from './badge';
 import { attemptBootRecovery, resetBootRecovery } from './bootRecovery';
 import { createUnreadBadgeTracker } from './unreadBadge';
+import { getServerUrl } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 
 // The web client fires these Iframe Integration CustomEvents on window in both
@@ -87,6 +88,16 @@ export const listenToWebClientEvents = (): void => {
   });
 };
 
+// The preload also runs on pages of other origins, such as an SSO login page.
+// Those pages never fire `startup`, and a reload would lose the user's input.
+const isServerPage = (): boolean => {
+  try {
+    return new URL(getServerUrl()).origin === window.location.origin;
+  } catch {
+    return false;
+  }
+};
+
 // A wedged boot (stale service worker or cache serving a broken bundle) never
 // mounts the web client's root layout, so `startup` never fires and only a
 // cache-clearing reload recovers it.
@@ -99,7 +110,7 @@ export const connectWebClientEvents = (): void => {
   }
   sendUserLoggedIn();
 
-  if (booted || bootTimer !== null) {
+  if (booted || bootTimer !== null || !isServerPage()) {
     return;
   }
   bootTimer = setTimeout(() => {

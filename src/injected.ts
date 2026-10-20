@@ -524,6 +524,7 @@ const start = async () => {
     backgroundSettings: false,
     outlookIntegration: false,
     titleUpdates: false,
+    userLoginDetection: false,
     gitCommitHash: false,
     themeAppearance: false,
     userPresence: false,
@@ -679,6 +680,14 @@ const start = async () => {
         window.RocketChatDesktop.setTitle(siteName);
       });
       setupFlags.titleUpdates = true;
+    }
+
+    if (Tracker && Meteor && !setupFlags.userLoginDetection) {
+      Tracker.autorun(() => {
+        const userId = Meteor.userId();
+        window.RocketChatDesktop.setUserLoggedIn(userId !== null);
+      });
+      setupFlags.userLoginDetection = true;
     }
 
     if (

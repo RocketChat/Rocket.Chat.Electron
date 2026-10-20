@@ -160,7 +160,9 @@ describe('injected.ts', () => {
       await jest.advanceTimersByTimeAsync(2_000);
 
       expect(desktop.setUnreadAlertEnabled).toHaveBeenLastCalledWith(false);
-      expect(desktop.setUserLoggedIn).toBeUndefined();
+      // The Meteor login autorun stays: it also covers routes outside the
+      // main layout, where the web client fires no login event.
+      expect(desktop.setUserLoggedIn).toHaveBeenLastCalledWith(true);
     });
 
     it('keeps the app/utils path and the Tracker-reactive settings get on servers before 7.11', async () => {

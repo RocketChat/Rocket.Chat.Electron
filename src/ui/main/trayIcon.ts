@@ -36,7 +36,8 @@ const selectHasHideOnTrayNotificationShown = ({
 
 const requestPresenceChange = (
   activeServerPresence: ActiveServerPresence,
-  presence: UserPresence
+  presence: UserPresence,
+  customStatusId?: string
 ): void => {
   const server = select(({ servers }: RootState): Server | undefined =>
     servers.find((s) => s.url === activeServerPresence.url)
@@ -47,7 +48,12 @@ const requestPresenceChange = (
   }
 
   const targetWebContents = webContents.fromId(server.webContentsId);
-  targetWebContents?.send(PRESENCE_CHANGE_REQUESTED_CHANNEL, presence);
+  targetWebContents?.send(
+    PRESENCE_CHANGE_REQUESTED_CHANNEL,
+    presence,
+    undefined,
+    customStatusId
+  );
 };
 
 const showRootWindow = async (): Promise<void> => {
@@ -69,6 +75,25 @@ const PRESENCE_OPTIONS: { presence: UserPresence; labelKey: string }[] = [
   { presence: 'offline', labelKey: 'tray.presence.offline' },
 ];
 
+const formatStatusExpiration = (expiresAt: string): string | undefined => {
+  const date = new Date(expiresAt);
+  if (Number.isNaN(date.getTime()) || date.getTime() <= Date.now()) {
+    return undefined;
+  }
+
+  if (date.toDateString() === new Date().toDateString()) {
+    return date.toLocaleTimeString(i18next.language, {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  return date.toLocaleString(i18next.language, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+};
+
 const buildPresenceMenuItems = (
   activeServerPresence: ActiveServerPresence
 ): MenuItemConstructorOptions[] => {
@@ -77,6 +102,9 @@ const buildPresenceMenuItems = (
     title,
     presence,
     statusText,
+    statusExpiresAt,
+    availableStatuses,
+    customStatuses,
     connection,
     supported,
     loggedIn,
@@ -121,18 +149,55 @@ const buildPresenceMenuItems = (
     connection === 'disconnected' || connection === 'connecting';
   const isConnected = !isDisconnected;
 
-  const submenu: MenuItemConstructorOptions[] = PRESENCE_OPTIONS.map(
+  const options = availableStatuses
+    ? PRESENCE_OPTIONS.filter((option) =>
+        availableStatuses.includes(option.presence)
+      )
+    : PRESENCE_OPTIONS;
+
+  const activeCustomStatus = customStatuses?.find(
+    (customStatus) =>
+      customStatus.name === statusText && customStatus.status === presence
+  );
+
+  const submenu: MenuItemConstructorOptions[] = options.map(
     ({ presence: optionPresence, labelKey }) => ({
       label: t(labelKey),
       icon: nativeImage.createFromPath(getPresenceMenuIconPath(optionPresence)),
       type: 'radio',
-      checked: presence === optionPresence,
+      checked: !activeCustomStatus && presence === optionPresence,
       enabled: isConnected,
       click: () => {
         requestPresenceChange(activeServerPresence, optionPresence);
       },
     })
   );
+
+  // The custom statuses stay in the radio group of the standard statuses. A
+  // separator starts a second group, and when the menu opens, Electron checks
+  // the first item of a group that has no checked item (macOS and Windows).
+  if (customStatuses?.length) {
+    submenu.push(
+      ...customStatuses.map(
+        (customStatus): MenuItemConstructorOptions => ({
+          label: customStatus.name,
+          icon: nativeImage.createFromPath(
+            getPresenceMenuIconPath(customStatus.status)
+          ),
+          type: 'radio',
+          checked: customStatus === activeCustomStatus,
+          enabled: isConnected,
+          click: () => {
+            requestPresenceChange(
+              activeServerPresence,
+              customStatus.status,
+              customStatus.id
+            );
+          },
+        })
+      )
+    );
+  }
 
   const currentOption = PRESENCE_OPTIONS.find(
     (option) => option.presence === presence
@@ -148,7 +213,7 @@ const buildPresenceMenuItems = (
           getPresenceMenuIconPath(currentOption.presence)
         ),
       }),
-      submenu,
+      ...(submenu.length > 0 ? { submenu } : { enabled: false }),
     },
   ];
 
@@ -162,6 +227,16 @@ const buildPresenceMenuItems = (
   if (statusText) {
     items.push({
       label: statusText,
+      enabled: false,
+    });
+  }
+
+  const expiration = statusExpiresAt
+    ? formatStatusExpiration(statusExpiresAt)
+    : undefined;
+  if (expiration) {
+    items.push({
+      label: t('tray.presence.expiresAt', { time: expiration }),
       enabled: false,
     });
   }
@@ -392,6 +467,9 @@ const isDisconnectedForIcon = (
   );
 };
 
+// setTimeout fires at once for a delay above 2^31 - 1 ms.
+const MAX_TIMER_DELAY_MS = 2 ** 31 - 1;
+
 const manageTrayIcon = async (): Promise<() => void> => {
   const trayIcon = createTrayIcon();
 
@@ -443,11 +521,39 @@ const manageTrayIcon = async (): Promise<() => void> => {
     }
   );
 
+  // The menu hides the end time of an expired status only when it is built.
+  // Build the menu again when the end time passes.
+  let statusExpiryTimer: ReturnType<typeof setTimeout> | undefined;
+  const scheduleStatusExpiryRefresh = (statusExpiresAt?: string): void => {
+    clearTimeout(statusExpiryTimer);
+    statusExpiryTimer = undefined;
+
+    const delay = statusExpiresAt
+      ? Date.parse(statusExpiresAt) - Date.now()
+      : Number.NaN;
+    if (!(delay > 0)) {
+      return;
+    }
+
+    statusExpiryTimer = setTimeout(
+      () => {
+        statusExpiryTimer = undefined;
+        const isRootWindowVisible = select(selectIsRootWindowVisible);
+        refreshMenu(isRootWindowVisible, isRootWindowVisible);
+        scheduleStatusExpiryRefresh(
+          select(selectActiveServerPresence).statusExpiresAt
+        );
+      },
+      Math.min(delay + 500, MAX_TIMER_DELAY_MS)
+    );
+  };
+
   const unwatchActiveServerPresence = watch(
     selectActiveServerPresence,
     (activeServerPresence) => {
       const isRootWindowVisible = select(selectIsRootWindowVisible);
       refreshMenu(isRootWindowVisible, isRootWindowVisible);
+      scheduleStatusExpiryRefresh(activeServerPresence.statusExpiresAt);
       updateTrayIconImage(
         trayIcon,
         select(selectGlobalBadge),
@@ -482,6 +588,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
     unwatchActiveServerPresence();
     unwatchIsTrayIconUnreadCounterEnabled();
     unwatchIsMenuBarUnreadCountEnabled();
+    clearTimeout(statusExpiryTimer);
     trayIcon.destroy();
   };
 };

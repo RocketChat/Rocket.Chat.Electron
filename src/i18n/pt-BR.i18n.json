@@ -555,7 +555,8 @@
       "offline": "Offline",
       "disconnected": "Desconectado — tentando reconectar...",
       "signIn": "Entrar em {{- workspace}}",
-      "addWorkspace": "Adicionar espaço de trabalho"
+      "addWorkspace": "Adicionar espaço de trabalho",
+      "expiresAt": "Até {{- time}}"
     }
   },
   "taskbar": {

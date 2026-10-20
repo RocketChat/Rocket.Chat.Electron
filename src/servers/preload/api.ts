@@ -125,8 +125,8 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   },
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
-    markWebClientBooted();
     cb(_serverInfo);
+    markWebClientBooted();
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },

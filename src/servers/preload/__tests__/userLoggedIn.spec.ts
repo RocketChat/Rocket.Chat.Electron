@@ -1,9 +1,5 @@
 /** @jest-environment jsdom */
-import { dispatch } from '../../../store';
 import { WEBVIEW_USER_LOGGED_IN } from '../../../ui/actions';
-import { getServerUrl } from '../urls';
-import { setUserLoggedIn } from '../userLoggedIn';
-import { clearUserRoles, updateUserRoles } from '../userRoles';
 
 jest.mock('../../../store', () => ({
   dispatch: jest.fn(),
@@ -18,23 +14,25 @@ jest.mock('../userRoles', () => ({
   updateUserRoles: jest.fn(),
 }));
 
-const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
-const getServerUrlMock = getServerUrl as jest.MockedFunction<
-  typeof getServerUrl
->;
-const clearUserRolesMock = clearUserRoles as jest.MockedFunction<
-  typeof clearUserRoles
->;
-const updateUserRolesMock = updateUserRoles as jest.MockedFunction<
-  typeof updateUserRoles
->;
-
 describe('servers/preload/userLoggedIn', () => {
-  beforeEach(() => {
-    dispatchMock.mockClear();
-    getServerUrlMock.mockReturnValue('https://server.local');
-    clearUserRolesMock.mockClear();
-    updateUserRolesMock.mockClear();
+  // The module keeps the last state, so each test loads a fresh copy and
+  // does not depend on the order of the tests.
+  let setUserLoggedIn: (userLoggedIn: boolean) => void;
+  let dispatchMock: jest.Mock;
+  let clearUserRoles: jest.Mock;
+  let updateUserRoles: jest.Mock;
+
+  beforeEach(async () => {
+    jest.resetModules();
+    ({ setUserLoggedIn } = await import('../userLoggedIn'));
+    ({ dispatch: dispatchMock } = (await import(
+      '../../../store'
+    )) as unknown as {
+      dispatch: jest.Mock;
+    });
+    ({ clearUserRoles, updateUserRoles } = (await import(
+      '../userRoles'
+    )) as unknown as { clearUserRoles: jest.Mock; updateUserRoles: jest.Mock });
   });
 
   it('dispatches logged-in state and refreshes roles for logged-in users', () => {
@@ -54,7 +52,7 @@ describe('servers/preload/userLoggedIn', () => {
   it('ignores a repeat of the same state', () => {
     setUserLoggedIn(true);
     dispatchMock.mockClear();
-    updateUserRolesMock.mockClear();
+    updateUserRoles.mockClear();
 
     setUserLoggedIn(true);
 

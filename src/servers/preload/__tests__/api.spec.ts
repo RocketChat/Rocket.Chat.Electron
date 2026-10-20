@@ -90,6 +90,17 @@ describe('servers/preload api bridge', () => {
     expect(ready).toHaveBeenCalledWith({ version: '10.0.0' });
   });
 
+  it('runs readiness waiters before boot callbacks, so the log names server info', async () => {
+    const { onWebClientBooted } = await import('../webClientEvents');
+    const order: string[] = [];
+    RocketChatDesktop.onReady(() => order.push('server info'));
+    onWebClientBooted(() => order.push('startup event'));
+
+    RocketChatDesktop.setServerInfo({ version: '8.10.0' });
+
+    expect(order).toEqual(['server info', 'startup event']);
+  });
+
   it('calls late waiters immediately when info is already known', () => {
     const ready = jest.fn();
     RocketChatDesktop.setServerInfo({ version: '10.0.1' });

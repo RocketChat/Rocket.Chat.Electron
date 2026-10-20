@@ -207,8 +207,8 @@ export const evaluatePhase = ({ phase, events }: PhaseRecord): Failure[] =>
 
 // The unread count must grow when a new message arrives.
 export const evaluateUnreadGrowth = (
-  before: RecordedEvent[],
-  after: RecordedEvent[]
+  before: Record<World, RecordedEvent[]>,
+  after: Record<World, RecordedEvent[]>
 ): Failure[] => {
   const lastCount = (events: RecordedEvent[]) => {
     const counts = events
@@ -217,17 +217,58 @@ export const evaluateUnreadGrowth = (
       .filter(Number.isFinite);
     return counts.length ? counts[counts.length - 1] : undefined;
   };
-  const previous = lastCount(before);
-  const next = lastCount(after);
-  if (previous === undefined || next === undefined || next > previous) {
-    return [];
+  return (['main', 'isolated'] as const).flatMap((world): Failure[] => {
+    const previous = lastCount(before[world]);
+    const next = lastCount(after[world]);
+    if (previous === undefined || next === undefined || next > previous) {
+      return [];
+    }
+    return [
+      {
+        phase: 'incoming message',
+        world,
+        event: 'unread-changed',
+        reason: `count did not grow (${previous} → ${next})`,
+      },
+    ];
+  });
+};
+
+export type Build = 'meteor' | 'vite';
+
+// Returns the value that follows `name`, or undefined when `name` is absent.
+// A flag with no value is an error, so that it does not fall back to a default.
+export const readFlag = (argv: string[], name: string): string | undefined => {
+  const index = argv.indexOf(name);
+  if (index < 0) {
+    return undefined;
   }
-  return [
-    {
-      phase: 'incoming message',
-      world: 'main',
-      event: 'unread-changed',
-      reason: `count did not grow (${previous} → ${next})`,
-    },
-  ];
+  const value = argv[index + 1];
+  if (value === undefined || value.startsWith('--')) {
+    throw new Error(`${name} needs a value`);
+  }
+  return value;
+};
+
+export const parseBuilds = (value: string | undefined): Build[] => {
+  if (value === undefined || value === 'both') {
+    return ['meteor', 'vite'];
+  }
+  if (value === 'meteor' || value === 'vite') {
+    return [value];
+  }
+  throw new Error(`--build must be meteor, vite or both, not "${value}"`);
+};
+
+export const parseTimeout = (value: string | undefined): number => {
+  if (value === undefined) {
+    return 20000;
+  }
+  const timeoutMs = Number(value);
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new Error(
+      `--timeout must be a positive number of ms, not "${value}"`
+    );
+  }
+  return timeoutMs;
 };

@@ -5,15 +5,17 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from 'fs';
 import { tmpdir } from 'os';
-import { extname, join, resolve, sep } from 'path';
+import { dirname, extname, join, resolve, sep } from 'path';
 
 import puppeteer from 'puppeteer';
 import type { Page } from 'puppeteer';
 
 import type {
+  Build,
   Failure,
   PhaseName,
   PhaseRecord,
@@ -26,11 +28,12 @@ import {
   datasetKey,
   evaluatePhase,
   evaluateUnreadGrowth,
+  parseBuilds,
+  parseTimeout,
   prepareIndexHtml,
+  readFlag,
   routeRequest,
 } from './webSignals.lib';
-
-type Build = 'meteor' | 'vite';
 
 type Flags = {
   server?: string;
@@ -44,22 +47,16 @@ type Flags = {
   help: boolean;
 };
 
-const readFlag = (argv: string[], name: string): string | undefined => {
-  const index = argv.indexOf(name);
-  return index >= 0 ? argv[index + 1] : undefined;
-};
-
 const parseFlags = (argv: string[]): Flags => {
-  const build = readFlag(argv, '--build') ?? 'both';
   return {
     server: readFlag(argv, '--server'),
     user: readFlag(argv, '--user') ?? 'mosdat-admin',
     password: readFlag(argv, '--password') ?? 'mosdat-admin-pass',
-    builds: build === 'both' ? ['meteor', 'vite'] : [build as Build],
+    builds: parseBuilds(readFlag(argv, '--build')),
     bundleTag: readFlag(argv, '--bundle-tag') ?? 'develop',
     bundleDir: readFlag(argv, '--bundle-dir'),
     out: readFlag(argv, '--out'),
-    timeoutMs: Number(readFlag(argv, '--timeout') ?? 20000),
+    timeoutMs: parseTimeout(readFlag(argv, '--timeout')),
     help: argv.includes('--help') || argv.includes('-h'),
   };
 };
@@ -78,6 +75,7 @@ const printHelp = (): void => {
   Options:
     --server <url>        Server to probe. Use a disposable server: the
                           probe logs the admin user out of every session.
+                          The vite build needs a server on the root path.
     --user <name>         Admin username (default: mosdat-admin).
     --password <pass>     Admin password (default: mosdat-admin-pass).
     --build <b>           meteor, vite or both (default: both). meteor loads
@@ -96,11 +94,14 @@ const printHelp = (): void => {
 };
 
 const BUNDLE_REPOSITORY = 'rocketchat/rocket.chat-web';
+const REST_TIMEOUT_MS = 30000;
+const DOWNLOAD_TIMEOUT_MS = 180000;
 
 const pullBundle = async (tag: string): Promise<string> => {
   const { token } = await (
     await fetch(
-      `https://ghcr.io/token?scope=repository:${BUNDLE_REPOSITORY}:pull`
+      `https://ghcr.io/token?scope=repository:${BUNDLE_REPOSITORY}:pull`,
+      { signal: AbortSignal.timeout(REST_TIMEOUT_MS) }
     )
   ).json();
   const headers = {
@@ -110,6 +111,7 @@ const pullBundle = async (tag: string): Promise<string> => {
   const manifest = await (
     await fetch(`https://ghcr.io/v2/${BUNDLE_REPOSITORY}/manifests/${tag}`, {
       headers,
+      signal: AbortSignal.timeout(REST_TIMEOUT_MS),
     })
   ).json();
   const layer = manifest.layers?.[0];
@@ -120,7 +122,7 @@ const pullBundle = async (tag: string): Promise<string> => {
     await (
       await fetch(
         `https://ghcr.io/v2/${BUNDLE_REPOSITORY}/blobs/${layer.digest}`,
-        { headers }
+        { headers, signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS) }
       )
     ).arrayBuffer()
   );
@@ -133,7 +135,8 @@ const pullBundle = async (tag: string): Promise<string> => {
   const dir = join(root, 'bundle');
   mkdirSync(dir);
   writeFileSync(archive, blob);
-  execFileSync('tar', ['-xzf', archive, '-C', dir]);
+  // Relative paths: GNU tar on Windows reads `C:\\...` as a remote host.
+  execFileSync('tar', ['-xzf', 'bundle.tgz', '-C', 'bundle'], { cwd: root });
   const revision =
     manifest.annotations?.['org.opencontainers.image.revision'] ?? 'unknown';
   console.log(
@@ -147,7 +150,11 @@ type Credentials = { token: string; uid: string };
 const createRestClient = (serverUrl: string) => {
   const call = async (
     path: string,
-    { auth, body }: { auth?: Credentials; body?: unknown } = {}
+    {
+      auth,
+      body,
+      allowFailure = false,
+    }: { auth?: Credentials; body?: unknown; allowFailure?: boolean } = {}
   ): Promise<any> => {
     const response = await fetch(new URL(`api/v1/${path}`, serverUrl), {
       method: body ? 'POST' : 'GET',
@@ -156,12 +163,34 @@ const createRestClient = (serverUrl: string) => {
         ...(auth ? { 'X-Auth-Token': auth.token, 'X-User-Id': auth.uid } : {}),
       },
       body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(REST_TIMEOUT_MS),
     });
-    return response.json();
+    const result = await response.json().catch(() => ({}));
+    // A failed setup call would show up later as a missing event: fail here.
+    if (!allowFailure && (!response.ok || result.success === false)) {
+      throw new Error(
+        `${path} failed (HTTP ${response.status}): ${JSON.stringify(result)}`
+      );
+    }
+    return result;
   };
 
   const login = async (user: string, password: string) => {
-    const result = await call('login', { body: { user, password } });
+    let result = await call('login', {
+      body: { user, password },
+      allowFailure: true,
+    });
+    // The server rate-limits logins ("You must wait 3 seconds ..."). The
+    // probe logs in several times per build, so wait and retry a few times.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const wait = /wait (\d+) seconds?/.exec(String(result.error ?? ''));
+      if (!wait) break;
+      await new Promise((r) => setTimeout(r, (Number(wait[1]) + 1) * 1000));
+      result = await call('login', {
+        body: { user, password },
+        allowFailure: true,
+      });
+    }
     if (result.status !== 'success') {
       throw new Error(`Login as ${user} failed: ${JSON.stringify(result)}`);
     }
@@ -286,6 +315,26 @@ const lengths = async (page: Page) => {
   return { main: all.main.length, isolated: all.isolated.length };
 };
 
+// Waits until no new event arrives for `quietMs`, so that late boot events
+// (the unread count once the subscriptions load) do not land in the next phase.
+const waitForQuiet = async (
+  page: Page,
+  timeoutMs: number,
+  quietMs = 2000
+): Promise<void> => {
+  const deadline = Date.now() + timeoutMs;
+  let last = JSON.stringify(await lengths(page));
+  let quietSince = Date.now();
+  while (Date.now() - quietSince < quietMs && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 250));
+    const now = JSON.stringify(await lengths(page));
+    if (now !== last) {
+      last = now;
+      quietSince = Date.now();
+    }
+  }
+};
+
 const readEnvironment = (page: Page) =>
   page.evaluate(() => {
     const info = (() => {
@@ -328,6 +377,8 @@ const probeBuild = async (
   await call('users.create', {
     auth: admin,
     body: { ...SENDER, name: 'Web Signals Sender', verified: true },
+    // A second run finds the sender already there; the login below checks it.
+    allowFailure: true,
   });
   const sender = await login(SENDER.username, SENDER.password);
 
@@ -380,7 +431,13 @@ const probeBuild = async (
     );
     const environment = await readEnvironment(page);
 
-    let since = await lengths(page);
+    await waitForQuiet(page, flags.timeoutMs);
+    // The unread count before the message: every event up to now.
+    const beforeMessage = await readBoth(page);
+    let since = {
+      main: beforeMessage.main.length,
+      isolated: beforeMessage.isolated.length,
+    };
     const direct = await call('im.create', {
       auth: sender,
       body: { username: flags.user },
@@ -408,19 +465,24 @@ const probeBuild = async (
       await waitForPhase(page, 'forced logout', since, flags.timeoutMs)
     );
 
-    const restored = await login(flags.user, flags.password);
-    await call('users.setStatus', {
-      auth: restored,
-      body: { status: 'online', message: '' },
-    });
-
     const failures = [
       ...phases.flatMap(evaluatePhase),
-      ...evaluateUnreadGrowth(phases[1].events.main, phases[2].events.main),
+      ...evaluateUnreadGrowth(beforeMessage, phases[2].events),
     ];
     return { build, environment, phases, failures };
   } finally {
     await browser.close();
+    // Restore the status on every path. A user left `busy` makes the next
+    // run's status change a no-op, which then fails with no event.
+    try {
+      const restored = await login(flags.user, flags.password);
+      await call('users.setStatus', {
+        auth: restored,
+        body: { status: 'online', message: '' },
+      });
+    } catch (error) {
+      console.warn(`Could not restore the status of ${flags.user}:`, error);
+    }
   }
 };
 
@@ -468,10 +530,16 @@ const main = async (): Promise<void> => {
     : undefined;
 
   const reports: BuildReport[] = [];
-  for (const build of flags.builds) {
-    const report = await probeBuild(build, { ...flags, server }, bundleDir);
-    printReport(report);
-    reports.push(report);
+  try {
+    for (const build of flags.builds) {
+      const report = await probeBuild(build, { ...flags, server }, bundleDir);
+      printReport(report);
+      reports.push(report);
+    }
+  } finally {
+    if (bundleDir && !flags.bundleDir) {
+      rmSync(dirname(bundleDir), { recursive: true, force: true });
+    }
   }
 
   if (flags.out) {

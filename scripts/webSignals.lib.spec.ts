@@ -4,7 +4,10 @@ import {
   describeDetail,
   evaluatePhase,
   evaluateUnreadGrowth,
+  parseBuilds,
+  parseTimeout,
   prepareIndexHtml,
+  readFlag,
   routeRequest,
 } from './webSignals.lib';
 
@@ -172,11 +175,11 @@ describe('evaluatePhase', () => {
 });
 
 describe('evaluateUnreadGrowth', () => {
-  it('passes when the unread count grows', () => {
+  it('passes when the unread count grows in both worlds', () => {
     expect(
       evaluateUnreadGrowth(
-        [event('unread-changed', 'number:2')],
-        [event('unread-changed', 'number:3')]
+        both([event('unread-changed', 'number:2')]),
+        both([event('unread-changed', 'number:3')])
       )
     ).toEqual([]);
   });
@@ -184,9 +187,59 @@ describe('evaluateUnreadGrowth', () => {
   it('fails when the unread count stays the same', () => {
     expect(
       evaluateUnreadGrowth(
-        [event('unread-changed', 'number:2')],
-        [event('unread-changed', 'number:2')]
+        both([event('unread-changed', 'number:2')]),
+        both([event('unread-changed', 'number:2')])
       )
-    ).toHaveLength(1);
+    ).toHaveLength(2);
+  });
+
+  it('fails for the isolated world when only the main world grows', () => {
+    expect(
+      evaluateUnreadGrowth(both([event('unread-changed', 'number:2')]), {
+        main: [event('unread-changed', 'number:3')],
+        isolated: [event('unread-changed', 'number:2')],
+      })
+    ).toEqual([expect.objectContaining({ world: 'isolated' })]);
+  });
+});
+
+describe('readFlag', () => {
+  it('returns the value after the flag', () => {
+    expect(readFlag(['--timeout', '500'], '--timeout')).toBe('500');
+  });
+
+  it('returns undefined when the flag is absent', () => {
+    expect(readFlag(['--build', 'vite'], '--timeout')).toBeUndefined();
+  });
+
+  it('throws when the flag has no value', () => {
+    expect(() => readFlag(['--timeout'], '--timeout')).toThrow(/--timeout/);
+    expect(() =>
+      readFlag(['--timeout', '--build', 'vite'], '--timeout')
+    ).toThrow(/--timeout/);
+  });
+});
+
+describe('parseBuilds', () => {
+  it('expands both and keeps a single build', () => {
+    expect(parseBuilds(undefined)).toEqual(['meteor', 'vite']);
+    expect(parseBuilds('both')).toEqual(['meteor', 'vite']);
+    expect(parseBuilds('vite')).toEqual(['vite']);
+  });
+
+  it('throws on an unknown build', () => {
+    expect(() => parseBuilds('vitee')).toThrow(/vitee/);
+  });
+});
+
+describe('parseTimeout', () => {
+  it('uses the default when the flag is absent', () => {
+    expect(parseTimeout(undefined)).toBe(20000);
+  });
+
+  it('throws on a value that is not a positive number', () => {
+    expect(() => parseTimeout('abc')).toThrow(/abc/);
+    expect(() => parseTimeout('0')).toThrow();
+    expect(() => parseTimeout('-5')).toThrow();
   });
 });

@@ -111,6 +111,38 @@ describe('servers/preload/webClientEvents', () => {
     expect(setUserLoggedIn).toHaveBeenLastCalledWith(false);
   });
 
+  // Rocket.Chat 9.x pushes the badge it resolved (with the user's
+  // `unreadAlert` preference) through RocketChatDesktop.setBadge. Older
+  // servers never call it, so the unread events keep the badge there.
+  it('lets the web client own the badge after its first direct setBadge', () => {
+    bridge.connectWebClientEvents();
+    replay(LOGGED_IN_BOOT);
+
+    bridge.setBadgeFromWebClient(0);
+    jest.advanceTimersByTime(100);
+    expect(setBadge).toHaveBeenCalledTimes(1);
+    expect(setBadge).toHaveBeenLastCalledWith(0);
+
+    replay(INCOMING_MESSAGE);
+    jest.advanceTimersByTime(100);
+    expect(setBadge).toHaveBeenCalledTimes(1);
+
+    bridge.setBadgeFromWebClient(7);
+    expect(setBadge).toHaveBeenLastCalledWith(7);
+  });
+
+  it('holds a direct setBadge that arrives before the store connects', () => {
+    replay(LOGGED_IN_BOOT);
+    bridge.setBadgeFromWebClient('•');
+    jest.advanceTimersByTime(100);
+    expect(setBadge).not.toHaveBeenCalled();
+
+    bridge.connectWebClientEvents();
+
+    expect(setBadge).toHaveBeenCalledTimes(1);
+    expect(setBadge).toHaveBeenCalledWith('•');
+  });
+
   it('holds the events that arrive before the store connects', () => {
     replay(LOGGED_IN_BOOT);
     jest.advanceTimersByTime(100);

@@ -133,10 +133,16 @@ const pullBundle = async (tag: string): Promise<string> => {
   const root = mkdtempSync(join(tmpdir(), 'web-signals-bundle-'));
   const archive = join(root, 'bundle.tgz');
   const dir = join(root, 'bundle');
-  mkdirSync(dir);
-  writeFileSync(archive, blob);
-  // Relative paths: GNU tar on Windows reads `C:\\...` as a remote host.
-  execFileSync('tar', ['-xzf', 'bundle.tgz', '-C', 'bundle'], { cwd: root });
+  try {
+    mkdirSync(dir);
+    writeFileSync(archive, blob);
+    // Relative paths: GNU tar on Windows reads `C:\\...` as a remote host.
+    execFileSync('tar', ['-xzf', 'bundle.tgz', '-C', 'bundle'], { cwd: root });
+  } catch (error) {
+    // `main` cleans up only a returned directory.
+    rmSync(root, { recursive: true, force: true });
+    throw error;
+  }
   const revision =
     manifest.annotations?.['org.opencontainers.image.revision'] ?? 'unknown';
   console.log(
@@ -481,7 +487,9 @@ const probeBuild = async (
         body: { status: 'online', message: '' },
       });
     } catch (error) {
-      console.warn(`Could not restore the status of ${flags.user}:`, error);
+      // A user left `busy` breaks the next run, so the run must not pass.
+      console.error(`Could not restore the status of ${flags.user}:`, error);
+      process.exitCode = 1;
     }
   }
 };

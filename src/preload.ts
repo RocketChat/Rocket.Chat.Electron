@@ -11,6 +11,11 @@ import { listenToMediaCaptureReports } from './servers/preload/mediaCapture';
 import { listenToNavigateToRouteRequests } from './servers/preload/navigateToRoute';
 import { listenToPresenceChangeRequests } from './servers/preload/presence';
 import { setServerUrl } from './servers/preload/urls';
+import {
+  connectWebClientEvents,
+  listenToWebClientEvents,
+  onWebClientBooted,
+} from './servers/preload/webClientEvents';
 import { markPreloadReady } from './servers/preload/whenPreloadReady';
 import { createRendererReduxStore, listen } from './store';
 import { listenToTelephonyRequests } from './telephony/preload';
@@ -34,6 +39,8 @@ console.log('[Rocket.Chat Desktop] Preload.ts');
 
 contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
+
+listenToWebClientEvents();
 
 let retryCount = 0;
 let startInProgress = false;
@@ -73,14 +80,23 @@ const start = async (): Promise<void> => {
 
   await invoke('server-view/ready');
 
+  connectWebClientEvents();
+
   listenToTelephonyRequests();
   listenToNavigateToRouteRequests();
   listenToConferenceWindowRequests();
   listenToPresenceChangeRequests();
 
-  console.log('[Rocket.Chat Desktop] waiting for RocketChatDesktop.onReady');
-  RocketChatDesktop.onReady(() => {
-    console.log('[Rocket.Chat Desktop] RocketChatDesktop.onReady fired');
+  // A Vite client without `window.require` never calls setServerInfo(),
+  // because the injected script cannot run there, so its `startup` event must
+  // also be enough.
+  let integrationsStarted = false;
+  const startIntegrations = (source: string): void => {
+    if (integrationsStarted) {
+      return;
+    }
+    integrationsStarted = true;
+    console.log(`[Rocket.Chat Desktop] web client ready (${source})`);
     listen(
       WEBVIEW_DID_NAVIGATE,
       debounce(() => {
@@ -96,7 +112,11 @@ const start = async (): Promise<void> => {
     listenToScreenSharingRequests();
     listenToMessageBoxEvents();
     handleTrafficLightsSpacing();
-  });
+  };
+
+  console.log('[Rocket.Chat Desktop] waiting for the web client to start');
+  RocketChatDesktop.onReady(() => startIntegrations('server info'));
+  onWebClientBooted(() => startIntegrations('startup event'));
 };
 
 console.log('[Rocket.Chat Desktop] waiting for window load');

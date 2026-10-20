@@ -114,6 +114,7 @@ describe('servers/preload api bridge', () => {
     const { setBadge } = RocketChatDesktop as unknown as { setBadge: unknown };
     // A failed function comparison cannot cross the runner's IPC, so compare
     // to a boolean.
+    expect(typeof setBadge).toBe('function');
     expect(setBadge === setBadgeFromWebClient).toBe(true);
   });
 

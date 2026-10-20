@@ -1,6 +1,11 @@
 /** @jest-environment jsdom */
 import { WEBVIEW_USER_LOGGED_IN } from '../../../ui/actions';
 
+// These cases cover a ready preload. whenPreloadReady.spec.ts covers early calls.
+jest.mock('../whenPreloadReady', () => ({
+  runWhenPreloadReady: (_key: string, fn: () => void) => fn(),
+}));
+
 jest.mock('../../../store', () => ({
   dispatch: jest.fn(),
 }));

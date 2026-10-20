@@ -6,6 +6,11 @@ import { WEBVIEW_USER_ROLES_CHANGED } from '../../ui/actions';
 import { getServerUrl } from './urls';
 import { clearUserRoles, setUserRoles, updateUserRoles } from './userRoles';
 
+// These cases cover a ready preload. whenPreloadReady.spec.ts covers early calls.
+jest.mock('./whenPreloadReady', () => ({
+  runWhenPreloadReady: (_key: string, fn: () => void) => fn(),
+}));
+
 jest.mock('../../store', () => ({
   dispatch: jest.fn(),
 }));

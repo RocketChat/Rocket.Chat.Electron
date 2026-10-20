@@ -16,6 +16,7 @@ import {
   listenToWebClientEvents,
   onWebClientBooted,
 } from './servers/preload/webClientEvents';
+import { markPreloadReady } from './servers/preload/whenPreloadReady';
 import { createRendererReduxStore, listen } from './store';
 import { listenToTelephonyRequests } from './telephony/preload';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
@@ -74,6 +75,8 @@ const start = async (): Promise<void> => {
   await whenReady();
 
   await createRendererReduxStore();
+
+  markPreloadReady();
 
   await invoke('server-view/ready');
 

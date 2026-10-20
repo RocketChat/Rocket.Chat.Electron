@@ -411,4 +411,57 @@ describe('ui/main/trayIcon', () => {
       expect(trayMethods.setTitle).toHaveBeenLastCalledWith('7');
     });
   });
+
+  describe('status expiry', () => {
+    const hasExpiryLine = (template: any[]) =>
+      template.some((item) => item.label === 'tray.presence.expiresAt');
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('rebuilds the menu without the end time when the status expires', async () => {
+      const expiresAt = new Date(Date.now() + 60 * 1000).toISOString();
+      const activeServerPresence = {
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'busy',
+        statusText: 'In a meeting',
+        statusExpiresAt: expiresAt,
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+      };
+      select.mockImplementation((selector: any) =>
+        typeof selector === 'function'
+          ? selector({
+              rootWindowState: { visible: true },
+              hasHideOnTrayNotificationShown: false,
+              globalBadge: undefined,
+              activeServerPresence,
+            })
+          : undefined
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const service = require('./trayIcon').default;
+      service.setUp();
+      await new Promise((r) => setTimeout(r, 20));
+
+      jest.useFakeTimers({ now: Date.now() });
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectActiveServerPresence } = require('../selectors');
+      watchCallbacks.get(selectActiveServerPresence)?.(activeServerPresence);
+
+      expect(hasExpiryLine(trayMethods.setContextMenu.mock.lastCall?.[0])).toBe(
+        true
+      );
+
+      jest.advanceTimersByTime(61 * 1000);
+
+      expect(hasExpiryLine(trayMethods.setContextMenu.mock.lastCall?.[0])).toBe(
+        false
+      );
+    });
+  });
 });

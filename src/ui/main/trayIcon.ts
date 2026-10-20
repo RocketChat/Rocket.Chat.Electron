@@ -467,6 +467,9 @@ const isDisconnectedForIcon = (
   );
 };
 
+// setTimeout fires at once for a delay above 2^31 - 1 ms.
+const MAX_TIMER_DELAY_MS = 2 ** 31 - 1;
+
 const manageTrayIcon = async (): Promise<() => void> => {
   const trayIcon = createTrayIcon();
 
@@ -518,11 +521,39 @@ const manageTrayIcon = async (): Promise<() => void> => {
     }
   );
 
+  // The menu hides the end time of an expired status only when it is built.
+  // Build the menu again when the end time passes.
+  let statusExpiryTimer: ReturnType<typeof setTimeout> | undefined;
+  const scheduleStatusExpiryRefresh = (statusExpiresAt?: string): void => {
+    clearTimeout(statusExpiryTimer);
+    statusExpiryTimer = undefined;
+
+    const delay = statusExpiresAt
+      ? Date.parse(statusExpiresAt) - Date.now()
+      : Number.NaN;
+    if (!(delay > 0)) {
+      return;
+    }
+
+    statusExpiryTimer = setTimeout(
+      () => {
+        statusExpiryTimer = undefined;
+        const isRootWindowVisible = select(selectIsRootWindowVisible);
+        refreshMenu(isRootWindowVisible, isRootWindowVisible);
+        scheduleStatusExpiryRefresh(
+          select(selectActiveServerPresence).statusExpiresAt
+        );
+      },
+      Math.min(delay + 500, MAX_TIMER_DELAY_MS)
+    );
+  };
+
   const unwatchActiveServerPresence = watch(
     selectActiveServerPresence,
     (activeServerPresence) => {
       const isRootWindowVisible = select(selectIsRootWindowVisible);
       refreshMenu(isRootWindowVisible, isRootWindowVisible);
+      scheduleStatusExpiryRefresh(activeServerPresence.statusExpiresAt);
       updateTrayIconImage(
         trayIcon,
         select(selectGlobalBadge),
@@ -557,6 +588,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
     unwatchActiveServerPresence();
     unwatchIsTrayIconUnreadCounterEnabled();
     unwatchIsMenuBarUnreadCountEnabled();
+    clearTimeout(statusExpiryTimer);
     trayIcon.destroy();
   };
 };

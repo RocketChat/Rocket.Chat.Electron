@@ -133,15 +133,19 @@ describe('servers/preload/presence', () => {
   });
 
   describe('setUserPresenceState / setUserStatusChangeHandler', () => {
-    const loadPresence = () => {
+    const loadPresence = ({ storeReady = true } = {}) => {
       jest.resetModules();
       /* eslint-disable @typescript-eslint/no-var-requires */
       const { ipcRenderer } = require('electron') as {
         ipcRenderer: { on: jest.Mock };
       };
       ipcRenderer.on.mockClear();
+      const presence = require('../presence');
+      if (storeReady) {
+        presence.markPresenceStoreReady();
+      }
       return {
-        presence: require('../presence'),
+        presence,
         dispatch: require('../../../store').dispatch as jest.Mock,
         setUserLoggedIn: require('../userLoggedIn')
           .setUserLoggedIn as jest.Mock,
@@ -214,7 +218,7 @@ describe('servers/preload/presence', () => {
       expect(stopAfterReport).toHaveBeenCalledTimes(1);
     });
 
-    it('sends tray requests to the web client handler instead of the injected script', () => {
+    it('sends tray requests to the web client handler instead of the injected script', async () => {
       const { presence, ipcOn } = loadPresence();
       const handler = jest.fn(() => Promise.resolve());
       const injectedCallback = jest.fn();
@@ -227,12 +231,13 @@ describe('servers/preload/presence', () => {
         ([channel]: [string]) => channel === 'presence/change-requested'
       );
       listener({}, 'away');
+      await Promise.resolve();
 
       expect(handler).toHaveBeenCalledWith({ status: 'away' });
       expect(injectedCallback).not.toHaveBeenCalled();
     });
 
-    it('passes the custom status id of a tray request to the web client handler', () => {
+    it('passes the custom status id of a tray request to the web client handler', async () => {
       const { presence, ipcOn } = loadPresence();
       const handler = jest.fn(() => Promise.resolve());
 
@@ -243,11 +248,133 @@ describe('servers/preload/presence', () => {
         ([channel]: [string]) => channel === 'presence/change-requested'
       );
       listener({}, 'busy', undefined, 'meeting');
+      await Promise.resolve();
 
       expect(handler).toHaveBeenCalledWith({
         status: 'busy',
         customStatusId: 'meeting',
       });
     });
+
+    it('keeps a snapshot reported before the store exists and replays the latest one', () => {
+      const { presence, dispatch, setUserLoggedIn } = loadPresence({
+        storeReady: false,
+      });
+
+      presence.setUserPresenceState(snapshot);
+      presence.setUserPresenceState({ ...snapshot, status: 'away' });
+
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(setUserLoggedIn).not.toHaveBeenCalled();
+
+      presence.markPresenceStoreReady();
+
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: WEBVIEW_USER_PRESENCE_CHANGED,
+          payload: expect.objectContaining({ presence: 'away' }),
+        })
+      );
+      expect(setUserLoggedIn).toHaveBeenCalledTimes(1);
+      expect(setUserLoggedIn).toHaveBeenCalledWith(true);
+
+      presence.markPresenceStoreReady();
+      expect(dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops values of the wrong type or shape from a snapshot', () => {
+      const { presence, dispatch } = loadPresence();
+
+      presence.setUserPresenceState({
+        loggedIn: true,
+        connection: 'bogus',
+        status: '../../x',
+        statusText: 42,
+        statusExpiresAt: 'not a date',
+        availableStatuses: {},
+        customStatuses: {},
+      });
+
+      expect(dispatch).toHaveBeenCalledWith({
+        type: WEBVIEW_USER_PRESENCE_CHANGED,
+        payload: {
+          url: 'https://server.local',
+          presence: undefined,
+          presenceStatusText: undefined,
+          presenceConnection: undefined,
+          presenceSupported: true,
+          presenceStatusExpiresAt: undefined,
+          presenceAvailableStatuses: [],
+          presenceCustomStatuses: [],
+        },
+      });
+    });
+
+    it('keeps only valid entries of the status lists and caps their size', () => {
+      const { presence, dispatch } = loadPresence();
+      const manyStatuses = Array.from({ length: 150 }, (_, index) => ({
+        id: `custom-${index}`,
+        name: `Custom ${index}`,
+        status: 'away',
+      }));
+
+      presence.setUserPresenceState({
+        ...snapshot,
+        availableStatuses: ['online', '../../x', 7, 'busy'],
+        customStatuses: [
+          { id: 'bad-status', name: 'Bad', status: '../../x' },
+          { id: 1, name: 'Bad id', status: 'away' },
+          { id: 'bad-name', name: {}, status: 'away' },
+          null,
+          'lunch',
+          { id: 'long', name: 'x'.repeat(1000), status: 'busy', extra: true },
+          ...manyStatuses,
+        ],
+      });
+
+      const { payload } = dispatch.mock.calls[0][0];
+      expect(payload.presenceAvailableStatuses).toEqual(['online', 'busy']);
+      expect(payload.presenceCustomStatuses).toHaveLength(100);
+      expect(payload.presenceCustomStatuses[0]).toEqual({
+        id: 'long',
+        name: 'x'.repeat(256),
+        status: 'busy',
+      });
+      expect(payload.presenceCustomStatuses[1]).toEqual(manyStatuses[0]);
+    });
+
+    it.each([
+      ['returns no promise', jest.fn(() => undefined), 0],
+      [
+        'throws',
+        jest.fn(() => {
+          throw new Error('boom');
+        }),
+        1,
+      ],
+    ])(
+      'does not throw when the web client handler %s',
+      async (_case, handler, warnings) => {
+        const { presence, ipcOn } = loadPresence();
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {
+          // The failing handler logs a warning on purpose.
+        });
+
+        presence.listenToPresenceChangeRequests();
+        presence.setUserStatusChangeHandler(handler);
+        const [, listener] = ipcOn.mock.calls.find(
+          ([channel]: [string]) => channel === 'presence/change-requested'
+        );
+
+        expect(() => listener({}, 'away')).not.toThrow();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(handler).toHaveBeenCalledWith({ status: 'away' });
+        expect(warn).toHaveBeenCalledTimes(warnings);
+        warn.mockRestore();
+      }
+    );
   });
 });

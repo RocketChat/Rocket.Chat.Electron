@@ -33,9 +33,70 @@ type UserPresencePayload = {
   presenceSupported: Server['presenceSupported'];
 };
 
+const USER_PRESENCES: UserPresence[] = ['online', 'away', 'busy', 'offline'];
+const PRESENCE_CONNECTIONS: DesktopUserPresence['connection'][] = [
+  'connected',
+  'connecting',
+  'disconnected',
+];
+const MAX_CUSTOM_STATUSES = 100;
+const MAX_STRING_LENGTH = 256;
+
+type NormalizedUserPresence = Omit<DesktopUserPresence, 'connection'> & {
+  connection?: DesktopUserPresence['connection'];
+};
+
+const isUserPresence = (value: unknown): value is UserPresence =>
+  USER_PRESENCES.includes(value as UserPresence);
+
+const isShortString = (value: unknown): value is string =>
+  typeof value === 'string' && value.length <= MAX_STRING_LENGTH;
+
+const toArray = (value: unknown): unknown[] =>
+  Array.isArray(value) ? value : [];
+
+// The web page sends this snapshot, and the main process builds menu items
+// and icon file paths from it. Keep only values of the expected shape.
+const normalizeUserPresence = (input: unknown): NormalizedUserPresence => {
+  const presence = (input ?? {}) as Record<string, unknown>;
+  const { statusText, statusExpiresAt } = presence;
+
+  return {
+    loggedIn: presence.loggedIn === true,
+    connection: PRESENCE_CONNECTIONS.find(
+      (connection) => connection === presence.connection
+    ),
+    status: isUserPresence(presence.status) ? presence.status : undefined,
+    statusText:
+      typeof statusText === 'string'
+        ? statusText.slice(0, MAX_STRING_LENGTH)
+        : undefined,
+    statusExpiresAt:
+      isShortString(statusExpiresAt) &&
+      !Number.isNaN(Date.parse(statusExpiresAt))
+        ? statusExpiresAt
+        : undefined,
+    availableStatuses: toArray(presence.availableStatuses).filter(
+      isUserPresence
+    ),
+    customStatuses: toArray(presence.customStatuses)
+      .flatMap((entry) => {
+        const { id, name, status } = (entry ?? {}) as Record<string, unknown>;
+        return isShortString(id) &&
+          typeof name === 'string' &&
+          isUserPresence(status)
+          ? [{ id, name: name.slice(0, MAX_STRING_LENGTH), status }]
+          : [];
+      })
+      .slice(0, MAX_CUSTOM_STATUSES),
+  };
+};
+
 let presenceStateReported = false;
 let presenceStateReportedCallback: (() => void) | null = null;
 let lastLoggedIn: boolean | undefined;
+let storeReady = false;
+let pendingPresenceState: NormalizedUserPresence | null = null;
 
 export const onUserPresenceStateReported = (callback: () => void): void => {
   if (presenceStateReported) {
@@ -60,12 +121,7 @@ export const setUserPresence = (payload: UserPresencePayload): void => {
   });
 };
 
-export const setUserPresenceState = (presence: DesktopUserPresence): void => {
-  if (!presenceStateReported) {
-    presenceStateReported = true;
-    presenceStateReportedCallback?.();
-  }
-
+const applyUserPresenceState = (presence: NormalizedUserPresence): void => {
   if (presence.loggedIn !== lastLoggedIn) {
     lastLoggedIn = presence.loggedIn;
     setUserLoggedIn(presence.loggedIn);
@@ -84,6 +140,34 @@ export const setUserPresenceState = (presence: DesktopUserPresence): void => {
       presenceCustomStatuses: presence.customStatuses,
     },
   });
+};
+
+export const setUserPresenceState = (presence: DesktopUserPresence): void => {
+  if (!presenceStateReported) {
+    presenceStateReported = true;
+    presenceStateReportedCallback?.();
+  }
+
+  const normalized = normalizeUserPresence(presence);
+
+  // A dispatch before the renderer store exists is dropped. Keep the latest
+  // snapshot until the preload start creates the store.
+  if (!storeReady) {
+    pendingPresenceState = normalized;
+    return;
+  }
+
+  applyUserPresenceState(normalized);
+};
+
+export const markPresenceStoreReady = (): void => {
+  storeReady = true;
+
+  const pending = pendingPresenceState;
+  pendingPresenceState = null;
+  if (pending) {
+    applyUserPresenceState(pending);
+  }
 };
 
 type PresenceChangeCallback = (
@@ -110,12 +194,21 @@ export const setUserStatusChangeHandler = (
 const userStatusChangeLimiter = createPresenceRateLimiter({
   minIntervalMs: 1000,
   send: ({ status, customStatusId }) => {
-    userStatusChangeHandler?.({
-      status: status as UserPresence,
-      ...(customStatusId && { customStatusId }),
-    }).catch((error: unknown) => {
-      console.warn('[Rocket.Chat Desktop] Status change failed', error);
-    });
+    const handler = userStatusChangeHandler;
+    if (!handler) {
+      return;
+    }
+
+    Promise.resolve()
+      .then(() =>
+        handler({
+          status: status as UserPresence,
+          ...(customStatusId && { customStatusId }),
+        })
+      )
+      .catch((error: unknown) => {
+        console.warn('[Rocket.Chat Desktop] Status change failed', error);
+      });
   },
 });
 

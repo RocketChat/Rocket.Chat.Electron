@@ -1,5 +1,5 @@
 import type { WebContents } from 'electron';
-import type { Middleware, MiddlewareAPI } from 'redux';
+import type { AnyAction, Middleware, MiddlewareAPI } from 'redux';
 
 import { handle as handleOnMain, invoke as invokeFromMain } from '../ipc/main';
 import {
@@ -27,6 +27,18 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
 
     return api.getState();
   });
+
+  // Another 'destroyed' listener can dispatch before ours removes the renderer.
+  const sendToRenderer = (
+    webContents: WebContents,
+    action: AnyAction
+  ): void => {
+    if (webContents.isDestroyed()) {
+      renderers.delete(webContents);
+      return;
+    }
+    invokeFromMain(webContents, 'redux/action-dispatched', action);
+  };
 
   handleOnMain('redux/action-dispatched', async (webContents, action) => {
     api.dispatch({
@@ -63,13 +75,11 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
         (w) =>
           w.id === webContentsId || (viewInstanceId && w.id === viewInstanceId)
       );
-      targets.forEach((w) =>
-        invokeFromMain(w, 'redux/action-dispatched', rendererAction)
-      );
+      targets.forEach((w) => sendToRenderer(w, rendererAction));
       return next(action);
     }
     renderers.forEach((webContents) => {
-      invokeFromMain(webContents, 'redux/action-dispatched', rendererAction);
+      sendToRenderer(webContents, rendererAction);
     });
 
     return next(action);

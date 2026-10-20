@@ -52,6 +52,7 @@ describe('store/ipc', () => {
       addListener: jest.fn((_event, callback: () => void) => {
         destroyedListener = callback;
       }),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
 
     const state = await mainHandlers['redux/get-initial-state'](webContents);
@@ -81,6 +82,7 @@ describe('store/ipc', () => {
       addListener: jest.fn((event: string, callback: () => void) => {
         if (event === 'destroyed') destroyedListeners.push(callback);
       }),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
 
     const reloads = 15;
@@ -102,6 +104,42 @@ describe('store/ipc', () => {
     expect(destroyedListeners).toHaveLength(2);
     middleware({ type: 'BROADCAST' } as any);
     expect(invokeFromMainMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('skips a destroyed renderer before its destroyed listener runs', async () => {
+    const middleware = forwardToRenderers(createApi())(
+      jest.fn((_action) => _action)
+    );
+
+    let destroyed = false;
+    const closing = {
+      id: 13,
+      addListener: jest.fn(),
+      isDestroyed: jest.fn(() => destroyed),
+    } as unknown as WebContents;
+    const alive = {
+      id: 14,
+      addListener: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+    } as unknown as WebContents;
+
+    await mainHandlers['redux/get-initial-state'](closing);
+    await mainHandlers['redux/get-initial-state'](alive);
+
+    // Another 'destroyed' listener dispatches before the store listener runs.
+    destroyed = true;
+    middleware({ type: 'BROADCAST' } as any);
+    middleware({
+      type: 'SINGLE',
+      ipcMeta: { scope: 'single', webContentsId: 13 },
+    } as any);
+
+    expect(invokeFromMainMock).toHaveBeenCalledTimes(1);
+    expect(invokeFromMainMock).toHaveBeenCalledWith(
+      alive,
+      'redux/action-dispatched',
+      expect.objectContaining({ type: 'BROADCAST' })
+    );
   });
 
   it('dispatches actions from main IPC with webContents host metadata and action IPC precedence', async () => {
@@ -166,10 +204,12 @@ describe('store/ipc', () => {
     const matching = {
       id: 200,
       addListener: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
     const ignored = {
       id: 201,
       addListener: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
 
     await mainHandlers['redux/get-initial-state'](matching);
@@ -203,10 +243,12 @@ describe('store/ipc', () => {
     const first = {
       id: 300,
       addListener: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
     const second = {
       id: 301,
       addListener: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
 
     await mainHandlers['redux/get-initial-state'](first);
@@ -246,10 +288,12 @@ describe('store/ipc', () => {
     const matching = {
       id: 200,
       addListener: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
     const byView = {
       id: 901,
       addListener: jest.fn(),
+      isDestroyed: jest.fn(() => false),
     } as unknown as WebContents;
 
     await mainHandlers['redux/get-initial-state'](matching);

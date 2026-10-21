@@ -57,6 +57,7 @@ describe('servers/preload/webClientEvents', () => {
   let setUserLoggedIn: jest.Mock;
   let reloadServer: jest.Mock;
   let getServerUrl: jest.Mock;
+  let setWebClientBridgeVersion: (version: unknown) => void;
 
   const load = () => {
     jest.isolateModules(() => {
@@ -65,6 +66,7 @@ describe('servers/preload/webClientEvents', () => {
       ({ setUserLoggedIn } = require('../userLoggedIn'));
       ({ reloadServer } = require('../reloadServer'));
       ({ getServerUrl } = require('../urls'));
+      ({ setWebClientBridgeVersion } = require('../webClientBridge'));
     });
     bridge.listenToWebClientEvents();
   };
@@ -161,6 +163,28 @@ describe('servers/preload/webClientEvents', () => {
 
     expect(setUserLoggedIn).toHaveBeenCalledTimes(1);
     expect(setUserLoggedIn).toHaveBeenCalledWith(false);
+  });
+
+  // A web client on bridge contract version 1 can fire the logout event while
+  // a stored session resumes, and the main process deletes the login data of
+  // the workspace on a logout. That web client pushes the login state itself.
+  it('leaves the login state to a web client that announced bridge contract version 1', () => {
+    bridge.connectWebClientEvents();
+    setWebClientBridgeVersion(1);
+    replay(FORCED_LOGOUT);
+    replay(LOGGED_IN_BOOT);
+    jest.advanceTimersByTime(100);
+
+    expect(setUserLoggedIn).not.toHaveBeenCalled();
+    expect(setBadge).toHaveBeenCalledWith(6);
+  });
+
+  it('drops a held logout event once the web client announces bridge contract version 1', () => {
+    replay(FORCED_LOGOUT);
+    setWebClientBridgeVersion(1);
+    bridge.connectWebClientEvents();
+
+    expect(setUserLoggedIn).not.toHaveBeenCalled();
   });
 
   it('starts the integrations on startup and clears the recovery counter', () => {

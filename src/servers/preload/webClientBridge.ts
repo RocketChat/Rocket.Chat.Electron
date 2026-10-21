@@ -5,8 +5,18 @@
 // stand down. Older web clients never announce one.
 let webClientBridgeVersion = 0;
 
+// The page is untrusted input, so only a non-negative integer counts. The
+// version never goes down within a page load: once the injected integrations
+// stand down, their reactive computations stop, and a lower version could not
+// bring all of them back.
 export const setWebClientBridgeVersion = (version: unknown): void => {
-  if (typeof version !== 'number' || !Number.isInteger(version)) return;
+  if (
+    typeof version !== 'number' ||
+    !Number.isSafeInteger(version) ||
+    version <= webClientBridgeVersion
+  ) {
+    return;
+  }
   webClientBridgeVersion = version;
 };
 

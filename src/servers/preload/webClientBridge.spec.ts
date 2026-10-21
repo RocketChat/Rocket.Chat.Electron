@@ -19,4 +19,17 @@ describe('servers/preload webClientBridge', () => {
     setWebClientBridgeVersion(1.5);
     expect(getWebClientBridgeVersion()).toBe(1);
   });
+
+  it('keeps the announced version when the page sends a lower or unsafe one', () => {
+    setWebClientBridgeVersion(1);
+    setWebClientBridgeVersion(0);
+    setWebClientBridgeVersion(-1);
+    setWebClientBridgeVersion(Number.MAX_SAFE_INTEGER + 2);
+    expect(getWebClientBridgeVersion()).toBe(1);
+  });
+
+  it('accepts a later contract version', () => {
+    setWebClientBridgeVersion(2);
+    expect(getWebClientBridgeVersion()).toBe(2);
+  });
 });

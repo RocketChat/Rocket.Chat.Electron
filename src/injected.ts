@@ -2,7 +2,10 @@ import type { NotificationActionOption } from './notifications/common';
 import { resolveNotificationAction } from './notifications/resolveNotificationAction';
 import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
 import type { PresenceStoreEntry } from './servers/preload/presenceSnapshot';
-import { buildPresenceSnapshot } from './servers/preload/presenceSnapshot';
+import {
+  buildPresenceSnapshot,
+  mergePresenceStoreEntry,
+} from './servers/preload/presenceSnapshot';
 import { hasUsablePresenceApi } from './servers/preload/presenceSupport';
 import { createUserStatusSender } from './servers/preload/userStatusSender';
 
@@ -719,7 +722,7 @@ const start = async () => {
       };
 
       const handlePresenceUpdate = (entry?: PresenceStoreEntry): void => {
-        latestStoreEntry = entry ?? null;
+        latestStoreEntry = mergePresenceStoreEntry(latestStoreEntry, entry);
         pushPresence();
       };
 

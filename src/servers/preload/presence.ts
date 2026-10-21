@@ -191,6 +191,45 @@ export const setUserStatusChangeHandler = (
   userStatusChangeHandler = handler;
 };
 
+const ERROR_DETAIL_FIELDS = [
+  'status',
+  'statusText',
+  'errorType',
+  'error',
+  'reason',
+  'message',
+];
+
+const toJson = (value: object): string => {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+};
+
+// The rejection of the web client handler reaches the preload as a copy made
+// by the context bridge. An Error keeps its message, and another object keeps
+// only its own fields. The preload log writes an object as `[object Object]`,
+// so give it a string.
+const describeStatusChangeError = (error: unknown): string => {
+  let description: string;
+  if (error instanceof Error) {
+    description = error.message || error.name;
+  } else if (typeof error === 'object' && error !== null) {
+    const fields = error as Record<string, unknown>;
+    const details = ERROR_DETAIL_FIELDS.map((field) => fields[field]).filter(
+      (value) =>
+        typeof value === 'number' || (typeof value === 'string' && value !== '')
+    );
+    description = details.length ? details.join(' ') : toJson(error);
+  } else {
+    description = String(error);
+  }
+
+  return description.slice(0, MAX_STRING_LENGTH);
+};
+
 const userStatusChangeLimiter = createPresenceRateLimiter({
   minIntervalMs: 1000,
   send: ({ status, customStatusId }) => {
@@ -207,7 +246,11 @@ const userStatusChangeLimiter = createPresenceRateLimiter({
         })
       )
       .catch((error: unknown) => {
-        console.warn('[Rocket.Chat Desktop] Status change failed', error);
+        console.warn(
+          `[Rocket.Chat Desktop] Status change failed: ${describeStatusChangeError(
+            error
+          )}`
+        );
       });
   },
 });

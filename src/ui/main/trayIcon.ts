@@ -95,7 +95,8 @@ const formatStatusExpiration = (expiresAt: string): string | undefined => {
 };
 
 const buildPresenceMenuItems = (
-  activeServerPresence: ActiveServerPresence
+  activeServerPresence: ActiveServerPresence,
+  onPresenceChangeRequested?: () => void
 ): MenuItemConstructorOptions[] => {
   const {
     url,
@@ -169,6 +170,7 @@ const buildPresenceMenuItems = (
       enabled: isConnected,
       click: () => {
         requestPresenceChange(activeServerPresence, optionPresence);
+        onPresenceChangeRequested?.();
       },
     })
   );
@@ -193,6 +195,7 @@ const buildPresenceMenuItems = (
               customStatus.status,
               customStatus.id
             );
+            onPresenceChangeRequested?.();
           },
         })
       )
@@ -247,10 +250,18 @@ const buildPresenceMenuItems = (
 export const buildMenuTemplate = (state: {
   isRootWindowVisible: boolean;
   activeServerPresence: ActiveServerPresence;
+  onPresenceChangeRequested?: () => void;
 }): MenuItemConstructorOptions[] => {
-  const { isRootWindowVisible, activeServerPresence } = state;
+  const {
+    isRootWindowVisible,
+    activeServerPresence,
+    onPresenceChangeRequested,
+  } = state;
 
-  const presenceItems = buildPresenceMenuItems(activeServerPresence);
+  const presenceItems = buildPresenceMenuItems(
+    activeServerPresence,
+    onPresenceChangeRequested
+  );
 
   return [
     ...presenceItems,
@@ -474,6 +485,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
   const trayIcon = createTrayIcon();
 
   let firstTrayIconBalloonShown = false;
+  let presenceRequestRefreshTimer: ReturnType<typeof setTimeout> | undefined;
 
   const refreshMenu = (
     isRootWindowVisible: boolean,
@@ -483,6 +495,18 @@ const manageTrayIcon = async (): Promise<() => void> => {
     const menuTemplate = buildMenuTemplate({
       isRootWindowVisible,
       activeServerPresence,
+      // Electron moves the radio check to the clicked item. The server can
+      // refuse the change (rate limit, permission), and then the store does
+      // not change and nothing builds the menu again. Build it from the store
+      // now, so that the check shows the real status until the store changes.
+      onPresenceChangeRequested: () => {
+        clearTimeout(presenceRequestRefreshTimer);
+        presenceRequestRefreshTimer = setTimeout(() => {
+          presenceRequestRefreshTimer = undefined;
+          const isRootWindowVisible = select(selectIsRootWindowVisible);
+          refreshMenu(isRootWindowVisible, isRootWindowVisible);
+        }, 0);
+      },
     });
 
     const menu = Menu.buildFromTemplate(menuTemplate);
@@ -589,6 +613,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
     unwatchIsTrayIconUnreadCounterEnabled();
     unwatchIsMenuBarUnreadCountEnabled();
     clearTimeout(statusExpiryTimer);
+    clearTimeout(presenceRequestRefreshTimer);
     trayIcon.destroy();
   };
 };

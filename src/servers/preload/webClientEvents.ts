@@ -4,6 +4,7 @@ import { attemptBootRecovery, resetBootRecovery } from './bootRecovery';
 import { createUnreadBadgeTracker } from './unreadBadge';
 import { getServerUrl } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
+import { getWebClientBridgeVersion } from './webClientBridge';
 
 // The web client fires these Iframe Integration CustomEvents on window in both
 // its Meteor and its Vite build, and a preload listener receives them with
@@ -35,8 +36,16 @@ const unreadBadge = createUnreadBadgeTracker(sendBadge);
 
 // The web client fires a login event on each `uid` change, and a logged-out
 // boot fires only the logout event. setUserLoggedIn() drops repeats.
+// A web client that announced bridge contract version 1 pushes the login state
+// itself and holds back a logout while a stored session resumes. The logout
+// event has no such guard, and the main process deletes the login data of the
+// workspace on a logout, so the events stand down for that web client.
 const sendUserLoggedIn = (): void => {
-  if (!connected || userLoggedIn === undefined) {
+  if (
+    !connected ||
+    userLoggedIn === undefined ||
+    getWebClientBridgeVersion() >= 1
+  ) {
     return;
   }
   setUserLoggedIn(userLoggedIn);

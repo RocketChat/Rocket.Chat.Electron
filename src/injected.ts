@@ -555,11 +555,19 @@ const start = async () => {
     userPresenceReassert: false,
   };
 
+  // Web clients that announce bridge contract version 1 push these values
+  // themselves. The checks run on each update, since the web client announces
+  // the contract once it renders, which can be after these setups run.
+  const webClientPushesBridgeValues = (): boolean =>
+    (window.RocketChatDesktop.getWebClientBridgeVersion?.() ?? 0) >= 1;
+
   // Setup reactive features that depend on modules (with polling)
   // eslint-disable-next-line complexity
   const setupReactiveFeatures = () => {
     if (Meteor?.absoluteUrl && !setupFlags.urlResolver) {
-      window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
+      if (!webClientPushesBridgeValues()) {
+        window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
+      }
       setupFlags.urlResolver = true;
     }
 
@@ -580,6 +588,7 @@ const start = async () => {
     // from here when Meteor is available.
     if (Tracker && Meteor && !setupFlags.unreadAlertPreference) {
       Tracker.autorun(() => {
+        if (webClientPushesBridgeValues()) return;
         window.RocketChatDesktop.setUnreadAlertEnabled(
           Meteor.user?.()?.settings?.preferences?.unreadAlert !== false
         );
@@ -589,6 +598,7 @@ const start = async () => {
 
     if (Tracker && settings && !setupFlags.faviconUpdates) {
       watchSetting('Assets_favicon', (value) => {
+        if (webClientPushesBridgeValues()) return;
         const { url, defaultUrl } = value || {};
         window.RocketChatDesktop.setFavicon(url || defaultUrl);
       });
@@ -668,6 +678,7 @@ const start = async () => {
 
     if (Tracker && !setupFlags.outlookIntegration) {
       Tracker.autorun(() => {
+        if (webClientPushesBridgeValues()) return;
         const {
           userToken,
           userId,
@@ -695,6 +706,7 @@ const start = async () => {
 
     if (Tracker && settings && !setupFlags.titleUpdates) {
       watchSetting('Site_Name', (siteName) => {
+        if (webClientPushesBridgeValues()) return;
         window.RocketChatDesktop.setTitle(siteName);
       });
       setupFlags.titleUpdates = true;
@@ -703,6 +715,7 @@ const start = async () => {
     if (Tracker && Meteor && !setupFlags.userLoginDetection) {
       Tracker.autorun(() => {
         const userId = Meteor.userId();
+        if (webClientPushesBridgeValues()) return;
         window.RocketChatDesktop.setUserLoggedIn(userId !== null);
       });
       setupFlags.userLoginDetection = true;
@@ -846,7 +859,7 @@ const start = async () => {
     if (Tracker && Meteor && !setupFlags.gitCommitHash) {
       Tracker.autorun(() => {
         const { gitCommitHash } = Meteor;
-        if (!gitCommitHash) return;
+        if (!gitCommitHash || webClientPushesBridgeValues()) return;
         window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
       });
       setupFlags.gitCommitHash = true;

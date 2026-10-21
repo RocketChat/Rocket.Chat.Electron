@@ -156,6 +156,59 @@ describe('injected.ts', () => {
         expect(await countRequireCallsIn(requireMock, 60_000)).toBe(0);
       });
 
+      it('leaves the bridge values to a web client that announced version 1 before the setup, keeps presence and stops', async () => {
+        const requireMock = loadWithModules({
+          '/rocketchat.info': { Info: { version: '9.0.0' } },
+          'meteor/meteor': {
+            Meteor: {
+              ...meteor.Meteor,
+              gitCommitHash: 'abc123',
+              _localStorage: { getItem: () => 'token' },
+              user: () => ({
+                _id: 'user',
+                settings: {
+                  calendar: {
+                    outlook: {
+                      Enabled: true,
+                      Exchange_Url: 'https://exchange.example',
+                    },
+                  },
+                },
+              }),
+            },
+          },
+          'meteor/session': session,
+          'meteor/tracker': tracker,
+          '/client/lib/settings/index.ts': {
+            settings: createSettingsStore({
+              Site_Name: 'Open',
+              Assets_favicon: { defaultUrl: 'favicon.svg' },
+            }),
+          },
+          '/client/lib/presence.ts': presence,
+        });
+        desktop.getWebClientBridgeVersion = jest.fn(() => 1);
+
+        await jest.advanceTimersByTimeAsync(2_000);
+
+        [
+          'setUrlResolver',
+          'setTitle',
+          'setFavicon',
+          'setUserLoggedIn',
+          'setUnreadAlertEnabled',
+          'setGitCommitHash',
+          'setUserToken',
+          'setOutlookExchangeUrl',
+        ].forEach((method) => {
+          expect(desktop[method]?.mock.calls ?? []).toHaveLength(0);
+        });
+        expect(desktop.setServerInfo).toHaveBeenCalled();
+        expect(desktop.setUserPresence).toHaveBeenCalled();
+        expect(jest.getTimerCount()).toBe(0);
+        expect(await countRequireCallsIn(requireMock, 60_000)).toBe(0);
+      });
+
       it('stops once every feature is set up while a lookup that no feature needs still retries', async () => {
         const setIntervalSpy = jest.spyOn(globalThis, 'setInterval');
         const clearIntervalSpy = jest.spyOn(globalThis, 'clearInterval');
@@ -292,6 +345,23 @@ describe('injected.ts', () => {
 
       settings.change('Site_Name', 'Renamed');
       expect(desktop.setTitle).toHaveBeenLastCalledWith('Renamed');
+    });
+
+    it('leaves the values to a web client that announces bridge contract version 1', async () => {
+      const settings = createSettingsStore({ Site_Name: 'Open' });
+      loadWithModules({
+        '/rocketchat.info': { Info: { version: '9.0.0' } },
+        '/client/lib/settings/index.ts': { settings },
+        'meteor/tracker': { Tracker: { autorun: (fn: () => void) => fn() } },
+      });
+
+      await jest.advanceTimersByTimeAsync(2_000);
+      expect(desktop.setTitle).toHaveBeenLastCalledWith('Open');
+
+      desktop.getWebClientBridgeVersion.mockReturnValue(1);
+      settings.change('Site_Name', 'Renamed');
+
+      expect(desktop.setTitle).toHaveBeenCalledTimes(1);
     });
 
     it('pushes the unreadAlert preference of the user to the preload badge', async () => {

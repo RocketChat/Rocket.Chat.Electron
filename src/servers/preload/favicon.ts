@@ -42,9 +42,14 @@ const getImageElement = (): HTMLImageElement => {
   return imageElement;
 };
 
-// Only the Meteor client sets a URL resolver. Other clients get the path
-// resolved against the server URL, with its subpath kept, as
-// Meteor.absoluteUrl does.
+// Both the Meteor and the Vite client can send an absolute URL, and both can
+// set a URL resolver. A resolver prefixes the server URL also to an absolute
+// URL, so an absolute URL is used as it is.
+const isAbsoluteUrl = (url: string): boolean =>
+  /^(https?:\/\/|data:)/i.test(url);
+
+// A client without a URL resolver gets the path resolved against the server
+// URL, with its subpath kept, as Meteor.absoluteUrl does.
 const resolveAgainstServerUrl = (path: string): string => {
   const serverUrl = getServerUrl();
   const base = serverUrl.endsWith('/') ? serverUrl : `${serverUrl}/`;
@@ -58,6 +63,11 @@ export const setFavicon = (faviconUrl: string): void => {
 
   runWhenPreloadReady('favicon', () => {
     const imageElement = getImageElement();
+    if (isAbsoluteUrl(faviconUrl)) {
+      imageElement.src = faviconUrl;
+      return;
+    }
+
     imageElement.src = getAbsoluteUrl
       ? getAbsoluteUrl(faviconUrl)
       : resolveAgainstServerUrl(faviconUrl);

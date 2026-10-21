@@ -294,6 +294,23 @@ describe('injected.ts', () => {
       expect(desktop.setTitle).toHaveBeenLastCalledWith('Renamed');
     });
 
+    it('leaves the values to a web client that announces bridge contract version 1', async () => {
+      const settings = createSettingsStore({ Site_Name: 'Open' });
+      loadWithModules({
+        '/rocketchat.info': { Info: { version: '9.0.0' } },
+        '/client/lib/settings/index.ts': { settings },
+        'meteor/tracker': { Tracker: { autorun: (fn: () => void) => fn() } },
+      });
+
+      await jest.advanceTimersByTimeAsync(2_000);
+      expect(desktop.setTitle).toHaveBeenLastCalledWith('Open');
+
+      desktop.getWebClientBridgeVersion.mockReturnValue(1);
+      settings.change('Site_Name', 'Renamed');
+
+      expect(desktop.setTitle).toHaveBeenCalledTimes(1);
+    });
+
     it('pushes the unreadAlert preference of the user to the preload badge', async () => {
       loadWithModules({
         '/rocketchat.info': { Info: { version: '8.10.0' } },

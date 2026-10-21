@@ -61,6 +61,10 @@ import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
 import {
+  getWebClientBridgeVersion,
+  setWebClientBridgeVersion,
+} from './webClientBridge';
+import {
   extendBootTimer,
   setBadgeFromWebClient,
   setUnreadAlertEnabled,
@@ -125,6 +129,8 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   ) => void;
   reportMediaCapture: (state: MediaCaptureState) => void;
   setUnreadAlertEnabled: (enabled: boolean) => void;
+  setWebClientBridgeVersion: (version: number) => void;
+  getWebClientBridgeVersion: () => number;
 };
 
 declare global {
@@ -148,6 +154,8 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },
+  setWebClientBridgeVersion,
+  getWebClientBridgeVersion,
   setUrlResolver,
   setBadge: setBadgeFromWebClient,
   setUnreadAlertEnabled,

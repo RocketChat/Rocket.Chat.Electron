@@ -46,6 +46,13 @@ jest.mock('../ui/main/dialogs', () => ({
 }));
 jest.mock('electron-store', () => jest.fn());
 
+const mockMainWarn = jest.fn();
+jest.mock('../logging/scopes', () => ({
+  loggers: {
+    main: { warn: (...args: any[]) => mockMainWarn(...args) },
+  },
+}));
+
 const selectMock = select as jest.MockedFunction<typeof select>;
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
 const askForOpeningExternalProtocolMock =
@@ -332,6 +339,62 @@ describe('navigation/main.ts', () => {
 
       expect(event.preventDefault).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(true);
+      expect(askForCertificateTrustMock).not.toHaveBeenCalled();
+    });
+
+    it('rejects a revoked certificate without prompting', async () => {
+      const event = { preventDefault: jest.fn() };
+      const callback = jest.fn();
+      const certificate = makeCertificate({ fingerprint: 'revoked' });
+
+      setNavigationState();
+
+      await setup();
+      const certificateErrorListener = getListener('certificate-error');
+      await certificateErrorListener(
+        event as never,
+        {} as never,
+        'https://server.local/path',
+        'net::ERR_CERT_REVOKED',
+        certificate,
+        callback
+      );
+
+      expect(event.preventDefault).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(false);
+      expect(askForCertificateTrustMock).not.toHaveBeenCalled();
+      expect(dispatchMock).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: TRUSTED_CERTIFICATES_UPDATED })
+      );
+      expect(mockMainWarn).toHaveBeenCalledWith(
+        expect.stringContaining('https://server.local/path')
+      );
+    });
+
+    it('rejects a revoked certificate the user trusted before', async () => {
+      const event = { preventDefault: jest.fn() };
+      const callback = jest.fn();
+      const certificate = makeCertificate({ fingerprint: 'revoked-trusted' });
+
+      setNavigationState({
+        trustedCertificates: {
+          'server.local': serializeCertificate(certificate),
+        },
+      });
+
+      await setup();
+      const certificateErrorListener = getListener('certificate-error');
+      await certificateErrorListener(
+        event as never,
+        {} as never,
+        'https://server.local/path',
+        'net::ERR_CERT_REVOKED',
+        certificate,
+        callback
+      );
+
+      expect(callback).toHaveBeenCalledWith(false);
+      expect(callback).not.toHaveBeenCalledWith(true);
       expect(askForCertificateTrustMock).not.toHaveBeenCalled();
     });
 

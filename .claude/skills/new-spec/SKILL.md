@@ -264,8 +264,7 @@ spec's path with `--runTestsByPath`.
   `process.geteuid()`, `process.getegid()`) should be exercised via
   optional chaining and fallbacks in the source, not mocked in the spec,
   unless defensive coding genuinely isn't possible.
-- `--coverage` runs exclude a fixed list of specs
-  (`COVERAGE_INCOMPATIBLE_SPECS` in `jest.config.js`) that fail only
-  under Istanbul instrumentation inside the Electron V8 context. Plain
-  `yarn test` still runs and gates them — don't assume a coverage-run
-  pass/fail reflects the plain-run result for those files.
+- A spec with the `@jest-environment jsdom` docblock runs in plain Node, in
+  its own Jest project (`jest.config.js` finds it by the docblock). Never
+  run jsdom inside the Electron runner: since Electron 43 the renderer
+  aborts and the suite hangs.

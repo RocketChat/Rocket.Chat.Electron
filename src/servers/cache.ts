@@ -20,7 +20,6 @@ export const clearWebviewStorageKeepingLoginData = async (
       'indexdb',
       'filesystem',
       'shadercache',
-      'websql',
       'serviceworkers',
       'cachestorage',
     ],

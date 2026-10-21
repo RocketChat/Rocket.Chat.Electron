@@ -246,9 +246,12 @@ hooks, `settings.json`).
     getters.
   - A read of a `const` inside a `jest.mock` factory fails, because swc's
     hoisting hits the temporal dead zone.
-- `jest.config.js` excludes 21 preload/renderer specs under `--coverage`.
-  Keep at least one CI leg on plain `yarn test` (today: the windows and macos
-  shards). Otherwise those specs gate nothing.
+- A spec with the `@jest-environment jsdom` docblock runs in its own Jest
+  project, in plain Node. `jest.config.js` finds these specs by the docblock.
+  Do not run jsdom inside the Electron runner. Since Electron 43, the
+  renderer aborts with `Check failed: ToExecutionContext(context)`, and the
+  runner hangs until CI kills the job. These specs also count under
+  `--coverage`.
 - validate-pr runs the ubuntu shards on `ubuntu-24.04-arm`.
   - Cache keys MUST include `runner.arch`, because both architectures report
     `runner.os == Linux`.

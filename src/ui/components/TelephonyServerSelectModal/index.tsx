@@ -50,11 +50,7 @@ export const TelephonyServerSelectModal = () => {
       onClose={handleClose}
       data-testid='telephony-server-select-modal'
     >
-      <Box
-        data-testid='telephony-server-select-modal'
-        display='flex'
-        flexDirection='column'
-      >
+      <Box display='flex' flexDirection='column'>
         <Box fontScale='h3' marginBlockEnd='x4'>
           {t('dialog.telephonySelectServer.title')}
         </Box>

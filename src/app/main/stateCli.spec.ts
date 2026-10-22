@@ -170,18 +170,23 @@ describe('stateCli', () => {
       const writeSpy = jest
         .spyOn(fs, 'writeFileSync')
         .mockReturnValue(undefined as any);
+      const renameSpy = jest
+        .spyOn(fs, 'renameSync')
+        .mockReturnValue(undefined as any);
 
       exportStateToCli('export/state.json');
 
       const expectedPath = path.resolve(process.cwd(), 'export/state.json');
+      const expectedTmpPath = `${expectedPath}.tmp`;
       expect(mkdirSpy).toHaveBeenCalledWith(path.dirname(expectedPath), {
         recursive: true,
       });
       expect(writeSpy).toHaveBeenCalledWith(
-        expectedPath,
+        expectedTmpPath,
         JSON.stringify(mockState, null, 2),
         'utf8'
       );
+      expect(renameSpy).toHaveBeenCalledWith(expectedTmpPath, expectedPath);
     });
 
     it('handles write errors gracefully without throwing', () => {

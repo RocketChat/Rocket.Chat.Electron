@@ -402,5 +402,22 @@ describe('mergePersistableValues', () => {
         }),
       });
     });
+
+    it('preserves CLI isMenuBarEnabled over legacy localStorage autohideMenu', async () => {
+      (loadStateFromCli as jest.Mock).mockResolvedValueOnce({
+        isMenuBarEnabled: true,
+      });
+
+      await mergePersistableValues({
+        autohideMenu: 'true',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isMenuBarEnabled: true,
+        }),
+      });
+    });
   });
 });

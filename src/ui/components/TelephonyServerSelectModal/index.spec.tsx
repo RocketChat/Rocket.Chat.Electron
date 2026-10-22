@@ -261,8 +261,11 @@ describe('TelephonyServerSelectModal', () => {
     );
 
     expect(
-      screen.getAllByTestId('telephony-server-select-modal').length
-    ).toBeGreaterThanOrEqual(1);
+      screen.getByTestId('telephony-server-select-modal')
+    ).toBeInTheDocument();
+    expect(screen.getAllByTestId('telephony-server-select-modal')).toHaveLength(
+      1
+    );
     expect(screen.getAllByTestId('telephony-server-option')).toHaveLength(2);
     expect(
       screen.getByTestId('remember-this-choice-checkbox')

@@ -80,7 +80,9 @@ export const exportStateToCli = (customPath?: string): void => {
       ? safeSelect(selectPersistableValues)
       : select(selectPersistableValues);
     if (state) {
-      fs.writeFileSync(resolvedPath, JSON.stringify(state, null, 2), 'utf8');
+      const temporaryPath = `${resolvedPath}.tmp`;
+      fs.writeFileSync(temporaryPath, JSON.stringify(state, null, 2), 'utf8');
+      fs.renameSync(temporaryPath, resolvedPath);
       logger.info(
         `Exported persisted state to CLI --export-state: ${resolvedPath}`
       );

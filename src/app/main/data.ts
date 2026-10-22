@@ -7,6 +7,7 @@ import { logger } from '../../logging';
 import { select, dispatch, watch } from '../../store';
 import { getSystemCertificateStatus } from '../../systemCertificates';
 import { normalizeNumber } from '../../ui/main/rootWindow';
+import type { PersistableValues } from '../PersistableValues';
 import {
   MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION,
   MENU_BAR_DEFAULT_REVISION,
@@ -84,36 +85,29 @@ export const mergePersistableValues = async (
     ...appAsarPersistableOverrides
   } = appAsarOverriddenSettings;
 
+  const legacyLocalStorageOverrides: Partial<PersistableValues> = {};
+  if (localStorage.autohideMenu) {
+    legacyLocalStorageOverrides.isMenuBarEnabled =
+      localStorage.autohideMenu !== 'true';
+  }
+  if (localStorage.showWindowOnUnreadChanged) {
+    legacyLocalStorageOverrides.isShowWindowOnUnreadChangedEnabled =
+      localStorage.showWindowOnUnreadChanged === 'true';
+  }
+  if (localStorage.hideTray) {
+    legacyLocalStorageOverrides.isTrayIconEnabled =
+      localStorage.hideTray !== 'true';
+  }
+
   let values = selectPersistableValues({
     ...initialValues,
     ...electronStoreValues,
     ...localStorageValues,
+    ...legacyLocalStorageOverrides,
     ...cliStateOverrides,
     ...userDataPersistableOverrides,
     ...appAsarPersistableOverrides,
   });
-
-  if (localStorage.autohideMenu) {
-    values = {
-      ...values,
-      isMenuBarEnabled: localStorage.autohideMenu !== 'true',
-    };
-  }
-
-  if (localStorage.showWindowOnUnreadChanged) {
-    values = {
-      ...values,
-      isShowWindowOnUnreadChangedEnabled:
-        localStorage.showWindowOnUnreadChanged === 'true',
-    };
-  }
-
-  if (localStorage.hideTray) {
-    values = {
-      ...values,
-      isTrayIconEnabled: localStorage.hideTray !== 'true',
-    };
-  }
   const userRootWindowState = await (async (): Promise<{
     isHidden?: boolean;
     isMaximized?: boolean;

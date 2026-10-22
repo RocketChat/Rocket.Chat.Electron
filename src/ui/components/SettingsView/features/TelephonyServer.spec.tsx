@@ -30,7 +30,7 @@ jest.mock('@rocket.chat/fuselage', () => {
       'data-testid'?: string;
     }) => (
       <select
-        data-testid={dataTestId ?? 'telephony-server-dropdown'}
+        data-testid={dataTestId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >

@@ -19,6 +19,7 @@ import {
   persistValues,
   setPersistedMeta,
 } from './persistence';
+import { loadStateFromCli } from './stateCli';
 
 const loadUserDataOverriddenSettings = async (): Promise<
   Record<string, string>
@@ -62,6 +63,7 @@ export const mergePersistableValues = async (
   const electronStoreValues = getPersistedValues();
   const userDataOverriddenSettings = await loadUserDataOverriddenSettings();
   const appAsarOverriddenSettings = await loadAppAsarOverriddenSettings();
+  const cliStateOverrides = await loadStateFromCli();
 
   const localStorageValues = Object.fromEntries(
     Object.entries(localStorage).map(([key, value]) => {
@@ -86,6 +88,7 @@ export const mergePersistableValues = async (
     ...initialValues,
     ...electronStoreValues,
     ...localStorageValues,
+    ...cliStateOverrides,
     ...userDataPersistableOverrides,
     ...appAsarPersistableOverrides,
   });
@@ -172,7 +175,10 @@ export const mergePersistableValues = async (
   // config meta so later persistValues() snapshots cannot re-apply the force.
   const appliedMenuBarRevision = getPersistedMeta('menuBarDefaultRevision', 0);
   if (appliedMenuBarRevision < MENU_BAR_DEFAULT_REVISION) {
-    if (process.platform !== 'darwin') {
+    if (
+      process.platform !== 'darwin' &&
+      !('isMenuBarEnabled' in cliStateOverrides)
+    ) {
       values = {
         ...values,
         isMenuBarEnabled: false,
@@ -195,7 +201,8 @@ export const mergePersistableValues = async (
     ) {
       const isOverridden =
         'isInternalVideoChatWindowEnabled' in userDataPersistableOverrides ||
-        'isInternalVideoChatWindowEnabled' in appAsarPersistableOverrides;
+        'isInternalVideoChatWindowEnabled' in appAsarPersistableOverrides ||
+        'isInternalVideoChatWindowEnabled' in cliStateOverrides;
       if (!isOverridden) {
         values = {
           ...values,

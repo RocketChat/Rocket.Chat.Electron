@@ -19,13 +19,15 @@ jest.mock('../Dialog', () => ({
     children,
     isVisible,
     onClose,
+    'data-testid': dataTestId,
   }: {
-    children?: ReactNode;
-    isVisible?: boolean;
-    onClose?: () => void;
+    'children'?: ReactNode;
+    'isVisible'?: boolean;
+    'onClose'?: () => void;
+    'data-testid'?: string;
   }) =>
     isVisible ? (
-      <div data-testid='dialog' role='dialog'>
+      <div data-testid={dataTestId ?? 'dialog'} role='dialog'>
         <button data-testid='dialog-close' onClick={onClose}>
           close
         </button>
@@ -247,5 +249,23 @@ describe('TelephonyServerSelectModal', () => {
         rememberChoice: false,
       },
     });
+  });
+
+  it('exposes data-testid attributes for deterministic test targeting', () => {
+    const store = makeStore(openDialogState());
+
+    render(
+      <Provider store={store}>
+        <TelephonyServerSelectModal />
+      </Provider>
+    );
+
+    expect(
+      screen.getAllByTestId('telephony-server-select-modal').length
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByTestId('telephony-server-option')).toHaveLength(2);
+    expect(
+      screen.getByTestId('remember-this-choice-checkbox')
+    ).toBeInTheDocument();
   });
 });

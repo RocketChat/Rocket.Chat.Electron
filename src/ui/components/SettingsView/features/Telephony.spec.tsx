@@ -28,6 +28,7 @@ describe('Telephony', () => {
     );
     const toggle = screen.getByRole('checkbox');
     expect(toggle).not.toBeChecked();
+    expect(screen.getByTestId('telephony-toggle')).toBe(toggle);
   });
 
   it('renders checked when isTelephonyEnabled=true', () => {

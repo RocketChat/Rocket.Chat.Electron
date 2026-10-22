@@ -22,13 +22,15 @@ jest.mock('@rocket.chat/fuselage', () => {
       options,
       value,
       onChange,
+      'data-testid': dataTestId,
     }: {
-      options: [string, string][];
-      value: string;
-      onChange: (key: Key) => void;
+      'options': [string, string][];
+      'value': string;
+      'onChange': (key: Key) => void;
+      'data-testid'?: string;
     }) => (
       <select
-        data-testid='telephony-select'
+        data-testid={dataTestId ?? 'telephony-server-dropdown'}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
@@ -86,7 +88,7 @@ describe('TelephonyServer', () => {
         <TelephonyServer />
       </Provider>
     );
-    const select = screen.getByTestId('telephony-select');
+    const select = screen.getByTestId('telephony-server-dropdown');
     const options = select.querySelectorAll('option');
     // auto + 2 servers = 3
     expect(options).toHaveLength(3);
@@ -108,7 +110,9 @@ describe('TelephonyServer', () => {
         <TelephonyServer />
       </Provider>
     );
-    const select = screen.getByTestId<HTMLSelectElement>('telephony-select');
+    const select = screen.getByTestId<HTMLSelectElement>(
+      'telephony-server-dropdown'
+    );
     expect(select.value).toBe('https://chat.beta.com');
   });
 
@@ -125,7 +129,9 @@ describe('TelephonyServer', () => {
         <TelephonyServer />
       </Provider>
     );
-    const select = screen.getByTestId<HTMLSelectElement>('telephony-select');
+    const select = screen.getByTestId<HTMLSelectElement>(
+      'telephony-server-dropdown'
+    );
     expect(select.value).toBe('auto');
   });
 
@@ -144,7 +150,7 @@ describe('TelephonyServer', () => {
         <TelephonyServer />
       </Provider>
     );
-    const select = screen.getByTestId('telephony-select');
+    const select = screen.getByTestId('telephony-server-dropdown');
     fireEvent.change(select, { target: { value: 'https://chat.alpha.com' } });
 
     expect(dispatchSpy).toHaveBeenCalledWith({
@@ -168,7 +174,7 @@ describe('TelephonyServer', () => {
         <TelephonyServer />
       </Provider>
     );
-    const select = screen.getByTestId('telephony-select');
+    const select = screen.getByTestId('telephony-server-dropdown');
     fireEvent.change(select, { target: { value: 'auto' } });
 
     expect(dispatchSpy).toHaveBeenCalledWith({

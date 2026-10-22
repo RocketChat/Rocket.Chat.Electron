@@ -55,6 +55,24 @@ describe('MeatballMenuButton', () => {
     expect(button).toHaveAttribute('aria-haspopup', 'menu');
   });
 
+  it('renders with sidebar-kebab-button data-testid when orientation is vertical', () => {
+    renderWithStore(<MeatballMenuButton orientation='vertical' />);
+
+    expect(screen.getByTestId('sidebar-kebab-button')).toBeInTheDocument();
+  });
+
+  it('renders with meatball-menu-button data-testid by default when horizontal', () => {
+    renderWithStore(<MeatballMenuButton />);
+
+    expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+  });
+
+  it('respects explicitly provided data-testid prop', () => {
+    renderWithStore(<MeatballMenuButton data-testid='custom-button' />);
+
+    expect(screen.getByTestId('custom-button')).toBeInTheDocument();
+  });
+
   describe('solo Alt key (macOS only — Windows/Linux use Alt for the native menu bar)', () => {
     const originalPlatform = process.platform;
 

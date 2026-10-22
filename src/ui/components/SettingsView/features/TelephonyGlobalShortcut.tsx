@@ -172,7 +172,8 @@ export const TelephonyGlobalShortcut = (
         <Box display='flex' alignItems='center'>
           <TextInput
             id={shortcutInputId}
-            data-testid='telephony-shortcut-input'
+            data-testid='telephony-shortcut-field'
+            data-qa-id='telephony-shortcut-input'
             disabled={!isTelephonyEnabled}
             readOnly
             value={formatAcceleratorForDisplay(draftAccelerator)}

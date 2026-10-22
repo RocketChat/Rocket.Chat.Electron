@@ -59,6 +59,15 @@ run_case "force-push to dev" deny "$WT" "git push -f origin dev"
 run_case "push feature branch from worktree" allow "$MAIN" "cd $WT && git push -u origin feature/x"
 run_case "commit --help on dev" allow "$MAIN" "git commit --help"
 run_case "HOOK_TEST_BRANCH override" deny "$WT" "git commit -m x" HOOK_TEST_BRANCH=dev
+run_case "env prefix before git on dev" deny "$MAIN" "FOO=1 git commit -m x"
+run_case "command git on dev" deny "$MAIN" "command git commit -m x"
+run_case "subshell git on dev" deny "$MAIN" "(git commit -m x)"
+run_case "'git commit' inside an argument on dev" allow "$MAIN" "gh pr edit 1 --body 'adds the git commit hash'"
+run_case "'git push origin dev' inside an argument" allow "$WT" "echo 'run git push origin dev later'"
+run_case "'git commit' in a heredoc line on dev" allow "$MAIN" "cat > notes.md <<'EOF'
+the git commit hash and the git push flow
+EOF"
+run_case "git after a prose command still checked" deny "$MAIN" "echo 'the git commit hash'; git commit -m x"
 
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" = "0" ]

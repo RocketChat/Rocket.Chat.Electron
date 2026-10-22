@@ -10,7 +10,35 @@ if [ -z "$COMMAND" ]; then
   exit 0
 fi
 
-LOWER=$(echo "$COMMAND" | tr '[:upper:]' '[:lower:]')
+# Is WORD a prefix that can stand before the command name ('FOO=1 git',
+# 'command git', 'env git')?
+is_command_prefix() {
+  case "$1" in
+    command|env|exec|sudo|time|nohup|"(") return 0 ;;
+  esac
+  [[ "$1" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]
+}
+
+# Keep only the segments that run git, so 'git commit' or 'git push' in an
+# argument, a heredoc or a PR body does not count as a git command.
+GIT_CMDS=""
+set -f
+while IFS= read -r SEGMENT; do
+  for WORD in $SEGMENT; do
+    WORD="${WORD#(}"
+    [ -z "$WORD" ] && continue
+    is_command_prefix "$WORD" && continue
+    [ "${WORD##*/}" = "git" ] && GIT_CMDS="$GIT_CMDS$SEGMENT"$'\n'
+    break
+  done
+done < <(printf '%s\n' "${COMMAND//[&|;]/$'\n'}")
+set +f
+
+if [ -z "$GIT_CMDS" ]; then
+  exit 0
+fi
+
+LOWER=$(printf '%s' "$GIT_CMDS" | tr '[:upper:]' '[:lower:]')
 # 'git' plus any global options before the subcommand ('git -C <path> push').
 # LOWER turns '-C' into '-c', so one branch covers both option arguments.
 GIT_PREFIX='git([[:space:]]+(-c[[:space:]]+[^[:space:]]+|-[^[:space:]]+))*[[:space:]]+'
@@ -107,11 +135,12 @@ while IFS= read -r SEGMENT; do
     CD_DIR=$(resolve_path "${TOKEN:-~}" "${CD_DIR:-$BASE_DIR}")
     continue
   fi
-  # Find the git executable in the segment ('FOO=1 git', 'command git').
-  while [ -n "$TOKEN" ] && [ "${TOKEN##*/}" != "git" ]; do
+  # The git executable must be the command, after any prefix ('FOO=1 git',
+  # 'command git'). A 'git' later in the segment is an argument.
+  while [ -n "$TOKEN" ] && is_command_prefix "$TOKEN"; do
     next_token || TOKEN=""
   done
-  [ -z "$TOKEN" ] && continue
+  [ "${TOKEN##*/}" = "git" ] || continue
   SEG_C=""
   SUBCOMMAND=""
   while next_token; do

@@ -123,10 +123,22 @@
     }
   },
   "settings": {
+    "sections": {
+      "uiPreview": "Web UI プレビュー"
+    },
     "options": {
       "resetWindowBounds": {
         "title": "ウィンドウのサイズと位置をリセット",
         "description": "アプリとそのウィンドウの配置を忘れます。各ウィンドウは次回表示時に既定のサイズで中央に開きます。"
+      },
+      "trayIconUnreadCounter": {
+        "title": "トレイアイコンに未読数を表示",
+        "titleDarwin": "メニューバーアイコンに未読を表示",
+        "description": "アイコンにプレゼンスステータスの代わりに未読メッセージのバッジを表示します。"
+      },
+      "menuBarUnreadCount": {
+        "title": "メニューバーに未読数を表示",
+        "description": "メニューバーアイコンの横に未読メンションの数を表示します。"
       },
       "transparentWindow": {
         "title": "透明ウィンドウ効果",
@@ -138,15 +150,6 @@
         "auto": "システムに従う",
         "light": "ライト",
         "dark": "ダーク"
-      },
-      "trayIconUnreadCounter": {
-        "title": "トレイアイコンに未読数を表示",
-        "titleDarwin": "メニューバーアイコンに未読を表示",
-        "description": "アイコンにプレゼンスステータスの代わりに未読メッセージのバッジを表示します。"
-      },
-      "menuBarUnreadCount": {
-        "title": "メニューバーに未読数を表示",
-        "description": "メニューバーアイコンの横に未読メンションの数を表示します。"
       },
       "uiPreview": {
         "title": "Web UI のビルドを読み込む",
@@ -176,9 +179,6 @@
           "closed": "クローズ"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Web UI プレビュー"
     }
   },
   "error": {
@@ -203,6 +203,7 @@
     "copy": "コピー (&C)",
     "cut": "切り取り (&T)",
     "developerMode": "開発者モード",
+    "simulateDisconnected": "切断をシミュレート",
     "documentation": "ドキュメント",
     "editMenu": "編集 (&E)",
     "fileMenu": "ファイル (&F)",
@@ -232,7 +233,6 @@
     "windowMenu": "ウィンドウ (&W)",
     "zoomIn": "拡大",
     "zoomOut": "縮小",
-    "simulateDisconnected": "切断をシミュレート",
     "restoreServerUi": "サーバーの UI に戻す"
   },
   "findInPage": {

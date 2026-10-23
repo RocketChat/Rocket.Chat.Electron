@@ -3,7 +3,9 @@ import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
+import type { RootState } from '../store/rootReducer';
 import TooltipProvider from '../ui/components/utils/TooltipProvider';
 import { WindowToolbar } from '../ui/windowChrome/WindowToolbar';
 import type { PaletteTheme } from '../ui/windowChrome/appearance';
@@ -18,7 +20,10 @@ import {
 import type { SettingsSectionItem } from './SettingsSidebar';
 import { TRANSPARENCY_CHANNEL } from './constants';
 import { fuzzyMatch, matchesSearchText } from './fuzzy';
-import { collectSettingSearchTexts } from './searchIndex';
+import {
+  collectSettingSearchTexts,
+  getSearchableSettingKeys,
+} from './searchIndex';
 import { SETTINGS_SECTIONS } from './sections';
 
 const DEFAULT_SECTION = 'general';
@@ -72,6 +77,22 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
   // Advanced, which hides them itself.
   const availableSections = SETTINGS_SECTIONS;
 
+  const isDeveloperModeEnabled = useSelector(
+    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
+  );
+  const canUpdate = useSelector(
+    ({ isUpdatingAllowed, isUpdatingEnabled }: RootState) =>
+      isUpdatingAllowed && isUpdatingEnabled
+  );
+  const availabilityContext = useMemo(
+    () => ({
+      isDeveloperModeEnabled,
+      canUpdate,
+      platform: process.platform,
+    }),
+    [isDeveloperModeEnabled, canUpdate]
+  );
+
   /**
    * A section survives the search if its own name matches, or if any setting it
    * holds does — the matching settings are then named in the row, so it is clear
@@ -84,7 +105,7 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
       .map((section) => {
         const label = t(section.labelKey);
         const matches = query
-          ? section.settingKeys
+          ? getSearchableSettingKeys(section, availabilityContext)
               .map((key) => collectSettingSearchTexts(t, key))
               .filter((setting) =>
                 setting.texts.some((text) => matchesSearchText(query, text))
@@ -102,7 +123,7 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
       })
       .filter(({ isVisible }) => isVisible)
       .map(({ isVisible: _isVisible, ...section }) => section);
-  }, [availableSections, searchFilter, t]);
+  }, [availabilityContext, availableSections, searchFilter, t]);
 
   // The section is remembered across opens and can be filtered away by a search,
   // so keep the selection on something that is actually listed — but only for

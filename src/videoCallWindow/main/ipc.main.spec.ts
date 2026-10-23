@@ -840,6 +840,23 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       listener({ sender: { hostWebContents: null } });
 
       expect(win.close).not.toHaveBeenCalled();
+      expect(getRootWindow).not.toHaveBeenCalled();
+    });
+
+    // The page asks to close when the user leaves the call (DMV2-32).
+    it('brings the main window to the front after closing the call window', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const win = { isDestroyed: jest.fn(() => false), close: jest.fn() };
+      fromWebContents.mockReturnValue(win);
+      fakeRootWindow.isMinimized.mockReturnValue(true);
+
+      listener({ sender: { hostWebContents: null } });
+      await flushPromises();
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.restore).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.show).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.focus).toHaveBeenCalledTimes(1);
     });
 
     it('no-ops safely when no window resolves', async () => {

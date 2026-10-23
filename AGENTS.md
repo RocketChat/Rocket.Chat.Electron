@@ -304,6 +304,13 @@ pass on a Desktop PR, branch or release candidate, follow
 - File names: camelCase for files, PascalCase for components.
 - Write self-documenting code with clear names. Add a comment only when the
   code cannot say why.
+- Keep every name that a preload exposes to the web client
+  (`RocketChatDesktop`, `videoCallWindow` and their methods) backward
+  compatible. A rename adds the new name and keeps the old name as an alias
+  of the same object. Remove an old name only when no supported server
+  version reads it. Users do not update the desktop app and the server
+  together. Removing `videoCallWindow` in 4.18.0 broke leaving a call on
+  Rocket.Chat 8.9.0 (DMV2-32).
 - Prefer an edit to an existing file over a new abstraction. Add an
   abstraction only when it removes real complexity or matches an existing
   pattern.

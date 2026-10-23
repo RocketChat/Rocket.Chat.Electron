@@ -7,6 +7,7 @@ import { logger } from '../../logging';
 import { select, dispatch, watch } from '../../store';
 import { getSystemCertificateStatus } from '../../systemCertificates';
 import { normalizeNumber } from '../../ui/main/rootWindow';
+import type { PersistableValues } from '../PersistableValues';
 import {
   MAS_INTERNAL_VIDEO_CHAT_WINDOW_DEFAULT_REVISION,
   MENU_BAR_DEFAULT_REVISION,
@@ -19,6 +20,7 @@ import {
   persistValues,
   setPersistedMeta,
 } from './persistence';
+import { loadStateFromCli } from './stateCli';
 
 const loadUserDataOverriddenSettings = async (): Promise<
   Record<string, string>
@@ -62,6 +64,7 @@ export const mergePersistableValues = async (
   const electronStoreValues = getPersistedValues();
   const userDataOverriddenSettings = await loadUserDataOverriddenSettings();
   const appAsarOverriddenSettings = await loadAppAsarOverriddenSettings();
+  const cliStateOverrides = await loadStateFromCli();
 
   const localStorageValues = Object.fromEntries(
     Object.entries(localStorage).map(([key, value]) => {
@@ -82,35 +85,29 @@ export const mergePersistableValues = async (
     ...appAsarPersistableOverrides
   } = appAsarOverriddenSettings;
 
+  const legacyLocalStorageOverrides: Partial<PersistableValues> = {};
+  if (localStorage.autohideMenu) {
+    legacyLocalStorageOverrides.isMenuBarEnabled =
+      localStorage.autohideMenu !== 'true';
+  }
+  if (localStorage.showWindowOnUnreadChanged) {
+    legacyLocalStorageOverrides.isShowWindowOnUnreadChangedEnabled =
+      localStorage.showWindowOnUnreadChanged === 'true';
+  }
+  if (localStorage.hideTray) {
+    legacyLocalStorageOverrides.isTrayIconEnabled =
+      localStorage.hideTray !== 'true';
+  }
+
   let values = selectPersistableValues({
     ...initialValues,
     ...electronStoreValues,
     ...localStorageValues,
+    ...legacyLocalStorageOverrides,
+    ...cliStateOverrides,
     ...userDataPersistableOverrides,
     ...appAsarPersistableOverrides,
   });
-
-  if (localStorage.autohideMenu) {
-    values = {
-      ...values,
-      isMenuBarEnabled: localStorage.autohideMenu !== 'true',
-    };
-  }
-
-  if (localStorage.showWindowOnUnreadChanged) {
-    values = {
-      ...values,
-      isShowWindowOnUnreadChangedEnabled:
-        localStorage.showWindowOnUnreadChanged === 'true',
-    };
-  }
-
-  if (localStorage.hideTray) {
-    values = {
-      ...values,
-      isTrayIconEnabled: localStorage.hideTray !== 'true',
-    };
-  }
   const userRootWindowState = await (async (): Promise<{
     isHidden?: boolean;
     isMaximized?: boolean;
@@ -172,7 +169,10 @@ export const mergePersistableValues = async (
   // config meta so later persistValues() snapshots cannot re-apply the force.
   const appliedMenuBarRevision = getPersistedMeta('menuBarDefaultRevision', 0);
   if (appliedMenuBarRevision < MENU_BAR_DEFAULT_REVISION) {
-    if (process.platform !== 'darwin') {
+    if (
+      process.platform !== 'darwin' &&
+      !('isMenuBarEnabled' in cliStateOverrides)
+    ) {
       values = {
         ...values,
         isMenuBarEnabled: false,
@@ -195,7 +195,8 @@ export const mergePersistableValues = async (
     ) {
       const isOverridden =
         'isInternalVideoChatWindowEnabled' in userDataPersistableOverrides ||
-        'isInternalVideoChatWindowEnabled' in appAsarPersistableOverrides;
+        'isInternalVideoChatWindowEnabled' in appAsarPersistableOverrides ||
+        'isInternalVideoChatWindowEnabled' in cliStateOverrides;
       if (!isOverridden) {
         values = {
           ...values,

@@ -105,7 +105,7 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    const input = screen.getByTestId('telephony-shortcut-input');
+    const input = screen.getByTestId('telephony-shortcut-field');
     fireEvent.keyDown(input, {
       key: 'd',
       ctrlKey: true,
@@ -131,7 +131,7 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    const input = screen.getByTestId('telephony-shortcut-input');
+    const input = screen.getByTestId('telephony-shortcut-field');
     fireEvent.keyDown(input, {
       key: 'd',
       ctrlKey: true,
@@ -150,7 +150,7 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    const input = screen.getByTestId('telephony-shortcut-input');
+    const input = screen.getByTestId('telephony-shortcut-field');
     expect(input).toHaveAttribute(
       'placeholder',
       'settings.options.telephonyShortcut.placeholder'
@@ -206,7 +206,7 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    const input = screen.getByTestId('telephony-shortcut-input');
+    const input = screen.getByTestId('telephony-shortcut-field');
     fireEvent.keyDown(input, {
       key: 'c',
       ctrlKey: true,
@@ -227,7 +227,7 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    const input = screen.getByTestId('telephony-shortcut-input');
+    const input = screen.getByTestId('telephony-shortcut-field');
     fireEvent.keyDown(input, {
       key: 'n',
       ctrlKey: true,
@@ -252,7 +252,7 @@ describe('TelephonyGlobalShortcut', () => {
       </Provider>
     );
 
-    const input = screen.getByTestId('telephony-shortcut-input');
+    const input = screen.getByTestId('telephony-shortcut-field');
     fireEvent.keyDown(input, {
       key: 'e',
       ctrlKey: true,

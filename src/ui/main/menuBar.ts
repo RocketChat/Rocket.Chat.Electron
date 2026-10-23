@@ -1111,11 +1111,14 @@ export const selectAppMenuPopupTemplate = createSelector(
     const canCheckForUpdates =
       (isUpdatingAllowed && isUpdatingEnabled) || updateStore !== null;
 
-    const settingsItem: MenuItemConstructorOptions = {
-      id: 'settings',
-      label: t('menus.settings'),
-      accelerator: 'CommandOrControl+,',
-      click: () => {
+    const settingsItem: MenuItemConstructorOptions & {
+      'data-testid'?: string;
+    } = {
+      'id': 'settings',
+      'label': t('menus.settings'),
+      'accelerator': 'CommandOrControl+,',
+      'data-testid': 'settings-menu-item',
+      'click': () => {
         dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
       },
     };

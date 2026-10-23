@@ -122,6 +122,10 @@ irreversible step (merge, tag push, release publish) explicitly.
 
 ### Stable (promotion)
 
+0. The stable promotion needs a QA go from the `release-qa-plan` skill on
+   the newest prerelease. Run
+   `node skills/release-qa-plan/collect-changes.mjs --check qa/release-<TARGET>`.
+   If it fails, or the go/no-go report is not a go, stop and tell the user.
 1. Use the same worktree setup as alpha, off fresh `origin/dev`.
 2. Bump `"version"` in `package.json` to the bare version. Drop the
    pre-release suffix, for example `4.17.0-alpha.6` → `4.17.0`.

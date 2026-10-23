@@ -150,6 +150,12 @@ type PersistableValues_4_18_0 = PersistableValues_4_17_0 & {
   isTrayIconUnreadCounterEnabled: boolean;
   isMenuBarUnreadCountEnabled: boolean;
   uiPreviewHistory: UiPreviewHistoryEntry[];
+  /**
+   * Linux-only opt-in: use the native window-manager title bar instead of the
+   * client-side chrome introduced in #3450. Off by default so existing users
+   * keep their current experience. Requires a restart to take effect.
+   */
+  isLinuxSystemTitleBarEnabled: boolean;
 };
 
 export type PersistableValues = Omit<

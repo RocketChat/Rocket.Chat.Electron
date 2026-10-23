@@ -1,17 +1,16 @@
 import { Global, css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { isDarwin, isLinux } from '../../utils/platform';
+import { isDarwin } from '../../utils/platform';
 
 type GlobalStylesProps = {
   isTransparentWindowEnabled: boolean;
+  usesLinuxClientChromeRounding?: boolean;
 };
-
-/** Linux paints the outer window shape in CSS (DWM already rounds Windows). */
-const usesLinuxClientChromeRounding = isLinux;
 
 export const GlobalStyles = ({
   isTransparentWindowEnabled,
+  usesLinuxClientChromeRounding = false,
 }: GlobalStylesProps) => {
   const backgroundColor =
     (isDarwin && isTransparentWindowEnabled) || usesLinuxClientChromeRounding

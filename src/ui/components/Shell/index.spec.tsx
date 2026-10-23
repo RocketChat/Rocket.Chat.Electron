@@ -1,5 +1,6 @@
 import { Shell } from '.';
-import { renderWithStore, screen } from '../../test-utils';
+import { SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED } from '../../actions';
+import { act, renderWithStore, screen } from '../../test-utils';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -140,14 +141,18 @@ jest.mock('@rocket.chat/fuselage', () => {
 
 jest.mock('./styles', () => ({
   __esModule: true,
+  CLIENT_CHROME_CORNER_RADIUS_PX: 10,
   GlobalStyles: ({
     isTransparentWindowEnabled,
+    usesLinuxClientChromeRounding,
   }: {
     isTransparentWindowEnabled?: boolean;
+    usesLinuxClientChromeRounding?: boolean;
   }) => (
     <div
       data-testid='global-styles'
       data-transparent={String(!!isTransparentWindowEnabled)}
+      data-linux-rounding={String(!!usesLinuxClientChromeRounding)}
     />
   ),
   WindowDragBar: () => <div data-testid='window-drag-bar' />,
@@ -159,6 +164,7 @@ const buildState = (overrides: Record<string, unknown> = {}) =>
     machineTheme: 'light',
     userThemePreference: 'auto',
     isTransparentWindowEnabled: false,
+    isLinuxSystemTitleBarEnabled: false,
     navigationLayout: 'sidebar',
     rootWindowState: {
       focused: true,
@@ -404,18 +410,21 @@ describe('Shell', () => {
     });
   });
 
-  describe('linux chrome (Windows-parity client decorations)', () => {
+  describe('linux chrome — default (client-side, matching #3450 behavior)', () => {
     let restorePlatform: () => void;
 
     afterEach(() => {
       restorePlatform?.();
     });
 
-    it('mounts the meatball menu and window controls as TabBar slots when navigationLayout is tabs', () => {
+    it('mounts the meatball menu and window controls when navigationLayout is tabs', () => {
       restorePlatform = setPlatform('linux');
 
       renderWithStore(<Shell />, {
-        preloadedState: buildState({ navigationLayout: 'tabs' }),
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
       });
 
       expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
@@ -428,11 +437,13 @@ describe('Shell', () => {
       restorePlatform = setPlatform('linux');
 
       renderWithStore(<Shell />, {
-        preloadedState: buildState({ navigationLayout: 'sidebar' }),
+        preloadedState: buildState({
+          navigationLayout: 'sidebar',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
       });
 
       expect(screen.getByTestId('top-bar')).toBeInTheDocument();
-      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
       expect(screen.getByTestId('window-controls')).toBeInTheDocument();
       expect(screen.getByTestId('tab-bar')).toHaveAttribute(
         'data-orientation',
@@ -441,21 +452,197 @@ describe('Shell', () => {
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
     });
 
-    it('puts the meatball menu and window controls on the TopBar with no TabBar when navigationLayout is hidden', () => {
+    it('puts the meatball menu on the TopBar with window controls and no TabBar when navigationLayout is hidden', () => {
       restorePlatform = setPlatform('linux');
 
       renderWithStore(<Shell />, {
-        preloadedState: buildState({ navigationLayout: 'hidden' }),
+        preloadedState: buildState({
+          navigationLayout: 'hidden',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+      expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
+    });
+
+    it('applies client chrome rounding and border shadow when window is not maximized', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          isLinuxSystemTitleBarEnabled: false,
+          rootWindowState: { maximized: false, fullscreen: false },
+        }),
+      });
+
+      expect(screen.getByTestId('global-styles')).toHaveAttribute(
+        'data-linux-rounding',
+        'true'
+      );
+      const outerBox = screen.getByTestId('shell-outer-box');
+      expect(outerBox.style.borderRadius).toBe('10px');
+      expect(outerBox.style.boxShadow).toContain(
+        'var(--rcx-color-shadow-elevation-border)'
+      );
+    });
+
+    it('drops border radius and shadow when maximized', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          isLinuxSystemTitleBarEnabled: false,
+          rootWindowState: { maximized: true, fullscreen: false },
+        }),
+      });
+
+      const outerBox = screen.getByTestId('shell-outer-box');
+      expect(outerBox.style.borderRadius).toBe('0px');
+      expect(outerBox.style.boxShadow).toBe('');
+    });
+
+    it('does not render WindowDragBar under client chrome', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'sidebar',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
+      });
+
+      expect(screen.queryByTestId('window-drag-bar')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('linux chrome — system title bar opt-in (native WM decorations)', () => {
+    let restorePlatform: () => void;
+
+    afterEach(() => {
+      restorePlatform?.();
+    });
+
+    it('mounts the meatball menu on the trailing slot with no window controls when navigationLayout is tabs', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
+      });
+
+      expect(screen.getByTestId('tab-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
+    });
+
+    it('mounts the TopBar without window controls plus the vertical TabBar meatball when navigationLayout is sidebar', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'sidebar',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
+      });
+
+      expect(screen.getByTestId('top-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+      expect(screen.getByTestId('tab-bar')).toHaveAttribute(
+        'data-orientation',
+        'vertical'
+      );
+      expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
+    });
+
+    it('mounts the TopBar with ServerSwitcher, without in-app window controls and no TabBar when navigationLayout is hidden', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'hidden',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
       });
 
       expect(screen.getByTestId('top-bar')).toBeInTheDocument();
       expect(screen.getByTestId('downloads-indicator')).toBeInTheDocument();
       expect(screen.getByTestId('meatball-menu-button')).toBeInTheDocument();
-      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
       expect(screen.queryByTestId('tab-bar')).not.toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: 'tabBar.workspaces' })
       ).toBeInTheDocument();
+    });
+
+    it('disables client chrome rounding and does not render WindowDragBar under native frame', () => {
+      restorePlatform = setPlatform('linux');
+
+      renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          isLinuxSystemTitleBarEnabled: true,
+          navigationLayout: 'sidebar',
+        }),
+      });
+
+      expect(screen.getByTestId('global-styles')).toHaveAttribute(
+        'data-linux-rounding',
+        'false'
+      );
+      expect(screen.queryByTestId('window-drag-bar')).not.toBeInTheDocument();
+      const outerBox = screen.getByTestId('shell-outer-box');
+      expect(outerBox.style.borderRadius).toBe('');
+      expect(outerBox.style.boxShadow).toBe('');
+    });
+
+    it('keeps shell controls matched to initial frame style when isLinuxSystemTitleBarEnabled is toggled without restart', () => {
+      restorePlatform = setPlatform('linux');
+
+      const { store } = renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: false,
+        }),
+      });
+
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+
+      act(() => {
+        store.dispatch({
+          type: SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED,
+          payload: true,
+        });
+      });
+
+      expect(screen.getByTestId('window-controls')).toBeInTheDocument();
+    });
+
+    it('keeps native frame styling without shell controls when toggled off without restart', () => {
+      restorePlatform = setPlatform('linux');
+
+      const { store } = renderWithStore(<Shell />, {
+        preloadedState: buildState({
+          navigationLayout: 'tabs',
+          isLinuxSystemTitleBarEnabled: true,
+        }),
+      });
+
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
+
+      act(() => {
+        store.dispatch({
+          type: SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED,
+          payload: false,
+        });
+      });
+
+      expect(screen.queryByTestId('window-controls')).not.toBeInTheDocument();
     });
   });
 
@@ -535,8 +722,7 @@ describe('Shell', () => {
     });
 
     it('still renders exactly one instance regardless of developer mode', () => {
-      // Shell's non-tabs TopBar branches are gated on darwin/win32 only (a
-      // pre-existing platform split, unrelated to developer mode) — pin the
+      // Shell's non-tabs TopBar branches are gated on darwin/win32/linux — pin the
       // platform like every sibling test in this block so the assertion
       // doesn't depend on the CI runner's actual process.platform (this test
       // is about developer mode, not platform).

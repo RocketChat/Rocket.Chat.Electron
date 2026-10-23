@@ -38,6 +38,7 @@ import { isDownloadsWindowOpen } from '../ui/reducers/isDownloadsWindowOpen';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
+import { isLinuxSystemTitleBarEnabled } from '../ui/reducers/isLinuxSystemTitleBarEnabled';
 import { isLogViewerWindowOpen } from '../ui/reducers/isLogViewerWindowOpen';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMenuBarUnreadCountEnabled } from '../ui/reducers/isMenuBarUnreadCountEnabled';
@@ -152,6 +153,7 @@ export const rootReducer = combineReducers({
   isDownloadsWindowOpen,
   isLogViewerWindowOpen,
   isTransparentWindowEnabled,
+  isLinuxSystemTitleBarEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
   telephonyPreferredServer,
   telephonyGlobalShortcutConfig,

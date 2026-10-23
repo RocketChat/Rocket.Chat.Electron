@@ -1,5 +1,6 @@
 import { Box, PaletteStyleTag } from '@rocket.chat/fuselage';
-import { useLayoutEffect } from 'react';
+import type { CSSProperties } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
@@ -29,7 +30,22 @@ import {
   WindowDragBar,
 } from './styles';
 
-const usesLinuxClientChromeRounding = process.platform === 'linux';
+const getShellOuterBoxStyle = (
+  usesRounding: boolean,
+  isExpanded: boolean
+): CSSProperties | undefined => {
+  if (!usesRounding) {
+    return undefined;
+  }
+  return {
+    borderRadius: isExpanded ? 0 : CLIENT_CHROME_CORNER_RADIUS_PX,
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    boxShadow: isExpanded
+      ? undefined
+      : 'inset 0 0 0 1px var(--rcx-color-shadow-elevation-border)',
+  };
+};
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
@@ -39,12 +55,32 @@ export const Shell = () => {
   const navigationLayout = useSelector(
     ({ navigationLayout }: RootState) => navigationLayout
   );
+  const isLinuxSystemTitleBarEnabled = useSelector(
+    ({ isLinuxSystemTitleBarEnabled }: RootState) =>
+      isLinuxSystemTitleBarEnabled
+  );
   const isWindowExpanded = useSelector(
     ({ rootWindowState }: RootState) =>
       rootWindowState.maximized || rootWindowState.fullscreen
   );
 
   const shellTheme = useShellTheme();
+
+  // The window frame is set when the BrowserWindow is created and cannot change
+  // dynamically. To keep the shell controls and outer styling matched to the
+  // frame until the next restart, capture whether this Linux window has a native
+  // frame on initial mount.
+  const [isLinuxNativeFrame] = useState(
+    () => process.platform === 'linux' && isLinuxSystemTitleBarEnabled
+  );
+
+  // Linux client chrome uses transparent background, CSS border-radius and
+  // hairline border when not maximized (Windows already gets DWM rounding).
+  const usesLinuxClientChromeRounding =
+    process.platform === 'linux' && !isLinuxNativeFrame;
+
+  const isClientDecorated =
+    process.platform === 'win32' || usesLinuxClientChromeRounding;
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -68,11 +104,15 @@ export const Shell = () => {
         selector=':root'
         // tagId='sidebar-palette'
       />
-      <GlobalStyles isTransparentWindowEnabled={isTransparentWindowEnabled} />
+      <GlobalStyles
+        isTransparentWindowEnabled={isTransparentWindowEnabled}
+        usesLinuxClientChromeRounding={usesLinuxClientChromeRounding}
+      />
       {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
         <WindowDragBar />
       )}
       <Box
+        data-testid='shell-outer-box'
         bg={isTransparentWindowEnabled ? 'transparent' : 'surface-neutral'}
         display='flex'
         flexWrap='nowrap'
@@ -80,40 +120,26 @@ export const Shell = () => {
         width='100%'
         maxWidth='100%'
         flexDirection='column'
-        style={
-          usesLinuxClientChromeRounding
-            ? {
-                // Soft outer corners on Linux only; drop when maximized.
-                borderRadius: isWindowExpanded
-                  ? 0
-                  : CLIENT_CHROME_CORNER_RADIUS_PX,
-                overflow: 'hidden',
-                boxSizing: 'border-box',
-                // Inset hairline stays inside the box (outer box-shadow was
-                // adding ~1px and caused a horizontal scrollbar on Linux).
-                boxShadow: isWindowExpanded
-                  ? undefined
-                  : 'inset 0 0 0 1px var(--rcx-color-shadow-elevation-border)',
-              }
-            : undefined
-        }
+        style={getShellOuterBoxStyle(
+          usesLinuxClientChromeRounding,
+          isWindowExpanded
+        )}
       >
-        {/* Windows + Linux: client-side window chrome (min/max/close in-strip). */}
-        {navigationLayout === 'tabs' &&
-          (process.platform === 'win32' || process.platform === 'linux') && (
-            <TabBar
-              leadingSlot={
-                <>
-                  <MeatballMenuButton />
-                  <UpdateLabel />
-                  <DownloadsIndicator />
-                </>
-              }
-              trailingSlot={<WindowControls />}
-            />
-          )}
-        {/* macOS tabs: system traffic lights; meatball/downloads/update trail. */}
-        {navigationLayout === 'tabs' && process.platform === 'darwin' && (
+        {/* Client-decorated tabs (Windows, Linux default): window controls in-strip. */}
+        {navigationLayout === 'tabs' && isClientDecorated && (
+          <TabBar
+            leadingSlot={
+              <>
+                <MeatballMenuButton />
+                <UpdateLabel />
+                <DownloadsIndicator />
+              </>
+            }
+            trailingSlot={<WindowControls />}
+          />
+        )}
+        {/* Native-decorated tabs (macOS traffic lights, Linux system title bar): trailing controls. */}
+        {navigationLayout === 'tabs' && !isClientDecorated && (
           <TabBar
             trailingSlot={
               <>
@@ -124,6 +150,24 @@ export const Shell = () => {
             }
           />
         )}
+        {/* Client-decorated non-tabs (Windows, Linux default): TopBar with WindowControls. */}
+        {navigationLayout !== 'tabs' && isClientDecorated && (
+          <TopBar
+            leadingSlot={
+              <>
+                {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
+                <UpdateLabel />
+                <DownloadsIndicator compact />
+              </>
+            }
+            centerSlot={
+              navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
+            }
+            trailingSlot={<WindowControls />}
+            textAlignment='left'
+          />
+        )}
+        {/* macOS non-tabs: system traffic lights; trailing update/downloads. */}
         {navigationLayout !== 'tabs' && process.platform === 'darwin' && (
           <TopBar
             centerSlot={
@@ -137,21 +181,25 @@ export const Shell = () => {
             }
           />
         )}
+        {/* Linux non-tabs (native WM frame): WM provides decorations; meatball preserved in hidden layout. */}
         {navigationLayout !== 'tabs' &&
-          (process.platform === 'win32' || process.platform === 'linux') && (
+          process.platform === 'linux' &&
+          isLinuxNativeFrame && (
             <TopBar
               leadingSlot={
-                <>
-                  {navigationLayout === 'hidden' && <MeatballMenuButton tiny />}
-                  <UpdateLabel />
-                  <DownloadsIndicator compact />
-                </>
+                navigationLayout === 'hidden' ? (
+                  <MeatballMenuButton tiny />
+                ) : undefined
               }
               centerSlot={
                 navigationLayout === 'hidden' ? <ServerSwitcher /> : undefined
               }
-              trailingSlot={<WindowControls />}
-              textAlignment='left'
+              trailingSlot={
+                <>
+                  <UpdateLabel />
+                  <DownloadsIndicator compact />
+                </>
+              }
             />
           )}
         <Box display='flex' flexDirection='row' flexGrow={1}>

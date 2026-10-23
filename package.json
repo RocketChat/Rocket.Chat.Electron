@@ -4,6 +4,7 @@
     "workspaces/*"
   ],
   "productName": "Rocket.Chat",
+  "desktopName": "rocketchat-desktop.desktop",
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
   "version": "4.19.0-alpha.2",

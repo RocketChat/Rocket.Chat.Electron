@@ -23,6 +23,7 @@ import {
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
 } from '../../ui/actions';
 import * as urls from '../../urls';
+import { redactServerUrl } from '../common';
 import type { Server } from '../common';
 import type {
   CloudInfo,
@@ -134,7 +135,10 @@ const loadFromCache = (serverUrl: string): SupportedVersions | undefined => {
     if (!cached) return undefined;
     return cached as SupportedVersions;
   } catch (error) {
-    console.warn(`Error loading cache for ${serverUrl}:`, error);
+    console.warn(
+      `Error loading cache for ${redactServerUrl(serverUrl)}:`,
+      error
+    );
     return undefined;
   }
 };
@@ -143,7 +147,10 @@ const saveToCache = (serverUrl: string, data: SupportedVersions): void => {
   try {
     supportedVersionsStore.set(getCacheKey(serverUrl), data);
   } catch (error) {
-    console.warn(`Error saving cache for ${serverUrl}:`, error);
+    console.warn(
+      `Error saving cache for ${redactServerUrl(serverUrl)}:`,
+      error
+    );
   }
 };
 
@@ -194,6 +201,26 @@ const getServerInfo = async (url: string): Promise<ServerInfo> => {
   return response.data;
 };
 
+// An axios error keeps the request config, and its URL can hold the
+// workspace credentials. Log only the status or the error code.
+const describeRequestError = (error: unknown): string => {
+  if (typeof error !== 'object' || error === null) {
+    return 'unknown error';
+  }
+  const { response, code, name } = error as {
+    response?: { status?: unknown };
+    code?: unknown;
+    name?: unknown;
+  };
+  if (typeof response?.status === 'number') {
+    return `HTTP ${response.status}`;
+  }
+  if (typeof code === 'string') {
+    return code;
+  }
+  return typeof name === 'string' ? name : 'unknown error';
+};
+
 const getUniqueId = async (
   url: string,
   version: string
@@ -211,13 +238,15 @@ const getUniqueId = async (
     const value = response.data?.settings?.[0]?.value;
 
     if (!value) {
-      console.warn(`No unique ID found for server ${url}`);
+      console.warn(`No unique ID found for server ${redactServerUrl(url)}`);
       return null;
     }
 
     return value;
   } catch (error) {
-    console.warn(`Error fetching unique ID for server ${url}:`, error);
+    console.warn(
+      `Error fetching unique ID for server ${redactServerUrl(url)}: ${describeRequestError(error)}`
+    );
     return null;
   }
 };

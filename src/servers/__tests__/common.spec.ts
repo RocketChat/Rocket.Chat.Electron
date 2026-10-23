@@ -1,4 +1,6 @@
 import {
+  getServerLoadUrl,
+  redactServerUrl,
   isConferencePageUrl,
   isServerUrlResolutionResult,
   ServerUrlResolutionStatus,
@@ -120,6 +122,35 @@ describe('servers/common', () => {
           'https://chat.example/'
         )
       ).toBe(false);
+    });
+  });
+
+  describe('getServerLoadUrl', () => {
+    it('removes the credentials of a workspace URL', () => {
+      expect(getServerLoadUrl('http://user:pass@chat.example.com/')).toBe(
+        'http://chat.example.com/'
+      );
+      expect(
+        getServerLoadUrl('https://user:pass@chat.example.com:8443/sub/')
+      ).toBe('https://chat.example.com:8443/sub/');
+    });
+
+    it('returns a URL with no credentials unchanged', () => {
+      expect(getServerLoadUrl('https://chat.example.com/sub')).toBe(
+        'https://chat.example.com/sub'
+      );
+    });
+
+    it('returns a value that is not a URL unchanged', () => {
+      expect(getServerLoadUrl('not a url')).toBe('not a url');
+    });
+  });
+
+  describe('redactServerUrl', () => {
+    it('removes the password of a workspace URL for logs', () => {
+      expect(redactServerUrl('https://user:secret@chat.example.com/')).toBe(
+        'https://chat.example.com/'
+      );
     });
   });
 });

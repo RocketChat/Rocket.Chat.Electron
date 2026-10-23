@@ -86,3 +86,10 @@ contextBridge.exposeInMainWorld('RocketChatDesktop', {
   ...mainWindowOnlySetters,
   videoCall,
 });
+
+// Deprecated name for the same methods, read by servers that predate the move
+// to RocketChatDesktop.videoCall (Rocket.Chat #42692). Without it, their
+// conference page cannot close this window on leave: it falls back to loading
+// `/home`, which puts the full app in the call window. It exposes nothing that
+// `videoCall` does not already expose.
+contextBridge.exposeInMainWorld('videoCallWindow', videoCall);

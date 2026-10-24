@@ -453,7 +453,7 @@
       },
       "transparentWindow": {
         "title": "Transparent window effect",
-        "description": "Enable native vibrancy on app window."
+        "description": "Enable native vibrancy on app windows. On macOS, changing this setting requires restarting the app to update the main window."
       },
       "themeAppearance": {
         "title": "Theme",

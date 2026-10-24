@@ -1,7 +1,6 @@
 import path from 'path';
 
 import type {
-  BrowserWindowConstructorOptions,
   ContextMenuParams,
   Rectangle,
   NativeImage,
@@ -37,6 +36,9 @@ import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
+import { getRootWindowAppearanceOptions } from './windowAppearance';
+
+export { getRootWindowAppearanceOptions } from './windowAppearance';
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
@@ -89,43 +91,6 @@ const platformTitleBarStyle =
     : 'default';
 
 const isMac = process.platform === 'darwin';
-
-export const getRootWindowAppearanceOptions = ({
-  platform,
-  isTransparentWindowEnabled,
-  shouldUseDarkColors,
-}: {
-  platform: NodeJS.Platform;
-  isTransparentWindowEnabled: boolean;
-  shouldUseDarkColors: boolean;
-}): BrowserWindowConstructorOptions => {
-  if (platform === 'darwin') {
-    if (isTransparentWindowEnabled) {
-      return {
-        transparent: true,
-        backgroundColor: '#00000000',
-        vibrancy: 'sidebar',
-        visualEffectState: 'active',
-      };
-    }
-
-    return {
-      backgroundColor: shouldUseDarkColors ? '#2f343d' : '#ffffff',
-    };
-  }
-
-  if (platform === 'linux') {
-    // Linux client chrome is a plain rectangle under most WMs. Transparent +
-    // CSS radius paints soft outer corners. Windows gets DWM rounding.
-    return {
-      transparent: true,
-      backgroundColor: '#00000000',
-      hasShadow: true,
-    };
-  }
-
-  return {};
-};
 
 const isMacTransparencyEnabled = (): boolean => {
   if (!isMac) {

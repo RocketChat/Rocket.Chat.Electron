@@ -1,12 +1,12 @@
 import path from 'path';
 
 import type { Event } from 'electron';
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen, nativeTheme } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../servers/actions';
-import { listen, select, watch } from '../store';
+import { listen, select } from '../store';
 import type { RootState } from '../store/rootReducer';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { watchWindowControls } from '../ui/main/secondaryWindowControls';
@@ -16,13 +16,14 @@ import {
   onWindowBoundsReset,
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
+import { watchSecondaryWindowTransparency } from '../ui/main/secondaryWindowTransparency';
+import { getRootWindowAppearanceOptions } from '../ui/main/windowAppearance';
 import {
   NOT_FULL_SCREENABLE,
   getTitleBarOptions,
 } from '../ui/windowChrome/appearance';
 import {
   DOCUMENT_CHANNEL,
-  TRANSPARENCY_CHANNEL,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
   WINDOW_SIZE_MULTIPLIER,
@@ -33,6 +34,8 @@ import { saveDocument } from './saveDocument';
 const isMac = process.platform === 'darwin';
 
 let documentViewerWindow: BrowserWindow | null = null;
+let isAppQuitting = false;
+let currentDocumentRequest: DocumentRequest | null = null;
 
 export type DocumentRequest = {
   server: string;
@@ -121,7 +124,8 @@ const getDefaultBounds = async (): Promise<{
 };
 
 const buildDocumentViewerWindow = async (
-  request: DocumentRequest
+  request: DocumentRequest,
+  focusOnShow: boolean
 ): Promise<void> => {
   const { width, height, x, y } = await getDefaultBounds();
 
@@ -129,7 +133,7 @@ const buildDocumentViewerWindow = async (
   // display nearest the main window.
   const savedBounds = getSavedWindowBounds('documentViewer');
 
-  // Seeds the first paint only; the renderer then follows the setting live.
+  // Native appearance and the renderer must agree on the first paint.
   const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
 
   documentViewerWindow = new BrowserWindow({
@@ -142,15 +146,12 @@ const buildDocumentViewerWindow = async (
     // in-app one.
     ...getTitleBarOptions(),
     ...NOT_FULL_SCREENABLE,
-    // `transparent` cannot be toggled after creation, so — like the root window —
-    // the window is always transparent with a vibrancy material on macOS and the
-    // setting only decides whether the renderer paints an opaque surface over it.
     ...(isMac
-      ? {
-          transparent: true,
-          vibrancy: 'sidebar' as const,
-          visualEffectState: 'active' as const,
-        }
+      ? getRootWindowAppearanceOptions({
+          platform: process.platform,
+          isTransparentWindowEnabled: isTransparencyEnabled,
+          shouldUseDarkColors: nativeTheme.shouldUseDarkColors,
+        })
       : {}),
     webPreferences: {
       nodeIntegration: true,
@@ -175,7 +176,11 @@ const buildDocumentViewerWindow = async (
     documentViewerWindow?.setTitle(
       `Document - ${packageJsonInformation.productName}`
     );
-    documentViewerWindow?.show();
+    if (focusOnShow) {
+      documentViewerWindow?.show();
+    } else {
+      documentViewerWindow?.showInactive();
+    }
   });
 
   documentViewerWindow.on('closed', () => {
@@ -207,8 +212,10 @@ const buildDocumentViewerWindow = async (
  * than a single one that follows them.
  */
 export const openDocumentViewerWindow = async (
-  request: DocumentRequest
+  request: DocumentRequest,
+  focusOnShow = true
 ): Promise<void> => {
+  currentDocumentRequest = request;
   // Building one awaits the main window before the module variable is
   // assigned, so two documents opened in quick succession would each build a
   // window and the second would orphan the first — visible, untracked, and
@@ -217,17 +224,23 @@ export const openDocumentViewerWindow = async (
 
   if (documentViewerWindow && !documentViewerWindow.isDestroyed()) {
     sendWhenReady(documentViewerWindow, request);
-    focusSecondaryWindow(documentViewerWindow);
+    if (focusOnShow) focusSecondaryWindow(documentViewerWindow);
     return;
   }
 
-  pendingCreation = buildDocumentViewerWindow(request).finally(() => {
-    pendingCreation = null;
-  });
+  pendingCreation = buildDocumentViewerWindow(request, focusOnShow).finally(
+    () => {
+      pendingCreation = null;
+    }
+  );
   await pendingCreation;
 };
 
 export const startDocumentViewerWindowHandler = (): void => {
+  app.on('before-quit', () => {
+    isAppQuitting = true;
+  });
+
   // Every entry point already dispatches this — the page asking to open a PDF,
   // and the main process intercepting a markdown download — so hooking it here
   // redirects all of them at once. An empty url is the old in-pane viewer's way
@@ -254,11 +267,15 @@ export const startDocumentViewerWindowHandler = (): void => {
     }
   );
 
-  // Transparency is a renderer concern here, so a change only needs pushing to
-  // the open window — no reopen, no restart.
-  watch(selectIsTransparencyEnabled, (isEnabled) => {
-    if (!documentViewerWindow || documentViewerWindow.isDestroyed()) return;
-    documentViewerWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  watchSecondaryWindowTransparency({
+    getWindow: () => documentViewerWindow,
+    reopen: async () => {
+      if (currentDocumentRequest) {
+        await openDocumentViewerWindow(currentDocumentRequest, false);
+      }
+    },
+    isQuitting: () => isAppQuitting,
+    waitForCreation: () => pendingCreation,
   });
 
   onWindowBoundsReset('documentViewer', async () => {

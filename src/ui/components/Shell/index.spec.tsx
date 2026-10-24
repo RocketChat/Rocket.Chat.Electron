@@ -1,5 +1,6 @@
 import { Shell } from '.';
-import { renderWithStore, screen } from '../../test-utils';
+import { SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED } from '../../actions';
+import { act, renderWithStore, screen } from '../../test-utils';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -196,6 +197,41 @@ const setPlatform = (platform: NodeJS.Platform): (() => void) => {
 };
 
 describe('Shell', () => {
+  it.each([false, true])(
+    'keeps macOS transparency=%s until restart, including pending confirmation and Cancel',
+    (initial) => {
+      const restorePlatform = setPlatform('darwin');
+      try {
+        const { store } = renderWithStore(<Shell />, {
+          preloadedState: buildState({ isTransparentWindowEnabled: initial }),
+        });
+        act(() => {
+          store.dispatch({
+            type: SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
+            payload: !initial,
+          });
+        });
+        expect(store.getState().isTransparentWindowEnabled).toBe(!initial);
+        expect(screen.getByTestId('global-styles')).toHaveAttribute(
+          'data-transparent',
+          String(initial)
+        );
+        act(() => {
+          store.dispatch({
+            type: SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
+            payload: initial,
+          });
+        });
+        expect(screen.getByTestId('global-styles')).toHaveAttribute(
+          'data-transparent',
+          String(initial)
+        );
+      } finally {
+        restorePlatform();
+      }
+    }
+  );
+
   it('renders the layout and its primary views without crashing', () => {
     renderWithStore(<Shell />, { preloadedState: buildState() });
 

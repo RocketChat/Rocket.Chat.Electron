@@ -65,7 +65,7 @@ add the options below:
 Prerequisites:
 
 - [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Node.js](https://nodejs.org) >= 24.11.1
+- [Node.js](https://nodejs.org) >= 22.0.0
 - [Yarn](http://yarnpkg.com/) >= 4.0.2
 
 Now just clone and start the app:
@@ -157,8 +157,10 @@ All packaging actions are handled by [electron-builder][]. It has a lot of
 
 ## Development and Releases
 
-All pull requests target `dev`; `master` contains only released code, and
-`release/X.Y.x` branches carry patch releases for a shipped version.
+All pull requests target `dev`. `master` contains only released code, and
+its tip is always the latest stable release. `release/X.Y.x` branches carry
+patch releases for a shipped version, and merge into `master` after each
+patch.
 Releases are tag-driven — pushing a semver tag triggers CI to build every
 platform and draft a GitHub release, which a human then reviews and
 publishes.

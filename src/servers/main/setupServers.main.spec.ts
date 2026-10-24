@@ -119,7 +119,7 @@ describe('setupServers', () => {
     select.mockImplementation((sel: any) =>
       sel({
         servers: [],
-        currentView: 'downloads',
+        currentView: 'add-new-server',
       })
     );
     // eslint-disable-next-line @typescript-eslint/no-var-requires

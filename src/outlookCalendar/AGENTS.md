@@ -2,49 +2,68 @@
 
 ## Logging
 
-**Always use the centralized logger from `logger.ts`** - never use `console.log('[OutlookCalendar]...')` directly.
+**Log through the helpers in `logger.ts`.** Do not call
+`console.log('[OutlookCalendar]...')` directly. The helpers add the prefix and
+obey the two logging settings.
 
 ```typescript
-import { outlookLog, outlookDebug, outlookError, outlookWarn, outlookEventDetail } from './logger';
+import {
+  outlookLog,
+  outlookInfo,
+  outlookDebug,
+  outlookWarn,
+  outlookError,
+  outlookEventDetail,
+} from './logger';
 
-// These respect the verbose logging toggle in Settings > Developer
-outlookLog('message', data); // Only logs when verbose enabled
-outlookWarn('message', data); // Only logs when verbose enabled
-outlookDebug('message', data); // Only logs when verbose enabled
+// These log only when "Verbose Outlook Calendar logging" is on
+outlookLog('message', data);
+outlookInfo('message', data);
+outlookDebug('message', data);
+outlookWarn('message', data);
 
-// This ALWAYS logs (errors should always be visible)
+// This ALWAYS logs the message. It logs the extra arguments only in verbose mode.
 outlookError('message', data);
 
-// This respects the detailed events logging toggle in Settings > Developer
-outlookEventDetail('full event data', eventObject); // Only logs when detailed events enabled
+// This logs only when "Detailed events logging" is on
+outlookEventDetail('full event data', eventObject);
 ```
 
 ### Why This Matters
 
-- Users can toggle verbose logging in Settings > Developer > Verbose Outlook Logging
-- Without verbose mode, only errors are logged (cleaner console)
-- The toggle persists across app restarts
+- Users turn on **Verbose Outlook Calendar logging** and **Detailed events
+  logging** in the settings window, Advanced section. The section shows them
+  only when Developer Mode is on.
+- When verbose logging is off, only errors reach the console.
+- Both settings persist across app restarts.
 
 ### Architecture
 
 ```text
-Redux Store (isVerboseOutlookLoggingEnabled)
+Redux Store (isVerboseOutlookLoggingEnabled, isDetailedEventsLoggingEnabled)
     ↓ watch()
-global.isVerboseOutlookLoggingEnabled
+global.isVerboseOutlookLoggingEnabled / global.isDetailedEventsLoggingEnabled
     ↓ checked by
-outlookLog() / outlookWarn() / outlookDebug()
+outlookLog() / outlookInfo() / outlookDebug() / outlookWarn() / outlookError()
+outlookEventDetail()
 ```
 
 ## Preload Script Limitation
 
-**`preload.ts` cannot use the verbose logging toggle** - it runs in the renderer process and doesn't share the `global.isVerboseOutlookLoggingEnabled` variable with the main process.
+**`preload.ts` cannot use the logging settings.** It runs in the renderer
+process, and `global.isVerboseOutlookLoggingEnabled` lives in the main process.
 
-Logs in `preload.ts` always appear. Keep preload logging minimal.
+Logs in `preload.ts` always appear. Keep preload logging to a minimum.
 
 ## Error Classification
 
-Use `createClassifiedError()` from `errorClassification.ts` for user-facing errors. It provides:
+Create each user-facing error with `createClassifiedError()` from
+`errorClassification.ts`. The result (`OutlookCalendarError` in `type.ts`)
+holds:
 
-- Error categorization (network, auth, exchange, unknown)
-- User-friendly messages with troubleshooting steps
-- Structured error context for debugging
+- A `source`: `exchange`, `rocket_chat`, `desktop_app`, `network`,
+  `authentication` or `configuration`.
+- A `severity`: `low`, `medium`, `high` or `critical`.
+- A `userMessage` and optional `suggestedActions` for troubleshooting.
+- A `technicalMessage` and a structured `context` with a timestamp, for
+  debugging.

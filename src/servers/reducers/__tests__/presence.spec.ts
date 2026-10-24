@@ -14,6 +14,11 @@ describe('servers reducer — WEBVIEW_USER_PRESENCE_CHANGED', () => {
         presenceStatusText: 'Working',
         presenceConnection: 'connected',
         presenceSupported: true,
+        presenceStatusExpiresAt: '2026-10-19T18:00:00.000Z',
+        presenceAvailableStatuses: ['online', 'away'],
+        presenceCustomStatuses: [
+          { id: 'lunch', name: 'Lunch', status: 'away' },
+        ],
       },
     } as any);
 
@@ -24,6 +29,11 @@ describe('servers reducer — WEBVIEW_USER_PRESENCE_CHANGED', () => {
         presenceStatusText: 'Working',
         presenceConnection: 'connected',
         presenceSupported: true,
+        presenceStatusExpiresAt: '2026-10-19T18:00:00.000Z',
+        presenceAvailableStatuses: ['online', 'away'],
+        presenceCustomStatuses: [
+          { id: 'lunch', name: 'Lunch', status: 'away' },
+        ],
       },
     ]);
   });

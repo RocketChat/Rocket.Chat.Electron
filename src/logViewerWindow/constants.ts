@@ -25,9 +25,6 @@ export const TRANSPARENCY_CHANNEL = 'log-viewer-window/transparency-changed';
 export const WINDOW_MIN_WIDTH = 760;
 export const WINDOW_MIN_HEIGHT = 480;
 
-/** Lines shown for a multi-line entry before it has to be expanded */
-export const COLLAPSED_MESSAGE_LINES = 1;
-
 /** Entries handed to the list per page; scrolling to the end adds another */
 export const PAGE_SIZE = 100;
 

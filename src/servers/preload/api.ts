@@ -14,13 +14,14 @@ import {
   clearOutlookCredentials,
   setUserToken,
 } from '../../outlookCalendar/preload';
+import { dispatch } from '../../store';
 import { onTelephonyCallRequested } from '../../telephony/preload';
+import { WEBVIEW_MEDIA_CAPTURE_CHANGED } from '../../ui/actions';
 import {
   reassertUserPresenceDetection,
   setUserPresenceDetection,
 } from '../../userPresence/preload';
-import type { Server } from '../common';
-import { setBadge } from './badge';
+import type { MediaCaptureState, Server } from '../common';
 import { writeTextToClipboard } from './clipboard';
 import {
   openDocumentViewer,
@@ -35,7 +36,17 @@ import {
 } from './internalVideoChatWindow';
 import { onNavigateToRoute } from './navigateToRoute';
 import { openInBrowser } from './openInBrowser';
-import { onPresenceChangeRequested, setUserPresence } from './presence';
+import type {
+  DesktopUserPresence,
+  DesktopUserStatusChangeRequest,
+} from './presence';
+import {
+  onPresenceChangeRequested,
+  onUserPresenceStateReported,
+  setUserPresence,
+  setUserPresenceState,
+  setUserStatusChangeHandler,
+} from './presence';
 import { reloadServer } from './reloadServer';
 import {
   setBackground,
@@ -44,13 +55,41 @@ import {
 } from './sidebar';
 import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
-import { setUrlResolver } from './urls';
+import { isUiPreviewActive } from './uiPreview';
+import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
+import {
+  getWebClientBridgeVersion,
+  setWebClientBridgeVersion,
+} from './webClientBridge';
+import {
+  extendBootTimer,
+  setBadgeFromWebClient,
+  setUnreadAlertEnabled,
+} from './webClientEvents';
 
 type ServerInfo = {
   version: string;
+};
+
+const isMediaCaptureState = (value: unknown): value is MediaCaptureState =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as MediaCaptureState).camera === 'boolean' &&
+  typeof (value as MediaCaptureState).microphone === 'boolean' &&
+  typeof (value as MediaCaptureState).screen === 'boolean';
+
+const reportMediaCapture = (state: MediaCaptureState): void => {
+  if (!isMediaCaptureState(state)) {
+    return;
+  }
+
+  dispatch({
+    type: WEBVIEW_MEDIA_CAPTURE_CHANGED,
+    payload: { url: getServerUrl(), source: 'workspace', state },
+  });
 };
 
 export let serverInfo: ServerInfo;
@@ -63,6 +102,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   closeCustomNotification: (id: unknown) => void;
   openInBrowser: (url: string) => void;
   getE2ePdfPreviewSizeLimit: () => number;
+  isUiPreviewActive: () => boolean;
   onTelephonyCallRequested: (
     callback: (payload: { phoneNumber: string; rawUri: string }) => void
   ) => void;
@@ -82,6 +122,15 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
       statusText?: string
     ) => void
   ) => void;
+  setUserPresenceState: (presence: DesktopUserPresence) => void;
+  onUserPresenceStateReported: (callback: () => void) => void;
+  setUserStatusChangeHandler: (
+    handler: (request: DesktopUserStatusChangeRequest) => Promise<void>
+  ) => void;
+  reportMediaCapture: (state: MediaCaptureState) => void;
+  setUnreadAlertEnabled: (enabled: boolean) => void;
+  setWebClientBridgeVersion: (version: number) => void;
+  getWebClientBridgeVersion: () => number;
 };
 
 declare global {
@@ -101,11 +150,15 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);
+    extendBootTimer();
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },
+  setWebClientBridgeVersion,
+  getWebClientBridgeVersion,
   setUrlResolver,
-  setBadge,
+  setBadge: setBadgeFromWebClient,
+  setUnreadAlertEnabled,
   setFavicon,
   setBackground,
   setTitle,
@@ -115,6 +168,10 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserRoles,
   setUserPresence,
   onPresenceChangeRequested,
+  setUserPresenceState,
+  onUserPresenceStateReported,
+  setUserStatusChangeHandler,
+  reportMediaCapture,
   setUserThemeAppearance,
   createNotification,
   destroyNotification,
@@ -134,6 +191,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   supportedDocumentViewerFormats,
   openInBrowser,
   reloadServer,
+  isUiPreviewActive,
   getE2ePdfPreviewSizeLimit,
   onTelephonyCallRequested,
   onNavigateToRoute,

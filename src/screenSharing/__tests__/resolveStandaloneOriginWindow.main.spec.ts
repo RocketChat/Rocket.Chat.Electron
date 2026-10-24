@@ -28,6 +28,7 @@ jest.mock('../ScreenSharingRequestTracker', () => ({
 }));
 jest.mock('../desktopCapturerCache', () => ({
   prewarmDesktopCapturerCache: jest.fn(),
+  prewarmDesktopCapturerCacheIfPermitted: jest.fn(),
 }));
 jest.mock('../popoutPickerRequest', () => ({
   requestViaPickerWindow: jest.fn(),

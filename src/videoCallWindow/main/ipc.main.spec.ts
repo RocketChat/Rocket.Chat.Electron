@@ -118,9 +118,11 @@ const select = jest.fn((..._a: any[]) => ({
   isAutoOpenEnabled: false,
 }));
 const dispatchLocal = jest.fn((..._a: any[]) => undefined);
+const dispatch = jest.fn((..._a: any[]) => undefined);
 jest.mock('../../store', () => ({
   select: (...a: any[]) => select(...a),
   dispatchLocal: (...a: any[]) => dispatchLocal(...a),
+  dispatch: (...a: any[]) => dispatch(...a),
 }));
 
 // --- remaining leaf imports of ipc.ts: keep them inert ---
@@ -137,7 +139,7 @@ jest.mock('../../screenSharing/desktopCapturerCache', () => ({
     cached: false,
     pending: false,
   })),
-  prewarmDesktopCapturerCache: jest.fn(),
+  prewarmDesktopCapturerCacheIfPermitted: jest.fn(),
 }));
 jest.mock('../../screenSharing/screenRecordingPermission', () => ({
   checkScreenRecordingPermission: jest.fn(() => Promise.resolve(true)),
@@ -838,6 +840,23 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       listener({ sender: { hostWebContents: null } });
 
       expect(win.close).not.toHaveBeenCalled();
+      expect(getRootWindow).not.toHaveBeenCalled();
+    });
+
+    // The page asks to close when the user leaves the call (DMV2-32).
+    it('brings the main window to the front after closing the call window', async () => {
+      const { listener, fromWebContents } = await getCloseHandler();
+      const win = { isDestroyed: jest.fn(() => false), close: jest.fn() };
+      fromWebContents.mockReturnValue(win);
+      fakeRootWindow.isMinimized.mockReturnValue(true);
+
+      listener({ sender: { hostWebContents: null } });
+      await flushPromises();
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.restore).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.show).toHaveBeenCalledTimes(1);
+      expect(fakeRootWindow.focus).toHaveBeenCalledTimes(1);
     });
 
     it('no-ops safely when no window resolves', async () => {
@@ -848,6 +867,104 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
         listener({ sender: { hostWebContents: null } })
       ).not.toThrow();
     });
+  });
+
+  // -------------------------------------------------------------------------
+  // media-capture-changed: 'video-call-window/media-capture-changed' (ipcMain.on)
+  // -------------------------------------------------------------------------
+  describe('media-capture-changed', () => {
+    const getMediaCaptureHandler = async () => {
+      await loadModule();
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/media-capture-changed'
+      );
+      if (!call)
+        throw new Error('media-capture-changed listener not registered');
+      return call[1] as (event: unknown, state: unknown) => void;
+    };
+
+    it('dispatches WEBVIEW_MEDIA_CAPTURE_CHANGED for the shared session server', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1));
+
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/media-capture-changed'
+      );
+      const listener = call[1] as (event: unknown, state: unknown) => void;
+
+      listener({}, { camera: true, microphone: false, screen: false });
+
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'webview/media-capture-changed',
+        payload: {
+          url: 'https://chat.example',
+          source: 'videoCall',
+          state: { camera: true, microphone: false, screen: false },
+        },
+      });
+    });
+
+    it('does nothing when there is no active shared-session call', async () => {
+      const listener = await getMediaCaptureHandler();
+
+      listener({}, { camera: true, microphone: false, screen: false });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for a malformed payload', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1));
+      const electron = (await import('electron')) as any;
+      const call = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/media-capture-changed'
+      );
+      const listener = call[1] as (event: unknown, state: unknown) => void;
+
+      listener({}, { camera: 'yes' });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // teardown: the 'closed' event clears the videoCall media capture source for
+  // a shared session, so the tab indicator drops when the call window closes.
+  // -------------------------------------------------------------------------
+  it("clears the 'videoCall' media capture source on window close (shared session)", async () => {
+    getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+    const { openWindow } = await loadModule();
+    await open(openWindow, makeCallerWc(1));
+
+    fire(createdWindows[0].listeners, 'closed');
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'webview/media-capture-changed',
+      payload: {
+        url: 'https://chat.example',
+        source: 'videoCall',
+        state: null,
+      },
+    });
+  });
+
+  it('does not dispatch a clear on close for a fallback (non-shared) session', async () => {
+    getServerUrlByWebContentsId.mockReturnValue(undefined);
+    const { openWindow } = await loadModule();
+    await open(openWindow, makeCallerWc(1));
+
+    fire(createdWindows[0].listeners, 'closed');
+
+    expect(dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'webview/media-capture-changed' })
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -1217,6 +1334,110 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
     it('does NOT install a webview permission handler on a shared session', async () => {
       const guest = await attachGuest(true);
       expect(guest.session.setPermissionRequestHandler).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // open — the same conference focuses the open window instead of recreating it
+  // -------------------------------------------------------------------------
+  describe('reopening the conference the window is already on', () => {
+    const startUrl = 'https://chat.example/conference/new?rid=room-1';
+    const conferenceUrl = 'https://chat.example/conference/call-1';
+
+    /** The webview inside the open call window, showing `shown`. */
+    const showInWebview = async (shown: string) => {
+      const { webContents } = (await import('electron')) as any;
+      const host = createdWindows[0].webContents;
+      webContents.getAllWebContents.mockReturnValue([
+        {
+          hostWebContents: host,
+          getURL: jest.fn(() => shown),
+          isDestroyed: jest.fn(() => false),
+        },
+      ]);
+    };
+
+    it('focuses the window opened for the same URL', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), conferenceUrl);
+
+      await open(openWindow, makeCallerWc(1), conferenceUrl);
+
+      expect(createdWindows).toHaveLength(1);
+      expect((createdWindows[0] as any).close).not.toHaveBeenCalled();
+      expect((createdWindows[0] as any).focus).toHaveBeenCalled();
+    });
+
+    // A call the user starts opens at the start page, which replaces its own
+    // address with the conference's once the conference exists — so the URL the
+    // window was opened for no longer names the call it is in.
+    it('focuses the window whose webview has moved in-page to the conference', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), startUrl);
+      await showInWebview(conferenceUrl);
+
+      await open(openWindow, makeCallerWc(1), conferenceUrl);
+
+      expect(createdWindows).toHaveLength(1);
+      expect((createdWindows[0] as any).close).not.toHaveBeenCalled();
+      expect((createdWindows[0] as any).focus).toHaveBeenCalled();
+    });
+
+    it('replaces the window for a different conference', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), startUrl);
+      await showInWebview(conferenceUrl);
+
+      await open(
+        openWindow,
+        makeCallerWc(1),
+        'https://chat.example/conference/call-2'
+      );
+
+      expect((createdWindows[0] as any).close).toHaveBeenCalled();
+      expect(createdWindows).toHaveLength(2);
+    });
+  });
+
+  describe('isSameConferenceUrl', () => {
+    it.each([
+      [
+        'a different fragment',
+        'https://meet.example/room#config.startWithAudioMuted=true',
+        'https://meet.example/room',
+        true,
+      ],
+      [
+        'a different query',
+        'https://chat.example/conference/new?rid=room-1',
+        'https://chat.example/conference/new?rid=room-2',
+        false,
+      ],
+      [
+        'a different path',
+        'https://chat.example/conference/call-1',
+        'https://chat.example/conference/call-2',
+        false,
+      ],
+      [
+        'a different origin',
+        'https://chat.example/conference/call-1',
+        'https://other.example/conference/call-1',
+        false,
+      ],
+      [
+        'an unparseable URL',
+        'not a url',
+        'https://chat.example/conference/call-1',
+        false,
+      ],
+    ])('compares URLs with %s', async (_case, a, b, expected) => {
+      const { mod } = await loadModule();
+
+      expect(mod.isSameConferenceUrl(a, b)).toBe(expected);
     });
   });
 });

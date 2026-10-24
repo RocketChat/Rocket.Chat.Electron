@@ -1,12 +1,16 @@
 export type NotificationCategory = 'DOWNLOADS' | 'SERVER';
 
+// The web `Notification` action shape the page passes in, not Electron's.
+export type NotificationActionOption = {
+  action?: string;
+  title: string;
+};
+
 export type ExtendedNotificationOptions = NotificationOptions & {
   canReply?: boolean;
   title: string;
   subtitle?: string;
-  actions?: {
-    title: string;
-  }[];
+  actions?: NotificationActionOption[];
   renotify?: boolean;
   requireInteraction?: boolean;
   notificationType?: 'voice' | 'text';

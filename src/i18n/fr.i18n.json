@@ -142,6 +142,15 @@
         "answerCall": "répondre aux appels",
         "recordMessage": "enregistrer des messages"
       }
+    },
+    "uiOverride": {
+      "title": "Charger un aperçu de l'interface",
+      "message": "Charger une autre interface web pour « {{- host}} » ?",
+      "detail": "L'interface sera chargée depuis {{- bundle}} et fonctionnera avec votre session sur ce serveur. Ne continuez que si vous faites confiance à ce build. Utilisez Voir > Restaurer l'interface du serveur ou redémarrez l'application pour revenir en arrière.",
+      "load": "Charger l'interface",
+      "cancel": "Annuler",
+      "developerModeRequired": "Activez Aide > Mode développeur pour charger des aperçus de l'interface.",
+      "failed": "L'aperçu de l'interface n'a pas pu être chargé."
     }
   },
   "documentViewer": {
@@ -247,8 +256,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
-        "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc ils s'ouvriront toujours dans le navigateur, quel que soit ce paramètre.",
-        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, pour des raisons de sécurité, elle ouvrira le chat vidéo en utilisant le navigateur par défaut."
+        "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc il s'ouvrira toujours dans le navigateur, quel que soit ce paramètre."
       },
       "minimizeOnClose": {
         "title": "Minimiser à la fermeture",
@@ -298,7 +306,38 @@
         "auto": "Suivre le système",
         "light": "Clair",
         "dark": "Sombre"
+      },
+      "uiPreview": {
+        "title": "Charger un build de l'interface web",
+        "description": "Exécute un build du client web Rocket.Chat à la place de l'interface propre à un espace de travail, en conservant votre session. Ajoutez « develop » ou un numéro de PR Rocket.Chat (tous deux récupérés depuis ghcr.io), ou l'URL d'un bundle servi, puis appliquez-le à un espace de travail. Actualiser une entrée recherche un build plus récent et recharge les espaces de travail qui l'utilisent.",
+        "placeholder": "develop, 42364 ou http://127.0.0.1:4173/",
+        "add": "Ajouter",
+        "adding": "Vérification de l'existence du build…",
+        "applyTo": "Appliquer à",
+        "apply": "Appliquer",
+        "refresh": "Rechercher un build plus récent",
+        "refreshing": "Recherche d'un build plus récent…",
+        "current": "C'est déjà le build le plus récent.",
+        "updated": "Mis à jour vers le build le plus récent.",
+        "remove": "Retirer de la liste",
+        "builtAt": "généré le {{- date}}",
+        "activeOn": "Actif sur {{- workspaces}}",
+        "restore": "Restaurer l'interface du serveur",
+        "active": "Actif sur cet espace de travail : {{- label}}",
+        "loading": "Téléchargement et application…",
+        "failed": "Chargement impossible : {{- message}}",
+        "cancelled": "Annulé.",
+        "inactive": "Utilisation de l'interface du serveur.",
+        "pullRequestState": {
+          "open": "Ouverte",
+          "draft": "Brouillon",
+          "merged": "Fusionnée",
+          "closed": "Fermée"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Aperçu de l'interface web"
     }
   },
   "error": {
@@ -329,6 +368,7 @@
     "settings": "Paramètres",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
+    "findInPage": "&Rechercher…",
     "forward": "&Suivant",
     "helpMenu": "&Aide",
     "hide": "Masquer {{- appName}}",
@@ -359,7 +399,16 @@
     "windowMenu": "&Fenêtre",
     "zoomIn": "Zoomer",
     "zoomOut": "Zoom arrière",
-    "simulateDisconnected": "Simuler une déconnexion"
+    "simulateDisconnected": "Simuler une déconnexion",
+    "restoreServerUi": "Restaurer l'interface du serveur"
+  },
+  "findInPage": {
+    "placeholder": "Rechercher dans la page",
+    "matchCount": "{{current}} sur {{total}}",
+    "noMatches": "Aucun résultat",
+    "previous": "Résultat précédent",
+    "next": "Résultat suivant",
+    "close": "Fermer"
   },
   "loadingError": {
     "title": "Echec du chargement du serveur",
@@ -395,7 +444,8 @@
       "remove": "Retirer le serveur",
       "openDevTools": "Ouvrir DevTools",
       "clearCache": "Vider le cache",
-      "clearStorageData": "Effacer les données de stockage"
+      "clearStorageData": "Effacer les données de stockage",
+      "updateUiPreview": "Mettre à jour l'aperçu de l'interface"
     }
   },
   "tabBar": {
@@ -434,7 +484,8 @@
       "canceled": "Annulé",
       "failed": "Échoué",
       "dismiss": "Fermer"
-    }
+    },
+    "uiPreview": "Aperçu de l'interface : {{- label}}"
   },
   "touchBar": {
     "formatting": "Mise en page",
@@ -478,6 +529,7 @@
     "permissionDenied": "Permission d'Enregistrement d'Écran Refusée",
     "permissionRequired": "La permission d'enregistrement d'écran est requise pour partager votre écran.",
     "permissionInstructions": "Veuillez l'activer dans les préférences système et réessayer.",
+    "permissionAlreadyOnHint": "Déjà activé ? Sélectionnez Rocket.Chat dans cette liste, supprimez-le avec le bouton moins (−), puis quittez et rouvrez Rocket.Chat. Partagez ensuite à nouveau votre écran et autorisez l’accès lorsque macOS le demande.",
     "title": "Partager votre écran",
     "entireScreen": "Votre écran entier",
     "applicationWindow": "Fenêtre d'application",

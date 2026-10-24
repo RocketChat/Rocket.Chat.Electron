@@ -14,7 +14,6 @@ const selectPersistableValuesA = createStructuredSelector({
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
   }: RootState) => isShowWindowOnUnreadChangedEnabled,
-  isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
   navigationLayout: ({ navigationLayout }: RootState) => navigationLayout,
   isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
   rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
@@ -55,8 +54,6 @@ const selectPersistableValuesB = createStructuredSelector({
   hasHideOnTrayNotificationShown: ({
     hasHideOnTrayNotificationShown,
   }: RootState) => hasHideOnTrayNotificationShown,
-  lastSelectedServerUrl: ({ lastSelectedServerUrl }: RootState) =>
-    lastSelectedServerUrl,
   allowedNTLMCredentialsDomains: ({
     allowedNTLMCredentialsDomains,
   }: RootState) => allowedNTLMCredentialsDomains,
@@ -115,6 +112,7 @@ const selectPersistableValuesB = createStructuredSelector({
   }: RootState) => isTrayIconUnreadCounterEnabled,
   isMenuBarUnreadCountEnabled: ({ isMenuBarUnreadCountEnabled }: RootState) =>
     isMenuBarUnreadCountEnabled,
+  uiPreviewHistory: ({ uiPreviewHistory }: RootState) => uiPreviewHistory,
 });
 
 export const selectPersistableValues = createSelector(

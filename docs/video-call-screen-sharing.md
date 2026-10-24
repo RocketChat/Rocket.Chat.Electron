@@ -433,7 +433,7 @@ sourceValidationCacheTimestamp = now;
 - User always sees accurate window previews
 - Changes detected within 3 seconds
 
-### Seamless Repeat Use
+### Repeat Use
 - Second screen share opens instantly
 - Cache persists between calls
 - No degradation over session length

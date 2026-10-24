@@ -154,6 +154,15 @@
     },
     "supportedVersion": {
       "title": "Versión de espacio de trabajo no admitida"
+    },
+    "uiOverride": {
+      "title": "Cargar vista previa de la UI",
+      "message": "¿Cargar una interfaz web diferente para \"{{- host}}\"?",
+      "detail": "La interfaz se cargará desde {{- bundle}} y se ejecutará con tu sesión en este servidor. Continúa solo si confías en esta compilación. Usa Ver > Restaurar la UI del servidor o reinicia la aplicación para volver.",
+      "load": "Cargar UI",
+      "cancel": "Cancelar",
+      "developerModeRequired": "Activa Ayuda > Modo desarrollador para cargar vistas previas de la UI.",
+      "failed": "No se pudo cargar la vista previa de la UI."
     }
   },
   "documentViewer": {
@@ -259,8 +268,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Abrir videollamada en la ventana de la aplicación",
-        "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong> y <strong>Jitsi</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirán en el navegador independientemente de esta configuración.",
-        "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store; por razones de seguridad, las videollamadas se abrirán en el navegador de forma predeterminada."
+        "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirá en el navegador independientemente de esta configuración."
       },
       "minimizeOnClose": {
         "title": "Minimizar al cerrar",
@@ -323,7 +331,38 @@
         "auto": "Seguir sistema",
         "light": "Claro",
         "dark": "Oscuro"
+      },
+      "uiPreview": {
+        "title": "Cargar una compilación de la UI web",
+        "description": "Ejecuta una compilación del cliente web de Rocket.Chat en lugar de la UI propia de un espacio de trabajo, manteniendo tu sesión. Añade \"develop\" o un número de PR de Rocket.Chat (ambos descargados de ghcr.io), o la URL de un bundle servido, y luego aplícalo a un espacio de trabajo. Actualizar una entrada busca una compilación más reciente y recarga los espacios de trabajo que la usan.",
+        "placeholder": "develop, 42364 o http://127.0.0.1:4173/",
+        "add": "Añadir",
+        "adding": "Comprobando que la compilación existe…",
+        "applyTo": "Aplicar a",
+        "apply": "Aplicar",
+        "refresh": "Buscar una compilación más reciente",
+        "refreshing": "Buscando una compilación más reciente…",
+        "current": "Ya es la compilación más reciente.",
+        "updated": "Actualizado a la compilación más reciente.",
+        "remove": "Quitar de la lista",
+        "builtAt": "compilada el {{- date}}",
+        "activeOn": "Activa en {{- workspaces}}",
+        "restore": "Restaurar la UI del servidor",
+        "active": "Activa en este espacio de trabajo: {{- label}}",
+        "loading": "Descargando y aplicando…",
+        "failed": "No se pudo cargar: {{- message}}",
+        "cancelled": "Cancelado.",
+        "inactive": "Usando la UI del servidor.",
+        "pullRequestState": {
+          "open": "Abierto",
+          "draft": "Borrador",
+          "merged": "Fusionado",
+          "closed": "Cerrado"
+        }
       }
+    },
+    "sections": {
+      "uiPreview": "Vista previa de la UI web"
     }
   },
   "error": {
@@ -354,6 +393,7 @@
     "settings": "Configuración",
     "editMenu": "&Editar",
     "fileMenu": "&Archivo",
+    "findInPage": "&Buscar…",
     "forward": "&Avanzar",
     "helpMenu": "&Ayuda",
     "hide": "Ocultar {{- appName}}",
@@ -384,7 +424,16 @@
     "windowMenu": "&Ventana",
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
-    "simulateDisconnected": "Simular desconexión"
+    "simulateDisconnected": "Simular desconexión",
+    "restoreServerUi": "Restaurar la UI del servidor"
+  },
+  "findInPage": {
+    "placeholder": "Buscar en la página",
+    "matchCount": "{{current}} de {{total}}",
+    "noMatches": "Sin coincidencias",
+    "previous": "Coincidencia anterior",
+    "next": "Coincidencia siguiente",
+    "close": "Cerrar"
   },
   "loadingError": {
     "title": "Fallo al cargar el servidor",
@@ -426,7 +475,8 @@
       "openDevTools": "Abrir Herramientas de desarrollo",
       "clearCache": "Borrar caché",
       "clearStorageData": "Borrar datos de almacenamiento",
-      "copyCurrentUrl": "Copiar URL actual"
+      "copyCurrentUrl": "Copiar URL actual",
+      "updateUiPreview": "Actualizar vista previa de la UI"
     }
   },
   "tabBar": {
@@ -465,7 +515,8 @@
       "canceled": "Cancelada",
       "failed": "Fallida",
       "dismiss": "Cerrar"
-    }
+    },
+    "uiPreview": "Vista previa de la UI: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formato",
@@ -509,6 +560,7 @@
     "permissionDenied": "Permiso de Grabación de Pantalla Denegado",
     "permissionRequired": "Se requiere permiso de grabación de pantalla para compartir tu pantalla.",
     "permissionInstructions": "Por favor, actívalo en las preferencias del sistema e inténtalo de nuevo.",
+    "permissionAlreadyOnHint": "¿Ya está activado? Selecciona Rocket.Chat en esa lista, elimínalo con el botón menos (−), y cierra y vuelve a abrir Rocket.Chat. Después comparte tu pantalla de nuevo y permite el acceso cuando macOS lo pida.",
     "title": "Compartir tu pantalla",
     "entireScreen": "Tu pantalla completa",
     "applicationWindow": "Ventana de aplicación",

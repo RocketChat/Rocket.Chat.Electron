@@ -163,6 +163,15 @@
     },
     "supportedVersion": {
       "title": "A munkaterület verziója nem támogatott"
+    },
+    "uiOverride": {
+      "title": "Felhasználói felület előnézetének betöltése",
+      "message": "Másik webes felületet tölt be ehhez: „{{- host}}”?",
+      "detail": "A felület innen töltődik be: {{- bundle}}, és a munkameneteddel fut ezen a szerveren. Csak akkor folytasd, ha megbízol ebben a buildben. A visszatéréshez használd a(z) Nézet > Szerver felületének visszaállítása menüpontot, vagy indítsd újra az alkalmazást.",
+      "load": "Felület betöltése",
+      "cancel": "Mégse",
+      "developerModeRequired": "Kapcsold be a(z) Súgó > Fejlesztői mód menüpontot a felületelőnézetek betöltéséhez.",
+      "failed": "A felület előnézetét nem sikerült betölteni."
     }
   },
   "documentViewer": {
@@ -238,7 +247,8 @@
     "certificates": "Tanúsítványok",
     "developer": "Fejlesztő",
     "sections": {
-      "logging": "Naplózás"
+      "logging": "Naplózás",
+      "uiPreview": "Webes felület előnézete"
     },
     "options": {
       "report": {
@@ -272,8 +282,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása az alkalmazásablakban",
-        "description": "Ha engedélyezve van, akkor a videócsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyő rögzítése nem támogatott az Electron alkalmazásokban, így azok ettől a beállítástól függetlenül mindig a böngészőben nyílnak meg.",
-        "masDescription": "Ez a beállítás le van tiltva a Mac App Store-ból történő telepítéskor. Biztonsági okokból a videócsevegés alapértelmezetten mindig a böngészőben nyílik meg."
+        "description": "Ha engedélyezve van, akkor a videócsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> esetében a képernyő rögzítése nem támogatott az Electron alkalmazásokban, így az ettől a beállítástól függetlenül mindig a böngészőben nyílik meg."
       },
       "minimizeOnClose": {
         "title": "Kis méret bezáráskor",
@@ -340,6 +349,34 @@
       "verboseOutlookLogging": {
         "title": "Részletes Outlook naptár naplózás",
         "description": "Részletes Exchange/NTLM hibakeresési naplók engedélyezése az Outlook naptár integrációs problémáinak elhárításához."
+      },
+      "uiPreview": {
+        "title": "Webes felület buildjének betöltése",
+        "description": "A Rocket.Chat webes kliens egy buildjét futtatja a munkaterület saját felülete helyett, a munkamenet megtartásával. Add hozzá a „develop” szót vagy egy Rocket.Chat PR-számot (mindkettő a ghcr.io-ról töltődik le), illetve egy kiszolgált csomag URL-jét, majd alkalmazd egy munkaterületre. Egy elem frissítése újabb buildet keres, és újratölti az azt használó munkaterületeket.",
+        "placeholder": "develop, 42364 vagy http://127.0.0.1:4173/",
+        "add": "Hozzáadás",
+        "adding": "A build meglétének ellenőrzése…",
+        "applyTo": "Alkalmazás erre",
+        "apply": "Alkalmazás",
+        "refresh": "Újabb build keresése",
+        "refreshing": "Újabb build keresése…",
+        "current": "Ez már a legújabb build.",
+        "updated": "Frissítve a legújabb buildre.",
+        "remove": "Eltávolítás a listából",
+        "builtAt": "készült: {{- date}}",
+        "activeOn": "Aktív itt: {{- workspaces}}",
+        "restore": "Szerver felületének visszaállítása",
+        "active": "Aktív ezen a munkaterületen: {{- label}}",
+        "loading": "Letöltés és alkalmazás…",
+        "failed": "Nem sikerült betölteni: {{- message}}",
+        "cancelled": "Megszakítva.",
+        "inactive": "A szerver felülete van használatban.",
+        "pullRequestState": {
+          "open": "Nyitott",
+          "draft": "Piszkozat",
+          "merged": "Egyesítve",
+          "closed": "Lezárva"
+        }
       }
     }
   },
@@ -371,6 +408,7 @@
     "settings": "Beállítások",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
+    "findInPage": "&Keresés…",
     "forward": "&Előre",
     "helpMenu": "&Súgó",
     "hide": "A {{- appName}} elrejtése",
@@ -407,7 +445,16 @@
     "windowMenu": "&Ablak",
     "zoomIn": "Nagyítás",
     "zoomOut": "Kicsinyítés",
-    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása"
+    "simulateDisconnected": "Kapcsolat megszakadásának szimulálása",
+    "restoreServerUi": "Szerver felületének visszaállítása"
+  },
+  "findInPage": {
+    "placeholder": "Keresés az oldalon",
+    "matchCount": "{{current}} / {{total}}",
+    "noMatches": "Nincs találat",
+    "previous": "Előző találat",
+    "next": "Következő találat",
+    "close": "Bezárás"
   },
   "loadingError": {
     "title": "Kiszolgáló betöltése sikertelen",
@@ -451,16 +498,25 @@
       "clearCache": "Gyorsítótár törlése",
       "clearStorageData": "Tárolóadatok törlése",
       "copyCurrentUrl": "Jelenlegi URL másolása",
+      "updateUiPreview": "Felhasználói felület előnézetének frissítése",
       "reloadClearingCache": "Kényszerített újratöltés",
       "serverInfo": "Kiszolgálóinformációk",
-      "supportedVersionsInfo": "Támogatott verziók információi"
+      "supportedVersionsInfo": "Támogatott verziók információi",
+      "muteWorkspace": "Munkaterület némítása"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} olvasatlan üzenet",
       "unreadMessages": "{{- count}} olvasatlan üzenet",
       "userNotLoggedIn": "Nincs bejelentkezve",
       "addWorkspace": "Munkaterület hozzáadása ({{shortcut}}+N)",
-      "settingsMenu": "Az alkalmazás személyre szabása és vezérlése"
+      "settingsMenu": "Az alkalmazás személyre szabása és vezérlése",
+      "audioPlaying": "Hang lejátszása",
+      "audioMuted": "Némítva",
+      "muteWorkspace": "Munkaterület némítása",
+      "unmuteWorkspace": "Munkaterület némításának feloldása",
+      "captureScreen": "Képernyő megosztása",
+      "captureCamera": "Kamera bekapcsolva",
+      "captureMicrophone": "Mikrofon bekapcsolva"
     }
   },
   "tabBar": {
@@ -499,7 +555,8 @@
       "canceled": "Megszakítva",
       "failed": "Sikertelen",
       "dismiss": "Bezárás"
-    }
+    },
+    "uiPreview": "Felület előnézete: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formázás",
@@ -543,6 +600,7 @@
     "permissionDenied": "A képernyő-rögzítési engedély megtagadva",
     "permissionRequired": "Képernyő-rögzítési engedély szükséges a képernyő megosztásához.",
     "permissionInstructions": "Engedélyezze a rendszerbeállításokban, és próbálja meg újra.",
+    "permissionAlreadyOnHint": "Már be van kapcsolva? Jelölje ki a Rocket.Chat elemet a listában, távolítsa el a mínusz (−) gombbal, majd lépjen ki a Rocket.Chatből és nyissa meg újra. Ezután ossza meg újra a képernyőjét, és engedélyezze a hozzáférést, amikor a macOS rákérdez.",
     "title": "Képernyő megosztása",
     "entireScreen": "Teljes képernyő",
     "applicationWindow": "Alkalmazásablak",

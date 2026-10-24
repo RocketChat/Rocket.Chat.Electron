@@ -1,1 +1,0 @@
-export { SettingsView } from './SettingsView';

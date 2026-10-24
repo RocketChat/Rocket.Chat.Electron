@@ -5,7 +5,6 @@ import * as uiActions from '../../actions';
 import { e2ePdfPreviewSizeLimit } from '../e2ePdfPreviewSizeLimit';
 import { hasHideOnTrayNotificationShown } from '../hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../isAddNewServersEnabled';
-import { isBugsnagEnabled } from '../isBugsnagEnabled';
 import { isDebugLoggingEnabled } from '../isDebugLoggingEnabled';
 import { isDetailedEventsLoggingEnabled } from '../isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../isDeveloperModeEnabled';
@@ -40,35 +39,6 @@ describe('isAddNewServersEnabled', () => {
 
   it('reads isAddNewServersEnabled from APP_SETTINGS_LOADED', () => {
     expect(isAddNewServersEnabled(true, actionPayload)).toBe(false);
-  });
-});
-
-describe('isBugsnagEnabled', () => {
-  it('prefers APP_SETTINGS_LOADED', () => {
-    expect(
-      isBugsnagEnabled(false, {
-        type: APP_SETTINGS_LOADED,
-        payload: { isReportEnabled: true },
-      } as any)
-    ).toBe(true);
-  });
-
-  it('reads isReportEnabled from UPDATES_READY', () => {
-    expect(
-      isBugsnagEnabled(false, {
-        type: UPDATES_READY,
-        payload: { isReportEnabled: true },
-      } as any)
-    ).toBe(true);
-  });
-
-  it('applies SETTINGS_SET_REPORT_OPT_IN_CHANGED', () => {
-    expect(
-      isBugsnagEnabled(true, {
-        type: uiActions.SETTINGS_SET_REPORT_OPT_IN_CHANGED,
-        payload: false,
-      } as any)
-    ).toBe(false);
   });
 });
 
@@ -613,9 +583,6 @@ describe('isMinimizeOnCloseEnabled', () => {
 
 describe('reducers keep state on unknown actions', () => {
   it('keeps feature flags unchanged', () => {
-    expect(isBugsnagEnabled(true, { type: 'UNKNOWN_BUGSNAG' } as any)).toBe(
-      true
-    );
     expect(
       isDebugLoggingEnabled(true, { type: 'UNKNOWN_DEBUG_LOGGING' } as any)
     ).toBe(true);
@@ -683,9 +650,6 @@ describe('reducers keep state on unknown actions', () => {
   });
 
   it('keeps default state when initial state is undefined', () => {
-    expect(
-      isBugsnagEnabled(undefined, { type: 'UNKNOWN_BUGSNAG' } as any)
-    ).toBe(false);
     expect(
       isDebugLoggingEnabled(undefined, { type: 'UNKNOWN_DEBUG_LOGGING' } as any)
     ).toBe(false);
@@ -757,9 +721,6 @@ describe('reducers keep state on unknown actions', () => {
   });
 
   it('falls back to defaults when settings payload values are missing', () => {
-    expect(
-      isBugsnagEnabled(false, { type: APP_SETTINGS_LOADED, payload: {} } as any)
-    ).toBe(false);
     expect(
       isDebugLoggingEnabled(false, {
         type: APP_SETTINGS_LOADED,

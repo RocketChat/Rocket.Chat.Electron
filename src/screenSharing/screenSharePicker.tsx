@@ -263,6 +263,12 @@ export function ScreenSharePicker({
                 >
                   {t('screenSharing.openSystemPreferences')}
                 </Box>
+                {process.platform === 'darwin' && (
+                  <>
+                    <br />
+                    {t('screenSharing.permissionAlreadyOnHint')}
+                  </>
+                )}
               </Callout>
             ) : (
               <Scrollable vertical>

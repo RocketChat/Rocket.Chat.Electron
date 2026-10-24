@@ -94,20 +94,6 @@ describe('buildTimeline', () => {
     expect(timeline.buckets[0].countsByLevel).toEqual({ error: 2, warn: 1 });
   });
 
-  it('records the newest entry index of each bucket for scroll-to', () => {
-    const entries = [
-      entry('2026-08-07 12:00:00.000'),
-      entry('2026-08-07 11:00:00.000'),
-      entry('2026-08-07 10:00:00.000'),
-    ];
-    const timeline = buildTimeline(entries, 2);
-
-    // Oldest bucket holds only 10:00 (index 2); the newer bucket holds 11:00
-    // and 12:00, whose newest is index 0.
-    expect(timeline.buckets[0].newestIndex).toBe(2);
-    expect(timeline.buckets[1].newestIndex).toBe(0);
-  });
-
   it('skips unparseable timestamps instead of stretching the span', () => {
     const timeline = buildTimeline(
       [

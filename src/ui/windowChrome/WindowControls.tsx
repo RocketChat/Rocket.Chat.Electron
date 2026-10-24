@@ -23,7 +23,14 @@ import { WINDOW_MAXIMIZED_CHANNEL } from './channels';
  * bound to that one window, while these ask the main process to act on whichever
  * window sent the request.
  */
-export const WindowControls = () => {
+type WindowControlsProps = {
+  /** Fixed-size windows cannot maximise, so they show no button for it. */
+  isMaximizable?: boolean;
+};
+
+export const WindowControls = ({
+  isMaximizable = true,
+}: WindowControlsProps) => {
   const { t } = useTranslation();
   const [isMaximized, setIsMaximized] = useState(false);
 
@@ -71,14 +78,16 @@ export const WindowControls = () => {
       >
         <MinimizeGlyph />
       </WindowControlButton>
-      <WindowControlButton
-        type='button'
-        aria-label={maximizeLabel}
-        title={maximizeLabel}
-        onClick={handleMaximize}
-      >
-        {isMaximized ? <RestoreGlyph /> : <MaximizeGlyph />}
-      </WindowControlButton>
+      {isMaximizable && (
+        <WindowControlButton
+          type='button'
+          aria-label={maximizeLabel}
+          title={maximizeLabel}
+          onClick={handleMaximize}
+        >
+          {isMaximized ? <RestoreGlyph /> : <MaximizeGlyph />}
+        </WindowControlButton>
+      )}
       <WindowControlButton
         type='button'
         isCloseButton

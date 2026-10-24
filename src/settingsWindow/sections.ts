@@ -71,6 +71,7 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.themeAppearance',
       'settings.options.navigation',
       'settings.options.transparentWindow',
+      'settings.options.uiPreview',
     ],
     Component: AppearanceSection,
   },

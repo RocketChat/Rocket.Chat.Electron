@@ -7,8 +7,10 @@ import {
   getDesktopCapturerCacheStatus,
   handleDesktopCapturerGetSources,
   prewarmDesktopCapturerCache,
+  prewarmDesktopCapturerCacheIfPermitted,
   refreshDesktopCapturerCache,
 } from '../desktopCapturerCache';
+import { checkScreenRecordingPermission } from '../screenRecordingPermission';
 
 jest.mock('electron', () => ({
   desktopCapturer: {
@@ -20,10 +22,18 @@ jest.mock('../../ipc/main', () => ({
   handle: jest.fn(),
 }));
 
+jest.mock('../screenRecordingPermission', () => ({
+  checkScreenRecordingPermission: jest.fn(),
+}));
+
 const getSourcesMock = desktopCapturer.getSources as jest.MockedFunction<
   typeof desktopCapturer.getSources
 >;
 const handleMock = handle as jest.MockedFunction<typeof handle>;
+const checkPermissionMock =
+  checkScreenRecordingPermission as jest.MockedFunction<
+    typeof checkScreenRecordingPermission
+  >;
 
 type SourceStub = {
   id: string;
@@ -341,6 +351,28 @@ describe('screenSharing/desktopCapturerCache', () => {
     it('refreshes screens first when both buckets are empty', async () => {
       getSourcesMock.mockResolvedValue([]);
       prewarmDesktopCapturerCache();
+      await flushMicrotasks();
+
+      expect(getSourcesMock).toHaveBeenCalledWith({ types: ['screen'] });
+    });
+  });
+
+  describe('prewarmDesktopCapturerCacheIfPermitted', () => {
+    it('does not enumerate sources when screen recording is not granted', async () => {
+      checkPermissionMock.mockResolvedValue(false);
+      getSourcesMock.mockResolvedValue([]);
+
+      await prewarmDesktopCapturerCacheIfPermitted();
+      await flushMicrotasks();
+
+      expect(getSourcesMock).not.toHaveBeenCalled();
+    });
+
+    it('enumerates sources when screen recording is granted', async () => {
+      checkPermissionMock.mockResolvedValue(true);
+      getSourcesMock.mockResolvedValue([]);
+
+      await prewarmDesktopCapturerCacheIfPermitted();
       await flushMicrotasks();
 
       expect(getSourcesMock).toHaveBeenCalledWith({ types: ['screen'] });

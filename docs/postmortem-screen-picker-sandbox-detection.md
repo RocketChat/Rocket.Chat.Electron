@@ -54,7 +54,7 @@ Rocket.Chat is indexed. The graph answered "who calls getDisplayMedia" instantly
 Whether `fs` / `child_process` work in a renderer-reachable module depends on that window's `nodeIntegration` / `contextIsolation`. The video-call window runs with `nodeIntegration: true`. Confirm the actual `BrowserWindow` config before claiming a Node-in-renderer crash.
 
 ### 5. Sandbox-safe environment detection: default to the safe branch, positively confirm the optimization
-Flatpak/Snap strip `XDG_SESSION_TYPE` / `XDG_CURRENT_DESKTOP`. Any Linux detection keyed on those vars silently misfires inside a sandbox. The robust shape: default to the branch that is always correct (here, portal — the picker appears only on user demand), and switch to the optimized branch (internal cache-warming) only when the enabling condition is positively proven (pure X11, or explicit opt-in). Reuse an existing robust signal when one exists — `app.ts` already validated the Wayland socket on disk for its ozone decision.
+Flatpak/Snap strip `XDG_SESSION_TYPE` / `XDG_CURRENT_DESKTOP`. Any Linux detection keyed on those vars silently misfires inside a sandbox. The safe shape: default to the branch that is always correct (here, portal — the picker appears only on user demand), and switch to the optimized branch (internal cache-warming) only when the enabling condition is positively proven (pure X11, or explicit opt-in). Reuse an existing validated signal when one exists — `app.ts` already validated the Wayland socket on disk for its ozone decision.
 
 ## What this does NOT fix
 

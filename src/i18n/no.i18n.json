@@ -170,6 +170,15 @@
       "detail": "Denne handlingen kan ikke angres. Alle gjeldende loggoppføringer vil bli slettet permanent.",
       "yes": "Klar",
       "cancel": "Kansellere"
+    },
+    "uiOverride": {
+      "title": "Last inn forhåndsvisning av grensesnitt",
+      "message": "Laste inn et annet nettgrensesnitt for «{{- host}}»?",
+      "detail": "Grensesnittet lastes inn fra {{- bundle}} og kjører med økten din på denne serveren. Fortsett bare hvis du stoler på denne builden. Bruk Visning > Gjenopprett serverens grensesnitt eller start appen på nytt for å gå tilbake.",
+      "load": "Last inn grensesnitt",
+      "cancel": "Avbryt",
+      "developerModeRequired": "Slå på Hjelp > Utviklermodus for å laste inn forhåndsvisninger av grensesnitt.",
+      "failed": "Forhåndsvisningen av grensesnittet kunne ikke lastes inn."
     }
   },
   "documentViewer": {
@@ -245,7 +254,8 @@
     "certificates": "Sertifikater",
     "developer": "Utvikler",
     "sections": {
-      "logging": "Logging"
+      "logging": "Logging",
+      "uiPreview": "Forhåndsvisning av nettgrensesnitt"
     },
     "options": {
       "report": {
@@ -279,8 +289,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Åpne videochat ved hjelp av applikasjonsvinduet",
-        "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> og <strong>Jitsi</strong> skjermopptak støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke anropsadferd, som åpnes i nettleseren.",
-        "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, av sikkerhetsgrunner vil det åpne Video Chat ved å bruke nettleseren som standard."
+        "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> skjermopptak støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke anropsadferd, som åpnes i nettleseren."
       },
       "minimizeOnClose": {
         "title": "Minimer på nært hold",
@@ -354,6 +363,34 @@
       },
       "detailedEventsLogging": {
         "title": "Detaljert hendelseslogging"
+      },
+      "uiPreview": {
+        "title": "Last inn en build av nettgrensesnittet",
+        "description": "Kjører en build av Rocket.Chat-nettklienten i stedet for arbeidsområdets eget grensesnitt, og beholder økten din. Legg til «develop» eller et PR-nummer fra Rocket.Chat (begge hentes fra ghcr.io), eller URL-en til en servert pakke, og ta den deretter i bruk i et arbeidsområde. Å oppdatere en oppføring ser etter en nyere build og laster inn arbeidsområdene som bruker den, på nytt.",
+        "placeholder": "develop, 42364 eller http://127.0.0.1:4173/",
+        "add": "Legg til",
+        "adding": "Sjekker at builden finnes…",
+        "applyTo": "Ta i bruk i",
+        "apply": "Ta i bruk",
+        "refresh": "Se etter en nyere build",
+        "refreshing": "Ser etter en nyere build…",
+        "current": "Allerede den nyeste builden.",
+        "updated": "Oppdatert til den nyeste builden.",
+        "remove": "Fjern fra listen",
+        "builtAt": "bygget {{- date}}",
+        "activeOn": "Aktiv i {{- workspaces}}",
+        "restore": "Gjenopprett serverens grensesnitt",
+        "active": "Aktiv i dette arbeidsområdet: {{- label}}",
+        "loading": "Laster ned og tar i bruk…",
+        "failed": "Kunne ikke laste inn: {{- message}}",
+        "cancelled": "Avbrutt.",
+        "inactive": "Bruker serverens grensesnitt.",
+        "pullRequestState": {
+          "open": "Åpen",
+          "draft": "Utkast",
+          "merged": "Flettet",
+          "closed": "Lukket"
+        }
       }
     }
   },
@@ -385,6 +422,7 @@
     "settings": "Innstillinger",
     "editMenu": "Redigere",
     "fileMenu": "Fil",
+    "findInPage": "&Finn…",
     "forward": "Framover",
     "helpMenu": "Hjelp",
     "hide": "Skjul {{- appName}}",
@@ -420,7 +458,16 @@
     "windowMenu": "Vindu",
     "zoomIn": "Zoom inn",
     "zoomOut": "Zoom ut",
-    "simulateDisconnected": "Simuler frakobling"
+    "simulateDisconnected": "Simuler frakobling",
+    "restoreServerUi": "Gjenopprett serverens grensesnitt"
+  },
+  "findInPage": {
+    "placeholder": "Finn på siden",
+    "matchCount": "{{current}} av {{total}}",
+    "noMatches": "Ingen treff",
+    "previous": "Forrige treff",
+    "next": "Neste treff",
+    "close": "Lukk"
   },
   "loadingError": {
     "title": "Serveren kunne ikke lastes inn",
@@ -464,16 +511,25 @@
       "clearCache": "Tøm buffer",
       "clearStorageData": "Fjern lagringsdata",
       "copyCurrentUrl": "Kopier gjeldende URL",
+      "updateUiPreview": "Oppdater forhåndsvisning av grensesnitt",
       "reloadClearingCache": "Tving omlasting",
       "serverInfo": "Serverinfo",
-      "supportedVersionsInfo": "Informasjon om støttede versjoner"
+      "supportedVersionsInfo": "Informasjon om støttede versjoner",
+      "muteWorkspace": "Demp server"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} ulest melding",
       "unreadMessages": "{{- count}} uleste meldinger",
       "userNotLoggedIn": "Ikke innlogget",
       "addWorkspace": "Legg til server ({{shortcut}}+N)",
-      "settingsMenu": "Tilpass og kontroller appen"
+      "settingsMenu": "Tilpass og kontroller appen",
+      "audioPlaying": "Spiller av lyd",
+      "audioMuted": "Dempet",
+      "muteWorkspace": "Demp server",
+      "unmuteWorkspace": "Opphev demping av server",
+      "captureScreen": "Deler skjermen",
+      "captureCamera": "Kamera på",
+      "captureMicrophone": "Mikrofon på"
     }
   },
   "tabBar": {
@@ -512,7 +568,8 @@
       "canceled": "Kansellert",
       "failed": "Mislyktes",
       "dismiss": "Lukk"
-    }
+    },
+    "uiPreview": "Forhåndsvisning av grensesnitt: {{- label}}"
   },
   "touchBar": {
     "formatting": "Formatering",
@@ -556,6 +613,7 @@
     "permissionDenied": "Tillatelse til skjermopptak nektet",
     "permissionRequired": "Tillatelse til skjermopptak kreves for å dele skjermen din.",
     "permissionInstructions": "Vennligst aktiver det i systeminnstillingene dine og prøv på nytt.",
+    "permissionAlreadyOnHint": "Er det allerede slått på? Velg Rocket.Chat i listen, fjern det med minusknappen (−), og avslutt og åpne Rocket.Chat på nytt. Del deretter skjermen igjen og tillat tilgang når macOS spør.",
     "title": "Del skjermen din",
     "entireScreen": "Hele skjermen din",
     "applicationWindow": "Programvindu",

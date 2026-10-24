@@ -46,6 +46,13 @@ jest.mock('../ui/main/dialogs', () => ({
 }));
 jest.mock('electron-store', () => jest.fn());
 
+const mockMainWarn = jest.fn();
+jest.mock('../logging/scopes', () => ({
+  loggers: {
+    main: { warn: (...args: any[]) => mockMainWarn(...args) },
+  },
+}));
+
 const selectMock = select as jest.MockedFunction<typeof select>;
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
 const askForOpeningExternalProtocolMock =
@@ -335,6 +342,62 @@ describe('navigation/main.ts', () => {
       expect(askForCertificateTrustMock).not.toHaveBeenCalled();
     });
 
+    it('rejects a revoked certificate without prompting', async () => {
+      const event = { preventDefault: jest.fn() };
+      const callback = jest.fn();
+      const certificate = makeCertificate({ fingerprint: 'revoked' });
+
+      setNavigationState();
+
+      await setup();
+      const certificateErrorListener = getListener('certificate-error');
+      await certificateErrorListener(
+        event as never,
+        {} as never,
+        'https://server.local/path',
+        'net::ERR_CERT_REVOKED',
+        certificate,
+        callback
+      );
+
+      expect(event.preventDefault).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(false);
+      expect(askForCertificateTrustMock).not.toHaveBeenCalled();
+      expect(dispatchMock).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: TRUSTED_CERTIFICATES_UPDATED })
+      );
+      expect(mockMainWarn).toHaveBeenCalledWith(
+        expect.stringContaining('https://server.local/path')
+      );
+    });
+
+    it('rejects a revoked certificate the user trusted before', async () => {
+      const event = { preventDefault: jest.fn() };
+      const callback = jest.fn();
+      const certificate = makeCertificate({ fingerprint: 'revoked-trusted' });
+
+      setNavigationState({
+        trustedCertificates: {
+          'server.local': serializeCertificate(certificate),
+        },
+      });
+
+      await setup();
+      const certificateErrorListener = getListener('certificate-error');
+      await certificateErrorListener(
+        event as never,
+        {} as never,
+        'https://server.local/path',
+        'net::ERR_CERT_REVOKED',
+        certificate,
+        callback
+      );
+
+      expect(callback).toHaveBeenCalledWith(false);
+      expect(callback).not.toHaveBeenCalledWith(true);
+      expect(askForCertificateTrustMock).not.toHaveBeenCalled();
+    });
+
     it('rejects a certificate explicitly marked as not trusted', async () => {
       const event = { preventDefault: jest.fn() };
       const callback = jest.fn();
@@ -590,6 +653,57 @@ describe('navigation/main.ts', () => {
       );
 
       expect(event.preventDefault).toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith('login-user', 'login-pass');
+    });
+
+    it('skips non-matching servers and applies credentials from a later match', async () => {
+      const event = { preventDefault: jest.fn() };
+      const callback = jest.fn();
+      setNavigationState({
+        servers: [
+          { url: 'https://first.local' },
+          { url: 'https://wrong-user:wrong-pass@other.local' },
+          { url: 'https://login-user:login-pass@server.local' },
+          { url: 'https://later-user:later-pass@server.local' },
+        ],
+      });
+      await setup();
+      const loginListener = getListener('login');
+
+      await loginListener(
+        event as never,
+        {} as never,
+        { url: 'https://server.local/path' } as never,
+        {} as never,
+        callback
+      );
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith('login-user', 'login-pass');
+    });
+
+    it('does not clear credentials when a later server in the list mismatches', async () => {
+      const event = { preventDefault: jest.fn() };
+      const callback = jest.fn();
+      setNavigationState({
+        servers: [
+          { url: 'https://login-user:login-pass@server.local' },
+          { url: 'https://other.local' },
+        ],
+      });
+      await setup();
+      const loginListener = getListener('login');
+
+      await loginListener(
+        event as never,
+        {} as never,
+        { url: 'https://server.local/path' } as never,
+        {} as never,
+        callback
+      );
+
+      expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith('login-user', 'login-pass');
     });
 
@@ -616,7 +730,52 @@ describe('navigation/main.ts', () => {
         callback
       );
 
+      expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith();
+    });
+
+    it('drains queued certificate trust callbacks once and does not re-invoke after delete', async () => {
+      const firstEvent = { preventDefault: jest.fn() };
+      const secondEvent = { preventDefault: jest.fn() };
+      const firstCallback = jest.fn();
+      const secondCallback = jest.fn();
+      askForCertificateTrustMock.mockResolvedValue(
+        AskForCertificateTrustResponse.YES
+      );
+
+      const certificate = makeCertificate({
+        fingerprint: 'drain-once',
+        issuerName: 'Test CA',
+        data: 'DATA',
+      });
+
+      setNavigationState();
+
+      await setup();
+      const certificateErrorListener = getListener('certificate-error');
+      const firstResponse = certificateErrorListener(
+        firstEvent as never,
+        {} as never,
+        'https://server.local/path',
+        'ERR',
+        certificate,
+        firstCallback
+      );
+      const secondResponse = certificateErrorListener(
+        secondEvent as never,
+        {} as never,
+        'https://server.local/path',
+        'ERR',
+        certificate,
+        secondCallback
+      );
+
+      await Promise.all([firstResponse, secondResponse]);
+
+      expect(firstCallback).toHaveBeenCalledTimes(1);
+      expect(secondCallback).toHaveBeenCalledTimes(1);
+      expect(firstCallback).toHaveBeenCalledWith(true);
+      expect(secondCallback).toHaveBeenCalledWith(true);
     });
   });
 });

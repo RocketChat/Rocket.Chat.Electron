@@ -6,7 +6,10 @@ import { isProtocolAllowed } from '../navigation/main';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 import { ScreenSharingRequestTracker } from './ScreenSharingRequestTracker';
-import { prewarmDesktopCapturerCache } from './desktopCapturerCache';
+import {
+  prewarmDesktopCapturerCache,
+  prewarmDesktopCapturerCacheIfPermitted,
+} from './desktopCapturerCache';
 import { requestViaPickerWindow } from './popoutPickerRequest';
 import type {
   DisplayMediaCallback,
@@ -136,7 +139,7 @@ export const setupServerViewDisplayMedia = (
         { useSystemPicker: false }
       );
       if (currentProvider.requiresCacheWarming) {
-        prewarmDesktopCapturerCache();
+        void prewarmDesktopCapturerCacheIfPermitted();
       }
     } catch (error) {
       console.error(

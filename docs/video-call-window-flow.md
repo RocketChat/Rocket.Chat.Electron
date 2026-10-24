@@ -163,7 +163,7 @@ For Jitsi servers, a required bridge module (`jitsiBridge.ts`) is essential for 
 **Important**: The jitsiBridge is **required** for Jitsi calls - screen sharing will not work without it. Other providers (like PEXIP) work with the standard generic events and do not need a bridge.
 
 ### PEXIP and Other Providers
-PEXIP and other providers work seamlessly with the generic event system:
+PEXIP and other providers use the generic event system:
 - No special bridge code required
 - Uses standard webview events and IPC communication
 - Screen sharing works through the generic desktop capturer API
@@ -191,5 +191,3 @@ src/public/
 
 - [Supported Versions Flow](./supported-versions-flow.md) - Server version compatibility
 - [Testing Documentation](./testing/) - Test procedures and guidelines
-
-Both window management and screen sharing systems work together seamlessly to provide a fast, reliable, and user-friendly video calling experience.

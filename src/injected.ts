@@ -1,9 +1,13 @@
-import type { NotificationAction } from 'electron';
-
+import type { NotificationActionOption } from './notifications/common';
+import { resolveNotificationAction } from './notifications/resolveNotificationAction';
 import { createPresenceRateLimiter } from './servers/preload/presenceDebounce';
 import type { PresenceStoreEntry } from './servers/preload/presenceSnapshot';
-import { buildPresenceSnapshot } from './servers/preload/presenceSnapshot';
+import {
+  buildPresenceSnapshot,
+  mergePresenceStoreEntry,
+} from './servers/preload/presenceSnapshot';
 import { hasUsablePresenceApi } from './servers/preload/presenceSupport';
+import { createUserStatusSender } from './servers/preload/userStatusSender';
 
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
@@ -53,61 +57,211 @@ const tryRequireFirstOf = <T = any>(paths: string[]) =>
     throw new Error(`None of the module paths resolved: ${paths.join(', ')}`);
   });
 
-const BOOT_RECOVERY_ATTEMPTS_KEY = 'rocketChatDesktopBootRecoveryAttempts';
-const MAX_BOOT_RECOVERY_ATTEMPTS = 2;
+// The session permission handler denies `clipboard-sanitized-write`, so the
+// native writeText always fails. Route it through the main process before any
+// module lookup: copy must keep working when the boot below gives up.
+// navigator.clipboard is undefined outside secure contexts (plain HTTP).
+if (navigator.clipboard) {
+  navigator.clipboard.writeText = async (...args) =>
+    window.RocketChatDesktop.writeTextToClipboard(...args);
+}
 
-const getBootRecoveryAttempts = (): number => {
-  try {
-    return (
-      Number(window.sessionStorage.getItem(BOOT_RECOVERY_ATTEMPTS_KEY)) || 0
-    );
-  } catch (error) {
-    return 0;
-  }
-};
+// The Notification class and the clipboard use only the desktop bridge, so
+// they apply on every server, also when the boot below finds no
+// `window.require` (the Vite client).
+console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
-// Reloading in place never recovers a wedged webview (stale service worker or
-// cache keeps serving a broken bundle), so recovery goes through
-// reloadServer(), which clears the service worker and cache storage before
-// reloading. The sessionStorage counter survives those reloads and caps the
-// attempts, so a genuinely broken server degrades instead of reload-looping.
-const attemptBootRecovery = (reason: string): void => {
-  const attempts = getBootRecoveryAttempts();
+window.Notification = class RocketChatDesktopNotification
+  extends EventTarget
+  implements Notification
+{
+  static readonly permission: NotificationPermission = 'granted';
 
-  if (attempts >= MAX_BOOT_RECOVERY_ATTEMPTS) {
-    console.error(
-      `[Rocket.Chat Desktop] ${reason}. Boot recovery attempts exhausted (${attempts}); giving up. Restart the app or use "Reload Clearing Cache" to retry.`
-    );
-    return;
-  }
+  static readonly maxActions: number =
+    process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
 
-  try {
-    window.sessionStorage.setItem(
-      BOOT_RECOVERY_ATTEMPTS_KEY,
-      String(attempts + 1)
-    );
-  } catch (error) {
-    // Without a persisted counter every reload would read zero attempts and
-    // recover again, forever — safer to not recover at all.
-    console.error(
-      `[Rocket.Chat Desktop] ${reason}. Boot recovery is disabled because sessionStorage is unavailable.`
-    );
-    return;
+  static requestPermission(): Promise<NotificationPermission> {
+    return Promise.resolve(RocketChatDesktopNotification.permission);
   }
 
-  console.error(
-    `[Rocket.Chat Desktop] ${reason}. Triggering force reload with cache clear to recover (attempt ${
-      attempts + 1
-    } of ${MAX_BOOT_RECOVERY_ATTEMPTS})...`
-  );
-  window.RocketChatDesktop.reloadServer();
-};
+  #destroy?: Promise<() => void>;
 
-const resetBootRecovery = (): void => {
-  try {
-    window.sessionStorage.removeItem(BOOT_RECOVERY_ATTEMPTS_KEY);
-  } catch (error) {
-    // sessionStorage unavailable; nothing to reset
+  constructor(
+    title: string,
+    options: NotificationOptions & { canReply?: boolean } = {}
+  ) {
+    super();
+
+    this.#destroy = window.RocketChatDesktop.createNotification({
+      title,
+      ...options,
+      onEvent: this.handleEvent,
+    }).then((id) => () => {
+      window.RocketChatDesktop.destroyNotification(id);
+    });
+
+    Object.assign(this, { title, ...options });
+  }
+
+  actions: readonly NotificationActionOption[] = [];
+
+  badge = '';
+
+  body = '';
+
+  data: any = undefined;
+
+  dir: NotificationDirection = 'auto';
+
+  icon = '';
+
+  image = '';
+
+  lang = document.documentElement.lang;
+
+  #onclick: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onclick() {
+    return this.#onclick;
+  }
+
+  set onclick(value) {
+    if (this.#onclick) {
+      this.removeEventListener('click', this.#onclick);
+    }
+
+    this.#onclick = value;
+
+    if (this.#onclick) {
+      this.addEventListener('click', this.#onclick);
+    }
+  }
+
+  #onclose: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onclose() {
+    return this.#onclose;
+  }
+
+  set onclose(value) {
+    if (this.#onclose) {
+      this.removeEventListener('close', this.#onclose);
+    }
+
+    this.#onclose = value;
+
+    if (this.#onclose) {
+      this.addEventListener('close', this.#onclose);
+    }
+  }
+
+  #onerror: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onerror() {
+    return this.#onerror;
+  }
+
+  set onerror(value) {
+    if (this.#onerror) {
+      this.removeEventListener('error', this.#onerror);
+    }
+
+    this.#onerror = value;
+
+    if (this.#onerror) {
+      this.addEventListener('error', this.#onerror);
+    }
+  }
+
+  #onshow: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onshow() {
+    return this.#onshow;
+  }
+
+  set onshow(value) {
+    if (this.#onshow) {
+      this.removeEventListener('show', this.#onshow);
+    }
+
+    this.#onshow = value;
+
+    if (this.#onshow) {
+      this.addEventListener('show', this.#onshow);
+    }
+  }
+
+  #onaction: ((this: Notification, ev: Event) => any) | null = null;
+
+  get onaction() {
+    return this.#onaction;
+  }
+
+  set onaction(value) {
+    if (this.#onaction) {
+      this.removeEventListener('action', this.#onaction);
+    }
+
+    this.#onaction = value;
+
+    if (this.#onaction) {
+      this.addEventListener('action', this.#onaction);
+    }
+  }
+
+  requireInteraction = false;
+
+  silent = false;
+
+  tag = '';
+
+  timestamp: number = Date.now();
+
+  title = '';
+
+  vibrate: readonly number[] = [];
+
+  private handleEvent = ({
+    type,
+    detail,
+  }: {
+    type: string;
+    detail: unknown;
+  }): void => {
+    const mainWorldEvent = new CustomEvent(type, { detail });
+
+    const isReplyEvent = (
+      type: string,
+      detail: unknown
+    ): detail is { reply: string } =>
+      type === 'reply' &&
+      typeof detail === 'object' &&
+      detail !== null &&
+      'reply' in detail &&
+      typeof (detail as { reply: string }).reply === 'string';
+
+    if (isReplyEvent(type, detail)) {
+      (mainWorldEvent as any).response = detail.reply;
+    }
+
+    if (type === 'action') {
+      (mainWorldEvent as any).action = resolveNotificationAction(
+        this.actions,
+        detail
+      );
+    }
+    this.dispatchEvent(mainWorldEvent);
+  };
+
+  close(): void {
+    if (!this.#destroy) {
+      return;
+    }
+
+    this.#destroy?.then((destroy) => {
+      this.#destroy = undefined;
+      destroy();
+    });
   }
 };
 
@@ -122,9 +276,12 @@ const start = async () => {
   if (typeof window.require !== 'function') {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
 
+    // The Vite client never has window.require. Boot recovery belongs to the
+    // preload (webClientEvents.ts), which waits for the `startup` event, so
+    // these legacy integrations only stop here.
     if (totalRetryTime >= MAX_RETRY_TIME) {
-      attemptBootRecovery(
-        `Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available`
+      console.warn(
+        `[Rocket.Chat Desktop] window.require is not available after ${MAX_RETRY_TIME}ms; legacy integrations are off.`
       );
       return;
     }
@@ -157,29 +314,32 @@ const start = async () => {
   startRetryCount = 0;
   totalRetryTime = 0;
 
+  // Rocket.Chat 8.10 moved the file from app/utils/ to the app root.
+  const serverInfoModulePaths = [
+    '/app/utils/rocketchat.info',
+    '/rocketchat.info',
+  ];
+
   let serverInfo: any = {};
   try {
-    ({ Info: serverInfo = {} } = await tryRequire(
-      '/app/utils/rocketchat.info'
+    ({ Info: serverInfo = {} } = await tryRequireFirstOf(
+      serverInfoModulePaths
     ));
   } catch (error) {
-    // window.require exists but the module registry is incomplete — the
-    // webapp boot is wedged (stuck throbber) and only a cache-clearing
-    // reload recovers it.
-    attemptBootRecovery(
-      "Failed to require '/app/utils/rocketchat.info' after retries"
+    console.warn(
+      `[Rocket.Chat Desktop] Failed to require ${serverInfoModulePaths.join(
+        ' or '
+      )} after retries; legacy integrations are off.`
     );
     return;
   }
 
   if (!serverInfo.version) {
-    attemptBootRecovery(
-      "Required '/app/utils/rocketchat.info' returned no server version"
+    console.warn(
+      '[Rocket.Chat Desktop] The rocketchat.info module returned no server version; legacy integrations are off.'
     );
     return;
   }
-
-  resetBootRecovery();
 
   console.log('[Rocket.Chat Desktop] Injected.ts serverInfo', serverInfo);
 
@@ -221,8 +381,8 @@ const start = async () => {
     : 'meteor/konecty:user-presence';
 
   const settingsModulePath = (() => {
-    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-    //   return '/app/settings/client';
+    if (versionIsGreaterOrEqualsTo(serverInfo.version, '7.11.0'))
+      return '/client/lib/settings/index.ts';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
       return '/app/settings/client/index.ts';
     return '/app/settings';
@@ -266,6 +426,23 @@ const start = async () => {
   // instead of showing a permanently blank state.
   let presenceModuleResolved: boolean | null = null;
 
+  // Before 7.11 the client settings expose a Tracker-reactive `get`. From 7.11
+  // they are a store with `peek` and a change-only `observe`, and 8.x has no
+  // Tracker-reactive accessor at all.
+  const watchSetting = <T = any>(
+    key: string,
+    callback: (value: T | undefined) => void
+  ): void => {
+    if (typeof settings.get === 'function') {
+      Tracker.autorun(() => callback(settings.get(key)));
+      return;
+    }
+    callback(settings.peek(key));
+    settings.observe(key, (_key: string, value: T | undefined) =>
+      callback(value)
+    );
+  };
+
   // Load modules asynchronously without blocking
   const loadModule = async (
     modulePath: string,
@@ -288,19 +465,25 @@ const start = async () => {
     }
   };
 
+  // Each module lookup gives up after its backoff. Once all of them settle, no
+  // module can arrive any more.
+  const moduleLoads: Promise<void>[] = [];
+
   // Start loading all modules in parallel (non-blocking)
-  loadModule('meteor/meteor', 'Meteor', (value) => {
-    Meteor = value.Meteor;
-  });
-  loadModule('meteor/session', 'Session', (value) => {
-    Session = value.Session;
-  });
-  loadModule('meteor/tracker', 'Tracker', (value) => {
-    Tracker = value.Tracker;
-  });
-  loadModule(settingsModulePath, 'Settings', (value) => {
-    settings = value.settings;
-  });
+  moduleLoads.push(
+    loadModule('meteor/meteor', 'Meteor', (value) => {
+      Meteor = value.Meteor;
+    }),
+    loadModule('meteor/session', 'Session', (value) => {
+      Session = value.Session;
+    }),
+    loadModule('meteor/tracker', 'Tracker', (value) => {
+      Tracker = value.Tracker;
+    }),
+    loadModule(settingsModulePath, 'Settings', (value) => {
+      settings = value.settings;
+    })
+  );
   // Since Rocket.Chat 7.10.0 the web client registers the idle detector itself
   // (apps/meteor/client/lib/userPresence.ts) and the meteor-user-presence
   // package no longer exists, so these modules are only needed for the legacy
@@ -310,15 +493,28 @@ const start = async () => {
     '7.10.0'
   );
   if (usesLegacyPresenceDetection) {
-    loadModule(utilsModulePath, 'Utils', (value) => {
-      getUserPreference = value.getUserPreference;
-    });
-    loadModule(userPresenceModulePath, 'UserPresence', (value) => {
-      UserPresence = value.UserPresence;
-    });
+    moduleLoads.push(
+      loadModule(utilsModulePath, 'Utils', (value) => {
+        getUserPreference = value.getUserPreference;
+      }),
+      loadModule(userPresenceModulePath, 'UserPresence', (value) => {
+        UserPresence = value.UserPresence;
+      })
+    );
   }
 
-  tryRequireFirstOf(presenceModulePaths)
+  // Pre-7.8.0 servers publish the badge through the Meteor Session, and
+  // pre-6.4.0 servers have a sidebar background setting.
+  const usesSessionBadge = !versionIsGreaterOrEqualsTo(
+    serverInfo.version,
+    '7.8.0'
+  );
+  const usesSidebarBackground = !versionIsGreaterOrEqualsTo(
+    serverInfo.version,
+    '6.4.0'
+  );
+
+  const presenceModuleLoad = tryRequireFirstOf(presenceModulePaths)
     .then((module) => {
       if (!hasUsablePresenceApi(module)) {
         console.warn(
@@ -339,210 +535,13 @@ const start = async () => {
       );
       presenceModuleResolved = false;
     });
-
-  // Initialize non-module dependent features immediately
-  // navigator.clipboard is undefined outside secure contexts (plain HTTP
-  // workspaces), so guard the patch or the whole start() chain throws here
-  // and never reaches the Notification shim below.
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText = async (...args) =>
-      window.RocketChatDesktop.writeTextToClipboard(...args);
-  }
-
-  console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
-
-  window.Notification = class RocketChatDesktopNotification
-    extends EventTarget
-    implements Notification
-  {
-    static readonly permission: NotificationPermission = 'granted';
-
-    static readonly maxActions: number =
-      process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
-
-    static requestPermission(): Promise<NotificationPermission> {
-      return Promise.resolve(RocketChatDesktopNotification.permission);
-    }
-
-    #destroy?: Promise<() => void>;
-
-    constructor(
-      title: string,
-      options: NotificationOptions & { canReply?: boolean } = {}
-    ) {
-      super();
-
-      this.#destroy = window.RocketChatDesktop.createNotification({
-        title,
-        ...options,
-        onEvent: this.handleEvent,
-      }).then((id) => () => {
-        window.RocketChatDesktop.destroyNotification(id);
-      });
-
-      Object.assign(this, { title, ...options });
-    }
-
-    actions: readonly NotificationAction[] = [];
-
-    badge = '';
-
-    body = '';
-
-    data: any = undefined;
-
-    dir: NotificationDirection = 'auto';
-
-    icon = '';
-
-    image = '';
-
-    lang = document.documentElement.lang;
-
-    #onclick: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onclick() {
-      return this.#onclick;
-    }
-
-    set onclick(value) {
-      if (this.#onclick) {
-        this.removeEventListener('click', this.#onclick);
-      }
-
-      this.#onclick = value;
-
-      if (this.#onclick) {
-        this.addEventListener('click', this.#onclick);
-      }
-    }
-
-    #onclose: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onclose() {
-      return this.#onclose;
-    }
-
-    set onclose(value) {
-      if (this.#onclose) {
-        this.removeEventListener('close', this.#onclose);
-      }
-
-      this.#onclose = value;
-
-      if (this.#onclose) {
-        this.addEventListener('close', this.#onclose);
-      }
-    }
-
-    #onerror: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onerror() {
-      return this.#onerror;
-    }
-
-    set onerror(value) {
-      if (this.#onerror) {
-        this.removeEventListener('error', this.#onerror);
-      }
-
-      this.#onerror = value;
-
-      if (this.#onerror) {
-        this.addEventListener('error', this.#onerror);
-      }
-    }
-
-    #onshow: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onshow() {
-      return this.#onshow;
-    }
-
-    set onshow(value) {
-      if (this.#onshow) {
-        this.removeEventListener('show', this.#onshow);
-      }
-
-      this.#onshow = value;
-
-      if (this.#onshow) {
-        this.addEventListener('show', this.#onshow);
-      }
-    }
-
-    #onaction: ((this: Notification, ev: Event) => any) | null = null;
-
-    get onaction() {
-      return this.#onaction;
-    }
-
-    set onaction(value) {
-      if (this.#onaction) {
-        this.removeEventListener('action', this.#onaction);
-      }
-
-      this.#onaction = value;
-
-      if (this.#onaction) {
-        this.addEventListener('action', this.#onaction);
-      }
-    }
-
-    requireInteraction = false;
-
-    silent = false;
-
-    tag = '';
-
-    timestamp: number = Date.now();
-
-    title = '';
-
-    vibrate: readonly number[] = [];
-
-    private handleEvent = ({
-      type,
-      detail,
-    }: {
-      type: string;
-      detail: unknown;
-    }): void => {
-      const mainWorldEvent = new CustomEvent(type, { detail });
-
-      const isReplyEvent = (
-        type: string,
-        detail: unknown
-      ): detail is { reply: string } =>
-        type === 'reply' &&
-        typeof detail === 'object' &&
-        detail !== null &&
-        'reply' in detail &&
-        typeof (detail as { reply: string }).reply === 'string';
-
-      if (isReplyEvent(type, detail)) {
-        (mainWorldEvent as any).response = detail.reply;
-      }
-      this.dispatchEvent(mainWorldEvent);
-    };
-
-    close(): void {
-      if (!this.#destroy) {
-        return;
-      }
-
-      this.#destroy?.then((destroy) => {
-        this.#destroy = undefined;
-        destroy();
-      });
-    }
-  };
+  moduleLoads.push(presenceModuleLoad);
 
   // Track which features have been setup to avoid duplicates
   const setupFlags = {
     urlResolver: false,
     badgeUpdates: false,
-    unreadChangedEvent: false,
+    unreadAlertPreference: false,
     faviconUpdates: false,
     jitsiIntegration: false,
     backgroundSettings: false,
@@ -556,33 +555,27 @@ const start = async () => {
     userPresenceReassert: false,
   };
 
-  // Per-subscription unread state, accumulated from the
-  // `unread-changed-by-subscription` global event so the badge can reproduce
-  // the server's alert-only "•" indicator. Lives outside setupReactiveFeatures
-  // so it survives the periodic re-invocation below.
-  const unreadSubscriptions = new Map<
-    string,
-    { unread: number; alert?: boolean; unreadAlert?: string }
-  >();
+  // Web clients that announce bridge contract version 1 push these values
+  // themselves. The checks run on each update, since the web client announces
+  // the contract once it renders, which can be after these setups run.
+  const webClientPushesBridgeValues = (): boolean =>
+    (window.RocketChatDesktop.getWebClientBridgeVersion?.() ?? 0) >= 1;
 
   // Setup reactive features that depend on modules (with polling)
   // eslint-disable-next-line complexity
   const setupReactiveFeatures = () => {
     if (Meteor?.absoluteUrl && !setupFlags.urlResolver) {
-      window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
+      if (!webClientPushesBridgeValues()) {
+        window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
+      }
       setupFlags.urlResolver = true;
     }
 
     // Pre-7.8.0 only: those servers still publish the badge through the Meteor
     // Session reactive dict. On 7.8.0+ this key is gone (Session.get('unread')
-    // resolves to undefined) and the global-event path below owns the badge, so
+    // resolves to undefined) and the preload's unread events own the badge, so
     // running this autorun there would clear the badge with setBadge(undefined).
-    if (
-      !versionIsGreaterOrEqualsTo(serverInfo.version, '7.8.0') &&
-      Tracker &&
-      Session &&
-      !setupFlags.badgeUpdates
-    ) {
+    if (usesSessionBadge && Tracker && Session && !setupFlags.badgeUpdates) {
       Tracker.autorun(() => {
         const unread = Session.get('unread');
         window.RocketChatDesktop.setBadge(unread);
@@ -590,131 +583,23 @@ const start = async () => {
       setupFlags.badgeUpdates = true;
     }
 
-    // Servers >= 7.x removed `unread` from the Meteor Session reactive dict
-    // (RocketChat/Rocket.Chat#36001), which is why the Session autorun above is
-    // gated to pre-7.8.0. Those servers no longer expose the badge through
-    // Meteor at all, but they still broadcast it through two global
-    // CustomEvents on window, mirroring the server's own `useUnread` hook:
-    //   - `unread-changed-by-subscription`: fires per subscription whenever its
-    //     unread-relevant fields change, carrying { rid, unread, alert,
-    //     unreadAlert }. We accumulate these into `unreadSubscriptions` to
-    //     rebuild the alert-only "•" indicator that the numeric count alone
-    //     cannot represent.
-    //   - `unread-changed`: fires on every recompute with the aggregate count.
-    //     We use it as the recompute trigger and the source of truth for the
-    //     numeric total.
-    // The badge value is resolved exactly as the server's `useUnread` does:
-    // a positive count wins, otherwise an alert-only "•", otherwise no badge.
-    // Registered independently of the Meteor modules so it works even when they
-    // never load.
-    if (!setupFlags.unreadChangedEvent) {
-      // `aggregateCount`, when provided, is the authoritative total carried by
-      // the `unread-changed` event. The per-subscription map is incremental and
-      // only sees rooms that changed after the listener attached, so it can
-      // undercount; we prefer the aggregate for the numeric total and use the
-      // map solely to rebuild the alert-only "•" indicator.
-      // Server boot floods this path: the webapp fires one
-      // `unread-changed-by-subscription` event per room when it starts, and
-      // dispatching a badge update for each one storms the root window's
-      // Redux store hard enough that React aborts with "Maximum update depth
-      // exceeded". Recomputes are therefore coalesced into a single
-      // trailing-edge call, and the dispatch is skipped entirely when the
-      // resolved badge value did not change.
-      const BADGE_COALESCE_MS = 100;
-      let resolveBadgeTimer: ReturnType<typeof setTimeout> | null = null;
-      let pendingAggregateCount: number | undefined;
-      let lastSentBadge: number | '•' | undefined;
-      let hasSentBadge = false;
-
-      const resolveBadge = (aggregateCount?: number): void => {
-        let unreadCount = 0;
-        let alertIndicator: '•' | undefined;
-
-        // The user's `unreadAlert` preference only influences rooms left on the
-        // default. No global event carries it, so we read it from the Meteor
-        // user document when available and fall back to the server's shipped
-        // default of `true`.
-        const unreadAlertEnabled =
-          Meteor?.user?.()?.settings?.preferences?.unreadAlert ?? true;
-
-        for (const subscription of unreadSubscriptions.values()) {
-          const { unread, alert, unreadAlert } = subscription;
-          if (alert || unread > 0) {
-            if (
-              alert === true &&
-              unreadAlert !== 'nothing' &&
-              (unreadAlert === 'all' || unreadAlertEnabled !== false)
-            ) {
-              alertIndicator = '•';
-            }
-            unreadCount += unread;
-          }
-        }
-
-        const total =
-          aggregateCount !== undefined && aggregateCount > unreadCount
-            ? aggregateCount
-            : unreadCount;
-
-        const badge = total > 0 ? total : alertIndicator ?? 0;
-        if (hasSentBadge && badge === lastSentBadge) {
-          return;
-        }
-        hasSentBadge = true;
-        lastSentBadge = badge;
-        window.RocketChatDesktop.setBadge(badge);
-      };
-
-      const scheduleResolveBadge = (aggregateCount?: number): void => {
-        if (aggregateCount !== undefined) {
-          pendingAggregateCount = aggregateCount;
-        }
-        if (resolveBadgeTimer !== null) {
-          return;
-        }
-        resolveBadgeTimer = setTimeout(() => {
-          resolveBadgeTimer = null;
-          const aggregate = pendingAggregateCount;
-          pendingAggregateCount = undefined;
-          resolveBadge(aggregate);
-        }, BADGE_COALESCE_MS);
-      };
-
-      window.addEventListener('unread-changed-by-subscription', (event) => {
-        const subscription = (
-          event as CustomEvent<{
-            rid?: string;
-            unread?: number;
-            alert?: boolean;
-            unreadAlert?: string;
-          }>
-        ).detail;
-        if (!subscription?.rid) {
-          return;
-        }
-        unreadSubscriptions.set(subscription.rid, {
-          unread: subscription.unread ?? 0,
-          alert: subscription.alert,
-          unreadAlert: subscription.unreadAlert,
-        });
-        scheduleResolveBadge();
+    // The unread events feed the badge in the preload (webClientEvents.ts).
+    // No event carries the user's `unreadAlert` preference, so it is pushed
+    // from here when Meteor is available.
+    if (Tracker && Meteor && !setupFlags.unreadAlertPreference) {
+      Tracker.autorun(() => {
+        if (webClientPushesBridgeValues()) return;
+        window.RocketChatDesktop.setUnreadAlertEnabled(
+          Meteor.user?.()?.settings?.preferences?.unreadAlert !== false
+        );
       });
-
-      window.addEventListener('unread-changed', (event) => {
-        const { detail } = event as CustomEvent<number | undefined>;
-        const aggregateCount =
-          typeof detail === 'number' && Number.isFinite(detail)
-            ? detail
-            : undefined;
-        scheduleResolveBadge(aggregateCount);
-      });
-
-      setupFlags.unreadChangedEvent = true;
+      setupFlags.unreadAlertPreference = true;
     }
 
     if (Tracker && settings && !setupFlags.faviconUpdates) {
-      Tracker.autorun(() => {
-        const { url, defaultUrl } = settings.get('Assets_favicon') || {};
+      watchSetting('Assets_favicon', (value) => {
+        if (webClientPushesBridgeValues()) return;
+        const { url, defaultUrl } = value || {};
         window.RocketChatDesktop.setFavicon(url || defaultUrl);
       });
       setupFlags.faviconUpdates = true;
@@ -737,7 +622,6 @@ const start = async () => {
           );
           window.open = (url, name, features = '') => {
             if (
-              !process.mas &&
               window.RocketChatDesktop.getInternalVideoChatWindowEnabled() &&
               typeof url === 'string' &&
               jitsiDomain.length > 0 &&
@@ -755,7 +639,7 @@ const start = async () => {
     }
 
     if (
-      !versionIsGreaterOrEqualsTo(serverInfo.version, '6.4.0') &&
+      usesSidebarBackground &&
       Tracker &&
       settings &&
       !setupFlags.backgroundSettings
@@ -794,6 +678,7 @@ const start = async () => {
 
     if (Tracker && !setupFlags.outlookIntegration) {
       Tracker.autorun(() => {
+        if (webClientPushesBridgeValues()) return;
         const {
           userToken,
           userId,
@@ -820,8 +705,8 @@ const start = async () => {
     }
 
     if (Tracker && settings && !setupFlags.titleUpdates) {
-      Tracker.autorun(() => {
-        const siteName = settings.get('Site_Name');
+      watchSetting('Site_Name', (siteName) => {
+        if (webClientPushesBridgeValues()) return;
         window.RocketChatDesktop.setTitle(siteName);
       });
       setupFlags.titleUpdates = true;
@@ -830,6 +715,7 @@ const start = async () => {
     if (Tracker && Meteor && !setupFlags.userLoginDetection) {
       Tracker.autorun(() => {
         const userId = Meteor.userId();
+        if (webClientPushesBridgeValues()) return;
         window.RocketChatDesktop.setUserLoggedIn(userId !== null);
       });
       setupFlags.userLoginDetection = true;
@@ -864,7 +750,7 @@ const start = async () => {
       };
 
       const handlePresenceUpdate = (entry?: PresenceStoreEntry): void => {
-        latestStoreEntry = entry ?? null;
+        latestStoreEntry = mergePresenceStoreEntry(latestStoreEntry, entry);
         pushPresence();
       };
 
@@ -917,7 +803,16 @@ const start = async () => {
         }
       };
 
+      let presenceStateReported = false;
+
+      window.RocketChatDesktop.onUserPresenceStateReported(() => {
+        presenceStateReported = true;
+        subscribeToPresence(null);
+      });
+
       Tracker.autorun(() => {
+        if (presenceStateReported) return;
+
         const uid: string | null = Meteor.userId();
         const conn = Meteor.status();
 
@@ -936,25 +831,16 @@ const start = async () => {
             '[Rocket.Chat Desktop] setUserStatus request deferred: rate limit (1/s) not yet elapsed, will send latest status once elapsed'
           );
         },
-        send: ({ status, statusText }) => {
-          if (!Meteor.call) return;
-
-          Meteor.call('setUserStatus', status, statusText, (err: any) => {
-            if (!err) return;
-
-            if (
-              err.error === 'error-not-allowed' ||
-              err.error === 'error-status-not-allowed'
-            ) {
-              console.warn(
-                `[Rocket.Chat Desktop] setUserStatus rejected: ${err.error}`
-              );
-              return;
-            }
-
-            console.error('[Rocket.Chat Desktop] setUserStatus failed', err);
-          });
-        },
+        send: createUserStatusSender({
+          callMethod: Meteor.call?.bind(Meteor),
+          getServerUrl: () => Meteor.absoluteUrl(),
+          getCredentials: () => {
+            const userId = Meteor.userId?.();
+            const authToken =
+              Meteor._localStorage?.getItem('Meteor.loginToken');
+            return userId && authToken ? { userId, authToken } : null;
+          },
+        }),
       });
 
       // No local refresh needed after a change request: the server broadcasts
@@ -973,7 +859,7 @@ const start = async () => {
     if (Tracker && Meteor && !setupFlags.gitCommitHash) {
       Tracker.autorun(() => {
         const { gitCommitHash } = Meteor;
-        if (!gitCommitHash) return;
+        if (!gitCommitHash || webClientPushesBridgeValues()) return;
         window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
       });
       setupFlags.gitCommitHash = true;
@@ -1043,9 +929,41 @@ const start = async () => {
     }
   };
 
+  // Features that this server version never sets up. No step sets
+  // `themeAppearance`.
+  const skippedFeatures: Array<keyof typeof setupFlags> = ['themeAppearance'];
+  if (!usesSessionBadge) skippedFeatures.push('badgeUpdates');
+  if (!usesSidebarBackground) skippedFeatures.push('backgroundSettings');
+  if (!usesLegacyPresenceDetection) skippedFeatures.push('userPresence');
+
+  const isSetupDone = (): boolean =>
+    (Object.keys(setupFlags) as Array<keyof typeof setupFlags>).every(
+      (feature) => setupFlags[feature] || skippedFeatures.includes(feature)
+    );
+
   // Call setupReactiveFeatures immediately and then periodically check for new modules
   setupReactiveFeatures();
-  setInterval(setupReactiveFeatures, 1000); // Check every second for newly loaded modules
+  const setupTimer = setInterval(() => {
+    setupReactiveFeatures();
+    if (isSetupDone()) {
+      clearInterval(setupTimer);
+    }
+  }, 1000);
+
+  // The setup steps read only the modules above. After the last lookup
+  // settles, one more pass sets up all that this page can provide, so the
+  // check does not run for the life of the page.
+  Promise.all(moduleLoads)
+    .then(() => {
+      clearInterval(setupTimer);
+      setupReactiveFeatures();
+    })
+    .catch((error) => {
+      console.error(
+        '[Rocket.Chat Desktop] Injected.ts failed to set up the legacy integrations:',
+        error
+      );
+    });
 
   console.log('[Rocket.Chat Desktop] Injected');
 };

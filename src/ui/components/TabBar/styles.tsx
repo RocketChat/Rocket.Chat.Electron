@@ -434,6 +434,76 @@ export const BadgeWrapper = styled.div`
   pointer-events: none;
 `;
 
+/* Same 16px footprint as TabBadge/Badge (min-width/min-height: 1rem), reusing
+   the Fuselage ghost badge token chain so the speaker reads as a sibling of
+   the mention/unread badges. The mute control keeps this neutral ghost badge
+   in both states — the Fuselage `volume` / `volume-off` glyph alone signals
+   muted vs. unmuted. Red is reserved for the capture (rec) indicator, matching
+   Chrome, which colors only camera/mic/screen capture and leaves audio
+   controls neutral. Horizontal tab-strip only — rendered as a plain sibling of
+   the badge, not inside BadgeWrapper, so no pointer-events override is needed.
+   `line-height: 0` keeps the Fuselage Icon's own line-height from nudging it
+   off-centre inside the flex-centred circle. */
+export const SpeakerButton = styled.span`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  line-height: 0;
+  border-radius: 9999px;
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  background-color: var(
+    --rcx-badge-colors-ghost-background-color,
+    var(--rcx-color-stroke-dark, var(--rcx-color-neutral-700, #6c737a))
+  );
+  color: var(
+    --rcx-badge-colors-ghost-color,
+    var(--rcx-color-font-pure-white, #fff)
+  );
+`;
+
+/* The UI preview badge takes the bottom-right corner, below the mention/
+   warning badge, so a vertical tab can show both. */
+export const PreviewBadgeWrapper = styled(BadgeWrapper)`
+  top: auto;
+  bottom: ${BADGE_ANCHOR_Y};
+  transform: translate(-50%, 50%);
+`;
+
+/* Camera/microphone/screen-share indicator, sibling of SpeakerButton: a single
+   red `rec` glyph on transparent — no filled disc behind it — matching
+   Chrome's tab alert color, which keeps audio-only grey but flags
+   camera/mic/desktop capture in red. Non-interactive (no click action per the
+   spec — the info lives in the tab's tooltip/aria-label only, hence no
+   cursor/pointer handlers and `aria-hidden` on the element itself). Sized to
+   the same ~16px footprint as the badge/speaker so it lines up with them.
+   Horizontal tab-strip only, same rule as the speaker indicator. */
+/* The capture (rec) glyph uses the pure Fuselage red palette token
+   (`red-500` = #EC0D2A), the same bright recording red the Rocket.Chat
+   composer's audio-message `<Icon name='rec' color='red' />` renders. The
+   `color='danger'` prop and the danger badge chain both resolve to a duller,
+   pinker red (font-danger red600 / a tinted badge background), which read as
+   a different red beside the composer's marker. Setting `color` here and
+   letting the icon inherit currentColor keeps the tab marker on the exact
+   recording red. */
+export const CaptureIndicator = styled.span`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  line-height: 0;
+  color: var(--rcx-color-red-500, #ec0d2a);
+`;
+
 export const WindowControlsGroup = styled.div`
   display: flex;
   flex-direction: row;

@@ -17,6 +17,12 @@
     "copyImage": "Kopiera bilden"
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "Omstart krävs",
+      "message": "Rocket.Chat måste startas om för att ändra fönstrets genomskinlighet. Starta om nu? Om du avbryter återställs din tidigare inställning.",
+      "restartNow": "Starta om nu",
+      "cancel": "Avbryt"
+    },
     "about": {
       "title": "Om {{- appName}}",
       "version": "Version: <1>{{-version}}</1>",

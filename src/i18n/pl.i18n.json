@@ -15,6 +15,12 @@
     "saveImageAs": "Zapisz obraz jako..."
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "Wymagane ponowne uruchomienie",
+      "message": "Aby zmienić przezroczystość okna, należy ponownie uruchomić Rocket.Chat. Uruchomić ponownie teraz? Anulowanie przywróci poprzednie ustawienie.",
+      "restartNow": "Uruchom ponownie teraz",
+      "cancel": "Anuluj"
+    },
     "about": {
       "title": "O {{- appName}}",
       "version": "Wersja: <1>{{-version}}</1>",

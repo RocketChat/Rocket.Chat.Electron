@@ -16,6 +16,12 @@
     "copyImage": "複製影像"
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "需要重新啟動",
+      "message": "變更視窗透明度需要重新啟動 Rocket.Chat。是否立即重新啟動？取消將還原先前的設定。",
+      "restartNow": "立即重新啟動",
+      "cancel": "取消"
+    },
     "about": {
       "title": "關於 {{- appName}}",
       "version": "版本: <1>{{-version}}</1>",

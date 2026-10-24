@@ -443,6 +443,25 @@ const start = async () => {
     );
   };
 
+  let setupTimer: ReturnType<typeof setInterval> | undefined;
+  let setupReactiveFeatures: () => void = () => undefined;
+  let isSetupDone: () => boolean = () => false;
+
+  const triggerSetup = () => {
+    try {
+      setupReactiveFeatures();
+    } catch (error) {
+      console.error(
+        '[Rocket.Chat Desktop] Error during reactive features setup:',
+        error
+      );
+    }
+    if (setupTimer && isSetupDone()) {
+      clearInterval(setupTimer);
+      setupTimer = undefined;
+    }
+  };
+
   // Load modules asynchronously without blocking
   const loadModule = async (
     modulePath: string,
@@ -450,6 +469,7 @@ const start = async () => {
     setter: (value: any) => void,
     propertyName?: string
   ) => {
+    let loaded = false;
     try {
       const module = await tryRequire(modulePath);
       const value = propertyName ? module[propertyName] : module;
@@ -457,11 +477,16 @@ const start = async () => {
       console.log(
         `[Rocket.Chat Desktop] ${moduleName} module loaded successfully`
       );
+      loaded = true;
     } catch (error) {
       console.log(
         `[Rocket.Chat Desktop] Failed to load ${moduleName} module:`,
         error
       );
+    }
+
+    if (loaded) {
+      triggerSetup();
     }
   };
 
@@ -515,25 +540,32 @@ const start = async () => {
   );
 
   const presenceModuleLoad = tryRequireFirstOf(presenceModulePaths)
-    .then((module) => {
-      if (!hasUsablePresenceApi(module)) {
+    .then(
+      (module) => {
+        if (!hasUsablePresenceApi(module)) {
+          console.warn(
+            '[Rocket.Chat Desktop] Presence module resolved without the expected store/listen API; presence will be reported as unsupported'
+          );
+          presenceModuleResolved = false;
+        } else {
+          Presence = (module as { Presence: unknown }).Presence;
+          presenceModuleResolved = true;
+          console.log(
+            '[Rocket.Chat Desktop] Presence module loaded successfully'
+          );
+        }
+      },
+      () => {
         console.warn(
-          '[Rocket.Chat Desktop] Presence module resolved without the expected store/listen API; presence will be reported as unsupported'
+          `[Rocket.Chat Desktop] Failed to load the presence module (tried: ${presenceModulePaths.join(
+            ', '
+          )}); presence will be reported as unsupported`
         );
         presenceModuleResolved = false;
-        return;
       }
-      Presence = (module as { Presence: unknown }).Presence;
-      presenceModuleResolved = true;
-      console.log('[Rocket.Chat Desktop] Presence module loaded successfully');
-    })
-    .catch(() => {
-      console.warn(
-        `[Rocket.Chat Desktop] Failed to load the presence module (tried: ${presenceModulePaths.join(
-          ', '
-        )}); presence will be reported as unsupported`
-      );
-      presenceModuleResolved = false;
+    )
+    .then(() => {
+      triggerSetup();
     });
   moduleLoads.push(presenceModuleLoad);
 
@@ -563,7 +595,7 @@ const start = async () => {
 
   // Setup reactive features that depend on modules (with polling)
   // eslint-disable-next-line complexity
-  const setupReactiveFeatures = () => {
+  setupReactiveFeatures = () => {
     if (Meteor?.absoluteUrl && !setupFlags.urlResolver) {
       if (!webClientPushesBridgeValues()) {
         window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
@@ -936,18 +968,15 @@ const start = async () => {
   if (!usesSidebarBackground) skippedFeatures.push('backgroundSettings');
   if (!usesLegacyPresenceDetection) skippedFeatures.push('userPresence');
 
-  const isSetupDone = (): boolean =>
+  isSetupDone = (): boolean =>
     (Object.keys(setupFlags) as Array<keyof typeof setupFlags>).every(
       (feature) => setupFlags[feature] || skippedFeatures.includes(feature)
     );
 
   // Call setupReactiveFeatures immediately and then periodically check for new modules
-  setupReactiveFeatures();
-  const setupTimer = setInterval(() => {
-    setupReactiveFeatures();
-    if (isSetupDone()) {
-      clearInterval(setupTimer);
-    }
+  triggerSetup();
+  setupTimer = setInterval(() => {
+    triggerSetup();
   }, 1000);
 
   // The setup steps read only the modules above. After the last lookup
@@ -955,8 +984,11 @@ const start = async () => {
   // check does not run for the life of the page.
   Promise.all(moduleLoads)
     .then(() => {
-      clearInterval(setupTimer);
-      setupReactiveFeatures();
+      if (setupTimer) {
+        clearInterval(setupTimer);
+        setupTimer = undefined;
+      }
+      triggerSetup();
     })
     .catch((error) => {
       console.error(

@@ -17,6 +17,12 @@
     "copyImage": "Copiar imagen"
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "Es necesario reiniciar",
+      "message": "Rocket.Chat necesita reiniciarse para cambiar la transparencia de la ventana. ¿Reiniciar ahora? Si cancelas, se restaurará la configuración anterior.",
+      "restartNow": "Reiniciar ahora",
+      "cancel": "Cancelar"
+    },
     "about": {
       "title": "Acerca de {{- appName}}",
       "version": "Versión: <1>{{-version}}</1>",

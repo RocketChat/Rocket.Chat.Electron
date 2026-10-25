@@ -21,7 +21,11 @@ export type SettingsSectionId =
 export type SettingAvailabilityContext = {
   isDeveloperModeEnabled: boolean;
   canUpdate: boolean;
+  /** A store build checks for updates through its store, not electron-updater. */
+  isStoreUpdate: boolean;
   platform: NodeJS.Platform;
+  serverCount: number;
+  isOutlookCalendarSyncIntervalOverridden: boolean;
 };
 
 type SettingAvailability = (context: SettingAvailabilityContext) => boolean;
@@ -32,6 +36,10 @@ const onPlatform =
   (...platforms: NodeJS.Platform[]): SettingAvailability =>
   ({ platform }) =>
     platforms.includes(platform);
+const canCheckForUpdates: SettingAvailability = ({
+  isStoreUpdate,
+  canUpdate,
+}) => isStoreUpdate || canUpdate;
 
 /** Every section is handed the window's surfaces; most ignore them. */
 export type SettingsSectionProps = {
@@ -89,7 +97,12 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.minimizeOnClose': onPlatform('win32'),
       'settings.options.menubar': ({ platform }) =>
         platform !== 'darwin' && platform !== 'win32',
+      'settings.options.outlookCalendarSyncInterval': ({
+        isOutlookCalendarSyncIntervalOverridden,
+      }) => !isOutlookCalendarSyncIntervalOverridden,
       'settings.options.ntlmCredentials': onPlatform('win32'),
+      'dialog.about.checkUpdates': canCheckForUpdates,
+      'dialog.about.checkUpdatesOnStart': canCheckForUpdates,
     },
     Component: GeneralSection,
   },
@@ -105,7 +118,8 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     ],
     settingAvailability: {
       'settings.options.transparentWindow': onPlatform('darwin'),
-      'settings.options.uiPreview': developerModeOnly,
+      'settings.options.uiPreview': (context) =>
+        developerModeOnly(context) && context.serverCount > 0,
     },
     Component: AppearanceSection,
   },
@@ -125,6 +139,9 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
       'settings.options.telephonyShortcut',
       'settings.options.telephonyServer',
     ],
+    settingAvailability: {
+      'settings.options.telephonyServer': ({ serverCount }) => serverCount > 1,
+    },
     Component: TelephonySection,
   },
   {

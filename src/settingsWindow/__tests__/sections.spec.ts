@@ -50,7 +50,10 @@ describe('settings search availability (CORE-2782)', () => {
   ): SettingAvailabilityContext => ({
     isDeveloperModeEnabled: false,
     canUpdate: true,
+    isStoreUpdate: false,
     platform: 'darwin',
+    serverCount: 2,
+    isOutlookCalendarSyncIntervalOverridden: false,
     ...overrides,
   });
 
@@ -123,6 +126,49 @@ describe('settings search availability (CORE-2782)', () => {
       'settings.options.ntlmCredentials',
       'settings.options.videoCallScreenCaptureFallback',
     ].forEach((key) => expect(linux).not.toContain(key));
+  });
+
+  it('does not index the update check when the component hides it', () => {
+    const UPDATE_CHECK_KEYS = [
+      'dialog.about.checkUpdates',
+      'dialog.about.checkUpdatesOnStart',
+    ];
+
+    const hidden = searchableKeys(context({ canUpdate: false }));
+    UPDATE_CHECK_KEYS.forEach((key) => expect(hidden).not.toContain(key));
+
+    // A store build keeps its own check, so the component still renders it.
+    const store = searchableKeys(
+      context({ canUpdate: false, isStoreUpdate: true })
+    );
+    UPDATE_CHECK_KEYS.forEach((key) => expect(store).toContain(key));
+  });
+
+  it('does not index the web UI preview with no workspace', () => {
+    expect(
+      searchableKeys(context({ isDeveloperModeEnabled: true, serverCount: 0 }))
+    ).not.toContain('settings.options.uiPreview');
+    expect(
+      searchableKeys(context({ isDeveloperModeEnabled: true, serverCount: 1 }))
+    ).toContain('settings.options.uiPreview');
+  });
+
+  it('indexes the telephony server choice only with two or more workspaces', () => {
+    expect(searchableKeys(context({ serverCount: 1 }))).not.toContain(
+      'settings.options.telephonyServer'
+    );
+    expect(searchableKeys(context({ serverCount: 2 }))).toContain(
+      'settings.options.telephonyServer'
+    );
+  });
+
+  it('does not index the Outlook sync interval when an override sets it', () => {
+    expect(
+      searchableKeys(context({ isOutlookCalendarSyncIntervalOverridden: true }))
+    ).not.toContain('settings.options.outlookCalendarSyncInterval');
+    expect(searchableKeys(context())).toContain(
+      'settings.options.outlookCalendarSyncInterval'
+    );
   });
 
   it('gates only keys that the section lists', () => {

@@ -84,13 +84,30 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
     ({ isUpdatingAllowed, isUpdatingEnabled }: RootState) =>
       isUpdatingAllowed && isUpdatingEnabled
   );
+  const isStoreUpdate = useSelector(
+    ({ updateStore }: RootState) => updateStore !== null
+  );
+  const serverCount = useSelector(({ servers }: RootState) => servers.length);
+  const isOutlookCalendarSyncIntervalOverridden = useSelector(
+    ({ outlookCalendarSyncIntervalOverride }: RootState) =>
+      outlookCalendarSyncIntervalOverride !== null
+  );
   const availabilityContext = useMemo(
     () => ({
       isDeveloperModeEnabled,
       canUpdate,
+      isStoreUpdate,
       platform: process.platform,
+      serverCount,
+      isOutlookCalendarSyncIntervalOverridden,
     }),
-    [isDeveloperModeEnabled, canUpdate]
+    [
+      isDeveloperModeEnabled,
+      canUpdate,
+      isStoreUpdate,
+      serverCount,
+      isOutlookCalendarSyncIntervalOverridden,
+    ]
   );
 
   /**

@@ -25,6 +25,13 @@
       ; where the uninstaller's $APPDATA points to ProgramData.
       SetShellVarContext current
       RMDir /r "$APPDATA\${APP_FILENAME}"
+      ; The same folders that electron-builder's deleteAppDataOnUninstall
+      ; removes: Electron can keep cache and IndexedDB data under the
+      ; package name.
+      !ifdef APP_PRODUCT_FILENAME
+        RMDir /r "$APPDATA\${APP_PRODUCT_FILENAME}"
+      !endif
+      RMDir /r "$APPDATA\${APP_PACKAGE_NAME}"
       ; The installer copy and the downloaded updates of electron-updater.
       RMDir /r "$LOCALAPPDATA\${APP_PACKAGE_NAME}-updater"
       ${if} $installMode == "all"

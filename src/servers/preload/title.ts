@@ -1,5 +1,6 @@
 import { dispatch } from '../../store';
 import { WEBVIEW_TITLE_CHANGED } from '../../ui/actions';
+import { redactServerUrl } from '../common';
 import { getServerUrl } from './urls';
 
 export const setTitle = (title: string): void => {
@@ -14,7 +15,7 @@ export const setTitle = (title: string): void => {
       type: WEBVIEW_TITLE_CHANGED,
       payload: {
         url,
-        title: `${title} - ${url}`,
+        title: `${title} - ${redactServerUrl(url)}`,
       },
     });
     return;

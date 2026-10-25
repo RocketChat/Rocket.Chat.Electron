@@ -7,17 +7,8 @@ import { dispatch, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import { ROOT_WINDOW_ICON_CHANGED } from '../ui/actions';
 import Badge from '../ui/icons/Badge';
+import { decodeUrlUserInfo } from './common';
 import type { Server } from './common';
-
-// URL userinfo is percent-encoded (`p%40ss`), and the Basic header needs the
-// raw value (`p@ss`).
-const decodeUserInfo = (value: string): string => {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-};
 
 export const fetchInfo = async (
   urlHref: string
@@ -36,7 +27,7 @@ export const fetchInfo = async (
   if (username && password) {
     headers.append(
       'Authorization',
-      `Basic ${btoa(`${decodeUserInfo(username)}:${decodeUserInfo(password)}`)}`
+      `Basic ${btoa(`${decodeUrlUserInfo(username)}:${decodeUrlUserInfo(password)}`)}`
     );
   }
 

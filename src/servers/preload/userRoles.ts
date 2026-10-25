@@ -1,6 +1,7 @@
 import { dispatch } from '../../store';
 import { WEBVIEW_USER_ROLES_CHANGED } from '../../ui/actions';
 import type { Server } from '../common';
+import { getServerLoadUrl } from '../common';
 import { getServerUrl } from './urls';
 
 // When the web client pushes roles through the RocketChatDesktop.setUserRoles
@@ -54,7 +55,8 @@ export const updateUserRoles = async (): Promise<void> => {
     const userId = localStorage.getItem('Meteor.userId');
     if (!authToken || !userId) return;
 
-    const response = await fetch(buildMeEndpoint(serverUrl), {
+    // Chromium's fetch rejects a URL that includes credentials.
+    const response = await fetch(buildMeEndpoint(getServerLoadUrl(serverUrl)), {
       headers: {
         'X-Auth-Token': authToken,
         'X-User-Id': userId,

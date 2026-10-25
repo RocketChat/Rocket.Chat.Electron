@@ -57,6 +57,24 @@ describe('servers/preload/userRoles (missing server URL)', () => {
     );
   });
 
+  it('fetches roles without the credentials of a credentialed server URL', async () => {
+    // Chromium's fetch rejects a URL that includes credentials.
+    const mockedFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ roles: ['user'] }),
+    }) as unknown as typeof global.fetch;
+    global.fetch = mockedFetch;
+    serverUrl = 'https://alice:p%40ss@chat.example.com/';
+    clearUserRoles();
+
+    await updateUserRoles();
+
+    expect(mockedFetch).toHaveBeenCalledWith(
+      'https://chat.example.com/api/v1/me',
+      expect.anything()
+    );
+  });
+
   it('does not fetch roles when server URL is an empty string', async () => {
     const mockedFetch = jest.fn() as unknown as typeof global.fetch;
     serverUrl = '';

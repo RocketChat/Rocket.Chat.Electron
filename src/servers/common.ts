@@ -96,6 +96,24 @@ export const getServerLoadUrl = (serverUrl: Server['url']): string => {
 // Logs and reports must not hold the password of a credentialed workspace URL.
 export const redactServerUrl = getServerLoadUrl;
 
+// URL userinfo is percent-encoded (`p%40ss`). A Basic header or a login
+// callback needs the raw value (`p@ss`).
+export const decodeUrlUserInfo = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+// A page of a credentialed workspace URL loads without the credentials, so
+// match it against the load URL.
+export const isServerPageUrl = (
+  pageUrl: string,
+  serverUrl: Server['url']
+): boolean =>
+  pageUrl.startsWith(getServerLoadUrl(serverUrl).replace(/\/$/, ''));
+
 export const enum ServerUrlResolutionStatus {
   OK = 'ok',
   INVALID_URL = 'invalid-url',

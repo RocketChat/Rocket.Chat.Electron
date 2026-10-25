@@ -534,6 +534,36 @@ describe('supportedVersions/main.ts', () => {
       });
     });
 
+    it('does not log the password in the exception scope mismatch warning', async () => {
+      const mockServer = createMockServer({
+        version: '7.13',
+        url: 'https://alice:s3cret@test.rocket.chat',
+      });
+      const mockServerInfo = createMockServerInfo({ version: '7.13' });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'other-tenant-id' }] },
+        });
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        tenantSupportedVersions()
+      );
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      await updateSupportedVersionsData(mockServer.url);
+
+      const mismatch = consoleWarnSpy.mock.calls.find(
+        ([message]) =>
+          typeof message === 'string' &&
+          message.includes('exception scope mismatch')
+      );
+      consoleWarnSpy.mockRestore();
+      expect(String(mismatch?.[0])).toContain('test.rocket.chat');
+      expect(String(mismatch?.[0]).includes('s3cret')).toBe(false);
+    });
+
     it('honors the server-source exception with a warning when the fetched uniqueID does not match the scope', async () => {
       const mockServer = createMockServer({ version: '7.13' });
       const mockServerInfo = createMockServerInfo({

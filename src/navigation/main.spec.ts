@@ -594,6 +594,26 @@ describe('navigation/main.ts', () => {
       expect(callback).toHaveBeenCalledWith('login-user', 'login-pass');
     });
 
+    it('passes decoded credentials to the login callback', async () => {
+      const event = { preventDefault: jest.fn() };
+      const callback = jest.fn();
+      setNavigationState({
+        servers: [{ url: 'https://login%40corp:p%40ss%20word@server.local' }],
+      });
+      await setup();
+      const loginListener = getListener('login');
+
+      await loginListener(
+        event as never,
+        {} as never,
+        { url: 'https://server.local/path' } as never,
+        {} as never,
+        callback
+      );
+
+      expect(callback).toHaveBeenCalledWith('login@corp', 'p@ss word');
+    });
+
     it('skips non-matching servers and applies credentials from a later match', async () => {
       const event = { preventDefault: jest.fn() };
       const callback = jest.fn();

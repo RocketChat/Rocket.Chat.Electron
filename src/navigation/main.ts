@@ -5,6 +5,7 @@ import type { Certificate } from 'electron';
 import { app } from 'electron';
 import i18next from 'i18next';
 
+import { decodeUrlUserInfo } from '../servers/common';
 import { request, select, dispatch } from '../store';
 import {
   AskForCertificateTrustResponse,
@@ -182,7 +183,7 @@ export const setupNavigation = async (): Promise<void> => {
           continue;
         }
 
-        callback(username, password);
+        callback(decodeUrlUserInfo(username), decodeUrlUserInfo(password));
         return;
       }
 

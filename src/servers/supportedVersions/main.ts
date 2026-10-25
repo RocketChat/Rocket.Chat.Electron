@@ -435,7 +435,7 @@ export const isServerVersionSupported = async (
     !exceptionScopeMismatch || payloadSource !== 'builtin';
   if (exceptionScopeMismatch && exceptionScopeMatches) {
     console.warn(
-      `Supported-versions exception scope mismatch for ${server.url} ` +
+      `Supported-versions exception scope mismatch for ${redactServerUrl(server.url)} ` +
         `(payload domain: ${exceptions?.domain}, uniqueId: ${exceptions?.uniqueId}; ` +
         `local uniqueID: ${server.uniqueID}) — honoring exception from ` +
         `${payloadSource ?? 'unspecified'} source anyway`
@@ -887,7 +887,7 @@ const logUpdateError =
   (serverUrl: string) =>
   (error: unknown): void => {
     console.error(
-      `Error updating supported versions data for ${serverUrl}:`,
+      `Error updating supported versions data for ${redactServerUrl(serverUrl)}:`,
       error
     );
   };

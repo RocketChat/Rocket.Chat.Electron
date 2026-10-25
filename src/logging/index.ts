@@ -5,6 +5,7 @@ import type { WebContents } from 'electron';
 import { app, ipcMain } from 'electron';
 import log from 'electron-log';
 
+import { isServerPageUrl } from '../servers/common';
 import { select, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
@@ -271,7 +272,7 @@ export const setupWebContentsLogging = () => {
         if (selectFunction && origin) {
           const servers = selectFunction((state: RootState) => state.servers);
           const matchedServer = servers.find(
-            (s: any) => s.url && origin.startsWith(s.url.replace(/\/$/, ''))
+            (s: any) => s.url && isServerPageUrl(origin, s.url)
           );
           if (matchedServer?.url) {
             event.returnValue = getHost(matchedServer.url);
@@ -304,8 +305,7 @@ export const setupWebContentsLogging = () => {
                   (state: RootState) => state.servers
                 );
                 const server = servers.find(
-                  (s: any) =>
-                    s.url && currentUrl.startsWith(s.url.replace(/\/$/, ''))
+                  (s: any) => s.url && isServerPageUrl(currentUrl, s.url)
                 );
                 serverUrl = server?.url || 'unknown';
               }

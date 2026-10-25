@@ -336,11 +336,55 @@ describe('supportedVersions/main.ts', () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       await updateSupportedVersionsData(mockServer.url);
 
-      // Should log warning about unique ID error but continue
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error fetching unique ID'),
-        expect.any(Error)
+      // Should log warning about unique ID error but continue. The warning
+      // is one string: the error object can hold the credentialed URL.
+      const uniqueIdWarning = consoleWarnSpy.mock.calls.find(
+        ([message]) =>
+          typeof message === 'string' &&
+          message.includes('Error fetching unique ID')
       );
+      expect(uniqueIdWarning?.length).toBe(1);
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should not log the credentialed request URL of a failed unique ID fetch', async () => {
+      const credentialedUrl = 'https://alice:s3cret@test.rocket.chat';
+      const mockServer = createMockServer({ url: credentialedUrl });
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      // Axios keeps the request config (with the full URL) on the error.
+      const requestError = Object.assign(
+        new Error('Request failed with status code 401'),
+        {
+          code: 'ERR_BAD_REQUEST',
+          config: { url: `${credentialedUrl}/api/v1/settings.public` },
+          response: { status: 401 },
+        }
+      );
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockRejectedValueOnce(requestError);
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      await updateSupportedVersionsData(mockServer.url);
+
+      const uniqueIdWarnings = consoleWarnSpy.mock.calls.filter(
+        ([message]) =>
+          typeof message === 'string' &&
+          message.includes('Error fetching unique ID')
+      );
+      expect(uniqueIdWarnings.length).toBe(1);
+      expect(uniqueIdWarnings[0].length).toBe(1);
+      expect(String(uniqueIdWarnings[0][0])).toContain('HTTP 401');
+      const logged = consoleWarnSpy.mock.calls
+        .flat()
+        .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+        .join('\n');
+      expect(logged.includes('s3cret')).toBe(false);
 
       consoleWarnSpy.mockRestore();
     });
@@ -488,6 +532,36 @@ describe('supportedVersions/main.ts', () => {
           isSupportedVersion: true,
         },
       });
+    });
+
+    it('does not log the password in the exception scope mismatch warning', async () => {
+      const mockServer = createMockServer({
+        version: '7.13',
+        url: 'https://alice:s3cret@test.rocket.chat',
+      });
+      const mockServerInfo = createMockServerInfo({ version: '7.13' });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'other-tenant-id' }] },
+        });
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        tenantSupportedVersions()
+      );
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      await updateSupportedVersionsData(mockServer.url);
+
+      const mismatch = consoleWarnSpy.mock.calls.find(
+        ([message]) =>
+          typeof message === 'string' &&
+          message.includes('exception scope mismatch')
+      );
+      consoleWarnSpy.mockRestore();
+      expect(String(mismatch?.[0])).toContain('test.rocket.chat');
+      expect(String(mismatch?.[0]).includes('s3cret')).toBe(false);
     });
 
     it('honors the server-source exception with a warning when the fetched uniqueID does not match the scope', async () => {

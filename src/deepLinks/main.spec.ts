@@ -1423,6 +1423,103 @@ describe('deepLinks/main.ts', () => {
         );
       });
     });
+
+    describe('workspace URL with user:pass credentials', () => {
+      const credentialedUrl = 'https://alice:s3cret@chat.example.com/';
+
+      const runDeepLink = async (deepLink: string): Promise<void> => {
+        const savedArgv = process.argv;
+        process.argv = ['electron', '.', deepLink];
+
+        await processDeepLinksInArgs();
+
+        process.argv = savedArgv;
+      };
+
+      beforeEach(() => {
+        resolveServerUrlMock.mockResolvedValue([
+          credentialedUrl,
+          ServerUrlResolutionStatus.OK,
+          undefined,
+        ] as any);
+        selectMock.mockReturnValue([{ url: credentialedUrl, title: 'Chat' }]);
+      });
+
+      it('loads the resumeToken page without the credentials', async () => {
+        setupDeepLinks();
+
+        await runDeepLink(
+          'rocketchat://auth?host=chat.example.com&token=abc&userId=123'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/home?resumeToken=abc&userId=123'
+        );
+      });
+
+      it('loads the SAML page without the credentials', async () => {
+        setupDeepLinks();
+
+        await runDeepLink(
+          'rocketchat://auth?type=saml&host=chat.example.com&credentialToken=saml-A'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/saml/saml-A'
+        );
+      });
+
+      it('loads the room page without the credentials', async () => {
+        setupDeepLinks();
+
+        await runDeepLink(
+          'rocketchat://room?host=chat.example.com&path=channel/general'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/channel/general'
+        );
+      });
+
+      it('loads the invite page without the credentials', async () => {
+        setupDeepLinks();
+
+        await runDeepLink(
+          'rocketchat://invite?host=chat.example.com&path=invite/example'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/invite/example'
+        );
+      });
+
+      it('sends the conference page without the credentials', async () => {
+        setupDeepLinks();
+
+        await runDeepLink(
+          'rocketchat://conference?host=chat.example.com&path=conference/room-1'
+        );
+
+        expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+        expect(requestConferenceWindowMock).toHaveBeenCalledWith(
+          credentialedUrl,
+          mockWebContents,
+          'https://chat.example.com/conference/room-1'
+        );
+      });
+
+      it('loads the callUrl conference redirect without the credentials', async () => {
+        setupDeepLinks();
+
+        await runDeepLink(
+          'rocketchat://conference?host=chat.example.com&path=conference/room-1%3FcallUrl%3Dx'
+        );
+
+        expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+          'https://chat.example.com/conference/room-1?callUrl=x'
+        );
+      });
+    });
   });
 
   describe('isTelephonyEnabled gate for tel: deep links', () => {

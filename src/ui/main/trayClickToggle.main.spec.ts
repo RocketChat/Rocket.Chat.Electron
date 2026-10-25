@@ -42,6 +42,7 @@ describe('shouldHideOnTrayClick', () => {
         minimized: false,
         focused: false,
         msSinceBlur: Number.POSITIVE_INFINITY,
+        platform: 'win32',
       })
     ).toBe(false);
   });
@@ -53,6 +54,7 @@ describe('shouldHideOnTrayClick', () => {
         minimized: false,
         focused: true,
         msSinceBlur: Number.POSITIVE_INFINITY,
+        platform: 'win32',
       })
     ).toBe(true);
   });
@@ -64,8 +66,21 @@ describe('shouldHideOnTrayClick', () => {
         minimized: false,
         focused: false,
         msSinceBlur: TRAY_CLICK_BLUR_GRACE_MS - 1,
+        platform: 'win32',
       })
     ).toBe(true);
+  });
+
+  it('shows a window that lost focus just before a Linux tray click', () => {
+    expect(
+      shouldHideOnTrayClick({
+        visible: true,
+        minimized: false,
+        focused: false,
+        msSinceBlur: TRAY_CLICK_BLUR_GRACE_MS - 1,
+        platform: 'linux',
+      })
+    ).toBe(false);
   });
 
   it('shows a minimized window', () => {
@@ -75,6 +90,7 @@ describe('shouldHideOnTrayClick', () => {
         minimized: true,
         focused: false,
         msSinceBlur: Number.POSITIVE_INFINITY,
+        platform: 'win32',
       })
     ).toBe(false);
   });
@@ -86,6 +102,7 @@ describe('shouldHideOnTrayClick', () => {
         minimized: false,
         focused: false,
         msSinceBlur: 0,
+        platform: 'win32',
       })
     ).toBe(false);
   });
@@ -109,7 +126,10 @@ describe('toggleRootWindowFromTray', () => {
       focused: false,
     });
 
-    toggleRootWindowFromTray(asBrowserWindow(window));
+    toggleRootWindowFromTray(asBrowserWindow(window), {
+      clickedAt: now,
+      platform: 'win32',
+    });
 
     expect(window.hide).not.toHaveBeenCalled();
     expect(window.show).toHaveBeenCalled();
@@ -125,7 +145,10 @@ describe('toggleRootWindowFromTray', () => {
     window.emit('blur');
     now += 100;
 
-    toggleRootWindowFromTray(asBrowserWindow(window));
+    toggleRootWindowFromTray(asBrowserWindow(window), {
+      clickedAt: now,
+      platform: 'win32',
+    });
 
     expect(window.hide).toHaveBeenCalled();
     expect(window.show).not.toHaveBeenCalled();
@@ -140,9 +163,51 @@ describe('toggleRootWindowFromTray', () => {
     window.emit('blur');
     now += 60_000;
 
-    toggleRootWindowFromTray(asBrowserWindow(window));
+    toggleRootWindowFromTray(asBrowserWindow(window), {
+      clickedAt: now,
+      platform: 'win32',
+    });
 
     expect(window.hide).not.toHaveBeenCalled();
+    expect(window.focus).toHaveBeenCalled();
+  });
+
+  it('measures the blur age at the click, not after the window lookup', () => {
+    const state = { visible: true, minimized: false, focused: true };
+    const window = createFakeWindow(state);
+    trackRootWindowBlur(asBrowserWindow(window));
+
+    state.focused = false;
+    window.emit('blur');
+    now += 250;
+    const clickedAt = now;
+    now += 300;
+
+    toggleRootWindowFromTray(asBrowserWindow(window), {
+      clickedAt,
+      platform: 'win32',
+    });
+
+    expect(window.hide).toHaveBeenCalled();
+    expect(window.show).not.toHaveBeenCalled();
+  });
+
+  it('brings a window that blurred just before a Linux tray click to the front', () => {
+    const state = { visible: true, minimized: false, focused: true };
+    const window = createFakeWindow(state);
+    trackRootWindowBlur(asBrowserWindow(window));
+
+    state.focused = false;
+    window.emit('blur');
+    now += 100;
+
+    toggleRootWindowFromTray(asBrowserWindow(window), {
+      clickedAt: now,
+      platform: 'linux',
+    });
+
+    expect(window.hide).not.toHaveBeenCalled();
+    expect(window.show).toHaveBeenCalled();
     expect(window.focus).toHaveBeenCalled();
   });
 
@@ -153,7 +218,10 @@ describe('toggleRootWindowFromTray', () => {
       focused: false,
     });
 
-    toggleRootWindowFromTray(asBrowserWindow(window));
+    toggleRootWindowFromTray(asBrowserWindow(window), {
+      clickedAt: now,
+      platform: 'win32',
+    });
 
     expect(window.restore).toHaveBeenCalled();
     expect(window.show).toHaveBeenCalled();

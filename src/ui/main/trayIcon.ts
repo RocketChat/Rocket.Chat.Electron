@@ -310,8 +310,9 @@ const createTrayIcon = (): Tray => {
 
   if (process.platform !== 'darwin') {
     trayIcon.addListener('click', async () => {
+      const clickedAt = Date.now();
       try {
-        toggleRootWindowFromTray(await getRootWindow());
+        toggleRootWindowFromTray(await getRootWindow(), { clickedAt });
       } catch (error) {
         loggers.ui.error(
           'Failed to toggle the root window from the tray icon click',
@@ -322,8 +323,9 @@ const createTrayIcon = (): Tray => {
   }
 
   trayIcon.addListener('balloon-click', async () => {
+    const clickedAt = Date.now();
     try {
-      toggleRootWindowFromTray(await getRootWindow());
+      toggleRootWindowFromTray(await getRootWindow(), { clickedAt });
     } catch (error) {
       loggers.ui.error(
         'Failed to toggle the root window from the tray balloon click',

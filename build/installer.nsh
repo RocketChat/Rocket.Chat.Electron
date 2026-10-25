@@ -20,17 +20,27 @@
 ; the function lives in customHeader, which it inserts after both.
 !macro customHeader
   !ifdef BUILD_UNINSTALLER
-    Function un.AddAppData
+    Function un.RemoveUserData
       ; Electron keeps user data per user, also for a per-machine install,
       ; where the uninstaller's $APPDATA points to ProgramData.
-      ${if} $installMode == "all"
-        SetShellVarContext current
-      ${endif}
+      SetShellVarContext current
       RMDir /r "$APPDATA\${APP_FILENAME}"
       ; The installer copy and the downloaded updates of electron-updater.
       RMDir /r "$LOCALAPPDATA\${APP_PACKAGE_NAME}-updater"
       ${if} $installMode == "all"
         SetShellVarContext all
+      ${endif}
+    FunctionEnd
+
+    Function un.AddAppData
+      ; A per-machine uninstall started by a standard user runs elevated as
+      ; the admin account that approved the UAC prompt. Remove the data of
+      ; the user who started the uninstall: run the removal in the outer,
+      ; non-elevated process.
+      ${if} ${UAC_IsInnerInstance}
+        !insertmacro UAC_AsUser_Call Function un.RemoveUserData ${UAC_SYNCREGISTERS}
+      ${else}
+        Call un.RemoveUserData
       ${endif}
     FunctionEnd
   !endif

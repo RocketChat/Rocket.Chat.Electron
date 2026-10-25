@@ -91,7 +91,10 @@ export const warnAboutUiPreviewFailure = async (
   });
 };
 
-export const warnAboutInvalidServerUrl = async (
+const showServerUrlError = async (
+  messageKey:
+    | 'dialog.addServerError.message'
+    | 'dialog.addServerError.unreachableMessage',
   serverUrl: string,
   reason: string,
   parentWindow?: BrowserWindow
@@ -104,7 +107,7 @@ export const warnAboutInvalidServerUrl = async (
     await dialog.showMessageBox(parentWindow ?? (await getRootWindow()), {
       type: 'error',
       title: t('dialog.addServerError.title'),
-      message: t('dialog.addServerError.message', { host: serverUrl }),
+      message: t(messageKey, { host: serverUrl }),
       detail: reason || undefined,
     });
   } catch (error) {
@@ -114,6 +117,32 @@ export const warnAboutInvalidServerUrl = async (
     );
   }
 };
+
+export const warnAboutInvalidServerUrl = (
+  serverUrl: string,
+  reason: string,
+  parentWindow?: BrowserWindow
+): Promise<void> =>
+  showServerUrlError(
+    'dialog.addServerError.message',
+    serverUrl,
+    reason,
+    parentWindow
+  );
+
+// For a workspace that is already in the sidebar: it could not be validated
+// now, but it was not removed, so the "was not added" text would be wrong.
+export const warnAboutUnreachableServer = (
+  serverUrl: string,
+  reason: string,
+  parentWindow?: BrowserWindow
+): Promise<void> =>
+  showServerUrlError(
+    'dialog.addServerError.unreachableMessage',
+    serverUrl,
+    reason,
+    parentWindow
+  );
 
 export const enum AskUpdateInstallResponse {
   INSTALL_LATER = 0,

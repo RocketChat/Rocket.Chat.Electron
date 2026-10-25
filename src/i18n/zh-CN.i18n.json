@@ -32,7 +32,8 @@
     },
     "addServerError": {
       "title": "无效的网址",
-      "message": "网址 \"{{- host}}\" 无法验证，因此沒有新增。"
+      "message": "网址 \"{{- host}}\" 无法验证，因此沒有新增。",
+      "unreachableMessage": "网址 \"{{- host}}\" 无法验证。该工作区仍在您的列表中。"
     },
     "certificateError": {
       "title": "证书错误",

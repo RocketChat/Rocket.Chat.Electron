@@ -40,7 +40,8 @@
     },
     "addServerError": {
       "title": "Ugyldig vert",
-      "message": "Verten \"{{- host}}\" kunne ikke valideres, så den ble ikke lagt til."
+      "message": "Verten \"{{- host}}\" kunne ikke valideres, så den ble ikke lagt til.",
+      "unreachableMessage": "Verten \"{{- host}}\" kunne ikke valideres. Arbeidsområdet er fortsatt i listen din."
     },
     "certificateError": {
       "title": "Sertifikatfeil",

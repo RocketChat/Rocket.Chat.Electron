@@ -22,7 +22,6 @@ import {
   setUserPresenceDetection,
 } from '../../userPresence/preload';
 import type { MediaCaptureState, Server } from '../common';
-import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import {
   openDocumentViewer,
@@ -37,7 +36,17 @@ import {
 } from './internalVideoChatWindow';
 import { onNavigateToRoute } from './navigateToRoute';
 import { openInBrowser } from './openInBrowser';
-import { onPresenceChangeRequested, setUserPresence } from './presence';
+import type {
+  DesktopUserPresence,
+  DesktopUserStatusChangeRequest,
+} from './presence';
+import {
+  onPresenceChangeRequested,
+  onUserPresenceStateReported,
+  setUserPresence,
+  setUserPresenceState,
+  setUserStatusChangeHandler,
+} from './presence';
 import { reloadServer } from './reloadServer';
 import {
   setBackground,
@@ -51,6 +60,15 @@ import { getServerUrl, setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
 import { setUserRoles } from './userRoles';
 import { setVersion } from './version';
+import {
+  getWebClientBridgeVersion,
+  setWebClientBridgeVersion,
+} from './webClientBridge';
+import {
+  extendBootTimer,
+  setBadgeFromWebClient,
+  setUnreadAlertEnabled,
+} from './webClientEvents';
 
 type ServerInfo = {
   version: string;
@@ -104,7 +122,15 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
       statusText?: string
     ) => void
   ) => void;
+  setUserPresenceState: (presence: DesktopUserPresence) => void;
+  onUserPresenceStateReported: (callback: () => void) => void;
+  setUserStatusChangeHandler: (
+    handler: (request: DesktopUserStatusChangeRequest) => Promise<void>
+  ) => void;
   reportMediaCapture: (state: MediaCaptureState) => void;
+  setUnreadAlertEnabled: (enabled: boolean) => void;
+  setWebClientBridgeVersion: (version: number) => void;
+  getWebClientBridgeVersion: () => number;
 };
 
 declare global {
@@ -124,11 +150,15 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);
+    extendBootTimer();
     setServerVersionToSidebar(_serverInfo.version);
     setVersion(_serverInfo.version);
   },
+  setWebClientBridgeVersion,
+  getWebClientBridgeVersion,
   setUrlResolver,
-  setBadge,
+  setBadge: setBadgeFromWebClient,
+  setUnreadAlertEnabled,
   setFavicon,
   setBackground,
   setTitle,
@@ -138,6 +168,9 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserRoles,
   setUserPresence,
   onPresenceChangeRequested,
+  setUserPresenceState,
+  onUserPresenceStateReported,
+  setUserStatusChangeHandler,
   reportMediaCapture,
   setUserThemeAppearance,
   createNotification,

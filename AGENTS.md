@@ -218,6 +218,14 @@ hooks, `settings.json`).
   (`org.freedesktop.portal.ScreenCast` requests), not on dialog visibility,
   which is flaky across portal and boot states. Full story:
   `docs/postmortem-screen-picker-startup-enumeration.md`.
+- The desktop app reads the web client's `window` events (`startup`,
+  `unread-changed*`, `status-changed`, `Custom_Script_Logged_In` and
+  `Custom_Script_Logged_Out`). Before you change code that reads them, run
+  `yarn probe:web-signals --server <url>` against a disposable server. The
+  probe checks the Meteor build and the Vite build. Follow the
+  `web-signals-probe` skill (`skills/web-signals-probe/SKILL.md`). Do not read
+  `Custom_Script_On_Logout`, because the Meteor build does not fire it on a
+  forced logout.
 
 ### Test runner and CI speed
 
@@ -238,9 +246,12 @@ hooks, `settings.json`).
     getters.
   - A read of a `const` inside a `jest.mock` factory fails, because swc's
     hoisting hits the temporal dead zone.
-- `jest.config.js` excludes 19 preload/renderer specs under `--coverage`.
-  Keep at least one CI leg on plain `yarn test` (today: the windows and macos
-  shards). Otherwise those specs gate nothing.
+- A spec with the `@jest-environment jsdom` docblock runs in its own Jest
+  project, in plain Node. `jest.config.js` finds these specs by the docblock.
+  Do not run jsdom inside the Electron runner. Since Electron 43, the
+  renderer aborts with `Check failed: ToExecutionContext(context)`, and the
+  runner hangs until CI kills the job. These specs also count under
+  `--coverage`.
 - validate-pr runs the ubuntu shards on `ubuntu-24.04-arm`.
   - Cache keys MUST include `runner.arch`, because both architectures report
     `runner.os == Linux`.

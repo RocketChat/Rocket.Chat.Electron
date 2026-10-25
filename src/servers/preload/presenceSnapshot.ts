@@ -11,7 +11,31 @@ import type { Server, UserPresence } from '../common';
 export type PresenceStoreEntry = {
   _id?: string;
   status?: string;
-  statusText?: string;
+  statusText?: string | null;
+};
+
+// The presence stream sends the status text with each status change. When a
+// change does not set a text (a change from the tray, for example), the stream
+// has no text, and the store entry holds `undefined` or `null` while the server
+// keeps the text. A cleared text arrives as an empty string. Keep the last
+// known text of the same user until the stream sends a string.
+export const mergePresenceStoreEntry = (
+  previous: PresenceStoreEntry | null,
+  next: PresenceStoreEntry | null | undefined
+): PresenceStoreEntry | null => {
+  if (!next) {
+    return null;
+  }
+
+  if (
+    typeof next.statusText === 'string' ||
+    !previous ||
+    previous._id !== next._id
+  ) {
+    return next;
+  }
+
+  return { ...next, statusText: previous.statusText };
 };
 
 export type PresenceSnapshot = {

@@ -32,7 +32,7 @@ Running log of test-coverage milestones for Rocket.Chat.Electron. Append a new r
 
 - **Goal met:** 70% lines on the **full** `src/**` collectCoverageFrom surface (same denominator as the baseline row).
 - **Still large residual 0% / low modules:** `videoCallWindow/video-call-window.ts`, `injected.ts`, `main.ts`, `buildAssets.ts` (CLI asset pipeline), parts of `ui/main/rootWindow` / `serverView`, residual `videoCallWindow/ipc` window-lifecycle branches.
-- **Coverage gotcha:** renderer preload specs remain in `COVERAGE_INCOMPATIBLE_SPECS` (Istanbul `EvalError` under electron runner). Prefer main/node harnesses that `require()` preloads so lines still count under `yarn test:coverage`.
+- **Coverage gotcha:** specs in the Electron renderer runner hit Istanbul's `EvalError` under `--coverage`. Specs with the `@jest-environment jsdom` docblock run in plain Node (own Jest project) and count under `yarn test:coverage`.
 
 ## Testing notes (gotchas worth knowing before adding specs)
 

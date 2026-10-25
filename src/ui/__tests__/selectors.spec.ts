@@ -82,6 +82,28 @@ describe('ui/selectors', () => {
     expect(selectActiveServerPresence(rootState).connection).toBe('connected');
   });
 
+  it('exposes the status expiration and the available statuses', () => {
+    const rootState = {
+      servers: [
+        {
+          url: 'https://server.test',
+          presenceStatusExpiresAt: '2026-10-19T18:00:00.000Z',
+          presenceAvailableStatuses: ['online', 'away'],
+          presenceCustomStatuses: [
+            { id: 'lunch', name: 'Lunch', status: 'away' },
+          ],
+        },
+      ],
+      currentView: { url: 'https://server.test' },
+    } as unknown as RootState;
+
+    expect(selectActiveServerPresence(rootState)).toMatchObject({
+      statusExpiresAt: '2026-10-19T18:00:00.000Z',
+      availableStatuses: ['online', 'away'],
+      customStatuses: [{ id: 'lunch', name: 'Lunch', status: 'away' }],
+    });
+  });
+
   it('passes through the failed flag from the active server', () => {
     const rootState = {
       servers: [

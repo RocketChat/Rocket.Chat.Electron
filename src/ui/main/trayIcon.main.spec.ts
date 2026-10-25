@@ -411,4 +411,117 @@ describe('ui/main/trayIcon', () => {
       expect(trayMethods.setTitle).toHaveBeenLastCalledWith('7');
     });
   });
+
+  describe('status change request', () => {
+    const checkedLabels = (template: any[]) =>
+      template[0].submenu
+        .filter((item: any) => item.checked)
+        .map((item: any) => item.label);
+
+    it('builds the menu from the store again after a click, so a refused change does not keep the check', async () => {
+      const activeServerPresence = {
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'away',
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+      };
+      select.mockImplementation((selector: any) =>
+        typeof selector === 'function'
+          ? selector({
+              rootWindowState: { visible: true },
+              hasHideOnTrayNotificationShown: false,
+              globalBadge: undefined,
+              activeServerPresence,
+              servers: [],
+            })
+          : undefined
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const service = require('./trayIcon').default;
+      service.setUp();
+      await new Promise((r) => setTimeout(r, 20));
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectActiveServerPresence } = require('../selectors');
+      watchCallbacks.get(selectActiveServerPresence)?.(activeServerPresence);
+
+      const template = trayMethods.setContextMenu.mock.lastCall?.[0];
+      expect(checkedLabels(template)).toEqual(['tray.presence.away']);
+
+      // Electron moves the radio check before it calls the click handler.
+      const busy = template[0].submenu.find(
+        (item: any) => item.label === 'tray.presence.busy'
+      );
+      template[0].submenu.forEach((item: any) => {
+        item.checked = item === busy;
+      });
+      const menusBeforeClick = trayMethods.setContextMenu.mock.calls.length;
+      busy.click();
+      await new Promise((r) => setTimeout(r, 5));
+
+      // The server refused the change, so the store still reports away.
+      expect(trayMethods.setContextMenu.mock.calls.length).toBeGreaterThan(
+        menusBeforeClick
+      );
+      expect(
+        checkedLabels(trayMethods.setContextMenu.mock.lastCall?.[0])
+      ).toEqual(['tray.presence.away']);
+    });
+  });
+
+  describe('status expiry', () => {
+    const hasExpiryLine = (template: any[]) =>
+      template.some((item) => item.label === 'tray.presence.expiresAt');
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('rebuilds the menu without the end time when the status expires', async () => {
+      const expiresAt = new Date(Date.now() + 60 * 1000).toISOString();
+      const activeServerPresence = {
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'busy',
+        statusText: 'In a meeting',
+        statusExpiresAt: expiresAt,
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+      };
+      select.mockImplementation((selector: any) =>
+        typeof selector === 'function'
+          ? selector({
+              rootWindowState: { visible: true },
+              hasHideOnTrayNotificationShown: false,
+              globalBadge: undefined,
+              activeServerPresence,
+            })
+          : undefined
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const service = require('./trayIcon').default;
+      service.setUp();
+      await new Promise((r) => setTimeout(r, 20));
+
+      jest.useFakeTimers({ now: Date.now() });
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { selectActiveServerPresence } = require('../selectors');
+      watchCallbacks.get(selectActiveServerPresence)?.(activeServerPresence);
+
+      expect(hasExpiryLine(trayMethods.setContextMenu.mock.lastCall?.[0])).toBe(
+        true
+      );
+
+      jest.advanceTimersByTime(61 * 1000);
+
+      expect(hasExpiryLine(trayMethods.setContextMenu.mock.lastCall?.[0])).toBe(
+        false
+      );
+    });
+  });
 });

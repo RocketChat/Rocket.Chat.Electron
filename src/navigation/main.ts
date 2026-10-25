@@ -5,6 +5,7 @@ import type { Certificate } from 'electron';
 import { app } from 'electron';
 import i18next from 'i18next';
 
+import { loggers } from '../logging/scopes';
 import { decodeUrlUserInfo } from '../servers/common';
 import { request, select, dispatch } from '../store';
 import {
@@ -52,6 +53,17 @@ export const setupNavigation = async (): Promise<void> => {
     'certificate-error',
     async (event, _webContents, requestedUrl, error, certificate, callback) => {
       event.preventDefault();
+
+      // A revoked certificate is one its CA or the root programs declared
+      // compromised. Like Chrome, never let the user trust it: on a hostile
+      // network the trust dialog would be a one-click bypass of the revocation.
+      if (error === 'net::ERR_CERT_REVOKED') {
+        loggers.main.warn(
+          `Rejected revoked certificate for ${requestedUrl} (issuer: ${certificate.issuerName})`
+        );
+        callback(false);
+        return;
+      }
 
       const serialized = serializeCertificate(certificate);
       const { host } = new URL(requestedUrl);

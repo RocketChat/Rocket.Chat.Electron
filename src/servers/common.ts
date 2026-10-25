@@ -47,6 +47,9 @@ export type Server = {
   presenceStatusText?: string;
   presenceConnection?: 'connected' | 'connecting' | 'disconnected';
   presenceSupported?: boolean;
+  presenceStatusExpiresAt?: string;
+  presenceAvailableStatuses?: UserPresence[];
+  presenceCustomStatuses?: { id: string; name: string; status: UserPresence }[];
   isAudible?: boolean;
   isAudioMuted?: boolean;
   mediaCapture?: Partial<Record<MediaCaptureSource, MediaCaptureState>>;

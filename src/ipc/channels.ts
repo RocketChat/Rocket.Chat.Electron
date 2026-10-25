@@ -172,7 +172,8 @@ type ChannelToArgsMap = {
   'telephony/get-diagnostics': () => TelephonyDiagnostics;
   'presence/change-requested': (
     status: NonNullable<Server['presence']>,
-    statusText?: string
+    statusText?: string,
+    customStatusId?: string
   ) => void;
 };
 

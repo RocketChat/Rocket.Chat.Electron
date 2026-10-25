@@ -232,6 +232,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         presenceStatusText,
         presenceConnection,
         presenceSupported,
+        presenceStatusExpiresAt,
+        presenceAvailableStatuses,
+        presenceCustomStatuses,
       } = action.payload;
       return upsert(state, {
         url,
@@ -239,6 +242,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         presenceStatusText,
         presenceConnection,
         presenceSupported,
+        presenceStatusExpiresAt,
+        presenceAvailableStatuses,
+        presenceCustomStatuses,
       });
     }
 

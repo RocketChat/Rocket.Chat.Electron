@@ -3,6 +3,7 @@ import { WEBVIEW_USER_ROLES_CHANGED } from '../../ui/actions';
 import type { Server } from '../common';
 import { getServerLoadUrl } from '../common';
 import { getServerUrl } from './urls';
+import { runWhenPreloadReady } from './whenPreloadReady';
 
 // When the web client pushes roles through the RocketChatDesktop.setUserRoles
 // bridge, that source is authoritative and reactive, so the REST fallback must
@@ -34,7 +35,7 @@ export const setUserRoles = (roles: unknown): void => {
     (role): role is string => typeof role === 'string'
   );
   rolesProvidedByBridge = true;
-  dispatchUserRoles(userRoles);
+  runWhenPreloadReady('userRoles', () => dispatchUserRoles(userRoles));
 };
 
 /**
@@ -84,5 +85,5 @@ export const updateUserRoles = async (): Promise<void> => {
 
 export const clearUserRoles = (): void => {
   rolesProvidedByBridge = false;
-  dispatchUserRoles(undefined);
+  runWhenPreloadReady('userRoles', () => dispatchUserRoles(undefined));
 };

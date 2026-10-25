@@ -2,8 +2,29 @@ import { ipcRenderer } from 'electron';
 
 import { dispatch } from '../../store';
 import { WEBVIEW_USER_PRESENCE_CHANGED } from '../../ui/actions';
-import type { Server } from '../common';
+import type { Server, UserPresence } from '../common';
+import { createPresenceRateLimiter } from './presenceDebounce';
 import { getServerUrl } from './urls';
+import { setUserLoggedIn } from './userLoggedIn';
+
+export type DesktopUserPresence = {
+  loggedIn: boolean;
+  connection: 'connected' | 'connecting' | 'disconnected';
+  status?: UserPresence;
+  statusText?: string;
+  statusExpiresAt?: string;
+  availableStatuses: UserPresence[];
+  customStatuses: { id: string; name: string; status: UserPresence }[];
+};
+
+export type DesktopUserStatusChangeRequest = {
+  status: UserPresence;
+  customStatusId?: string;
+};
+
+type UserStatusChangeHandler = (
+  request: DesktopUserStatusChangeRequest
+) => Promise<void>;
 
 type UserPresencePayload = {
   presence: Server['presence'];
@@ -12,7 +33,85 @@ type UserPresencePayload = {
   presenceSupported: Server['presenceSupported'];
 };
 
+const USER_PRESENCES: UserPresence[] = ['online', 'away', 'busy', 'offline'];
+const PRESENCE_CONNECTIONS: DesktopUserPresence['connection'][] = [
+  'connected',
+  'connecting',
+  'disconnected',
+];
+const MAX_CUSTOM_STATUSES = 100;
+const MAX_STRING_LENGTH = 256;
+
+type NormalizedUserPresence = Omit<DesktopUserPresence, 'connection'> & {
+  connection?: DesktopUserPresence['connection'];
+};
+
+const isUserPresence = (value: unknown): value is UserPresence =>
+  USER_PRESENCES.includes(value as UserPresence);
+
+const isShortString = (value: unknown): value is string =>
+  typeof value === 'string' && value.length <= MAX_STRING_LENGTH;
+
+const toArray = (value: unknown): unknown[] =>
+  Array.isArray(value) ? value : [];
+
+// The web page sends this snapshot, and the main process builds menu items
+// and icon file paths from it. Keep only values of the expected shape.
+const normalizeUserPresence = (input: unknown): NormalizedUserPresence => {
+  const presence = (input ?? {}) as Record<string, unknown>;
+  const { statusText, statusExpiresAt } = presence;
+
+  return {
+    loggedIn: presence.loggedIn === true,
+    connection: PRESENCE_CONNECTIONS.find(
+      (connection) => connection === presence.connection
+    ),
+    status: isUserPresence(presence.status) ? presence.status : undefined,
+    statusText:
+      typeof statusText === 'string'
+        ? statusText.slice(0, MAX_STRING_LENGTH)
+        : undefined,
+    statusExpiresAt:
+      isShortString(statusExpiresAt) &&
+      !Number.isNaN(Date.parse(statusExpiresAt))
+        ? statusExpiresAt
+        : undefined,
+    availableStatuses: toArray(presence.availableStatuses).filter(
+      isUserPresence
+    ),
+    customStatuses: toArray(presence.customStatuses)
+      .flatMap((entry) => {
+        const { id, name, status } = (entry ?? {}) as Record<string, unknown>;
+        return isShortString(id) &&
+          typeof name === 'string' &&
+          isUserPresence(status)
+          ? [{ id, name: name.slice(0, MAX_STRING_LENGTH), status }]
+          : [];
+      })
+      .slice(0, MAX_CUSTOM_STATUSES),
+  };
+};
+
+let presenceStateReported = false;
+let presenceStateReportedCallback: (() => void) | null = null;
+let lastLoggedIn: boolean | undefined;
+let storeReady = false;
+let pendingPresenceState: NormalizedUserPresence | null = null;
+
+export const onUserPresenceStateReported = (callback: () => void): void => {
+  if (presenceStateReported) {
+    callback();
+    return;
+  }
+
+  presenceStateReportedCallback = callback;
+};
+
 export const setUserPresence = (payload: UserPresencePayload): void => {
+  if (presenceStateReported) {
+    return;
+  }
+
   dispatch({
     type: WEBVIEW_USER_PRESENCE_CHANGED,
     payload: {
@@ -20,6 +119,55 @@ export const setUserPresence = (payload: UserPresencePayload): void => {
       ...payload,
     },
   });
+};
+
+const applyUserPresenceState = (presence: NormalizedUserPresence): void => {
+  if (presence.loggedIn !== lastLoggedIn) {
+    lastLoggedIn = presence.loggedIn;
+    setUserLoggedIn(presence.loggedIn);
+  }
+
+  dispatch({
+    type: WEBVIEW_USER_PRESENCE_CHANGED,
+    payload: {
+      url: getServerUrl(),
+      presence: presence.status,
+      presenceStatusText: presence.statusText || undefined,
+      presenceConnection: presence.connection,
+      presenceSupported: true,
+      presenceStatusExpiresAt: presence.statusExpiresAt,
+      presenceAvailableStatuses: presence.availableStatuses,
+      presenceCustomStatuses: presence.customStatuses,
+    },
+  });
+};
+
+export const setUserPresenceState = (presence: DesktopUserPresence): void => {
+  if (!presenceStateReported) {
+    presenceStateReported = true;
+    presenceStateReportedCallback?.();
+  }
+
+  const normalized = normalizeUserPresence(presence);
+
+  // A dispatch before the renderer store exists is dropped. Keep the latest
+  // snapshot until the preload start creates the store.
+  if (!storeReady) {
+    pendingPresenceState = normalized;
+    return;
+  }
+
+  applyUserPresenceState(normalized);
+};
+
+export const markPresenceStoreReady = (): void => {
+  storeReady = true;
+
+  const pending = pendingPresenceState;
+  pendingPresenceState = null;
+  if (pending) {
+    applyUserPresenceState(pending);
+  }
 };
 
 type PresenceChangeCallback = (
@@ -35,6 +183,78 @@ export const onPresenceChangeRequested = (
   presenceChangeCallback = callback;
 };
 
+let userStatusChangeHandler: UserStatusChangeHandler | null = null;
+
+export const setUserStatusChangeHandler = (
+  handler: UserStatusChangeHandler
+): void => {
+  userStatusChangeHandler = handler;
+};
+
+const ERROR_DETAIL_FIELDS = [
+  'status',
+  'statusText',
+  'errorType',
+  'error',
+  'reason',
+  'message',
+];
+
+const toJson = (value: object): string => {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+};
+
+// The rejection of the web client handler reaches the preload as a copy made
+// by the context bridge. An Error keeps its message, and another object keeps
+// only its own fields. The preload log writes an object as `[object Object]`,
+// so give it a string.
+const describeStatusChangeError = (error: unknown): string => {
+  let description: string;
+  if (error instanceof Error) {
+    description = error.message || error.name;
+  } else if (typeof error === 'object' && error !== null) {
+    const fields = error as Record<string, unknown>;
+    const details = ERROR_DETAIL_FIELDS.map((field) => fields[field]).filter(
+      (value) =>
+        typeof value === 'number' || (typeof value === 'string' && value !== '')
+    );
+    description = details.length ? details.join(' ') : toJson(error);
+  } else {
+    description = String(error);
+  }
+
+  return description.slice(0, MAX_STRING_LENGTH);
+};
+
+const userStatusChangeLimiter = createPresenceRateLimiter({
+  minIntervalMs: 1000,
+  send: ({ status, customStatusId }) => {
+    const handler = userStatusChangeHandler;
+    if (!handler) {
+      return;
+    }
+
+    Promise.resolve()
+      .then(() =>
+        handler({
+          status: status as UserPresence,
+          ...(customStatusId && { customStatusId }),
+        })
+      )
+      .catch((error: unknown) => {
+        console.warn(
+          `[Rocket.Chat Desktop] Status change failed: ${describeStatusChangeError(
+            error
+          )}`
+        );
+      });
+  },
+});
+
 let listening = false;
 
 export const listenToPresenceChangeRequests = (): void => {
@@ -45,7 +265,17 @@ export const listenToPresenceChangeRequests = (): void => {
 
   ipcRenderer.on(
     'presence/change-requested',
-    (_event, status: NonNullable<Server['presence']>, statusText?: string) => {
+    (
+      _event,
+      status: NonNullable<Server['presence']>,
+      statusText?: string,
+      customStatusId?: string
+    ) => {
+      if (userStatusChangeHandler) {
+        userStatusChangeLimiter.request({ status, customStatusId });
+        return;
+      }
+
       if (presenceChangeCallback) {
         presenceChangeCallback(status, statusText);
       }

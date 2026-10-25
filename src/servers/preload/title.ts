@@ -2,12 +2,9 @@ import { dispatch } from '../../store';
 import { WEBVIEW_TITLE_CHANGED } from '../../ui/actions';
 import { redactServerUrl } from '../common';
 import { getServerUrl } from './urls';
+import { runWhenPreloadReady } from './whenPreloadReady';
 
-export const setTitle = (title: string): void => {
-  if (typeof title !== 'string') {
-    return;
-  }
-
+const applyTitle = (title: string): void => {
   const url = getServerUrl();
 
   if (title === 'Rocket.Chat' && new URL(url).host !== 'open.rocket.chat') {
@@ -28,4 +25,12 @@ export const setTitle = (title: string): void => {
       title,
     },
   });
+};
+
+export const setTitle = (title: string): void => {
+  if (typeof title !== 'string') {
+    return;
+  }
+
+  runWhenPreloadReady('title', () => applyTitle(title));
 };

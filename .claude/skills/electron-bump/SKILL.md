@@ -49,13 +49,19 @@ This skill automates a safe Electron upgrade for **this repo**
 3. **Downgrade guard**: compare TARGET with CURRENT by semver. If TARGET <
    CURRENT, STOP. Ask the user to state explicitly that a downgrade is
    intended before you proceed.
-4. Classify the jump as **patch** (z), **minor** (y), or **major** (x). The
+4. **Platform guard**: run `gh release view v<TARGET> -R electron/electron`.
+   The assets must include win32 `x64`, `ia32` and `arm64`, darwin `x64` and
+   `arm64`, and linux. Read the breaking changes for the minimum macOS
+   version. If the target drops a platform that the app ships, STOP. Offer
+   the newest major that keeps every shipped platform. Electron 44 has no
+   win32-ia32 build and drops macOS 12.
+5. Classify the jump as **patch** (z), **minor** (y), or **major** (x). The
    class drives the effort:
    - **patch / minor within the same major** → historically `package.json`
      and `yarn.lock` only, no code changes. Light path.
    - **major** → expect API breaks, code adaptation, an @types/node bump, and
      README/builder updates. Full path.
-5. Make sure that the GitNexus index is fresh. If a GitNexus tool warns that
+6. Make sure that the GitNexus index is fresh. If a GitNexus tool warns that
    the index is stale, run `node .gitnexus/run.cjs analyze --index-only`
    (see `AGENTS.md`). Run it only at a quiet point: a
    background analyze can drop staged files and restart a running
@@ -206,11 +212,19 @@ context:
 2. `yarn test` — the full Jest suite (renderer and main). RTL specs need fake
    timers (see project memory `lesson_rtl_jest_electron_timer_leak`). A
    leaked timer orphans electron procs. Do not loop full runs per builder.
-   Batch-check once.
+   Batch-check once. Run the suite with a time limit. If it prints nothing
+   for more than 3× its normal duration, a renderer crashed. The runner has
+   no crash handling and waits forever. Run each spec alone with a 90 s
+   limit to find the crashing spec.
 3. If a local build is cheap enough, smoke-test `yarn build`. CI does full
    packaging (electron-builder, Windows signing). Do NOT attempt local
    Windows/MSI builds.
-4. On any failure, diagnose the root cause, fix it, and check again. Do not
+4. For a security bump, prove the fix on the packaged app on macOS, Windows
+   and Linux (mosdat VMs). Load the test hosts of the disclosure in the old
+   and the new build. The old build must accept them. The new build must
+   reject them. Also check the app's own handlers that can override the fix,
+   for example `certificate-error` for a CA distrust. Fix them in the same PR.
+5. On any failure, diagnose the root cause, fix it, and check again. Do not
    mark the task done with red tests.
 
 Definition of Done: the version is bumped everywhere that the plan listed.

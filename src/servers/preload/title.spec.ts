@@ -2,6 +2,7 @@ import { dispatch } from '../../store';
 import { WEBVIEW_TITLE_CHANGED } from '../../ui/actions';
 import { setTitle } from './title';
 import { getServerUrl } from './urls';
+import { markPreloadReady } from './whenPreloadReady';
 
 jest.mock('../../store', () => ({
   dispatch: jest.fn(),
@@ -17,6 +18,10 @@ const getServerUrlMock = getServerUrl as jest.MockedFunction<
 >;
 
 describe('servers/preload/title', () => {
+  beforeAll(() => {
+    markPreloadReady();
+  });
+
   beforeEach(() => {
     dispatchMock.mockClear();
   });

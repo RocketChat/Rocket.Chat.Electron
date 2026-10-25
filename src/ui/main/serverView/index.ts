@@ -1004,7 +1004,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         'indexdb',
         'filesystem',
         'shadercache',
-        'websql',
         'serviceworkers',
         'cachestorage',
       ],

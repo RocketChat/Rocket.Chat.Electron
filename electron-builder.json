@@ -126,7 +126,14 @@
     "displayName": "Rocket.Chat"
   },
   "linux": {
-    "target": ["AppImage", "tar.gz", "deb", "rpm", "snap", "flatpak"],
+    "target": [
+      { "target": "AppImage", "arch": ["x64", "arm64"] },
+      { "target": "tar.gz", "arch": ["x64", "arm64"] },
+      { "target": "deb", "arch": ["x64", "arm64"] },
+      { "target": "rpm", "arch": ["x64", "arm64"] },
+      "snap",
+      "flatpak"
+    ],
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {

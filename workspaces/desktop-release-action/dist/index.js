@@ -55832,16 +55832,20 @@ const UPDATE_METADATA_FILES = [
     'dist/latest.yml',
     'dist/latest-mac.yml',
     'dist/latest-linux.yml',
+    'dist/latest-linux-arm64.yml',
     'dist/alpha.yml',
     'dist/alpha-mac.yml',
     'dist/alpha-linux.yml',
+    'dist/alpha-linux-arm64.yml',
     'dist/beta.yml',
     'dist/beta-mac.yml',
     'dist/beta-linux.yml',
+    'dist/beta-linux-arm64.yml',
 ];
 const getFilesToUpload = () => src_awaiter(void 0, void 0, void 0, function* () {
     const files = yield out_default()([
         'dist/latest-linux.yml',
+        'dist/latest-linux-arm64.yml',
         'dist/*.tar.gz',
         'dist/*.snap',
         'dist/*.deb',
@@ -55861,9 +55865,11 @@ const getFilesToUpload = () => src_awaiter(void 0, void 0, void 0, function* () 
         'dist/alpha.yml',
         'dist/alpha-mac.yml',
         'dist/alpha-linux.yml',
+        'dist/alpha-linux-arm64.yml',
         'dist/beta.yml',
         'dist/beta-mac.yml',
         'dist/beta-linux.yml',
+        'dist/beta-linux-arm64.yml',
     ]);
     if (uploadUpdateMetadata) {
         return files;

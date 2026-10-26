@@ -107,6 +107,9 @@
   "settings": {
     "title": "Налаштування",
     "general": "Загальні",
+    "sections": {
+      "uiPreview": "Попередній перегляд вебінтерфейсу"
+    },
     "options": {
       "resetWindowBounds": {
         "title": "Скинути розміри та положення вікон",
@@ -171,9 +174,6 @@
           "closed": "Закритий"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Попередній перегляд вебінтерфейсу"
     }
   },
   "error": {
@@ -197,6 +197,7 @@
     "copy": "Ко&піювати",
     "cut": "В&ирізати",
     "developerMode": "Режим розробника",
+    "simulateDisconnected": "Симулювати відключення",
     "documentation": "Документація",
     "editMenu": "&Редагувати",
     "fileMenu": "&Файл",
@@ -230,7 +231,6 @@
     "windowMenu": "В&ікно",
     "zoomIn": "Збільшити",
     "zoomOut": "Зменшити",
-    "simulateDisconnected": "Симулювати відключення",
     "restoreServerUi": "Повернути інтерфейс сервера"
   },
   "findInPage": {

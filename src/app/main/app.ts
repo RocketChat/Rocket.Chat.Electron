@@ -31,6 +31,7 @@ import {
   APP_VERSION_SET,
   APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
 } from '../actions';
+import { setPersistedMeta } from './persistence';
 
 export const packageJsonInformation = {
   productName: packageJson.productName,
@@ -191,7 +192,11 @@ export const performElectronStartup = (): void => {
           return false;
         }
       };
-      const isWaylandSession = checkWaylandSocket();
+      // With hardware acceleration off, setupGpuCrashHandler used to relaunch
+      // the app on X11. It no longer relaunches, so keep X11 here.
+      const isHardwareAccelerationOff = isHardwareAccelerationEnabled === false;
+      const isWaylandSession =
+        !isHardwareAccelerationOff && checkWaylandSocket();
 
       if (isWaylandSession) {
         console.log(
@@ -203,7 +208,9 @@ export const performElectronStartup = (): void => {
         );
       } else {
         let reason: string;
-        if (
+        if (isHardwareAccelerationOff) {
+          reason = 'hardware-acceleration-off';
+        } else if (
           normalizedSessionType === 'wayland' &&
           normalizedWaylandDisplay !== ''
         ) {
@@ -244,8 +251,10 @@ export const setupGpuCrashHandler = (): void => {
     return;
   }
 
-  const args = process.argv.slice(app.isPackaged ? 1 : 2);
-  if (args.includes('--disable-gpu')) {
+  // performElectronStartup appends this switch for --disable-gpu and for the
+  // hardware acceleration setting off. The GPU then reports disabled_* status,
+  // and the check below would relaunch the app at every start.
+  if (app.commandLine.hasSwitch('disable-gpu')) {
     return;
   }
 
@@ -274,6 +283,9 @@ export const setupGpuCrashHandler = (): void => {
         'GPU features unavailable, disabling GPU and relaunching with X11',
         JSON.stringify(gpuFeatures)
       );
+      // Save the decision, so later starts skip the GPU and do not relaunch.
+      // The write is synchronous because relaunchApp() exits at once.
+      setPersistedMeta('isHardwareAccelerationEnabled', false);
       const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
       relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
       return;

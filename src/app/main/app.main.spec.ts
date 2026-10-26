@@ -2,7 +2,9 @@ import * as fs from 'fs';
 
 import { app } from 'electron';
 
-import { performElectronStartup } from './app';
+import { readSetting } from '../../store/readSetting';
+import { performElectronStartup, setupGpuCrashHandler } from './app';
+import { setPersistedMeta } from './persistence';
 
 jest.mock('fs');
 
@@ -18,7 +20,16 @@ jest.mock('electron', () => ({
     requestSingleInstanceLock: jest.fn(() => true),
     getPath: jest.fn(() => '/test/path'),
     isPackaged: false,
+    on: jest.fn(),
+    once: jest.fn(),
+    getGPUFeatureStatus: jest.fn(),
+    relaunch: jest.fn(),
+    exit: jest.fn(),
   },
+}));
+
+jest.mock('./persistence', () => ({
+  setPersistedMeta: jest.fn(),
 }));
 
 jest.mock('../../store/readSetting', () => ({
@@ -523,5 +534,153 @@ describe('performElectronStartup - Platform Detection', () => {
       );
       expect(ozonePlatformCalls).toHaveLength(0);
     });
+  });
+});
+
+describe('setupGpuCrashHandler', () => {
+  const switches = new Set<string>();
+
+  const emitGpuInfoUpdate = (status: Record<string, string>): void => {
+    (app.getGPUFeatureStatus as jest.Mock).mockReturnValue(status);
+    const listener = (app.once as jest.Mock).mock.calls.find(
+      ([event]) => event === 'gpu-info-update'
+    )?.[1];
+    listener();
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    switches.clear();
+    (app.commandLine.hasSwitch as jest.Mock).mockImplementation((name) =>
+      switches.has(name)
+    );
+    console.log = jest.fn();
+    Object.defineProperty(process, 'platform', {
+      value: 'linux',
+      configurable: true,
+    });
+    process.argv = ['electron', 'app'];
+  });
+
+  afterEach(() => {
+    (app.commandLine.hasSwitch as jest.Mock).mockReset();
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      configurable: true,
+    });
+    process.argv = originalArgv;
+    console.log = originalConsoleLog;
+  });
+
+  it('saves hardware acceleration off before it relaunches without a GPU', () => {
+    setupGpuCrashHandler();
+    emitGpuInfoUpdate({
+      gpu_compositing: 'disabled_software',
+      webgl: 'unavailable_software',
+    });
+
+    expect(setPersistedMeta).toHaveBeenCalledWith(
+      'isHardwareAccelerationEnabled',
+      false
+    );
+    expect(app.relaunch).toHaveBeenCalledTimes(1);
+    expect(
+      (setPersistedMeta as jest.Mock).mock.invocationCallOrder[0]
+    ).toBeLessThan((app.relaunch as jest.Mock).mock.invocationCallOrder[0]);
+  });
+
+  it('does not relaunch when the hardware acceleration setting is off', () => {
+    // performElectronStartup appends disable-gpu when the setting is off,
+    // but argv has no --disable-gpu flag.
+    switches.add('disable-gpu');
+
+    setupGpuCrashHandler();
+
+    expect(app.once).not.toHaveBeenCalled();
+    expect(app.on).not.toHaveBeenCalled();
+  });
+
+  it('does not relaunch when --disable-gpu is on the command line', () => {
+    process.argv = ['electron', 'app', '--disable-gpu'];
+    switches.add('disable-gpu');
+
+    setupGpuCrashHandler();
+
+    expect(app.once).not.toHaveBeenCalled();
+    expect(app.relaunch).not.toHaveBeenCalled();
+  });
+
+  it('keeps hardware acceleration when the GPU works', () => {
+    setupGpuCrashHandler();
+    emitGpuInfoUpdate({ gpu_compositing: 'enabled', webgl: 'enabled' });
+
+    expect(setPersistedMeta).not.toHaveBeenCalled();
+    expect(app.relaunch).not.toHaveBeenCalled();
+  });
+
+  it('does nothing outside Linux', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'win32',
+      configurable: true,
+    });
+
+    setupGpuCrashHandler();
+
+    expect(app.once).not.toHaveBeenCalled();
+    expect(app.on).not.toHaveBeenCalled();
+  });
+});
+
+describe('performElectronStartup - hardware acceleration off on Linux', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    console.log = jest.fn();
+    (fs.statSync as jest.Mock).mockReturnValue({ isSocket: () => true });
+    (readSetting as jest.Mock).mockImplementation((key) =>
+      key === 'isHardwareAccelerationEnabled' ? false : undefined
+    );
+    Object.defineProperty(process, 'platform', {
+      value: 'linux',
+      configurable: true,
+    });
+    process.env = {
+      ...originalEnv,
+      XDG_SESSION_TYPE: 'wayland',
+      WAYLAND_DISPLAY: 'wayland-0',
+      XDG_RUNTIME_DIR: '/run/user/1000',
+    };
+    process.argv = ['node', 'script.js'];
+  });
+
+  afterEach(() => {
+    (readSetting as jest.Mock).mockImplementation(() => undefined);
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      configurable: true,
+    });
+    process.env = originalEnv;
+    process.argv = originalArgv;
+    console.log = originalConsoleLog;
+  });
+
+  it('keeps X11 in a Wayland session, as the GPU relaunch did before', () => {
+    performElectronStartup();
+
+    expect(app.disableHardwareAcceleration).toHaveBeenCalled();
+    expect(app.commandLine.appendSwitch).toHaveBeenCalledWith(
+      'ozone-platform',
+      'x11'
+    );
+  });
+
+  it('respects an explicit --ozone-platform flag', () => {
+    process.argv = ['node', 'script.js', '--ozone-platform=wayland'];
+
+    performElectronStartup();
+
+    expect(app.commandLine.appendSwitch).not.toHaveBeenCalledWith(
+      'ozone-platform',
+      'x11'
+    );
   });
 });

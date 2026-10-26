@@ -22,6 +22,7 @@ import {
   restoreDownloadsWindow,
   startDownloadsWindowHandler,
 } from './downloadsWindow/ipc';
+import { setupE2EESearch } from './e2eeSearch/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
@@ -184,6 +185,7 @@ const start = async (): Promise<void> => {
   setupPowerMonitor();
   await setupUpdates();
   setupDownloads();
+  setupE2EESearch();
   handleCertificatesManager();
 
   dock.setUp();

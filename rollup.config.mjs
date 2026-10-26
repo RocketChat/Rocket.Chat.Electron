@@ -624,6 +624,24 @@ export default [
   },
   {
     external: makeExternal(),
+    input: 'src/e2eeSearch/worker.ts',
+    plugins: [
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({ extensions }),
+      commonjs(),
+    ],
+    output: {
+      file: 'app/e2eeSearchWorker.js',
+      format: 'cjs',
+      sourcemap: true,
+      interop: 'auto',
+    },
+  },
+  {
+    external: makeExternal(),
     input: 'src/main.ts',
     plugins: [
       copy({

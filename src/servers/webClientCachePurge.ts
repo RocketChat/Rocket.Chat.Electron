@@ -143,7 +143,7 @@ export const purgeWebClientCacheOnce = async (
   const state = await readState();
   let next = nextPurgeState(state[serverUrl], result, serverUrl);
   if (next === 'blocked') {
-    loggers.e2eeSearch.warn(
+    loggers.servers.warn(
       'IndexedDB has a database that is not a cache; old cache bytes kept',
       { serverUrl, databases: result.names.length }
     );
@@ -177,7 +177,7 @@ export const setupWebClientCachePurge = (): void => {
         writeStateFile
       );
     } catch (error) {
-      loggers.e2eeSearch.warn('Old IndexedDB cache purge failed', error);
+      loggers.servers.warn('Old IndexedDB cache purge failed', error);
     }
   });
 };

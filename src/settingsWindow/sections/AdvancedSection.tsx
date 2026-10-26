@@ -2,8 +2,10 @@ import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../store/rootReducer';
+import { ClearE2eeSearchIndex } from '../../ui/components/SettingsView/features/ClearE2eeSearchIndex';
 import { DebugLogging } from '../../ui/components/SettingsView/features/DebugLogging';
 import { DetailedEventsLogging } from '../../ui/components/SettingsView/features/DetailedEventsLogging';
+import { E2eeSearchIndexStats } from '../../ui/components/SettingsView/features/E2eeSearchIndexStats';
 import { HardwareAcceleration } from '../../ui/components/SettingsView/features/HardwareAcceleration';
 import { ReportErrors } from '../../ui/components/SettingsView/features/ReportErrors';
 import { ResetWindowBounds } from '../../ui/components/SettingsView/features/ResetWindowBounds';
@@ -51,6 +53,8 @@ export const AdvancedSection = () => {
 
       <FieldGroup>
         <ResetWindowBounds />
+        <E2eeSearchIndexStats />
+        <ClearE2eeSearchIndex />
       </FieldGroup>
 
       {isDeveloperModeEnabled && (

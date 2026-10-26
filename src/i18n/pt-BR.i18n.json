@@ -293,6 +293,22 @@
         "loading": "Carregando navegadores...",
         "current": "Usando atualmente:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Limpar índice de busca local",
+        "description": "Apaga o índice de busca de mensagens criptografadas que este app guarda neste computador, para todos os workspaces. O app recria o índice a partir do servidor."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Índice de busca local",
+        "empty": "Este computador não tem índice de busca de mensagens criptografadas.",
+        "removedServer": "Workspace removido",
+        "notLoaded": "Não carregado",
+        "messages_one": "{{count}} mensagem",
+        "messages_other": "{{count}} mensagens",
+        "onDisk": "{{size, byteSize}} no disco",
+        "encrypted": "Criptografado no disco",
+        "memoryOnly": "Só na memória, não salvo no disco",
+        "mixed": "Parte criptografada no disco, parte só na memória"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar Permissões de Captura de Tela",
         "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."

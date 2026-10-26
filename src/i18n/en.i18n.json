@@ -437,6 +437,22 @@
         "reservedByApp": "{{accelerator}} is already used by Rocket.Chat. Pick a different combination.",
         "reservedByOS": "{{accelerator}} is reserved by your operating system. Pick a different combination."
       },
+      "clearE2eeSearchIndex": {
+        "title": "Clear local search index",
+        "description": "Delete the search index of encrypted messages that this app keeps on this computer, for all workspaces. The app builds it again from the server."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Local search index",
+        "empty": "This computer has no search index of encrypted messages.",
+        "removedServer": "Removed workspace",
+        "notLoaded": "Not loaded",
+        "messages_one": "{{count}} message",
+        "messages_other": "{{count}} messages",
+        "onDisk": "{{size, byteSize}} on disk",
+        "encrypted": "Encrypted on disk",
+        "memoryOnly": "Memory only, not saved to disk",
+        "mixed": "Partly encrypted on disk, partly memory only"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear screen capture permissions",
         "description": "Clear permissions even if “do not ask again” was previously selected for calling."

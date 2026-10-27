@@ -156,7 +156,8 @@ class FakeBrowserWindow {
 }
 
 jest.mock('electron', () => ({
-  app: { getAppPath: jest.fn(() => '/app') },
+  nativeTheme: { shouldUseDarkColors: true },
+  app: { getAppPath: jest.fn(() => '/app'), on: jest.fn() },
   BrowserWindow: jest.fn().mockImplementation(() => new FakeBrowserWindow()),
   screen: {
     getDisplayNearestPoint: jest.fn(() => ({

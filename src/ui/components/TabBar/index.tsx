@@ -23,12 +23,14 @@ import type { TabOrientation } from './styles';
 import { useTabBarLayout } from './useTabBarLayout';
 
 type TabBarProps = {
+  isTransparentWindowEnabled?: boolean;
   leadingSlot?: ReactNode;
   trailingSlot?: ReactNode;
   orientation?: TabOrientation;
 };
 
 export const TabBar = ({
+  isTransparentWindowEnabled: appliedTransparency,
   leadingSlot,
   trailingSlot,
   orientation = 'horizontal',
@@ -122,7 +124,9 @@ export const TabBar = ({
 
   return (
     <Strip
-      isTransparentWindowEnabled={isTransparentWindowEnabled}
+      isTransparentWindowEnabled={
+        appliedTransparency ?? isTransparentWindowEnabled
+      }
       paletteTheme={paletteTheme}
       orientation={orientation}
     >

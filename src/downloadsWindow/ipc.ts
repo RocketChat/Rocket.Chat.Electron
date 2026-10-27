@@ -1,12 +1,12 @@
 import path from 'path';
 
 import type { Event } from 'electron';
-import { app, BrowserWindow, dialog, screen } from 'electron';
+import { app, BrowserWindow, dialog, screen, nativeTheme } from 'electron';
 import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
-import { dispatch, listen, select, watch } from '../store';
+import { dispatch, listen, select } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
   DOWNLOADS_WINDOW_OPEN_STATE_CHANGED,
@@ -21,11 +21,15 @@ import {
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
 import {
+  isRecreatingSecondaryWindow,
+  watchSecondaryWindowTransparency,
+} from '../ui/main/secondaryWindowTransparency';
+import { getRootWindowAppearanceOptions } from '../ui/main/windowAppearance';
+import {
   NOT_FULL_SCREENABLE,
   getTitleBarOptions,
 } from '../ui/windowChrome/appearance';
 import {
-  TRANSPARENCY_CHANNEL,
   WINDOW_DEFAULT_HEIGHT,
   WINDOW_DEFAULT_WIDTH,
   WINDOW_MIN_HEIGHT,
@@ -92,7 +96,7 @@ const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
   // display nearest the main window.
   const savedBounds = getSavedWindowBounds('downloads');
 
-  // Seeds the first paint only; the renderer then follows the setting live.
+  // Native appearance and the renderer must agree on the first paint.
   const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
 
   downloadsWindow = new BrowserWindow({
@@ -105,15 +109,12 @@ const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
     // in-app one.
     ...getTitleBarOptions(),
     ...NOT_FULL_SCREENABLE,
-    // `transparent` cannot be toggled after creation, so — like the root window —
-    // the window is always transparent with a vibrancy material on macOS and the
-    // setting only decides whether the renderer paints an opaque surface over it.
     ...(isMac
-      ? {
-          transparent: true,
-          vibrancy: 'sidebar' as const,
-          visualEffectState: 'active' as const,
-        }
+      ? getRootWindowAppearanceOptions({
+          platform: process.platform,
+          isTransparentWindowEnabled: isTransparencyEnabled,
+          shouldUseDarkColors: nativeTheme.shouldUseDarkColors,
+        })
       : {}),
     webPreferences: {
       nodeIntegration: true,
@@ -141,9 +142,10 @@ const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
 
   dispatch({ type: DOWNLOADS_WINDOW_OPEN_STATE_CHANGED, payload: true });
 
+  const openedWindow = downloadsWindow;
   downloadsWindow.on('closed', () => {
     downloadsWindow = null;
-    if (!isAppQuitting) {
+    if (!isAppQuitting && !isRecreatingSecondaryWindow(openedWindow)) {
       dispatch({ type: DOWNLOADS_WINDOW_OPEN_STATE_CHANGED, payload: false });
     }
   });
@@ -239,11 +241,11 @@ export const startDownloadsWindowHandler = (): void => {
     return response === 0;
   });
 
-  // Transparency is a renderer concern here, so a change only needs pushing to
-  // the open window — no reopen, no restart.
-  watch(selectIsTransparencyEnabled, (isEnabled) => {
-    if (!downloadsWindow || downloadsWindow.isDestroyed()) return;
-    downloadsWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  watchSecondaryWindowTransparency({
+    getWindow: () => downloadsWindow,
+    reopen: () => createDownloadsWindow(false),
+    isQuitting: () => isAppQuitting,
+    waitForCreation: () => pendingCreation,
   });
 
   onWindowBoundsReset('downloads', async () => {

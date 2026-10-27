@@ -162,6 +162,12 @@
     "close": "Chiudi"
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "Riavvio necessario",
+      "message": "Rocket.Chat deve essere riavviato per modificare la trasparenza della finestra. Riavviare ora? Annullando verrà ripristinata l'impostazione precedente.",
+      "restartNow": "Riavvia ora",
+      "cancel": "Annulla"
+    },
     "uiOverride": {
       "title": "Carica anteprima dell'interfaccia",
       "message": "Caricare un'interfaccia web diversa per \"{{- host}}\"?",

@@ -56,6 +56,7 @@ jest.mock('fs', () => {
 });
 
 jest.mock('electron', () => ({
+  nativeTheme: { shouldUseDarkColors: true },
   app: {
     getPath: jest.fn((name: string) =>
       name === 'logs' ? '/tmp/logs' : '/tmp'

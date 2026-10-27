@@ -6,14 +6,9 @@ import { isDarwin, readInitialTransparency } from './appearance';
 /**
  * Whether the window should let the desktop show through.
  *
- * These windows are always created transparent with a vibrancy material on
- * macOS — `transparent` cannot be toggled after creation — so honouring the
- * setting is the renderer's job: it either paints an opaque surface over the
- * material or gets out of the way. That is what lets the setting apply without
- * reopening the window.
- *
- * Seeded from the page query so the first paint already matches, then kept in
- * step with the setting by the main process over `channel`.
+ * Seeded from the page query so the first paint matches native appearance.
+ * On macOS the main process recreates open windows when the setting changes,
+ * because native transparency cannot be changed after construction.
  */
 export const useTransparency = (channel: string): boolean => {
   const [isEnabled, setIsEnabled] = useState(readInitialTransparency);

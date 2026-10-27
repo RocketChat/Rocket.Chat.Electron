@@ -39,15 +39,19 @@ hooks, `settings.json`).
 
 - `dev` is the default branch. ALL feature and fix PRs target `dev`, and they
   are squash-merged.
-- `master` holds only released code. It advances only through a `dev`→`master`
-  release PR that is merged with a true merge commit
-  (`gh pr merge --merge`). NEVER squash a release PR. A squash forks the
-  history permanently.
+- `master` holds only released code, and its tip is always the latest stable
+  release. It advances through a `dev`→`master` release PR, and through a
+  `release/X.Y.x`→`master` PR after each patch of the newest stable minor.
+  Merge both with a true merge commit (`gh pr merge --merge`). NEVER squash
+  them. A squash forks the history permanently.
 - A `release/X.Y.x` branch is the patch line for a shipped stable version.
   A fix lands on `dev` first, and then is cherry-picked onto the release
   branch. When you write a hotfix directly on a release branch, forward-port it
   to `dev` immediately with a cherry-pick PR.
-- Never back-merge `master` or a `release/X.Y.x` branch into `dev`.
+- Never back-merge `master` or a `release/X.Y.x` branch into `dev`. When the
+  `dev`→`master` release PR conflicts (the patch version bump on `master`),
+  never resolve it in the GitHub UI. Use a promotion branch, as
+  `docs/release-process.md` describes.
 - Version invariant: `package.json` on `dev` always equals the newest tag cut
   from the `dev` line. The first alpha of a new cycle bumps straight to
   `X.(Y+1).0-alpha.1`.
@@ -214,6 +218,14 @@ hooks, `settings.json`).
   (`org.freedesktop.portal.ScreenCast` requests), not on dialog visibility,
   which is flaky across portal and boot states. Full story:
   `docs/postmortem-screen-picker-startup-enumeration.md`.
+- The desktop app reads the web client's `window` events (`startup`,
+  `unread-changed*`, `status-changed`, `Custom_Script_Logged_In` and
+  `Custom_Script_Logged_Out`). Before you change code that reads them, run
+  `yarn probe:web-signals --server <url>` against a disposable server. The
+  probe checks the Meteor build and the Vite build. Follow the
+  `web-signals-probe` skill (`skills/web-signals-probe/SKILL.md`). Do not read
+  `Custom_Script_On_Logout`, because the Meteor build does not fire it on a
+  forced logout.
 
 ### Test runner and CI speed
 
@@ -234,9 +246,12 @@ hooks, `settings.json`).
     getters.
   - A read of a `const` inside a `jest.mock` factory fails, because swc's
     hoisting hits the temporal dead zone.
-- `jest.config.js` excludes 19 preload/renderer specs under `--coverage`.
-  Keep at least one CI leg on plain `yarn test` (today: the windows and macos
-  shards). Otherwise those specs gate nothing.
+- A spec with the `@jest-environment jsdom` docblock runs in its own Jest
+  project, in plain Node. `jest.config.js` finds these specs by the docblock.
+  Do not run jsdom inside the Electron runner. Since Electron 43, the
+  renderer aborts with `Check failed: ToExecutionContext(context)`, and the
+  runner hangs until CI kills the job. These specs also count under
+  `--coverage`.
 - validate-pr runs the ubuntu shards on `ubuntu-24.04-arm`.
   - Cache keys MUST include `runner.arch`, because both architectures report
     `runner.os == Linux`.
@@ -288,6 +303,25 @@ hooks, `settings.json`).
   after that line.
 - Before you judge the tray, `pkill` orphaned worktree Electrons. A leftover
   instance keeps port 9339 and shows a second menu-bar icon.
+- `WEBVIEW_SERVER_VERSION_UPDATED` is the webview boot-success signal.
+  `setVersion` dispatches it from `setServerInfo`.
+- Key a boot cycle on a committed navigation (`did-navigate`). Do NOT key it
+  on `did-start-loading`. That event fires for subframes and resources, and
+  it causes false boot-failure reports.
+- When a workspace stays on the loading throbber (the "boot wedge"), follow
+  `.claude/skills/boot-wedge-debug/SKILL.md` (watchdog report, live CDP
+  autopsy, cure ladder).
+  - If the boot watchdog was enabled for the run (dev mode or
+    `ROCKETCHAT_BOOT_WATCHDOG=true`), read `boot-watchdog.jsonl` first. It is
+    in Electron's `app.getPath('logs')` directory (`~/Library/Logs/Rocket.Chat/`
+    on macOS).
+  - If the watchdog was disabled, it wrote no report. Start with the live CDP
+    autopsy.
+  - Full investigation history: `docs/postmortem-webview-boot-wedge.md`.
+- A startup `Maximum update depth exceeded` storm depends on data (unread
+  rooms at boot). Before you blame recent code for an intermittent startup
+  failure, bisect against a clean baseline build. The storm reproduced on the
+  untouched 4.16.0-alpha.2 baseline (PR #3437).
 
 ## QA Flow Authoring
 

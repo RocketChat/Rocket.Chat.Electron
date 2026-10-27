@@ -265,7 +265,8 @@
       },
       "menubar": {
         "title": "Barra de menus",
-        "description": "Mostra a barra de menus no topo da aplicação"
+        "description": "Mostra a barra de menus no topo da aplicação",
+        "disabledHint": "Não é possível desativar a barra de menus quando a barra lateral está desativada. As configurações se tornariam inacessíveis."
       },
       "sidebar": {
         "title": "Barra lateral",
@@ -554,7 +555,8 @@
       "offline": "Offline",
       "disconnected": "Desconectado — tentando reconectar...",
       "signIn": "Entrar em {{- workspace}}",
-      "addWorkspace": "Adicionar espaço de trabalho"
+      "addWorkspace": "Adicionar espaço de trabalho",
+      "expiresAt": "Até {{- time}}"
     }
   },
   "taskbar": {

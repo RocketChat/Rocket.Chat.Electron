@@ -55,6 +55,13 @@ type ActiveServerPresence = {
   title?: string;
   presence?: 'online' | 'away' | 'busy' | 'offline';
   statusText?: string;
+  statusExpiresAt?: string;
+  availableStatuses?: ('online' | 'away' | 'busy' | 'offline')[];
+  customStatuses?: {
+    id: string;
+    name: string;
+    status: 'online' | 'away' | 'busy' | 'offline';
+  }[];
   connection?: 'connected' | 'connecting' | 'disconnected';
   supported?: boolean;
   loggedIn?: boolean;
@@ -128,6 +135,30 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
       expect(item.enabled).toBe(true);
       expect(item.icon).toBeDefined();
     });
+  });
+
+  it('keeps the current presence checked when the user has a status message', () => {
+    const template = buildMenuTemplate(
+      baseState({
+        hasServers: true,
+        url: 'https://server.test',
+        presence: 'online',
+        statusText: 'WFH',
+        connection: 'connected',
+        loggedIn: true,
+        supported: true,
+      })
+    );
+
+    const radios = findPresenceRootItem(template).submenu.filter(
+      (item: any) => item.type === 'radio'
+    );
+    expect(radios.map((item: any) => item.checked)).toEqual([
+      true,
+      false,
+      false,
+      false,
+    ]);
   });
 
   it('disables submenu radios and shows a disconnected line when connecting', () => {
@@ -379,5 +410,179 @@ describe('ui/main/trayIcon buildMenuTemplate', () => {
     const radios = template.filter((item) => item.type === 'radio');
     expect(radios).toHaveLength(0);
     expect(findItem(template, 'tray.presence.signIn:My Server')).toBeDefined();
+  });
+
+  describe('with presence reported by the web client', () => {
+    const connectedPresence = {
+      hasServers: true,
+      url: 'https://server.test',
+      connection: 'connected' as const,
+      loggedIn: true,
+      supported: true,
+    };
+
+    it('offers only the statuses the user can select', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'online',
+          availableStatuses: ['online', 'away', 'busy'],
+        })
+      );
+
+      const rootItem = findPresenceRootItem(template);
+      expect(rootItem.submenu.map((item: any) => item.label)).toEqual([
+        'tray.presence.online',
+        'tray.presence.away',
+        'tray.presence.busy',
+      ]);
+    });
+
+    it('marks the active custom status, not a preset, and shows when it ends', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'busy',
+          statusText: 'In a meeting',
+          statusExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          customStatuses: [
+            { id: 'meeting', name: 'In a meeting', status: 'busy' },
+            { id: 'lunch', name: 'Lunch', status: 'away' },
+          ],
+        })
+      );
+
+      const { submenu } = findPresenceRootItem(template);
+      expect(submenu.slice(0, 4).some((item: any) => item.checked)).toBe(false);
+      expect(findItem(template, 'tray.presence.expiresAt')).toMatchObject({
+        enabled: false,
+      });
+
+      const customItems = submenu.slice(-2);
+      expect(customItems).toMatchObject([
+        { label: 'In a meeting', type: 'radio', checked: true },
+        { label: 'Lunch', type: 'radio', checked: false },
+      ]);
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { select } = require('../../store');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { webContents } = require('electron');
+      const send = jest.fn();
+      select.mockReturnValueOnce({
+        url: 'https://server.test',
+        webContentsId: 7,
+      });
+      webContents.fromId.mockReturnValueOnce({ send });
+
+      customItems[1].click();
+
+      expect(send).toHaveBeenCalledWith(
+        'presence/change-requested',
+        'away',
+        undefined,
+        'lunch'
+      );
+    });
+
+    it('does not mark a custom status that only shares its name with the status message', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'online',
+          statusText: 'Lunch',
+          customStatuses: [{ id: 'lunch', name: 'Lunch', status: 'away' }],
+        })
+      );
+
+      const { submenu } = findPresenceRootItem(template);
+      expect(
+        submenu
+          .filter((item: any) => item.type === 'radio')
+          .map((item: any) => [item.label, item.checked])
+      ).toEqual([
+        ['tray.presence.online', true],
+        ['tray.presence.away', false],
+        ['tray.presence.busy', false],
+        ['tray.presence.offline', false],
+        ['Lunch', false],
+      ]);
+    });
+
+    // Electron puts consecutive radio items in one group, and a separator
+    // starts a new group. When a menu opens, Electron checks the first item
+    // of each group that has no checked item (macOS and Windows).
+    const radioGroups = (items: any[]) =>
+      items.reduce<any[][]>(
+        (groups, item, index) => {
+          if (item.type === 'separator') {
+            groups.push([]);
+          } else if (item.type === 'radio') {
+            groups[groups.length - 1].push(item);
+          }
+          return index === items.length - 1
+            ? groups.filter((group) => group.length > 0)
+            : groups;
+        },
+        [[]]
+      );
+
+    it.each([
+      ['a standard status', { presence: 'online' as const }],
+      ['a custom status', { presence: 'away' as const, statusText: 'Lunch' }],
+      [
+        'a status message that is not a custom status',
+        { presence: 'busy' as const, statusText: 'WFH' },
+      ],
+    ])(
+      'gives the status radios exactly one checked item with %s',
+      (_case, presence) => {
+        const template = buildMenuTemplate(
+          baseState({
+            ...connectedPresence,
+            ...presence,
+            customStatuses: [
+              { id: 'meeting', name: 'In a meeting', status: 'busy' },
+              { id: 'lunch', name: 'Lunch', status: 'away' },
+            ],
+          })
+        );
+
+        const { submenu } = findPresenceRootItem(template);
+        const groups = radioGroups(submenu);
+        expect(groups).toHaveLength(1);
+        expect(
+          groups[0].filter((item: any) => item.checked).map((i: any) => i.label)
+        ).toHaveLength(1);
+      }
+    );
+
+    it('hides the end time of a status that already expired', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'busy',
+          statusText: 'In a meeting',
+          statusExpiresAt: new Date(Date.now() - 60 * 1000).toISOString(),
+        })
+      );
+
+      expect(findItem(template, 'tray.presence.expiresAt')).toBeUndefined();
+    });
+
+    it('disables the status item when no status can be selected', () => {
+      const template = buildMenuTemplate(
+        baseState({
+          ...connectedPresence,
+          presence: 'online',
+          availableStatuses: [],
+        })
+      );
+
+      expect(findPresenceRootItem(template)).toBeUndefined();
+      expect(findItem(template, 'tray.presence.online')).toMatchObject({
+        enabled: false,
+      });
+    });
   });
 });

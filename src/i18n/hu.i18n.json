@@ -284,7 +284,8 @@
       },
       "menubar": {
         "title": "Menüsáv",
-        "description": "Menüsáv megjelenítése az ablak tetején."
+        "description": "Menüsáv megjelenítése az ablak tetején.",
+        "disabledHint": "Nem lehet letiltani a menüsort, ha az oldalsáv le van tiltva. A beállítások elérhetetlenné válnának."
       },
       "sidebar": {
         "title": "Oldalsáv",

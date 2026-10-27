@@ -279,7 +279,8 @@
       },
       "menubar": {
         "title": "Menyfält",
-        "description": "Visa menyfältet högst upp i fönstret."
+        "description": "Visa menyfältet högst upp i fönstret.",
+        "disabledHint": "Kan inte inaktivera menyfältet när sidofältet är inaktiverat. Inställningar skulle bli otillgängliga."
       },
       "sidebar": {
         "title": "Sidofält",

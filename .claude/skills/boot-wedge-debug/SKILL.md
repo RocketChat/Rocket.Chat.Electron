@@ -6,9 +6,10 @@ description: Debug the intermittent Rocket.Chat Desktop webview boot wedge, wher
 # Boot Wedge Debug
 
 Use this workflow to diagnose the intermittent webview boot wedge and to drive
-it to a definitive fix. Fixes land iteratively on PR
-[#3436](https://github.com/RocketChat/Rocket.Chat.Electron/pull/3436)
-(`fix/injected-boot-recovery`).
+it to a definitive fix. The detection, recovery and forensics work merged in
+PRs #3435, #3436 and #3437, and shipped in 4.16.0. Start each new fix on a new
+branch from `origin/dev`. Read `docs/postmortem-webview-boot-wedge.md` first.
+It records the six attempts and what is still open.
 
 ## The bug in one paragraph
 
@@ -39,6 +40,9 @@ Linux:   ~/.config/Rocket.Chat/logs/boot-watchdog.jsonl
 The directory is Electron's `app.getPath('logs')`. In dev the app name may be
 `Electron` instead of `Rocket.Chat`. At startup the watchdog prints the exact
 path: `[bootWatchdog] enabled — … appended to <path>`.
+
+If the watchdog was disabled for the run, it wrote no report for it. Skip to
+Step 2.
 
 Summarize the incidents:
 
@@ -97,23 +101,24 @@ Also useful live:
 
 ## Step 3 — Map findings to action
 
-| Finding                                                       | Conclusion / next fix                                                                                                                                                    |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Rung 2 cures                                                  | SW/cache layer. Auto-recovery in `injected.ts` should have handled it. Find why it did not fire (counter exhausted? recovery log lines in the report console?).          |
-| Only rung 3 or 4 cures                                        | The broken state lives in the renderer process. Implement or check the escalation: recreate the webview after the recovery attempts exhaust (see PR #3436 "next steps"). |
-| `render-process-gone` reports                                 | Different class of bug. Check `details` in the timeline (reason: crashed/oom/killed) and processMetrics.                                                                 |
-| Report shows recovery triggered then `server-version-updated` | Auto-recovery worked. Take no action: the system healed itself.                                                                                                          |
+| Finding                                                       | Conclusion / next fix                                                                                                                                                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Rung 2 cures                                                  | SW/cache layer. Auto-recovery in `injected.ts` should have handled it. Find why it did not fire (counter exhausted? recovery log lines in the report console?).                                                                            |
+| Only rung 3 cures                                             | Recreating the webview cures the wedge. This supports a renderer-local failure. Implement the escalation: recreate the webview after the recovery attempts exhaust. No code does this yet (see the post-mortem, "What this does NOT fix"). |
+| Only rung 4 cures                                             | A full app restart also resets the main process, the session and every other webview. It does not isolate the renderer. Use the watchdog report and more tests to find the broken layer before you choose an escalation.                   |
+| `render-process-gone` reports                                 | Different class of bug. Check `details` in the timeline (reason: crashed/oom/killed) and processMetrics.                                                                                                                                   |
+| Report shows recovery triggered then `server-version-updated` | Auto-recovery worked. Take no action: the system healed itself.                                                                                                                                                                            |
 
 ## Step 4 — Land the fix
 
 1. Reproduce or justify the fix with report evidence. Quote the relevant timeline lines in the PR.
-2. Fix on branch `fix/injected-boot-recovery` (worktree
-   `../Rocket.Chat.Electron-worktrees/fix-injected-boot-recovery`).
+2. Fix on a new branch from `origin/dev`, in a worktree under
+   `../Rocket.Chat.Electron-worktrees/`.
 3. Run `npx tsc --noEmit`, `yarn lint`, `yarn test` and `yarn build`.
    Then run a watchdog smoke test: run the app ≥150s with healthy servers. It
    must produce zero new reports (this guards against false positives).
-4. Push. Update PR #3436 with a comment that describes what the report revealed
-   and what changed. Log the incident and the fix in `.wolf/buglog.json`.
+4. Push and open a PR. In the PR description, write what the report revealed
+   and what changed. Add the attempt to `docs/postmortem-webview-boot-wedge.md`.
 
 ## Known gotchas
 
@@ -126,5 +131,7 @@ Also useful live:
 - `WEBVIEW_SERVER_VERSION_UPDATED` is the boot-success signal. `setVersion`
   dispatches it from `setServerInfo` (wired in PR #3436 — it was dead code
   before).
-- The re-render loop fix (PR #3435) is a separate branch. A `Maximum update
-depth exceeded` storm in a build without it is that bug, not a regression.
+- PR #3437 fixed the `Maximum update depth exceeded` storm in 4.16.0. PR #3435
+  only reduced it, and the storm still reproduced after #3435 merged. If the
+  storm comes back in a newer build, treat it as a regression.
+  The post-mortem (attempt 6) explains how unread-badge data triggered it.

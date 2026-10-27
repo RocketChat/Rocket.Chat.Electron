@@ -32,7 +32,9 @@ yarn lint
 ## Branching Model
 
 Pull requests target `dev`, the default branch. `master` holds only
-released code — it only moves forward via a `dev`→`master` release merge.
+released code, and its tip is always the latest stable release. It moves
+forward through a `dev`→`master` release merge, and through a merge of the
+patch line after each patch release.
 `release/X.Y.x` branches are patch lines for a shipped stable version,
 maintained by cherry-picking fixes from `dev`; only backport PRs for an
 already-released version should target one of these.

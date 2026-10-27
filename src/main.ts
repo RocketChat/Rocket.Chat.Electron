@@ -10,7 +10,7 @@ import {
   mergePersistableValues,
   watchAndPersistChanges,
 } from './app/main/data';
-import { setUserDataDirectory } from './app/main/dev';
+import { setDevelopmentAppName, setUserDataDirectory } from './app/main/dev';
 import { flushPersistedValues } from './app/main/persistence';
 import { startBrowserHandler } from './browser/ipc';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
@@ -110,6 +110,7 @@ const showStartupFailureDialog = (error: unknown): void => {
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
+  setDevelopmentAppName();
   applySystemCertificates();
 
   logger.info(

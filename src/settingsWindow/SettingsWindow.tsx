@@ -1,4 +1,11 @@
-import { Box, Icon, Scrollable } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Icon,
+  Scrollable,
+  States,
+  StatesIcon,
+  StatesTitle,
+} from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -125,9 +132,11 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
 
   const ActiveSection = useMemo(
     () =>
-      availableSections.find((section) => section.id === currentSection)
-        ?.Component,
-    [availableSections, currentSection]
+      visibleSections.length > 0
+        ? availableSections.find((section) => section.id === currentSection)
+            ?.Component
+        : null,
+    [availableSections, currentSection, visibleSections.length]
   );
 
   return (
@@ -173,17 +182,36 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
           <Box
             id={SETTINGS_TABPANEL_ID}
             role='tabpanel'
-            aria-labelledby={settingsSectionTabId(currentSection)}
+            aria-labelledby={
+              visibleSections.length > 0
+                ? settingsSectionTabId(currentSection)
+                : undefined
+            }
+            aria-label={visibleSections.length === 0 ? t('settings.noResults') : undefined}
             flexGrow={1}
             display='flex'
             flexDirection='column'
             style={{ minWidth: 0, minHeight: 0, ...cardStyle }}
           >
-            <Scrollable vertical>
-              <Box padding='x24' style={{ maxWidth: '640px' }}>
-                {ActiveSection && <ActiveSection surfaces={surfaces} />}
+            {visibleSections.length === 0 ? (
+              <Box
+                display='flex'
+                justifyContent='center'
+                alignItems='center'
+                flexGrow={1}
+              >
+                <States>
+                  <StatesIcon name='magnifier' />
+                  <StatesTitle>{t('settings.noResults')}</StatesTitle>
+                </States>
               </Box>
-            </Scrollable>
+            ) : (
+              <Scrollable vertical>
+                <Box padding='x24' style={{ maxWidth: '640px' }}>
+                  {ActiveSection && <ActiveSection surfaces={surfaces} />}
+                </Box>
+              </Scrollable>
+            )}
           </Box>
         </Box>
       </Box>

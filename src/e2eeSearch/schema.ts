@@ -98,8 +98,8 @@ SELECT m.id, m.rid, m.tmid, m.uid, m.username, m.ts,
 FROM messages_fts
 JOIN messages m ON m.rowid = messages_fts.rowid
 WHERE messages_fts MATCH :match
-  AND messages_fts.rowid BETWEEN :fromKey * ${2 ** ROWID_TS_SHIFT}
-                             AND :toKey * ${2 ** ROWID_TS_SHIFT} + ${2 ** ROWID_TS_SHIFT - 1}
+  AND messages_fts.rowid BETWEEN CAST(:fromKey AS INTEGER) * ${2 ** ROWID_TS_SHIFT}
+                             AND CAST(:toKey AS INTEGER) * ${2 ** ROWID_TS_SHIFT} + ${2 ** ROWID_TS_SHIFT - 1}
   AND (:rid IS NULL OR m.rid = :rid)
   AND (:uid IS NULL OR m.uid = :uid)
   AND m.ts BETWEEN :from AND :to

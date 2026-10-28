@@ -83,7 +83,7 @@ core).
 
 ### 1.6 Schema version and at-rest state
 
-- `schemaVersion` is `1` (`src/e2eeSearch/schema.ts`).
+- `schemaVersion` is `2` (`src/e2eeSearch/schema.ts`).
 - `encryptedAtRest: false` means that the index stays in memory only. It is
   lost when the app quits. `limitedReason` gives the cause, for example
   `basic-text-backend` on Linux. The web client shows a note to the user.

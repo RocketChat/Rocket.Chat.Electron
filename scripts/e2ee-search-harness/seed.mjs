@@ -106,6 +106,31 @@ const fail = (message, code = 1) => {
   process.exit(code);
 };
 
+const envNumber = (name, fallback) => {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallback;
+  const value = Number(raw);
+  if (!Number.isFinite(value)) fail(`${name} must be a number, not '${raw}'`);
+  return value;
+};
+
+// The pacing of the history crawler of the web client. The harness sends one
+// request per second (the server default is 12 seconds), and keeps the server
+// defaults for the page size (100) and the per-room limit (0, no limit). An
+// older core does not know these settings: the seed warns and continues, and
+// the crawler keeps the pacing of that core.
+const CRAWLER_SETTINGS = [
+  ['E2E_Local_Search_Backfill_Pause', envNumber('HARNESS_BACKFILL_PAUSE_S', 1)],
+  [
+    'E2E_Local_Search_Backfill_Page_Size',
+    envNumber('HARNESS_BACKFILL_PAGE_SIZE', 100),
+  ],
+  [
+    'E2E_Local_Search_Backfill_Max_Messages_Per_Room',
+    envNumber('HARNESS_BACKFILL_MAX_PER_ROOM', 0),
+  ],
+];
+
 const loadPuppeteer = () => {
   for (const dir of [repoRoot, process.env.DESKTOP_DIR].filter(Boolean)) {
     try {
@@ -188,6 +213,24 @@ const applySettings = async (admin, auth) => {
   log(
     `settings applied: ${SETTINGS.map(([id, value]) => `${id}=${value}`).join(' ')}`
   );
+
+  const applied = [];
+  for (const [id, value] of CRAWLER_SETTINGS) {
+    const result = await rest(`settings/${id}`, {
+      method: 'POST',
+      body: { value },
+      auth,
+      twoFactorPassword: admin.password,
+    });
+    if (result.success) {
+      applied.push(`${id}=${value}`);
+      continue;
+    }
+    console.warn(
+      `seed: warning: the server did not accept ${id} (${result.error ?? JSON.stringify(result)}). An older core does not know it: the crawler keeps the pacing of that core.`
+    );
+  }
+  if (applied.length) log(`crawler settings applied: ${applied.join(' ')}`);
 };
 
 // The world exists when user A can log in and still reads the encrypted

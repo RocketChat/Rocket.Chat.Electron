@@ -29,16 +29,19 @@ focus.
 Each value is an environment variable. You can also put the values in
 `.localdev/e2ee-search-harness/env`, which the scripts read.
 
-| Variable              | Default                         | Use                                        |
-| --------------------- | ------------------------------- | ------------------------------------------ |
-| `ROCKETCHAT_CORE_DIR` | none (required)                 | The Rocket.Chat checkout                   |
-| `HARNESS_PORT`        | `3500`                          | Server port. MongoDB uses the next port.   |
-| `DESKTOP_DIR`         | this repository                 | The desktop checkout to build the app from |
-| `APP_NAME`            | `Rocket.Chat R3m`               | Product name of the test app               |
-| `CDP_PORT`            | `9444`                          | Remote debugging port of the test app      |
-| `HARNESS_STATE_DIR`   | `.localdev/e2ee-search-harness` | State, logs and runs                       |
-| `SERVER_WAIT_S`       | `1200`                          | Longest wait for the server to answer      |
-| `INDEX_TIMEOUT_S`     | `600`                           | Longest wait for the crawler               |
+| Variable                        | Default                         | Use                                                                                   |
+| ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
+| `ROCKETCHAT_CORE_DIR`           | none (required)                 | The Rocket.Chat checkout                                                              |
+| `HARNESS_PORT`                  | `3500`                          | Server port. MongoDB uses the next port.                                              |
+| `DESKTOP_DIR`                   | this repository                 | The desktop checkout to build the app from                                            |
+| `APP_NAME`                      | `Rocket.Chat R3m`               | Product name of the test app                                                          |
+| `CDP_PORT`                      | `9444`                          | Remote debugging port of the test app                                                 |
+| `HARNESS_STATE_DIR`             | `.localdev/e2ee-search-harness` | State, logs and runs                                                                  |
+| `SERVER_WAIT_S`                 | `1200`                          | Longest wait for the server to answer                                                 |
+| `INDEX_TIMEOUT_S`               | `600`                           | Longest wait for the crawler                                                          |
+| `HARNESS_BACKFILL_PAUSE_S`      | `1`                             | Seconds between two crawler requests (`E2E_Local_Search_Backfill_Pause`)              |
+| `HARNESS_BACKFILL_PAGE_SIZE`    | `100`                           | Messages per crawler request (`E2E_Local_Search_Backfill_Page_Size`)                  |
+| `HARNESS_BACKFILL_MAX_PER_ROOM` | `0`                             | Backfill limit per room, 0 = none (`E2E_Local_Search_Backfill_Max_Messages_Per_Room`) |
 
 The test app has its own product name. The product name sets the keychain
 item (`<name> Safe Storage`) and the user data folder. So the test never
@@ -170,8 +173,13 @@ line is `SUMMARY PASS` or `SUMMARY FAIL`. The exit code is 0 only when every
 step passes. The run folder is
 `.localdev/e2ee-search-harness/browser-runs/<timestamp>/`.
 
-The crawler waits 60 seconds without input, then fetches one page every 12
-seconds. A run with the full seed takes about 6 minutes for the index step.
+`seed.mjs` sets the crawler pacing on the server. The crawler fetches one
+page every second (`HARNESS_BACKFILL_PAUSE_S`; the server default is 12
+seconds), so the index step is shorter than with the server default. Its
+duration is not measured yet. The page size and the per-room limit keep the
+server defaults unless `HARNESS_BACKFILL_PAGE_SIZE` or
+`HARNESS_BACKFILL_MAX_PER_ROOM` is set. A core that does not know these
+settings keeps its own pacing, and `seed.mjs` prints a warning.
 
 ## Windows
 

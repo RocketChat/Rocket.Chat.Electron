@@ -178,7 +178,14 @@
         "onDisk": "{{size, byteSize}} na dysku",
         "encrypted": "Zaszyfrowany na dysku",
         "memoryOnly": "Tylko w pamięci, nie zapisany na dysku",
-        "mixed": "Częściowo zaszyfrowany na dysku, częściowo tylko w pamięci"
+        "mixed": "Częściowo zaszyfrowany na dysku, częściowo tylko w pamięci",
+        "limit": {
+          "no-encryption": "Ten system nie może szyfrować plików dla aplikacji, więc indeks wyszukiwania pozostaje w pamięci i jest odbudowywany przy każdym uruchomieniu. Wyszukiwanie nadal działa.",
+          "basic-text-backend": "Brak dostępnego systemowego łańcucha kluczy, więc indeks wyszukiwania pozostaje w pamięci. Zainstaluj i odblokuj gnome-keyring lub KWallet, a następnie uruchom aplikację ponownie, aby indeks był zapisywany na dysku. Wyszukiwanie nadal działa.",
+          "keychain-timeout": "Systemowy łańcuch kluczy nie odpowiedział na czas, więc indeks wyszukiwania pozostaje w pamięci. Odblokuj łańcuch kluczy i uruchom aplikację ponownie, aby indeks był zapisywany na dysku. Wyszukiwanie nadal działa.",
+          "hard-coded-wrap": "Brak dostępnego systemowego łańcucha kluczy, więc indeks wyszukiwania pozostaje w pamięci. Zainstaluj i odblokuj gnome-keyring lub KWallet, a następnie uruchom aplikację ponownie, aby indeks był zapisywany na dysku. Wyszukiwanie nadal działa.",
+          "native-module-unavailable": "Biblioteka systemowa jest zbyt stara dla szybkiego indeksu. Wyszukiwanie działa, ale zapisy trwają dłużej. Zaktualizuj system (glibc 2.34 lub nowszy), aby uzyskać pełny indeks."
+        }
       },
       "transparentWindow": {
         "title": "Efekt przezroczystego okna",

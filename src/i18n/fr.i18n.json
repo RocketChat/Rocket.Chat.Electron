@@ -300,7 +300,14 @@
         "onDisk": "{{size, byteSize}} sur le disque",
         "encrypted": "Chiffré sur le disque",
         "memoryOnly": "En mémoire uniquement, non enregistré sur le disque",
-        "mixed": "En partie chiffré sur le disque, en partie en mémoire uniquement"
+        "mixed": "En partie chiffré sur le disque, en partie en mémoire uniquement",
+        "limit": {
+          "no-encryption": "Ce système ne peut pas chiffrer de fichiers pour l'application. L'index de recherche reste donc en mémoire et est reconstruit à chaque démarrage. La recherche continue de fonctionner.",
+          "basic-text-backend": "Aucun trousseau du système n'est disponible. L'index de recherche reste donc en mémoire. Installez et déverrouillez gnome-keyring ou KWallet, puis redémarrez l'application pour le conserver sur le disque. La recherche continue de fonctionner.",
+          "keychain-timeout": "Le trousseau du système n'a pas répondu à temps. L'index de recherche reste donc en mémoire. Déverrouillez le trousseau et redémarrez l'application pour le conserver sur le disque. La recherche continue de fonctionner.",
+          "hard-coded-wrap": "Aucun trousseau du système n'est disponible. L'index de recherche reste donc en mémoire. Installez et déverrouillez gnome-keyring ou KWallet, puis redémarrez l'application pour le conserver sur le disque. La recherche continue de fonctionner.",
+          "native-module-unavailable": "Une bibliothèque du système est trop ancienne pour l'index rapide. La recherche fonctionne, mais les enregistrements sont plus lents. Mettez à jour votre système (glibc 2.34 ou plus récent) pour obtenir l'index complet."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",

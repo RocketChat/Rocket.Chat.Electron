@@ -46,7 +46,14 @@
         "onDisk": "{{size, byteSize}} på disk",
         "encrypted": "Kryptert på disk",
         "memoryOnly": "Bare i minnet, ikke lagret på disk",
-        "mixed": "Delvis kryptert på disk, delvis bare i minnet"
+        "mixed": "Delvis kryptert på disk, delvis bare i minnet",
+        "limit": {
+          "no-encryption": "Dette systemet kan ikke kryptere filer for appen, så søkeindeksen blir værende i minnet og bygges på nytt ved hver oppstart. Søk fungerer fortsatt.",
+          "basic-text-backend": "Ingen systemnøkkelring er tilgjengelig, så søkeindeksen blir værende i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å beholde den på disken. Søk fungerer fortsatt.",
+          "keychain-timeout": "Systemnøkkelringen svarte ikke i tide, så søkeindeksen blir værende i minnet. Lås opp nøkkelringen og start appen på nytt for å beholde den på disken. Søk fungerer fortsatt.",
+          "hard-coded-wrap": "Ingen systemnøkkelring er tilgjengelig, så søkeindeksen blir værende i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å beholde den på disken. Søk fungerer fortsatt.",
+          "native-module-unavailable": "Et systembibliotek er for gammelt for den raske indeksen. Søk fungerer, men lagring går tregere. Oppdater systemet (glibc 2.34 eller nyere) for å få den fullstendige indeksen."
+        }
       },
       "uiPreview": {
         "title": "Last inn en build av nettgrensesnittet",

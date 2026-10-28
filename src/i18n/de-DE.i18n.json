@@ -293,7 +293,14 @@
         "onDisk": "{{size, byteSize}} auf dem Datenträger",
         "encrypted": "Auf dem Datenträger verschlüsselt",
         "memoryOnly": "Nur im Speicher, nicht auf dem Datenträger gespeichert",
-        "mixed": "Teilweise auf dem Datenträger verschlüsselt, teilweise nur im Speicher"
+        "mixed": "Teilweise auf dem Datenträger verschlüsselt, teilweise nur im Speicher",
+        "limit": {
+          "no-encryption": "Dieses System kann keine Dateien für die App verschlüsseln. Der Suchindex bleibt daher im Speicher und wird bei jedem Start neu aufgebaut. Die Suche funktioniert weiterhin.",
+          "basic-text-backend": "Es ist kein Schlüsselbund des Systems verfügbar. Der Suchindex bleibt daher im Speicher. Installieren und entsperren Sie gnome-keyring oder KWallet und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
+          "keychain-timeout": "Der Schlüsselbund des Systems hat nicht rechtzeitig geantwortet. Der Suchindex bleibt daher im Speicher. Entsperren Sie den Schlüsselbund und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
+          "hard-coded-wrap": "Es ist kein Schlüsselbund des Systems verfügbar. Der Suchindex bleibt daher im Speicher. Installieren und entsperren Sie gnome-keyring oder KWallet und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
+          "native-module-unavailable": "Eine Systembibliothek ist für den schnellen Index zu alt. Die Suche funktioniert, aber das Speichern dauert länger. Aktualisieren Sie Ihr System (glibc 2.34 oder neuer) für den vollständigen Index."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Erlaubte Bildschirmaufnahmeserver löschen",

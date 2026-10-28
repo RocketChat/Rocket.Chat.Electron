@@ -300,7 +300,14 @@
         "onDisk": "{{size, byteSize}} levyllä",
         "encrypted": "Salattu levyllä",
         "memoryOnly": "Vain muistissa, ei tallennettu levylle",
-        "mixed": "Osittain salattu levyllä, osittain vain muistissa"
+        "mixed": "Osittain salattu levyllä, osittain vain muistissa",
+        "limit": {
+          "no-encryption": "Tämä järjestelmä ei voi salata tiedostoja sovellukselle, joten hakuindeksi pysyy muistissa ja luodaan uudelleen jokaisella käynnistyksellä. Haku toimii silti.",
+          "basic-text-backend": "Järjestelmän avainnippua ei ole saatavilla, joten hakuindeksi pysyy muistissa. Asenna ja avaa gnome-keyring tai KWallet ja käynnistä sovellus uudelleen, jotta indeksi säilyy levyllä. Haku toimii silti.",
+          "keychain-timeout": "Järjestelmän avainnippu ei vastannut ajoissa, joten hakuindeksi pysyy muistissa. Avaa avainnippu ja käynnistä sovellus uudelleen, jotta indeksi säilyy levyllä. Haku toimii silti.",
+          "hard-coded-wrap": "Järjestelmän avainnippua ei ole saatavilla, joten hakuindeksi pysyy muistissa. Asenna ja avaa gnome-keyring tai KWallet ja käynnistä sovellus uudelleen, jotta indeksi säilyy levyllä. Haku toimii silti.",
+          "native-module-unavailable": "Järjestelmäkirjasto on liian vanha nopeaa indeksiä varten. Haku toimii, mutta tallennus on hitaampaa. Päivitä järjestelmäsi (glibc 2.34 tai uudempi) saadaksesi täyden indeksin."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökuvaoikeudet",

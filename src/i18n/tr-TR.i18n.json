@@ -164,7 +164,14 @@
         "onDisk": "Diskte {{size, byteSize}}",
         "encrypted": "Diskte şifreli",
         "memoryOnly": "Yalnızca bellekte, diske kaydedilmez",
-        "mixed": "Kısmen diskte şifreli, kısmen yalnızca bellekte"
+        "mixed": "Kısmen diskte şifreli, kısmen yalnızca bellekte",
+        "limit": {
+          "no-encryption": "Bu sistem uygulama için dosyaları şifreleyemiyor, bu yüzden arama dizini bellekte kalıyor ve her açılışta yeniden oluşturuluyor. Arama çalışmaya devam ediyor.",
+          "basic-text-backend": "Kullanılabilir bir sistem anahtar zinciri yok, bu yüzden arama dizini bellekte kalıyor. Diskte tutmak için gnome-keyring veya KWallet'ı kurup kilidini açın, ardından uygulamayı yeniden başlatın. Arama çalışmaya devam ediyor.",
+          "keychain-timeout": "Sistem anahtar zinciri zamanında yanıt vermedi, bu yüzden arama dizini bellekte kalıyor. Diskte tutmak için anahtar zincirinin kilidini açın ve uygulamayı yeniden başlatın. Arama çalışmaya devam ediyor.",
+          "hard-coded-wrap": "Kullanılabilir bir sistem anahtar zinciri yok, bu yüzden arama dizini bellekte kalıyor. Diskte tutmak için gnome-keyring veya KWallet'ı kurup kilidini açın, ardından uygulamayı yeniden başlatın. Arama çalışmaya devam ediyor.",
+          "native-module-unavailable": "Bir sistem kitaplığı hızlı dizin için çok eski. Arama çalışıyor ancak kaydetme daha yavaş. Tam dizin için sisteminizi güncelleyin (glibc 2.34 veya daha yeni)."
+        }
       },
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",

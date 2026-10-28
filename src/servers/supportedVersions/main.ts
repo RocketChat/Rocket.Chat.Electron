@@ -606,6 +606,95 @@ const withExceptionScopeUniqueId = async (
     : serverView;
 };
 
+// Fallback data is a snapshot: the builtin payload is from the app's build,
+// and the cache is from the last successful fetch. A server release that came
+// out after the snapshot is not in it, so there "not listed" means "unknown",
+// not "unsupported", and an unknown verdict must not block.
+//
+// The rule is narrow on purpose, so it cannot unblock a server that the data
+// does judge:
+// - only a stable server version (a prerelease keeps the normal check);
+// - only a minor newer than the newest stable entry of EVERY candidate, so a
+//   version that one candidate knows (and rejects) stays blocked;
+// - no candidate may hold an exception for this server: an exception that
+//   matches but did not grant support has expired, so the data rejects it;
+// - at most one major ahead of that entry, so an implausible version stays
+//   blocked;
+// - only on this fallback path. Fresh server or cloud data always decides.
+const isNewerThanFallbackData = async (
+  server: Server,
+  candidates: { versions: SupportedVersions; source: 'cloud' | 'builtin' }[],
+  serverCommitHash: string | undefined
+): Promise<boolean> => {
+  const trimmed = server.version?.trim();
+  if (!trimmed || trimmed.includes('-')) {
+    return false;
+  }
+  const serverVersion = coerce(trimmed);
+  if (!serverVersion || candidates.length === 0) return false;
+  const serverMinor = `${serverVersion.major}.${serverVersion.minor}.0`;
+
+  const isNewerThanStableEntries = candidates.every(({ versions }) => {
+    const newestStable = (versions.versions ?? [])
+      .filter(
+        ({ version }) => typeof version === 'string' && !version.includes('-')
+      )
+      .map(({ version }) => coerce(version))
+      .reduce<ReturnType<typeof coerce>>(
+        (newest, version) =>
+          version && (!newest || gt(version, newest)) ? version : newest,
+        null
+      );
+    if (!newestStable) return false;
+    return (
+      gt(serverMinor, `${newestStable.major}.${newestStable.minor}.0`) &&
+      serverVersion.major <= newestStable.major + 1
+    );
+  });
+  if (!isNewerThanStableEntries) return false;
+
+  const hasException = await Promise.all(
+    candidates.map(({ versions, source }) =>
+      hasExceptionForServer(server, versions, serverCommitHash, source)
+    )
+  );
+  return !hasException.includes(true);
+};
+
+// Whether the payload holds an exception that matches this server, under the
+// matching and scope rules of isServerVersionSupported. It asks
+// isServerVersionSupported itself, with no regular versions, every exception
+// unexpired and enforcement active: then only a matching exception in scope
+// can return `supported`. The rules stay in one place.
+const hasExceptionForServer = async (
+  server: Server,
+  supportedVersions: SupportedVersions,
+  serverCommitHash: string | undefined,
+  source: 'cloud' | 'builtin'
+): Promise<boolean> => {
+  const { exceptions } = supportedVersions;
+  if (!exceptions?.versions?.length) return false;
+  const neverExpires = new Date('9999-12-31T23:59:59Z');
+  const { supported } = await isServerVersionSupported(
+    server,
+    {
+      ...supportedVersions,
+      versions: [],
+      exceptions: {
+        ...exceptions,
+        versions: exceptions.versions.map((exception) => ({
+          ...exception,
+          expiration: neverExpires,
+        })),
+      },
+      enforcementStartDate: new Date(0).toISOString(),
+    },
+    serverCommitHash,
+    source
+  );
+  return supported;
+};
+
 // Validates the fallback (cache/builtin) candidates, in order, and dispatches
 // the verdict. isServerVersionSupported can throw on a malformed
 // cached/builtin payload (e.g. `versions` not an array). Left unguarded, that
@@ -622,50 +711,6 @@ const withExceptionScopeUniqueId = async (
 // candidates are tried in freshness order and the first one that supports
 // the server wins; only if every candidate fails to support it do we accept
 // the last-checked (freshest) verdict as the block reason.
-// Fallback data is a snapshot: the builtin payload is from the app's build,
-// and the cache is from the last successful fetch. A server release that came
-// out after the snapshot is not in it, so there "not listed" means "unknown",
-// not "unsupported", and an unknown verdict must not block.
-//
-// The rule is narrow on purpose, so it cannot unblock a server that the data
-// does judge:
-// - only a stable server version (a prerelease keeps the normal check);
-// - only a minor newer than the newest stable entry of EVERY candidate, so a
-//   version that one candidate knows (and rejects) stays blocked;
-// - at most one major ahead of that entry, so an implausible version stays
-//   blocked;
-// - only on this fallback path. Fresh server or cloud data always decides.
-const isNewerThanFallbackData = (
-  serverVersion: string | undefined,
-  candidates: { versions: SupportedVersions }[]
-): boolean => {
-  const trimmed = serverVersion?.trim();
-  if (!trimmed || trimmed.includes('-')) {
-    return false;
-  }
-  const server = coerce(trimmed);
-  if (!server || candidates.length === 0) return false;
-  const serverMinor = `${server.major}.${server.minor}.0`;
-
-  return candidates.every(({ versions }) => {
-    const newestStable = (versions.versions ?? [])
-      .filter(
-        ({ version }) => typeof version === 'string' && !version.includes('-')
-      )
-      .map(({ version }) => coerce(version))
-      .reduce<ReturnType<typeof coerce>>(
-        (newest, version) =>
-          version && (!newest || gt(version, newest)) ? version : newest,
-        null
-      );
-    if (!newestStable) return false;
-    return (
-      gt(serverMinor, `${newestStable.major}.${newestStable.minor}.0`) &&
-      server.major <= newestStable.major + 1
-    );
-  });
-};
-
 const validateFallbackAndDispatch = async (
   server: Server,
   serverUrl: string,
@@ -700,7 +745,7 @@ const validateFallbackAndDispatch = async (
     }
     if (
       !verdict.supported &&
-      isNewerThanFallbackData(server.version, candidates)
+      (await isNewerThanFallbackData(server, candidates, freshCommitHash))
     ) {
       console.warn(
         `Server ${server.url} version ${server.version} is newer than the ` +

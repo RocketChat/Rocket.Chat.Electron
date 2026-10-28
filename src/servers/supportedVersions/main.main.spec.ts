@@ -2335,6 +2335,30 @@ describe('supportedVersions/main.ts', () => {
       expect(await verdictFor('8.9.0', snapshot417, cached)).toBe(false);
     });
 
+    it('still blocks when an exception for this server has expired', async () => {
+      const snapshot = createMockSupportedVersions({
+        ...snapshot417,
+        exceptions: {
+          domain: '',
+          uniqueId: '',
+          versions: [{ version: '8.9.0', expiration: expired }],
+        },
+      });
+      expect(await verdictFor('8.9.0', snapshot)).toBe(false);
+    });
+
+    it("ignores a builtin exception that belongs to another workspace's domain", async () => {
+      const snapshot = createMockSupportedVersions({
+        ...snapshot417,
+        exceptions: {
+          domain: 'other.example.com',
+          uniqueId: '',
+          versions: [{ version: '8.9.0', expiration: expired }],
+        },
+      });
+      expect(await verdictFor('8.9.0', snapshot)).toBe(true);
+    });
+
     it('still blocks when the snapshot has no stable entry to compare with', async () => {
       const snapshot = createMockSupportedVersions({
         versions: [{ version: '8.9.0-develop', expiration: expired }],

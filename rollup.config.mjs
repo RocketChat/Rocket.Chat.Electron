@@ -657,6 +657,11 @@ export default [
           process.env.BUGSNAG_API_KEY
         ),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        // The E2EE search dev key switches (src/e2eeSearch/setup.ts). A
+        // production build gets `false`, and rollup drops their code.
+        'process.env.E2EE_SEARCH_DEV_KEY_SWITCHES': JSON.stringify(
+          NODE_ENV === 'development'
+        ),
         'preventAssignment': true,
       }),
       babel({

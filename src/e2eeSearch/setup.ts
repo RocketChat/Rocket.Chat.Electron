@@ -116,17 +116,25 @@ let devTestKeyStorage:
   | undefined;
 
 const getSafeStorage = () => {
-  switch (selectAppKeySource(process.env.NODE_ENV, process.env)) {
-    case 'memory-only':
-      return noKeychain;
-    case 'dev-test-key':
-      devTestKeyStorage ??= createDevTestKeySafeStorage(
-        path.join(app.getPath('userData'), DEV_TEST_KEY_FILE_NAME)
-      );
-      return devTestKeyStorage;
-    default:
-      return safeStorage;
+  // A build-time constant: rollup.config.mjs replaces the env read below
+  // with `true` only in a development build. In a production build the
+  // condition is a constant false, so rollup drops the dev key code and the
+  // packaged app does not contain it. Without the replace (a spec), the value
+  // is a string or undefined, never `true`, so the switches stay off.
+  if ((process.env.E2EE_SEARCH_DEV_KEY_SWITCHES as unknown) === true) {
+    switch (selectAppKeySource(process.env.NODE_ENV, process.env)) {
+      case 'memory-only':
+        return noKeychain;
+      case 'dev-test-key':
+        devTestKeyStorage ??= createDevTestKeySafeStorage(
+          path.join(app.getPath('userData'), DEV_TEST_KEY_FILE_NAME)
+        );
+        return devTestKeyStorage;
+      default:
+        break;
+    }
   }
+  return safeStorage;
 };
 
 // The at-rest state of each index that the worker opened, for Settings.

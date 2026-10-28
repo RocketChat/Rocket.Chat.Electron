@@ -20,7 +20,8 @@ export const DEV_TEST_KEY_FILE_NAME = 'e2ee-search-dev-test.key';
 const KEY_BYTES = 32;
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
-const MAGIC = Buffer.from('rcdk1');
+// Pure, so that a production build can drop this module (setup.ts).
+const MAGIC = /* @__PURE__ */ Buffer.from('rcdk1');
 
 export type KeySource = 'os-keychain' | 'memory-only' | 'dev-test-key';
 

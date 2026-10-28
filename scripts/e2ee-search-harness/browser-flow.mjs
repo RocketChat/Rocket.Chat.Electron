@@ -1,7 +1,7 @@
 // Runs the full user flow of the E2EE local search in a real browser (the web
 // client of the server, browser backend: SQLite WASM worker + sealed OPFS copy).
 //
-//   node browser-flow.mjs --port <server port> --browser <path to firefox binary>
+//   node browser-flow.mjs --port <server port> --browser <path to the firefox or chrome binary>
 //     [--state-dir <harness state dir>] [--core-dir <Rocket.Chat checkout>]
 //     [--out <output dir>] [--index-timeout-s 1200] [--keep-profile]
 //
@@ -53,6 +53,8 @@ const { values } = parseArgs({
 		'headful': { type: 'boolean', default: false },
 	},
 });
+// Chrome (CDP) when the binary path names Chrome or Chromium, else Firefox (WebDriver BiDi).
+const browserKind = /chrom/i.test(values.browser) ? 'chrome' : 'firefox';
 const port = Number(values.port ?? process.env.HARNESS_PORT);
 if (!port || !values['state-dir'] || !values['core-dir']) {
 	console.error('usage: browser-flow.mjs --port <port> --browser <binary> --state-dir <dir> --core-dir <dir>');
@@ -224,13 +226,15 @@ steps.onAbort(async () => {
 try {
 	// ---------------------------------------------------------------- launch
 	let st = steps.start('launch', { expectedS: 10, limitS: 180 });
-	profileDir = mkdtempSync(join(out, 'ff-profile-'));
+	profileDir = mkdtempSync(join(out, `${browserKind}-profile-`));
 	browser = await puppeteer.launch({
-		browser: 'firefox',
+		browser: browserKind,
 		executablePath: values.browser,
 		headless: !values.headful,
 		userDataDir: profileDir,
 		protocolTimeout: 180000,
+		// The selectors match the English UI.
+		args: browserKind === 'chrome' ? ['--lang=en-US', '--no-first-run', '--no-default-browser-check'] : [],
 		extraPrefsFirefox: {
 			'browser.shell.checkDefaultBrowser': false,
 			'app.update.enabled': false,

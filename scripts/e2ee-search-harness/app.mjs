@@ -40,6 +40,7 @@ import {
   findTarget,
   isRootWindow,
   isServerWebview,
+  jsLiteral,
   sleep,
 } from './cdp.mjs';
 import { readState, usersOf, worldKey } from './state.mjs';
@@ -89,7 +90,7 @@ const openWebview = async (waitMs = 120_000) => {
 // Moves the web client to a path without a page load.
 const navigate = (page, path) =>
   page.evaluate(`(() => {
-    history.pushState({}, '', ${JSON.stringify(path)});
+    history.pushState({}, '', ${jsLiteral(path)});
     dispatchEvent(new PopStateEvent('popstate'));
     return true;
   })()`);
@@ -97,7 +98,7 @@ const navigate = (page, path) =>
 const bridgeSearch = (page, text, limit = 20) =>
   page.evaluate(`(async () => {
     try {
-      const hits = await window.RocketChatDesktop.e2eeSearch.search({ text: ${JSON.stringify(text)}, limit: ${limit} });
+      const hits = await window.RocketChatDesktop.e2eeSearch.search({ text: ${jsLiteral(text)}, limit: ${limit} });
       return { ids: hits.map((hit) => hit.id) };
     } catch (error) {
       return { error: String(error?.message ?? error) };
@@ -172,8 +173,7 @@ const optIn = async (page) => {
   const uid = await userIdOf(page);
   const key = `E2EESearch_OptIn_${uid}`;
   if (
-    (await page.evaluate(`localStorage.getItem(${JSON.stringify(key)})`)) ===
-    'true'
+    (await page.evaluate(`localStorage.getItem(${jsLiteral(key)})`)) === 'true'
   )
     return true;
   await navigate(page, '/account/security');
@@ -182,7 +182,7 @@ const optIn = async (page) => {
   if (!(await page.waitFor(`!!(${toggle})`, 60_000))) return false;
   await page.click(`(${toggle}).closest('label') ?? (${toggle})`);
   const on = await page.waitFor(
-    `localStorage.getItem(${JSON.stringify(key)}) === 'true'`,
+    `localStorage.getItem(${jsLiteral(key)}) === 'true'`,
     10_000
   );
   await navigate(page, '/home');
@@ -218,7 +218,7 @@ const commands = {
     const uid = await userIdOf(page);
     const open = await page.evaluate(`(async () => {
       try {
-        return { result: await window.RocketChatDesktop.e2eeSearch.open({ userId: ${JSON.stringify(uid)} }) };
+        return { result: await window.RocketChatDesktop.e2eeSearch.open({ userId: ${jsLiteral(uid)} }) };
       } catch (error) {
         return { error: String(error?.message ?? error) };
       }
@@ -291,7 +291,7 @@ const commands = {
       finish(false, { error: 'no search panel' });
     await sleep(1000);
     await page.type(input, needle.word);
-    const hit = `[...document.querySelectorAll('[data-qa=local-message-search-hit]')].find((h) => h.innerText.includes(${JSON.stringify(needle.word)}))`;
+    const hit = `[...document.querySelectorAll('[data-qa=local-message-search-hit]')].find((h) => h.innerText.includes(${jsLiteral(needle.word)}))`;
     const shown = Boolean(await page.waitFor(`!!(${hit})`, 30_000));
     await sleep(1000);
     const panel = `${input}.closest('aside, [role=dialog], .rcx-vertical-bar')`;

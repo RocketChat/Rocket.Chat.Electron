@@ -21,7 +21,7 @@ param(
 . "$PSScriptRoot\common.ps1"
 Use-Node $NodeDir
 
-if ((Get-TestProcesses $Root).Count -gt 0) {
+if ((Get-TestProcess $Root).Count -gt 0) {
   'the test app still runs: run stop.ps1 first'
   exit 2
 }

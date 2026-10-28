@@ -38,6 +38,15 @@ export const isRootWindow = (target) =>
   target.url.startsWith('file:') &&
   target.url.includes('index.html');
 
+// Writes a value as a JavaScript literal for an expression that runs in the
+// page. JSON.stringify alone leaves <, >, / and the line separators as they
+// are.
+export const jsLiteral = (value) =>
+  JSON.stringify(value).replace(
+    /[<>/\u2028\u2029]/g,
+    (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`
+  );
+
 const REQUEST_TIMEOUT_MS = 60_000;
 
 export const connect = async (target) => {
@@ -51,7 +60,7 @@ export const connect = async (target) => {
   ws.addEventListener('message', ({ data }) => {
     const message = JSON.parse(data);
     const resolve = pending.get(message.id);
-    if (!resolve) return;
+    if (typeof resolve !== 'function') return;
     pending.delete(message.id);
     resolve(message);
   });

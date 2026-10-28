@@ -32,7 +32,7 @@ $proc.WaitForExit()
 $code = $proc.ExitCode
 $left = @()
 for ($i = 0; $i -lt 30; $i++) {
-  $left = Get-TestProcesses $Root
+  $left = Get-TestProcess $Root
   if ($left.Count -eq 0) { break }
   Start-Sleep -Seconds 1
 }

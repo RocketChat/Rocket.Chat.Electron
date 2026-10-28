@@ -18,7 +18,7 @@ if ($AppName -eq 'Rocket.Chat') {
   'AppName must not be Rocket.Chat: that is the production name'
   exit 2
 }
-if ((Get-TestProcesses $Root).Count -gt 0) {
+if ((Get-TestProcess $Root).Count -gt 0) {
   'the test app still runs: run stop.ps1 first'
   exit 2
 }

@@ -19,7 +19,7 @@ function Use-Node([string]$NodeDir) {
 
 # The processes of the packaged test app. Only executables under $Root\dist
 # match, so another Rocket.Chat app on the host is never touched.
-function Get-TestProcesses([string]$Root) {
+function Get-TestProcess([string]$Root) {
   $prefix = "$Root\dist\"
   @(Get-Process -Name 'Rocket.Chat' -ErrorAction SilentlyContinue |
       Where-Object { $_.Path -and $_.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) })

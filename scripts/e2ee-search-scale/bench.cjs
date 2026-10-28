@@ -1,5 +1,5 @@
-// Scale bench for the E2EE search index with chat-like text (LSE2EE-17,
-// LSE2EE-25). It replaces the 30-word bench (bac9b6b10) with a seeded Zipf
+// Scale bench for the E2EE search index with chat-like text. It replaces
+// the 30-word bench (bac9b6b10) with a seeded Zipf
 // corpus (corpus.cjs), and it measures the store that the app uses now.
 //
 //   yarn build

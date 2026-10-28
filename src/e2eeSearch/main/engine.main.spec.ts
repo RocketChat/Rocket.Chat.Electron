@@ -195,7 +195,7 @@ describe('e2eeSearch engine', () => {
     ).toEqual(newest('r2'));
   });
 
-  it('returns the same hits as a full sort by ts for every filter (LSE2EE-17)', () => {
+  it('returns the same hits as a full sort by ts for every filter', () => {
     // Pseudo-random ts, insert order and ms ties, as with a backfill.
     const tsOf = (i: number) => 50_000 + ((i * 7919) % 400) * 10 + (i % 3);
     const words = ['alfa', 'beta', 'gama'];

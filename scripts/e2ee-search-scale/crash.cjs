@@ -1,4 +1,4 @@
-// Crash test for the E2EE search index (LSE2EE-50). It kills the real
+// Crash test for the E2EE search index. It kills the real
 // utility-process worker with SIGKILL at random points while it writes, and
 // checks after each kill that the index opens again and is not corrupt.
 //

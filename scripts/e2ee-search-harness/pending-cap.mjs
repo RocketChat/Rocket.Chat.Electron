@@ -1,5 +1,5 @@
-// Live check of the cap on the pending-decrypt set of the crawler
-// (LSE2EE-111). Run seed-rooms.mjs with --lost-count 6000 first: the room
+// Live check of the cap on the pending-decrypt set of the crawler.
+// Run seed-rooms.mjs with --lost-count 6000 first: the room
 // "lost" then has more messages than the cap that no client can decrypt.
 //
 //   node pending-cap.mjs [--port <port>] [--max-minutes 60] [--out file.jsonl]

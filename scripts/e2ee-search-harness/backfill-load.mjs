@@ -1,4 +1,4 @@
-// Load test of the chat.syncMessages backfill (LSE2EE-7, LSE2EE-67) on a
+// Load test of the chat.syncMessages backfill on a
 // harness server with a large encrypted room (seed-large.mjs).
 //
 //   node backfill-load.mjs [--port <port>] [--clients 1] [--pause-ms 12000]

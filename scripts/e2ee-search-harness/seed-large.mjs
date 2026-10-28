@@ -1,5 +1,5 @@
-// Adds a large history to the encrypted group of a seeded harness world
-// (LSE2EE-26). Run seed.mjs first.
+// Adds a large history to the encrypted group of a seeded harness world.
+// Run seed.mjs first.
 //
 //   node seed-large.mjs [--port <port>] [--count 10000] [--months 12]
 //     [--concurrency 16] [--edits 20] [--deletes 10] [--thread-every 100]

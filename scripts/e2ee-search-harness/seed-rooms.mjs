@@ -1,4 +1,4 @@
-// Adds the other rooms of the LSE2EE-26 test world to a seeded harness world,
+// Adds the other rooms of the test world to a seeded harness world,
 // resets the room key of the large room, and checks the result with a new
 // login of user A. Run seed.mjs and seed-large.mjs first.
 //
@@ -20,7 +20,7 @@
 //     (e2eRoom.resetRoomKey + REST e2e.resetRoomKey, the path of the room
 //     menu). The old messages keep the old kid. Then B sends --after-reset
 //     messages with the new kid.
-//   - lost (only when --lost-count > 0, for LSE2EE-111): an encrypted group
+//   - lost (only when --lost-count > 0): an encrypted group
 //     where A has the room key, but the messages are encrypted with a room
 //     key that B makes in the page and then drops. No client can decrypt
 //     them: the case of an old room key that is lost.

@@ -69,11 +69,17 @@ const listDirs = async (dir: string): Promise<string[]> => {
 // with sealed indexes of made-up users.
 export const MAX_USER_INDEXES_PER_SERVER = 4;
 
-const mtimeOf = (dir: string): Promise<number> =>
-  stat(dir).then(
-    ({ mtimeMs }) => mtimeMs,
-    () => 0
-  );
+// A full server refuses the index of a new user. It does not delete a sealed
+// index to make room: a hostile server can confirm made-up users and seal
+// their indexes with wrap keys of its own, and an eviction would let it push
+// out the index of the real user. "Clear local search index" in Settings
+// makes room again.
+export class E2EESearchUserIndexLimitError extends Error {
+  constructor() {
+    super('E2EE search server has no room for another user index');
+    this.name = 'E2EESearchUserIndexLimitError';
+  }
+}
 
 // The server confirms who the logged-in user is, but a
 // hostile server can confirm any user. So an open of a user deletes the
@@ -84,8 +90,8 @@ const mtimeOf = (dir: string): Promise<number> =>
 // An index sealed by a wrap key from the user's
 // E2EE private key is kept, because no page without that private key can
 // open it. Its open index is closed with a save. At most
-// MAX_USER_INDEXES_PER_SERVER user indexes stay, and the sealed index that
-// was written longest ago goes first.
+// MAX_USER_INDEXES_PER_SERVER user indexes stay. When the sealed indexes of
+// other users fill the server, the open of a new user is refused.
 // The tasks of one server run one at a time, so two opens, or an open and a
 // logout or a server removal, cannot pass each other.
 // `isServerKnown` is false after the user removes the server. An open
@@ -151,17 +157,9 @@ export const createUserIndexLimiter = ({
       })
     );
 
-    const room = MAX_USER_INDEXES_PER_SERVER - (keepUserDir ? 1 : 0);
-    if (kept.length <= room) return;
-    const ages = await Promise.all(kept.map(mtimeOf));
-    const newestFirst = kept
-      .map((indexDir, i) => ({ indexDir, mtime: ages[i] }))
-      .sort((a, b) => b.mtime - a.mtime);
-    await Promise.all(
-      newestFirst
-        .slice(room)
-        .map(({ indexDir }) => deleteIndex(indexDir, false))
-    );
+    if (keepUserDir && kept.length >= MAX_USER_INDEXES_PER_SERVER) {
+      throw new E2EESearchUserIndexLimitError();
+    }
   };
 
   const assertServerKnown = (serverDir: string) => {

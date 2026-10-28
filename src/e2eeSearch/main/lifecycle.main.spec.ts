@@ -471,11 +471,56 @@ describe('E2EE search one user index per server', () => {
       expect(existsSync(path.join(userA, SNAPSHOT_FILE_NAME))).toBe(true);
     });
 
-    it(`keeps at most ${MAX_USER_INDEXES_PER_SERVER} user indexes on a server, the oldest sealed one goes first`, async () => {
+    // A hostile server can confirm made-up users and seal their indexes with
+    // wrap keys of its own. A full server refuses a new user index, so these
+    // opens cannot push out the sealed index of the real user.
+    it(`refuses a new user index when ${MAX_USER_INDEXES_PER_SERVER} sealed indexes fill the server, and deletes none of them`, async () => {
       const limiter = limiterFor();
-      const count = MAX_USER_INDEXES_PER_SERVER + 2;
-      for (let i = 0; i < count; i++) {
-        // eslint-disable-next-line no-await-in-loop -- the order of the opens is the age of the folders
+      const realUser = await limiter.admit(
+        serverA,
+        'real-user',
+        openOnDisk(serverA, 'real-user')
+      );
+      sealed.add(realUser);
+      await host.call(realUser, 'upsert', docs(5));
+      await host.close(realUser);
+      const madeUp = Array.from(
+        { length: MAX_USER_INDEXES_PER_SERVER },
+        (_, i) => `made-up-${i}`
+      );
+      const results: PromiseSettledResult<string>[] = [];
+      for (const userId of madeUp) {
+        // eslint-disable-next-line no-await-in-loop -- one open after the other, like a page
+        const [result] = await Promise.allSettled([
+          limiter.admit(serverA, userId, openOnDisk(serverA, userId)),
+        ]);
+        if (result.status === 'fulfilled') sealed.add(result.value);
+        results.push(result);
+      }
+
+      expect(results.map(({ status }) => status)).toEqual([
+        ...Array(MAX_USER_INDEXES_PER_SERVER - 1).fill('fulfilled'),
+        'rejected',
+      ]);
+      expect(
+        (results[MAX_USER_INDEXES_PER_SERVER - 1] as PromiseRejectedResult)
+          .reason
+      ).toMatchObject({ name: 'E2EESearchUserIndexLimitError' });
+      expect(readdirSync(serverA).sort()).toEqual(
+        ['real-user', ...madeUp.slice(0, -1)].sort()
+      );
+      expect(existsSync(path.join(realUser, SNAPSHOT_FILE_NAME))).toBe(true);
+
+      // The real user can still open the kept index.
+      await expect(
+        limiter.admit(serverA, 'real-user', openOnDisk(serverA, 'real-user'))
+      ).resolves.toBe(realUser);
+    });
+
+    it('does not open the refused index, so it writes no folder', async () => {
+      const limiter = limiterFor();
+      for (let i = 0; i < MAX_USER_INDEXES_PER_SERVER; i++) {
+        // eslint-disable-next-line no-await-in-loop -- one open after the other, like a page
         const dir = await limiter.admit(
           serverA,
           `user-${i}`,
@@ -483,12 +528,30 @@ describe('E2EE search one user index per server', () => {
         );
         sealed.add(dir);
       }
+      const open = jest.fn(openOnDisk(serverA, 'user-new'));
+
+      await expect(limiter.admit(serverA, 'user-new', open)).rejects.toThrow();
+
+      expect(open).not.toHaveBeenCalled();
+      expect(existsSync(path.join(serverA, 'user-new'))).toBe(false);
+    });
+
+    it('still deletes plain indexes when it refuses a new user index', async () => {
+      const limiter = limiterFor();
+      for (let i = 0; i < MAX_USER_INDEXES_PER_SERVER; i++) {
+        // eslint-disable-next-line no-await-in-loop -- one open after the other, like a page
+        const dir = await limiter.admit(
+          serverA,
+          `user-${i}`,
+          openOnDisk(serverA, `user-${i}`)
+        );
+        if (i > 0) sealed.add(dir);
+      }
+      // user-0 is plain, so it does not hold a place: user-new opens.
+      await limiter.admit(serverA, 'user-new', openOnDisk(serverA, 'user-new'));
 
       expect(readdirSync(serverA).sort()).toEqual(
-        Array.from(
-          { length: MAX_USER_INDEXES_PER_SERVER },
-          (_, i) => `user-${count - MAX_USER_INDEXES_PER_SERVER + i}`
-        )
+        ['user-1', 'user-2', 'user-3', 'user-new'].sort()
       );
     });
   });

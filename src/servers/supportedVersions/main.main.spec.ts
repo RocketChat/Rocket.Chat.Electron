@@ -2359,6 +2359,18 @@ describe('supportedVersions/main.ts', () => {
       expect(await verdictFor('8.9.0', snapshot)).toBe(true);
     });
 
+    it("still blocks an expired builtin exception for this server's domain", async () => {
+      const snapshot = createMockSupportedVersions({
+        ...snapshot417,
+        exceptions: {
+          domain: 'test.rocket.chat',
+          uniqueId: '',
+          versions: [{ version: '8.9.0', expiration: expired }],
+        },
+      });
+      expect(await verdictFor('8.9.0', snapshot)).toBe(false);
+    });
+
     it('still blocks when the snapshot has no stable entry to compare with', async () => {
       const snapshot = createMockSupportedVersions({
         versions: [{ version: '8.9.0-develop', expiration: expired }],

@@ -45,6 +45,22 @@ describe('e2eeSearch key store', () => {
     await rm(dir, { recursive: true, force: true });
   });
 
+  // The index files of an open index. A key file that Chromium wrapped with
+  // its hard-coded password seals them, so they leave with it. The temp file
+  // is a save that a kill stopped.
+  const INDEX_FILES = [
+    'index.db',
+    'index.db-wal',
+    'index.db-shm',
+    'index.bin',
+    'index.bin.123.1700000000000.tmp',
+  ];
+  const writeIndexFiles = () =>
+    Promise.all(
+      INDEX_FILES.map((name) => writeFile(path.join(dir, name), 'index'))
+    );
+  const listDir = async () => (await readdir(dir)).sort();
+
   it('creates a wrapped key and reads the same key back', async () => {
     const safeStorage = fakeSafeStorage();
     const first = await createKeyStore({
@@ -200,6 +216,76 @@ describe('e2eeSearch key store', () => {
       reason: 'basic-text-backend',
     });
     expect(await readdir(dir)).toEqual([]);
+  });
+
+  describe('with a Linux hard-coded-key file and an index on disk', () => {
+    const hardCodedStorage = (backend: Backend) => {
+      const safeStorage = fakeSafeStorage({ backend });
+      safeStorage.encryptStringAsync.mockImplementation(async (plain: string) =>
+        Buffer.concat([Buffer.from('v10'), Buffer.from(plain)])
+      );
+      return safeStorage;
+    };
+
+    it('removes the index files with the key file when the key stays in memory only', async () => {
+      await writeFile(path.join(dir, KEY_FILE_NAME), Buffer.from('v10old'));
+      await writeIndexFiles();
+
+      const loaded = await createKeyStore({
+        dir,
+        safeStorage: hardCodedStorage('basic_text'),
+        platform: 'linux',
+      }).load();
+
+      expect(loaded).toMatchObject({
+        persistent: false,
+        reason: 'basic-text-backend',
+      });
+      expect(await listDir()).toEqual([]);
+    });
+
+    it('removes the index files with the key file when the new wrap is also hard-coded', async () => {
+      await writeFile(path.join(dir, KEY_FILE_NAME), Buffer.from('v10old'));
+      await writeIndexFiles();
+
+      const loaded = await createKeyStore({
+        dir,
+        safeStorage: hardCodedStorage('gnome_libsecret'),
+        platform: 'linux',
+      }).load();
+
+      expect(loaded).toMatchObject({ persistent: false });
+      expect(await listDir()).toEqual([]);
+    });
+
+    it('keeps the index files with a key file that is not a v10 wrap', async () => {
+      const safeStorage = fakeSafeStorage();
+      safeStorage.encryptStringAsync.mockImplementation(async (plain: string) =>
+        Buffer.concat([Buffer.from('v11'), Buffer.from(plain)])
+      );
+      safeStorage.decryptStringAsync.mockImplementation(
+        async (encrypted: Buffer) => ({
+          result: encrypted.subarray(3).toString(),
+          shouldReEncrypt: false,
+        })
+      );
+      const first = await createKeyStore({
+        dir,
+        safeStorage,
+        platform: 'linux',
+      }).load();
+      await writeIndexFiles();
+
+      const again = await createKeyStore({
+        dir,
+        safeStorage,
+        platform: 'linux',
+      }).load();
+
+      expect(again).toMatchObject({ persistent: true, reset: false });
+      expect(again.key.equals(first.key)).toBe(true);
+      expect(await listDir()).toEqual([KEY_FILE_NAME, ...INDEX_FILES].sort());
+    });
   });
 
   it('keeps a keychain-wrapped key file when the key stays in memory only', async () => {
@@ -526,6 +612,56 @@ describe('e2eeSearch key store', () => {
       answer();
       await new Promise((resolve) => setTimeout(resolve, 50));
       expect(await readdir(dir)).toEqual([]);
+    });
+
+    // A late answer deletes nothing, as it writes no key file.
+    it('deletes no index file when the wrap answers late with a hard-coded wrap', async () => {
+      const safeStorage = fakeSafeStorage();
+      let answer: () => void = () => undefined;
+      safeStorage.encryptStringAsync.mockImplementation(
+        () =>
+          new Promise<Buffer>((resolve) => {
+            answer = () =>
+              resolve(Buffer.concat([Buffer.from('v10'), Buffer.from('late')]));
+          })
+      );
+      await writeFile(path.join(dir, KEY_FILE_NAME), Buffer.from('v10old'));
+      await writeIndexFiles();
+      const before = await listDir();
+
+      const loaded = await settlesWithin(storeWith(safeStorage).load());
+      expect(loaded.persistent).toBe(false);
+
+      answer();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(await listDir()).toEqual(before);
+      expect(await readFile(path.join(dir, KEY_FILE_NAME), 'utf8')).toBe(
+        'v10old'
+      );
+    });
+
+    it('deletes no index file when the availability check answers late with a hard-coded key file', async () => {
+      const safeStorage = fakeSafeStorage({ backend: 'basic_text' });
+      let answer: (available: boolean) => void = () => undefined;
+      safeStorage.isAsyncEncryptionAvailable.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            answer = resolve;
+          })
+      );
+      await writeFile(path.join(dir, KEY_FILE_NAME), Buffer.from('v10old'));
+      await writeIndexFiles();
+      const before = await listDir();
+
+      const loaded = await settlesWithin(storeWith(safeStorage).load());
+      expect(loaded).toMatchObject({
+        persistent: false,
+        reason: 'keychain-timeout',
+      });
+
+      answer(true);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(await listDir()).toEqual(before);
     });
 
     // The open clears the wrap key when the load returns. A late re-wrap of an

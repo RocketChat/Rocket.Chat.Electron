@@ -7,6 +7,8 @@ import {
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { INDEX_DB_FILE_NAME, removeIndexFiles } from './fileStore';
+import { removeStaleTempFiles, SNAPSHOT_FILE_NAME } from './snapshotStore';
 import {
   E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME,
   WRAP_KEY_BYTES,
@@ -220,6 +222,16 @@ export const createKeyStore = ({
   const isHardCodedWrap = (wrapped: Buffer) =>
     platform === 'linux' && wrapped.subarray(0, 3).toString() === 'v10';
 
+  // The index files were sealed with the key that the hard-coded wrap holds,
+  // so they leave with the key file. A save that a kill stopped leaves a temp
+  // file with the same key, and it goes too.
+  const discardHardCodedWrap = async () => {
+    await rm(keyFile, { force: true });
+    await removeIndexFiles(path.join(dir, INDEX_DB_FILE_NAME));
+    await rm(path.join(dir, SNAPSHOT_FILE_NAME), { force: true });
+    await removeStaleTempFiles(dir);
+  };
+
   // False when the wrap is not real encryption, or when the keychain answered
   // after the time limit: nothing is written then.
   const wrapAndWrite = async (
@@ -277,7 +289,7 @@ export const createKeyStore = ({
       const wrapped =
         platform === 'linux' ? await readIfExists(keyFile) : undefined;
       if (wrapped && isHardCodedWrap(wrapped) && !timedOut()) {
-        await rm(keyFile, { force: true });
+        await discardHardCodedWrap();
       }
       return {
         persistent: false,
@@ -298,7 +310,7 @@ export const createKeyStore = ({
     const key = randomBytes(INDEX_KEY_BYTES);
     if (!(await wrapAndWrite(key, wrapKey, timedOut))) {
       if (wrapped && isHardCodedWrap(wrapped) && !timedOut()) {
-        await rm(keyFile, { force: true });
+        await discardHardCodedWrap();
       }
       return { persistent: false, key, reason: 'basic-text-backend' };
     }

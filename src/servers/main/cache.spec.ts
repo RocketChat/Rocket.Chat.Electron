@@ -1,10 +1,18 @@
 import type { WebContents } from 'electron';
+import { webContents } from 'electron';
 
 import { listen } from '../../store';
 import type { RootAction } from '../../store/actions';
-import { WEBVIEW_USER_LOGGED_IN } from '../../ui/actions';
+import {
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
+  WEBVIEW_USER_LOGGED_IN,
+} from '../../ui/actions';
 import { getWebContentsByServerUrl } from '../../ui/main/serverView';
-import { handleUserLoggedOutDataClearing } from '../cache';
+import {
+  handleClearCacheDialog,
+  handleUserLoggedOutDataClearing,
+} from '../cache';
 
 jest.mock('electron', () => ({
   webContents: {
@@ -176,5 +184,74 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
       expect(mockWebContents.reloadIgnoringCache).toHaveBeenCalled();
       expect(mockWebContents.executeJavaScript).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+// "Delete login session" in the Clear cache dialog keeps the local search
+// opt-in, unless the user also checks the box to remove the search data.
+describe('servers/cache handleClearCacheDialog', () => {
+  const mockListen = listen as unknown as jest.Mock<
+    () => void,
+    [string, (action: RootAction) => void]
+  >;
+  const mockFromId = webContents.fromId as jest.Mock;
+
+  const createMockWebContents = (order: string[]): WebContents =>
+    ({
+      session: {
+        clearCache: jest.fn().mockResolvedValue(undefined),
+        clearStorageData: jest.fn().mockImplementation(async () => {
+          order.push('clear');
+        }),
+      },
+      reloadIgnoringCache: jest.fn().mockImplementation(() => {
+        order.push('reload');
+      }),
+      executeJavaScript: jest.fn().mockImplementation(async (code: string) => {
+        order.push(code.includes('setItem') ? 'restore' : 'read');
+        return code.includes('setItem')
+          ? undefined
+          : ['E2EESearch_OptIn_QNd9RQ9oP3RspLaq3'];
+      }),
+    }) as unknown as WebContents;
+
+  const dispatchAction = async (type: string, payload: number) => {
+    const [, listener] = mockListen.mock.calls.find(([t]) => t === type)!;
+    await listener({ type, payload } as any);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    handleClearCacheDialog();
+  });
+
+  it('keeps the local search opt-in when it deletes the login data', async () => {
+    const order: string[] = [];
+    const guest = createMockWebContents(order);
+    mockFromId.mockReturnValue(guest);
+
+    await dispatchAction(CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED, 9);
+
+    expect(mockFromId).toHaveBeenCalledWith(9);
+    expect(order).toEqual(['read', 'clear', 'restore', 'reload']);
+    const restore = (guest.executeJavaScript as jest.Mock).mock.calls.find(
+      ([code]) => code.includes('setItem')
+    )![0];
+    expect(restore).toContain('E2EESearch_OptIn_QNd9RQ9oP3RspLaq3');
+  });
+
+  it('removes the local search opt-in too when the user asks for it', async () => {
+    const order: string[] = [];
+    const guest = createMockWebContents(order);
+    mockFromId.mockReturnValue(guest);
+
+    await dispatchAction(
+      CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+      9
+    );
+
+    expect(order).toEqual(['clear', 'reload']);
+    expect(guest.session.clearStorageData).toHaveBeenCalledWith();
+    expect(guest.executeJavaScript).not.toHaveBeenCalled();
   });
 });

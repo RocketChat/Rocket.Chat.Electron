@@ -55,7 +55,8 @@
       "keepLoginData": "Manter sessão de login",
       "deleteLoginData": "Excluir sessão de login",
       "clearingWait": "Aguarde, por favor",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "removeSearchData": "Desativar também a busca local de mensagens criptografadas deste workspace e apagar o índice"
     },
     "downloadRemoval": {
       "title": "Você tem certeza?",

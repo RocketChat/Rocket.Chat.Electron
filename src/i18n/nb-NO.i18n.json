@@ -151,6 +151,9 @@
       "cancel": "Avbryt",
       "developerModeRequired": "Slå på Help > Developer Mode for å laste inn forhåndsvisninger av grensesnitt.",
       "failed": "Forhåndsvisningen av grensesnittet kunne ikke lastes inn."
+    },
+    "clearCache": {
+      "removeSearchData": "Slå også av lokalt søk i krypterte meldinger for dette arbeidsområdet, og slett indeksen"
     }
   },
   "tabBar": {

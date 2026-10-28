@@ -145,6 +145,9 @@
       "cancel": "Annuler",
       "developerModeRequired": "Activez Aide > Mode développeur pour charger des aperçus de l'interface.",
       "failed": "L'aperçu de l'interface n'a pas pu être chargé."
+    },
+    "clearCache": {
+      "removeSearchData": "Désactiver aussi la recherche locale des messages chiffrés pour cet espace de travail et supprimer son index"
     }
   },
   "documentViewer": {

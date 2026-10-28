@@ -55,7 +55,8 @@
       "keepLoginData": "Behåll inloggningssessionen",
       "deleteLoginData": "Radera inloggningssessionen",
       "clearingWait": "Vänligen vänta",
-      "cancel": "Avbryt"
+      "cancel": "Avbryt",
+      "removeSearchData": "Stäng också av lokal sökning i krypterade meddelanden för den här arbetsytan och ta bort dess index"
     },
     "downloadRemoval": {
       "title": "Är du säker?",

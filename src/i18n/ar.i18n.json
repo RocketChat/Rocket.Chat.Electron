@@ -154,6 +154,9 @@
       "cancel": "إلغاء",
       "developerModeRequired": "فعّل Help > Developer Mode لتحميل معاينات الواجهة.",
       "failed": "تعذّر تحميل معاينة الواجهة."
+    },
+    "clearCache": {
+      "removeSearchData": "أوقف أيضًا البحث المحلي في الرسائل المشفّرة لمساحة العمل هذه، واحذف فهرسه"
     }
   },
   "tabBar": {

@@ -82,6 +82,9 @@
       "cancel": "取消",
       "developerModeRequired": "請啟用 幫助 > 開發者模式 以載入介面預覽。",
       "failed": "無法載入介面預覽。"
+    },
+    "clearCache": {
+      "removeSearchData": "同時關閉此工作區加密訊息的本機搜尋，並刪除其索引"
     }
   },
   "documentViewer": {

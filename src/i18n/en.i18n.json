@@ -59,7 +59,8 @@
       "keepLoginData": "Keep login session",
       "deleteLoginData": "Delete login session",
       "clearingWait": "Please wait",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "removeSearchData": "Also turn off the local search of encrypted messages for this workspace, and delete its index"
     },
     "downloadRemoval": {
       "title": "Are you sure?",

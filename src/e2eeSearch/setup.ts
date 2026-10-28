@@ -6,6 +6,7 @@ import { app, ipcMain, safeStorage, utilityProcess } from 'electron';
 import { loggers } from '../logging/scopes';
 import { dispatch, listen, select } from '../store';
 import {
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
   E2EE_SEARCH_INDEX_STATS_UPDATED,
   SETTINGS_CLEAR_E2EE_SEARCH_INDEX_CLICKED,
   SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED,
@@ -327,6 +328,28 @@ export const setupE2EESearch = (): void => {
       )
       .finally(publishIndexStats);
   });
+
+  // Clear cache, "Delete login session" with the search data box checked:
+  // every index of the server goes, the sealed ones too. Through the
+  // limiter, so an open that waits or runs cannot write the folder again.
+  listen(
+    CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+    ({ payload: webContentsId }) => {
+      const serverUrl = select(({ servers }) => servers).find(
+        (server) => server.webContentsId === webContentsId
+      )?.url;
+      if (!serverUrl) return;
+      getUserIndexLimiter()
+        .removeServer(getServerIndexDir(serverUrl))
+        .catch((error) =>
+          loggers.e2eeSearch.warn(
+            'index delete failed for a clear cache',
+            summarizeError(error)
+          )
+        )
+        .finally(publishIndexStats);
+    }
+  );
 
   // A logout deletes the index of the user, unless a wrap key sealed it.
   // Like the login data clear

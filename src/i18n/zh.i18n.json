@@ -150,6 +150,9 @@
       "cancel": "取消",
       "developerModeRequired": "请启用 Help > Developer Mode 以加载界面预览。",
       "failed": "无法加载界面预览。"
+    },
+    "clearCache": {
+      "removeSearchData": "同时关闭此工作区加密消息的本地搜索，并删除其索引"
     }
   },
   "tabBar": {

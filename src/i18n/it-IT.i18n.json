@@ -199,6 +199,9 @@
       "cancel": "Annulla",
       "developerModeRequired": "Attiva Help > Developer Mode per caricare anteprime dell'interfaccia.",
       "failed": "Impossibile caricare l'anteprima dell'interfaccia."
+    },
+    "clearCache": {
+      "removeSearchData": "Disattiva anche la ricerca locale dei messaggi cifrati per questo spazio di lavoro ed elimina il suo indice"
     }
   }
 }

@@ -55,7 +55,8 @@
       "keepLoginData": "Bejelentkezési munkamenet megtartása",
       "deleteLoginData": "Bejelentkezési munkamenet törlése",
       "clearingWait": "Kis türelmet",
-      "cancel": "Mégse"
+      "cancel": "Mégse",
+      "removeSearchData": "A titkosított üzenetek helyi keresésének kikapcsolása ezen a munkaterületen, és az index törlése"
     },
     "downloadRemoval": {
       "title": "Biztos benne?",

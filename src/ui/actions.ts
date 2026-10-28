@@ -23,6 +23,8 @@ export const CLEAR_CACHE_TRIGGERED = 'clear-cache/triggered';
 export const CLEAR_CACHE_DIALOG_DISMISSED = 'clear-cache-dialog/dismissed';
 export const CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED =
   'clear-cache-dialog/delete-login-data-clicked';
+export const CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED =
+  'clear-cache-dialog/delete-login-and-search-data-clicked';
 export const CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED =
   'clear-cache-dialog/keep-login-data-clicked';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
@@ -219,6 +221,7 @@ export type UiActionTypeToPayloadMap = {
   [CLEAR_CACHE_TRIGGERED]: WebContents['id'];
   [CLEAR_CACHE_DIALOG_DISMISSED]: void;
   [CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED]: WebContents['id'];
+  [CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED]: WebContents['id'];
   [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;

@@ -200,7 +200,8 @@ export const createUserIndexLimiter = ({
       run(serverDir, () =>
         deleteIndex(indexDir, host.indexIds().includes(indexDir))
       ),
-    // The user removed the server from the app.
+    // The user removed the server from the app, or cleared its login and
+    // search data.
     removeServer: (serverDir: string): Promise<void> =>
       run(serverDir, async () => {
         await deleteOtherUsers(serverDir, { keepSealed: false });

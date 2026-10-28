@@ -2,6 +2,7 @@ import { webContents, type WebContents } from 'electron';
 
 import { listen } from '../store';
 import {
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
   CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
   CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED,
   WEBVIEW_USER_LOGGED_IN,
@@ -78,13 +79,30 @@ export const handleClearCacheDialog = () => {
     await clearWebviewStorageKeepingLoginData(guestWebContents);
   });
 
+  // The local search opt-in stays, like on a logout, unless the user also
+  // chose to remove the search data.
   listen(CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED, async (action) => {
     const guestWebContents = webContents.fromId(action.payload);
     if (!guestWebContents) {
       return;
     }
-    await clearWebviewStorageDeletingLoginData(guestWebContents);
+    await clearWebviewStorageDeletingLoginData(
+      guestWebContents,
+      await readSearchIndexOptIns(guestWebContents)
+    );
   });
+
+  // The search index of the server goes in src/e2eeSearch/setup.ts.
+  listen(
+    CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+    async (action) => {
+      const guestWebContents = webContents.fromId(action.payload);
+      if (!guestWebContents) {
+        return;
+      }
+      await clearWebviewStorageDeletingLoginData(guestWebContents);
+    }
+  );
 };
 
 const previousUserLoggedInByUrl = new Map<

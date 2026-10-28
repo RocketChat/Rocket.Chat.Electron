@@ -103,6 +103,9 @@
       "cancel": "キャンセル",
       "developerModeRequired": "UI プレビューを読み込むには ヘルプ > 開発者モード を有効にしてください。",
       "failed": "UI プレビューを読み込めませんでした。"
+    },
+    "clearCache": {
+      "removeSearchData": "このワークスペースの暗号化されたメッセージのローカル検索もオフにし、そのインデックスを削除する"
     }
   },
   "documentViewer": {

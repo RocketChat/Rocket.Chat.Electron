@@ -151,6 +151,9 @@
       "cancel": "Gaskkalduhte",
       "developerModeRequired": "Doaimmat Help > Developer Mode vai sáhtát viežžat geavaheaddjilakta-ovdačájáhusaid.",
       "failed": "Ii sáhttán viežžat geavaheaddjilakta-ovdačájáhusa."
+    },
+    "clearCache": {
+      "removeSearchData": "Bija maiddái báikkálaš ohcama krypterejuvvon teavsttain eret dán bargobáikkis, ja sihko dan indeavssa"
     }
   },
   "tabBar": {

@@ -55,7 +55,8 @@
       "keepLoginData": "Fortsett påloggingsøkten",
       "deleteLoginData": "Slette påloggingsøkten",
       "clearingWait": "Vent",
-      "cancel": "Kansellere"
+      "cancel": "Kansellere",
+      "removeSearchData": "Slå også av lokalt søk i krypterte meldinger for dette arbeidsområdet, og slett indeksen"
     },
     "downloadRemoval": {
       "title": "Er du sikker?",

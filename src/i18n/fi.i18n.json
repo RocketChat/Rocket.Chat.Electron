@@ -145,6 +145,9 @@
       "cancel": "Peruuta",
       "developerModeRequired": "Ota Ohje > Developer Mode käyttöön ladataksesi käyttöliittymän esikatseluja.",
       "failed": "Käyttöliittymän esikatselua ei voitu ladata."
+    },
+    "clearCache": {
+      "removeSearchData": "Poista myös salattujen viestien paikallinen haku käytöstä tässä työtilassa ja poista sen indeksi"
     }
   },
   "documentViewer": {

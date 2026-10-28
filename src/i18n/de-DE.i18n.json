@@ -138,6 +138,9 @@
       "cancel": "Abbrechen",
       "developerModeRequired": "Aktiviere Hilfe > Entwicklermodus, um UI-Vorschauen zu laden.",
       "failed": "Die UI-Vorschau konnte nicht geladen werden."
+    },
+    "clearCache": {
+      "removeSearchData": "Auch die lokale Suche in verschlüsselten Nachrichten für diesen Arbeitsbereich ausschalten und ihren Index löschen"
     }
   },
   "documentViewer": {

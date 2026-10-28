@@ -115,6 +115,9 @@
       "cancel": "Anuluj",
       "developerModeRequired": "Włącz Pomoc > Tryb programisty, aby wczytywać podglądy interfejsu.",
       "failed": "Nie udało się wczytać podglądu interfejsu."
+    },
+    "clearCache": {
+      "removeSearchData": "Wyłącz też lokalne wyszukiwanie zaszyfrowanych wiadomości w tej przestrzeni roboczej i usuń jego indeks"
     }
   },
   "documentViewer": {

@@ -157,6 +157,9 @@
       "cancel": "Cancelar",
       "developerModeRequired": "Activa Ayuda > Modo desarrollador para cargar vistas previas de la UI.",
       "failed": "No se pudo cargar la vista previa de la UI."
+    },
+    "clearCache": {
+      "removeSearchData": "Desactivar también la búsqueda local de mensajes cifrados en este espacio de trabajo y eliminar su índice"
     }
   },
   "documentViewer": {

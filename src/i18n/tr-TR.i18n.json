@@ -103,6 +103,9 @@
       "cancel": "İptal",
       "developerModeRequired": "Arayüz önizlemelerini yüklemek için Yardım > Geliştirici Modu seçeneğini açın.",
       "failed": "Arayüz önizlemesi yüklenemedi."
+    },
+    "clearCache": {
+      "removeSearchData": "Bu çalışma alanı için şifreli mesajlarda yerel aramayı da kapat ve dizinini sil"
     }
   },
   "documentViewer": {

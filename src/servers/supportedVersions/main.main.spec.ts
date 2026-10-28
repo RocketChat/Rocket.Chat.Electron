@@ -40,10 +40,14 @@ const mockToResponse = (result?: { data?: unknown; status?: number }) => {
     json: async () => result?.data,
   };
 };
+const mockRequests: { url: string; init?: RequestInit }[] = [];
 const mockFromPartition = (partition: string) => {
   mockPartitions.push(partition);
   return {
-    fetch: (url: string) => mockHttp.get(url).then(mockToResponse),
+    fetch: (url: string, init?: RequestInit) => {
+      mockRequests.push({ url, init });
+      return mockHttp.get(url).then(mockToResponse);
+    },
   };
 };
 
@@ -216,6 +220,37 @@ describe('supportedVersions/main.ts', () => {
       expect([...new Set(mockPartitions)]).toEqual([
         `persist:${mockServer.url}`,
       ]);
+    });
+
+    it('sends basic-auth credentials as a header, only to the server, and no cookies', async () => {
+      // fetch() rejects a URL that holds credentials.
+      const mockServer = createMockServer({
+        url: 'https://user:p%40ss@test.rocket.chat/',
+        uniqueID: 'persisted-id',
+      });
+      selectMock.mockReturnValue(mockServer);
+      mockHttp.get = jest.fn().mockResolvedValue({
+        data: createMockServerInfo({ supportedVersions: undefined }),
+      });
+      mockRequests.length = 0;
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      expect(mockRequests.length).toBeGreaterThan(2);
+      const expectedAuth = `Basic ${Buffer.from('user:p@ss').toString('base64')}`;
+      for (const { url, init } of mockRequests) {
+        expect(url.includes('@')).toBe(false);
+        expect(init?.credentials).toBe('omit');
+        const auth = new Headers(init?.headers).get('Authorization');
+        if (new URL(url).host === 'test.rocket.chat') {
+          expect(auth).toBe(expectedAuth);
+        } else {
+          expect(auth).toBeNull();
+        }
+      }
+      expect(
+        mockRequests.some(({ url }) => url.includes('releases.rocket.chat'))
+      ).toBe(true);
     });
 
     it('treats a non-2xx response as a failed request', async () => {

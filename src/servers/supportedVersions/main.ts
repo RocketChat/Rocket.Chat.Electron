@@ -74,10 +74,27 @@ const getBuiltinSupportedVersions = async (): Promise<
 // http_proxy/https_proxy variables instead, so it failed behind a proxy that
 // the webview did not use, and the check fell back to stale builtin data that
 // blocked a supported server.
+//
+// fetch() rejects a URL with `user:pass@`, so the credentials of a server
+// behind basic auth go in an Authorization header, and only to that server's
+// host. `credentials: 'omit'` keeps the partition's cookies out of these
+// requests, as with the former Node client.
 const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
+  const target = new URL(url);
+  const server = new URL(serverUrl);
+  target.username = '';
+  target.password = '';
+  const headers = new Headers();
+  if (server.username && target.host === server.host) {
+    const credentials = `${decodeURIComponent(server.username)}:${decodeURIComponent(server.password)}`;
+    headers.set(
+      'Authorization',
+      `Basic ${Buffer.from(credentials).toString('base64')}`
+    );
+  }
   const response = await session
     .fromPartition(`persist:${serverUrl}`)
-    .fetch(url);
+    .fetch(target.href, { headers, credentials: 'omit' });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
   }
@@ -632,7 +649,9 @@ const isNewerThanFallbackData = (
 
   return candidates.every(({ versions }) => {
     const newestStable = (versions.versions ?? [])
-      .filter(({ version }) => !version.includes('-'))
+      .filter(
+        ({ version }) => typeof version === 'string' && !version.includes('-')
+      )
       .map(({ version }) => coerce(version))
       .reduce<ReturnType<typeof coerce>>(
         (newest, version) =>

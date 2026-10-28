@@ -1,12 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import axios from 'axios';
-import { ipcMain, powerMonitor } from 'electron';
+import { ipcMain, powerMonitor, session } from 'electron';
 import ElectronStore from 'electron-store';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
-import { coerce, satisfies } from 'semver';
+import { coerce, gt, satisfies } from 'semver';
 import semverGte from 'semver/functions/gte';
 
 import { dispatch, listen, select } from '../../store';
@@ -69,21 +68,26 @@ const getBuiltinSupportedVersions = async (): Promise<
   }
 };
 
+// Requests go through the server's own webview session, not a Node HTTP
+// client: the session applies the same proxy settings, certificate trust and
+// OS certificate store as the webview. A Node client reads the
+// http_proxy/https_proxy variables instead, so it failed behind a proxy that
+// the webview did not use, and the check fell back to stale builtin data that
+// blocked a supported server.
+const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
+  const response = await session
+    .fromPartition(`persist:${serverUrl}`)
+    .fetch(url);
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+  return (await response.json()) as T;
+};
+
 const logRequestError =
   (description: string) =>
   (error: unknown): undefined => {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        console.error(
-          `Couldn't load ${description}: ${error.response.status} ${error.response.data}`
-        );
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error(`Couldn't load ${description}: ${error.message}`);
-      }
-    } else {
-      console.error(`Fetching ${description} error:`, error);
-    }
+    console.error(`Couldn't load ${description}:`, error);
     return undefined;
   };
 
@@ -183,16 +187,14 @@ const getCloudInfo = async (
   uniqueId: string
 ): Promise<CloudInfo | undefined> => {
   const domain = new URL(url).hostname;
-  const response = await axios.get<CloudInfo>(
+  return fetchJson<CloudInfo>(
+    url,
     urls.supportedVersions({ domain, uniqueId })
   );
-  return response.data;
 };
 
-const getServerInfo = async (url: string): Promise<ServerInfo> => {
-  const response = await axios.get<ServerInfo>(urls.server(url).info);
-  return response.data;
-};
+const getServerInfo = (url: string): Promise<ServerInfo> =>
+  fetchJson<ServerInfo>(url, urls.server(url).info);
 
 const getUniqueId = async (
   url: string,
@@ -205,10 +207,11 @@ const getUniqueId = async (
     : urls.server(url).setting('uniqueID');
 
   try {
-    const response = await axios.get<{ settings: { value: string }[] }>(
+    const data = await fetchJson<{ settings: { value: string }[] }>(
+      url,
       serverUrl
     );
-    const value = response.data?.settings?.[0]?.value;
+    const value = data?.settings?.[0]?.value;
 
     if (!value) {
       console.warn(`No unique ID found for server ${url}`);
@@ -602,6 +605,48 @@ const withExceptionScopeUniqueId = async (
 // candidates are tried in freshness order and the first one that supports
 // the server wins; only if every candidate fails to support it do we accept
 // the last-checked (freshest) verdict as the block reason.
+// Fallback data is a snapshot: the builtin payload is from the app's build,
+// and the cache is from the last successful fetch. A server release that came
+// out after the snapshot is not in it, so there "not listed" means "unknown",
+// not "unsupported", and an unknown verdict must not block.
+//
+// The rule is narrow on purpose, so it cannot unblock a server that the data
+// does judge:
+// - only a stable server version (a prerelease keeps the normal check);
+// - only a minor newer than the newest stable entry of EVERY candidate, so a
+//   version that one candidate knows (and rejects) stays blocked;
+// - at most one major ahead of that entry, so an implausible version stays
+//   blocked;
+// - only on this fallback path. Fresh server or cloud data always decides.
+const isNewerThanFallbackData = (
+  serverVersion: string | undefined,
+  candidates: { versions: SupportedVersions }[]
+): boolean => {
+  const trimmed = serverVersion?.trim();
+  if (!trimmed || trimmed.includes('-')) {
+    return false;
+  }
+  const server = coerce(trimmed);
+  if (!server || candidates.length === 0) return false;
+  const serverMinor = `${server.major}.${server.minor}.0`;
+
+  return candidates.every(({ versions }) => {
+    const newestStable = (versions.versions ?? [])
+      .filter(({ version }) => !version.includes('-'))
+      .map(({ version }) => coerce(version))
+      .reduce<ReturnType<typeof coerce>>(
+        (newest, version) =>
+          version && (!newest || gt(version, newest)) ? version : newest,
+        null
+      );
+    if (!newestStable) return false;
+    return (
+      gt(serverMinor, `${newestStable.major}.${newestStable.minor}.0`) &&
+      server.major <= newestStable.major + 1
+    );
+  });
+};
+
 const validateFallbackAndDispatch = async (
   server: Server,
   serverUrl: string,
@@ -634,8 +679,22 @@ const validateFallbackAndDispatch = async (
         verdict = otherVerdict;
       }
     }
+    if (
+      !verdict.supported &&
+      isNewerThanFallbackData(server.version, candidates)
+    ) {
+      console.warn(
+        `Server ${server.url} version ${server.version} is newer than the ` +
+          `${candidates.map(({ source }) => source).join(' and ')} ` +
+          `supported-versions data, and no fresh data is reachable. ` +
+          `Not blocking it until fresh data is available.`
+      );
+      verdict = { supported: true };
+    }
     if (isStale()) return;
-    saveToCache(serverUrl, chosen.versions);
+    // Never write the chosen candidate back to the cache. A cached candidate
+    // is already there, and a builtin one would overwrite this tenant's
+    // cached exceptions and come back next launch labeled 'cloud'.
     dispatch({
       type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
       payload: {

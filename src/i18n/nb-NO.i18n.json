@@ -40,7 +40,7 @@
         "title": "Lokal søkeindeks",
         "empty": "Denne datamaskinen har ingen søkeindeks for krypterte meldinger.",
         "removedServer": "Fjernet arbeidsområde",
-        "notLoaded": "Ikke lastet",
+        "countWhenOpen": "Antall meldinger vises når arbeidsområdet åpner indeksen",
         "messages_one": "{{count}} melding",
         "messages_other": "{{count}} meldinger",
         "onDisk": "{{size, byteSize}} på disk",

@@ -315,7 +315,7 @@
         "title": "Lokalt sökindex",
         "empty": "Den här datorn har inget sökindex för krypterade meddelanden.",
         "removedServer": "Borttagen arbetsyta",
-        "notLoaded": "Inte inläst",
+        "countWhenOpen": "Antalet meddelanden visas när arbetsytan öppnar indexet",
         "messages_one": "{{count}} meddelande",
         "messages_other": "{{count}} meddelanden",
         "onDisk": "{{size, byteSize}} på disk",

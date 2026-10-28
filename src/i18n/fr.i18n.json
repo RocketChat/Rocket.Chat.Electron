@@ -294,7 +294,7 @@
         "title": "Index de recherche local",
         "empty": "Cet ordinateur ne dispose d’aucun index de recherche des messages chiffrés.",
         "removedServer": "Espace de travail supprimé",
-        "notLoaded": "Non chargé",
+        "countWhenOpen": "Le nombre de messages s’affiche quand l’espace de travail ouvre l’index",
         "messages_one": "{{count}} message",
         "messages_other": "{{count}} messages",
         "onDisk": "{{size, byteSize}} sur le disque",

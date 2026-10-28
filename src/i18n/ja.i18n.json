@@ -156,7 +156,7 @@
         "title": "ローカルの検索インデックス",
         "empty": "このコンピューターには、暗号化されたメッセージの検索インデックスがありません。",
         "removedServer": "削除されたワークスペース",
-        "notLoaded": "未読み込み",
+        "countWhenOpen": "ワークスペースがインデックスを開くと、メッセージ数が表示されます",
         "messages_other": "{{count}}件のメッセージ",
         "onDisk": "ディスク上で{{size, byteSize}}",
         "encrypted": "ディスク上で暗号化",

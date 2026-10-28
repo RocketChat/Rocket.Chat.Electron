@@ -320,7 +320,7 @@
         "title": "Helyi keresési index",
         "empty": "Ezen a számítógépen nincs titkosított üzenetek keresési indexe.",
         "removedServer": "Eltávolított munkaterület",
-        "notLoaded": "Nincs betöltve",
+        "countWhenOpen": "Az üzenetek száma akkor jelenik meg, amikor a munkaterület megnyitja az indexet",
         "messages_one": "{{count}} üzenet",
         "messages_other": "{{count}} üzenet",
         "onDisk": "{{size, byteSize}} a lemezen",

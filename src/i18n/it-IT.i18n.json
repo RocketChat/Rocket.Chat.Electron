@@ -40,7 +40,7 @@
         "title": "Indice di ricerca locale",
         "empty": "Questo computer non ha un indice di ricerca dei messaggi cifrati.",
         "removedServer": "Spazio di lavoro rimosso",
-        "notLoaded": "Non caricato",
+        "countWhenOpen": "Il numero di messaggi appare quando lo spazio di lavoro apre l’indice",
         "messages_one": "{{count}} messaggio",
         "messages_other": "{{count}} messaggi",
         "onDisk": "{{size, byteSize}} su disco",

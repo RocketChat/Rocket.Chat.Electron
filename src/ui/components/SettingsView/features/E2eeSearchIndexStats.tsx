@@ -33,6 +33,10 @@ const limitKeys: Record<E2EESearchLimitReason, string> = {
     'settings.options.e2eeSearchIndexStats.limit.native-module-unavailable',
 };
 
+// While the view is shown, the stats are asked for again at this rate, so the
+// count follows the indexing of the web client.
+export const E2EE_SEARCH_INDEX_STATS_REFRESH_MS = 5_000;
+
 // The local search index of encrypted messages, for each server: how many
 // messages it holds, how much disk it takes, and whether it is encrypted on
 // disk. The main process collects it when Settings asks.
@@ -43,8 +47,26 @@ export const E2eeSearchIndexStats = (props: E2eeSearchIndexStatsProps) => {
   );
 
   useEffect(() => {
-    dispatch({ type: SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED });
+    const request = () =>
+      dispatch({ type: SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED });
+    request();
+    const timer = setInterval(request, E2EE_SEARCH_INDEX_STATS_REFRESH_MS);
+    return () => clearInterval(timer);
   }, []);
+
+  // A closed index is an encrypted snapshot, so its count is known only
+  // after the workspace opens it. The index of a removed server never opens
+  // again, so its line has no count.
+  const countOf = (server: E2EESearchServerIndexStats) => {
+    if (server.docs !== undefined) {
+      return t('settings.options.e2eeSearchIndexStats.messages', {
+        count: server.docs,
+      });
+    }
+    return server.serverUrl
+      ? t('settings.options.e2eeSearchIndexStats.countWhenOpen')
+      : undefined;
+  };
 
   return (
     <Field className={props.className}>
@@ -67,16 +89,14 @@ export const E2eeSearchIndexStats = (props: E2eeSearchIndexStatsProps) => {
             </Box>
             <Box fontScale='c1' color='hint'>
               {[
-                server.docs === undefined
-                  ? t('settings.options.e2eeSearchIndexStats.notLoaded')
-                  : t('settings.options.e2eeSearchIndexStats.messages', {
-                      count: server.docs,
-                    }),
+                countOf(server),
                 t('settings.options.e2eeSearchIndexStats.onDisk', {
                   size: server.bytesOnDisk,
                 }),
                 t(atRestKeys[server.atRest]),
-              ].join(' · ')}
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </Box>
             {server.limitedReason && (
               <Box fontScale='c1' color='hint'>

@@ -445,7 +445,7 @@
         "title": "Local search index",
         "empty": "This computer has no search index of encrypted messages.",
         "removedServer": "Removed workspace",
-        "notLoaded": "Not loaded",
+        "countWhenOpen": "Message count shows when the workspace opens the index",
         "messages_one": "{{count}} message",
         "messages_other": "{{count}} messages",
         "onDisk": "{{size, byteSize}} on disk",

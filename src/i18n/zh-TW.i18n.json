@@ -137,7 +137,7 @@
         "title": "本機搜尋索引",
         "empty": "此電腦沒有加密訊息的搜尋索引。",
         "removedServer": "已移除的工作區",
-        "notLoaded": "未載入",
+        "countWhenOpen": "工作區開啟索引後顯示訊息數量",
         "messages_other": "{{count}} 則訊息",
         "onDisk": "磁碟上 {{size, byteSize}}",
         "encrypted": "磁碟上已加密",

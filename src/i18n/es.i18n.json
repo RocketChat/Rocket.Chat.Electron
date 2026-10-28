@@ -306,7 +306,7 @@
         "title": "Índice de búsqueda local",
         "empty": "Este equipo no tiene un índice de búsqueda de mensajes cifrados.",
         "removedServer": "Espacio de trabajo eliminado",
-        "notLoaded": "No cargado",
+        "countWhenOpen": "El número de mensajes aparece cuando el espacio de trabajo abre el índice",
         "messages_one": "{{count}} mensaje",
         "messages_other": "{{count}} mensajes",
         "onDisk": "{{size, byteSize}} en el disco",

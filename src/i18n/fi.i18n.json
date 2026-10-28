@@ -294,7 +294,7 @@
         "title": "Paikallinen hakuindeksi",
         "empty": "Tässä tietokoneessa ei ole salattujen viestien hakuindeksiä.",
         "removedServer": "Poistettu työtila",
-        "notLoaded": "Ei ladattu",
+        "countWhenOpen": "Viestien määrä näkyy, kun työtila avaa indeksin",
         "messages_one": "{{count}} viesti",
         "messages_other": "{{count}} viestiä",
         "onDisk": "{{size, byteSize}} levyllä",

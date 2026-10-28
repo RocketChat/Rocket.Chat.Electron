@@ -158,7 +158,7 @@
         "title": "Yerel arama dizini",
         "empty": "Bu bilgisayarda şifreli mesajların arama dizini yok.",
         "removedServer": "Kaldırılan çalışma alanı",
-        "notLoaded": "Yüklenmedi",
+        "countWhenOpen": "Mesaj sayısı, çalışma alanı dizini açtığında görünür",
         "messages_one": "{{count}} mesaj",
         "messages_other": "{{count}} mesaj",
         "onDisk": "Diskte {{size, byteSize}}",

@@ -207,7 +207,7 @@
         "title": "本地搜索索引",
         "empty": "此电脑上没有加密消息的搜索索引。",
         "removedServer": "已移除的工作区",
-        "notLoaded": "未加载",
+        "countWhenOpen": "工作区打开索引后显示消息数量",
         "messages_other": "{{count}} 条消息",
         "onDisk": "磁盘上 {{size, byteSize}}",
         "encrypted": "磁盘上已加密",

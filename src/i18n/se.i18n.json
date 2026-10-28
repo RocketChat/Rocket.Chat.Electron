@@ -40,7 +40,7 @@
         "title": "Báikkálaš gávdnanindeksa",
         "empty": "Dán dihtorii ii leat krypterejuvvon teavstta gávdnanindeksa.",
         "removedServer": "Suddojuvvon bargobáikki",
-        "notLoaded": "Ii leat ladde",
+        "countWhenOpen": "Teavsttaid lohku oidno go bargobáiki rahpá indeavssa",
         "messages_one": "{{count}} teavsta",
         "messages_other": "{{count}} teavstta",
         "onDisk": "{{size, byteSize}} diskkas",

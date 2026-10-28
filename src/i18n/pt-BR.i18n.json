@@ -301,7 +301,7 @@
         "title": "Índice de busca local",
         "empty": "Este computador não tem índice de busca de mensagens criptografadas.",
         "removedServer": "Workspace removido",
-        "notLoaded": "Não carregado",
+        "countWhenOpen": "A contagem de mensagens aparece quando o workspace abre o índice",
         "messages_one": "{{count}} mensagem",
         "messages_other": "{{count}} mensagens",
         "onDisk": "{{size, byteSize}} no disco",

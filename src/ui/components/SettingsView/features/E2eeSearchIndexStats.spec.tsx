@@ -1,9 +1,12 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 
 import type { E2EESearchServerIndexStats } from '../../../../e2eeSearch/types';
 import { SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED } from '../../../actions';
-import { E2eeSearchIndexStats } from './E2eeSearchIndexStats';
+import {
+  E2EE_SEARCH_INDEX_STATS_REFRESH_MS,
+  E2eeSearchIndexStats,
+} from './E2eeSearchIndexStats';
 
 const dispatchMock = jest.fn();
 let stats: E2EESearchServerIndexStats[] | null = null;
@@ -60,10 +63,62 @@ describe('E2eeSearchIndexStats', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(`${key}.removedServer`)).toBeInTheDocument();
     expect(
+      screen.getByText(`${key}.onDisk {"size":300} · ${key}.memoryOnly`)
+    ).toBeInTheDocument();
+  });
+
+  // A closed index is an encrypted snapshot, so the count is not known. The
+  // line must not read as "no index".
+  it('tells the user when the count of a closed index shows', () => {
+    stats = [
+      {
+        serverUrl: 'https://a.example.com',
+        users: 1,
+        bytesOnDisk: 4096,
+        atRest: 'encrypted',
+      },
+    ];
+    render(<E2eeSearchIndexStats />);
+
+    expect(
       screen.getByText(
-        `${key}.notLoaded · ${key}.onDisk {"size":300} · ${key}.memoryOnly`
+        `${key}.countWhenOpen · ${key}.onDisk {"size":4096} · ${key}.encrypted`
       )
     ).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(`${key}.notLoaded`))).toBeNull();
+  });
+
+  describe('while it is shown', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('asks for the stats again at a fixed rate, and stops when it closes', () => {
+      const { unmount } = render(<E2eeSearchIndexStats />);
+      expect(dispatchMock).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(E2EE_SEARCH_INDEX_STATS_REFRESH_MS);
+      });
+      expect(dispatchMock).toHaveBeenCalledTimes(2);
+      act(() => {
+        jest.advanceTimersByTime(E2EE_SEARCH_INDEX_STATS_REFRESH_MS);
+      });
+      expect(dispatchMock).toHaveBeenCalledTimes(3);
+      expect(dispatchMock).toHaveBeenLastCalledWith({
+        type: SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED,
+      });
+
+      unmount();
+      act(() => {
+        jest.advanceTimersByTime(E2EE_SEARCH_INDEX_STATS_REFRESH_MS * 3);
+      });
+      expect(dispatchMock).toHaveBeenCalledTimes(3);
+    });
   });
 
   it('says so when there is no index', () => {

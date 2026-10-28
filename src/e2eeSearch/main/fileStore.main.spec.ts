@@ -170,9 +170,9 @@ describe('E2EE search worker handler, encrypted file store', () => {
     expect(serialized.includes(NEEDLE)).toBe(false);
   });
 
-  // D13 (size padding) is dropped: local disk access is outside the E2EE
-  // threat model. A small index is not rounded up to a 1 MiB bucket.
-  it('does not pad a small index file to a size bucket', async () => {
+  // The file size follows the index size. Local disk access is outside the
+  // E2EE threat model, so the store does not hide it.
+  it('keeps the file of a small index below 1 MiB', async () => {
     const h = handler();
     await call(h, 'open', [args]);
     await call(h, 'upsert', [docs('a')]);

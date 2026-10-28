@@ -22,8 +22,8 @@ import { findCanaryInBuffer, scanDirForCanary } from './canaryScan';
 // messages that hold random canaries through the real worker path (the
 // in-memory SQLite FTS5 engine and the AES-256-GCM snapshot), lets the
 // worker write everything it writes, and then scans every file in the
-// profile folder for the canaries. The same scanner runs on a live profile:
-// scripts/e2ee-search-canary-scan.mjs.
+// profile folder for the canaries. The same scanner can run on a live
+// profile.
 
 const { DatabaseSync } = process.getBuiltinModule('node:sqlite');
 

@@ -2,10 +2,10 @@ import { lstat, open, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
 // The canary scanner for the rule "no plaintext-derived data on disk". The
-// spec `noPlaintextOnDisk.main.spec.ts` and the live tool
-// `scripts/e2ee-search-canary-scan.mjs` both use this one implementation.
+// spec `noPlaintextOnDisk.main.spec.ts` uses it, and a live tool can run the
+// same scan on a real profile.
 //
-// The script imports this file directly through Node type stripping
+// A Node script can import this file directly through Node type stripping
 // (Node 22.18 or later). So this file uses only erasable TypeScript syntax and
 // imports only `node:` builtins. It reads files only. It reports where a
 // token is (path, offset, encoding) and never the bytes around it, because a

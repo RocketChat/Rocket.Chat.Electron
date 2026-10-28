@@ -3,7 +3,7 @@ import type { DatabaseSync } from 'node:sqlite';
 
 import Database from 'better-sqlite3-multiple-ciphers';
 
-// The page-encrypted index file (design D5, option 1). SQLite3MultipleCiphers
+// The page-encrypted index file. SQLite3MultipleCiphers
 // encrypts each page before it reaches the disk: the database file, its WAL
 // and its journal hold only ciphertext. A save writes only the changed pages,
 // not a snapshot of the whole database.

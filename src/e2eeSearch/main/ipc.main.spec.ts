@@ -215,14 +215,103 @@ describe('E2EE search IPC handler', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
+  const userIndexDir = (serverUrl: string, userId: string) =>
+    path.join(
+      root,
+      createHash('sha256').update(serverUrl).digest('hex'),
+      userId
+    );
+
   const searchIds = async (sender: E2EESearchSender) =>
     ((await handle(sender, 'search', { text: NEEDLE })) as E2EESearchHit[]).map(
       (hit) => hit.id
     );
 
-  it('exposes the 10 methods of the backend interface on the bridge', () => {
+  it('exposes the 11 methods of the backend interface on the bridge', () => {
     expect(Object.keys(e2eeSearch).sort()).toEqual([...BRIDGE_METHODS].sort());
-    expect(BRIDGE_METHODS).toHaveLength(10);
+    expect(BRIDGE_METHODS).toHaveLength(11);
+  });
+
+  // The web client closes the index at logout, also when the desktop misses
+  // the logout signal. The index stays on disk for the next open.
+  describe('close', () => {
+    const closes = () => methods.filter((m) => m === 'close').length;
+
+    it('closes the open index of the caller and keeps it on disk', async () => {
+      const webview = createSender(90);
+      servers.set(webview.id, SERVER_A);
+      await handle(webview, 'open', { userId: 'userA' });
+      await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
+
+      await expect(handle(webview, 'close')).resolves.toBeUndefined();
+
+      expect(closes()).toBe(1);
+      expect(wipedIndexIds).toEqual([]);
+      expect(existsSync(userIndexDir(SERVER_A, 'userA'))).toBe(true);
+      await expect(handle(webview, 'search', { text: NEEDLE })).rejects.toThrow(
+        'not open'
+      );
+    });
+
+    it('leaves the index of another webview open', async () => {
+      const webview = createSender(91);
+      servers.set(webview.id, SERVER_A);
+      await handle(webview, 'open', { userId: 'userA' });
+      await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
+      await handle(webviewB, 'open', { userId: 'userA' });
+
+      await handle(webviewB, 'close');
+
+      expect(await searchIds(webview)).toEqual(['m1']);
+    });
+
+    it('is refused to a sender that is not a server webview', async () => {
+      await expect(handle(rootWindow, 'close')).rejects.toThrow(
+        'only to server webviews'
+      );
+    });
+
+    it('does nothing and logs nothing when no index is open', async () => {
+      const webview = createSender(92);
+      servers.set(webview.id, SERVER_A);
+
+      await expect(handle(webview, 'close')).resolves.toBeUndefined();
+
+      expect(closes()).toBe(0);
+      expect(notOpenLogs).toEqual([]);
+    });
+
+    it('gives no session to an open that finishes after the close', async () => {
+      const webview = createSender(93);
+      servers.set(webview.id, SERVER_A);
+      let release = () => undefined as void;
+      openGate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const opening = handle(webview, 'open', { userId: 'userA' });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      await handle(webview, 'close');
+      release();
+
+      await expect(opening).rejects.toThrow(E2EE_SEARCH_GENERIC_ERROR);
+      await expect(handle(webview, 'stats')).rejects.toThrow('not open');
+    });
+
+    it('keeps the user binding of the document', async () => {
+      const webview = createSender(94);
+      servers.set(webview.id, SERVER_A);
+      await handle(webview, 'open', { userId: 'userA' });
+      await handle(webview, 'close');
+
+      await expect(
+        handle(webview, 'open', { userId: 'userB' })
+      ).rejects.toThrow('another user');
+      await handle(webview, 'open', { userId: 'userA' });
+      await expect(handle(webview, 'stats')).resolves.toMatchObject({
+        docs: expect.any(Number),
+      });
+    });
   });
 
   it('keeps server A and server B in separate indexes for the same user', async () => {
@@ -264,7 +353,7 @@ describe('E2EE search IPC handler', () => {
     await expect(handle(webviewA, 'save')).rejects.toBeInstanceOf(
       E2EESearchInputError
     );
-    await expect(handle(webviewA, 'close')).rejects.toBeInstanceOf(
+    await expect(handle(webviewA, 'dispose')).rejects.toBeInstanceOf(
       E2EESearchInputError
     );
   });

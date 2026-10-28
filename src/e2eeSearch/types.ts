@@ -101,4 +101,8 @@ export type SearchIndexBackend = {
   // With a scope and no open index (E2EE locked), the server-confirmed
   // user's index is deleted.
   wipe(scope?: { userId: string }): Promise<void>;
+  // The web client calls it at logout. The index closes and stays on disk.
+  // The web client must check that the method exists, because an older
+  // desktop app does not have it.
+  close(): Promise<void>;
 };

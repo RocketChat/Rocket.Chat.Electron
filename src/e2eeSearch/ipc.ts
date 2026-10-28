@@ -28,6 +28,7 @@ export const BRIDGE_METHODS = [
   'setRoomState',
   'stats',
   'wipe',
+  'close',
 ] as const;
 
 export type BridgeMethod = (typeof BRIDGE_METHODS)[number];
@@ -310,6 +311,27 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     return undefined;
   };
 
+  // The web client logs out. The index of this webview closes with a save
+  // and stays on disk, and the call returns when the worker closed it. An
+  // open in flight gets no session, like after a logout signal. The user
+  // binding stays: only a navigation or the desktop logout signal ends it.
+  const closeIndex = async (
+    sender: E2EESearchSender,
+    serverUrl: string
+  ): Promise<undefined> => {
+    watch(sender);
+    if (documents.has(sender.id)) documents.set(sender.id, {});
+    notOpenLogged.delete(sender.id);
+    lockedSenders.delete(sender.id);
+    const session = sessions.get(sender.id);
+    if (!session || session.serverUrl !== serverUrl) return undefined;
+    sessions.delete(sender.id);
+    await deps.close(session.indexId).catch((error: unknown) => {
+      throw toPageError(deps, 'close', error);
+    });
+    return undefined;
+  };
+
   // The calls of each webview that have not returned yet.
   const callsInFlight = new Map<number, number>();
 
@@ -412,6 +434,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     }
 
     const session = sessions.get(sender.id);
+    if (method === 'close') return closeIndex(sender, serverUrl);
     if (
       method === 'wipe' &&
       args[0] !== undefined &&

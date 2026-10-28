@@ -22,4 +22,5 @@ export const e2eeSearch: SearchIndexBackend = {
   setRoomState: call('setRoomState'),
   stats: call('stats'),
   wipe: call('wipe'),
+  close: call('close'),
 };

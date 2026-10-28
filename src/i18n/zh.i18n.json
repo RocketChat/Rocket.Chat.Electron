@@ -32,6 +32,21 @@
         "title": "菜单栏中的未读数",
         "description": "在菜单栏图标旁显示未读提及的数量。"
       },
+      "clearE2eeSearchIndex": {
+        "title": "清除本地搜索索引",
+        "description": "删除本应用在此电脑上保存的加密消息搜索索引，适用于所有工作区。应用会再次从服务器构建该索引。"
+      },
+      "e2eeSearchIndexStats": {
+        "title": "本地搜索索引",
+        "empty": "此电脑上没有加密消息的搜索索引。",
+        "removedServer": "已移除的工作区",
+        "notLoaded": "未加载",
+        "messages_other": "{{count}} 条消息",
+        "onDisk": "磁盘上 {{size, byteSize}}",
+        "encrypted": "磁盘上已加密",
+        "memoryOnly": "仅保存在内存中，未保存到磁盘",
+        "mixed": "部分已加密保存在磁盘上，部分仅保存在内存中"
+      },
       "uiPreview": {
         "title": "加载 Web 界面构建",
         "description": "在保留会话的情况下，用 Rocket.Chat Web 客户端的某个构建替代工作区自身的界面。请添加“develop”或 Rocket.Chat PR 编号（均从 ghcr.io 拉取），或已托管包的 URL，然后将其应用到工作区。刷新某个条目会检查是否有更新的构建，并重新加载正在使用它的工作区。",

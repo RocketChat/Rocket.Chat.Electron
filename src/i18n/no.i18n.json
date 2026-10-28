@@ -319,6 +319,22 @@
         "loading": "Laster inn nettlesere ...",
         "current": "Bruker for øyeblikket:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Tøm lokal søkeindeks",
+        "description": "Slett søkeindeksen for krypterte meldinger som appen lagrer på denne datamaskinen, for alle arbeidsområder. Appen bygger den opp igjen fra serveren."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokal søkeindeks",
+        "empty": "Denne datamaskinen har ingen søkeindeks for krypterte meldinger.",
+        "removedServer": "Fjernet arbeidsområde",
+        "notLoaded": "Ikke lastet",
+        "messages_one": "{{count}} melding",
+        "messages_other": "{{count}} meldinger",
+        "onDisk": "{{size, byteSize}} på disk",
+        "encrypted": "Kryptert på disk",
+        "memoryOnly": "Bare i minnet, ikke lagret på disk",
+        "mixed": "Delvis kryptert på disk, delvis bare i minnet"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Fjern skjermopptakstillatelser",
         "description": "Fjern skjermopptakstillatelsene på videosamtaler som ble valgt for ikke å spørre igjen."

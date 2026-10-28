@@ -312,6 +312,22 @@
         "loading": "Böngészők betöltése…",
         "current": "Jelenleg használt:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Helyi keresési index törlése",
+        "description": "Törli az alkalmazás által ezen a számítógépen tárolt titkosított üzenetek keresési indexét, minden munkaterülethez. Az alkalmazás ezt később újraépíti a szerverről."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Helyi keresési index",
+        "empty": "Ezen a számítógépen nincs titkosított üzenetek keresési indexe.",
+        "removedServer": "Eltávolított munkaterület",
+        "notLoaded": "Nincs betöltve",
+        "messages_one": "{{count}} üzenet",
+        "messages_other": "{{count}} üzenet",
+        "onDisk": "{{size, byteSize}} a lemezen",
+        "encrypted": "Titkosítva a lemezen",
+        "memoryOnly": "Csak a memóriában, nincs mentve a lemezre",
+        "mixed": "Részben titkosítva a lemezen, részben csak a memóriában"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Képernyőfelvételi engedélyek törlése",
         "description": "Azon képernyőfelvételi engedélyek törlése, amelyek úgy lettek kiválasztva, hogy ne kérdezzenek újra a videohívásoknál."

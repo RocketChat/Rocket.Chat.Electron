@@ -162,6 +162,24 @@
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Wyczyść lokalny indeks wyszukiwania",
+        "description": "Usuwa indeks wyszukiwania zaszyfrowanych wiadomości, który ta aplikacja przechowuje na tym komputerze, dla wszystkich przestrzeni roboczych. Aplikacja odbuduje go z serwera."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokalny indeks wyszukiwania",
+        "empty": "Na tym komputerze nie ma indeksu wyszukiwania zaszyfrowanych wiadomości.",
+        "removedServer": "Usunięta przestrzeń robocza",
+        "notLoaded": "Nie załadowano",
+        "messages_one": "{{count}} wiadomość",
+        "messages_few": "{{count}} wiadomości",
+        "messages_many": "{{count}} wiadomości",
+        "messages_other": "{{count}} wiadomości",
+        "onDisk": "{{size, byteSize}} na dysku",
+        "encrypted": "Zaszyfrowany na dysku",
+        "memoryOnly": "Tylko w pamięci, nie zapisany na dysku",
+        "mixed": "Częściowo zaszyfrowany na dysku, częściowo tylko w pamięci"
+      },
       "transparentWindow": {
         "title": "Efekt przezroczystego okna",
         "description": "Włącz natywny efekt wibracji/przezroczystości dla okna. Wymaga ponownego uruchomienia, aby zastosować."

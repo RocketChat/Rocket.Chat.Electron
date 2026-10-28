@@ -32,6 +32,22 @@
         "title": "Numero di non letti nella barra dei menu",
         "description": "Mostra il numero di menzioni non lette accanto all'icona della barra dei menu."
       },
+      "clearE2eeSearchIndex": {
+        "title": "Cancella l’indice di ricerca locale",
+        "description": "Elimina l’indice di ricerca dei messaggi cifrati che questa app conserva su questo computer, per tutti gli spazi di lavoro. L’app lo ricrea dal server."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Indice di ricerca locale",
+        "empty": "Questo computer non ha un indice di ricerca dei messaggi cifrati.",
+        "removedServer": "Spazio di lavoro rimosso",
+        "notLoaded": "Non caricato",
+        "messages_one": "{{count}} messaggio",
+        "messages_other": "{{count}} messaggi",
+        "onDisk": "{{size, byteSize}} su disco",
+        "encrypted": "Cifrato su disco",
+        "memoryOnly": "Solo in memoria, non salvato su disco",
+        "mixed": "In parte cifrato su disco, in parte solo in memoria"
+      },
       "uiPreview": {
         "title": "Carica una build dell'interfaccia web",
         "description": "Esegue una build del client web di Rocket.Chat al posto dell'interfaccia di un workspace, mantenendo la tua sessione. Aggiungi \"develop\" o il numero di una PR di Rocket.Chat (entrambi scaricati da ghcr.io), oppure l'URL di un bundle servito, poi applicalo a un workspace. Aggiornare una voce cerca una build più recente e ricarica i workspace che la usano.",

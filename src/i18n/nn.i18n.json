@@ -32,6 +32,22 @@
         "title": "Tal på ulesne i menylinja",
         "description": "Vis talet på ulesne omtalar ved sida av ikonet i menylinja."
       },
+      "clearE2eeSearchIndex": {
+        "title": "Tøm lokal søkeindeks",
+        "description": "Slett søkeindeksen for krypterte meldingar som appen lagrar på denne datamaskina, for alle arbeidsområde. Appen byggjer han opp att frå serveren."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokal søkeindeks",
+        "empty": "Denne datamaskina har ingen søkeindeks for krypterte meldingar.",
+        "removedServer": "Fjerna arbeidsområde",
+        "notLoaded": "Ikkje lasta",
+        "messages_one": "{{count}} melding",
+        "messages_other": "{{count}} meldingar",
+        "onDisk": "{{size, byteSize}} på disk",
+        "encrypted": "Kryptert på disk",
+        "memoryOnly": "Berre i minnet, ikkje lagra på disk",
+        "mixed": "Delvis kryptert på disk, delvis berre i minnet"
+      },
       "uiPreview": {
         "title": "Last inn ein build av nettgrensesnittet",
         "description": "Køyrer ein build av Rocket.Chat-nettklienten i staden for det eigne grensesnittet til arbeidsområdet, og held på økta di. Legg til «develop» eller eit PR-nummer frå Rocket.Chat (begge henta frå ghcr.io), eller URL-en til ein servert pakke, og ta han deretter i bruk i eit arbeidsområde. Å oppdatere ei oppføring ser etter ein nyare build og lastar inn att arbeidsområda som brukar han.",

@@ -32,6 +32,22 @@
         "title": "Lohkkekeahtes dieđáhusaid lohku fálloholggas",
         "description": "Čájet lohkkekeahtes namuhemiid logu fálloholgga govaža bálddas."
       },
+      "clearE2eeSearchIndex": {
+        "title": "Suddat báikkálaš gávdnanindeksa",
+        "description": "Suddat indeksa krypterejuvvon teavstta gávdnamii, man dát appa gaskkohagas dán dihtorii buot bargobáikkiid várás. Appa huksá indeksa ođas serveres."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Báikkálaš gávdnanindeksa",
+        "empty": "Dán dihtorii ii leat krypterejuvvon teavstta gávdnanindeksa.",
+        "removedServer": "Suddojuvvon bargobáikki",
+        "notLoaded": "Ii leat ladde",
+        "messages_one": "{{count}} teavsta",
+        "messages_other": "{{count}} teavstta",
+        "onDisk": "{{size, byteSize}} diskkas",
+        "encrypted": "Krypterejuvvon diskkas",
+        "memoryOnly": "Dušše muittus, ii sihkkojuvvo diskii",
+        "mixed": "Oasis krypterejuvvon diskkas, oasis dušše muittus"
+      },
       "uiPreview": {
         "title": "Viečča web-geavaheaddjilaktta builda",
         "description": "Vuodjá Rocket.Chat web-klienta builda bargobáikki iežas geavaheaddjilavtta sajis, ja doallá du sešuvnna. Lasit \"develop\" dahje Rocket.Chat PR-nummira (goappašagat viežžojuvvojit ghcr.io:s), dahje bálvaluvvon páhka URL-čujuhusa, ja de váldde dan atnui bargobáikkis. Go ođasmahtát merkoštusa, de dat ohcá ođđasut builda ja viežžá ođđasit bargobáikkiid mat dan geavahit.",

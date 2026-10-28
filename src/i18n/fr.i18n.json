@@ -286,6 +286,22 @@
         "loading": "Chargement des navigateurs...",
         "current": "Actuellement utilisé:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Effacer l’index de recherche local",
+        "description": "Supprime l’index de recherche des messages chiffrés que cette application conserve sur cet ordinateur, pour tous les espaces de travail. L’application le reconstruit ensuite à partir du serveur."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Index de recherche local",
+        "empty": "Cet ordinateur ne dispose d’aucun index de recherche des messages chiffrés.",
+        "removedServer": "Espace de travail supprimé",
+        "notLoaded": "Non chargé",
+        "messages_one": "{{count}} message",
+        "messages_other": "{{count}} messages",
+        "onDisk": "{{size, byteSize}} sur le disque",
+        "encrypted": "Chiffré sur le disque",
+        "memoryOnly": "En mémoire uniquement, non enregistré sur le disque",
+        "mixed": "En partie chiffré sur le disque, en partie en mémoire uniquement"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
         "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."

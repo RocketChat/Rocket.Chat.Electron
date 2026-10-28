@@ -298,6 +298,22 @@
         "loading": "Cargando navegadores...",
         "current": "Usando actualmente:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Borrar el índice de búsqueda local",
+        "description": "Elimina el índice de búsqueda de los mensajes cifrados que esta aplicación guarda en este equipo, para todos los espacios de trabajo. La aplicación lo vuelve a crear desde el servidor."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Índice de búsqueda local",
+        "empty": "Este equipo no tiene un índice de búsqueda de mensajes cifrados.",
+        "removedServer": "Espacio de trabajo eliminado",
+        "notLoaded": "No cargado",
+        "messages_one": "{{count}} mensaje",
+        "messages_other": "{{count}} mensajes",
+        "onDisk": "{{size, byteSize}} en el disco",
+        "encrypted": "Cifrado en el disco",
+        "memoryOnly": "Solo en memoria, no guardado en el disco",
+        "mixed": "Parcialmente cifrado en el disco, parcialmente solo en memoria"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Borrar permisos de captura de pantalla",
         "description": "Borrar los permisos de captura de pantalla que se seleccionaron para no volver a preguntar en las videollamadas."

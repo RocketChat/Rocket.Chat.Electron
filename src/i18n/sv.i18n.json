@@ -307,6 +307,22 @@
         "loading": "Laddar webbläsare...",
         "current": "Använder för närvarande:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Töm lokalt sökindex",
+        "description": "Ta bort sökindexet för krypterade meddelanden som appen sparar på den här datorn, för alla arbetsytor. Appen bygger upp det igen från servern."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokalt sökindex",
+        "empty": "Den här datorn har inget sökindex för krypterade meddelanden.",
+        "removedServer": "Borttagen arbetsyta",
+        "notLoaded": "Inte inläst",
+        "messages_one": "{{count}} meddelande",
+        "messages_other": "{{count}} meddelanden",
+        "onDisk": "{{size, byteSize}} på disk",
+        "encrypted": "Krypterad på disk",
+        "memoryOnly": "Endast i minnet, inte sparad på disk",
+        "mixed": "Delvis krypterad på disk, delvis endast i minnet"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Rensa behörigheter för skärmdumpning",
         "description": "Ta bort skärmdumpstillstånden som valts för att inte fråga igen vid videosamtal."

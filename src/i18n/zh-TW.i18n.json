@@ -129,6 +129,21 @@
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
       },
+      "clearE2eeSearchIndex": {
+        "title": "清除本機搜尋索引",
+        "description": "刪除本應用程式在此電腦上保存的加密訊息搜尋索引，適用於所有工作區。應用程式會再次從伺服器建立該索引。"
+      },
+      "e2eeSearchIndexStats": {
+        "title": "本機搜尋索引",
+        "empty": "此電腦沒有加密訊息的搜尋索引。",
+        "removedServer": "已移除的工作區",
+        "notLoaded": "未載入",
+        "messages_other": "{{count}} 則訊息",
+        "onDisk": "磁碟上 {{size, byteSize}}",
+        "encrypted": "磁碟上已加密",
+        "memoryOnly": "僅保存在記憶體中，未儲存到磁碟",
+        "mixed": "部分已加密儲存在磁碟上，部分僅保存在記憶體中"
+      },
       "transparentWindow": {
         "title": "透明視窗效果",
         "description": "啟用視窗的原生模糊/透明效果。需要重新啟動才能套用。"

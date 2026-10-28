@@ -279,6 +279,22 @@
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Lokalen Suchindex löschen",
+        "description": "Löscht den Suchindex für verschlüsselte Nachrichten, den diese App auf diesem Computer speichert, für alle Arbeitsbereiche. Die App baut ihn danach wieder vom Server auf."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokaler Suchindex",
+        "empty": "Auf diesem Computer gibt es keinen Suchindex für verschlüsselte Nachrichten.",
+        "removedServer": "Entfernter Arbeitsbereich",
+        "notLoaded": "Nicht geladen",
+        "messages_one": "{{count}} Nachricht",
+        "messages_other": "{{count}} Nachrichten",
+        "onDisk": "{{size, byteSize}} auf dem Datenträger",
+        "encrypted": "Auf dem Datenträger verschlüsselt",
+        "memoryOnly": "Nur im Speicher, nicht auf dem Datenträger gespeichert",
+        "mixed": "Teilweise auf dem Datenträger verschlüsselt, teilweise nur im Speicher"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Erlaubte Bildschirmaufnahmeserver löschen",
         "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"

@@ -150,6 +150,22 @@
         "loading": "Tarayıcılar yükleniyor...",
         "current": "Şu anda kullanılan:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Yerel arama dizinini temizle",
+        "description": "Bu uygulamanın bu bilgisayarda tuttuğu şifreli mesajların arama dizinini tüm çalışma alanları için siler. Uygulama dizini sunucudan yeniden oluşturur."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Yerel arama dizini",
+        "empty": "Bu bilgisayarda şifreli mesajların arama dizini yok.",
+        "removedServer": "Kaldırılan çalışma alanı",
+        "notLoaded": "Yüklenmedi",
+        "messages_one": "{{count}} mesaj",
+        "messages_other": "{{count}} mesaj",
+        "onDisk": "Diskte {{size, byteSize}}",
+        "encrypted": "Diskte şifreli",
+        "memoryOnly": "Yalnızca bellekte, diske kaydedilmez",
+        "mixed": "Kısmen diskte şifreli, kısmen yalnızca bellekte"
+      },
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",
         "description": "Pencere için yerel titreşim/şeffaflık efektini etkinleştir. Uygulamak için yeniden başlatma gerektirir."

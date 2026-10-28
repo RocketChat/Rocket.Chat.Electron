@@ -286,6 +286,22 @@
         "loading": "Ladataan selaimia...",
         "current": "Käytössä nyt:"
       },
+      "clearE2eeSearchIndex": {
+        "title": "Tyhjennä paikallinen hakuindeksi",
+        "description": "Poistaa tämän sovelluksen tähän tietokoneeseen tallentaman salattujen viestien hakuindeksin kaikille työtiloille. Sovellus rakentaa indeksin uudelleen palvelimelta."
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Paikallinen hakuindeksi",
+        "empty": "Tässä tietokoneessa ei ole salattujen viestien hakuindeksiä.",
+        "removedServer": "Poistettu työtila",
+        "notLoaded": "Ei ladattu",
+        "messages_one": "{{count}} viesti",
+        "messages_other": "{{count}} viestiä",
+        "onDisk": "{{size, byteSize}} levyllä",
+        "encrypted": "Salattu levyllä",
+        "memoryOnly": "Vain muistissa, ei tallennettu levylle",
+        "mixed": "Osittain salattu levyllä, osittain vain muistissa"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökuvaoikeudet",
         "description": "Tyhjennä valitut näyttökuvaoikeudet, joilla estettiin kysyminen uudelleen videopuheluissa."

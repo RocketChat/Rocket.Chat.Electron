@@ -59,6 +59,7 @@ describe('E2EE search host', () => {
     await expect(host.open(indexId, openArgs)).resolves.toEqual({
       schemaVersion: expect.any(Number),
       encryptedAtRest: true,
+      store: 'snapshot',
     });
     await host.call(indexId, 'upsert', docs(100));
 

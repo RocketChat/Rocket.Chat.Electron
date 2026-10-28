@@ -1,4 +1,5 @@
 import type { IndexKey } from './keyStore';
+import type { E2EESearchOpenResult } from './types';
 
 // Messages between the main-process host and the utility process worker.
 // Each index has its own id, so one worker serves every open index.
@@ -7,6 +8,14 @@ export type WorkerOpenArgs = {
   userId: string;
   dir: string;
   indexKey: IndexKey;
+};
+
+// The worker also says which store holds the index, so the main process can
+// log it. `fileStoreError` is set when the file store did not open and the
+// worker uses the snapshot store. It holds only the error name and code.
+export type WorkerOpenResult = E2EESearchOpenResult & {
+  store: 'file' | 'snapshot';
+  fileStoreError?: { name: string; code?: string };
 };
 
 export type WorkerMethod =

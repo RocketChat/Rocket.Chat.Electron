@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
 
-import { createWorkerHandler } from '../workerHandler';
+import { createWorkerHandler, fileStoreSelected } from '../workerHandler';
 import type { WorkerOpenArgs, WorkerRequest } from '../workerProtocol';
 
 const { DatabaseSync } = process.getBuiltinModule('node:sqlite');
@@ -109,5 +109,72 @@ describe('E2EE search worker handler', () => {
     expect(await request(second, 'wipe')).toMatchObject({ ok: true });
     expect(snapshotHas(openedDbs[1], 'wpcanaryzebra')).toBe(false);
     await request(second, 'close');
+  });
+
+  // The file store is the default. A build where the native SQLite
+  // module does not load (a missing or wrong-ABI binary) must still search,
+  // with the snapshot store.
+  describe('file store fallback', () => {
+    const doc = (id: string, body: string) => ({
+      id,
+      rid: 'r1',
+      uid: 'u1',
+      username: 'ana',
+      ts: 1000,
+      updatedAt: 1000,
+      kind: 'text',
+      body,
+    });
+    const nativeLoadFails = () => {
+      const error = new Error('dlopen failed: better_sqlite3.node');
+      Object.assign(error, { code: 'ERR_DLOPEN_FAILED' });
+      throw error;
+    };
+
+    it('uses the file store by default, and the snapshot store only on opt-out', () => {
+      expect(fileStoreSelected(undefined)).toBe(true);
+      expect(fileStoreSelected('')).toBe(true);
+      expect(fileStoreSelected('file')).toBe(true);
+      expect(fileStoreSelected('snapshot')).toBe(false);
+    });
+
+    it('searches with the snapshot store when the native module does not load, and keeps the saved snapshot', async () => {
+      const args: WorkerOpenArgs = {
+        userId: 'u1',
+        dir,
+        indexKey: { persistent: true, key: randomBytes(32), reset: false },
+      };
+
+      const before = handler();
+      await request(before, 'open', [args]);
+      await request(before, 'upsert', [[doc('old', 'savedzebra words')]]);
+      expect(await request(before, 'save')).toMatchObject({ ok: true });
+      await request(before, 'close');
+
+      const fallbacks: unknown[] = [];
+      const h = createWorkerHandler({
+        DatabaseSync: RecordingDatabaseSync as unknown as typeof DatabaseSync,
+        openEncryptedFile: nativeLoadFails,
+        onFileStoreError: (error) => fallbacks.push(error),
+      });
+      expect(await request(h, 'open', [args])).toMatchObject({
+        ok: true,
+        value: { encryptedAtRest: true },
+      });
+      expect(fallbacks).toHaveLength(1);
+      await request(h, 'upsert', [[doc('new', 'freshzebra words')]]);
+
+      const ids = async (text: string) => {
+        const response = await request(h, 'search', [{ text }]);
+        expect(response).toMatchObject({ ok: true });
+        return ((response as { value: { id: string }[] }).value ?? []).map(
+          ({ id }) => id
+        );
+      };
+      expect(await ids('freshzebra')).toEqual(['new']);
+      expect(await ids('savedzebra')).toEqual(['old']);
+      expect(await request(h, 'save')).toMatchObject({ ok: true });
+      await request(h, 'close');
+    });
   });
 });

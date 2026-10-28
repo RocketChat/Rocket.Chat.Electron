@@ -15,12 +15,12 @@ import {
 import {
   createDevTestKeySafeStorage,
   DEV_TEST_KEY_FILE_NAME,
-  selectKeySource,
 } from './devTestKey';
 import { summarizeError } from './errorSummary';
 import { createSearchHost } from './host';
 import type { SearchHost, WorkerTransport } from './host';
 import { createE2EESearchIpcHandler, E2EE_SEARCH_CHANNEL } from './ipc';
+import { selectAppKeySource } from './keySource';
 import { createKeyStore } from './keyStore';
 import {
   collectIndexStats,
@@ -43,6 +43,7 @@ import {
   READ_LOGIN_TOKEN_SCRIPT,
   verifyServerUserId,
 } from './verifyUser';
+import type { WorkerOpenResult } from './workerProtocol';
 
 // A quit waits at most this long for the last snapshot.
 const QUIT_SAVE_TIMEOUT_MS = 5_000;
@@ -108,7 +109,7 @@ let devTestKeyStorage:
   | undefined;
 
 const getSafeStorage = () => {
-  switch (selectKeySource(process.env.NODE_ENV, process.env, app.isPackaged)) {
+  switch (selectAppKeySource(process.env.NODE_ENV, process.env)) {
     case 'memory-only':
       return noKeychain;
     case 'dev-test-key':
@@ -176,11 +177,19 @@ export const openE2EESearchIndex = async (
             summarizeError(new E2EESearchOwnerKeyChangedError())
           ),
       }).finally(() => wrapKey?.fill(0));
-      const result = (await getE2EESearchHost().open(dir, {
-        userId,
-        dir,
-        indexKey,
-      })) as E2EESearchOpenResult;
+      const { store, fileStoreError, ...result } =
+        (await getE2EESearchHost().open(dir, {
+          userId,
+          dir,
+          indexKey,
+        })) as WorkerOpenResult;
+      if (fileStoreError) {
+        loggers.e2eeSearch.warn(
+          'file store did not open, using the snapshot store',
+          summarizeError(fileStoreError)
+        );
+      }
+      loggers.e2eeSearch.info('index opened', { store });
       encryptedAtRest.set(dir, result.encryptedAtRest);
       return { indexId: dir, result };
     }

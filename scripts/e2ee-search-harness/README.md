@@ -142,6 +142,37 @@ exit code is 0 only when every check passes. The run folder,
 `.localdev/e2ee-search-harness/runs/<timestamp>/`, holds the JSON output of
 each step, `main.log`, the canary scan results and the screenshot.
 
+## The browser test
+
+`browser-flow.mjs` runs the full user flow of the web client in a real
+browser. The index uses the browser backend: the SQLite WASM worker and a
+sealed copy in OPFS. It needs no desktop app.
+
+```sh
+node scripts/e2ee-search-harness/browser-flow.mjs --port 3860 \
+  --state-dir <harness state dir> --core-dir <Rocket.Chat checkout> \
+  [--browser /Applications/Firefox.app/Contents/MacOS/firefox] [--headful]
+```
+
+Start the server with `server.sh up` and seed it with `seed.mjs`,
+`seed-large.mjs` and `seed-rooms.mjs` first. The core checkout must have the
+browser backend. The test starts the browser with a throwaway profile and
+deletes it at the end. The default is headless. `--headful` shows a window,
+so that the persistent-storage prompt of the browser shows. The test then
+takes screenshots of that window only (it compiles `winid.swift` for this).
+
+Each step prints one line: `s1-login`, `s2-unlock`, `s3-opt-in`, `s4-index`
+(progress until done), `s5-search` (`orcamento` finds `orçamento`, and a click
+jumps to the message), `s6-send`, `s6-edit`, `s6-delete`, `s7-reload` (hits
+come from the saved copy, before the crawler runs), `s8-mongo` (ciphertext
+only) and `s8-opfs` (the copy is sealed and holds no test word). The last
+line is `SUMMARY PASS` or `SUMMARY FAIL`. The exit code is 0 only when every
+step passes. The run folder is
+`.localdev/e2ee-search-harness/browser-runs/<timestamp>/`.
+
+The crawler waits 60 seconds without input, then fetches one page every 12
+seconds. A run with the full seed takes about 6 minutes for the index step.
+
 ## Windows
 
 `windows-packaged.sh` runs on the Mac and drives a Windows 11 x64 host over

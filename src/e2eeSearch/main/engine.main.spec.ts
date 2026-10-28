@@ -208,6 +208,20 @@ describe('e2eeSearch engine', () => {
     expect(() => engine.checkIntegrity()).not.toThrow();
   });
 
+  it('changes no row when the same version of a message is upserted again', () => {
+    const totalChanges = () =>
+      (db.prepare('SELECT total_changes() AS n').get() as { n: number }).n;
+    const before = totalChanges();
+
+    engine.upsert([doc({ id: 'a', body: 'Reunião de orçamento amanhã' })]);
+    expect(totalChanges()).toBe(before);
+
+    engine.upsert([doc({ id: 'a', body: 'Reunião movida' })]);
+    expect(totalChanges()).toBeGreaterThan(before);
+    expect(ids(engine, 'movida')).toEqual(['a']);
+    expect(() => engine.checkIntegrity()).not.toThrow();
+  });
+
   it('removes messages by id and by room', () => {
     engine.setRoomState('r2', { lastUpdate: 3000, backfillDone: false });
 

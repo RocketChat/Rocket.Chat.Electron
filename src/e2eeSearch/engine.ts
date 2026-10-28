@@ -161,6 +161,9 @@ export const createSearchEngine = (
       kind = excluded.kind,
       body = excluded.body
     WHERE excluded.updated_at >= messages.updated_at
+      AND (rid, tmid, uid, username, ts, updated_at, kind, body) IS NOT
+        (excluded.rid, excluded.tmid, excluded.uid, excluded.username,
+         excluded.ts, excluded.updated_at, excluded.kind, excluded.body)
   `);
   const deletePending = db.prepare('DELETE FROM pending_decrypt WHERE id = ?');
   const deleteMessage = db.prepare('DELETE FROM messages WHERE id = ?');

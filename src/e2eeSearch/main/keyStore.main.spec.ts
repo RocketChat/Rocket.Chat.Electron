@@ -136,7 +136,7 @@ describe('e2eeSearch key store', () => {
 
     expect(loaded).toMatchObject({
       persistent: false,
-      reason: 'basic-text-backend',
+      reason: 'hard-coded-wrap',
     });
     expect(await readdir(dir)).toEqual([]);
   });

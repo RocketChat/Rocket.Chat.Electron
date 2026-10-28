@@ -50,7 +50,10 @@ export type SafeStorageApi = Pick<
 export type MemoryOnlyReason =
   | 'no-encryption'
   | 'basic-text-backend'
-  | 'keychain-timeout';
+  | 'keychain-timeout'
+  // The keychain wrapped the key with Chromium's hard-coded password (Linux
+  // `v10`), for example after the user cancelled the keyring prompt.
+  | 'hard-coded-wrap';
 
 // A keychain call can wait for the user with no limit, for
 // example while GNOME shows the prompt that creates a default keyring. After
@@ -232,8 +235,8 @@ export const createKeyStore = ({
     await removeStaleTempFiles(dir);
   };
 
-  // False when the wrap is not real encryption, or when the keychain answered
-  // after the time limit: nothing is written then.
+  // `hard-coded-wrap` when the wrap is not real encryption, and `timeout` when
+  // the keychain answered after the time limit: nothing is written then.
   const wrapAndWrite = async (
     key: Buffer,
     wrapKey: Buffer | undefined,
@@ -242,10 +245,11 @@ export const createKeyStore = ({
     const wrapped = await safeStorage.encryptStringAsync(
       wrapKey ? sealIndexKey(key, wrapKey) : key.toString('base64')
     );
-    if (isHardCodedWrap(wrapped) || timedOut()) return false;
+    if (isHardCodedWrap(wrapped)) return 'hard-coded-wrap';
+    if (timedOut()) return 'timeout';
     await mkdir(dir, { recursive: true });
     await writeAtomically(keyFile, wrapped);
-    return true;
+    return 'written';
   };
 
   // Undefined when the keychain cannot unwrap the file: the file is lost,
@@ -308,11 +312,19 @@ export const createKeyStore = ({
     }
 
     const key = randomBytes(INDEX_KEY_BYTES);
-    if (!(await wrapAndWrite(key, wrapKey, timedOut))) {
+    const written = await wrapAndWrite(key, wrapKey, timedOut);
+    if (written !== 'written') {
       if (wrapped && isHardCodedWrap(wrapped) && !timedOut()) {
         await discardHardCodedWrap();
       }
-      return { persistent: false, key, reason: 'basic-text-backend' };
+      return {
+        persistent: false,
+        key,
+        reason:
+          written === 'hard-coded-wrap'
+            ? 'hard-coded-wrap'
+            : 'basic-text-backend',
+      };
     }
     return { persistent: true, key, reset: wrapped !== undefined };
   };

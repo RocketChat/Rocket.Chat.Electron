@@ -3,6 +3,8 @@ import { readdir, rm, rmdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { SearchHost } from './host';
+import { limitedReasonOf } from './indexLimit';
+import type { IndexLimit } from './indexLimit';
 import type { E2EESearchServerIndexStats, E2EESearchStats } from './types';
 
 // The folder name of a server under the index root.
@@ -246,6 +248,8 @@ type CollectIndexStatsOptions = {
   serverUrls: string[];
   // The at-rest state that the worker returned when it opened the index.
   isEncryptedAtRest: (indexId: string) => boolean | undefined;
+  // The store and the limit reason that the open of the index returned.
+  limitOf?: (indexId: string) => IndexLimit | undefined;
 };
 
 // Settings: one entry for each server folder on disk or with an open index.
@@ -257,6 +261,7 @@ export const collectIndexStats = async ({
   rootDir,
   serverUrls,
   isEncryptedAtRest,
+  limitOf,
 }: CollectIndexStatsOptions): Promise<E2EESearchServerIndexStats[]> => {
   const users = new Map<string, Set<string>>();
   const addUser = (serverDir: string, userId: string) => {
@@ -301,10 +306,13 @@ export const collectIndexStats = async ({
             // An index that is not open is on disk, and only a keychain key
             // writes to disk.
             encrypted: isEncryptedAtRest(indexId) ?? true,
+            limit: limitOf?.(indexId),
           };
         })
       );
       const counted = perUser.filter((user) => user.docs !== undefined);
+      const limits = perUser.flatMap(({ limit }) => (limit ? [limit] : []));
+      const limitedReason = limitedReasonOf(limits);
       return {
         serverUrl: urlByDir.get(serverDir),
         users: userIds.length,
@@ -313,6 +321,12 @@ export const collectIndexStats = async ({
           : undefined,
         bytesOnDisk: perUser.reduce((sum, user) => sum + user.bytes, 0),
         atRest: atRestOf(perUser.map((user) => user.encrypted)),
+        ...(limits.length > 0 && {
+          store: limits.some(({ store }) => store === 'snapshot')
+            ? ('snapshot' as const)
+            : ('file' as const),
+        }),
+        ...(limitedReason && { limitedReason }),
       };
     })
   );

@@ -19,6 +19,8 @@ import {
 import { summarizeError } from './errorSummary';
 import { createSearchHost } from './host';
 import type { SearchHost, WorkerTransport } from './host';
+import { indexLimitOf } from './indexLimit';
+import type { IndexLimit } from './indexLimit';
 import { createE2EESearchIpcHandler, E2EE_SEARCH_CHANNEL } from './ipc';
 import { isActuallyPackaged, selectAppKeySource } from './keySource';
 import { createKeyStore } from './keyStore';
@@ -128,6 +130,7 @@ const getSafeStorage = () => {
 
 // The at-rest state of each index that the worker opened, for Settings.
 const encryptedAtRest = new Map<string, boolean>();
+const indexLimits = new Map<string, IndexLimit>();
 
 // One limiter for the app: it keeps one plain user index for each server,
 // and the sealed indexes next to it.
@@ -200,7 +203,16 @@ export const openE2EESearchIndex = async (
       }
       loggers.e2eeSearch.info('index opened', { store });
       encryptedAtRest.set(dir, result.encryptedAtRest);
-      return { indexId: dir, result };
+      const limit = indexLimitOf(indexKey, { store, fileStoreError });
+      indexLimits.set(dir, limit);
+      return {
+        indexId: dir,
+        result: {
+          ...result,
+          store: limit.store,
+          ...(limit.reason && { limitedReason: limit.reason }),
+        },
+      };
     }
   );
 };
@@ -236,6 +248,7 @@ const publishIndexStats = async (): Promise<void> => {
       rootDir: getIndexRootDir(),
       serverUrls: select(({ servers }) => servers).map(({ url }) => url),
       isEncryptedAtRest: (indexId) => encryptedAtRest.get(indexId),
+      limitOf: (indexId) => indexLimits.get(indexId),
     });
     dispatch({ type: E2EE_SEARCH_INDEX_STATS_UPDATED, payload: stats });
   } catch (error) {

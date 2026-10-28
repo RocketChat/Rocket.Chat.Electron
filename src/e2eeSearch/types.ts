@@ -53,11 +53,24 @@ export type E2EESearchServerIndexStats = {
   docs?: number;
   bytesOnDisk: number;
   atRest: 'encrypted' | 'memory-only' | 'mixed';
+  // From the open indexes of the server. `snapshot` when any of them runs on
+  // the snapshot store. `limitedReason` says why an index is limited.
+  store?: 'file' | 'snapshot';
+  limitedReason?: E2EESearchLimitReason;
 };
+
+export type E2EESearchLimitReason =
+  | 'no-encryption'
+  | 'basic-text-backend'
+  | 'keychain-timeout'
+  | 'hard-coded-wrap'
+  | 'native-module-unavailable';
 
 export type E2EESearchOpenResult = {
   schemaVersion: number;
   encryptedAtRest: boolean;
+  store?: 'file' | 'snapshot';
+  limitedReason?: E2EESearchLimitReason;
 };
 
 export type E2EESearchScope = {

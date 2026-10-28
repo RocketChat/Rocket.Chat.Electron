@@ -30,8 +30,8 @@
 // the browser closes, the profile is deleted, and the exit code is not 0.
 
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join, resolve } from 'node:path';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
@@ -66,7 +66,7 @@ const out =
 	join(values['desktop-dir'], '.localdev/e2ee-search-harness/browser-runs', new Date().toISOString().replace(/[:.]/g, '-'));
 mkdirSync(out, { recursive: true });
 const indexTimeoutMs = Number(values['index-timeout-s']) * 1000;
-const steps = createSteps({ script: 'browser-flow', params: { browser: basename(values.browser) }, runDir: out });
+const steps = createSteps({ script: 'browser-flow', params: { browser: browserKind }, runDir: out });
 
 const state = JSON.parse(readFileSync(join(values['state-dir'], 'state.json'), 'utf8'));
 const userA = state.users?.a;
@@ -652,15 +652,16 @@ try {
 	record('s8-opfs', sealedFiles.length > 0 && sealedFiles.every((f) => f.magic === 'RCS1' && !f.sqliteHeader) && opfs.files.every((f) => f.hits.length === 0), opfs);
 	st.end(results.at(-1).ok);
 
-	// Info: a scan of the Firefox profile on disk (other stores of the web client too).
+	// Info: a scan of the browser profile on disk (other stores of the web client too).
 	st = steps.start('s8-profile-scan', { expectedS: 10, limitS: 300 });
 	const diskHits = [];
 	const walkDisk = (dir) => {
 		for (const name of readdirSync(dir)) {
 			const p = join(dir, name);
-			const st = statSync(p);
+			// lstat: Chrome keeps symlinks in its profile (RunningChromeVersion, Singleton*) that can point nowhere.
+			const st = lstatSync(p);
 			if (st.isDirectory()) walkDisk(p);
-			else if (st.size < 200 * 1024 * 1024) {
+			else if (st.isFile() && st.size < 200 * 1024 * 1024) {
 				const buf = readFileSync(p);
 				const hits = scanWords.filter((w) => buf.includes(Buffer.from(w, 'utf8')) || buf.includes(Buffer.from(w, 'utf16le')));
 				if (hits.length) diskHits.push({ file: p.replace(profileDir, '<profile>'), hits });

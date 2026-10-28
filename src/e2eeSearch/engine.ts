@@ -4,11 +4,13 @@ import { toMatch } from './sanitize';
 import {
   DROP_SQL,
   SCHEMA_SQL,
+  ROWID_TS_SHIFT,
   SCHEMA_VERSION,
   SEARCH_BY_RECENT_SQL,
   SEARCH_BY_RELEVANCE_SQL,
   SEARCH_FILTERS_ONLY_SQL,
   SEARCH_UNFILTERED_BY_RELEVANCE_SQL,
+  TS_KEY_MAX,
 } from './schema';
 import type {
   E2EESearchDoc,
@@ -102,6 +104,10 @@ export const toSnippetHtml = (raw: string): string =>
     .replaceAll(MARK_OPEN, '<mark>')
     .replaceAll(MARK_CLOSE, '</mark>');
 
+// The ts in whole ms, in the range that keeps the rowid in 63 bits.
+const tsKey = (ts: number): number =>
+  Math.min(TS_KEY_MAX, Math.max(-TS_KEY_MAX, Math.floor(ts)));
+
 const clampLimit = (limit: number | undefined): number => {
   if (limit === undefined || !Number.isFinite(limit)) {
     return DEFAULT_SEARCH_LIMIT;
@@ -148,9 +154,20 @@ export const createSearchEngine = (
 
   ensureSchema();
 
+  // A new row gets the next free rowid in the range of its ms (see
+  // ROWID_TS_SHIFT). An update keeps the rowid, so a newer version with
+  // another ts is removed first and inserted again with a new rowid.
+  const removeMovedMessage = db.prepare(
+    'DELETE FROM messages WHERE id = :id AND ts <> :ts AND updated_at <= :updatedAt'
+  );
   const upsertMessage = db.prepare(`
-    INSERT INTO messages (id, rid, tmid, uid, username, ts, updated_at, kind, body)
-    VALUES (:id, :rid, :tmid, :uid, :username, :ts, :updatedAt, :kind, :body)
+    INSERT INTO messages (rowid, id, rid, tmid, uid, username, ts, updated_at, kind, body)
+    VALUES (
+      (SELECT coalesce(max(rowid) + 1, :tsKey * ${2 ** ROWID_TS_SHIFT})
+       FROM messages
+       WHERE rowid BETWEEN :tsKey * ${2 ** ROWID_TS_SHIFT}
+                       AND :tsKey * ${2 ** ROWID_TS_SHIFT} + ${2 ** ROWID_TS_SHIFT - 1}),
+      :id, :rid, :tmid, :uid, :username, :ts, :updatedAt, :kind, :body)
     ON CONFLICT (id) DO UPDATE SET
       rid = excluded.rid,
       tmid = excluded.tmid,
@@ -226,7 +243,13 @@ export const createSearchEngine = (
     upsert(docs) {
       inTransaction(() => {
         for (const doc of docs) {
+          removeMovedMessage.run({
+            id: doc.id,
+            ts: doc.ts,
+            updatedAt: doc.updatedAt,
+          });
           upsertMessage.run({
+            tsKey: tsKey(doc.ts),
             id: doc.id,
             rid: doc.rid,
             tmid: doc.tmid ?? null,
@@ -293,16 +316,24 @@ export const createSearchEngine = (
           limit,
         }) as MessageRow[];
       } else if (query.order === 'recent' || !unfiltered) {
-        const statement =
-          query.order === 'recent' ? searchByRecent : searchByRelevance;
-        rows = statement.all({
+        const params = {
           match,
           rid: query.rid ?? null,
           uid: query.uid ?? null,
           from: query.from ?? 0,
           to: query.to ?? Number.MAX_SAFE_INTEGER,
           limit,
-        }) as MessageRow[];
+        };
+        rows = (
+          query.order === 'recent'
+            ? searchByRecent.all({
+                ...params,
+                fromKey:
+                  query.from === undefined ? -TS_KEY_MAX : tsKey(query.from),
+                toKey: query.to === undefined ? TS_KEY_MAX : tsKey(query.to),
+              })
+            : searchByRelevance.all(params)
+        ) as MessageRow[];
       } else {
         rows = searchUnfilteredByRelevance.all({
           match,

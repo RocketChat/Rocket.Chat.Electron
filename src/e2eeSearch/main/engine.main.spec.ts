@@ -195,6 +195,87 @@ describe('e2eeSearch engine', () => {
     ).toEqual(newest('r2'));
   });
 
+  it('returns the same hits as a full sort by ts for every filter (LSE2EE-17)', () => {
+    // Pseudo-random ts, insert order and ms ties, as with a backfill.
+    const tsOf = (i: number) => 50_000 + ((i * 7919) % 400) * 10 + (i % 3);
+    const words = ['alfa', 'beta', 'gama'];
+    const docs = Array.from({ length: 400 }, (_, i) =>
+      doc({
+        id: `q${i}`,
+        rid: `r${i % 3}`,
+        uid: `u${i % 4}`,
+        body: `${words[i % 3]} ${i % 5 === 0 ? 'beta' : 'delta'} nota ${i}`,
+        ts: tsOf(i),
+      })
+    );
+    engine.upsert([...docs].reverse());
+    const expected = (
+      word: string,
+      filter: { rid?: string; uid?: string; from?: number; to?: number }
+    ) =>
+      docs
+        .filter(
+          (d) =>
+            d.body.split(' ').some((w) => w.startsWith(word)) &&
+            (filter.rid === undefined || d.rid === filter.rid) &&
+            (filter.uid === undefined || d.uid === filter.uid) &&
+            d.ts >= (filter.from ?? 0) &&
+            d.ts <= (filter.to ?? Number.MAX_SAFE_INTEGER)
+        )
+        .map((d) => d.ts)
+        .sort((x, y) => y - x)
+        .slice(0, 25);
+
+    for (const word of ['alfa', 'beta', 'nota', 'not']) {
+      for (const filter of [
+        {},
+        { rid: 'r1' },
+        { uid: 'u2' },
+        { from: 51_000, to: 52_500 },
+        { from: 51_000.5, to: 52_500.5, rid: 'r2' },
+      ]) {
+        const hits = engine.search({
+          text: word,
+          order: 'recent',
+          limit: 25,
+          ...filter,
+        });
+        expect(hits.map((hit) => hit.ts)).toEqual(expected(word, filter));
+      }
+    }
+  });
+
+  it('moves a message in the newest-first order when an edit changes its ts', () => {
+    engine.upsert([
+      doc({ id: 'x1', body: 'mover', ts: 100, updatedAt: 100 }),
+      doc({ id: 'x2', body: 'mover', ts: 200, updatedAt: 200 }),
+    ]);
+    const recent = () =>
+      engine.search({ text: 'mover', order: 'recent' }).map((hit) => hit.id);
+    expect(recent()).toEqual(['x2', 'x1']);
+
+    engine.upsert([doc({ id: 'x1', body: 'mover', ts: 300, updatedAt: 300 })]);
+    expect(recent()).toEqual(['x1', 'x2']);
+    expect(engine.stats().docs).toBe(5);
+
+    // An older version with another ts changes nothing.
+    engine.upsert([doc({ id: 'x1', body: 'mover', ts: 50, updatedAt: 10 })]);
+    expect(recent()).toEqual(['x1', 'x2']);
+  });
+
+  it('keeps messages with the same ms and far ts values', () => {
+    engine.upsert([
+      doc({ id: 't1', body: 'limite', ts: 7000 }),
+      doc({ id: 't2', body: 'limite', ts: 7000 }),
+      doc({ id: 't3', body: 'limite', ts: 0.5 }),
+      doc({ id: 't4', body: 'limite', ts: 2 ** 50 }),
+    ]);
+    const hits = engine.search({ text: 'limite', order: 'recent' });
+    expect(hits.map((hit) => hit.id).sort()).toEqual(['t1', 't2', 't3', 't4']);
+    expect(hits[0].id).toBe('t4');
+    expect(hits[3].id).toBe('t3');
+  });
+
   it('replaces the text on an edit and ignores an older version', () => {
     engine.upsert([
       doc({ id: 'a', body: 'Reunião cancelada', updatedAt: 5000 }),

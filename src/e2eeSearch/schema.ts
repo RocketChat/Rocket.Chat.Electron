@@ -1,7 +1,17 @@
 // The same SQL must run in
 // node:sqlite (desktop) and SQLite WASM (browser). Bump SCHEMA_VERSION on
 // every change: the index is a cache, so an old version is dropped and rebuilt.
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+
+// The rowid of a message follows its ts: rowid = tsKey * 2^ROWID_TS_SHIFT +
+// n, where tsKey is the ts in whole ms and n counts the messages with that
+// ms. So FTS5 returns the matches in ts order (ORDER BY rowid DESC) and a
+// newest-first search stops after LIMIT rows. Without it, a common word
+// read, joined and sorted every match (200,000 messages: 100,000 matches,
+// 107 ms). The index holds at most MAX_INDEX_DOCS (500,000) < 2^20 messages,
+// so one ms never fills its range. TS_KEY_MAX keeps the rowid in 63 bits.
+export const ROWID_TS_SHIFT = 20;
+export const TS_KEY_MAX = 2 ** 42;
 
 export const SCHEMA_SQL = `
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -78,30 +88,23 @@ export const SEARCH_BY_RELEVANCE_SQL = `${SEARCH_SELECT}
 ORDER BY bm25(messages_fts)
 LIMIT :limit`;
 
-// The subquery picks the newest matches without snippet(). The outer query
-// scans the matches once and makes a snippet only for those rows. A common
-// word matches a large part of the index, and a snippet for each match cost
-// most of the query time (200,000 messages, a word in half of them). The `+`
-// keeps the rowid filter out of FTS5: each FTS5 lookup by rowid loads the
-// full match list of the term again, which is slower than one scan.
+// The rowid follows ts (see ROWID_TS_SHIFT), so FTS5 reads the matches
+// newest first and the query stops after :limit rows that pass the filters.
+// It makes a snippet only for those rows. The rowid range is the date
+// filter in rowid form: FTS5 skips the matches outside it.
 export const SEARCH_BY_RECENT_SQL = `
 SELECT m.id, m.rid, m.tmid, m.uid, m.username, m.ts,
        snippet(messages_fts, 0, char(57344), char(57345), '…', 12) AS snippet
 FROM messages_fts
 JOIN messages m ON m.rowid = messages_fts.rowid
 WHERE messages_fts MATCH :match
-  AND +messages_fts.rowid IN (
-    SELECT m.rowid
-    FROM messages_fts
-    JOIN messages m ON m.rowid = messages_fts.rowid
-    WHERE messages_fts MATCH :match
-      AND (:rid IS NULL OR m.rid = :rid)
-      AND (:uid IS NULL OR m.uid = :uid)
-      AND m.ts BETWEEN :from AND :to
-    ORDER BY m.ts DESC
-    LIMIT :limit
-  )
-ORDER BY m.ts DESC`;
+  AND messages_fts.rowid BETWEEN :fromKey * ${2 ** ROWID_TS_SHIFT}
+                             AND :toKey * ${2 ** ROWID_TS_SHIFT} + ${2 ** ROWID_TS_SHIFT - 1}
+  AND (:rid IS NULL OR m.rid = :rid)
+  AND (:uid IS NULL OR m.uid = :uid)
+  AND m.ts BETWEEN :from AND :to
+ORDER BY messages_fts.rowid DESC
+LIMIT :limit`;
 
 // A relevance query with no room, sender or date filter ranks the matches in
 // the FTS table alone, and joins only the rows of the result. A common word

@@ -283,10 +283,10 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     wrapKey?.fill(0);
     watch(sender);
     const token = documentOf(sender.id);
-    const boundUserId = boundUserIds.get(sender.id);
-    if (boundUserId !== undefined && boundUserId !== userId) {
-      throw new Error('E2EE search index is open for another user');
-    }
+    // A user that differs from the bound user can only come from a login of
+    // another user on the same document (`loginWithToken`). As for an open,
+    // the server must confirm that user before the wipe switches the
+    // document.
     let owned: boolean | 'failed';
     try {
       owned = (await deps.verifyUserId(event, serverUrl, userId)) === true;
@@ -305,10 +305,14 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       );
     }
     const current = boundUserIds.get(sender.id);
-    if (current !== undefined && current !== userId) {
-      throw new Error('E2EE search index is open for another user');
-    }
     boundUserIds.set(sender.id, userId);
+    if (current !== undefined && current !== userId) {
+      // The server confirmed that the document now belongs to `userId`. The
+      // session of the other user ends like at a logout: its index closes
+      // (the worker zeroes the key), and an open in flight for that user
+      // gets no session (`lostBinding`).
+      closeSession(sender.id);
+    }
     senderServers.set(sender.id, serverUrl);
     await deps
       .wipeIndex(deps.userIndexId(serverUrl, userId))
@@ -337,6 +341,27 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       throw toPageError(deps, 'close', error);
     });
     return undefined;
+  };
+
+  // A wipe with a user scope deletes the open index only when the scope
+  // names the user of that index. A scope of another user (a login with no
+  // logout) goes through the server check, and never deletes the open index
+  // of the bound user.
+  const wipesOpenIndex = (
+    senderId: number,
+    serverUrl: string,
+    scope: unknown
+  ) => {
+    const session = sessions.get(senderId);
+    const scopedUserId =
+      typeof scope === 'object' && scope !== null
+        ? (scope as { userId?: unknown }).userId
+        : undefined;
+    return (
+      session !== undefined &&
+      session.serverUrl === serverUrl &&
+      scopedUserId === boundUserIds.get(senderId)
+    );
   };
 
   // The calls of each webview that have not returned yet.
@@ -459,7 +484,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     if (
       method === 'wipe' &&
       args[0] !== undefined &&
-      (!session || session.serverUrl !== serverUrl)
+      !wipesOpenIndex(sender.id, serverUrl, args[0])
     ) {
       return wipeClosedIndex(event, serverUrl, args[0]);
     }

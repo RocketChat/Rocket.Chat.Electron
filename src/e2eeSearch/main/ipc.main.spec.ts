@@ -489,7 +489,7 @@ describe('E2EE search IPC handler', () => {
     expect(await searchIds(webview)).toEqual([]);
   });
 
-  it('refuses a wipe with a user scope that the server or the binding does not confirm', async () => {
+  it('refuses a wipe with a user scope that the server does not confirm', async () => {
     const webview = createSender(70);
     servers.set(webview.id, SERVER_A);
     sessionUsers.set(webview.id, 'userB');
@@ -504,12 +504,59 @@ describe('E2EE search IPC handler', () => {
     await handle(webview, 'open', { userId: 'userB' });
     webview.navigate();
     await handle(webview, 'wipe', { userId: 'userB' });
-    sessionUsers.delete(webview.id);
+    // The document is bound to B, and the server still says B.
     await expect(handle(webview, 'wipe', { userId: 'userA' })).rejects.toThrow(
       'another user'
     );
     expect(wipedIndexIds).toHaveLength(1);
   });
+
+  // The web client can log user B in on the document of user A with no
+  // logout (`loginWithToken`). When B has the local search off, the web
+  // client closes A's index and asks for a wipe of B's index. The server
+  // confirms B, so the wipe switches the document to B, as an open does.
+  // The page can also send the wipe while A's index is still open: the wipe
+  // must never delete the index of A.
+  it.each([
+    ['after the close of the index of A', true, 93],
+    ['while the index of A is open', false, 95],
+  ])(
+    'switches the document to another user that the server confirms on a wipe with a user scope, %s',
+    async (_name, closeFirst, senderId) => {
+      const webview = createSender(senderId);
+      servers.set(webview.id, SERVER_A);
+      sessionUsers.set(webview.id, 'userB');
+      await handle(webview, 'open', { userId: 'userB' });
+      await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
+      await handle(webview, 'close');
+      webview.navigate();
+      sessionUsers.set(webview.id, 'userA');
+      await handle(webview, 'open', { userId: 'userA' });
+      await handle(webview, 'upsert', [doc('m2', NEEDLE)]);
+      if (closeFirst) await handle(webview, 'close');
+      sessionUsers.set(webview.id, 'userB');
+      await expect(
+        handle(webview, 'wipe', { userId: 'userB' })
+      ).resolves.toBeUndefined();
+      for (let wait = 0; wait < 100 && host.indexIds().length > 0; wait++) {
+        // eslint-disable-next-line no-await-in-loop -- polls until the close is done
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+
+      expect(wipedIndexIds).toEqual([userIndexDir(SERVER_A, 'userB')]);
+      expect(existsSync(userIndexDir(SERVER_A, 'userB'))).toBe(false);
+      // The index of A closes (the worker zeroes its key) and stays on disk.
+      expect(host.indexIds()).toEqual([]);
+      expect(existsSync(userIndexDir(SERVER_A, 'userA'))).toBe(true);
+      await expect(handle(webview, 'search', { text: NEEDLE })).rejects.toThrow(
+        'not open'
+      );
+      // The page of B cannot take the document back to A.
+      await expect(
+        handle(webview, 'open', { userId: 'userA' })
+      ).rejects.toThrow('another user');
+    }
+  );
 
   it('closes the session and unbinds the user on a logout with no navigation', async () => {
     const webview = createSender(67);

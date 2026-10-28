@@ -452,4 +452,195 @@ describe('outlookCalendar/ipc', () => {
 
     expect(getOutlookEvents).toHaveBeenCalled();
   });
+
+  describe('credentials wrapped by Chromium on Linux', () => {
+    const EXCHANGE_URL = 'https://exchange.example';
+    const storedCredentials = servers[0].outlookCredentials;
+    let originalPlatform: PropertyDescriptor | undefined;
+    let safeStorage: { isEncryptionAvailable: jest.Mock };
+
+    const setPlatform = (platform: NodeJS.Platform) => {
+      Object.defineProperty(process, 'platform', {
+        value: platform,
+        configurable: true,
+      });
+    };
+
+    const wrapWith = (prefix: string) => (text: string) =>
+      Buffer.from(`${prefix}${text}`);
+
+    const base64Of = (prefix: string, text: string) =>
+      Buffer.from(`${prefix}${text}`).toString('base64');
+
+    const savedCredentials = () =>
+      dispatch.mock.calls
+        .map(([action]) => action)
+        .find((action) => action.type === 'outlook-calendar/save-credentials')
+        ?.payload.outlookCredentials;
+
+    // Empty stored credentials make get-events ask for them. The dialog
+    // answer carries the new credentials, and saveCredentials stores them.
+    // set-user-token first, so get-events takes the normal sync path. The
+    // webContents token path returns before it saves.
+    const saveCredentialsThroughSync = async () => {
+      servers[0].outlookCredentials = {
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: '',
+        password: '',
+      };
+      await handlers.get('outlook-calendar/set-user-token')?.(
+        { id: 7 },
+        'user-token',
+        'u1'
+      );
+      request.mockResolvedValue({
+        outlookCredentials: {
+          userId: 'u1',
+          serverUrl: EXCHANGE_URL,
+          login: 'user@example.com',
+          password: 'secret',
+        },
+        saveCredentials: true,
+      });
+      await handlers.get('outlook-calendar/get-events')?.(
+        { id: 7 },
+        new Date()
+      );
+    };
+
+    beforeEach(() => {
+      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      safeStorage = require('electron').safeStorage;
+      safeStorage.isEncryptionAvailable.mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      if (originalPlatform) {
+        Object.defineProperty(process, 'platform', originalPlatform);
+      }
+      safeStorage.isEncryptionAvailable.mockReturnValue(false);
+      servers[0].outlookCredentials = storedCredentials;
+      request.mockReset();
+      encryptString.mockImplementation((s: string) => Buffer.from(`enc:${s}`));
+    });
+
+    it('linux: a v10 wrap is not stored encrypted', async () => {
+      setPlatform('linux');
+      encryptString.mockImplementation(wrapWith('v10'));
+
+      await saveCredentialsThroughSync();
+
+      expect(savedCredentials()).toEqual({
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: 'user@example.com',
+        password: 'secret',
+      });
+    });
+
+    it('linux: a v11 wrap is stored encrypted', async () => {
+      setPlatform('linux');
+      encryptString.mockImplementation(wrapWith('v11'));
+
+      await saveCredentialsThroughSync();
+
+      expect(savedCredentials()).toEqual({
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: base64Of('v11', 'user@example.com'),
+        password: base64Of('v11', 'secret'),
+      });
+    });
+
+    it('darwin: a v10 wrap is stored encrypted', async () => {
+      setPlatform('darwin');
+      encryptString.mockImplementation(wrapWith('v10'));
+
+      await saveCredentialsThroughSync();
+
+      expect(savedCredentials()).toEqual({
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: base64Of('v10', 'user@example.com'),
+        password: base64Of('v10', 'secret'),
+      });
+    });
+
+    it('linux: a stored v10 value is not trusted and is removed', async () => {
+      setPlatform('linux');
+      servers[0].outlookCredentials = {
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: base64Of('v10', 'user@example.com'),
+        password: base64Of('v10', 'secret'),
+      };
+
+      const hasCredentials = await handlers.get(
+        'outlook-calendar/has-credentials'
+      )?.({ id: 7 });
+
+      expect(hasCredentials).toBe(false);
+      expect(savedCredentials()).toEqual({
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: '',
+        password: '',
+      });
+    });
+
+    it('linux: a stored v10 value is never decrypted for a sync', async () => {
+      setPlatform('linux');
+      servers[0].outlookCredentials = {
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: base64Of('v10', 'user@example.com'),
+        password: base64Of('v10', 'secret'),
+      };
+      request.mockResolvedValue({ dismissDialog: true });
+
+      await handlers.get('outlook-calendar/get-events')?.(
+        { id: 7 },
+        new Date()
+      );
+
+      expect(request).toHaveBeenCalled();
+      expect(decryptString).not.toHaveBeenCalled();
+    });
+
+    it('linux: a stored v11 value is trusted', async () => {
+      setPlatform('linux');
+      servers[0].outlookCredentials = {
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: base64Of('v11', 'user@example.com'),
+        password: base64Of('v11', 'secret'),
+      };
+
+      const hasCredentials = await handlers.get(
+        'outlook-calendar/has-credentials'
+      )?.({ id: 7 });
+
+      expect(hasCredentials).toBe(true);
+      expect(savedCredentials()).toBeUndefined();
+    });
+
+    it('darwin: a stored v10 value is trusted', async () => {
+      setPlatform('darwin');
+      servers[0].outlookCredentials = {
+        userId: 'u1',
+        serverUrl: EXCHANGE_URL,
+        login: base64Of('v10', 'user@example.com'),
+        password: base64Of('v10', 'secret'),
+      };
+
+      const hasCredentials = await handlers.get(
+        'outlook-calendar/has-credentials'
+      )?.({ id: 7 });
+
+      expect(hasCredentials).toBe(true);
+      expect(savedCredentials()).toBeUndefined();
+    });
+  });
 });

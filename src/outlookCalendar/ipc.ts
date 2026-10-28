@@ -62,6 +62,19 @@ function checkIfCredentialsAreNotEmpty(
   );
 }
 
+// On Linux, Chromium wraps with a hard-coded password when no keyring unlocks,
+// and marks that wrap with `v10`. Anyone can unwrap it, so it is no encryption.
+const HARD_CODED_LINUX_WRAP_PREFIX = Buffer.from('v10');
+
+const isHardCodedLinuxWrap = (encrypted: Buffer): boolean =>
+  process.platform === 'linux' &&
+  encrypted.subarray(0, 3).equals(HARD_CODED_LINUX_WRAP_PREFIX);
+
+// The first four base64 characters depend only on the first three bytes.
+const isStoredHardCodedLinuxWrap = (stored: string): boolean =>
+  process.platform === 'linux' &&
+  stored.startsWith(HARD_CODED_LINUX_WRAP_PREFIX.toString('base64'));
+
 function encryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
@@ -74,18 +87,23 @@ function encryptedCredentials(
       return credentials;
     }
 
-    const encryptedLogin = safeStorage
-      .encryptString(credentials.login)
-      .toString('base64');
-    const encryptedPassword = safeStorage
-      .encryptString(credentials.password)
-      .toString('base64');
+    const encryptedLogin = safeStorage.encryptString(credentials.login);
+    const encryptedPassword = safeStorage.encryptString(credentials.password);
+    if (
+      isHardCodedLinuxWrap(encryptedLogin) ||
+      isHardCodedLinuxWrap(encryptedPassword)
+    ) {
+      outlookWarn(
+        'Encryption uses the Linux fixed password, storing credentials in plain text'
+      );
+      return credentials;
+    }
 
     outlookLog('Successfully encrypted credentials');
     return {
       ...credentials,
-      login: encryptedLogin,
-      password: encryptedPassword,
+      login: encryptedLogin.toString('base64'),
+      password: encryptedPassword.toString('base64'),
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -147,6 +165,37 @@ function decryptedCredentials(
     );
     return credentials;
   }
+}
+
+// A Linux v10 wrap in the store is not trusted. The secrets are cleared from
+// the store and the user is asked again. The identity fields stay.
+function trustedStoredCredentials(
+  server: Server
+): OutlookCredentials | undefined {
+  const { outlookCredentials } = server;
+  if (
+    !outlookCredentials ||
+    (!isStoredHardCodedLinuxWrap(outlookCredentials.login) &&
+      !isStoredHardCodedLinuxWrap(outlookCredentials.password))
+  ) {
+    return outlookCredentials;
+  }
+
+  outlookWarn(
+    'Stored credentials use the Linux fixed password, clearing them',
+    { userId: outlookCredentials.userId }
+  );
+  const cleared = {
+    userId: outlookCredentials.userId,
+    serverUrl: outlookCredentials.serverUrl,
+    login: '',
+    password: '',
+  };
+  dispatch({
+    type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
+    payload: { url: server.url, outlookCredentials: cleared },
+  });
+  return cleared;
 }
 
 /**
@@ -920,14 +969,15 @@ async function maybeSyncEvents(serverToSync: Server) {
       throw new Error('Server information not found');
     }
 
-    if (!server.outlookCredentials) {
+    const storedCredentials = trustedStoredCredentials(server);
+    if (!storedCredentials) {
       throw new Error('No Outlook credentials configured for server');
     }
 
     outlookLog('Decrypting credentials...');
     const credentials = safeStorage.isEncryptionAvailable()
-      ? decryptedCredentials(server.outlookCredentials)
-      : server.outlookCredentials;
+      ? decryptedCredentials(storedCredentials)
+      : storedCredentials;
 
     if (!checkIfCredentialsAreNotEmpty(credentials)) {
       throw new Error('Outlook credentials are empty or invalid');
@@ -1030,7 +1080,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
 
       const state = getServerState(server.url);
 
-      const { outlookCredentials } = server;
+      const outlookCredentials = trustedStoredCredentials(server);
       if (!outlookCredentials) {
         outlookLog('No Outlook credentials configured for server:', server.url);
         return;
@@ -1139,7 +1189,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
   handle('outlook-calendar/has-credentials', async (event) => {
     const server = getServerInformationByWebContentsId(event.id);
     if (!server) return false;
-    const { outlookCredentials } = server;
+    const outlookCredentials = trustedStoredCredentials(server);
     if (!outlookCredentials) return false;
     return checkIfCredentialsAreNotEmpty(outlookCredentials);
   });
@@ -1148,7 +1198,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
     'outlook-calendar/get-events',
     async (event, _date: Date): Promise<OutlookEventsResponse> => {
       const server = getServerInformationByWebContentsId(event.id);
-      const { outlookCredentials } = server;
+      const outlookCredentials = trustedStoredCredentials(server);
       if (
         // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
         !outlookCredentials ||

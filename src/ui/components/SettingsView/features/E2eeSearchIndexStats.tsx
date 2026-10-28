@@ -3,7 +3,10 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import type { E2EESearchServerIndexStats } from '../../../../e2eeSearch/types';
+import type {
+  E2EESearchLimitReason,
+  E2EESearchServerIndexStats,
+} from '../../../../e2eeSearch/types';
 import { dispatch } from '../../../../store';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED } from '../../../actions';
@@ -16,6 +19,18 @@ const atRestKeys: Record<E2EESearchServerIndexStats['atRest'], string> = {
   'encrypted': 'settings.options.e2eeSearchIndexStats.encrypted',
   'memory-only': 'settings.options.e2eeSearchIndexStats.memoryOnly',
   'mixed': 'settings.options.e2eeSearchIndexStats.mixed',
+};
+
+const limitKeys: Record<E2EESearchLimitReason, string> = {
+  'no-encryption': 'settings.options.e2eeSearchIndexStats.limit.no-encryption',
+  'basic-text-backend':
+    'settings.options.e2eeSearchIndexStats.limit.basic-text-backend',
+  'keychain-timeout':
+    'settings.options.e2eeSearchIndexStats.limit.keychain-timeout',
+  'hard-coded-wrap':
+    'settings.options.e2eeSearchIndexStats.limit.hard-coded-wrap',
+  'native-module-unavailable':
+    'settings.options.e2eeSearchIndexStats.limit.native-module-unavailable',
 };
 
 // The local search index of encrypted messages, for each server: how many
@@ -63,6 +78,11 @@ export const E2eeSearchIndexStats = (props: E2eeSearchIndexStatsProps) => {
                 t(atRestKeys[server.atRest]),
               ].join(' · ')}
             </Box>
+            {server.limitedReason && (
+              <Box fontScale='c1' color='hint'>
+                {t(limitKeys[server.limitedReason])}
+              </Box>
+            )}
           </Box>
         </FieldRow>
       ))}

@@ -307,7 +307,14 @@
         "onDisk": "{{size, byteSize}} no disco",
         "encrypted": "Criptografado no disco",
         "memoryOnly": "Só na memória, não salvo no disco",
-        "mixed": "Parte criptografada no disco, parte só na memória"
+        "mixed": "Parte criptografada no disco, parte só na memória",
+        "limit": {
+          "no-encryption": "Este sistema não consegue criptografar arquivos para o app, então o índice de busca fica na memória e é refeito a cada início. A busca continua funcionando.",
+          "basic-text-backend": "Nenhum chaveiro do sistema está disponível, então o índice de busca fica na memória. Instale e desbloqueie o gnome-keyring ou o KWallet e reinicie o app para mantê-lo no disco. A busca continua funcionando.",
+          "keychain-timeout": "O chaveiro do sistema não respondeu a tempo, então o índice de busca fica na memória. Desbloqueie o chaveiro e reinicie o app para mantê-lo no disco. A busca continua funcionando.",
+          "hard-coded-wrap": "Nenhum chaveiro do sistema está disponível, então o índice de busca fica na memória. Instale e desbloqueie o gnome-keyring ou o KWallet e reinicie o app para mantê-lo no disco. A busca continua funcionando.",
+          "native-module-unavailable": "Uma biblioteca do sistema é antiga demais para o índice rápido. A busca funciona, mas os salvamentos são mais lentos. Atualize o sistema (glibc 2.34 ou mais nova) para o índice completo."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar Permissões de Captura de Tela",

@@ -71,4 +71,44 @@ describe('E2eeSearchIndexStats', () => {
     render(<E2eeSearchIndexStats />);
     expect(screen.getByText(`${key}.empty`)).toBeInTheDocument();
   });
+
+  it.each([
+    'no-encryption',
+    'basic-text-backend',
+    'keychain-timeout',
+    'hard-coded-wrap',
+    'native-module-unavailable',
+  ] as const)(
+    'tells the user what to do when the index is limited by %s',
+    (limitedReason) => {
+      stats = [
+        {
+          serverUrl: 'https://a.example.com',
+          users: 1,
+          docs: 3,
+          bytesOnDisk: 10,
+          atRest: 'memory-only',
+          limitedReason,
+        },
+      ];
+      render(<E2eeSearchIndexStats />);
+      expect(
+        screen.getByText(`${key}.limit.${limitedReason}`)
+      ).toBeInTheDocument();
+    }
+  );
+
+  it('shows no limit line when the index is not limited', () => {
+    stats = [
+      {
+        serverUrl: 'https://a.example.com',
+        users: 1,
+        docs: 3,
+        bytesOnDisk: 10,
+        atRest: 'encrypted',
+      },
+    ];
+    render(<E2eeSearchIndexStats />);
+    expect(screen.queryByText(new RegExp(`${key}.limit`))).toBeNull();
+  });
 });

@@ -125,12 +125,22 @@ const writeAtomically = async (file: string, data: Buffer) => {
   await rename(temp, file);
 };
 
+// A view of the HKDF output, not a copy, so a fill(0) zeroes the derived
+// key itself.
 const keyEncryptionKey = (wrapKey: Buffer): Buffer =>
   Buffer.from(hkdfSync('sha256', wrapKey, Buffer.alloc(0), WRAP_LABEL, 32));
 
+// The cipher keeps its own copy of the key encryption key, so
+// the code zeroes the derived key as soon as the cipher exists.
 const sealIndexKey = (key: Buffer, wrapKey: Buffer): string => {
   const iv = randomBytes(IV_BYTES);
-  const cipher = createCipheriv('aes-256-gcm', keyEncryptionKey(wrapKey), iv);
+  const kek = keyEncryptionKey(wrapKey);
+  let cipher;
+  try {
+    cipher = createCipheriv('aes-256-gcm', kek, iv);
+  } finally {
+    kek.fill(0);
+  }
   cipher.setAAD(Buffer.from(WRAP_LABEL));
   const sealed = Buffer.concat([cipher.update(key), cipher.final()]);
   return (
@@ -147,20 +157,25 @@ export const openIndexKey = (
 ): Buffer | undefined => {
   const bytes = Buffer.from(sealed.slice(WRAPPED_PREFIX.length), 'base64');
   if (bytes.length !== IV_BYTES + TAG_BYTES + INDEX_KEY_BYTES) return undefined;
+  const kek = keyEncryptionKey(wrapKey);
+  // The index key, decrypted before the tag check. Zeroed after the copy
+  // into the result.
+  let plain: Buffer | undefined;
   try {
     const decipher = createDecipheriv(
       'aes-256-gcm',
-      keyEncryptionKey(wrapKey),
+      kek,
       bytes.subarray(0, IV_BYTES)
     );
     decipher.setAAD(Buffer.from(WRAP_LABEL));
     decipher.setAuthTag(bytes.subarray(IV_BYTES, IV_BYTES + TAG_BYTES));
-    return Buffer.concat([
-      decipher.update(bytes.subarray(IV_BYTES + TAG_BYTES)),
-      decipher.final(),
-    ]);
+    plain = decipher.update(bytes.subarray(IV_BYTES + TAG_BYTES));
+    return Buffer.concat([plain, decipher.final()]);
   } catch {
     return undefined;
+  } finally {
+    kek.fill(0);
+    plain?.fill(0);
   }
 };
 

@@ -93,6 +93,11 @@ describe('E2EE search IPC handler', () => {
   let verified: string[];
   // The wrap key that each openIndex call got.
   let wrapKeys: Array<Buffer | undefined>;
+  // The same wrap keys, not copied, so a test can see them zeroed.
+  //
+  let openedWrapKeys: Array<Buffer | undefined>;
+  // When set, openIndex fails with it, like a limiter that refuses the open.
+  let openIndexError: Error | undefined;
   // The owner key fingerprint that each openIndex call got.
   let ownerKeys: OwnerKeyFingerprint[];
   // What the server says about the E2EE public key of each user. A user
@@ -127,6 +132,8 @@ describe('E2EE search IPC handler', () => {
     sessionUsers = new Map();
     verified = [];
     wrapKeys = [];
+    openedWrapKeys = [];
+    openIndexError = undefined;
     ownerKeys = [];
     serverOwnerKeys = new Map();
     ownerKeyChecks = [];
@@ -148,8 +155,10 @@ describe('E2EE search IPC handler', () => {
       },
       openIndex: async (serverUrl, userId, wrapKey, ownerKey) => {
         wrapKeys.push(wrapKey && Buffer.from(wrapKey));
+        openedWrapKeys.push(wrapKey);
         ownerKeys.push(ownerKey);
         await openGate;
+        if (openIndexError) throw openIndexError;
         const dir = path.join(
           root,
           createHash('sha256').update(serverUrl).digest('hex'),
@@ -709,7 +718,90 @@ describe('E2EE search IPC handler', () => {
     await handle(webviewA, 'open', { userId: 'user1', wrapKey });
     await handle(webviewB, 'open', { userId: 'user1' });
 
-    expect(wrapKeys).toEqual([Buffer.from(wrapKey), undefined]);
+    expect(wrapKeys).toEqual([Buffer.alloc(32, 5), undefined]);
+  });
+
+  // The wrap key from the page and each copy of it are zeroed
+  // when the call ends, on every path.
+  describe('zeroes the wrap key', () => {
+    const isZero = (bytes: Uint8Array | undefined) =>
+      bytes !== undefined && bytes.every((byte) => byte === 0);
+
+    // The copies that validateScope makes of the page's wrap key.
+    const copiesOf = (wrapKey: Uint8Array) => {
+      const copies: Buffer[] = [];
+      const from = Buffer.from.bind(Buffer);
+      const spy = jest.spyOn(Buffer, 'from').mockImplementation(((
+        ...args: Parameters<typeof Buffer.from>
+      ) => {
+        const result = (from as (...a: unknown[]) => Buffer)(...args);
+        if (args[0] === wrapKey) copies.push(result);
+        return result;
+      }) as typeof Buffer.from);
+      return { copies, restore: () => spy.mockRestore() };
+    };
+
+    it('after an open that succeeds', async () => {
+      const wrapKey = new Uint8Array(32).fill(5);
+      await handle(webviewA, 'open', { userId: 'user1', wrapKey });
+
+      expect(wrapKeys).toEqual([Buffer.alloc(32, 5)]);
+      expect(isZero(openedWrapKeys[0])).toBe(true);
+      expect(isZero(wrapKey)).toBe(true);
+    });
+
+    it('after an index open that fails', async () => {
+      openIndexError = new Error('E2EE search server was removed');
+      const wrapKey = new Uint8Array(32).fill(5);
+
+      await expect(
+        handle(webviewA, 'open', { userId: 'user1', wrapKey })
+      ).rejects.toThrow(E2EE_SEARCH_GENERIC_ERROR);
+      expect(openedWrapKeys).toHaveLength(1);
+      expect(isZero(openedWrapKeys[0])).toBe(true);
+      expect(isZero(wrapKey)).toBe(true);
+    });
+
+    it('when the server refuses the user, before any index open', async () => {
+      sessionUsers.set(webviewA.id, 'user2');
+      const wrapKey = new Uint8Array(32).fill(5);
+      const { copies, restore } = copiesOf(wrapKey);
+      try {
+        await expect(
+          handle(webviewA, 'open', { userId: 'user1', wrapKey })
+        ).rejects.toThrow('another user');
+      } finally {
+        restore();
+      }
+
+      expect(openedWrapKeys).toEqual([]);
+      expect(copies).toHaveLength(1);
+      expect(isZero(copies[0])).toBe(true);
+      expect(isZero(wrapKey)).toBe(true);
+    });
+
+    it('when a wipe of a closed index gets a wrap key', async () => {
+      const wrapKey = new Uint8Array(32).fill(5);
+      const { copies, restore } = copiesOf(wrapKey);
+      try {
+        await handle(webviewA, 'wipe', { userId: 'user1', wrapKey });
+      } finally {
+        restore();
+      }
+
+      expect(copies).toHaveLength(1);
+      expect(isZero(copies[0])).toBe(true);
+      expect(isZero(wrapKey)).toBe(true);
+    });
+
+    it('when the sender is not a server webview', async () => {
+      const wrapKey = new Uint8Array(32).fill(5);
+
+      await expect(
+        handle(rootWindow, 'open', { userId: 'user1', wrapKey })
+      ).rejects.toThrow('only to server webviews');
+      expect(isZero(wrapKey)).toBe(true);
+    });
   });
 
   it.each([

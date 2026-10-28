@@ -1,5 +1,9 @@
 import { openEncryptedIndexFile } from './fileStore';
-import { createWorkerHandler, fileStoreSelected } from './workerHandler';
+import {
+  createWorkerHandler,
+  fileStoreSelected,
+  zeroRequestKey,
+} from './workerHandler';
 import type { WorkerRequest } from './workerProtocol';
 
 // The utility process entry (rollup builds it to app/e2eeSearchWorker.js).
@@ -17,7 +21,9 @@ const handler = createWorkerHandler({
 });
 
 process.parentPort.on('message', ({ data }) => {
-  void handler
-    .handle(data as WorkerRequest)
-    .then((response) => process.parentPort.postMessage(response));
+  const request = data as WorkerRequest;
+  void handler.handle(request).then((response) => {
+    zeroRequestKey(request);
+    process.parentPort.postMessage(response);
+  });
 });

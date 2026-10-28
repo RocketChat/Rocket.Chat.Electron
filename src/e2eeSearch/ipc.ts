@@ -144,6 +144,14 @@ const toPageError = (
   return new Error(E2EE_SEARCH_GENERIC_ERROR);
 };
 
+// The wrap key that the page sent. IPC gives main its own copy
+// of the bytes, so main zeroes it when the call ends, on every path.
+const zeroPageWrapKey = (scope: unknown) => {
+  if (typeof scope !== 'object' || scope === null) return;
+  const { wrapKey } = scope as { wrapKey?: unknown };
+  if (wrapKey instanceof Uint8Array) wrapKey.fill(0);
+};
+
 const VOID_METHODS = new Set<BridgeMethod>([
   'upsert',
   'remove',
@@ -239,7 +247,9 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     scope: unknown
   ): Promise<undefined> => {
     const { sender } = event;
-    const { userId } = validateScope(scope);
+    const { userId, wrapKey } = validateScope(scope);
+    // A wipe does not use the wrap key.
+    wrapKey?.fill(0);
     watch(sender);
     const token = documentOf(sender.id);
     const boundUserId = boundUserIds.get(sender.id);
@@ -294,6 +304,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       const token = documentOf(sender.id);
       const boundUserId = boundUserIds.get(sender.id);
       if (boundUserId !== undefined && boundUserId !== userId) {
+        wrapKey?.fill(0);
         throw new Error('E2EE search index is open for another user');
       }
       // Bind before the open finishes, so two opens cannot race.
@@ -348,6 +359,9 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
         if (destroyed.has(sender.id)) closeSession(sender.id);
         return result;
       } finally {
+        // The open used the wrap key once, or did not reach the
+        // index. Either way, no copy stays in memory.
+        wrapKey?.fill(0);
         const pending = (pendingOpens.get(sender.id) ?? 1) - 1;
         if (pending > 0) {
           pendingOpens.set(sender.id, pending);
@@ -415,5 +429,17 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     }
   };
 
-  return Object.assign(handleEvent, { endUserSession });
+  const handleEventAndZeroWrapKey = async (
+    event: E2EESearchEvent,
+    method: unknown,
+    ...args: unknown[]
+  ): Promise<unknown> => {
+    try {
+      return await handleEvent(event, method, ...args);
+    } finally {
+      zeroPageWrapKey(args[0]);
+    }
+  };
+
+  return Object.assign(handleEventAndZeroWrapKey, { endUserSession });
 };

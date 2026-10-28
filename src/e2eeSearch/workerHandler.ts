@@ -11,6 +11,7 @@ import {
   IndexFileRejectedError,
   removeIndexFiles,
 } from './fileStore';
+import type { IndexKey } from './keyStore';
 import {
   createSnapshotStore,
   deserializeDatabase,
@@ -57,12 +58,23 @@ type WorkerHandlerOptions = {
 export const fileStoreSelected = (value: string | undefined): boolean =>
   value !== 'snapshot';
 
+// The worker entry owns the structured clone of each request.
+// After the handler answered an open, the handler keeps its own copy of the
+// index key, so the entry zeroes the key of the request.
+export const zeroRequestKey = (request: WorkerRequest): void => {
+  if (request.method !== 'open') return;
+  const key = (request.args[0] as WorkerOpenArgs | undefined)?.indexKey?.key;
+  if (key instanceof Uint8Array) key.fill(0);
+};
+
 // The worker logic, with no Electron imports: the utility process entry and
 // the specs both run it. With the file store, only page-encrypted pages
 // reach the disk. With the snapshot store, the database lives in memory and
 // only the encrypted snapshot reaches the disk.
 export const createWorkerHandler = (options: WorkerHandlerOptions) => {
   const indexes = new Map<string, OpenIndex>();
+  // The copy of the index key of each open index.
+  const indexKeys = new Map<string, Buffer>();
   let fileStoreError: WorkerOpenResult['fileStoreError'];
   const withStore = (
     store: WorkerOpenResult['store'],
@@ -82,6 +94,8 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
   const close = (indexId: string) => {
     indexes.get(indexId)?.db.close();
     indexes.delete(indexId);
+    indexKeys.get(indexId)?.fill(0);
+    indexKeys.delete(indexId);
   };
 
   const open = async (
@@ -100,6 +114,23 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
     }
     // Structured clone turns the Buffer into a plain Uint8Array.
     const key = { ...indexKey, key: Buffer.from(indexKey.key) };
+    try {
+      const result = await openWithKey(indexId, userId, dir, key);
+      indexKeys.set(indexId, key.key);
+      return result;
+    } catch (error) {
+      // No open index uses the copy.
+      key.key.fill(0);
+      throw error;
+    }
+  };
+
+  const openWithKey = async (
+    indexId: string,
+    userId: string,
+    dir: string,
+    key: IndexKey
+  ): Promise<WorkerOpenResult> => {
     const store = createSnapshotStore({ dir, indexKey: key });
     const { openEncryptedFile } = options;
     if (openEncryptedFile && key.persistent && !fileStoreError) {

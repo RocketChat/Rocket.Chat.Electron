@@ -4,7 +4,11 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
 
-import { createWorkerHandler, fileStoreSelected } from '../workerHandler';
+import {
+  createWorkerHandler,
+  fileStoreSelected,
+  zeroRequestKey,
+} from '../workerHandler';
 import type { WorkerOpenArgs, WorkerRequest } from '../workerProtocol';
 
 const { DatabaseSync } = process.getBuiltinModule('node:sqlite');
@@ -109,6 +113,124 @@ describe('E2EE search worker handler', () => {
     expect(await request(second, 'wipe')).toMatchObject({ ok: true });
     expect(snapshotHas(openedDbs[1], 'wpcanaryzebra')).toBe(false);
     await request(second, 'close');
+  });
+
+  // The worker zeroes its copy of the index key when the index
+  // closes or the open fails, and the worker entry zeroes the key of each
+  // open request after the handler copied it.
+  describe('zeroes the index key', () => {
+    const isZero = (bytes: Uint8Array) => bytes.every((byte) => byte === 0);
+
+    // The copies that the handler makes of `key`.
+    const copiesOf = (key: Uint8Array) => {
+      const copies: Buffer[] = [];
+      const from = Buffer.from.bind(Buffer);
+      const spy = jest.spyOn(Buffer, 'from').mockImplementation(((
+        ...args: Parameters<typeof Buffer.from>
+      ) => {
+        const result = (from as (...a: unknown[]) => Buffer)(...args);
+        if (args[0] === key) copies.push(result);
+        return result;
+      }) as typeof Buffer.from);
+      return { copies, restore: () => spy.mockRestore() };
+    };
+
+    const openArgs = (key: Buffer): WorkerOpenArgs => ({
+      userId: 'u1',
+      dir,
+      indexKey: { persistent: true, key, reset: false },
+    });
+
+    it('zeroes the copy when the index closes', async () => {
+      const key = randomBytes(32);
+      const h = handler();
+      const { copies, restore } = copiesOf(key);
+      try {
+        expect(await request(h, 'open', [openArgs(key)])).toMatchObject({
+          ok: true,
+        });
+      } finally {
+        restore();
+      }
+      expect(copies).toHaveLength(1);
+      expect(isZero(copies[0])).toBe(false);
+
+      await request(h, 'close');
+      expect(isZero(copies[0])).toBe(true);
+    });
+
+    it('zeroes the copy when the open fails', async () => {
+      class FailingDatabaseSync extends DatabaseSync {
+        override exec(sql: string): void {
+          if (sql.includes('temp_store')) throw new Error('disk I/O error');
+          super.exec(sql);
+        }
+      }
+      const key = randomBytes(32);
+      const h = createWorkerHandler({
+        DatabaseSync: FailingDatabaseSync as unknown as typeof DatabaseSync,
+      });
+      const { copies, restore } = copiesOf(key);
+      try {
+        expect(await request(h, 'open', [openArgs(key)])).toMatchObject({
+          ok: false,
+        });
+      } finally {
+        restore();
+      }
+      expect(copies).toHaveLength(1);
+      expect(isZero(copies[0])).toBe(true);
+    });
+
+    it('zeroes the key of an open request, and the open index keeps its own copy', async () => {
+      const key = randomBytes(32);
+      const keyCopy = Buffer.from(key);
+      const open: WorkerRequest = {
+        id: 1,
+        indexId: 'i1',
+        method: 'open',
+        args: [openArgs(key)],
+      };
+      const doc = {
+        id: 'm1',
+        rid: 'r1',
+        uid: 'u1',
+        username: 'ana',
+        ts: 1000,
+        updatedAt: 1000,
+        kind: 'text',
+        body: 'keptzebra words',
+      };
+
+      const first = handler();
+      expect(await first.handle(open)).toMatchObject({ ok: true });
+      zeroRequestKey(open);
+      expect(isZero(key)).toBe(true);
+      await request(first, 'upsert', [[doc]]);
+      expect(await request(first, 'save')).toMatchObject({ ok: true });
+      await request(first, 'close');
+
+      const second = handler();
+      expect(await request(second, 'open', [openArgs(keyCopy)])).toMatchObject({
+        ok: true,
+      });
+      expect(
+        await request(second, 'search', [{ text: 'keptzebra' }])
+      ).toMatchObject({ ok: true, value: [{ id: 'm1' }] });
+      await request(second, 'close');
+    });
+
+    it('leaves a request of another method as it is', () => {
+      const docs = [{ id: 'm1' }];
+      const upsert: WorkerRequest = {
+        id: 1,
+        indexId: 'i1',
+        method: 'upsert',
+        args: [docs],
+      };
+      zeroRequestKey(upsert);
+      expect(upsert.args).toEqual([[{ id: 'm1' }]]);
+    });
   });
 
   // The file store is the default. A build where the native SQLite

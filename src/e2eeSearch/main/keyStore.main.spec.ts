@@ -1,3 +1,4 @@
+import type * as NodeCrypto from 'node:crypto';
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -337,6 +338,62 @@ describe('e2eeSearch key store', () => {
 
       const right = await load(wrapKey);
       expect(right).toMatchObject({ persistent: true, reset: false });
+    });
+
+    // The key encryption key that HKDF derives from the wrap
+    // key, and the decrypted part of the index key, are zeroed after use.
+    it('zeroes each derived key after a seal, an open and a refused open', async () => {
+      // The module object itself, which keyStore.ts reads on each call.
+      const crypto = jest.requireActual<typeof NodeCrypto>('node:crypto');
+      const derived: ArrayBuffer[] = [];
+      const decrypted: Buffer[] = [];
+      const { hkdfSync, createDecipheriv } = crypto;
+      const hkdfSpy = jest
+        .spyOn(crypto, 'hkdfSync')
+        .mockImplementation((...args: Parameters<typeof hkdfSync>) => {
+          const key = hkdfSync(...args);
+          derived.push(key);
+          return key;
+        });
+      const decipherSpy = jest
+        .spyOn(crypto, 'createDecipheriv')
+        .mockImplementation(((...args: Parameters<typeof createDecipheriv>) => {
+          const decipher = createDecipheriv(...args);
+          const update = decipher.update.bind(decipher) as (
+            data: Buffer
+          ) => Buffer;
+          (decipher as unknown as { update: typeof update }).update = (
+            data
+          ) => {
+            const part = update(data);
+            decrypted.push(part);
+            return part;
+          };
+          return decipher;
+        }) as typeof createDecipheriv);
+      try {
+        const created = await load(wrapKey);
+        const opened = await load(wrapKey);
+        await expect(load(otherWrapKey)).rejects.toMatchObject({
+          name: E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME,
+        });
+
+        expect(opened.key.equals(created.key)).toBe(true);
+        expect(created.key.some((byte) => byte !== 0)).toBe(true);
+      } finally {
+        hkdfSpy.mockRestore();
+        decipherSpy.mockRestore();
+      }
+
+      const isZero = (bytes: Uint8Array) => bytes.every((byte) => byte === 0);
+      expect(derived).toHaveLength(3);
+      expect(derived.map((key) => isZero(new Uint8Array(key)))).toEqual([
+        true,
+        true,
+        true,
+      ]);
+      expect(decrypted.length).toBeGreaterThan(0);
+      expect(decrypted.map(isZero)).toEqual(decrypted.map(() => true));
     });
 
     it('wraps an old key file with the wrap key and keeps the index key', async () => {

@@ -145,7 +145,7 @@ describe('servers/preload/internalVideoChatWindow', () => {
   // The session token used to be read from localStorage and forwarded to the
   // video call window, where a preload method handed it to whatever page the
   // webview had loaded — a third-party provider on the pexip/jitsi paths.
-  // Nothing consumed it. See CORE-2704.
+  // Nothing consumed it.
   it('never forwards credentials for pexip, even when they are in localStorage', () => {
     safeSelectMock.mockReturnValue(true);
     localStorage.setItem('Meteor.loginToken', 'token-123');

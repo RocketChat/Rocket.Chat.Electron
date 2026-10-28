@@ -106,9 +106,12 @@ describe('E2EE search IPC handler', () => {
   // The owner key fingerprint that each openIndex call got.
   let ownerKeys: OwnerKeyFingerprint[];
   // What the server says about the E2EE public key of each user. A user
-  // with no entry has the fingerprint `fp-<userId>`.
+  // with no entry has no E2EE key (null), so an open with no wrap key opens
+  // the index.
   let serverOwnerKeys: Map<string, OwnerKeyFingerprint | Error>;
   let ownerKeyChecks: string[];
+  // Each owner key fetch waits for it before it answers.
+  let ownerKeyGate: Promise<void>;
   // The owner key fetch errors that the handler logged.
   let ownerKeyErrors: unknown[];
   // The indexes that a bridge wipe deleted.
@@ -143,6 +146,7 @@ describe('E2EE search IPC handler', () => {
     ownerKeys = [];
     serverOwnerKeys = new Map();
     ownerKeyChecks = [];
+    ownerKeyGate = Promise.resolve();
     ownerKeyErrors = [];
     wipedIndexIds = [];
     handleEvent = createE2EESearchIpcHandler({
@@ -153,9 +157,10 @@ describe('E2EE search IPC handler', () => {
       },
       fetchOwnerKey: async (_event, serverUrl, userId) => {
         ownerKeyChecks.push(`${serverUrl} ${userId}`);
+        await ownerKeyGate;
         const answer = serverOwnerKeys.has(userId)
           ? serverOwnerKeys.get(userId)
-          : `fp-${userId}`;
+          : null;
         if (answer instanceof Error) throw answer;
         return answer;
       },
@@ -523,7 +528,7 @@ describe('E2EE search IPC handler', () => {
     handleEvent = createE2EESearchIpcHandler({
       resolveServerUrl: ({ sender }) => servers.get(sender.id),
       verifyUserId: () => Promise.reject(new Error('fetch failed')),
-      fetchOwnerKey: async () => undefined,
+      fetchOwnerKey: async () => null,
       openIndex: async () => {
         opened += 1;
         return { indexId: 'x', result: {} as any };
@@ -634,7 +639,7 @@ describe('E2EE search IPC handler', () => {
         // Only the binding of the document refuses user16.
         return userId !== 'user14';
       },
-      fetchOwnerKey: async () => undefined,
+      fetchOwnerKey: async () => null,
       openIndex: async (serverUrl, userId) => ({
         indexId: `${serverUrl} ${userId}`,
         result: {} as any,
@@ -863,8 +868,11 @@ describe('E2EE search IPC handler', () => {
   // key that the server holds for the confirmed user, never with a key from
   // the page.
   it('gives the owner key that the server names to the index open', async () => {
-    serverOwnerKeys.set('user2', null);
-    await handle(webviewA, 'open', { userId: 'user1' });
+    serverOwnerKeys.set('user1', 'fp-user1');
+    await handle(webviewA, 'open', {
+      userId: 'user1',
+      wrapKey: new Uint8Array(32).fill(3),
+    });
     await handle(webviewB, 'open', { userId: 'user2' });
 
     expect(ownerKeyChecks).toEqual([`${SERVER_A} user1`, `${SERVER_B} user2`]);
@@ -872,12 +880,15 @@ describe('E2EE search IPC handler', () => {
   });
 
   // The open succeeds, so only the key fetch is logged as failed.
-  it('opens with an unknown owner key when the server cannot tell it', async () => {
+  it('opens with an unknown owner key when the server cannot tell it and the page sends the wrap key', async () => {
     const keyError = new Error('HTTP 502 at /secret/path');
     serverOwnerKeys.set('user1', keyError);
     await expect(
-      handle(webviewA, 'open', { userId: 'user1' })
-    ).resolves.toBeDefined();
+      handle(webviewA, 'open', {
+        userId: 'user1',
+        wrapKey: new Uint8Array(32).fill(3),
+      })
+    ).resolves.not.toHaveProperty('locked');
 
     expect(ownerKeys).toEqual([undefined]);
     expect(logged).toEqual([]);
@@ -894,24 +905,54 @@ describe('E2EE search IPC handler', () => {
     expect(ownerKeys).toEqual([]);
   });
 
-  // LSE2EE-110: on a server that has E2EE, the index opens only sealed by
-  // the wrap key.
-  describe('seals the index when the server has E2EE (LSE2EE-110)', () => {
+  // The index of a user with an E2EE key opens only sealed by
+  // the wrap key. The server names the key, never the page.
+  describe('seals the index of a user with an E2EE key', () => {
     const wrapKey = () => new Uint8Array(32).fill(7);
 
-    it('returns locked and opens nothing for an open with no wrap key', async () => {
+    beforeEach(() => {
+      serverOwnerKeys.set('user1', 'fp-user1');
+    });
+
+    it('returns locked and opens nothing when the server names a key and the page sends no wrap key', async () => {
       await expect(
-        handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true })
+        handle(webviewA, 'open', { userId: 'user1' })
       ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
 
+      expect(ownerKeyChecks).toEqual([`${SERVER_A} user1`]);
       expect(wrapKeys).toEqual([]);
       expect(methods).toEqual([]);
       expect(existsSync(root) ? readdirSync(root) : []).toEqual([]);
       expect(logged).toEqual([]);
     });
 
+    it('returns locked when the owner key fetch fails and the page sends no wrap key', async () => {
+      const keyError = new Error('HTTP 502 at /secret/path');
+      serverOwnerKeys.set('user1', keyError);
+      serverOwnerKeys.set('user2', undefined);
+
+      await expect(
+        handle(webviewA, 'open', { userId: 'user1' })
+      ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
+      await expect(
+        handle(webviewB, 'open', { userId: 'user2' })
+      ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
+
+      expect(ownerKeyErrors).toEqual([keyError]);
+      expect(wrapKeys).toEqual([]);
+      expect(methods).toEqual([]);
+      expect(existsSync(root) ? readdirSync(root) : []).toEqual([]);
+    });
+
+    it('does not let the page turn the check off', async () => {
+      await expect(
+        handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: false })
+      ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
+      expect(wrapKeys).toEqual([]);
+    });
+
     it('reports locked to each call until an open with the wrap key', async () => {
-      await handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true });
+      await handle(webviewA, 'open', { userId: 'user1' });
 
       const locked = handle(webviewA, 'search', { text: NEEDLE });
       await expect(locked).rejects.toThrow(E2EE_SEARCH_LOCKED_ERROR);
@@ -921,26 +962,19 @@ describe('E2EE search IPC handler', () => {
       );
 
       await expect(
-        handle(webviewA, 'open', {
-          userId: 'user1',
-          wrapKey: wrapKey(),
-          e2eeAvailable: true,
-        })
+        handle(webviewA, 'open', { userId: 'user1', wrapKey: wrapKey() })
       ).resolves.not.toHaveProperty('locked');
       expect(wrapKeys).toEqual([Buffer.alloc(32, 7)]);
+      expect(ownerKeys).toEqual(['fp-user1']);
       await expect(searchIds(webviewA)).resolves.toEqual([]);
     });
 
     it('closes an open index when a later open has no wrap key', async () => {
-      await handle(webviewA, 'open', {
-        userId: 'user1',
-        wrapKey: wrapKey(),
-        e2eeAvailable: true,
-      });
+      await handle(webviewA, 'open', { userId: 'user1', wrapKey: wrapKey() });
       await handle(webviewA, 'upsert', [doc('m1', NEEDLE)]);
 
       await expect(
-        handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true })
+        handle(webviewA, 'open', { userId: 'user1' })
       ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
       await expect(searchIds(webviewA)).rejects.toThrow(
         E2EE_SEARCH_LOCKED_ERROR
@@ -948,7 +982,7 @@ describe('E2EE search IPC handler', () => {
     });
 
     it('forgets the locked state after a navigation', async () => {
-      await handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true });
+      await handle(webviewA, 'open', { userId: 'user1' });
       webviewA.navigate();
 
       await expect(handle(webviewA, 'stats')).rejects.toThrow(
@@ -956,29 +990,40 @@ describe('E2EE search IPC handler', () => {
       );
     });
 
-    it('keeps the old open for a web client that does not report E2EE', async () => {
+    it('gives no locked answer to a document that navigated during the owner key fetch', async () => {
+      let release = () => undefined as void;
+      ownerKeyGate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const opening = handle(webviewA, 'open', { userId: 'user1' });
+      while (ownerKeyChecks.length === 0) {
+        // eslint-disable-next-line no-await-in-loop -- waits for the fetch
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+      webviewA.navigate();
+      release();
+      await expect(opening).rejects.toThrow(E2EE_SEARCH_GENERIC_ERROR);
+      await expect(handle(webviewA, 'stats')).rejects.toThrow(
+        'E2EE search index is not open'
+      );
+    });
+
+    it('opens with no wrap key for a user that the server says has no E2EE key', async () => {
+      serverOwnerKeys.set('user1', null);
       await expect(
         handle(webviewA, 'open', { userId: 'user1' })
       ).resolves.not.toHaveProperty('locked');
-      await expect(
-        handle(webviewB, 'open', { userId: 'user1', e2eeAvailable: false })
-      ).resolves.not.toHaveProperty('locked');
 
-      expect(wrapKeys).toEqual([undefined, undefined]);
-    });
-
-    it('refuses a flag that is not a boolean', async () => {
-      await expect(
-        handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: 'yes' })
-      ).rejects.toBeInstanceOf(E2EESearchInputError);
-      expect(verified).toEqual([]);
+      expect(wrapKeys).toEqual([undefined]);
+      expect(ownerKeys).toEqual([null]);
     });
 
     it('does not answer locked for a user that the server does not confirm', async () => {
       sessionUsers.set(webviewA.id, 'user1');
       await expect(
-        handle(webviewA, 'open', { userId: 'user2', e2eeAvailable: true })
+        handle(webviewA, 'open', { userId: 'user2' })
       ).rejects.toThrow('another user');
+      expect(ownerKeyChecks).toEqual([]);
     });
   });
 });

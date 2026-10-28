@@ -157,8 +157,9 @@ const zeroPageWrapKey = (scope: unknown) => {
   if (wrapKey instanceof Uint8Array) wrapKey.fill(0);
 };
 
-// LSE2EE-110: the answer to an open with no wrap key on a server that has
-// E2EE. No index is open, so nothing is encrypted at rest yet.
+// The answer to an open with no wrap key for a user whose server
+// holds an E2EE key, or cannot tell. No index is open, so nothing is
+// encrypted at rest yet.
 export const E2EE_SEARCH_LOCKED_RESULT: E2EESearchOpenResult = Object.freeze({
   schemaVersion: SCHEMA_VERSION,
   encryptedAtRest: false,
@@ -180,7 +181,7 @@ const VOID_METHODS = new Set<BridgeMethod>([
 // another server: each server and user has its own index id (folder).
 export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   const sessions = new Map<number, Session>();
-  // The webviews whose last open returned `locked` (LSE2EE-110). Their calls
+  // The webviews whose last open returned `locked`. Their calls
   // fail with the locked error until an open with the wrap key.
   const lockedSenders = new Set<number>();
   // The webviews whose not-open call is already logged in this open cycle.
@@ -320,7 +321,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   ): Promise<unknown> => {
     const { sender } = event;
     if (method === 'open') {
-      const { userId, wrapKey, e2eeAvailable } = validateScope(args[0]);
+      const { userId, wrapKey } = validateScope(args[0]);
       watch(sender);
       senderServers.set(sender.id, serverUrl);
       const token = documentOf(sender.id);
@@ -355,16 +356,6 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
               : 'E2EE search index is open for another user'
           );
         }
-        // LSE2EE-110: on a server that has E2EE, the index opens only sealed
-        // by the wrap key. Before E2EE unlock the page has no wrap key, so
-        // no index opens, no key file is made and no index file is written.
-        // A key file that is not sealed yet is sealed at the next open with
-        // the wrap key (keyStore.ts).
-        if (e2eeAvailable === true && !wrapKey) {
-          closeSession(sender.id);
-          if (!destroyed.has(sender.id)) lockedSenders.add(sender.id);
-          return E2EE_SEARCH_LOCKED_RESULT;
-        }
         // A server that cannot tell the key only leaves the open as it was
         // before the key check: nothing is deleted.
         const ownerKey = await deps
@@ -373,6 +364,21 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
             deps.logOwnerKeyError(error);
             return undefined;
           });
+        // The index of a user with an E2EE key opens only sealed
+        // by the wrap key. The server, not the page, tells whether the user
+        // has a key, and an unknown answer counts as a key (fail closed).
+        // Before E2EE unlock the page has no wrap key, so no index opens, no
+        // key file is made and no index file is written. A key file that is
+        // not sealed yet is sealed at the next open with the wrap key
+        // (keyStore.ts).
+        if (!wrapKey && ownerKey !== null) {
+          if (isStale(sender.id, token)) {
+            throw new Error(E2EE_SEARCH_GENERIC_ERROR);
+          }
+          closeSession(sender.id);
+          if (!destroyed.has(sender.id)) lockedSenders.add(sender.id);
+          return E2EE_SEARCH_LOCKED_RESULT;
+        }
         const { indexId, result } = await deps
           .openIndex(serverUrl, userId, wrapKey, ownerKey)
           .catch((error: unknown) => {

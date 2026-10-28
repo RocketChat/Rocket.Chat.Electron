@@ -12,13 +12,14 @@ import {
   E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME,
   KEY_FILE_NAME,
 } from '../keyStore';
+import type { OwnerKeyFingerprint } from '../ownerKey';
 import type { E2EESearchDoc, E2EESearchHit } from '../types';
 import { createWorkerHandler } from '../workerHandler';
 import type { WorkerResponse } from '../workerProtocol';
 
-// LSE2EE-110: the bridge, the key store and the worker together. On a server
-// that has E2EE, nothing reaches the disk before the wrap key, and the key
-// file on the disk is sealed by the wrap key.
+// The bridge, the key store and the worker together. For a user
+// whose server names an E2EE key, nothing reaches the disk before the wrap
+// key, and the key file on the disk is sealed by the wrap key.
 
 const { DatabaseSync } = process.getBuiltinModule('node:sqlite');
 
@@ -81,11 +82,13 @@ const createSender = (id: number) => {
   return sender;
 };
 
-describe('E2EE search index sealing (LSE2EE-110)', () => {
+describe('E2EE search index sealing', () => {
   let root: string;
   let dir: string;
   let host: SearchHost;
   let closes: Promise<void>[];
+  // What the server says about the user's E2EE public key.
+  let ownerKey: OwnerKeyFingerprint;
   let handle: ReturnType<typeof createE2EESearchIpcHandler>;
   const webview = createSender(11);
 
@@ -111,10 +114,11 @@ describe('E2EE search index sealing (LSE2EE-110)', () => {
     dir = path.join(root, USER);
     host = createSearchHost({ spawn });
     closes = [];
+    ownerKey = 'fp-user1';
     handle = createE2EESearchIpcHandler({
       resolveServerUrl: () => SERVER,
       verifyUserId: async () => true,
-      fetchOwnerKey: async () => undefined,
+      fetchOwnerKey: async () => ownerKey,
       openIndex: async (_serverUrl, userId, wrapKey) => {
         const indexKey = await keyStore()
           .load({ wrapKey })
@@ -146,10 +150,7 @@ describe('E2EE search index sealing (LSE2EE-110)', () => {
 
   it('writes nothing before the wrap key, and seals the key file after it', async () => {
     await expect(
-      handle({ sender: webview }, 'open', {
-        userId: USER,
-        e2eeAvailable: true,
-      })
+      handle({ sender: webview }, 'open', { userId: USER })
     ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
     expect(existsSync(keyFile())).toBe(false);
     expect(existsSync(path.join(dir, INDEX_DB_FILE_NAME))).toBe(false);
@@ -157,7 +158,6 @@ describe('E2EE search index sealing (LSE2EE-110)', () => {
     await handle({ sender: webview }, 'open', {
       userId: USER,
       wrapKey: wrapKeyOf(1),
-      e2eeAvailable: true,
     });
     await handle({ sender: webview }, 'upsert', [doc('m1', NEEDLE)]);
     await expect(search()).resolves.toEqual(['m1']);
@@ -165,26 +165,24 @@ describe('E2EE search index sealing (LSE2EE-110)', () => {
   });
 
   it('seals a key file that is not sealed at the next open with the wrap key, and keeps its index', async () => {
-    // An index from before LSE2EE-110, opened with no wrap key.
+    // An index opened with no wrap key while the user had no E2EE key.
+    ownerKey = null;
     await handle({ sender: webview }, 'open', { userId: USER });
     await handle({ sender: webview }, 'upsert', [doc('m1', NEEDLE)]);
     await reload();
     await expect(keyStore().isSealed()).resolves.toBe(false);
     const plainKeyFile = readFileSync(keyFile());
+    ownerKey = 'fp-user1';
 
     // E2EE locked: the old key file stays as it is, and the index stays shut.
     await expect(
-      handle({ sender: webview }, 'open', {
-        userId: USER,
-        e2eeAvailable: true,
-      })
+      handle({ sender: webview }, 'open', { userId: USER })
     ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
     expect(readFileSync(keyFile())).toEqual(plainKeyFile);
 
     await handle({ sender: webview }, 'open', {
       userId: USER,
       wrapKey: wrapKeyOf(1),
-      e2eeAvailable: true,
     });
     await expect(keyStore().isSealed()).resolves.toBe(true);
     await expect(search()).resolves.toEqual(['m1']);
@@ -194,7 +192,6 @@ describe('E2EE search index sealing (LSE2EE-110)', () => {
     await handle({ sender: webview }, 'open', {
       userId: USER,
       wrapKey: wrapKeyOf(1),
-      e2eeAvailable: true,
     });
     await handle({ sender: webview }, 'upsert', [doc('m1', NEEDLE)]);
     await reload();
@@ -204,21 +201,28 @@ describe('E2EE search index sealing (LSE2EE-110)', () => {
       handle({ sender: webview }, 'open', {
         userId: USER,
         wrapKey: wrapKeyOf(2),
-        e2eeAvailable: true,
       })
     ).rejects.toMatchObject({ name: E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME });
     expect(readFileSync(keyFile())).toEqual(sealedKeyFile);
 
-    // A page that leaves the flag out gets no unsealed index either.
+    // With no wrap key, the index stays shut and the key file stays.
+    await expect(
+      handle({ sender: webview }, 'open', { userId: USER })
+    ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
+    expect(readFileSync(keyFile())).toEqual(sealedKeyFile);
+
+    // Also when the server says that the user has no E2EE key: the sealed
+    // key file opens only with its wrap key.
+    ownerKey = null;
     await expect(
       handle({ sender: webview }, 'open', { userId: USER })
     ).rejects.toMatchObject({ name: E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME });
     expect(readFileSync(keyFile())).toEqual(sealedKeyFile);
+    ownerKey = 'fp-user1';
 
     await handle({ sender: webview }, 'open', {
       userId: USER,
       wrapKey: wrapKeyOf(1),
-      e2eeAvailable: true,
     });
     await expect(search()).resolves.toEqual(['m1']);
   });

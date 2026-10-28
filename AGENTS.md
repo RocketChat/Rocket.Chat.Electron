@@ -338,6 +338,10 @@ pass on a Desktop PR, branch or release candidate, follow
 - File names: camelCase for files, PascalCase for components.
 - Write self-documenting code with clear names. Add a comment only when the
   code cannot say why.
+- Do not put a Jira key in a comment or a string under `src/`, `scripts/` or
+  `.github/workflows/`. Jira is internal and this repository is public. Say
+  what the code does instead. `yarn lint` fails on a key
+  (`scripts/check-ticket-keys.ts`).
 - Keep every name that a preload exposes to the web client
   (`RocketChatDesktop`, `videoCallWindow` and their methods) backward
   compatible. A rename adds the new name and keeps the old name as an alias

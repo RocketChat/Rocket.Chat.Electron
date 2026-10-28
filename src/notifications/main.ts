@@ -66,7 +66,7 @@ const notificationTypes = new Map<string, 'voice' | 'text'>();
 const notificationCategories = new Map<string, 'DOWNLOADS' | 'SERVER'>();
 const notificationRoutingMeta = new Map<string, NotificationRoutingMeta>();
 // Electron can fire a Windows toast's `reply` event twice for one submission;
-// gate on this until the next `show` resets it (SUP-1097 forward-port, #3467).
+// gate on this until the next `show` resets it (#3467).
 const repliedNotifications = new Set<string>();
 
 const setNotificationRoutingMeta = (

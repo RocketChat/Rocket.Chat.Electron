@@ -43,7 +43,7 @@ import {
   READ_LOGIN_TOKEN_SCRIPT,
   verifyServerUserId,
 } from './verifyUser';
-import { workerEnvOf } from './workerHandler';
+import { workerEnvOf } from './workerEnv';
 import type { WorkerOpenResult } from './workerProtocol';
 
 // A quit waits at most this long for the last snapshot.

@@ -5,12 +5,8 @@ import type { DatabaseSync } from 'node:sqlite';
 import { createSearchEngine } from './engine';
 import type { SearchEngine } from './engine';
 import { summarizeError } from './errorSummary';
-import {
-  checkpointIndexFile,
-  INDEX_DB_FILE_NAME,
-  IndexFileRejectedError,
-  removeIndexFiles,
-} from './fileStore';
+import { checkpointIndexFile, IndexFileRejectedError } from './fileStore';
+import { INDEX_DB_FILE_NAME, removeIndexFiles } from './indexFiles';
 import type { IndexKey } from './keyStore';
 import {
   createSnapshotStore,
@@ -58,20 +54,6 @@ type WorkerHandlerOptions = {
 // selects the memory database with the encrypted snapshot.
 export const fileStoreSelected = (value: string | undefined): boolean =>
   value !== 'snapshot';
-
-// The main process builds the worker env. A packaged build drops the store
-// switch, so only a dev build can select the snapshot store.
-export const workerEnvOf = (
-  env: Record<string, string | undefined>,
-  isPackaged: boolean
-): Record<string, string> => {
-  const workerEnv: Record<string, string> = {};
-  for (const [key, value] of Object.entries(env)) {
-    if (value !== undefined) workerEnv[key] = value;
-  }
-  if (isPackaged) delete workerEnv.ROCKETCHAT_E2EE_SEARCH_STORE;
-  return workerEnv;
-};
 
 // The worker entry owns the structured clone of each request.
 // After the handler answered an open, the handler keeps its own copy of the

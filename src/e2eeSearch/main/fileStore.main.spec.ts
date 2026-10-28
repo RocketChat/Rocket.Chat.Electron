@@ -13,7 +13,8 @@ import path from 'node:path';
 
 import Database from 'better-sqlite3-multiple-ciphers';
 
-import { INDEX_DB_FILE_NAME, openEncryptedIndexFile } from '../fileStore';
+import { openEncryptedIndexFile } from '../fileStore';
+import { INDEX_DB_FILE_NAME } from '../indexFiles';
 import { SNAPSHOT_FILE_NAME } from '../snapshotStore';
 import type { E2EESearchHit } from '../types';
 import { createWorkerHandler } from '../workerHandler';

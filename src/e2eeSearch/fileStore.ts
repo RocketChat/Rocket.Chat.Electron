@@ -1,4 +1,3 @@
-import { rm } from 'node:fs/promises';
 import type { DatabaseSync } from 'node:sqlite';
 
 import Database from 'better-sqlite3-multiple-ciphers';
@@ -7,12 +6,8 @@ import Database from 'better-sqlite3-multiple-ciphers';
 // encrypts each page before it reaches the disk: the database file, its WAL
 // and its journal hold only ciphertext. A save writes only the changed pages,
 // not a snapshot of the whole database.
-export const INDEX_DB_FILE_NAME = 'index.db';
-
 // ChaCha20-Poly1305: an AEAD with a 256-bit key, the sqlite3mc default.
 const CIPHER = 'chacha20';
-
-const INDEX_FILE_SUFFIXES = ['', '-wal', '-shm', '-journal'];
 
 export class IndexFileRejectedError extends Error {
   constructor(reason: string) {
@@ -23,12 +18,6 @@ export class IndexFileRejectedError extends Error {
 
 // A wrong key and a damaged file both read as "not a database".
 const REJECTED_CODES = new Set(['SQLITE_NOTADB', 'SQLITE_CORRUPT']);
-
-export const removeIndexFiles = async (file: string): Promise<void> => {
-  await Promise.all(
-    INDEX_FILE_SUFFIXES.map((suffix) => rm(`${file}${suffix}`, { force: true }))
-  );
-};
 
 // Opens (or creates) the encrypted index file. The returned connection has
 // the subset of the node:sqlite API that the engine uses (`exec`, `prepare`

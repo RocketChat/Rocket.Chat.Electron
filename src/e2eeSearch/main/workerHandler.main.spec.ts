@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
 
+import { workerEnvOf } from '../workerEnv';
 import {
   createWorkerHandler,
   fileStoreSelected,
-  workerEnvOf,
   zeroRequestKey,
 } from '../workerHandler';
 import type { WorkerOpenArgs, WorkerRequest } from '../workerProtocol';

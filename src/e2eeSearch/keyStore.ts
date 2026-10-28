@@ -7,7 +7,7 @@ import {
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { INDEX_DB_FILE_NAME, removeIndexFiles } from './fileStore';
+import { INDEX_DB_FILE_NAME, removeIndexFiles } from './indexFiles';
 import { removeStaleTempFiles, SNAPSHOT_FILE_NAME } from './snapshotStore';
 import {
   E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME,

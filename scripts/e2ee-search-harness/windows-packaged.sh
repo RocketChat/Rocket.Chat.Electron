@@ -39,7 +39,9 @@
 #   5. The app starts with a new profile in $WINDOWS_DIR\profile, and app.mjs
 #      drives it through CDP, as in macos-packaged.sh.
 #
-# Checks a, b, e and e.index are the same as in macos-packaged.sh. Check c
+# Checks a, b, e, e.index and g are the same as in macos-packaged.sh. Check g
+# counts the e2ee-search files in the profile and in the app data folder of
+# the test product name. Check c
 # closes the app through CDP (Browser.close) instead of a SIGTERM. Check d
 # ends every process of the app with Stop-Process -Force instead of a
 # SIGKILL. Check f.dpapi replaces the keychain check f: key.bin must be
@@ -350,6 +352,16 @@ if ! start_app first; then
   check setup FAIL "the app did not start: no CDP on port $WINDOWS_CDP_PORT in 60 s"
   summary
 fi
+
+# Before E2E unlock the web client has no wrap key. An open without it must
+# stay sealed: no index opens and no file of the index or of its key is made.
+out="$(driver sealed)"
+echo "$out" >"$RUN_DIR/sealed.json"
+winps index-files -AppName "$app_name_arg" >"$RUN_DIR/sealed-files.txt" 2>&1
+sealed_files="$(sed -nE 's/^INDEXFILES ([0-9]+)$/\1/p' "$RUN_DIR/sealed-files.txt")"
+check g "$([[ "$(field "$out" ok)" == true && "$sealed_files" == 0 ]] && echo PASS || echo FAIL)" \
+  "sealed before E2E unlock: open locked=$(field "$out" locked), search fails locked=$(field "$out" searchLocked), e2ee-search files=${sealed_files:-unknown}"
+
 out="$(driver setup)"
 echo "$out" >"$RUN_DIR/setup.json"
 if [[ "$(field "$out" ok)" != true ]]; then

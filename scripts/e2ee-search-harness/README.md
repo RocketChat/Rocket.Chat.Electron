@@ -184,7 +184,7 @@ The checks are the same as in the macOS test, with these changes:
 
 | Line      | Meaning on Windows                                                                                                                                                                                                        |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `g`       | Not run on Windows.                                                                                                                                                                                                       |
+| `g`       | The same as on macOS. The count of `e2ee-search` files covers `$WINDOWS_DIR\profile` and `%APPDATA%\$APP_NAME`.                                                                                                           |
 | `c`       | The app closes through CDP (`Browser.close`) instead of a SIGTERM.                                                                                                                                                        |
 | `d`       | `Stop-Process -Force` ends every process of the app instead of a SIGKILL.                                                                                                                                                 |
 | `e`       | The scan covers the profile and `%APPDATA%\$APP_NAME`.                                                                                                                                                                    |

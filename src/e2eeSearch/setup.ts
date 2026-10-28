@@ -305,6 +305,8 @@ export const setupE2EESearch = (): void => {
         `bridge call ${method} failed`,
         summarizeError(error)
       ),
+    logNotOpen: (method) =>
+      loggers.e2eeSearch.warn(`bridge call ${method} before the index is open`),
     logOwnerKeyError: (error) =>
       loggers.e2eeSearch.warn('owner key fetch failed', summarizeError(error)),
   });

@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
+import { isExpectedError } from '../../logging/expectedErrors';
 import { createSearchHost } from '../host';
 import type { SearchHost, WorkerTransport } from '../host';
 import {
@@ -87,6 +88,8 @@ describe('E2EE search IPC handler', () => {
   let callGate: Promise<void> = Promise.resolve();
   let gatedIndexIds: Set<string>;
   let logged: unknown[][];
+  // The methods of the calls that the handler logged as not open.
+  let notOpenLogs: string[];
   // The user that the server says owns each webview's login token. A
   // webview with no entry is logged in as the user that it claims.
   let sessionUsers: Map<number, string>;
@@ -129,6 +132,7 @@ describe('E2EE search IPC handler', () => {
     callGate = Promise.resolve();
     gatedIndexIds = new Set();
     logged = [];
+    notOpenLogs = [];
     sessionUsers = new Map();
     verified = [];
     wrapKeys = [];
@@ -189,6 +193,9 @@ describe('E2EE search IPC handler', () => {
         ),
       logError: (...args) => {
         logged.push(args);
+      },
+      logNotOpen: (method) => {
+        notOpenLogs.push(method);
       },
       logOwnerKeyError: (error) => {
         ownerKeyErrors.push(error);
@@ -253,6 +260,36 @@ describe('E2EE search IPC handler', () => {
     await expect(handle(webviewA, 'close')).rejects.toBeInstanceOf(
       E2EESearchInputError
     );
+  });
+
+  it('logs a call before open once per open cycle, and keeps the rejection', async () => {
+    const first = await handle(webviewA, 'search', { text: NEEDLE }).catch(
+      (error: unknown) => error
+    );
+    await expect(handle(webviewA, 'stats')).rejects.toHaveProperty(
+      'message',
+      'E2EE search index is not open'
+    );
+    expect(first).toHaveProperty('message', 'E2EE search index is not open');
+    expect(first).toHaveProperty('name', 'Error');
+    expect(isExpectedError(first)).toBe(true);
+    expect(notOpenLogs).toEqual(['search']);
+    expect(logged).toEqual([]);
+
+    await handle(webviewA, 'open', { userId: 'user1' });
+    webviewA.navigate();
+    await expect(handle(webviewA, 'stats')).rejects.toThrow('not open');
+    expect(notOpenLogs).toEqual(['search', 'stats']);
+  });
+
+  it('still logs another error through logError, not as a not-open call', async () => {
+    openIndexError = new Error('disk full');
+    await expect(handle(webviewA, 'open', { userId: 'user1' })).rejects.toThrow(
+      E2EE_SEARCH_GENERIC_ERROR
+    );
+    expect(logged).toEqual([['open', openIndexError]]);
+    expect(isExpectedError(openIndexError)).toBe(false);
+    expect(notOpenLogs).toEqual([]);
   });
 
   it('rejects an oversize batch, an oversize body and a bad user id', async () => {
@@ -496,6 +533,7 @@ describe('E2EE search IPC handler', () => {
       logError: (...args) => {
         logged.push(args);
       },
+      logNotOpen: () => undefined,
       logOwnerKeyError: () => undefined,
     });
 
@@ -604,6 +642,7 @@ describe('E2EE search IPC handler', () => {
       wipeIndex: async () => undefined,
       userIndexId: (serverUrl, userId) => `${serverUrl} ${userId}`,
       logError: () => undefined,
+      logNotOpen: () => undefined,
       logOwnerKeyError: () => undefined,
     });
 

@@ -1,3 +1,4 @@
+import { markExpectedError } from '../logging/expectedErrors';
 import type { OwnerKeyFingerprint } from './ownerKey';
 import type { E2EESearchOpenResult } from './types';
 import {
@@ -91,6 +92,9 @@ type IpcDeps = {
   // Gets the full error of a failed call, with the index id. It writes to
   // the main-process log, never to the page.
   logError(method: BridgeMethod, error: unknown): void;
+  // A call before the index opens, or after it closes. The page makes such a
+  // call at every start, so the handler calls this once per open cycle.
+  logNotOpen(method: BridgeMethod): void;
   // Gets the error of an owner key fetch that failed while the open goes on.
   // It writes to the main-process log, never to the page.
   logOwnerKeyError(error: unknown): void;
@@ -165,6 +169,8 @@ const VOID_METHODS = new Set<BridgeMethod>([
 // another server: each server and user has its own index id (folder).
 export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   const sessions = new Map<number, Session>();
+  // The webviews whose not-open call is already logged in this open cycle.
+  const notOpenLogged = new Set<number>();
   // The first user id that each document opened. A script on the
   // page cannot switch the document to the index of another user. A
   // navigation or a reload starts a new document, which can bind again.
@@ -192,6 +198,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     documents.has(senderId) && documents.get(senderId) !== token;
 
   const closeSession = (senderId: number) => {
+    notOpenLogged.delete(senderId);
     const session = sessions.get(senderId);
     if (!session) return;
     sessions.delete(senderId);
@@ -381,7 +388,14 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       return wipeClosedIndex(event, serverUrl, args[0]);
     }
     if (!session || session.serverUrl !== serverUrl) {
-      throw new Error('E2EE search index is not open');
+      // The expected state is logged here, once per open cycle. Electron
+      // would log the rejection with its stack, so the console skips it.
+      watch(sender);
+      if (!notOpenLogged.has(sender.id)) {
+        notOpenLogged.add(sender.id);
+        deps.logNotOpen(method);
+      }
+      throw markExpectedError(new Error('E2EE search index is not open'));
     }
     if (method === 'wipe') {
       // The page that opened the index can already remove every row of it.

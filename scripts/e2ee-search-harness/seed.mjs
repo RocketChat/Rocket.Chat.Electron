@@ -145,17 +145,32 @@ const rest = async (
     .catch(() => ({ success: false, error: `HTTP ${response.status}` }));
 };
 
+// One login attempt only. The server blocks a user after a few rejected
+// logins, and every retry would extend the block. Wait for the server with
+// /api/info, which is not a login.
 const loginAdmin = async (admin) => {
   for (let i = 0; i < 60; i++) {
-    const result = await rest('login', {
-      method: 'POST',
-      body: { user: admin.username, password: admin.password },
-    }).catch(() => undefined);
-    if (result?.status === 'success') return result.data;
+    const up = await fetch(`${base}/api/info`, {
+      signal: AbortSignal.timeout(5000),
+    }).then(
+      (r) => r.ok,
+      () => false
+    );
+    if (up) break;
     await sleep(2000);
   }
+  const result = await rest('login', {
+    method: 'POST',
+    body: { user: admin.username, password: admin.password },
+  }).catch(() => undefined);
+  if (result?.status === 'success') return result.data;
+  if (result?.error === 'error-login-blocked-for-user') {
+    return fail(
+      "admin login blocked, wait for the server's lockout window (about a minute) and run again"
+    );
+  }
   return fail(
-    'the admin user cannot log in (was the server started by server.sh with this state file?)'
+    `the server rejected the admin login (${result?.error ?? 'no answer'}). The state file must be the one of the server: set HARNESS_STATE_DIR to the state folder of the checkout that ran server.sh up. Do not retry in a loop: that blocks the user`
   );
 };
 

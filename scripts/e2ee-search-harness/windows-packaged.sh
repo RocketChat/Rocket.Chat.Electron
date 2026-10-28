@@ -16,6 +16,9 @@
 #                     in PATH. No spaces.
 #   WINDOWS_CDP_PORT  the remote debugging port of the app (default 9446).
 #                     The same port is forwarded to this Mac.
+#   HARNESS_STATE_DIR the state folder of the checkout that ran server.sh up.
+#                     Set it when you run this script from another checkout:
+#                     only that state file holds the admin password.
 #   WINDOWS_WORLD     the name of the test world (default win).
 #   APP_NAME          the product name of the test app (default
 #                     "Rocket.Chat R3m").

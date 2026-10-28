@@ -692,4 +692,33 @@ describe('E2EE search sealed index across a logout', () => {
     );
     expect(await hits(reopened)).toHaveLength(20);
   });
+
+  // An E2E key reset wipes the open index, and the
+  // next login derives another wrap key. The wipe must not leave a key.bin
+  // sealed by the old wrap key, or the new one cannot open the index.
+  it('deletes the user index on a wipe, so the wrap key after an E2E key reset opens a new empty index', async () => {
+    const limiter = createUserIndexLimiter({
+      host,
+      isSealed: (indexDir) => keyStoreOf(indexDir).isSealed(),
+    });
+    const userA = await limiter.admit(
+      serverDir,
+      'user-a',
+      openWith('user-a', wrapKey)
+    );
+    await host.call(userA, 'upsert', docs(20));
+    await host.flush();
+
+    await limiter.deleteUserIndex(serverDir, userA);
+    expect(host.indexIds()).not.toContain(userA);
+    expect(existsSync(userA)).toBe(false);
+
+    await limiter.deleteUserIndexes(serverDir);
+    const reopened = await limiter.admit(
+      serverDir,
+      'user-a',
+      openWith('user-a', Buffer.alloc(32, 9))
+    );
+    expect(await hits(reopened)).toHaveLength(0);
+  });
 });

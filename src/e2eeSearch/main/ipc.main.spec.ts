@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -92,6 +92,8 @@ describe('E2EE search IPC handler', () => {
   let verified: string[];
   // The wrap key that each openIndex call got.
   let wrapKeys: Array<Buffer | undefined>;
+  // The indexes that a bridge wipe deleted.
+  let wipedIndexIds: string[];
   const handle = (
     sender: E2EESearchSender,
     method: unknown,
@@ -116,6 +118,7 @@ describe('E2EE search IPC handler', () => {
     sessionUsers = new Map();
     verified = [];
     wrapKeys = [];
+    wipedIndexIds = [];
     handleEvent = createE2EESearchIpcHandler({
       resolveServerUrl: ({ sender }) => servers.get(sender.id),
       verifyUserId: async ({ sender }, serverUrl, userId) => {
@@ -142,6 +145,17 @@ describe('E2EE search IPC handler', () => {
         return host.call(indexId, method, ...args);
       },
       close: (indexId) => host.close(indexId),
+      wipeIndex: async (indexId) => {
+        wipedIndexIds.push(indexId);
+        await host.discard(indexId);
+        rmSync(indexId, { recursive: true, force: true });
+      },
+      userIndexId: (serverUrl, userId) =>
+        path.join(
+          root,
+          createHash('sha256').update(serverUrl).digest('hex'),
+          userId
+        ),
       logError: (...args) => {
         logged.push(args);
       },
@@ -242,6 +256,79 @@ describe('E2EE search IPC handler', () => {
     await expect(handle(webview, 'stats')).rejects.toThrow('not open');
     await handle(webview, 'open', { userId: 'user4' });
     await expect(handle(webview, 'stats')).resolves.toMatchObject({ docs: 0 });
+  });
+
+  // An E2E key reset wipes the index before the
+  // reset call. The whole index goes (its key file too), so the wrap key of
+  // the new E2E key opens a new index at the next login.
+  it('deletes the index on a wipe and ends the session, but keeps the user binding', async () => {
+    const webview = createSender(68);
+    servers.set(webview.id, SERVER_A);
+    await handle(webview, 'open', { userId: 'userA' });
+    await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
+    const [indexId] = host.indexIds();
+
+    await expect(handle(webview, 'wipe')).resolves.toBeUndefined();
+
+    expect(wipedIndexIds).toEqual([indexId]);
+    expect(methods).not.toContain('wipe');
+    expect(host.indexIds()).not.toContain(indexId);
+    await expect(handle(webview, 'search', { text: NEEDLE })).rejects.toThrow(
+      'not open'
+    );
+    await expect(handle(webview, 'open', { userId: 'userB' })).rejects.toThrow(
+      'another user'
+    );
+    await handle(webview, 'open', { userId: 'userA' });
+    expect(await searchIds(webview)).toEqual([]);
+  });
+
+  // A user who forgot the E2E password resets the key while
+  // E2EE is locked. No index is open, because the page has no wrap key. The
+  // page names the user, and the server must confirm that user.
+  it('deletes the index of the confirmed user on a wipe with a user scope and no open index', async () => {
+    const webview = createSender(69);
+    servers.set(webview.id, SERVER_A);
+    await handle(webview, 'open', { userId: 'userA' });
+    await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
+    const [indexId] = host.indexIds();
+    webview.navigate();
+    await expect(handle(webview, 'wipe')).rejects.toThrow('not open');
+
+    await expect(
+      handle(webview, 'wipe', { userId: 'userA' })
+    ).resolves.toBeUndefined();
+
+    expect(verified).toContain(`${SERVER_A} userA`);
+    expect(wipedIndexIds).toEqual([indexId]);
+    expect(existsSync(indexId)).toBe(false);
+    await expect(handle(webview, 'open', { userId: 'userB' })).rejects.toThrow(
+      'another user'
+    );
+    await handle(webview, 'open', { userId: 'userA' });
+    expect(await searchIds(webview)).toEqual([]);
+  });
+
+  it('refuses a wipe with a user scope that the server or the binding does not confirm', async () => {
+    const webview = createSender(70);
+    servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'userB');
+
+    await expect(handle(webview, 'wipe', { userId: 'userA' })).rejects.toThrow(
+      'another user'
+    );
+    await expect(handle(webview, 'wipe', { userId: '../x' })).rejects.toThrow(
+      E2EESearchInputError
+    );
+
+    await handle(webview, 'open', { userId: 'userB' });
+    webview.navigate();
+    await handle(webview, 'wipe', { userId: 'userB' });
+    sessionUsers.delete(webview.id);
+    await expect(handle(webview, 'wipe', { userId: 'userA' })).rejects.toThrow(
+      'another user'
+    );
+    expect(wipedIndexIds).toHaveLength(1);
   });
 
   it('closes the session and unbinds the user on a logout with no navigation', async () => {
@@ -359,6 +446,8 @@ describe('E2EE search IPC handler', () => {
       },
       call: () => Promise.reject(new Error('must not call')),
       close: async () => undefined,
+      wipeIndex: async () => undefined,
+      userIndexId: (serverUrl, userId) => `${serverUrl} ${userId}`,
       logError: (...args) => {
         logged.push(args);
       },
@@ -465,6 +554,8 @@ describe('E2EE search IPC handler', () => {
       }),
       call: async () => ({ docs: 0 }),
       close: async () => undefined,
+      wipeIndex: async () => undefined,
+      userIndexId: (serverUrl, userId) => `${serverUrl} ${userId}`,
       logError: () => undefined,
     });
 

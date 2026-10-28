@@ -77,5 +77,7 @@ export type SearchIndexBackend = {
   getRoomState(rid: string): Promise<E2EESearchRoomState | undefined>;
   setRoomState(rid: string, state: E2EESearchRoomState): Promise<void>;
   stats(): Promise<E2EESearchStats>;
-  wipe(): Promise<void>;
+  // With a scope and no open index (E2EE locked), the server-confirmed
+  // user's index is deleted.
+  wipe(scope?: { userId: string }): Promise<void>;
 };

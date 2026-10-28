@@ -68,6 +68,11 @@ type IpcDeps = {
     ...args: unknown[]
   ): Promise<unknown>;
   close(indexId: string): Promise<void>;
+  // Deletes the index (snapshot and key file) and closes it. A wipe of the
+  // page comes here, not to the worker.
+  wipeIndex(indexId: string): Promise<void>;
+  // The index id of one user of one server, open or not.
+  userIndexId(serverUrl: string, userId: string): string;
   // Gets the full error of a failed call, with the index id. It writes to
   // the main-process log, never to the page.
   logError(method: BridgeMethod, error: unknown): void;
@@ -204,6 +209,56 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     }
   };
 
+  // An E2E key reset while E2EE is locked. The page has no wrap
+  // key, so no index is open, but the new E2E key cannot open the old index
+  // and no file of it must stay. The server must confirm the user, like an
+  // open does, and the document binds to that user. The
+  // page gets no more power than an open and a wipe with the right key: it
+  // can delete only the index of its own logged-in user.
+  const wipeClosedIndex = async (
+    event: E2EESearchEvent,
+    serverUrl: string,
+    scope: unknown
+  ): Promise<undefined> => {
+    const { sender } = event;
+    const { userId } = validateScope(scope);
+    watch(sender);
+    const token = documentOf(sender.id);
+    const boundUserId = boundUserIds.get(sender.id);
+    if (boundUserId !== undefined && boundUserId !== userId) {
+      throw new Error('E2EE search index is open for another user');
+    }
+    let owned: boolean | 'failed';
+    try {
+      owned = (await deps.verifyUserId(event, serverUrl, userId)) === true;
+    } catch (error) {
+      deps.logError('wipe', error);
+      owned = 'failed';
+    }
+    if (isStale(sender.id, token)) {
+      throw new Error(E2EE_SEARCH_GENERIC_ERROR);
+    }
+    if (owned !== true) {
+      throw new Error(
+        owned === 'failed'
+          ? E2EE_SEARCH_GENERIC_ERROR
+          : 'E2EE search index is open for another user'
+      );
+    }
+    const current = boundUserIds.get(sender.id);
+    if (current !== undefined && current !== userId) {
+      throw new Error('E2EE search index is open for another user');
+    }
+    boundUserIds.set(sender.id, userId);
+    senderServers.set(sender.id, serverUrl);
+    await deps
+      .wipeIndex(deps.userIndexId(serverUrl, userId))
+      .catch((error: unknown) => {
+        throw toPageError(deps, 'wipe', error);
+      });
+    return undefined;
+  };
+
   // The calls of each webview that have not returned yet.
   const callsInFlight = new Map<number, number>();
 
@@ -278,8 +333,26 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     }
 
     const session = sessions.get(sender.id);
+    if (
+      method === 'wipe' &&
+      args[0] !== undefined &&
+      (!session || session.serverUrl !== serverUrl)
+    ) {
+      return wipeClosedIndex(event, serverUrl, args[0]);
+    }
     if (!session || session.serverUrl !== serverUrl) {
       throw new Error('E2EE search index is not open');
+    }
+    if (method === 'wipe') {
+      // The page that opened the index can already remove every row of it.
+      // The key file goes too, so after an E2E key reset the new wrap key
+      // opens a new index. The user binding stays, and the page can open
+      // the same user again.
+      sessions.delete(sender.id);
+      await deps.wipeIndex(session.indexId).catch((error: unknown) => {
+        throw toPageError(deps, method, error);
+      });
+      return undefined;
     }
     const value = await deps
       .call(session.indexId, method, ...validateArgs(method, args))

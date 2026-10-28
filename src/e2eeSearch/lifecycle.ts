@@ -193,6 +193,13 @@ export const createUserIndexLimiter = ({
         await deleteOtherUsers(serverDir, { keepSealed: true });
         await rmdir(serverDir).catch(() => undefined);
       }),
+    // A bridge wipe: E2E key reset, admin or user turned the
+    // local search off. The key file goes with the snapshot, so the wrap key
+    // of a new E2E key opens a new index, and no file of the old index stays.
+    deleteUserIndex: (serverDir: string, indexDir: string): Promise<void> =>
+      run(serverDir, () =>
+        deleteIndex(indexDir, host.indexIds().includes(indexDir))
+      ),
     // The user removed the server from the app.
     removeServer: (serverDir: string): Promise<void> =>
       run(serverDir, async () => {

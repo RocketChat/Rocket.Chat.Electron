@@ -39,6 +39,7 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
         clearStorageData: jest.fn().mockResolvedValue(undefined),
       },
       reloadIgnoringCache: jest.fn(),
+      executeJavaScript: jest.fn().mockResolvedValue([]),
     }) as unknown as WebContents;
 
   const dispatchUserLoggedIn = async (userLoggedIn: boolean) => {
@@ -97,5 +98,83 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
     await expect(dispatchUserLoggedIn(false)).resolves.not.toThrow();
 
     expect(mockGetWebContentsByServerUrl).toHaveBeenCalledWith(url);
+  });
+
+  describe('local search opt-in of the users on this device', () => {
+    it('keeps each opt-in that is on: reads it, clears all storage, writes it back, then reloads', async () => {
+      const mockWebContents = createMockWebContents();
+      const order: string[] = [];
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) => {
+          order.push(code.includes('setItem') ? 'restore' : 'read');
+          return code.includes('setItem')
+            ? undefined
+            : ['E2EESearch_OptIn_QNd9RQ9oP3RspLaq3'];
+        }
+      );
+      (
+        mockWebContents.session.clearStorageData as jest.Mock
+      ).mockImplementation(async () => {
+        order.push('clear');
+      });
+      (mockWebContents.reloadIgnoringCache as jest.Mock).mockImplementation(
+        () => {
+          order.push('reload');
+        }
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      expect(order).toEqual(['read', 'clear', 'restore', 'reload']);
+      expect(mockWebContents.session.clearStorageData).toHaveBeenCalledWith();
+      const restore = (
+        mockWebContents.executeJavaScript as jest.Mock
+      ).mock.calls.find(([code]) => code.includes('setItem'))![0];
+      expect(restore).toContain('E2EESearch_OptIn_QNd9RQ9oP3RspLaq3');
+    });
+
+    it('writes back only opt-in keys with a plain user id, never other keys', async () => {
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) =>
+          code.includes('setItem')
+            ? undefined
+            : [
+                'Meteor.loginToken',
+                "E2EESearch_OptIn_x');alert(1);('",
+                'E2EESearch_OptIn_',
+                42,
+                'E2EESearch_OptIn_u1',
+              ]
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      const restore = (
+        mockWebContents.executeJavaScript as jest.Mock
+      ).mock.calls.find(([code]) => code.includes('setItem'))![0];
+      expect(restore).toContain('E2EESearch_OptIn_u1');
+      expect(restore).not.toContain('loginToken');
+      expect(restore).not.toContain('alert');
+    });
+
+    it('still clears and reloads when the page cannot be read, and writes nothing back', async () => {
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockRejectedValue(
+        new Error('page gone')
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      expect(mockWebContents.session.clearStorageData).toHaveBeenCalledWith();
+      expect(mockWebContents.reloadIgnoringCache).toHaveBeenCalled();
+      expect(mockWebContents.executeJavaScript).toHaveBeenCalledTimes(1);
+    });
   });
 });

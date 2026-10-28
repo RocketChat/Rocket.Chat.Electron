@@ -225,6 +225,11 @@ export const setupE2EESearch = (): void => {
     call: (indexId, method, ...args) =>
       getE2EESearchHost().call(indexId, method, ...args),
     close: (indexId) => getE2EESearchHost().close(indexId),
+    wipeIndex: (indexId) =>
+      getUserIndexLimiter()
+        .deleteUserIndex(path.dirname(indexId), indexId)
+        .finally(publishIndexStats),
+    userIndexId: getIndexDir,
     logError: (method, error) =>
       loggers.e2eeSearch.error(
         `bridge call ${method} failed`,

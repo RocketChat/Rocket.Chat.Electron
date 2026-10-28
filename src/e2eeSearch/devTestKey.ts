@@ -81,20 +81,35 @@ export const createDevTestKeySafeStorage = (file: string): SafeStorageApi => {
     },
 
     async decryptStringAsync(encrypted: Buffer) {
-      const head = encrypted.subarray(0, MAGIC.length);
-      if (head.length !== MAGIC.length || !timingSafeEqual(head, MAGIC)) {
+      if (!isDevTestKeyWrapped(encrypted)) {
         throw new Error('Error while decrypting');
       }
-      let offset = MAGIC.length;
-      const iv = encrypted.subarray(offset, (offset += IV_BYTES));
-      const tag = encrypted.subarray(offset, (offset += TAG_BYTES));
-      const decipher = createDecipheriv('aes-256-gcm', await getKey(), iv);
-      decipher.setAuthTag(tag);
-      const result = Buffer.concat([
-        decipher.update(encrypted.subarray(offset)),
-        decipher.final(),
-      ]).toString('utf8');
+      const result = openDevTestKeyWrap(encrypted, await getKey());
       return { result, shouldReEncrypt: false };
     },
   };
+};
+
+// True when `encrypted` has the header of the dev test key wrap. The OS
+// keychain never writes this header.
+export const isDevTestKeyWrapped = (encrypted: Buffer): boolean => {
+  const head = encrypted.subarray(0, MAGIC.length);
+  return head.length === MAGIC.length && timingSafeEqual(head, MAGIC);
+};
+
+// Opens a dev test key wrap with the given key. It reads and writes no file,
+// so the snapshot scan tool can use it on a dev profile.
+export const openDevTestKeyWrap = (encrypted: Buffer, key: Buffer): string => {
+  if (!isDevTestKeyWrapped(encrypted)) {
+    throw new Error('Error while decrypting');
+  }
+  let offset = MAGIC.length;
+  const iv = encrypted.subarray(offset, (offset += IV_BYTES));
+  const tag = encrypted.subarray(offset, (offset += TAG_BYTES));
+  const decipher = createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([
+    decipher.update(encrypted.subarray(offset)),
+    decipher.final(),
+  ]).toString('utf8');
 };

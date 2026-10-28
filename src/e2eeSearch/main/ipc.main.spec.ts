@@ -12,6 +12,7 @@ import {
   MAX_CALLS_IN_FLIGHT_PER_WEBVIEW,
 } from '../ipc';
 import type { E2EESearchSender } from '../ipc';
+import type { OwnerKeyFingerprint } from '../ownerKey';
 import { e2eeSearch } from '../preload';
 import type { E2EESearchDoc, E2EESearchHit } from '../types';
 import {
@@ -92,6 +93,12 @@ describe('E2EE search IPC handler', () => {
   let verified: string[];
   // The wrap key that each openIndex call got.
   let wrapKeys: Array<Buffer | undefined>;
+  // The owner key fingerprint that each openIndex call got.
+  let ownerKeys: OwnerKeyFingerprint[];
+  // What the server says about the E2EE public key of each user. A user
+  // with no entry has the fingerprint `fp-<userId>`.
+  let serverOwnerKeys: Map<string, OwnerKeyFingerprint | Error>;
+  let ownerKeyChecks: string[];
   // The indexes that a bridge wipe deleted.
   let wipedIndexIds: string[];
   const handle = (
@@ -118,6 +125,9 @@ describe('E2EE search IPC handler', () => {
     sessionUsers = new Map();
     verified = [];
     wrapKeys = [];
+    ownerKeys = [];
+    serverOwnerKeys = new Map();
+    ownerKeyChecks = [];
     wipedIndexIds = [];
     handleEvent = createE2EESearchIpcHandler({
       resolveServerUrl: ({ sender }) => servers.get(sender.id),
@@ -125,8 +135,17 @@ describe('E2EE search IPC handler', () => {
         verified.push(`${serverUrl} ${userId}`);
         return (sessionUsers.get(sender.id) ?? userId) === userId;
       },
-      openIndex: async (serverUrl, userId, wrapKey) => {
+      fetchOwnerKey: async (_event, serverUrl, userId) => {
+        ownerKeyChecks.push(`${serverUrl} ${userId}`);
+        const answer = serverOwnerKeys.has(userId)
+          ? serverOwnerKeys.get(userId)
+          : `fp-${userId}`;
+        if (answer instanceof Error) throw answer;
+        return answer;
+      },
+      openIndex: async (serverUrl, userId, wrapKey, ownerKey) => {
         wrapKeys.push(wrapKey && Buffer.from(wrapKey));
+        ownerKeys.push(ownerKey);
         await openGate;
         const dir = path.join(
           root,
@@ -450,6 +469,7 @@ describe('E2EE search IPC handler', () => {
     handleEvent = createE2EESearchIpcHandler({
       resolveServerUrl: ({ sender }) => servers.get(sender.id),
       verifyUserId: () => Promise.reject(new Error('fetch failed')),
+      fetchOwnerKey: async () => undefined,
       openIndex: async () => {
         opened += 1;
         return { indexId: 'x', result: {} as any };
@@ -558,6 +578,7 @@ describe('E2EE search IPC handler', () => {
         // Only the binding of the document refuses user16.
         return userId !== 'user14';
       },
+      fetchOwnerKey: async () => undefined,
       openIndex: async (serverUrl, userId) => ({
         indexId: `${serverUrl} ${userId}`,
         result: {} as any,
@@ -695,5 +716,36 @@ describe('E2EE search IPC handler', () => {
     ).rejects.toBeInstanceOf(E2EESearchInputError);
     expect(wrapKeys).toEqual([]);
     expect(verified).toEqual([]);
+  });
+
+  // The open compares the index with the E2EE public
+  // key that the server holds for the confirmed user, never with a key from
+  // the page.
+  it('gives the owner key that the server names to the index open', async () => {
+    serverOwnerKeys.set('user2', null);
+    await handle(webviewA, 'open', { userId: 'user1' });
+    await handle(webviewB, 'open', { userId: 'user2' });
+
+    expect(ownerKeyChecks).toEqual([`${SERVER_A} user1`, `${SERVER_B} user2`]);
+    expect(ownerKeys).toEqual(['fp-user1', null]);
+  });
+
+  it('opens with an unknown owner key when the server cannot tell it', async () => {
+    serverOwnerKeys.set('user1', new Error('HTTP 502 at /secret/path'));
+    await handle(webviewA, 'open', { userId: 'user1' });
+
+    expect(ownerKeys).toEqual([undefined]);
+    expect(logged).toHaveLength(1);
+    expect(logged[0][0]).toBe('open');
+  });
+
+  it('does not ask for the owner key of a user that the server does not confirm', async () => {
+    sessionUsers.set(webviewA.id, 'user1');
+    await expect(
+      handle(webviewA, 'open', { userId: 'user2' })
+    ).rejects.toThrow();
+
+    expect(ownerKeyChecks).toEqual([]);
+    expect(ownerKeys).toEqual([]);
   });
 });

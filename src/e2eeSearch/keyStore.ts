@@ -21,14 +21,15 @@ export const KEY_FILE_NAME = 'key.bin';
 // private key. With it, `key.bin` holds the index key encrypted by that key,
 // inside the keychain wrap. A page without the private key cannot open the
 // index, also when its server confirms the user.
-const WRAPPED_PREFIX = 'kw1.';
+export const WRAPPED_PREFIX = 'kw1.';
 const WRAP_LABEL = 'Rocket.Chat Desktop E2EE search index key wrap v1';
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 
 // The index key is wrapped by a wrap key, and the call gave another wrap key
 // or none. The key file stays as it is, so the right wrap key opens the index
-// later. A user whose E2EE key changed clears the index in Settings.
+// later. When the server holds another E2EE public key for the user, the open
+// replaces the index before the key file is read (ownerKey.ts).
 export class E2EESearchKeyMismatchError extends Error {
   constructor() {
     super('E2EE search index key does not match');
@@ -104,7 +105,11 @@ const sealIndexKey = (key: Buffer, wrapKey: Buffer): string => {
 };
 
 // Undefined when the wrap key is not the one that sealed the index key.
-const openIndexKey = (sealed: string, wrapKey: Buffer): Buffer | undefined => {
+// Exported for the dev snapshot scan tool, which must not write key.bin.
+export const openIndexKey = (
+  sealed: string,
+  wrapKey: Buffer
+): Buffer | undefined => {
   const bytes = Buffer.from(sealed.slice(WRAPPED_PREFIX.length), 'base64');
   if (bytes.length !== IV_BYTES + TAG_BYTES + INDEX_KEY_BYTES) return undefined;
   try {

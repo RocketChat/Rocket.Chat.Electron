@@ -1,3 +1,4 @@
+import type { OwnerKeyFingerprint } from './ownerKey';
 import type { E2EESearchOpenResult } from './types';
 import {
   E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME,
@@ -56,12 +57,23 @@ type IpcDeps = {
     serverUrl: string,
     userId: string
   ): Promise<boolean>;
+  // The fingerprint of the E2EE public key that the server holds for the
+  // user, on the login session of the sender. Null when the
+  // server holds no key. Called only after the server confirmed the user.
+  fetchOwnerKey(
+    event: E2EESearchEvent,
+    serverUrl: string,
+    userId: string
+  ): Promise<OwnerKeyFingerprint>;
   // `wrapKey` comes from the page. Without it, an index whose key is
-  // wrapped by a wrap key does not open.
+  // wrapped by a wrap key does not open. `ownerKey` comes from the server:
+  // an index of another E2EE key is replaced, and an unknown one (undefined)
+  // deletes nothing.
   openIndex(
     serverUrl: string,
     userId: string,
-    wrapKey?: Buffer
+    wrapKey?: Buffer,
+    ownerKey?: OwnerKeyFingerprint
   ): Promise<{ indexId: string; result: E2EESearchOpenResult }>;
   call(
     indexId: string,
@@ -305,8 +317,16 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
               : 'E2EE search index is open for another user'
           );
         }
+        // A server that cannot tell the key only leaves the open as it was
+        // before the key check: nothing is deleted.
+        const ownerKey = await deps
+          .fetchOwnerKey(event, serverUrl, userId)
+          .catch((error: unknown) => {
+            deps.logError(method, error);
+            return undefined;
+          });
         const { indexId, result } = await deps
-          .openIndex(serverUrl, userId, wrapKey)
+          .openIndex(serverUrl, userId, wrapKey, ownerKey)
           .catch((error: unknown) => {
             throw toPageError(deps, method, error);
           });

@@ -30,8 +30,19 @@ import {
   serverDirName,
   userDirName,
 } from './lifecycle';
+import {
+  E2EESearchOwnerKeyChangedError,
+  fingerprintPublicKey,
+  loadOwnedIndexKey,
+} from './ownerKey';
+import type { OwnerKeyFingerprint } from './ownerKey';
 import type { E2EESearchOpenResult } from './types';
-import { READ_LOGIN_TOKEN_SCRIPT, verifyServerUserId } from './verifyUser';
+import {
+  fetchServerPublicKey,
+  NO_KEY_RETRY_DELAYS_MS,
+  READ_LOGIN_TOKEN_SCRIPT,
+  verifyServerUserId,
+} from './verifyUser';
 
 // A quit waits at most this long for the last snapshot.
 const QUIT_SAVE_TIMEOUT_MS = 5_000;
@@ -141,20 +152,30 @@ const getUserIndexLimiter = () => {
 export const openE2EESearchIndex = async (
   serverUrl: string,
   userId: string,
-  wrapKey?: Buffer
+  wrapKey?: Buffer,
+  ownerKey?: OwnerKeyFingerprint
 ): Promise<{ indexId: string; result: E2EESearchOpenResult }> => {
   const dir = getIndexDir(serverUrl, userId);
   return getUserIndexLimiter().admit(
     getServerIndexDir(serverUrl),
     userDirName(userId),
     async () => {
+      // An index of an old E2EE key is replaced.
       // The wrap key is used once and not kept in memory.
-      const indexKey = await createKeyStore({
+      const indexKey = await loadOwnedIndexKey({
         dir,
-        safeStorage: getSafeStorage(),
-      })
-        .load({ wrapKey })
-        .finally(() => wrapKey?.fill(0));
+        ownerKey,
+        host: getE2EESearchHost(),
+        loadKey: () =>
+          createKeyStore({ dir, safeStorage: getSafeStorage() }).load({
+            wrapKey,
+          }),
+        onOwnerKeyChanged: () =>
+          loggers.e2eeSearch.info(
+            'index replaced',
+            summarizeError(new E2EESearchOwnerKeyChangedError())
+          ),
+      }).finally(() => wrapKey?.fill(0));
       const result = (await getE2EESearchHost().open(dir, {
         userId,
         dir,
@@ -204,22 +225,37 @@ const publishIndexStats = async (): Promise<void> => {
   }
 };
 
+// The login session of the sender webview, for the requests that ask the
+// server about the user.
+const serverRequestsOf = (event: IpcMainInvokeEvent) => {
+  const { sender } = event;
+  return {
+    readLoginToken: () => sender.executeJavaScript(READ_LOGIN_TOKEN_SCRIPT),
+    // The webview's own session, so its proxy and certificate rules apply to
+    // the check.
+    fetch: (url: string, init: RequestInit) => sender.session.fetch(url, init),
+  };
+};
+
 export const setupE2EESearch = (): void => {
   const handleCall = createE2EESearchIpcHandler({
     resolveServerUrl: (event) => resolveServerUrl(event as IpcMainInvokeEvent),
-    verifyUserId: (event, serverUrl, userId) => {
-      const { sender } = event as IpcMainInvokeEvent;
-      return verifyServerUserId(
+    verifyUserId: (event, serverUrl, userId) =>
+      verifyServerUserId(
+        serverRequestsOf(event as IpcMainInvokeEvent),
+        serverUrl,
+        userId
+      ),
+    fetchOwnerKey: async (event, serverUrl, userId) => {
+      const publicKey = await fetchServerPublicKey(
         {
-          readLoginToken: () =>
-            sender.executeJavaScript(READ_LOGIN_TOKEN_SCRIPT),
-          // The webview's own session, so its proxy and certificate rules
-          // apply to the check.
-          fetch: (url, init) => sender.session.fetch(url, init),
+          ...serverRequestsOf(event as IpcMainInvokeEvent),
+          noKeyRetryDelaysMs: NO_KEY_RETRY_DELAYS_MS,
         },
         serverUrl,
         userId
       );
+      return publicKey === null ? null : fingerprintPublicKey(publicKey);
     },
     openIndex: openE2EESearchIndex,
     call: (indexId, method, ...args) =>

@@ -72,6 +72,10 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
       db.exec('PRAGMA temp_store = MEMORY');
       const snapshot = await store.load();
       if (snapshot) deserializeDatabase(db, snapshot);
+      // The snapshot is the serialized database, free pages included. Zero
+      // the content that a wipe, remove or edit frees, so the text does not
+      // stay in index.bin. Set it after `deserialize`, which resets it.
+      db.exec('PRAGMA secure_delete = ON');
       const engine = createSearchEngine(db, { userId });
       indexes.set(indexId, { db, engine, store });
       return {

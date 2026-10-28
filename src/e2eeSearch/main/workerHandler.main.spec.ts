@@ -68,4 +68,46 @@ describe('E2EE search worker handler', () => {
     expect(tempStoreOf(openedDbs[1])).toBe(TEMP_STORE_MEMORY);
     await request(second, 'close');
   });
+
+  // The snapshot is the serialized database, free pages included. Without
+  // secure_delete, a wiped, removed or edited message stays in index.bin.
+  it('leaves no wiped or removed text in the snapshot, also after a snapshot load', async () => {
+    const args: WorkerOpenArgs = {
+      userId: 'u1',
+      dir,
+      indexKey: { persistent: true, key: randomBytes(32), reset: false },
+    };
+    const docs = (prefix: string) =>
+      Array.from({ length: 200 }, (_, i) => ({
+        id: `${prefix}${i}`,
+        rid: 'r1',
+        uid: 'u1',
+        username: 'ana',
+        ts: 1000 + i,
+        updatedAt: 1000 + i,
+        kind: 'text',
+        body: `${prefix}canaryzebra ${i} ${'padding words '.repeat(8)}`,
+      }));
+    const snapshotHas = (db: DatabaseSyncType, token: string) =>
+      Buffer.from(
+        (db as unknown as { serialize(): Uint8Array }).serialize()
+      ).includes(token);
+
+    const first = handler();
+    expect(await request(first, 'open', [args])).toMatchObject({ ok: true });
+    await request(first, 'upsert', [docs('rm')]);
+    await request(first, 'remove', [docs('rm').map(({ id }) => id)]);
+    expect(snapshotHas(openedDbs[0], 'rmcanaryzebra')).toBe(false);
+
+    await request(first, 'upsert', [docs('wp')]);
+    expect(await request(first, 'save')).toMatchObject({ ok: true });
+    await request(first, 'close');
+
+    const second = handler();
+    expect(await request(second, 'open', [args])).toMatchObject({ ok: true });
+    expect(snapshotHas(openedDbs[1], 'wpcanaryzebra')).toBe(true);
+    expect(await request(second, 'wipe')).toMatchObject({ ok: true });
+    expect(snapshotHas(openedDbs[1], 'wpcanaryzebra')).toBe(false);
+    await request(second, 'close');
+  });
 });

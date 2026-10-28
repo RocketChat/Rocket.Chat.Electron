@@ -20,7 +20,7 @@ import { summarizeError } from './errorSummary';
 import { createSearchHost } from './host';
 import type { SearchHost, WorkerTransport } from './host';
 import { createE2EESearchIpcHandler, E2EE_SEARCH_CHANNEL } from './ipc';
-import { selectAppKeySource } from './keySource';
+import { isActuallyPackaged, selectAppKeySource } from './keySource';
 import { createKeyStore } from './keyStore';
 import {
   collectIndexStats,
@@ -43,6 +43,7 @@ import {
   READ_LOGIN_TOKEN_SCRIPT,
   verifyServerUserId,
 } from './verifyUser';
+import { workerEnvOf } from './workerHandler';
 import type { WorkerOpenResult } from './workerProtocol';
 
 // A quit waits at most this long for the last snapshot.
@@ -54,7 +55,10 @@ const spawnUtilityWorker = (): WorkerTransport => {
   const child = utilityProcess.fork(
     path.join(app.getAppPath(), 'app', WORKER_FILE_NAME),
     [],
-    { serviceName: 'Rocket.Chat E2EE Search' }
+    {
+      serviceName: 'Rocket.Chat E2EE Search',
+      env: workerEnvOf(process.env, isActuallyPackaged),
+    }
   );
   return {
     postMessage: (request) => child.postMessage(request),

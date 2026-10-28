@@ -8,7 +8,7 @@ import type { KeySource } from './devTestKey';
 // electron-updater runs. Read the real value once, at module load: main.ts
 // imports this module before it calls setupUpdates. Without it, the dev key
 // switches stop working as soon as the updater starts.
-const isActuallyPackaged = app.isPackaged;
+export const isActuallyPackaged = app.isPackaged;
 
 export const selectAppKeySource = (
   nodeEnv: string | undefined,

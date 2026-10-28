@@ -7,6 +7,7 @@ import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
 import {
   createWorkerHandler,
   fileStoreSelected,
+  workerEnvOf,
   zeroRequestKey,
 } from '../workerHandler';
 import type { WorkerOpenArgs, WorkerRequest } from '../workerProtocol';
@@ -288,6 +289,29 @@ describe('E2EE search worker handler', () => {
       expect(fileStoreSelected('')).toBe(true);
       expect(fileStoreSelected('file')).toBe(true);
       expect(fileStoreSelected('snapshot')).toBe(false);
+    });
+
+    it('ignores the store switch in a packaged build and honors it in a dev build', () => {
+      const env = {
+        PATH: '/usr/bin',
+        ROCKETCHAT_E2EE_SEARCH_STORE: 'snapshot',
+      };
+
+      const packaged = workerEnvOf(env, true);
+      expect(packaged.ROCKETCHAT_E2EE_SEARCH_STORE).toBeUndefined();
+      expect(packaged.PATH).toBe('/usr/bin');
+      expect(fileStoreSelected(packaged.ROCKETCHAT_E2EE_SEARCH_STORE)).toBe(
+        true
+      );
+
+      const dev = workerEnvOf(env, false);
+      expect(dev.ROCKETCHAT_E2EE_SEARCH_STORE).toBe('snapshot');
+      expect(fileStoreSelected(dev.ROCKETCHAT_E2EE_SEARCH_STORE)).toBe(false);
+    });
+
+    it('drops undefined values from the worker env', () => {
+      const env = { PATH: '/usr/bin', UNSET: undefined };
+      expect(workerEnvOf(env, false)).toEqual({ PATH: '/usr/bin' });
     });
 
     it('searches with the snapshot store when the native module does not load, and keeps the saved snapshot', async () => {

@@ -103,8 +103,12 @@ export const createSnapshotStore = ({
 
   return {
     async load() {
-      if (!indexKey.persistent || discardOld) {
-        // Memory-only keys never write, so a file here is from an older run.
+      // A memory-only key cannot read the snapshot of a persistent key, and
+      // it never writes one. The snapshot stays for the next persistent open.
+      // The key store removes a key file that anyone can
+      // unwrap, so the file stays encrypted.
+      if (!indexKey.persistent) return undefined;
+      if (discardOld) {
         discardOld = false;
         await remove();
         return undefined;

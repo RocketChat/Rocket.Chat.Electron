@@ -45,7 +45,16 @@ export type SafeStorageApi = Pick<
   | 'getSelectedStorageBackend'
 >;
 
-export type MemoryOnlyReason = 'no-encryption' | 'basic-text-backend';
+export type MemoryOnlyReason =
+  | 'no-encryption'
+  | 'basic-text-backend'
+  | 'keychain-timeout';
+
+// A keychain call can wait for the user with no limit, for
+// example while GNOME shows the prompt that creates a default keyring. After
+// this time the open goes on with a memory-only key, and a late answer of the
+// keychain writes and removes nothing.
+export const KEYCHAIN_TIMEOUT_MS = 10_000;
 
 export type IndexKey =
   | {
@@ -82,6 +91,32 @@ type KeyStoreOptions = {
   dir: string;
   safeStorage: SafeStorageApi;
   platform?: NodeJS.Platform;
+  keychainTimeoutMs?: number;
+};
+
+// Resolves to `onTimeout()` when `work` does not settle in time. `work` gets
+// a function that tells it whether the time ran out, so it can skip its
+// writes.
+const withTimeLimit = async <T>(
+  ms: number,
+  work: (timedOut: () => boolean) => Promise<T>,
+  onTimeout: () => T
+): Promise<T> => {
+  let timedOut = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      work(() => timedOut),
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => {
+          timedOut = true;
+          resolve(onTimeout());
+        }, ms);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 };
 
 const writeAtomically = async (file: string, data: Buffer) => {
@@ -142,6 +177,7 @@ export const createKeyStore = ({
   dir,
   safeStorage,
   platform = process.platform,
+  keychainTimeoutMs = KEYCHAIN_TIMEOUT_MS,
 }: KeyStoreOptions): KeyStore => {
   const keyFile = path.join(dir, KEY_FILE_NAME);
 
@@ -162,17 +198,36 @@ export const createKeyStore = ({
     return undefined;
   };
 
-  const wrapAndWrite = async (key: Buffer, wrapKey?: Buffer) => {
+  // On Linux, Chromium marks a wrap made with its hard-coded password with
+  // `v10` (a keyring wrap is `v11`). It does that also when the backend reads
+  // gnome_libsecret, for example after the user cancels the GNOME prompt that
+  // creates a default keyring. Anyone can unwrap such a file.
+  const isHardCodedWrap = (wrapped: Buffer) =>
+    platform === 'linux' && wrapped.subarray(0, 3).toString() === 'v10';
+
+  // False when the wrap is not real encryption, or when the keychain answered
+  // after the time limit: nothing is written then.
+  const wrapAndWrite = async (
+    key: Buffer,
+    wrapKey: Buffer | undefined,
+    timedOut: () => boolean
+  ) => {
     const wrapped = await safeStorage.encryptStringAsync(
       wrapKey ? sealIndexKey(key, wrapKey) : key.toString('base64')
     );
+    if (isHardCodedWrap(wrapped) || timedOut()) return false;
     await mkdir(dir, { recursive: true });
     await writeAtomically(keyFile, wrapped);
+    return true;
   };
 
   // Undefined when the keychain cannot unwrap the file: the file is lost,
   // and a new key replaces it. Throws when only the wrap key is wrong.
-  const unwrap = async (wrapped: Buffer, wrapKey?: Buffer) => {
+  const unwrap = async (
+    wrapped: Buffer,
+    wrapKey: Buffer | undefined,
+    timedOut: () => boolean
+  ) => {
     let plain: string;
     let shouldReEncrypt: boolean;
     try {
@@ -191,8 +246,48 @@ export const createKeyStore = ({
       // An old key file: wrap it with the wrap key from now on.
       if (wrapKey) shouldReEncrypt = true;
     }
-    if (shouldReEncrypt) await wrapAndWrite(key, wrapKey);
+    if (shouldReEncrypt) await wrapAndWrite(key, wrapKey, timedOut);
     return key;
+  };
+
+  const loadWithKeychain = async (
+    wrapKey: Buffer | undefined,
+    timedOut: () => boolean
+  ): Promise<IndexKey> => {
+    const reason = await memoryOnlyReason();
+    if (reason) {
+      // The index files stay on disk for a later persistent load.
+      // A key file that anyone can unwrap must not stay with
+      // them. Only Linux has such a wrap.
+      const wrapped =
+        platform === 'linux' ? await readIfExists(keyFile) : undefined;
+      if (wrapped && isHardCodedWrap(wrapped) && !timedOut()) {
+        await rm(keyFile, { force: true });
+      }
+      return {
+        persistent: false,
+        key: randomBytes(INDEX_KEY_BYTES),
+        reason,
+      };
+    }
+
+    const wrapped = await readIfExists(keyFile);
+    const existing =
+      wrapped &&
+      !isHardCodedWrap(wrapped) &&
+      (await unwrap(wrapped, wrapKey, timedOut));
+    if (existing) {
+      return { persistent: true, key: existing, reset: false };
+    }
+
+    const key = randomBytes(INDEX_KEY_BYTES);
+    if (!(await wrapAndWrite(key, wrapKey, timedOut))) {
+      if (wrapped && isHardCodedWrap(wrapped) && !timedOut()) {
+        await rm(keyFile, { force: true });
+      }
+      return { persistent: false, key, reason: 'basic-text-backend' };
+    }
+    return { persistent: true, key, reset: wrapped !== undefined };
   };
 
   return {
@@ -200,35 +295,35 @@ export const createKeyStore = ({
       if (wrapKey && wrapKey.length !== WRAP_KEY_BYTES) {
         throw new Error('wrap key must be 32 bytes');
       }
-      const reason = await memoryOnlyReason();
-      if (reason) {
-        return {
+      // A new random key, never the one that the late keychain call holds.
+      return withTimeLimit(
+        keychainTimeoutMs,
+        (timedOut) => loadWithKeychain(wrapKey, timedOut),
+        () => ({
           persistent: false,
           key: randomBytes(INDEX_KEY_BYTES),
-          reason,
-        };
-      }
-
-      const wrapped = await readIfExists(keyFile);
-      const existing = wrapped && (await unwrap(wrapped, wrapKey));
-      if (existing) {
-        return { persistent: true, key: existing, reset: false };
-      }
-
-      const key = randomBytes(INDEX_KEY_BYTES);
-      await wrapAndWrite(key, wrapKey);
-      return { persistent: true, key, reset: wrapped !== undefined };
+          reason: 'keychain-timeout',
+        })
+      );
     },
 
+    // False when the keychain does not answer in time: a logout then deletes
+    // the index, as for a key file that is lost.
     async isSealed() {
       const wrapped = await readIfExists(keyFile);
       if (!wrapped) return false;
-      try {
-        const { result } = await safeStorage.decryptStringAsync(wrapped);
-        return result.startsWith(WRAPPED_PREFIX);
-      } catch {
-        return false;
-      }
+      return withTimeLimit(
+        keychainTimeoutMs,
+        async () => {
+          try {
+            const { result } = await safeStorage.decryptStringAsync(wrapped);
+            return result.startsWith(WRAPPED_PREFIX);
+          } catch {
+            return false;
+          }
+        },
+        () => false
+      );
     },
 
     async remove() {

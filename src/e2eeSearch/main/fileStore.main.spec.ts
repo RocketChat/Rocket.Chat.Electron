@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import {
   existsSync,
   mkdtempSync,
@@ -192,5 +192,73 @@ describe('E2EE search worker handler, encrypted file store', () => {
     await call(h, 'save');
     await call(h, 'close');
     expect(readdirSync(dir)).toEqual([]);
+  });
+
+  // A memory-only open (the dev switch, or no keychain for a
+  // while) leaves the encrypted index of a persistent key on disk.
+  describe('a memory-only open after a persistent index', () => {
+    const memoryOnly = () => ({
+      ...args,
+      indexKey: {
+        persistent: false as const,
+        key: randomBytes(32),
+        reason: 'no-encryption' as const,
+      },
+    });
+    const filesOf = () =>
+      Object.fromEntries(
+        readdirSync(dir).map((name) => [
+          name,
+          createHash('sha256')
+            .update(readFileSync(path.join(dir, name)))
+            .digest('hex'),
+        ])
+      );
+
+    it('keeps the snapshot of the snapshot store', async () => {
+      const snapshotHandler = () => createWorkerHandler({ DatabaseSync });
+      const first = snapshotHandler();
+      await call(first, 'open', [args]);
+      await call(first, 'upsert', [docs('a', 1)]);
+      await call(first, 'save');
+      await call(first, 'close');
+      const before = filesOf();
+      expect(Object.keys(before)).toEqual([SNAPSHOT_FILE_NAME]);
+
+      const memory = snapshotHandler();
+      await call(memory, 'open', [memoryOnly()]);
+      expect(await searchIds(memory, `a${NEEDLE}`)).toEqual([]);
+      await call(memory, 'upsert', [docs('m', 1)]);
+      await call(memory, 'save');
+      await call(memory, 'close');
+      expect(filesOf()).toEqual(before);
+
+      const again = snapshotHandler();
+      await call(again, 'open', [args]);
+      expect(await searchIds(again, `a${NEEDLE}`)).toEqual(['a0']);
+      await call(again, 'close');
+    });
+
+    it('keeps the database file of the file store', async () => {
+      const first = handler();
+      await call(first, 'open', [args]);
+      await call(first, 'upsert', [docs('a', 1)]);
+      await call(first, 'save');
+      await call(first, 'close');
+      const before = filesOf();
+      expect(Object.keys(before)).toContain(INDEX_DB_FILE_NAME);
+
+      const memory = handler();
+      await call(memory, 'open', [memoryOnly()]);
+      await call(memory, 'upsert', [docs('m', 1)]);
+      await call(memory, 'save');
+      await call(memory, 'close');
+      expect(filesOf()).toEqual(before);
+
+      const again = handler();
+      await call(again, 'open', [args]);
+      expect(await searchIds(again, `a${NEEDLE}`)).toEqual(['a0']);
+      await call(again, 'close');
+    });
   });
 });

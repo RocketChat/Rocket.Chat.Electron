@@ -131,6 +131,9 @@ describe('E2EE search host', () => {
 
     await jest.advanceTimersByTimeAsync(1);
     expect(saves()).toBe(1);
+    // A save that runs is not on disk yet.
+    await host.flush();
+    expect(saves()).toBe(1);
     expect(host.hasUnsavedChanges()).toBe(false);
 
     await host.call(indexId, 'search', { text: NEEDLE });
@@ -327,6 +330,57 @@ describe('E2EE search host', () => {
     expect(readFileSync(file).includes(NEEDLE)).toBe(false);
     expect(workers.spawned[0].killed).toBe(true);
 
+    const next = createSearchHost({ spawn: workers.spawn });
+    await next.open(indexId, openArgs);
+    expect(await searchIds(next, indexId)).toEqual(['m42']);
+    await next.dispose();
+  });
+
+  // A quit closes the windows before will-quit, and the end of
+  // each webview closes its index, which starts the save. The quit must
+  // still wait for that save before it stops the worker.
+  it('waits on quit for a save that a closing webview started', async () => {
+    const workers = createFakeWorkers();
+    const heldSaves: Array<() => void> = [];
+    let savesHeldAtKill: number | undefined;
+    const spawn = (): WorkerTransport => {
+      const transport = workers.spawn();
+      return {
+        ...transport,
+        postMessage: (request) => {
+          if (request.method === 'save') {
+            heldSaves.push(() => transport.postMessage(request));
+            return;
+          }
+          transport.postMessage(request);
+        },
+        kill: () => {
+          savesHeldAtKill = heldSaves.length;
+          transport.kill();
+        },
+      };
+    };
+    const onSaveError = jest.fn();
+    const host = createSearchHost({ spawn, onSaveError });
+    await host.open(indexId, openArgs);
+    await host.call(indexId, 'upsert', docs(100));
+
+    const closing = host.close(indexId).catch(() => undefined);
+    for (let i = 0; i < 100 && heldSaves.length === 0; i++) {
+      // eslint-disable-next-line no-await-in-loop -- waits until the close posts its save
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+    expect(heldSaves).toHaveLength(1);
+    expect(host.hasUnsavedChanges()).toBe(true);
+
+    const disposing = host.dispose();
+    await new Promise((resolve) => setImmediate(resolve));
+    heldSaves.shift()?.();
+    await disposing;
+    await closing;
+
+    expect(savesHeldAtKill).toBe(0);
+    expect(onSaveError).not.toHaveBeenCalled();
     const next = createSearchHost({ spawn: workers.spawn });
     await next.open(indexId, openArgs);
     expect(await searchIds(next, indexId)).toEqual(['m42']);

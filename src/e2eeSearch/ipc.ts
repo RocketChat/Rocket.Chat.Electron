@@ -89,6 +89,9 @@ type IpcDeps = {
   // Gets the full error of a failed call, with the index id. It writes to
   // the main-process log, never to the page.
   logError(method: BridgeMethod, error: unknown): void;
+  // Gets the error of an owner key fetch that failed while the open goes on.
+  // It writes to the main-process log, never to the page.
+  logOwnerKeyError(error: unknown): void;
 };
 
 type Session = { serverUrl: string; indexId: string };
@@ -322,7 +325,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
         const ownerKey = await deps
           .fetchOwnerKey(event, serverUrl, userId)
           .catch((error: unknown) => {
-            deps.logError(method, error);
+            deps.logOwnerKeyError(error);
             return undefined;
           });
         const { indexId, result } = await deps

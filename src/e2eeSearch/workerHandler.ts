@@ -32,6 +32,9 @@ import type {
 type OpenIndex = {
   db: DatabaseSync;
   store: WorkerOpenResult['store'];
+  // From the key of the open that made the index. A later open with another
+  // key does not change where the index lives.
+  encryptedAtRest: boolean;
   engine: SearchEngine;
   save: () => Promise<void>;
 };
@@ -92,7 +95,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
     if (current) {
       return withStore(current.store, {
         schemaVersion: current.engine.schemaVersion,
-        encryptedAtRest: indexKey.persistent,
+        encryptedAtRest: current.encryptedAtRest,
       });
     }
     // Structured clone turns the Buffer into a plain Uint8Array.
@@ -124,6 +127,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
       indexes.set(indexId, {
         db,
         store: 'snapshot',
+        encryptedAtRest: key.persistent,
         engine,
         save: () => store.save(serializeDatabase(db)),
       });
@@ -187,6 +191,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
       indexes.set(indexId, {
         db,
         store: 'file',
+        encryptedAtRest: true,
         engine,
         save: async () => checkpointIndexFile(db),
       });

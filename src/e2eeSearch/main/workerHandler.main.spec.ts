@@ -114,6 +114,36 @@ describe('E2EE search worker handler', () => {
   // The file store is the default. A build where the native SQLite
   // module does not load (a missing or wrong-ABI binary) must still search,
   // with the snapshot store.
+  // An open that timed out on the keychain keeps its memory-only
+  // index, also when a later open of the same index gets a keychain key.
+  it('reports the at-rest state of the index that is already open', async () => {
+    const h = handler();
+    const memoryOnly: WorkerOpenArgs = {
+      userId: 'u1',
+      dir,
+      indexKey: {
+        persistent: false,
+        key: randomBytes(32),
+        reason: 'keychain-timeout',
+      },
+    };
+    const persistent: WorkerOpenArgs = {
+      userId: 'u1',
+      dir,
+      indexKey: { persistent: true, key: randomBytes(32), reset: false },
+    };
+
+    expect(await request(h, 'open', [memoryOnly])).toMatchObject({
+      ok: true,
+      value: { encryptedAtRest: false },
+    });
+    expect(await request(h, 'open', [persistent])).toMatchObject({
+      ok: true,
+      value: { encryptedAtRest: false },
+    });
+    await request(h, 'close');
+  });
+
   describe('file store fallback', () => {
     const doc = (id: string, body: string) => ({
       id,

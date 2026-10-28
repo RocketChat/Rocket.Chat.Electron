@@ -177,6 +177,11 @@ export const openE2EESearchIndex = async (
             summarizeError(new E2EESearchOwnerKeyChangedError())
           ),
       }).finally(() => wrapKey?.fill(0));
+      if (!indexKey.persistent && indexKey.reason === 'keychain-timeout') {
+        loggers.e2eeSearch.warn(
+          'keychain did not answer in time, the index is memory-only'
+        );
+      }
       const { store, fileStoreError, ...result } =
         (await getE2EESearchHost().open(dir, {
           userId,
@@ -280,6 +285,8 @@ export const setupE2EESearch = (): void => {
         `bridge call ${method} failed`,
         summarizeError(error)
       ),
+    logOwnerKeyError: (error) =>
+      loggers.e2eeSearch.warn('owner key fetch failed', summarizeError(error)),
   });
   ipcMain.handle(E2EE_SEARCH_CHANNEL, (event, method, ...args) =>
     handleCall(event, method, ...args)

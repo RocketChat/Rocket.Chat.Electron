@@ -246,8 +246,12 @@ export const createSearchHost = ({
     return value;
   }
 
+  // A running save counts too: its index is clean in `dirty`, but its
+  // changes are not on disk yet.
+  const unsavedIndexIds = () => new Set([...dirty, ...saving.keys()]);
+
   const flush = async () => {
-    await Promise.all([...dirty].map(save));
+    await Promise.all([...unsavedIndexIds()].map(save));
   };
 
   return {
@@ -285,7 +289,7 @@ export const createSearchHost = ({
 
     indexIds: () => [...openArgs.keys()],
 
-    hasUnsavedChanges: () => dirty.size > 0,
+    hasUnsavedChanges: () => unsavedIndexIds().size > 0,
 
     flush,
 

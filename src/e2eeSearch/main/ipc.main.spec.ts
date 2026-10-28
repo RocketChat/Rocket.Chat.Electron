@@ -99,6 +99,8 @@ describe('E2EE search IPC handler', () => {
   // with no entry has the fingerprint `fp-<userId>`.
   let serverOwnerKeys: Map<string, OwnerKeyFingerprint | Error>;
   let ownerKeyChecks: string[];
+  // The owner key fetch errors that the handler logged.
+  let ownerKeyErrors: unknown[];
   // The indexes that a bridge wipe deleted.
   let wipedIndexIds: string[];
   const handle = (
@@ -128,6 +130,7 @@ describe('E2EE search IPC handler', () => {
     ownerKeys = [];
     serverOwnerKeys = new Map();
     ownerKeyChecks = [];
+    ownerKeyErrors = [];
     wipedIndexIds = [];
     handleEvent = createE2EESearchIpcHandler({
       resolveServerUrl: ({ sender }) => servers.get(sender.id),
@@ -177,6 +180,9 @@ describe('E2EE search IPC handler', () => {
         ),
       logError: (...args) => {
         logged.push(args);
+      },
+      logOwnerKeyError: (error) => {
+        ownerKeyErrors.push(error);
       },
     });
   });
@@ -481,6 +487,7 @@ describe('E2EE search IPC handler', () => {
       logError: (...args) => {
         logged.push(args);
       },
+      logOwnerKeyError: () => undefined,
     });
 
     await expect(handle(webview, 'open', { userId: 'userA' })).rejects.toThrow(
@@ -588,6 +595,7 @@ describe('E2EE search IPC handler', () => {
       wipeIndex: async () => undefined,
       userIndexId: (serverUrl, userId) => `${serverUrl} ${userId}`,
       logError: () => undefined,
+      logOwnerKeyError: () => undefined,
     });
 
     const refused = handle(webview, 'open', { userId: 'user14' });
@@ -730,13 +738,17 @@ describe('E2EE search IPC handler', () => {
     expect(ownerKeys).toEqual(['fp-user1', null]);
   });
 
+  // The open succeeds, so only the key fetch is logged as failed.
   it('opens with an unknown owner key when the server cannot tell it', async () => {
-    serverOwnerKeys.set('user1', new Error('HTTP 502 at /secret/path'));
-    await handle(webviewA, 'open', { userId: 'user1' });
+    const keyError = new Error('HTTP 502 at /secret/path');
+    serverOwnerKeys.set('user1', keyError);
+    await expect(
+      handle(webviewA, 'open', { userId: 'user1' })
+    ).resolves.toBeDefined();
 
     expect(ownerKeys).toEqual([undefined]);
-    expect(logged).toHaveLength(1);
-    expect(logged[0][0]).toBe('open');
+    expect(logged).toEqual([]);
+    expect(ownerKeyErrors).toEqual([keyError]);
   });
 
   it('does not ask for the owner key of a user that the server does not confirm', async () => {

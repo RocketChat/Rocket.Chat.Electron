@@ -1,9 +1,10 @@
 import path from 'node:path';
 
-import type { IpcMainInvokeEvent } from 'electron';
-import { app, ipcMain, safeStorage, utilityProcess } from 'electron';
+import type { IpcMainInvokeEvent, Session } from 'electron';
+import { app, ipcMain, safeStorage, session, utilityProcess } from 'electron';
 
 import { loggers } from '../logging/scopes';
+import { serializeCertificate } from '../navigation/main';
 import { dispatch, listen, select } from '../store';
 import {
   CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
@@ -39,6 +40,10 @@ import {
   loadOwnedIndexKey,
 } from './ownerKey';
 import type { OwnerKeyFingerprint } from './ownerKey';
+import {
+  createTrustedCertificateVerifyProc,
+  createUserCheckFetch,
+} from './trustedCertificate';
 import type { E2EESearchOpenResult } from './types';
 import {
   fetchServerPublicKey,
@@ -268,15 +273,42 @@ const publishIndexStats = async (): Promise<void> => {
   }
 };
 
+const trustedCertificatesOf = () =>
+  select(({ trustedCertificates }) => trustedCertificates);
+
+// An in-memory session for the user check of a server with a certificate
+// that the user trusted (trustedCertificate.ts). Only these requests use it.
+let trustedCertificateSession: Session | undefined;
+const getTrustedCertificateSession = (): Session => {
+  if (!trustedCertificateSession) {
+    trustedCertificateSession = session.fromPartition(
+      'e2ee-search-trusted-certificate'
+    );
+    trustedCertificateSession.setCertificateVerifyProc(
+      createTrustedCertificateVerifyProc({
+        trustedCertificates: trustedCertificatesOf,
+        serializeCertificate,
+      })
+    );
+  }
+  return trustedCertificateSession;
+};
+
 // The login session of the sender webview, for the requests that ask the
 // server about the user.
 const serverRequestsOf = (event: IpcMainInvokeEvent) => {
   const { sender } = event;
   return {
     readLoginToken: () => sender.executeJavaScript(READ_LOGIN_TOKEN_SCRIPT),
-    // The webview's own session, so its proxy and certificate rules apply to
-    // the check.
-    fetch: (url: string, init: RequestInit) => sender.session.fetch(url, init),
+    // The webview's own session first, so its proxy and client certificate
+    // apply to the check.
+    fetch: createUserCheckFetch({
+      webviewFetch: (url, init) => sender.session.fetch(url, init),
+      trustedFetch: (url, init) =>
+        getTrustedCertificateSession().fetch(url, init),
+      hasTrustedCertificate: (host) =>
+        typeof trustedCertificatesOf()[host] === 'string',
+    }),
   };
 };
 

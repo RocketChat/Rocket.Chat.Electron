@@ -157,16 +157,19 @@ export const createSearchEngine = (
   // A new row gets the next free rowid in the range of its ms (see
   // ROWID_TS_SHIFT). An update keeps the rowid, so a newer version with
   // another ts is removed first and inserted again with a new rowid.
+  // The driver binds a JS number as REAL, and a real ts times 2^20 is past
+  // 2^53, so the range end rounds into the next ms. The CAST keeps the range
+  // math in INTEGER.
   const removeMovedMessage = db.prepare(
     'DELETE FROM messages WHERE id = :id AND ts <> :ts AND updated_at <= :updatedAt'
   );
   const upsertMessage = db.prepare(`
     INSERT INTO messages (rowid, id, rid, tmid, uid, username, ts, updated_at, kind, body)
     VALUES (
-      (SELECT coalesce(max(rowid) + 1, :tsKey * ${2 ** ROWID_TS_SHIFT})
+      (SELECT coalesce(max(rowid) + 1, CAST(:tsKey AS INTEGER) * ${2 ** ROWID_TS_SHIFT})
        FROM messages
-       WHERE rowid BETWEEN :tsKey * ${2 ** ROWID_TS_SHIFT}
-                       AND :tsKey * ${2 ** ROWID_TS_SHIFT} + ${2 ** ROWID_TS_SHIFT - 1}),
+       WHERE rowid BETWEEN CAST(:tsKey AS INTEGER) * ${2 ** ROWID_TS_SHIFT}
+                       AND CAST(:tsKey AS INTEGER) * ${2 ** ROWID_TS_SHIFT} + ${2 ** ROWID_TS_SHIFT - 1}),
       :id, :rid, :tmid, :uid, :username, :ts, :updatedAt, :kind, :body)
     ON CONFLICT (id) DO UPDATE SET
       rid = excluded.rid,

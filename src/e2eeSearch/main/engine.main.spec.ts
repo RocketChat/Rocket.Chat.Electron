@@ -276,6 +276,22 @@ describe('e2eeSearch engine', () => {
     expect(hits[3].id).toBe('t3');
   });
 
+  it('keeps messages of neighbour ms at real dates when the newer ms comes first', () => {
+    // A real ts times 2^20 is past 2^53. The rowid range of one ms must not
+    // reach the next ms, or the next free rowid hits a row of the next ms.
+    const now = Date.parse('2026-10-28T19:46:36.296Z');
+    engine.upsert([
+      doc({ id: 'n1', body: 'vizinho', ts: now + 1 }),
+      doc({ id: 'n2', body: 'vizinho', ts: now + 1 }),
+    ]);
+    engine.upsert([
+      doc({ id: 'o1', body: 'vizinho', ts: now }),
+      doc({ id: 'o2', body: 'vizinho', ts: now }),
+    ]);
+    const hits = engine.search({ text: 'vizinho', order: 'recent' });
+    expect(hits.map((hit) => hit.ts)).toEqual([now + 1, now + 1, now, now]);
+  });
+
   it('replaces the text on an edit and ignores an older version', () => {
     engine.upsert([
       doc({ id: 'a', body: 'Reunião cancelada', updatedAt: 5000 }),

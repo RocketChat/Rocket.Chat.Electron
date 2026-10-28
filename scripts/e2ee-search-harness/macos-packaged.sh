@@ -190,6 +190,16 @@ mkdir -p "$PROFILE"
 echo "{\"Server\":\"$URL\"}" >"$PROFILE/servers.json"
 
 start_app
+
+# Before E2E unlock the web client has no wrap key. An open without it must
+# stay sealed: no index opens and no file of the index or of its key is made.
+out="$(driver sealed)"
+echo "$out" >"$RUN_DIR/sealed.json"
+sealed_files="$(find "$PROFILE" -path "$PROFILE/e2ee-search*" -type f 2>/dev/null | wc -l | tr -d ' ')"
+check g "$([[ "$(field "$out" ok)" == true && $sealed_files == 0 ]] && echo PASS || echo FAIL)" \
+  "sealed before E2E unlock: open locked=$(field "$out" locked), search fails locked=$(field "$out" searchLocked), e2ee-search files=$sealed_files"
+dialog_check
+
 out="$(driver setup)"
 echo "$out" >"$RUN_DIR/setup.json"
 if [[ "$(field "$out" ok)" != true ]]; then

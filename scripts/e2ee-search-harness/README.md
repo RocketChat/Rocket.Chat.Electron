@@ -118,23 +118,24 @@ the default world. The next `windows-packaged.sh` run seeds its world again.
 ## The packaged test
 
 The test deletes the user data and the logs of `$APP_NAME` and starts the
-app with `open -g`. It adds the server, logs A in, and enters A's E2E
-password. Then it turns on "Index my encrypted messages on this device" in
+app with `open -g`. It adds the server and logs A in. Before it enters A's
+E2E password, it runs the check `g`. Then it enters the password and turns on "Index my encrypted messages on this device" in
 Account > Security. The harness makes no index writes. Only the real history
 crawler of the web client fills the index. The crawler starts after 60
 seconds without input.
 
 Each check prints one line:
 
-| Line      | Meaning                                                                                                                                                                                                                                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `a`       | A bridge search (`RocketChatDesktop.e2eeSearch.search`) for each needle returns the id of its seeded message. The control word returns no hit.                                                                                                                                       |
-| `b`       | The search panel of the encrypted room shows the hit for the oldest needle. The run folder gets a crop of the panel (`search-panel.png`).                                                                                                                                            |
-| `c`       | After a SIGTERM and a restart, the main log says `index opened { store: 'file' }`, and the main process reports the index as `encrypted`. A bridge search finds the oldest needle, with documents in the index, less than 60 seconds after the start, so before the crawler can run. |
-| `d`       | The same as `c`, after a SIGKILL.                                                                                                                                                                                                                                                    |
-| `e`       | A canary scan of the whole profile and of the logs finds no copy of any needle. A scan for the server address finds copies, which proves that the scan works. A failed line tells where the hits are.                                                                                |
-| `e.index` | The same scan, counted only in the search index folder.                                                                                                                                                                                                                              |
-| `f`       | The hash of the production keychain item `Rocket.Chat Safe Storage` is the same before and after, and no keychain dialog showed.                                                                                                                                                     |
+| Line      | Meaning                                                                                                                                                                                                                                                                                                        |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `g`       | Before E2E unlock, a bridge open (`RocketChatDesktop.e2eeSearch.open`) with the user id and no wrap key returns `locked: true`, because A has an E2EE key on the server. A bridge search then fails with `E2EE search index is locked`. The profile has no `e2ee-search` file (no index file and no key file). |
+| `a`       | A bridge search (`RocketChatDesktop.e2eeSearch.search`) for each needle returns the id of its seeded message. The control word returns no hit.                                                                                                                                                                 |
+| `b`       | The search panel of the encrypted room shows the hit for the oldest needle. The run folder gets a crop of the panel (`search-panel.png`).                                                                                                                                                                      |
+| `c`       | After a SIGTERM and a restart, the main log says `index opened { store: 'file' }`, and the main process reports the index as `encrypted`. A bridge search finds the oldest needle, with documents in the index, less than 60 seconds after the start, so before the crawler can run.                           |
+| `d`       | The same as `c`, after a SIGKILL.                                                                                                                                                                                                                                                                              |
+| `e`       | A canary scan of the whole profile and of the logs finds no copy of any needle. A scan for the server address finds copies, which proves that the scan works. A failed line tells where the hits are.                                                                                                          |
+| `e.index` | The same scan, counted only in the search index folder.                                                                                                                                                                                                                                                        |
+| `f`       | The hash of the production keychain item `Rocket.Chat Safe Storage` is the same before and after, and no keychain dialog showed.                                                                                                                                                                               |
 
 The last line is `SUMMARY PASS` or `SUMMARY FAIL`, with the run folder. The
 exit code is 0 only when every check passes. The run folder,
@@ -183,6 +184,7 @@ The checks are the same as in the macOS test, with these changes:
 
 | Line      | Meaning on Windows                                                                                                                                                                                                        |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `g`       | Not run on Windows.                                                                                                                                                                                                       |
 | `c`       | The app closes through CDP (`Browser.close`) instead of a SIGTERM.                                                                                                                                                        |
 | `d`       | `Stop-Process -Force` ends every process of the app instead of a SIGKILL.                                                                                                                                                 |
 | `e`       | The scan covers the profile and `%APPDATA%\$APP_NAME`.                                                                                                                                                                    |

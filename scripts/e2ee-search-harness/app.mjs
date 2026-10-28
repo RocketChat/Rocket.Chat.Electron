@@ -9,6 +9,11 @@
 // holds message ids and counts, never a password or a token.
 //
 // Commands:
+//   sealed        logs A in without the E2E password, opens the index
+//                 through the bridge with no wrap key, and then searches the
+//                 oldest needle. A has an E2EE key on the server, so the open
+//                 must return `locked: true` and the search must fail with
+//                 the locked error. Run it before setup.
 //   setup         logs A in, enters A's E2E password, and turns on the
 //                 local search opt-in in Account > Security.
 //   wait-index    waits until the real history crawler of the web client
@@ -198,7 +203,37 @@ const searchAll = async (page) => {
   return { needles, control };
 };
 
+const LOCKED_ERROR = 'E2EE search index is locked';
+
 const commands = {
+  async 'sealed'() {
+    const page = await openWebview();
+    const loggedIn = await login(page);
+    if (!loggedIn) finish(false, { step: 'login', loggedIn });
+    // The main process asks the server who owns the login token.
+    await page.waitFor("!!localStorage.getItem('Meteor.loginToken')", 30_000);
+    // The check proves only the state before E2E unlock.
+    if (await page.evaluate("!!localStorage.getItem('private_key')"))
+      finish(false, { step: 'precondition', error: 'E2E is already unlocked' });
+    const uid = await userIdOf(page);
+    const open = await page.evaluate(`(async () => {
+      try {
+        return { result: await window.RocketChatDesktop.e2eeSearch.open({ userId: ${JSON.stringify(uid)} }) };
+      } catch (error) {
+        return { error: String(error?.message ?? error) };
+      }
+    })()`);
+    const search = await bridgeSearch(page, world.needles[0].word);
+    const locked = open.result?.locked === true;
+    const searchLocked = Boolean(search.error?.includes(LOCKED_ERROR));
+    finish(locked && searchLocked, {
+      locked,
+      open: open.result ?? { error: open.error },
+      searchLocked,
+      search: search.error ?? `${search.ids?.length} hits`,
+    });
+  },
+
   async 'setup'() {
     const page = await openWebview();
     const loggedIn = await login(page);

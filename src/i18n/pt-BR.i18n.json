@@ -295,7 +295,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Limpar índice de busca local",
-        "description": "Apaga o índice de busca de mensagens criptografadas que este app guarda neste computador, para todos os workspaces. O app recria o índice a partir do servidor."
+        "description": "Apaga o índice de busca de mensagens criptografadas que este app guarda neste computador, para todos os workspaces. O app recria o índice a partir do servidor.",
+        "confirm": {
+          "title": "Limpar o índice de busca local?",
+          "message": "Isso apaga o índice de busca de mensagens criptografadas deste computador, para todos os workspaces. Cada workspace cria o índice de novo a partir do servidor. Até lá, a busca encontra menos mensagens.",
+          "confirm": "Limpar índice",
+          "cancel": "Cancelar"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Índice de busca local",

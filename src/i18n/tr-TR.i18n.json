@@ -152,7 +152,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Yerel arama dizinini temizle",
-        "description": "Bu uygulamanın bu bilgisayarda tuttuğu şifreli mesajların arama dizinini tüm çalışma alanları için siler. Uygulama dizini sunucudan yeniden oluşturur."
+        "description": "Bu uygulamanın bu bilgisayarda tuttuğu şifreli mesajların arama dizinini tüm çalışma alanları için siler. Uygulama dizini sunucudan yeniden oluşturur.",
+        "confirm": {
+          "title": "Yerel arama dizini temizlensin mi?",
+          "message": "Bu işlem, bu bilgisayardaki tüm çalışma alanları için şifreli mesajların arama dizinini siler. Her çalışma alanı dizini sunucudan yeniden oluşturur. O zamana kadar arama daha az mesaj bulur.",
+          "confirm": "Dizini temizle",
+          "cancel": "İptal"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Yerel arama dizini",

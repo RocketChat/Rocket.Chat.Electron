@@ -288,7 +288,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Tyhjennä paikallinen hakuindeksi",
-        "description": "Poistaa tämän sovelluksen tähän tietokoneeseen tallentaman salattujen viestien hakuindeksin kaikille työtiloille. Sovellus rakentaa indeksin uudelleen palvelimelta."
+        "description": "Poistaa tämän sovelluksen tähän tietokoneeseen tallentaman salattujen viestien hakuindeksin kaikille työtiloille. Sovellus rakentaa indeksin uudelleen palvelimelta.",
+        "confirm": {
+          "title": "Tyhjennetäänkö paikallinen hakuindeksi?",
+          "message": "Tämä poistaa salattujen viestien hakuindeksin tästä tietokoneesta kaikista työtiloista. Jokainen työtila rakentaa sen uudelleen palvelimelta. Siihen asti haku löytää vähemmän viestejä.",
+          "confirm": "Tyhjennä indeksi",
+          "cancel": "Peruuta"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Paikallinen hakuindeksi",

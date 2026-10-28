@@ -288,7 +288,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Effacer l’index de recherche local",
-        "description": "Supprime l’index de recherche des messages chiffrés que cette application conserve sur cet ordinateur, pour tous les espaces de travail. L’application le reconstruit ensuite à partir du serveur."
+        "description": "Supprime l’index de recherche des messages chiffrés que cette application conserve sur cet ordinateur, pour tous les espaces de travail. L’application le reconstruit ensuite à partir du serveur.",
+        "confirm": {
+          "title": "Effacer l’index de recherche local ?",
+          "message": "Cette action supprime l’index de recherche des messages chiffrés de cet ordinateur, pour tous les espaces de travail. Chaque espace de travail le reconstruit depuis le serveur. En attendant, la recherche trouve moins de messages.",
+          "confirm": "Effacer l’index",
+          "cancel": "Annuler"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Index de recherche local",

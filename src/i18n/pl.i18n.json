@@ -164,7 +164,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Wyczyść lokalny indeks wyszukiwania",
-        "description": "Usuwa indeks wyszukiwania zaszyfrowanych wiadomości, który ta aplikacja przechowuje na tym komputerze, dla wszystkich przestrzeni roboczych. Aplikacja odbuduje go z serwera."
+        "description": "Usuwa indeks wyszukiwania zaszyfrowanych wiadomości, który ta aplikacja przechowuje na tym komputerze, dla wszystkich przestrzeni roboczych. Aplikacja odbuduje go z serwera.",
+        "confirm": {
+          "title": "Wyczyścić lokalny indeks wyszukiwania?",
+          "message": "Spowoduje to usunięcie indeksu wyszukiwania zaszyfrowanych wiadomości z tego komputera dla wszystkich przestrzeni roboczych. Każda przestrzeń robocza utworzy go ponownie z serwera. Do tego czasu wyszukiwanie znajdzie mniej wiadomości.",
+          "confirm": "Wyczyść indeks",
+          "cancel": "Anuluj"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Lokalny indeks wyszukiwania",

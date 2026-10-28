@@ -34,7 +34,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Tøm lokal søkeindeks",
-        "description": "Slett søkeindeksen for krypterte meldingar som appen lagrar på denne datamaskina, for alle arbeidsområde. Appen byggjer han opp att frå serveren."
+        "description": "Slett søkeindeksen for krypterte meldingar som appen lagrar på denne datamaskina, for alle arbeidsområde. Appen byggjer han opp att frå serveren.",
+        "confirm": {
+          "title": "Tømme lokal søkeindeks?",
+          "message": "Dette slettar søkeindeksen for krypterte meldingar på denne datamaskina, for alle arbeidsområde. Kvart arbeidsområde byggjer han på nytt frå tenaren. Fram til då finn søket færre meldingar.",
+          "confirm": "Tøm indeks",
+          "cancel": "Avbryt"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Lokal søkeindeks",

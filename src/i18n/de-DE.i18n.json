@@ -281,7 +281,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Lokalen Suchindex löschen",
-        "description": "Löscht den Suchindex für verschlüsselte Nachrichten, den diese App auf diesem Computer speichert, für alle Arbeitsbereiche. Die App baut ihn danach wieder vom Server auf."
+        "description": "Löscht den Suchindex für verschlüsselte Nachrichten, den diese App auf diesem Computer speichert, für alle Arbeitsbereiche. Die App baut ihn danach wieder vom Server auf.",
+        "confirm": {
+          "title": "Lokalen Suchindex löschen?",
+          "message": "Damit wird der Suchindex für verschlüsselte Nachrichten auf diesem Computer für alle Arbeitsbereiche gelöscht. Jeder Arbeitsbereich erstellt ihn vom Server neu. Bis dahin findet die Suche weniger Nachrichten.",
+          "confirm": "Index löschen",
+          "cancel": "Abbrechen"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Lokaler Suchindex",

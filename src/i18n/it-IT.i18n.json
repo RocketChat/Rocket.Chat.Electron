@@ -34,7 +34,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Cancella l’indice di ricerca locale",
-        "description": "Elimina l’indice di ricerca dei messaggi cifrati che questa app conserva su questo computer, per tutti gli spazi di lavoro. L’app lo ricrea dal server."
+        "description": "Elimina l’indice di ricerca dei messaggi cifrati che questa app conserva su questo computer, per tutti gli spazi di lavoro. L’app lo ricrea dal server.",
+        "confirm": {
+          "title": "Cancellare l’indice di ricerca locale?",
+          "message": "Questa azione elimina l’indice di ricerca dei messaggi cifrati da questo computer, per tutti gli spazi di lavoro. Ogni spazio di lavoro lo ricrea dal server. Fino ad allora, la ricerca trova meno messaggi.",
+          "confirm": "Cancella indice",
+          "cancel": "Annulla"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Indice di ricerca locale",

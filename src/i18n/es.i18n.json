@@ -300,7 +300,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Borrar el índice de búsqueda local",
-        "description": "Elimina el índice de búsqueda de los mensajes cifrados que esta aplicación guarda en este equipo, para todos los espacios de trabajo. La aplicación lo vuelve a crear desde el servidor."
+        "description": "Elimina el índice de búsqueda de los mensajes cifrados que esta aplicación guarda en este equipo, para todos los espacios de trabajo. La aplicación lo vuelve a crear desde el servidor.",
+        "confirm": {
+          "title": "¿Borrar el índice de búsqueda local?",
+          "message": "Esto elimina el índice de búsqueda de mensajes cifrados de este equipo, para todos los espacios de trabajo. Cada espacio de trabajo lo vuelve a crear desde el servidor. Hasta entonces, la búsqueda encuentra menos mensajes.",
+          "confirm": "Borrar índice",
+          "cancel": "Cancelar"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Índice de búsqueda local",

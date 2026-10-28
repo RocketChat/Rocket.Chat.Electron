@@ -309,7 +309,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Töm lokalt sökindex",
-        "description": "Ta bort sökindexet för krypterade meddelanden som appen sparar på den här datorn, för alla arbetsytor. Appen bygger upp det igen från servern."
+        "description": "Ta bort sökindexet för krypterade meddelanden som appen sparar på den här datorn, för alla arbetsytor. Appen bygger upp det igen från servern.",
+        "confirm": {
+          "title": "Tömma lokalt sökindex?",
+          "message": "Detta tar bort sökindexet för krypterade meddelanden på den här datorn, för alla arbetsytor. Varje arbetsyta bygger upp det igen från servern. Fram till dess hittar sökningen färre meddelanden.",
+          "confirm": "Töm index",
+          "cancel": "Avbryt"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Lokalt sökindex",

@@ -34,7 +34,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Suddat báikkálaš gávdnanindeksa",
-        "description": "Suddat indeksa krypterejuvvon teavstta gávdnamii, man dát appa gaskkohagas dán dihtorii buot bargobáikkiid várás. Appa huksá indeksa ođas serveres."
+        "description": "Suddat indeksa krypterejuvvon teavstta gávdnamii, man dát appa gaskkohagas dán dihtorii buot bargobáikkiid várás. Appa huksá indeksa ođas serveres.",
+        "confirm": {
+          "title": "Suddetgo báikkálaš gávdnanindeavssa?",
+          "message": "Dát sihkku krypterejuvvon teavsttaid gávdnanindeavssa dán dihtoris, buot bargobáikkiin. Juohke bargobáiki ráhkada dan ođđasit bálvalusas. Dassážii gávdnan gávdná unnit teavsttaid.",
+          "confirm": "Suddat indeavssa",
+          "cancel": "Gaskkalduhte"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Báikkálaš gávdnanindeksa",

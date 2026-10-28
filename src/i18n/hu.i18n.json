@@ -314,7 +314,13 @@
       },
       "clearE2eeSearchIndex": {
         "title": "Helyi keresési index törlése",
-        "description": "Törli az alkalmazás által ezen a számítógépen tárolt titkosított üzenetek keresési indexét, minden munkaterülethez. Az alkalmazás ezt később újraépíti a szerverről."
+        "description": "Törli az alkalmazás által ezen a számítógépen tárolt titkosított üzenetek keresési indexét, minden munkaterülethez. Az alkalmazás ezt később újraépíti a szerverről.",
+        "confirm": {
+          "title": "Törli a helyi keresési indexet?",
+          "message": "Ez törli a titkosított üzenetek keresési indexét erről a számítógépről, minden munkaterületen. Minden munkaterület újra felépíti a kiszolgálóról. Addig a keresés kevesebb üzenetet talál.",
+          "confirm": "Index törlése",
+          "cancel": "Mégse"
+        }
       },
       "e2eeSearchIndexStats": {
         "title": "Helyi keresési index",

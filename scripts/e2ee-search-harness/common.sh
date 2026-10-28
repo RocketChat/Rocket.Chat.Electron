@@ -4,15 +4,19 @@
 # Every value comes from the environment, from an argument or from a default
 # relative to the repository root. An optional file
 # "$HARNESS_STATE_DIR/env" can set the values for one machine (for example
-# ROCKETCHAT_CORE_DIR). The harness never writes that file.
+# ROCKETCHAT_CORE_DIR). The harness never writes that file. A value that is
+# already set in the environment wins over the file.
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HARNESS_DIR/../.." && pwd)"
 HARNESS_STATE_DIR="${HARNESS_STATE_DIR:-$REPO_ROOT/.localdev/e2ee-search-harness}"
 
 if [[ -f "$HARNESS_STATE_DIR/env" ]]; then
+  _harness_env_before="$(export -p)"
   # shellcheck disable=SC1091
   source "$HARNESS_STATE_DIR/env"
+  eval "$_harness_env_before"
+  unset _harness_env_before
 fi
 
 HARNESS_PORT="${HARNESS_PORT:-3500}"

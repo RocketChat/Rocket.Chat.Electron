@@ -20,7 +20,8 @@
 //   s6-send       send a message with a unique word, search it
 //   s6-edit       edit that message to a new word: new word found, old word gone
 //   s6-delete     delete a message, search its word: gone
-//   s7-reload     reload, search old history before the crawler can run (index came from OPFS)
+//   s7-reload     reload, search old history: the hit must come from the saved copy in OPFS. Every history response after
+//                 the reload is recorded in the page; none that arrived up to the hit may hold the needle id
 //   s8-mongo      the new message is e2e ciphertext in MongoDB
 //   s8-opfs       the OPFS files are sealed (magic RCS1) and hold no test word
 //   s9-console    console errors (info only, never fails)
@@ -31,6 +32,8 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+
+import { HISTORY_URL, HIT_MARGIN_MS, installPageHistoryRecorder, judgeSavedIndexHit, pageRecordingCoverage } from './restart-proof.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const { values } = parseArgs({
@@ -100,6 +103,8 @@ const words = {
 
 const consoleLines = [];
 const requests = [];
+// History responses as the browser network saw them, to check that the page recorder missed none.
+const historyResponses = [];
 let profileDir;
 let browser;
 let page;
@@ -237,6 +242,12 @@ try {
 		const url = r.url();
 		if (/syncMessages|loadHistory|loadSurroundingMessages|chat\.getMessage|e2ee-search/.test(url)) requests.push({ at: Date.now(), url: url.replace(base, '').slice(0, 160) });
 	});
+	page.on('response', (r) => {
+		if (HISTORY_URL.test(r.url())) historyResponses.push({ at: Date.now(), url: r.url() });
+	});
+	// WebDriver BiDi cannot read response bodies, so the page records each history response with its body
+	// (window.__e2eeHarnessHistory), from before the first script of each document. See restart-proof.mjs.
+	await page.evaluateOnNewDocument(installPageHistoryRecorder, HISTORY_URL.source);
 
 	// ---------------------------------------------------------------- s1 login
 	await page.goto(`${base}/home`, { waitUntil: 'domcontentloaded', timeout: 180000 });
@@ -513,13 +524,30 @@ try {
 	const searchedAt = Date.now();
 	const pAfterSearch = await progress();
 	const syncSinceReload = requests.filter((r) => r.at >= reloadAt && /syncMessages/.test(r.url)).length;
+	// The proof: no history response that arrived after the reload and up to the hit holds the id of the needle.
+	// Wait for the responses of the margin, and for every body read in the page to end.
+	await sleep(HIT_MARGIN_MS);
+	await waitFor(`window.__e2eeHarnessHistory?.every((r) => r.noResponse || r.at === undefined || r.body !== undefined || r.error !== undefined)`, 15000);
+	const recorded = (await ev(`window.__e2eeHarnessHistory?.map((r) => ({ ...r })) ?? null`).catch(() => null)) ?? [];
+	const recorderInstalled = Boolean(await ev(`Array.isArray(window.__e2eeHarnessHistory)`).catch(() => false));
+	const until = searchedAt + HIT_MARGIN_MS;
+	const coverage = recorderInstalled
+		? pageRecordingCoverage({ network: historyResponses.filter((r) => r.at >= reloadAt), recorded, until })
+		: { ok: false, reason: 'the page recorder is not installed in the reloaded page' };
+	const savedIndex = judgeSavedIndexHit({
+		needleId: largeOldest.id,
+		hit: s7old.hits.some((h) => h.text.toLowerCase().includes(largeOldest.word.toLowerCase())),
+		hitAt: searchedAt,
+		responses: recorded,
+		coverage,
+	});
 	await openPanel(pt.name);
 	const s7edit = await panelSearch(words.edited, { expectWord: words.edited });
 	const s7shot = await shot('s7-panel-after-reload', panelExpr);
 	const restoredInfo = consoleLines.filter((l) => /saved copy is gone|could not be opened|memory only/i.test(l.text));
 	record(
 		's7-reload',
-		reUnlock.ok && panelAgain && s7old.hits.length > 0 && s7edit.hits.length === 1 && searchedAt - reloadAt < 60000 && syncSinceReload === 0 && restoredInfo.length === 0,
+		reUnlock.ok && panelAgain && s7old.hits.length > 0 && s7edit.hits.length === 1 && savedIndex.ok && restoredInfo.length === 0,
 		{
 			reUnlock,
 			opfsBefore,
@@ -531,6 +559,7 @@ try {
 			progressAtOpen: pAfter,
 			progressAtSearch: pAfterSearch,
 			syncMessagesSinceReload: syncSinceReload,
+			savedIndex,
 			evictionOrMemoryOnlyLines: restoredInfo.map((l) => l.text),
 			screenshot: s7shot,
 		},

@@ -23,11 +23,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 APP_NAME="${APP_NAME:-Rocket.Chat R3m}"
 CDP_PORT="${CDP_PORT:-9444}"
 INDEX_TIMEOUT_S="${INDEX_TIMEOUT_S:-600}"
+RESTART_TIMEOUT_S="${RESTART_TIMEOUT_S:-120}"
 URL="$(server_url)"
 PROFILE="$HOME/Library/Application Support/$APP_NAME"
 LOGS="$HOME/Library/Logs/$APP_NAME"
-# The web client starts the history crawler only after 60 s without input.
-IDLE_GATE_S=60
 
 if [[ "$(uname -s)" != Darwin ]]; then
   echo "macos-packaged.sh runs on macOS only" >&2
@@ -144,26 +143,32 @@ summary() {
 }
 
 # restart_check <id> <TERM|KILL>: stops the app with the signal, starts it,
-# and checks that the index opens from disk before the crawler could refill
-# it.
+# and checks that the index opens from disk and that the hit for the oldest
+# needle comes from that saved index. The driver starts before the app, so
+# that it records every history response of the web client from the first
+# request on (see restart-proof.mjs).
 restart_check() {
-  local id="$1" signal="$2" mark out at_rest store elapsed
+  local id="$1" signal="$2" mark out at_rest store elapsed driver_pid why
+  local out_file="$RUN_DIR/after-restart-$signal.json"
   mark="$(log_lines)"
   stop_app "$signal"
+  driver after-restart --timeout "$RESTART_TIMEOUT_S" >"$out_file" &
+  driver_pid=$!
   start_app
-  out="$(driver after-restart --timeout "$IDLE_GATE_S")"
+  wait "$driver_pid"
   elapsed=$(( $(now_s) - APP_STARTED_AT ))
-  echo "$out" >"$RUN_DIR/after-restart-$signal.json"
+  out="$(cat "$out_file")"
   at_rest="$(driver at-rest)"
   echo "$at_rest" >"$RUN_DIR/at-rest-$signal.json"
   store="$(store_since "$mark")"
+  why="$(field "$out" error)"
+  [[ "$why" == null ]] && why="$(field "$out" savedIndex.reasons)"
   local ok=1
   [[ "$(field "$out" ok)" == true ]] || ok=0
   [[ "$(field "$at_rest" atRest)" == encrypted ]] || ok=0
   [[ "$store" == file ]] || ok=0
-  [[ $elapsed -lt $IDLE_GATE_S ]] || ok=0
   check "$id" "$([[ $ok == 1 ]] && echo PASS || echo FAIL)" \
-    "SIG$signal restart: store=$store atRest=$(field "$at_rest" atRest) docs_at_open=$(field "$out" docs) oldest_needle_found=$(field "$out" found) found_after=${elapsed}s (crawler idle gate ${IDLE_GATE_S}s)"
+    "SIG$signal restart: store=$store atRest=$(field "$at_rest" atRest) docs_at_open=$(field "$out" docs) oldest_needle_found=$(field "$out" found) history_responses_before_hit=$(field "$out" savedIndex.historyResponses) with_needle_id=$(field "$out" savedIndex.responsesWithNeedle) saved_index_proof=$(field "$out" savedIndex.ok) reasons=$why found_after=${elapsed}s"
   dialog_check
 }
 

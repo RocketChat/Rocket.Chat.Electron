@@ -65,8 +65,7 @@ INDEX_TIMEOUT_S="${INDEX_TIMEOUT_S:-600}"
 URL="$(server_url)"
 WORLD_KEY="$HARNESS_PORT-$WINDOWS_WORLD"
 REMOTE_HARNESS="$WINDOWS_DIR\\harness"
-# The web client starts the history crawler only after 60 s without input.
-IDLE_GATE_S=60
+RESTART_TIMEOUT_S="${RESTART_TIMEOUT_S:-120}"
 
 BUILD=0
 case "${1:-}" in
@@ -305,29 +304,38 @@ summary() {
 }
 
 # restart_check <id> <quit|kill>: stops the app, starts it, and checks that
-# the index opens from disk before the crawler could refill it.
+# the index opens from disk and that the hit for the oldest needle comes from
+# that saved index. The driver starts before the app, so that it records
+# every history response of the web client from the first request on (see
+# restart-proof.mjs).
 restart_check() {
-  local id="$1" how="$2" mark out at_rest store elapsed
+  local id="$1" how="$2" mark out at_rest store elapsed driver_pid why
+  local out_file="$RUN_DIR/after-restart-$how.json"
   stop_app "$how" "before-$id"
   mark="$(log_lines)"
+  driver after-restart --timeout "$RESTART_TIMEOUT_S" >"$out_file" &
+  driver_pid=$!
   if ! start_app "$id"; then
+    kill "$driver_pid" 2>/dev/null
+    wait "$driver_pid" 2>/dev/null
     check "$id" FAIL "the app did not start again: no CDP on port $WINDOWS_CDP_PORT in 60 s"
     return
   fi
-  out="$(driver after-restart --timeout "$IDLE_GATE_S")"
+  wait "$driver_pid"
   elapsed=$(($(now_s) - APP_STARTED_AT))
-  echo "$out" >"$RUN_DIR/after-restart-$how.json"
+  out="$(cat "$out_file")"
   at_rest="$(driver at-rest)"
   echo "$at_rest" >"$RUN_DIR/at-rest-$how.json"
   store="$(store_since "${mark:-0}")"
+  why="$(field "$out" error)"
+  [[ "$why" == null ]] && why="$(field "$out" savedIndex.reasons)"
   local ok=1
   [[ "$STOPPED" == quit || "$STOPPED" == killed ]] || ok=0
   [[ "$(field "$out" ok)" == true ]] || ok=0
   [[ "$(field "$at_rest" atRest)" == encrypted ]] || ok=0
   [[ "$store" == file ]] || ok=0
-  [[ $elapsed -lt $IDLE_GATE_S ]] || ok=0
   check "$id" "$([[ $ok == 1 ]] && echo PASS || echo FAIL)" \
-    "$how stop ($STOPPED) and restart: store=$store atRest=$(field "$at_rest" atRest) docs_at_open=$(field "$out" docs) oldest_needle_found=$(field "$out" found) found_after=${elapsed}s (crawler idle gate ${IDLE_GATE_S}s)"
+    "$how stop ($STOPPED) and restart: store=$store atRest=$(field "$at_rest" atRest) docs_at_open=$(field "$out" docs) oldest_needle_found=$(field "$out" found) history_responses_before_hit=$(field "$out" savedIndex.historyResponses) with_needle_id=$(field "$out" savedIndex.responsesWithNeedle) saved_index_proof=$(field "$out" savedIndex.ok) reasons=$why found_after=${elapsed}s"
 }
 
 ssh "${SSH_OPTS[@]}" -o ExitOnForwardFailure=yes -N \

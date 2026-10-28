@@ -39,6 +39,7 @@ Each value is an environment variable. You can also put the values in
 | `HARNESS_STATE_DIR`             | `.localdev/e2ee-search-harness` | State, logs and runs                                                                  |
 | `SERVER_WAIT_S`                 | `1200`                          | Longest wait for the server to answer                                                 |
 | `INDEX_TIMEOUT_S`               | `600`                           | Longest wait for the crawler                                                          |
+| `RESTART_TIMEOUT_S`             | `120`                           | Longest wait for the index to open again after a restart (checks `c` and `d`)         |
 | `HARNESS_BACKFILL_PAUSE_S`      | `1`                             | Seconds between two crawler requests (`E2E_Local_Search_Backfill_Pause`)              |
 | `HARNESS_BACKFILL_PAGE_SIZE`    | `100`                           | Messages per crawler request (`E2E_Local_Search_Backfill_Page_Size`)                  |
 | `HARNESS_BACKFILL_MAX_PER_ROOM` | `0`                             | Backfill limit per room, 0 = none (`E2E_Local_Search_Backfill_Max_Messages_Per_Room`) |
@@ -124,21 +125,50 @@ The test deletes the user data and the logs of `$APP_NAME` and starts the
 app with `open -g`. It adds the server and logs A in. Before it enters A's
 E2E password, it runs the check `g`. Then it enters the password and turns on "Index my encrypted messages on this device" in
 Account > Security. The harness makes no index writes. Only the real history
-crawler of the web client fills the index. The crawler starts after 60
-seconds without input.
+crawler of the web client fills the index. The crawler does not wait for idle
+time: it also runs while the user is active.
 
 Each check prints one line:
 
-| Line      | Meaning                                                                                                                                                                                                                                                                                                        |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `g`       | Before E2E unlock, a bridge open (`RocketChatDesktop.e2eeSearch.open`) with the user id and no wrap key returns `locked: true`, because A has an E2EE key on the server. A bridge search then fails with `E2EE search index is locked`. The profile has no `e2ee-search` file (no index file and no key file). |
-| `a`       | A bridge search (`RocketChatDesktop.e2eeSearch.search`) for each needle returns the id of its seeded message. The control word returns no hit.                                                                                                                                                                 |
-| `b`       | The search panel of the encrypted room shows the hit for the oldest needle. The run folder gets a crop of the panel (`search-panel.png`).                                                                                                                                                                      |
-| `c`       | After a SIGTERM and a restart, the main log says `index opened { store: 'file' }`, and the main process reports the index as `encrypted`. A bridge search finds the oldest needle, with documents in the index, less than 60 seconds after the start, so before the crawler can run.                           |
-| `d`       | The same as `c`, after a SIGKILL.                                                                                                                                                                                                                                                                              |
-| `e`       | A canary scan of the whole profile and of the logs finds no copy of any needle. A scan for the server address finds copies, which proves that the scan works. A failed line tells where the hits are.                                                                                                          |
-| `e.index` | The same scan, counted only in the search index folder.                                                                                                                                                                                                                                                        |
-| `f`       | The hash of the production keychain item `Rocket.Chat Safe Storage` is the same before and after, and no keychain dialog showed.                                                                                                                                                                               |
+| Line      | Meaning                                                                                                                                                                                                                                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `g`       | Before E2E unlock, a bridge open (`RocketChatDesktop.e2eeSearch.open`) with the user id and no wrap key returns `locked: true`, because A has an E2EE key on the server. A bridge search then fails with `E2EE search index is locked`. The profile has no `e2ee-search` file (no index file and no key file).                                          |
+| `a`       | A bridge search (`RocketChatDesktop.e2eeSearch.search`) for each needle returns the id of its seeded message. The control word returns no hit.                                                                                                                                                                                                          |
+| `b`       | The search panel of the encrypted room shows the hit for the oldest needle. The run folder gets a crop of the panel (`search-panel.png`).                                                                                                                                                                                                               |
+| `c`       | After a SIGTERM and a restart, the main log says `index opened { store: 'file' }`, and the main process reports the index as `encrypted`. A bridge search finds the oldest needle, with documents in the index. The hit comes from the saved index (see below). No history response of the web client up to the hit holds the id of the needle message. |
+| `d`       | The same as `c`, after a SIGKILL.                                                                                                                                                                                                                                                                                                                       |
+| `e`       | A canary scan of the whole profile and of the logs finds no copy of any needle. A scan for the server address finds copies, which proves that the scan works. A failed line tells where the hits are.                                                                                                                                                   |
+| `e.index` | The same scan, counted only in the search index folder.                                                                                                                                                                                                                                                                                                 |
+| `f`       | The hash of the production keychain item `Rocket.Chat Safe Storage` is the same before and after, and no keychain dialog showed.                                                                                                                                                                                                                        |
+
+The checks `c` and `d` do not depend on the pace of the crawler. The web
+client puts a message into the index only after it gets the message from the
+server. So the hit after a restart comes from the saved index, or from a
+history response of this run that holds the needle. The driver
+(`app.mjs after-restart`, with `restart-proof.mjs`) proves that no such
+response arrived:
+
+- It starts before the app and connects to the CDP port as soon as the port
+  opens. CDP auto-attach holds each new target, also the server webview,
+  until the driver turns on the Network domain for it. So the driver sees
+  the first request of the web client.
+- It reads the body of each history response (`chat.syncMessages`,
+  `loadHistory`, `loadSurroundingMessages`, `loadNextMessages`,
+  `chat.getMessage`) and each WebSocket frame from the server.
+- It searches the oldest needle and waits 2 seconds more for late events.
+  Then it checks every response and frame that arrived up to the hit plus
+  those 2 seconds.
+
+The check fails in each of these cases:
+
+- A response or a frame holds the needle id.
+- The driver cannot read a response body.
+- The driver attached to the webview after the webview started, or it saw no
+  document load of the webview. Then it cannot prove that it saw the first
+  request.
+
+The line shows the count of history responses before the hit, the count
+with the needle id, and the reasons of a failure.
 
 The last line is `SUMMARY PASS` or `SUMMARY FAIL`, with the run folder. The
 exit code is 0 only when every check passes. The run folder,
@@ -166,12 +196,23 @@ takes screenshots of that window only (it compiles `winid.swift` for this).
 
 Each step prints one line: `s1-login`, `s2-unlock`, `s3-opt-in`, `s4-index`
 (progress until done), `s5-search` (`orcamento` finds `orçamento`, and a click
-jumps to the message), `s6-send`, `s6-edit`, `s6-delete`, `s7-reload` (hits
-come from the saved copy, before the crawler runs), `s8-mongo` (ciphertext
-only) and `s8-opfs` (the copy is sealed and holds no test word). The last
+jumps to the message), `s6-send`, `s6-edit`, `s6-delete`, `s7-reload` (after a
+reload, the hit for the oldest needle of the large room comes from the saved
+copy, see below), `s8-mongo` (ciphertext only) and `s8-opfs` (the copy is sealed and holds no test word). The last
 line is `SUMMARY PASS` or `SUMMARY FAIL`. The exit code is 0 only when every
 step passes. The run folder is
 `.localdev/e2ee-search-harness/browser-runs/<timestamp>/`.
+
+`s7-reload` uses the same proof as the checks `c` and `d` of the packaged
+test, with a different recorder. WebDriver BiDi in puppeteer cannot read
+response bodies. So a script runs in each document before the scripts of the
+page. It wraps `fetch` and `XMLHttpRequest`, and keeps each history response
+with its body (`restart-proof.mjs`). The step passes only when no response
+after the reload holds the id of the needle message. The check covers each
+response that arrived up to the hit, plus 2 seconds. Each history response that the network
+events of the browser show must have a twin in that recording. Otherwise the
+step fails, because the page recorder missed a response. The browser
+recorder does not see WebSocket frames.
 
 `seed.mjs` sets the crawler pacing on the server. The crawler fetches one
 page every second (`HARNESS_BACKFILL_PAUSE_S`; the server default is 12

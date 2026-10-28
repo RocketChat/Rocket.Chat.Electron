@@ -22,8 +22,13 @@
 //                 RocketChatDesktop.e2eeSearch.
 //   ui-search     searches the oldest needle in the search panel of the
 //                 encrypted room and saves a crop of the panel to --out.
-//   after-restart waits until the web client opens the index again, then
-//                 reads the index size and searches the oldest needle.
+//   after-restart start it BEFORE the app starts. It records every history
+//                 response of the server webview from its first request on
+//                 (see restart-proof.mjs), waits until the web client opens
+//                 the index again, reads the index size and searches the
+//                 oldest needle. It passes only when the hit is there and no
+//                 history response up to the hit holds the needle id: the hit
+//                 came from the saved index.
 //   at-rest       asks the main process for the index stats of each server,
 //                 through the root window store, and prints `atRest`.
 //   quit          asks the app to close through CDP (Browser.close). It does
@@ -43,6 +48,11 @@ import {
   jsLiteral,
   sleep,
 } from './cdp.mjs';
+import {
+  HIT_MARGIN_MS,
+  judgeSavedIndexHit,
+  startCdpHistoryRecorder,
+} from './restart-proof.mjs';
 import { readState, usersOf, worldKey } from './state.mjs';
 
 const { values, positionals } = parseArgs({
@@ -309,7 +319,21 @@ const commands = {
   },
 
   async 'after-restart'() {
-    const page = await openWebview();
+    const recorder = await startCdpHistoryRecorder(cdpPort).catch((error) =>
+      finish(false, {
+        error: `the history recorder did not start: ${error?.message ?? error}`,
+      })
+    );
+    const target = await findTarget(
+      cdpPort,
+      isServerWebview(serverHost),
+      120_000
+    );
+    if (!target)
+      finish(false, {
+        error: `no webview for ${serverHost} on CDP port ${cdpPort}`,
+      });
+    const page = await connect(target);
     const start = Date.now();
     let stats;
     while (Date.now() - start < timeoutMs) {
@@ -322,11 +346,26 @@ const commands = {
     const openedAfterMs = Date.now() - start;
     const needle = world.needles[0];
     const result = await bridgeSearch(page, needle.word);
-    finish(stats.docs > 0 && Boolean(result.ids?.includes(needle.id)), {
+    const hitAt = Date.now();
+    const found = Boolean(result.ids?.includes(needle.id));
+    // Let the responses of the margin arrive and every body read end.
+    await sleep(HIT_MARGIN_MS);
+    await recorder.settle();
+    const savedIndex = judgeSavedIndexHit({
+      needleId: needle.id,
+      hit: found,
+      hitAt,
+      responses: recorder.responses(),
+      frames: recorder.frames(),
+      coverage: recorder.coverageOf(target.id),
+    });
+    recorder.close();
+    finish(stats.docs > 0 && savedIndex.ok, {
       openedAfterMs,
       docs: stats.docs,
       needle: needle.key,
-      found: Boolean(result.ids?.includes(needle.id)),
+      found,
+      savedIndex,
     });
   },
 

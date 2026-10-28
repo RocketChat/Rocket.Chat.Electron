@@ -62,6 +62,10 @@ function checkIfCredentialsAreNotEmpty(
   );
 }
 
+// Secrets kept for the app session when Linux has no real keyring. The key is
+// the Rocket.Chat server URL. The map is empty again after a restart.
+const sessionSecrets = new Map<string, OutlookCredentials>();
+
 // On Linux, Chromium wraps with a hard-coded password when no keyring unlocks,
 // and marks that wrap with `v10`. Anyone can unwrap it, so it is no encryption.
 const HARD_CODED_LINUX_WRAP_PREFIX = Buffer.from('v10');
@@ -76,6 +80,7 @@ const isStoredHardCodedLinuxWrap = (stored: string): boolean =>
   stored.startsWith(HARD_CODED_LINUX_WRAP_PREFIX.toString('base64'));
 
 function encryptedCredentials(
+  serverUrl: string,
   credentials: OutlookCredentials
 ): OutlookCredentials {
   outlookLog('Encrypting credentials for user:', credentials.userId);
@@ -94,11 +99,13 @@ function encryptedCredentials(
       isHardCodedLinuxWrap(encryptedPassword)
     ) {
       outlookWarn(
-        'Encryption uses the Linux fixed password, storing credentials in plain text'
+        'Encryption uses the Linux fixed password, keeping credentials in memory for this session'
       );
-      return credentials;
+      sessionSecrets.set(serverUrl, credentials);
+      return { ...credentials, login: '', password: '' };
     }
 
+    sessionSecrets.delete(serverUrl);
     outlookLog('Successfully encrypted credentials');
     return {
       ...credentials,
@@ -168,29 +175,44 @@ function decryptedCredentials(
 }
 
 // A Linux v10 wrap in the store is not trusted. The secrets are cleared from
-// the store and the user is asked again. The identity fields stay.
+// the store and the user is asked again. The identity fields stay. Secrets
+// kept in memory for this session replace the empty stored secrets.
 function trustedStoredCredentials(
   server: Server
 ): OutlookCredentials | undefined {
-  const { outlookCredentials } = server;
+  const stored = server.outlookCredentials;
+  if (!stored) return undefined;
+
   if (
-    !outlookCredentials ||
-    (!isStoredHardCodedLinuxWrap(outlookCredentials.login) &&
-      !isStoredHardCodedLinuxWrap(outlookCredentials.password))
+    !isStoredHardCodedLinuxWrap(stored.login) &&
+    !isStoredHardCodedLinuxWrap(stored.password)
   ) {
-    return outlookCredentials;
+    const session = sessionSecrets.get(server.url);
+    if (
+      session !== undefined &&
+      session.userId === stored.userId &&
+      session.serverUrl === stored.serverUrl &&
+      !stored.login &&
+      !stored.password
+    ) {
+      return { ...stored, login: session.login, password: session.password };
+    }
+    return stored;
   }
 
   outlookWarn(
     'Stored credentials use the Linux fixed password, clearing them',
-    { userId: outlookCredentials.userId }
+    {
+      userId: stored.userId,
+    }
   );
   const cleared = {
-    userId: outlookCredentials.userId,
-    serverUrl: outlookCredentials.serverUrl,
+    userId: stored.userId,
+    serverUrl: stored.serverUrl,
     login: '',
     password: '',
   };
+  sessionSecrets.delete(server.url);
   dispatch({
     type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
     payload: { url: server.url, outlookCredentials: cleared },
@@ -1145,6 +1167,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
 
     // Clear server sync state (stops recurring sync, clears timers)
     clearServerState(server.url);
+    sessionSecrets.delete(server.url);
 
     dispatch({
       type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
@@ -1170,6 +1193,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
         outlookCredentials?.userId !== userId ||
         outlookCredentials?.serverUrl !== url
       ) {
+        sessionSecrets.delete(server.url);
         dispatch({
           type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
           payload: {
@@ -1323,7 +1347,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
           payload: {
             url: server.url,
             outlookCredentials: safeStorage.isEncryptionAvailable()
-              ? encryptedCredentials(credentials)
+              ? encryptedCredentials(server.url, credentials)
               : credentials,
           },
         });

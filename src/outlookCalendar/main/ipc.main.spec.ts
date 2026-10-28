@@ -507,6 +507,9 @@ describe('outlookCalendar/ipc', () => {
         { id: 7 },
         new Date()
       );
+      // The mocked dispatch does not update the store. Copy the saved state back.
+      const saved = savedCredentials();
+      if (saved) servers[0].outlookCredentials = saved;
     };
 
     beforeEach(() => {
@@ -526,7 +529,7 @@ describe('outlookCalendar/ipc', () => {
       encryptString.mockImplementation((s: string) => Buffer.from(`enc:${s}`));
     });
 
-    it('linux: a v10 wrap is not stored encrypted', async () => {
+    it('linux: a v10 wrap persists no secrets', async () => {
       setPlatform('linux');
       encryptString.mockImplementation(wrapWith('v10'));
 
@@ -535,9 +538,56 @@ describe('outlookCalendar/ipc', () => {
       expect(savedCredentials()).toEqual({
         userId: 'u1',
         serverUrl: EXCHANGE_URL,
-        login: 'user@example.com',
-        password: 'secret',
+        login: '',
+        password: '',
       });
+    });
+
+    it('linux: a v10 wrap keeps the secrets in memory for a sync in the same session', async () => {
+      setPlatform('linux');
+      encryptString.mockImplementation(wrapWith('v10'));
+      await saveCredentialsThroughSync();
+      request.mockClear();
+      getOutlookEvents.mockClear();
+
+      await handlers.get('outlook-calendar/get-events')?.(
+        { id: 7 },
+        new Date()
+      );
+
+      expect(request).not.toHaveBeenCalled();
+      expect(getOutlookEvents).toHaveBeenCalled();
+      expect(getOutlookEvents.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          login: 'user@example.com',
+          password: 'secret',
+        })
+      );
+    });
+
+    it('linux: after a restart a v10 wrap leaves no secrets, and the user is asked again', async () => {
+      setPlatform('linux');
+      encryptString.mockImplementation(wrapWith('v10'));
+      await saveCredentialsThroughSync();
+
+      // A new module instance has an empty in-memory map, as after an app restart.
+      jest.resetModules();
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require('../ipc').startOutlookCalendarUrlHandler();
+      request.mockResolvedValue({ dismissDialog: true });
+      getOutlookEvents.mockClear();
+
+      const hasCredentials = await handlers.get(
+        'outlook-calendar/has-credentials'
+      )?.({ id: 7 });
+      await handlers.get('outlook-calendar/get-events')?.(
+        { id: 7 },
+        new Date()
+      );
+
+      expect(hasCredentials).toBe(false);
+      expect(request).toHaveBeenCalled();
+      expect(getOutlookEvents).not.toHaveBeenCalled();
     });
 
     it('linux: a v11 wrap is stored encrypted', async () => {

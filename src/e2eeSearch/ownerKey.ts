@@ -23,8 +23,10 @@ export class E2EESearchOwnerKeyChangedError extends Error {
 
 // What the server says about the user's E2EE public key:
 // - a string: the fingerprint of the key that the server holds;
-// - null: the server holds no key for the user (a key reset removes it);
-// - undefined: unknown (no answer, an error, or a key of another shape).
+// - null: the server says explicitly that it holds no key for the user (a
+//   key reset removes it);
+// - undefined: unknown (no answer, an error, an answer that names no key, or
+//   a key of another shape). Nothing is deleted.
 export type OwnerKeyFingerprint = string | null | undefined;
 
 const FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/;

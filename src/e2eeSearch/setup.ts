@@ -269,7 +269,10 @@ export const setupE2EESearch = (): void => {
         serverUrl,
         userId
       );
-      return publicKey === null ? null : fingerprintPublicKey(publicKey);
+      // Only an explicit null of the server means "no key".
+      return typeof publicKey === 'string'
+        ? fingerprintPublicKey(publicKey)
+        : publicKey;
     },
     openIndex: openE2EESearchIndex,
     call: (indexId, method, ...args) =>

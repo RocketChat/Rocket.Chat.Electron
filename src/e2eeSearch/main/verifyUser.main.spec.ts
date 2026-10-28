@@ -1,13 +1,41 @@
-import { fetchServerPublicKey, verifyServerUserId } from '../verifyUser';
+import {
+  fetchServerPublicKey,
+  MAX_SERVER_ANSWER_BYTES,
+  verifyServerUserId,
+} from '../verifyUser';
 
 const SERVER = 'https://chat.example.com/sub/';
 
 const json = (status: number, body: unknown) =>
-  ({
-    status,
-    ok: status >= 200 && status < 300,
-    json: async () => body,
-  }) as Response;
+  new Response(JSON.stringify(body), { status });
+
+// A body that the server sends in chunks and never ends.
+const endlessBody = (chunk: string) => {
+  const bytes = new TextEncoder().encode(chunk);
+  let cancelled = false;
+  const response = new Response(
+    new ReadableStream<Uint8Array>({
+      pull: (controller) => {
+        controller.enqueue(bytes);
+      },
+      cancel: () => {
+        cancelled = true;
+      },
+    }),
+    { status: 200 }
+  );
+  return { response, isCancelled: () => cancelled };
+};
+
+// A fetch that never answers, and records whether the caller aborted it.
+const hangingFetch = () => {
+  const signals: AbortSignal[] = [];
+  const fetch = (_url: string, init: RequestInit) => {
+    if (init.signal) signals.push(init.signal);
+    return new Promise<Response>(() => undefined);
+  };
+  return { fetch, signals };
+};
 
 describe('verifyServerUserId', () => {
   it('asks the server with the page token and the claimed user id', async () => {
@@ -121,20 +149,12 @@ describe('fetchServerPublicKey', () => {
     return { calls, fetch };
   };
 
-  // An answer body that records each read of a private key field.
-  const bodyWithPrivateKey = (reads: string[]) => {
-    const body = { public_key: PUBLIC_KEY, success: true };
-    for (const field of ['private_key', 'e2e']) {
-      Object.defineProperty(body, field, {
-        enumerable: true,
-        get: () => {
-          reads.push(field);
-          return '{"$binary":"encrypted"}';
-        },
-      });
-    }
-    return body;
-  };
+  // An answer that also holds the private key, like `e2e.fetchMyKeys`.
+  const bodyWithPrivateKey = () => ({
+    public_key: PUBLIC_KEY,
+    private_key: '{"$binary":"encrypted"}',
+    success: true,
+  });
 
   it('asks the public key route with the page token and returns the public key', async () => {
     const { calls, fetch } = server({
@@ -154,10 +174,9 @@ describe('fetchServerPublicKey', () => {
     expect(calls[0][1]).toMatchObject(REQUEST);
   });
 
-  it('reads no private key field from the public key route, even when the server sends one', async () => {
-    const reads: string[] = [];
+  it('returns no private key field from the public key route, even when the server sends one', async () => {
     const { calls, fetch } = server({
-      [PUBLIC_KEY_URL]: () => json(200, bodyWithPrivateKey(reads)),
+      [PUBLIC_KEY_URL]: () => json(200, bodyWithPrivateKey()),
     });
 
     const publicKey = await fetchServerPublicKey(
@@ -168,13 +187,11 @@ describe('fetchServerPublicKey', () => {
 
     expect(publicKey).toBe(PUBLIC_KEY);
     expect(calls.map(([url]) => url)).toEqual([PUBLIC_KEY_URL]);
-    expect(reads).toEqual([]);
   });
 
   it('falls back to e2e.fetchMyKeys when the server has no public key route (404)', async () => {
-    const reads: string[] = [];
     const { calls, fetch } = server({
-      [ALL_KEYS_URL]: () => json(200, bodyWithPrivateKey(reads)),
+      [ALL_KEYS_URL]: () => json(200, bodyWithPrivateKey()),
     });
 
     const publicKey = await fetchServerPublicKey(
@@ -186,10 +203,10 @@ describe('fetchServerPublicKey', () => {
     expect(publicKey).toBe(PUBLIC_KEY);
     expect(calls.map(([url]) => url)).toEqual([PUBLIC_KEY_URL, ALL_KEYS_URL]);
     expect(calls[1][1]).toMatchObject(REQUEST);
-    expect(reads).toEqual([]);
   });
 
-  it('returns null from the fallback when the older server holds no key', async () => {
+  // The server names no key, so the open deletes nothing.
+  it('returns unknown from the fallback when the older server names no key', async () => {
     const { calls, fetch } = server({
       [ALL_KEYS_URL]: () => json(200, { success: true }),
     });
@@ -200,7 +217,7 @@ describe('fetchServerPublicKey', () => {
         SERVER,
         'userB'
       )
-    ).resolves.toBeNull();
+    ).resolves.toBeUndefined();
     expect(calls.map(([url]) => url)).toEqual([PUBLIC_KEY_URL, ALL_KEYS_URL]);
   });
 
@@ -237,7 +254,22 @@ describe('fetchServerPublicKey', () => {
     expect(calls.map(([url]) => url)).toEqual([PUBLIC_KEY_URL, ALL_KEYS_URL]);
   });
 
-  it('returns null when the server holds no key for the user', async () => {
+  it('returns null only when the server says that it holds no key', async () => {
+    await expect(
+      fetchServerPublicKey(
+        {
+          readLoginToken: async () => 'tokenB',
+          fetch: async () => json(200, { public_key: null, success: true }),
+        },
+        SERVER,
+        'userB'
+      )
+    ).resolves.toBeNull();
+  });
+
+  // A hostile server must not make the open delete the index
+  // with an answer that does not say "no key".
+  it('returns unknown, not null, for an answer without public_key', async () => {
     await expect(
       fetchServerPublicKey(
         {
@@ -247,7 +279,47 @@ describe('fetchServerPublicKey', () => {
         SERVER,
         'userB'
       )
-    ).resolves.toBeNull();
+    ).resolves.toBeUndefined();
+    await expect(
+      fetchServerPublicKey(
+        {
+          readLoginToken: async () => 'tokenB',
+          fetch: async () => json(200, {}),
+        },
+        SERVER,
+        'userB'
+      )
+    ).rejects.toThrow('no public key');
+  });
+
+  it.each([
+    ['success false', { public_key: null, success: false }],
+    ['no success field', { public_key: null }],
+    ['a key without success', { public_key: PUBLIC_KEY }],
+  ])('throws, and returns no null, for an answer with %s', async (_, body) => {
+    await expect(
+      fetchServerPublicKey(
+        {
+          readLoginToken: async () => 'tokenB',
+          fetch: async () => json(200, body),
+        },
+        SERVER,
+        'userB'
+      )
+    ).rejects.toThrow('no public key');
+  });
+
+  it('throws for a body that is not JSON', async () => {
+    await expect(
+      fetchServerPublicKey(
+        {
+          readLoginToken: async () => 'tokenB',
+          fetch: async () => new Response('<html>', { status: 200 }),
+        },
+        SERVER,
+        'userB'
+      )
+    ).rejects.toThrow();
   });
 
   // Live, after a key reset: the web client opens the index when its new
@@ -277,7 +349,9 @@ describe('fetchServerPublicKey', () => {
   });
 
   it('returns null when the server still holds no key after the last retry', async () => {
-    const fetch = jest.fn(async () => json(200, { success: true }));
+    const fetch = jest.fn(async () =>
+      json(200, { public_key: null, success: true })
+    );
 
     await expect(
       fetchServerPublicKey(
@@ -351,5 +425,96 @@ describe('fetchServerPublicKey', () => {
         'userB'
       )
     ).rejects.toThrow('timed out');
+  });
+});
+
+// A hostile or broken server must not keep a request open, and
+// must not stream an endless body into the main process.
+describe('the requests to the server', () => {
+  const PUBLIC_KEY = '{"kty":"RSA","n":"abc","e":"AQAB"}';
+  const checks = {
+    verifyServerUserId: (deps: Parameters<typeof verifyServerUserId>[0]) =>
+      verifyServerUserId(deps, SERVER, 'userB'),
+    fetchServerPublicKey: (deps: Parameters<typeof verifyServerUserId>[0]) =>
+      fetchServerPublicKey(deps, SERVER, 'userB'),
+  };
+
+  it.each(Object.entries(checks))(
+    '%s aborts the request when the server does not answer in time',
+    async (_, check) => {
+      const { fetch, signals } = hangingFetch();
+
+      await expect(
+        check({ readLoginToken: async () => 'tokenB', fetch, timeoutMs: 10 })
+      ).rejects.toThrow('timed out');
+      expect(signals).toHaveLength(1);
+      expect(signals[0].aborted).toBe(true);
+    }
+  );
+
+  it.each(Object.entries(checks))(
+    '%s stops reading a body that is larger than the cap',
+    async (_, check) => {
+      const { response, isCancelled } = endlessBody(' '.repeat(4096));
+
+      await expect(
+        check({
+          readLoginToken: async () => 'tokenB',
+          fetch: async () => response,
+          timeoutMs: 5_000,
+        })
+      ).rejects.toThrow('too large');
+      expect(isCancelled()).toBe(true);
+    }
+  );
+
+  it.each(Object.entries(checks))(
+    '%s refuses a complete JSON body that is larger than the cap',
+    async (_, check) => {
+      const padding = ' '.repeat(MAX_SERVER_ANSWER_BYTES);
+      const body = `{"_id":"userB","public_key":${JSON.stringify(PUBLIC_KEY)},"success":true}${padding}`;
+
+      await expect(
+        check({
+          readLoginToken: async () => 'tokenB',
+          fetch: async () => new Response(body, { status: 200 }),
+        })
+      ).rejects.toThrow('too large');
+    }
+  );
+
+  it('accepts an answer up to the cap', async () => {
+    const body = JSON.stringify({ _id: 'userB' });
+    const padded = body + ' '.repeat(MAX_SERVER_ANSWER_BYTES - body.length);
+
+    await expect(
+      verifyServerUserId(
+        {
+          readLoginToken: async () => 'tokenB',
+          fetch: async () => new Response(padded, { status: 200 }),
+        },
+        SERVER,
+        'userB'
+      )
+    ).resolves.toBe(true);
+  });
+
+  it('keeps the path of a server URL without a trailing slash', async () => {
+    const urls: string[] = [];
+    const fetch = async (url: string) => {
+      urls.push(url);
+      return url.endsWith('/me')
+        ? json(200, { _id: 'userB' })
+        : json(200, { public_key: PUBLIC_KEY, success: true });
+    };
+    const deps = { readLoginToken: async () => 'tokenB', fetch };
+
+    await verifyServerUserId(deps, 'https://chat.example.com/sub', 'userB');
+    await fetchServerPublicKey(deps, 'https://chat.example.com/sub', 'userB');
+
+    expect(urls).toEqual([
+      'https://chat.example.com/sub/api/v1/me',
+      'https://chat.example.com/sub/api/v1/e2e.fetchMyPublicKey',
+    ]);
   });
 });

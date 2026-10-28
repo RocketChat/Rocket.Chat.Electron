@@ -58,8 +58,10 @@ type IpcDeps = {
     userId: string
   ): Promise<boolean>;
   // The fingerprint of the E2EE public key that the server holds for the
-  // user, on the login session of the sender. Null when the
-  // server holds no key. Called only after the server confirmed the user.
+  // user, on the login session of the sender. Null only when
+  // the server says explicitly that it holds no key, and undefined when the
+  // answer cannot tell. Called only after the server confirmed
+  // the user.
   fetchOwnerKey(
     event: E2EESearchEvent,
     serverUrl: string,

@@ -49,9 +49,89 @@ const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
     );
   });
 
+// The answers of the user and key routes are small. A larger
+// body is refused before it is parsed, so a hostile server cannot stream an
+// endless body into the main process.
+export const MAX_SERVER_ANSWER_BYTES = 64 * 1024;
+
+class ServerAnswerTooLargeError extends Error {
+  constructor() {
+    super('E2EE search server answer is too large');
+  }
+}
+
+// `new URL('api/v1/me', 'https://host/sub')` drops `sub`, so a server URL
+// without a trailing slash gets one, like the server views do (uiOverride).
+const withTrailingSlash = (url: string) =>
+  url.endsWith('/') ? url : `${url}/`;
+
+const readCappedJson = async (response: Response): Promise<unknown> => {
+  const declared = Number(response.headers.get('content-length'));
+  if (declared > MAX_SERVER_ANSWER_BYTES) throw new ServerAnswerTooLargeError();
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('E2EE search server answer has no body');
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    // eslint-disable-next-line no-await-in-loop -- each chunk follows the one before it
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_SERVER_ANSWER_BYTES) {
+      void reader.cancel().catch(() => undefined);
+      throw new ServerAnswerTooLargeError();
+    }
+    chunks.push(value);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+};
+
+type ServerAnswer = { status: number; ok: boolean; body?: unknown };
+
+// One GET of an API route on the page's login session. The timeout covers
+// the request and the body, and it aborts both. The body is
+// read only from a 2xx answer.
+const askServer = async (
+  deps: VerifyUserDeps,
+  serverUrl: string,
+  route: string,
+  headers: Record<string, string>,
+  timeoutMs: number
+): Promise<ServerAnswer> => {
+  const controller = new AbortController();
+  try {
+    return await withTimeout(
+      (async () => {
+        const response = await deps.fetch(
+          new URL(`api/v1/${route}`, withTrailingSlash(serverUrl)).href,
+          {
+            method: 'GET',
+            headers,
+            credentials: 'omit',
+            redirect: 'error',
+            signal: controller.signal,
+          }
+        );
+        if (!response.ok) return { status: response.status, ok: false };
+        return {
+          status: response.status,
+          ok: true,
+          body: await readCappedJson(response),
+        };
+      })(),
+      timeoutMs
+    );
+  } finally {
+    // Ends a request or a body that is still open: late, too large or not
+    // read.
+    controller.abort();
+  }
+};
+
 // True when the server says that the page's login token belongs to
 // `userId`. False when the page has no token or the server refuses it.
-// Throws when the server cannot answer (network, timeout, 5xx).
+// Throws when the server cannot answer (network, timeout, 5xx, a body that
+// is too large or not JSON).
 export const verifyServerUserId = async (
   deps: VerifyUserDeps,
   serverUrl: string,
@@ -61,22 +141,18 @@ export const verifyServerUserId = async (
   const token = await withTimeout(deps.readLoginToken(), timeoutMs);
   if (typeof token !== 'string' || token.length === 0) return false;
 
-  const response = await withTimeout(
-    deps.fetch(new URL('api/v1/me', serverUrl).href, {
-      method: 'GET',
-      headers: { 'X-User-Id': userId, 'X-Auth-Token': token },
-      credentials: 'omit',
-      redirect: 'error',
-    }),
+  const answer = await askServer(
+    deps,
+    serverUrl,
+    'me',
+    { 'X-User-Id': userId, 'X-Auth-Token': token },
     timeoutMs
   );
-  if (response.status === 401 || response.status === 403) return false;
-  if (!response.ok) {
-    throw new Error(`E2EE search user check failed: HTTP ${response.status}`);
+  if (answer.status === 401 || answer.status === 403) return false;
+  if (!answer.ok) {
+    throw new Error(`E2EE search user check failed: HTTP ${answer.status}`);
   }
-  const body = (await withTimeout(response.json(), timeoutMs)) as {
-    _id?: unknown;
-  };
+  const body = answer.body as { _id?: unknown } | null;
   return body?._id === userId;
 };
 
@@ -87,15 +163,20 @@ export const verifyServerUserId = async (
 // asks `e2e.fetchMyKeys`, whose answer also holds the private key, encrypted
 // by the user's E2EE password. From either answer, only the public key field
 // is read and leaves this function. No part of an answer is logged or kept.
-// Null when the server holds no key for the user (a key reset removes it).
+// An open deletes the index only on an explicit answer, so:
+// - a string: the key, from an answer with `success: true`;
+// - null: the answer has `success: true` and `public_key: null`;
+// - undefined: unknown. The answer has `success: true` and no `public_key`
+//   field. Both routes send that answer today when the user has no key.
 // Throws when the server cannot tell the key: no token, a refused token,
 // network, timeout, any failure other than a 404 of the public key route,
-// or an answer of another shape.
+// no `success: true`, a body that is too large or not JSON, or an answer of
+// another shape.
 const fetchServerPublicKeyOnce = async (
   deps: VerifyUserDeps,
   serverUrl: string,
   userId: string
-): Promise<string | null> => {
+): Promise<string | null | undefined> => {
   const timeoutMs = deps.timeoutMs ?? VERIFY_USER_TIMEOUT_MS;
   const token = await withTimeout(deps.readLoginToken(), timeoutMs);
   if (typeof token !== 'string' || token.length === 0) {
@@ -103,48 +184,47 @@ const fetchServerPublicKeyOnce = async (
   }
 
   const request = (route: string) =>
-    withTimeout(
-      deps.fetch(new URL(`api/v1/${route}`, serverUrl).href, {
-        method: 'GET',
-        headers: { 'X-User-Id': userId, 'X-Auth-Token': token },
-        credentials: 'omit',
-        redirect: 'error',
-      }),
+    askServer(
+      deps,
+      serverUrl,
+      route,
+      { 'X-User-Id': userId, 'X-Auth-Token': token },
       timeoutMs
     );
 
-  let response = await request('e2e.fetchMyPublicKey');
-  if (response.status === 404) {
-    response = await request('e2e.fetchMyKeys');
+  let answer = await request('e2e.fetchMyPublicKey');
+  if (answer.status === 404) {
+    answer = await request('e2e.fetchMyKeys');
   }
-  if (!response.ok) {
-    throw new Error(`E2EE search key check failed: HTTP ${response.status}`);
+  if (!answer.ok) {
+    throw new Error(`E2EE search key check failed: HTTP ${answer.status}`);
   }
-  const body = (await withTimeout(response.json(), timeoutMs)) as {
+  const body = answer.body as {
     public_key?: unknown;
+    success?: unknown;
   } | null;
-  if (typeof body !== 'object' || body === null) {
+  if (typeof body !== 'object' || body === null || body.success !== true) {
     throw new Error('E2EE search key check got no public key');
   }
   const publicKey = body.public_key;
-  if (publicKey === undefined) return null;
+  if (publicKey === undefined || publicKey === null) return publicKey;
   if (typeof publicKey !== 'string') {
     throw new Error('E2EE search key check got no public key');
   }
   return publicKey;
 };
 
-// While the server holds no key, it asks again after each wait of
-// `noKeyRetryDelaysMs` (none by default), and returns null only after the
-// last one.
+// While the server names no key (null or undefined), it asks again after
+// each wait of `noKeyRetryDelaysMs` (none by default), and returns the last
+// answer only after the last wait.
 export const fetchServerPublicKey = async (
   deps: FetchServerPublicKeyDeps,
   serverUrl: string,
   userId: string
-): Promise<string | null> => {
+): Promise<string | null | undefined> => {
   let publicKey = await fetchServerPublicKeyOnce(deps, serverUrl, userId);
   for (const delayMs of deps.noKeyRetryDelaysMs ?? []) {
-    if (publicKey !== null) break;
+    if (typeof publicKey === 'string') break;
     // eslint-disable-next-line no-await-in-loop -- each question waits for the one before it
     await wait(delayMs);
     // eslint-disable-next-line no-await-in-loop -- each question waits for the one before it

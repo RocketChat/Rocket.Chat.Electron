@@ -69,6 +69,12 @@ module.exports = {
       errorOnDeprecated: true,
       runner: '@kayahr/jest-electron-runner/main',
       testEnvironment: 'node',
+      // The runner starts Electron with --ignore-certificate-errors by
+      // default. Main-process code checks certificates in production, so its
+      // specs keep Chromium's certificate checks.
+      testEnvironmentOptions: {
+        electron: { options: ['!ignore-certificate-errors'] },
+      },
       testMatch: [
         '<rootDir>/src/*/main/**/*.(spec|test).{js,ts,tsx}',
         '<rootDir>/src/**/main.(spec|test).{js,ts,tsx}',

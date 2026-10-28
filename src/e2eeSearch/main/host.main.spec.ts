@@ -3,7 +3,12 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { createSearchHost, SAVE_DELAY_MS, WorkerExitedError } from '../host';
+import {
+  createSearchHost,
+  disposeBeforeQuit,
+  SAVE_DELAY_MS,
+  WorkerExitedError,
+} from '../host';
 import type { SearchHost, WorkerTransport } from '../host';
 import { SNAPSHOT_FILE_NAME } from '../snapshotStore';
 import type { E2EESearchDoc, E2EESearchHit } from '../types';
@@ -474,5 +479,47 @@ describe('E2EE search host', () => {
       await workers.answerNext();
       await expect(next).resolves.toBe('stats');
     });
+  });
+});
+
+// A quit waits for the last save only up to a limit. When the limit ends the
+// wait first, the save is lost, and the caller must hear about it.
+describe('disposeBeforeQuit', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('reports a timeout when the save does not end within the limit', async () => {
+    const onTimeout = jest.fn();
+    const done = jest.fn();
+    void disposeBeforeQuit(
+      { dispose: () => new Promise<void>(() => undefined) },
+      5_000,
+      onTimeout
+    ).then(done);
+
+    await jest.advanceTimersByTimeAsync(4_999);
+    expect(done).not.toHaveBeenCalled();
+    expect(onTimeout).not.toHaveBeenCalled();
+
+    await jest.advanceTimersByTimeAsync(1);
+    expect(onTimeout).toHaveBeenCalledTimes(1);
+    expect(done).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports no timeout when the save ends within the limit', async () => {
+    const onTimeout = jest.fn();
+    await disposeBeforeQuit(
+      { dispose: () => Promise.resolve() },
+      5_000,
+      onTimeout
+    );
+
+    await jest.advanceTimersByTimeAsync(10_000);
+    expect(onTimeout).not.toHaveBeenCalled();
   });
 });

@@ -302,3 +302,22 @@ export const createSearchHost = ({
     },
   };
 };
+
+// A quit waits at most `timeoutMs` for the last save. When the limit ends the
+// wait first, the save is lost, and `onTimeout` runs so that the log shows it.
+export const disposeBeforeQuit = (
+  host: Pick<SearchHost, 'dispose'>,
+  timeoutMs: number,
+  onTimeout: () => void
+): Promise<void> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<void>((resolve) => {
+    timer = setTimeout(() => {
+      onTimeout();
+      resolve();
+    }, timeoutMs);
+  });
+  return Promise.race([host.dispose(), timeout]).finally(() =>
+    clearTimeout(timer)
+  );
+};

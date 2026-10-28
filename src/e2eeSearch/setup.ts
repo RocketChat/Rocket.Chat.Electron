@@ -17,7 +17,7 @@ import {
   DEV_TEST_KEY_FILE_NAME,
 } from './devTestKey';
 import { summarizeError } from './errorSummary';
-import { createSearchHost } from './host';
+import { createSearchHost, disposeBeforeQuit } from './host';
 import type { SearchHost, WorkerTransport } from './host';
 import { indexLimitOf } from './indexLimit';
 import type { IndexLimit } from './indexLimit';
@@ -372,9 +372,10 @@ export const setupE2EESearch = (): void => {
     event.preventDefault();
     const current = host;
     host = undefined;
-    const timeout = new Promise<void>((resolve) =>
-      setTimeout(resolve, QUIT_SAVE_TIMEOUT_MS)
-    );
-    void Promise.race([current.dispose(), timeout]).finally(() => app.exit(0));
+    void disposeBeforeQuit(current, QUIT_SAVE_TIMEOUT_MS, () =>
+      loggers.e2eeSearch.warn('quit did not wait for the last index save', {
+        timeoutMs: QUIT_SAVE_TIMEOUT_MS,
+      })
+    ).finally(() => app.exit(0));
   });
 };

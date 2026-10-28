@@ -47,7 +47,14 @@ jest.mock('../sections', () => ({
       id: 'appearance',
       icon: 'palette',
       labelKey: 'settings.appearance',
-      settingKeys: [],
+      settingKeys: ['settings.options.zzhidden'],
+      settingAvailability: {
+        'settings.options.zzhidden': ({
+          isDeveloperModeEnabled,
+        }: {
+          isDeveloperModeEnabled: boolean;
+        }) => isDeveloperModeEnabled,
+      },
       Component: () => <div data-testid='section-appearance'>appearance</div>,
     },
   ],
@@ -110,5 +117,40 @@ describe('SettingsWindow section selection', () => {
     expect(
       JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) ?? '""')
     ).toBe('appearance');
+  });
+});
+
+describe('SettingsWindow search of hidden settings (CORE-2782)', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    invokeMock.mockResolvedValue(false as never);
+  });
+
+  const searchFor = (value: string): void => {
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value } });
+  };
+
+  it('gives no result for a developer-only setting while Developer Mode is off', () => {
+    renderWithStore(<SettingsWindow paletteTheme='light' />, {
+      preloadedState: { isDeveloperModeEnabled: false },
+    });
+
+    searchFor('zzhidden');
+
+    expect(
+      screen.queryByRole('tab', { name: /settings\.appearance/ })
+    ).not.toBeInTheDocument();
+  });
+
+  it('finds a developer-only setting while Developer Mode is on', () => {
+    renderWithStore(<SettingsWindow paletteTheme='light' />, {
+      preloadedState: { isDeveloperModeEnabled: true },
+    });
+
+    searchFor('zzhidden');
+
+    expect(
+      screen.getByRole('tab', { name: /settings\.appearance/ })
+    ).toBeInTheDocument();
   });
 });

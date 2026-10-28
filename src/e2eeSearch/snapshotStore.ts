@@ -68,8 +68,8 @@ export const decryptSnapshot = (file: Buffer, key: Buffer): Buffer => {
   }
 };
 
-// `serialize` and `deserialize` exist on node:sqlite in Electron 42+ (measured
-// in the design benchmark), but @types/node does not declare them yet.
+// `serialize` and `deserialize` exist on node:sqlite in Electron 42+, but
+// @types/node does not declare them yet.
 type SerializableDatabase = DatabaseSync & {
   serialize(): Uint8Array;
   deserialize(data: Uint8Array): void;

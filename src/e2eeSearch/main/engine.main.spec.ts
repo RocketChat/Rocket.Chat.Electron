@@ -487,7 +487,7 @@ describe('e2eeSearch engine caps', () => {
     expect(engine.stats().bytes).toBeLessThanOrEqual(empty + 64 * 1024);
   });
 
-  it('has default caps above the 500,000-doc design bench', () => {
+  it('has default caps above a 500,000-doc index', () => {
     expect(MAX_INDEX_DOCS).toBeGreaterThanOrEqual(500_000);
     expect(MAX_INDEX_BYTES).toBeGreaterThanOrEqual(145 * 1024 * 1024);
     expect(MAX_INDEX_ROOMS).toBeGreaterThanOrEqual(10_000);

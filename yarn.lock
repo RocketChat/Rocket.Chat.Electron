@@ -6397,6 +6397,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"better-sqlite3-multiple-ciphers@patch:better-sqlite3-multiple-ciphers@npm%3A13.0.3#~/.yarn/patches/better-sqlite3-multiple-ciphers-npm-13.0.3-0cc69d2380.patch":
+  version: 13.0.3
+  resolution: "better-sqlite3-multiple-ciphers@patch:better-sqlite3-multiple-ciphers@npm%3A13.0.3#~/.yarn/patches/better-sqlite3-multiple-ciphers-npm-13.0.3-0cc69d2380.patch::version=13.0.3&hash=9d3f02"
+  dependencies:
+    node-addon-api: "npm:^8.0.0"
+    node-gyp: "npm:latest"
+  checksum: 10/2f10012391ac1ba886e80697cc270d037fa8b64aaa2ebc1093bb36e188674d838985122488ca4c857d1cf63d1f1b3736e2e55f2dcbb4610545449d83b6e8aa34
+  languageName: node
+  linkType: hard
+
 "binary-extensions@npm:^2.0.0":
   version: 2.3.0
   resolution: "binary-extensions@npm:2.3.0"
@@ -14761,7 +14771,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:~6.17.0"
     archiver: "npm:~7.0.1"
     axios: "npm:~1.13.6"
-    better-sqlite3-multiple-ciphers: "npm:13.0.3"
+    better-sqlite3-multiple-ciphers: "patch:better-sqlite3-multiple-ciphers@npm%3A13.0.3#~/.yarn/patches/better-sqlite3-multiple-ciphers-npm-13.0.3-0cc69d2380.patch"
     builtin-modules: "npm:~3.3.0"
     chokidar: "npm:~3.5.3"
     conventional-changelog-cli: "npm:~4.1.0"

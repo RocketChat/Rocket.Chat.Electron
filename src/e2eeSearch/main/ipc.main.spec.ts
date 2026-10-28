@@ -301,6 +301,7 @@ describe('E2EE search IPC handler', () => {
     it('keeps the user binding of the document', async () => {
       const webview = createSender(94);
       servers.set(webview.id, SERVER_A);
+      sessionUsers.set(webview.id, 'userA');
       await handle(webview, 'open', { userId: 'userA' });
       await handle(webview, 'close');
 
@@ -441,6 +442,7 @@ describe('E2EE search IPC handler', () => {
   it('deletes the index on a wipe and ends the session, but keeps the user binding', async () => {
     const webview = createSender(68);
     servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'userA');
     await handle(webview, 'open', { userId: 'userA' });
     await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
     const [indexId] = host.indexIds();
@@ -466,6 +468,7 @@ describe('E2EE search IPC handler', () => {
   it('deletes the index of the confirmed user on a wipe with a user scope and no open index', async () => {
     const webview = createSender(69);
     servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'userA');
     await handle(webview, 'open', { userId: 'userA' });
     await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
     const [indexId] = host.indexIds();
@@ -569,6 +572,7 @@ describe('E2EE search IPC handler', () => {
   it('binds the first user id of a document until the webview navigates', async () => {
     const webview = createSender(66);
     servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'user6');
     await handle(webview, 'open', { userId: 'user6' });
     await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
 
@@ -583,10 +587,158 @@ describe('E2EE search IPC handler', () => {
     ).resolves.toBeDefined();
 
     webview.navigate();
+    sessionUsers.set(webview.id, 'user7');
     await handle(webview, 'open', { userId: 'user7' });
     await expect(
       handle(webview, 'search', { text: NEEDLE })
     ).resolves.toHaveLength(0);
+  });
+
+  // The web client can log user B in on the document of user A with no
+  // logout (`loginWithToken`, also the iframe 'login-with-token' command).
+  // The open of B is the only signal, and the server must confirm it.
+  it('switches the document to another user that the server confirms, with no logout or navigation', async () => {
+    const webview = createSender(91);
+    servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'userA');
+    await handle(webview, 'open', { userId: 'userA' });
+    await handle(webview, 'upsert', [doc('m1', NEEDLE)]);
+    const closes = () => methods.filter((method) => method === 'close');
+
+    sessionUsers.set(webview.id, 'userB');
+    await expect(
+      handle(webview, 'open', { userId: 'userB' })
+    ).resolves.toBeDefined();
+    for (let wait = 0; wait < 100 && closes().length === 0; wait++) {
+      // eslint-disable-next-line no-await-in-loop -- polls until the close is sent
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+
+    // The worker closes the index of A and zeroes its key, as on a logout.
+    expect(closes()).toHaveLength(1);
+    expect(host.indexIds()).toEqual([userIndexDir(SERVER_A, 'userB')]);
+    // Search and stats answer only from the index of B.
+    expect(await searchIds(webview)).toEqual([]);
+    await expect(handle(webview, 'stats')).resolves.toMatchObject({ docs: 0 });
+    // The page of B cannot take the document back to A.
+    await expect(handle(webview, 'open', { userId: 'userA' })).rejects.toThrow(
+      'another user'
+    );
+    expect(await searchIds(webview)).toEqual([]);
+    // The index of A stays on disk for the next login of A.
+    expect(existsSync(userIndexDir(SERVER_A, 'userA'))).toBe(true);
+  });
+
+  it('keeps the session of the bound user when the check of the other user fails', async () => {
+    const webview = createSender(92);
+    servers.set(webview.id, SERVER_A);
+    const closed: string[] = [];
+    handleEvent = createE2EESearchIpcHandler({
+      resolveServerUrl: ({ sender }) => servers.get(sender.id),
+      verifyUserId: async (_event, _serverUrl, userId) => {
+        if (userId === 'userB') throw new Error('fetch failed');
+        return true;
+      },
+      fetchOwnerKey: async () => null,
+      openIndex: async (serverUrl, userId) => ({
+        indexId: `${serverUrl} ${userId}`,
+        result: {} as any,
+      }),
+      call: async (indexId) => ({ indexId }),
+      close: async (indexId) => {
+        closed.push(indexId);
+      },
+      wipeIndex: async () => undefined,
+      userIndexId: (serverUrl, userId) => `${serverUrl} ${userId}`,
+      logError: () => undefined,
+      logNotOpen: () => undefined,
+      logOwnerKeyError: () => undefined,
+    });
+    await handle(webview, 'open', { userId: 'userA' });
+
+    await expect(handle(webview, 'open', { userId: 'userB' })).rejects.toThrow(
+      E2EE_SEARCH_GENERIC_ERROR
+    );
+
+    expect(closed).toEqual([]);
+    await expect(handle(webview, 'stats')).resolves.toEqual({
+      indexId: `${SERVER_A} userA`,
+    });
+  });
+
+  it('gives no session to an open of the old user that finishes after a confirmed switch', async () => {
+    const webview = createSender(93);
+    servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'userA');
+    let release = () => undefined as void;
+    openGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const openingA = handle(webview, 'open', { userId: 'userA' });
+    // The check of A resolves, and the index open of A waits on the gate.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    sessionUsers.set(webview.id, 'userB');
+    const openingB = handle(webview, 'open', { userId: 'userB' });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    release();
+
+    await expect(openingA).rejects.toThrow(E2EE_SEARCH_GENERIC_ERROR);
+    await expect(openingB).resolves.toBeDefined();
+    expect(host.indexIds()).toEqual([userIndexDir(SERVER_A, 'userB')]);
+    await expect(handle(webview, 'stats')).resolves.toMatchObject({ docs: 0 });
+    await expect(handle(webview, 'open', { userId: 'userA' })).rejects.toThrow(
+      'another user'
+    );
+  });
+
+  it('keeps the switched binding when a refused open of the old user finishes after the switch', async () => {
+    const webview = createSender(95);
+    servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'userB');
+    let release = () => undefined as void;
+    const verifyGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const verifyUserId = async (
+      _event: unknown,
+      _serverUrl: string,
+      userId: string
+    ) => {
+      if (userId === 'userA') await verifyGate;
+      return userId === 'userB';
+    };
+    handleEvent = createE2EESearchIpcHandler({
+      resolveServerUrl: ({ sender }) => servers.get(sender.id),
+      verifyUserId,
+      fetchOwnerKey: async () => null,
+      openIndex: async (serverUrl, userId) => ({
+        indexId: `${serverUrl} ${userId}`,
+        result: {} as any,
+      }),
+      call: async () => ({ docs: 0 }),
+      close: async () => undefined,
+      wipeIndex: async () => undefined,
+      userIndexId: (serverUrl, userId) => `${serverUrl} ${userId}`,
+      logError: () => undefined,
+      logNotOpen: () => undefined,
+      logOwnerKeyError: () => undefined,
+    });
+
+    // A binds the document first, and its check waits.
+    const refusedA = handle(webview, 'open', { userId: 'userA' });
+    // B is confirmed while the check of A waits, so B takes the document.
+    await handle(webview, 'open', { userId: 'userB' });
+    release();
+    await expect(refusedA).rejects.toThrow('another user');
+
+    await expect(handle(webview, 'stats')).resolves.toMatchObject({ docs: 0 });
+    await expect(handle(webview, 'open', { userId: 'userC' })).rejects.toThrow(
+      'another user'
+    );
+    await expect(
+      handle(webview, 'open', { userId: 'userB' })
+    ).resolves.toBeDefined();
   });
 
   it('refuses a user id that the server session does not own', async () => {
@@ -643,6 +795,7 @@ describe('E2EE search IPC handler', () => {
   it('binds the user id before the first open finishes', async () => {
     const webview = createSender(77);
     servers.set(webview.id, SERVER_A);
+    sessionUsers.set(webview.id, 'user8');
     let release = () => undefined as void;
     openGate = new Promise<void>((resolve) => {
       release = resolve;
@@ -725,8 +878,8 @@ describe('E2EE search IPC handler', () => {
       resolveServerUrl: ({ sender }) => servers.get(sender.id),
       verifyUserId: async (_event, _serverUrl, userId) => {
         if (userId === 'user14') await verifyGate;
-        // Only the binding of the document refuses user16.
-        return userId !== 'user14';
+        // The page of the new document belongs to user15.
+        return userId === 'user15';
       },
       fetchOwnerKey: async () => null,
       openIndex: async (serverUrl, userId) => ({

@@ -187,9 +187,10 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   const lockedSenders = new Set<number>();
   // The webviews whose not-open call is already logged in this open cycle.
   const notOpenLogged = new Set<number>();
-  // The first user id that each document opened. A script on the
-  // page cannot switch the document to the index of another user. A
-  // navigation or a reload starts a new document, which can bind again.
+  // The user id that each document opened. A script on the page cannot
+  // switch the document to the index of another user: only an open that the
+  // server confirms for the page's login token can. A navigation or a reload
+  // starts a new document, which can bind again.
   const boundUserIds = new Map<number, string>();
 
   // Each set holds an id only while its webview lives, or while an open of
@@ -212,6 +213,12 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   // A destroyed webview has no token: the `destroyed` set handles it.
   const isStale = (senderId: number, token: object) =>
     documents.has(senderId) && documents.get(senderId) !== token;
+  // A confirmed open of another user took the document while this open
+  // ran. A destroyed webview has no binding: the `destroyed` set handles it.
+  const lostBinding = (senderId: number, userId: string) => {
+    const bound = boundUserIds.get(senderId);
+    return bound !== undefined && bound !== userId;
+  };
 
   const closeSession = (senderId: number) => {
     notOpenLogged.delete(senderId);
@@ -348,13 +355,14 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       senderServers.set(sender.id, serverUrl);
       const token = documentOf(sender.id);
       const boundUserId = boundUserIds.get(sender.id);
-      if (boundUserId !== undefined && boundUserId !== userId) {
-        wrapKey?.fill(0);
-        throw new Error('E2EE search index is open for another user');
-      }
+      // The web client can log another user in on the same document with no
+      // logout (`loginWithToken`). The open of that user switches the
+      // document only after the server confirms the user. Until then, the
+      // binding and the session of the bound user stay.
+      const switchesUser = boundUserId !== undefined && boundUserId !== userId;
       // Bind before the open finishes, so two opens cannot race.
       const newBinding = boundUserId === undefined;
-      boundUserIds.set(sender.id, userId);
+      if (newBinding) boundUserIds.set(sender.id, userId);
       pendingOpens.set(sender.id, (pendingOpens.get(sender.id) ?? 0) + 1);
       try {
         let owned: boolean | 'failed';
@@ -370,13 +378,26 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
         }
         if (owned !== true) {
           // A refused claim does not bind the document, so the real user
-          // can still open.
-          if (newBinding) boundUserIds.delete(sender.id);
+          // can still open. A confirmed switch can bind another user while
+          // this check runs, and that binding stays.
+          if (newBinding && boundUserIds.get(sender.id) === userId) {
+            boundUserIds.delete(sender.id);
+          }
           throw new Error(
             owned === 'failed'
               ? E2EE_SEARCH_GENERIC_ERROR
               : 'E2EE search index is open for another user'
           );
+        }
+        if (switchesUser && boundUserIds.get(sender.id) !== userId) {
+          // The server confirmed that the document now belongs to `userId`.
+          // The document ends the session of the other user like a logout
+          // does: its index closes (the worker zeroes the key), and an open
+          // in flight for that user gets no session (`lostBinding`). A
+          // reload gives the page the same power, so the switch gives it no
+          // more.
+          boundUserIds.set(sender.id, userId);
+          closeSession(sender.id);
         }
         // A server that cannot tell the key only leaves the open as it was
         // before the key check: nothing is deleted.
@@ -394,7 +415,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
         // not sealed yet is sealed at the next open with the wrap key
         // (keyStore.ts).
         if (!wrapKey && ownerKey !== null) {
-          if (isStale(sender.id, token)) {
+          if (isStale(sender.id, token) || lostBinding(sender.id, userId)) {
             throw new Error(E2EE_SEARCH_GENERIC_ERROR);
           }
           closeSession(sender.id);
@@ -406,7 +427,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
           .catch((error: unknown) => {
             throw toPageError(deps, method, error);
           });
-        if (isStale(sender.id, token)) {
+        if (isStale(sender.id, token) || lostBinding(sender.id, userId)) {
           await deps.close(indexId).catch(() => undefined);
           throw new Error(E2EE_SEARCH_GENERIC_ERROR);
         }

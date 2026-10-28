@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -10,6 +10,8 @@ import {
   BRIDGE_METHODS,
   createE2EESearchIpcHandler,
   E2EE_SEARCH_GENERIC_ERROR,
+  E2EE_SEARCH_LOCKED_ERROR,
+  E2EE_SEARCH_LOCKED_RESULT,
   MAX_CALLS_IN_FLIGHT_PER_WEBVIEW,
 } from '../ipc';
 import type { E2EESearchSender } from '../ipc';
@@ -890,5 +892,93 @@ describe('E2EE search IPC handler', () => {
 
     expect(ownerKeyChecks).toEqual([]);
     expect(ownerKeys).toEqual([]);
+  });
+
+  // LSE2EE-110: on a server that has E2EE, the index opens only sealed by
+  // the wrap key.
+  describe('seals the index when the server has E2EE (LSE2EE-110)', () => {
+    const wrapKey = () => new Uint8Array(32).fill(7);
+
+    it('returns locked and opens nothing for an open with no wrap key', async () => {
+      await expect(
+        handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true })
+      ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
+
+      expect(wrapKeys).toEqual([]);
+      expect(methods).toEqual([]);
+      expect(existsSync(root) ? readdirSync(root) : []).toEqual([]);
+      expect(logged).toEqual([]);
+    });
+
+    it('reports locked to each call until an open with the wrap key', async () => {
+      await handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true });
+
+      const locked = handle(webviewA, 'search', { text: NEEDLE });
+      await expect(locked).rejects.toThrow(E2EE_SEARCH_LOCKED_ERROR);
+      await locked.catch((error) => expect(isExpectedError(error)).toBe(true));
+      await expect(handle(webviewA, 'stats')).rejects.toThrow(
+        E2EE_SEARCH_LOCKED_ERROR
+      );
+
+      await expect(
+        handle(webviewA, 'open', {
+          userId: 'user1',
+          wrapKey: wrapKey(),
+          e2eeAvailable: true,
+        })
+      ).resolves.not.toHaveProperty('locked');
+      expect(wrapKeys).toEqual([Buffer.alloc(32, 7)]);
+      await expect(searchIds(webviewA)).resolves.toEqual([]);
+    });
+
+    it('closes an open index when a later open has no wrap key', async () => {
+      await handle(webviewA, 'open', {
+        userId: 'user1',
+        wrapKey: wrapKey(),
+        e2eeAvailable: true,
+      });
+      await handle(webviewA, 'upsert', [doc('m1', NEEDLE)]);
+
+      await expect(
+        handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true })
+      ).resolves.toEqual(E2EE_SEARCH_LOCKED_RESULT);
+      await expect(searchIds(webviewA)).rejects.toThrow(
+        E2EE_SEARCH_LOCKED_ERROR
+      );
+    });
+
+    it('forgets the locked state after a navigation', async () => {
+      await handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: true });
+      webviewA.navigate();
+
+      await expect(handle(webviewA, 'stats')).rejects.toThrow(
+        'E2EE search index is not open'
+      );
+    });
+
+    it('keeps the old open for a web client that does not report E2EE', async () => {
+      await expect(
+        handle(webviewA, 'open', { userId: 'user1' })
+      ).resolves.not.toHaveProperty('locked');
+      await expect(
+        handle(webviewB, 'open', { userId: 'user1', e2eeAvailable: false })
+      ).resolves.not.toHaveProperty('locked');
+
+      expect(wrapKeys).toEqual([undefined, undefined]);
+    });
+
+    it('refuses a flag that is not a boolean', async () => {
+      await expect(
+        handle(webviewA, 'open', { userId: 'user1', e2eeAvailable: 'yes' })
+      ).rejects.toBeInstanceOf(E2EESearchInputError);
+      expect(verified).toEqual([]);
+    });
+
+    it('does not answer locked for a user that the server does not confirm', async () => {
+      sessionUsers.set(webviewA.id, 'user1');
+      await expect(
+        handle(webviewA, 'open', { userId: 'user2', e2eeAvailable: true })
+      ).rejects.toThrow('another user');
+    });
   });
 });

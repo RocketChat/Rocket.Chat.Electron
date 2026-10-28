@@ -103,7 +103,7 @@ export const E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME = 'E2EESearchKeyMismatchError';
 
 export const validateScope = (
   value: unknown
-): { userId: string; wrapKey?: Buffer } => {
+): { userId: string; wrapKey?: Buffer; e2eeAvailable?: boolean } => {
   if (!isRecord(value)) return fail('scope must be an object');
   const userId = id(value.userId, 'scope.userId');
   // The user id is a folder name. Allow only the characters of a Meteor id.
@@ -118,7 +118,17 @@ export const validateScope = (
     // A copy: the page cannot change the bytes after the check.
     return Buffer.from(key);
   });
-  return wrapKey ? { userId, wrapKey } : { userId };
+  // LSE2EE-110: the web client says that the server has E2EE.
+  const e2eeAvailable = optional(value.e2eeAvailable, (flag) =>
+    typeof flag === 'boolean'
+      ? flag
+      : fail('scope.e2eeAvailable must be a boolean')
+  );
+  return {
+    userId,
+    ...(wrapKey && { wrapKey }),
+    ...(e2eeAvailable !== undefined && { e2eeAvailable }),
+  };
 };
 
 export const validateDocs = (value: unknown): E2EESearchDoc[] => {

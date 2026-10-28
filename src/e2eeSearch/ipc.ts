@@ -1,5 +1,6 @@
 import { markExpectedError } from '../logging/expectedErrors';
 import type { OwnerKeyFingerprint } from './ownerKey';
+import { SCHEMA_VERSION } from './schema';
 import type { E2EESearchOpenResult } from './types';
 import {
   E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME,
@@ -156,6 +157,16 @@ const zeroPageWrapKey = (scope: unknown) => {
   if (wrapKey instanceof Uint8Array) wrapKey.fill(0);
 };
 
+// LSE2EE-110: the answer to an open with no wrap key on a server that has
+// E2EE. No index is open, so nothing is encrypted at rest yet.
+export const E2EE_SEARCH_LOCKED_RESULT: E2EESearchOpenResult = Object.freeze({
+  schemaVersion: SCHEMA_VERSION,
+  encryptedAtRest: false,
+  locked: true,
+});
+
+export const E2EE_SEARCH_LOCKED_ERROR = 'E2EE search index is locked';
+
 const VOID_METHODS = new Set<BridgeMethod>([
   'upsert',
   'remove',
@@ -169,6 +180,9 @@ const VOID_METHODS = new Set<BridgeMethod>([
 // another server: each server and user has its own index id (folder).
 export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   const sessions = new Map<number, Session>();
+  // The webviews whose last open returned `locked` (LSE2EE-110). Their calls
+  // fail with the locked error until an open with the wrap key.
+  const lockedSenders = new Set<number>();
   // The webviews whose not-open call is already logged in this open cycle.
   const notOpenLogged = new Set<number>();
   // The first user id that each document opened. A script on the
@@ -199,6 +213,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
 
   const closeSession = (senderId: number) => {
     notOpenLogged.delete(senderId);
+    lockedSenders.delete(senderId);
     const session = sessions.get(senderId);
     if (!session) return;
     sessions.delete(senderId);
@@ -305,7 +320,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   ): Promise<unknown> => {
     const { sender } = event;
     if (method === 'open') {
-      const { userId, wrapKey } = validateScope(args[0]);
+      const { userId, wrapKey, e2eeAvailable } = validateScope(args[0]);
       watch(sender);
       senderServers.set(sender.id, serverUrl);
       const token = documentOf(sender.id);
@@ -340,6 +355,16 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
               : 'E2EE search index is open for another user'
           );
         }
+        // LSE2EE-110: on a server that has E2EE, the index opens only sealed
+        // by the wrap key. Before E2EE unlock the page has no wrap key, so
+        // no index opens, no key file is made and no index file is written.
+        // A key file that is not sealed yet is sealed at the next open with
+        // the wrap key (keyStore.ts).
+        if (e2eeAvailable === true && !wrapKey) {
+          closeSession(sender.id);
+          if (!destroyed.has(sender.id)) lockedSenders.add(sender.id);
+          return E2EE_SEARCH_LOCKED_RESULT;
+        }
         // A server that cannot tell the key only leaves the open as it was
         // before the key check: nothing is deleted.
         const ownerKey = await deps
@@ -362,6 +387,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
           await deps.close(previous.indexId).catch(() => undefined);
         }
         sessions.set(sender.id, { serverUrl, indexId });
+        lockedSenders.delete(sender.id);
         // The webview can end while the index opens.
         if (destroyed.has(sender.id)) closeSession(sender.id);
         return result;
@@ -395,7 +421,13 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
         notOpenLogged.add(sender.id);
         deps.logNotOpen(method);
       }
-      throw markExpectedError(new Error('E2EE search index is not open'));
+      throw markExpectedError(
+        new Error(
+          lockedSenders.has(sender.id)
+            ? E2EE_SEARCH_LOCKED_ERROR
+            : 'E2EE search index is not open'
+        )
+      );
     }
     if (method === 'wipe') {
       // The page that opened the index can already remove every row of it.

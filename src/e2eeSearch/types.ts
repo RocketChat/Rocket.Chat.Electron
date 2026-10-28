@@ -71,6 +71,10 @@ export type E2EESearchOpenResult = {
   encryptedAtRest: boolean;
   store?: 'file' | 'snapshot';
   limitedReason?: E2EESearchLimitReason;
+  // LSE2EE-110: true when the open had no wrap key on a server that has
+  // E2EE. No index opened and nothing was written. An open with the wrap key
+  // (after E2EE unlock) opens the sealed index.
+  locked?: true;
 };
 
 export type E2EESearchScope = {
@@ -79,6 +83,10 @@ export type E2EESearchScope = {
   // E2EE private key, never the private key itself. With it, the index opens
   // only with the same key. A server without the web-client change sends none.
   wrapKey?: Uint8Array;
+  // LSE2EE-110: the server has E2EE. The index then opens only sealed by the
+  // wrap key, and an open with no wrap key returns `locked`. A web client
+  // without this flag keeps the old behavior.
+  e2eeAvailable?: boolean;
 };
 
 export type SearchIndexBackend = {

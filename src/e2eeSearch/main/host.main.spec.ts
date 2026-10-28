@@ -294,6 +294,48 @@ describe('E2EE search host', () => {
     await host.dispose();
   });
 
+  // The reopen after a crash shows the key copy that the host keeps.
+  const spawnRecordingOpenKeys = (
+    workers: ReturnType<typeof createFakeWorkers>,
+    keys: Uint8Array[]
+  ) => (): WorkerTransport => {
+    const transport = workers.spawn();
+    return {
+      ...transport,
+      postMessage: (request) => {
+        if (request.method === 'open') {
+          keys.push((request.args[0] as WorkerOpenArgs).indexKey.key);
+        }
+        transport.postMessage(request);
+      },
+    };
+  };
+
+  it.each(['close', 'discard'] as const)(
+    'zeroes its own copy of the index key on %s, and leaves the caller key',
+    async (drop) => {
+      const keys: Uint8Array[] = [];
+      const workers = createFakeWorkers();
+      const host = createSearchHost({
+        spawn: spawnRecordingOpenKeys(workers, keys),
+      });
+      await host.open(indexId, openArgs);
+      workers.spawned[0].crash();
+      await host.call(indexId, 'stats');
+
+      expect(keys).toHaveLength(2);
+      const hostCopy = keys[1];
+      expect(hostCopy).not.toBe(openArgs.indexKey.key);
+      expect(hostCopy.some((byte) => byte !== 0)).toBe(true);
+
+      await host[drop](indexId);
+
+      expect(hostCopy.every((byte) => byte === 0)).toBe(true);
+      expect(openArgs.indexKey.key.some((byte) => byte !== 0)).toBe(true);
+      await host.dispose();
+    }
+  );
+
   it('a change that lands while the close saves reaches the snapshot', async () => {
     const workers = createFakeWorkers();
     const host = createSearchHost({ spawn: workers.spawn });

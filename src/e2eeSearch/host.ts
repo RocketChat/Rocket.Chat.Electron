@@ -58,6 +58,18 @@ export type SearchHost = {
   dispose(): Promise<void>;
 };
 
+// The host keeps its own copy of the index key to open the index again
+// after a worker crash, and zeroes that copy when it drops the index. The
+// caller keeps and zeroes its own key.
+const ownCopyOf = (args: WorkerOpenArgs): WorkerOpenArgs => ({
+  ...args,
+  indexKey: { ...args.indexKey, key: Buffer.from(args.indexKey.key) },
+});
+
+const zeroKeyOf = (args: WorkerOpenArgs | undefined): void => {
+  args?.indexKey.key.fill(0);
+};
+
 // Runs in the main process. It starts the worker on the first call, and it
 // starts a new worker after a crash: the next call opens each index again
 // from its last snapshot. Changes after the last snapshot are lost, which is
@@ -258,7 +270,11 @@ export const createSearchHost = ({
     open: (indexId, args) =>
       inOrder(indexId, async () => {
         const value = await send(indexId, 'open', [args]);
-        openArgs.set(indexId, args);
+        const previous = openArgs.get(indexId);
+        openArgs.set(indexId, ownCopyOf(args));
+        // A reopen that read the old copy was queued before this open, so
+        // the worker already has it.
+        zeroKeyOf(previous);
         needsOpen.delete(indexId);
         return value;
       }),
@@ -273,18 +289,26 @@ export const createSearchHost = ({
           // eslint-disable-next-line no-await-in-loop -- saves the changes that came in during the last save
           await save(indexId);
         } while (dirty.has(indexId));
+        const args = openArgs.get(indexId);
         openArgs.delete(indexId);
         needsOpen.delete(indexId);
-        if (worker) await send(indexId, 'close', []);
+        try {
+          if (worker) await send(indexId, 'close', []);
+        } finally {
+          // A reopen queued before the close was posted before it.
+          zeroKeyOf(args);
+        }
       }),
 
     async discard(indexId) {
       cancelSave(indexId);
       markClean(indexId);
+      const args = openArgs.get(indexId);
       openArgs.delete(indexId);
       needsOpen.delete(indexId);
       await saving.get(indexId);
       if (worker) await send(indexId, 'close', []).catch(() => undefined);
+      zeroKeyOf(args);
     },
 
     indexIds: () => [...openArgs.keys()],

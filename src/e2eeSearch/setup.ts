@@ -198,12 +198,15 @@ export const openE2EESearchIndex = async (
           'keychain did not answer in time, the index is memory-only'
         );
       }
-      const { store, fileStoreError, ...result } =
-        (await getE2EESearchHost().open(dir, {
+      // The worker and the host each keep their own copy of the index key,
+      // so this one is zeroed when the open ends.
+      const { store, fileStoreError, ...result } = (await getE2EESearchHost()
+        .open(dir, {
           userId,
           dir,
           indexKey,
-        })) as WorkerOpenResult;
+        })
+        .finally(() => indexKey.key.fill(0))) as WorkerOpenResult;
       if (fileStoreError) {
         loggers.e2eeSearch.warn(
           'file store did not open, using the snapshot store',

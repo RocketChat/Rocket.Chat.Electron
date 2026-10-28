@@ -5,9 +5,14 @@
 // Usage:
 //   node state.mjs init                 makes the credentials when missing
 //   node state.mjs get <dotted.path>    prints one value (for example admin.username)
-//   node state.mjs forget-world <port>  drops the test world of the server on that port
+//   node state.mjs forget-world <port>  drops every test world of the server on that port
 //
-// Other scripts import `readState`, `writeState` and `ensureCredentials`.
+// Other scripts import `readState`, `writeState`, `ensureCredentials`,
+// `usersOf` and `worldKey`.
+//
+// A named world (for example `win` for the Windows test) has its own users
+// in `worldUsers.<name>` and its own entry `worlds.<port>-<name>`. The default
+// world keeps `users` and `worlds.<port>`.
 
 import { randomBytes } from 'node:crypto';
 import {
@@ -52,9 +57,32 @@ const userTemplate = (username) => ({
   name: username,
 });
 
-export const ensureCredentials = () => {
+// The key of a world in `worlds`: the port for the default world, and
+// `<port>-<name>` for a named world.
+export const worldKey = (port, world = '') =>
+  world ? `${port}-${world}` : String(port);
+
+// The users A and B of a world.
+export const usersOf = (state, world = '') =>
+  world ? state.worldUsers?.[world] : state.users;
+
+export const ensureCredentials = (world = '') => {
   const state = readState();
   state.admin ??= { ...userTemplate('harnessadmin'), password: newPassword() };
+  if (world) {
+    state.worldUsers ??= {};
+    const users = (state.worldUsers[world] ??= {});
+    users.a ??= {
+      ...userTemplate(`${world}harnessa`),
+      password: newPassword(),
+    };
+    users.b ??= {
+      ...userTemplate(`${world}harnessb`),
+      password: newPassword(),
+    };
+    writeState(state);
+    return state;
+  }
   state.users ??= {};
   state.users.a ??= {
     ...userTemplate('harnessalice'),
@@ -75,9 +103,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (command === 'init') {
     ensureCredentials();
   } else if (command === 'forget-world' && path) {
-    // After a database reset, the ids of the old world are gone.
+    // After a database reset, the ids of every world on that server are
+    // gone: the default world and each named world.
     const state = readState();
-    if (state.worlds) delete state.worlds[path];
+    for (const key of Object.keys(state.worlds ?? {})) {
+      if (key === path || key.startsWith(`${path}-`)) delete state.worlds[key];
+    }
     writeState(state);
   } else if (command === 'get' && path) {
     const value = getPath(readState(), path);

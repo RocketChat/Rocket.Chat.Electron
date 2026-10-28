@@ -1,6 +1,13 @@
 // Makes the known test world of the E2EE search harness on a fresh server.
 //
-//   node seed.mjs [--port <port>]
+//   node seed.mjs [--port <port>] [--world <name>]
+//
+// Without --world, it makes the default world (users harnessalice and
+// harnessbob, rooms harness-*, words harness*). With --world <name>, it makes
+// a separate world on the same server, where the name replaces the prefix
+// "harness" (for `win`: users winharnessa and winharnessb, rooms win-*, words
+// win*). Each world has its own users, rooms and words, so a seed or a test
+// of one world never changes another world.
 //
 // It uses the REST API with the admin user and two headless Chrome pages
 // (puppeteer from the desktop repository), so the real web client makes the
@@ -33,27 +40,48 @@ import {
   ensureCredentials,
   readState,
   stateDir,
+  usersOf,
+  worldKey,
   writeState,
 } from './state.mjs';
 
 const harnessDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(harnessDir, '..', '..');
 
-const { values } = parseArgs({ options: { port: { type: 'string' } } });
+const { values } = parseArgs({
+  options: { port: { type: 'string' }, world: { type: 'string' } },
+});
 const port = Number(values.port ?? process.env.HARNESS_PORT ?? 3500);
 const host = process.env.HARNESS_HOST ?? 'localhost';
 const base = `http://${host}:${port}`;
+const worldName = values.world ?? '';
+// The name "harness" would give the rooms and words of the default world.
+if (
+  worldName &&
+  (!/^[a-z0-9]{1,16}$/.test(worldName) || worldName === 'harness')
+) {
+  console.error(
+    'seed: --world must be 1 to 16 lower-case letters or digits, and not "harness"'
+  );
+  process.exit(2);
+}
+const prefix = worldName || 'harness';
 
 export const WORLD = {
-  group: 'harness-e2ee-room',
-  control: 'harness-plain-room',
-  controlWord: 'harnesscontrolplain',
+  group: `${prefix}-e2ee-room`,
+  control: `${prefix}-plain-room`,
+  controlWord: `${prefix}controlplain`,
   // In the order that they are sent. The first one is the oldest.
   needles: [
-    { key: 'bravo', word: 'harnessneedlebravo', author: 'b', kind: 'text' },
-    { key: 'charlie', word: 'harnessneedlecharlie', author: 'b', kind: 'text' },
-    { key: 'alpha', word: 'harnessneedlealpha', author: 'a', kind: 'text' },
-    { key: 'file', word: 'harnessneedlefile', author: 'b', kind: 'file' },
+    { key: 'bravo', word: `${prefix}needlebravo`, author: 'b', kind: 'text' },
+    {
+      key: 'charlie',
+      word: `${prefix}needlecharlie`,
+      author: 'b',
+      kind: 'text',
+    },
+    { key: 'alpha', word: `${prefix}needlealpha`, author: 'a', kind: 'text' },
+    { key: 'file', word: `${prefix}needlefile`, author: 'b', kind: 'file' },
   ],
 };
 
@@ -347,8 +375,9 @@ const sendFile = async (client, filePath, caption, word) => {
 };
 
 const main = async () => {
-  const state = ensureCredentials();
-  const { admin, users } = state;
+  const state = ensureCredentials(worldName);
+  const { admin } = state;
+  const users = usersOf(state, worldName);
   const adminAuth = await loginAdmin(admin);
   log(`admin logged in to ${base}`);
   await applySettings(admin, adminAuth);
@@ -357,7 +386,8 @@ const main = async () => {
     auth: adminAuth,
   });
   if (existingA.success) {
-    if (await worldStillThere(state.worlds?.[port], users.a)) {
+    const known = state.worlds?.[worldKey(port, worldName)];
+    if (await worldStillThere(known, users.a)) {
       log('world exists: nothing to do');
       return;
     }
@@ -498,9 +528,14 @@ const main = async () => {
     log(`plain channel ${WORLD.control} with the control word created`);
 
     const fresh = readState();
-    fresh.users = users;
+    if (worldName) {
+      fresh.worldUsers ??= {};
+      fresh.worldUsers[worldName] = users;
+    } else {
+      fresh.users = users;
+    }
     fresh.worlds ??= {};
-    fresh.worlds[port] = {
+    fresh.worlds[worldKey(port, worldName)] = {
       server: base,
       seededAt: new Date().toISOString(),
       group: { name: WORLD.group, rid },

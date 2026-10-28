@@ -2,7 +2,8 @@
 
 This harness tests the local search of encrypted messages end to end. It
 uses a packaged macOS build of the desktop app and a real Rocket.Chat
-server. The web client of the server makes the E2E keys, sends the encrypted
+server. A second script runs the same checks against a packaged Windows
+build (see [Windows](#windows)). The web client of the server makes the E2E keys, sends the encrypted
 messages and runs the history crawler. The desktop app keeps the encrypted
 index. The harness drives everything through REST, headless Chrome and the
 Chrome DevTools Protocol (CDP). It never moves the mouse and never takes the
@@ -10,7 +11,8 @@ focus.
 
 ## Prerequisites
 
-- macOS (the packaged test only). The server part also runs on Linux.
+- macOS (the packaged macOS test, and the Mac side of the Windows test). The
+  server part also runs on Linux.
 - Node.js 22.18 or later (the Volta pin of this repository). The canary scan
   imports a `.ts` file.
 - `yarn install` in this repository. The seed script uses its `puppeteer`.
@@ -66,6 +68,8 @@ scripts/e2ee-search-harness/server.sh up|down|status|reset [CORE_DIR] [PORT]
 node scripts/e2ee-search-harness/seed.mjs [--port PORT]
 scripts/e2ee-search-harness/build-macos.sh
 scripts/e2ee-search-harness/macos-packaged.sh [path/to/Rocket.Chat.app]
+node scripts/e2ee-search-harness/seed.mjs --world win
+scripts/e2ee-search-harness/windows-packaged.sh [--build]
 ```
 
 - `server.sh up` starts MongoDB and the server in the background, makes the
@@ -74,7 +78,8 @@ scripts/e2ee-search-harness/macos-packaged.sh [path/to/Rocket.Chat.app]
   `server.sh reset` deletes only the database of that server.
 - `seed.mjs` makes the test world. If the world exists, it does nothing. If
   the users exist but the state file does not know the world, it fails. Then
-  run `server.sh reset`.
+  run `server.sh reset`. `--world <name>` makes a separate world on the same
+  server (see [The test world](#the-test-world)).
 - `build-macos.sh` builds `$DESKTOP_DIR` into the state folder. Run it again
   after you change the desktop code.
 
@@ -96,6 +101,19 @@ scripts/e2ee-search-harness/macos-packaged.sh [path/to/Rocket.Chat.app]
     ciphertext.
 - The plain public channel `harness-plain-room` has the control word
   `harnesscontrolplain`. That word must never go into the local index.
+
+`seed.mjs --world <name>` makes a separate world with the same layout. The
+name replaces the prefix `harness` in each user, room and word. For example,
+`--world win` gives the users `winharnessa` and `winharnessb`, the rooms
+`win-e2ee-room` and `win-plain-room`, and the words `winneedlebravo` and
+`wincontrolplain`. The state file keeps the default world in `users` and
+`worlds.<port>`, and a named world in `worldUsers.<name>` and
+`worlds.<port>-<name>`. A seed or a test of one world never changes another
+world.
+
+`server.sh reset` deletes the database, so it deletes every world of that
+server. `run-all.sh` without `--reuse` does a reset. It seeds and tests only
+the default world. The next `windows-packaged.sh` run seeds its world again.
 
 ## The packaged test
 
@@ -123,10 +141,60 @@ exit code is 0 only when every check passes. The run folder,
 `.localdev/e2ee-search-harness/runs/<timestamp>/`, holds the JSON output of
 each step, `main.log`, the canary scan results and the screenshot.
 
+## Windows
+
+`windows-packaged.sh` runs on the Mac and drives a Windows 11 x64 host over
+SSH. The host needs OpenSSH Server with a key login, Node.js 22.18 or later,
+and `tar.exe` (Windows 10 and later have it). It needs no Visual Studio: the
+native modules come as prebuilt binaries.
+
+| Variable           | Default                  | Use                                       |
+| ------------------ | ------------------------ | ----------------------------------------- |
+| `WINDOWS_HOST`     | none (required)          | SSH destination (`user@host` or an alias) |
+| `WINDOWS_DIR`      | `C:\e2ee-search-harness` | Work folder on the host, no spaces        |
+| `WINDOWS_NODE_DIR` | none                     | Folder of `node.exe`, if PATH has no node |
+| `WINDOWS_CDP_PORT` | `9446`                   | Remote debugging port of the app          |
+| `WINDOWS_WORLD`    | `win`                    | Name of the test world                    |
+
+Start the server first (`server.sh up`). Then run:
+
+```sh
+export WINDOWS_HOST=user@windows-host
+scripts/e2ee-search-harness/windows-packaged.sh --build
+```
+
+- The script seeds the world `win` when the world does not exist. It never resets the
+  server, so the macOS world stays.
+- With `--build`, or when the host has no build, it copies the working tree
+  of `$DESKTOP_DIR` to the host. That is the tracked files and the untracked
+  files that git does not ignore. Then it runs `yarn install`, the
+  production build and `electron-builder --win dir --x64` there. Run it with
+  `--build` again after you change the desktop code.
+- One SSH connection holds two tunnels. The host reaches the server as
+  `localhost:$HARNESS_PORT`, and the Mac reaches the CDP port of the app.
+  So `HARNESS_HOST` must be `localhost` or `127.0.0.1`.
+- The app runs with `--user-data-dir=$WINDOWS_DIR\profile` and the product
+  name `$APP_NAME`. The script deletes only that profile and the folder
+  `%APPDATA%\$APP_NAME`. It never touches another Rocket.Chat app on the host.
+- The helpers in `windows/` run on the host in Windows PowerShell. The
+  script copies them to `$WINDOWS_DIR\harness` at each run.
+
+The checks are the same as in the macOS test, with these changes:
+
+| Line      | Meaning on Windows                                                                                                                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `c`       | The app closes through CDP (`Browser.close`) instead of a SIGTERM.                                                                                                                                                        |
+| `d`       | `Stop-Process -Force` ends every process of the app instead of a SIGKILL.                                                                                                                                                 |
+| `e`       | The scan covers the profile and `%APPDATA%\$APP_NAME`.                                                                                                                                                                    |
+| `f.dpapi` | Replaces `f`. The profile has one `key.bin`. The key in `Local State` is DPAPI-protected, and DPAPI opens it. That key opens `key.bin` (AES-GCM, prefix `v10`). The plaintext starts with `kw1.`, and `key.bin` does not. |
+
+The run folder is `.localdev/e2ee-search-harness/runs/win-<timestamp>/`.
+
 ## Known limits
 
 - The canary scan cannot see a token inside compressed data, for example a
   snappy block of LevelDB. A clean scan is weaker evidence there.
-- The packaged test is for macOS only.
+- The packaged tests are for macOS and Windows x64. There is no Linux
+  packaged test.
 - When a keychain dialog shows, the test stops. Do not click "Always Allow".
   Report the dialog.

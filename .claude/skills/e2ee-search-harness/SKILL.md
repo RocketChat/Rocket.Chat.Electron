@@ -1,6 +1,6 @@
 ---
 name: e2ee-search-harness
-description: Run the E2EE local search harness (packaged macOS app, local server) and report its result lines
+description: Run the E2EE local search harness (packaged macOS or Windows app, local server) and report its result lines
 ---
 
 # E2EE search harness
@@ -23,6 +23,21 @@ proves and what each script does.
 5. After a change to the desktop code, run
    `scripts/e2ee-search-harness/build-macos.sh` before the test.
 
+## Run it on Windows
+
+1. Start the server with `scripts/e2ee-search-harness/server.sh up`. Do not
+   use `run-all.sh` for Windows. Its reset deletes every world.
+2. Set `WINDOWS_HOST` to the SSH destination of a Windows 11 x64 host with
+   a key login and Node.js 22.18 or later. Set `WINDOWS_NODE_DIR` when
+   `node` is not in PATH on the host.
+3. Run `scripts/e2ee-search-harness/windows-packaged.sh --build` in the
+   background. The first build on the host takes some minutes. Leave out
+   `--build` to test the last build again.
+4. The script uses the world `win` (users `winharnessa` and `winharnessb`).
+   It never resets the server, so the macOS world stays.
+5. Report `f.dpapi` in place of `f`. The README tells what each Windows
+   line proves.
+
 ## Report
 
 - Copy each `PASS` or `FAIL` line and the `SUMMARY` line exactly.
@@ -39,6 +54,8 @@ proves and what each script does.
 - Do not stop or reuse a server that the harness did not start.
   `server.sh down` stops only the harness processes.
 - Do not move the mouse or take the focus. The scripts use `open -g` and CDP.
+- On Windows, stop only the test app. `windows/stop.ps1` stops only the
+  processes under `$WINDOWS_DIR\dist`.
 - If a keychain dialog shows, stop and report it. Never click
   "Always Allow". Never change the keychain access lists.
 - Do not set `APP_NAME` to `Rocket.Chat`. That is the production keychain

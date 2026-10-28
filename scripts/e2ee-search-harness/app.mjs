@@ -1,8 +1,10 @@
 // Drives the packaged app through CDP for the E2EE search harness.
 //
 //   node app.mjs <command> [--cdp-port <port>] [--out <file>] [--timeout <s>]
+//                [--world <name>]
 //
 // It reads the users and the test world from the state file (see seed.mjs).
+// --world selects a named world (the same name as for seed.mjs).
 // It prints one JSON line and exits with 1 when the step fails. The output
 // holds message ids and counts, never a password or a token.
 //
@@ -19,6 +21,8 @@
 //                 reads the index size and searches the oldest needle.
 //   at-rest       asks the main process for the index stats of each server,
 //                 through the root window store, and prints `atRest`.
+//   quit          asks the app to close through CDP (Browser.close). It does
+//                 not wait until the app exits.
 //
 // The bridge calls run in the page of the server webview, so they use the
 // index that the web client opened for its own document.
@@ -33,7 +37,7 @@ import {
   isServerWebview,
   sleep,
 } from './cdp.mjs';
-import { readState } from './state.mjs';
+import { readState, usersOf, worldKey } from './state.mjs';
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -42,6 +46,7 @@ const { values, positionals } = parseArgs({
     'out': { type: 'string' },
     'timeout': { type: 'string' },
     'port': { type: 'string' },
+    'world': { type: 'string' },
   },
 });
 const command = positionals[0];
@@ -50,9 +55,10 @@ const serverPort = values.port ?? process.env.HARNESS_PORT ?? '3500';
 const serverHost = `${process.env.HARNESS_HOST ?? 'localhost'}:${serverPort}`;
 const timeoutMs = Number(values.timeout ?? 300) * 1000;
 
+const worldName = values.world ?? '';
 const state = readState();
-const world = state.worlds?.[serverPort];
-const userA = state.users?.a;
+const world = state.worlds?.[worldKey(serverPort, worldName)];
+const userA = usersOf(state, worldName)?.a;
 
 const print = (result) => console.log(JSON.stringify(result));
 const finish = (ok, result) => {
@@ -62,7 +68,7 @@ const finish = (ok, result) => {
 
 if (!world || !userA?.e2ePassword) {
   finish(false, {
-    error: `no seeded world for port ${serverPort}: run seed.mjs`,
+    error: `no seeded world ${worldKey(serverPort, worldName)}: run seed.mjs`,
   });
 }
 
@@ -326,6 +332,32 @@ const commands = {
       users: server?.users,
       bytesOnDisk: server?.bytesOnDisk,
     });
+  },
+
+  async 'quit'() {
+    const version = await fetch(`http://127.0.0.1:${cdpPort}/json/version`, {
+      signal: AbortSignal.timeout(5000),
+    })
+      .then((response) => response.json())
+      .catch(() => undefined);
+    if (!version?.webSocketDebuggerUrl)
+      finish(false, { error: `no browser target on CDP port ${cdpPort}` });
+    // The app can close the connection before it answers.
+    const answer = await new Promise((resolve) => {
+      const ws = new WebSocket(version.webSocketDebuggerUrl);
+      const timer = setTimeout(() => resolve('timeout'), 10_000);
+      const done = (result) => {
+        clearTimeout(timer);
+        resolve(result);
+      };
+      ws.addEventListener('open', () =>
+        ws.send(JSON.stringify({ id: 1, method: 'Browser.close' }))
+      );
+      ws.addEventListener('message', () => done('answered'));
+      ws.addEventListener('close', () => done('closed'));
+      ws.addEventListener('error', () => done('error'));
+    });
+    finish(answer === 'answered' || answer === 'closed', { answer });
   },
 };
 

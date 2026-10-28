@@ -198,4 +198,35 @@ describe('e2eeSearch snapshot store', () => {
     await store.save(plain);
     expect(Buffer.from((await store.load())!)).toEqual(plain);
   });
+
+  describe('stale temp files', () => {
+    const stale = () => `${file()}.99999.1.tmp`;
+
+    it('removes a stale temp file on load and keeps the snapshot', async () => {
+      const indexKey = persistentKey();
+      const store = createSnapshotStore({ dir, indexKey });
+      await store.save(randomBytes(256));
+      await writeFile(stale(), 'half written');
+
+      expect(await store.load()).toBeDefined();
+      expect((await readdir(dir)).sort()).toEqual([SNAPSHOT_FILE_NAME]);
+    });
+
+    it('removes a stale temp file on remove', async () => {
+      const store = createSnapshotStore({ dir, indexKey: persistentKey() });
+      await writeFile(stale(), 'half written');
+      await store.remove();
+      expect(await readdir(dir)).toEqual([]);
+    });
+
+    it('keeps the temp file of a save in progress', async () => {
+      const store = createSnapshotStore({ dir, indexKey: persistentKey() });
+      const saving = store.save(randomBytes(8 * 1024 * 1024));
+      // The temp file exists before the write ends.
+      await new Promise((resolve) => setImmediate(resolve));
+      await store.remove();
+      await saving;
+      expect(await readdir(dir)).toEqual([SNAPSHOT_FILE_NAME]);
+    });
+  });
 });

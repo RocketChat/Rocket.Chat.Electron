@@ -14,6 +14,7 @@ import {
 import type { IndexKey } from './keyStore';
 import {
   createSnapshotStore,
+  removeStaleTempFiles,
   deserializeDatabase,
   serializeDatabase,
 } from './snapshotStore';
@@ -186,6 +187,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
     openEncryptedFile: (file: string, key: Buffer) => DatabaseSync;
   }): Promise<DatabaseSync | undefined> => {
     await mkdir(dir, { recursive: true, mode: 0o700 });
+    await removeStaleTempFiles(dir);
     const file = path.join(dir, INDEX_DB_FILE_NAME);
     try {
       // A new key cannot read a file made with the old key.

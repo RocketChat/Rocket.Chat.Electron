@@ -1,5 +1,12 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rename,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import path from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 
@@ -74,6 +81,32 @@ export const serializeDatabase = (db: DatabaseSync): Uint8Array =>
 export const deserializeDatabase = (db: DatabaseSync, data: Uint8Array) =>
   (db as SerializableDatabase).deserialize(data);
 
+// Temp files of saves that run now. A sweep never removes them.
+const liveTemps = new Set<string>();
+
+// A save that a kill stopped leaves `index.bin.<pid>.<time>.tmp` behind. The
+// next open or wipe removes each such file, except the temp file of a save
+// that runs now.
+export const removeStaleTempFiles = async (dir: string): Promise<void> => {
+  let names: string[];
+  try {
+    names = await readdir(dir);
+  } catch {
+    return;
+  }
+  await Promise.all(
+    names
+      .filter(
+        (name) =>
+          name.endsWith('.tmp') &&
+          (name.startsWith(`${SNAPSHOT_FILE_NAME}.`) ||
+            name.startsWith('index.db')) &&
+          !liveTemps.has(path.join(dir, name))
+      )
+      .map((name) => rm(path.join(dir, name), { force: true }))
+  );
+};
+
 export type SnapshotStore = {
   // The decrypted database bytes, or undefined when there is no usable
   // snapshot. A rejected file is deleted, because the index is a cache.
@@ -99,6 +132,7 @@ export const createSnapshotStore = ({
 
   const remove = async () => {
     await rm(file, { force: true });
+    await removeStaleTempFiles(dir);
   };
 
   return {
@@ -108,6 +142,7 @@ export const createSnapshotStore = ({
       // The key store removes a key file that anyone can
       // unwrap, so the file stays encrypted.
       if (!indexKey.persistent) return undefined;
+      await removeStaleTempFiles(dir);
       if (discardOld) {
         discardOld = false;
         await remove();
@@ -141,6 +176,7 @@ export const createSnapshotStore = ({
       // Write a temporary file, then rename it. A crash leaves the last good
       // snapshot in place.
       const temp = `${file}.${process.pid}.${Date.now()}.tmp`;
+      liveTemps.add(temp);
       try {
         await writeFile(temp, encryptSnapshot(plain, indexKey.key), {
           mode: 0o600,
@@ -149,6 +185,8 @@ export const createSnapshotStore = ({
       } catch (error) {
         await rm(temp, { force: true });
         throw error;
+      } finally {
+        liveTemps.delete(temp);
       }
     },
 

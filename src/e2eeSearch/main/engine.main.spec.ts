@@ -247,6 +247,84 @@ describe('e2eeSearch engine', () => {
     expect(engine.search({ text: '  ?! ' })).toEqual([]);
   });
 
+  it('lists the newest messages of the filters for an empty text, within the limit', () => {
+    engine.upsert(
+      Array.from({ length: 30 }, (_, i) =>
+        doc({
+          id: `f${i}`,
+          body: `mensagem ${i}`,
+          uid: i % 3 === 0 ? 'u2' : 'u1',
+          ts: 10_000 + ((i * 7) % 30),
+        })
+      )
+    );
+    const expected = (keep: (ts: number, uid: string) => boolean) =>
+      Array.from({ length: 30 }, (_, i) => ({
+        id: `f${i}`,
+        ts: 10_000 + ((i * 7) % 30),
+        uid: i % 3 === 0 ? 'u2' : 'u1',
+      }))
+        .filter(({ ts, uid }) => keep(ts, uid))
+        .sort((x, y) => y.ts - x.ts)
+        .map(({ id }) => id);
+
+    const byAuthorAndDate = engine.search({
+      text: '',
+      rid: 'r1',
+      uid: 'u1',
+      from: 10_005,
+      to: 10_025,
+      order: 'recent',
+      limit: 5,
+    });
+    expect(byAuthorAndDate.map((hit) => hit.id)).toEqual(
+      expected((ts, uid) => uid === 'u1' && ts >= 10_005 && ts <= 10_025).slice(
+        0,
+        5
+      )
+    );
+
+    expect(
+      engine.search({ text: '  ', uid: 'u2', limit: 100 }).map((hit) => hit.id)
+    ).toEqual([...expected((_, uid) => uid === 'u2'), 'b']);
+    expect(engine.search({ text: '', rid: 'r2' }).map((hit) => hit.id)).toEqual(
+      ['c']
+    );
+  });
+
+  it('returns no results for an empty text with no filter, or a text with no words', () => {
+    expect(engine.search({ text: '' })).toEqual([]);
+    expect(engine.search({ text: '   ', order: 'recent', limit: 10 })).toEqual(
+      []
+    );
+    expect(engine.search({ text: '  ?! ', rid: 'r1' })).toEqual([]);
+  });
+
+  it('gives a filter-only hit the escaped start of the body, with no marks', () => {
+    const long = `<b>"Tom" & 'Ana'</b> ${'palavra '.repeat(30)}`;
+    engine.upsert([
+      doc({ id: 'x', rid: 'r9', body: long, ts: 9000 }),
+      doc({ id: 'y', rid: 'r9', body: 'curta mark', ts: 8000 }),
+    ]);
+
+    const [first, second] = engine.search({ text: '', rid: 'r9' });
+
+    expect(first.snippet).toBe(
+      `${long
+        .slice(0, 80)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')}…`
+    );
+    expect(
+      first.snippet.startsWith('&lt;b&gt;&quot;Tom&quot; &amp; &#39;Ana')
+    ).toBe(true);
+    expect(second.snippet).toBe('curta mark');
+    expect(`${first.snippet}${second.snippet}`).not.toContain('<mark>');
+  });
+
   it('caps the result count and the query tokens', () => {
     engine.upsert(
       Array.from({ length: 150 }, (_, i) =>

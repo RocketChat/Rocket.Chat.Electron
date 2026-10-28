@@ -120,3 +120,27 @@ FROM (
 ) f
 JOIN messages m ON m.rowid = f.rowid
 ORDER BY f.score`;
+
+// A query with filters and no words has no MATCH: it returns the
+// newest messages of the filters. Without a match, the snippet is the start
+// of the body, about as long as the 12 tokens of snippet() and with no marks.
+// The subquery picks the rows first, so only those rows get a snippet.
+export const FILTER_ONLY_SNIPPET_LENGTH = 80;
+
+export const SEARCH_FILTERS_ONLY_SQL = `
+SELECT m.id, m.rid, m.tmid, m.uid, m.username, m.ts,
+       CASE WHEN length(m.body) > ${FILTER_ONLY_SNIPPET_LENGTH}
+            THEN substr(m.body, 1, ${FILTER_ONLY_SNIPPET_LENGTH}) || '…'
+            ELSE m.body
+       END AS snippet
+FROM messages m
+WHERE m.rowid IN (
+  SELECT rowid
+  FROM messages
+  WHERE (:rid IS NULL OR rid = :rid)
+    AND (:uid IS NULL OR uid = :uid)
+    AND ts BETWEEN :from AND :to
+  ORDER BY ts DESC
+  LIMIT :limit
+)
+ORDER BY m.ts DESC`;

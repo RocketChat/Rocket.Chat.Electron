@@ -7,6 +7,7 @@ import {
   SCHEMA_VERSION,
   SEARCH_BY_RECENT_SQL,
   SEARCH_BY_RELEVANCE_SQL,
+  SEARCH_FILTERS_ONLY_SQL,
   SEARCH_UNFILTERED_BY_RELEVANCE_SQL,
 } from './schema';
 import type {
@@ -214,6 +215,7 @@ export const createSearchEngine = (
   const searchUnfilteredByRelevance = db.prepare(
     SEARCH_UNFILTERED_BY_RELEVANCE_SQL
   );
+  const searchFiltersOnly = db.prepare(SEARCH_FILTERS_ONLY_SQL);
 
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -266,8 +268,6 @@ export const createSearchEngine = (
 
     search(query) {
       const match = toMatch(query.text);
-      if (!match) return [];
-
       const limit = clampLimit(query.limit);
       const unfiltered =
         query.rid === undefined &&
@@ -275,8 +275,21 @@ export const createSearchEngine = (
         query.from === undefined &&
         query.to === undefined;
 
+      // An empty text with filters lists the newest messages of
+      // the filters. A text with no words, or no filter at all, finds nothing.
+      const filtersOnly = query.text.trim() === '' && !unfiltered;
+      if (!match && !filtersOnly) return [];
+
       let rows: MessageRow[];
-      if (query.order === 'recent' || !unfiltered) {
+      if (!match) {
+        rows = searchFiltersOnly.all({
+          rid: query.rid ?? null,
+          uid: query.uid ?? null,
+          from: query.from ?? 0,
+          to: query.to ?? Number.MAX_SAFE_INTEGER,
+          limit,
+        }) as MessageRow[];
+      } else if (query.order === 'recent' || !unfiltered) {
         const statement =
           query.order === 'recent' ? searchByRecent : searchByRelevance;
         rows = statement.all({

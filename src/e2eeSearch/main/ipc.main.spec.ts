@@ -172,9 +172,9 @@ describe('E2EE search IPC handler', () => {
       (hit) => hit.id
     );
 
-  it('exposes the 9 methods of the backend interface on the bridge', () => {
+  it('exposes the 10 methods of the backend interface on the bridge', () => {
     expect(Object.keys(e2eeSearch).sort()).toEqual([...BRIDGE_METHODS].sort());
-    expect(BRIDGE_METHODS).toHaveLength(9);
+    expect(BRIDGE_METHODS).toHaveLength(10);
   });
 
   it('keeps server A and server B in separate indexes for the same user', async () => {
@@ -187,6 +187,16 @@ describe('E2EE search IPC handler', () => {
     expect(await searchIds(webviewA)).toEqual(['mA']);
     expect(await searchIds(webviewB)).toEqual([]);
     expect(await handle(webviewB, 'stats')).toMatchObject({ docs: 0 });
+  });
+
+  it('lists the indexed rooms of the sender index only', async () => {
+    await handle(webviewA, 'open', { userId: 'user1' });
+    await handle(webviewB, 'open', { userId: 'user1' });
+    await handle(webviewA, 'upsert', [doc('mA', `secret ${NEEDLE}`)]);
+    await handle(webviewA, 'setRoomState', 'roomA2', { backfillDone: true });
+
+    expect(await handle(webviewA, 'listRooms')).toEqual(['r1', 'roomA2']);
+    expect(await handle(webviewB, 'listRooms')).toEqual([]);
   });
 
   it('rejects a sender that is not a server webview', async () => {

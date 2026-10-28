@@ -110,6 +110,8 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
         return get(indexId).engine.remove(args[0] as string[]);
       case 'removeRoom':
         return get(indexId).engine.removeRoom(args[0] as string);
+      case 'listRooms':
+        return get(indexId).engine.listRooms();
       case 'search':
         return get(indexId).engine.search(args[0] as E2EESearchQuery);
       case 'getRoomState':

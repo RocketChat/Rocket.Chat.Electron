@@ -16,10 +16,10 @@ import type {
   E2EESearchRoomState,
   E2EESearchStats,
 } from './types';
-import { E2EESearchQuotaError } from './validate';
+import { E2EESearchQuotaError, MAX_SEARCH_LIMIT } from './validate';
 
 export const DEFAULT_SEARCH_LIMIT = 50;
-export const MAX_SEARCH_LIMIT = 100;
+export { MAX_SEARCH_LIMIT };
 // Total caps for one index. A benchmark of the engine
 // measured 500,000 docs at 144.5 MB, so a real user stays below both.
 export const MAX_INDEX_DOCS = 500_000;
@@ -32,6 +32,8 @@ export type SearchEngine = {
   upsert(docs: E2EESearchDoc[]): void;
   remove(ids: string[]): void;
   removeRoom(rid: string): void;
+  // The rooms that have rows in the index, sorted.
+  listRooms(): string[];
   search(query: E2EESearchQuery): E2EESearchHit[];
   getRoomState(rid: string): E2EESearchRoomState | undefined;
   setRoomState(rid: string, state: E2EESearchRoomState): void;
@@ -251,6 +253,15 @@ export const createSearchEngine = (
         db.prepare('DELETE FROM room_state WHERE rid = ?').run(rid);
         db.prepare('DELETE FROM pending_decrypt WHERE rid = ?').run(rid);
       });
+    },
+
+    listRooms() {
+      const rows = db
+        .prepare(
+          'SELECT rid FROM messages UNION SELECT rid FROM room_state UNION SELECT rid FROM pending_decrypt ORDER BY rid'
+        )
+        .all() as { rid: string }[];
+      return rows.map(({ rid }) => rid);
     },
 
     search(query) {

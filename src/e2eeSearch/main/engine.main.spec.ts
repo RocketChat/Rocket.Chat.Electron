@@ -221,6 +221,16 @@ describe('e2eeSearch engine', () => {
     expect(() => engine.checkIntegrity()).not.toThrow();
   });
 
+  it('lists each room that has messages or a room state, once', () => {
+    engine.setRoomState('r3', { backfillDone: true });
+
+    expect(engine.listRooms()).toEqual(['r1', 'r2', 'r3']);
+
+    engine.removeRoom('r2');
+    engine.removeRoom('r3');
+    expect(engine.listRooms()).toEqual(['r1']);
+  });
+
   it('treats FTS5 operators in the input as text', () => {
     const search = (text: string) => () => engine.search({ text });
     ['NEAR( OR ) * "', 'contrato OR acao', '"', '*', '-a']

@@ -19,6 +19,7 @@ export const BRIDGE_METHODS = [
   'upsert',
   'remove',
   'removeRoom',
+  'listRooms',
   'search',
   'getRoomState',
   'setRoomState',

@@ -11,6 +11,9 @@ export const MAX_USERNAME_LENGTH = 256;
 export const MAX_BODY_LENGTH = 64 * 1024;
 export const MAX_QUERY_TEXT_LENGTH = 1024;
 export const MAX_CURSOR_LENGTH = 1024;
+// The most hits that one search returns. The engine applies it too, so a page
+// gets no more hits from a larger limit.
+export const MAX_SEARCH_LIMIT = 100;
 // The sum of the body lengths in one upsert call.
 export const MAX_BATCH_BODY_LENGTH = 2 * 1024 * 1024;
 
@@ -146,7 +149,9 @@ export const validateQuery = (value: unknown): E2EESearchQuery => {
     from: optional(value.from, (from) => time(from, 'query.from')),
     to: optional(value.to, (to) => time(to, 'query.to')),
     order,
-    limit: optional(value.limit, (limit) => time(limit, 'query.limit')),
+    limit: optional(value.limit, (limit) =>
+      Math.min(time(limit, 'query.limit'), MAX_SEARCH_LIMIT)
+    ),
   };
 };
 

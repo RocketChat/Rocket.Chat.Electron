@@ -16,6 +16,7 @@ export const e2eeSearch: SearchIndexBackend = {
   upsert: call('upsert'),
   remove: call('remove'),
   removeRoom: call('removeRoom'),
+  listRooms: call('listRooms'),
   search: call('search'),
   getRoomState: call('getRoomState'),
   setRoomState: call('setRoomState'),

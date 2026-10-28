@@ -72,7 +72,7 @@ describe('buildPresenceSnapshot', () => {
     ).toBeUndefined();
   });
 
-  // REGRESSION GUARD (CORE-2525): the original implementation derived
+  // REGRESSION GUARD: the original implementation derived
   // `supported` from `status !== undefined`, so a store entry (or a user
   // document) without a status reported the entire feature as unsupported and
   // blanked both the tray icon and the tray menu. `supported` must reflect

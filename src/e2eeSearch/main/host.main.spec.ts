@@ -295,21 +295,20 @@ describe('E2EE search host', () => {
   });
 
   // The reopen after a crash shows the key copy that the host keeps.
-  const spawnRecordingOpenKeys = (
-    workers: ReturnType<typeof createFakeWorkers>,
-    keys: Uint8Array[]
-  ) => (): WorkerTransport => {
-    const transport = workers.spawn();
-    return {
-      ...transport,
-      postMessage: (request) => {
-        if (request.method === 'open') {
-          keys.push((request.args[0] as WorkerOpenArgs).indexKey.key);
-        }
-        transport.postMessage(request);
-      },
+  const spawnRecordingOpenKeys =
+    (workers: ReturnType<typeof createFakeWorkers>, keys: Uint8Array[]) =>
+    (): WorkerTransport => {
+      const transport = workers.spawn();
+      return {
+        ...transport,
+        postMessage: (request) => {
+          if (request.method === 'open') {
+            keys.push((request.args[0] as WorkerOpenArgs).indexKey.key);
+          }
+          transport.postMessage(request);
+        },
+      };
     };
-  };
 
   it.each(['close', 'discard'] as const)(
     'zeroes its own copy of the index key on %s, and leaves the caller key',

@@ -91,13 +91,14 @@ core).
 ### 1.7 Contract tests
 
 - Each desktop rule above has a main-process spec in `src/e2eeSearch/main/`.
-- The core branch has a spec for the memory-only fake backend
-  (`fakeSearchIndexBackend.spec.ts`).
-- A contract suite that does not depend on a backend
-  (`searchIndexBackendContract.ts`) is on the core branch of the browser
-  backend. The browser backend ships in a later pull request. Move the suite
-  into the main core branch when that work starts, so that the fake backend
-  and the browser backend run the same cases.
+- The core has a contract suite that does not depend on a backend
+  (`apps/meteor/client/lib/e2eeSearch/searchIndexBackendContract.ts`). It
+  takes the test runner as an argument, so Jest and Playwright can run it.
+- The memory-only fake backend runs the suite
+  (`fakeSearchIndexBackend.spec.ts`, 19 cases). The browser backend must run
+  the same suite when it ships.
+- The desktop index does not run the core suite, because the two repositories
+  do not share test code. The desktop specs cover the same rules.
 
 ## 2. Server identification
 

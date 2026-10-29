@@ -32,6 +32,8 @@
 // the password dialog) decrypts the needle messages of each room with the
 // client E2E path, and the oldest message of the large room (old kid).
 // The script prints counts and ids only. Nothing secret is printed.
+// Each step logs its time (steps.mjs). A step that passes its limit closes
+// the browsers and exits with code 124.
 
 import { randomBytes } from 'node:crypto';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -47,6 +49,7 @@ import {
   worldKey,
   writeState,
 } from './state.mjs';
+import { createSteps } from './steps.mjs';
 
 const harnessDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(harnessDir, '..', '..');
@@ -72,6 +75,15 @@ const coreDir =
 const random = prng(Number(values.seed));
 const NEEDLE = 'orçamento trimestral 2025';
 const DAY = 24 * 3600 * 1000;
+// About 0.16 s per message was measured for the pt, cjk and dm rooms.
+const SEND_S_PER_MESSAGE = 0.16;
+
+const steps = createSteps({ script: 'seed-rooms' });
+// Every browser that the script opens, so a stuck step can close them all.
+const browsers = new Set();
+steps.onAbort(() =>
+  Promise.all([...browsers].map((browser) => browser.close().catch(() => {})))
+);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...m) =>
@@ -135,6 +147,7 @@ const launch = async (puppeteer, profile, { fresh = false } = {}) => {
     userDataDir: profile,
     args: ['--no-first-run', '--no-default-browser-check'],
   });
+  browsers.add(browser);
   const page = await browser.newPage();
   await page.setViewport({ width: 1400, height: 900 });
   return { browser, page };
@@ -160,8 +173,9 @@ const api = (page, path, method = 'GET', body) =>
     body
   );
 
-// Waits until the client has the room key of the room.
-const waitRoomReady = (page, rid, timeout = 180_000) =>
+// Waits until the client has the room key of the room. A timeout of 0 has no
+// own timer: the signal of a step ends the wait.
+const waitRoomReady = (page, rid, timeout, signal) =>
   page.waitForFunction(
     async (rid) => {
       const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
@@ -169,8 +183,17 @@ const waitRoomReady = (page, rid, timeout = 180_000) =>
       const room = await e2e.getInstanceByRoomId(rid);
       return Boolean(room?.isReady());
     },
-    { timeout, polling: 1000 },
+    { timeout, polling: 1000, signal },
     rid
+  );
+
+// The wait for the room key as a step: its limit (180 s by default) ends the
+// wait.
+const roomReadyStep = (label, page, rid) =>
+  steps.run(
+    `${label}/room-ready`,
+    ({ signal }) => waitRoomReady(page, rid, 0, signal),
+    { expectedS: 5, limitS: 180 }
   );
 
 // Encrypts and sends the docs in the page, `concurrency` at a time. With
@@ -352,7 +375,7 @@ const createGroup = async (pageB, name) => {
 // other gets "key already exists" and drops the key that the first one did
 // not save yet. The room then has a key id and no member has the key. In
 // that case the creator resets the room key (the path of the room menu).
-const openRoom = async (page, path, rid) => {
+const openRoom = async (label, page, path, rid) => {
   await page.goto(`${base}/${path}`, { waitUntil: 'domcontentloaded' });
   const ready = await waitRoomReady(page, rid, 45_000).then(
     () => true,
@@ -384,9 +407,17 @@ const openRoom = async (page, path, rid) => {
       return (await response.json()).success ? 'reset' : 'reset failed';
     }, rid);
     log(`room ${rid}: no own room key after the first open (${fixed})`);
-    await waitRoomReady(page, rid);
+    await roomReadyStep(label, page, rid);
   }
 };
+
+// openRoom as a step. The first wait (45 s) and a reset can come before the
+// wait for the room key.
+const openRoomStep = (label, page, path, rid) =>
+  steps.run(`${label}/open`, () => openRoom(label, page, path, rid), {
+    expectedS: 8,
+    limitS: 300,
+  });
 
 const sendFile = async (page, filePath, caption) => {
   await page.waitForSelector('textarea[name=msg]', { timeout: 180_000 });
@@ -462,12 +493,28 @@ const seedRoom = async ({
   days,
   lostKey,
 }) => {
-  await openRoom(b.page, path, rid);
-  const keyed = await waitForKeyOfA(a.page, rid);
+  await openRoomStep(key, b.page, path, rid);
+  const keyed = await steps.run(
+    `${key}/key-to-a`,
+    () => waitForKeyOfA(a.page, rid),
+    { expectedS: 10, limitS: 180 }
+  );
   if (!keyed) fail(`B did not give A the key of ${key} in 120 s`);
   const started = Date.now();
-  const result = await sendDocs(b.page, rid, docs, { lostKey });
-  const backdated = await backdate(rid, docs, days);
+  const result = await steps.run(
+    `${key}/send`,
+    () => sendDocs(b.page, rid, docs, { lostKey }),
+    {
+      expectedS: Math.ceil(docs.length * SEND_S_PER_MESSAGE),
+      limitS: Math.max(300, docs.length * 0.6),
+      params: { count: docs.length },
+    }
+  );
+  const backdated = await steps.run(
+    `${key}/backdate`,
+    () => backdate(rid, docs, days),
+    { expectedS: 2, limitS: 300 }
+  );
   log(
     `${key}: sent ${result.sent}, failed ${result.failed}, backdated ${backdated}, in ${Date.now() - started} ms`
   );
@@ -535,7 +582,10 @@ const verifyWithNewLogin = async (puppeteer, users, world) => {
   );
   const { browser, page } = await launch(puppeteer, profile, { fresh: true });
   try {
-    const ready = await login(page, users.a);
+    const ready = await steps.run('verify/login', () => login(page, users.a), {
+      expectedS: 20,
+      limitS: 480,
+    });
     if (!ready) return { e2eReady: false };
 
     const checks = [
@@ -562,6 +612,10 @@ const verifyWithNewLogin = async (puppeteer, users, world) => {
     ].filter((c) => c.id);
     const results = {};
     for (const check of checks) {
+      const verifyStep = steps.start(`verify/${check.key}`, {
+        expectedS: 5,
+        limitS: 180,
+      });
       await waitRoomReady(page, check.rid, 120_000).catch(() => undefined);
       results[check.key] = await page.evaluate(async ({ rid, id, word }) => {
         const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
@@ -580,6 +634,7 @@ const verifyWithNewLogin = async (puppeteer, users, world) => {
           ? 'decrypted'
           : `not decrypted (${decrypted.e2e})`;
       }, check);
+      verifyStep.end(results[check.key] === 'decrypted', results[check.key]);
     }
     return { e2eReady: true, results };
   } finally {
@@ -606,12 +661,16 @@ const main = async () => {
   const a = await launch(puppeteer, join(profiles, users.a.username));
   const summary = {};
   try {
-    for (const [client, user] of [
-      [a, users.a],
-      [b, users.b],
+    for (const [client, user, label] of [
+      [a, users.a, 'login-a'],
+      [b, users.b, 'login-b'],
     ]) {
-      if (!(await login(client.page, user)))
-        fail(`E2E of ${user.username} is not ready`);
+      // The limit covers the page timeouts of login one after the other.
+      const ready = await steps.run(label, () => login(client.page, user), {
+        expectedS: 20,
+        limitS: 480,
+      });
+      if (!ready) fail(`E2E of ${user.username} is not ready`);
     }
     log('A and B logged in, E2E ready');
 
@@ -649,27 +708,45 @@ const main = async () => {
       let rid;
       let path;
       if (room.key === 'dm') {
-        const im = await api(b.page, 'im.create', 'POST', {
-          username: users.a.username,
-        });
-        if (!im.success) fail(`im.create: ${im.error}`);
-        rid = im.room._id;
-        const encrypted = await api(b.page, 'rooms.saveRoomSettings', 'POST', {
-          rid,
-          encrypted: true,
-        });
-        if (!encrypted.success) fail(`DM encryption: ${encrypted.error}`);
+        rid = await steps.run(
+          'dm/create',
+          async () => {
+            const im = await api(b.page, 'im.create', 'POST', {
+              username: users.a.username,
+            });
+            if (!im.success) fail(`im.create: ${im.error}`);
+            const encrypted = await api(
+              b.page,
+              'rooms.saveRoomSettings',
+              'POST',
+              { rid: im.room._id, encrypted: true }
+            );
+            if (!encrypted.success) fail(`DM encryption: ${encrypted.error}`);
+            return im.room._id;
+          },
+          { expectedS: 2, limitS: 60 }
+        );
         path = `direct/${rid}`;
       } else {
-        rid = await createGroup(b.page, room.name);
+        rid = await steps.run(
+          `${room.key}/create`,
+          () => createGroup(b.page, room.name),
+          { expectedS: 2, limitS: 60 }
+        );
         path = `group/${room.name}`;
-        await openRoom(b.page, path, rid);
-        const invited = await api(b.page, 'groups.invite', 'POST', {
-          roomId: rid,
-          username: users.a.username,
-        });
-        if (!invited.success)
-          fail(`groups.invite ${room.name}: ${invited.error}`);
+        await openRoomStep(room.key, b.page, path, rid);
+        await steps.run(
+          `${room.key}/invite`,
+          async () => {
+            const invited = await api(b.page, 'groups.invite', 'POST', {
+              roomId: rid,
+              username: users.a.username,
+            });
+            if (!invited.success)
+              fail(`groups.invite ${room.name}: ${invited.error}`);
+          },
+          { expectedS: 2, limitS: 60 }
+        );
       }
       const docs = makeDocs({ ...room, roomPath: path });
       const result = await seedRoom({
@@ -693,27 +770,36 @@ const main = async () => {
         quotes: docs.filter((d) => d.msg.startsWith('[ ](')).length,
       };
       if (room.key === 'pt') {
-        await openRoom(b.page, path, rid);
+        await openRoomStep('pt-files', b.page, path, rid);
         const attachment = join(profiles, 'harness-pt-anexo.txt');
         writeFileSync(attachment, 'anexo de teste da busca local\n');
-        entry.files = [
-          await sendFile(
-            b.page,
-            attachment,
-            'harnessptanexo relatório de ação'
-          ),
-          await sendFile(
-            b.page,
-            attachment,
-            'harnessptplanilha orçamento médio'
-          ),
-        ];
+        entry.files = await steps.run(
+          'pt/files',
+          async () => [
+            await sendFile(
+              b.page,
+              attachment,
+              'harnessptanexo relatório de ação'
+            ),
+            await sendFile(
+              b.page,
+              attachment,
+              'harnessptplanilha orçamento médio'
+            ),
+          ],
+          { expectedS: 10, limitS: 660 }
+        );
         const first = Math.floor(room.count * 0.05);
-        const changed = await editAndDelete(
-          b.page,
-          rid,
-          docs.slice(first, first + 10),
-          docs.slice(first + 11, first + 16)
+        const changed = await steps.run(
+          'pt/edit-delete',
+          () =>
+            editAndDelete(
+              b.page,
+              rid,
+              docs.slice(first, first + 10),
+              docs.slice(first + 11, first + 16)
+            ),
+          { expectedS: 5, limitS: 300 }
         );
         Object.assign(entry, changed);
         log(
@@ -726,7 +812,11 @@ const main = async () => {
 
     if (!world.keyReset) {
       const rid = world.group.rid;
-      await openRoom(b.page, `group/${world.group.name}`, rid);
+      await openRoomStep('key-reset', b.page, `group/${world.group.name}`, rid);
+      const resetStep = steps.start('key-reset/reset', {
+        expectedS: 5,
+        limitS: 180,
+      });
       const before = await roomCounts(rid);
       const reset = await b.page.evaluate(async (rid) => {
         const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
@@ -754,16 +844,29 @@ const main = async () => {
       }, rid);
       if (!reset.ok || reset.oldKid === reset.newKid)
         fail('room key reset failed');
+      resetStep.end(true);
       log('large room: room key reset');
-      await waitRoomReady(b.page, rid);
-      const keyed = await waitForKeyOfA(a.page, rid);
+      await roomReadyStep('key-reset', b.page, rid);
+      const keyed = await steps.run(
+        'key-reset/key-to-a',
+        () => waitForKeyOfA(a.page, rid),
+        { expectedS: 10, limitS: 180 }
+      );
       if (!keyed) fail('B did not give A the new key of the large room');
       const docs = makeDocs({
         count: Number(values['after-reset']),
         line: dmLine,
         roomPath: `group/${world.group.name}`,
       });
-      const sent = await sendDocs(b.page, rid, docs);
+      const sent = await steps.run(
+        'key-reset/send',
+        () => sendDocs(b.page, rid, docs),
+        {
+          expectedS: Math.ceil(docs.length * SEND_S_PER_MESSAGE),
+          limitS: Math.max(300, docs.length * 0.6),
+          params: { count: docs.length },
+        }
+      );
       const after = await roomCounts(rid);
       world.keyReset = {
         at: new Date().toISOString(),
@@ -780,9 +883,15 @@ const main = async () => {
       );
     }
 
-    for (const [key, room] of Object.entries(world.rooms))
-      summary[key] = await roomCounts(room.rid);
-    summary.large = await roomCounts(world.group.rid);
+    await steps.run(
+      'room-counts',
+      async () => {
+        for (const [key, room] of Object.entries(world.rooms))
+          summary[key] = await roomCounts(room.rid);
+        summary.large = await roomCounts(world.group.rid);
+      },
+      { expectedS: 3, limitS: 180 }
+    );
   } finally {
     await a.browser.close().catch(() => undefined);
     await b.browser.close().catch(() => undefined);

@@ -12,12 +12,16 @@
 #   up      starts MongoDB and the server in the background, creates the
 #           admin user from the state file, skips the setup wizard, and waits
 #           until /api/info answers (at most $SERVER_WAIT_S seconds, default
-#           1200). It prints the start time.
+#           1200). It prints the start time. Each wait is a step (see the
+#           `step` function of common.sh): when a wait passes its limit, the
+#           script stops the processes that this call started.
 #   down    stops only the processes that `up` started (from their pid files).
 #   status  prints whether the processes run and what /api/info answers.
 #   reset   deletes the database of this server only. A running server is
 #           stopped first and started again after.
 
+# Some functions run only through `step` or the step timeout trap.
+# shellcheck disable=SC2329
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
@@ -66,6 +70,17 @@ stop_tree() {
 }
 
 api_info() { curl -sf -m 5 "$URL/api/info" 2>/dev/null; }
+
+# The processes that this call of the script started, so a step that passes
+# its limit stops only those.
+STARTED_MONGOD=0
+STARTED_METEOR=0
+on_step_timeout() {
+  echo "the server did not get ready in time: see $SERVER_DIR/mongod.log and $SERVER_DIR/meteor.log" >&2
+  [[ $STARTED_METEOR == 1 ]] && stop_tree meteor
+  [[ $STARTED_MONGOD == 1 ]] && stop_tree mongod
+  return 0
+}
 
 find_mongod() {
   if [[ -n "${MONGOD_BIN:-}" ]]; then echo "$MONGOD_BIN"; return; fi
@@ -148,14 +163,10 @@ cmd_up() {
     nohup "$mongod" --dbpath "$DB_DIR" --port "$MONGO_PORT" --bind_ip 127.0.0.1 \
       --replSet rs0 >"$SERVER_DIR/mongod.log" 2>&1 &
     echo $! >"$SERVER_DIR/mongod.pid"
+    STARTED_MONGOD=1
     log "mongod started on port $MONGO_PORT (pid $!)"
   fi
-  local ready=0
-  for _ in $(seq 1 60); do
-    if init_replica_set 2>/dev/null; then ready=1; break; fi
-    sleep 1
-  done
-  if [[ $ready != 1 ]]; then
+  if ! step mongo-ready 3 120 wait_mongo_ready; then
     echo "MongoDB did not start: see $SERVER_DIR/mongod.log" >&2
     exit 1
   fi
@@ -177,23 +188,33 @@ cmd_up() {
       yarn dev --port "$PORT"
   ) >"$SERVER_DIR/meteor.log" 2>&1 &
   echo $! >"$SERVER_DIR/meteor.pid"
+  STARTED_METEOR=1
   log "meteor started from $CORE_DIR on port $PORT (pid $!), log $SERVER_DIR/meteor.log"
 
-  local deadline=$((start + SERVER_WAIT_S))
-  while [[ "$(now_s)" -lt $deadline ]]; do
-    if [[ -n "$(api_info)" ]]; then
-      log "server up at $URL after $(( $(now_s) - start )) s"
-      return 0
-    fi
+  # SERVER_WAIT_S is the default limit of this step.
+  step server-ready 106 "$SERVER_WAIT_S" wait_server_ready || exit 1
+  log "server up at $URL after $(( $(now_s) - start )) s"
+}
+
+wait_mongo_ready() {
+  for _ in $(seq 1 60); do
+    if init_replica_set 2>/dev/null; then return 0; fi
+    sleep 1
+  done
+  return 1
+}
+
+# Waits until /api/info answers. The limit of the step ends the wait.
+wait_server_ready() {
+  while :; do
+    [[ -n "$(api_info)" ]] && return 0
     if ! pid_alive "$(read_pid meteor)"; then
       echo "meteor exited: see $SERVER_DIR/meteor.log" >&2
       tail -20 "$SERVER_DIR/meteor.log" >&2
-      exit 1
+      return 1
     fi
     sleep 5
   done
-  echo "the server did not answer in $SERVER_WAIT_S s: see $SERVER_DIR/meteor.log" >&2
-  exit 1
 }
 
 cmd_down() {
@@ -205,8 +226,8 @@ cmd_down() {
 cmd_reset() {
   local was_up=0
   pid_alive "$(read_pid meteor)" && was_up=1
-  cmd_down
-  rm -rf "$DB_DIR"
+  step server-stop 5 120 cmd_down
+  step database-delete 2 120 rm -rf "$DB_DIR"
   node "$HARNESS_DIR/state.mjs" forget-world "$PORT"
   log "database of $URL deleted"
   if [[ $was_up == 1 ]]; then cmd_up; fi

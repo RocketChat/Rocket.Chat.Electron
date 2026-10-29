@@ -50,7 +50,13 @@
 # It prints one PASS or FAIL line for each check and a summary line, and
 # exits 1 when a check fails. Logs and captures go to
 # $HARNESS_STATE_DIR/runs/win-<timestamp>/.
+#
+# Each step logs its time (see the `step` function of common.sh), with the
+# platform win32 in its timing key. A step that passes its limit fails the
+# run: the script stops the app and prints the summary.
 
+# Many functions run only through `step` or the step timeout trap.
+# shellcheck disable=SC2329
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
@@ -141,12 +147,12 @@ if lsof -nP -iTCP:"$WINDOWS_CDP_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
   echo "port $WINDOWS_CDP_PORT is in use on this Mac: set WINDOWS_CDP_PORT" >&2
   exit 2
 fi
-if ! win "echo connected" >/dev/null; then
+if ! step ssh-connect 2 60 win "echo connected" >/dev/null; then
   echo "cannot open an SSH session to $WINDOWS_HOST" >&2
   exit 2
 fi
 
-node "$HARNESS_DIR/seed.mjs" --port "$HARNESS_PORT" --world "$WINDOWS_WORLD" || exit 1
+step seed-world 5 900 node "$HARNESS_DIR/seed.mjs" --port "$HARNESS_PORT" --world "$WINDOWS_WORLD" || exit 1
 if ! state_get "worlds.$WORLD_KEY.group.rid" >/dev/null; then
   echo "no seeded world $WORLD_KEY in the state file" >&2
   exit 2
@@ -156,29 +162,39 @@ RUN_DIR="$HARNESS_STATE_DIR/runs/win-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$RUN_DIR"
 RESULTS="$RUN_DIR/results.txt"
 : >"$RESULTS"
+# The steps of this script and of the driver also log to the run folder. The
+# timing key of each next step holds the platform of the app, not of this Mac.
+export HARNESS_STEP_RUN_DIR="$RUN_DIR"
+export HARNESS_STEP_PLATFORM=win32
 log "host $WINDOWS_HOST, folder $WINDOWS_DIR, app $APP_NAME, server $URL, world $WORLD_KEY, run folder $RUN_DIR"
 
-win "powershell -NoProfile -Command New-Item -ItemType Directory -Force -Path $REMOTE_HARNESS" >/dev/null || exit 1
-scp "${SSH_OPTS[@]}" -q "$HARNESS_DIR"/windows/*.ps1 "$HARNESS_DIR/windows/keycheck.mjs" \
-  "$WINDOWS_HOST:$(scp_path "$REMOTE_HARNESS")/" || exit 1
+copy_helpers() {
+  win "powershell -NoProfile -Command New-Item -ItemType Directory -Force -Path $REMOTE_HARNESS" >/dev/null || return 1
+  scp "${SSH_OPTS[@]}" -q "$HARNESS_DIR"/windows/*.ps1 "$HARNESS_DIR/windows/keycheck.mjs" \
+    "$WINDOWS_HOST:$(scp_path "$REMOTE_HARNESS")/"
+}
+step copy-helpers 5 120 copy_helpers || exit 1
 
-has_build="$(win "powershell -NoProfile -Command Test-Path $WINDOWS_DIR\\dist\\win-unpacked\\Rocket.Chat.exe" | tr -d '\r')"
+has_build="$(step has-build 2 60 win "powershell -NoProfile -Command Test-Path $WINDOWS_DIR\\dist\\win-unpacked\\Rocket.Chat.exe" | tr -d '\r')"
 if [[ $BUILD == 1 || "$has_build" != True ]]; then
   tarball="$HARNESS_STATE_DIR/windows-src.tar"
   log "packing $DESKTOP_DIR ($(git -C "$DESKTOP_DIR" rev-parse --short HEAD 2>/dev/null || echo unknown), with uncommitted changes)"
-  (
-    cd "$DESKTOP_DIR" || exit 1
-    git ls-files -z -co --exclude-standard |
-      while IFS= read -r -d '' file; do
-        # A tracked file that the working tree deleted is not packed.
-    # COPYFILE_DISABLE keeps the macOS metadata files (._*) out of the tar.
-        [[ -e "$file" || -L "$file" ]] && printf '%s\0' "$file"
-      done |
-      COPYFILE_DISABLE=1 tar -cf "$tarball" --null -T -
-  ) || exit 1
-  scp "${SSH_OPTS[@]}" -q "$tarball" "$WINDOWS_HOST:$(scp_path "$WINDOWS_DIR")/src.tar" || exit 1
+  pack_source() {
+    (
+      cd "$DESKTOP_DIR" || exit 1
+      git ls-files -z -co --exclude-standard |
+        while IFS= read -r -d '' file; do
+          # A tracked file that the working tree deleted is not packed.
+      # COPYFILE_DISABLE keeps the macOS metadata files (._*) out of the tar.
+          [[ -e "$file" || -L "$file" ]] && printf '%s\0' "$file"
+        done |
+        COPYFILE_DISABLE=1 tar -cf "$tarball" --null -T -
+    )
+  }
+  step pack-source 20 600 pack_source || exit 1
+  step upload-source 30 900 scp "${SSH_OPTS[@]}" -q "$tarball" "$WINDOWS_HOST:$(scp_path "$WINDOWS_DIR")/src.tar" || exit 1
   log "building on $WINDOWS_HOST (yarn install, build, electron-builder); this takes some minutes"
-  winps build -AppName "$app_name_arg" ${NODE_ARG[@]+"${NODE_ARG[@]}"} | tee "$RUN_DIR/build.txt"
+  step build 600 3600 winps build -AppName "$app_name_arg" ${NODE_ARG[@]+"${NODE_ARG[@]}"} | tee "$RUN_DIR/build.txt"
   code=${PIPESTATUS[0]}
   if [[ $code != 0 ]]; then
     echo "the build on $WINDOWS_HOST failed with exit code $code: see $RUN_DIR/build.txt" >&2
@@ -216,6 +232,11 @@ cleanup() {
   [[ -n "$TUNNEL" ]] && kill "$TUNNEL" 2>/dev/null
 }
 trap cleanup EXIT
+
+on_step_timeout() {
+  check timeout FAIL "a step passed its limit: see the STEP FAIL line in $RUN_DIR/steps.log"
+  summary
+}
 
 # start_app <tag>: starts the app in a background SSH session, which ends
 # when the app exits, and waits until its CDP port answers.
@@ -293,8 +314,8 @@ fetch_main_log() {
 }
 
 summary() {
-  stop_app quit end
-  fetch_main_log
+  step app-stop-end 10 150 stop_app quit end
+  step fetch-main-log 3 120 fetch_main_log
   local pass fail
   pass="$(grep -c '^PASS' "$RESULTS")"
   fail="$(grep -c '^FAIL' "$RESULTS")"
@@ -303,30 +324,42 @@ summary() {
   exit 1
 }
 
+# restart_and_find <id> <out file>: starts the driver, then the app, and waits
+# for the result of the driver. It returns $APP_DID_NOT_START when the app does
+# not start.
+APP_DID_NOT_START=3
+restart_and_find() {
+  local driver_pid
+  driver after-restart --timeout "$RESTART_TIMEOUT_S" >"$2" &
+  driver_pid=$!
+  if ! start_app "$1"; then
+    kill "$driver_pid" 2>/dev/null
+    wait "$driver_pid" 2>/dev/null
+    return "$APP_DID_NOT_START"
+  fi
+  wait "$driver_pid"
+}
+
 # restart_check <id> <quit|kill>: stops the app, starts it, and checks that
 # the index opens from disk and that the hit for the oldest needle comes from
 # that saved index. The driver starts before the app, so that it records
 # every history response of the web client from the first request on (see
 # restart-proof.mjs).
 restart_check() {
-  local id="$1" how="$2" mark out at_rest store elapsed driver_pid why
+  local id="$1" how="$2" mark out at_rest store elapsed why
   local out_file="$RUN_DIR/after-restart-$how.json"
-  stop_app "$how" "before-$id"
-  mark="$(log_lines)"
-  driver after-restart --timeout "$RESTART_TIMEOUT_S" >"$out_file" &
-  driver_pid=$!
-  if ! start_app "$id"; then
-    kill "$driver_pid" 2>/dev/null
-    wait "$driver_pid" 2>/dev/null
+  step "app-stop-$how" 10 150 stop_app "$how" "before-$id"
+  mark="$(step "log-lines-$how" 3 120 log_lines)"
+  step "restart-$how" 20 $((RESTART_TIMEOUT_S + 240)) restart_and_find "$id" "$out_file"
+  if [[ $? == "$APP_DID_NOT_START" ]]; then
     check "$id" FAIL "the app did not start again: no CDP on port $WINDOWS_CDP_PORT in 60 s"
     return
   fi
-  wait "$driver_pid"
   elapsed=$(($(now_s) - APP_STARTED_AT))
   out="$(cat "$out_file")"
-  at_rest="$(driver at-rest)"
+  at_rest="$(step "at-rest-$how" 3 120 driver at-rest)"
   echo "$at_rest" >"$RUN_DIR/at-rest-$how.json"
-  store="$(store_since "${mark:-0}")"
+  store="$(step "store-since-$how" 3 120 store_since "${mark:-0}")"
   why="$(field "$out" error)"
   [[ "$why" == null ]] && why="$(field "$out" savedIndex.reasons)"
   local ok=1
@@ -349,28 +382,30 @@ if ! kill -0 "$TUNNEL" 2>/dev/null; then
   exit 1
 fi
 
-winps stop >"$RUN_DIR/stop-leftovers.txt" 2>&1
-winps profile -AppName "$app_name_arg" -Url "$URL" | tee "$RUN_DIR/profile.txt"
+stop_leftovers() { winps stop >"$RUN_DIR/stop-leftovers.txt" 2>&1; }
+step stop-leftovers 5 120 stop_leftovers
+step profile 5 120 winps profile -AppName "$app_name_arg" -Url "$URL" | tee "$RUN_DIR/profile.txt"
 if ! grep -q '^server reachable: 200' "$RUN_DIR/profile.txt"; then
   check setup FAIL "the host does not reach $URL through the tunnel: $(grep '^server reachable' "$RUN_DIR/profile.txt")"
   summary
 fi
 
-if ! start_app first; then
+if ! step app-start 15 200 start_app first; then
   check setup FAIL "the app did not start: no CDP on port $WINDOWS_CDP_PORT in 60 s"
   summary
 fi
 
 # Before E2E unlock the web client has no wrap key. An open without it must
 # stay sealed: no index opens and no file of the index or of its key is made.
-out="$(driver sealed)"
+out="$(step check-g-sealed 15 360 driver sealed)"
 echo "$out" >"$RUN_DIR/sealed.json"
-winps index-files -AppName "$app_name_arg" >"$RUN_DIR/sealed-files.txt" 2>&1
+index_files() { winps index-files -AppName "$app_name_arg" >"$RUN_DIR/sealed-files.txt" 2>&1; }
+step index-files 5 120 index_files
 sealed_files="$(sed -nE 's/^INDEXFILES ([0-9]+)$/\1/p' "$RUN_DIR/sealed-files.txt")"
 check g "$([[ "$(field "$out" ok)" == true && "$sealed_files" == 0 ]] && echo PASS || echo FAIL)" \
   "sealed before E2E unlock: open locked=$(field "$out" locked), search fails locked=$(field "$out" searchLocked), e2ee-search files=${sealed_files:-unknown}"
 
-out="$(driver setup)"
+out="$(step setup 30 360 driver setup)"
 echo "$out" >"$RUN_DIR/setup.json"
 if [[ "$(field "$out" ok)" != true ]]; then
   check setup FAIL "login, E2E unlock or opt-in failed: $out"
@@ -378,7 +413,8 @@ if [[ "$(field "$out" ok)" != true ]]; then
 fi
 log "A logged in, E2E unlocked, local search opt-in on; waiting for the crawler"
 
-out="$(driver wait-index --timeout "$INDEX_TIMEOUT_S")"
+out="$(STEP_PARAMS="pause=${HARNESS_BACKFILL_PAUSE_S:-1}" \
+  step wait-index 60 $((INDEX_TIMEOUT_S + 60)) driver wait-index --timeout "$INDEX_TIMEOUT_S")"
 echo "$out" >"$RUN_DIR/wait-index.json"
 if [[ "$(field "$out" ok)" != true ]]; then
   check a FAIL "the crawler did not index every needle in ${INDEX_TIMEOUT_S}s: $(echo "$out" | cut -c1-300)"
@@ -386,12 +422,12 @@ if [[ "$(field "$out" ok)" != true ]]; then
 fi
 log "crawler indexed every needle after $(field "$out" elapsedS)s"
 
-out="$(driver search)"
+out="$(step check-a-search 5 360 driver search)"
 echo "$out" >"$RUN_DIR/search.json"
 check a "$([[ "$(field "$out" ok)" == true ]] && echo PASS || echo FAIL)" \
   "bridge search: $(field "$out" summary)"
 
-out="$(driver ui-search --out "$RUN_DIR/search-panel.png")"
+out="$(step check-b-ui-search 10 360 driver ui-search --out "$RUN_DIR/search-panel.png")"
 echo "$out" >"$RUN_DIR/ui-search.json"
 check b "$([[ "$(field "$out" ok)" == true ]] && echo PASS || echo FAIL)" \
   "search panel shows the $(field "$out" needle) hit ($(field "$out" hits) hits), screenshot $RUN_DIR/search-panel.png"
@@ -399,15 +435,18 @@ check b "$([[ "$(field "$out" ok)" == true ]] && echo PASS || echo FAIL)" \
 restart_check c quit
 restart_check d kill
 
-stop_app quit end
+step app-stop-end 10 150 stop_app quit end
 if [[ "$STOPPED" != quit ]]; then
   log "the final stop was $STOPPED"
 fi
 words="$(state_get "worlds.$WORLD_KEY.needles" |
   python3 -c 'import json,sys; print(",".join(n["word"] for n in json.load(sys.stdin)))')"
 control_token="$HARNESS_HOST:$HARNESS_PORT"
-winps post -AppName "$app_name_arg" -Words "\"$words\"" -Control "\"$control_token\"" ${NODE_ARG[@]+"${NODE_ARG[@]}"} \
-  >"$RUN_DIR/post.txt" 2>&1
+post_scan() {
+  winps post -AppName "$app_name_arg" -Words "\"$words\"" -Control "\"$control_token\"" ${NODE_ARG[@]+"${NODE_ARG[@]}"} \
+    >"$RUN_DIR/post.txt" 2>&1
+}
+step check-e-post-scan 30 900 post_scan
 grep -E '^(HIT|SCAN|CONTROL)' "$RUN_DIR/post.txt" >"$RUN_DIR/canary-scan.txt"
 
 needle_hits="$(grep -c '^HIT' "$RUN_DIR/post.txt")"

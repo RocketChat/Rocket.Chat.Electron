@@ -16,7 +16,13 @@
 #
 # It stops at once when a keychain dialog (SecurityAgent) shows. Never click
 # "Always Allow" in such a dialog: report it.
+#
+# Each step logs its time (see the `step` function of common.sh). A step that
+# passes its limit fails the run: the script stops the app and prints the
+# summary.
 
+# Many functions run only through `step` or the step timeout trap.
+# shellcheck disable=SC2329
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
@@ -44,7 +50,7 @@ if [[ -z "$APP" ]]; then
     *) APP="$HARNESS_STATE_DIR/mac-dist/mac/Rocket.Chat.app" ;;
   esac
   if [[ ! -d "$APP" ]]; then
-    APP="$(bash "$HARNESS_DIR/build-macos.sh" | tail -1)" || exit 1
+    APP="$(step build 600 3600 bash "$HARNESS_DIR/build-macos.sh" | tail -1)" || exit 1
   fi
 fi
 APP="$(cd "$APP" && pwd)"
@@ -54,6 +60,8 @@ RUN_DIR="$HARNESS_STATE_DIR/runs/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$RUN_DIR"
 RESULTS="$RUN_DIR/results.txt"
 : >"$RESULTS"
+# The steps of this script and of the driver also log to the run folder.
+export HARNESS_STEP_RUN_DIR="$RUN_DIR"
 
 # Writes one result line: check <id> <PASS|FAIL> <text>.
 check() {
@@ -142,6 +150,21 @@ summary() {
   exit 1
 }
 
+on_step_timeout() {
+  check timeout FAIL "a step passed its limit: see the STEP FAIL line in $RUN_DIR/steps.log"
+  summary
+}
+
+# restart_and_find <out file>: starts the driver, then the app, and waits for
+# the result of the driver.
+restart_and_find() {
+  local driver_pid
+  driver after-restart --timeout "$RESTART_TIMEOUT_S" >"$1" &
+  driver_pid=$!
+  start_app
+  wait "$driver_pid"
+}
+
 # restart_check <id> <TERM|KILL>: stops the app with the signal, starts it,
 # and checks that the index opens from disk and that the hit for the oldest
 # needle comes from that saved index. The driver starts before the app, so
@@ -151,14 +174,11 @@ restart_check() {
   local id="$1" signal="$2" mark out at_rest store elapsed driver_pid why
   local out_file="$RUN_DIR/after-restart-$signal.json"
   mark="$(log_lines)"
-  stop_app "$signal"
-  driver after-restart --timeout "$RESTART_TIMEOUT_S" >"$out_file" &
-  driver_pid=$!
-  start_app
-  wait "$driver_pid"
+  step "app-stop-$signal" 3 90 stop_app "$signal"
+  step "restart-$signal" 6 $((RESTART_TIMEOUT_S + 60)) restart_and_find "$out_file"
   elapsed=$(( $(now_s) - APP_STARTED_AT ))
   out="$(cat "$out_file")"
-  at_rest="$(driver at-rest)"
+  at_rest="$(step "at-rest-$signal" 2 120 driver at-rest)"
   echo "$at_rest" >"$RUN_DIR/at-rest-$signal.json"
   store="$(store_since "$mark")"
   why="$(field "$out" error)"
@@ -187,25 +207,25 @@ fi
 
 log "app $APP ($APP_NAME), server $URL, run folder $RUN_DIR"
 codesign -dv "$APP" 2>&1 | grep -E '^(Authority|TeamIdentifier)=' | head -2 >"$RUN_DIR/codesign.txt"
-PROD_BEFORE="$(prod_item_hash)"
+PROD_BEFORE="$(step keychain-before 2 120 prod_item_hash)"
 echo "production item before: $PROD_BEFORE" >"$RUN_DIR/keychain.txt"
 
 rm -rf "$PROFILE" "$LOGS"
 mkdir -p "$PROFILE"
 echo "{\"Server\":\"$URL\"}" >"$PROFILE/servers.json"
 
-start_app
+step app-start 3 90 start_app
 
 # Before E2E unlock the web client has no wrap key. An open without it must
 # stay sealed: no index opens and no file of the index or of its key is made.
-out="$(driver sealed)"
+out="$(step check-g-sealed 15 360 driver sealed)"
 echo "$out" >"$RUN_DIR/sealed.json"
 sealed_files="$(find "$PROFILE" -path "$PROFILE/e2ee-search*" -type f 2>/dev/null | wc -l | tr -d ' ')"
 check g "$([[ "$(field "$out" ok)" == true && $sealed_files == 0 ]] && echo PASS || echo FAIL)" \
   "sealed before E2E unlock: open locked=$(field "$out" locked), search fails locked=$(field "$out" searchLocked), e2ee-search files=$sealed_files"
 dialog_check
 
-out="$(driver setup)"
+out="$(step setup 30 360 driver setup)"
 echo "$out" >"$RUN_DIR/setup.json"
 if [[ "$(field "$out" ok)" != true ]]; then
   check setup FAIL "login, E2E unlock or opt-in failed: $out"
@@ -214,7 +234,8 @@ fi
 log "A logged in, E2E unlocked, local search opt-in on; waiting for the crawler"
 dialog_check
 
-out="$(driver wait-index --timeout "$INDEX_TIMEOUT_S")"
+out="$(STEP_PARAMS="pause=${HARNESS_BACKFILL_PAUSE_S:-1}" \
+  step wait-index 98 $((INDEX_TIMEOUT_S + 60)) driver wait-index --timeout "$INDEX_TIMEOUT_S")"
 echo "$out" >"$RUN_DIR/wait-index.json"
 if [[ "$(field "$out" ok)" != true ]]; then
   check a FAIL "the crawler did not index every needle in ${INDEX_TIMEOUT_S}s: $(echo "$out" | cut -c1-300)"
@@ -222,12 +243,12 @@ if [[ "$(field "$out" ok)" != true ]]; then
 fi
 log "crawler indexed every needle after $(field "$out" elapsedS)s"
 
-out="$(driver search)"
+out="$(step check-a-search 5 360 driver search)"
 echo "$out" >"$RUN_DIR/search.json"
 check a "$([[ "$(field "$out" ok)" == true ]] && echo PASS || echo FAIL)" \
   "bridge search: $(field "$out" summary)"
 
-out="$(driver ui-search --out "$RUN_DIR/search-panel.png")"
+out="$(step check-b-ui-search 10 360 driver ui-search --out "$RUN_DIR/search-panel.png")"
 echo "$out" >"$RUN_DIR/ui-search.json"
 check b "$([[ "$(field "$out" ok)" == true ]] && echo PASS || echo FAIL)" \
   "search panel shows the $(field "$out" needle) hit ($(field "$out" hits) hits), screenshot $RUN_DIR/search-panel.png"
@@ -236,18 +257,23 @@ dialog_check
 restart_check c TERM
 restart_check d KILL
 
-stop_app TERM
+step app-stop-end 3 90 stop_app TERM
 cp "$LOGS/main.log" "$RUN_DIR/main.log" 2>/dev/null
 scan_fail=0
 : >"$RUN_DIR/canary-scan.txt"
-for word in $(state_get "worlds.$HARNESS_PORT.needles" | python3 -c 'import json,sys; print(" ".join(n["word"] for n in json.load(sys.stdin)))'); do
-  for dir in "$PROFILE" "$LOGS"; do
-    node "$HARNESS_DIR/canary-scan.mjs" --dir "$dir" --token "$word" 2>>"$RUN_DIR/canary-scan.log" |
-      sed "s|^HIT|HIT $word|" >>"$RUN_DIR/canary-scan.txt"
-    # Exit 1 is a hit, exit 2 a scan error: both fail the check.
-    [[ ${PIPESTATUS[0]} == 0 ]] || scan_fail=1
+scan_needles() {
+  local word dir
+  for word in $(state_get "worlds.$HARNESS_PORT.needles" | python3 -c 'import json,sys; print(" ".join(n["word"] for n in json.load(sys.stdin)))'); do
+    for dir in "$PROFILE" "$LOGS"; do
+      node "$HARNESS_DIR/canary-scan.mjs" --dir "$dir" --token "$word" 2>>"$RUN_DIR/canary-scan.log" |
+        sed "s|^HIT|HIT $word|" >>"$RUN_DIR/canary-scan.txt"
+      # Exit 1 is a hit, exit 2 a scan error: both fail the check.
+      [[ ${PIPESTATUS[0]} == 0 ]] || scan_fail=1
+    done
   done
-done
+  return 0
+}
+step check-e-canary-scan 10 600 scan_needles
 needle_hits="$(grep -c '^HIT' "$RUN_DIR/canary-scan.txt")"
 # Where the hits are: the search index, the web client storage, or other.
 hit_places="$(awk '/^HIT/ { place = "other" }
@@ -257,7 +283,12 @@ hit_places="$(awk '/^HIT/ { place = "other" }
   /^HIT/ { count[$2 "@" place]++ }
   END { for (k in count) printf "%s:%d ", k, count[k] }' "$RUN_DIR/canary-scan.txt")"
 control_token="$HARNESS_HOST:$HARNESS_PORT"
-node "$HARNESS_DIR/canary-scan.mjs" --dir "$PROFILE" --token "$control_token" >"$RUN_DIR/canary-control.txt" 2>&1
+scan_control() {
+  node "$HARNESS_DIR/canary-scan.mjs" --dir "$PROFILE" --token "$control_token" >"$RUN_DIR/canary-control.txt" 2>&1
+  # Exit 1 (hits) is the expected result here. Exit 2 is a scan error.
+  [[ $? -le 1 ]]
+}
+step check-e-canary-control 5 300 scan_control
 control_hits="$(grep -c '^HIT' "$RUN_DIR/canary-control.txt")"
 check e "$([[ $scan_fail == 0 && $needle_hits == 0 && $control_hits -gt 0 ]] && echo PASS || echo FAIL)" \
   "canary scan of the whole profile and logs: needle hits=$needle_hits ${hit_places:+(${hit_places% }) }control '$control_token' hits=$control_hits"
@@ -266,7 +297,7 @@ index_hits="$(grep -c '^HIT.*/e2ee-search/' "$RUN_DIR/canary-scan.txt")"
 check e.index "$([[ $index_files -gt 0 && $index_hits == 0 ]] && echo PASS || echo FAIL)" \
   "canary scan of the search index folder only: needle hits=$index_hits in $index_files files"
 
-PROD_AFTER="$(prod_item_hash)"
+PROD_AFTER="$(step keychain-after 2 120 prod_item_hash)"
 check f "$([[ "$PROD_BEFORE" == "$PROD_AFTER" && $DIALOG_SEEN == 0 ]] && echo PASS || echo FAIL)" \
   "production keychain item unchanged (before $PROD_BEFORE, after $PROD_AFTER), keychain dialog seen: $([[ $DIALOG_SEEN == 1 ]] && echo yes || echo no)"
 

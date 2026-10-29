@@ -26,6 +26,8 @@
 // diacritics and some CJK phrases. Known needle words sit at known places.
 // The script prints counts only. It writes the needle ids and the counts to
 // the state file under `large`. Nothing secret is printed.
+// Each step logs its time (steps.mjs). A step that passes its limit closes
+// the browser and exits with code 124.
 
 import { createRequire } from 'node:module';
 import { randomBytes } from 'node:crypto';
@@ -40,6 +42,7 @@ import {
   worldKey,
   writeState,
 } from './state.mjs';
+import { createSteps } from './steps.mjs';
 
 const harnessDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(harnessDir, '..', '..');
@@ -68,6 +71,7 @@ const DELETES = Number(values.deletes);
 const THREAD_EVERY = Number(values['thread-every']);
 const coreDir =
   process.env.ROCKETCHAT_CORE_DIR ?? resolve(repoRoot, '..', 'Rocket.Chat');
+const steps = createSteps({ script: 'seed-large' });
 
 const log = (...m) =>
   console.log(`[${new Date().toISOString().slice(11, 19)}]`, ...m);
@@ -140,22 +144,31 @@ const main = async () => {
     userDataDir: profile,
     args: ['--no-first-run', '--no-default-browser-check'],
   });
+  steps.onAbort(() => browser.close().catch(() => {}));
   const stats = { sent: 0, failed: 0, threadReplies: 0, edits: 0, deletes: 0 };
   try {
     const page = await browser.newPage();
-    await page.goto(`${base}/group/${world.group.name}`, {
-      waitUntil: 'domcontentloaded',
-    });
-    await page.waitForSelector('textarea[name=msg]', { timeout: 180_000 });
-    const ready = await page.waitForFunction(
-      async (rid) => {
-        // The Meteor client require: the module of the E2E client.
-        const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
-        const room = await e2e.getInstanceByRoomId(rid);
-        return Boolean(room?.isReady());
+    const ready = await steps.run(
+      'room-key',
+      async () => {
+        await page.goto(`${base}/group/${world.group.name}`, {
+          waitUntil: 'domcontentloaded',
+        });
+        await page.waitForSelector('textarea[name=msg]', { timeout: 180_000 });
+        return page.waitForFunction(
+          async (rid) => {
+            // The Meteor client require: the module of the E2E client.
+            const { e2e } = window.require(
+              '/client/lib/e2ee/rocketchat.e2e.ts'
+            );
+            const room = await e2e.getInstanceByRoomId(rid);
+            return Boolean(room?.isReady());
+          },
+          { timeout: 120_000, polling: 1000 },
+          rid
+        );
       },
-      { timeout: 120_000, polling: 1000 },
-      rid
+      { expectedS: 15, limitS: 330 }
     );
     if (!(await ready.jsonValue())) fail('the room key of B is not ready');
     log(`room key of B ready in ${rid}`);
@@ -193,15 +206,26 @@ const main = async () => {
       );
 
     const started = Date.now();
-    for (let i = 0; i < docs.length; i += CONCURRENCY) {
-      const batch = docs.slice(i, i + CONCURRENCY);
-      const failed = await sendBatch(batch);
-      stats.failed += failed.length;
-      stats.sent += batch.length - failed.length;
-      if (failed.length)
-        log(`failed in batch ${i}: ${JSON.stringify(failed.slice(0, 2))}`);
-      if (i % 1000 < CONCURRENCY) log(`sent ${stats.sent}/${COUNT}`);
-    }
+    // About 0.16 s per message was measured with 600 messages.
+    await steps.run(
+      'send',
+      async () => {
+        for (let i = 0; i < docs.length; i += CONCURRENCY) {
+          const batch = docs.slice(i, i + CONCURRENCY);
+          const failed = await sendBatch(batch);
+          stats.failed += failed.length;
+          stats.sent += batch.length - failed.length;
+          if (failed.length)
+            log(`failed in batch ${i}: ${JSON.stringify(failed.slice(0, 2))}`);
+          if (i % 1000 < CONCURRENCY) log(`sent ${stats.sent}/${COUNT}`);
+        }
+      },
+      {
+        expectedS: Math.ceil(COUNT * 0.16),
+        limitS: Math.max(600, COUNT * 0.6),
+        params: { count: COUNT, concurrency: CONCURRENCY },
+      }
+    );
     stats.threadReplies = docs.filter((d) => d.tmid).length;
     stats.sendMs = Date.now() - started;
     log(`sent ${stats.sent}, failed ${stats.failed}, in ${stats.sendMs} ms`);
@@ -213,6 +237,11 @@ const main = async () => {
     const mongo = new MongoClient(
       `mongodb://localhost:${port + 1}/?directConnection=true`
     );
+    const backdateStep = steps.start('backdate', {
+      expectedS: 5,
+      limitS: 300,
+      params: { count: COUNT },
+    });
     await mongo.connect();
     try {
       const messages = mongo.db('meteor').collection('rocketchat_message');
@@ -263,7 +292,9 @@ const main = async () => {
         .limit(1)
         .next();
       stats.oldestTs = oldest?.ts?.toISOString();
+      backdateStep.end(true);
     } finally {
+      backdateStep.end(false, 'MongoDB error');
       await mongo.close();
     }
 
@@ -275,6 +306,10 @@ const main = async () => {
       first + EDITS + 1,
       first + EDITS + 1 + DELETES
     );
+    const editStep = steps.start('edit-delete', {
+      expectedS: 10,
+      limitS: 300,
+    });
     const changed = await page.evaluate(
       async (rid, edits, deletes) => {
         const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
@@ -315,6 +350,7 @@ const main = async () => {
       editTargets,
       deleteTargets
     );
+    editStep.end(true);
     stats.edits = changed.edited;
     stats.deletes = changed.deleted;
     log(

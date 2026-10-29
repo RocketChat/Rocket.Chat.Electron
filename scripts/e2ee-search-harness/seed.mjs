@@ -28,6 +28,9 @@
 //
 // The state file gets the ids of the needle messages. Nothing secret is
 // printed.
+//
+// Each step logs its time (steps.mjs). A step that passes its limit closes
+// the browsers and exits with code 124.
 
 import { createHash } from 'node:crypto';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -44,6 +47,7 @@ import {
   worldKey,
   writeState,
 } from './state.mjs';
+import { createSteps } from './steps.mjs';
 
 const harnessDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(harnessDir, '..', '..');
@@ -66,6 +70,12 @@ if (
   process.exit(2);
 }
 const prefix = worldName || 'harness';
+const steps = createSteps({ script: 'seed' });
+// Every browser that the seed opens, so a stuck step can close them all.
+const browsers = new Set();
+steps.onAbort(() =>
+  Promise.all([...browsers].map((browser) => browser.close().catch(() => {})))
+);
 
 export const WORLD = {
   group: `${prefix}-e2ee-room`,
@@ -303,6 +313,7 @@ const launchClient = async (puppeteer, user, profilesDir, { fresh }) => {
     userDataDir: profile,
     args: ['--no-first-run', '--no-default-browser-check'],
   });
+  browsers.add(browser);
   const page = await browser.newPage();
   await page.setViewport({ width: 1400, height: 900 });
   const api = (path, method = 'GET', body) =>
@@ -436,16 +447,27 @@ const main = async () => {
   const state = ensureCredentials(worldName);
   const { admin } = state;
   const users = usersOf(state, worldName);
-  const adminAuth = await loginAdmin(admin);
+  const adminAuth = await steps.run('admin-login', () => loginAdmin(admin), {
+    expectedS: 2,
+    limitS: 180,
+  });
   log(`admin logged in to ${base}`);
-  await applySettings(admin, adminAuth);
+  await steps.run('settings', () => applySettings(admin, adminAuth), {
+    expectedS: 3,
+    limitS: 120,
+  });
 
   const existingA = await rest(`users.info?username=${users.a.username}`, {
     auth: adminAuth,
   });
   if (existingA.success) {
     const known = state.worlds?.[worldKey(port, worldName)];
-    if (await worldStillThere(known, users.a)) {
+    const exists = await steps.run(
+      'world-check',
+      () => worldStillThere(known, users.a),
+      { expectedS: 2, limitS: 120 }
+    );
+    if (exists) {
       log('world exists: nothing to do');
       return;
     }
@@ -455,32 +477,47 @@ const main = async () => {
     );
   }
 
-  for (const user of [users.a, users.b]) {
-    const result = await rest('users.create', {
-      method: 'POST',
-      auth: adminAuth,
-      body: {
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        password: user.password,
-        verified: true,
-        requirePasswordChange: false,
-        joinDefaultChannels: false,
-      },
-    });
-    if (!result.success)
-      fail(`users.create ${user.username} failed: ${result.error}`);
-  }
+  await steps.run(
+    'create-users',
+    async () => {
+      for (const user of [users.a, users.b]) {
+        const result = await rest('users.create', {
+          method: 'POST',
+          auth: adminAuth,
+          body: {
+            username: user.username,
+            email: user.email,
+            name: user.name,
+            password: user.password,
+            verified: true,
+            requirePasswordChange: false,
+            joinDefaultChannels: false,
+          },
+        });
+        if (!result.success)
+          fail(`users.create ${user.username} failed: ${result.error}`);
+      }
+    },
+    { expectedS: 2, limitS: 120 }
+  );
   log(`users created: A=${users.a.username} B=${users.b.username}`);
 
   const puppeteer = loadPuppeteer();
   const profilesDir = join(stateDir(), `server-${port}`, 'browser-profiles');
-  let a = await openClient(puppeteer, users.a, profilesDir);
+  // The limits cover the page timeouts of openClient one after the other.
+  let a = await steps.run(
+    'keys-a',
+    () => openClient(puppeteer, users.a, profilesDir),
+    { expectedS: 30, limitS: 540 }
+  );
   // A stays offline until B shared the room key. At its next start, the
   // client of A imports the key that B suggested.
   await a.browser.close();
-  const b = await openClient(puppeteer, users.b, profilesDir);
+  const b = await steps.run(
+    'keys-b',
+    () => openClient(puppeteer, users.b, profilesDir),
+    { expectedS: 30, limitS: 540 }
+  );
   users.a.id = a.userId;
   users.a.e2ePassword = a.e2ePassword;
   users.b.id = b.userId;
@@ -496,93 +533,154 @@ const main = async () => {
     // a key to each user in that queue every 10 s. A member named at
     // creation gets a key only when the client of B sees that member when it
     // creates the room key, which is a race.
-    const created = await b.api('groups.create', 'POST', {
-      name: WORLD.group,
-      extraData: { encrypted: true },
-    });
-    if (!created.success) fail(`groups.create failed: ${created.error}`);
-    const rid = created.group._id;
+    const rid = await steps.run(
+      'group-create',
+      async () => {
+        const created = await b.api('groups.create', 'POST', {
+          name: WORLD.group,
+          extraData: { encrypted: true },
+        });
+        if (!created.success) fail(`groups.create failed: ${created.error}`);
+        return created.group._id;
+      },
+      { expectedS: 2, limitS: 60 }
+    );
     log(`encrypted group ${WORLD.group} created (${rid})`);
 
-    await b.page.goto(`${base}/group/${WORLD.group}`, {
-      waitUntil: 'domcontentloaded',
-    });
-    await b.page.waitForSelector(composer, { timeout: 120_000 });
-    await sleep(5000);
+    await steps.run(
+      'group-open',
+      async () => {
+        await b.page.goto(`${base}/group/${WORLD.group}`, {
+          waitUntil: 'domcontentloaded',
+        });
+        await b.page.waitForSelector(composer, { timeout: 120_000 });
+        await sleep(5000);
+      },
+      { expectedS: 10, limitS: 180 }
+    );
 
     const sent = {};
     const needle = (key) => WORLD.needles.find((n) => n.key === key);
-    sent.bravo = await sendText(
-      b,
-      `the ${needle('bravo').word} message from the peer`,
-      needle('bravo').word
+    sent.bravo = await steps.run(
+      'send-bravo',
+      () =>
+        sendText(
+          b,
+          `the ${needle('bravo').word} message from the peer`,
+          needle('bravo').word
+        ),
+      { expectedS: 5, limitS: 240 }
     );
-    sent.charlie = await sendText(
-      b,
-      `a second ${needle('charlie').word} message`,
-      needle('charlie').word
+    sent.charlie = await steps.run(
+      'send-charlie',
+      () =>
+        sendText(
+          b,
+          `a second ${needle('charlie').word} message`,
+          needle('charlie').word
+        ),
+      { expectedS: 5, limitS: 240 }
     );
 
-    const invited = await b.api('groups.invite', 'POST', {
-      roomId: rid,
-      username: users.a.username,
-    });
-    if (!invited.success) fail(`groups.invite failed: ${invited.error}`);
-    const suggested = await waitForSuggestedKey(users.a, rid);
-    if (!suggested) fail('B did not give A the room key in 90 s');
+    await steps.run(
+      'invite-a',
+      async () => {
+        const invited = await b.api('groups.invite', 'POST', {
+          roomId: rid,
+          username: users.a.username,
+        });
+        if (!invited.success) fail(`groups.invite failed: ${invited.error}`);
+        const suggested = await waitForSuggestedKey(users.a, rid);
+        if (!suggested) fail('B did not give A the room key in 90 s');
+      },
+      { expectedS: 12, limitS: 150 }
+    );
     log('A invited; the client of B gave A the room key');
 
-    a = {
-      ...a,
-      ...(await launchClient(puppeteer, users.a, profilesDir, {
-        fresh: false,
-      })),
-    };
-    await a.page.goto(`${base}/group/${WORLD.group}`, {
-      waitUntil: 'domcontentloaded',
-    });
-    // A reads the messages of B only when A imported the room key.
-    await messageIdWith(a.page, needle('charlie').word, 120_000);
-    sent.alpha = await sendText(
-      a,
-      `the ${needle('alpha').word} reply from the desktop user`,
-      needle('alpha').word
+    await steps.run(
+      'a-reads',
+      async () => {
+        a = {
+          ...a,
+          ...(await launchClient(puppeteer, users.a, profilesDir, {
+            fresh: false,
+          })),
+        };
+        await a.page.goto(`${base}/group/${WORLD.group}`, {
+          waitUntil: 'domcontentloaded',
+        });
+        // A reads the messages of B only when A imported the room key.
+        await messageIdWith(a.page, needle('charlie').word, 120_000);
+      },
+      { expectedS: 15, limitS: 240 }
+    );
+    sent.alpha = await steps.run(
+      'send-alpha',
+      () =>
+        sendText(
+          a,
+          `the ${needle('alpha').word} reply from the desktop user`,
+          needle('alpha').word
+        ),
+      { expectedS: 5, limitS: 240 }
     );
 
     const attachment = join(profilesDir, 'harness-attachment.txt');
     writeFileSync(attachment, 'attachment body for the search harness\n');
-    sent.file = await sendFile(
-      b,
-      attachment,
-      `${needle('file').word} caption of the file`,
-      needle('file').word
+    sent.file = await steps.run(
+      'send-file',
+      () =>
+        sendFile(
+          b,
+          attachment,
+          `${needle('file').word} caption of the file`,
+          needle('file').word
+        ),
+      { expectedS: 8, limitS: 300 }
     );
-    await messageIdWith(a.page, needle('file').word, 120_000);
+    await steps.run(
+      'a-reads-file',
+      () => messageIdWith(a.page, needle('file').word, 120_000),
+      { expectedS: 3, limitS: 150 }
+    );
     log('A reads all four encrypted messages');
 
     // The server must hold only ciphertext for each needle message.
-    for (const { key, word } of WORLD.needles) {
-      const { message } = await b.api(`chat.getMessage?msgId=${sent[key]}`);
-      if (
-        !message ||
-        message.t !== 'e2e' ||
-        JSON.stringify(message).includes(word)
-      ) {
-        fail(`message ${key} is not stored encrypted on the server`);
-      }
-    }
+    await steps.run(
+      'ciphertext-check',
+      async () => {
+        for (const { key, word } of WORLD.needles) {
+          const { message } = await b.api(`chat.getMessage?msgId=${sent[key]}`);
+          if (
+            !message ||
+            message.t !== 'e2e' ||
+            JSON.stringify(message).includes(word)
+          ) {
+            fail(`message ${key} is not stored encrypted on the server`);
+          }
+        }
+      },
+      { expectedS: 2, limitS: 60 }
+    );
     log('the server stores the four needle messages as e2e ciphertext');
 
-    const channel = await a.api('channels.create', 'POST', {
-      name: WORLD.control,
-      members: [users.b.username],
-    });
-    if (!channel.success) fail(`channels.create failed: ${channel.error}`);
-    const posted = await a.api('chat.postMessage', 'POST', {
-      roomId: channel.channel._id,
-      text: `the ${WORLD.controlWord} message in a plain room`,
-    });
-    if (!posted.success) fail(`chat.postMessage failed: ${posted.error}`);
+    const { channel, posted } = await steps.run(
+      'control-channel',
+      async () => {
+        const channel = await a.api('channels.create', 'POST', {
+          name: WORLD.control,
+          members: [users.b.username],
+        });
+        if (!channel.success) fail(`channels.create failed: ${channel.error}`);
+        const posted = await a.api('chat.postMessage', 'POST', {
+          roomId: channel.channel._id,
+          text: `the ${WORLD.controlWord} message in a plain room`,
+        });
+        if (!posted.success) fail(`chat.postMessage failed: ${posted.error}`);
+        return { channel, posted };
+      },
+      { expectedS: 2, limitS: 60 }
+    );
     log(`plain channel ${WORLD.control} with the control word created`);
 
     const fresh = readState();

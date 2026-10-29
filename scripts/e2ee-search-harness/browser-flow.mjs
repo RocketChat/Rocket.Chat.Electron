@@ -26,14 +26,17 @@
 //   s8-opfs       the OPFS files are sealed (magic RCS1) and hold no test word
 //   s9-console    console errors (info only, never fails)
 // Exit code 0 only when every pass/fail step passes. Nothing secret is printed.
+// Each step also logs its time (steps.mjs). A step that passes its limit (s4-index: --index-timeout-s) stops the run:
+// the browser closes, the profile is deleted, and the exit code is not 0.
 
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { HISTORY_URL, HIT_MARGIN_MS, installPageHistoryRecorder, judgeSavedIndexHit, pageRecordingCoverage } from './restart-proof.mjs';
+import { createSteps, isStepTimeout } from './steps.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const { values } = parseArgs({
@@ -61,6 +64,7 @@ const out =
 	join(values['desktop-dir'], '.localdev/e2ee-search-harness/browser-runs', new Date().toISOString().replace(/[:.]/g, '-'));
 mkdirSync(out, { recursive: true });
 const indexTimeoutMs = Number(values['index-timeout-s']) * 1000;
+const steps = createSteps({ script: 'browser-flow', params: { browser: basename(values.browser) }, runDir: out });
 
 const state = JSON.parse(readFileSync(join(values['state-dir'], 'state.json'), 'utf8'));
 const userA = state.users?.a;
@@ -196,7 +200,9 @@ const cleanup = async () => {
 	if (profileDir && !values['keep-profile']) rmSync(profileDir, { recursive: true, force: true });
 };
 
-const finish = async () => {
+let finishing;
+const finish = () => (finishing ??= finishRun());
+const finishRun = async () => {
 	record('s9-console', null, {
 		errors: consoleLines.filter((l) => l.type === 'error').slice(0, 30),
 		warnings: consoleLines.filter((l) => l.type === 'warn' && /e2ee|search|index|persist|storage/i.test(l.text)).slice(0, 20),
@@ -210,9 +216,14 @@ const finish = async () => {
 };
 
 process.on('SIGINT', () => void cleanup().then(() => process.exit(130)));
+steps.onAbort(async () => {
+	record('runner', false, { error: 'a step passed its limit: see the STEP FAIL line' });
+	await finish();
+});
 
 try {
 	// ---------------------------------------------------------------- launch
+	let st = steps.start('launch', { expectedS: 10, limitS: 180 });
 	profileDir = mkdtempSync(join(out, 'ff-profile-'));
 	browser = await puppeteer.launch({
 		browser: 'firefox',
@@ -248,8 +259,11 @@ try {
 	// WebDriver BiDi cannot read response bodies, so the page records each history response with its body
 	// (window.__e2eeHarnessHistory), from before the first script of each document. See restart-proof.mjs.
 	await page.evaluateOnNewDocument(installPageHistoryRecorder, HISTORY_URL.source);
+	st.end(true);
 
 	// ---------------------------------------------------------------- s1 login
+	// The limits of the steps cover the waits of each step one after the other.
+	st = steps.start('s1-login', { expectedS: 15, limitS: 480 });
 	await page.goto(`${base}/home`, { waitUntil: 'domcontentloaded', timeout: 180000 });
 	const form = await waitFor(`!!document.querySelector('input[name=usernameOrEmail]')`, 180000);
 	if (form) {
@@ -259,6 +273,7 @@ try {
 	}
 	const uid = await waitFor(`localStorage.getItem('Meteor.userId')`, 90000);
 	record('s1-login', Boolean(uid), { form: Boolean(form), loggedIn: Boolean(uid), ua: await ev('navigator.userAgent') });
+	st.end(Boolean(uid));
 	if (!uid) await finish();
 
 	// ---------------------------------------------------------------- s2 unlock
@@ -281,14 +296,17 @@ try {
 		}
 		return { ok: false, typed };
 	};
+	st = steps.start('s2-unlock', { expectedS: 10, limitS: 180 });
 	const unlocked = await unlock();
 	record('s2-unlock', unlocked.ok, unlocked);
+	st.end(unlocked.ok);
 	if (!unlocked.ok) {
 		await shot('s2-unlock-failure');
 		await finish();
 	}
 
 	// ---------------------------------------------------------------- s3 opt-in
+	st = steps.start('s3-opt-in', { expectedS: 5, limitS: 120 });
 	const optKey = `E2EESearch_OptIn_${uid}`;
 	await navigate('/account/security');
 	const toggle = `document.getElementById([...document.querySelectorAll('label[for]')].find((l) => /Index my encrypted messages/i.test(l.innerText))?.htmlFor ?? '')`;
@@ -300,12 +318,14 @@ try {
 	}
 	const optedIn = Boolean(await waitFor(`localStorage.getItem(${JSON.stringify(optKey)}) === 'true'`, 10000));
 	record('s3-opt-in', optedIn, { toggleShown, optedIn });
+	st.end(optedIn);
 	if (!optedIn) {
 		await shot('s3-opt-in-failure');
 		await finish();
 	}
 
 	// ---------------------------------------------------------------- s4 index
+	st = steps.start('s4-panel', { expectedS: 10, limitS: 180 });
 	const panelOpen = await openPanel(pt.name);
 
 	// The index asks navigator.storage.persist() once it opens. Record what the browser does with it.
@@ -348,14 +368,21 @@ try {
 		}
 	}
 	record('s4-persist-prompt', null, persist);
+	st.end(true);
 
+	// --index-timeout-s is the default limit of this step. The limit ends the loop and the run.
+	st = steps.start('s4-index', {
+		expectedS: 120,
+		limitS: indexTimeoutMs / 1000,
+		params: { pause: process.env.HARNESS_BACKFILL_PAUSE_S || 1 },
+	});
 	const transitions = [];
 	let last = '';
 	let firstShot;
 	const indexStart = Date.now();
 	let p;
 	let panelText = '';
-	while (Date.now() - indexStart < indexTimeoutMs) {
+	while (!st.signal.aborted) {
 		p = await progress();
 		panelText = (await ev(`document.querySelector('[data-qa=local-search-index-progress]')?.innerText.replace(/\\s+/g, ' ') ?? ''`)) || '';
 		const key = `${p?.status}|${p?.roomsDone}/${p?.rooms}|${panelText}`;
@@ -379,8 +406,12 @@ try {
 		syncRequests: requests.filter((r) => r.at >= indexStart).length,
 		screenshots: [firstShot, doneShot].filter(Boolean),
 	});
+	st.end(p?.status === 'done');
+	// Past the limit, the abort handler finishes the run: stop here.
+	st.signal.throwIfAborted();
 
 	// ---------------------------------------------------------------- s5 search + jump
+	st = steps.start('s5-search', { expectedS: 10, limitS: 120 });
 	const s5 = await panelSearch('orcamento', { expectWord: 'orçamento' });
 	const s5shot = await shot('s5-panel-orcamento', panelExpr);
 	const markOk = s5.hits.some((h) => h.marks.some((m) => m.toLowerCase().normalize('NFC') === 'orçamento'));
@@ -416,8 +447,10 @@ try {
 		jump: { ...jump, inView: Boolean(jump.inView), decryptedText: jump.inView?.text?.includes('orçamento') ?? false },
 		screenshot: s5shot,
 	});
+	st.end(s5.hits.length > 0 && markOk && Boolean(jump.inView));
 
 	// ---------------------------------------------------------------- s6 send / edit / delete
+	st = steps.start('s6-send', { expectedS: 15, limitS: 300 });
 	await navigate(`/group/${pt.name}`);
 	await waitFor(`!!document.querySelector('textarea[name=msg]')`, 30000);
 	const sendText = async (text) => {
@@ -434,8 +467,10 @@ try {
 	await openPanel(pt.name);
 	const s6a = await panelSearch(words.sent, { expectWord: words.sent });
 	record('s6-send', Boolean(sentId) && s6a.hits.length === 1, { sentId: Boolean(sentId), hits: s6a.hits.length, latencyMs: s6a.latencyMs, empty: s6a.empty });
+	st.end(Boolean(sentId) && s6a.hits.length === 1);
 
 	// Edit: ArrowUp in the empty composer edits the last own message.
+	st = steps.start('s6-edit', { expectedS: 20, limitS: 300 });
 	await navigate(`/group/${pt.name}`);
 	await waitFor(`!!document.querySelector('textarea[name=msg]')`, 30000);
 	await page.click('textarea[name=msg]');
@@ -461,8 +496,10 @@ try {
 		oldWordHits: s6old.hits.length,
 		oldWordNoResults: s6old.empty,
 	});
+	st.end(edited && s6new.hits.length === 1 && s6old.empty && s6old.hits.length === 0);
 
 	// Delete: a second own message, removed with the message menu (fallback: REST chat.delete).
+	st = steps.start('s6-delete', { expectedS: 25, limitS: 360 });
 	await navigate(`/group/${pt.name}`);
 	await waitFor(`!!document.querySelector('textarea[name=msg]')`, 30000);
 	const delId = await sendText(`apagar ${words.deleted} depois`);
@@ -505,8 +542,10 @@ try {
 		noResultsAfter: s6del.empty,
 	});
 	await shot('s6-panel-after-delete', panelExpr);
+	st.end(s6pre.hits.length === 1 && goneFromRoom && s6del.empty && s6del.hits.length === 0);
 
 	// ---------------------------------------------------------------- s7 reload
+	st = steps.start('s7-reload', { expectedS: 30, limitS: 660 });
 	const opfsBefore = await ev(`(async () => {
 		const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('e2ee-search');
 		const files = [];
@@ -564,8 +603,10 @@ try {
 			screenshot: s7shot,
 		},
 	);
+	st.end(reUnlock.ok && panelAgain && s7old.hits.length > 0 && s7edit.hits.length === 1 && savedIndex.ok && restoredInfo.length === 0);
 
 	// ---------------------------------------------------------------- s8 at rest
+	st = steps.start('s8-mongo', { expectedS: 2, limitS: 120 });
 	const client = await mongodb.MongoClient.connect(`mongodb://127.0.0.1:${port + 1}/?directConnection=true`);
 	try {
 		const msgs = client.db('meteor').collection('rocketchat_message');
@@ -581,7 +622,9 @@ try {
 	} finally {
 		await client.close();
 	}
+	st.end(results.at(-1)?.step === 's8-mongo' && results.at(-1).ok);
 
+	st = steps.start('s8-opfs', { expectedS: 5, limitS: 180 });
 	const scanWords = [...Object.values(words), 'orçamento', 'orcamento', 'trimestral', largeOldest.word];
 	const opfs = await ev(`(async () => {
 		const enc = new TextEncoder();
@@ -603,8 +646,10 @@ try {
 	})()`);
 	const sealedFiles = opfs.files.filter((f) => f.path.startsWith('e2ee-search/'));
 	record('s8-opfs', sealedFiles.length > 0 && sealedFiles.every((f) => f.magic === 'RCS1' && !f.sqliteHeader) && opfs.files.every((f) => f.hits.length === 0), opfs);
+	st.end(results.at(-1).ok);
 
 	// Info: a scan of the Firefox profile on disk (other stores of the web client too).
+	st = steps.start('s8-profile-scan', { expectedS: 10, limitS: 300 });
 	const diskHits = [];
 	const walkDisk = (dir) => {
 		for (const name of readdirSync(dir)) {
@@ -620,8 +665,13 @@ try {
 	};
 	walkDisk(profileDir);
 	record('s8-profile-scan', null, { note: 'info only: compressed stores can hide words', filesWithHits: diskHits });
+	st.end(true);
 } catch (error) {
-	record('runner', false, { error: String(error?.stack ?? error).slice(0, 1500) });
-	if (page) await shot('runner-failure');
+	steps.failActive(String(error?.message ?? error).split('\n')[0].slice(0, 200));
+	// After a step timeout, the abort handler records the failure and finishes the run.
+	if (!finishing && !isStepTimeout(error)) {
+		record('runner', false, { error: String(error?.stack ?? error).slice(0, 1500) });
+		if (page) await shot('runner-failure');
+	}
 }
 await finish();

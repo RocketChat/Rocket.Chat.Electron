@@ -272,6 +272,74 @@ The checks are the same as in the macOS test, with these changes:
 
 The run folder is `.localdev/e2ee-search-harness/runs/win-<timestamp>/`.
 
+## Step log and watchdog
+
+Each script of the harness runs its work in steps. The server start, each
+part of each seed and each step of `browser-flow.mjs` are steps. In the
+packaged tests, the build, the app start and each check are steps. Each step
+prints a start line and an end line on stderr:
+
+```text
+[12:01:02] STEP start seed-rooms/dm/send (expected ~29s, limit 300s, count=200)
+[12:01:32] STEP slow seed-rooms/dm/send 30s (expected ~29s, limit 300s)
+[12:01:34] STEP done seed-rooms/dm/send 31.6s (expected ~29s)
+[12:05:40] STEP FAIL seed-rooms/dm/key-to-a timeout after 180s (expected ~10s)
+[12:06:10] STEP FAIL macos-packaged/setup exit code 1 after 41.2s (expected ~30s)
+```
+
+- After the expected time, a `STEP slow` line comes every 20 seconds while the
+  step runs. Then you can see that the step is alive or stuck.
+- The expected time is the median of the last 10 runs of the step. A step
+  with no runs uses the `expectedS` of its entry in `step-timings.json`, else
+  the default in the code.
+- The limit is the larger of the default limit of the step and 4 times the
+  expected time. A limit that a script had before (for example
+  `SERVER_WAIT_S`, `INDEX_TIMEOUT_S` or `--index-timeout-s`) is now the default
+  limit of its step.
+- Past the limit, the step fails with `STEP FAIL ... timeout`. Then the
+  script stops the processes that it started. A packaged test stops the app
+  and prints the summary. The exit code is not 0. It is 124 when nothing else
+  sets the code.
+- A failed step does not go into the history.
+
+| Variable                    | Default | Use                                                                  |
+| --------------------------- | ------- | -------------------------------------------------------------------- |
+| `HARNESS_STEP_LIMIT_SCALE`  | `1`     | Multiplies every limit. Use `2` on a slow machine.                   |
+| `HARNESS_STEP_SLOW_EVERY_S` | `20`    | Seconds between two `STEP slow` lines                                |
+| `HARNESS_STEP_CLEANUP_S`    | `30`    | Longest time for the cleanup of a Node script after a timeout        |
+| `HARNESS_STEP_TIMINGS`      | none    | Another timings file, for example for a test that must not change it |
+
+The files:
+
+- `scripts/e2ee-search-harness/step-timings.json` is the history. Git tracks
+  it, so each machine and each agent uses the same expected times. The key of
+  an entry is the step, the platform (`darwin`, `win32` or `linux`), and the
+  parameters that change the time, for example
+  `macos-packaged/wait-index darwin pause=1` or
+  `seed-rooms/pt/send darwin count=1000`. Each run writes the file. The person
+  or agent that runs the harness decides whether to commit the change. The
+  first entries have no runs. Their `expectedS` is the default in the code, or
+  the median of earlier runs when their logs had the time.
+- `.localdev/e2ee-search-harness/steps.log` gets every step line of every
+  script. The run folder of a packaged test or of `browser-flow.mjs` gets its
+  own `steps.log` too. These logs are run state, not history: Git ignores them.
+- `.localdev/e2ee-search-harness/current-step.json` holds each step that runs
+  now: the script, the step, the start time, the expected time, the limit and
+  the process id. It is also run state.
+
+Watch a run from another terminal:
+
+```sh
+tail -f .localdev/e2ee-search-harness/steps.log | grep --line-buffered STEP
+cat .localdev/e2ee-search-harness/current-step.json
+```
+
+Run the self-test of the step helper:
+
+```sh
+node --test scripts/e2ee-search-harness/steps.test.mjs
+```
+
 ## Known limits
 
 - The canary scan cannot see a token inside compressed data, for example a

@@ -185,36 +185,54 @@ const main = async () => {
             'X-Auth-Token': localStorage.getItem('Meteor.loginToken'),
           };
           const failed = [];
+          let retried = 0;
           await Promise.all(
             batch.map(async ({ _id, msg, tmid }) => {
               const message = await room.encryptMessage({ _id, rid, msg });
               if (tmid) message.tmid = tmid;
-              const response = await fetch('/api/v1/chat.sendMessage', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ message }),
-              });
+              // A network error (Failed to fetch) is retried with the same _id. A copy that the server
+              // already stored then fails as a duplicate, so no message is stored twice.
+              let response;
+              for (let attempt = 1; ; attempt++) {
+                try {
+                  response = await fetch('/api/v1/chat.sendMessage', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ message }),
+                  });
+                  break;
+                } catch (error) {
+                  if (attempt >= 4) throw error;
+                  retried++;
+                  await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+                }
+              }
               const body = await response.json().catch(() => ({}));
               if (!body.success)
                 failed.push({ _id, error: body.error ?? response.status });
             })
           );
-          return failed;
+          return { failed, retried };
         },
         rid,
         batch
       );
 
     const started = Date.now();
+    let retriedTotal = 0;
     // About 0.16 s per message was measured with 600 messages.
     await steps.run(
       'send',
       async () => {
         for (let i = 0; i < docs.length; i += CONCURRENCY) {
           const batch = docs.slice(i, i + CONCURRENCY);
-          const failed = await sendBatch(batch);
+          const { failed, retried } = await sendBatch(batch);
           stats.failed += failed.length;
           stats.sent += batch.length - failed.length;
+          if (retried) {
+            retriedTotal += retried;
+            log(`batch ${i}: ${retried} network retries (Failed to fetch), total ${retriedTotal}`);
+          }
           if (failed.length)
             log(`failed in batch ${i}: ${JSON.stringify(failed.slice(0, 2))}`);
           if (i % 1000 < CONCURRENCY) log(`sent ${stats.sent}/${COUNT}`);
@@ -226,6 +244,7 @@ const main = async () => {
         params: { count: COUNT, concurrency: CONCURRENCY },
       }
     );
+    stats.retried = retriedTotal;
     stats.threadReplies = docs.filter((d) => d.tmid).length;
     stats.sendMs = Date.now() - started;
     log(`sent ${stats.sent}, failed ${stats.failed}, in ${stats.sendMs} ms`);

@@ -494,6 +494,14 @@ const seedRoom = async ({
   lostKey,
 }) => {
   await openRoomStep(key, b.page, path, rid);
+  if (key === 'dm') {
+    // A direct message has no invite. A asks for the room key when A opens the room, and B answers.
+    await steps.run(
+      'dm/a-open',
+      () => a.page.goto(`${base}/${path}`, { waitUntil: 'domcontentloaded' }),
+      { expectedS: 8, limitS: 120 }
+    );
+  }
   const keyed = await steps.run(
     `${key}/key-to-a`,
     () => waitForKeyOfA(a.page, rid),

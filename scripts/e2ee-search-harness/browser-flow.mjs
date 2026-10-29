@@ -23,7 +23,7 @@
 //   s7-reload     reload, search old history: the hit must come from the saved copy in OPFS. Every history response after
 //                 the reload is recorded in the page; none that arrived up to the hit may hold the needle id
 //   s8-mongo      the new message is e2e ciphertext in MongoDB
-//   s8-opfs       the OPFS files are sealed (magic RCS1) and hold no test word
+//   s8-opfs       the OPFS files are sealed (magic RCS2, the format of the wrap-key index) and hold no SQLite header or test word
 //   s9-console    console errors (info only, never fails)
 // Exit code 0 only when every pass/fail step passes. Nothing secret is printed.
 // Each step also logs its time (steps.mjs). A step that passes its limit (s4-index: --index-timeout-s) stops the run:
@@ -649,7 +649,7 @@ try {
 		return { files, persisted };
 	})()`);
 	const sealedFiles = opfs.files.filter((f) => f.path.startsWith('e2ee-search/'));
-	record('s8-opfs', sealedFiles.length > 0 && sealedFiles.every((f) => f.magic === 'RCS1' && !f.sqliteHeader) && opfs.files.every((f) => f.hits.length === 0), opfs);
+	record('s8-opfs', sealedFiles.length > 0 && sealedFiles.every((f) => f.magic === 'RCS2' && !f.sqliteHeader) && opfs.files.every((f) => f.hits.length === 0), opfs);
 	st.end(results.at(-1).ok);
 
 	// Info: a scan of the browser profile on disk (other stores of the web client too).

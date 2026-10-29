@@ -48,7 +48,7 @@ import type { E2EESearchOpenResult } from './types';
 import {
   fetchServerPublicKey,
   NO_KEY_RETRY_DELAYS_MS,
-  READ_LOGIN_TOKEN_SCRIPT,
+  readLoginTokenScript,
   verifyServerUserId,
 } from './verifyUser';
 import { workerEnvOf } from './workerEnv';
@@ -220,7 +220,11 @@ export const openE2EESearchIndex = async (
       }
       loggers.e2eeSearch.info('index opened', { store });
       encryptedAtRest.set(dir, result.encryptedAtRest);
-      const limit = indexLimitOf(indexKey, { store, fileStoreError });
+      const limit = indexLimitOf(
+        indexKey,
+        { store, fileStoreError, encryptedAtRest: result.encryptedAtRest },
+        indexLimits.get(dir)
+      );
       indexLimits.set(dir, limit);
       return {
         indexId: dir,
@@ -258,7 +262,14 @@ const resolveServerUrl = ({
   }
 };
 
+// Settings asks for stats on a timer, and a request can start before the
+// last one ends. Only the latest request dispatches, so older stats that
+// end later cannot replace newer ones.
+let latestStatsRequest = 0;
+
 const publishIndexStats = async (): Promise<void> => {
+  latestStatsRequest += 1;
+  const request = latestStatsRequest;
   try {
     const stats = await collectIndexStats({
       host: getE2EESearchHost(),
@@ -267,6 +278,7 @@ const publishIndexStats = async (): Promise<void> => {
       isEncryptedAtRest: (indexId) => encryptedAtRest.get(indexId),
       limitOf: (indexId) => indexLimits.get(indexId),
     });
+    if (request !== latestStatsRequest) return;
     dispatch({ type: E2EE_SEARCH_INDEX_STATS_UPDATED, payload: stats });
   } catch (error) {
     loggers.e2eeSearch.warn('index stats failed', summarizeError(error));
@@ -296,10 +308,11 @@ const getTrustedCertificateSession = (): Session => {
 
 // The login session of the sender webview, for the requests that ask the
 // server about the user.
-const serverRequestsOf = (event: IpcMainInvokeEvent) => {
+const serverRequestsOf = (event: IpcMainInvokeEvent, serverUrl: string) => {
   const { sender } = event;
   return {
-    readLoginToken: () => sender.executeJavaScript(READ_LOGIN_TOKEN_SCRIPT),
+    readLoginToken: () =>
+      sender.executeJavaScript(readLoginTokenScript(serverUrl)),
     // The webview's own session first, so its proxy and client certificate
     // apply to the check.
     fetch: createUserCheckFetch({
@@ -317,14 +330,14 @@ export const setupE2EESearch = (): void => {
     resolveServerUrl: (event) => resolveServerUrl(event as IpcMainInvokeEvent),
     verifyUserId: (event, serverUrl, userId) =>
       verifyServerUserId(
-        serverRequestsOf(event as IpcMainInvokeEvent),
+        serverRequestsOf(event as IpcMainInvokeEvent, serverUrl),
         serverUrl,
         userId
       ),
     fetchOwnerKey: async (event, serverUrl, userId) => {
       const publicKey = await fetchServerPublicKey(
         {
-          ...serverRequestsOf(event as IpcMainInvokeEvent),
+          ...serverRequestsOf(event as IpcMainInvokeEvent, serverUrl),
           noKeyRetryDelaysMs: NO_KEY_RETRY_DELAYS_MS,
         },
         serverUrl,

@@ -1,6 +1,9 @@
+import { runInNewContext } from 'node:vm';
+
 import {
   fetchServerPublicKey,
   MAX_SERVER_ANSWER_BYTES,
+  readLoginTokenScript,
   verifyServerUserId,
 } from '../verifyUser';
 
@@ -516,5 +519,58 @@ describe('the requests to the server', () => {
       'https://chat.example.com/sub/api/v1/me',
       'https://chat.example.com/sub/api/v1/e2e.fetchMyPublicKey',
     ]);
+  });
+});
+
+describe('readLoginTokenScript', () => {
+  // Runs the script like executeJavaScript does, in a page of `origin`.
+  const runInPage = (script: string, origin: string, meteor?: unknown) => {
+    const localStorage = {
+      getItem: (key: string) => (key === 'Meteor.loginToken' ? 'tokenB' : null),
+    };
+    return runInNewContext(script, {
+      window: { location: { origin }, localStorage, Meteor: meteor },
+    });
+  };
+
+  it('reads the token in a page of the server origin', () => {
+    expect(
+      runInPage(readLoginTokenScript(SERVER), 'https://chat.example.com')
+    ).toBe('tokenB');
+  });
+
+  it("reads Meteor's own storage first", () => {
+    const meteor = { _localStorage: { getItem: () => 'tokenFromMeteor' } };
+    expect(
+      runInPage(
+        readLoginTokenScript(SERVER),
+        'https://chat.example.com',
+        meteor
+      )
+    ).toBe('tokenFromMeteor');
+  });
+
+  it.each([
+    'https://other.example.com',
+    'http://chat.example.com',
+    'https://chat.example.com:8443',
+    'null',
+  ])('reads nothing when the page shows %s instead', (origin) => {
+    expect(runInPage(readLoginTokenScript(SERVER), origin)).toBeNull();
+  });
+
+  it('puts only the origin of the server URL in the script, as a string', () => {
+    const script = readLoginTokenScript(
+      "https://chat.example.com/sub/?q=')+alert(1)//#x"
+    );
+    expect(script).toContain('"https://chat.example.com"');
+    expect(script).not.toContain('alert');
+  });
+
+  it('reads nothing for a server URL with an opaque origin', () => {
+    expect(readLoginTokenScript('file:///tmp/page.html')).toBe('null');
+    expect(
+      runInPage(readLoginTokenScript('file:///tmp/page.html'), 'null')
+    ).toBeNull();
   });
 });

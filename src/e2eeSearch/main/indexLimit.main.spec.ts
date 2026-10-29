@@ -6,6 +6,7 @@ import { createSearchHost } from '../host';
 import { indexLimitOf, limitedReasonOf } from '../indexLimit';
 import type { IndexKey } from '../keyStore';
 import { collectIndexStats } from '../lifecycle';
+import type { WorkerOpenResult } from '../workerProtocol';
 import { createFakeWorkers } from './fakeWorkers';
 
 const persistent: IndexKey = {
@@ -19,7 +20,9 @@ const memoryOnly = (
 
 describe('indexLimitOf', () => {
   it('has no reason for a persistent key on the file store', () => {
-    expect(indexLimitOf(persistent, { store: 'file' })).toEqual({
+    expect(
+      indexLimitOf(persistent, { store: 'file', encryptedAtRest: true })
+    ).toEqual({
       store: 'file',
     });
   });
@@ -30,7 +33,12 @@ describe('indexLimitOf', () => {
     'keychain-timeout',
     'hard-coded-wrap',
   ] as const)('carries the %s reason of a memory-only key', (reason) => {
-    expect(indexLimitOf(memoryOnly(reason), { store: 'snapshot' })).toEqual({
+    expect(
+      indexLimitOf(memoryOnly(reason), {
+        store: 'snapshot',
+        encryptedAtRest: false,
+      })
+    ).toEqual({
       store: 'snapshot',
       reason,
     });
@@ -40,6 +48,7 @@ describe('indexLimitOf', () => {
     expect(
       indexLimitOf(persistent, {
         store: 'snapshot',
+        encryptedAtRest: true,
         fileStoreError: { name: 'Error', code: 'ERR_DLOPEN_FAILED' },
       })
     ).toEqual({ store: 'snapshot', reason: 'native-module-unavailable' });
@@ -49,9 +58,48 @@ describe('indexLimitOf', () => {
     expect(
       indexLimitOf(memoryOnly('basic-text-backend'), {
         store: 'snapshot',
+        encryptedAtRest: false,
         fileStoreError: { name: 'Error' },
       }).reason
     ).toBe('basic-text-backend');
+  });
+
+  it('keeps the reason of a memory-only index that a persistent key opens again', () => {
+    const opened = indexLimitOf(memoryOnly('keychain-timeout'), {
+      store: 'snapshot',
+      encryptedAtRest: false,
+    });
+    expect(
+      indexLimitOf(
+        persistent,
+        { store: 'snapshot', encryptedAtRest: false },
+        opened
+      )
+    ).toEqual({ store: 'snapshot', reason: 'keychain-timeout' });
+  });
+
+  it('keeps the full limit of a file index that a memory-only key opens again', () => {
+    const opened = indexLimitOf(persistent, {
+      store: 'file',
+      encryptedAtRest: true,
+    });
+    expect(
+      indexLimitOf(
+        memoryOnly('keychain-timeout'),
+        { store: 'file', encryptedAtRest: true },
+        opened
+      )
+    ).toEqual({ store: 'file' });
+  });
+
+  it('computes a new limit when the index was made with this key', () => {
+    expect(
+      indexLimitOf(
+        persistent,
+        { store: 'file', encryptedAtRest: true },
+        { store: 'snapshot', reason: 'keychain-timeout' }
+      )
+    ).toEqual({ store: 'file' });
   });
 });
 
@@ -73,6 +121,26 @@ describe('index stats carry the limit', () => {
     root = mkdtempSync(path.join(tmpdir(), 'e2ee-limit-'));
   });
   afterEach(() => rmSync(root, { recursive: true, force: true }));
+
+  it('keeps the keychain-timeout reason when a persistent key reuses the open memory-only index', async () => {
+    const host = createSearchHost({ spawn: createFakeWorkers().spawn });
+    const indexId = path.join(root, 'server', 'user-1');
+    const openWith = (indexKey: IndexKey) =>
+      host.open(indexId, {
+        userId: 'user-1',
+        dir: indexId,
+        indexKey,
+      }) as Promise<WorkerOpenResult>;
+    const first = await openWith(memoryOnly('keychain-timeout'));
+    const firstLimit = indexLimitOf(memoryOnly('keychain-timeout'), first);
+    const reused = await openWith(persistent);
+    expect(reused.encryptedAtRest).toBe(false);
+    expect(indexLimitOf(persistent, reused, firstLimit)).toEqual({
+      store: 'snapshot',
+      reason: 'keychain-timeout',
+    });
+    await host.dispose();
+  });
 
   it('adds the store and the reason of an open limited index', async () => {
     const host = createSearchHost({ spawn: createFakeWorkers().spawn });

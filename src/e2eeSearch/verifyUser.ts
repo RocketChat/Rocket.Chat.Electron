@@ -5,8 +5,14 @@
 
 // The expression that reads the login token in the page. Meteor keeps it in
 // `Meteor._localStorage`, which is the page's `localStorage` in a browser.
-export const READ_LOGIN_TOKEN_SCRIPT =
-  "(window.Meteor?._localStorage ?? window.localStorage)?.getItem('Meteor.loginToken') ?? null";
+// The script runs in the document that the webview shows when it runs, which
+// can be a page of another origin than the page that called. Then it reads
+// nothing, so the token of another server never goes to this server.
+export const readLoginTokenScript = (serverUrl: string): string => {
+  const { origin } = new URL(serverUrl);
+  if (origin === 'null') return 'null';
+  return `window.location.origin === ${JSON.stringify(origin)} ? ((window.Meteor?._localStorage ?? window.localStorage)?.getItem('Meteor.loginToken') ?? null) : null`;
+};
 
 export const VERIFY_USER_TIMEOUT_MS = 10_000;
 

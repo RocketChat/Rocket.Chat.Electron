@@ -219,6 +219,11 @@ describe('E2EE search worker handler, encrypted file store', () => {
       if (!response.ok) throw new Error(`open: ${response.error.message}`);
       return response.value;
     };
+    // Windows cannot remove a folder while its index file is open.
+    const closeIn = async (h: ReturnType<typeof handler>, indexId: string) => {
+      nextId += 1;
+      await h.handle({ id: nextId, indexId, method: 'close', args: [] });
+    };
     const failingIn =
       (failDir: string, error: Error) => (file: string, key: Buffer) => {
         if (file.startsWith(failDir + path.sep)) throw error;
@@ -245,6 +250,8 @@ describe('E2EE search worker handler, encrypted file store', () => {
         store: 'snapshot',
         fileStoreError: { code: 'SQLITE_CANTOPEN' },
       });
+      await closeIn(h, 'good');
+      await closeIn(h, 'bad');
     });
 
     it.each(['ERR_DLOPEN_FAILED', 'MODULE_NOT_FOUND'])(
@@ -261,6 +268,8 @@ describe('E2EE search worker handler, encrypted file store', () => {
           store: 'snapshot',
           fileStoreError: { code },
         });
+        await closeIn(h, 'good');
+        await closeIn(h, 'bad');
       }
     );
   });

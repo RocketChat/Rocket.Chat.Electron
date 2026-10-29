@@ -75,39 +75,36 @@ const formatDuration = (duration: number): string => {
     numeric: 'always',
   });
 
-  duration /= 1000;
+  const seconds = duration / 1000;
+  const minutes = seconds / 60;
+  const hours = minutes / 60;
+  const days = hours / 24;
 
-  if (duration / 60 < 1) {
-    return formatter.format(duration, 'second');
+  if (minutes < 1) {
+    return formatter.format(Math.round(seconds), 'second');
   }
-  duration /= 60;
 
-  if (duration / 60 < 1) {
-    return formatter.format(duration, 'minute');
+  if (hours < 1) {
+    return formatter.format(Math.round(minutes), 'minute');
   }
-  duration /= 60;
 
-  if (duration / 24 < 1) {
-    return formatter.format(duration, 'hour');
+  if (days < 1) {
+    return formatter.format(Math.round(hours), 'hour');
   }
-  duration /= 24;
 
-  if (duration / 7 < 1) {
-    return formatter.format(duration, 'day');
+  if (days < 7) {
+    return formatter.format(Math.round(days), 'day');
   }
-  duration /= 7;
 
-  if (duration / 30 < 1) {
-    return formatter.format(duration, 'week');
+  if (days < 30) {
+    return formatter.format(Math.round(days / 7), 'week');
   }
-  duration /= 30;
 
-  if (duration / 12 < 1) {
-    return formatter.format(duration, 'month');
+  if (days < 365) {
+    return formatter.format(Math.round(days / 30), 'month');
   }
-  duration /= 12;
 
-  return formatter.format(duration, 'year');
+  return formatter.format(Math.round(days / 365), 'year');
 };
 
 export const interpolation: InitOptions['interpolation'] = {

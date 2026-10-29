@@ -30,6 +30,7 @@ import { dialogs } from '../ui/reducers/dialogs';
 import { e2ePdfPreviewSizeLimit } from '../ui/reducers/e2ePdfPreviewSizeLimit';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
+import { isAnimatedImagesEnabled } from '../ui/reducers/isAnimatedImagesEnabled';
 import { isDebugLoggingEnabled } from '../ui/reducers/isDebugLoggingEnabled';
 import { isDetailedEventsLoggingEnabled } from '../ui/reducers/isDetailedEventsLoggingEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
@@ -131,6 +132,7 @@ export const rootReducer = combineReducers({
   isReportEnabled,
   isFlashFrameEnabled,
   isDownloadsPercentageEnabled,
+  isAnimatedImagesEnabled,
   isHardwareAccelerationEnabled,
   isInternalVideoChatWindowEnabled,
   isAddNewServersEnabled,

@@ -9,7 +9,7 @@
 //   1. The real web client of user B (headless Chrome, the profile that
 //      seed.mjs made) encrypts each message with the room key:
 //      E2ERoom.encryptMessage() from client/lib/e2ee/rocketchat.e2e.room.ts,
-//      reached through the Meteor client `require`. So each stored document
+//      reached through e2e-module.mjs. So each stored document
 //      is real rc.v2.aes-sha2 ciphertext, with the kid of the room key.
 //   2. The page sends each message with REST chat.sendMessage (the server
 //      path of a normal send). Every `--thread-every`-th message is a thread
@@ -42,6 +42,7 @@ import {
   worldKey,
   writeState,
 } from './state.mjs';
+import { installE2eModule } from './e2e-module.mjs';
 import { createSteps } from './steps.mjs';
 
 const harnessDir = dirname(fileURLToPath(import.meta.url));
@@ -146,6 +147,7 @@ const main = async () => {
   const stats = { sent: 0, failed: 0, threadReplies: 0, edits: 0, deletes: 0 };
   try {
     const page = await browser.newPage();
+    await installE2eModule(page, coreDir);
     const ready = await steps.run(
       'room-key',
       async () => {
@@ -155,10 +157,8 @@ const main = async () => {
         await page.waitForSelector('textarea[name=msg]', { timeout: 180_000 });
         return page.waitForFunction(
           async (rid) => {
-            // The Meteor client require: the module of the E2E client.
-            const { e2e } = window.require(
-              '/client/lib/e2ee/rocketchat.e2e.ts'
-            );
+            // The module of the E2E client (e2e-module.mjs).
+            const { e2e } = await window.__harnessE2e();
             const room = await e2e.getInstanceByRoomId(rid);
             return Boolean(room?.isReady());
           },
@@ -175,7 +175,7 @@ const main = async () => {
     const sendBatch = (batch) =>
       page.evaluate(
         async (rid, batch) => {
-          const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+          const { e2e } = await window.__harnessE2e();
           const room = await e2e.getInstanceByRoomId(rid);
           const headers = {
             'Content-Type': 'application/json',
@@ -329,7 +329,7 @@ const main = async () => {
     });
     const changed = await page.evaluate(
       async (rid, edits, deletes) => {
-        const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+        const { e2e } = await window.__harnessE2e();
         const room = await e2e.getInstanceByRoomId(rid);
         const headers = {
           'Content-Type': 'application/json',

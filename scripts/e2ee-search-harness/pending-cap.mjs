@@ -17,9 +17,11 @@
 
 import { appendFileSync, mkdirSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { installE2eModule } from './e2e-module.mjs';
 import { readState, stateDir, usersOf, worldKey } from './state.mjs';
 
 const require = createRequire(import.meta.url);
@@ -40,7 +42,10 @@ const fail = (m) => {
   process.exit(1);
 };
 
-const E2E = '/client/lib/e2ee/rocketchat.e2e.ts';
+const harnessDir = dirname(fileURLToPath(import.meta.url));
+const coreDir =
+  process.env.ROCKETCHAT_CORE_DIR ??
+  resolve(harnessDir, '..', '..', '..', 'Rocket.Chat');
 
 const main = async () => {
   const state = readState();
@@ -70,6 +75,7 @@ const main = async () => {
   };
   try {
     const page = await browser.newPage();
+    await installE2eModule(page, coreDir);
     const cdp = await page.createCDPSession();
     await page.goto(`${base}/home`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('input[name=usernameOrEmail]', {
@@ -90,10 +96,10 @@ const main = async () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
 
     for (let i = 0; i < 90; i++) {
-      const step = await page.evaluate((E2E) => {
+      const step = await page.evaluate(async () => {
         let mod;
         try {
-          mod = window.require(E2E);
+          mod = await window.__harnessE2e();
         } catch {
           return 'loading';
         }
@@ -105,7 +111,7 @@ const main = async () => {
           ?.querySelector('.rcx-banner__content')
           ?.click();
         return 'waiting';
-      }, E2E);
+      });
       if (step === 'ready') break;
       if (step === 'dialog') {
         await page.type('.rcx-modal input[type=password]', users.a.e2ePassword);
@@ -121,9 +127,9 @@ const main = async () => {
       await cdp.send('HeapProfiler.collectGarbage');
       const heap = await cdp.send('Runtime.getHeapUsage');
       const progress = await page.evaluate(
-        (E2E) =>
-          window.require(E2E).e2eSearchIndexRuntime.getProgress() ?? null,
-        E2E
+        async () =>
+          (await window.__harnessE2e()).e2eSearchIndexRuntime.getProgress() ??
+          null
       );
       // Every Map in the heap with 1000 or more entries.
       const proto = await cdp.send('Runtime.evaluate', {

@@ -19,7 +19,13 @@ focus.
 - A Rocket.Chat checkout of the companion branch, with its dependencies
   installed and its packages built (`yarn && yarn build` in that checkout).
   The harness runs `yarn dev` in `apps/meteor` of that checkout, with a
-  MongoDB from the Meteor dev bundle.
+  MongoDB from the Meteor dev bundle. `yarn dev` is the Vite dev server
+  (`apps/meteor/vite/dev.mjs`). It builds the workspace packages, and then
+  starts the Meteor server on `HARNESS_METEOR_PORT` and Vite on
+  `HARNESS_PORT`. The browser and the app talk only to Vite, which proxies
+  the server routes to Meteor. The core serves the browser search worker
+  from `public/workers/e2ee-search/` (links to the build of
+  `@rocket.chat/e2ee-search-worker`).
 - Optional: a Developer ID Application identity in the keychain. Without one,
   set `MAC_SIGN=adhoc`. macOS can then show a keychain dialog, and the test
   stops when one shows.
@@ -33,6 +39,7 @@ Each value is an environment variable. You can also put the values in
 | ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
 | `ROCKETCHAT_CORE_DIR`           | none (required)                 | The Rocket.Chat checkout                                                              |
 | `HARNESS_PORT`                  | `3500`                          | Server port. MongoDB uses the next port.                                              |
+| `HARNESS_METEOR_PORT`           | `HARNESS_PORT` + 10             | Port of the Meteor server behind Vite. Meteor also uses the next port.                |
 | `DESKTOP_DIR`                   | this repository                 | The desktop checkout to build the app from                                            |
 | `APP_NAME`                      | `Rocket.Chat R3m`               | Product name of the test app. It starts and ends with a letter, digit or underscore   |
 | `CDP_PORT`                      | `9444`                          | Remote debugging port of the test app                                                 |
@@ -77,7 +84,10 @@ scripts/e2ee-search-harness/windows-packaged.sh [--build]
 ```
 
 - `server.sh up` starts MongoDB and the server in the background, makes the
-  admin user, skips the setup wizard, and waits for `/api/info`.
+  admin user, skips the setup wizard, and waits for `/api/info`. Then the
+  step `client-ready` loads the page, the client entry and the files of the
+  search worker once. Vite compiles the client on the first request, and a
+  missing worker build fails here.
   `server.sh down` stops only the processes that `up` started.
   `server.sh reset` deletes only the database of that server.
 - `seed.mjs` makes the test world. If the world exists, it does nothing. If
@@ -202,6 +212,11 @@ copy, see below), `s8-mongo` (ciphertext only) and `s8-opfs` (the copy is sealed
 line is `SUMMARY PASS` or `SUMMARY FAIL`. The exit code is 0 only when every
 step passes. The run folder is
 `.localdev/e2ee-search-harness/browser-runs/<timestamp>/`.
+
+The scripts that run code in the page get the module of the E2E client
+through `e2e-module.mjs`. On the Vite dev server, the page imports the
+source file through its `/@fs/` URL. On a Meteor-built client, the page uses
+the Meteor `require`.
 
 `s7-reload` uses the same proof as the checks `c` and `d` of the packaged
 test, with a different recorder. WebDriver BiDi in puppeteer cannot read

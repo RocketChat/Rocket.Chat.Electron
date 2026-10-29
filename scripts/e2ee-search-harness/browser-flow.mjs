@@ -36,6 +36,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { jsLiteral } from './cdp.mjs';
+import { installE2eModule } from './e2e-module.mjs';
 import { HISTORY_URL, HIT_MARGIN_MS, installPageHistoryRecorder, judgeSavedIndexHit, pageRecordingCoverage } from './restart-proof.mjs';
 import { createSteps, isStepTimeout } from './steps.mjs';
 
@@ -132,7 +133,7 @@ const waitFor = async (expr, timeoutMs, everyMs = 250) => {
 };
 const navigate = (path) => ev(`(() => { history.pushState({}, '', ${jsLiteral(path)}); dispatchEvent(new PopStateEvent('popstate')); return true; })()`);
 const progress = () =>
-	ev(`(() => { try { return window.require('/client/lib/e2ee/rocketchat.e2e.ts').e2eSearchIndexRuntime.getProgress() ?? null; } catch (e) { return { error: String(e) }; } })()`);
+	ev(`(async () => { try { return (await window.__harnessE2e()).e2eSearchIndexRuntime.getProgress() ?? null; } catch (e) { return { error: String(e) }; } })()`);
 const panelSel = `document.querySelector('input[name=searchText]')`;
 const panelExpr = `${panelSel}?.closest('aside, [role=dialog], .rcx-vertical-bar')`;
 
@@ -264,6 +265,7 @@ try {
 	// WebDriver BiDi cannot read response bodies, so the page records each history response with its body
 	// (window.__e2eeHarnessHistory), from before the first script of each document. See restart-proof.mjs.
 	await page.evaluateOnNewDocument(installPageHistoryRecorder, HISTORY_URL.source);
+	await installE2eModule(page, values['core-dir']);
 	st.end(true);
 
 	// ---------------------------------------------------------------- s1 login

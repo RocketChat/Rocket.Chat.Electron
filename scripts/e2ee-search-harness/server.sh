@@ -9,6 +9,13 @@
 # PORT+1, with its data in the state folder, so it never shares a database
 # with another server.
 #
+# `yarn dev` is the Vite dev server of the checkout (apps/meteor/vite/dev.mjs).
+# It builds the workspace packages, then runs the Meteor server on METEOR_PORT
+# (default: $HARNESS_METEOR_PORT, else PORT+10; Meteor also uses the next
+# port) and Vite on PORT. The browser talks only to Vite, which proxies the
+# server routes (/api, /websocket and others) to Meteor. ROOT_URL is the Vite
+# origin.
+#
 #   up      starts MongoDB and the server in the background, creates the
 #           admin user from the state file, skips the setup wizard, and waits
 #           until /api/info answers (at most $SERVER_WAIT_S seconds, default
@@ -29,6 +36,7 @@ COMMAND="${1:-}"
 CORE_DIR="${2:-${ROCKETCHAT_CORE_DIR:-}}"
 PORT="${3:-$HARNESS_PORT}"
 MONGO_PORT=$((PORT + 1))
+METEOR_PORT="${HARNESS_METEOR_PORT:-$((PORT + 10))}"
 URL="$(server_url "$PORT")"
 SERVER_DIR="$HARNESS_STATE_DIR/server-$PORT"
 DB_DIR="$SERVER_DIR/mongo-db"
@@ -158,7 +166,7 @@ cmd_status() {
   info="$(api_info)"
   echo "server $URL"
   echo "  mongod: $(pid_alive "$mongod" && echo "running (pid $mongod)" || echo stopped)"
-  echo "  meteor: $(pid_alive "$meteor" && echo "running (pid $meteor)" || echo stopped)"
+  echo "  yarn dev: $(pid_alive "$meteor" && echo "running (pid $meteor), Meteor on port $METEOR_PORT" || echo stopped)"
   echo "  /api/info: ${info:-no answer}"
   pid_alive "$meteor" && [[ -n "$info" ]]
 }
@@ -171,6 +179,10 @@ cmd_up() {
   fi
   if [[ -z "$(read_pid meteor)" ]] && api_info >/dev/null; then
     echo "another process answers at $URL: choose another PORT" >&2
+    exit 1
+  fi
+  if curl -s -m 2 -o /dev/null "http://127.0.0.1:$METEOR_PORT/"; then
+    echo "another process answers on the Meteor port $METEOR_PORT: set HARNESS_METEOR_PORT" >&2
     exit 1
   fi
   mkdir -p "$DB_DIR"
@@ -207,6 +219,7 @@ cmd_up() {
     exec nohup env \
       ROOT_URL="$URL" \
       PORT="$PORT" \
+      METEOR_PORT="$METEOR_PORT" \
       MONGO_URL="$mongo_url" \
       MONGO_OPLOG_URL="$oplog_url" \
       ADMIN_USERNAME="$(state_get admin.username)" \
@@ -214,14 +227,15 @@ cmd_up() {
       ADMIN_EMAIL="$(state_get admin.email)" \
       ADMIN_EMAIL_VERIFIED=true \
       OVERWRITE_SETTING_Show_Setup_Wizard=completed \
-      yarn dev --port "$PORT"
+      yarn dev
   ) >"$SERVER_DIR/meteor.log" 2>&1 &
   record_pid meteor "$!"
   STARTED_METEOR=1
-  log "meteor started from $CORE_DIR on port $PORT (pid $!), log $SERVER_DIR/meteor.log"
+  log "yarn dev started from $CORE_DIR: Vite on port $PORT, Meteor on port $METEOR_PORT (pid $!), log $SERVER_DIR/meteor.log"
 
   # SERVER_WAIT_S is the default limit of this step.
   step server-ready 106 "$SERVER_WAIT_S" wait_server_ready || exit 1
+  step client-ready 10 300 wait_client_ready || exit 1
   log "server up at $URL after $(( $(now_s) - start )) s"
 }
 
@@ -246,6 +260,27 @@ wait_server_ready() {
     fi
     sleep 5
   done
+}
+
+# Checks that Vite serves the page with its client entry, and the files of
+# the browser E2EE search worker (links in public/ to the worker build). A
+# core that is not on the Vite dev server, or a missing worker build, fails
+# here and not in the first test.
+wait_client_ready() {
+  local page wasm_magic
+  page="$(curl -sf -m 120 "$URL/home")" || { echo "Vite did not serve the page" >&2; return 1; }
+  if [[ "$page" != *'/entry.ts'* ]]; then
+    echo "the page has no Vite entry (/entry.ts): is the core on the Vite dev server?" >&2
+    return 1
+  fi
+  curl -sf -m 120 -o /dev/null "$URL/entry.ts" || { echo "Vite did not serve /entry.ts" >&2; return 1; }
+  curl -sf -m 30 -o /dev/null "$URL/workers/e2ee-search/worker.mjs" ||
+    { echo "no E2EE search worker at /workers/e2ee-search/worker.mjs: build @rocket.chat/e2ee-search-worker" >&2; return 1; }
+  wasm_magic="$(curl -sf -m 30 "$URL/workers/e2ee-search/sqlite3.wasm" | head -c 4 | od -An -tx1 | tr -d ' \n')"
+  if [[ "$wasm_magic" != 0061736d ]]; then
+    echo "/workers/e2ee-search/sqlite3.wasm is not a WASM file (magic '$wasm_magic')" >&2
+    return 1
+  fi
 }
 
 cmd_down() {

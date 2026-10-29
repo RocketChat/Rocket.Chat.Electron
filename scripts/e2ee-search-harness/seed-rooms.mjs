@@ -25,7 +25,7 @@
 //     key that B makes in the page and then drops. No client can decrypt
 //     them: the case of an old room key that is lost.
 // Method: the web client of B encrypts each message (E2ERoom.encryptMessage
-// through the Meteor client require) and sends it with REST
+// through e2e-module.mjs) and sends it with REST
 // chat.sendMessage, as in seed-large.mjs. ts and _updatedAt are rewritten in
 // MongoDB, because the REST API cannot set an old ts.
 // Verify: a new login of A (a new browser profile, the E2E password typed in
@@ -49,6 +49,7 @@ import {
   worldKey,
   writeState,
 } from './state.mjs';
+import { installE2eModule } from './e2e-module.mjs';
 import { createSteps } from './steps.mjs';
 
 const harnessDir = dirname(fileURLToPath(import.meta.url));
@@ -147,6 +148,7 @@ const launch = async (puppeteer, profile, { fresh = false } = {}) => {
   });
   browsers.add(browser);
   const page = await browser.newPage();
+  await installE2eModule(page, coreDir);
   await page.setViewport({ width: 1400, height: 900 });
   return { browser, page };
 };
@@ -176,7 +178,7 @@ const api = (page, path, method = 'GET', body) =>
 const waitRoomReady = (page, rid, timeout, signal) =>
   page.waitForFunction(
     async (rid) => {
-      const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+      const { e2e } = await window.__harnessE2e();
       if (!e2e.isReady()) return false;
       const room = await e2e.getInstanceByRoomId(rid);
       return Boolean(room?.isReady());
@@ -203,7 +205,7 @@ const sendDocs = async (page, rid, docs, { lostKey = false } = {}) => {
     const batch = docs.slice(i, i + 16);
     const errors = await page.evaluate(
       async (rid, batch, lostKey) => {
-        const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+        const { e2e } = await window.__harnessE2e();
         const room = await e2e.getInstanceByRoomId(rid);
         // A lost key: an object on top of the room instance gets its own new
         // key fields, so the room instance keeps its real key. The page
@@ -390,7 +392,7 @@ const openRoom = async (label, page, path, rid) => {
         await fetch(`/api/v1/subscriptions.getOne?roomId=${rid}`, { headers })
       ).json();
       if (sub.subscription?.E2EKey) return 'has key';
-      const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+      const { e2e } = await window.__harnessE2e();
       const room = await e2e.getInstanceByRoomId(rid);
       const keys = await room.resetRoomKey();
       const response = await fetch('/api/v1/e2e.resetRoomKey', {
@@ -443,7 +445,7 @@ const sendFile = async (page, filePath, caption) => {
 const editAndDelete = (page, rid, edits, deletes) =>
   page.evaluate(
     async (rid, edits, deletes) => {
-      const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+      const { e2e } = await window.__harnessE2e();
       const room = await e2e.getInstanceByRoomId(rid);
       const headers = {
         'Content-Type': 'application/json',
@@ -551,10 +553,10 @@ const login = async (page, user) => {
     );
   }
   for (let i = 0; i < 90; i++) {
-    const step = await page.evaluate(() => {
+    const step = await page.evaluate(async () => {
       let mod;
       try {
-        mod = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+        mod = await window.__harnessE2e();
       } catch {
         return 'loading';
       }
@@ -624,7 +626,7 @@ const verifyWithNewLogin = async (puppeteer, users, world) => {
       });
       await waitRoomReady(page, check.rid, 120_000).catch(() => undefined);
       results[check.key] = await page.evaluate(async ({ rid, id, word }) => {
-        const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+        const { e2e } = await window.__harnessE2e();
         const response = await fetch(`/api/v1/chat.getMessage?msgId=${id}`, {
           headers: {
             'X-User-Id': localStorage.getItem('Meteor.userId'),
@@ -825,7 +827,7 @@ const main = async () => {
       });
       const before = await roomCounts(rid);
       const reset = await b.page.evaluate(async (rid) => {
-        const { e2e } = window.require('/client/lib/e2ee/rocketchat.e2e.ts');
+        const { e2e } = await window.__harnessE2e();
         const room = await e2e.getInstanceByRoomId(rid);
         const oldKid = room.keyID;
         const keys = await room.resetRoomKey();

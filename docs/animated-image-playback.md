@@ -64,9 +64,12 @@ static PNG control. Each condition warms up for three seconds, then takes
 
 The window stays visible above other windows. Frame captures before and
 after sampling assert that the autoplay condition is actually animating and
-the disabled/static conditions are still. Frame captures are outside the
-CPU sampling interval. The checks also verify that existing animations
-require a reload and that re-enabling playback works after reloading.
+the disabled/static conditions are still. Each capture crops to the image
+rectangle and checks for the fixture's color variation, so a uniform blank
+image fails even when its decoded dimensions are intact. Frame captures
+are outside the CPU sampling interval. The checks also verify that existing
+animations require a reload and that re-enabling playback works after
+reloading.
 
 The JSON records raw samples, per-round means, Electron/Chromium versions,
 CPU model and GPU configuration. CPU values come from

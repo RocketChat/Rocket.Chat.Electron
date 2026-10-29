@@ -84,14 +84,37 @@ const main = async (): Promise<void> => {
   const contents = window.webContents;
 
   const frameCount = async (): Promise<number> => {
+    const bounds = await contents.executeJavaScript(`(() => {
+      const image = document.querySelector('img');
+      if (!image?.complete || image.naturalWidth !== 96 || image.naturalHeight !== 96) {
+        throw new Error('Fixture image did not decode');
+      }
+      const { x, y, width, height } = image.getBoundingClientRect();
+      if (width <= 0 || height <= 0) {
+        throw new Error('Fixture image has no visible bounds');
+      }
+      return { x: Math.floor(x), y: Math.floor(y), width: Math.floor(width), height: Math.floor(height) };
+    })()`);
     const frames = new Set<string>();
     for (let i = 0; i < 8; i++) {
       await delay(130);
-      frames.add(
-        createHash('sha256')
-          .update((await contents.capturePage()).toBitmap())
-          .digest('hex')
-      );
+      const bitmap = (await contents.capturePage(bounds)).toBitmap();
+      assert(bitmap.length >= 4, 'Image capture is empty');
+      let hasImagePixels = false;
+      for (let offset = 4; offset < bitmap.length; offset += 4) {
+        if (
+          bitmap[offset] !== bitmap[0] ||
+          bitmap[offset + 1] !== bitmap[1] ||
+          bitmap[offset + 2] !== bitmap[2]
+        ) {
+          hasImagePixels = true;
+          break;
+        }
+      }
+      // Every fixture frame has a color grid. A uniform image rectangle means
+      // the capture contains only a blank background, even if decoding succeeded.
+      assert(hasImagePixels, 'Fixture image capture is blank');
+      frames.add(createHash('sha256').update(bitmap).digest('hex'));
     }
     return frames.size;
   };

@@ -121,9 +121,16 @@ core).
   must call `open` again before other calls.
 - The end of the webview ends the session.
 - A logout on the server ends the session, also when no navigation occurs.
-- The first user id that a document opens stays bound to that document. A
+- The first user id that a document opens is bound to that document. A
   script on the page cannot change the document to the index of another
   user. A new document can bind again.
+- The web client can log another user in on the same page, with no
+  navigation. An `open` or a `wipe` for that user then moves the binding to
+  that user, but only after the server confirms that user. The session of
+  the old user ends, and its index closes.
+- A server answer for a user can arrive after the binding moved to another
+  user. The main process then refuses that `open` or `wipe`. It also drops
+  the answer of a call that the old session started.
 - The main process asks the server to confirm the user id on the login
   session of the webview before it opens the index.
 

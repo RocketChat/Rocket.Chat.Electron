@@ -192,6 +192,21 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
   // server confirms for the page's login token can. A navigation or a reload
   // starts a new document, which can bind again.
   const boundUserIds = new Map<number, string>();
+  // Each write to `boundUserIds` gives the binding of the document a new
+  // version. An open or a wipe compares it with the version at its start,
+  // because a switch to C and back to A makes the bound user match again.
+  // The versions come from one counter, so a webview id that comes back
+  // cannot get an old version.
+  const bindingVersions = new Map<number, number>();
+  let bindingWrites = 0;
+  const bindUser = (senderId: number, userId: string) => {
+    boundUserIds.set(senderId, userId);
+    bindingVersions.set(senderId, ++bindingWrites);
+  };
+  const unbindUser = (senderId: number) => {
+    boundUserIds.delete(senderId);
+    bindingVersions.set(senderId, ++bindingWrites);
+  };
 
   // Each set holds an id only while its webview lives, or while an open of
   // a destroyed webview is still in flight.
@@ -236,7 +251,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     watched.add(sender.id);
     sender.on('did-navigate', () => {
       documents.set(sender.id, {});
-      boundUserIds.delete(sender.id);
+      unbindUser(sender.id);
       closeSession(sender.id);
     });
     sender.once('destroyed', () => {
@@ -245,6 +260,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       senderServers.delete(sender.id);
       if (pendingOpens.has(sender.id)) destroyed.add(sender.id);
       boundUserIds.delete(sender.id);
+      bindingVersions.delete(sender.id);
       closeSession(sender.id);
     });
   };
@@ -261,7 +277,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     for (const [senderId, url] of senderServers) {
       if (url !== serverUrl) continue;
       if (documents.has(senderId)) documents.set(senderId, {});
-      boundUserIds.delete(senderId);
+      unbindUser(senderId);
       closeSession(senderId);
     }
   };
@@ -287,6 +303,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     // another user on the same document (`loginWithToken`). As for an open,
     // the server must confirm that user before the wipe switches the
     // document.
+    const bindingAtStart = bindingVersions.get(sender.id);
     let owned: boolean | 'failed';
     try {
       owned = (await deps.verifyUserId(event, serverUrl, userId)) === true;
@@ -294,7 +311,13 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       deps.logError('wipe', error);
       owned = 'failed';
     }
-    if (isStale(sender.id, token)) {
+    // An open or a wipe that the server confirmed changed the binding while
+    // this check ran. The answer can be older than that login, so the wipe
+    // must not take the document back.
+    if (
+      isStale(sender.id, token) ||
+      bindingVersions.get(sender.id) !== bindingAtStart
+    ) {
       throw new Error(E2EE_SEARCH_GENERIC_ERROR);
     }
     if (owned !== true) {
@@ -305,7 +328,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       );
     }
     const current = boundUserIds.get(sender.id);
-    boundUserIds.set(sender.id, userId);
+    bindUser(sender.id, userId);
     if (current !== undefined && current !== userId) {
       // The server confirmed that the document now belongs to `userId`. The
       // session of the other user ends like at a logout: its index closes
@@ -387,7 +410,8 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       const switchesUser = boundUserId !== undefined && boundUserId !== userId;
       // Bind before the open finishes, so two opens cannot race.
       const newBinding = boundUserId === undefined;
-      if (newBinding) boundUserIds.set(sender.id, userId);
+      if (newBinding) bindUser(sender.id, userId);
+      const bindingAtStart = bindingVersions.get(sender.id);
       pendingOpens.set(sender.id, (pendingOpens.get(sender.id) ?? 0) + 1);
       try {
         let owned: boolean | 'failed';
@@ -406,13 +430,22 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
           // can still open. A confirmed switch can bind another user while
           // this check runs, and that binding stays.
           if (newBinding && boundUserIds.get(sender.id) === userId) {
-            boundUserIds.delete(sender.id);
+            unbindUser(sender.id);
           }
           throw new Error(
             owned === 'failed'
               ? E2EE_SEARCH_GENERIC_ERROR
               : 'E2EE search index is open for another user'
           );
+        }
+        // An open or a wipe that the server confirmed bound another user
+        // while this check ran. The answer can be older than that login, so
+        // this open must not take the document back.
+        if (
+          bindingVersions.get(sender.id) !== bindingAtStart &&
+          lostBinding(sender.id, userId)
+        ) {
+          throw new Error(E2EE_SEARCH_GENERIC_ERROR);
         }
         if (switchesUser && boundUserIds.get(sender.id) !== userId) {
           // The server confirmed that the document now belongs to `userId`.
@@ -421,7 +454,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
           // in flight for that user gets no session (`lostBinding`). A
           // reload gives the page the same power, so the switch gives it no
           // more.
-          boundUserIds.set(sender.id, userId);
+          bindUser(sender.id, userId);
           closeSession(sender.id);
         }
         // A server that cannot tell the key only leaves the open as it was
@@ -520,7 +553,14 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       .catch((error: unknown) => {
         throw toPageError(deps, method, error);
       });
-    return VOID_METHODS.has(method) ? undefined : value;
+    if (VOID_METHODS.has(method)) return undefined;
+    // A switch to another user, a logout or a navigation can end the session
+    // while the call runs. The answer comes from the index of that session,
+    // so the page, which can belong to another user now, does not get it.
+    if (sessions.get(sender.id) !== session) {
+      throw new Error(E2EE_SEARCH_GENERIC_ERROR);
+    }
+    return value;
   };
 
   const handleEvent = async (

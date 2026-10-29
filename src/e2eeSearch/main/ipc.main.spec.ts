@@ -788,6 +788,131 @@ describe('E2EE search IPC handler', () => {
     ).resolves.toBeDefined();
   });
 
+  describe('a server check that answers after another user took the document', () => {
+    // The server confirms each user, because the web client logged each one
+    // in on the document in turn. The check of a user waits for the gate of
+    // that user, and the index call of a user waits for the gate of the user.
+    let verifyGates: Map<string, Promise<void>>;
+    let callGates: Map<string, Promise<void>>;
+    let closed: string[];
+    let wiped: string[];
+    const gate = (gates: Map<string, Promise<void>>, userId: string) => {
+      let release = () => undefined as void;
+      gates.set(
+        userId,
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+      );
+      return () => release();
+    };
+    const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    beforeEach(() => {
+      verifyGates = new Map();
+      callGates = new Map();
+      closed = [];
+      wiped = [];
+      handleEvent = createE2EESearchIpcHandler({
+        resolveServerUrl: ({ sender }) => servers.get(sender.id),
+        verifyUserId: async (_event, _serverUrl, userId) => {
+          await verifyGates.get(userId);
+          return true;
+        },
+        fetchOwnerKey: async () => null,
+        openIndex: async (serverUrl, userId) => ({
+          indexId: `${serverUrl} ${userId}`,
+          result: {} as any,
+        }),
+        call: async (indexId) => {
+          await callGates.get(indexId.split(' ')[1]);
+          return { indexId };
+        },
+        close: async (indexId) => {
+          closed.push(indexId);
+        },
+        wipeIndex: async (indexId) => {
+          wiped.push(indexId);
+        },
+        userIndexId: (serverUrl, userId) => `${serverUrl} ${userId}`,
+        logError: () => undefined,
+        logNotOpen: () => undefined,
+        logOwnerKeyError: () => undefined,
+      });
+    });
+
+    it('refuses a late wipe of user B after user C took the document', async () => {
+      const webview = createSender(101);
+      servers.set(webview.id, SERVER_A);
+      await handle(webview, 'open', { userId: 'userA' });
+      const releaseB = gate(verifyGates, 'userB');
+      const wipingB = handle(webview, 'wipe', { userId: 'userB' });
+      await tick();
+      await handle(webview, 'open', { userId: 'userC' });
+
+      releaseB();
+
+      await expect(wipingB).rejects.toThrow(E2EE_SEARCH_GENERIC_ERROR);
+      expect(wiped).toEqual([]);
+      expect(closed).toEqual([`${SERVER_A} userA`]);
+      await expect(handle(webview, 'stats')).resolves.toEqual({
+        indexId: `${SERVER_A} userC`,
+      });
+    });
+
+    it.each([
+      ['search', { text: NEEDLE }],
+      ['stats', undefined],
+    ])(
+      'drops a %s result of user A that answers after a switch to user B',
+      async (method, arg) => {
+        const webview = createSender(102);
+        servers.set(webview.id, SERVER_A);
+        await handle(webview, 'open', { userId: 'userA' });
+        const releaseA = gate(callGates, 'userA');
+        const callingA = handle(webview, method, arg);
+        await tick();
+        await handle(webview, 'open', { userId: 'userB' });
+
+        releaseA();
+
+        await expect(callingA).rejects.toThrow(E2EE_SEARCH_GENERIC_ERROR);
+        await expect(handle(webview, method, arg)).resolves.toEqual({
+          indexId: `${SERVER_A} userB`,
+        });
+      }
+    );
+
+    it.each([
+      ['A, then C', ['userC']],
+      ['A, then C, then A again', ['userC', 'userA']],
+    ])(
+      'refuses a late open of user B on a document bound to %s',
+      async (_name, laterUsers) => {
+        const webview = createSender(103);
+        servers.set(webview.id, SERVER_A);
+        await handle(webview, 'open', { userId: 'userA' });
+        const releaseB = gate(verifyGates, 'userB');
+        const openingB = handle(webview, 'open', { userId: 'userB' });
+        await tick();
+        for (const userId of laterUsers) {
+          // eslint-disable-next-line no-await-in-loop -- each open is confirmed in turn
+          await handle(webview, 'open', { userId });
+        }
+        const current = laterUsers[laterUsers.length - 1];
+        const closedBefore = [...closed];
+
+        releaseB();
+
+        await expect(openingB).rejects.toThrow(E2EE_SEARCH_GENERIC_ERROR);
+        expect(closed).toEqual(closedBefore);
+        await expect(handle(webview, 'stats')).resolves.toEqual({
+          indexId: `${SERVER_A} ${current}`,
+        });
+      }
+    );
+  });
+
   it('refuses a user id that the server session does not own', async () => {
     const webview = createSender(88);
     servers.set(webview.id, SERVER_A);

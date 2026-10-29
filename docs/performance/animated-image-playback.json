@@ -1,0 +1,2894 @@
+{
+  "environment": {
+    "electron": "43.8.1",
+    "chromium": "150.0.7871.250",
+    "platform": "darwin",
+    "arch": "arm64",
+    "os": "27.0.0",
+    "cpu": "Apple M4",
+    "logicalCpus": 10,
+    "gpu": {
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "glImplementationParts": "(gl=none,angle=none)",
+        "glResetNotificationStrategy": 0,
+        "inProcessGpu": true,
+        "initializationTime": 0,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "optimus": false,
+        "passthroughCmdDecoder": false,
+        "sandboxed": false,
+        "skiaBackendType": "None",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "visibilityCallbackCallCount": 0
+      },
+      "gpuDevice": [
+        {
+          "active": true,
+          "deviceId": 0,
+          "gpuPreference": 0,
+          "vendorId": 4203
+        }
+      ],
+      "machineModelName": "Mac",
+      "machineModelVersion": "16.1"
+    },
+    "featureStatus": {
+      "2d_canvas": "enabled",
+      "direct_rendering_display_compositor": "disabled_off_ok",
+      "gpu_compositing": "enabled",
+      "multiple_raster_threads": "enabled_on",
+      "opengl": "enabled_on",
+      "rasterization": "enabled",
+      "raw_draw": "disabled_off_ok",
+      "skia_graphite": "enabled_on",
+      "trees_in_viz": "disabled_off",
+      "video_decode": "enabled",
+      "video_encode": "enabled",
+      "webgl": "enabled",
+      "webgpu": "enabled",
+      "webnn": "disabled_off"
+    }
+  },
+  "workload": {
+    "avatars": 48,
+    "avatarSize": 48,
+    "inlineImages": 6,
+    "inlineSize": 192,
+    "types": [
+      "GIF",
+      "APNG",
+      "WebP"
+    ],
+    "uniqueUrls": 54,
+    "framesPerImage": 12,
+    "frameDelayMs": 80,
+    "warmupMs": 3000,
+    "samplesPerRound": 60,
+    "sampleIntervalMs": 250,
+    "rounds": 3
+  },
+  "checks": {
+    "playing": 8,
+    "stopped": 1,
+    "animated.gif:animate": 8,
+    "animated.gif:noAnimation": 1,
+    "animated.png:animate": 8,
+    "animated.png:noAnimation": 1,
+    "animated.webp:animate": 8,
+    "animated.webp:noAnimation": 1,
+    "static.png:animate": 1,
+    "static.png:noAnimation": 1,
+    "avatar/user:animate": 6,
+    "avatar/user:noAnimation": 1,
+    "existingImageAfterLiveChange": 8,
+    "existingImageAfterReload": 1,
+    "reenabledAfterReload": 8,
+    "prefersReducedMotion": false
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "condition": "before",
+      "samples": [
+        {
+          "rendererCpu": 0.41062763566476324,
+          "gpuProcessCpu": 1.032537892027581,
+          "rendererWorkingSetKB": 111200
+        },
+        {
+          "rendererCpu": 0.44230235233448373,
+          "gpuProcessCpu": 1.1464748269951115,
+          "rendererWorkingSetKB": 111200
+        },
+        {
+          "rendererCpu": 0.46770769261294864,
+          "gpuProcessCpu": 1.1130773595311687,
+          "rendererWorkingSetKB": 111200
+        },
+        {
+          "rendererCpu": 0.474723789841825,
+          "gpuProcessCpu": 1.188995681075003,
+          "rendererWorkingSetKB": 111200
+        },
+        {
+          "rendererCpu": 0.43585209322656915,
+          "gpuProcessCpu": 1.1470139407715907,
+          "rendererWorkingSetKB": 111200
+        },
+        {
+          "rendererCpu": 1.3545471871922747,
+          "gpuProcessCpu": 1.1534962798771744,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0.568376119237193,
+          "gpuProcessCpu": 1.3566806454300553,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0.94428387670515,
+          "gpuProcessCpu": 1.2873330555059437,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5182403433476395,
+          "gpuProcessCpu": 1.2422678569300263,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.43274626522365034,
+          "gpuProcessCpu": 1.141959265622582,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.38900093696898475,
+          "gpuProcessCpu": 1.0160760985598578,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.524599787399451,
+          "gpuProcessCpu": 1.267620162266172,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5295701169444146,
+          "gpuProcessCpu": 1.2969177428589604,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5272732327906358,
+          "gpuProcessCpu": 1.4440980839868955,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5030002899022672,
+          "gpuProcessCpu": 1.2504418627743026,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5976002318003024,
+          "gpuProcessCpu": 1.478359945056254,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.43182215442309835,
+          "gpuProcessCpu": 1.0741766208384147,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4904956545894678,
+          "gpuProcessCpu": 1.2882549283420848,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.45585877347557585,
+          "gpuProcessCpu": 1.1441021001000047,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.41195213425293203,
+          "gpuProcessCpu": 1.0033965637103983,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5071546232163058,
+          "gpuProcessCpu": 1.290853888436886,
+          "rendererWorkingSetKB": 106992
+        },
+        {
+          "rendererCpu": 0.5223418199150018,
+          "gpuProcessCpu": 1.258772086594941,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.46862643018094097,
+          "gpuProcessCpu": 1.1741585759874735,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4565968983324667,
+          "gpuProcessCpu": 1.2079796062610684,
+          "rendererWorkingSetKB": 106992
+        },
+        {
+          "rendererCpu": 0.5529496734049223,
+          "gpuProcessCpu": 1.3227614013365716,
+          "rendererWorkingSetKB": 106992
+        },
+        {
+          "rendererCpu": 0.47485811802992417,
+          "gpuProcessCpu": 1.267044462434719,
+          "rendererWorkingSetKB": 107008
+        },
+        {
+          "rendererCpu": 0.5668054767112738,
+          "gpuProcessCpu": 1.3607316085703625,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5104784295659702,
+          "gpuProcessCpu": 1.3229343298162568,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5098650917447578,
+          "gpuProcessCpu": 1.1782710011393274,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.48648347848207935,
+          "gpuProcessCpu": 1.3166750765832165,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.48781069415851264,
+          "gpuProcessCpu": 1.195931788271686,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.48793807200484707,
+          "gpuProcessCpu": 1.220083775392672,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5617955270299717,
+          "gpuProcessCpu": 1.2777458537261972,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.563460240581206,
+          "gpuProcessCpu": 1.3864348930428225,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5988838603992559,
+          "gpuProcessCpu": 1.478036852676622,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4128668019200153,
+          "gpuProcessCpu": 1.1874109838491476,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5262781835503334,
+          "gpuProcessCpu": 1.3023331533305804,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4865989698541354,
+          "gpuProcessCpu": 1.2070471290650406,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4637520093671238,
+          "gpuProcessCpu": 1.2479454991543792,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4987852901013052,
+          "gpuProcessCpu": 1.2357204664713775,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.48622108969092215,
+          "gpuProcessCpu": 1.263814786585366,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5210787956336355,
+          "gpuProcessCpu": 1.415250329904447,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.45018057282706725,
+          "gpuProcessCpu": 1.1401526135366062,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.567615870368164,
+          "gpuProcessCpu": 1.360925127276482,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4530686423052298,
+          "gpuProcessCpu": 1.137145288202714,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5263513057561239,
+          "gpuProcessCpu": 1.360537464909529,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.47790512562973664,
+          "gpuProcessCpu": 1.2891446715618178,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.6003597780837837,
+          "gpuProcessCpu": 1.438384240374092,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.48258056290440826,
+          "gpuProcessCpu": 1.2480425245356848,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.561973955851993,
+          "gpuProcessCpu": 1.4542292942045212,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5136793090022012,
+          "gpuProcessCpu": 1.2413245138350912,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.478223434024539,
+          "gpuProcessCpu": 1.1219708500346646,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.13419459407922962,
+          "gpuProcessCpu": 0.4136261744646349,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5242379545734652,
+          "gpuProcessCpu": 1.260856258173247,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5615778798331302,
+          "gpuProcessCpu": 1.4105374345778434,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4879562159926178,
+          "gpuProcessCpu": 1.1785430252902815,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5629106210674659,
+          "gpuProcessCpu": 1.3959555130256622,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4514314989336733,
+          "gpuProcessCpu": 1.1087550430445694,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.5082700418580014,
+          "gpuProcessCpu": 1.289834289356278,
+          "rendererWorkingSetKB": 106976
+        },
+        {
+          "rendererCpu": 0.4726809463143983,
+          "gpuProcessCpu": 1.1962630175260351,
+          "rendererWorkingSetKB": 106976
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.515,
+        "gpuProcessCpu": 1.237,
+        "rendererWorkingSetKB": 107439.2
+      }
+    },
+    {
+      "round": 1,
+      "condition": "after",
+      "samples": [
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.04255420880250544,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0.017303784607569213,
+          "gpuProcessCpu": 0.0715663626187811,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0.0015551603410187496,
+          "gpuProcessCpu": 0.011956097211041057,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002904536249010269,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0.00755993235849995,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0023015142376432494,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.12504909525868738,
+          "rendererWorkingSetKB": 110192
+        },
+        {
+          "rendererCpu": 0.0625113891155708,
+          "gpuProcessCpu": 0.014654161781946073,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.003018052720615683,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0.0038110209963438018,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002303827133522671,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0.005555423283572614,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0.005634764113695254,
+          "gpuProcessCpu": 0.005635188977252885,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0.0066263793383937175,
+          "gpuProcessCpu": 0.0959016621103127,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002181916277888857,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0.0051248842928255595,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0.0057170761919508335,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108048
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.002,
+        "gpuProcessCpu": 0.006,
+        "rendererWorkingSetKB": 109262.933
+      }
+    },
+    {
+      "round": 1,
+      "condition": "static",
+      "samples": [
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.043697012914982965,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0.018344762411502406,
+          "gpuProcessCpu": 0.06874339769505096,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0.0045183946223176985,
+          "gpuProcessCpu": 0.033768251502132314,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.034246439126059514,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0.0009522524738725727,
+          "gpuProcessCpu": 0.0039282440748985206,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.06528533578715236,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0.009085715192585421,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111408
+        },
+        {
+          "rendererCpu": 0.556454530635613,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111376
+        },
+        {
+          "rendererCpu": 0.0020240665481330964,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111376
+        },
+        {
+          "rendererCpu": 0.038459706610783004,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111376
+        },
+        {
+          "rendererCpu": 0.44984260854071395,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0.003015430274126418,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0.019598508291676586,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002469057138761011,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.006154774715391305,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002186409279916042,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0059936094627582506,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0.04062943888522977,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0.0037362078285478077,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.001828596869919184,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0.0009150040777355638,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110272
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.019,
+        "gpuProcessCpu": 0.004,
+        "rendererWorkingSetKB": 110668
+      }
+    },
+    {
+      "round": 2,
+      "condition": "static",
+      "samples": [
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.04568366739432427,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0.02595572399351903,
+          "gpuProcessCpu": 0.07978310461380439,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0.00365308407652417,
+          "gpuProcessCpu": 0.030338528740196564,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.004840443892510405,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0.0073775563629440415,
+          "gpuProcessCpu": 0.045785474816005076,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0.001233124100018298,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0.0060695499012210505,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.009246031746031747,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0022288468503607944,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002460014839444354,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0.006511812586857256,
+          "gpuProcessCpu": 0.0018277830977744755,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0024992859183090546,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.005515435282914054,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111328
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.001,
+        "gpuProcessCpu": 0.004,
+        "rendererWorkingSetKB": 111328
+      }
+    },
+    {
+      "round": 2,
+      "condition": "after",
+      "samples": [
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.05363805043566017,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0.017260877328730433,
+          "gpuProcessCpu": 0.09471019553072627,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0.004767088024280369,
+          "gpuProcessCpu": 0.05617084836254429,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0047659520386359846,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002344060389352404,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0.0011908589665725888,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111472
+        },
+        {
+          "rendererCpu": 0.5059199174979672,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111072
+        },
+        {
+          "rendererCpu": 0.003695462131447191,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111072
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 111072
+        },
+        {
+          "rendererCpu": 0.4270284645949025,
+          "gpuProcessCpu": 0.15309747510230975,
+          "rendererWorkingSetKB": 110144
+        },
+        {
+          "rendererCpu": 0.02275570381843093,
+          "gpuProcessCpu": 0.023146401985111663,
+          "rendererWorkingSetKB": 110144
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110144
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110144
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110144
+        },
+        {
+          "rendererCpu": 0.007897577547067974,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0.012381296305849766,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0026985090737367606,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.028264781286326212,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.047931562616555436,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002385363410115531,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0.005129612177460723,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0021839523183646565,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 110160
+        },
+        {
+          "rendererCpu": 0.024556086259699454,
+          "gpuProcessCpu": 0.007102047294080305,
+          "rendererWorkingSetKB": 108128
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108128
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 107376
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 107376
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 107280
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 106656
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.017,
+        "gpuProcessCpu": 0.008,
+        "rendererWorkingSetKB": 110330.933
+      }
+    },
+    {
+      "round": 2,
+      "condition": "before",
+      "samples": [
+        {
+          "rendererCpu": 0.4177441655675846,
+          "gpuProcessCpu": 0.9723706243521251,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6200848386635528,
+          "gpuProcessCpu": 1.460371169067391,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.530745775632067,
+          "gpuProcessCpu": 1.3586496885087729,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6634806849860613,
+          "gpuProcessCpu": 1.5195059604863947,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6148695075404028,
+          "gpuProcessCpu": 1.492092114356526,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5725728754448965,
+          "gpuProcessCpu": 1.3053919401665492,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6527752386554221,
+          "gpuProcessCpu": 1.5223290016804853,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5780910458572464,
+          "gpuProcessCpu": 1.33065864259445,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5445534717171597,
+          "gpuProcessCpu": 1.3641222496413656,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6006701429506116,
+          "gpuProcessCpu": 1.4654813333809371,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5648571349014085,
+          "gpuProcessCpu": 1.275887441582977,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.7195526558084897,
+          "gpuProcessCpu": 1.5694796715051778,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6563183747701814,
+          "gpuProcessCpu": 1.512825194700031,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6280646263639326,
+          "gpuProcessCpu": 1.4423088385473994,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5852048395681567,
+          "gpuProcessCpu": 1.4199806167680844,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.4615671686232784,
+          "gpuProcessCpu": 1.119671493133603,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.572041302621128,
+          "gpuProcessCpu": 1.3656342188746966,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.7064291247095275,
+          "gpuProcessCpu": 1.6864550520959536,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5531771247021446,
+          "gpuProcessCpu": 1.3530794770369665,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6656453040472156,
+          "gpuProcessCpu": 1.5303026693034079,
+          "rendererWorkingSetKB": 115024
+        },
+        {
+          "rendererCpu": 0.5604465113318561,
+          "gpuProcessCpu": 1.3863756576932713,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5929891306506121,
+          "gpuProcessCpu": 1.3455918555342028,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5791407631040578,
+          "gpuProcessCpu": 1.3656802383316782,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5394785411217439,
+          "gpuProcessCpu": 1.2291957819845,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5868520357497518,
+          "gpuProcessCpu": 1.4267505807143281,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.620820028912294,
+          "gpuProcessCpu": 1.4679799042872177,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5652488414425729,
+          "gpuProcessCpu": 1.404904805437418,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5925896477697383,
+          "gpuProcessCpu": 1.3790978555582942,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.49222900799733155,
+          "gpuProcessCpu": 1.1881766121538009,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.581901862435713,
+          "gpuProcessCpu": 1.3750034782539564,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6031599768045945,
+          "gpuProcessCpu": 1.343711528533418,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.7562761589351378,
+          "gpuProcessCpu": 1.5876066763828713,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.7532848805986181,
+          "gpuProcessCpu": 1.669589840875918,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6527412032458325,
+          "gpuProcessCpu": 1.4708324229844876,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5957258905057803,
+          "gpuProcessCpu": 1.3734562989369152,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5524347536723343,
+          "gpuProcessCpu": 1.2142809037282951,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5521137968765543,
+          "gpuProcessCpu": 1.3103876265037235,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5561451836658439,
+          "gpuProcessCpu": 1.265136612021858,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5940480111753571,
+          "gpuProcessCpu": 1.2940429164102665,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.618007416406616,
+          "gpuProcessCpu": 1.3904870814423043,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5163000286104842,
+          "gpuProcessCpu": 1.34567106789329,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5471127034692046,
+          "gpuProcessCpu": 1.2830932151212904,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5775939736226926,
+          "gpuProcessCpu": 1.3372187660045816,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5992872054166039,
+          "gpuProcessCpu": 1.3663642209044795,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6110037038948459,
+          "gpuProcessCpu": 1.4180946560523204,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5557940084730271,
+          "gpuProcessCpu": 1.2804749623471534,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5615710324994637,
+          "gpuProcessCpu": 1.4092714705648686,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5806492700090751,
+          "gpuProcessCpu": 1.3008916487540803,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5891275258391008,
+          "gpuProcessCpu": 1.3838950641552592,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5026417193024273,
+          "gpuProcessCpu": 1.1250839096119702,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5927541240164127,
+          "gpuProcessCpu": 1.422964313664732,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.671466745252024,
+          "gpuProcessCpu": 1.511041738008585,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6395512812873652,
+          "gpuProcessCpu": 1.392985815123914,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.7331672810600777,
+          "gpuProcessCpu": 1.7021658132260058,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5784812137580427,
+          "gpuProcessCpu": 1.2906916689841483,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6121638263218527,
+          "gpuProcessCpu": 1.503383745313592,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5496539098457982,
+          "gpuProcessCpu": 1.3014900951563964,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.6513148226846133,
+          "gpuProcessCpu": 1.4145442412494638,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.7077729701003002,
+          "gpuProcessCpu": 1.602627414115211,
+          "rendererWorkingSetKB": 115008
+        },
+        {
+          "rendererCpu": 0.5494174048322062,
+          "gpuProcessCpu": 1.2394893792632744,
+          "rendererWorkingSetKB": 115008
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.596,
+        "gpuProcessCpu": 1.386,
+        "rendererWorkingSetKB": 115008.267
+      }
+    },
+    {
+      "round": 3,
+      "condition": "before",
+      "samples": [
+        {
+          "rendererCpu": 0.39550588657144564,
+          "gpuProcessCpu": 0.9304142304273831,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.414542875019428,
+          "gpuProcessCpu": 1.0203081092931023,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.4873636880458938,
+          "gpuProcessCpu": 1.1121707376192576,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.39437134648169414,
+          "gpuProcessCpu": 1.005310564684745,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.45396172853740674,
+          "gpuProcessCpu": 1.1605801111561673,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.38538232373386294,
+          "gpuProcessCpu": 0.9782427310219877,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.4803583955104904,
+          "gpuProcessCpu": 1.1633402942723694,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.5475383014716978,
+          "gpuProcessCpu": 1.2479850076629266,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.5603028750084419,
+          "gpuProcessCpu": 1.1674104215759127,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.5523122413717424,
+          "gpuProcessCpu": 1.2019742958491109,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.44301410005439895,
+          "gpuProcessCpu": 1.0189818124056866,
+          "rendererWorkingSetKB": 119504
+        },
+        {
+          "rendererCpu": 0.42331686459672835,
+          "gpuProcessCpu": 1.072288533254795,
+          "rendererWorkingSetKB": 119152
+        },
+        {
+          "rendererCpu": 0.49134393281526584,
+          "gpuProcessCpu": 1.1039388959023095,
+          "rendererWorkingSetKB": 119152
+        },
+        {
+          "rendererCpu": 0.4562900633074679,
+          "gpuProcessCpu": 1.0838036722154747,
+          "rendererWorkingSetKB": 119152
+        },
+        {
+          "rendererCpu": 0.6552041658728647,
+          "gpuProcessCpu": 1.3654514853686033,
+          "rendererWorkingSetKB": 119152
+        },
+        {
+          "rendererCpu": 0.44940521065621253,
+          "gpuProcessCpu": 1.0329702608723266,
+          "rendererWorkingSetKB": 118720
+        },
+        {
+          "rendererCpu": 0.5675846372010439,
+          "gpuProcessCpu": 1.2248770399069513,
+          "rendererWorkingSetKB": 118720
+        },
+        {
+          "rendererCpu": 0.41476081570421197,
+          "gpuProcessCpu": 1.0377590725005956,
+          "rendererWorkingSetKB": 118720
+        },
+        {
+          "rendererCpu": 0.8557020977298105,
+          "gpuProcessCpu": 0.9587838186853576,
+          "rendererWorkingSetKB": 118432
+        },
+        {
+          "rendererCpu": 0.47487143617909117,
+          "gpuProcessCpu": 1.1224996721207232,
+          "rendererWorkingSetKB": 118432
+        },
+        {
+          "rendererCpu": 0.461510962821735,
+          "gpuProcessCpu": 1.1649394034487004,
+          "rendererWorkingSetKB": 118432
+        },
+        {
+          "rendererCpu": 0.8686427209154483,
+          "gpuProcessCpu": 1.1411350561012046,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4798472887793045,
+          "gpuProcessCpu": 1.1213682012528587,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.3968414739258747,
+          "gpuProcessCpu": 0.9826194712760549,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.47010566358398487,
+          "gpuProcessCpu": 1.1325317471032506,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4147230871399656,
+          "gpuProcessCpu": 1.0532781019924626,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.18452857068952483,
+          "gpuProcessCpu": 0.43806772741922007,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.13575599845124,
+          "gpuProcessCpu": 0.3166214274309437,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.24592119072607574,
+          "gpuProcessCpu": 0.5767938312011103,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.6169693446467607,
+          "gpuProcessCpu": 1.3271538577924302,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5314336414165728,
+          "gpuProcessCpu": 1.197747756709974,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.40536250059530426,
+          "gpuProcessCpu": 0.987280868902439,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.3012293446156302,
+          "gpuProcessCpu": 0.7040062542878568,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.22491631159486475,
+          "gpuProcessCpu": 0.606641022380468,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5505745073525035,
+          "gpuProcessCpu": 1.2653049888510646,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.48167526777407577,
+          "gpuProcessCpu": 1.1109079126794497,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4625951408640936,
+          "gpuProcessCpu": 1.154480330884544,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4169233520796486,
+          "gpuProcessCpu": 0.999976158877242,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.36813887773878556,
+          "gpuProcessCpu": 0.9731427549052741,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4754442623733236,
+          "gpuProcessCpu": 1.0428913477524202,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4366560762509929,
+          "gpuProcessCpu": 1.0562611412622727,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4219674071485028,
+          "gpuProcessCpu": 1.0106972476335367,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5012723353407517,
+          "gpuProcessCpu": 1.206325636057555,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5535697264321799,
+          "gpuProcessCpu": 1.1974071470276324,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.42475366670241027,
+          "gpuProcessCpu": 1.0635358019201298,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4632158003728303,
+          "gpuProcessCpu": 1.1360041333810262,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4545562853943115,
+          "gpuProcessCpu": 1.0309446254071661,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5503323195667538,
+          "gpuProcessCpu": 1.1685903620676648,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.35821002130927015,
+          "gpuProcessCpu": 0.7298960069857903,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.42501132039498246,
+          "gpuProcessCpu": 1.1798689696247766,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.451797632891027,
+          "gpuProcessCpu": 1.0133945991574622,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5367917936991871,
+          "gpuProcessCpu": 1.2431005043084622,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.43337886995059804,
+          "gpuProcessCpu": 1.038006646101073,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5044294854493784,
+          "gpuProcessCpu": 1.1617685594721003,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.5786289441590892,
+          "gpuProcessCpu": 1.4068084700799033,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.43127920514169976,
+          "gpuProcessCpu": 1.0372115645282176,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.43320812255302926,
+          "gpuProcessCpu": 1.0234769381084203,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.34399634637914256,
+          "gpuProcessCpu": 0.8365627431983864,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.4000063733339707,
+          "gpuProcessCpu": 0.9706618221223566,
+          "rendererWorkingSetKB": 117856
+        },
+        {
+          "rendererCpu": 0.47174584204760484,
+          "gpuProcessCpu": 1.0964255563166028,
+          "rendererWorkingSetKB": 117856
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.46,
+        "gpuProcessCpu": 1.049,
+        "rendererWorkingSetKB": 118316.533
+      }
+    },
+    {
+      "round": 3,
+      "condition": "after",
+      "samples": [
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.04823644221385752,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0.01385420925810511,
+          "gpuProcessCpu": 0.07940541227290052,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.005885885408174222,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.004367037600193737,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0.004098132365696642,
+          "gpuProcessCpu": 0.011461774187129382,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.017302960552424796,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.05332189018551409,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0.019601307811954415,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0.007595248794105132,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.020047478781430875,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0.006833124764118149,
+          "gpuProcessCpu": 0.05247498401121797,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002381973226620933,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002341390627294265,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0.006566223347102505,
+          "gpuProcessCpu": 0.010147032490400111,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 116704
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 114848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108240
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108240
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108240
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108240
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.002423009854897459,
+          "rendererWorkingSetKB": 108240
+        },
+        {
+          "rendererCpu": 0.016603114076898635,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 105968
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 105968
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 105968
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 105968
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 105968
+        },
+        {
+          "rendererCpu": 0.006467535353214722,
+          "gpuProcessCpu": 0.006824936413019757,
+          "rendererWorkingSetKB": 105968
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.001,
+        "gpuProcessCpu": 0.005,
+        "rendererWorkingSetKB": 114894.133
+      }
+    },
+    {
+      "round": 3,
+      "condition": "static",
+      "samples": [
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.04053855530276861,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0.016190692142143935,
+          "gpuProcessCpu": 0.09169935965466665,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0012337866504284424,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0.0034575398213207006,
+          "gpuProcessCpu": 0.02821446169986171,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0.01777770723132051,
+          "gpuProcessCpu": 0.03753774606865519,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.00135517017350164,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0.001309622550906616,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0022630452648755525,
+          "rendererWorkingSetKB": 108512
+        },
+        {
+          "rendererCpu": 0.5882306200934431,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 109680
+        },
+        {
+          "rendererCpu": 0.003373189886779874,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 109680
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 109680
+        },
+        {
+          "rendererCpu": 0.2781910440892338,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0.0034521069756368547,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.006191852157622329,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0.05076404048422306,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0.018582932291418497,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.00218299880530429,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0.0048512032574636954,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.00486048031107074,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.000835824222185959,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108848
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0.005208457580890129,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0.0038492063492063496,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.0023813020165659245,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0.006868268203888313,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0.0010723732812239354,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        },
+        {
+          "rendererCpu": 0,
+          "gpuProcessCpu": 0,
+          "rendererWorkingSetKB": 108832
+        }
+      ],
+      "mean": {
+        "rendererCpu": 0.017,
+        "gpuProcessCpu": 0.004,
+        "rendererWorkingSetKB": 108784.267
+      }
+    }
+  ]
+}

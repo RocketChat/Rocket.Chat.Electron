@@ -13,6 +13,7 @@ import {
 } from '../../../spellChecking/actions';
 import { dispatch } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
+import { canViewImageAnimation, viewImageAnimation } from './imageAnimation';
 
 const t = i18next.t.bind(i18next);
 
@@ -120,6 +121,14 @@ const createImageMenuTemplate = (
 ): MenuItemConstructorOptions[] =>
   mediaType === 'image'
     ? [
+        ...(canViewImageAnimation(srcURL)
+          ? [
+              {
+                label: t('contextMenu.viewImageAnimation'),
+                click: () => viewImageAnimation(serverViewWebContents, srcURL),
+              },
+            ]
+          : []),
         {
           label: t('contextMenu.saveImageAs'),
           click: () => serverViewWebContents.downloadURL(srcURL),

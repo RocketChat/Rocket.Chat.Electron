@@ -7,7 +7,13 @@ import {
 } from '../../../spellChecking/actions';
 import { dispatch } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
+import { viewImageAnimation } from './imageAnimation';
 import { createPopupMenuForServerView } from './popupMenu';
+
+jest.mock('./imageAnimation', () => ({
+  canViewImageAnimation: (src: string) => /^https?:/.test(src),
+  viewImageAnimation: jest.fn(),
+}));
 
 jest.mock('electron', () => ({
   Menu: {
@@ -78,6 +84,25 @@ describe('createPopupMenuForServerView', () => {
 
   afterEach(() => {
     setProcessPlatform(originalPlatform);
+  });
+
+  it('opens a separate animation viewer from an image context menu', () => {
+    const contents = createWebContents();
+    const menu = createPopupMenuForServerView(
+      contents as any,
+      {
+        mediaType: 'image',
+        srcURL: 'https://chat.example/avatar/user',
+        editFlags: {},
+      } as any
+    );
+    asMenuTemplate(menu)
+      .find(({ label }) => label === 'contextMenu.viewImageAnimation')
+      ?.click?.();
+    expect(viewImageAnimation).toHaveBeenCalledWith(
+      contents,
+      'https://chat.example/avatar/user'
+    );
   });
 
   it('builds editable menu with image/link entries and suggestion actions', async () => {

@@ -14,7 +14,8 @@
     "copyLinkText": "Copy link text",
     "openLink": "Open link",
     "saveImageAs": "Save image as...",
-    "copyImage": "Copy image"
+    "copyImage": "Copy image",
+    "viewImageAnimation": "View image animation"
   },
   "dialog": {
     "about": {
@@ -354,6 +355,11 @@
       "downloadsPercentage": {
         "title": "Download percentage",
         "description": "Show download progress percentage in the tab bar."
+      },
+      "animatedImages": {
+        "title": "Automatically play animated images",
+        "description": "Play GIF, APNG and animated WebP images, including avatars, in all workspaces. When off, images stay visible without animation. This does not control videos or CSS animations.",
+        "hint": "Reload each workspace to apply changes to images already loaded. No app restart is needed. Right-click an image and choose View image animation to play it in a separate window. Workspace GIF preferences still apply."
       },
       "hardwareAcceleration": {
         "title": "Hardware acceleration",

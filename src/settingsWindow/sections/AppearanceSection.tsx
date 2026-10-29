@@ -2,6 +2,7 @@ import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../store/rootReducer';
+import { AnimatedImages } from '../../ui/components/SettingsView/features/AnimatedImages';
 import { NavigationLayout } from '../../ui/components/SettingsView/features/NavigationLayout';
 import { SettingGroupDivider } from '../../ui/components/SettingsView/features/SettingGroupDivider';
 import { ThemeAppearance } from '../../ui/components/SettingsView/features/ThemeAppearance';
@@ -20,6 +21,7 @@ export const AppearanceSection = () => {
       <FieldGroup>
         <ThemeAppearance />
         <NavigationLayout />
+        <AnimatedImages />
         {isDarwin && <TransparentWindow />}
       </FieldGroup>
 

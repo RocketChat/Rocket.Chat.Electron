@@ -10,6 +10,8 @@ import {
   WEBVIEW_AUDIO_STATE_CHANGED,
   WEBVIEW_READY,
 } from '../../actions';
+import { getRootWindow } from '../rootWindow';
+import { setupImageAnimationPolicy } from './imageAnimation';
 import { attachGuestWebContentsEvents } from './index';
 
 jest.mock('electron', () => ({
@@ -17,6 +19,7 @@ jest.mock('electron', () => ({
     userAgentFallback: 'test-agent',
     name: 'Rocket.Chat',
     getVersion: jest.fn(() => '1.0.0'),
+    getAppPath: jest.fn(() => process.cwd()),
   },
   clipboard: { writeText: jest.fn() },
   Menu: { buildFromTemplate: jest.fn(() => ({ popup: jest.fn() })) },
@@ -59,6 +62,10 @@ jest.mock('../rootWindow', () => ({
       webContents: { addListener: jest.fn() },
     })
   ),
+}));
+
+jest.mock('./imageAnimation', () => ({
+  setupImageAnimationPolicy: jest.fn(),
 }));
 
 jest.mock('./popupMenu', () => ({
@@ -434,4 +441,33 @@ describe('serverView audio state and mute handling', () => {
       payload: { url: 'https://open.rocket.chat', isAudioMuted: true },
     });
   });
+});
+
+describe('workspace image animation policy at creation', () => {
+  it.each([true, false])(
+    'applies the saved autoplay preference %s before loading images',
+    async (enabled) => {
+      jest.clearAllMocks();
+      (select as jest.Mock).mockImplementation((selector) =>
+        selector({ isAnimatedImagesEnabled: enabled })
+      );
+      await attachGuestWebContentsEvents();
+      const calls = (getRootWindow as jest.Mock).mock.results;
+      const root = await calls[calls.length - 1].value;
+      const handlers = Object.fromEntries(
+        root.webContents.addListener.mock.calls
+      );
+      const preferences: Record<string, unknown> = {};
+      handlers['will-attach-webview']({}, preferences, {});
+      expect(preferences.imageAnimationPolicy).toBe(
+        enabled ? 'animate' : 'noAnimation'
+      );
+      const contents = {
+        setWindowOpenHandler: jest.fn(),
+        addListener: jest.fn(),
+      };
+      handlers['did-attach-webview']({}, contents);
+      expect(setupImageAnimationPolicy).toHaveBeenCalledWith(contents);
+    }
+  );
 });

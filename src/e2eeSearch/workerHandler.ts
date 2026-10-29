@@ -27,9 +27,19 @@ import type {
   WorkerResponse,
 } from './workerProtocol';
 
+type FileStoreError = WorkerOpenResult['fileStoreError'];
+
+// The codes of a native module that does not load (fileStore.ts loads it on
+// the first open). Every folder fails the same way then.
+const NATIVE_MODULE_ERROR_CODES = new Set([
+  'ERR_DLOPEN_FAILED',
+  'MODULE_NOT_FOUND',
+]);
+
 type OpenIndex = {
   db: DatabaseSync;
   store: WorkerOpenResult['store'];
+  fileStoreError: FileStoreError;
   // From the key of the open that made the index. A later open with another
   // key does not change where the index lives.
   encryptedAtRest: boolean;
@@ -44,9 +54,10 @@ type WorkerHandlerOptions = {
   // of the changed pages. Without it, the database lives in memory and a
   // save writes the whole encrypted snapshot.
   openEncryptedFile?: (file: string, key: Buffer) => DatabaseSync;
-  // Called once when the file store cannot open (for example, the native
-  // SQLite module does not load on this target). The handler then uses the
-  // snapshot store for the life of the process.
+  // Called when the file store cannot open. When the native SQLite module
+  // does not load on this target, the handler uses the snapshot store for
+  // every index for the life of the process. For another error, only the
+  // index folder that failed uses it.
   onFileStoreError?: (error: unknown) => void;
 };
 
@@ -72,9 +83,14 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
   const indexes = new Map<string, OpenIndex>();
   // The copy of the index key of each open index.
   const indexKeys = new Map<string, Buffer>();
-  let fileStoreError: WorkerOpenResult['fileStoreError'];
+  let nativeModuleError: FileStoreError;
+  // By index folder.
+  const fileStoreErrors = new Map<string, NonNullable<FileStoreError>>();
+  const fileStoreErrorOf = (dir: string): FileStoreError =>
+    nativeModuleError ?? fileStoreErrors.get(dir);
   const withStore = (
     store: WorkerOpenResult['store'],
+    fileStoreError: FileStoreError,
     result: Omit<WorkerOpenResult, 'store' | 'fileStoreError'>
   ): WorkerOpenResult => ({
     ...result,
@@ -104,7 +120,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
     // reopen from the snapshot would drop the docs not saved yet.
     const current = indexes.get(indexId);
     if (current) {
-      return withStore(current.store, {
+      return withStore(current.store, current.fileStoreError, {
         schemaVersion: current.engine.schemaVersion,
         encryptedAtRest: current.encryptedAtRest,
       });
@@ -130,7 +146,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
   ): Promise<WorkerOpenResult> => {
     const store = createSnapshotStore({ dir, indexKey: key });
     const { openEncryptedFile } = options;
-    if (openEncryptedFile && key.persistent && !fileStoreError) {
+    if (openEncryptedFile && key.persistent && !fileStoreErrorOf(dir)) {
       const db = await openFileDb({
         dir,
         key: key.key,
@@ -152,14 +168,16 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
       // stay in index.bin. Set it after `deserialize`, which resets it.
       db.exec('PRAGMA secure_delete = ON');
       const engine = createSearchEngine(db, { userId });
+      const fileStoreError = fileStoreErrorOf(dir);
       indexes.set(indexId, {
         db,
         store: 'snapshot',
+        fileStoreError,
         encryptedAtRest: key.persistent,
         engine,
         save: () => store.save(serializeDatabase(db)),
       });
-      return withStore('snapshot', {
+      return withStore('snapshot', fileStoreError, {
         schemaVersion: engine.schemaVersion,
         encryptedAtRest: key.persistent,
       });
@@ -197,7 +215,12 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
         return openEncryptedFile(file, key);
       }
     } catch (error) {
-      fileStoreError = summarizeError(error);
+      const summary = summarizeError(error);
+      if (summary.code && NATIVE_MODULE_ERROR_CODES.has(summary.code)) {
+        nativeModuleError = summary;
+      } else {
+        fileStoreErrors.set(dir, summary);
+      }
       options.onFileStoreError?.(error);
       return undefined;
     }
@@ -220,11 +243,12 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
       indexes.set(indexId, {
         db,
         store: 'file',
+        fileStoreError: undefined,
         encryptedAtRest: true,
         engine,
         save: async () => checkpointIndexFile(db),
       });
-      return withStore('file', {
+      return withStore('file', undefined, {
         schemaVersion: engine.schemaVersion,
         encryptedAtRest: true,
       });

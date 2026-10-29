@@ -300,16 +300,18 @@ export const createSearchHost = ({
         }
       }),
 
-    async discard(indexId) {
-      cancelSave(indexId);
-      markClean(indexId);
-      const args = openArgs.get(indexId);
-      openArgs.delete(indexId);
-      needsOpen.delete(indexId);
-      await saving.get(indexId);
-      if (worker) await send(indexId, 'close', []).catch(() => undefined);
-      zeroKeyOf(args);
-    },
+    // An open in flight would add the index back after the discard.
+    discard: (indexId) =>
+      inOrder(indexId, async () => {
+        cancelSave(indexId);
+        markClean(indexId);
+        const args = openArgs.get(indexId);
+        openArgs.delete(indexId);
+        needsOpen.delete(indexId);
+        await saving.get(indexId);
+        if (worker) await send(indexId, 'close', []).catch(() => undefined);
+        zeroKeyOf(args);
+      }),
 
     indexIds: () => [...openArgs.keys()],
 

@@ -1,3 +1,4 @@
+import { MAX_QUERY_TOKENS, queryWords } from './sanitize';
 import type {
   E2EESearchDoc,
   E2EESearchQuery,
@@ -142,8 +143,12 @@ export const validateQuery = (value: unknown): E2EESearchQuery => {
       ? order
       : fail('query.order is not valid')
   );
+  const text = string(value.text, 'query.text', MAX_QUERY_TEXT_LENGTH);
+  if (queryWords(text).length > MAX_QUERY_TOKENS) {
+    fail(`query.text has more than ${MAX_QUERY_TOKENS} words`);
+  }
   return {
-    text: string(value.text, 'query.text', MAX_QUERY_TEXT_LENGTH),
+    text,
     rid: optional(value.rid, (rid) => id(rid, 'query.rid')),
     uid: optional(value.uid, (uid) => id(uid, 'query.uid')),
     from: optional(value.from, (from) => time(from, 'query.from')),

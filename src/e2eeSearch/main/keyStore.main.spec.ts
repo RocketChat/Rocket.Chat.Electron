@@ -371,6 +371,48 @@ describe('e2eeSearch key store', () => {
     expect(await readdir(dir)).toEqual([KEY_FILE_NAME]);
   });
 
+  it.each([
+    ['the keychain asks for it', { shouldReEncrypt: true }, undefined],
+    ['a wrap key seals an old key file', {}, Buffer.alloc(32, 7)],
+  ])(
+    'keeps the key file and opens memory-only when a re-wrap, because %s, is hard-coded',
+    async (_, options, wrapKey) => {
+      const created = await createKeyStore({
+        dir,
+        safeStorage: fakeSafeStorage(),
+        platform: 'linux',
+      }).load();
+      const before = await readFile(path.join(dir, KEY_FILE_NAME));
+
+      const hardCoded = fakeSafeStorage(options);
+      hardCoded.encryptStringAsync.mockImplementation(async (plain: string) =>
+        Buffer.concat([Buffer.from('v10'), Buffer.from(plain)])
+      );
+      const loaded = await createKeyStore({
+        dir,
+        safeStorage: hardCoded,
+        platform: 'linux',
+      }).load(wrapKey ? { wrapKey } : undefined);
+
+      expect(loaded).toMatchObject({
+        persistent: false,
+        reason: 'hard-coded-wrap',
+      });
+      expect(loaded.key.equals(created.key)).toBe(false);
+      expect(
+        (await readFile(path.join(dir, KEY_FILE_NAME))).equals(before)
+      ).toBe(true);
+
+      const retried = await createKeyStore({
+        dir,
+        safeStorage: fakeSafeStorage(options),
+        platform: 'linux',
+      }).load(wrapKey ? { wrapKey } : undefined);
+      expect(retried).toMatchObject({ persistent: true, reset: false });
+      expect(retried.key.equals(created.key)).toBe(true);
+    }
+  );
+
   // The web client derives a key from the user's E2EE
   // private key. The index key is wrapped by that key inside the keychain
   // wrap, so a page that does not hold the private key cannot open the index.

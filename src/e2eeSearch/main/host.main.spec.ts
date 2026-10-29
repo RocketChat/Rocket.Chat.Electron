@@ -294,6 +294,51 @@ describe('E2EE search host', () => {
     await host.dispose();
   });
 
+  // Settings, "Clear local search index", while a page opens the index.
+  it('a discard during an open leaves the index closed, also after a crash', async () => {
+    const workers = createFakeWorkers();
+    // The answer to the first call (the open) waits until the spec sends it.
+    let held = false;
+    let holdOpen: (answer: () => void) => void = () => undefined;
+    const openAnswered = new Promise<() => void>((resolve) => {
+      holdOpen = resolve;
+    });
+    const host = createSearchHost({
+      spawn: () => {
+        const transport = workers.spawn();
+        return {
+          ...transport,
+          onMessage: (listener) =>
+            transport.onMessage((response) => {
+              if (held) {
+                listener(response);
+                return;
+              }
+              held = true;
+              holdOpen(() => listener(response));
+            }),
+        };
+      },
+    });
+
+    const opening = host.open(indexId, openArgs);
+    const answerOpen = await openAnswered;
+    const discarding = host.discard(indexId);
+    await new Promise((resolve) => setImmediate(resolve));
+    answerOpen();
+    await opening;
+    await discarding;
+
+    expect(host.indexIds()).toEqual([]);
+    workers.spawned[0].crash();
+    const opensBefore = workers.methods.filter((m) => m === 'open').length;
+    await host.call(indexId, 'stats').catch(() => undefined);
+    expect(workers.methods.filter((m) => m === 'open')).toHaveLength(
+      opensBefore
+    );
+    await host.dispose();
+  });
+
   // The reopen after a crash shows the key copy that the host keeps.
   const spawnRecordingOpenKeys =
     (workers: ReturnType<typeof createFakeWorkers>, keys: Uint8Array[]) =>

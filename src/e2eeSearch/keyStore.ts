@@ -254,6 +254,8 @@ export const createKeyStore = ({
 
   // Undefined when the keychain cannot unwrap the file: the file is lost,
   // and a new key replaces it. Throws when only the wrap key is wrong.
+  // `hard-coded-wrap` when a re-wrap failed: the file keeps its old wrap for
+  // the next load, and this load must not save with the old key.
   const unwrap = async (
     wrapped: Buffer,
     wrapKey: Buffer | undefined,
@@ -277,7 +279,13 @@ export const createKeyStore = ({
       // An old key file: wrap it with the wrap key from now on.
       if (wrapKey) shouldReEncrypt = true;
     }
-    if (shouldReEncrypt) await wrapAndWrite(key, wrapKey, timedOut);
+    if (
+      shouldReEncrypt &&
+      (await wrapAndWrite(key, wrapKey, timedOut)) === 'hard-coded-wrap'
+    ) {
+      key.fill(0);
+      return 'hard-coded-wrap';
+    }
     return key;
   };
 
@@ -307,6 +315,13 @@ export const createKeyStore = ({
       wrapped &&
       !isHardCodedWrap(wrapped) &&
       (await unwrap(wrapped, wrapKey, timedOut));
+    if (existing === 'hard-coded-wrap') {
+      return {
+        persistent: false,
+        key: randomBytes(INDEX_KEY_BYTES),
+        reason: 'hard-coded-wrap',
+      };
+    }
     if (existing) {
       return { persistent: true, key: existing, reset: false };
     }

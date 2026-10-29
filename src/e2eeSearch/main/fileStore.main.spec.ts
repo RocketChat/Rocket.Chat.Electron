@@ -195,6 +195,76 @@ describe('E2EE search worker handler, encrypted file store', () => {
     expect(readdirSync(dir)).toEqual([]);
   });
 
+  describe('a file store that does not open', () => {
+    let otherDir: string;
+    beforeEach(() => {
+      otherDir = mkdtempSync(path.join(tmpdir(), 'e2ee-file-store-other-'));
+    });
+    afterEach(() => {
+      rmSync(otherDir, { recursive: true, force: true });
+    });
+
+    const openIn = async (
+      h: ReturnType<typeof handler>,
+      indexId: string,
+      indexDir: string
+    ) => {
+      nextId += 1;
+      const response = await h.handle({
+        id: nextId,
+        indexId,
+        method: 'open',
+        args: [{ ...args, dir: indexDir }],
+      });
+      if (!response.ok) throw new Error(`open: ${response.error.message}`);
+      return response.value;
+    };
+    const failingIn =
+      (failDir: string, error: Error) => (file: string, key: Buffer) => {
+        if (file.startsWith(failDir + path.sep)) throw error;
+        return openEncryptedIndexFile(file, key);
+      };
+
+    it('falls back for that folder only, when the native module loads', async () => {
+      const cantOpen = Object.assign(new Error('unable to open'), {
+        code: 'SQLITE_CANTOPEN',
+      });
+      const h = createWorkerHandler({
+        DatabaseSync,
+        openEncryptedFile: failingIn(otherDir, cantOpen),
+      });
+
+      expect(await openIn(h, 'bad', otherDir)).toMatchObject({
+        store: 'snapshot',
+        fileStoreError: { code: 'SQLITE_CANTOPEN' },
+      });
+      const good = await openIn(h, 'good', dir);
+      expect(good).toMatchObject({ store: 'file' });
+      expect(good).not.toHaveProperty('fileStoreError');
+      expect(await openIn(h, 'bad', otherDir)).toMatchObject({
+        store: 'snapshot',
+        fileStoreError: { code: 'SQLITE_CANTOPEN' },
+      });
+    });
+
+    it.each(['ERR_DLOPEN_FAILED', 'MODULE_NOT_FOUND'])(
+      'falls back for every folder when the native module does not load (%s)',
+      async (code) => {
+        const notLoaded = Object.assign(new Error('native module'), { code });
+        const h = createWorkerHandler({
+          DatabaseSync,
+          openEncryptedFile: failingIn(otherDir, notLoaded),
+        });
+
+        await openIn(h, 'bad', otherDir);
+        expect(await openIn(h, 'good', dir)).toMatchObject({
+          store: 'snapshot',
+          fileStoreError: { code },
+        });
+      }
+    );
+  });
+
   // A memory-only open (the dev switch, or no keychain for a
   // while) leaves the encrypted index of a persistent key on disk.
   describe('a memory-only open after a persistent index', () => {

@@ -7,7 +7,7 @@ import {
   MAX_INDEX_ROOMS,
 } from '../engine';
 import type { SearchEngine } from '../engine';
-import { toMatch } from '../sanitize';
+import { MAX_QUERY_TOKENS, toMatch } from '../sanitize';
 import { SCHEMA_VERSION } from '../schema';
 import type { E2EESearchDoc } from '../types';
 import { E2EESearchQuotaError } from '../validate';
@@ -436,7 +436,7 @@ describe('e2eeSearch engine', () => {
     expect(`${first.snippet}${second.snippet}`).not.toContain('<mark>');
   });
 
-  it('caps the result count and the query tokens', () => {
+  it('caps the result count', () => {
     engine.upsert(
       Array.from({ length: 150 }, (_, i) =>
         doc({ id: `bulk${i}`, body: `palavra ${i}` })
@@ -444,7 +444,25 @@ describe('e2eeSearch engine', () => {
     );
     expect(engine.search({ text: 'palavra', limit: 1000 })).toHaveLength(100);
     expect(engine.search({ text: 'palavra' })).toHaveLength(50);
-    expect(toMatch('w '.repeat(40)).split(' ')).toHaveLength(16);
+  });
+
+  // A query cut to its first words would find messages that lack the rest.
+  it('refuses a query with more words than the cap, and drops no word', () => {
+    const words = Array.from({ length: MAX_QUERY_TOKENS + 1 }, (_, i) =>
+      i === 0 ? 'orçamento' : `ausente${i}`
+    );
+    expect(toMatch(words.slice(0, MAX_QUERY_TOKENS).join(' '))).toBe(
+      words
+        .slice(0, MAX_QUERY_TOKENS)
+        .map((word) => `"${word}"*`)
+        .join(' ')
+    );
+    expect(() => toMatch(words.join(' '))).toThrow(
+      `more than ${MAX_QUERY_TOKENS} words`
+    );
+    expect(() => engine.search({ text: words.join(' ') })).toThrow(
+      `more than ${MAX_QUERY_TOKENS} words`
+    );
   });
 
   it('keeps room state and reports stats', () => {

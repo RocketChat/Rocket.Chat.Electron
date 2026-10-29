@@ -81,7 +81,10 @@ const formatDuration = (duration: number): string => {
   const days = hours / 24;
 
   if (minutes < 1) {
-    return formatter.format(Math.round(seconds), 'second');
+    return formatter.format(
+      seconds > 0 ? Math.max(1, Math.round(seconds)) : 0,
+      'second'
+    );
   }
 
   if (hours < 1) {

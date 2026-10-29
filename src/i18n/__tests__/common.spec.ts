@@ -151,6 +151,10 @@ describe('interpolation', () => {
       expect(format(154_321, 'duration')).not.toMatch(/\./);
     });
 
+    it('shows at least 1 second for a positive sub-second duration', () => {
+      expect(format(300, 'duration')).toMatch(/\b1\s?s\b|sec/i);
+    });
+
     it('formats year-scale durations in years', () => {
       // 5000 days falls through all buckets into the year branch
       const out = format(5000 * DAY, 'duration');

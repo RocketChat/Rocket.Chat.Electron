@@ -102,9 +102,9 @@ describe('interpolation', () => {
     });
   });
 
-  // formatDuration uses RelativeTimeFormat narrow style with fixed cumulative
-  // divisors (s→/60, min→/60, h→/24, day→/7, week→/30, month→/12). Narrow 'en'
-  // output uses single-letter units (5s, 5m, 5h, 3d, 2w) and 'mo'/'yr'.
+  // formatDuration uses RelativeTimeFormat narrow style and picks the unit from
+  // the duration in days (week < 30 d, month < 365 d). Narrow 'en' output uses
+  // single-letter units (5s, 5m, 5h, 3d, 2w) and 'mo'/'yr'.
   const DAY = 24 * 60 * 60 * 1000;
   describe('duration', () => {
     it('formats sub-minute durations in seconds', () => {
@@ -133,9 +133,26 @@ describe('interpolation', () => {
     });
 
     it('formats month-scale durations in months', () => {
-      // 300 days: 300/7 ≈ 42.86 weeks, /30 ≈ 1.43 → month bucket
       const out = format(300 * DAY, 'duration');
-      expect(out).toMatch(/mo|mth|month/i);
+      expect(out).toMatch(/\b10\s?mo\b|month/i);
+    });
+
+    it('formats durations past 30 days in months, not weeks', () => {
+      expect(format(10 * 7 * DAY, 'duration')).toMatch(/\b2\s?mo\b|month/i);
+    });
+
+    it('formats a one-year duration as 1 year', () => {
+      expect(format(365 * DAY, 'duration')).toMatch(/\b1\s?y(r)?\b|year/i);
+    });
+
+    it('rounds to whole units', () => {
+      expect(format(37_912, 'duration')).toMatch(/\b38\s?s\b|sec/i);
+      expect(format(154_321, 'duration')).toMatch(/\b3\s?m\b|min/i);
+      expect(format(154_321, 'duration')).not.toMatch(/\./);
+    });
+
+    it('shows at least 1 second for a positive sub-second duration', () => {
+      expect(format(300, 'duration')).toMatch(/\b1\s?s\b|sec/i);
     });
 
     it('formats year-scale durations in years', () => {

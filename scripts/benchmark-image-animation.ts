@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -11,6 +12,14 @@ import { app, BrowserWindow } from 'electron';
 // Run from the repository root:
 // yarn electron scripts/benchmark-image-animation.ts --output /tmp/image-animation.json
 const fixtureDirectory = path.resolve('scripts/fixtures/image-animation');
+const measureEnergy = process.argv.includes('--energy');
+const warmupMs = measureEnergy ? 45_000 : 3000;
+const sampleCount = 60;
+const sampleIntervalMs = measureEnergy ? 1000 : 250;
+if (measureEnergy && process.platform !== 'darwin') {
+  throw new Error('--energy requires macOS for WindowServer sampling');
+}
+
 const fixtureTypes: Record<string, string> = {
   'animated.gif': 'image/gif',
   'animated.png': 'image/png',
@@ -172,14 +181,26 @@ const main = async (): Promise<void> => {
     condition: string;
     samples: Sample[];
     mean: Sample;
+    samplingStartedAt: string;
+    samplingEndedAt: string;
+    windowServerCpu?: number[];
+    windowCheckBeforeSampling: {
+      frames: number;
+      visible: boolean;
+      focused: boolean;
+    };
   }> = [];
   for (
     let round = 0;
-    round < (process.argv.includes('--verify-only') ? 0 : 3);
+    round <
+    (process.argv.includes('--verify-only') ? 0 : measureEnergy ? 2 : 3);
     round++
   ) {
-    const order =
-      round % 2 === 0
+    const order = measureEnergy
+      ? round === 0
+        ? ['after', 'before']
+        : ['before', 'after']
+      : round % 2 === 0
         ? ['before', 'after', 'static']
         : ['static', 'after', 'before'];
     for (const condition of order) {
@@ -191,15 +212,18 @@ const main = async (): Promise<void> => {
       await contents.loadURL(
         `${origin}/${condition === 'static' ? '?static' : ''}`
       );
-      await delay(3000);
+      await delay(warmupMs);
       const frames = await frameCount();
+      const windowCheckBeforeSampling = {
+        frames,
+        visible: window.isVisible(),
+        focused: window.isFocused(),
+      };
       console.log(
         JSON.stringify({
           round: round + 1,
           condition,
-          frames,
-          visible: window.isVisible(),
-          focused: window.isFocused(),
+          ...windowCheckBeforeSampling,
         })
       );
       assert(
@@ -213,10 +237,45 @@ const main = async (): Promise<void> => {
         54
       );
       const rendererPid = contents.getOSProcessId();
+      let topOutput = '';
+      let topExitCode: number | null = null;
+      const topFinished = measureEnergy
+        ? new Promise<void>((resolve) => {
+            const windowServerPid = execFileSync(
+              '/usr/bin/pgrep',
+              ['-x', 'WindowServer'],
+              { encoding: 'utf8' }
+            ).trim();
+            const top = spawn('/usr/bin/top', [
+              '-l',
+              String(sampleCount + 1),
+              '-s',
+              '1',
+              '-stats',
+              'pid,command,cpu',
+              '-pid',
+              windowServerPid,
+            ]);
+            top.stdout.on('data', (data: Buffer) => {
+              topOutput += data.toString();
+            });
+            top.once('error', () => {
+              topExitCode = -1;
+              resolve();
+            });
+            top.once('close', (code) => {
+              topExitCode = code;
+              resolve();
+            });
+          }).catch(() => {
+            topExitCode = -1;
+          })
+        : Promise.resolve();
+      const samplingStartedAt = new Date().toISOString();
       app.getAppMetrics();
       const samples: Sample[] = [];
-      for (let i = 0; i < 60; i++) {
-        await delay(250);
+      for (let i = 0; i < sampleCount; i++) {
+        await delay(sampleIntervalMs);
         const metrics = app.getAppMetrics();
         const renderer = metrics.find(({ pid }) => pid === rendererPid);
         assert(renderer, 'renderer metric missing');
@@ -227,6 +286,22 @@ const main = async (): Promise<void> => {
             .reduce((sum, metric) => sum + metric.cpu.percentCPUUsage, 0),
           rendererWorkingSetKB: renderer.memory.workingSetSize,
         });
+      }
+      const samplingEndedAt = new Date().toISOString();
+      await topFinished;
+      const windowServerCpu = measureEnergy
+        ? Array.from(
+            topOutput.matchAll(/^\s*\d+\s+WindowServer\s+([\d.]+)/gm),
+            (match) => Number(match[1])
+          ).slice(1)
+        : undefined;
+      if (measureEnergy) {
+        assert.equal(topExitCode, 0, 'WindowServer sampling failed');
+        assert.equal(
+          windowServerCpu?.length,
+          sampleCount,
+          'WindowServer samples missing'
+        );
       }
       const framesAfterSampling = await frameCount();
       assert(
@@ -242,7 +317,16 @@ const main = async (): Promise<void> => {
           samples.map((sample) => sample.rendererWorkingSetKB)
         ),
       };
-      rounds.push({ round: round + 1, condition, samples, mean });
+      rounds.push({
+        round: round + 1,
+        condition,
+        samples,
+        mean,
+        samplingStartedAt,
+        samplingEndedAt,
+        windowCheckBeforeSampling,
+        ...(windowServerCpu ? { windowServerCpu } : {}),
+      });
       console.log(JSON.stringify({ round: round + 1, condition, mean }));
     }
   }
@@ -267,10 +351,14 @@ const main = async (): Promise<void> => {
       uniqueUrls: 54,
       framesPerImage: 12,
       frameDelayMs: 80,
-      warmupMs: 3000,
-      samplesPerRound: 60,
-      sampleIntervalMs: 250,
-      rounds: 3,
+      warmupMs,
+      samplesPerRound: sampleCount,
+      sampleIntervalMs,
+      rounds: measureEnergy ? 2 : 3,
+      mode: measureEnergy ? 'energy' : 'cpu',
+      conditionOrder: measureEnergy
+        ? ['after', 'before', 'before', 'after']
+        : undefined,
     },
     checks,
     rounds,

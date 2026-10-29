@@ -58,7 +58,7 @@
           "basic-text-backend": "Ii leat geavahahtto systema lyklačoakkáldat, ja danne gávdnanindeksa orru dušše muittus. Instalere ja rahpat gnome-keyring dahje KWallet, ja álggat appa ođas, vai indeksa orru diskkas. Gávdnan doaibmá ain.",
           "keychain-timeout": "Systema lyklačoakkáldat ii vástidan áigodagas, ja danne gávdnanindeksa orru dušše muittus. Rahpat lyklačoakkáldaga ja álggat appa ođas, vai indeksa orru diskkas. Gávdnan doaibmá ain.",
           "hard-coded-wrap": "Ii leat geavahahtto systema lyklačoakkáldat, ja danne gávdnanindeksa orru dušše muittus. Instalere ja rahpat gnome-keyring dahje KWallet, ja álggat appa ođas, vai indeksa orru diskkas. Gávdnan doaibmá ain.",
-          "native-module-unavailable": "Systemabiblotehka lea liiga boarrásaš gávdnanindeksii. Gávdnan doaibmá, muhto indeksa ásaheapmi lea hitáneabbo. Ođasmahte systema (glibc 2.34 dahje ođđabut) ollislaš indeksii."
+          "native-module-unavailable": "Johtilis gávdnanindeksa ii sáhttán álgit dán systemas. Gávdnan doaibmá, muhto indeksa ásaheapmi lea hitáneabbo."
         }
       },
       "uiPreview": {

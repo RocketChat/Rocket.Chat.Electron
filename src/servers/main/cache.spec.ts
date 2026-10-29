@@ -1,6 +1,7 @@
 import type { WebContents } from 'electron';
 import { webContents } from 'electron';
 
+import { loggers } from '../../logging/scopes';
 import { listen } from '../../store';
 import type { RootAction } from '../../store/actions';
 import {
@@ -18,6 +19,10 @@ jest.mock('electron', () => ({
   webContents: {
     fromId: jest.fn(),
   },
+}));
+
+jest.mock('../../logging/scopes', () => ({
+  loggers: { e2eeSearch: { warn: jest.fn() } },
 }));
 
 jest.mock('../../store', () => ({
@@ -168,6 +173,50 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
       expect(restore).toContain('E2EESearch_OptIn_u1');
       expect(restore).not.toContain('loginToken');
       expect(restore).not.toContain('alert');
+    });
+
+    it('keeps the opt-in of every user id that the search index accepts', async () => {
+      const longest = `E2EESearch_OptIn_${'a'.repeat(128)}`;
+      const tooLong = `E2EESearch_OptIn_${'b'.repeat(129)}`;
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) =>
+          code.includes('setItem')
+            ? undefined
+            : ['E2EESearch_OptIn_a-b_c', longest, tooLong]
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      const restore = (
+        mockWebContents.executeJavaScript as jest.Mock
+      ).mock.calls.find(([code]) => code.includes('setItem'))![0];
+      expect(restore).toContain('"E2EESearch_OptIn_a-b_c"');
+      expect(restore).toContain(`"${longest}"`);
+      expect(restore).not.toContain('bbbb');
+    });
+
+    it('logs a failed write back of the opt-in, and still reloads to end the session', async () => {
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) => {
+          if (code.includes('setItem')) throw new TypeError('page gone');
+          return ['E2EESearch_OptIn_u1'];
+        }
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      expect(mockWebContents.session.clearStorageData).toHaveBeenCalledWith();
+      expect(loggers.e2eeSearch.warn).toHaveBeenCalledWith(
+        'local search opt-in not kept after a login data clear',
+        { keys: 1, name: 'TypeError' }
+      );
+      expect(mockWebContents.reloadIgnoringCache).toHaveBeenCalled();
     });
 
     it('still clears and reloads when the page cannot be read, and writes nothing back', async () => {

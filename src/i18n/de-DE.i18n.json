@@ -308,7 +308,7 @@
           "basic-text-backend": "Es ist kein Schlüsselbund des Systems verfügbar. Der Suchindex bleibt daher im Speicher. Installieren und entsperren Sie gnome-keyring oder KWallet und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
           "keychain-timeout": "Der Schlüsselbund des Systems hat nicht rechtzeitig geantwortet. Der Suchindex bleibt daher im Speicher. Entsperren Sie den Schlüsselbund und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
           "hard-coded-wrap": "Es ist kein Schlüsselbund des Systems verfügbar. Der Suchindex bleibt daher im Speicher. Installieren und entsperren Sie gnome-keyring oder KWallet und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
-          "native-module-unavailable": "Eine Systembibliothek ist für den schnellen Index zu alt. Die Suche funktioniert, aber das Speichern dauert länger. Aktualisieren Sie Ihr System (glibc 2.34 oder neuer) für den vollständigen Index."
+          "native-module-unavailable": "Der schnelle Index konnte auf diesem System nicht starten. Die Suche funktioniert, aber das Speichern dauert länger."
         }
       },
       "clearPermittedScreenCaptureServers": {

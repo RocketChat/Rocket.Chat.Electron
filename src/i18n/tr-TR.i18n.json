@@ -179,7 +179,7 @@
           "basic-text-backend": "Kullanılabilir bir sistem anahtar zinciri yok, bu yüzden arama dizini bellekte kalıyor. Diskte tutmak için gnome-keyring veya KWallet'ı kurup kilidini açın, ardından uygulamayı yeniden başlatın. Arama çalışmaya devam ediyor.",
           "keychain-timeout": "Sistem anahtar zinciri zamanında yanıt vermedi, bu yüzden arama dizini bellekte kalıyor. Diskte tutmak için anahtar zincirinin kilidini açın ve uygulamayı yeniden başlatın. Arama çalışmaya devam ediyor.",
           "hard-coded-wrap": "Kullanılabilir bir sistem anahtar zinciri yok, bu yüzden arama dizini bellekte kalıyor. Diskte tutmak için gnome-keyring veya KWallet'ı kurup kilidini açın, ardından uygulamayı yeniden başlatın. Arama çalışmaya devam ediyor.",
-          "native-module-unavailable": "Bir sistem kitaplığı hızlı dizin için çok eski. Arama çalışıyor ancak kaydetme daha yavaş. Tam dizin için sisteminizi güncelleyin (glibc 2.34 veya daha yeni)."
+          "native-module-unavailable": "Hızlı dizin bu sistemde başlatılamadı. Arama çalışıyor ancak kaydetme daha yavaş."
         }
       },
       "transparentWindow": {

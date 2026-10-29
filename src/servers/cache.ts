@@ -1,5 +1,8 @@
 import { webContents, type WebContents } from 'electron';
 
+import { summarizeError } from '../e2eeSearch/errorSummary';
+import { MAX_ID_LENGTH } from '../e2eeSearch/validate';
+import { loggers } from '../logging/scopes';
 import { listen } from '../store';
 import {
   CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
@@ -36,11 +39,18 @@ export const clearWebviewStorageDeletingLoginData = async (
   await guestWebContents.session.clearCache();
   await guestWebContents.session.clearStorageData();
   if (keepTrueLocalStorageKeys.length > 0) {
+    // The storage is already clear, so the reload still runs: it ends the
+    // session of the page. The next login then reads the opt-in as off.
     await guestWebContents
       .executeJavaScript(
         `for (const key of ${JSON.stringify(keepTrueLocalStorageKeys)}) localStorage.setItem(key, 'true');`
       )
-      .catch(() => undefined);
+      .catch((error) =>
+        loggers.e2eeSearch.warn(
+          'local search opt-in not kept after a login data clear',
+          { keys: keepTrueLocalStorageKeys.length, ...summarizeError(error) }
+        )
+      );
   }
   guestWebContents?.reloadIgnoringCache();
 };
@@ -49,8 +59,11 @@ export const clearWebviewStorageDeletingLoginData = async (
 // on this device in the local storage (`E2EESearch_OptIn_<userId>`). The
 // sealed search index stays on the device after a logout, so the choice must
 // stay with it: without it, the next login reads "off" and wipes the index.
-// Only keys with a plain user id and the value 'true' are kept.
-const searchIndexOptInKey = /^E2EESearch_OptIn_[A-Za-z0-9]{1,64}$/;
+// Only keys with a user id that the search index accepts
+// (`validateScope`) and the value 'true' are kept.
+const searchIndexOptInKey = new RegExp(
+  `^E2EESearch_OptIn_[A-Za-z0-9_-]{1,${MAX_ID_LENGTH}}$`
+);
 
 const readSearchIndexOptIns = async (
   guestWebContents: WebContents

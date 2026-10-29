@@ -58,7 +58,7 @@
           "basic-text-backend": "Ingen systemnøkkelring er tilgjengeleg, så søkjeindeksen blir verande i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å behalde han på disken. Søk fungerer framleis.",
           "keychain-timeout": "Systemnøkkelringen svara ikkje i tide, så søkjeindeksen blir verande i minnet. Lås opp nøkkelringen og start appen på nytt for å behalde han på disken. Søk fungerer framleis.",
           "hard-coded-wrap": "Ingen systemnøkkelring er tilgjengeleg, så søkjeindeksen blir verande i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å behalde han på disken. Søk fungerer framleis.",
-          "native-module-unavailable": "Eit systembibliotek er for gammalt for den raske indeksen. Søk fungerer, men lagring går tregare. Oppdater systemet (glibc 2.34 eller nyare) for å få den fullstendige indeksen."
+          "native-module-unavailable": "Den raske indeksen kunne ikkje starte på dette systemet. Søk fungerer, men lagring går tregare."
         }
       },
       "uiPreview": {

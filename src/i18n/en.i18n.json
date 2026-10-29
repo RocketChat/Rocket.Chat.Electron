@@ -464,7 +464,7 @@
           "basic-text-backend": "No system keyring is available, so the search index stays in memory. Install and unlock gnome-keyring or KWallet, then restart the app, to keep it on disk. Search still works.",
           "keychain-timeout": "The system keyring did not answer in time, so the search index stays in memory. Unlock the keyring and restart the app to keep it on disk. Search still works.",
           "hard-coded-wrap": "No system keyring is available, so the search index stays in memory. Install and unlock gnome-keyring or KWallet, then restart the app, to keep it on disk. Search still works.",
-          "native-module-unavailable": "A system library is too old for the fast index. Search works, but saves are slower. Update your system (glibc 2.34 or newer) for the full index."
+          "native-module-unavailable": "The fast index could not start on this system. Search works, but saves are slower."
         }
       },
       "clearPermittedScreenCaptureServers": {

@@ -334,7 +334,7 @@
           "basic-text-backend": "Ingen systemnyckelring finns tillgänglig, så sökindexet stannar i minnet. Installera och lås upp gnome-keyring eller KWallet och starta om appen för att behålla det på disken. Sökningen fungerar ändå.",
           "keychain-timeout": "Systemnyckelringen svarade inte i tid, så sökindexet stannar i minnet. Lås upp nyckelringen och starta om appen för att behålla det på disken. Sökningen fungerar ändå.",
           "hard-coded-wrap": "Ingen systemnyckelring finns tillgänglig, så sökindexet stannar i minnet. Installera och lås upp gnome-keyring eller KWallet och starta om appen för att behålla det på disken. Sökningen fungerar ändå.",
-          "native-module-unavailable": "Ett systembibliotek är för gammalt för det snabba indexet. Sökningen fungerar, men sparandet går långsammare. Uppdatera systemet (glibc 2.34 eller nyare) för det fullständiga indexet."
+          "native-module-unavailable": "Det snabba indexet kunde inte starta på det här systemet. Sökningen fungerar, men sparandet går långsammare."
         }
       },
       "clearPermittedScreenCaptureServers": {

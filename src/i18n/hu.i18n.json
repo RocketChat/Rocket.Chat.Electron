@@ -339,7 +339,7 @@
           "basic-text-backend": "Nem érhető el rendszerkulcstartó, ezért a keresési index a memóriában marad. Telepítse és oldja fel a gnome-keyring vagy a KWallet szolgáltatást, majd indítsa újra az alkalmazást, hogy az index a lemezen maradjon. A keresés továbbra is működik.",
           "keychain-timeout": "A rendszerkulcstartó nem válaszolt időben, ezért a keresési index a memóriában marad. Oldja fel a kulcstartót, és indítsa újra az alkalmazást, hogy az index a lemezen maradjon. A keresés továbbra is működik.",
           "hard-coded-wrap": "Nem érhető el rendszerkulcstartó, ezért a keresési index a memóriában marad. Telepítse és oldja fel a gnome-keyring vagy a KWallet szolgáltatást, majd indítsa újra az alkalmazást, hogy az index a lemezen maradjon. A keresés továbbra is működik.",
-          "native-module-unavailable": "Egy rendszerkönyvtár túl régi a gyors indexhez. A keresés működik, de a mentés lassabb. Frissítse a rendszert (glibc 2.34 vagy újabb) a teljes indexhez."
+          "native-module-unavailable": "A gyors index nem tudott elindulni ezen a rendszeren. A keresés működik, de a mentés lassabb."
         }
       },
       "clearPermittedScreenCaptureServers": {

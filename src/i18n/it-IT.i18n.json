@@ -58,7 +58,7 @@
           "basic-text-backend": "Nessun portachiavi di sistema è disponibile, quindi l'indice di ricerca resta in memoria. Installa e sblocca gnome-keyring o KWallet, poi riavvia l'app per mantenerlo sul disco. La ricerca continua a funzionare.",
           "keychain-timeout": "Il portachiavi di sistema non ha risposto in tempo, quindi l'indice di ricerca resta in memoria. Sblocca il portachiavi e riavvia l'app per mantenerlo sul disco. La ricerca continua a funzionare.",
           "hard-coded-wrap": "Nessun portachiavi di sistema è disponibile, quindi l'indice di ricerca resta in memoria. Installa e sblocca gnome-keyring o KWallet, poi riavvia l'app per mantenerlo sul disco. La ricerca continua a funzionare.",
-          "native-module-unavailable": "Una libreria di sistema è troppo vecchia per l'indice veloce. La ricerca funziona, ma i salvataggi sono più lenti. Aggiorna il sistema (glibc 2.34 o successivo) per ottenere l'indice completo."
+          "native-module-unavailable": "L'indice veloce non è riuscito ad avviarsi su questo sistema. La ricerca funziona, ma i salvataggi sono più lenti."
         }
       },
       "uiPreview": {

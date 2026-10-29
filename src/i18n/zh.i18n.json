@@ -57,7 +57,7 @@
           "basic-text-backend": "没有可用的系统密钥环，因此搜索索引保留在内存中。请安装并解锁 gnome-keyring 或 KWallet，然后重启应用，以便将索引保存在磁盘上。搜索仍可使用。",
           "keychain-timeout": "系统密钥环未在规定时间内响应，因此搜索索引保留在内存中。请解锁密钥环并重启应用，以便将索引保存在磁盘上。搜索仍可使用。",
           "hard-coded-wrap": "没有可用的系统密钥环，因此搜索索引保留在内存中。请安装并解锁 gnome-keyring 或 KWallet，然后重启应用，以便将索引保存在磁盘上。搜索仍可使用。",
-          "native-module-unavailable": "系统库版本过旧，无法使用快速索引。搜索可用，但保存会更慢。请更新系统（glibc 2.34 或更高版本）以使用完整索引。"
+          "native-module-unavailable": "无法在此系统上启动快速索引。搜索可用，但保存会更慢。"
         }
       },
       "uiPreview": {

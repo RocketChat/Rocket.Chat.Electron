@@ -327,7 +327,7 @@
           "basic-text-backend": "No hay ningún llavero del sistema disponible, así que el índice de búsqueda se queda en la memoria. Instala y desbloquea gnome-keyring o KWallet y reinicia la aplicación para mantenerlo en el disco. La búsqueda sigue funcionando.",
           "keychain-timeout": "El llavero del sistema no respondió a tiempo, así que el índice de búsqueda se queda en la memoria. Desbloquea el llavero y reinicia la aplicación para mantenerlo en el disco. La búsqueda sigue funcionando.",
           "hard-coded-wrap": "No hay ningún llavero del sistema disponible, así que el índice de búsqueda se queda en la memoria. Instala y desbloquea gnome-keyring o KWallet y reinicia la aplicación para mantenerlo en el disco. La búsqueda sigue funcionando.",
-          "native-module-unavailable": "Una biblioteca del sistema es demasiado antigua para el índice rápido. La búsqueda funciona, pero los guardados son más lentos. Actualiza el sistema (glibc 2.34 o posterior) para tener el índice completo."
+          "native-module-unavailable": "El índice rápido no pudo iniciarse en este sistema. La búsqueda funciona, pero los guardados son más lentos."
         }
       },
       "clearPermittedScreenCaptureServers": {

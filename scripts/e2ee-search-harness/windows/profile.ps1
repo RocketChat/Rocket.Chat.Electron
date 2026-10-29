@@ -18,6 +18,11 @@ if ($AppName -eq 'Rocket.Chat') {
   'AppName must not be Rocket.Chat: that is the production name'
   exit 2
 }
+# A trailing dot or space is dropped by Windows, so "Rocket.Chat." would be the production folder.
+if ($AppName -notmatch '^[A-Za-z0-9_]([A-Za-z0-9._ -]*[A-Za-z0-9_])?$') {
+  'AppName must hold only letters, digits, spaces, dots, dashes and underscores, and must start and end with a letter, digit or underscore'
+  exit 2
+}
 if ((Get-TestProcess $Root).Count -gt 0) {
   'the test app still runs: run stop.ps1 first'
   exit 2

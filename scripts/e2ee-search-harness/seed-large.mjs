@@ -30,7 +30,7 @@
 // the browser and exits with code 124.
 
 import { createRequire } from 'node:module';
-import { randomBytes } from 'node:crypto';
+import { randomInt } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -83,9 +83,7 @@ const fail = (m) => {
 // A Meteor-style id: 17 characters.
 const UNMISTAKABLE = '23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz';
 const newId = () =>
-  [...randomBytes(17)]
-    .map((b) => UNMISTAKABLE[b % UNMISTAKABLE.length])
-    .join('');
+  Array.from({ length: 17 }, () => UNMISTAKABLE[randomInt(UNMISTAKABLE.length)]).join('');
 
 const PT = [
   'a reunião de orçamento foi adiada para amanhã',

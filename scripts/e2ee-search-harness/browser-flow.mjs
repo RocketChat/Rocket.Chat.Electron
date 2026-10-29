@@ -35,6 +35,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { jsLiteral } from './cdp.mjs';
 import { HISTORY_URL, HIT_MARGIN_MS, installPageHistoryRecorder, judgeSavedIndexHit, pageRecordingCoverage } from './restart-proof.mjs';
 import { createSteps, isStepTimeout } from './steps.mjs';
 
@@ -129,7 +130,7 @@ const waitFor = async (expr, timeoutMs, everyMs = 250) => {
 	}
 	return undefined;
 };
-const navigate = (path) => ev(`(() => { history.pushState({}, '', ${JSON.stringify(path)}); dispatchEvent(new PopStateEvent('popstate')); return true; })()`);
+const navigate = (path) => ev(`(() => { history.pushState({}, '', ${jsLiteral(path)}); dispatchEvent(new PopStateEvent('popstate')); return true; })()`);
 const progress = () =>
 	ev(`(() => { try { return window.require('/client/lib/e2ee/rocketchat.e2e.ts').e2eSearchIndexRuntime.getProgress() ?? null; } catch (e) { return { error: String(e) }; } })()`);
 const panelSel = `document.querySelector('input[name=searchText]')`;
@@ -167,14 +168,14 @@ const panelSearch = async (text, { expectWord, expectId, timeoutMs = 20000 } = {
 		`(() => {
 			const settled = Date.now() - ${typedAt} > ${EMPTY_SETTLE_MS};
 			const input = ${panelSel};
-			if (!input || input.value !== ${JSON.stringify(text)}) return undefined;
+			if (!input || input.value !== ${jsLiteral(text)}) return undefined;
 			const panel = ${panelExpr};
 			const hits = [...panel.querySelectorAll('[data-qa=local-message-search-hit]')].map((h) => ({
 				text: h.innerText.replace(/\\s+/g, ' ').slice(0, 200),
 				marks: [...h.querySelectorAll('mark')].map((m) => m.textContent),
 			}));
 			const empty = /No results found/i.test(panel.innerText);
-			const want = ${JSON.stringify((expectWord ?? '').toLowerCase())};
+			const want = ${jsLiteral((expectWord ?? '').toLowerCase())};
 			if (want && hits.some((h) => h.text.toLowerCase().includes(want))) return { hits, empty };
 			if (empty && settled) return { hits: [], empty };
 			if (!want && settled && hits.length) return { hits, empty };
@@ -320,7 +321,7 @@ try {
 		const handle = await page.evaluateHandle(`(${toggle}).closest('label') ?? (${toggle})`);
 		await handle.asElement().click();
 	}
-	const optedIn = Boolean(await waitFor(`localStorage.getItem(${JSON.stringify(optKey)}) === 'true'`, 10000));
+	const optedIn = Boolean(await waitFor(`localStorage.getItem(${jsLiteral(optKey)}) === 'true'`, 10000));
 	record('s3-opt-in', optedIn, { toggleShown, optedIn });
 	st.end(optedIn);
 	if (!optedIn) {
@@ -434,7 +435,7 @@ try {
 		jump.inView = msgId
 			? await waitFor(
 					`(() => {
-						const el = document.querySelector('[data-id=${JSON.stringify(String(msgId))}]');
+						const el = document.querySelector('[data-id=${jsLiteral(String(msgId))}]');
 						if (!el) return undefined;
 						const r = el.getBoundingClientRect();
 						return r.bottom > 0 && r.top < innerHeight ? { text: el.innerText.replace(/\\s+/g, ' ').slice(0, 120) } : undefined;
@@ -462,7 +463,7 @@ try {
 		await page.type('textarea[name=msg]', text);
 		await page.keyboard.press('Enter');
 		return waitFor(
-			`(() => { const el = [...document.querySelectorAll('[data-id]')].reverse().find((m) => m.innerText.includes(${JSON.stringify(text)})); return el?.dataset.id; })()`,
+			`(() => { const el = [...document.querySelectorAll('[data-id]')].reverse().find((m) => m.innerText.includes(${jsLiteral(text)})); return el?.dataset.id; })()`,
 			30000,
 		);
 	};
@@ -479,7 +480,7 @@ try {
 	await waitFor(`!!document.querySelector('textarea[name=msg]')`, 30000);
 	await page.click('textarea[name=msg]');
 	await page.keyboard.press('ArrowUp');
-	const editing = Boolean(await waitFor(`document.querySelector('textarea[name=msg]').value.includes(${JSON.stringify(words.sent)})`, 5000));
+	const editing = Boolean(await waitFor(`document.querySelector('textarea[name=msg]').value.includes(${jsLiteral(words.sent)})`, 5000));
 	if (editing) {
 		await ev(`document.querySelector('textarea[name=msg]').select()`);
 		await page.keyboard.press('Backspace');
@@ -487,7 +488,7 @@ try {
 		await page.keyboard.press('Enter');
 	}
 	const edited = Boolean(
-		await waitFor(`document.querySelector('[data-id=${JSON.stringify(sentId ?? '')}]')?.innerText.includes(${JSON.stringify(words.edited)})`, 20000),
+		await waitFor(`document.querySelector('[data-id=${jsLiteral(sentId ?? '')}]')?.innerText.includes(${jsLiteral(words.edited)})`, 20000),
 	);
 	await sleep(2500);
 	await openPanel(pt.name);
@@ -516,7 +517,7 @@ try {
 	try {
 		await page.hover(msgSel);
 		await sleep(500);
-		const more = await page.evaluateHandle(`document.querySelector(${JSON.stringify(msgSel)})?.querySelector('[data-qa-id=menu], button[title="More"], button[aria-label="More"]')`);
+		const more = await page.evaluateHandle(`document.querySelector(${jsLiteral(msgSel)})?.querySelector('[data-qa-id=menu], button[title="More"], button[aria-label="More"]')`);
 		if (!more.asElement()) throw new Error('no message menu button');
 		await more.asElement().click();
 		const del = await waitFor(`!!([...document.querySelectorAll('[role=option], [role=menuitem], li')].find((o) => /^\\s*Delete\\s*$/im.test(o.innerText)))`, 5000);
@@ -532,9 +533,9 @@ try {
 		await btn.asElement().click();
 	} catch (error) {
 		deleteMode = `rest (ui failed: ${error.message})`;
-		await ev(`fetch('/api/v1/chat.delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-User-Id': localStorage.getItem('Meteor.userId'), 'X-Auth-Token': localStorage.getItem('Meteor.loginToken') }, body: JSON.stringify({ roomId: ${JSON.stringify(pt.rid)}, msgId: ${JSON.stringify(delId ?? '')} }) }).then((r) => r.json())`);
+		await ev(`fetch('/api/v1/chat.delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-User-Id': localStorage.getItem('Meteor.userId'), 'X-Auth-Token': localStorage.getItem('Meteor.loginToken') }, body: JSON.stringify({ roomId: ${jsLiteral(pt.rid)}, msgId: ${jsLiteral(delId ?? '')} }) }).then((r) => r.json())`);
 	}
-	const goneFromRoom = Boolean(await waitFor(`!document.querySelector(${JSON.stringify(msgSel)})`, 15000));
+	const goneFromRoom = Boolean(await waitFor(`!document.querySelector(${jsLiteral(msgSel)})`, 15000));
 	await sleep(2500);
 	await openPanel(pt.name);
 	const s6del = await panelSearch(words.deleted, { expectWord: words.deleted });
@@ -632,7 +633,7 @@ try {
 	const scanWords = [...Object.values(words), 'orçamento', 'orcamento', 'trimestral', largeOldest.word];
 	const opfs = await ev(`(async () => {
 		const enc = new TextEncoder();
-		const words = ${JSON.stringify(scanWords)};
+		const words = ${jsLiteral(scanWords)};
 		const find = (hay, needle) => { outer: for (let i = 0; i <= hay.length - needle.length; i++) { for (let j = 0; j < needle.length; j++) if (hay[i + j] !== needle[j]) continue outer; return true; } return false; };
 		const root = await navigator.storage.getDirectory();
 		const files = [];

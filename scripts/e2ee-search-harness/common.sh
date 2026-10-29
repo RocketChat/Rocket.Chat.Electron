@@ -10,6 +10,7 @@
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HARNESS_DIR/../.." && pwd)"
 HARNESS_STATE_DIR="${HARNESS_STATE_DIR:-$REPO_ROOT/.localdev/e2ee-search-harness}"
+case "$HARNESS_STATE_DIR" in /*) ;; *) HARNESS_STATE_DIR="$PWD/$HARNESS_STATE_DIR" ;; esac
 
 if [[ -f "$HARNESS_STATE_DIR/env" ]]; then
   _harness_env_before="$(export -p)"

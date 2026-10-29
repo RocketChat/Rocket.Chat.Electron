@@ -42,6 +42,24 @@ usage() {
 pid_alive() { [[ -n "${1:-}" ]] && kill -0 "$1" 2>/dev/null; }
 read_pid() { cat "$SERVER_DIR/$1.pid" 2>/dev/null; }
 
+# A pid can belong to another process after a reboot or a long pause. The
+# start time of the process tells the process that up started apart.
+proc_start() { ps -o lstart= -p "$1" 2>/dev/null | sed 's/^ *//;s/ *$//'; }
+record_pid() {
+  echo "$2" >"$SERVER_DIR/$1.pid"
+  proc_start "$2" >"$SERVER_DIR/$1.started"
+}
+remove_pid() { rm -f "$SERVER_DIR/$1.pid" "$SERVER_DIR/$1.started"; }
+
+# Tells whether a process accepts connections on a local TCP port.
+port_listening() {
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1
+  else
+    (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+  fi
+}
+
 # The pid and every descendant of it.
 tree_pids() {
   local pid="$1" child
@@ -50,9 +68,15 @@ tree_pids() {
 }
 
 stop_tree() {
-  local name="$1" pid pids
+  local name="$1" pid pids started
   pid="$(read_pid "$name")"
   if pid_alive "$pid"; then
+    started="$(cat "$SERVER_DIR/$name.started" 2>/dev/null)"
+    if [[ -z "$started" || "$started" != "$(proc_start "$pid")" ]]; then
+      log "not stopping $name: pid $pid is not the process that up started"
+      remove_pid "$name"
+      return 0
+    fi
     pids="$(tree_pids "$pid" | tr '\n' ' ')"
     log "stopping $name (pids $pids)"
     # shellcheck disable=SC2086
@@ -66,7 +90,7 @@ stop_tree() {
     # shellcheck disable=SC2086
     kill -KILL $pids 2>/dev/null
   fi
-  rm -f "$SERVER_DIR/$name.pid"
+  remove_pid "$name"
 }
 
 api_info() { curl -sf -m 5 "$URL/api/info" 2>/dev/null; }
@@ -155,6 +179,10 @@ cmd_up() {
   start="$(now_s)"
 
   if ! pid_alive "$(read_pid mongod)"; then
+    if port_listening "$MONGO_PORT"; then
+      echo "port $MONGO_PORT already has a listener: stop it or choose another PORT (this server's MongoDB uses PORT+1)" >&2
+      exit 1
+    fi
     mongod="$(find_mongod)"
     if [[ -z "$mongod" ]]; then
       echo "no mongod found: set MONGOD_BIN" >&2
@@ -162,11 +190,12 @@ cmd_up() {
     fi
     nohup "$mongod" --dbpath "$DB_DIR" --port "$MONGO_PORT" --bind_ip 127.0.0.1 \
       --replSet rs0 >"$SERVER_DIR/mongod.log" 2>&1 &
-    echo $! >"$SERVER_DIR/mongod.pid"
+    record_pid mongod "$!"
     STARTED_MONGOD=1
     log "mongod started on port $MONGO_PORT (pid $!)"
   fi
   if ! step mongo-ready 3 120 wait_mongo_ready; then
+    pid_alive "$(read_pid mongod)" || remove_pid mongod
     echo "MongoDB did not start: see $SERVER_DIR/mongod.log" >&2
     exit 1
   fi
@@ -187,7 +216,7 @@ cmd_up() {
       OVERWRITE_SETTING_Show_Setup_Wizard=completed \
       yarn dev --port "$PORT"
   ) >"$SERVER_DIR/meteor.log" 2>&1 &
-  echo $! >"$SERVER_DIR/meteor.pid"
+  record_pid meteor "$!"
   STARTED_METEOR=1
   log "meteor started from $CORE_DIR on port $PORT (pid $!), log $SERVER_DIR/meteor.log"
 
@@ -198,6 +227,7 @@ cmd_up() {
 
 wait_mongo_ready() {
   for _ in $(seq 1 60); do
+    pid_alive "$(read_pid mongod)" || return 1
     if init_replica_set 2>/dev/null; then return 0; fi
     sleep 1
   done
@@ -209,6 +239,7 @@ wait_server_ready() {
   while :; do
     [[ -n "$(api_info)" ]] && return 0
     if ! pid_alive "$(read_pid meteor)"; then
+      remove_pid meteor
       echo "meteor exited: see $SERVER_DIR/meteor.log" >&2
       tail -20 "$SERVER_DIR/meteor.log" >&2
       return 1

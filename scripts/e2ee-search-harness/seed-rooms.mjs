@@ -35,7 +35,7 @@
 // Each step logs its time (steps.mjs). A step that passes its limit closes
 // the browsers and exits with code 124.
 
-import { randomBytes } from 'node:crypto';
+import { randomInt } from 'node:crypto';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
@@ -95,9 +95,7 @@ const fail = (m) => {
 
 const UNMISTAKABLE = '23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz';
 const newId = () =>
-  [...randomBytes(17)]
-    .map((b) => UNMISTAKABLE[b % UNMISTAKABLE.length])
-    .join('');
+  Array.from({ length: 17 }, () => UNMISTAKABLE[randomInt(UNMISTAKABLE.length)]).join('');
 const pick = (list) => list[Math.floor(random() * list.length)];
 
 const PT_WORDS = `reunião orçamento amanhã ação atenção revisão migração

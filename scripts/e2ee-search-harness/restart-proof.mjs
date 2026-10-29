@@ -365,10 +365,11 @@ export const startCdpHistoryRecorder = async (
     if (message.id !== undefined) {
       const resolve = pending.get(message.id);
       pending.delete(message.id);
-      resolve?.(message);
+      if (typeof resolve === 'function') resolve(message);
       return;
     }
-    events[message.method]?.(message.params, message.sessionId);
+    const handler = Object.hasOwn(events, message.method) ? events[message.method] : undefined;
+    if (typeof handler === 'function') handler(message.params, message.sessionId);
   });
 
   await send('Target.setAutoAttach', autoAttach);

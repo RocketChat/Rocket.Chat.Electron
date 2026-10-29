@@ -84,7 +84,7 @@ case "${1:-}" in
 esac
 
 windows_path_re='^[A-Za-z]:\\[A-Za-z0-9._\\-]+$'
-app_name_re='^[A-Za-z0-9._ -]+$'
+app_name_re='^[A-Za-z0-9_]([A-Za-z0-9._ -]*[A-Za-z0-9_])?$'
 if [[ -z "$WINDOWS_HOST" ]]; then
   echo "set WINDOWS_HOST to the SSH destination of the Windows host" >&2
   exit 2
@@ -98,7 +98,7 @@ if [[ -n "$WINDOWS_NODE_DIR" && ! "$WINDOWS_NODE_DIR" =~ $windows_path_re ]]; th
   exit 2
 fi
 if [[ "$APP_NAME" == "Rocket.Chat" || ! "$APP_NAME" =~ $app_name_re ]]; then
-  echo "APP_NAME must not be Rocket.Chat (the production name) and must hold only letters, digits, spaces, dots, dashes and underscores" >&2
+  echo "APP_NAME must not be Rocket.Chat (the production name), must hold only letters, digits, spaces, dots, dashes and underscores, and must start and end with a letter, digit or underscore" >&2
   exit 2
 fi
 if [[ ! "$WINDOWS_CDP_PORT" =~ ^[0-9]+$ ]]; then

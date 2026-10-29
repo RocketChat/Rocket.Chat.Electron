@@ -70,7 +70,13 @@ check() {
 }
 
 prod_item_hash() {
-  security dump-keychain -a 2>/dev/null | python3 -c '
+  local dump
+  # A failed read must not hash as an empty keychain.
+  if ! dump="$(security dump-keychain -a 2>/dev/null)"; then
+    echo query-failed
+    return 0
+  fi
+  printf '%s\n' "$dump" | python3 -c '
 import hashlib, sys
 blocks = sys.stdin.read().split("keychain: ")
 item = [b for b in blocks if "\"svce\"<blob>=\"Rocket.Chat Safe Storage\"" in b]
@@ -98,9 +104,12 @@ start_app() {
 }
 
 # stop_app TERM: app.quit() through the signal handler, which saves the
-# index. stop_app KILL: no quit handler runs.
+# index. stop_app KILL: no quit handler runs. STOP_FORCED is 1 when the app
+# still ran after the signal, so the forced kill was needed.
+STOP_FORCED=0
 stop_app() {
   local signal="${1:-TERM}" pid
+  STOP_FORCED=0
   pid="$(app_pid)"
   if [[ -n "$pid" ]]; then
     kill "-$signal" "$pid" 2>/dev/null
@@ -108,7 +117,10 @@ stop_app() {
   fi
   pkill "-$signal" -f "^$APP/Contents/" 2>/dev/null
   sleep 2
-  pkill -KILL -f "^$APP/Contents/" 2>/dev/null
+  if pgrep -f "^$APP/Contents/" >/dev/null; then
+    STOP_FORCED=1
+    pkill -KILL -f "^$APP/Contents/" 2>/dev/null
+  fi
   return 0
 }
 
@@ -171,10 +183,11 @@ restart_and_find() {
 # that it records every history response of the web client from the first
 # request on (see restart-proof.mjs).
 restart_check() {
-  local id="$1" signal="$2" mark out at_rest store elapsed driver_pid why
+  local id="$1" signal="$2" mark out at_rest store elapsed driver_pid why forced
   local out_file="$RUN_DIR/after-restart-$signal.json"
   mark="$(log_lines)"
   step "app-stop-$signal" 3 90 stop_app "$signal"
+  forced="$STOP_FORCED"
   step "restart-$signal" 6 $((RESTART_TIMEOUT_S + 60)) restart_and_find "$out_file"
   elapsed=$(( $(now_s) - APP_STARTED_AT ))
   out="$(cat "$out_file")"
@@ -187,8 +200,10 @@ restart_check() {
   [[ "$(field "$out" ok)" == true ]] || ok=0
   [[ "$(field "$at_rest" atRest)" == encrypted ]] || ok=0
   [[ "$store" == file ]] || ok=0
+  # A TERM restart proves a clean quit only when the app ended without a forced kill.
+  if [[ "$signal" == TERM && "$forced" == 1 ]]; then ok=0; fi
   check "$id" "$([[ $ok == 1 ]] && echo PASS || echo FAIL)" \
-    "SIG$signal restart: store=$store atRest=$(field "$at_rest" atRest) docs_at_open=$(field "$out" docs) oldest_needle_found=$(field "$out" found) history_responses_before_hit=$(field "$out" savedIndex.historyResponses) with_needle_id=$(field "$out" savedIndex.responsesWithNeedle) saved_index_proof=$(field "$out" savedIndex.ok) reasons=$why found_after=${elapsed}s"
+    "SIG$signal restart: stop_forced=$forced store=$store atRest=$(field "$at_rest" atRest) docs_at_open=$(field "$out" docs) oldest_needle_found=$(field "$out" found) history_responses_before_hit=$(field "$out" savedIndex.historyResponses) with_needle_id=$(field "$out" savedIndex.responsesWithNeedle) saved_index_proof=$(field "$out" savedIndex.ok) reasons=$why found_after=${elapsed}s"
   dialog_check
 }
 
@@ -298,7 +313,7 @@ check e.index "$([[ $index_files -gt 0 && $index_hits == 0 ]] && echo PASS || ec
   "canary scan of the search index folder only: needle hits=$index_hits in $index_files files"
 
 PROD_AFTER="$(step keychain-after 2 120 prod_item_hash)"
-check f "$([[ "$PROD_BEFORE" == "$PROD_AFTER" && $DIALOG_SEEN == 0 ]] && echo PASS || echo FAIL)" \
+check f "$([[ "$PROD_BEFORE" == "$PROD_AFTER" && "$PROD_BEFORE" != query-failed && "$PROD_AFTER" != query-failed && $DIALOG_SEEN == 0 ]] && echo PASS || echo FAIL)" \
   "production keychain item unchanged (before $PROD_BEFORE, after $PROD_AFTER), keychain dialog seen: $([[ $DIALOG_SEEN == 1 ]] && echo yes || echo no)"
 
 summary

@@ -42,4 +42,5 @@ export const loggers = {
   servers: createScopedLogger('servers'),
   logViewer: createScopedLogger('logviewer'),
   persistence: createScopedLogger('persistence'),
+  e2eeSearch: createScopedLogger('e2ee-search'),
 };

@@ -1,0 +1,721 @@
+// Makes the known test world of the E2EE search harness on a fresh server.
+//
+//   node seed.mjs [--port <port>] [--world <name>]
+//
+// Without --world, it makes the default world (users harnessalice and
+// harnessbob, rooms harness-*, words harness*). With --world <name>, it makes
+// a separate world on the same server, where the name replaces the prefix
+// "harness" (for `win`: users winharnessa and winharnessb, rooms win-*, words
+// win*). Each world has its own users, rooms and words, so a seed or a test
+// of one world never changes another world.
+//
+// It uses the REST API with the admin user and two headless Chrome pages
+// (puppeteer from the desktop repository), so the real web client makes the
+// E2E keys, the room key and the encrypted messages:
+//   - settings: E2EE and local search on, two-factor login and rate limits off;
+//   - users A (the desktop user) and B (the peer), with generated passwords;
+//   - the E2E keys of A and B, and the E2E password of each (state file only);
+//   - one encrypted private group with A and B, where B sends two messages,
+//     A sends one, and B sends one file with a caption, each with its own
+//     needle word;
+//   - one plain public channel with a control word, which must never go into
+//     the local index.
+//
+// When the world exists and the state file knows it, the script prints
+// "world exists" and exits 0. When the users exist but the state file does
+// not know the world, it fails: run `server.sh reset` first. A reset and a
+// seed always give the same world (the same words and names; new ids).
+//
+// The state file gets the ids of the needle messages. Nothing secret is
+// printed.
+//
+// Each step logs its time (steps.mjs). A step that passes its limit closes
+// the browsers and exits with code 124.
+
+import { createHash } from 'node:crypto';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
+
+import {
+  ensureCredentials,
+  readState,
+  stateDir,
+  usersOf,
+  worldKey,
+  writeState,
+} from './state.mjs';
+import { createSteps } from './steps.mjs';
+
+const harnessDir = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(harnessDir, '..', '..');
+
+const { values } = parseArgs({
+  options: { port: { type: 'string' }, world: { type: 'string' } },
+});
+const port = Number(values.port ?? process.env.HARNESS_PORT ?? 3500);
+const host = process.env.HARNESS_HOST ?? 'localhost';
+const base = `http://${host}:${port}`;
+const worldName = values.world ?? '';
+// The name "harness" would give the rooms and words of the default world.
+if (
+  worldName &&
+  (!/^[a-z0-9]{1,16}$/.test(worldName) || worldName === 'harness')
+) {
+  console.error(
+    'seed: --world must be 1 to 16 lower-case letters or digits, and not "harness"'
+  );
+  process.exit(2);
+}
+const prefix = worldName || 'harness';
+const steps = createSteps({ script: 'seed' });
+// Every browser that the seed opens, so a stuck step can close them all.
+const browsers = new Set();
+steps.onAbort(() =>
+  Promise.all([...browsers].map((browser) => browser.close().catch(() => {})))
+);
+
+export const WORLD = {
+  group: `${prefix}-e2ee-room`,
+  control: `${prefix}-plain-room`,
+  controlWord: `${prefix}controlplain`,
+  // In the order that they are sent. The first one is the oldest.
+  needles: [
+    { key: 'bravo', word: `${prefix}needlebravo`, author: 'b', kind: 'text' },
+    {
+      key: 'charlie',
+      word: `${prefix}needlecharlie`,
+      author: 'b',
+      kind: 'text',
+    },
+    { key: 'alpha', word: `${prefix}needlealpha`, author: 'a', kind: 'text' },
+    { key: 'file', word: `${prefix}needlefile`, author: 'b', kind: 'file' },
+  ],
+};
+
+const SETTINGS = [
+  ['Accounts_TwoFactorAuthentication_Enabled', false],
+  ['Accounts_TwoFactorAuthentication_By_Email_Auto_Opt_In', false],
+  ['API_Enable_Rate_Limiter', false],
+  ['DDP_Rate_Limit_IP_Enabled', false],
+  ['DDP_Rate_Limit_User_Enabled', false],
+  ['DDP_Rate_Limit_Connection_Enabled', false],
+  ['DDP_Rate_Limit_User_By_Method_Enabled', false],
+  ['DDP_Rate_Limit_Connection_By_Method_Enabled', false],
+  ['E2E_Enable', true],
+  ['E2E_Enable_Local_Search', true],
+];
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const log = (...message) =>
+  console.log(`[${new Date().toISOString().slice(11, 19)}]`, ...message);
+const fail = (message, code = 1) => {
+  console.error(`seed: ${message}`);
+  process.exit(code);
+};
+
+const envNumber = (name, fallback) => {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallback;
+  const value = Number(raw);
+  if (!Number.isFinite(value)) fail(`${name} must be a number, not '${raw}'`);
+  return value;
+};
+
+// The pacing of the history crawler of the web client. The harness sends one
+// request per second (the server default is 12 seconds), and keeps the server
+// defaults for the page size (100) and the per-room limit (0, no limit). An
+// older core does not know these settings: the seed warns and continues, and
+// the crawler keeps the pacing of that core.
+const CRAWLER_SETTINGS = [
+  ['E2E_Local_Search_Backfill_Pause', envNumber('HARNESS_BACKFILL_PAUSE_S', 1)],
+  [
+    'E2E_Local_Search_Backfill_Page_Size',
+    envNumber('HARNESS_BACKFILL_PAGE_SIZE', 100),
+  ],
+  [
+    'E2E_Local_Search_Backfill_Max_Messages_Per_Room',
+    envNumber('HARNESS_BACKFILL_MAX_PER_ROOM', 0),
+  ],
+];
+
+const loadPuppeteer = () => {
+  for (const dir of [repoRoot, process.env.DESKTOP_DIR].filter(Boolean)) {
+    try {
+      return createRequire(join(dir, 'package.json'))('puppeteer');
+    } catch {
+      // Try the next checkout.
+    }
+  }
+  return fail(
+    'puppeteer not found: run yarn install in the desktop repository'
+  );
+};
+
+const rest = async (
+  path,
+  { method = 'GET', body, auth, twoFactorPassword } = {}
+) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth) {
+    headers['X-User-Id'] = auth.userId;
+    headers['X-Auth-Token'] = auth.authToken;
+  }
+  if (twoFactorPassword) {
+    headers['X-2fa-method'] = 'password';
+    headers['X-2fa-code'] = createHash('sha256')
+      .update(twoFactorPassword)
+      .digest('hex');
+  }
+  const response = await fetch(`${base}/api/v1/${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(30_000),
+  });
+  return response
+    .json()
+    .catch(() => ({ success: false, error: `HTTP ${response.status}` }));
+};
+
+// One login attempt only. The server blocks a user after a few rejected
+// logins, and every retry would extend the block. Wait for the server with
+// /api/info, which is not a login.
+const loginAdmin = async (admin) => {
+  for (let i = 0; i < 60; i++) {
+    const up = await fetch(`${base}/api/info`, {
+      signal: AbortSignal.timeout(5000),
+    }).then(
+      (r) => r.ok,
+      () => false
+    );
+    if (up) break;
+    await sleep(2000);
+  }
+  const result = await rest('login', {
+    method: 'POST',
+    body: { user: admin.username, password: admin.password },
+  }).catch(() => undefined);
+  if (result?.status === 'success') return result.data;
+  if (result?.error === 'error-login-blocked-for-user') {
+    return fail(
+      "admin login blocked, wait for the server's lockout window (about a minute) and run again"
+    );
+  }
+  return fail(
+    `the server rejected the admin login (${result?.error ?? 'no answer'}). The state file must be the one of the server: set HARNESS_STATE_DIR to the state folder of the checkout that ran server.sh up. Do not retry in a loop: that blocks the user`
+  );
+};
+
+const applySettings = async (admin, auth) => {
+  for (const [id, value] of SETTINGS) {
+    const result = await rest(`settings/${id}`, {
+      method: 'POST',
+      body: { value },
+      auth,
+      twoFactorPassword: admin.password,
+    });
+    if (!result.success)
+      fail(`setting ${id} failed: ${result.error ?? JSON.stringify(result)}`);
+  }
+  log(
+    `settings applied: ${SETTINGS.map(([id, value]) => `${id}=${value}`).join(' ')}`
+  );
+
+  const applied = [];
+  for (const [id, value] of CRAWLER_SETTINGS) {
+    const result = await rest(`settings/${id}`, {
+      method: 'POST',
+      body: { value },
+      auth,
+      twoFactorPassword: admin.password,
+    });
+    if (result.success) {
+      applied.push(`${id}=${value}`);
+      continue;
+    }
+    console.warn(
+      `seed: warning: the server did not accept ${id} (${result.error ?? JSON.stringify(result)}). An older core does not know it: the crawler keeps the pacing of that core.`
+    );
+  }
+  if (applied.length) log(`crawler settings applied: ${applied.join(' ')}`);
+};
+
+// The world exists when user A can log in and still reads the encrypted
+// group of the state file.
+const worldStillThere = async (world, userA) => {
+  if (!world?.group?.rid || !userA?.password) return false;
+  const login = await rest('login', {
+    method: 'POST',
+    body: { user: userA.username, password: userA.password },
+  });
+  if (login.status !== 'success') return false;
+  const result = await rest(`groups.info?roomId=${world.group.rid}`, {
+    auth: login.data,
+  });
+  return result.success === true && result.group?._id === world.group.rid;
+};
+
+// Opens the "Save your new E2EE password" dialog from its banner and clicks
+// "I saved my password". The web client then removes the random password
+// from local storage.
+const confirmSavedPassword = async (page) => {
+  for (let i = 0; i < 20; i++) {
+    const done = await page.evaluate(
+      () => !localStorage.getItem('e2e.randomPassword')
+    );
+    if (done) return true;
+    await page.evaluate(() => {
+      const button = [...document.querySelectorAll('.rcx-modal button')].find(
+        (b) => /I saved my password/i.test(b.innerText)
+      );
+      if (button) {
+        button.click();
+        return;
+      }
+      [...document.querySelectorAll('.rcx-banner')]
+        .find((banner) => /E2EE password/i.test(banner.innerText))
+        ?.querySelector('.rcx-banner__content')
+        ?.click();
+    });
+    await sleep(1500);
+  }
+  return false;
+};
+
+// Saves a screenshot and the page text when a step fails, so the cause is
+// visible without a rerun.
+const saveDiagnostics = async (client, label, dir) => {
+  try {
+    await client.page.screenshot({
+      path: join(dir, `seed-failure-${label}.png`),
+    });
+    const text = await client.page.evaluate(() =>
+      document.body.innerText.replace(/\s+/g, ' ').slice(0, 600)
+    );
+    console.error(`seed: page of ${label} at ${client.page.url()}: ${text}`);
+  } catch {
+    // The page is gone.
+  }
+};
+
+// One headless Chrome with the profile of one user. `fresh` deletes the
+// profile first. Without it, the page keeps the login and the E2E keys of
+// the last session.
+const launchClient = async (puppeteer, user, profilesDir, { fresh }) => {
+  const profile = join(profilesDir, user.username);
+  if (fresh) rmSync(profile, { recursive: true, force: true });
+  mkdirSync(profile, { recursive: true });
+  const browser = await puppeteer.launch({
+    headless: true,
+    userDataDir: profile,
+    args: ['--no-first-run', '--no-default-browser-check'],
+  });
+  browsers.add(browser);
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1400, height: 900 });
+  const api = (path, method = 'GET', body) =>
+    page.evaluate(
+      async (path, method, body) => {
+        const response = await fetch(`/api/v1/${path}`, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': localStorage.getItem('Meteor.userId'),
+            'X-Auth-Token': localStorage.getItem('Meteor.loginToken'),
+          },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        return response.json();
+      },
+      path,
+      method,
+      body
+    );
+  return { browser, page, api };
+};
+
+// Logs the user in for the first time. The web client makes the E2E keys.
+const openClient = async (puppeteer, user, profilesDir) => {
+  const { browser, page, api } = await launchClient(
+    puppeteer,
+    user,
+    profilesDir,
+    { fresh: true }
+  );
+  await page.goto(`${base}/home`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('input[name=usernameOrEmail]', {
+    timeout: 180_000,
+  });
+  await page.type('input[name=usernameOrEmail]', user.username);
+  await page.type('input[name=password]', user.password);
+  await page.evaluate(() => document.querySelector('form').requestSubmit());
+  await page.waitForFunction(
+    () => !!localStorage.getItem('Meteor.loginToken'),
+    { timeout: 90_000 }
+  );
+  const userId = await page.evaluate(() =>
+    localStorage.getItem('Meteor.userId')
+  );
+  // The web client makes the E2E keys at the first login and keeps the new
+  // random E2E password in local storage until the user confirms it.
+  const handle = await page
+    .waitForFunction(() => localStorage.getItem('e2e.randomPassword'), {
+      timeout: 120_000,
+    })
+    .catch(() => undefined);
+  const e2ePassword = handle ? await handle.jsonValue() : undefined;
+  if (!e2ePassword)
+    fail(
+      `no E2E password for ${user.username}: the web client made no E2E keys`
+    );
+  // E2EE stays in the "save password" state, with no composer in encrypted
+  // rooms, until the user confirms that the password is saved.
+  const confirmed = await confirmSavedPassword(page);
+  if (!confirmed)
+    fail(`the save-password dialog of ${user.username} did not close`);
+  for (let i = 0; i < 30; i++) {
+    const key = await api('e2e.fetchMyPublicKey');
+    if (key.public_key) break;
+    if (i === 29) fail(`the server has no E2E public key for ${user.username}`);
+    await sleep(2000);
+  }
+  return { browser, page, api, userId, e2ePassword };
+};
+
+// Polls the subscription of the user (REST login of that user) until it
+// holds a suggested room key or the room key.
+const waitForSuggestedKey = async (user, rid, timeoutMs = 90_000) => {
+  const login = await rest('login', {
+    method: 'POST',
+    body: { user: user.username, password: user.password },
+  });
+  if (login.status !== 'success') return false;
+  const auth = login.data;
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const { subscription } = await rest(`subscriptions.getOne?roomId=${rid}`, {
+      auth,
+    });
+    if (subscription?.E2ESuggestedKey || subscription?.E2EKey) return true;
+    await sleep(2000);
+  }
+  return false;
+};
+
+const composer = 'textarea[name=msg]';
+
+// The id of the first message in the list whose text holds `word` and that
+// the server confirmed.
+const messageIdWith = (page, word, timeout = 90_000) =>
+  page
+    .waitForFunction(
+      (word) =>
+        [...document.querySelectorAll('[role=listitem][data-id]')].find(
+          (element) =>
+            element.innerText.includes(word) &&
+            element.getAttribute('aria-busy') !== 'true'
+        )?.dataset.id,
+      { timeout, polling: 500 },
+      word
+    )
+    .then((handle) => handle.jsonValue());
+
+const sendText = async (client, text, word) => {
+  await client.page.waitForSelector(composer, { timeout: 120_000 });
+  await client.page.focus(composer);
+  await client.page.keyboard.type(text);
+  await client.page.keyboard.press('Enter');
+  return messageIdWith(client.page, word);
+};
+
+const sendFile = async (client, filePath, caption, word) => {
+  await client.page.waitForSelector(composer, { timeout: 120_000 });
+  const input = await client.page.$('input[type=file]');
+  if (!input) fail('no file input in the composer');
+  await input.uploadFile(filePath);
+  await sleep(2000);
+  await client.page.focus(composer);
+  await client.page.keyboard.type(caption);
+  await client.page.keyboard.press('Enter');
+  return messageIdWith(client.page, word, 120_000);
+};
+
+const main = async () => {
+  const state = ensureCredentials(worldName);
+  const { admin } = state;
+  const users = usersOf(state, worldName);
+  const adminAuth = await steps.run('admin-login', () => loginAdmin(admin), {
+    expectedS: 2,
+    limitS: 180,
+  });
+  log(`admin logged in to ${base}`);
+  await steps.run('settings', () => applySettings(admin, adminAuth), {
+    expectedS: 3,
+    limitS: 120,
+  });
+
+  const existingA = await rest(`users.info?username=${users.a.username}`, {
+    auth: adminAuth,
+  });
+  if (existingA.success) {
+    const known = state.worlds?.[worldKey(port, worldName)];
+    const exists = await steps.run(
+      'world-check',
+      () => worldStillThere(known, users.a),
+      { expectedS: 2, limitS: 120 }
+    );
+    if (exists) {
+      log('world exists: nothing to do');
+      return;
+    }
+    fail(
+      `user ${users.a.username} exists but the state file does not know its world: run server.sh reset first`,
+      3
+    );
+  }
+
+  await steps.run(
+    'create-users',
+    async () => {
+      for (const user of [users.a, users.b]) {
+        const result = await rest('users.create', {
+          method: 'POST',
+          auth: adminAuth,
+          body: {
+            username: user.username,
+            email: user.email,
+            name: user.name,
+            password: user.password,
+            verified: true,
+            requirePasswordChange: false,
+            joinDefaultChannels: false,
+          },
+        });
+        if (!result.success)
+          fail(`users.create ${user.username} failed: ${result.error}`);
+      }
+    },
+    { expectedS: 2, limitS: 120 }
+  );
+  log(`users created: A=${users.a.username} B=${users.b.username}`);
+
+  const puppeteer = loadPuppeteer();
+  const profilesDir = join(stateDir(), `server-${port}`, 'browser-profiles');
+  // The limits cover the page timeouts of openClient one after the other.
+  let a = await steps.run(
+    'keys-a',
+    () => openClient(puppeteer, users.a, profilesDir),
+    { expectedS: 30, limitS: 540 }
+  );
+  // A stays offline until B shared the room key. At its next start, the
+  // client of A imports the key that B suggested.
+  await a.browser.close();
+  const b = await steps.run(
+    'keys-b',
+    () => openClient(puppeteer, users.b, profilesDir),
+    { expectedS: 30, limitS: 540 }
+  );
+  users.a.id = a.userId;
+  users.a.e2ePassword = a.e2ePassword;
+  users.b.id = b.userId;
+  users.b.e2ePassword = b.e2ePassword;
+  writeState(state);
+  log(
+    'E2E keys made for A and B by the web client; E2E passwords saved to the state file'
+  );
+
+  try {
+    // B creates the room alone and invites A later. An invite puts A in the
+    // room's queue of users who wait for the key, and the client of B gives
+    // a key to each user in that queue every 10 s. A member named at
+    // creation gets a key only when the client of B sees that member when it
+    // creates the room key, which is a race.
+    const rid = await steps.run(
+      'group-create',
+      async () => {
+        const created = await b.api('groups.create', 'POST', {
+          name: WORLD.group,
+          extraData: { encrypted: true },
+        });
+        if (!created.success) fail(`groups.create failed: ${created.error}`);
+        return created.group._id;
+      },
+      { expectedS: 2, limitS: 60 }
+    );
+    log(`encrypted group ${WORLD.group} created (${rid})`);
+
+    await steps.run(
+      'group-open',
+      async () => {
+        await b.page.goto(`${base}/group/${WORLD.group}`, {
+          waitUntil: 'domcontentloaded',
+        });
+        await b.page.waitForSelector(composer, { timeout: 120_000 });
+        await sleep(5000);
+      },
+      { expectedS: 10, limitS: 180 }
+    );
+
+    const sent = {};
+    const needle = (key) => WORLD.needles.find((n) => n.key === key);
+    sent.bravo = await steps.run(
+      'send-bravo',
+      () =>
+        sendText(
+          b,
+          `the ${needle('bravo').word} message from the peer`,
+          needle('bravo').word
+        ),
+      { expectedS: 5, limitS: 240 }
+    );
+    sent.charlie = await steps.run(
+      'send-charlie',
+      () =>
+        sendText(
+          b,
+          `a second ${needle('charlie').word} message`,
+          needle('charlie').word
+        ),
+      { expectedS: 5, limitS: 240 }
+    );
+
+    await steps.run(
+      'invite-a',
+      async () => {
+        const invited = await b.api('groups.invite', 'POST', {
+          roomId: rid,
+          username: users.a.username,
+        });
+        if (!invited.success) fail(`groups.invite failed: ${invited.error}`);
+        const suggested = await waitForSuggestedKey(users.a, rid);
+        if (!suggested) fail('B did not give A the room key in 90 s');
+      },
+      { expectedS: 12, limitS: 150 }
+    );
+    log('A invited; the client of B gave A the room key');
+
+    await steps.run(
+      'a-reads',
+      async () => {
+        a = {
+          ...a,
+          ...(await launchClient(puppeteer, users.a, profilesDir, {
+            fresh: false,
+          })),
+        };
+        await a.page.goto(`${base}/group/${WORLD.group}`, {
+          waitUntil: 'domcontentloaded',
+        });
+        // A reads the messages of B only when A imported the room key.
+        await messageIdWith(a.page, needle('charlie').word, 120_000);
+      },
+      { expectedS: 15, limitS: 240 }
+    );
+    sent.alpha = await steps.run(
+      'send-alpha',
+      () =>
+        sendText(
+          a,
+          `the ${needle('alpha').word} reply from the desktop user`,
+          needle('alpha').word
+        ),
+      { expectedS: 5, limitS: 240 }
+    );
+
+    const attachment = join(profilesDir, 'harness-attachment.txt');
+    writeFileSync(attachment, 'attachment body for the search harness\n');
+    sent.file = await steps.run(
+      'send-file',
+      () =>
+        sendFile(
+          b,
+          attachment,
+          `${needle('file').word} caption of the file`,
+          needle('file').word
+        ),
+      { expectedS: 8, limitS: 300 }
+    );
+    await steps.run(
+      'a-reads-file',
+      () => messageIdWith(a.page, needle('file').word, 120_000),
+      { expectedS: 3, limitS: 150 }
+    );
+    log('A reads all four encrypted messages');
+
+    // The server must hold only ciphertext for each needle message.
+    await steps.run(
+      'ciphertext-check',
+      async () => {
+        for (const { key, word } of WORLD.needles) {
+          const { message } = await b.api(`chat.getMessage?msgId=${sent[key]}`);
+          if (
+            !message ||
+            message.t !== 'e2e' ||
+            JSON.stringify(message).includes(word)
+          ) {
+            fail(`message ${key} is not stored encrypted on the server`);
+          }
+        }
+      },
+      { expectedS: 2, limitS: 60 }
+    );
+    log('the server stores the four needle messages as e2e ciphertext');
+
+    const { channel, posted } = await steps.run(
+      'control-channel',
+      async () => {
+        const channel = await a.api('channels.create', 'POST', {
+          name: WORLD.control,
+          members: [users.b.username],
+        });
+        if (!channel.success) fail(`channels.create failed: ${channel.error}`);
+        const posted = await a.api('chat.postMessage', 'POST', {
+          roomId: channel.channel._id,
+          text: `the ${WORLD.controlWord} message in a plain room`,
+        });
+        if (!posted.success) fail(`chat.postMessage failed: ${posted.error}`);
+        return { channel, posted };
+      },
+      { expectedS: 2, limitS: 60 }
+    );
+    log(`plain channel ${WORLD.control} with the control word created`);
+
+    const fresh = readState();
+    if (worldName) {
+      fresh.worldUsers ??= {};
+      fresh.worldUsers[worldName] = users;
+    } else {
+      fresh.users = users;
+    }
+    fresh.worlds ??= {};
+    fresh.worlds[worldKey(port, worldName)] = {
+      server: base,
+      seededAt: new Date().toISOString(),
+      group: { name: WORLD.group, rid },
+      control: {
+        name: WORLD.control,
+        rid: channel.channel._id,
+        word: WORLD.controlWord,
+        id: posted.message._id,
+      },
+      needles: WORLD.needles.map((n) => ({ ...n, id: sent[n.key] })),
+    };
+    writeState(fresh);
+    log(
+      `world seeded: ${WORLD.needles.map((n) => `${n.key}=${sent[n.key]}`).join(' ')}`
+    );
+  } catch (error) {
+    if (a.page && !a.page.isClosed())
+      await saveDiagnostics(a, 'a', profilesDir);
+    await saveDiagnostics(b, 'b', profilesDir);
+    throw error;
+  } finally {
+    await a.browser.close().catch(() => undefined);
+    await b.browser.close().catch(() => undefined);
+  }
+};
+
+await main().catch((error) => fail(error?.stack ?? String(error)));

@@ -15,6 +15,7 @@ import {
   registerWebContentsServer,
 } from './context';
 import { LogDeduplicator } from './dedup';
+import { isExpectedError } from './expectedErrors';
 import { logLoggingFailure } from './fallback';
 import { createPrivacyHook, redactSensitiveData } from './privacy';
 
@@ -55,6 +56,8 @@ const overrideConsole = () => {
 
     // Override console.error to use electron-log error level with context
     console.error = (...args: any[]) => {
+      // An expected error is logged by the code that threw it, not here.
+      if (args.some(isExpectedError)) return;
       const context = getLogContext();
       const contextStr = formatLogContext(context);
       log.error(contextStr, ...args);

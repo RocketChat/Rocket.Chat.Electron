@@ -59,7 +59,8 @@
       "keepLoginData": "Keep login session",
       "deleteLoginData": "Delete login session",
       "clearingWait": "Please wait",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "removeSearchData": "Also turn off the local search of encrypted messages for this workspace, and delete its index"
     },
     "downloadRemoval": {
       "title": "Are you sure?",
@@ -436,6 +437,35 @@
         "registered": "Shortcut registered",
         "reservedByApp": "{{accelerator}} is already used by Rocket.Chat. Pick a different combination.",
         "reservedByOS": "{{accelerator}} is reserved by your operating system. Pick a different combination."
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Clear local search index",
+        "description": "Delete the search index of encrypted messages that this app keeps on this computer, for all workspaces. The app builds it again from the server.",
+        "confirm": {
+          "title": "Clear the local search index?",
+          "message": "This deletes the search index of encrypted messages on this computer, for all workspaces. Each workspace builds it again from the server. Until then, search finds fewer messages.",
+          "confirm": "Clear index",
+          "cancel": "Cancel"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Local search index",
+        "empty": "This computer has no search index of encrypted messages.",
+        "removedServer": "Removed workspace",
+        "countWhenOpen": "Message count shows when the workspace opens the index",
+        "messages_one": "{{count}} message",
+        "messages_other": "{{count}} messages",
+        "onDisk": "{{size, byteSize}} on disk",
+        "encrypted": "Encrypted on disk",
+        "memoryOnly": "Memory only, not saved to disk",
+        "mixed": "Partly encrypted on disk, partly memory only",
+        "limit": {
+          "no-encryption": "This system cannot encrypt files for the app, so the search index stays in memory and is rebuilt at each start. Search still works.",
+          "basic-text-backend": "No system keyring is available, so the search index stays in memory. Install and unlock gnome-keyring or KWallet, then restart the app, to keep it on disk. Search still works.",
+          "keychain-timeout": "The system keyring did not answer in time, so the search index stays in memory. Unlock the keyring and restart the app to keep it on disk. Search still works.",
+          "hard-coded-wrap": "No system keyring is available, so the search index stays in memory. Install and unlock gnome-keyring or KWallet, then restart the app, to keep it on disk. Search still works.",
+          "native-module-unavailable": "The fast index could not start on this system. Search works, but saves are slower."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear screen capture permissions",

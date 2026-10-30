@@ -1,15 +1,28 @@
 import type { WebContents } from 'electron';
+import { webContents } from 'electron';
 
+import { loggers } from '../../logging/scopes';
 import { listen } from '../../store';
 import type { RootAction } from '../../store/actions';
-import { WEBVIEW_USER_LOGGED_IN } from '../../ui/actions';
+import {
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
+  WEBVIEW_USER_LOGGED_IN,
+} from '../../ui/actions';
 import { getWebContentsByServerUrl } from '../../ui/main/serverView';
-import { handleUserLoggedOutDataClearing } from '../cache';
+import {
+  handleClearCacheDialog,
+  handleUserLoggedOutDataClearing,
+} from '../cache';
 
 jest.mock('electron', () => ({
   webContents: {
     fromId: jest.fn(),
   },
+}));
+
+jest.mock('../../logging/scopes', () => ({
+  loggers: { e2eeSearch: { warn: jest.fn() } },
 }));
 
 jest.mock('../../store', () => ({
@@ -39,6 +52,7 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
         clearStorageData: jest.fn().mockResolvedValue(undefined),
       },
       reloadIgnoringCache: jest.fn(),
+      executeJavaScript: jest.fn().mockResolvedValue([]),
     }) as unknown as WebContents;
 
   const dispatchUserLoggedIn = async (userLoggedIn: boolean) => {
@@ -97,5 +111,196 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
     await expect(dispatchUserLoggedIn(false)).resolves.not.toThrow();
 
     expect(mockGetWebContentsByServerUrl).toHaveBeenCalledWith(url);
+  });
+
+  describe('local search opt-in of the users on this device', () => {
+    it('keeps each opt-in that is on: reads it, clears all storage, writes it back, then reloads', async () => {
+      const mockWebContents = createMockWebContents();
+      const order: string[] = [];
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) => {
+          order.push(code.includes('setItem') ? 'restore' : 'read');
+          return code.includes('setItem')
+            ? undefined
+            : ['E2EESearch_OptIn_QNd9RQ9oP3RspLaq3'];
+        }
+      );
+      (
+        mockWebContents.session.clearStorageData as jest.Mock
+      ).mockImplementation(async () => {
+        order.push('clear');
+      });
+      (mockWebContents.reloadIgnoringCache as jest.Mock).mockImplementation(
+        () => {
+          order.push('reload');
+        }
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      expect(order).toEqual(['read', 'clear', 'restore', 'reload']);
+      expect(mockWebContents.session.clearStorageData).toHaveBeenCalledWith();
+      const restore = (
+        mockWebContents.executeJavaScript as jest.Mock
+      ).mock.calls.find(([code]) => code.includes('setItem'))![0];
+      expect(restore).toContain('E2EESearch_OptIn_QNd9RQ9oP3RspLaq3');
+    });
+
+    it('writes back only opt-in keys with a plain user id, never other keys', async () => {
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) =>
+          code.includes('setItem')
+            ? undefined
+            : [
+                'Meteor.loginToken',
+                "E2EESearch_OptIn_x');alert(1);('",
+                'E2EESearch_OptIn_',
+                42,
+                'E2EESearch_OptIn_u1',
+              ]
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      const restore = (
+        mockWebContents.executeJavaScript as jest.Mock
+      ).mock.calls.find(([code]) => code.includes('setItem'))![0];
+      expect(restore).toContain('E2EESearch_OptIn_u1');
+      expect(restore).not.toContain('loginToken');
+      expect(restore).not.toContain('alert');
+    });
+
+    it('keeps the opt-in of every user id that the search index accepts', async () => {
+      const longest = `E2EESearch_OptIn_${'a'.repeat(128)}`;
+      const tooLong = `E2EESearch_OptIn_${'b'.repeat(129)}`;
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) =>
+          code.includes('setItem')
+            ? undefined
+            : ['E2EESearch_OptIn_a-b_c', longest, tooLong]
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      const restore = (
+        mockWebContents.executeJavaScript as jest.Mock
+      ).mock.calls.find(([code]) => code.includes('setItem'))![0];
+      expect(restore).toContain('"E2EESearch_OptIn_a-b_c"');
+      expect(restore).toContain(`"${longest}"`);
+      expect(restore).not.toContain('bbbb');
+    });
+
+    it('logs a failed write back of the opt-in, and still reloads to end the session', async () => {
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockImplementation(
+        async (code: string) => {
+          if (code.includes('setItem')) throw new TypeError('page gone');
+          return ['E2EESearch_OptIn_u1'];
+        }
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      expect(mockWebContents.session.clearStorageData).toHaveBeenCalledWith();
+      expect(loggers.e2eeSearch.warn).toHaveBeenCalledWith(
+        'local search opt-in not kept after a login data clear',
+        { keys: 1, name: 'TypeError' }
+      );
+      expect(mockWebContents.reloadIgnoringCache).toHaveBeenCalled();
+    });
+
+    it('still clears and reloads when the page cannot be read, and writes nothing back', async () => {
+      const mockWebContents = createMockWebContents();
+      (mockWebContents.executeJavaScript as jest.Mock).mockRejectedValue(
+        new Error('page gone')
+      );
+      mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+      await dispatchUserLoggedIn(true);
+      await dispatchUserLoggedIn(false);
+
+      expect(mockWebContents.session.clearStorageData).toHaveBeenCalledWith();
+      expect(mockWebContents.reloadIgnoringCache).toHaveBeenCalled();
+      expect(mockWebContents.executeJavaScript).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+// "Delete login session" in the Clear cache dialog keeps the local search
+// opt-in, unless the user also checks the box to remove the search data.
+describe('servers/cache handleClearCacheDialog', () => {
+  const mockListen = listen as unknown as jest.Mock<
+    () => void,
+    [string, (action: RootAction) => void]
+  >;
+  const mockFromId = webContents.fromId as jest.Mock;
+
+  const createMockWebContents = (order: string[]): WebContents =>
+    ({
+      session: {
+        clearCache: jest.fn().mockResolvedValue(undefined),
+        clearStorageData: jest.fn().mockImplementation(async () => {
+          order.push('clear');
+        }),
+      },
+      reloadIgnoringCache: jest.fn().mockImplementation(() => {
+        order.push('reload');
+      }),
+      executeJavaScript: jest.fn().mockImplementation(async (code: string) => {
+        order.push(code.includes('setItem') ? 'restore' : 'read');
+        return code.includes('setItem')
+          ? undefined
+          : ['E2EESearch_OptIn_QNd9RQ9oP3RspLaq3'];
+      }),
+    }) as unknown as WebContents;
+
+  const dispatchAction = async (type: string, payload: number) => {
+    const [, listener] = mockListen.mock.calls.find(([t]) => t === type)!;
+    await listener({ type, payload } as any);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    handleClearCacheDialog();
+  });
+
+  it('keeps the local search opt-in when it deletes the login data', async () => {
+    const order: string[] = [];
+    const guest = createMockWebContents(order);
+    mockFromId.mockReturnValue(guest);
+
+    await dispatchAction(CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED, 9);
+
+    expect(mockFromId).toHaveBeenCalledWith(9);
+    expect(order).toEqual(['read', 'clear', 'restore', 'reload']);
+    const restore = (guest.executeJavaScript as jest.Mock).mock.calls.find(
+      ([code]) => code.includes('setItem')
+    )![0];
+    expect(restore).toContain('E2EESearch_OptIn_QNd9RQ9oP3RspLaq3');
+  });
+
+  it('removes the local search opt-in too when the user asks for it', async () => {
+    const order: string[] = [];
+    const guest = createMockWebContents(order);
+    mockFromId.mockReturnValue(guest);
+
+    await dispatchAction(
+      CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+      9
+    );
+
+    expect(order).toEqual(['clear', 'reload']);
+    expect(guest.session.clearStorageData).toHaveBeenCalledWith();
+    expect(guest.executeJavaScript).not.toHaveBeenCalled();
   });
 });

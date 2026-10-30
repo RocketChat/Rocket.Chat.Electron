@@ -42,15 +42,36 @@ export const deleteServerIndexes = async (
   await rm(serverDir, { recursive: true, force: true });
 };
 
-// Settings, "Clear local search index": every index of every server and user
-// lives under the root folder. Each open index is discarded first, for the
-// same reason as above. The web client fills the index again from the server.
+// Settings clears active indexes in place so the web client can refill them.
+// Closed indexes are deleted inside the host lifecycle queue.
 export const deleteAllIndexes = async (
   host: SearchHost,
-  rootDir: string
+  rootDir: string,
+  recoverActive = false
 ): Promise<void> => {
-  await Promise.all(host.indexIds().map((indexId) => host.discard(indexId)));
-  await rm(rootDir, { recursive: true, force: true });
+  if (!recoverActive) {
+    await Promise.all(host.indexIds().map((indexId) => host.discard(indexId)));
+    await rm(rootDir, { recursive: true, force: true });
+    return;
+  }
+  const indexes = new Set(host.indexIds());
+  for (const server of await listDirs(rootDir)) {
+    const serverDir = path.join(rootDir, server);
+    // eslint-disable-next-line no-await-in-loop -- discovers this server's closed user scopes
+    for (const user of await listDirs(serverDir)) {
+      indexes.add(path.join(serverDir, user));
+    }
+  }
+  await Promise.all(
+    [...indexes].map((indexId) =>
+      host.clear(indexId, () => rm(indexId, { recursive: true, force: true }))
+    )
+  );
+  for (const server of await listDirs(rootDir)) {
+    const serverDir = path.join(rootDir, server);
+    // eslint-disable-next-line no-await-in-loop -- removes an empty server folder after its users
+    await rmdir(serverDir).catch(() => undefined);
+  }
 };
 
 const listDirs = async (dir: string): Promise<string[]> => {

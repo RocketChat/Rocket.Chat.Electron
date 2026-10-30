@@ -2,6 +2,8 @@ import { MAX_QUERY_TOKENS, queryWords } from './sanitize';
 import type {
   E2EESearchDoc,
   E2EESearchQuery,
+  E2EESearchRecentCursor,
+  E2EESearchRecentQuery,
   E2EESearchRoomState,
 } from './types';
 
@@ -158,6 +160,20 @@ export const validateQuery = (value: unknown): E2EESearchQuery => {
       Math.min(time(limit, 'query.limit'), MAX_SEARCH_LIMIT)
     ),
   };
+};
+
+export const validateRecentQuery = (value: unknown): E2EESearchRecentQuery => {
+  if (!isRecord(value)) return fail('query must be an object');
+  if (value.order !== undefined) return fail('query.order is not valid');
+  const { order: _order, ...query } = validateQuery(value);
+  const cursor = optional(value.cursor, (cursor): E2EESearchRecentCursor => {
+    if (!isRecord(cursor)) return fail('query.cursor must be an object');
+    return {
+      ts: time(cursor.ts, 'query.cursor.ts'),
+      id: id(cursor.id, 'query.cursor.id'),
+    };
+  });
+  return { ...query, ...(cursor !== undefined && { cursor }) };
 };
 
 export const validateRoomState = (value: unknown): E2EESearchRoomState => {

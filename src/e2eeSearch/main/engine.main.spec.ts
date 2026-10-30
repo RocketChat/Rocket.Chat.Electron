@@ -9,8 +9,17 @@ import {
 import type { SearchEngine } from '../engine';
 import { MAX_QUERY_TOKENS, toMatch } from '../sanitize';
 import { SCHEMA_VERSION } from '../schema';
-import type { E2EESearchDoc } from '../types';
-import { E2EESearchQuotaError } from '../validate';
+import type {
+  E2EESearchDoc,
+  E2EESearchRecentCursor,
+  E2EESearchRecentPage,
+  E2EESearchRecentQuery,
+} from '../types';
+import {
+  E2EESearchInputError,
+  E2EESearchQuotaError,
+  MAX_ID_LENGTH,
+} from '../validate';
 
 // Loaded at runtime: the Jest resolver does not know the prefix-only
 // `node:sqlite` builtin. This also proves that the Electron main process has it.
@@ -482,17 +491,33 @@ describe('e2eeSearch engine', () => {
     expect(stats.bytes).toBeGreaterThan(0);
   });
 
+  it('reports schema recreation only when an open replaces existing index tables', () => {
+    expect(engine.recreated).toBe(false);
+    expect(createSearchEngine(db, { userId: 'me' }).recreated).toBe(false);
+    db.exec('DROP TABLE meta');
+    const recreated = createSearchEngine(db, { userId: 'me' });
+    expect(recreated.recreated).toBe(true);
+    expect(recreated.stats().docs).toBe(0);
+    recreated.wipe();
+    expect(recreated.recreated).toBe(true);
+    expect(createSearchEngine(db, { userId: 'me' }).recreated).toBe(false);
+  });
+
   it('wipes everything and rebuilds an index of another user or version', () => {
+    expect(engine.recreated).toBe(false);
     engine.wipe();
+    expect(engine.recreated).toBe(false);
     expect(engine.stats()).toMatchObject({ docs: 0, rooms: 0 });
     expect(ids(engine, 'orcamento')).toEqual([]);
 
     engine.upsert([doc({ id: 'z', body: 'segredo' })]);
     const sameUser = createSearchEngine(db, { userId: 'me' });
     expect(sameUser.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(sameUser.recreated).toBe(false);
     expect(ids(sameUser, 'segredo')).toEqual(['z']);
 
     const otherUser = createSearchEngine(db, { userId: 'someone-else' });
+    expect(otherUser.recreated).toBe(true);
     expect(ids(otherUser, 'segredo')).toEqual([]);
 
     db.prepare(
@@ -500,6 +525,7 @@ describe('e2eeSearch engine', () => {
     ).run();
     otherUser.upsert([doc({ id: 'y', body: 'segredo' })]);
     const upgraded = createSearchEngine(db, { userId: 'someone-else' });
+    expect(upgraded.recreated).toBe(true);
     expect(ids(upgraded, 'segredo')).toEqual([]);
     expect(() => upgraded.checkIntegrity()).not.toThrow();
   });
@@ -512,6 +538,240 @@ describe('e2eeSearch engine', () => {
       ])
     ).toThrow();
     expect(ids(engine, 'parcial')).toEqual([]);
+  });
+});
+
+describe('e2eeSearch recent pagination', () => {
+  let db: DatabaseSyncType;
+  let engine: SearchEngine;
+
+  beforeEach(() => {
+    db = new DatabaseSync(':memory:');
+    engine = createSearchEngine(db, { userId: 'contract-user' });
+  });
+
+  afterEach(() => db.close());
+
+  const collectPages = (
+    query: E2EESearchRecentQuery
+  ): E2EESearchRecentPage[] => {
+    const pages: E2EESearchRecentPage[] = [];
+    let cursor: E2EESearchRecentCursor | undefined;
+    for (let index = 0; index < 210; index++) {
+      const page = engine.searchRecentPage({ ...query, cursor });
+      pages.push(page);
+      if (!page.nextCursor) return pages;
+      const last = page.hits[page.hits.length - 1];
+      expect(page.nextCursor).toEqual({ ts: last.ts, id: last.id });
+      expect(page.nextCursor).not.toEqual(cursor);
+      cursor = page.nextCursor;
+    }
+    throw new Error('Recent pagination did not finish');
+  };
+
+  // These IDs, timestamps and page sizes follow the B1 recent-pages fixture.
+  it('visits 205 matching timestamp ties once and preserves the room filter', () => {
+    const documents = Array.from({ length: 205 }, (_, index) =>
+      doc({
+        id: `message-${String(index).padStart(3, '0')}`,
+        rid: 'room-1',
+        uid: 'user-1',
+        username: 'user',
+        body: 'needle',
+      })
+    );
+    engine.upsert([
+      ...[...documents].reverse(),
+      { ...documents[0], id: 'excluded', rid: 'room-2' },
+    ]);
+
+    const pages = collectPages({ text: 'needle', rid: 'room-1', limit: 100 });
+    const visited = pages.flatMap(({ hits }) => hits.map(({ id }) => id));
+    expect(pages.map(({ hits }) => hits.length)).toEqual([100, 100, 5]);
+    expect(visited).toEqual(documents.map(({ id }) => id).reverse());
+    expect(new Set(visited).size).toBe(205);
+    expect(pages[2]).not.toHaveProperty('nextCursor');
+  });
+
+  it.each(['needle', ''])(
+    'uses UTF-8 binary ID order for timestamp ties (%j)',
+    (text) => {
+      const messageIds = ['a', 'z', 'é', '', '😀'];
+      engine.upsert(
+        [...messageIds]
+          .reverse()
+          .map((id) => doc({ id, rid: 'unicode-room', body: 'needle' }))
+      );
+      const expected = [...messageIds].sort((left, right) =>
+        Buffer.compare(Buffer.from(right), Buffer.from(left))
+      );
+      expect(expected).not.toEqual([...messageIds].sort().reverse());
+      const pages = collectPages({ text, rid: 'unicode-room', limit: 1 });
+      expect(pages.flatMap(({ hits }) => hits.map(({ id }) => id))).toEqual(
+        expected
+      );
+      expect(pages).toHaveLength(messageIds.length);
+    }
+  );
+
+  it.each(['needle', ''])(
+    'applies room, sender and inclusive date filters to every page (%j)',
+    (text) => {
+      const matching = [
+        doc({ id: 'lower', body: 'needle', ts: 1000 }),
+        doc({ id: 'tie-a', body: 'needle', ts: 1500 }),
+        doc({ id: 'tie-z', body: 'needle', ts: 1500, tmid: 'thread' }),
+        doc({ id: 'upper', body: 'needle', ts: 2000 }),
+      ];
+      engine.upsert([
+        ...matching,
+        doc({ id: 'wrong-room', body: 'needle', rid: 'r2', ts: 1490 }),
+        doc({ id: 'wrong-sender', body: 'needle', uid: 'u2', ts: 1490 }),
+        doc({ id: 'too-old', body: 'needle', ts: 999 }),
+        doc({ id: 'too-new', body: 'needle', ts: 2001 }),
+        doc({ id: 'z-nonmatch', body: 'other', ts: 1490 }),
+      ]);
+      const pages = collectPages({
+        text,
+        rid: 'r1',
+        uid: 'u1',
+        from: 1000,
+        to: 2000,
+        limit: 2,
+      });
+      expect(pages.flatMap(({ hits }) => hits.map(({ id }) => id))).toEqual(
+        text
+          ? ['upper', 'tie-z', 'tie-a', 'lower']
+          : ['upper', 'tie-z', 'tie-a', 'z-nonmatch', 'lower']
+      );
+      const threaded = pages[0].hits[1];
+      expect(threaded).toMatchObject({
+        tmid: 'thread',
+        uid: 'u1',
+        username: 'ana',
+      });
+      expect(threaded.snippet).toBe(text ? '<mark>needle</mark>' : 'needle');
+      expect(pages[pages.length - 1]).not.toHaveProperty('nextCursor');
+    }
+  );
+
+  it('continues strictly at and between timestamp and ID boundaries', () => {
+    engine.upsert([
+      doc({ id: 'older-z', body: 'needle', ts: 999.5 }),
+      doc({ id: 'a', body: 'needle', ts: 1000.5 }),
+      doc({ id: 'z', body: 'needle', ts: 1000.5 }),
+      doc({ id: 'newer-a', body: 'needle', ts: 1001.5 }),
+    ]);
+    const nextIds = (cursor: E2EESearchRecentCursor) =>
+      engine
+        .searchRecentPage({ text: 'needle', cursor })
+        .hits.map(({ id }) => id);
+    expect(nextIds({ ts: 1000.5, id: 'z' })).toEqual(['a', 'older-z']);
+    expect(nextIds({ ts: 1000.5, id: 'm' })).toEqual(['a', 'older-z']);
+    expect(nextIds({ ts: 1000.5, id: 'a' })).toEqual(['older-z']);
+    expect(nextIds({ ts: 1000, id: 'z' })).toEqual(['older-z']);
+    expect(nextIds({ ts: 999.5, id: 'older-z' })).toEqual([]);
+    expect(
+      engine.searchRecentPage({ text: 'needle', from: 1001, to: 1000 })
+    ).toEqual({ hits: [] });
+  });
+
+  it('orders exact timestamps outside the rowid timestamp range', () => {
+    const documents = [
+      doc({ id: 'far-z', body: 'needle', ts: 2 ** 50 }),
+      doc({ id: 'far-a', body: 'needle', ts: 2 ** 50 + 1 }),
+      doc({ id: 'negative', body: 'needle', ts: -0.5 }),
+      doc({ id: 'zero', body: 'needle', ts: 0 }),
+    ];
+    engine.upsert(documents);
+    const pages = collectPages({ text: 'needle', from: -1, limit: 1 });
+    expect(pages.flatMap(({ hits }) => hits.map(({ id }) => id))).toEqual([
+      'far-a',
+      'far-z',
+      'zero',
+      'negative',
+    ]);
+  });
+
+  it('uses limit plus one only to detect another matching hit', () => {
+    engine.upsert(
+      Array.from({ length: 101 }, (_, index) =>
+        doc({ id: `message-${index}`, body: 'needle' })
+      )
+    );
+    const capped = engine.searchRecentPage({ text: 'needle', limit: 10_000 });
+    expect(capped.hits).toHaveLength(100);
+    expect(capped.nextCursor).toBeDefined();
+    const final = engine.searchRecentPage({
+      text: 'needle',
+      limit: 100,
+      cursor: capped.nextCursor,
+    });
+    expect(final.hits).toHaveLength(1);
+    expect(final).not.toHaveProperty('nextCursor');
+    expect(engine.searchRecentPage({ text: 'needle' }).hits).toHaveLength(50);
+    for (const limit of [0, -5, 1, 1.9]) {
+      expect(
+        engine.searchRecentPage({ text: 'needle', limit }).hits
+      ).toHaveLength(1);
+    }
+    expect(
+      engine.searchRecentPage({ text: 'needle', limit: 2.9 }).hits
+    ).toHaveLength(2);
+
+    engine.remove(final.hits.map(({ id }) => id));
+    const exact = engine.searchRecentPage({ text: 'needle', limit: 100 });
+    expect(exact.hits).toHaveLength(100);
+    expect(exact).not.toHaveProperty('nextCursor');
+  });
+
+  it('returns no cursor for no matches or an empty query without filters', () => {
+    engine.upsert([doc({ id: 'a', body: 'needle' })]);
+    for (const query of [
+      { text: 'absent' },
+      { text: '' },
+      { text: '', cursor: { ts: 1000, id: 'z' } },
+      { text: '?!', rid: 'r1' },
+      { text: 'needle', rid: 'absent' },
+    ]) {
+      expect(engine.searchRecentPage(query)).toEqual({ hits: [] });
+    }
+  });
+
+  it.each([
+    null,
+    [],
+    'cursor',
+    {},
+    { ts: Infinity, id: 'a' },
+    { ts: NaN, id: 'a' },
+    { ts: 1000, id: '' },
+    { ts: 1000, id: 'a'.repeat(MAX_ID_LENGTH + 1) },
+  ])('rejects an invalid cursor before running a search (%j)', (cursor) => {
+    expect(() =>
+      engine.searchRecentPage({
+        text: '',
+        cursor: cursor as E2EESearchRecentCursor,
+      })
+    ).toThrow(E2EESearchInputError);
+  });
+
+  it('escapes snippets and leaves legacy timestamp-tie order unchanged', () => {
+    engine.upsert([
+      doc({ id: 'z', body: '<img> needle & "quote"' }),
+      doc({ id: 'a', body: 'needle' }),
+    ]);
+    expect(
+      engine.search({ text: 'needle', order: 'recent' }).map(({ id }) => id)
+    ).toEqual(['a', 'z']);
+    const page = engine.searchRecentPage({ text: 'needle' });
+    expect(page.hits.map(({ id }) => id)).toEqual(['z', 'a']);
+    expect(page.hits[0].snippet).toBe(
+      '&lt;img&gt; <mark>needle</mark> &amp; &quot;quote&quot;'
+    );
+    expect(
+      engine.searchRecentPage({ text: '', rid: 'r1' }).hits[0].snippet
+    ).toBe('&lt;img&gt; needle &amp; &quot;quote&quot;');
   });
 });
 

@@ -1,7 +1,6 @@
 import { webContents, type WebContents } from 'electron';
 
 import { summarizeError } from '../e2eeSearch/errorSummary';
-import { MAX_ID_LENGTH } from '../e2eeSearch/validate';
 import { loggers } from '../logging/scopes';
 import { listen } from '../store';
 import {
@@ -10,7 +9,10 @@ import {
   CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED,
   WEBVIEW_USER_LOGGED_IN,
 } from '../ui/actions';
-import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import {
+  getServerUrlByWebContentsId,
+  getWebContentsByServerUrl,
+} from '../ui/main/serverView';
 import type { Server } from './common';
 
 export const clearWebviewStorageKeepingLoginData = async (
@@ -33,54 +35,95 @@ export const clearWebviewStorageKeepingLoginData = async (
 
 export const clearWebviewStorageDeletingLoginData = async (
   guestWebContents: WebContents,
-  keepTrueLocalStorageKeys: readonly string[] = []
+  keepSearchMetadataForWorkspace?: string
 ) => {
   if (!guestWebContents) return;
   await guestWebContents.session.clearCache();
-  await guestWebContents.session.clearStorageData();
-  if (keepTrueLocalStorageKeys.length > 0) {
-    // The storage is already clear, so the reload still runs: it ends the
-    // session of the page. The next login then reads the opt-in as off.
-    await guestWebContents
-      .executeJavaScript(
-        `for (const key of ${JSON.stringify(keepTrueLocalStorageKeys)}) localStorage.setItem(key, 'true');`
-      )
-      .catch((error) =>
-        loggers.e2eeSearch.warn(
-          'local search opt-in not kept after a login data clear',
-          { keys: keepTrueLocalStorageKeys.length, ...summarizeError(error) }
-        )
+  let localStorageCleared = false;
+  if (keepSearchMetadataForWorkspace !== undefined) {
+    try {
+      await clearLocalStorageKeepingSearchIndexMetadata(
+        guestWebContents,
+        keepSearchMetadataForWorkspace
       );
+      localStorageCleared = true;
+    } catch (error) {
+      // If the page cannot clear login data, the session-wide clear must do it.
+      loggers.e2eeSearch.warn(
+        'local search metadata not kept after a login data clear',
+        summarizeError(error)
+      );
+    }
+  }
+  if (localStorageCleared) {
+    await guestWebContents.session.clearStorageData({
+      storages: [
+        'cookies',
+        'indexdb',
+        'filesystem',
+        'shadercache',
+        'serviceworkers',
+        'cachestorage',
+      ],
+    });
+  } else {
+    await guestWebContents.session.clearStorageData();
   }
   guestWebContents?.reloadIgnoringCache();
 };
 
-// The web client keeps each user's choice to index their encrypted messages
-// on this device in the local storage (`E2EESearch_OptIn_<userId>`). The
-// sealed search index stays on the device after a logout, so the choice must
-// stay with it: without it, the next login reads "off" and wipes the index.
-// Only keys with a user id that the search index accepts
-// (`validateScope`) and the value 'true' are kept.
-const searchIndexOptInKey = new RegExp(
-  `^E2EESearch_OptIn_[A-Za-z0-9_-]{1,${MAX_ID_LENGTH}}$`
-);
-
-const readSearchIndexOptIns = async (
-  guestWebContents: WebContents
-): Promise<string[]> => {
+// Match the web client's workspace identity, not a route within the workspace.
+const canonicalWorkspace = (workspaceUrl: string): string | undefined => {
   try {
-    const keys: unknown = await guestWebContents.executeJavaScript(
-      `Object.keys(localStorage).filter((key) => key.startsWith('E2EESearch_OptIn_') && localStorage.getItem(key) === 'true')`
-    );
-    return Array.isArray(keys)
-      ? keys.filter(
-          (key): key is string =>
-            typeof key === 'string' && searchIndexOptInKey.test(key)
-        )
-      : [];
+    const url = new URL(workspaceUrl);
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash
+    ) {
+      return undefined;
+    }
+    if (!url.pathname.endsWith('/')) url.pathname += '/';
+    return url.href;
   } catch {
-    return [];
+    return undefined;
   }
+};
+
+// Removing and restoring consent sends a transient opt-out to other pages,
+// which can delete the retained index. Leave valid scoped metadata untouched.
+const clearLocalStorageKeepingSearchIndexMetadata = async (
+  guestWebContents: WebContents,
+  workspaceUrl: string
+): Promise<void> => {
+  const workspace = canonicalWorkspace(workspaceUrl);
+  await guestWebContents.executeJavaScript(`(() => {
+    const workspace = ${JSON.stringify(workspace ?? null)};
+    const consentPrefix = 'E2EESearch_OptIn_v2_';
+    const syncTimePrefix = 'E2EESearch_SyncedAt_v2_';
+    const keep = (key) => {
+      const prefix = key.startsWith(consentPrefix) ? consentPrefix :
+        key.startsWith(syncTimePrefix) ? syncTimePrefix : undefined;
+      if (!workspace || !prefix) return false;
+      try {
+        const suffix = key.slice(prefix.length);
+        const scope = JSON.parse(suffix);
+        if (!Array.isArray(scope) || scope.length !== 2 ||
+            scope[0] !== workspace || typeof scope[1] !== 'string' ||
+            !scope[1] || JSON.stringify(scope) !== suffix) return false;
+        const value = localStorage.getItem(key);
+        return prefix === consentPrefix ? value === 'true' :
+          value !== null && Number.isFinite(Number(value)) && Number(value) > 0;
+      } catch {
+        return false;
+      }
+    };
+    for (const key of Object.keys(localStorage)) {
+      if (!keep(key)) localStorage.removeItem(key);
+    }
+  })()`);
 };
 
 export const handleClearCacheDialog = () => {
@@ -101,7 +144,7 @@ export const handleClearCacheDialog = () => {
     }
     await clearWebviewStorageDeletingLoginData(
       guestWebContents,
-      await readSearchIndexOptIns(guestWebContents)
+      getServerUrlByWebContentsId(action.payload)
     );
   });
 
@@ -137,9 +180,6 @@ export const handleUserLoggedOutDataClearing = (): void => {
     if (!guestWebContents) {
       return;
     }
-    await clearWebviewStorageDeletingLoginData(
-      guestWebContents,
-      await readSearchIndexOptIns(guestWebContents)
-    );
+    await clearWebviewStorageDeletingLoginData(guestWebContents, url);
   });
 };

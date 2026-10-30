@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises';
+import { mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 
@@ -18,6 +18,7 @@ import type { SnapshotStore } from './snapshotStore';
 import type {
   E2EESearchDoc,
   E2EESearchQuery,
+  E2EESearchRecentQuery,
   E2EESearchRoomState,
 } from './types';
 import type {
@@ -81,6 +82,7 @@ export const zeroRequestKey = (request: WorkerRequest): void => {
 // only the encrypted snapshot reaches the disk.
 export const createWorkerHandler = (options: WorkerHandlerOptions) => {
   const indexes = new Map<string, OpenIndex>();
+  const lostIndexes = new Set<string>();
   // The copy of the index key of each open index.
   const indexKeys = new Map<string, Buffer>();
   let nativeModuleError: FileStoreError;
@@ -130,7 +132,8 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
     try {
       const result = await openWithKey(indexId, userId, dir, key);
       indexKeys.set(indexId, key.key);
-      return result;
+      const indexLost = lostIndexes.delete(indexId);
+      return { ...result, ...(indexLost && { indexLost: true as const }) };
     } catch (error) {
       // No open index uses the copy.
       key.key.fill(0);
@@ -144,10 +147,15 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
     dir: string,
     key: IndexKey
   ): Promise<WorkerOpenResult> => {
-    const store = createSnapshotStore({ dir, indexKey: key });
+    const store = createSnapshotStore({
+      dir,
+      indexKey: key,
+      onRejected: () => lostIndexes.add(indexId),
+    });
     const { openEncryptedFile } = options;
     if (openEncryptedFile && key.persistent && !fileStoreErrorOf(dir)) {
       const db = await openFileDb({
+        indexId,
         dir,
         key: key.key,
         reset: key.reset,
@@ -168,6 +176,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
       // stay in index.bin. Set it after `deserialize`, which resets it.
       db.exec('PRAGMA secure_delete = ON');
       const engine = createSearchEngine(db, { userId });
+      if (engine.recreated) lostIndexes.add(indexId);
       const fileStoreError = fileStoreErrorOf(dir);
       indexes.set(indexId, {
         db,
@@ -190,11 +199,13 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
   // Returns undefined when the file store cannot open. Then the caller uses
   // the snapshot store, and the saved snapshot stays on disk.
   const openFileDb = async ({
+    indexId,
     dir,
     key,
     reset,
     openEncryptedFile,
   }: {
+    indexId: string;
     dir: string;
     key: Buffer;
     reset: boolean;
@@ -210,6 +221,13 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
         return openEncryptedFile(file, key);
       } catch (error) {
         if (!(error instanceof IndexFileRejectedError)) throw error;
+        if (
+          await stat(file).then(
+            () => true,
+            () => false
+          )
+        )
+          lostIndexes.add(indexId);
         // The index is a cache: a file that the key cannot read starts over.
         await removeIndexFiles(file);
         return openEncryptedFile(file, key);
@@ -236,6 +254,7 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
   ): Promise<WorkerOpenResult> => {
     try {
       const engine = createSearchEngine(db, { userId });
+      if (engine.recreated) lostIndexes.add(indexId);
       // The snapshot of the memory store is a cache that this store does
       // not read. The crawler fills the file store again. Remove it only
       // after the file store opened, so a fallback still finds it.
@@ -269,6 +288,9 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
       case 'close':
         close(indexId);
         return undefined;
+      case 'resetCheckpoints':
+        get(indexId).db.exec('DELETE FROM room_state');
+        return undefined;
       case 'save':
         await get(indexId).save();
         return undefined;
@@ -282,6 +304,10 @@ export const createWorkerHandler = (options: WorkerHandlerOptions) => {
         return get(indexId).engine.listRooms();
       case 'search':
         return get(indexId).engine.search(args[0] as E2EESearchQuery);
+      case 'searchRecentPage':
+        return get(indexId).engine.searchRecentPage(
+          args[0] as E2EESearchRecentQuery
+        );
       case 'getRoomState':
         return get(indexId).engine.getRoomState(args[0] as string);
       case 'setRoomState':

@@ -1,10 +1,12 @@
+import type { E2EESearchIndexEvent } from './types';
+import { MUTATING_METHODS } from './workerProtocol';
 import type {
   WorkerMethod,
   WorkerOpenArgs,
   WorkerRequest,
   WorkerResponse,
+  WorkerOpenResult,
 } from './workerProtocol';
-import { MUTATING_METHODS } from './workerProtocol';
 
 // The design debounces snapshot writes by 30 s after the last change.
 export const SAVE_DELAY_MS = 30_000;
@@ -51,6 +53,12 @@ export type SearchHost = {
   // Closes the index and drops its unsaved changes. It waits for a running
   // save, so the caller can delete the folder after it.
   discard(indexId: string): Promise<void>;
+  clear(indexId: string, onClosed?: () => Promise<void>): Promise<void>;
+  onIndexEvent(
+    indexId: string,
+    listener: (event: E2EESearchIndexEvent) => void
+  ): () => void;
+  notifyIndexEvent(indexId: string, event: E2EESearchIndexEvent): void;
   indexIds(): string[];
   hasUnsavedChanges(): boolean;
   // Saves every changed index now. The app calls it before quit.
@@ -90,6 +98,7 @@ export const createSearchHost = ({
   const busy = new Set<string>();
   const openArgs = new Map<string, WorkerOpenArgs>();
   const needsOpen = new Set<string>();
+  const recovering = new Map<string, Promise<void>>();
   const dirty = new Set<string>();
   const dirtySince = new Map<string, number>();
   const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -98,6 +107,20 @@ export const createSearchHost = ({
   // old document's session while the new page opens the same index, and a
   // close that finishes after that open would drop the new session's index.
   const lifecycle = new Map<string, Promise<unknown>>();
+  const listeners = new Map<
+    string,
+    Set<(event: E2EESearchIndexEvent) => void>
+  >();
+  const lostIndexes = new Set<string>();
+  const notifyIndexEvent = (indexId: string, event: E2EESearchIndexEvent) => {
+    if (event.type === 'lost') lostIndexes.add(indexId);
+    for (const listener of listeners.get(indexId) ?? []) listener(event);
+  };
+  const checkOpenResult = (indexId: string, value: unknown) => {
+    if ((value as WorkerOpenResult).indexLost) {
+      notifyIndexEvent(indexId, { type: 'lost' });
+    }
+  };
 
   const inOrder = <T>(indexId: string, task: () => Promise<T>): Promise<T> => {
     const next = (lifecycle.get(indexId) ?? Promise.resolve()).then(task, task);
@@ -128,7 +151,10 @@ export const createSearchHost = ({
     current.onExit((code) => {
       if (worker !== current) return;
       worker = undefined;
-      for (const indexId of openArgs.keys()) needsOpen.add(indexId);
+      for (const indexId of openArgs.keys()) {
+        needsOpen.add(indexId);
+        notifyIndexEvent(indexId, { type: 'lost' });
+      }
       failAll(new WorkerExitedError(code));
     });
     return current;
@@ -249,12 +275,30 @@ export const createSearchHost = ({
     ...args: unknown[]
   ): Promise<unknown> {
     if (needsOpen.has(indexId)) {
-      const reopen = openArgs.get(indexId);
-      if (reopen) await send(indexId, 'open', [reopen]);
-      needsOpen.delete(indexId);
+      let recovery = recovering.get(indexId);
+      if (!recovery) {
+        recovery = (async () => {
+          const reopen = openArgs.get(indexId);
+          if (reopen) {
+            checkOpenResult(indexId, await send(indexId, 'open', [reopen]));
+            await send(indexId, 'resetCheckpoints', []);
+            scheduleSave(indexId);
+          }
+          needsOpen.delete(indexId);
+        })();
+        recovering.set(indexId, recovery);
+      }
+      try {
+        await recovery;
+      } finally {
+        if (recovering.get(indexId) === recovery) recovering.delete(indexId);
+      }
     }
     const value = await send(indexId, method, args);
-    if (MUTATING_METHODS.has(method)) scheduleSave(indexId);
+    if (MUTATING_METHODS.has(method)) {
+      scheduleSave(indexId);
+      notifyIndexEvent(indexId, { type: 'changed' });
+    }
     return value;
   }
 
@@ -270,6 +314,11 @@ export const createSearchHost = ({
     open: (indexId, args) =>
       inOrder(indexId, async () => {
         const value = await send(indexId, 'open', [args]);
+        checkOpenResult(indexId, value);
+        if (needsOpen.has(indexId)) {
+          await send(indexId, 'resetCheckpoints', []);
+          scheduleSave(indexId);
+        }
         const previous = openArgs.get(indexId);
         openArgs.set(indexId, ownCopyOf(args));
         // A reopen that read the old copy was queued before this open, so
@@ -297,6 +346,7 @@ export const createSearchHost = ({
         } finally {
           // A reopen queued before the close was posted before it.
           zeroKeyOf(args);
+          lostIndexes.delete(indexId);
         }
       }),
 
@@ -305,6 +355,7 @@ export const createSearchHost = ({
       inOrder(indexId, async () => {
         cancelSave(indexId);
         markClean(indexId);
+        notifyIndexEvent(indexId, { type: 'lost' });
         const args = openArgs.get(indexId);
         openArgs.delete(indexId);
         needsOpen.delete(indexId);
@@ -312,6 +363,34 @@ export const createSearchHost = ({
         if (worker) await send(indexId, 'close', []).catch(() => undefined);
         zeroKeyOf(args);
       }),
+
+    clear: (indexId, onClosed) =>
+      inOrder(indexId, async () => {
+        if (!openArgs.has(indexId)) {
+          await onClosed?.();
+          return;
+        }
+        await call(indexId, 'wipe');
+        await save(indexId);
+        notifyIndexEvent(indexId, { type: 'lost' });
+      }),
+
+    onIndexEvent(indexId, listener) {
+      const callbacks = listeners.get(indexId) ?? new Set();
+      callbacks.add(listener);
+      listeners.set(indexId, callbacks);
+      if (lostIndexes.has(indexId)) {
+        queueMicrotask(() => {
+          if (callbacks.has(listener)) listener({ type: 'lost' });
+        });
+      }
+      return () => {
+        callbacks.delete(listener);
+        if (callbacks.size === 0) listeners.delete(indexId);
+      };
+    },
+
+    notifyIndexEvent,
 
     indexIds: () => [...openArgs.keys()],
 
@@ -325,6 +404,8 @@ export const createSearchHost = ({
       worker = undefined;
       current?.kill();
       failAll(new WorkerExitedError(0));
+      listeners.clear();
+      lostIndexes.clear();
     },
   };
 };

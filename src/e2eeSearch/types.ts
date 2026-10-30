@@ -37,6 +37,25 @@ export type E2EESearchHit = {
   snippet: string;
 };
 
+export type E2EESearchRecentCursor = { ts: number; id: string };
+
+export type E2EESearchRecentQuery = Omit<E2EESearchQuery, 'order'> & {
+  cursor?: E2EESearchRecentCursor;
+};
+
+export type E2EESearchRecentPage = {
+  hits: E2EESearchHit[];
+  nextCursor?: E2EESearchRecentCursor;
+};
+
+export type E2EESearchIndexEvent = { type: 'lost' } | { type: 'changed' };
+
+export type E2EESearchCapabilities = {
+  recentCursor: 1;
+  lifecycleEvents: 1;
+  close: 1;
+};
+
 export type E2EESearchRoomState = {
   lastUpdate?: number;
   backfillCursor?: string;
@@ -71,6 +90,7 @@ export type E2EESearchOpenResult = {
   encryptedAtRest: boolean;
   store?: 'file' | 'snapshot';
   limitedReason?: E2EESearchLimitReason;
+  capabilities?: E2EESearchCapabilities;
   // True when the open had no wrap key, and the server holds an
   // E2EE key for the user or cannot tell. No index opened and nothing was
   // written. An open with the wrap key (after E2EE unlock) opens the sealed
@@ -95,6 +115,8 @@ export type SearchIndexBackend = {
   // that the user left while the index was closed.
   listRooms(): Promise<string[]>;
   search(query: E2EESearchQuery): Promise<E2EESearchHit[]>;
+  searchRecentPage(query: E2EESearchRecentQuery): Promise<E2EESearchRecentPage>;
+  onIndexEvent(listener: (event: E2EESearchIndexEvent) => void): () => void;
   getRoomState(rid: string): Promise<E2EESearchRoomState | undefined>;
   setRoomState(rid: string, state: E2EESearchRoomState): Promise<void>;
   stats(): Promise<E2EESearchStats>;

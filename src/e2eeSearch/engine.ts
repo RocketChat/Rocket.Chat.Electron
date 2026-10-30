@@ -9,6 +9,8 @@ import {
   SEARCH_BY_RECENT_SQL,
   SEARCH_BY_RELEVANCE_SQL,
   SEARCH_FILTERS_ONLY_SQL,
+  SEARCH_RECENT_PAGE_SQL,
+  SEARCH_RECENT_PAGE_FILTERS_ONLY_SQL,
   SEARCH_UNFILTERED_BY_RELEVANCE_SQL,
   TS_KEY_MAX,
 } from './schema';
@@ -16,10 +18,16 @@ import type {
   E2EESearchDoc,
   E2EESearchHit,
   E2EESearchQuery,
+  E2EESearchRecentPage,
+  E2EESearchRecentQuery,
   E2EESearchRoomState,
   E2EESearchStats,
 } from './types';
-import { E2EESearchQuotaError, MAX_SEARCH_LIMIT } from './validate';
+import {
+  E2EESearchQuotaError,
+  MAX_SEARCH_LIMIT,
+  validateRecentQuery,
+} from './validate';
 
 export const DEFAULT_SEARCH_LIMIT = 50;
 export { MAX_SEARCH_LIMIT };
@@ -32,6 +40,8 @@ export const MAX_INDEX_ROOMS = 50_000;
 
 export type SearchEngine = {
   readonly schemaVersion: number;
+  readonly recreated: boolean;
+  searchRecentPage(query: E2EESearchRecentQuery): E2EESearchRecentPage;
   upsert(docs: E2EESearchDoc[]): void;
   remove(ids: string[]): void;
   removeRoom(rid: string): void;
@@ -143,16 +153,23 @@ export const createSearchEngine = (
     }
   };
 
-  const ensureSchema = (): void => {
+  const ensureSchema = (): boolean => {
     if (
       readMeta(db, 'schema_version') !== String(SCHEMA_VERSION) ||
       readMeta(db, 'user_id') !== userId
     ) {
+      const existingTable = db
+        .prepare(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name IN ('meta', 'messages', 'messages_fts', 'room_state', 'pending_decrypt') LIMIT 1"
+        )
+        .get();
       inTransaction(() => createSchema(db, userId));
+      return existingTable !== undefined;
     }
+    return false;
   };
 
-  ensureSchema();
+  const recreated = ensureSchema();
 
   // A new row gets the next free rowid in the range of its ms (see
   // ROWID_TS_SHIFT). An update keeps the rowid, so a newer version with
@@ -239,9 +256,14 @@ export const createSearchEngine = (
     SEARCH_UNFILTERED_BY_RELEVANCE_SQL
   );
   const searchFiltersOnly = db.prepare(SEARCH_FILTERS_ONLY_SQL);
+  const searchRecentPage = db.prepare(SEARCH_RECENT_PAGE_SQL);
+  const searchRecentPageFiltersOnly = db.prepare(
+    SEARCH_RECENT_PAGE_FILTERS_ONLY_SQL
+  );
 
   return {
     schemaVersion: SCHEMA_VERSION,
+    recreated,
 
     upsert(docs) {
       inTransaction(() => {
@@ -353,6 +375,52 @@ export const createSearchEngine = (
         ts,
         snippet: toSnippetHtml(snippet),
       }));
+    },
+
+    searchRecentPage(input) {
+      const query = validateRecentQuery(input);
+      const match = toMatch(query.text);
+      const filtersOnly =
+        query.text.trim() === '' &&
+        (query.rid !== undefined ||
+          query.uid !== undefined ||
+          query.from !== undefined ||
+          query.to !== undefined);
+      if (!match && !filtersOnly) return { hits: [] };
+
+      const limit = clampLimit(query.limit);
+      const params = {
+        rid: query.rid ?? null,
+        uid: query.uid ?? null,
+        from: query.from ?? 0,
+        to: query.to ?? Number.MAX_SAFE_INTEGER,
+        cursorTs: query.cursor?.ts ?? null,
+        cursorId: query.cursor?.id ?? null,
+        limit: limit + 1,
+      };
+      const rows = (
+        match
+          ? searchRecentPage.all({ ...params, match })
+          : searchRecentPageFiltersOnly.all(params)
+      ) as MessageRow[];
+      const hits = rows
+        .slice(0, limit)
+        .map(({ id, rid, tmid, uid, username, ts, snippet }) => ({
+          id,
+          rid,
+          ...(tmid !== null && { tmid }),
+          uid,
+          username,
+          ts,
+          snippet: toSnippetHtml(snippet),
+        }));
+      const last = hits[hits.length - 1];
+      return {
+        hits,
+        ...(rows.length > limit && {
+          nextCursor: { ts: last.ts, id: last.id },
+        }),
+      };
     },
 
     getRoomState(rid) {

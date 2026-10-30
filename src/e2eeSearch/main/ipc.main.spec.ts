@@ -227,9 +227,11 @@ describe('E2EE search IPC handler', () => {
       (hit) => hit.id
     );
 
-  it('exposes the 11 methods of the backend interface on the bridge', () => {
-    expect(Object.keys(e2eeSearch).sort()).toEqual([...BRIDGE_METHODS].sort());
-    expect(BRIDGE_METHODS).toHaveLength(11);
+  it('exposes the backend methods and the event subscription on the bridge', () => {
+    expect(Object.keys(e2eeSearch).sort()).toEqual(
+      [...BRIDGE_METHODS, 'onIndexEvent'].sort()
+    );
+    expect(BRIDGE_METHODS).toHaveLength(12);
   });
 
   // The web client closes the index at logout, also when the desktop misses

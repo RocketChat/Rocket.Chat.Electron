@@ -126,7 +126,10 @@ describe('E2EE search worker handler, encrypted file store', () => {
       indexKey: { persistent: true, key: randomBytes(32), reset: false },
     };
     const second = handler();
-    await call(second, 'open', [other]);
+    expect(await call(second, 'open', [other])).toMatchObject({
+      indexLost: true,
+    });
+    expect(await call(second, 'open', [other])).not.toHaveProperty('indexLost');
     expect(await searchIds(second, `a${NEEDLE}`)).toEqual([]);
     await call(second, 'upsert', [docs('b', 1)]);
     expect(await searchIds(second, `b${NEEDLE}`)).toEqual(['b0']);

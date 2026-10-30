@@ -79,6 +79,43 @@ describe('E2EE search server removal', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
+  it('clears active scopes in place and deletes locked or inactive scopes without opening them', async () => {
+    const active = await openWithDocs(serverA, 'active-user');
+    const inactive = path.join(serverA, 'locked-user');
+    mkdirSync(inactive, { recursive: true });
+    writeFileSync(path.join(inactive, 'key.bin'), 'sealed fixture');
+    await host.call(active, 'setRoomState', 'r1', { backfillDone: true });
+    const open = jest.spyOn(host, 'open');
+    const events = jest.fn();
+    host.onIndexEvent(active, events);
+    await deleteAllIndexes(host, root, true);
+    expect(open).not.toHaveBeenCalled();
+    expect(existsSync(inactive)).toBe(false);
+    expect(host.indexIds()).toEqual([active]);
+    expect(await host.call(active, 'stats')).toMatchObject({
+      docs: 0,
+      rooms: 0,
+    });
+    expect(await host.call(active, 'getRoomState', 'r1')).toBeUndefined();
+    expect(
+      events.mock.calls.filter(([event]) => event.type === 'lost')
+    ).toEqual([[{ type: 'lost' }]]);
+    await host.call(active, 'upsert', docs(1));
+    expect(await host.call(active, 'search', { text: 'message' })).toHaveLength(
+      1
+    );
+  });
+
+  it('deletes a saved index that closes before recoverable clear executes', async () => {
+    const dir = await openWithDocs(serverA, 'closing-user');
+    await host.flush();
+    const closing = host.close(dir);
+    const clearing = deleteAllIndexes(host, root, true);
+    await Promise.all([closing, clearing]);
+    expect(host.indexIds()).toEqual([]);
+    expect(existsSync(dir)).toBe(false);
+  });
+
   it('deletes the folder of the removed server and keeps the other server', async () => {
     const userA = await openWithDocs(serverA, 'user-1');
     const userB = await openWithDocs(serverB, 'user-1');

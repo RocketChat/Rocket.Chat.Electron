@@ -192,11 +192,13 @@ export const openE2EESearchIndex = async (
           createKeyStore({ dir, safeStorage: getSafeStorage() }).load({
             wrapKey,
           }),
-        onOwnerKeyChanged: () =>
+        onOwnerKeyChanged: () => {
+          getE2EESearchHost().notifyIndexEvent(dir, { type: 'lost' });
           loggers.e2eeSearch.info(
             'index replaced',
             summarizeError(new E2EESearchOwnerKeyChangedError())
-          ),
+          );
+        },
       }).finally(() => wrapKey?.fill(0));
       if (!indexKey.persistent && indexKey.reason === 'keychain-timeout') {
         loggers.e2eeSearch.warn(
@@ -205,7 +207,12 @@ export const openE2EESearchIndex = async (
       }
       // The worker and the host each keep their own copy of the index key,
       // so this one is zeroed when the open ends.
-      const { store, fileStoreError, ...result } = (await getE2EESearchHost()
+      const {
+        store,
+        fileStoreError,
+        indexLost: _indexLost,
+        ...result
+      } = (await getE2EESearchHost()
         .open(dir, {
           userId,
           dir,
@@ -352,6 +359,8 @@ export const setupE2EESearch = (): void => {
     call: (indexId, method, ...args) =>
       getE2EESearchHost().call(indexId, method, ...args),
     close: (indexId) => getE2EESearchHost().close(indexId),
+    onIndexEvent: (indexId, listener) =>
+      getE2EESearchHost().onIndexEvent(indexId, listener),
     wipeIndex: (indexId) =>
       getUserIndexLimiter()
         .deleteUserIndex(path.dirname(indexId), indexId)
@@ -432,7 +441,7 @@ export const setupE2EESearch = (): void => {
   });
 
   listen(SETTINGS_CLEAR_E2EE_SEARCH_INDEX_CLICKED, () => {
-    deleteAllIndexes(getE2EESearchHost(), getIndexRootDir())
+    deleteAllIndexes(getE2EESearchHost(), getIndexRootDir(), true)
       .catch((error) =>
         loggers.e2eeSearch.warn('index clear failed', summarizeError(error))
       )

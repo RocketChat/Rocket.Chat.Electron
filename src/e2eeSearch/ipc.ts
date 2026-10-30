@@ -1,13 +1,14 @@
 import { markExpectedError } from '../logging/expectedErrors';
 import type { OwnerKeyFingerprint } from './ownerKey';
 import { SCHEMA_VERSION } from './schema';
-import type { E2EESearchOpenResult } from './types';
+import type { E2EESearchIndexEvent, E2EESearchOpenResult } from './types';
 import {
   E2EE_SEARCH_KEY_MISMATCH_ERROR_NAME,
   E2EESearchInputError,
   validateDocs,
   validateIds,
   validateQuery,
+  validateRecentQuery,
   validateRid,
   validateRoomState,
   validateScope,
@@ -15,6 +16,12 @@ import {
 import type { WorkerMethod } from './workerProtocol';
 
 export const E2EE_SEARCH_CHANNEL = 'e2ee-search/call';
+export const E2EE_SEARCH_EVENT_CHANNEL = 'e2ee-search/event';
+export const E2EE_SEARCH_CAPABILITIES = Object.freeze({
+  recentCursor: 1,
+  lifecycleEvents: 1,
+  close: 1,
+} as const);
 
 // The methods of `RocketChatDesktop.e2eeSearch`.
 export const BRIDGE_METHODS = [
@@ -24,6 +31,7 @@ export const BRIDGE_METHODS = [
   'removeRoom',
   'listRooms',
   'search',
+  'searchRecentPage',
   'getRoomState',
   'setRoomState',
   'stats',
@@ -42,6 +50,7 @@ export type E2EESearchSender = {
   id: number;
   once(event: 'destroyed', listener: () => void): unknown;
   on(event: 'did-navigate', listener: () => void): unknown;
+  send?(channel: string, ...args: unknown[]): void;
 };
 
 // The part of an IPC event that the handler reads. The real event also
@@ -86,6 +95,10 @@ type IpcDeps = {
     ...args: unknown[]
   ): Promise<unknown>;
   close(indexId: string): Promise<void>;
+  onIndexEvent?(
+    indexId: string,
+    listener: (event: E2EESearchIndexEvent) => void
+  ): () => void;
   // Deletes the index (snapshot and key file) and closes it. A wipe of the
   // page comes here, not to the worker.
   wipeIndex(indexId: string): Promise<void>;
@@ -102,7 +115,11 @@ type IpcDeps = {
   logOwnerKeyError(error: unknown): void;
 };
 
-type Session = { serverUrl: string; indexId: string };
+type Session = {
+  serverUrl: string;
+  indexId: string;
+  unsubscribe?: () => void;
+};
 
 const validateArgs = (method: BridgeMethod, args: unknown[]): unknown[] => {
   switch (method) {
@@ -115,6 +132,8 @@ const validateArgs = (method: BridgeMethod, args: unknown[]): unknown[] => {
       return [validateRid(args[0])];
     case 'search':
       return [validateQuery(args[0])];
+    case 'searchRecentPage':
+      return [validateRecentQuery(args[0])];
     case 'setRoomState':
       return [validateRid(args[0]), validateRoomState(args[1])];
     default:
@@ -241,7 +260,12 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     const session = sessions.get(senderId);
     if (!session) return;
     sessions.delete(senderId);
-    void deps.close(session.indexId).catch(() => undefined);
+    session.unsubscribe?.();
+    if (
+      ![...sessions.values()].some(({ indexId }) => indexId === session.indexId)
+    ) {
+      void deps.close(session.indexId).catch(() => undefined);
+    }
   };
 
   // A session belongs to one document. A reload, a navigation or the end of
@@ -360,6 +384,12 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
     const session = sessions.get(sender.id);
     if (!session || session.serverUrl !== serverUrl) return undefined;
     sessions.delete(sender.id);
+    session.unsubscribe?.();
+    if (
+      [...sessions.values()].some(({ indexId }) => indexId === session.indexId)
+    ) {
+      return undefined;
+    }
     await deps.close(session.indexId).catch((error: unknown) => {
       throw toPageError(deps, 'close', error);
     });
@@ -401,6 +431,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       const { userId, wrapKey } = validateScope(args[0]);
       watch(sender);
       senderServers.set(sender.id, serverUrl);
+      if (typeof args[1] === 'string') documents.set(sender.id, {});
       const token = documentOf(sender.id);
       const boundUserId = boundUserIds.get(sender.id);
       // The web client can log another user in on the same document with no
@@ -465,6 +496,9 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
             deps.logOwnerKeyError(error);
             return undefined;
           });
+        if (isStale(sender.id, token) || lostBinding(sender.id, userId)) {
+          throw new Error(E2EE_SEARCH_GENERIC_ERROR);
+        }
         // The index of a user with an E2EE key opens only sealed
         // by the wrap key. The server, not the page, tells whether the user
         // has a key, and an unknown answer counts as a key (fail closed).
@@ -486,18 +520,45 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
             throw toPageError(deps, method, error);
           });
         if (isStale(sender.id, token) || lostBinding(sender.id, userId)) {
-          await deps.close(indexId).catch(() => undefined);
+          if (
+            ![...sessions.values()].some(
+              (session) => session.indexId === indexId
+            )
+          ) {
+            await deps.close(indexId).catch(() => undefined);
+          }
           throw new Error(E2EE_SEARCH_GENERIC_ERROR);
         }
         const previous = sessions.get(sender.id);
+        previous?.unsubscribe?.();
         if (previous && previous.indexId !== indexId) {
           await deps.close(previous.indexId).catch(() => undefined);
         }
-        sessions.set(sender.id, { serverUrl, indexId });
+        const session: Session = { serverUrl, indexId };
+        sessions.set(sender.id, session);
+        const eventToken = args[1];
+        const supportsEvents =
+          typeof eventToken === 'string' &&
+          /^[a-f0-9]{32}$/.test(eventToken) &&
+          typeof sender.send === 'function' &&
+          typeof deps.onIndexEvent === 'function';
+        if (supportsEvents) {
+          session.unsubscribe = deps.onIndexEvent!(indexId, (indexEvent) => {
+            if (
+              sessions.get(sender.id) !== session ||
+              isStale(sender.id, token) ||
+              destroyed.has(sender.id)
+            )
+              return;
+            sender.send?.(E2EE_SEARCH_EVENT_CHANNEL, eventToken, indexEvent);
+          });
+        }
         lockedSenders.delete(sender.id);
         // The webview can end while the index opens.
         if (destroyed.has(sender.id)) closeSession(sender.id);
-        return result;
+        return supportsEvents
+          ? { ...result, capabilities: E2EE_SEARCH_CAPABILITIES }
+          : result;
       } finally {
         // The open used the wrap key once, or did not reach the
         // index. Either way, no copy stays in memory.
@@ -543,6 +604,7 @@ export const createE2EESearchIpcHandler = (deps: IpcDeps) => {
       // opens a new index. The user binding stays, and the page can open
       // the same user again.
       sessions.delete(sender.id);
+      session.unsubscribe?.();
       await deps.wipeIndex(session.indexId).catch((error: unknown) => {
         throw toPageError(deps, method, error);
       });

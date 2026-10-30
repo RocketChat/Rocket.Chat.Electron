@@ -16,6 +16,7 @@ export type WorkerOpenArgs = {
 export type WorkerOpenResult = E2EESearchOpenResult & {
   store: 'file' | 'snapshot';
   fileStoreError?: { name: string; code?: string };
+  indexLost?: true;
 };
 
 export type WorkerMethod =
@@ -25,11 +26,13 @@ export type WorkerMethod =
   | 'removeRoom'
   | 'listRooms'
   | 'search'
+  | 'searchRecentPage'
   | 'getRoomState'
   | 'setRoomState'
   | 'stats'
   | 'wipe'
   | 'save'
+  | 'resetCheckpoints'
   | 'close';
 
 // The methods that change the index. The host saves a snapshot after them.
@@ -39,6 +42,7 @@ export const MUTATING_METHODS: ReadonlySet<WorkerMethod> = new Set([
   'removeRoom',
   'setRoomState',
   'wipe',
+  'resetCheckpoints',
 ]);
 
 export type WorkerRequest = {

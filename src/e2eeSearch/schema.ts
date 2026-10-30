@@ -88,6 +88,16 @@ export const SEARCH_BY_RELEVANCE_SQL = `${SEARCH_SELECT}
 ORDER BY bm25(messages_fts)
 LIMIT :limit`;
 
+const RECENT_PAGE_CONTINUATION = `
+  AND (:cursorTs IS NULL OR m.ts < :cursorTs
+       OR (m.ts = :cursorTs AND m.id COLLATE BINARY < :cursorId))
+`;
+
+export const SEARCH_RECENT_PAGE_SQL = `${SEARCH_SELECT}
+${RECENT_PAGE_CONTINUATION}
+ORDER BY m.ts DESC, m.id COLLATE BINARY DESC
+LIMIT :limit`;
+
 // The rowid follows ts (see ROWID_TS_SHIFT), so FTS5 reads the matches
 // newest first and the query stops after :limit rows that pass the filters.
 // It makes a snippet only for those rows. The rowid range is the date
@@ -147,3 +157,17 @@ WHERE m.rowid IN (
   LIMIT :limit
 )
 ORDER BY m.ts DESC`;
+
+export const SEARCH_RECENT_PAGE_FILTERS_ONLY_SQL = `
+SELECT m.id, m.rid, m.tmid, m.uid, m.username, m.ts,
+       CASE WHEN length(m.body) > ${FILTER_ONLY_SNIPPET_LENGTH}
+            THEN substr(m.body, 1, ${FILTER_ONLY_SNIPPET_LENGTH}) || '…'
+            ELSE m.body
+       END AS snippet
+FROM messages m
+WHERE (:rid IS NULL OR m.rid = :rid)
+  AND (:uid IS NULL OR m.uid = :uid)
+  AND m.ts BETWEEN :from AND :to
+${RECENT_PAGE_CONTINUATION}
+ORDER BY m.ts DESC, m.id COLLATE BINARY DESC
+LIMIT :limit`;

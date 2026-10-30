@@ -138,6 +138,9 @@
       "cancel": "Abbrechen",
       "developerModeRequired": "Aktiviere Hilfe > Entwicklermodus, um UI-Vorschauen zu laden.",
       "failed": "Die UI-Vorschau konnte nicht geladen werden."
+    },
+    "clearCache": {
+      "removeSearchData": "Auch die lokale Suche in verschlüsselten Nachrichten für diesen Arbeitsbereich ausschalten und ihren Index löschen"
     }
   },
   "documentViewer": {
@@ -278,6 +281,35 @@
         "systemDefault": "Systemstandard",
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Lokalen Suchindex löschen",
+        "description": "Löscht den Suchindex für verschlüsselte Nachrichten, den diese App auf diesem Computer speichert, für alle Arbeitsbereiche. Die App baut ihn danach wieder vom Server auf.",
+        "confirm": {
+          "title": "Lokalen Suchindex löschen?",
+          "message": "Damit wird der Suchindex für verschlüsselte Nachrichten auf diesem Computer für alle Arbeitsbereiche gelöscht. Jeder Arbeitsbereich erstellt ihn vom Server neu. Bis dahin findet die Suche weniger Nachrichten.",
+          "confirm": "Index löschen",
+          "cancel": "Abbrechen"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokaler Suchindex",
+        "empty": "Auf diesem Computer gibt es keinen Suchindex für verschlüsselte Nachrichten.",
+        "removedServer": "Entfernter Arbeitsbereich",
+        "countWhenOpen": "Die Anzahl der Nachrichten erscheint, wenn der Arbeitsbereich den Index öffnet",
+        "messages_one": "{{count}} Nachricht",
+        "messages_other": "{{count}} Nachrichten",
+        "onDisk": "{{size, byteSize}} auf dem Datenträger",
+        "encrypted": "Auf dem Datenträger verschlüsselt",
+        "memoryOnly": "Nur im Speicher, nicht auf dem Datenträger gespeichert",
+        "mixed": "Teilweise auf dem Datenträger verschlüsselt, teilweise nur im Speicher",
+        "limit": {
+          "no-encryption": "Dieses System kann keine Dateien für die App verschlüsseln. Der Suchindex bleibt daher im Speicher und wird bei jedem Start neu aufgebaut. Die Suche funktioniert weiterhin.",
+          "basic-text-backend": "Es ist kein Schlüsselbund des Systems verfügbar. Der Suchindex bleibt daher im Speicher. Installieren und entsperren Sie gnome-keyring oder KWallet und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
+          "keychain-timeout": "Der Schlüsselbund des Systems hat nicht rechtzeitig geantwortet. Der Suchindex bleibt daher im Speicher. Entsperren Sie den Schlüsselbund und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
+          "hard-coded-wrap": "Es ist kein Schlüsselbund des Systems verfügbar. Der Suchindex bleibt daher im Speicher. Installieren und entsperren Sie gnome-keyring oder KWallet und starten Sie die App neu, damit er auf dem Datenträger bleibt. Die Suche funktioniert weiterhin.",
+          "native-module-unavailable": "Der schnelle Index konnte auf diesem System nicht starten. Die Suche funktioniert, aber das Speichern dauert länger."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Erlaubte Bildschirmaufnahmeserver löschen",

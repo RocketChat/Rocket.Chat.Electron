@@ -67,6 +67,15 @@ describe('interpolation', () => {
     it('returns the ??? sentinel for non-finite input', () => {
       expect(format(NaN, 'byteSize')).toBe('???');
     });
+
+    it.each<[number, string]>([
+      [0, '0 bytes'],
+      [1, '1 byte'],
+      [300, '300 bytes'],
+      [1023, '1,023 bytes'],
+    ])('writes %d with the long byte unit, not "byte"', (bytes, text) => {
+      expect(format(bytes, 'byteSize')).toBe(text);
+    });
   });
 
   describe('byteSpeed', () => {

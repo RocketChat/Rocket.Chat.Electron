@@ -157,6 +157,9 @@
       "cancel": "Cancelar",
       "developerModeRequired": "Activa Ayuda > Modo desarrollador para cargar vistas previas de la UI.",
       "failed": "No se pudo cargar la vista previa de la UI."
+    },
+    "clearCache": {
+      "removeSearchData": "Desactivar también la búsqueda local de mensajes cifrados en este espacio de trabajo y eliminar su índice"
     }
   },
   "documentViewer": {
@@ -297,6 +300,35 @@
         "systemDefault": "Predeterminado del Sistema",
         "loading": "Cargando navegadores...",
         "current": "Usando actualmente:"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Borrar el índice de búsqueda local",
+        "description": "Elimina el índice de búsqueda de los mensajes cifrados que esta aplicación guarda en este equipo, para todos los espacios de trabajo. La aplicación lo vuelve a crear desde el servidor.",
+        "confirm": {
+          "title": "¿Borrar el índice de búsqueda local?",
+          "message": "Esto elimina el índice de búsqueda de mensajes cifrados de este equipo, para todos los espacios de trabajo. Cada espacio de trabajo lo vuelve a crear desde el servidor. Hasta entonces, la búsqueda encuentra menos mensajes.",
+          "confirm": "Borrar índice",
+          "cancel": "Cancelar"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Índice de búsqueda local",
+        "empty": "Este equipo no tiene un índice de búsqueda de mensajes cifrados.",
+        "removedServer": "Espacio de trabajo eliminado",
+        "countWhenOpen": "El número de mensajes aparece cuando el espacio de trabajo abre el índice",
+        "messages_one": "{{count}} mensaje",
+        "messages_other": "{{count}} mensajes",
+        "onDisk": "{{size, byteSize}} en el disco",
+        "encrypted": "Cifrado en el disco",
+        "memoryOnly": "Solo en memoria, no guardado en el disco",
+        "mixed": "Parcialmente cifrado en el disco, parcialmente solo en memoria",
+        "limit": {
+          "no-encryption": "Este sistema no puede cifrar archivos para la aplicación, así que el índice de búsqueda se queda en la memoria y se reconstruye en cada inicio. La búsqueda sigue funcionando.",
+          "basic-text-backend": "No hay ningún llavero del sistema disponible, así que el índice de búsqueda se queda en la memoria. Instala y desbloquea gnome-keyring o KWallet y reinicia la aplicación para mantenerlo en el disco. La búsqueda sigue funcionando.",
+          "keychain-timeout": "El llavero del sistema no respondió a tiempo, así que el índice de búsqueda se queda en la memoria. Desbloquea el llavero y reinicia la aplicación para mantenerlo en el disco. La búsqueda sigue funcionando.",
+          "hard-coded-wrap": "No hay ningún llavero del sistema disponible, así que el índice de búsqueda se queda en la memoria. Instala y desbloquea gnome-keyring o KWallet y reinicia la aplicación para mantenerlo en el disco. La búsqueda sigue funcionando.",
+          "native-module-unavailable": "El índice rápido no pudo iniciarse en este sistema. La búsqueda funciona, pero los guardados son más lentos."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Borrar permisos de captura de pantalla",

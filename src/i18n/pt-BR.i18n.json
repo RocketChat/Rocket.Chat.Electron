@@ -55,7 +55,8 @@
       "keepLoginData": "Manter sessão de login",
       "deleteLoginData": "Excluir sessão de login",
       "clearingWait": "Aguarde, por favor",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "removeSearchData": "Desativar também a busca local de mensagens criptografadas deste workspace e apagar o índice"
     },
     "downloadRemoval": {
       "title": "Você tem certeza?",
@@ -292,6 +293,35 @@
         "systemDefault": "Sistema Padrão",
         "loading": "Carregando navegadores...",
         "current": "Usando atualmente:"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Limpar índice de busca local",
+        "description": "Apaga o índice de busca de mensagens criptografadas que este app guarda neste computador, para todos os workspaces. O app recria o índice a partir do servidor.",
+        "confirm": {
+          "title": "Limpar o índice de busca local?",
+          "message": "Isso apaga o índice de busca de mensagens criptografadas deste computador, para todos os workspaces. Cada workspace cria o índice de novo a partir do servidor. Até lá, a busca encontra menos mensagens.",
+          "confirm": "Limpar índice",
+          "cancel": "Cancelar"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Índice de busca local",
+        "empty": "Este computador não tem índice de busca de mensagens criptografadas.",
+        "removedServer": "Workspace removido",
+        "countWhenOpen": "A contagem de mensagens aparece quando o workspace abre o índice",
+        "messages_one": "{{count}} mensagem",
+        "messages_other": "{{count}} mensagens",
+        "onDisk": "{{size, byteSize}} no disco",
+        "encrypted": "Criptografado no disco",
+        "memoryOnly": "Só na memória, não salvo no disco",
+        "mixed": "Parte criptografada no disco, parte só na memória",
+        "limit": {
+          "no-encryption": "Este sistema não consegue criptografar arquivos para o app, então o índice de busca fica na memória e é refeito a cada início. A busca continua funcionando.",
+          "basic-text-backend": "Nenhum chaveiro do sistema está disponível, então o índice de busca fica na memória. Instale e desbloqueie o gnome-keyring ou o KWallet e reinicie o app para mantê-lo no disco. A busca continua funcionando.",
+          "keychain-timeout": "O chaveiro do sistema não respondeu a tempo, então o índice de busca fica na memória. Desbloqueie o chaveiro e reinicie o app para mantê-lo no disco. A busca continua funcionando.",
+          "hard-coded-wrap": "Nenhum chaveiro do sistema está disponível, então o índice de busca fica na memória. Instale e desbloqueie o gnome-keyring ou o KWallet e reinicie o app para mantê-lo no disco. A busca continua funcionando.",
+          "native-module-unavailable": "Não foi possível iniciar o índice rápido neste sistema. A busca funciona, mas os salvamentos são mais lentos."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar Permissões de Captura de Tela",

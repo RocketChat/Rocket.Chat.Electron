@@ -104,6 +104,9 @@
       "cancel": "取消",
       "developerModeRequired": "请启用 帮助 > 开发者模式 以加载界面预览。",
       "failed": "无法加载界面预览。"
+    },
+    "clearCache": {
+      "removeSearchData": "同时关闭此工作区加密消息的本地搜索，并删除其索引"
     }
   },
   "documentViewer": {
@@ -198,6 +201,34 @@
       "menuBarUnreadCount": {
         "title": "菜单栏中的未读数",
         "description": "在菜单栏图标旁显示未读提及的数量。"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "清除本地搜索索引",
+        "description": "删除本应用在此电脑上保存的加密消息搜索索引，适用于所有工作区。应用会再次从服务器构建该索引。",
+        "confirm": {
+          "title": "要清除本地搜索索引吗？",
+          "message": "这会删除此电脑上所有工作区的加密消息搜索索引。每个工作区会从服务器重新建立索引。在此之前，搜索找到的消息会变少。",
+          "confirm": "清除索引",
+          "cancel": "取消"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "本地搜索索引",
+        "empty": "此电脑上没有加密消息的搜索索引。",
+        "removedServer": "已移除的工作区",
+        "countWhenOpen": "工作区打开索引后显示消息数量",
+        "messages_other": "{{count}} 条消息",
+        "onDisk": "磁盘上 {{size, byteSize}}",
+        "encrypted": "磁盘上已加密",
+        "memoryOnly": "仅保存在内存中，未保存到磁盘",
+        "mixed": "部分已加密保存在磁盘上，部分仅保存在内存中",
+        "limit": {
+          "no-encryption": "此系统无法为应用加密文件，因此搜索索引保留在内存中，并在每次启动时重建。搜索仍可使用。",
+          "basic-text-backend": "没有可用的系统密钥环，因此搜索索引保留在内存中。请安装并解锁 gnome-keyring 或 KWallet，然后重启应用，以便将索引保存在磁盘上。搜索仍可使用。",
+          "keychain-timeout": "系统密钥环未在规定时间内响应，因此搜索索引保留在内存中。请解锁密钥环并重启应用，以便将索引保存在磁盘上。搜索仍可使用。",
+          "hard-coded-wrap": "没有可用的系统密钥环，因此搜索索引保留在内存中。请安装并解锁 gnome-keyring 或 KWallet，然后重启应用，以便将索引保存在磁盘上。搜索仍可使用。",
+          "native-module-unavailable": "无法在此系统上启动快速索引。搜索可用，但保存会更慢。"
+        }
       },
       "uiPreview": {
         "title": "加载 Web 界面构建",

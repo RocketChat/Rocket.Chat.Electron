@@ -6387,6 +6387,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"better-sqlite3-multiple-ciphers@npm:13.0.3":
+  version: 13.0.3
+  resolution: "better-sqlite3-multiple-ciphers@npm:13.0.3"
+  dependencies:
+    node-addon-api: "npm:^8.0.0"
+    node-gyp: "npm:latest"
+  checksum: 10/fe0e1f1fb37edf6766d98950aaa9ca98025d0891acb09b9d9877138dda666f83407bce4a25a5440f2c98432cecf602aa0f7184e47441d664ebefa8d747243475
+  languageName: node
+  linkType: hard
+
+"better-sqlite3-multiple-ciphers@patch:better-sqlite3-multiple-ciphers@npm%3A13.0.3#~/.yarn/patches/better-sqlite3-multiple-ciphers-npm-13.0.3-0cc69d2380.patch":
+  version: 13.0.3
+  resolution: "better-sqlite3-multiple-ciphers@patch:better-sqlite3-multiple-ciphers@npm%3A13.0.3#~/.yarn/patches/better-sqlite3-multiple-ciphers-npm-13.0.3-0cc69d2380.patch::version=13.0.3&hash=9d3f02"
+  dependencies:
+    node-addon-api: "npm:^8.0.0"
+    node-gyp: "npm:latest"
+  checksum: 10/2f10012391ac1ba886e80697cc270d037fa8b64aaa2ebc1093bb36e188674d838985122488ca4c857d1cf63d1f1b3736e2e55f2dcbb4610545449d83b6e8aa34
+  languageName: node
+  linkType: hard
+
 "binary-extensions@npm:^2.0.0":
   version: 2.3.0
   resolution: "binary-extensions@npm:2.3.0"
@@ -12745,7 +12765,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-abi@npm:^3.3.0, node-abi@npm:^3.45.0":
+"node-abi@npm:3.101.0":
+  version: 3.101.0
+  resolution: "node-abi@npm:3.101.0"
+  dependencies:
+    semver: "npm:^7.3.5"
+  checksum: 10/dc322415bf65ee905cd789014aa854fb55075842e1da4f3cb4944668e162fd68b140b4e725db3709ae63c7a614c05f2e1ae4b50974fdecb9bfe05da9c8850df6
+  languageName: node
+  linkType: hard
+
+"node-abi@npm:^3.3.0":
   version: 3.87.0
   resolution: "node-abi@npm:3.87.0"
   dependencies:
@@ -12769,6 +12798,15 @@ __metadata:
   dependencies:
     node-gyp: "npm:latest"
   checksum: 10/d3b38d16cb9ad0714d965331d0e38cef1c27750c2c3343cd3464a9ed8158501a2910ccbf2fd9fdc476e806a19dbc9e0524ff9d66a7c779d42a9752a63ba30b80
+  languageName: node
+  linkType: hard
+
+"node-addon-api@npm:^8.0.0":
+  version: 8.9.2
+  resolution: "node-addon-api@npm:8.9.2"
+  dependencies:
+    node-gyp: "npm:latest"
+  checksum: 10/5354f9b53631d99a952408112d795f36782fd41c0ac073bd91814805fe931b619c743689d0cedcc310c0ae8392fc9b104b2852d28cce294236407ca57d01743e
   languageName: node
   linkType: hard
 
@@ -14733,6 +14771,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:~6.17.0"
     archiver: "npm:~7.0.1"
     axios: "npm:~1.13.6"
+    better-sqlite3-multiple-ciphers: "patch:better-sqlite3-multiple-ciphers@npm%3A13.0.3#~/.yarn/patches/better-sqlite3-multiple-ciphers-npm-13.0.3-0cc69d2380.patch"
     builtin-modules: "npm:~3.3.0"
     chokidar: "npm:~3.5.3"
     conventional-changelog-cli: "npm:~4.1.0"

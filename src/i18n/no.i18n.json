@@ -55,7 +55,8 @@
       "keepLoginData": "Fortsett påloggingsøkten",
       "deleteLoginData": "Slette påloggingsøkten",
       "clearingWait": "Vent",
-      "cancel": "Kansellere"
+      "cancel": "Kansellere",
+      "removeSearchData": "Slå også av lokalt søk i krypterte meldinger for dette arbeidsområdet, og slett indeksen"
     },
     "downloadRemoval": {
       "title": "Er du sikker?",
@@ -318,6 +319,35 @@
         "systemDefault": "Systemstandard",
         "loading": "Laster inn nettlesere ...",
         "current": "Bruker for øyeblikket:"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Tøm lokal søkeindeks",
+        "description": "Slett søkeindeksen for krypterte meldinger som appen lagrer på denne datamaskinen, for alle arbeidsområder. Appen bygger den opp igjen fra serveren.",
+        "confirm": {
+          "title": "Tømme lokal søkeindeks?",
+          "message": "Dette sletter søkeindeksen for krypterte meldinger på denne datamaskinen, for alle arbeidsområder. Hvert arbeidsområde bygger den på nytt fra serveren. Frem til da finner søket færre meldinger.",
+          "confirm": "Tøm indeks",
+          "cancel": "Avbryt"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokal søkeindeks",
+        "empty": "Denne datamaskinen har ingen søkeindeks for krypterte meldinger.",
+        "removedServer": "Fjernet arbeidsområde",
+        "countWhenOpen": "Antall meldinger vises når arbeidsområdet åpner indeksen",
+        "messages_one": "{{count}} melding",
+        "messages_other": "{{count}} meldinger",
+        "onDisk": "{{size, byteSize}} på disk",
+        "encrypted": "Kryptert på disk",
+        "memoryOnly": "Bare i minnet, ikke lagret på disk",
+        "mixed": "Delvis kryptert på disk, delvis bare i minnet",
+        "limit": {
+          "no-encryption": "Dette systemet kan ikke kryptere filer for appen, så søkeindeksen blir værende i minnet og bygges på nytt ved hver oppstart. Søk fungerer fortsatt.",
+          "basic-text-backend": "Ingen systemnøkkelring er tilgjengelig, så søkeindeksen blir værende i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å beholde den på disken. Søk fungerer fortsatt.",
+          "keychain-timeout": "Systemnøkkelringen svarte ikke i tide, så søkeindeksen blir værende i minnet. Lås opp nøkkelringen og start appen på nytt for å beholde den på disken. Søk fungerer fortsatt.",
+          "hard-coded-wrap": "Ingen systemnøkkelring er tilgjengelig, så søkeindeksen blir værende i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å beholde den på disken. Søk fungerer fortsatt.",
+          "native-module-unavailable": "Den raske indeksen kunne ikke starte på dette systemet. Søk fungerer, men lagring går tregere."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Fjern skjermopptakstillatelser",

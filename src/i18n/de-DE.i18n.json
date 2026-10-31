@@ -40,7 +40,8 @@
     },
     "addServerError": {
       "title": "Ungültiger Host",
-      "message": "Der Host \"{{- host}}\" konnte nicht validiert werden, er wurde also nicht hinzugefügt."
+      "message": "Der Host \"{{- host}}\" konnte nicht validiert werden, er wurde also nicht hinzugefügt.",
+      "unreachableMessage": "Der Host \"{{- host}}\" konnte nicht validiert werden. Der Arbeitsbereich ist weiterhin in Ihrer Liste."
     },
     "certificateError": {
       "title": "Zertifikatsfehler",

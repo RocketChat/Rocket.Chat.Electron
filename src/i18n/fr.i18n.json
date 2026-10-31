@@ -40,7 +40,8 @@
     },
     "addServerError": {
       "title": "Hôte invalide",
-      "message": "L'hôte \"{{- host}}\" n'a pas pu être validé, donc n'a pas été ajouté."
+      "message": "L'hôte \"{{- host}}\" n'a pas pu être validé, donc n'a pas été ajouté.",
+      "unreachableMessage": "L'hôte \"{{- host}}\" n'a pas pu être validé. L'espace de travail est toujours dans votre liste."
     },
     "certificateError": {
       "title": "Erreur de certificat",

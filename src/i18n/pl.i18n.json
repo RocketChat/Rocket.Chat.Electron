@@ -38,7 +38,8 @@
     },
     "addServerError": {
       "title": "Niepoprawny host",
-      "message": "Serwer \"{{- host}}\" nie mógł być zweryfikowany, więc nie został dodany."
+      "message": "Serwer \"{{- host}}\" nie mógł być zweryfikowany, więc nie został dodany.",
+      "unreachableMessage": "Serwer \"{{- host}}\" nie mógł być zweryfikowany. Przestrzeń robocza nadal jest na liście."
     },
     "certificateError": {
       "title": "Błąd certyfikatu",

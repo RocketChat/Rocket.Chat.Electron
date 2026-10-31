@@ -11,6 +11,7 @@ import {
 } from '../ui/actions';
 import {
   warnAboutInvalidServerUrl,
+  warnAboutUnreachableServer,
   askForServerAddition,
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -1303,6 +1304,9 @@ describe('deepLinks/main.ts', () => {
 
     it('warns when deep link server URL cannot be resolved', async () => {
       setupDeepLinks();
+      selectMock.mockImplementation((selector: any) =>
+        selector({ servers: [] })
+      );
 
       const warnAboutInvalidServerUrlMock =
         warnAboutInvalidServerUrl as jest.MockedFunction<
@@ -1330,6 +1334,38 @@ describe('deepLinks/main.ts', () => {
         'https://chat.example.com',
         'invalid server'
       );
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('does not say "not added" when an added workspace cannot be resolved', async () => {
+      setupDeepLinks();
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          servers: [{ url: 'https://chat.example.com/', title: 'Chat' }],
+        })
+      );
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com/',
+        ServerUrlResolutionStatus.TIMEOUT,
+        new Error('timeout'),
+      ] as any);
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=chat.example.com&path=channel/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(warnAboutUnreachableServer).toHaveBeenCalledWith(
+        'https://chat.example.com/',
+        'timeout'
+      );
+      expect(warnAboutInvalidServerUrl).not.toHaveBeenCalled();
       expect(mockWebContents.loadURL).not.toHaveBeenCalled();
     });
 

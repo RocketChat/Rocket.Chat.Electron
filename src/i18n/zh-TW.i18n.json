@@ -32,7 +32,8 @@
     },
     "addServerError": {
       "title": "無效的網址",
-      "message": "網址 \"{{- host}}\" 無法驗證，因此沒有新增。"
+      "message": "網址 \"{{- host}}\" 無法驗證，因此沒有新增。",
+      "unreachableMessage": "網址 \"{{- host}}\" 無法驗證。該工作區仍在您的清單中。"
     },
     "certificateError": {
       "title": "憑證錯誤",

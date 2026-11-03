@@ -1,4 +1,15 @@
 {
+  "dialog": {
+    "uiOverride": {
+      "title": "加载界面预览",
+      "message": "要为“{{- host}}”加载其他 Web 界面吗？",
+      "detail": "界面将从 {{- bundle}} 加载，并以你在此服务器上的会话运行。仅在你信任此构建时继续。使用 View > 恢复服务器界面 或重启应用即可恢复。",
+      "load": "加载界面",
+      "cancel": "取消",
+      "developerModeRequired": "请启用 Help > Developer Mode 以加载界面预览。",
+      "failed": "无法加载界面预览。"
+    }
+  },
   "documentViewer": {
     "title": {
       "pdf": "PDF 查看器",
@@ -7,10 +18,22 @@
     "back": "返回"
   },
   "settings": {
+    "sections": {
+      "uiPreview": "Web 界面预览"
+    },
     "options": {
       "resetWindowBounds": {
         "title": "重置窗口大小和位置",
         "description": "忘记应用及其窗口的摆放位置。每个窗口下次显示时将以默认大小居中打开。"
+      },
+      "trayIconUnreadCounter": {
+        "title": "托盘图标中的未读计数",
+        "titleDarwin": "菜单栏图标中的未读指示",
+        "description": "在图标上显示未读消息徽标，而不是你的在线状态。"
+      },
+      "menuBarUnreadCount": {
+        "title": "菜单栏中的未读数",
+        "description": "在菜单栏图标旁显示未读提及的数量。"
       },
       "transparentWindow": {
         "title": "透明窗口效果",
@@ -22,15 +45,6 @@
         "auto": "跟随系统",
         "light": "浅色",
         "dark": "深色"
-      },
-      "trayIconUnreadCounter": {
-        "title": "托盘图标中的未读计数",
-        "titleDarwin": "菜单栏图标中的未读指示",
-        "description": "在图标上显示未读消息徽标，而不是你的在线状态。"
-      },
-      "menuBarUnreadCount": {
-        "title": "菜单栏中的未读数",
-        "description": "在菜单栏图标旁显示未读提及的数量。"
       },
       "uiPreview": {
         "title": "加载 Web 界面构建",
@@ -60,9 +74,31 @@
           "closed": "已关闭"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Web 界面预览"
+    }
+  },
+  "menus": {
+    "simulateDisconnected": "模拟断开连接",
+    "resetWindowBounds": "重置窗口大小和位置",
+    "restoreServerUi": "恢复服务器界面"
+  },
+  "sidebar": {
+    "item": {
+      "updateUiPreview": "更新界面预览"
+    }
+  },
+  "tabBar": {
+    "uiPreview": "界面预览：{{- label}}"
+  },
+  "tray": {
+    "presence": {
+      "status": "状态",
+      "online": "在线",
+      "away": "离开",
+      "busy": "忙碌",
+      "offline": "离线",
+      "disconnected": "已断开连接 — 正在尝试重新连接...",
+      "signIn": "登录 {{- workspace}}",
+      "addWorkspace": "添加工作区"
     }
   },
   "serverInfo": {
@@ -90,41 +126,5 @@
       "label": "过期时间:",
       "expiresOn": "将于 {{date}} 过期"
     }
-  },
-  "menus": {
-    "simulateDisconnected": "模拟断开连接",
-    "resetWindowBounds": "重置窗口大小和位置",
-    "restoreServerUi": "恢复服务器界面"
-  },
-  "sidebar": {
-    "item": {
-      "updateUiPreview": "更新界面预览"
-    }
-  },
-  "tray": {
-    "presence": {
-      "status": "状态",
-      "online": "在线",
-      "away": "离开",
-      "busy": "忙碌",
-      "offline": "离线",
-      "disconnected": "已断开连接 — 正在尝试重新连接...",
-      "signIn": "登录 {{- workspace}}",
-      "addWorkspace": "添加工作区"
-    }
-  },
-  "dialog": {
-    "uiOverride": {
-      "title": "加载界面预览",
-      "message": "要为“{{- host}}”加载其他 Web 界面吗？",
-      "detail": "界面将从 {{- bundle}} 加载，并以你在此服务器上的会话运行。仅在你信任此构建时继续。使用 View > 恢复服务器界面 或重启应用即可恢复。",
-      "load": "加载界面",
-      "cancel": "取消",
-      "developerModeRequired": "请启用 Help > Developer Mode 以加载界面预览。",
-      "failed": "无法加载界面预览。"
-    }
-  },
-  "tabBar": {
-    "uiPreview": "界面预览：{{- label}}"
   }
 }

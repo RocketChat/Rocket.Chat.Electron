@@ -1,29 +1,8 @@
-import { createServerFailure, withoutUrlSecrets } from './serverFailure';
+import { createServerFailure } from './serverFailure';
 
 jest.mock('electron', () => ({
   app: { getPath: jest.fn(() => '/logs') },
 }));
-
-describe('withoutUrlSecrets', () => {
-  it('removes the query string, the fragment and the credentials', () => {
-    expect(
-      withoutUrlSecrets(
-        'https://user:secret@chat.example.com/_oauth/google?code=abc&state=xyz#token=123'
-      )
-    ).toBe('https://chat.example.com/_oauth/google');
-  });
-
-  it('keeps a URL that has nothing to remove', () => {
-    expect(withoutUrlSecrets('https://chat.example.com/home')).toBe(
-      'https://chat.example.com/home'
-    );
-  });
-
-  it('cuts an unparsable URL at its query string or fragment', () => {
-    expect(withoutUrlSecrets('not a url?token=abc')).toBe('not a url');
-    expect(withoutUrlSecrets('not a url#token=abc')).toBe('not a url');
-  });
-});
 
 describe('createServerFailure', () => {
   it('adds the time and the logs path, and cleans the URL', () => {

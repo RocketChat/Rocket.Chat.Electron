@@ -111,6 +111,10 @@ const ErrorView = ({
     return () => clearTimeout(timer);
   }, [isCopied]);
 
+  useEffect(() => {
+    setCopied(false);
+  }, [failure]);
+
   const handleReloadButtonClick = (): void => {
     setReloading(true);
     onReload();

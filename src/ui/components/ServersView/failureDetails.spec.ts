@@ -72,4 +72,15 @@ describe('formatFailureDetails', () => {
     expect(details).not.toContain('Electron');
     expect(details).toContain('OS: linux');
   });
+
+  it('removes the credentials from the server URL', () => {
+    const details = formatFailureDetails(
+      'https://user:secret@chat.example.com/',
+      { kind: 'unresponsive', at: '2026-11-03T12:00:00.000Z' },
+      environment
+    );
+
+    expect(details).toContain('Server: https://chat.example.com/');
+    expect(details).not.toContain('secret');
+  });
 });

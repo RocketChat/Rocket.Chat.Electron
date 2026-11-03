@@ -168,6 +168,39 @@ describe('ErrorView', () => {
     ).toBeInTheDocument();
   });
 
+  it('drops the copied label when a new failure arrives', () => {
+    const { rerender } = renderWithStore(
+      <ErrorView
+        isFailed
+        serverUrl={SERVER_URL}
+        failure={failure}
+        onReload={jest.fn()}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'loadingError.copyDetails' })
+    );
+    expect(
+      screen.getByRole('button', { name: 'loadingError.copied' })
+    ).toBeInTheDocument();
+
+    rerender(
+      <Provider store={createStore(() => ({ appVersion: '4.19.0' }))}>
+        <ErrorView
+          isFailed
+          serverUrl={SERVER_URL}
+          failure={{ ...failure, at: '2026-11-03T12:05:00.000Z' }}
+          onReload={jest.fn()}
+        />
+      </Provider>
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'loadingError.copyDetails' })
+    ).toBeInTheDocument();
+  });
+
   it('shows and hides the error details', () => {
     renderWithStore(
       <ErrorView

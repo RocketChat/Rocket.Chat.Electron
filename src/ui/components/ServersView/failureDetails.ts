@@ -1,4 +1,5 @@
 import type { ServerFailure } from '../../../servers/common';
+import { withoutUrlSecrets } from '../../../servers/withoutUrlSecrets';
 
 export type FailureEnvironment = {
   appVersion: string | null;
@@ -38,7 +39,7 @@ export const formatFailureDetails = (
 
   const lines: [string, string | number | null | undefined][] = [
     ['Time', failure.at],
-    ['Server', serverUrl],
+    ['Server', withoutUrlSecrets(serverUrl)],
     ['Failure', failure.kind],
     ['Error', error],
     ['URL', failure.url],

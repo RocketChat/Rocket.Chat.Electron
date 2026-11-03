@@ -24,5 +24,8 @@ describe('withoutUrlSecrets', () => {
     expect(withoutUrlSecrets('https://user:secret@bad host/path?x=1')).toBe(
       'https://bad host/path'
     );
+    expect(withoutUrlSecrets('//user:secret@bad host/path?x=1')).toBe(
+      '//bad host/path'
+    );
   });
 });

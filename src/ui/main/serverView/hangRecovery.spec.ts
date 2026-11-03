@@ -24,6 +24,7 @@ jest.mock('electron', () => ({
     userAgentFallback: 'test-agent',
     name: 'Rocket.Chat',
     getVersion: jest.fn(() => '1.0.0'),
+    getPath: jest.fn(() => '/logs'),
   },
   clipboard: { writeText: jest.fn() },
   Menu: { buildFromTemplate: jest.fn(() => ({ popup: jest.fn() })) },
@@ -160,7 +161,11 @@ describe('server view hang and crash recovery', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: SERVER_URL, isMainFrame: true },
+      payload: {
+        url: SERVER_URL,
+        isMainFrame: true,
+        failure: expect.objectContaining({ kind: 'unresponsive' }),
+      },
     });
   });
 
@@ -229,7 +234,15 @@ describe('server view hang and crash recovery', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: SERVER_URL, isMainFrame: true },
+      payload: {
+        url: SERVER_URL,
+        isMainFrame: true,
+        failure: expect.objectContaining({
+          kind: 'renderer-gone',
+          reason: 'crashed',
+          exitCode: 11,
+        }),
+      },
     });
   });
 
@@ -241,7 +254,17 @@ describe('server view hang and crash recovery', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: SERVER_URL, isMainFrame: true },
+      payload: {
+        url: SERVER_URL,
+        isMainFrame: true,
+        failure: expect.objectContaining({
+          kind: 'load-failed',
+          errorCode: -106,
+          errorDescription: 'ERR_INTERNET_DISCONNECTED',
+          url: SERVER_URL,
+          logsPath: '/logs',
+        }),
+      },
     });
   });
 
@@ -307,7 +330,14 @@ describe('server view hang and crash recovery', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith({
         type: WEBVIEW_DID_FAIL_LOAD,
-        payload: { url: SERVER_URL, isMainFrame: true },
+        payload: {
+          url: SERVER_URL,
+          isMainFrame: true,
+          failure: expect.objectContaining({
+            kind: 'stuck',
+            reason: 'server unreachable (ERR_NAME_NOT_RESOLVED)',
+          }),
+        },
       });
     });
 

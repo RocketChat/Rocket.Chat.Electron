@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
 import { isConferencePageUrl } from '../../../servers/common';
+import type { ServerFailure } from '../../../servers/common';
 import { listen } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import {
@@ -24,6 +25,7 @@ type ServerPaneProps = {
   serverUrl: string;
   isSelected: boolean;
   isFailed: boolean;
+  failure?: ServerFailure;
   isSupported: boolean | undefined;
   supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   title: string | undefined;
@@ -36,6 +38,7 @@ export const ServerPane = ({
   serverUrl,
   isSelected,
   isFailed,
+  failure,
   isSupported,
   supportedVersionsFetchState,
   userLoggedIn,
@@ -360,7 +363,12 @@ export const ServerPane = ({
         instanceDomain={new URL(serverUrl).hostname}
         serverUrl={serverUrl}
       />
-      <ErrorView isFailed={isFailed} onReload={handleReload} />
+      <ErrorView
+        isFailed={isFailed}
+        serverUrl={serverUrl}
+        failure={failure}
+        onReload={handleReload}
+      />
       {isFindBarOpen && !isFailed && (
         <FindInPageBar
           query={findQuery}

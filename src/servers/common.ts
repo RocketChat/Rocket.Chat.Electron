@@ -11,6 +11,31 @@ export type MediaCaptureState = {
 
 export type MediaCaptureSource = 'workspace' | 'videoCall';
 
+export type ServerFailureKind =
+  | 'load-failed'
+  | 'unresponsive'
+  | 'stuck'
+  | 'renderer-gone';
+
+/** Why the server view shows the failure view, kept for the user to read and copy. */
+export type ServerFailure = {
+  kind: ServerFailureKind;
+  /** ISO time of the failure. */
+  at: string;
+  /** Chromium net error code, for `load-failed`. */
+  errorCode?: number;
+  /** Chromium net error name, for `load-failed`. */
+  errorDescription?: string;
+  /** The URL that did not load, without its query string or fragment. */
+  url?: string;
+  /** Why navigation got stuck, or why the renderer is gone. */
+  reason?: string;
+  /** Exit code of the renderer, for `renderer-gone`. */
+  exitCode?: number;
+  /** Directory that holds the app's log files. */
+  logsPath?: string;
+};
+
 export type Server = {
   url: string;
   title?: string;
@@ -25,6 +50,7 @@ export type Server = {
   customTheme?: string;
   lastPath?: string;
   failed?: boolean;
+  failure?: ServerFailure;
   webContentsId?: number;
   userLoggedIn?: boolean;
   userRoles?: string[];

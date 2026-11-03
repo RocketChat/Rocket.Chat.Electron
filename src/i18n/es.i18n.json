@@ -184,11 +184,9 @@
       "clear": "Limpiar filtros",
       "all": "Todos",
       "mimes": {
-        "images": "Imágenes",
-        "videos": "Videos",
-        "audios": "Audios",
-        "texts": "Textos",
-        "files": "Archivos"
+        "image": "Imágenes",
+        "video": "Videos",
+        "application": "Archivos"
       },
       "statuses": {
         "paused": "Pausada",
@@ -230,6 +228,9 @@
     "title": "Configuración",
     "general": "General",
     "certificates": "Certificados",
+    "sections": {
+      "uiPreview": "Vista previa de la UI web"
+    },
     "options": {
       "report": {
         "title": "Informar errores a los desarrolladores",
@@ -354,9 +355,6 @@
           "closed": "Cerrado"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Vista previa de la UI web"
     }
   },
   "error": {
@@ -381,6 +379,7 @@
     "copy": "&Copiar",
     "cut": "Cor&tar",
     "developerMode": "Modo desarrollador",
+    "simulateDisconnected": "Simular desconexión",
     "disableGpu": "Deshabilitar GPU",
     "documentation": "Documentación",
     "downloads": "Descargas",
@@ -418,7 +417,6 @@
     "windowMenu": "&Ventana",
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
-    "simulateDisconnected": "Simular desconexión",
     "restoreServerUi": "Restaurar la UI del servidor"
   },
   "findInPage": {

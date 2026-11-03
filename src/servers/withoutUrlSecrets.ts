@@ -11,6 +11,6 @@ export const withoutUrlSecrets = (url: string): string => {
   } catch {
     return url
       .split(/[?#]/, 1)[0]
-      .replace(/^([a-z][a-z\d+.-]*:\/\/)[^/]*@/i, '$1');
+      .replace(/^((?:[a-z][a-z\d+.-]*:)?\/\/)[^/]*@/i, '$1');
   }
 };

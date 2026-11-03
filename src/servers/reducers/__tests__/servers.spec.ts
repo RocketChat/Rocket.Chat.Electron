@@ -491,6 +491,20 @@ describe('servers reducer', () => {
 
       expect(newState[0].failed).toBe(false);
     });
+
+    it('should clear the failure cause', () => {
+      const failed: Server = {
+        url,
+        failed: true,
+        failure: { kind: 'unresponsive', at: '2026-11-03T12:00:00.000Z' },
+      };
+      const newState = servers([failed], {
+        type: WEBVIEW_DID_START_LOADING,
+        payload: { url },
+      } as any);
+
+      expect(newState[0].failure).toBeUndefined();
+    });
   });
 
   describe('WEBVIEW_BECAME_RESPONSIVE', () => {
@@ -513,6 +527,21 @@ describe('servers reducer', () => {
       } as any);
 
       expect(newState[0].failed).toBe(true);
+    });
+
+    it('should keep the failure cause when main frame', () => {
+      const failure = {
+        kind: 'load-failed',
+        at: '2026-11-03T12:00:00.000Z',
+        errorCode: -105,
+        errorDescription: 'ERR_NAME_NOT_RESOLVED',
+      } as const;
+      const newState = servers([existing], {
+        type: WEBVIEW_DID_FAIL_LOAD,
+        payload: { url, isMainFrame: true, failure },
+      } as any);
+
+      expect(newState[0].failure).toEqual(failure);
     });
 
     it('should return unchanged state when not main frame', () => {
@@ -544,6 +573,22 @@ describe('servers reducer', () => {
       } as any);
 
       expect(newState[0].url).toBe('https://open.rocket.chat/');
+    });
+
+    it('should drop a failure cause saved with a persisted server', () => {
+      const newState = servers([], {
+        type: SERVERS_LOADED,
+        payload: {
+          servers: [
+            {
+              url: 'https://open.rocket.chat',
+              failure: { kind: 'unresponsive', at: '2026-11-03T12:00:00.000Z' },
+            },
+          ],
+        },
+      } as any);
+
+      expect(newState[0].failure).toBeUndefined();
     });
 
     it('should reset audio state flags and mediaCapture for a persisted server', () => {

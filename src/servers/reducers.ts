@@ -311,13 +311,13 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_DID_START_LOADING:
     case WEBVIEW_BECAME_RESPONSIVE: {
       const { url } = action.payload;
-      return upsert(state, { url, failed: false });
+      return upsert(state, { url, failed: false, failure: undefined });
     }
 
     case WEBVIEW_DID_FAIL_LOAD: {
-      const { url, isMainFrame } = action.payload;
+      const { url, isMainFrame, failure } = action.payload;
       if (isMainFrame) {
-        return upsert(state, { url, failed: true });
+        return upsert(state, { url, failed: true, failure });
       }
 
       return state;
@@ -331,6 +331,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         isAudible: false,
         isAudioMuted: false,
         mediaCapture: undefined,
+        failure: undefined,
       }));
     }
 

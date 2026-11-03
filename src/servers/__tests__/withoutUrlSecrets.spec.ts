@@ -1,4 +1,4 @@
-import { withoutUrlSecrets } from './withoutUrlSecrets';
+import { withoutUrlSecrets } from '../withoutUrlSecrets';
 
 describe('withoutUrlSecrets', () => {
   it('removes the query string, the fragment and the credentials', () => {
@@ -21,11 +21,11 @@ describe('withoutUrlSecrets', () => {
   });
 
   it('removes the credentials from an unparsable URL', () => {
-    expect(withoutUrlSecrets('https://user:secret@bad host/path?x=1')).toBe(
-      'https://bad host/path'
+    expect(withoutUrlSecrets('https://user:secret@[bad/path?x=1')).toBe(
+      'https://[bad/path'
     );
-    expect(withoutUrlSecrets('//user:secret@bad host/path?x=1')).toBe(
-      '//bad host/path'
+    expect(withoutUrlSecrets('//user:secret@[bad/path?x=1')).toBe(
+      '//[bad/path'
     );
   });
 });

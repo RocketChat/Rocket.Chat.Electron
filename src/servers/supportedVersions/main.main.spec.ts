@@ -244,8 +244,11 @@ describe('supportedVersions/main.ts', () => {
         const auth = new Headers(init?.headers).get('Authorization');
         if (new URL(url).host === 'test.rocket.chat') {
           expect(auth).toBe(expectedAuth);
+          // A redirect could forward the header to another origin.
+          expect(init?.redirect).toBe('error');
         } else {
           expect(auth).toBeNull();
+          expect(init?.redirect).toBe('follow');
         }
       }
       expect(

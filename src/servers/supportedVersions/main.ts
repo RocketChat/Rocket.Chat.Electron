@@ -79,6 +79,11 @@ const getBuiltinSupportedVersions = async (): Promise<
 // behind basic auth go in an Authorization header, and only to that server's
 // host. `credentials: 'omit'` keeps the partition's cookies out of these
 // requests, as with the former Node client.
+//
+// session.fetch() keeps an explicit Authorization header on a cross-origin
+// redirect, so a request that carries credentials does not follow redirects.
+// `redirect: 'manual'` cannot replace it: session.fetch() rejects with
+// "Redirect was cancelled" instead of returning the 3xx response.
 const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
   const target = new URL(url);
   const server = new URL(serverUrl);
@@ -94,7 +99,11 @@ const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
   }
   const response = await session
     .fromPartition(`persist:${serverUrl}`)
-    .fetch(target.href, { headers, credentials: 'omit' });
+    .fetch(target.href, {
+      headers,
+      credentials: 'omit',
+      redirect: headers.has('Authorization') ? 'error' : 'follow',
+    });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
   }

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import type { Certificate } from 'electron';
-import { app } from 'electron';
+import { app, session } from 'electron';
 
 import { select, dispatch, request } from '../store';
 import {
@@ -19,7 +19,9 @@ import {
 import {
   serializeCertificate,
   isProtocolAllowed,
+  isUserTrustedCertificate,
   setupNavigation,
+  setupTrustedCertificateVerification,
 } from './main';
 
 jest.mock('fs', () => ({
@@ -33,6 +35,10 @@ jest.mock('electron', () => ({
   app: {
     addListener: jest.fn(),
     getPath: jest.fn(),
+    on: jest.fn(),
+  },
+  session: {
+    defaultSession: { setCertificateVerifyProc: jest.fn() },
   },
 }));
 jest.mock('../store');
@@ -776,6 +782,127 @@ describe('navigation/main.ts', () => {
       expect(secondCallback).toHaveBeenCalledTimes(1);
       expect(firstCallback).toHaveBeenCalledWith(true);
       expect(secondCallback).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('isUserTrustedCertificate', () => {
+    const certificate = makeCertificate();
+    const serialized = 'Example CA\nCERT-DATA';
+
+    it('matches a trusted certificate for the same hostname', () => {
+      expect(
+        isUserTrustedCertificate(
+          { 'test.example.lab': serialized },
+          'test.example.lab',
+          certificate
+        )
+      ).toBe(true);
+    });
+
+    it('matches a host key that carries a port', () => {
+      expect(
+        isUserTrustedCertificate(
+          { 'test.example.lab:8443': serialized },
+          'test.example.lab',
+          certificate
+        )
+      ).toBe(true);
+    });
+
+    it('rejects a different certificate for the same hostname', () => {
+      expect(
+        isUserTrustedCertificate(
+          { 'test.example.lab': 'Other CA\nOTHER' },
+          'test.example.lab',
+          certificate
+        )
+      ).toBe(false);
+    });
+
+    it('rejects the same certificate trusted for another hostname', () => {
+      expect(
+        isUserTrustedCertificate(
+          { 'other.example.lab': serialized },
+          'test.example.lab',
+          certificate
+        )
+      ).toBe(false);
+    });
+  });
+
+  describe('setupTrustedCertificateVerification', () => {
+    const setVerifyProcMock = session.defaultSession
+      .setCertificateVerifyProc as jest.Mock;
+    const appOnMock = app.on as jest.Mock;
+
+    const getProc = () => {
+      setupTrustedCertificateVerification();
+      return setVerifyProcMock.mock.calls[0][0] as (
+        request: {
+          hostname: string;
+          certificate: Certificate;
+          verificationResult: string;
+        },
+        callback: (result: number) => void
+      ) => void;
+    };
+
+    const runProc = (verificationResult: string, trusted: string) => {
+      selectMock.mockImplementation((selector: any) =>
+        selector({ trustedCertificates: { 'test.example.lab': trusted } })
+      );
+      const callback = jest.fn();
+      getProc()(
+        {
+          hostname: 'test.example.lab',
+          certificate: makeCertificate(),
+          verificationResult,
+        },
+        callback
+      );
+      return callback;
+    };
+
+    it('installs the proc on the default session and on each new session', () => {
+      setupTrustedCertificateVerification();
+      expect(setVerifyProcMock).toHaveBeenCalledTimes(1);
+      expect(appOnMock).toHaveBeenCalledWith(
+        'session-created',
+        expect.any(Function)
+      );
+
+      const newSession = { setCertificateVerifyProc: jest.fn() };
+      appOnMock.mock.calls[0][1](newSession);
+      expect(newSession.setCertificateVerifyProc).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts a failed verification of a user-trusted certificate', () => {
+      const callback = runProc(
+        'net::ERR_CERT_AUTHORITY_INVALID',
+        'Example CA\nCERT-DATA'
+      );
+      expect(callback).toHaveBeenCalledWith(0);
+    });
+
+    it('keeps the Chromium result for a certificate the user did not trust', () => {
+      const callback = runProc(
+        'net::ERR_CERT_AUTHORITY_INVALID',
+        'Other CA\nOTHER'
+      );
+      expect(callback).toHaveBeenCalledWith(-3);
+    });
+
+    it('never accepts a revoked certificate, even when trusted', () => {
+      const callback = runProc(
+        'net::ERR_CERT_REVOKED',
+        'Example CA\nCERT-DATA'
+      );
+      expect(callback).toHaveBeenCalledWith(-3);
+    });
+
+    it('keeps the Chromium result for a valid certificate', () => {
+      const callback = runProc('net::OK', 'Example CA\nCERT-DATA');
+      expect(callback).toHaveBeenCalledWith(-3);
     });
   });
 });

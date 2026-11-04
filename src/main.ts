@@ -35,7 +35,10 @@ import {
   cleanupOldLogs,
   setupDebugLoggingWatch,
 } from './logging';
-import { setupNavigation } from './navigation/main';
+import {
+  setupNavigation,
+  setupTrustedCertificateVerification,
+} from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
 import {
@@ -133,6 +136,9 @@ const start = async (): Promise<void> => {
   cleanupOldLogs();
 
   createMainReduxStore();
+
+  // Before setupServers: server sessions and their requests start there.
+  setupTrustedCertificateVerification();
 
   // Must be listening before any server view can boot and dispatch
   // WEBVIEW_SERVER_VERSION_UPDATED — listen() does not replay actions.

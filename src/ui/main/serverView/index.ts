@@ -67,6 +67,7 @@ import {
 } from './hangRecovery';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
+import { createServerFailure } from './serverFailure';
 import type { ReconnectBackoff } from './stuckNavigation';
 import {
   isUnreachableError,
@@ -466,7 +467,18 @@ const initializeServerWebContentsAfterAttach = (
 
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, isMainFrame },
+      payload: {
+        url: serverUrl,
+        isMainFrame,
+        ...(isMainFrame && {
+          failure: createServerFailure({
+            kind: 'load-failed',
+            errorCode,
+            errorDescription,
+            url: validatedURL,
+          }),
+        }),
+      },
     });
   };
 
@@ -483,7 +495,11 @@ const initializeServerWebContentsAfterAttach = (
     }
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, isMainFrame: true },
+      payload: {
+        url: serverUrl,
+        isMainFrame: true,
+        failure: createServerFailure({ kind: 'unresponsive' }),
+      },
     });
   };
 
@@ -511,7 +527,11 @@ const initializeServerWebContentsAfterAttach = (
       }
       dispatch({
         type: WEBVIEW_DID_FAIL_LOAD,
-        payload: { url: serverUrl, isMainFrame: true },
+        payload: {
+          url: serverUrl,
+          isMainFrame: true,
+          failure: createServerFailure({ kind: 'stuck', reason }),
+        },
       });
       if (isUnreachable) {
         reloadWhenReachable();
@@ -557,7 +577,15 @@ const initializeServerWebContentsAfterAttach = (
     }
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, isMainFrame: true },
+      payload: {
+        url: serverUrl,
+        isMainFrame: true,
+        failure: createServerFailure({
+          kind: 'renderer-gone',
+          reason: details.reason,
+          exitCode: details.exitCode,
+        }),
+      },
     });
   };
 

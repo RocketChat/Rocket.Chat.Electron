@@ -676,7 +676,9 @@ const withExceptionScopeUniqueId = async (
 //
 // The rule is narrow on purpose, so it cannot unblock a server that the data
 // does judge:
-// - only a stable server version (a prerelease keeps the normal check);
+// - a prerelease (`9.1.0-develop`) counts as its base version, but only when
+//   no candidate lists any entry for its minor: a listed prerelease entry,
+//   even an expired one, is data that judges the build;
 // - only a minor newer than the newest stable entry of EVERY candidate, so a
 //   version that one candidate knows (and rejects) stays blocked;
 // - no candidate may hold an exception for this server: an exception that
@@ -690,14 +692,22 @@ const isNewerThanFallbackData = async (
   serverCommitHash: string | undefined
 ): Promise<boolean> => {
   const trimmed = server.version?.trim();
-  if (!trimmed || trimmed.includes('-')) {
-    return false;
-  }
+  if (!trimmed) return false;
   const serverVersion = coerce(trimmed);
   if (!serverVersion || candidates.length === 0) return false;
   const serverMinor = `${serverVersion.major}.${serverVersion.minor}.0`;
+  const isPrerelease = trimmed.includes('-');
 
   const isNewerThanStableEntries = candidates.every(({ versions }) => {
+    const listsServerMinor = (versions.versions ?? []).some(({ version }) => {
+      const listed = typeof version === 'string' ? coerce(version) : null;
+      return (
+        listed?.major === serverVersion.major &&
+        listed?.minor === serverVersion.minor
+      );
+    });
+    if (isPrerelease && listsServerMinor) return false;
+
     const newestStable = (versions.versions ?? [])
       .filter(
         ({ version }) => typeof version === 'string' && !version.includes('-')

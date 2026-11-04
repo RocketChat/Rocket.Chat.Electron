@@ -2448,10 +2448,31 @@ describe('supportedVersions/main.ts', () => {
       expect(await verdictFor('10.0.0', snapshot417)).toBe(false);
     });
 
-    it('still blocks a prerelease server version', async () => {
-      expect(await verdictFor('9.0.0-rc.1', snapshot417)).toBe(false);
+    it('does not block a prerelease of a minor newer than the snapshot', async () => {
+      expect(await verdictFor('9.0.0-rc.1', snapshot417)).toBe(true);
     });
 
+    it('does not block a develop build of the next minor (Desktop 4.19.0 with server 9.1.0-develop)', async () => {
+      const snapshot = createMockSupportedVersions({
+        versions: [
+          { version: '8.10.0', expiration: future },
+          { version: '9.0.0', expiration: future },
+          { version: '9.0.1', expiration: future },
+        ],
+        exceptions: undefined,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+      expect(await verdictFor('9.1.0-develop', snapshot)).toBe(true);
+    });
+
+    it('still blocks a prerelease that the snapshot lists, even when the entry expired', async () => {
+      expect(await verdictFor('8.9.0-develop', snapshot417)).toBe(false);
+      expect(await verdictFor('8.8.0-rc.5', snapshot417)).toBe(false);
+    });
+
+    it('still blocks a prerelease two majors ahead', async () => {
+      expect(await verdictFor('10.0.0-develop', snapshot417)).toBe(false);
+    });
     it('still blocks when the other candidate knows the version and rejects it', async () => {
       // The cache came from a later fetch: it lists 8.9 and says it expired.
       const cached = createMockSupportedVersions({

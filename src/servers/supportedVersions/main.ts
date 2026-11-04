@@ -1,14 +1,16 @@
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import axios from 'axios';
-import { ipcMain, powerMonitor } from 'electron';
+import type { Session } from 'electron';
+import { ipcMain, powerMonitor, session } from 'electron';
 import ElectronStore from 'electron-store';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
-import { coerce, satisfies } from 'semver';
+import { coerce, gt, satisfies } from 'semver';
 import semverGte from 'semver/functions/gte';
 
+import { serializeCertificate } from '../../navigation/serializeCertificate';
 import { dispatch, listen, select } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
@@ -69,21 +71,114 @@ const getBuiltinSupportedVersions = async (): Promise<
   }
 };
 
+// Requests go through an Electron session, not a Node HTTP client: the
+// session applies the same proxy settings and OS certificate store as the
+// webview. A Node client reads the http_proxy/https_proxy variables instead,
+// so it failed behind a proxy that the webview did not use, and the check fell
+// back to stale builtin data that blocked a supported server.
+//
+// The app 'certificate-error' event, where the user trusts a certificate,
+// fires only for webContents loads. So each check session has a verify proc
+// that accepts the certificate the user trusted for the server host. Chromium
+// caches each verification result per session, and no API clears that cache.
+// So each trust state of a server gets its own in-memory session: trusting or
+// removing a certificate starts the next check with an empty cache. The
+// webview sessions keep their default verification.
+const CERT_OK = 0;
+const CERT_REVOKED = -206; // net_error_list.h
+const ACCEPT_CERTIFICATE = 0;
+const USE_CHROMIUM_RESULT = -3;
+
+const checkSessions = new Map<string, Session>();
+
+const getCheckSession = (serverUrl: string): Session => {
+  const { host, hostname, origin } = new URL(serverUrl);
+  const readTrusted = (): string | undefined => {
+    const trustedCertificates = select(
+      ({ trustedCertificates }) => trustedCertificates
+    );
+    return typeof trustedCertificates?.[host] === 'string'
+      ? trustedCertificates[host]
+      : undefined;
+  };
+  const trusted = readTrusted();
+  // The session holds no credentials (requests omit cookies and build the
+  // Authorization header each time), so the key is the origin without them.
+  const partition = `supported-versions:${createHash('sha256')
+    .update(`${origin}\n${trusted ?? ''}`)
+    .digest('hex')}`;
+
+  const existing = checkSessions.get(partition);
+  if (existing) return existing;
+
+  const checkSession = session.fromPartition(partition);
+  checkSession.setCertificateVerifyProc(
+    ({ hostname: requestHostname, certificate, errorCode }, callback) => {
+      // A request that started before the user removed the trust can verify
+      // after it. Accept only while the store still holds this certificate.
+      const accept =
+        trusted !== undefined &&
+        readTrusted() === trusted &&
+        errorCode !== CERT_OK &&
+        errorCode !== CERT_REVOKED &&
+        requestHostname === hostname &&
+        serializeCertificate(certificate) === trusted;
+      callback(accept ? ACCEPT_CERTIFICATE : USE_CHROMIUM_RESULT);
+    }
+  );
+  checkSessions.set(partition, checkSession);
+  return checkSession;
+};
+
+//
+// fetch() rejects a URL with `user:pass@`, so the credentials of a server
+// behind basic auth go in an Authorization header, and only to that server's
+// origin. `credentials: 'omit'` keeps the partition's cookies out of these
+// requests, as with the former Node client.
+//
+// session.fetch() keeps an explicit Authorization header on a cross-origin
+// redirect, so a request that carries credentials does not follow redirects.
+// `redirect: 'manual'` cannot replace it: session.fetch() rejects with
+// "Redirect was cancelled" instead of returning the 3xx response.
+// The URL parser keeps a bare '%' in userinfo as written (for example the
+// password `100%sure`), and decodeURIComponent throws on it. Keep such text
+// as written.
+const decodeUserInfo = (part: string): string => {
+  try {
+    return decodeURIComponent(part);
+  } catch {
+    return part;
+  }
+};
+
+const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
+  const target = new URL(url);
+  const server = new URL(serverUrl);
+  target.username = '';
+  target.password = '';
+  const headers = new Headers();
+  if (server.username && target.origin === server.origin) {
+    const credentials = `${decodeUserInfo(server.username)}:${decodeUserInfo(server.password)}`;
+    headers.set(
+      'Authorization',
+      `Basic ${Buffer.from(credentials).toString('base64')}`
+    );
+  }
+  const response = await getCheckSession(serverUrl).fetch(target.href, {
+    headers,
+    credentials: 'omit',
+    redirect: headers.has('Authorization') ? 'error' : 'follow',
+  });
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+  return (await response.json()) as T;
+};
+
 const logRequestError =
   (description: string) =>
   (error: unknown): undefined => {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        console.error(
-          `Couldn't load ${description}: ${error.response.status} ${error.response.data}`
-        );
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error(`Couldn't load ${description}: ${error.message}`);
-      }
-    } else {
-      console.error(`Fetching ${description} error:`, error);
-    }
+    console.error(`Couldn't load ${description}:`, error);
     return undefined;
   };
 
@@ -183,16 +278,14 @@ const getCloudInfo = async (
   uniqueId: string
 ): Promise<CloudInfo | undefined> => {
   const domain = new URL(url).hostname;
-  const response = await axios.get<CloudInfo>(
+  return fetchJson<CloudInfo>(
+    url,
     urls.supportedVersions({ domain, uniqueId })
   );
-  return response.data;
 };
 
-const getServerInfo = async (url: string): Promise<ServerInfo> => {
-  const response = await axios.get<ServerInfo>(urls.server(url).info);
-  return response.data;
-};
+const getServerInfo = (url: string): Promise<ServerInfo> =>
+  fetchJson<ServerInfo>(url, urls.server(url).info);
 
 const getUniqueId = async (
   url: string,
@@ -205,10 +298,11 @@ const getUniqueId = async (
     : urls.server(url).setting('uniqueID');
 
   try {
-    const response = await axios.get<{ settings: { value: string }[] }>(
+    const data = await fetchJson<{ settings: { value: string }[] }>(
+      url,
       serverUrl
     );
-    const value = response.data?.settings?.[0]?.value;
+    const value = data?.settings?.[0]?.value;
 
     if (!value) {
       console.warn(`No unique ID found for server ${url}`);
@@ -586,6 +680,155 @@ const withExceptionScopeUniqueId = async (
     : serverView;
 };
 
+// Supported-versions data is a snapshot: the builtin payload is from the
+// app's build, the cache is from the last successful fetch, and the server or
+// cloud payload can lag behind a release. A server release that came out
+// after the snapshot is not in it, so there "not listed" means "unknown", not
+// "unsupported", and an unknown verdict must not block.
+//
+// The rule is narrow on purpose, so it cannot unblock a server that the data
+// does judge:
+// - a prerelease (`9.1.0-develop`) counts as its base version, but only when
+//   no candidate lists any entry for its minor: a listed prerelease entry,
+//   even an expired one, is data that judges the build;
+// - only a minor newer than the newest stable entry of EVERY candidate, so a
+//   version that one candidate knows (and rejects) stays blocked;
+// - no candidate may hold an exception for this server: an exception that
+//   matches but did not grant support has expired, so the data rejects it;
+// - fallback data (no fresh data reachable): at most one major ahead of that
+//   entry, so an implausible version stays blocked;
+// - fresh server or cloud data: only the next release after that entry (the
+//   next minor, or the next major's .0), because fresh data lags only until
+//   the release is added.
+// Build metadata (after '+') can hold a hyphen, so it does not make a
+// version a prerelease.
+const isPrereleaseVersion = (version: string): boolean =>
+  version.split('+')[0].includes('-');
+
+const isNewerThanSupportedVersionsData = async (
+  server: Server,
+  candidates: {
+    versions: SupportedVersions;
+    source: 'server' | 'cloud' | 'builtin';
+  }[],
+  serverCommitHash: string | undefined,
+  { nextReleaseOnly }: { nextReleaseOnly: boolean }
+): Promise<boolean> => {
+  const trimmed = server.version?.trim();
+  if (!trimmed) return false;
+  const serverVersion = coerce(trimmed);
+  if (!serverVersion || candidates.length === 0) return false;
+  const serverMinor = `${serverVersion.major}.${serverVersion.minor}.0`;
+  const isPrerelease = isPrereleaseVersion(trimmed);
+
+  const isNewerThanStableEntries = candidates.every(({ versions }) => {
+    const listsServerMinor = (versions.versions ?? []).some(({ version }) => {
+      const listed = typeof version === 'string' ? coerce(version) : null;
+      return (
+        listed?.major === serverVersion.major &&
+        listed?.minor === serverVersion.minor
+      );
+    });
+    if (isPrerelease && listsServerMinor) return false;
+
+    const newestStable = (versions.versions ?? [])
+      .filter(
+        ({ version }) =>
+          typeof version === 'string' && !isPrereleaseVersion(version)
+      )
+      .map(({ version }) => coerce(version))
+      .reduce<ReturnType<typeof coerce>>(
+        (newest, version) =>
+          version && (!newest || gt(version, newest)) ? version : newest,
+        null
+      );
+    if (!newestStable) return false;
+    if (nextReleaseOnly) {
+      return (
+        (serverVersion.major === newestStable.major &&
+          serverVersion.minor === newestStable.minor + 1) ||
+        (serverVersion.major === newestStable.major + 1 &&
+          serverVersion.minor === 0)
+      );
+    }
+    return (
+      gt(serverMinor, `${newestStable.major}.${newestStable.minor}.0`) &&
+      serverVersion.major <= newestStable.major + 1
+    );
+  });
+  if (!isNewerThanStableEntries) return false;
+
+  const hasException = await Promise.all(
+    candidates.map(({ versions, source }) =>
+      hasExceptionForServer(server, versions, serverCommitHash, source)
+    )
+  );
+  return !hasException.includes(true);
+};
+
+// Fresh server or cloud data can lag behind a release: the next release after
+// its newest stable entry is not blocked until the data lists it.
+const withNextReleaseAllowed = async (
+  verdict: Awaited<ReturnType<typeof isServerVersionSupported>>,
+  server: Server,
+  versions: SupportedVersions,
+  source: 'server' | 'cloud',
+  serverCommitHash: string | undefined
+): Promise<Awaited<ReturnType<typeof isServerVersionSupported>>> => {
+  if (verdict.supported) return verdict;
+  const isNextRelease = await isNewerThanSupportedVersionsData(
+    server,
+    [{ versions, source }],
+    serverCommitHash,
+    { nextReleaseOnly: true }
+  );
+  if (!isNextRelease) return verdict;
+  console.warn(
+    `Server ${server.url} version ${server.version} is the next release after ` +
+      `the ${source} supported-versions data, which does not list it yet. ` +
+      `Not blocking it until the data lists it.`
+  );
+  return { supported: true };
+};
+
+// Whether the payload holds an exception that matches this server, under the
+// matching and scope rules of isServerVersionSupported. It asks
+// isServerVersionSupported itself, with no regular versions, every exception
+// unexpired and enforcement active: then only a matching exception in scope
+// can return `supported`. The rules stay in one place.
+const hasExceptionForServer = async (
+  server: Server,
+  supportedVersions: SupportedVersions,
+  serverCommitHash: string | undefined,
+  source: 'server' | 'cloud' | 'builtin'
+): Promise<boolean> => {
+  const { exceptions } = supportedVersions;
+  if (!exceptions?.versions?.length) return false;
+  const neverExpires = new Date('9999-12-31T23:59:59Z');
+  // Without a fresh commit hash, do not match against the persisted one. The
+  // server version is newer than the data, so the persisted hash can belong
+  // to the build before an upgrade, and an expired exception for that build
+  // must not block the new one.
+  const { supported } = await isServerVersionSupported(
+    serverCommitHash ? server : { ...server, gitCommitHash: undefined },
+    {
+      ...supportedVersions,
+      versions: [],
+      exceptions: {
+        ...exceptions,
+        versions: exceptions.versions.map((exception) => ({
+          ...exception,
+          expiration: neverExpires,
+        })),
+      },
+      enforcementStartDate: new Date(0).toISOString(),
+    },
+    serverCommitHash,
+    source
+  );
+  return supported;
+};
+
 // Validates the fallback (cache/builtin) candidates, in order, and dispatches
 // the verdict. isServerVersionSupported can throw on a malformed
 // cached/builtin payload (e.g. `versions` not an array). Left unguarded, that
@@ -634,8 +877,27 @@ const validateFallbackAndDispatch = async (
         verdict = otherVerdict;
       }
     }
+    if (
+      !verdict.supported &&
+      (await isNewerThanSupportedVersionsData(
+        server,
+        candidates,
+        freshCommitHash,
+        { nextReleaseOnly: false }
+      ))
+    ) {
+      console.warn(
+        `Server ${server.url} version ${server.version} is newer than the ` +
+          `${candidates.map(({ source }) => source).join(' and ')} ` +
+          `supported-versions data, and no fresh data is reachable. ` +
+          `Not blocking it until fresh data is available.`
+      );
+      verdict = { supported: true };
+    }
     if (isStale()) return;
-    saveToCache(serverUrl, chosen.versions);
+    // Never write the chosen candidate back to the cache. A cached candidate
+    // is already there, and a builtin one would overwrite this tenant's
+    // cached exceptions and come back next launch labeled 'cloud'.
     dispatch({
       type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
       payload: {
@@ -726,11 +988,17 @@ export const updateSupportedVersionsData = async (
           serverInfoResult.version
         );
         if (isStale()) return;
-        const supported = await isServerVersionSupported(
+        const supported = await withNextReleaseAllowed(
+          await isServerVersionSupported(
+            serverForValidation,
+            serverSupportedVersions,
+            freshCommitHash,
+            'server'
+          ),
           serverForValidation,
           serverSupportedVersions,
-          freshCommitHash,
-          'server'
+          'server',
+          freshCommitHash
         );
         if (isStale()) return;
         // Dispatch verdict BEFORE fetchState='success' so UnsupportedServer
@@ -793,11 +1061,17 @@ export const updateSupportedVersionsData = async (
         );
         if (isStale()) return;
         saveToCache(serverUrl, cloudSupportedVersions);
-        const supported = await isServerVersionSupported(
+        const supported = await withNextReleaseAllowed(
+          await isServerVersionSupported(
+            serverWithFreshIdentity,
+            cloudSupportedVersions,
+            freshCommitHash,
+            'cloud'
+          ),
           serverWithFreshIdentity,
           cloudSupportedVersions,
-          freshCommitHash,
-          'cloud'
+          'cloud',
+          freshCommitHash
         );
         if (isStale()) return;
         dispatch({

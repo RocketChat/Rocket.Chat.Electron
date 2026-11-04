@@ -53,12 +53,14 @@ type MockVerifyProc = (
   callback: (result: number) => void
 ) => void;
 const mockVerifyProcs = new Map<string, MockVerifyProc>();
+const mockProcInstalledAtFetch: boolean[] = [];
 const mockFromPartition = (partition: string) => ({
   setCertificateVerifyProc: (proc: MockVerifyProc) => {
     mockVerifyProcs.set(partition, proc);
   },
   fetch: (url: string, init?: RequestInit) => {
     mockPartitions.push(partition);
+    mockProcInstalledAtFetch.push(mockVerifyProcs.has(partition));
     mockRequests.push({ url, init });
     return mockHttp.get(url).then(mockToResponse);
   },
@@ -216,6 +218,7 @@ describe('supportedVersions/main.ts', () => {
         data: createMockServerInfo({ supportedVersions: undefined }),
       });
       mockPartitions.length = 0;
+      mockProcInstalledAtFetch.length = 0;
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -235,6 +238,8 @@ describe('supportedVersions/main.ts', () => {
       // An in-memory session, not the webview's `persist:` one.
       expect(partitions[0].startsWith('supported-versions:')).toBe(true);
       expect(mockVerifyProcs.has(partitions[0])).toBe(true);
+      // Installed before the first request: Chromium caches each result.
+      expect(mockProcInstalledAtFetch.every(Boolean)).toBe(true);
     });
 
     describe('certificate trust', () => {
@@ -254,9 +259,11 @@ describe('supportedVersions/main.ts', () => {
           data: createMockServerInfo({ supportedVersions: undefined }),
         });
         mockPartitions.length = 0;
+        mockProcInstalledAtFetch.length = 0;
         await updateSupportedVersionsData(serverUrl);
         const partitions = [...new Set(mockPartitions)];
         expect(partitions.length).toBe(1);
+        expect(mockProcInstalledAtFetch.every(Boolean)).toBe(true);
         return partitions[0];
       };
 

@@ -77,7 +77,7 @@ const getBuiltinSupportedVersions = async (): Promise<
 //
 // fetch() rejects a URL with `user:pass@`, so the credentials of a server
 // behind basic auth go in an Authorization header, and only to that server's
-// host. `credentials: 'omit'` keeps the partition's cookies out of these
+// origin. `credentials: 'omit'` keeps the partition's cookies out of these
 // requests, as with the former Node client.
 //
 // session.fetch() keeps an explicit Authorization header on a cross-origin
@@ -90,7 +90,7 @@ const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
   target.username = '';
   target.password = '';
   const headers = new Headers();
-  if (server.username && target.host === server.host) {
+  if (server.username && target.origin === server.origin) {
     const credentials = `${decodeURIComponent(server.username)}:${decodeURIComponent(server.password)}`;
     headers.set(
       'Authorization',

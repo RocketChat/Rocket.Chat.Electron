@@ -579,18 +579,22 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
 
       # Upload artifacts to Wasabi (macOS)
+      # With --checksum-algorithm SHA1, the multipart upload of the .dmg to
+      # Wasabi failed with "Checksum Type mismatch". Send a checksum only when
+      # the operation requires one.
       - name: Upload Artifacts to Wasabi (macOS)
         if: ${{ matrix.build-target == 'mac' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
-            --checksum-algorithm SHA1 \
             --exclude "*" \
             --include "rocketchat-*.dmg"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
 
       # Upload artifacts to Wasabi (Ubuntu)
       - name: Upload Artifacts to Wasabi (Ubuntu)

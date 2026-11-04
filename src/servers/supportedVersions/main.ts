@@ -669,10 +669,11 @@ const withExceptionScopeUniqueId = async (
     : serverView;
 };
 
-// Fallback data is a snapshot: the builtin payload is from the app's build,
-// and the cache is from the last successful fetch. A server release that came
-// out after the snapshot is not in it, so there "not listed" means "unknown",
-// not "unsupported", and an unknown verdict must not block.
+// Supported-versions data is a snapshot: the builtin payload is from the
+// app's build, the cache is from the last successful fetch, and the server or
+// cloud payload can lag behind a release. A server release that came out
+// after the snapshot is not in it, so there "not listed" means "unknown", not
+// "unsupported", and an unknown verdict must not block.
 //
 // The rule is narrow on purpose, so it cannot unblock a server that the data
 // does judge:
@@ -683,13 +684,19 @@ const withExceptionScopeUniqueId = async (
 //   version that one candidate knows (and rejects) stays blocked;
 // - no candidate may hold an exception for this server: an exception that
 //   matches but did not grant support has expired, so the data rejects it;
-// - at most one major ahead of that entry, so an implausible version stays
-//   blocked;
-// - only on this fallback path. Fresh server or cloud data always decides.
-const isNewerThanFallbackData = async (
+// - fallback data (no fresh data reachable): at most one major ahead of that
+//   entry, so an implausible version stays blocked;
+// - fresh server or cloud data: only the next release after that entry (the
+//   next minor, or the next major's .0), because fresh data lags only until
+//   the release is added.
+const isNewerThanSupportedVersionsData = async (
   server: Server,
-  candidates: { versions: SupportedVersions; source: 'cloud' | 'builtin' }[],
-  serverCommitHash: string | undefined
+  candidates: {
+    versions: SupportedVersions;
+    source: 'server' | 'cloud' | 'builtin';
+  }[],
+  serverCommitHash: string | undefined,
+  { nextReleaseOnly }: { nextReleaseOnly: boolean }
 ): Promise<boolean> => {
   const trimmed = server.version?.trim();
   if (!trimmed) return false;
@@ -719,6 +726,14 @@ const isNewerThanFallbackData = async (
         null
       );
     if (!newestStable) return false;
+    if (nextReleaseOnly) {
+      return (
+        (serverVersion.major === newestStable.major &&
+          serverVersion.minor === newestStable.minor + 1) ||
+        (serverVersion.major === newestStable.major + 1 &&
+          serverVersion.minor === 0)
+      );
+    }
     return (
       gt(serverMinor, `${newestStable.major}.${newestStable.minor}.0`) &&
       serverVersion.major <= newestStable.major + 1
@@ -734,6 +749,31 @@ const isNewerThanFallbackData = async (
   return !hasException.includes(true);
 };
 
+// Fresh server or cloud data can lag behind a release: the next release after
+// its newest stable entry is not blocked until the data lists it.
+const withNextReleaseAllowed = async (
+  verdict: Awaited<ReturnType<typeof isServerVersionSupported>>,
+  server: Server,
+  versions: SupportedVersions,
+  source: 'server' | 'cloud',
+  serverCommitHash: string | undefined
+): Promise<Awaited<ReturnType<typeof isServerVersionSupported>>> => {
+  if (verdict.supported) return verdict;
+  const isNextRelease = await isNewerThanSupportedVersionsData(
+    server,
+    [{ versions, source }],
+    serverCommitHash,
+    { nextReleaseOnly: true }
+  );
+  if (!isNextRelease) return verdict;
+  console.warn(
+    `Server ${server.url} version ${server.version} is the next release after ` +
+      `the ${source} supported-versions data, which does not list it yet. ` +
+      `Not blocking it until the data lists it.`
+  );
+  return { supported: true };
+};
+
 // Whether the payload holds an exception that matches this server, under the
 // matching and scope rules of isServerVersionSupported. It asks
 // isServerVersionSupported itself, with no regular versions, every exception
@@ -743,7 +783,7 @@ const hasExceptionForServer = async (
   server: Server,
   supportedVersions: SupportedVersions,
   serverCommitHash: string | undefined,
-  source: 'cloud' | 'builtin'
+  source: 'server' | 'cloud' | 'builtin'
 ): Promise<boolean> => {
   const { exceptions } = supportedVersions;
   if (!exceptions?.versions?.length) return false;
@@ -818,7 +858,12 @@ const validateFallbackAndDispatch = async (
     }
     if (
       !verdict.supported &&
-      (await isNewerThanFallbackData(server, candidates, freshCommitHash))
+      (await isNewerThanSupportedVersionsData(
+        server,
+        candidates,
+        freshCommitHash,
+        { nextReleaseOnly: false }
+      ))
     ) {
       console.warn(
         `Server ${server.url} version ${server.version} is newer than the ` +
@@ -922,11 +967,17 @@ export const updateSupportedVersionsData = async (
           serverInfoResult.version
         );
         if (isStale()) return;
-        const supported = await isServerVersionSupported(
+        const supported = await withNextReleaseAllowed(
+          await isServerVersionSupported(
+            serverForValidation,
+            serverSupportedVersions,
+            freshCommitHash,
+            'server'
+          ),
           serverForValidation,
           serverSupportedVersions,
-          freshCommitHash,
-          'server'
+          'server',
+          freshCommitHash
         );
         if (isStale()) return;
         // Dispatch verdict BEFORE fetchState='success' so UnsupportedServer
@@ -989,11 +1040,17 @@ export const updateSupportedVersionsData = async (
         );
         if (isStale()) return;
         saveToCache(serverUrl, cloudSupportedVersions);
-        const supported = await isServerVersionSupported(
+        const supported = await withNextReleaseAllowed(
+          await isServerVersionSupported(
+            serverWithFreshIdentity,
+            cloudSupportedVersions,
+            freshCommitHash,
+            'cloud'
+          ),
           serverWithFreshIdentity,
           cloudSupportedVersions,
-          freshCommitHash,
-          'cloud'
+          'cloud',
+          freshCommitHash
         );
         if (isStale()) return;
         dispatch({

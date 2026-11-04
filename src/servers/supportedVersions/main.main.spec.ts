@@ -2402,6 +2402,8 @@ describe('supportedVersions/main.ts', () => {
         (isolatedFs.readFile as jest.Mock).mockResolvedValue('builtin-jwt');
         (isolatedJwt.verify as jest.Mock).mockReturnValue(builtin);
 
+        // The store mock keeps calls across isolated loads in one test.
+        (store.dispatch as jest.Mock).mockClear();
         jest.useFakeTimers();
         const promise = isolatedUpdate(mockServer.url);
         await jest.advanceTimersByTimeAsync(20000);
@@ -2527,6 +2529,139 @@ describe('supportedVersions/main.ts', () => {
         enforcementStartDate: '2023-12-15T00:00:00Z',
       });
       expect(await verdictFor('8.9.0', snapshot)).toBe(false);
+    });
+  });
+
+  // ========== FRESH DATA: the next release before the data lists it ==========
+  describe('next release missing from fresh data', () => {
+    const expired = new Date(Date.now() - 86400000);
+    const future = new Date(Date.now() + 86400000 * 365);
+    const payload = (
+      versions: { version: string; expiration: Date }[],
+      exceptions?: SupportedVersions['exceptions']
+    ) =>
+      createMockSupportedVersions({
+        versions,
+        exceptions,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+    // The cloud has 9.0 but not yet 9.1.
+    const upTo90 = payload([
+      { version: '8.10.0', expiration: future },
+      { version: '9.0.0', expiration: future },
+      { version: '9.0.1', expiration: future },
+    ]);
+
+    // Runs one update where the server (or, with `via: 'cloud'`, the cloud)
+    // answers with `data`, and returns the verdict.
+    const freshVerdictFor = async (
+      serverVersion: string,
+      data: SupportedVersions,
+      via: 'server' | 'cloud' = 'server'
+    ): Promise<boolean | undefined> => {
+      let verdict: boolean | undefined;
+      await jest.isolateModulesAsync(async () => {
+        jest.mock('../../store');
+        jest.mock('jsonwebtoken');
+        jest.mock('electron-store');
+        jest.mock('node:fs/promises');
+        jest.mock('electron', () => ({
+          session: {
+            fromPartition: (partition: string) => mockFromPartition(partition),
+          },
+          ipcMain: { handle: jest.fn() },
+        }));
+
+        const store = await import('../../store');
+        const isolatedJwt = await import('jsonwebtoken');
+        const isolatedFs = await import('node:fs/promises');
+        const { updateSupportedVersionsData: isolatedUpdate } = await import(
+          './main'
+        );
+
+        const mockServer = createMockServer({
+          version: serverVersion,
+          uniqueID: 'persisted-id',
+        });
+        (store.select as jest.Mock).mockReturnValue(mockServer);
+        mockHttp.get = jest.fn().mockImplementation(async (url: string) => {
+          if (url.endsWith('api/info')) {
+            return {
+              data: createMockServerInfo({
+                version: serverVersion,
+                supportedVersions:
+                  via === 'server' ? { signed: 'server-jwt' } : undefined,
+              }),
+            };
+          }
+          if (url.includes('releases.rocket.chat')) {
+            return { data: { signed: 'cloud-jwt' } };
+          }
+          return { data: { settings: [{ value: 'persisted-id' }] } };
+        });
+        (isolatedFs.readFile as jest.Mock).mockRejectedValue(
+          new Error('no builtin')
+        );
+        (isolatedJwt.verify as jest.Mock).mockReturnValue(data);
+
+        // The store mock keeps calls across isolated loads in one test.
+        (store.dispatch as jest.Mock).mockClear();
+        await isolatedUpdate(mockServer.url);
+
+        const dispatched = (store.dispatch as jest.Mock).mock.calls.find(
+          ([action]) => action.type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+        );
+        verdict = dispatched?.[0]?.payload?.isSupportedVersion;
+      });
+      return verdict;
+    };
+
+    it('does not block the next minor (server 9.1.0, data up to 9.0)', async () => {
+      expect(await freshVerdictFor('9.1.0', upTo90)).toBe(true);
+      expect(await freshVerdictFor('9.1', upTo90)).toBe(true);
+    });
+
+    it('does not block a develop build of the next minor', async () => {
+      expect(await freshVerdictFor('9.1.0-develop', upTo90)).toBe(true);
+    });
+
+    it('applies the same rule to cloud data', async () => {
+      expect(await freshVerdictFor('9.1.0-develop', upTo90, 'cloud')).toBe(
+        true
+      );
+    });
+
+    it('does not block the next major when the data ends at the last minor', async () => {
+      const upTo810 = payload([{ version: '8.10.0', expiration: future }]);
+      expect(await freshVerdictFor('9.0.0', upTo810)).toBe(true);
+      expect(await freshVerdictFor('9.1.0', upTo810)).toBe(false);
+    });
+
+    it('still blocks a version past the next release', async () => {
+      expect(await freshVerdictFor('9.2.0', upTo90)).toBe(false);
+      expect(await freshVerdictFor('10.1.0', upTo90)).toBe(false);
+      expect(await freshVerdictFor('11.0.0', upTo90)).toBe(false);
+    });
+
+    it('still blocks an older version that the data does not list', async () => {
+      expect(await freshVerdictFor('8.5.0', upTo90)).toBe(false);
+    });
+
+    it('still blocks a prerelease that the data lists, even when the entry expired', async () => {
+      const withDevelop = payload([
+        ...upTo90.versions,
+        { version: '9.1.0-develop', expiration: expired },
+      ]);
+      expect(await freshVerdictFor('9.1.0-develop', withDevelop)).toBe(false);
+    });
+
+    it('still blocks when an exception for this server has expired', async () => {
+      const withException = payload(upTo90.versions, {
+        domain: 'test.rocket.chat',
+        uniqueId: '',
+        versions: [{ version: '9.1.0', expiration: expired }],
+      });
+      expect(await freshVerdictFor('9.1.0', withException)).toBe(false);
     });
   });
 

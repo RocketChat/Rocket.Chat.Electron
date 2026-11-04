@@ -1,6 +1,5 @@
 import type * as fsPromisesType from 'node:fs/promises';
 
-import axios from 'axios';
 import * as jsonwebtoken from 'jsonwebtoken';
 
 import { listen, select, dispatch } from '../../store';
@@ -24,12 +23,57 @@ import {
 } from './main';
 import type { ServerInfo, SupportedVersions, CloudInfo } from './types';
 
+// The module fetches through the webview session (`session.fetch`). Each test
+// stubs `mockHttp.get` with an axios-like `{ data }` value, and the session
+// mock turns it into a successful fetch Response. A rejection is a network
+// failure, as it is for `session.fetch`.
+// `status` defaults to 200. `mockPartitions` records the session partition of
+// each request.
+const mockHttp = { get: jest.fn() };
+const mockPartitions: string[] = [];
+const mockToResponse = (result?: { data?: unknown; status?: number }) => {
+  const status = result?.status ?? 200;
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: String(status),
+    json: async () => result?.data,
+  };
+};
+const mockRequests: { url: string; init?: RequestInit }[] = [];
+// The module keeps one session per partition, so the partition is recorded
+// per request. `mockVerifyProcs` holds the certificate verify proc that the
+// module installs on each partition.
+type MockVerifyProc = (
+  request: {
+    hostname: string;
+    certificate: { issuerName: string; data: string };
+    errorCode: number;
+  },
+  callback: (result: number) => void
+) => void;
+const mockVerifyProcs = new Map<string, MockVerifyProc>();
+const mockProcInstalledAtFetch: boolean[] = [];
+const mockFromPartition = (partition: string) => ({
+  setCertificateVerifyProc: (proc: MockVerifyProc) => {
+    mockVerifyProcs.set(partition, proc);
+  },
+  fetch: (url: string, init?: RequestInit) => {
+    mockPartitions.push(partition);
+    mockProcInstalledAtFetch.push(mockVerifyProcs.has(partition));
+    mockRequests.push({ url, init });
+    return mockHttp.get(url).then(mockToResponse);
+  },
+});
+
 jest.mock('../../store');
-jest.mock('axios');
 jest.mock('jsonwebtoken');
 jest.mock('electron-store');
 jest.mock('node:fs/promises');
 jest.mock('electron', () => ({
+  session: {
+    fromPartition: (partition: string) => mockFromPartition(partition),
+  },
   ipcMain: {
     handle: jest.fn(),
   },
@@ -41,7 +85,6 @@ jest.mock('electron', () => ({
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
 const selectMock = select as jest.MockedFunction<typeof select>;
 const listenMock = listen as jest.MockedFunction<typeof listen>;
-const axiosMock = axios as jest.Mocked<typeof axios>;
 
 // Mock data factories.
 // Default shape mirrors the REAL unauthenticated GET /api/info response
@@ -122,7 +165,7 @@ describe('supportedVersions/main.ts', () => {
     it('should dispatch LOADING state when updateSupportedVersionsData is called', async () => {
       const mockServer = createMockServer();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValue({ data: createMockServerInfo() });
 
@@ -151,13 +194,235 @@ describe('supportedVersions/main.ts', () => {
     it('should load builtin supported versions for fallback', async () => {
       const mockServer = createMockServer();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       // Builtin should be available as fallback when other sources fail
       await updateSupportedVersionsData(mockServer.url);
 
-      // Verify axios was called (which will fail and trigger fallback)
-      expect(axiosMock.get).toHaveBeenCalled();
+      // Verify HTTP was called (which will fail and trigger fallback)
+      expect(mockHttp.get).toHaveBeenCalled();
+    });
+  });
+
+  // ========== NETWORK PATH ==========
+  describe('network path', () => {
+    it('sends every request through the webview session of the server', async () => {
+      const mockServer = createMockServer({
+        url: 'https://test.rocket.chat/',
+        uniqueID: 'persisted-id',
+      });
+      selectMock.mockReturnValue(mockServer);
+      // No signed payload on /api/info, so the module also requests the
+      // unique ID and the cloud payload.
+      mockHttp.get = jest.fn().mockResolvedValue({
+        data: createMockServerInfo({ supportedVersions: undefined }),
+      });
+      mockPartitions.length = 0;
+      mockProcInstalledAtFetch.length = 0;
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Plain values only: this runner cannot report a failure that holds
+      // asymmetric matchers.
+      const requestedUrls: string[] = mockHttp.get.mock.calls.map(
+        ([url]) => url
+      );
+      const requested = (part: string) =>
+        requestedUrls.some((url) => url.includes(part));
+      expect(requested('/api/info')).toBe(true);
+      expect(requested('settings.public')).toBe(true);
+      expect(requested('releases.rocket.chat')).toBe(true);
+      expect(mockPartitions.length).toBe(requestedUrls.length);
+      const partitions = [...new Set(mockPartitions)];
+      expect(partitions.length).toBe(1);
+      // An in-memory session, not the webview's `persist:` one.
+      expect(partitions[0].startsWith('supported-versions:')).toBe(true);
+      expect(mockVerifyProcs.has(partitions[0])).toBe(true);
+      // Installed before the first request: Chromium caches each result.
+      expect(mockProcInstalledAtFetch.every(Boolean)).toBe(true);
+    });
+
+    describe('certificate trust', () => {
+      const trustedCertificate = { issuerName: 'Private CA', data: 'PEM' };
+      const serialized = 'Private CA\nPEM';
+      let trustedCertificates: Record<string, string>;
+
+      const runCheck = async (serverUrl: string) => {
+        const mockServer = createMockServer({
+          url: serverUrl,
+          uniqueID: 'persisted-id',
+        });
+        selectMock.mockImplementation((selector: any) =>
+          selector({ servers: [mockServer], trustedCertificates })
+        );
+        mockHttp.get = jest.fn().mockResolvedValue({
+          data: createMockServerInfo({ supportedVersions: undefined }),
+        });
+        mockPartitions.length = 0;
+        mockProcInstalledAtFetch.length = 0;
+        await updateSupportedVersionsData(serverUrl);
+        const partitions = [...new Set(mockPartitions)];
+        expect(partitions.length).toBe(1);
+        expect(mockProcInstalledAtFetch.every(Boolean)).toBe(true);
+        return partitions[0];
+      };
+
+      const verify = (
+        partition: string,
+        request: Partial<Parameters<MockVerifyProc>[0]> = {}
+      ) => {
+        const callback = jest.fn();
+        mockVerifyProcs.get(partition)!(
+          {
+            hostname: 'trust.rocket.chat',
+            certificate: trustedCertificate,
+            errorCode: -202, // CERT_AUTHORITY_INVALID
+            ...request,
+          },
+          callback
+        );
+        return callback.mock.calls[0][0];
+      };
+
+      beforeEach(() => {
+        trustedCertificates = {};
+      });
+
+      it('uses a new session when the user trusts or removes a certificate', async () => {
+        // Chromium caches each verification result per session, so a check
+        // that ran before the user trusted the certificate must not share a
+        // session with the checks after it.
+        const serverUrl = 'https://user:p%40ss@trust.rocket.chat/';
+        const untrusted = await runCheck(serverUrl);
+
+        trustedCertificates = { 'trust.rocket.chat': serialized };
+        const trusted = await runCheck(serverUrl);
+        expect(trusted === untrusted).toBe(false);
+
+        trustedCertificates = {};
+        expect(await runCheck(serverUrl)).toBe(untrusted);
+        // The key holds the origin only, not the credentials.
+        expect(await runCheck('https://trust.rocket.chat/')).toBe(untrusted);
+
+        for (const partition of [untrusted, trusted]) {
+          expect(partition.includes('p%40ss')).toBe(false);
+          expect(partition.includes('trust.rocket.chat')).toBe(false);
+        }
+      });
+
+      it('accepts only the certificate the user trusted for the server host', async () => {
+        trustedCertificates = { 'trust.rocket.chat': serialized };
+        const partition = await runCheck('https://trust.rocket.chat/');
+
+        expect(verify(partition)).toBe(0);
+        // Revoked (CERT_REVOKED): never accepted.
+        expect(verify(partition, { errorCode: -206 })).toBe(-3);
+        // Valid certificate: Chromium's own result.
+        expect(verify(partition, { errorCode: 0 })).toBe(-3);
+        expect(verify(partition, { hostname: 'releases.rocket.chat' })).toBe(
+          -3
+        );
+        expect(
+          verify(partition, {
+            certificate: { issuerName: 'Private CA', data: 'OTHER' },
+          })
+        ).toBe(-3);
+      });
+
+      it('rejects a handshake that runs after the user removed the trust', async () => {
+        trustedCertificates = { 'trust.rocket.chat': serialized };
+        const partition = await runCheck('https://trust.rocket.chat/');
+        expect(verify(partition)).toBe(0);
+
+        // A request already sent on this session verifies after the removal.
+        trustedCertificates = {};
+        expect(verify(partition)).toBe(-3);
+      });
+
+      it('accepts no failed certificate when the user trusted none', async () => {
+        trustedCertificates = { 'other.rocket.chat': serialized };
+        const partition = await runCheck('https://trust.rocket.chat/');
+
+        expect(verify(partition)).toBe(-3);
+      });
+    });
+
+    it('sends basic-auth credentials as a header, only to the server, and no cookies', async () => {
+      // fetch() rejects a URL that holds credentials.
+      const mockServer = createMockServer({
+        url: 'https://user:p%40ss@test.rocket.chat/',
+        uniqueID: 'persisted-id',
+      });
+      selectMock.mockReturnValue(mockServer);
+      mockHttp.get = jest.fn().mockResolvedValue({
+        data: createMockServerInfo({ supportedVersions: undefined }),
+      });
+      mockRequests.length = 0;
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      expect(mockRequests.length).toBeGreaterThan(2);
+      const expectedAuth = `Basic ${Buffer.from('user:p@ss').toString('base64')}`;
+      for (const { url, init } of mockRequests) {
+        expect(url.includes('@')).toBe(false);
+        expect(init?.credentials).toBe('omit');
+        const auth = new Headers(init?.headers).get('Authorization');
+        if (new URL(url).host === 'test.rocket.chat') {
+          expect(auth).toBe(expectedAuth);
+          // A redirect could forward the header to another origin.
+          expect(init?.redirect).toBe('error');
+        } else {
+          expect(auth).toBeNull();
+          expect(init?.redirect).toBe('follow');
+        }
+      }
+      expect(
+        mockRequests.some(({ url }) => url.includes('releases.rocket.chat'))
+      ).toBe(true);
+    });
+
+    it('sends a password with a bare percent sign as written', async () => {
+      const mockServer = createMockServer({
+        url: 'https://user:100%sure@test.rocket.chat/',
+        uniqueID: 'persisted-id',
+      });
+      selectMock.mockReturnValue(mockServer);
+      mockHttp.get = jest.fn().mockResolvedValue({
+        data: createMockServerInfo({ supportedVersions: undefined }),
+      });
+      mockRequests.length = 0;
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      const serverRequests = mockRequests.filter(
+        ({ url }) => new URL(url).host === 'test.rocket.chat'
+      );
+      expect(serverRequests.length).toBeGreaterThan(0);
+      for (const { init } of serverRequests) {
+        expect(new Headers(init?.headers).get('Authorization')).toBe(
+          `Basic ${Buffer.from('user:100%sure').toString('base64')}`
+        );
+      }
+    });
+
+    it('treats a non-2xx response as a failed request', async () => {
+      const mockServer = createMockServer();
+      selectMock.mockReturnValue(mockServer);
+      // 407 is what a proxy that requires authentication returns.
+      mockHttp.get = jest
+        .fn()
+        .mockResolvedValue({ status: 407, data: createMockServerInfo() });
+
+      jest.useFakeTimers();
+      const promise = updateSupportedVersionsData(mockServer.url);
+      await jest.advanceTimersByTimeAsync(20000);
+      await promise;
+      jest.useRealTimers();
+
+      const versionDispatch = dispatchMock.mock.calls.find(
+        ([action]) => action.type === WEBVIEW_SERVER_VERSION_UPDATED
+      );
+      expect(versionDispatch).toBeUndefined();
     });
   });
 
@@ -167,12 +432,12 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       await updateSupportedVersionsData(mockServer.url);
 
-      // Should call axios.get once (success on first try)
-      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+      // Should call mockHttp.get once (success on first try)
+      expect(mockHttp.get).toHaveBeenCalledTimes(1);
 
       // Should dispatch VERSION_UPDATED with server info. /api/info never
       // carries `commit` for the desktop's unauthenticated request, so
@@ -206,7 +471,7 @@ describe('supportedVersions/main.ts', () => {
         },
       } as any);
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
         createMockSupportedVersions()
@@ -229,7 +494,7 @@ describe('supportedVersions/main.ts', () => {
       selectMock.mockReturnValue(mockServer);
 
       // First call fails, second succeeds
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockRejectedValueOnce(new Error('Timeout'))
         .mockResolvedValueOnce({ data: mockServerInfo });
@@ -240,8 +505,8 @@ describe('supportedVersions/main.ts', () => {
       await promise;
       jest.useRealTimers();
 
-      // Should call axios.get twice (fail, retry, succeed)
-      expect(axiosMock.get).toHaveBeenCalledTimes(2);
+      // Should call mockHttp.get twice (fail, retry, succeed)
+      expect(mockHttp.get).toHaveBeenCalledTimes(2);
 
       // Should still dispatch VERSION_UPDATED after retry succeeds
       const versionDispatch = dispatchMock.mock.calls.find(
@@ -255,7 +520,7 @@ describe('supportedVersions/main.ts', () => {
       selectMock.mockReturnValue(mockServer);
 
       // All attempts fail - server retries (3) + unique ID (1) = 4 total
-      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       jest.useFakeTimers();
       const promise = updateSupportedVersionsData(mockServer.url);
@@ -263,8 +528,8 @@ describe('supportedVersions/main.ts', () => {
       await promise;
       jest.useRealTimers();
 
-      // Should call axios.get 4 times (3 server attempts + 1 unique ID attempt)
-      expect(axiosMock.get).toHaveBeenCalledTimes(4);
+      // Should call mockHttp.get 4 times (3 server attempts + 1 unique ID attempt)
+      expect(mockHttp.get).toHaveBeenCalledTimes(4);
 
       // Should dispatch ERROR state (fallback used)
       const errorDispatch = dispatchMock.mock.calls.find(
@@ -279,7 +544,7 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer();
       selectMock.mockReturnValue(mockServer);
 
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockRejectedValueOnce(new Error('Error 1'))
         .mockRejectedValueOnce(new Error('Error 2'))
@@ -292,7 +557,7 @@ describe('supportedVersions/main.ts', () => {
       jest.useRealTimers();
 
       // All 3 attempts should be made
-      expect(axiosMock.get).toHaveBeenCalledTimes(3);
+      expect(mockHttp.get).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -302,7 +567,7 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo(); // Has supportedVersions
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       // No uniqueId-scoped exceptions here — this test is about the
       // supportedVersions.signed decode path, not exception scope resolution.
@@ -312,8 +577,8 @@ describe('supportedVersions/main.ts', () => {
 
       await updateSupportedVersionsData(mockServer.url);
 
-      // Should only call axios once (server), not for unique ID
-      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+      // Should only call HTTP once (server), not for unique ID
+      expect(mockHttp.get).toHaveBeenCalledTimes(1);
 
       // Should not have UNIQUE_ID_UPDATED
       const uniqueIdDispatches = dispatchMock.mock.calls.filter(
@@ -328,7 +593,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockRejectedValueOnce(new Error('Unique ID fetch failed'));
@@ -351,7 +616,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined, // No server versions
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -375,7 +640,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({ data: { settings: [] } }); // Empty settings
@@ -422,7 +687,7 @@ describe('supportedVersions/main.ts', () => {
         version: '7.13',
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -464,7 +729,7 @@ describe('supportedVersions/main.ts', () => {
         version: '7.13',
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -496,7 +761,7 @@ describe('supportedVersions/main.ts', () => {
         version: '7.13',
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -539,7 +804,7 @@ describe('supportedVersions/main.ts', () => {
         version: '7.13',
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValueOnce({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValueOnce({ data: mockServerInfo });
 
       (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
         tenantSupportedVersions()
@@ -547,7 +812,7 @@ describe('supportedVersions/main.ts', () => {
 
       await updateSupportedVersionsData(mockServer.url);
 
-      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+      expect(mockHttp.get).toHaveBeenCalledTimes(1);
 
       const verdictDispatch = dispatchMock.mock.calls.find(
         ([action]) =>
@@ -571,7 +836,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -583,8 +848,8 @@ describe('supportedVersions/main.ts', () => {
       await updateSupportedVersionsData(mockServer.url);
 
       // Should retry cloud fetch (1 fail, 1 success = 2 cloud calls)
-      // Plus 1 server + 1 unique ID = 4 total axios calls
-      expect(axiosMock.get).toHaveBeenCalledTimes(4);
+      // Plus 1 server + 1 unique ID = 4 total HTTP calls
+      expect(mockHttp.get).toHaveBeenCalledTimes(4);
     });
 
     it('should decode valid cloud JWT and dispatch UPDATED with source cloud', async () => {
@@ -595,7 +860,7 @@ describe('supportedVersions/main.ts', () => {
       const mockCloudData = createMockCloudInfo();
       const mockSupportedVersions = createMockSupportedVersions();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -625,7 +890,7 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       // No uniqueId-scoped exceptions here — this test is about the cloud
       // fetch being skipped, not exception scope resolution.
@@ -635,8 +900,8 @@ describe('supportedVersions/main.ts', () => {
 
       await updateSupportedVersionsData(mockServer.url);
 
-      // Should only call axios once (server), not cloud
-      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+      // Should only call HTTP once (server), not cloud
+      expect(mockHttp.get).toHaveBeenCalledTimes(1);
     });
 
     it('should skip cloud fetch if uniqueID is unavailable', async () => {
@@ -645,15 +910,15 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({ data: { settings: [] } }); // No unique ID
 
       await updateSupportedVersionsData(mockServer.url);
 
-      // Should call axios twice (server + unique ID), not cloud
-      expect(axiosMock.get).toHaveBeenCalledTimes(2);
+      // Should call HTTP twice (server + unique ID), not cloud
+      expect(mockHttp.get).toHaveBeenCalledTimes(2);
     });
 
     it('should handle invalid cloud JWT and continue to cache', async () => {
@@ -662,7 +927,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -692,7 +957,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -707,7 +972,7 @@ describe('supportedVersions/main.ts', () => {
       jest.useRealTimers();
 
       // Should attempt cloud 3 times (server + unique ID + 3 cloud attempts = 5 calls)
-      expect(axiosMock.get).toHaveBeenCalledTimes(5);
+      expect(mockHttp.get).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -718,7 +983,7 @@ describe('supportedVersions/main.ts', () => {
       const mockServerInfo = createMockServerInfo();
       const mockSupportedVersions = createMockSupportedVersions();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       // Mock jwt.verify to return valid decoded versions
       (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
@@ -750,7 +1015,7 @@ describe('supportedVersions/main.ts', () => {
       selectMock.mockReturnValue(mockServer);
 
       // Server info succeeds (but no supportedVersions.signed), unique ID succeeds, cloud succeeds
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -784,7 +1049,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfoNoVersions })
         .mockRejectedValueOnce(new Error('Cloud error'));
@@ -792,7 +1057,7 @@ describe('supportedVersions/main.ts', () => {
       await updateSupportedVersionsData(mockServer.url);
 
       // Should skip decode and continue to cloud path
-      expect(axiosMock.get).toHaveBeenCalledTimes(2);
+      expect(mockHttp.get).toHaveBeenCalledTimes(2);
     });
 
     it('should log error when JWT decode fails', async () => {
@@ -803,8 +1068,8 @@ describe('supportedVersions/main.ts', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       selectMock.mockReturnValue(mockServer);
 
-      // Mock axios: server info, unique ID, cloud info
-      axiosMock.get = jest
+      // Mock HTTP: server info, unique ID, cloud info
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -851,7 +1116,7 @@ describe('supportedVersions/main.ts', () => {
         exceptions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
         mockSupportedVersions
@@ -859,8 +1124,8 @@ describe('supportedVersions/main.ts', () => {
 
       await updateSupportedVersionsData(mockServer.url);
 
-      // Should only call axios once (server), not cloud
-      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+      // Should only call HTTP once (server), not cloud
+      expect(mockHttp.get).toHaveBeenCalledTimes(1);
 
       // Should NOT have ERROR dispatch (only UPDATED)
       const errorDispatches = dispatchMock.mock.calls.filter(
@@ -1377,7 +1642,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: { signed: 'mock-jwt-token' },
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
       (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
         mockSupportedVersions
       );
@@ -1407,7 +1672,7 @@ describe('supportedVersions/main.ts', () => {
       });
       const mockCloudData = createMockCloudInfo({ signed: 'mock-cloud-jwt' });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
         .mockResolvedValueOnce({
@@ -1436,7 +1701,7 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer({ version: '7.5.0' });
       selectMock.mockReturnValue(mockServer);
       // Server fetch fails, unique ID fetch fails -> falls to cache/builtin
-      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       jest.useFakeTimers();
       const promise = updateSupportedVersionsData(mockServer.url);
@@ -1465,7 +1730,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: { signed: 'mock-jwt-token' },
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
+      mockHttp.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
       (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
         mockSupportedVersions
       );
@@ -1513,7 +1778,7 @@ describe('supportedVersions/main.ts', () => {
     it('cache fallback dispatches isSupportedVersion: false for unsupported persisted version', async () => {
       const mockServer = createMockServer({ version: '7.5.0' });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       const pastExpiry = new Date(Date.now() - 86400000);
       const cachedVersions = createMockSupportedVersions({
@@ -1547,7 +1812,7 @@ describe('supportedVersions/main.ts', () => {
     it('cache fallback dispatches isSupportedVersion: true for supported persisted version', async () => {
       const mockServer = createMockServer({ version: '7.5.0' });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       const futureExpiry = new Date(Date.now() + 86400000 * 365);
       const cachedVersions = createMockSupportedVersions({
@@ -1573,9 +1838,13 @@ describe('supportedVersions/main.ts', () => {
     });
 
     it('builtin fallback dispatches isSupportedVersion: false when server version is unsupported', async () => {
-      const mockServer = createMockServer({ version: '7.5.0' });
+      // 6.5.0 is older than every stable entry of both this payload and the
+      // default mock payload. The builtin singleton can already hold the
+      // default payload from an earlier test, and a version newer than the
+      // fallback data is not blocked.
+      const mockServer = createMockServer({ version: '6.5.0' });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       // Cache returns nothing (already set by beforeEach)
       // storeGetMock returns undefined by default
@@ -1586,8 +1855,7 @@ describe('supportedVersions/main.ts', () => {
         enforcementStartDate: '2023-01-01T00:00:00Z',
       });
 
-      // Reset the builtin singleton by making readFile return a token that
-      // decodes to our controlled builtinVersions payload
+      // Takes effect only if the builtin singleton is still empty.
       const fsPromises = await import('node:fs/promises');
       (fsPromises.readFile as jest.Mock).mockResolvedValue('builtin-jwt-token');
       (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
@@ -1624,17 +1892,18 @@ describe('supportedVersions/main.ts', () => {
       // builtinSupportedVersions singleton, same as the no-data-anywhere test.
       await jest.isolateModulesAsync(async () => {
         jest.mock('../../store');
-        jest.mock('axios');
         jest.mock('jsonwebtoken');
         jest.mock('electron-store');
         jest.mock('node:fs/promises');
         jest.mock('electron', () => ({
+          session: {
+            fromPartition: (partition: string) => mockFromPartition(partition),
+          },
           ipcMain: { handle: jest.fn() },
         }));
 
         const { dispatch: isolatedDispatch, select: isolatedSelect } =
           await import('../../store');
-        const isolatedAxios = (await import('axios')).default;
         const isolatedJwt = await import('jsonwebtoken');
         const { updateSupportedVersionsData: isolatedUpdate } = await import(
           './main'
@@ -1647,9 +1916,6 @@ describe('supportedVersions/main.ts', () => {
         const isolatedSelectMock = isolatedSelect as jest.MockedFunction<
           typeof isolatedSelect
         >;
-        const isolatedAxiosMock = isolatedAxios as jest.Mocked<
-          typeof isolatedAxios
-        >;
 
         const IsolatedElectronStoreMock = jest.requireMock('electron-store');
         const isolatedStoreGetMock = jest.spyOn(
@@ -1659,9 +1925,7 @@ describe('supportedVersions/main.ts', () => {
 
         const mockServer = createMockServer({ version: '8.5.1' });
         isolatedSelectMock.mockReturnValue(mockServer);
-        isolatedAxiosMock.get = jest
-          .fn()
-          .mockRejectedValue(new Error('Network error'));
+        mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
         const futureExpiry = new Date(Date.now() + 86400000 * 365);
 
@@ -1718,7 +1982,7 @@ describe('supportedVersions/main.ts', () => {
       selectMock.mockReturnValue(mockServer);
 
       // /api/info returns fresh version 8.5 but no signed supportedVersions field.
-      // getUniqueId also hits axios.get; first /api/info, then settings/uniqueID.
+      // getUniqueId also hits mockHttp.get; first /api/info, then settings/uniqueID.
       // Provide /api/info response, then make subsequent calls fail (cloud).
       const infoResponse = {
         data: {
@@ -1727,7 +1991,7 @@ describe('supportedVersions/main.ts', () => {
           // supportedVersions absent -> serverEncoded undefined -> falls to cloud
         },
       };
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce(infoResponse) // /api/info
         .mockRejectedValue(new Error('Network error')); // uniqueID + cloud all fail
@@ -1762,17 +2026,18 @@ describe('supportedVersions/main.ts', () => {
       await jest.isolateModulesAsync(async () => {
         // Re-apply mocks for the isolated module scope
         jest.mock('../../store');
-        jest.mock('axios');
         jest.mock('jsonwebtoken');
         jest.mock('electron-store');
         jest.mock('node:fs/promises');
         jest.mock('electron', () => ({
+          session: {
+            fromPartition: (partition: string) => mockFromPartition(partition),
+          },
           ipcMain: { handle: jest.fn() },
         }));
 
         const { dispatch: isolatedDispatch, select: isolatedSelect } =
           await import('../../store');
-        const isolatedAxios = (await import('axios')).default;
         const { updateSupportedVersionsData: isolatedUpdate } = await import(
           './main'
         );
@@ -1784,15 +2049,10 @@ describe('supportedVersions/main.ts', () => {
         const isolatedSelectMock = isolatedSelect as jest.MockedFunction<
           typeof isolatedSelect
         >;
-        const isolatedAxiosMock = isolatedAxios as jest.Mocked<
-          typeof isolatedAxios
-        >;
 
         const mockServer = createMockServer({ version: '7.5.0' });
         isolatedSelectMock.mockReturnValue(mockServer);
-        isolatedAxiosMock.get = jest
-          .fn()
-          .mockRejectedValue(new Error('Network error'));
+        mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
         // Cache returns nothing (auto-mock default)
         // Builtin file read fails — singleton never populated
@@ -1840,8 +2100,8 @@ describe('supportedVersions/main.ts', () => {
       setup: (ctx: {
         dispatchMock: jest.MockedFunction<typeof dispatch>;
         selectMock: jest.MockedFunction<typeof select>;
-        axiosMock: jest.Mocked<typeof axios>;
         storeGetMock: jest.Mock;
+        storeSetMock: jest.Mock;
         fsPromises: typeof fsPromisesType;
         jwt: typeof jsonwebtoken;
         update: typeof updateSupportedVersionsData;
@@ -1849,17 +2109,18 @@ describe('supportedVersions/main.ts', () => {
     ): Promise<void> => {
       await jest.isolateModulesAsync(async () => {
         jest.mock('../../store');
-        jest.mock('axios');
         jest.mock('jsonwebtoken');
         jest.mock('electron-store');
         jest.mock('node:fs/promises');
         jest.mock('electron', () => ({
+          session: {
+            fromPartition: (partition: string) => mockFromPartition(partition),
+          },
           ipcMain: { handle: jest.fn() },
         }));
 
         const { dispatch: isolatedDispatch, select: isolatedSelect } =
           await import('../../store');
-        const isolatedAxios = (await import('axios')).default;
         const isolatedJwt = await import('jsonwebtoken');
         const { updateSupportedVersionsData: isolatedUpdate } = await import(
           './main'
@@ -1872,9 +2133,6 @@ describe('supportedVersions/main.ts', () => {
         const isolatedSelectMock = isolatedSelect as jest.MockedFunction<
           typeof isolatedSelect
         >;
-        const isolatedAxiosMock = isolatedAxios as jest.Mocked<
-          typeof isolatedAxios
-        >;
 
         const IsolatedElectronStoreMock = jest.requireMock('electron-store');
         const isolatedStoreGetMock = jest.spyOn(
@@ -1882,12 +2140,16 @@ describe('supportedVersions/main.ts', () => {
           'get'
         ) as jest.Mock;
         isolatedStoreGetMock.mockReturnValue(undefined);
+        const isolatedStoreSetMock = jest.spyOn(
+          IsolatedElectronStoreMock.prototype,
+          'set'
+        ) as jest.Mock;
 
         await setup({
           dispatchMock: isolatedDispatchMock,
           selectMock: isolatedSelectMock,
-          axiosMock: isolatedAxiosMock,
           storeGetMock: isolatedStoreGetMock,
+          storeSetMock: isolatedStoreSetMock,
           fsPromises: isolatedFs,
           jwt: isolatedJwt as unknown as typeof jsonwebtoken,
           update: isolatedUpdate,
@@ -1900,7 +2162,6 @@ describe('supportedVersions/main.ts', () => {
         async ({
           dispatchMock: isolatedDispatchMock,
           selectMock: isolatedSelectMock,
-          axiosMock: isolatedAxiosMock,
           storeGetMock: isolatedStoreGetMock,
           fsPromises: isolatedFs,
           jwt: isolatedJwt,
@@ -1912,7 +2173,7 @@ describe('supportedVersions/main.ts', () => {
             uniqueID: 'test-unique-id',
           });
           isolatedSelectMock.mockReturnValue(mockServer);
-          isolatedAxiosMock.get = jest
+          mockHttp.get = jest
             .fn()
             .mockRejectedValue(new Error('Network error'));
 
@@ -1978,15 +2239,15 @@ describe('supportedVersions/main.ts', () => {
         async ({
           dispatchMock: isolatedDispatchMock,
           selectMock: isolatedSelectMock,
-          axiosMock: isolatedAxiosMock,
           storeGetMock: isolatedStoreGetMock,
+          storeSetMock: isolatedStoreSetMock,
           fsPromises: isolatedFs,
           jwt: isolatedJwt,
           update: isolatedUpdate,
         }) => {
           const mockServer = createMockServer({ version: '8.5.1' });
           isolatedSelectMock.mockReturnValue(mockServer);
-          isolatedAxiosMock.get = jest
+          mockHttp.get = jest
             .fn()
             .mockRejectedValue(new Error('Network error'));
 
@@ -2037,6 +2298,11 @@ describe('supportedVersions/main.ts', () => {
           expect((updatedDispatch?.[0] as any)?.payload?.source).toBe(
             'builtin'
           );
+
+          // The builtin payload must not replace the cache. A copy
+          // would come back next launch labeled 'cloud' and would overwrite
+          // any tenant exceptions in the cache.
+          expect(isolatedStoreSetMock).not.toHaveBeenCalled();
         }
       );
     });
@@ -2046,7 +2312,6 @@ describe('supportedVersions/main.ts', () => {
         async ({
           dispatchMock: isolatedDispatchMock,
           selectMock: isolatedSelectMock,
-          axiosMock: isolatedAxiosMock,
           storeGetMock: isolatedStoreGetMock,
           fsPromises: isolatedFs,
           jwt: isolatedJwt,
@@ -2054,7 +2319,7 @@ describe('supportedVersions/main.ts', () => {
         }) => {
           const mockServer = createMockServer({ version: '9.0.0' });
           isolatedSelectMock.mockReturnValue(mockServer);
-          isolatedAxiosMock.get = jest
+          mockHttp.get = jest
             .fn()
             .mockRejectedValue(new Error('Network error'));
 
@@ -2104,6 +2369,357 @@ describe('supportedVersions/main.ts', () => {
     });
   });
 
+  // ========== FALLBACK: a version newer than the snapshot is unknown ==========
+  describe('fallback data older than the server version', () => {
+    const expired = new Date(Date.now() - 86400000);
+    const future = new Date(Date.now() + 86400000 * 365);
+
+    // Modeled on the builtin payload of Desktop 4.17.0: stable entries up to
+    // 8.7.1, plus short-lived prerelease entries for 8.8 and 8.9 that have
+    // expired. `~8.9` matches `8.9.0-develop` after coerce().
+    const snapshot417 = createMockSupportedVersions({
+      versions: [
+        { version: '8.6.2', expiration: future },
+        { version: '8.7.0', expiration: future },
+        { version: '8.7.1', expiration: future },
+        { version: '8.8.0-rc.2', expiration: expired },
+        { version: '8.9.0-develop', expiration: expired },
+      ],
+      exceptions: undefined,
+      enforcementStartDate: '2023-12-15T00:00:00Z',
+      timestamp: '2026-08-31T20:03:07Z',
+    });
+
+    // Runs one update with every request failing, and returns the verdict.
+    const verdictFor = async (
+      serverVersion: string,
+      builtin: SupportedVersions,
+      cached?: SupportedVersions
+    ): Promise<boolean | undefined> => {
+      let verdict: boolean | undefined;
+      await jest.isolateModulesAsync(async () => {
+        jest.mock('../../store');
+        jest.mock('jsonwebtoken');
+        jest.mock('electron-store');
+        jest.mock('node:fs/promises');
+        jest.mock('electron', () => ({
+          session: {
+            fromPartition: (partition: string) => mockFromPartition(partition),
+          },
+          ipcMain: { handle: jest.fn() },
+        }));
+
+        const store = await import('../../store');
+        const isolatedJwt = await import('jsonwebtoken');
+        const isolatedFs = await import('node:fs/promises');
+        const { updateSupportedVersionsData: isolatedUpdate } = await import(
+          './main'
+        );
+        const StoreMock = jest.requireMock('electron-store');
+        (jest.spyOn(StoreMock.prototype, 'get') as jest.Mock).mockReturnValue(
+          cached
+        );
+
+        const mockServer = createMockServer({ version: serverVersion });
+        (store.select as jest.Mock).mockReturnValue(mockServer);
+        mockHttp.get = jest.fn().mockRejectedValue(new Error('Proxy error'));
+        (isolatedFs.readFile as jest.Mock).mockResolvedValue('builtin-jwt');
+        (isolatedJwt.verify as jest.Mock).mockReturnValue(builtin);
+
+        // The store mock keeps calls across isolated loads in one test.
+        (store.dispatch as jest.Mock).mockClear();
+        jest.useFakeTimers();
+        const promise = isolatedUpdate(mockServer.url);
+        await jest.advanceTimersByTimeAsync(20000);
+        await promise;
+        jest.useRealTimers();
+
+        const dispatched = (store.dispatch as jest.Mock).mock.calls.find(
+          ([action]) => action.type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+        );
+        verdict = dispatched?.[0]?.payload?.isSupportedVersion;
+      });
+      return verdict;
+    };
+
+    it('does not block a stable version newer than the snapshot (Desktop 4.17.0 with server 8.9.0)', async () => {
+      expect(await verdictFor('8.9.0', snapshot417)).toBe(true);
+    });
+
+    it('does not block the trimmed version that /api/info reports', async () => {
+      expect(await verdictFor('8.9', snapshot417)).toBe(true);
+    });
+
+    it('allows the next major', async () => {
+      expect(await verdictFor('9.0.0', snapshot417)).toBe(true);
+    });
+
+    it('still blocks an older version that the snapshot does not list', async () => {
+      expect(await verdictFor('8.5.0', snapshot417)).toBe(false);
+    });
+
+    it('still blocks a listed version that has expired', async () => {
+      const snapshot = createMockSupportedVersions({
+        versions: [
+          { version: '8.6.0', expiration: expired },
+          { version: '8.7.0', expiration: future },
+        ],
+        exceptions: undefined,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+      expect(await verdictFor('8.6.0', snapshot)).toBe(false);
+    });
+
+    it('still blocks a version two or more majors ahead', async () => {
+      expect(await verdictFor('10.0.0', snapshot417)).toBe(false);
+    });
+
+    it('does not block a prerelease of a minor newer than the snapshot', async () => {
+      expect(await verdictFor('9.0.0-rc.1', snapshot417)).toBe(true);
+    });
+
+    it('does not block a develop build of the next minor (Desktop 4.19.0 with server 9.1.0-develop)', async () => {
+      const snapshot = createMockSupportedVersions({
+        versions: [
+          { version: '8.10.0', expiration: future },
+          { version: '9.0.0', expiration: future },
+          { version: '9.0.1', expiration: future },
+        ],
+        exceptions: undefined,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+      expect(await verdictFor('9.1.0-develop', snapshot)).toBe(true);
+    });
+
+    it('does not treat a hyphen in build metadata as a prerelease', async () => {
+      const snapshot = createMockSupportedVersions({
+        versions: [
+          { version: '9.0.1', expiration: future },
+          { version: '9.1.0-rc.1', expiration: expired },
+        ],
+        exceptions: undefined,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+      expect(await verdictFor('9.1.0+build-42', snapshot)).toBe(true);
+      expect(await verdictFor('9.1.0-develop+build-42', snapshot)).toBe(false);
+    });
+
+    it('still blocks a prerelease that the snapshot lists, even when the entry expired', async () => {
+      expect(await verdictFor('8.9.0-develop', snapshot417)).toBe(false);
+      expect(await verdictFor('8.8.0-rc.5', snapshot417)).toBe(false);
+    });
+
+    it('still blocks a prerelease two majors ahead', async () => {
+      expect(await verdictFor('10.0.0-develop', snapshot417)).toBe(false);
+    });
+    it('still blocks when the other candidate knows the version and rejects it', async () => {
+      // The cache came from a later fetch: it lists 8.9 and says it expired.
+      const cached = createMockSupportedVersions({
+        versions: [{ version: '8.9.0', expiration: expired }],
+        exceptions: undefined,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+        timestamp: '2026-10-20T00:00:00Z',
+      });
+      expect(await verdictFor('8.9.0', snapshot417, cached)).toBe(false);
+    });
+
+    it('still blocks when an exception for this server has expired', async () => {
+      const snapshot = createMockSupportedVersions({
+        ...snapshot417,
+        exceptions: {
+          domain: '',
+          uniqueId: '',
+          versions: [{ version: '8.9.0', expiration: expired }],
+        },
+      });
+      expect(await verdictFor('8.9.0', snapshot)).toBe(false);
+    });
+
+    it("ignores a builtin exception that belongs to another workspace's domain", async () => {
+      const snapshot = createMockSupportedVersions({
+        ...snapshot417,
+        exceptions: {
+          domain: 'other.example.com',
+          uniqueId: '',
+          versions: [{ version: '8.9.0', expiration: expired }],
+        },
+      });
+      expect(await verdictFor('8.9.0', snapshot)).toBe(true);
+    });
+
+    it("still blocks an expired builtin exception for this server's domain", async () => {
+      const snapshot = createMockSupportedVersions({
+        ...snapshot417,
+        exceptions: {
+          domain: 'test.rocket.chat',
+          uniqueId: '',
+          versions: [{ version: '8.9.0', expiration: expired }],
+        },
+      });
+      expect(await verdictFor('8.9.0', snapshot)).toBe(false);
+    });
+
+    it('still blocks when the snapshot has no stable entry to compare with', async () => {
+      const snapshot = createMockSupportedVersions({
+        versions: [{ version: '8.9.0-develop', expiration: expired }],
+        exceptions: undefined,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+      expect(await verdictFor('8.9.0', snapshot)).toBe(false);
+    });
+  });
+
+  // ========== FRESH DATA: the next release before the data lists it ==========
+  describe('next release missing from fresh data', () => {
+    const expired = new Date(Date.now() - 86400000);
+    const future = new Date(Date.now() + 86400000 * 365);
+    const payload = (
+      versions: { version: string; expiration: Date }[],
+      exceptions?: SupportedVersions['exceptions']
+    ) =>
+      createMockSupportedVersions({
+        versions,
+        exceptions,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+    // The cloud has 9.0 but not yet 9.1.
+    const upTo90 = payload([
+      { version: '8.10.0', expiration: future },
+      { version: '9.0.0', expiration: future },
+      { version: '9.0.1', expiration: future },
+    ]);
+
+    // Runs one update where the server (or, with `via: 'cloud'`, the cloud)
+    // answers with `data`, and returns the verdict.
+    const freshVerdictFor = async (
+      serverVersion: string,
+      data: SupportedVersions,
+      via: 'server' | 'cloud' = 'server',
+      persistedCommitHash?: string
+    ): Promise<boolean | undefined> => {
+      let verdict: boolean | undefined;
+      await jest.isolateModulesAsync(async () => {
+        jest.mock('../../store');
+        jest.mock('jsonwebtoken');
+        jest.mock('electron-store');
+        jest.mock('node:fs/promises');
+        jest.mock('electron', () => ({
+          session: {
+            fromPartition: (partition: string) => mockFromPartition(partition),
+          },
+          ipcMain: { handle: jest.fn() },
+        }));
+
+        const store = await import('../../store');
+        const isolatedJwt = await import('jsonwebtoken');
+        const isolatedFs = await import('node:fs/promises');
+        const { updateSupportedVersionsData: isolatedUpdate } = await import(
+          './main'
+        );
+
+        const mockServer = createMockServer({
+          version: serverVersion,
+          uniqueID: 'persisted-id',
+          gitCommitHash: persistedCommitHash,
+        });
+        (store.select as jest.Mock).mockReturnValue(mockServer);
+        mockHttp.get = jest.fn().mockImplementation(async (url: string) => {
+          if (url.endsWith('api/info')) {
+            return {
+              data: createMockServerInfo({
+                version: serverVersion,
+                supportedVersions:
+                  via === 'server' ? { signed: 'server-jwt' } : undefined,
+              }),
+            };
+          }
+          if (url.includes('releases.rocket.chat')) {
+            return { data: { signed: 'cloud-jwt' } };
+          }
+          return { data: { settings: [{ value: 'persisted-id' }] } };
+        });
+        (isolatedFs.readFile as jest.Mock).mockRejectedValue(
+          new Error('no builtin')
+        );
+        (isolatedJwt.verify as jest.Mock).mockReturnValue(data);
+
+        // The store mock keeps calls across isolated loads in one test.
+        (store.dispatch as jest.Mock).mockClear();
+        await isolatedUpdate(mockServer.url);
+
+        const dispatched = (store.dispatch as jest.Mock).mock.calls.find(
+          ([action]) => action.type === WEBVIEW_SERVER_IS_SUPPORTED_VERSION
+        );
+        verdict = dispatched?.[0]?.payload?.isSupportedVersion;
+      });
+      return verdict;
+    };
+
+    it('does not block the next minor (server 9.1.0, data up to 9.0)', async () => {
+      expect(await freshVerdictFor('9.1.0', upTo90)).toBe(true);
+      expect(await freshVerdictFor('9.1', upTo90)).toBe(true);
+    });
+
+    it('does not block a develop build of the next minor', async () => {
+      expect(await freshVerdictFor('9.1.0-develop', upTo90)).toBe(true);
+    });
+
+    it('applies the same rule to cloud data', async () => {
+      expect(await freshVerdictFor('9.1.0-develop', upTo90, 'cloud')).toBe(
+        true
+      );
+    });
+
+    it('does not block the next major when the data ends at the last minor', async () => {
+      const upTo810 = payload([{ version: '8.10.0', expiration: future }]);
+      expect(await freshVerdictFor('9.0.0', upTo810)).toBe(true);
+      expect(await freshVerdictFor('9.1.0', upTo810)).toBe(false);
+    });
+
+    it('still blocks a version past the next release', async () => {
+      expect(await freshVerdictFor('9.2.0', upTo90)).toBe(false);
+      expect(await freshVerdictFor('10.1.0', upTo90)).toBe(false);
+      expect(await freshVerdictFor('11.0.0', upTo90)).toBe(false);
+    });
+
+    it('still blocks an older version that the data does not list', async () => {
+      expect(await freshVerdictFor('8.5.0', upTo90)).toBe(false);
+    });
+
+    it('still blocks a prerelease that the data lists, even when the entry expired', async () => {
+      const withDevelop = payload([
+        ...upTo90.versions,
+        { version: '9.1.0-develop', expiration: expired },
+      ]);
+      expect(await freshVerdictFor('9.1.0-develop', withDevelop)).toBe(false);
+    });
+
+    it('ignores a persisted commit hash from the build before an upgrade', async () => {
+      const withOldBuildException = payload(upTo90.versions, {
+        domain: 'test.rocket.chat',
+        uniqueId: '',
+        versions: [{ version: 'sha-abc1234', expiration: expired }],
+      });
+      expect(
+        await freshVerdictFor(
+          '9.1.0',
+          withOldBuildException,
+          'server',
+          'abc1234def'
+        )
+      ).toBe(true);
+    });
+
+    it('still blocks when an exception for this server has expired', async () => {
+      const withException = payload(upTo90.versions, {
+        domain: 'test.rocket.chat',
+        uniqueId: '',
+        versions: [{ version: '9.1.0', expiration: expired }],
+      });
+      expect(await freshVerdictFor('9.1.0', withException)).toBe(false);
+    });
+  });
+
   // ========== CONCURRENCY: overlapping requests must not stale-overwrite ==========
   describe('overlapping request guard', () => {
     it('older slower request does not overwrite newer request verdict', async () => {
@@ -2123,7 +2739,7 @@ describe('supportedVersions/main.ts', () => {
 
       // Older request resolves slowly with UNSUPPORTED.
       // Newer request resolves fast with SUPPORTED.
-      // We control timing via deferred axios resolutions.
+      // We control timing via deferred HTTP resolutions.
       let resolveOld: (v: any) => void = () => {};
       let resolveNew: (v: any) => void = () => {};
       const oldPromise = new Promise((r) => {
@@ -2133,7 +2749,7 @@ describe('supportedVersions/main.ts', () => {
         resolveNew = r;
       });
 
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockImplementationOnce(() => oldPromise) // older /api/info
         .mockImplementationOnce(() => newPromise); // newer /api/info
@@ -2213,7 +2829,7 @@ describe('supportedVersions/main.ts', () => {
         resolveNew = r;
       });
 
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockImplementationOnce(() => oldPromise)
         .mockImplementationOnce(() => newPromise);
@@ -2264,7 +2880,7 @@ describe('supportedVersions/main.ts', () => {
       selectMock.mockReturnValue(mockServer);
 
       const callLog: string[] = [];
-      axiosMock.get = jest.fn().mockImplementation((url: string) => {
+      mockHttp.get = jest.fn().mockImplementation((url: string) => {
         callLog.push(url);
         if (url.includes('api/info')) {
           return Promise.resolve({
@@ -2533,7 +3149,7 @@ describe('supportedVersions/main.ts', () => {
 
       // `commit` only occurs for authenticated view-statistics calls; passed
       // here explicitly to unit-test the gitCommitHash dispatch wiring.
-      axiosMock.get = jest.fn().mockResolvedValue({
+      mockHttp.get = jest.fn().mockResolvedValue({
         data: {
           version: '7.5.0',
           commit: { hash: 'abcdef1234567890' },
@@ -2569,7 +3185,7 @@ describe('supportedVersions/main.ts', () => {
         enforcementStartDate: '2023-01-01T00:00:00Z',
       });
 
-      axiosMock.get = jest.fn().mockResolvedValue({
+      mockHttp.get = jest.fn().mockResolvedValue({
         data: {
           version: '7.5.0',
           supportedVersions: { signed: 'valid-jwt' },
@@ -2732,7 +3348,7 @@ describe('supportedVersions/main.ts', () => {
     it('dispatches ERROR (not a rejection) and no IS_SUPPORTED_VERSION when the fallback payload is malformed', async () => {
       const mockServer = createMockServer({ version: '7.5.0' });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      mockHttp.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       // Cache returns a corrupt payload: `versions` is not an array, so
       // isServerVersionSupported's `versions.find` throws synchronously.
@@ -2789,7 +3405,7 @@ describe('supportedVersions/main.ts', () => {
         supportedVersions: undefined,
       });
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
+      mockHttp.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo }) // /api/info
         .mockRejectedValueOnce(new Error('uniqueID fetch failed')) // getUniqueId
@@ -2797,7 +3413,7 @@ describe('supportedVersions/main.ts', () => {
 
       await updateSupportedVersionsData(mockServer.url);
 
-      const cloudCall = axiosMock.get.mock.calls.find(([url]) =>
+      const cloudCall = mockHttp.get.mock.calls.find(([url]) =>
         (url as string).includes('releases.rocket.chat')
       );
       expect(cloudCall).toBeDefined();

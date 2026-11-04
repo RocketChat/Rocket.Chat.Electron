@@ -21,6 +21,7 @@ import {
   CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from './actions';
+import { serializeCertificate } from './serializeCertificate';
 
 const t = i18next.t.bind(i18next);
 
@@ -39,8 +40,7 @@ const loadUserTrustedCertificates = async (): Promise<
   }
 };
 
-export const serializeCertificate = (certificate: Certificate): string =>
-  `${certificate.issuerName}\n${certificate.data.toString()}`;
+export { serializeCertificate };
 
 const queuedTrustRequests = new Map<
   Certificate['fingerprint'],

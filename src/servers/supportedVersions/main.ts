@@ -140,6 +140,17 @@ const getCheckSession = (serverUrl: string): Session => {
 // redirect, so a request that carries credentials does not follow redirects.
 // `redirect: 'manual'` cannot replace it: session.fetch() rejects with
 // "Redirect was cancelled" instead of returning the 3xx response.
+// The URL parser keeps a bare '%' in userinfo as written (for example the
+// password `100%sure`), and decodeURIComponent throws on it. Keep such text
+// as written.
+const decodeUserInfo = (part: string): string => {
+  try {
+    return decodeURIComponent(part);
+  } catch {
+    return part;
+  }
+};
+
 const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
   const target = new URL(url);
   const server = new URL(serverUrl);
@@ -147,7 +158,7 @@ const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
   target.password = '';
   const headers = new Headers();
   if (server.username && target.origin === server.origin) {
-    const credentials = `${decodeURIComponent(server.username)}:${decodeURIComponent(server.password)}`;
+    const credentials = `${decodeUserInfo(server.username)}:${decodeUserInfo(server.password)}`;
     headers.set(
       'Authorization',
       `Basic ${Buffer.from(credentials).toString('base64')}`

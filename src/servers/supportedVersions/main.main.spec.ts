@@ -381,6 +381,30 @@ describe('supportedVersions/main.ts', () => {
       ).toBe(true);
     });
 
+    it('sends a password with a bare percent sign as written', async () => {
+      const mockServer = createMockServer({
+        url: 'https://user:100%sure@test.rocket.chat/',
+        uniqueID: 'persisted-id',
+      });
+      selectMock.mockReturnValue(mockServer);
+      mockHttp.get = jest.fn().mockResolvedValue({
+        data: createMockServerInfo({ supportedVersions: undefined }),
+      });
+      mockRequests.length = 0;
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      const serverRequests = mockRequests.filter(
+        ({ url }) => new URL(url).host === 'test.rocket.chat'
+      );
+      expect(serverRequests.length).toBeGreaterThan(0);
+      for (const { init } of serverRequests) {
+        expect(new Headers(init?.headers).get('Authorization')).toBe(
+          `Basic ${Buffer.from('user:100%sure').toString('base64')}`
+        );
+      }
+    });
+
     it('treats a non-2xx response as a failed request', async () => {
       const mockServer = createMockServer();
       selectMock.mockReturnValue(mockServer);

@@ -41,15 +41,28 @@ const mockToResponse = (result?: { data?: unknown; status?: number }) => {
   };
 };
 const mockRequests: { url: string; init?: RequestInit }[] = [];
-const mockFromPartition = (partition: string) => {
-  mockPartitions.push(partition);
-  return {
-    fetch: (url: string, init?: RequestInit) => {
-      mockRequests.push({ url, init });
-      return mockHttp.get(url).then(mockToResponse);
-    },
-  };
-};
+// The module keeps one session per partition, so the partition is recorded
+// per request. `mockVerifyProcs` holds the certificate verify proc that the
+// module installs on each partition.
+type MockVerifyProc = (
+  request: {
+    hostname: string;
+    certificate: { issuerName: string; data: string };
+    errorCode: number;
+  },
+  callback: (result: number) => void
+) => void;
+const mockVerifyProcs = new Map<string, MockVerifyProc>();
+const mockFromPartition = (partition: string) => ({
+  setCertificateVerifyProc: (proc: MockVerifyProc) => {
+    mockVerifyProcs.set(partition, proc);
+  },
+  fetch: (url: string, init?: RequestInit) => {
+    mockPartitions.push(partition);
+    mockRequests.push({ url, init });
+    return mockHttp.get(url).then(mockToResponse);
+  },
+});
 
 jest.mock('../../store');
 jest.mock('jsonwebtoken');
@@ -217,9 +230,102 @@ describe('supportedVersions/main.ts', () => {
       expect(requested('settings.public')).toBe(true);
       expect(requested('releases.rocket.chat')).toBe(true);
       expect(mockPartitions.length).toBe(requestedUrls.length);
-      expect([...new Set(mockPartitions)]).toEqual([
-        `persist:${mockServer.url}`,
-      ]);
+      const partitions = [...new Set(mockPartitions)];
+      expect(partitions.length).toBe(1);
+      // An in-memory session, not the webview's `persist:` one.
+      expect(partitions[0].startsWith('supported-versions:')).toBe(true);
+      expect(mockVerifyProcs.has(partitions[0])).toBe(true);
+    });
+
+    describe('certificate trust', () => {
+      const trustedCertificate = { issuerName: 'Private CA', data: 'PEM' };
+      const serialized = 'Private CA\nPEM';
+      let trustedCertificates: Record<string, string>;
+
+      const runCheck = async (serverUrl: string) => {
+        const mockServer = createMockServer({
+          url: serverUrl,
+          uniqueID: 'persisted-id',
+        });
+        selectMock.mockImplementation((selector: any) =>
+          selector({ servers: [mockServer], trustedCertificates })
+        );
+        mockHttp.get = jest.fn().mockResolvedValue({
+          data: createMockServerInfo({ supportedVersions: undefined }),
+        });
+        mockPartitions.length = 0;
+        await updateSupportedVersionsData(serverUrl);
+        const partitions = [...new Set(mockPartitions)];
+        expect(partitions.length).toBe(1);
+        return partitions[0];
+      };
+
+      const verify = (
+        partition: string,
+        request: Partial<Parameters<MockVerifyProc>[0]> = {}
+      ) => {
+        const callback = jest.fn();
+        mockVerifyProcs.get(partition)!(
+          {
+            hostname: 'trust.rocket.chat',
+            certificate: trustedCertificate,
+            errorCode: -202, // CERT_AUTHORITY_INVALID
+            ...request,
+          },
+          callback
+        );
+        return callback.mock.calls[0][0];
+      };
+
+      beforeEach(() => {
+        trustedCertificates = {};
+      });
+
+      it('uses a new session when the user trusts or removes a certificate', async () => {
+        // Chromium caches each verification result per session, so a check
+        // that ran before the user trusted the certificate must not share a
+        // session with the checks after it.
+        const serverUrl = 'https://user:p%40ss@trust.rocket.chat/';
+        const untrusted = await runCheck(serverUrl);
+
+        trustedCertificates = { 'trust.rocket.chat': serialized };
+        const trusted = await runCheck(serverUrl);
+        expect(trusted === untrusted).toBe(false);
+
+        trustedCertificates = {};
+        expect(await runCheck(serverUrl)).toBe(untrusted);
+
+        for (const partition of [untrusted, trusted]) {
+          expect(partition.includes('p%40ss')).toBe(false);
+          expect(partition.includes('trust.rocket.chat')).toBe(false);
+        }
+      });
+
+      it('accepts only the certificate the user trusted for the server host', async () => {
+        trustedCertificates = { 'trust.rocket.chat': serialized };
+        const partition = await runCheck('https://trust.rocket.chat/');
+
+        expect(verify(partition)).toBe(0);
+        // Revoked (CERT_REVOKED): never accepted.
+        expect(verify(partition, { errorCode: -206 })).toBe(-3);
+        // Valid certificate: Chromium's own result.
+        expect(verify(partition, { errorCode: 0 })).toBe(-3);
+        expect(verify(partition, { hostname: 'releases.rocket.chat' })).toBe(
+          -3
+        );
+        expect(
+          verify(partition, {
+            certificate: { issuerName: 'Private CA', data: 'OTHER' },
+          })
+        ).toBe(-3);
+      });
+
+      it('accepts no failed certificate when the user trusted none', async () => {
+        trustedCertificates = { 'other.rocket.chat': serialized };
+        const partition = await runCheck('https://trust.rocket.chat/');
+
+        expect(verify(partition)).toBe(-3);
+      });
     });
 
     it('sends basic-auth credentials as a header, only to the server, and no cookies', async () => {

@@ -1,6 +1,8 @@
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import type { Session } from 'electron';
 import { ipcMain, powerMonitor, session } from 'electron';
 import ElectronStore from 'electron-store';
 import jwt from 'jsonwebtoken';
@@ -8,6 +10,7 @@ import moment from 'moment';
 import { coerce, gt, satisfies } from 'semver';
 import semverGte from 'semver/functions/gte';
 
+import { serializeCertificate } from '../../navigation/serializeCertificate';
 import { dispatch, listen, select } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
@@ -68,12 +71,59 @@ const getBuiltinSupportedVersions = async (): Promise<
   }
 };
 
-// Requests go through the server's own webview session, not a Node HTTP
-// client: the session applies the same proxy settings, certificate trust and
-// OS certificate store as the webview. A Node client reads the
-// http_proxy/https_proxy variables instead, so it failed behind a proxy that
-// the webview did not use, and the check fell back to stale builtin data that
-// blocked a supported server.
+// Requests go through an Electron session, not a Node HTTP client: the
+// session applies the same proxy settings and OS certificate store as the
+// webview. A Node client reads the http_proxy/https_proxy variables instead,
+// so it failed behind a proxy that the webview did not use, and the check fell
+// back to stale builtin data that blocked a supported server.
+//
+// The app 'certificate-error' event, where the user trusts a certificate,
+// fires only for webContents loads. So each check session has a verify proc
+// that accepts the certificate the user trusted for the server host. Chromium
+// caches each verification result per session, and no API clears that cache.
+// So each trust state of a server gets its own in-memory session: trusting or
+// removing a certificate starts the next check with an empty cache. The
+// webview sessions keep their default verification.
+const CERT_OK = 0;
+const CERT_REVOKED = -206; // net_error_list.h
+const ACCEPT_CERTIFICATE = 0;
+const USE_CHROMIUM_RESULT = -3;
+
+const checkSessions = new Map<string, Session>();
+
+const getCheckSession = (serverUrl: string): Session => {
+  const { host, hostname } = new URL(serverUrl);
+  const trustedCertificates = select(
+    ({ trustedCertificates }) => trustedCertificates
+  );
+  const trusted =
+    typeof trustedCertificates?.[host] === 'string'
+      ? trustedCertificates[host]
+      : undefined;
+  // A hash keeps credentials from the server URL out of the partition name.
+  const partition = `supported-versions:${createHash('sha256')
+    .update(`${serverUrl}\n${trusted ?? ''}`)
+    .digest('hex')}`;
+
+  const existing = checkSessions.get(partition);
+  if (existing) return existing;
+
+  const checkSession = session.fromPartition(partition);
+  checkSession.setCertificateVerifyProc(
+    ({ hostname: requestHostname, certificate, errorCode }, callback) => {
+      const accept =
+        trusted !== undefined &&
+        errorCode !== CERT_OK &&
+        errorCode !== CERT_REVOKED &&
+        requestHostname === hostname &&
+        serializeCertificate(certificate) === trusted;
+      callback(accept ? ACCEPT_CERTIFICATE : USE_CHROMIUM_RESULT);
+    }
+  );
+  checkSessions.set(partition, checkSession);
+  return checkSession;
+};
+
 //
 // fetch() rejects a URL with `user:pass@`, so the credentials of a server
 // behind basic auth go in an Authorization header, and only to that server's
@@ -97,13 +147,11 @@ const fetchJson = async <T>(serverUrl: string, url: string): Promise<T> => {
       `Basic ${Buffer.from(credentials).toString('base64')}`
     );
   }
-  const response = await session
-    .fromPartition(`persist:${serverUrl}`)
-    .fetch(target.href, {
-      headers,
-      credentials: 'omit',
-      redirect: headers.has('Authorization') ? 'error' : 'follow',
-    });
+  const response = await getCheckSession(serverUrl).fetch(target.href, {
+    headers,
+    credentials: 'omit',
+    redirect: headers.has('Authorization') ? 'error' : 'follow',
+  });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
   }

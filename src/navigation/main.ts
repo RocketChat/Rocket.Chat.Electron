@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-import type { Certificate, Session } from 'electron';
-import { app, session } from 'electron';
+import type { Certificate } from 'electron';
+import { app } from 'electron';
 import i18next from 'i18next';
 
 import { loggers } from '../logging/scopes';
@@ -21,6 +21,7 @@ import {
   CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from './actions';
+import { serializeCertificate } from './serializeCertificate';
 
 const t = i18next.t.bind(i18next);
 
@@ -39,62 +40,7 @@ const loadUserTrustedCertificates = async (): Promise<
   }
 };
 
-export const serializeCertificate = (certificate: Certificate): string =>
-  `${certificate.issuerName}\n${certificate.data.toString()}`;
-
-// Chromium's default result for a certificate verification.
-const USE_CHROMIUM_VERIFICATION = -3;
-const ACCEPT_CERTIFICATE = 0;
-
-// The app 'certificate-error' event fires only for webContents loads. A
-// main-process session.fetch() with a certificate that the user trusted would
-// fail without this proc. Trusted entries are keyed by `host` (with port), and
-// the proc only knows the hostname, so any port of that hostname matches.
-export const isUserTrustedCertificate = (
-  trustedCertificates: Record<string, string>,
-  hostname: string,
-  certificate: Certificate
-): boolean => {
-  const serialized = serializeCertificate(certificate);
-  return Object.entries(trustedCertificates).some(([host, trusted]) => {
-    if (trusted !== serialized) return false;
-    try {
-      return new URL(`https://${host}`).hostname === hostname;
-    } catch {
-      return false;
-    }
-  });
-};
-
-const installTrustedCertificateVerifyProc = (ses: Session): void => {
-  ses.setCertificateVerifyProc(
-    ({ hostname, certificate, verificationResult }, callback) => {
-      if (
-        verificationResult === 'net::OK' ||
-        verificationResult === 'net::ERR_CERT_REVOKED'
-      ) {
-        callback(USE_CHROMIUM_VERIFICATION);
-        return;
-      }
-
-      const trustedCertificates = select(
-        ({ trustedCertificates }) => trustedCertificates
-      );
-      callback(
-        isUserTrustedCertificate(trustedCertificates, hostname, certificate)
-          ? ACCEPT_CERTIFICATE
-          : USE_CHROMIUM_VERIFICATION
-      );
-    }
-  );
-};
-
-// Must run before any session makes a request: Chromium caches each
-// verification result, and a proc installed later is not called for it.
-export const setupTrustedCertificateVerification = (): void => {
-  installTrustedCertificateVerifyProc(session.defaultSession);
-  app.on('session-created', installTrustedCertificateVerifyProc);
-};
+export { serializeCertificate };
 
 const queuedTrustRequests = new Map<
   Certificate['fingerprint'],

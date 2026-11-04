@@ -2570,7 +2570,8 @@ describe('supportedVersions/main.ts', () => {
     const freshVerdictFor = async (
       serverVersion: string,
       data: SupportedVersions,
-      via: 'server' | 'cloud' = 'server'
+      via: 'server' | 'cloud' = 'server',
+      persistedCommitHash?: string
     ): Promise<boolean | undefined> => {
       let verdict: boolean | undefined;
       await jest.isolateModulesAsync(async () => {
@@ -2595,6 +2596,7 @@ describe('supportedVersions/main.ts', () => {
         const mockServer = createMockServer({
           version: serverVersion,
           uniqueID: 'persisted-id',
+          gitCommitHash: persistedCommitHash,
         });
         (store.select as jest.Mock).mockReturnValue(mockServer);
         mockHttp.get = jest.fn().mockImplementation(async (url: string) => {
@@ -2666,6 +2668,22 @@ describe('supportedVersions/main.ts', () => {
         { version: '9.1.0-develop', expiration: expired },
       ]);
       expect(await freshVerdictFor('9.1.0-develop', withDevelop)).toBe(false);
+    });
+
+    it('ignores a persisted commit hash from the build before an upgrade', async () => {
+      const withOldBuildException = payload(upTo90.versions, {
+        domain: 'test.rocket.chat',
+        uniqueId: '',
+        versions: [{ version: 'sha-abc1234', expiration: expired }],
+      });
+      expect(
+        await freshVerdictFor(
+          '9.1.0',
+          withOldBuildException,
+          'server',
+          'abc1234def'
+        )
+      ).toBe(true);
     });
 
     it('still blocks when an exception for this server has expired', async () => {

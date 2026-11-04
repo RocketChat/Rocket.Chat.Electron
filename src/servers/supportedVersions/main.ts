@@ -794,8 +794,12 @@ const hasExceptionForServer = async (
   const { exceptions } = supportedVersions;
   if (!exceptions?.versions?.length) return false;
   const neverExpires = new Date('9999-12-31T23:59:59Z');
+  // Without a fresh commit hash, do not match against the persisted one. The
+  // server version is newer than the data, so the persisted hash can belong
+  // to the build before an upgrade, and an expired exception for that build
+  // must not block the new one.
   const { supported } = await isServerVersionSupported(
-    server,
+    serverCommitHash ? server : { ...server, gitCommitHash: undefined },
     {
       ...supportedVersions,
       versions: [],

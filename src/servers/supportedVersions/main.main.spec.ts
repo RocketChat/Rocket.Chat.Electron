@@ -294,6 +294,8 @@ describe('supportedVersions/main.ts', () => {
 
         trustedCertificates = {};
         expect(await runCheck(serverUrl)).toBe(untrusted);
+        // The key holds the origin only, not the credentials.
+        expect(await runCheck('https://trust.rocket.chat/')).toBe(untrusted);
 
         for (const partition of [untrusted, trusted]) {
           expect(partition.includes('p%40ss')).toBe(false);

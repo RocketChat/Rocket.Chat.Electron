@@ -92,7 +92,7 @@ const USE_CHROMIUM_RESULT = -3;
 const checkSessions = new Map<string, Session>();
 
 const getCheckSession = (serverUrl: string): Session => {
-  const { host, hostname } = new URL(serverUrl);
+  const { host, hostname, origin } = new URL(serverUrl);
   const trustedCertificates = select(
     ({ trustedCertificates }) => trustedCertificates
   );
@@ -100,9 +100,10 @@ const getCheckSession = (serverUrl: string): Session => {
     typeof trustedCertificates?.[host] === 'string'
       ? trustedCertificates[host]
       : undefined;
-  // A hash keeps credentials from the server URL out of the partition name.
+  // The session holds no credentials (requests omit cookies and build the
+  // Authorization header each time), so the key is the origin without them.
   const partition = `supported-versions:${createHash('sha256')
-    .update(`${serverUrl}\n${trusted ?? ''}`)
+    .update(`${origin}\n${trusted ?? ''}`)
     .digest('hex')}`;
 
   const existing = checkSessions.get(partition);

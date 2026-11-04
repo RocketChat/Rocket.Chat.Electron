@@ -93,13 +93,15 @@ const checkSessions = new Map<string, Session>();
 
 const getCheckSession = (serverUrl: string): Session => {
   const { host, hostname, origin } = new URL(serverUrl);
-  const trustedCertificates = select(
-    ({ trustedCertificates }) => trustedCertificates
-  );
-  const trusted =
-    typeof trustedCertificates?.[host] === 'string'
+  const readTrusted = (): string | undefined => {
+    const trustedCertificates = select(
+      ({ trustedCertificates }) => trustedCertificates
+    );
+    return typeof trustedCertificates?.[host] === 'string'
       ? trustedCertificates[host]
       : undefined;
+  };
+  const trusted = readTrusted();
   // The session holds no credentials (requests omit cookies and build the
   // Authorization header each time), so the key is the origin without them.
   const partition = `supported-versions:${createHash('sha256')
@@ -112,8 +114,11 @@ const getCheckSession = (serverUrl: string): Session => {
   const checkSession = session.fromPartition(partition);
   checkSession.setCertificateVerifyProc(
     ({ hostname: requestHostname, certificate, errorCode }, callback) => {
+      // A request that started before the user removed the trust can verify
+      // after it. Accept only while the store still holds this certificate.
       const accept =
         trusted !== undefined &&
+        readTrusted() === trusted &&
         errorCode !== CERT_OK &&
         errorCode !== CERT_REVOKED &&
         requestHostname === hostname &&

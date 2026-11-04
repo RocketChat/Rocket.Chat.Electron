@@ -329,6 +329,16 @@ describe('supportedVersions/main.ts', () => {
         ).toBe(-3);
       });
 
+      it('rejects a handshake that runs after the user removed the trust', async () => {
+        trustedCertificates = { 'trust.rocket.chat': serialized };
+        const partition = await runCheck('https://trust.rocket.chat/');
+        expect(verify(partition)).toBe(0);
+
+        // A request already sent on this session verifies after the removal.
+        trustedCertificates = {};
+        expect(verify(partition)).toBe(-3);
+      });
+
       it('accepts no failed certificate when the user trusted none', async () => {
         trustedCertificates = { 'other.rocket.chat': serialized };
         const partition = await runCheck('https://trust.rocket.chat/');

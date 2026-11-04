@@ -2467,6 +2467,19 @@ describe('supportedVersions/main.ts', () => {
       expect(await verdictFor('9.1.0-develop', snapshot)).toBe(true);
     });
 
+    it('does not treat a hyphen in build metadata as a prerelease', async () => {
+      const snapshot = createMockSupportedVersions({
+        versions: [
+          { version: '9.0.1', expiration: future },
+          { version: '9.1.0-rc.1', expiration: expired },
+        ],
+        exceptions: undefined,
+        enforcementStartDate: '2023-12-15T00:00:00Z',
+      });
+      expect(await verdictFor('9.1.0+build-42', snapshot)).toBe(true);
+      expect(await verdictFor('9.1.0-develop+build-42', snapshot)).toBe(false);
+    });
+
     it('still blocks a prerelease that the snapshot lists, even when the entry expired', async () => {
       expect(await verdictFor('8.9.0-develop', snapshot417)).toBe(false);
       expect(await verdictFor('8.8.0-rc.5', snapshot417)).toBe(false);

@@ -689,6 +689,11 @@ const withExceptionScopeUniqueId = async (
 // - fresh server or cloud data: only the next release after that entry (the
 //   next minor, or the next major's .0), because fresh data lags only until
 //   the release is added.
+// Build metadata (after '+') can hold a hyphen, so it does not make a
+// version a prerelease.
+const isPrereleaseVersion = (version: string): boolean =>
+  version.split('+')[0].includes('-');
+
 const isNewerThanSupportedVersionsData = async (
   server: Server,
   candidates: {
@@ -703,7 +708,7 @@ const isNewerThanSupportedVersionsData = async (
   const serverVersion = coerce(trimmed);
   if (!serverVersion || candidates.length === 0) return false;
   const serverMinor = `${serverVersion.major}.${serverVersion.minor}.0`;
-  const isPrerelease = trimmed.includes('-');
+  const isPrerelease = isPrereleaseVersion(trimmed);
 
   const isNewerThanStableEntries = candidates.every(({ versions }) => {
     const listsServerMinor = (versions.versions ?? []).some(({ version }) => {
@@ -717,7 +722,8 @@ const isNewerThanSupportedVersionsData = async (
 
     const newestStable = (versions.versions ?? [])
       .filter(
-        ({ version }) => typeof version === 'string' && !version.includes('-')
+        ({ version }) =>
+          typeof version === 'string' && !isPrereleaseVersion(version)
       )
       .map(({ version }) => coerce(version))
       .reduce<ReturnType<typeof coerce>>(

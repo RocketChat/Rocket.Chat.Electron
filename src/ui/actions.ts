@@ -96,6 +96,9 @@ export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
   'settings/set-bugsnag-opt-in-changed';
 export const SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED =
   'settings/set-flashframe-opt-in-changed';
+export const SETTINGS_SET_ANIMATED_IMAGES_CHANGED =
+  'settings/animated-images-changed';
+
 export const SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED =
   'settings/set-hardware-acceleration-opt-in-changed';
 export const SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED =
@@ -315,6 +318,7 @@ export type UiActionTypeToPayloadMap = {
   };
   [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED]: boolean;
+  [SETTINGS_SET_ANIMATED_IMAGES_CHANGED]: boolean;
   [SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;

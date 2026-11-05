@@ -65,6 +65,7 @@ import {
   startHeartbeat,
   terminateIfUnresponsive,
 } from './hangRecovery';
+import { setupImageAnimationPolicy } from './imageAnimation';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
 import type { ReconnectBackoff } from './stuckNavigation';
@@ -714,6 +715,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
     webPreferences.sandbox = false;
+    webPreferences.imageAnimationPolicy = select(
+      ({ isAnimatedImagesEnabled }) =>
+        isAnimatedImagesEnabled ? 'animate' : 'noAnimation'
+    );
   };
 
   const handleDidAttachWebview = (
@@ -723,6 +728,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     // webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+
+    setupImageAnimationPolicy(webContents);
 
     if (process.env.NODE_ENV === 'development') {
       setupPreloadReload(webContents);

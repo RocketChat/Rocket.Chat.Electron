@@ -40,7 +40,8 @@
     },
     "addServerError": {
       "title": "Host no válido",
-      "message": "El host \"{{- host}}\" no pudo ser validado y no fue agregado."
+      "message": "El host \"{{- host}}\" no pudo ser validado y no fue agregado.",
+      "unreachableMessage": "El host \"{{- host}}\" no pudo ser validado. El espacio de trabajo sigue en su lista."
     },
     "certificateError": {
       "title": "Error de certificado",

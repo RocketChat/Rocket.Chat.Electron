@@ -40,7 +40,8 @@
     },
     "addServerError": {
       "title": "Érvénytelen kiszolgáló",
-      "message": "A(z) „{{- host}}” kiszolgálót nem sikerült ellenőrizni, ezért nem lett hozzáadva."
+      "message": "A(z) „{{- host}}” kiszolgálót nem sikerült ellenőrizni, ezért nem lett hozzáadva.",
+      "unreachableMessage": "A(z) „{{- host}}” kiszolgálót nem sikerült ellenőrizni. A munkaterület továbbra is szerepel a listában."
     },
     "certificateError": {
       "title": "Tanúsítványhiba",

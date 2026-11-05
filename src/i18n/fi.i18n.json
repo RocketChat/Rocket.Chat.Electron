@@ -40,7 +40,8 @@
     },
     "addServerError": {
       "title": "Virheellinen isäntä",
-      "message": "Isäntää {{- host}} ei voitu vahvistaa, joten sitä ei lisätty."
+      "message": "Isäntää {{- host}} ei voitu vahvistaa, joten sitä ei lisätty.",
+      "unreachableMessage": "Isäntää {{- host}} ei voitu vahvistaa. Työtila on edelleen luettelossasi."
     },
     "certificateError": {
       "title": "Varmennevirhe",

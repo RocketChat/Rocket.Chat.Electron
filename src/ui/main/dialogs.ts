@@ -2,6 +2,7 @@ import type { BrowserWindow } from 'electron';
 import { dialog, shell } from 'electron';
 import i18next from 'i18next';
 
+import { loggers } from '../../logging/scopes';
 import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
@@ -90,14 +91,58 @@ export const warnAboutUiPreviewFailure = async (
   });
 };
 
-export const warnAboutInvalidServerUrl = (
-  _serverUrl: string,
-  _reason: string,
-  _parentWindow?: BrowserWindow
+const showServerUrlError = async (
+  messageKey:
+    | 'dialog.addServerError.message'
+    | 'dialog.addServerError.unreachableMessage',
+  serverUrl: string,
+  reason: string,
+  parentWindow?: BrowserWindow
 ): Promise<void> => {
-  // TODO
-  throw Error('not implemented');
+  parentWindow?.show();
+
+  // Deep links call this from an `open-url` listener that has no rejection
+  // handler. When the app quits, the root window can go away first.
+  try {
+    await dialog.showMessageBox(parentWindow ?? (await getRootWindow()), {
+      type: 'error',
+      title: t('dialog.addServerError.title'),
+      message: t(messageKey, { host: serverUrl }),
+      detail: reason || undefined,
+    });
+  } catch (error) {
+    loggers.servers.warn(
+      'Could not show the invalid server URL dialog:',
+      error
+    );
+  }
 };
+
+export const warnAboutInvalidServerUrl = (
+  serverUrl: string,
+  reason: string,
+  parentWindow?: BrowserWindow
+): Promise<void> =>
+  showServerUrlError(
+    'dialog.addServerError.message',
+    serverUrl,
+    reason,
+    parentWindow
+  );
+
+// For a workspace that is already in the sidebar: it could not be validated
+// now, but it was not removed, so the "was not added" text would be wrong.
+export const warnAboutUnreachableServer = (
+  serverUrl: string,
+  reason: string,
+  parentWindow?: BrowserWindow
+): Promise<void> =>
+  showServerUrlError(
+    'dialog.addServerError.unreachableMessage',
+    serverUrl,
+    reason,
+    parentWindow
+  );
 
 export const enum AskUpdateInstallResponse {
   INSTALL_LATER = 0,

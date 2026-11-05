@@ -1,5 +1,6 @@
 import type { BrowserWindow } from 'electron';
 import { dialog, shell } from 'electron';
+import i18next from 'i18next';
 
 import {
   AskForCertificateTrustResponse,
@@ -13,6 +14,7 @@ import {
   askForClearScreenCapturePermission,
   askForMediaPermissionSettings,
   warnAboutInvalidServerUrl,
+  warnAboutUnreachableServer,
   warnAboutUpdateSkipped,
   warnAboutInstallUpdateLater,
   showMicrophonePermissionDeniedMessage,
@@ -29,7 +31,7 @@ jest.mock('electron', () => ({
 }));
 
 jest.mock('i18next', () => ({
-  t: (key: string) => key,
+  t: jest.fn((key: string) => key),
 }));
 
 jest.mock('./rootWindow', () => ({
@@ -124,10 +126,69 @@ describe('ui/main/dialogs', () => {
     );
   });
 
-  it('warns about invalid server URLs by throwing', async () => {
-    expect(() => warnAboutInvalidServerUrl('x', 'y')).toThrow(
-      'not implemented'
+  it('shows an Invalid Host error dialog for an invalid server URL', async () => {
+    const parent = getMockWindow();
+    showMessageBox.mockResolvedValue({ response: 0 } as never);
+
+    await expect(
+      warnAboutInvalidServerUrl('https://bad.example', 'timeout', parent)
+    ).resolves.toBeUndefined();
+    expect(parent.show).toHaveBeenCalled();
+    expect(showMessageBox).toHaveBeenCalledWith(parent, {
+      type: 'error',
+      title: 'dialog.addServerError.title',
+      message: 'dialog.addServerError.message',
+      detail: 'timeout',
+    });
+    expect(i18next.t).toHaveBeenCalledWith('dialog.addServerError.message', {
+      host: 'https://bad.example',
+    });
+  });
+
+  it('does not say "not added" for a workspace that is already added', async () => {
+    const parent = getMockWindow();
+    showMessageBox.mockResolvedValue({ response: 0 } as never);
+
+    await warnAboutUnreachableServer('https://chat.example', 'timeout', parent);
+
+    expect(showMessageBox).toHaveBeenCalledWith(parent, {
+      type: 'error',
+      title: 'dialog.addServerError.title',
+      message: 'dialog.addServerError.unreachableMessage',
+      detail: 'timeout',
+    });
+    expect(i18next.t).toHaveBeenCalledWith(
+      'dialog.addServerError.unreachableMessage',
+      { host: 'https://chat.example' }
     );
+    expect(i18next.t).not.toHaveBeenCalledWith(
+      'dialog.addServerError.message',
+      expect.anything()
+    );
+  });
+
+  it('shows the Invalid Host dialog on the root window when no parent is given', async () => {
+    const root = getMockWindow();
+    getRootWindowMock.mockResolvedValue(root);
+    showMessageBox.mockResolvedValue({ response: 0 } as never);
+
+    await warnAboutInvalidServerUrl('https://bad.example', '');
+
+    expect(showMessageBox).toHaveBeenCalledWith(
+      root,
+      expect.objectContaining({ type: 'error', detail: undefined })
+    );
+  });
+
+  it('does not reject when the root window is gone', async () => {
+    getRootWindowMock.mockRejectedValue(
+      new Error('Root window has been destroyed')
+    );
+
+    await expect(
+      warnAboutInvalidServerUrl('https://bad.example', '')
+    ).resolves.toBeUndefined();
+    expect(showMessageBox).not.toHaveBeenCalled();
   });
 
   it('asks for certificate trust and maps yes/no', async () => {

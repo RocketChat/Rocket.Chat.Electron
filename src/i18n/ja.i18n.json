@@ -31,7 +31,8 @@
     },
     "addServerError": {
       "title": "無効なホスト",
-      "message": "ホスト \"{{- host}}\" を検証できなかったため、追加されませんでした。"
+      "message": "ホスト \"{{- host}}\" を検証できなかったため、追加されませんでした。",
+      "unreachableMessage": "ホスト \"{{- host}}\" を検証できませんでした。ワークスペースは一覧に残っています。"
     },
     "certificateError": {
       "title": "証明書のエラー",

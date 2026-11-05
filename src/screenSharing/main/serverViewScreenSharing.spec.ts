@@ -19,6 +19,11 @@ jest.mock('../../ui/main/rootWindow', () => ({
   getRootWindow: jest.fn(() => Promise.resolve(null)),
 }));
 
+// The picker window imports app/main/app, which imports dialogs and through
+// it electron-log. jest.resetModules() loads electron-log again, and its
+// second ipcMain handler registration throws.
+jest.mock('../../ui/main/dialogs', () => ({}));
+
 jest.mock('../../utils/browserLauncher', () => ({
   openExternal: jest.fn(),
 }));

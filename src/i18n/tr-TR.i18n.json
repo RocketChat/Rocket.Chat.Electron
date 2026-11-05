@@ -31,7 +31,8 @@
     },
     "addServerError": {
       "title": "Geçersiz host adresi",
-      "message": "The host \"{{- host}}\" doğrulanamadı yani eklenmedi."
+      "message": "The host \"{{- host}}\" doğrulanamadı yani eklenmedi.",
+      "unreachableMessage": "\"{{- host}}\" sunucusu doğrulanamadı. Çalışma alanı listenizde kalmaya devam ediyor."
     },
     "certificateError": {
       "title": "Sertifika hatası",

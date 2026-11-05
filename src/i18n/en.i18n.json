@@ -44,7 +44,8 @@
     },
     "addServerError": {
       "title": "Invalid Host",
-      "message": "The host \"{{- host}}\" could not be validated, so was not added."
+      "message": "The host \"{{- host}}\" could not be validated, so was not added.",
+      "unreachableMessage": "The host \"{{- host}}\" could not be validated. The workspace is still in your list."
     },
     "certificateError": {
       "title": "Certificate error",

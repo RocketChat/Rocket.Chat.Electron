@@ -40,7 +40,8 @@
     },
     "addServerError": {
       "title": "Ogiltigt servernamn",
-      "message": "Servern \"{{- host}}\" kunde inte valideras och lades därför inte till."
+      "message": "Servern \"{{- host}}\" kunde inte valideras och lades därför inte till.",
+      "unreachableMessage": "Servern \"{{- host}}\" kunde inte valideras. Arbetsytan finns kvar i din lista."
     },
     "certificateError": {
       "title": "Certifikatsfel",

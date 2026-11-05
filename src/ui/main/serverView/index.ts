@@ -51,6 +51,7 @@ import {
   WEBVIEW_AUDIO_MUTED_CHANGED,
   WEBVIEW_MEDIA_CAPTURE_CHANGED,
 } from '../../actions';
+import { setupWorkspaceCss } from '../customCssManager';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
 import {
@@ -692,6 +693,8 @@ const initializeServerWebContentsAfterAttach = (
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {
   const rootWindow = await getRootWindow();
+  let nextWebviewIsVideoCall = false;
+
   const handleWillAttachWebview = (
     _event: Event,
     webPreferences: WebPreferences,
@@ -702,6 +705,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       _params.partition,
       _params.frameName
     );
+    nextWebviewIsVideoCall = isVideoCall;
     const preloadPath = resolvePreloadPath(isVideoCall);
     if (preloadPath) {
       webPreferences.preload = preloadPath;
@@ -726,6 +730,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
     if (process.env.NODE_ENV === 'development') {
       setupPreloadReload(webContents);
+    }
+
+    if (!nextWebviewIsVideoCall) {
+      setupWorkspaceCss(webContents);
     }
 
     webContents.setWindowOpenHandler(({ url, frameName, disposition }) => {

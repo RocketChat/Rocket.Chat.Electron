@@ -36,6 +36,7 @@ import {
 } from '../actions';
 import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
+import { setupShellCss } from './customCssManager';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
 
@@ -136,6 +137,8 @@ export const createRootWindow = (): void => {
   _rootWindow.addListener('close', (event: any) => {
     event.preventDefault();
   });
+
+  setupShellCss(_rootWindow.webContents);
 
   tempWindow.destroy();
 };

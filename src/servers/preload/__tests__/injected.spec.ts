@@ -64,7 +64,10 @@ describe('injected.ts', () => {
   describe('module paths across server versions', () => {
     let desktop: Record<string, jest.Mock>;
 
-    const loadWithModules = (modules: Record<string, unknown>) => {
+    const loadWithModules = (
+      modules: Record<string, unknown>,
+      initialDesktop: Record<string, jest.Mock> = {}
+    ) => {
       const requireMock = jest.fn((path: string) => {
         if (!(path in modules)) {
           throw new Error(`Cannot find module '${path}'`);
@@ -72,7 +75,7 @@ describe('injected.ts', () => {
         return modules[path];
       });
       setWindowRequire(requireMock);
-      desktop = {};
+      desktop = { ...initialDesktop };
       window.RocketChatDesktop = new Proxy(desktop, {
         get: (target, property: string) => {
           target[property] ??= jest.fn();
@@ -470,6 +473,48 @@ describe('injected.ts', () => {
         presence: 'busy',
         presenceStatusText: undefined,
       });
+    });
+
+    it('does not reset presence resolution or log module failure if reactive setup throws', async () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn');
+      const consoleErrorSpy = jest.spyOn(console, 'error');
+
+      const Presence = {
+        store: new Map(),
+        listen: jest.fn(),
+        get: jest.fn().mockResolvedValue(undefined),
+        stop: jest.fn(),
+      };
+
+      loadWithModules(
+        {
+          '/rocketchat.info': { Info: { version: '8.10.0' } },
+          '/client/lib/presence.ts': { Presence },
+          'meteor/meteor': {
+            Meteor: {
+              userId: () => 'user',
+              status: () => ({ status: 'connected' }),
+              user: () => null,
+            },
+          },
+          'meteor/tracker': { Tracker: { autorun: (fn: () => void) => fn() } },
+        },
+        {
+          setUserPresence: jest.fn(() => {
+            throw new Error('Unexpected error during presence setup');
+          }),
+        }
+      );
+
+      await jest.advanceTimersByTimeAsync(2_000);
+
+      expect(consoleWarnSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('Failed to load the presence module')
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error during reactive features setup:'),
+        expect.any(Error)
+      );
     });
   });
 });

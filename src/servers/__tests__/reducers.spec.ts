@@ -1,4 +1,5 @@
 import { APP_SETTINGS_LOADED } from '../../app/actions';
+import { WEBVIEW_DID_NAVIGATE } from '../../ui/actions';
 import { SERVER_UI_PREVIEW_CHANGED } from '../actions';
 import type { Server } from '../common';
 import { servers } from '../reducers';
@@ -49,5 +50,18 @@ describe('servers reducer UI preview state', () => {
     });
     expect(restored[0].uiPreview).toBeUndefined();
     expect(restored[1]).toBe(other);
+  });
+});
+
+describe('servers reducer last path', () => {
+  // The page of a credentialed workspace URL loads without the credentials.
+  it('saves the last path of a workspace URL with credentials', () => {
+    const url = 'https://alice:s3cret@chat.example.com/';
+    const state = servers([{ url }], {
+      type: WEBVIEW_DID_NAVIGATE,
+      payload: { url, pageUrl: 'https://chat.example.com/channel/general' },
+    });
+
+    expect(state[0].lastPath).toBe('https://chat.example.com/channel/general');
   });
 });

@@ -1,5 +1,6 @@
 import type { Event, WebContents } from 'electron';
 
+import { loggers } from '../../../logging/scopes';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
@@ -11,6 +12,7 @@ import {
   WEBVIEW_READY,
 } from '../../actions';
 import { attachGuestWebContentsEvents } from './index';
+import { watchStuckNavigation } from './stuckNavigation';
 
 jest.mock('electron', () => ({
   app: {
@@ -64,6 +66,14 @@ jest.mock('../rootWindow', () => ({
 jest.mock('./popupMenu', () => ({
   createPopupMenuForServerView: jest.fn(),
 }));
+
+jest.mock('./stuckNavigation', () => {
+  const actual = jest.requireActual('./stuckNavigation');
+  return {
+    ...actual,
+    watchStuckNavigation: jest.fn(actual.watchStuckNavigation),
+  };
+});
 
 jest.mock('./hangRecovery', () => ({
   ...jest.requireActual('./hangRecovery'),
@@ -433,5 +443,74 @@ describe('serverView audio state and mute handling', () => {
       type: WEBVIEW_AUDIO_MUTED_CHANGED,
       payload: { url: 'https://open.rocket.chat', isAudioMuted: true },
     });
+  });
+});
+
+describe('serverView stuck-navigation log lines', () => {
+  const mockListen = listen as unknown as jest.Mock;
+  const mockWatchStuckNavigation = watchStuckNavigation as jest.Mock;
+  const credentialedUrl = 'https://alice:s3cr3t@open.rocket.chat/';
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    (
+      isProtocolAllowed as jest.MockedFunction<typeof isProtocolAllowed>
+    ).mockResolvedValue(true);
+
+    await attachGuestWebContentsEvents();
+
+    const guestWebContents = {
+      addListener: jest.fn(),
+      on: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      setAudioMuted: jest.fn(),
+      isDestroyed: jest.fn(() => true),
+      isLoading: jest.fn(() => false),
+      session: { on: jest.fn() },
+    } as unknown as WebContents;
+
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockReturnValue(guestWebContents);
+
+    const attachedCall = mockListen.mock.calls.find(
+      ([actionType]) => actionType === WEBVIEW_ATTACHED
+    );
+    (attachedCall?.[1] as (action: unknown) => void)({
+      payload: { webContentsId: 1, url: credentialedUrl },
+    });
+  });
+
+  const getWatchCallbacks = () => {
+    const call = mockWatchStuckNavigation.mock.calls.find(
+      ([, url]) => url === credentialedUrl
+    );
+    return call?.[2] as {
+      onStuck: (reason: string, isUnreachable: boolean) => void;
+      onHeld: () => void;
+    };
+  };
+
+  it.each([
+    [
+      'onStuck',
+      (callbacks: ReturnType<typeof getWatchCallbacks>) =>
+        callbacks.onStuck('timeout', false),
+    ],
+    [
+      'onHeld',
+      (callbacks: ReturnType<typeof getWatchCallbacks>) => callbacks.onHeld(),
+    ],
+  ])('does not write the URL password to the log on %s', (_name, fire) => {
+    const warn = jest.spyOn(loggers.servers, 'warn').mockImplementation();
+
+    fire(getWatchCallbacks());
+
+    expect(warn).toHaveBeenCalled();
+    for (const [message] of warn.mock.calls) {
+      expect(String(message)).not.toContain('s3cr3t');
+      expect(String(message)).toContain('open.rocket.chat');
+    }
+    warn.mockRestore();
   });
 });

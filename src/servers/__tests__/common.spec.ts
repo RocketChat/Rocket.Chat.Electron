@@ -1,5 +1,8 @@
 import {
+  getServerLoadUrl,
+  redactServerUrl,
   isConferencePageUrl,
+  isServerPageUrl,
   isServerUrlResolutionResult,
   ServerUrlResolutionStatus,
 } from '../common';
@@ -56,6 +59,36 @@ describe('servers/common', () => {
         {},
       ])
     ).toBe(false);
+  });
+
+  describe('isServerPageUrl', () => {
+    it('matches a page of the workspace', () => {
+      expect(
+        isServerPageUrl(
+          'https://chat.example.com/channel/general',
+          'https://chat.example.com/'
+        )
+      ).toBe(true);
+    });
+
+    // The page of a credentialed workspace URL loads without the credentials.
+    it('matches a page of a workspace URL with credentials', () => {
+      expect(
+        isServerPageUrl(
+          'https://chat.example.com/channel/general',
+          'https://alice:s3cret@chat.example.com/'
+        )
+      ).toBe(true);
+    });
+
+    it('does not match a page of another workspace', () => {
+      expect(
+        isServerPageUrl(
+          'https://other.example.com/channel/general',
+          'https://chat.example.com/'
+        )
+      ).toBe(false);
+    });
   });
 
   describe('isConferencePageUrl', () => {
@@ -120,6 +153,35 @@ describe('servers/common', () => {
           'https://chat.example/'
         )
       ).toBe(false);
+    });
+  });
+
+  describe('getServerLoadUrl', () => {
+    it('removes the credentials of a workspace URL', () => {
+      expect(getServerLoadUrl('http://user:pass@chat.example.com/')).toBe(
+        'http://chat.example.com/'
+      );
+      expect(
+        getServerLoadUrl('https://user:pass@chat.example.com:8443/sub/')
+      ).toBe('https://chat.example.com:8443/sub/');
+    });
+
+    it('returns a URL with no credentials unchanged', () => {
+      expect(getServerLoadUrl('https://chat.example.com/sub')).toBe(
+        'https://chat.example.com/sub'
+      );
+    });
+
+    it('returns a value that is not a URL unchanged', () => {
+      expect(getServerLoadUrl('not a url')).toBe('not a url');
+    });
+  });
+
+  describe('redactServerUrl', () => {
+    it('removes the password of a workspace URL for logs', () => {
+      expect(redactServerUrl('https://user:secret@chat.example.com/')).toBe(
+        'https://chat.example.com/'
+      );
     });
   });
 });

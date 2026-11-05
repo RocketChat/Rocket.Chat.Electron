@@ -78,6 +78,45 @@ export const isConferencePageUrl = (
   }
 };
 
+// Chromium's fetch rejects a URL that includes credentials, and the web client
+// builds its request URLs from the page URL. A workspace URL keeps its
+// credentials for the HTTP login handler (src/navigation/main.ts), but its
+// pages load without them.
+export const getServerLoadUrl = (serverUrl: Server['url']): string => {
+  try {
+    const url = new URL(serverUrl);
+    if (!url.username && !url.password) {
+      return serverUrl;
+    }
+    url.username = '';
+    url.password = '';
+    return url.href;
+  } catch {
+    return serverUrl;
+  }
+};
+
+// Logs and reports must not hold the password of a credentialed workspace URL.
+export const redactServerUrl = getServerLoadUrl;
+
+// URL userinfo is percent-encoded (`p%40ss`). A Basic header or a login
+// callback needs the raw value (`p@ss`).
+export const decodeUrlUserInfo = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+// A page of a credentialed workspace URL loads without the credentials, so
+// match it against the load URL.
+export const isServerPageUrl = (
+  pageUrl: string,
+  serverUrl: Server['url']
+): boolean =>
+  pageUrl.startsWith(getServerLoadUrl(serverUrl).replace(/\/$/, ''));
+
 export const enum ServerUrlResolutionStatus {
   OK = 'ok',
   INVALID_URL = 'invalid-url',

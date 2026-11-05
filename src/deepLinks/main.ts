@@ -6,7 +6,7 @@ import {
   packageJsonInformation,
 } from '../app/main/app';
 import { loggers } from '../logging/scopes';
-import { ServerUrlResolutionStatus } from '../servers/common';
+import { getServerLoadUrl, ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
 import { openTelephonyDialpad } from '../telephony/dialpad';
@@ -148,6 +148,11 @@ const performOnServer = async (
   await action(serverUrl);
 };
 
+// A workspace URL can hold user:pass credentials for the HTTP login handler,
+// but its pages must load without them (see getServerLoadUrl).
+const getServerPageUrl = (path: string, serverUrl: string): URL =>
+  new URL(path, getServerLoadUrl(serverUrl));
+
 function getWebContents(serverUrl: string): Promise<WebContents>;
 function getWebContents(
   serverUrl: string,
@@ -186,7 +191,7 @@ const performAuthentication = async ({
   userId,
 }: AuthenticationParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {
-    const url = new URL('home', serverUrl);
+    const url = getServerPageUrl('home', serverUrl);
     url.searchParams.append('resumeToken', token);
     url.searchParams.append('userId', userId);
 
@@ -199,7 +204,7 @@ const performSamlAuthentication = async ({
   credentialToken,
 }: SamlAuthenticationParams): Promise<void> => {
   return performOnServer(host, async (serverUrl) => {
-    const url = new URL(
+    const url = getServerPageUrl(
       `saml/${encodeURIComponent(credentialToken)}`,
       serverUrl
     );
@@ -223,7 +228,7 @@ const performOpenRoom = async ({
     if (!/^\/?(direct|group|channel|livechat)\/[0-9a-zA-Z-_.]+/.test(path)) {
       return;
     }
-    const url = new URL(path, serverUrl);
+    const url = getServerPageUrl(path, serverUrl);
     if (token && userId) {
       url.searchParams.append('resumeToken', token);
       url.searchParams.append('userId', userId);
@@ -239,7 +244,7 @@ const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
       return;
     }
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
+    webContents.loadURL(getServerPageUrl(path, serverUrl).href);
   });
 
 const performConference = async ({ host, path }: InviteParams): Promise<void> =>
@@ -247,7 +252,7 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
     if (!/^conference\//.test(path)) {
       return;
     }
-    const { href } = new URL(path, serverUrl);
+    const { href } = getServerPageUrl(path, serverUrl);
     const webContents = await getWebContents(serverUrl);
 
     if (isConferenceCallPageUrl(href, serverUrl)) {

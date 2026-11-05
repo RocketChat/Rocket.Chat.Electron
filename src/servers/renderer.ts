@@ -7,6 +7,7 @@ import { dispatch, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import { ROOT_WINDOW_ICON_CHANGED } from '../ui/actions';
 import Badge from '../ui/icons/Badge';
+import { decodeUrlUserInfo } from './common';
 import type { Server } from './common';
 
 export const fetchInfo = async (
@@ -14,11 +15,20 @@ export const fetchInfo = async (
 ): Promise<[urlHref: string, version: string]> => {
   const url = new URL(urlHref);
 
-  const { username, password } = url;
+  // Chromium's fetch rejects a URL that includes credentials, so they travel
+  // as a Basic header and come back into the resolved URL for the login
+  // handler (src/navigation/main.ts).
+  const { username, password, origin } = url;
+  url.username = '';
+  url.password = '';
+
   const headers = new Headers();
 
   if (username && password) {
-    headers.append('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
+    headers.append(
+      'Authorization',
+      `Basic ${btoa(`${decodeUrlUserInfo(username)}:${decodeUrlUserInfo(password)}`)}`
+    );
   }
 
   const homeResponse = await fetch(url.href, { headers });
@@ -28,8 +38,13 @@ export const fetchInfo = async (
   }
 
   const endpoint = new URL('api/info', homeResponse.url);
+  // An origin check, not a host check: a redirect from HTTPS to HTTP on the
+  // same host must not get the credentials.
+  const isSameOrigin = endpoint.origin === origin;
 
-  const apiInfoResponse = await fetch(endpoint.href, { headers });
+  const apiInfoResponse = await fetch(endpoint.href, {
+    headers: isSameOrigin ? headers : undefined,
+  });
 
   if (!apiInfoResponse.ok) {
     throw new Error(apiInfoResponse.statusText);
@@ -44,7 +59,14 @@ export const fetchInfo = async (
     throw new Error();
   }
 
-  return [new URL('..', apiInfoResponse.url).href, responseBody.version];
+  const resolvedUrl = new URL('..', apiInfoResponse.url);
+
+  if (resolvedUrl.origin === origin) {
+    resolvedUrl.username = username;
+    resolvedUrl.password = password;
+  }
+
+  return [resolvedUrl.href, responseBody.version];
 };
 
 type RootWindowIconParams = {

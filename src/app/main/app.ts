@@ -49,6 +49,11 @@ export const electronBuilderJsonInformation = {
 export const TELEPHONY_SCHEMES = ['tel', 'callto'] as const;
 
 let isScreenCaptureFallbackForced = false;
+let isHardwareAccelerationDisabledAtStartup = false;
+
+// Set on the relaunch that the GPU fallback starts, so that the relaunched
+// process never starts the fallback again (GH #3176).
+const GPU_FALLBACK_RELAUNCH_ENV = 'ROCKETCHAT_GPU_FALLBACK_RELAUNCHED';
 
 export const relaunchApp = (...args: string[]): void => {
   // For AppImage, use spawn to relaunch because app.relaunch() doesn't work reliably
@@ -115,11 +120,10 @@ export const performElectronStartup = (): void => {
   );
 
   isScreenCaptureFallbackForced = false;
+  isHardwareAccelerationDisabledAtStartup =
+    args.includes('--disable-gpu') || isHardwareAccelerationEnabled === false;
 
-  if (
-    args.includes('--disable-gpu') ||
-    isHardwareAccelerationEnabled === false
-  ) {
+  if (isHardwareAccelerationDisabledAtStartup) {
     console.log('Disabling Hardware acceleration');
     app.disableHardwareAcceleration();
     app.commandLine.appendSwitch('disable-2d-canvas-image-chromium');
@@ -244,10 +248,32 @@ export const setupGpuCrashHandler = (): void => {
     return;
   }
 
+  const wasRelaunchedByGpuFallback =
+    process.env[GPU_FALLBACK_RELAUNCH_ENV] === '1';
+  delete process.env[GPU_FALLBACK_RELAUNCH_ENV];
+
   const args = process.argv.slice(app.isPackaged ? 1 : 2);
-  if (args.includes('--disable-gpu')) {
+  // With hardware acceleration off, Chromium reports software rendering on
+  // purpose. That is not a broken GPU, and a relaunch cannot change it.
+  if (
+    args.includes('--disable-gpu') ||
+    isHardwareAccelerationDisabledAtStartup
+  ) {
     return;
   }
+
+  const relaunchWithoutGpu = (): void => {
+    if (wasRelaunchedByGpuFallback) {
+      console.warn(
+        'GPU fallback already relaunched the app once, continuing without another relaunch'
+      );
+      return;
+    }
+
+    process.env[GPU_FALLBACK_RELAUNCH_ENV] = '1';
+    const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+    relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+  };
 
   app.on('child-process-gone', (_event, details) => {
     if (details.type !== 'GPU') {
@@ -255,8 +281,7 @@ export const setupGpuCrashHandler = (): void => {
     }
 
     console.log('GPU process crashed, disabling GPU and relaunching with X11');
-    const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
-    relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+    relaunchWithoutGpu();
   });
 
   app.once('gpu-info-update', () => {
@@ -274,8 +299,7 @@ export const setupGpuCrashHandler = (): void => {
         'GPU features unavailable, disabling GPU and relaunching with X11',
         JSON.stringify(gpuFeatures)
       );
-      const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
-      relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+      relaunchWithoutGpu();
       return;
     }
 

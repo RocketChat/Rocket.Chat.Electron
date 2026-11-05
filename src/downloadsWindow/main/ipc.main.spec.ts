@@ -99,6 +99,7 @@ class FakeBrowserWindow {
 }
 
 jest.mock('electron', () => ({
+  nativeTheme: { shouldUseDarkColors: true },
   app: {
     getAppPath: jest.fn(() => '/app'),
     on: jest.fn(),

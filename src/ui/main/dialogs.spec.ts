@@ -5,6 +5,7 @@ import {
   AskForCertificateTrustResponse,
   AskUpdateInstallResponse,
   askForAppDataReset,
+  askForTransparencyRestart,
   askForServerAddition,
   askUpdateInstall,
   askForCertificateTrust,
@@ -53,6 +54,25 @@ describe('ui/main/dialogs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     getRootWindowMock.mockResolvedValue(getMockWindow());
+  });
+
+  it('confirms a transparency restart and treats Cancel as the safe default', async () => {
+    showMessageBox.mockResolvedValue({ response: 0 } as never);
+    await expect(askForTransparencyRestart()).resolves.toBe(true);
+    expect(showMessageBox).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        buttons: [
+          'dialog.transparencyRestart.restartNow',
+          'dialog.transparencyRestart.cancel',
+        ],
+        defaultId: 1,
+        cancelId: 1,
+      })
+    );
+
+    showMessageBox.mockResolvedValue({ response: 1 } as never);
+    await expect(askForTransparencyRestart()).resolves.toBe(false);
   });
 
   it('asks for app data reset and maps the response', async () => {

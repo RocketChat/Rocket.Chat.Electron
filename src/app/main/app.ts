@@ -13,15 +13,19 @@ import electronBuilderJson from '../../../electron-builder.json';
 // eslint-disable-next-line import/order, @typescript-eslint/no-unused-vars
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
-import { dispatch, listen } from '../../store';
+import { dispatch, listen, select } from '../../store';
 import { readSetting } from '../../store/readSetting';
 import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
+  SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
   SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
 } from '../../ui/actions';
-import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
+import {
+  askForClearScreenCapturePermission,
+  askForTransparencyRestart,
+} from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
 import { preloadBrowsersList } from '../../utils/browserLauncher';
 import {
@@ -31,6 +35,8 @@ import {
   APP_VERSION_SET,
   APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
 } from '../actions';
+import { selectPersistableValues } from '../selectors';
+import { flushPersistedValues, persistValues } from './persistence';
 
 export const packageJsonInformation = {
   productName: packageJson.productName,
@@ -330,6 +336,56 @@ export const setupApp = (): void => {
 
   listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
     relaunchApp();
+  });
+
+  const originalTransparency = select(
+    ({ isTransparentWindowEnabled }) => isTransparentWindowEnabled
+  );
+  let isTransparencyRestartPending = false;
+
+  listen(SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED, async () => {
+    if (
+      process.platform !== 'darwin' ||
+      isTransparencyRestartPending ||
+      select(({ isTransparentWindowEnabled }) => isTransparentWindowEnabled) ===
+        originalTransparency
+    ) {
+      return;
+    }
+
+    isTransparencyRestartPending = true;
+    const revertTransparency = (): void => {
+      dispatch({
+        type: SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
+        payload: originalTransparency,
+      });
+      persistValues(select(selectPersistableValues));
+      flushPersistedValues();
+    };
+
+    try {
+      if (!(await askForTransparencyRestart())) {
+        revertTransparency();
+        return;
+      }
+
+      if (
+        select(
+          ({ isTransparentWindowEnabled }) => isTransparentWindowEnabled
+        ) === originalTransparency
+      ) {
+        return;
+      }
+
+      persistValues(select(selectPersistableValues));
+      flushPersistedValues();
+      relaunchApp();
+    } catch (error) {
+      console.warn('Could not confirm transparency restart:', error);
+      revertTransparency();
+    } finally {
+      isTransparencyRestartPending = false;
+    }
   });
 
   listen(

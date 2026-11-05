@@ -15,6 +15,12 @@
     "saveImageAs": "画像を保存..."
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "再起動が必要です",
+      "message": "ウィンドウの透明度を変更するには、Rocket.Chat を再起動する必要があります。今すぐ再起動しますか？キャンセルすると、以前の設定に戻ります。",
+      "restartNow": "今すぐ再起動",
+      "cancel": "キャンセル"
+    },
     "about": {
       "title": "{{- appName}} について",
       "version": "バージョン: <1>{{-version}}</1>",

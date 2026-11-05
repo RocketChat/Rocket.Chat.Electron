@@ -38,6 +38,9 @@ import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
+import { getRootWindowAppearanceOptions } from './windowAppearance';
+
+export { getRootWindowAppearanceOptions } from './windowAppearance';
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
@@ -90,9 +93,16 @@ const platformTitleBarStyle =
     : 'default';
 
 const isMac = process.platform === 'darwin';
-// Linux client chrome is a plain rectangle under most WMs. Transparent + CSS
-// radius paints soft outer corners. Windows already gets DWM rounding — leave it.
-const usesLinuxClientChromeRounding = process.platform === 'linux';
+
+const isMacTransparencyEnabled = (): boolean => {
+  if (!isMac) {
+    return false;
+  }
+
+  return select(
+    ({ isTransparentWindowEnabled }) => isTransparentWindowEnabled === true
+  );
+};
 
 export const createRootWindow = (): void => {
   _rootWindow = new BrowserWindow({
@@ -104,20 +114,11 @@ export const createRootWindow = (): void => {
     ...(isMac ? { trafficLightPosition: { x: 12, y: 13 } } : {}),
     show: false,
     webPreferences,
-    ...(isMac
-      ? {
-          transparent: true,
-          vibrancy: 'sidebar',
-          visualEffectState: 'active',
-        }
-      : {}),
-    ...(usesLinuxClientChromeRounding
-      ? {
-          transparent: true,
-          backgroundColor: '#00000000',
-          hasShadow: true,
-        }
-      : {}),
+    ...getRootWindowAppearanceOptions({
+      platform: process.platform,
+      isTransparentWindowEnabled: isMacTransparencyEnabled(),
+      shouldUseDarkColors: nativeTheme.shouldUseDarkColors,
+    }),
   });
 
   // Block navigation to smb:// protocol

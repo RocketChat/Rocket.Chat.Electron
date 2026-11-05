@@ -55,7 +55,8 @@
       "keepLoginData": "Bejelentkezési munkamenet megtartása",
       "deleteLoginData": "Bejelentkezési munkamenet törlése",
       "clearingWait": "Kis türelmet",
-      "cancel": "Mégse"
+      "cancel": "Mégse",
+      "removeSearchData": "A titkosított üzenetek helyi keresésének kikapcsolása ezen a munkaterületen, és az index törlése"
     },
     "downloadRemoval": {
       "title": "Biztos benne?",
@@ -311,6 +312,35 @@
         "systemDefault": "Rendszer alapértelmezettje",
         "loading": "Böngészők betöltése…",
         "current": "Jelenleg használt:"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Helyi keresési index törlése",
+        "description": "Törli az alkalmazás által ezen a számítógépen tárolt titkosított üzenetek keresési indexét, minden munkaterülethez. Az alkalmazás ezt később újraépíti a szerverről.",
+        "confirm": {
+          "title": "Törli a helyi keresési indexet?",
+          "message": "Ez törli a titkosított üzenetek keresési indexét erről a számítógépről, minden munkaterületen. Minden munkaterület újra felépíti a kiszolgálóról. Addig a keresés kevesebb üzenetet talál.",
+          "confirm": "Index törlése",
+          "cancel": "Mégse"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Helyi keresési index",
+        "empty": "Ezen a számítógépen nincs titkosított üzenetek keresési indexe.",
+        "removedServer": "Eltávolított munkaterület",
+        "countWhenOpen": "Az üzenetek száma akkor jelenik meg, amikor a munkaterület megnyitja az indexet",
+        "messages_one": "{{count}} üzenet",
+        "messages_other": "{{count}} üzenet",
+        "onDisk": "{{size, byteSize}} a lemezen",
+        "encrypted": "Titkosítva a lemezen",
+        "memoryOnly": "Csak a memóriában, nincs mentve a lemezre",
+        "mixed": "Részben titkosítva a lemezen, részben csak a memóriában",
+        "limit": {
+          "no-encryption": "Ez a rendszer nem tud fájlokat titkosítani az alkalmazásnak, ezért a keresési index a memóriában marad, és minden indításkor újraépül. A keresés továbbra is működik.",
+          "basic-text-backend": "Nem érhető el rendszerkulcstartó, ezért a keresési index a memóriában marad. Telepítse és oldja fel a gnome-keyring vagy a KWallet szolgáltatást, majd indítsa újra az alkalmazást, hogy az index a lemezen maradjon. A keresés továbbra is működik.",
+          "keychain-timeout": "A rendszerkulcstartó nem válaszolt időben, ezért a keresési index a memóriában marad. Oldja fel a kulcstartót, és indítsa újra az alkalmazást, hogy az index a lemezen maradjon. A keresés továbbra is működik.",
+          "hard-coded-wrap": "Nem érhető el rendszerkulcstartó, ezért a keresési index a memóriában marad. Telepítse és oldja fel a gnome-keyring vagy a KWallet szolgáltatást, majd indítsa újra az alkalmazást, hogy az index a lemezen maradjon. A keresés továbbra is működik.",
+          "native-module-unavailable": "A gyors index nem tudott elindulni ezen a rendszeren. A keresés működik, de a mentés lassabb."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Képernyőfelvételi engedélyek törlése",

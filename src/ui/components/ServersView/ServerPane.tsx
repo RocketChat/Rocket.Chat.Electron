@@ -348,6 +348,12 @@ export const ServerPane = ({
         'hidden': !isSelected,
       })}
     >
+      {/* One webview for each server. The E2EE search host does not count
+          the sessions of an index. A path that creates a new webview for
+          this server while the old one still lives (for example, a recovery
+          that recreates it) must first add a session count per index in
+          src/e2eeSearch. Otherwise the close of the old session closes the
+          index that the new webview uses. */}
       <StyledWebView
         ref={webviewRef}
         isFailed={isFailed}

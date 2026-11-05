@@ -5,6 +5,7 @@ import type { WebContents } from 'electron';
 import { app } from 'electron';
 
 import {
+  setDevelopmentAppName,
   setUserDataDirectory,
   setupRootWindowReload,
   setupPreloadReload,
@@ -15,6 +16,8 @@ jest.mock('electron', () => ({
     getPath: jest.fn(),
     getAppPath: jest.fn(),
     setPath: jest.fn(),
+    setName: jest.fn(),
+    isPackaged: false,
     name: 'Rocket.Chat',
     mas: false,
   },
@@ -91,6 +94,73 @@ describe('app/main/dev', () => {
 
       expect(mkdirSync).not.toHaveBeenCalled();
       expect(app.setPath).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('setDevelopmentAppName', () => {
+    const originalSwitch = process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM;
+
+    beforeEach(() => {
+      (app as any).isPackaged = false;
+    });
+
+    afterEach(() => {
+      if (originalSwitch === undefined) {
+        delete process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM;
+      } else {
+        process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM = originalSwitch;
+      }
+    });
+
+    it('renames the app in development when the switch is on', () => {
+      process.env.NODE_ENV = 'development';
+      process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM = 'true';
+
+      setDevelopmentAppName();
+
+      expect(app.setName).toHaveBeenCalledWith('Rocket.Chat (development)');
+    });
+
+    it('keeps the app name when the switch is off', () => {
+      process.env.NODE_ENV = 'development';
+      delete process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM;
+
+      setDevelopmentAppName();
+
+      expect(app.setName).not.toHaveBeenCalled();
+    });
+
+    it('keeps the app name outside development', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM = 'true';
+
+      setDevelopmentAppName();
+
+      expect(app.setName).not.toHaveBeenCalled();
+    });
+
+    it('keeps the app name in a packaged app', () => {
+      process.env.NODE_ENV = 'development';
+      process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM = 'true';
+      (app as any).isPackaged = true;
+
+      setDevelopmentAppName();
+
+      expect(app.setName).not.toHaveBeenCalled();
+    });
+
+    it('keeps the user data folder name when it runs after it', () => {
+      process.env.NODE_ENV = 'development';
+      process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM = 'true';
+      (existsSync as jest.Mock).mockReturnValue(true);
+
+      setUserDataDirectory();
+      setDevelopmentAppName();
+
+      expect(app.setPath).toHaveBeenCalledWith(
+        'userData',
+        path.join(appData, 'Rocket.Chat (development)')
+      );
     });
   });
 

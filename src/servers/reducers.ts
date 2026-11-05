@@ -345,6 +345,10 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         // Previews live in memory only, so none survive a restart.
         uiPreview: undefined,
         uiPreviewSource: undefined,
+        // A webContents id is valid for one run only. A stale one can equal
+        // the id of another server's webview, so a lookup by id would name
+        // the wrong server. The webview sets the id again when it attaches.
+        webContentsId: undefined,
       }));
     }
 

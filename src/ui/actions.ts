@@ -1,5 +1,6 @@
 import type { WebContents } from 'electron';
 
+import type { E2EESearchServerIndexStats } from '../e2eeSearch/types';
 import type {
   MediaCaptureSource,
   MediaCaptureState,
@@ -22,6 +23,8 @@ export const CLEAR_CACHE_TRIGGERED = 'clear-cache/triggered';
 export const CLEAR_CACHE_DIALOG_DISMISSED = 'clear-cache-dialog/dismissed';
 export const CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED =
   'clear-cache-dialog/delete-login-data-clicked';
+export const CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED =
+  'clear-cache-dialog/delete-login-and-search-data-clicked';
 export const CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED =
   'clear-cache-dialog/keep-login-data-clicked';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
@@ -136,6 +139,12 @@ export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED 
   'settings/set-is-video-call-screen-capture-fallback-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
+export const SETTINGS_CLEAR_E2EE_SEARCH_INDEX_CLICKED =
+  'settings/clear-e2ee-search-index-clicked';
+export const SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED =
+  'settings/e2ee-search-index-stats-requested';
+export const E2EE_SEARCH_INDEX_STATS_UPDATED =
+  'e2ee-search/index-stats-updated';
 export const SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED =
   'settings/set-outlook-calendar-sync-interval-changed';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
@@ -212,6 +221,7 @@ export type UiActionTypeToPayloadMap = {
   [CLEAR_CACHE_TRIGGERED]: WebContents['id'];
   [CLEAR_CACHE_DIALOG_DISMISSED]: void;
   [CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED]: WebContents['id'];
+  [CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED]: WebContents['id'];
   [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
@@ -340,6 +350,9 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
+  [SETTINGS_CLEAR_E2EE_SEARCH_INDEX_CLICKED]: void;
+  [SETTINGS_E2EE_SEARCH_INDEX_STATS_REQUESTED]: void;
+  [E2EE_SEARCH_INDEX_STATS_UPDATED]: E2EESearchServerIndexStats[];
   [SETTINGS_SET_OUTLOOK_CALENDAR_SYNC_INTERVAL_CHANGED]: number;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];

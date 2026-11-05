@@ -63,8 +63,12 @@ hooks, `settings.json`).
 - The repository uses two patch systems. Put each patch in the system that
   already owns its package:
   - Yarn patch protocol: `.yarn/patches/`, configured in `package.json`. Today
-    it patches `@ewsjs/xhr` and `app-builder-lib` (the macOS keychain fix from
-    #3499).
+    it patches `@ewsjs/xhr`, `app-builder-lib` (the macOS keychain fix from
+    #3499) and `better-sqlite3-multiple-ciphers`. The last patch deletes
+    `binding.gyp`, so that `yarn install` and `@electron/rebuild` do not run
+    node-gyp, which needs Visual Studio on Windows. The app loads the Node-API
+    prebuild that the package ships for each platform. When you bump the
+    package, make the patch again with `yarn patch`.
   - `patch-package`: `patches/`. Today it patches
     `@kayahr/jest-electron-runner`.
 - Never add an `@ewsjs/xhr` patch to `patches/`. That causes CI conflicts.

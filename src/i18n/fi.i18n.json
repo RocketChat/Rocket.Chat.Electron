@@ -145,6 +145,9 @@
       "cancel": "Peruuta",
       "developerModeRequired": "Ota Ohje > Developer Mode käyttöön ladataksesi käyttöliittymän esikatseluja.",
       "failed": "Käyttöliittymän esikatselua ei voitu ladata."
+    },
+    "clearCache": {
+      "removeSearchData": "Poista myös salattujen viestien paikallinen haku käytöstä tässä työtilassa ja poista sen indeksi"
     }
   },
   "documentViewer": {
@@ -285,6 +288,35 @@
         "systemDefault": "Järjestelmän oletus",
         "loading": "Ladataan selaimia...",
         "current": "Käytössä nyt:"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Tyhjennä paikallinen hakuindeksi",
+        "description": "Poistaa tämän sovelluksen tähän tietokoneeseen tallentaman salattujen viestien hakuindeksin kaikille työtiloille. Sovellus rakentaa indeksin uudelleen palvelimelta.",
+        "confirm": {
+          "title": "Tyhjennetäänkö paikallinen hakuindeksi?",
+          "message": "Tämä poistaa salattujen viestien hakuindeksin tästä tietokoneesta kaikista työtiloista. Jokainen työtila rakentaa sen uudelleen palvelimelta. Siihen asti haku löytää vähemmän viestejä.",
+          "confirm": "Tyhjennä indeksi",
+          "cancel": "Peruuta"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Paikallinen hakuindeksi",
+        "empty": "Tässä tietokoneessa ei ole salattujen viestien hakuindeksiä.",
+        "removedServer": "Poistettu työtila",
+        "countWhenOpen": "Viestien määrä näkyy, kun työtila avaa indeksin",
+        "messages_one": "{{count}} viesti",
+        "messages_other": "{{count}} viestiä",
+        "onDisk": "{{size, byteSize}} levyllä",
+        "encrypted": "Salattu levyllä",
+        "memoryOnly": "Vain muistissa, ei tallennettu levylle",
+        "mixed": "Osittain salattu levyllä, osittain vain muistissa",
+        "limit": {
+          "no-encryption": "Tämä järjestelmä ei voi salata tiedostoja sovellukselle, joten hakuindeksi pysyy muistissa ja luodaan uudelleen jokaisella käynnistyksellä. Haku toimii silti.",
+          "basic-text-backend": "Järjestelmän avainnippua ei ole saatavilla, joten hakuindeksi pysyy muistissa. Asenna ja avaa gnome-keyring tai KWallet ja käynnistä sovellus uudelleen, jotta indeksi säilyy levyllä. Haku toimii silti.",
+          "keychain-timeout": "Järjestelmän avainnippu ei vastannut ajoissa, joten hakuindeksi pysyy muistissa. Avaa avainnippu ja käynnistä sovellus uudelleen, jotta indeksi säilyy levyllä. Haku toimii silti.",
+          "hard-coded-wrap": "Järjestelmän avainnippua ei ole saatavilla, joten hakuindeksi pysyy muistissa. Asenna ja avaa gnome-keyring tai KWallet ja käynnistä sovellus uudelleen, jotta indeksi säilyy levyllä. Haku toimii silti.",
+          "native-module-unavailable": "Nopeaa indeksiä ei voitu käynnistää tässä järjestelmässä. Haku toimii, mutta tallennus on hitaampaa."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökuvaoikeudet",

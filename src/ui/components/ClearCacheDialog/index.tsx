@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  CheckBox,
   Margins,
   Throbber,
 } from '@rocket.chat/fuselage';
@@ -13,6 +14,7 @@ import type { Dispatch } from 'redux';
 import { listen } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import {
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
   CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
   CLEAR_CACHE_DIALOG_DISMISSED,
   CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED,
@@ -25,6 +27,9 @@ export const ClearCacheDialog = () => {
   const [webContendId, setWebcontentId] = useState<number>();
   const [isVisible, setIsVisible] = useState(false);
   const [clearingCache, setClearingCache] = useState(false);
+  // Off by default: a delete of the login data keeps the local search
+  // opt-in and index, like a logout does.
+  const [removeSearchData, setRemoveSearchData] = useState(false);
 
   const { t } = useTranslation();
 
@@ -48,7 +53,9 @@ export const ClearCacheDialog = () => {
   const handleDeleteButtonClick = (): void => {
     if (webContendId === undefined) return;
     dispatch({
-      type: CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
+      type: removeSearchData
+        ? CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED
+        : CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
       payload: webContendId,
     });
     clearingCacheState();
@@ -63,6 +70,7 @@ export const ClearCacheDialog = () => {
   useEffect(() => {
     listen(CLEAR_CACHE_TRIGGERED, async (action) => {
       setWebcontentId(action.payload);
+      setRemoveSearchData(false);
       setIsVisible(true);
     });
 
@@ -89,6 +97,25 @@ export const ClearCacheDialog = () => {
           </Box>
         </Margins>
       </Box>
+      {!clearingCache && (
+        <Box display='flex' alignItems='center' marginBlockEnd='x16'>
+          <CheckBox
+            id='clear-cache-remove-search-data'
+            checked={removeSearchData}
+            onChange={() => setRemoveSearchData(!removeSearchData)}
+          />
+          <Box
+            is='label'
+            htmlFor='clear-cache-remove-search-data'
+            fontScale='p2'
+            marginInlineStart='x8'
+            width='x268'
+            style={{ cursor: 'pointer' }}
+          >
+            {t('dialog.clearCache.removeSearchData')}
+          </Box>
+        </Box>
+      )}
       {!clearingCache && (
         <ButtonGroup stretch vertical>
           <Button type='button' primary onClick={handleKeepButtonClick}>

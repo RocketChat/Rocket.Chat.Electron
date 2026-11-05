@@ -28,6 +28,7 @@ import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
 import { dialogs } from '../ui/reducers/dialogs';
 import { e2ePdfPreviewSizeLimit } from '../ui/reducers/e2ePdfPreviewSizeLimit';
+import { e2eeSearchIndexStats } from '../ui/reducers/e2eeSearchIndexStats';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isDebugLoggingEnabled } from '../ui/reducers/isDebugLoggingEnabled';
@@ -93,6 +94,7 @@ export const rootReducer = combineReducers({
   clientCertificates,
   currentView,
   dialogs,
+  e2eeSearchIndexStats,
   doCheckForUpdatesOnStartup,
   downloads,
   externalProtocols,

@@ -18,6 +18,27 @@ export const setUserDataDirectory = (): void => {
   app.setPath('userData', folder);
 };
 
+// On macOS, safeStorage keeps its key in the keychain item "<app name> Safe
+// Storage". A dev build that uses the production item gets a password dialog
+// and adds the dev Electron.app to that item's access list. With
+// ROCKETCHAT_DEV_KEYCHAIN_ITEM=true, a dev build uses its own item
+// "Rocket.Chat (development) Safe Storage". Call this before `ready`, and
+// after setUserDataDirectory, so that the user data folder keeps its name.
+export const setDevelopmentAppName = (): void => {
+  if (
+    process.env.NODE_ENV !== 'development' ||
+    app.isPackaged ||
+    process.mas ||
+    process.env.ROCKETCHAT_DEV_KEYCHAIN_ITEM !== 'true'
+  ) {
+    return;
+  }
+
+  const name = `${app.name} (development)`;
+  console.log(`Setting app name to ${name}`);
+  app.setName(name);
+};
+
 export const setupRootWindowReload = async (
   webContents: WebContents
 ): Promise<void> => {

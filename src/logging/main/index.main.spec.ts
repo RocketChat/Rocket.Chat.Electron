@@ -268,6 +268,42 @@ describe('logging/index', () => {
         Object.assign(console, original);
       }
     });
+
+    it('skips the console line of an expected error and keeps the others at error', () => {
+      setProcessType('browser');
+      const original = {
+        log: console.log,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+        debug: console.debug,
+      };
+      try {
+        // The marker must come from the same isolated registry as the module.
+        let markExpectedError: (error: Error) => Error;
+        jest.isolateModules(() => {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+          require('../index');
+          // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+          ({ markExpectedError } = require('../expectedErrors'));
+        });
+        const expected = markExpectedError!(
+          new Error('E2EE search index is not open')
+        );
+        const other = new Error('boom');
+        console.error("Error occurred in handler for 'x':", expected);
+        console.error("Error occurred in handler for 'y':", other);
+
+        expect(fakeLog.error).toHaveBeenCalledTimes(1);
+        expect(fakeLog.error).toHaveBeenCalledWith(
+          '[main]',
+          "Error occurred in handler for 'y':",
+          other
+        );
+      } finally {
+        Object.assign(console, original);
+      }
+    });
   });
 
   describe('console transport writeFn', () => {

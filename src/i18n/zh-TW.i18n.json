@@ -82,6 +82,9 @@
       "cancel": "取消",
       "developerModeRequired": "請啟用 幫助 > 開發者模式 以載入介面預覽。",
       "failed": "無法載入介面預覽。"
+    },
+    "clearCache": {
+      "removeSearchData": "同時關閉此工作區加密訊息的本機搜尋，並刪除其索引"
     }
   },
   "documentViewer": {
@@ -128,6 +131,34 @@
         "systemDefault": "系統預設",
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
+      },
+      "clearE2eeSearchIndex": {
+        "title": "清除本機搜尋索引",
+        "description": "刪除本應用程式在此電腦上保存的加密訊息搜尋索引，適用於所有工作區。應用程式會再次從伺服器建立該索引。",
+        "confirm": {
+          "title": "要清除本機搜尋索引嗎？",
+          "message": "這會刪除此電腦上所有工作區的加密訊息搜尋索引。每個工作區會從伺服器重新建立索引。在此之前，搜尋找到的訊息會變少。",
+          "confirm": "清除索引",
+          "cancel": "取消"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "本機搜尋索引",
+        "empty": "此電腦沒有加密訊息的搜尋索引。",
+        "removedServer": "已移除的工作區",
+        "countWhenOpen": "工作區開啟索引後顯示訊息數量",
+        "messages_other": "{{count}} 則訊息",
+        "onDisk": "磁碟上 {{size, byteSize}}",
+        "encrypted": "磁碟上已加密",
+        "memoryOnly": "僅保存在記憶體中，未儲存到磁碟",
+        "mixed": "部分已加密儲存在磁碟上，部分僅保存在記憶體中",
+        "limit": {
+          "no-encryption": "此系統無法為應用程式加密檔案，因此搜尋索引會保留在記憶體中，並在每次啟動時重新建立。搜尋仍可使用。",
+          "basic-text-backend": "沒有可用的系統金鑰圈，因此搜尋索引會保留在記憶體中。請安裝並解鎖 gnome-keyring 或 KWallet，然後重新啟動應用程式，以便將索引保存在磁碟上。搜尋仍可使用。",
+          "keychain-timeout": "系統金鑰圈未在時限內回應，因此搜尋索引會保留在記憶體中。請解鎖金鑰圈並重新啟動應用程式，以便將索引保存在磁碟上。搜尋仍可使用。",
+          "hard-coded-wrap": "沒有可用的系統金鑰圈，因此搜尋索引會保留在記憶體中。請安裝並解鎖 gnome-keyring 或 KWallet，然後重新啟動應用程式，以便將索引保存在磁碟上。搜尋仍可使用。",
+          "native-module-unavailable": "無法在此系統上啟動快速索引。搜尋可用，但儲存會較慢。"
+        }
       },
       "transparentWindow": {
         "title": "透明視窗效果",

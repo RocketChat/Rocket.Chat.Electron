@@ -32,6 +32,35 @@
         "title": "Tal på ulesne i menylinja",
         "description": "Vis talet på ulesne omtalar ved sida av ikonet i menylinja."
       },
+      "clearE2eeSearchIndex": {
+        "title": "Tøm lokal søkeindeks",
+        "description": "Slett søkeindeksen for krypterte meldingar som appen lagrar på denne datamaskina, for alle arbeidsområde. Appen byggjer han opp att frå serveren.",
+        "confirm": {
+          "title": "Tømme lokal søkeindeks?",
+          "message": "Dette slettar søkeindeksen for krypterte meldingar på denne datamaskina, for alle arbeidsområde. Kvart arbeidsområde byggjer han på nytt frå tenaren. Fram til då finn søket færre meldingar.",
+          "confirm": "Tøm indeks",
+          "cancel": "Avbryt"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokal søkeindeks",
+        "empty": "Denne datamaskina har ingen søkeindeks for krypterte meldingar.",
+        "removedServer": "Fjerna arbeidsområde",
+        "countWhenOpen": "Talet på meldingar blir vist når arbeidsområdet opnar indeksen",
+        "messages_one": "{{count}} melding",
+        "messages_other": "{{count}} meldingar",
+        "onDisk": "{{size, byteSize}} på disk",
+        "encrypted": "Kryptert på disk",
+        "memoryOnly": "Berre i minnet, ikkje lagra på disk",
+        "mixed": "Delvis kryptert på disk, delvis berre i minnet",
+        "limit": {
+          "no-encryption": "Dette systemet kan ikkje kryptere filer for appen, så søkjeindeksen blir verande i minnet og blir bygd på nytt ved kvar oppstart. Søk fungerer framleis.",
+          "basic-text-backend": "Ingen systemnøkkelring er tilgjengeleg, så søkjeindeksen blir verande i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å behalde han på disken. Søk fungerer framleis.",
+          "keychain-timeout": "Systemnøkkelringen svara ikkje i tide, så søkjeindeksen blir verande i minnet. Lås opp nøkkelringen og start appen på nytt for å behalde han på disken. Søk fungerer framleis.",
+          "hard-coded-wrap": "Ingen systemnøkkelring er tilgjengeleg, så søkjeindeksen blir verande i minnet. Installer og lås opp gnome-keyring eller KWallet, og start appen på nytt for å behalde han på disken. Søk fungerer framleis.",
+          "native-module-unavailable": "Den raske indeksen kunne ikkje starte på dette systemet. Søk fungerer, men lagring går tregare."
+        }
+      },
       "uiPreview": {
         "title": "Last inn ein build av nettgrensesnittet",
         "description": "Køyrer ein build av Rocket.Chat-nettklienten i staden for det eigne grensesnittet til arbeidsområdet, og held på økta di. Legg til «develop» eller eit PR-nummer frå Rocket.Chat (begge henta frå ghcr.io), eller URL-en til ein servert pakke, og ta han deretter i bruk i eit arbeidsområde. Å oppdatere ei oppføring ser etter ein nyare build og lastar inn att arbeidsområda som brukar han.",
@@ -122,6 +151,9 @@
       "cancel": "Avbryt",
       "developerModeRequired": "Slå på Help > Developer Mode for å laste inn førehandsvisingar av grensesnitt.",
       "failed": "Førehandsvisinga av grensesnittet kunne ikkje lastast inn."
+    },
+    "clearCache": {
+      "removeSearchData": "Slå også av lokalt søk i krypterte meldingar for dette arbeidsområdet, og slett indeksen"
     }
   },
   "tabBar": {

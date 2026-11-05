@@ -55,7 +55,8 @@
       "keepLoginData": "Behåll inloggningssessionen",
       "deleteLoginData": "Radera inloggningssessionen",
       "clearingWait": "Vänligen vänta",
-      "cancel": "Avbryt"
+      "cancel": "Avbryt",
+      "removeSearchData": "Stäng också av lokal sökning i krypterade meddelanden för den här arbetsytan och ta bort dess index"
     },
     "downloadRemoval": {
       "title": "Är du säker?",
@@ -306,6 +307,35 @@
         "systemDefault": "Systemstandard",
         "loading": "Laddar webbläsare...",
         "current": "Använder för närvarande:"
+      },
+      "clearE2eeSearchIndex": {
+        "title": "Töm lokalt sökindex",
+        "description": "Ta bort sökindexet för krypterade meddelanden som appen sparar på den här datorn, för alla arbetsytor. Appen bygger upp det igen från servern.",
+        "confirm": {
+          "title": "Tömma lokalt sökindex?",
+          "message": "Detta tar bort sökindexet för krypterade meddelanden på den här datorn, för alla arbetsytor. Varje arbetsyta bygger upp det igen från servern. Fram till dess hittar sökningen färre meddelanden.",
+          "confirm": "Töm index",
+          "cancel": "Avbryt"
+        }
+      },
+      "e2eeSearchIndexStats": {
+        "title": "Lokalt sökindex",
+        "empty": "Den här datorn har inget sökindex för krypterade meddelanden.",
+        "removedServer": "Borttagen arbetsyta",
+        "countWhenOpen": "Antalet meddelanden visas när arbetsytan öppnar indexet",
+        "messages_one": "{{count}} meddelande",
+        "messages_other": "{{count}} meddelanden",
+        "onDisk": "{{size, byteSize}} på disk",
+        "encrypted": "Krypterad på disk",
+        "memoryOnly": "Endast i minnet, inte sparad på disk",
+        "mixed": "Delvis krypterad på disk, delvis endast i minnet",
+        "limit": {
+          "no-encryption": "Det här systemet kan inte kryptera filer åt appen, så sökindexet stannar i minnet och byggs om vid varje start. Sökningen fungerar ändå.",
+          "basic-text-backend": "Ingen systemnyckelring finns tillgänglig, så sökindexet stannar i minnet. Installera och lås upp gnome-keyring eller KWallet och starta om appen för att behålla det på disken. Sökningen fungerar ändå.",
+          "keychain-timeout": "Systemnyckelringen svarade inte i tid, så sökindexet stannar i minnet. Lås upp nyckelringen och starta om appen för att behålla det på disken. Sökningen fungerar ändå.",
+          "hard-coded-wrap": "Ingen systemnyckelring finns tillgänglig, så sökindexet stannar i minnet. Installera och lås upp gnome-keyring eller KWallet och starta om appen för att behålla det på disken. Sökningen fungerar ändå.",
+          "native-module-unavailable": "Det snabba indexet kunde inte starta på det här systemet. Sökningen fungerar, men sparandet går långsammare."
+        }
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Rensa behörigheter för skärmdumpning",

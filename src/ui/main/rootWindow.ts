@@ -301,15 +301,20 @@ export const setupRootWindow = (): void => {
             })
           );
 
+        if (isShowWindowOnUnreadChangedEnabled && browserWindow.isMinimized()) {
+          // A window minimized to the taskbar still counts as visible.
+          // restore() brings back the size it had before (maximized or not).
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.restore();
+          return;
+        }
+
         if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
-          const isMinimized = browserWindow.isMinimized();
           const isMaximized = browserWindow.isMaximized();
 
           browserWindow.showInactive();
-
-          if (isMinimized) {
-            browserWindow.minimize();
-          }
 
           if (isMaximized) {
             browserWindow.maximize();

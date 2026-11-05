@@ -39,6 +39,7 @@ export const ServerItem = ({
     <Box
       is='button'
       type='button'
+      data-testid='telephony-server-option'
       paddingBlock='x6'
       paddingInline='x8'
       display='flex'

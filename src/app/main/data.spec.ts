@@ -12,6 +12,11 @@ import {
   getPersistedValues,
   setPersistedMeta,
 } from './persistence';
+import { loadStateFromCli } from './stateCli';
+
+jest.mock('./stateCli', () => ({
+  loadStateFromCli: jest.fn().mockResolvedValue({}),
+}));
 
 jest.mock('electron', () => ({
   app: {
@@ -64,6 +69,7 @@ beforeEach(() => {
   (store.select as jest.Mock).mockImplementation(mockSelect);
   (getPersistedValues as jest.Mock).mockReturnValue({});
   (getPersistedMeta as jest.Mock).mockReturnValue(MENU_BAR_DEFAULT_REVISION);
+  (loadStateFromCli as jest.Mock).mockResolvedValue({});
 });
 
 describe('mergePersistableValues', () => {
@@ -355,6 +361,61 @@ describe('mergePersistableValues', () => {
         type: APP_SETTINGS_LOADED,
         payload: expect.objectContaining({
           isNotificationQuickReplyEnabled: true,
+        }),
+      });
+    });
+  });
+
+  describe('CLI state overrides', () => {
+    it('applies values from --load-state over disk persisted values', async () => {
+      (getPersistedValues as jest.Mock).mockReturnValue({
+        isMenuBarEnabled: true,
+      });
+      (loadStateFromCli as jest.Mock).mockResolvedValueOnce({
+        isMenuBarEnabled: false,
+      });
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isMenuBarEnabled: false,
+        }),
+      });
+    });
+
+    it('allows overridden-settings.json to take precedence over CLI state', async () => {
+      (loadStateFromCli as jest.Mock).mockResolvedValueOnce({
+        isNotificationQuickReplyEnabled: true,
+      });
+      (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify({ isNotificationQuickReplyEnabled: false })
+      );
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isNotificationQuickReplyEnabled: false,
+        }),
+      });
+    });
+
+    it('preserves CLI isMenuBarEnabled over legacy localStorage autohideMenu', async () => {
+      (loadStateFromCli as jest.Mock).mockResolvedValueOnce({
+        isMenuBarEnabled: true,
+      });
+
+      await mergePersistableValues({
+        autohideMenu: 'true',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isMenuBarEnabled: true,
         }),
       });
     });

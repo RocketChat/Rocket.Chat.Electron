@@ -37,6 +37,7 @@ export const Telephony = (props: TelephonyProps) => {
     <ToggleField
       className={props.className}
       id={isTelephonyEnabledId}
+      data-testid='telephony-toggle'
       label={t('settings.options.telephony.title')}
       description={t('settings.options.telephony.description')}
       checked={isTelephonyEnabled}

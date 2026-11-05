@@ -12,6 +12,7 @@ import {
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
 import { flushPersistedValues } from './app/main/persistence';
+import { exportStateToCli } from './app/main/stateCli';
 import { startBrowserHandler } from './browser/ipc';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
@@ -200,6 +201,7 @@ const start = async (): Promise<void> => {
     stopOutlookCalendarSync();
     cleanupVideoCallResources();
     flushPersistedValues();
+    exportStateToCli();
   });
 
   watchAndPersistChanges();
@@ -216,6 +218,8 @@ const start = async (): Promise<void> => {
   await restoreSettingsWindow();
 
   await processDeepLinksInArgs();
+
+  exportStateToCli();
 
   console.info('Application initialization completed successfully');
 };

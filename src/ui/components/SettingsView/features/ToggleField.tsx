@@ -9,15 +9,16 @@ import {
 import type { ChangeEvent, ComponentProps, ReactNode } from 'react';
 
 type ToggleFieldProps = {
-  id: string;
-  label: ReactNode;
-  description: ReactNode;
-  hint?: ReactNode;
-  checked: boolean;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  disabled?: boolean;
+  'id': string;
+  'label': ReactNode;
+  'description': ReactNode;
+  'hint'?: ReactNode;
+  'checked': boolean;
+  'onChange': (event: ChangeEvent<HTMLInputElement>) => void;
+  'disabled'?: boolean;
   /** escape hatch for extras (Callout, InputBox) rendered after the hint */
-  children?: ReactNode;
+  'children'?: ReactNode;
+  'data-testid'?: string;
 } & Pick<
   ComponentProps<typeof Field>,
   'className' | 'marginBlock' | 'marginBlockStart'
@@ -42,6 +43,7 @@ export const ToggleField = ({
   className,
   marginBlock,
   marginBlockStart,
+  'data-testid': dataTestId,
 }: ToggleFieldProps) => (
   <Field
     className={className}
@@ -52,6 +54,7 @@ export const ToggleField = ({
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <ToggleSwitch
         id={id}
+        data-testid={dataTestId}
         checked={checked}
         onChange={onChange}
         disabled={disabled}

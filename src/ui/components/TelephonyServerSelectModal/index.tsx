@@ -45,44 +45,51 @@ export const TelephonyServerSelectModal = () => {
   };
 
   return (
-    <Dialog isVisible={isVisible} onClose={handleClose}>
-      <Box fontScale='h3' marginBlockEnd='x4'>
-        {t('dialog.telephonySelectServer.title')}
-      </Box>
-      <Box fontScale='p2' color='hint' marginBlockEnd='x12'>
-        {t('dialog.telephonySelectServer.message')}
-      </Box>
+    <Dialog
+      isVisible={isVisible}
+      onClose={handleClose}
+      data-testid='telephony-server-select-modal'
+    >
+      <Box display='flex' flexDirection='column'>
+        <Box fontScale='h3' marginBlockEnd='x4'>
+          {t('dialog.telephonySelectServer.title')}
+        </Box>
+        <Box fontScale='p2' color='hint' marginBlockEnd='x12'>
+          {t('dialog.telephonySelectServer.message')}
+        </Box>
 
-      <Box
-        display='flex'
-        flexDirection='column'
-        style={{ maxHeight: '300px', overflowY: 'auto' }}
-      >
-        {servers.map((server) => (
-          <ServerItem
-            key={server.url}
-            url={server.url}
-            title={server.title}
-            favicon={server.favicon}
-            onClick={() => handleServerClick(server.url)}
-          />
-        ))}
-      </Box>
-
-      <Box display='flex' alignItems='center' marginBlockStart='x12'>
-        <CheckBox
-          id='telephony-remember-choice'
-          checked={rememberChoice}
-          onChange={() => setRememberChoice(!rememberChoice)}
-        />
         <Box
-          is='label'
-          htmlFor='telephony-remember-choice'
-          fontScale='p2'
-          marginInlineStart='x8'
-          style={{ cursor: 'pointer' }}
+          display='flex'
+          flexDirection='column'
+          style={{ maxHeight: '300px', overflowY: 'auto' }}
         >
-          {t('dialog.telephonySelectServer.rememberChoice')}
+          {servers.map((server) => (
+            <ServerItem
+              key={server.url}
+              url={server.url}
+              title={server.title}
+              favicon={server.favicon}
+              onClick={() => handleServerClick(server.url)}
+            />
+          ))}
+        </Box>
+
+        <Box display='flex' alignItems='center' marginBlockStart='x12'>
+          <CheckBox
+            id='telephony-remember-choice'
+            data-testid='remember-this-choice-checkbox'
+            checked={rememberChoice}
+            onChange={() => setRememberChoice(!rememberChoice)}
+          />
+          <Box
+            is='label'
+            htmlFor='telephony-remember-choice'
+            fontScale='p2'
+            marginInlineStart='x8'
+            style={{ cursor: 'pointer' }}
+          >
+            {t('dialog.telephonySelectServer.rememberChoice')}
+          </Box>
         </Box>
       </Box>
     </Dialog>

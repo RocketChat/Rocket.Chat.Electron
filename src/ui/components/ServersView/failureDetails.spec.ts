@@ -56,6 +56,25 @@ describe('formatFailureDetails', () => {
     expect(details).not.toContain('URL:');
   });
 
+  it('lists the time of the first failure when the failures repeat', () => {
+    const details = formatFailureDetails(
+      'https://chat.example.com/',
+      {
+        kind: 'load-failed',
+        at: '2026-11-03T12:05:00.000Z',
+        since: '2026-11-03T12:00:00.000Z',
+      },
+      environment
+    );
+
+    expect(details).toContain(
+      [
+        'Time: 2026-11-03T12:05:00.000Z',
+        'Failing since: 2026-11-03T12:00:00.000Z',
+      ].join('\n')
+    );
+  });
+
   it('adds the hex form of a negative Windows exit code', () => {
     const details = formatFailureDetails(
       'https://chat.example.com/',

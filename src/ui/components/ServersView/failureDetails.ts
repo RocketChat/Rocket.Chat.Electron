@@ -51,6 +51,7 @@ export const formatFailureDetails = (
 
   const lines: [string, string | number | null | undefined][] = [
     ['Time', failure.at],
+    ['Failing since', failure.since],
     ['Server', withoutUrlSecrets(serverUrl)],
     ['Failure', failure.kind],
     ['Error', error],

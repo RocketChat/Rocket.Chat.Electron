@@ -22,6 +22,11 @@ export type ServerFailure = {
   kind: ServerFailureKind;
   /** ISO time of the failure. */
   at: string;
+  /**
+   * ISO time of the first failure since the page last loaded, when it is
+   * earlier than `at`. The automatic reloads keep failing in the meantime.
+   */
+  since?: string;
   /** Chromium net error code, for `load-failed`. */
   errorCode?: number;
   /** Chromium net error name, for `load-failed`. */

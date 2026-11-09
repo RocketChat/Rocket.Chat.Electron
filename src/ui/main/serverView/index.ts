@@ -68,7 +68,7 @@ import {
 } from './hangRecovery';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
-import { createServerFailure } from './serverFailure';
+import { createServerFailureTracker } from './serverFailure';
 import type { ReconnectBackoff } from './stuckNavigation';
 import {
   isUnreachableError,
@@ -430,9 +430,14 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  const failures = createServerFailureTracker();
+
   guestWebContents.addListener('destroyed', stopReconnecting);
+  // A committed navigation is not an error page (Electron emits
+  // did-fail-load for those), so the server answered.
   guestWebContents.addListener('did-navigate', () => {
     reconnectBackoff.serverFailures = 0;
+    failures.clear();
   });
 
   const handleDidStartLoading = (): void => {
@@ -472,7 +477,7 @@ const initializeServerWebContentsAfterAttach = (
         url: serverUrl,
         isMainFrame,
         ...(isMainFrame && {
-          failure: createServerFailure({
+          failure: failures.create({
             kind: 'load-failed',
             errorCode,
             errorDescription,
@@ -499,13 +504,14 @@ const initializeServerWebContentsAfterAttach = (
       payload: {
         url: serverUrl,
         isMainFrame: true,
-        failure: createServerFailure({ kind: 'unresponsive' }),
+        failure: failures.create({ kind: 'unresponsive' }),
       },
     });
   };
 
   const handleResponsive = (): void => {
     markResponsive(guestWebContents);
+    failures.clear();
     loggers.servers.info(`Server view became responsive again: ${serverUrl}`);
     if (!isServerStillAdded()) {
       return;
@@ -531,7 +537,7 @@ const initializeServerWebContentsAfterAttach = (
         payload: {
           url: serverUrl,
           isMainFrame: true,
-          failure: createServerFailure({ kind: 'stuck', reason }),
+          failure: failures.create({ kind: 'stuck', reason }),
         },
       });
       if (isUnreachable) {
@@ -547,6 +553,7 @@ const initializeServerWebContentsAfterAttach = (
     onRecovered: () => {
       loggers.servers.info(`Server view loaded after all: ${serverUrl}`);
       stopReconnecting();
+      failures.clear();
       if (!isServerStillAdded()) {
         return;
       }
@@ -581,7 +588,7 @@ const initializeServerWebContentsAfterAttach = (
       payload: {
         url: serverUrl,
         isMainFrame: true,
-        failure: createServerFailure({
+        failure: failures.create({
           kind: 'renderer-gone',
           reason: details.reason,
           exitCode: details.exitCode,

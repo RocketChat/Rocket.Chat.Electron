@@ -26,6 +26,7 @@ import { setupServerViewDisplayMedia } from '../../../screenSharing/serverViewSc
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
 import { attachBootWatchdog } from '../../../servers/bootWatchdog';
 import type { Server } from '../../../servers/common';
+import { reloadAfterStorageWipe } from '../../../servers/reloadAfterStorageWipe';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
 import {
@@ -994,8 +995,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       ],
     });
 
-    // Reload ignoring cache
-    guestWebContents.reloadIgnoringCache();
+    reloadAfterStorageWipe(guestWebContents);
 
     dispatch({
       type: WEBVIEW_SERVER_RELOADED,

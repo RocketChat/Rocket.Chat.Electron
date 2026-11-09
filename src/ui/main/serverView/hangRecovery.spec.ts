@@ -390,6 +390,50 @@ describe('server view hang and crash recovery', () => {
     expect(failLoadDispatches()).toHaveLength(0);
   });
 
+  describe('failing since', () => {
+    const failLoad = () =>
+      emit(
+        'did-fail-load',
+        -106,
+        'ERR_INTERNET_DISCONNECTED',
+        SERVER_URL,
+        true
+      );
+    const lastFailure = () =>
+      failLoadDispatches().slice(-1)[0]?.[0].payload.failure;
+
+    it('keeps the time of the first failure while the reloads fail', () => {
+      failLoad();
+      const first = lastFailure();
+      jest.setSystemTime(Date.now() + 60_000);
+
+      failLoad();
+
+      expect(lastFailure().since).toBe(first.at);
+      expect(lastFailure().at).not.toBe(first.at);
+    });
+
+    it('starts a new series after a committed navigation', () => {
+      failLoad();
+      emit('did-navigate', SERVER_URL);
+      jest.setSystemTime(Date.now() + 60_000);
+
+      failLoad();
+
+      expect(lastFailure()).not.toHaveProperty('since');
+    });
+
+    it('starts a new series after the page responds again', () => {
+      emit('unresponsive');
+      emit('responsive');
+      jest.setSystemTime(Date.now() + 60_000);
+
+      emit('unresponsive');
+
+      expect(lastFailure()).not.toHaveProperty('since');
+    });
+  });
+
   describe('heartbeat', () => {
     const hangRenderer = () => {
       let answer: (value: number) => void = () => undefined;

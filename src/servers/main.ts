@@ -25,6 +25,7 @@ import {
   ServerUrlResolutionStatus,
   isServerUrlResolutionResult,
 } from './common';
+import { reloadAfterStorageWipe } from './reloadAfterStorageWipe';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 
@@ -199,7 +200,7 @@ export const setupServers = async (
         storages: ['indexdb'],
       });
       await guestWebContents?.session.clearCache();
-      guestWebContents?.reload();
+      if (guestWebContents) reloadAfterStorageWipe(guestWebContents);
     }
   });
 

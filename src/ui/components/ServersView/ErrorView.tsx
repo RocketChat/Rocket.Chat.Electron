@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import type { ServerFailure } from '../../../servers/common';
 import type { RootState } from '../../../store/rootReducer';
 import { FailureImage } from '../FailureImage';
+import StableLabel from './StableLabel';
 import { formatFailureDetails, getFailureEnvironment } from './failureDetails';
 
 type ErrorViewProps = {
@@ -23,6 +24,7 @@ type ErrorViewProps = {
 };
 
 const COPIED_FEEDBACK_MS = 2000;
+const RELOAD_COUNTDOWN_SECONDS = 60;
 
 const useFailureCause = (failure: ServerFailure | undefined) => {
   const { t } = useTranslation();
@@ -58,7 +60,7 @@ const ErrorView = ({
   const appVersion = useSelector(({ appVersion }: RootState) => appVersion);
 
   const [isReloading, setReloading] = useState(false);
-  const [counter, setCounter] = useState(60);
+  const [counter, setCounter] = useState(RELOAD_COUNTDOWN_SECONDS);
   const [isCopied, setCopied] = useState(false);
   const [isDetailsVisible, setDetailsVisible] = useState(false);
 
@@ -77,7 +79,7 @@ const ErrorView = ({
   useEffect(() => {
     if (!isFailed) {
       setReloading(false);
-      setCounter(60);
+      setCounter(RELOAD_COUNTDOWN_SECONDS);
       setDetailsVisible(false);
       return undefined;
     }
@@ -90,7 +92,7 @@ const ErrorView = ({
         if (counter <= 0) {
           setReloading(true);
           onReload();
-          return 60;
+          return RELOAD_COUNTDOWN_SECONDS;
         }
 
         return counter;
@@ -118,7 +120,7 @@ const ErrorView = ({
   const handleReloadButtonClick = (): void => {
     setReloading(true);
     onReload();
-    setCounter(60);
+    setCounter(RELOAD_COUNTDOWN_SECONDS);
   };
 
   const handleCopyButtonClick = (): void => {
@@ -183,13 +185,26 @@ const ErrorView = ({
               {!isReloading && (
                 <ButtonGroup align='center'>
                   <Button primary onClick={handleReloadButtonClick}>
-                    {t('loadingError.reload')} ({counter})
+                    <StableLabel
+                      label={`${t('loadingError.reload')} (${counter})`}
+                      alternatives={[
+                        `${t('loadingError.reload')} (${RELOAD_COUNTDOWN_SECONDS})`,
+                      ]}
+                    />
                   </Button>
                   {details && (
                     <Button secondary onClick={handleCopyButtonClick}>
-                      {isCopied
-                        ? t('loadingError.copied')
-                        : t('loadingError.copyDetails')}
+                      <StableLabel
+                        label={
+                          isCopied
+                            ? t('loadingError.copied')
+                            : t('loadingError.copyDetails')
+                        }
+                        alternatives={[
+                          t('loadingError.copied'),
+                          t('loadingError.copyDetails'),
+                        ]}
+                      />
                     </Button>
                   )}
                   {details && (
@@ -198,9 +213,17 @@ const ErrorView = ({
                       aria-expanded={isDetailsVisible}
                       onClick={handleDetailsButtonClick}
                     >
-                      {isDetailsVisible
-                        ? t('loadingError.hideDetails')
-                        : t('loadingError.showDetails')}
+                      <StableLabel
+                        label={
+                          isDetailsVisible
+                            ? t('loadingError.hideDetails')
+                            : t('loadingError.showDetails')
+                        }
+                        alternatives={[
+                          t('loadingError.hideDetails'),
+                          t('loadingError.showDetails'),
+                        ]}
+                      />
                     </Button>
                   )}
                 </ButtonGroup>

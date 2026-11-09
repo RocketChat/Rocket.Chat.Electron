@@ -20,6 +20,18 @@ export const getFailureEnvironment = (
       : undefined,
 });
 
+// Windows reports a crashed renderer's exit code as an NTSTATUS value, and a
+// signed 32-bit read of it is negative (0x80000003 becomes -2147483645).
+// Support looks up the hex form, so the report adds it.
+const formatExitCode = (exitCode: number | undefined) => {
+  if (exitCode === undefined || exitCode >= 0) {
+    return exitCode;
+  }
+
+  const hex = (exitCode >>> 0).toString(16).toUpperCase().padStart(8, '0');
+  return `${exitCode} (0x${hex})`;
+};
+
 // The report goes to support as it is, so it stays in English whatever the
 // app language is.
 export const formatFailureDetails = (
@@ -44,7 +56,7 @@ export const formatFailureDetails = (
     ['Error', error],
     ['URL', failure.url],
     ['Reason', failure.reason],
-    ['Exit code', failure.exitCode],
+    ['Exit code', formatExitCode(failure.exitCode)],
     ['App version', environment.appVersion],
     ['Electron', environment.electronVersion],
     [

@@ -8,6 +8,7 @@ import {
 } from '../ui/actions';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import type { Server } from './common';
+import { reloadAfterStorageWipe } from './reloadAfterStorageWipe';
 
 export const clearWebviewStorageKeepingLoginData = async (
   guestWebContents: WebContents
@@ -24,7 +25,7 @@ export const clearWebviewStorageKeepingLoginData = async (
       'cachestorage',
     ],
   });
-  guestWebContents?.reloadIgnoringCache();
+  reloadAfterStorageWipe(guestWebContents);
 };
 
 export const clearWebviewStorageDeletingLoginData = async (
@@ -33,7 +34,7 @@ export const clearWebviewStorageDeletingLoginData = async (
   if (!guestWebContents) return;
   await guestWebContents.session.clearCache();
   await guestWebContents.session.clearStorageData();
-  guestWebContents?.reloadIgnoringCache();
+  reloadAfterStorageWipe(guestWebContents);
 };
 
 export const handleClearCacheDialog = () => {

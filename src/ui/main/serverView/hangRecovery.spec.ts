@@ -103,6 +103,7 @@ const createGuestWebContents = () => {
     isDestroyed: jest.fn(() => false),
     isLoading: jest.fn(() => false),
     isWaitingForResponse: jest.fn(() => false),
+    isCrashed: jest.fn(() => false),
     forcefullyCrashRenderer: jest.fn(),
     loadURL: jest.fn(() => Promise.resolve()),
     executeJavaScript: jest.fn(() => Promise.resolve(0)),
@@ -469,6 +470,36 @@ describe('server view hang and crash recovery', () => {
       jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS);
 
       expect(failLoadDispatches()).toHaveLength(1);
+    });
+
+    it('keeps the crash cause while the renderer stays crashed', async () => {
+      hangRenderer();
+      guest.isCrashed.mockReturnValue(true);
+      emit('render-process-gone', { reason: 'killed', exitCode: 2 });
+
+      await jest.advanceTimersByTimeAsync(
+        (HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS) * 3
+      );
+
+      const failures = failLoadDispatches().map(
+        ([action]) => action.payload.failure.kind
+      );
+      expect(failures).toEqual(['renderer-gone']);
+    });
+
+    it('watches the new renderer after a crashed page loads again', async () => {
+      guest.isCrashed.mockReturnValue(true);
+      emit('render-process-gone', { reason: 'killed', exitCode: 2 });
+      await jest.advanceTimersByTimeAsync(HEARTBEAT_INTERVAL_MS * 3);
+      mockDispatch.mockClear();
+
+      guest.isCrashed.mockReturnValue(false);
+      hangRenderer();
+      jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS);
+
+      expect(
+        failLoadDispatches().map(([action]) => action.payload.failure.kind)
+      ).toEqual(['unresponsive']);
     });
 
     it('stops probing once the server view is destroyed', () => {

@@ -61,6 +61,35 @@ describe('injected.ts', () => {
     }
   });
 
+  it('replaces Notification before the page defines process', () => {
+    // Cloudflare Rocket Loader runs the Meteor bundle, which defines
+    // `process`, after the load event that starts the injection.
+    const nativeNotification = window.Notification;
+    const processDescriptor = Object.getOwnPropertyDescriptor(
+      globalThis,
+      'process'
+    );
+    try {
+      Object.defineProperty(globalThis, 'process', {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+
+      loadInjected();
+
+      expect(window.Notification).not.toBe(nativeNotification);
+      expect(
+        (window.Notification as unknown as { maxActions: number }).maxActions
+      ).toBe(0);
+    } finally {
+      if (processDescriptor) {
+        Object.defineProperty(globalThis, 'process', processDescriptor);
+      }
+      window.Notification = nativeNotification;
+    }
+  });
+
   describe('module paths across server versions', () => {
     let desktop: Record<string, jest.Mock>;
 

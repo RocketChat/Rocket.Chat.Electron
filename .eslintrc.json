@@ -61,6 +61,18 @@
       }
     },
     {
+      "files": ["src/injected.ts"],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "name": "process",
+            "message": "injected.ts runs in the page main world, often before the page defines process. Read the platform through the RocketChatDesktop bridge or navigator."
+          }
+        ]
+      }
+    },
+    {
       "files": ["**/*.stories.js", "**/*.stories.jsx", "**/*.stories.ts", "**/*.stories.tsx", "**/*.spec.tsx"],
       "rules": {
         "react/display-name": "off",

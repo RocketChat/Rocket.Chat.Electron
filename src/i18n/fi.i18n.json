@@ -172,11 +172,9 @@
       "clear": "Tyhjennä suodattimet",
       "all": "Kaikki",
       "mimes": {
-        "images": "Kuvat",
-        "videos": "Videot",
-        "audios": "Äänet",
-        "texts": "Tekstit",
-        "files": "Tiedostot"
+        "image": "Kuvat",
+        "video": "Videot",
+        "application": "Tiedostot"
       },
       "statuses": {
         "paused": "Keskeytetty",
@@ -218,6 +216,9 @@
     "title": "Asetukset",
     "general": "Yleiset",
     "certificates": "Varmenteet",
+    "sections": {
+      "uiPreview": "Verkkokäyttöliittymän esikatselu"
+    },
     "options": {
       "report": {
         "title": "Ilmoita virheistä kehittäjille",
@@ -258,8 +259,7 @@
       },
       "menubar": {
         "title": "Valikkopalkki",
-        "description": "Näytä valikkopalkki ikkunan yläreunassa.",
-        "disabledHint": "Valikkopalkkinsa poisto ei ole mahdollista, kun sivupalkki on pois käytöstä. Asetukset tulisivat saavuttamattomiksi."
+        "description": "Näytä valikkopalkki ikkunan yläreunassa."
       },
       "sidebar": {
         "title": "Sivupalkki",
@@ -329,9 +329,6 @@
           "closed": "Suljettu"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Verkkokäyttöliittymän esikatselu"
     }
   },
   "error": {
@@ -355,6 +352,7 @@
     "close": "Sulje",
     "copy": "&Kopioi",
     "cut": "&Leikkaa",
+    "simulateDisconnected": "Simuloi yhteyden katkeamista",
     "disableGpu": "Poista grafiikkasuoritin käytöstä",
     "documentation": "Oppaat",
     "downloads": "Lataukset",
@@ -392,7 +390,6 @@
     "windowMenu": "&Ikkuna",
     "zoomIn": "Lähennä",
     "zoomOut": "Loitonna",
-    "simulateDisconnected": "Simuloi yhteyden katkeamista",
     "restoreServerUi": "Palauta palvelimen käyttöliittymä"
   },
   "findInPage": {

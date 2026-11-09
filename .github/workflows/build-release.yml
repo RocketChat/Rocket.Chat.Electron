@@ -100,11 +100,13 @@ jobs:
             name: macos-mas
             targets: mas
             update_metadata: 'false'
-          - os: ubuntu-latest
+          # Pinned: on ubuntu-26.04 (ubuntu-latest since Nov 2026) rpmbuild fails
+          # in the rpm target. Unpin only after a dry run passes on the new image.
+          - os: ubuntu-24.04
             name: linux-appimage
             targets: AppImage deb rpm tar.gz
             update_metadata: 'true'
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             name: linux-snap
             targets: snap
             update_metadata: 'false'

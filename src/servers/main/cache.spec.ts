@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events';
+
 import type { WebContents } from 'electron';
 
 import { listen } from '../../store';
@@ -33,7 +35,7 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
   const url = 'https://open.rocket.chat/';
 
   const createMockWebContents = (): WebContents =>
-    ({
+    Object.assign(new EventEmitter(), {
       session: {
         clearCache: jest.fn().mockResolvedValue(undefined),
         clearStorageData: jest.fn().mockResolvedValue(undefined),
@@ -67,6 +69,19 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
     expect(mockWebContents.session.clearCache).toHaveBeenCalled();
     expect(mockWebContents.session.clearStorageData).toHaveBeenCalledWith();
     expect(mockWebContents.reloadIgnoringCache).toHaveBeenCalled();
+  });
+
+  it('reloads after the wipe even when the page blocks unload', async () => {
+    const mockWebContents = createMockWebContents();
+    mockGetWebContentsByServerUrl.mockReturnValue(mockWebContents);
+
+    await dispatchUserLoggedIn(true);
+    await dispatchUserLoggedIn(false);
+
+    const preventDefault = jest.fn();
+    mockWebContents.emit('will-prevent-unload', { preventDefault });
+
+    expect(preventDefault).toHaveBeenCalled();
   });
 
   it('does not clear on the initial logged-out state at startup/attach', async () => {

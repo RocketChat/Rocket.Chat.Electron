@@ -87,7 +87,10 @@ describe('setupServers', () => {
         clearStorageData: jest.fn(async () => undefined),
         clearCache: jest.fn(async () => undefined),
       },
-      reload: jest.fn(),
+      reloadIgnoringCache: jest.fn(),
+      once: jest.fn(),
+      on: jest.fn(),
+      off: jest.fn(),
     });
     jest.resetModules();
   });
@@ -188,7 +191,11 @@ describe('setupServers', () => {
       storages: ['indexdb'],
     });
     expect(session.session.clearCache).toHaveBeenCalled();
-    expect(session.reload).toHaveBeenCalled();
+    expect(session.once).toHaveBeenCalledWith(
+      'will-prevent-unload',
+      expect.any(Function)
+    );
+    expect(session.reloadIgnoringCache).toHaveBeenCalled();
   });
 
   it('ignores malformed hosts JSON', async () => {

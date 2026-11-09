@@ -77,8 +77,9 @@ window.Notification = class RocketChatDesktopNotification
 {
   static readonly permission: NotificationPermission = 'granted';
 
-  static readonly maxActions: number =
-    process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
+  // This script runs before the page defines `process`. The Meteor shim set
+  // `process.platform` to "browser", so this value was 0 on all platforms.
+  static readonly maxActions: number = 0;
 
   static requestPermission(): Promise<NotificationPermission> {
     return Promise.resolve(RocketChatDesktopNotification.permission);

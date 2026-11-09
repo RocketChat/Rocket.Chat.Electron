@@ -168,6 +168,58 @@ describe('ErrorView', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps the button widths when the labels change', () => {
+    renderWithStore(
+      <ErrorView
+        isFailed
+        serverUrl={SERVER_URL}
+        failure={failure}
+        onReload={jest.fn()}
+      />
+    );
+    const widthOf = (name: RegExp) =>
+      screen.getByRole('button', { name }).getBoundingClientRect().width;
+
+    const reloadAt60 = widthOf(/loadingError\.reload/);
+    const detailsBefore = widthOf(/loadingError\.showDetails/);
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'loadingError.showDetails' })
+    );
+    act(() => {
+      jest.advanceTimersByTime(51_000);
+    });
+
+    expect(
+      screen.getByRole('button', { name: 'loadingError.reload (9)' })
+    ).toBeInTheDocument();
+    expect(widthOf(/loadingError\.reload/)).toBe(reloadAt60);
+    expect(widthOf(/loadingError\.hideDetails/)).toBe(detailsBefore);
+    expect(reloadAt60).toBeGreaterThan(0);
+  });
+
+  it('keeps the copy button width while it shows the copied label', () => {
+    renderWithStore(
+      <ErrorView
+        isFailed
+        serverUrl={SERVER_URL}
+        failure={failure}
+        onReload={jest.fn()}
+      />
+    );
+    const copyButton = screen.getByRole('button', {
+      name: 'loadingError.copyDetails',
+    });
+    const before = copyButton.getBoundingClientRect().width;
+
+    fireEvent.click(copyButton);
+
+    expect(screen.getByRole('button', { name: 'loadingError.copied' })).toBe(
+      copyButton
+    );
+    expect(copyButton.getBoundingClientRect().width).toBe(before);
+  });
+
   it('drops the copied label when a new failure arrives', () => {
     const { rerender } = renderWithStore(
       <ErrorView

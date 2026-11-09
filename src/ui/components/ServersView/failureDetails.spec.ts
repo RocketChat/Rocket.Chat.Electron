@@ -56,6 +56,21 @@ describe('formatFailureDetails', () => {
     expect(details).not.toContain('URL:');
   });
 
+  it('adds the hex form of a negative Windows exit code', () => {
+    const details = formatFailureDetails(
+      'https://chat.example.com/',
+      {
+        kind: 'renderer-gone',
+        at: '2026-11-03T12:00:00.000Z',
+        reason: 'crashed',
+        exitCode: -2147483645,
+      },
+      environment
+    );
+
+    expect(details).toContain('Exit code: -2147483645 (0x80000003)');
+  });
+
   it('leaves out values that are not known', () => {
     const details = formatFailureDetails(
       'https://chat.example.com/',

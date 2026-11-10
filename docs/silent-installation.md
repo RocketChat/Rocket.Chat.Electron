@@ -530,6 +530,7 @@ Same locations as `servers.json` (see table above).
 | `isAddNewServersEnabled`           | boolean | `true`  | Allow adding new servers               |
 | `isHardwareAccelerationEnabled`    | boolean | `true`  | Use the GPU to draw the app. `false` turns hardware acceleration off from the first launch, the same as `--disable-gpu`. |
 | `isTransparentWindowEnabled`       | boolean | `false` | macOS only. Show the vibrancy material behind the app window. It uses more GPU power, also when the app is idle. |
+| `isPerformanceSettingsSectionEnabled` | boolean | `true` | Show the **Performance** section in the settings window. `false` hides the section and its settings from the sidebar and the search. The settings keep their values, and this file can still set them. |
 
 The settings in the **Performance** section of the settings window (`isHardwareAccelerationEnabled` and `isTransparentWindowEnabled`) show as read-only when this file sets them, with the text "Your administrator controls this setting."
 

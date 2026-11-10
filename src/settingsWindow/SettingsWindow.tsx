@@ -3,7 +3,9 @@ import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
+import type { RootState } from '../store/rootReducer';
 import TooltipProvider from '../ui/components/utils/TooltipProvider';
 import { WindowToolbar } from '../ui/windowChrome/WindowToolbar';
 import type { PaletteTheme } from '../ui/windowChrome/appearance';
@@ -68,9 +70,21 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
     []
   );
 
-  // Every section is listed: the parts that are developer-only live inside
-  // Advanced, which hides them itself.
-  const availableSections = SETTINGS_SECTIONS;
+  const isPerformanceSectionEnabled = useSelector(
+    ({ isPerformanceSettingsSectionEnabled }: RootState) =>
+      isPerformanceSettingsSectionEnabled
+  );
+
+  // The parts that are developer-only live inside Advanced, which hides them
+  // itself. An administrator can hide the Performance section, and then
+  // neither the sidebar nor the search lists it.
+  const availableSections = useMemo(
+    () =>
+      SETTINGS_SECTIONS.filter(
+        (section) => section.id !== 'performance' || isPerformanceSectionEnabled
+      ),
+    [isPerformanceSectionEnabled]
+  );
 
   /**
    * A section survives the search if its own name matches, or if any setting it

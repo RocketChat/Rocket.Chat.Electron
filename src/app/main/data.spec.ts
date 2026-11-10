@@ -371,6 +371,53 @@ describe('mergePersistableValues', () => {
       });
     });
 
+    it('shows the Performance section when no file sets it', async () => {
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isPerformanceSettingsSectionEnabled: true,
+        }),
+      });
+    });
+
+    it.each([false, 'false', 'FALSE'])(
+      'hides the Performance section when the file sets it to %p',
+      async (value) => {
+        (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+          JSON.stringify({ isPerformanceSettingsSectionEnabled: value })
+        );
+
+        await mergePersistableValues({});
+
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: APP_SETTINGS_LOADED,
+          payload: expect.objectContaining({
+            isPerformanceSettingsSectionEnabled: false,
+          }),
+        });
+      }
+    );
+
+    it.each([true, 'true', 'yes', 0])(
+      'keeps the Performance section for the value %p',
+      async (value) => {
+        (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+          JSON.stringify({ isPerformanceSettingsSectionEnabled: value })
+        );
+
+        await mergePersistableValues({});
+
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: APP_SETTINGS_LOADED,
+          payload: expect.objectContaining({
+            isPerformanceSettingsSectionEnabled: true,
+          }),
+        });
+      }
+    );
+
     it('lists no overridden keys when no file exists', async () => {
       await mergePersistableValues({});
 

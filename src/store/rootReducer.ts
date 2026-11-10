@@ -3,6 +3,7 @@ import { combineReducers } from 'redux';
 import { allowedNTLMCredentialsDomains } from '../app/reducers/allowedNTLMCredentialsDomains';
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
+import { isPerformanceSettingsSectionEnabled } from '../app/reducers/isPerformanceSettingsSectionEnabled';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
 import { overriddenSettingKeys } from '../app/reducers/overriddenSettingKeys';
@@ -115,6 +116,7 @@ export const rootReducer = combineReducers({
   machineTheme,
   newUpdateVersion,
   overriddenSettingKeys,
+  isPerformanceSettingsSectionEnabled,
   openDialog,
   rootWindowIcon,
   rootWindowState,

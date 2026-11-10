@@ -50,6 +50,13 @@ jest.mock('../sections', () => ({
       settingKeys: [],
       Component: () => <div data-testid='section-appearance'>appearance</div>,
     },
+    {
+      id: 'performance',
+      icon: 'lightning',
+      labelKey: 'settings.sections.performance',
+      settingKeys: ['settings.options.hardwareAcceleration'],
+      Component: () => <div data-testid='section-performance'>performance</div>,
+    },
   ],
 }));
 
@@ -110,5 +117,64 @@ describe('SettingsWindow section selection', () => {
     expect(
       JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) ?? '""')
     ).toBe('appearance');
+  });
+});
+
+describe('SettingsWindow Performance section', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    invokeMock.mockResolvedValue(false as never);
+  });
+
+  const renderWithPerformanceSection = (enabled: boolean) =>
+    renderWithStore(<SettingsWindow paletteTheme='light' />, {
+      preloadedState: { isPerformanceSettingsSectionEnabled: enabled },
+    });
+
+  it('lists the section by default', () => {
+    renderWithStore(<SettingsWindow paletteTheme='light' />);
+
+    expect(
+      screen.getByRole('tab', { name: 'settings.sections.performance' })
+    ).toBeInTheDocument();
+  });
+
+  it('does not list the section when the administrator hides it', () => {
+    renderWithPerformanceSection(false);
+
+    expect(
+      screen.queryByRole('tab', { name: 'settings.sections.performance' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: 'settings.general' })
+    ).toBeInTheDocument();
+  });
+
+  it('shows another section when the hidden section was the last one open', async () => {
+    seedPersistedSection('performance');
+
+    renderWithPerformanceSection(false);
+
+    await waitFor(() =>
+      expect(screen.getByTestId('section-general')).toBeInTheDocument()
+    );
+    expect(screen.queryByTestId('section-performance')).not.toBeInTheDocument();
+  });
+
+  it('does not find the hidden section by search', async () => {
+    renderWithPerformanceSection(false);
+
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'performance' },
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('tab', { name: 'settings.general' })
+      ).not.toBeInTheDocument()
+    );
+    expect(
+      screen.queryByRole('tab', { name: 'settings.sections.performance' })
+    ).not.toBeInTheDocument();
   });
 });

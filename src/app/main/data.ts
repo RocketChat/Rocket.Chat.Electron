@@ -234,6 +234,14 @@ export const mergePersistableValues = async (
           mergedOverrides.isNotificationQuickReplyEnabled
         ).toLowerCase() === 'true';
 
+  // Shown unless the administrator explicitly turns it off.
+  const isPerformanceSettingsSectionEnabled = !(
+    mergedOverrides.isPerformanceSettingsSectionEnabled === false ||
+    String(
+      mergedOverrides.isPerformanceSettingsSectionEnabled
+    ).toLowerCase() === 'false'
+  );
+
   dispatch({
     type: APP_SETTINGS_LOADED,
     payload: {
@@ -241,6 +249,7 @@ export const mergePersistableValues = async (
       allowInsecureOutlookConnections: isInsecureOutlookEnabled,
       outlookCalendarSyncIntervalOverride,
       isNotificationQuickReplyEnabled,
+      isPerformanceSettingsSectionEnabled,
       overriddenSettingKeys: Object.keys(mergedOverrides),
     },
   });

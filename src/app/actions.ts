@@ -15,6 +15,7 @@ export type OverrideOnlySettings = {
   allowInsecureOutlookConnections?: boolean;
   outlookCalendarSyncIntervalOverride?: number | null;
   isNotificationQuickReplyEnabled?: boolean;
+  isPerformanceSettingsSectionEnabled?: boolean;
   /** Every key that an `overridden-settings.json` file sets. */
   overriddenSettingKeys?: string[];
 };

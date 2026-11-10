@@ -1,12 +1,12 @@
 import path from 'path';
 
 import type { Event, Rectangle } from 'electron';
-import { app, BrowserWindow, dialog, screen } from 'electron';
+import { app, BrowserWindow, dialog, screen, nativeTheme } from 'electron';
 import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
-import { dispatch, listen, select, watch } from '../store';
+import { dispatch, listen, select } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
   SETTINGS_WINDOW_OPEN_STATE_CHANGED,
@@ -22,10 +22,15 @@ import {
   watchWindowBounds,
 } from '../ui/main/secondaryWindowState';
 import {
+  isRecreatingSecondaryWindow,
+  watchSecondaryWindowTransparency,
+} from '../ui/main/secondaryWindowTransparency';
+import { getRootWindowAppearanceOptions } from '../ui/main/windowAppearance';
+import {
   NOT_FULL_SCREENABLE,
   getTitleBarOptions,
 } from '../ui/windowChrome/appearance';
-import { TRANSPARENCY_CHANNEL, WINDOW_HEIGHT, WINDOW_WIDTH } from './constants';
+import { WINDOW_HEIGHT, WINDOW_WIDTH } from './constants';
 
 const t = i18next.t.bind(i18next);
 
@@ -107,7 +112,7 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
       )
     : { x, y };
 
-  // Seeds the first paint only; the renderer then follows the setting live.
+  // Native appearance and the renderer must agree on the first paint.
   const isTransparencyEnabled = isMac && select(selectIsTransparencyEnabled);
 
   settingsWindow = new BrowserWindow({
@@ -122,15 +127,12 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
     // in-app one.
     ...getTitleBarOptions(),
     ...NOT_FULL_SCREENABLE,
-    // `transparent` cannot be toggled after creation, so — like the root window —
-    // the window is always transparent with a vibrancy material on macOS and the
-    // setting only decides whether the renderer paints an opaque surface over it.
     ...(isMac
-      ? {
-          transparent: true,
-          vibrancy: 'sidebar' as const,
-          visualEffectState: 'active' as const,
-        }
+      ? getRootWindowAppearanceOptions({
+          platform: process.platform,
+          isTransparentWindowEnabled: isTransparencyEnabled,
+          shouldUseDarkColors: nativeTheme.shouldUseDarkColors,
+        })
       : {}),
     webPreferences: {
       nodeIntegration: true,
@@ -158,9 +160,10 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
 
   dispatch({ type: SETTINGS_WINDOW_OPEN_STATE_CHANGED, payload: true });
 
+  const openedWindow = settingsWindow;
   settingsWindow.on('closed', () => {
     settingsWindow = null;
-    if (!isAppQuitting) {
+    if (!isAppQuitting && !isRecreatingSecondaryWindow(openedWindow)) {
       dispatch({ type: SETTINGS_WINDOW_OPEN_STATE_CHANGED, payload: false });
     }
   });
@@ -260,11 +263,11 @@ export const startSettingsWindowHandler = (): void => {
     }
   );
 
-  // Transparency is a renderer concern here, so a change only needs pushing to
-  // the open window — no reopen, no restart.
-  watch(selectIsTransparencyEnabled, (isEnabled) => {
-    if (!settingsWindow || settingsWindow.isDestroyed()) return;
-    settingsWindow.webContents.send(TRANSPARENCY_CHANNEL, isEnabled);
+  watchSecondaryWindowTransparency({
+    getWindow: () => settingsWindow,
+    reopen: () => createSettingsWindow(false),
+    isQuitting: () => isAppQuitting,
+    waitForCreation: () => pendingCreation,
   });
 
   onWindowBoundsReset('settings', async () => {

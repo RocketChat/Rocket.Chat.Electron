@@ -6,6 +6,23 @@ import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
+export const askForTransparencyRestart = async (): Promise<boolean> => {
+  const { response } = await dialog.showMessageBox(await getRootWindow(), {
+    type: 'question',
+    title: t('dialog.transparencyRestart.title'),
+    message: t('dialog.transparencyRestart.message'),
+    buttons: [
+      t('dialog.transparencyRestart.restartNow'),
+      t('dialog.transparencyRestart.cancel'),
+    ],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+  });
+
+  return response === 0;
+};
+
 export const askForAppDataReset = async (
   parentWindow?: BrowserWindow
 ): Promise<boolean> => {

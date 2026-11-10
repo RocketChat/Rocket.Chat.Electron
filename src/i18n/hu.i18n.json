@@ -17,6 +17,12 @@
     "copyImage": "Kép másolása"
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "Újraindítás szükséges",
+      "message": "A Rocket.Chat újraindítása szükséges az ablak átlátszóságának módosításához. Újraindítja most? Megszakítás esetén visszaáll a korábbi beállítás.",
+      "restartNow": "Újraindítás most",
+      "cancel": "Mégse"
+    },
     "about": {
       "title": "A {{- appName}} névjegye",
       "version": "Verzió: <1>{{-version}}</1>",

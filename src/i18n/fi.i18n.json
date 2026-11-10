@@ -17,6 +17,12 @@
     "copyImage": "Kopioi kuva"
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "Uudelleenkäynnistys vaaditaan",
+      "message": "Rocket.Chat on käynnistettävä uudelleen ikkunan läpinäkyvyyden muuttamiseksi. Käynnistetäänkö uudelleen nyt? Peruuttaminen palauttaa aiemman asetuksen.",
+      "restartNow": "Käynnistä uudelleen nyt",
+      "cancel": "Peruuta"
+    },
     "about": {
       "title": "Tietoja: {{- appName}}",
       "version": "Versio: <1>{{-version}}</1>",

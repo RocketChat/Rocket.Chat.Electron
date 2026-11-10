@@ -1,6 +1,19 @@
 import resources from '../resources';
 
 describe('i18n/resources', () => {
+  it.each(Object.keys(resources) as (keyof typeof resources)[])(
+    'provides the complete transparency restart dialog in %s',
+    async (language) => {
+      const resource = await resources[language]();
+      expect(resource.dialog.transparencyRestart).toEqual({
+        title: expect.stringMatching(/\S/),
+        message: expect.stringMatching(/\S/),
+        restartNow: expect.stringMatching(/\S/),
+        cancel: expect.stringMatching(/\S/),
+      });
+    }
+  );
+
   it('exposes loaders for all supported languages', () => {
     expect(Object.keys(resources).sort()).toEqual(
       [

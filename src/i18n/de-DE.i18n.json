@@ -17,6 +17,12 @@
     "copyImage": "Kopiere das Bild"
   },
   "dialog": {
+    "transparencyRestart": {
+      "title": "Neustart erforderlich",
+      "message": "Rocket.Chat muss neu gestartet werden, um die Fenstertransparenz zu ändern. Jetzt neu starten? Wenn Sie abbrechen, wird Ihre vorherige Einstellung wiederhergestellt.",
+      "restartNow": "Jetzt neu starten",
+      "cancel": "Abbrechen"
+    },
     "about": {
       "title": "Über {{- appName}}",
       "version": "Version: <1>{{-version}}</1>",

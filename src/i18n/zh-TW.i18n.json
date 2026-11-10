@@ -137,7 +137,8 @@
       },
       "transparentWindow": {
         "title": "透明視窗效果",
-        "description": "顯示 macOS 的活力（vibrancy）材質，讓桌面透過應用程式視窗顯示。即使應用程式閒置，此效果也會消耗更多 GPU 電量。"
+        "description": "顯示 macOS 的活力（vibrancy）材質，讓桌面透過應用程式視窗顯示。即使應用程式閒置，此效果也會消耗更多 GPU 電量。",
+        "hint": "變更此設定後，Rocket.Chat 會詢問是否重新啟動。"
       },
       "themeAppearance": {
         "title": "主題",

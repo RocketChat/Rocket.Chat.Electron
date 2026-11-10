@@ -299,7 +299,8 @@
       },
       "transparentWindow": {
         "title": "Läpinäkyvä ikkuna-efekti",
-        "description": "Näyttää macOS:n läpikuultavan materiaalin, jolloin työpöytä näkyy sovellusikkunan läpi. Tehoste käyttää enemmän näytönohjaimen tehoa myös silloin, kun sovellus on käyttämättä."
+        "description": "Näyttää macOS:n läpikuultavan materiaalin, jolloin työpöytä näkyy sovellusikkunan läpi. Tehoste käyttää enemmän näytönohjaimen tehoa myös silloin, kun sovellus on käyttämättä.",
+        "hint": "Rocket.Chat pyytää käynnistämään uudelleen, kun muutat tätä asetusta."
       },
       "themeAppearance": {
         "title": "Teema",

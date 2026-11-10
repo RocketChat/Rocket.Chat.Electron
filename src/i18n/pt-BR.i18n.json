@@ -319,7 +319,8 @@
       },
       "transparentWindow": {
         "title": "Efeito de janela transparente",
-        "description": "Mostra o material de vibrância do macOS, para que a área de trabalho apareça através da janela do aplicativo. Este efeito usa mais energia da GPU, mesmo quando o aplicativo está ocioso."
+        "description": "Mostra o material de vibrância do macOS, para que a área de trabalho apareça através da janela do aplicativo. Este efeito usa mais energia da GPU, mesmo quando o aplicativo está ocioso.",
+        "hint": "O Rocket.Chat pede para reiniciar quando você altera esta configuração."
       },
       "themeAppearance": {
         "title": "Tema",

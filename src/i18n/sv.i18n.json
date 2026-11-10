@@ -333,7 +333,8 @@
       },
       "transparentWindow": {
         "title": "Transparent fönstereffekt",
-        "description": "Visar vibrancy-materialet i macOS så att skrivbordet syns genom appfönstret. Effekten använder mer GPU-kraft, även när appen är inaktiv."
+        "description": "Visar vibrancy-materialet i macOS så att skrivbordet syns genom appfönstret. Effekten använder mer GPU-kraft, även när appen är inaktiv.",
+        "hint": "Rocket.Chat ber om en omstart när du ändrar den här inställningen."
       },
       "themeAppearance": {
         "title": "Tema",

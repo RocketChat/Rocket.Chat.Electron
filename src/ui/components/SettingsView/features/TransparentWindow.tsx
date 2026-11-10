@@ -40,7 +40,11 @@ export const TransparentWindow = (props: TransparentWindowProps) => {
       id={id}
       label={t('settings.options.transparentWindow.title')}
       description={t('settings.options.transparentWindow.description')}
-      hint={isOverridden ? t('settings.overriddenByAdministrator') : undefined}
+      hint={
+        isOverridden
+          ? t('settings.overriddenByAdministrator')
+          : t('settings.options.transparentWindow.hint')
+      }
       checked={isTransparentWindowEnabled}
       onChange={handleChange}
       disabled={isOverridden}

@@ -301,7 +301,8 @@
       },
       "transparentWindow": {
         "title": "Transparentes Fenstereffekt",
-        "description": "Zeigt das Vibrancy-Material von macOS, sodass der Schreibtisch durch das App-Fenster scheint. Dieser Effekt benötigt mehr GPU-Leistung, auch wenn die App inaktiv ist."
+        "description": "Zeigt das Vibrancy-Material von macOS, sodass der Schreibtisch durch das App-Fenster scheint. Dieser Effekt benötigt mehr GPU-Leistung, auch wenn die App inaktiv ist.",
+        "hint": "Rocket.Chat fragt nach einem Neustart, wenn Sie diese Einstellung ändern."
       },
       "themeAppearance": {
         "title": "Design",

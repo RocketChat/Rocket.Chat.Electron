@@ -463,7 +463,8 @@
       },
       "transparentWindow": {
         "title": "Transparent window effect",
-        "description": "Shows the macOS vibrancy material, so the desktop shows through the app window. This effect uses more GPU power, also when the app is idle."
+        "description": "Shows the macOS vibrancy material, so the desktop shows through the app window. This effect uses more GPU power, also when the app is idle.",
+        "hint": "Rocket.Chat asks to restart when you change this setting."
       },
       "themeAppearance": {
         "title": "Theme",

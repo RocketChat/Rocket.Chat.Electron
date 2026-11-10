@@ -339,7 +339,8 @@
       },
       "transparentWindow": {
         "title": "Átlátszó ablak hatás",
-        "description": "Megjeleníti a macOS áttetsző anyagát, így az asztal átlátszik az alkalmazás ablakán. Ez a hatás több GPU-teljesítményt használ, akkor is, ha az alkalmazás tétlen."
+        "description": "Megjeleníti a macOS áttetsző anyagát, így az asztal átlátszik az alkalmazás ablakán. Ez a hatás több GPU-teljesítményt használ, akkor is, ha az alkalmazás tétlen.",
+        "hint": "A Rocket.Chat újraindítást kér, ha módosítja ezt a beállítást."
       },
       "themeAppearance": {
         "title": "Téma",

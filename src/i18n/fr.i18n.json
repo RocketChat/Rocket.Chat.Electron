@@ -299,7 +299,8 @@
       },
       "transparentWindow": {
         "title": "Effet de fenêtre transparente",
-        "description": "Affiche le matériau de vibrance de macOS, qui laisse voir le bureau à travers la fenêtre de l'application. Cet effet consomme davantage de puissance GPU, même lorsque l'application est inactive."
+        "description": "Affiche le matériau de vibrance de macOS, qui laisse voir le bureau à travers la fenêtre de l'application. Cet effet consomme davantage de puissance GPU, même lorsque l'application est inactive.",
+        "hint": "Rocket.Chat demande à redémarrer lorsque vous modifiez ce paramètre."
       },
       "themeAppearance": {
         "title": "Thème",

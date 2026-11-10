@@ -158,7 +158,8 @@
       },
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",
-        "description": "macOS vibrancy malzemesini göstererek masaüstünün uygulama penceresinden görünmesini sağlar. Bu efekt, uygulama boştayken bile daha fazla GPU gücü kullanır."
+        "description": "macOS vibrancy malzemesini göstererek masaüstünün uygulama penceresinden görünmesini sağlar. Bu efekt, uygulama boştayken bile daha fazla GPU gücü kullanır.",
+        "hint": "Bu ayarı değiştirdiğinizde Rocket.Chat yeniden başlatmayı sorar."
       },
       "themeAppearance": {
         "title": "Tema",

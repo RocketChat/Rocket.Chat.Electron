@@ -14,7 +14,8 @@
       },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
-        "description": "Viser vibrancy-materialet i macOS, slik at skrivebordet syner gjennom appvindauget. Effekten brukar meir GPU-kraft, òg når appen er inaktiv."
+        "description": "Viser vibrancy-materialet i macOS, slik at skrivebordet syner gjennom appvindauget. Effekten brukar meir GPU-kraft, òg når appen er inaktiv.",
+        "hint": "Rocket.Chat ber om omstart når du endrar denne innstillinga."
       },
       "themeAppearance": {
         "title": "Tema",

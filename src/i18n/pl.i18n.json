@@ -170,7 +170,8 @@
       },
       "transparentWindow": {
         "title": "Efekt przezroczystego okna",
-        "description": "Wyświetla materiał vibrancy systemu macOS, dzięki czemu pulpit jest widoczny przez okno aplikacji. Ten efekt zużywa więcej mocy GPU, także gdy aplikacja jest bezczynna."
+        "description": "Wyświetla materiał vibrancy systemu macOS, dzięki czemu pulpit jest widoczny przez okno aplikacji. Ten efekt zużywa więcej mocy GPU, także gdy aplikacja jest bezczynna.",
+        "hint": "Rocket.Chat poprosi o ponowne uruchomienie po zmianie tego ustawienia."
       },
       "themeAppearance": {
         "title": "Motyw",

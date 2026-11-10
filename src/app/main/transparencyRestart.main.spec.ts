@@ -3,8 +3,8 @@ import { app } from 'electron';
 import { createMainReduxStore, dispatch, select } from '../../store';
 import { SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED } from '../../ui/actions';
 import { askForTransparencyRestart } from '../../ui/main/dialogs';
-import { setupApp } from './app';
 import { flushPersistedValues, persistValues } from './persistence';
+import { setupTransparencyRestart } from './transparencyRestart';
 
 jest.mock('electron', () => ({
   app: {
@@ -74,7 +74,7 @@ describe('transparency restart confirmation', () => {
         confirm = resolve;
       })
     );
-    setupApp();
+    setupTransparencyRestart();
     setTransparency(true);
     expect(app.exit).not.toHaveBeenCalled();
     expect(persistValues).not.toHaveBeenCalled();
@@ -98,7 +98,7 @@ describe('transparency restart confirmation', () => {
     'Cancel restores the original %s preference without another prompt',
     async (original) => {
       setTransparency(original);
-      setupApp();
+      setupTransparencyRestart();
       askForRestart.mockResolvedValue(false);
       setTransparency(!original);
       await settle();
@@ -113,7 +113,7 @@ describe('transparency restart confirmation', () => {
   );
 
   it('does not prompt for an unchanged preference', () => {
-    setupApp();
+    setupTransparencyRestart();
     setTransparency(false);
     expect(askForRestart).not.toHaveBeenCalled();
     expect(app.exit).not.toHaveBeenCalled();
@@ -126,7 +126,7 @@ describe('transparency restart confirmation', () => {
         confirm = resolve;
       })
     );
-    setupApp();
+    setupTransparencyRestart();
     setTransparency(true);
     setTransparency(true);
     setTransparency(false);
@@ -141,7 +141,7 @@ describe('transparency restart confirmation', () => {
       .spyOn(console, 'warn')
       .mockImplementation(() => undefined);
     try {
-      setupApp();
+      setupTransparencyRestart();
       askForRestart.mockRejectedValueOnce(new Error('dialog unavailable'));
       setTransparency(true);
       await settle();
@@ -163,7 +163,7 @@ describe('transparency restart confirmation', () => {
         value: platform,
         configurable: true,
       });
-      setupApp();
+      setupTransparencyRestart();
       setTransparency(true);
       await settle();
       expect(askForRestart).not.toHaveBeenCalled();

@@ -113,8 +113,8 @@ Means of twenty samples per state from the four lifecycle runs:
 | restored         | Static   |             0.0202% | 0.0294% |                0.0619% | 0.0746% |
 
 These short windows include activation and minimization transients. The
-visible-after run had higher CPU than its baseline, and minimized CPU was
-similar in both builds, including the static scene. No improvement in these
+AFTER run in the visible state had higher CPU than its baseline. Minimized
+CPU was similar in both builds, including the static scene. No improvement in these
 states is claimed. The targeted gap is never-shown startup. All animation,
 blank-pixel, background-delivery, no-reload, scroll, and focus assertions
 passed. [Raw lifecycle samples](performance/hidden-window-lifecycle.json).
@@ -122,6 +122,12 @@ passed. [Raw lifecycle samples](performance/hidden-window-lifecycle.json).
 ## Hidden-startup CPU and energy measurements
 
 Apple M4, macOS 27.2, Electron 43.8.1; four fresh, never-shown app instances in BEFORE / AFTER / AFTER / BEFORE order. Each phase warms up for 45 seconds, then takes sixty one-second CPU samples. CPU means use 120 samples per build. GPU means are duration-weighted.
+
+These CPU means come from separate runs with a longer warmup and sampling
+window than the lifecycle table (45 seconds then 60 samples at one-second
+intervals, versus three seconds then 20 samples at 250 ms intervals). The
+values describe different measurement windows and should not be compared
+across tables. Compare BEFORE and AFTER within each table.
 
 | Counter                            |   Before |    After |
 | ---------------------------------- | -------: | -------: |

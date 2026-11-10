@@ -126,10 +126,11 @@ const main = (): void => {
     powerPath && topPath && outputPath && runPaths.length === 4,
     'Usage: node scripts/summarize-hidden-window-energy.ts <gpu.txt> <top.txt> <output.json> <before.json> <after.json> <after.json> <before.json>'
   );
-  const samples = parseGpuPowerSamples(fs.readFileSync(powerPath, 'utf8'));
-  const utcOffset = fs
-    .readFileSync(powerPath, 'utf8')
-    .match(/Sampled system activity \([^)]* ([+-]\d{4})\)/)?.[1];
+  const powerText = fs.readFileSync(powerPath, 'utf8');
+  const samples = parseGpuPowerSamples(powerText);
+  const utcOffset = powerText.match(
+    /Sampled system activity \([^)]* ([+-]\d{4})\)/
+  )?.[1];
   assert(utcOffset, 'Missing GPU capture timezone');
   const windowServerSamples = parseWindowServerSamples(
     fs.readFileSync(topPath, 'utf8'),

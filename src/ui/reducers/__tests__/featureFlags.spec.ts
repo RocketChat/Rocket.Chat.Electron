@@ -12,6 +12,7 @@ import { isDownloadsPercentageEnabled } from '../isDownloadsPercentageEnabled';
 import { isFlashFrameEnabled } from '../isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../isInternalVideoChatWindowEnabled';
+import { isLinuxSystemTitleBarEnabled } from '../isLinuxSystemTitleBarEnabled';
 import { isMessageBoxFocused } from '../isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../isMinimizeOnCloseEnabled';
 import { isNTLMCredentialsEnabled } from '../isNTLMCredentialsEnabled';
@@ -356,6 +357,46 @@ describe('isTransparentWindowEnabled', () => {
       isTransparentWindowEnabled(true, {
         type: APP_SETTINGS_LOADED,
         payload: { isTransparentWindowEnabled: true },
+      } as any)
+    ).toBe(true);
+  });
+});
+
+describe('isLinuxSystemTitleBarEnabled', () => {
+  it('defaults to false', () => {
+    expect(
+      isLinuxSystemTitleBarEnabled(undefined, { type: 'UNKNOWN_ACTION' } as any)
+    ).toBe(false);
+  });
+
+  it('applies SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED with boolean payload', () => {
+    expect(
+      isLinuxSystemTitleBarEnabled(false, {
+        type: uiActions.SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED,
+        payload: true,
+      } as any)
+    ).toBe(true);
+  });
+
+  it('ignores non-boolean payload and keeps previous state', () => {
+    const warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+    expect(
+      isLinuxSystemTitleBarEnabled(false, {
+        type: uiActions.SETTINGS_SET_IS_LINUX_SYSTEM_TITLE_BAR_ENABLED_CHANGED,
+        payload: 'invalid',
+      } as any)
+    ).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
+  it('reads from APP_SETTINGS_LOADED', () => {
+    expect(
+      isLinuxSystemTitleBarEnabled(false, {
+        type: APP_SETTINGS_LOADED,
+        payload: { isLinuxSystemTitleBarEnabled: true },
       } as any)
     ).toBe(true);
   });

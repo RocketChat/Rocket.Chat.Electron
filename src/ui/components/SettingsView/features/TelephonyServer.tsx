@@ -69,6 +69,7 @@ export const TelephonyServer = (props: TelephonyServerProps) => {
     >
       <Select
         id={telephonyServerSelectId}
+        data-testid='telephony-server-dropdown'
         aria-label={t('settings.options.telephonyServer.title')}
         disabled={!isTelephonyEnabled}
         options={options}

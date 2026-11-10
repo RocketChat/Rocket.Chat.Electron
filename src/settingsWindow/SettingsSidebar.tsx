@@ -150,6 +150,11 @@ export const SettingsSidebar = ({
                 <NavRow
                   key={section.id}
                   id={settingsSectionTabId(section.id)}
+                  data-testid={
+                    section.id === 'general'
+                      ? 'settings-menu-item'
+                      : `settings-tab-${section.id}`
+                  }
                   controlsId={SETTINGS_TABPANEL_ID}
                   label={section.label}
                   icon={section.icon}

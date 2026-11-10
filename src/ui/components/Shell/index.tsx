@@ -158,7 +158,12 @@ export const Shell = () => {
           {navigationLayout === 'sidebar' && (
             <TabBar
               orientation='vertical'
-              trailingSlot={<MeatballMenuButton orientation='vertical' />}
+              trailingSlot={
+                <MeatballMenuButton
+                  orientation='vertical'
+                  data-testid='sidebar-kebab-button'
+                />
+              }
             />
           )}
           <Box

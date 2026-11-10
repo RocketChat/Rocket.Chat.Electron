@@ -224,10 +224,12 @@ export const setupServers = async (
       const storedString = JSON.parse(localStorage['rocket.chat.hosts']);
 
       if (/^https?:\/\//.test(storedString)) {
-        serversMap.set(storedString, {
-          url: storedString,
-          title: storedString,
-        });
+        if (!serversMap.has(storedString)) {
+          serversMap.set(storedString, {
+            url: storedString,
+            title: storedString,
+          });
+        }
       } else {
         const storedValue = JSON.parse(storedString);
 
@@ -235,7 +237,9 @@ export const setupServers = async (
           storedValue
             .map((url) => url.replace(/\/$/, ''))
             .forEach((url) => {
-              serversMap.set(url, { url, title: url });
+              if (!serversMap.has(url)) {
+                serversMap.set(url, { url, title: url });
+              }
             });
         }
       }

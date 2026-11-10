@@ -9,13 +9,15 @@ import { TabBarButtonWrapper } from './styles';
 import type { TabOrientation } from './styles';
 
 type MeatballMenuButtonProps = {
-  orientation?: TabOrientation;
-  tiny?: boolean;
+  'orientation'?: TabOrientation;
+  'tiny'?: boolean;
+  'data-testid'?: string;
 };
 
 export const MeatballMenuButton = ({
   orientation = 'horizontal',
   tiny = false,
+  'data-testid': dataTestId,
 }: MeatballMenuButtonProps) => {
   const { t } = useTranslation();
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -76,6 +78,12 @@ export const MeatballMenuButton = ({
         aria-label={t('tabBar.meatballMenu')}
         title={t('tabBar.meatballMenu')}
         onClick={handleClick}
+        data-testid={
+          dataTestId ??
+          (orientation === 'vertical'
+            ? 'sidebar-kebab-button'
+            : 'meatball-menu-button')
+        }
       />
     </TabBarButtonWrapper>
   );

@@ -7,15 +7,16 @@ import type { Surfaces } from './appearance';
 import { FILTER_ROW_CLASS } from './styles';
 
 export type NavRowProps = {
-  label: string;
+  'label': string;
   /** Secondary line, e.g. why a search matched this row. */
-  description?: string;
-  icon?: IconName;
-  isSelected: boolean;
-  surfaces: Surfaces;
-  onSelect: () => void;
-  id?: string;
-  controlsId?: string;
+  'description'?: string;
+  'icon'?: IconName;
+  'isSelected': boolean;
+  'surfaces': Surfaces;
+  'onSelect': () => void;
+  'id'?: string;
+  'controlsId'?: string;
+  'data-testid'?: string;
 };
 
 /**
@@ -36,6 +37,7 @@ export const NavRow = ({
   onSelect,
   id,
   controlsId,
+  'data-testid': dataTestId,
 }: NavRowProps) => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLElement>) => {
@@ -50,6 +52,7 @@ export const NavRow = ({
   return (
     <Box
       id={id}
+      data-testid={dataTestId}
       role='tab'
       aria-selected={isSelected}
       aria-controls={controlsId}

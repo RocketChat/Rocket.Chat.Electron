@@ -96,9 +96,13 @@ const connectInspector = async (port: number): Promise<Inspector> => {
   let nextId = 0;
   const pending = new Map<number, (message: any) => void>();
   socket.addEventListener('message', (event) => {
-    const message = JSON.parse(String(event.data));
-    pending.get(message.id)?.(message);
+    const message = JSON.parse(String(event.data)) as { id?: unknown };
+    // Only replies to our own calls carry a numeric id. CDP events have none.
+    if (typeof message.id !== 'number') return;
+    const resolveCall = pending.get(message.id);
+    if (typeof resolveCall !== 'function') return;
     pending.delete(message.id);
+    resolveCall(message);
   });
 
   const evaluate = (expression: string) =>

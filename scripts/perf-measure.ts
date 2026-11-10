@@ -15,6 +15,7 @@ import {
   writeFileSync,
 } from 'fs';
 import { loadavg, tmpdir } from 'os';
+import { createRequire } from 'module';
 import { dirname, join, resolve } from 'path';
 
 import type {
@@ -225,7 +226,8 @@ const startPowermetrics = (seconds: number) => {
   let output = '';
   child.stdout.on('data', (chunk) => (output += chunk));
   return new Promise<PowerSample[]>((ok) =>
-    child.once('exit', () => ok(parsePowermetrics(output)))
+    // `close` fires after stdout is drained, `exit` can fire before.
+    child.once('close', () => ok(parsePowermetrics(output)))
   );
 };
 
@@ -279,16 +281,19 @@ const launchApp = (
   profile: string,
   port: number
 ): ChildProcess => {
-  const electron = join(
-    condition.appDir!,
-    'node_modules',
-    '.bin',
-    process.platform === 'win32' ? 'electron.cmd' : 'electron'
-  );
-  if (!existsSync(electron))
+  // The `electron` package exports the path of its binary. Spawning that
+  // binary avoids the `.cmd` wrapper, which Node refuses to spawn without a
+  // shell on Windows, and lets the fallback kill the real app process.
+  let electron: string;
+  try {
+    electron = createRequire(join(condition.appDir!, 'package.json'))(
+      'electron'
+    ) as string;
+  } catch {
     throw new Error(
       `No Electron in ${condition.appDir}. Run yarn install there.`
     );
+  }
   if (!existsSync(join(condition.appDir!, 'app', 'main.js'))) {
     throw new Error(
       `No build in ${condition.appDir}. Run NODE_ENV=production yarn build there.`
@@ -307,13 +312,14 @@ const launchApp = (
 
 const stopApp = async (
   child: ChildProcess,
-  inspector: Inspector
+  inspector: Inspector | undefined
 ): Promise<void> => {
+  if (child.exitCode !== null) return;
   const exited = new Promise((ok) => child.once('exit', ok));
   await inspector
-    .evaluate(`${REQ}('electron').app.quit()`)
+    ?.evaluate(`${REQ}('electron').app.quit()`)
     .catch(() => undefined);
-  inspector.close();
+  inspector?.close();
   await Promise.race([exited, sleep(10000)]);
   if (child.exitCode === null) child.kill('SIGKILL');
 };
@@ -330,89 +336,99 @@ const measure = async (
   let inspector: Inspector | undefined;
   let start: ProcessSnapshot[] = [];
 
-  if (condition.appDir) {
-    const profile = join(scratch, `profile-r${round}-${port}`);
-    writeProfile(profile, condition);
-    child = launchApp(condition, profile, port);
-    inspector = await connectInspector(port);
-    await sleep(config.settleSeconds * 1000);
-    // macOS does not composite a covered window, so a covered window hides
-    // the cost of window effects. Keep it on top for the whole sample, and
-    // record below whether the page really was visible.
-    await inspector.evaluate(`(() => { const { app } = ${REQ}('electron'); const w = ${ROOT_WINDOW};
+  // Stop the app on every path: a failed step must not leave a window on
+  // top or an inspector port in use for the next run.
+  try {
+    if (condition.appDir) {
+      const profile = join(scratch, `profile-r${round}-${port}`);
+      writeProfile(profile, condition);
+      child = launchApp(condition, profile, port);
+      inspector = await connectInspector(port);
+      await sleep(config.settleSeconds * 1000);
+      // macOS does not composite a covered window, so a covered window hides
+      // the cost of window effects. Keep it on top for the whole sample, and
+      // record below whether the page really was visible.
+      await inspector.evaluate(`(() => { const { app } = ${REQ}('electron'); const w = ${ROOT_WINDOW};
       if (!w) throw new Error('no root window');
       w.setBounds({ x: 80, y: 80, width: ${config.window.width}, height: ${config.window.height} });
       w.setAlwaysOnTop(true, 'floating'); w.show(); w.focus();
       if (process.platform === 'darwin') app.focus({ steal: true });
       return true; })()`);
-    if (condition.setup) await inspector.evaluate(condition.setup);
-    await sleep(3000);
-    if (condition.workload) await inspector.evaluate(condition.workload);
-    start = JSON.parse(String(await inspector.evaluate(SNAPSHOT)));
-  } else {
-    await sleep(3000);
-  }
+      if (condition.setup) await inspector.evaluate(condition.setup);
+      await sleep(3000);
+      if (condition.workload) await inspector.evaluate(condition.workload);
+      start = JSON.parse(String(await inspector.evaluate(SNAPSHOT)));
+    } else {
+      await sleep(3000);
+    }
 
-  const power = withPower
-    ? startPowermetrics(config.sampleSeconds)
-    : Promise.resolve([]);
-  const startedAt = Date.now();
-  const windowServerStart = readWindowServerCpuSeconds();
-  const gpu: number[] = [];
-  const load: number[] = [];
-  const visible: boolean[] = [];
-  for (let second = 0; second < config.sampleSeconds; second++) {
-    const value = readGpuUtilization();
-    if (value !== null) gpu.push(value);
-    load.push(loadavg()[0]);
-    if (inspector && second % 5 === 0) {
-      visible.push(
-        (await inspector.evaluate(PAGE_VISIBLE).catch(() => false)) === true
+    const power = withPower
+      ? startPowermetrics(config.sampleSeconds)
+      : Promise.resolve([]);
+    const startedAt = Date.now();
+    const windowServerStart = readWindowServerCpuSeconds();
+    const gpu: number[] = [];
+    const load: number[] = [];
+    const visible: boolean[] = [];
+    for (let second = 0; second < config.sampleSeconds; second++) {
+      const value = readGpuUtilization();
+      if (value !== null) gpu.push(value);
+      load.push(loadavg()[0]);
+      if (inspector && second % 5 === 0) {
+        visible.push(
+          (await inspector.evaluate(PAGE_VISIBLE).catch(() => false)) === true
+        );
+      }
+      await sleep(1000);
+    }
+
+    const metrics: Record<string, number> = {};
+    if (gpu.length) metrics['GPU utilization % (system)'] = mean(gpu);
+    const windowServerEnd = readWindowServerCpuSeconds();
+    if (windowServerStart !== null && windowServerEnd !== null) {
+      metrics['WindowServer CPU % (system)'] =
+        ((windowServerEnd - windowServerStart) /
+          ((Date.now() - startedAt) / 1000)) *
+        100;
+    }
+    const powerSamples = await power;
+    for (const [key, label] of [
+      ['gpuMilliwatts', 'GPU power mW (system)'],
+      ['cpuMilliwatts', 'CPU power mW (system)'],
+      ['combinedMilliwatts', 'CPU+GPU+ANE power mW (system)'],
+      ['gpuActiveResidencyPercent', 'GPU active residency % (system)'],
+    ] as const) {
+      const series = powerSamples
+        .map((s) => s[key])
+        .filter((v): v is number => v !== undefined);
+      if (series.length) metrics[label] = mean(series);
+    }
+
+    if (inspector && child) {
+      const end: ProcessSnapshot[] = JSON.parse(
+        String(await inspector.evaluate(SNAPSHOT))
       );
+      const byType = usageBetween(start, end, (Date.now() - startedAt) / 1000);
+      const total = totalUsage(byType);
+      metrics['window visible % of checks'] =
+        (visible.filter(Boolean).length / visible.length) * 100;
+      metrics['app CPU % (all processes)'] = total.cpuPercent;
+      metrics['app idle wakeups/s'] = total.idleWakeupsPerSecond;
+      metrics['app memory MB (working set)'] = total.workingSetMegabytes;
+      for (const [type, value] of Object.entries(byType)) {
+        metrics[`CPU % ${type}`] = value.cpuPercent;
+      }
     }
-    await sleep(1000);
-  }
 
-  const metrics: Record<string, number> = {};
-  if (gpu.length) metrics['GPU utilization % (system)'] = mean(gpu);
-  const windowServerEnd = readWindowServerCpuSeconds();
-  if (windowServerStart !== null && windowServerEnd !== null) {
-    metrics['WindowServer CPU % (system)'] =
-      ((windowServerEnd - windowServerStart) /
-        ((Date.now() - startedAt) / 1000)) *
-      100;
+    return {
+      condition: condition.name,
+      round,
+      metrics,
+      loadAverage: mean(load),
+    };
+  } finally {
+    if (child) await stopApp(child, inspector);
   }
-  const powerSamples = await power;
-  for (const [key, label] of [
-    ['gpuMilliwatts', 'GPU power mW (system)'],
-    ['cpuMilliwatts', 'CPU power mW (system)'],
-    ['combinedMilliwatts', 'CPU+GPU+ANE power mW (system)'],
-    ['gpuActiveResidencyPercent', 'GPU active residency % (system)'],
-  ] as const) {
-    const series = powerSamples
-      .map((s) => s[key])
-      .filter((v): v is number => v !== undefined);
-    if (series.length) metrics[label] = mean(series);
-  }
-
-  if (inspector && child) {
-    const end: ProcessSnapshot[] = JSON.parse(
-      String(await inspector.evaluate(SNAPSHOT))
-    );
-    const byType = usageBetween(start, end, (Date.now() - startedAt) / 1000);
-    const total = totalUsage(byType);
-    metrics['window visible % of checks'] =
-      (visible.filter(Boolean).length / visible.length) * 100;
-    metrics['app CPU % (all processes)'] = total.cpuPercent;
-    metrics['app idle wakeups/s'] = total.idleWakeupsPerSecond;
-    metrics['app memory MB (working set)'] = total.workingSetMegabytes;
-    for (const [type, value] of Object.entries(byType)) {
-      metrics[`CPU % ${type}`] = value.cpuPercent;
-    }
-    await stopApp(child, inspector);
-  }
-
-  return { condition: condition.name, round, metrics, loadAverage: mean(load) };
 };
 
 const main = async (): Promise<void> => {

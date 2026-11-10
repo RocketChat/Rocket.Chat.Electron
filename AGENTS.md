@@ -227,6 +227,11 @@ hooks, `settings.json`).
   `Custom_Script_On_Logout`, because the Meteor build does not fire it on a
   forced logout.
 
+- To compare CPU, GPU, memory or power use between builds or settings, run
+  `yarn perf:measure --config <file>`. Build each checkout with
+  `NODE_ENV=production yarn build` first. Put the report in the PR of an
+  optimization. Details: `docs/performance-measurement.md`.
+
 ### Test runner and CI speed
 
 - `@kayahr/jest-electron-runner` simulates the Electron environment. It forces

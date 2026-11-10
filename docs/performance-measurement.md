@@ -96,6 +96,9 @@ profile.
 The tool evaluates these expressions in the main process through the
 inspector. `require` is not in scope there: use
 `process.mainModule.require('electron')`. An expression can return a promise.
+The tool waits up to 3 minutes for `setup` and `workload`, and prints the value
+that `setup` returns. Make `setup` throw when the app is not in the expected
+state, so that a bad run stops the tool instead of giving a number.
 
 Open the settings window before the sample:
 
@@ -111,6 +114,33 @@ Start a scroll loop in the root window renderer:
 
 An empty profile has no workspace. To measure a workspace view, add a server
 in `config.json` or in `setup`, and use a test server, not a production one.
+
+To log in from `setup` without the login form, get a token with the REST
+`login` call. Then, in the workspace webview, set `Meteor.loginToken` and
+`Meteor.userId` in `localStorage`, and set the `rc_uid` and `rc_token` cookies
+in its session. Uploaded files need the cookies.
+
+A test server on plain `http` at a LAN address is not a secure context, and
+the web client fails (`crypto.randomUUID is not a function`). Add
+`--unsafely-treat-insecure-origin-as-secure=<server URL>` to `args`, or use
+`localhost`.
+
+## Windows and Linux
+
+Packaged builds turn off the `--inspect` switch (the
+`EnableNodeCliInspectArguments` fuse). Run the tool on a checkout on that
+platform, with `yarn install` and `NODE_ENV=production yarn build`.
+
+- The app metrics work on all platforms. The GPU, compositor and power metrics
+  are macOS only.
+- Linux: in a checkout, `node_modules/electron/dist/chrome-sandbox` must be
+  owned by root with mode `4755`, or Electron stops at launch. The `.deb`
+  package does this when it installs.
+- Linux: when the GPU is not available, the app relaunches itself with
+  `--disable-gpu --ozone-platform=x11` (`setupGpuCrashHandler`). The tool loses
+  the relaunched process. On such a machine, put these two switches in `args`.
+- On a virtual machine, rendering is in software. GPU work then shows as CPU
+  time of the app processes.
 
 ## Power with powermetrics
 

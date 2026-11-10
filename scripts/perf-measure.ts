@@ -39,6 +39,7 @@ import {
   usageBetween,
 } from './perfMeasure.lib';
 
+const USER_EXPRESSION_TIMEOUT_MS = 180_000;
 const FIRST_INSPECTOR_PORT = 9400;
 const REQ = 'process.mainModule.require';
 const ROOT_WINDOW = `${REQ}('electron').BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() && w.webContents.getURL().includes('/app/index.html'))`;
@@ -64,7 +65,7 @@ const usage = `Usage: yarn perf:measure --config <file.json> [--out <dir>] [--ro
             passwordless sudo for /usr/bin/powermetrics)`;
 
 type Inspector = {
-  evaluate: (expression: string) => Promise<unknown>;
+  evaluate: (expression: string, timeoutMs?: number) => Promise<unknown>;
   close: () => void;
 };
 
@@ -106,13 +107,13 @@ const connectInspector = async (port: number): Promise<Inspector> => {
     resolveCall(message);
   });
 
-  const evaluate = (expression: string) =>
+  const evaluate = (expression: string, timeoutMs = 15000) =>
     new Promise<unknown>((ok, fail) => {
       const id = ++nextId;
       const timer = setTimeout(() => {
         pending.delete(id);
         fail(new Error(`Inspector call timed out: ${expression.slice(0, 80)}`));
-      }, 15000);
+      }, timeoutMs);
       pending.set(id, (message) => {
         clearTimeout(timer);
         const details = message.result?.exceptionDetails;
@@ -354,9 +355,22 @@ const measure = async (
       w.setAlwaysOnTop(true, 'floating'); w.show(); w.focus();
       if (process.platform === 'darwin') app.focus({ steal: true });
       return true; })()`);
-      if (condition.setup) await inspector.evaluate(condition.setup);
+      // A setup that logs in to a workspace and waits for a view can take
+      // much longer than one metrics call.
+      if (condition.setup) {
+        const result = await inspector.evaluate(
+          condition.setup,
+          USER_EXPRESSION_TIMEOUT_MS
+        );
+        if (result !== undefined) console.log(`  setup: ${String(result)}`);
+      }
       await sleep(3000);
-      if (condition.workload) await inspector.evaluate(condition.workload);
+      if (condition.workload) {
+        await inspector.evaluate(
+          condition.workload,
+          USER_EXPRESSION_TIMEOUT_MS
+        );
+      }
       start = JSON.parse(String(await inspector.evaluate(SNAPSHOT)));
     } else {
       await sleep(3000);

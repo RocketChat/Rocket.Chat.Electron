@@ -176,6 +176,7 @@
       }
     },
     "sections": {
+      "performance": "效能",
       "uiPreview": "Web 介面預覽"
     }
   },

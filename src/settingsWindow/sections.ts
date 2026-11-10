@@ -6,6 +6,7 @@ import { AdvancedSection } from './sections/AdvancedSection';
 import { AppearanceSection } from './sections/AppearanceSection';
 import { CertificatesSection } from './sections/CertificatesSection';
 import { GeneralSection } from './sections/GeneralSection';
+import { PerformanceSection } from './sections/PerformanceSection';
 import { TelephonySection } from './sections/TelephonySection';
 import { VideoCallsSection } from './sections/VideoCallsSection';
 
@@ -15,6 +16,7 @@ export type SettingsSectionId =
   | 'certificates'
   | 'telephony'
   | 'videoCalls'
+  | 'performance'
   | 'advanced';
 
 /** Every section is handed the window's surfaces; most ignore them. */
@@ -70,7 +72,6 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     settingKeys: [
       'settings.options.themeAppearance',
       'settings.options.navigation',
-      'settings.options.transparentWindow',
       'settings.options.uiPreview',
     ],
     Component: AppearanceSection,
@@ -106,12 +107,21 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     Component: VideoCallsSection,
   },
   {
+    id: 'performance',
+    icon: 'lightning',
+    labelKey: 'settings.sections.performance',
+    settingKeys: [
+      'settings.options.hardwareAcceleration',
+      'settings.options.transparentWindow',
+    ],
+    Component: PerformanceSection,
+  },
+  {
     id: 'advanced',
     icon: 'cog',
     labelKey: 'settings.sections.advanced',
     settingKeys: [
       'dialog.about.updateChannel.label',
-      'settings.options.hardwareAcceleration',
       'settings.options.report',
       'settings.options.verboseOutlookLogging',
       'settings.options.detailedEventsLogging',

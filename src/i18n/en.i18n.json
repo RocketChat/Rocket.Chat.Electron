@@ -341,6 +341,7 @@
       "logging": "Logging",
       "telephony": "Telephony",
       "videoCalls": "Video calls",
+      "performance": "Performance",
       "advanced": "Advanced",
       "uiPreview": "Web UI preview"
     },

@@ -62,6 +62,7 @@
       }
     },
     "sections": {
+      "performance": "Ytelse",
       "uiPreview": "Forhåndsvisning av nettgrensesnitt"
     }
   },

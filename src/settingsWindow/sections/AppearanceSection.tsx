@@ -5,11 +5,13 @@ import type { RootState } from '../../store/rootReducer';
 import { NavigationLayout } from '../../ui/components/SettingsView/features/NavigationLayout';
 import { SettingGroupDivider } from '../../ui/components/SettingsView/features/SettingGroupDivider';
 import { ThemeAppearance } from '../../ui/components/SettingsView/features/ThemeAppearance';
-import { TransparentWindow } from '../../ui/components/SettingsView/features/TransparentWindow';
 import { UiPreview } from '../../ui/components/SettingsView/features/UiPreview';
-import { isDarwin } from '../../ui/windowChrome/appearance';
 
-/** How the app looks: theme, workspace switcher, window material, and, in Developer Mode, which web UI build a workspace runs. */
+/**
+ * How the app looks: theme, workspace switcher, and, in Developer Mode, which
+ * web UI build a workspace runs. The transparent window material lives in
+ * Performance, because its cost is GPU work on every frame.
+ */
 export const AppearanceSection = () => {
   const isDeveloperModeEnabled = useSelector(
     ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
@@ -20,7 +22,6 @@ export const AppearanceSection = () => {
       <FieldGroup>
         <ThemeAppearance />
         <NavigationLayout />
-        {isDarwin && <TransparentWindow />}
       </FieldGroup>
 
       {isDeveloperModeEnabled && (

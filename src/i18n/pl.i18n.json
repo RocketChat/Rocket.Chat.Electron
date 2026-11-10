@@ -209,6 +209,7 @@
       }
     },
     "sections": {
+      "performance": "Wydajność",
       "uiPreview": "Podgląd interfejsu webowego"
     }
   },

@@ -254,6 +254,7 @@
     "certificates": "Sertifikater",
     "developer": "Utvikler",
     "sections": {
+      "performance": "Ytelse",
       "logging": "Logging",
       "uiPreview": "Forhåndsvisning av nettgrensesnitt"
     },

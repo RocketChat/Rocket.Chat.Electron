@@ -184,6 +184,7 @@
       }
     },
     "sections": {
+      "performance": "パフォーマンス",
       "uiPreview": "Web UI プレビュー"
     }
   },

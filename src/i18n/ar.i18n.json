@@ -62,6 +62,7 @@
       }
     },
     "sections": {
+      "performance": "الأداء",
       "uiPreview": "معاينة واجهة الويب"
     }
   },

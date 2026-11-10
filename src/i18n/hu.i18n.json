@@ -247,6 +247,7 @@
     "certificates": "Tanúsítványok",
     "developer": "Fejlesztő",
     "sections": {
+      "performance": "Teljesítmény",
       "logging": "Naplózás",
       "uiPreview": "Webes felület előnézete"
     },

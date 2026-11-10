@@ -362,6 +362,7 @@
       }
     },
     "sections": {
+      "performance": "Rendimiento",
       "uiPreview": "Vista previa de la UI web"
     }
   },

@@ -36,6 +36,22 @@ describe('SETTINGS_SECTIONS', () => {
     expect(ids).not.toContain('developer');
   });
 
+  it('groups the settings that cost rendering work under Performance', () => {
+    const keysOf = (id: string) =>
+      SETTINGS_SECTIONS.find((section) => section.id === id)?.settingKeys;
+
+    expect(keysOf('performance')).toEqual([
+      'settings.options.hardwareAcceleration',
+      'settings.options.transparentWindow',
+    ]);
+    expect(keysOf('advanced')).not.toContain(
+      'settings.options.hardwareAcceleration'
+    );
+    expect(keysOf('appearance')).not.toContain(
+      'settings.options.transparentWindow'
+    );
+  });
+
   it('does not list the same setting in two sections', () => {
     const keys = SETTINGS_SECTIONS.flatMap((section) => section.settingKeys);
     expect(new Set(keys).size).toBe(keys.length);

@@ -337,6 +337,7 @@
       }
     },
     "sections": {
+      "performance": "Performances",
       "uiPreview": "Aperçu de l'interface web"
     }
   },

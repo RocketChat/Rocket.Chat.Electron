@@ -337,6 +337,7 @@
       }
     },
     "sections": {
+      "performance": "Suorituskyky",
       "uiPreview": "Verkkokäyttöliittymän esikatselu"
     }
   },

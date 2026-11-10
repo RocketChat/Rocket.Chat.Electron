@@ -62,6 +62,7 @@
       }
     },
     "sections": {
+      "performance": "Prestazioni",
       "uiPreview": "Anteprima dell'interfaccia web"
     }
   },

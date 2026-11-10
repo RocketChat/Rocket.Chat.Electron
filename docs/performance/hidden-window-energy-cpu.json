@@ -1,0 +1,1881 @@
+{
+  "baselineCommit": "428eaeaa3dff162fb1129d83d6c5a05aed3c8886",
+  "runs": [
+    {
+      "context": {
+        "expected": "before",
+        "animated": true,
+        "energy": true,
+        "sampleCount": 60,
+        "sampleIntervalMs": 1000,
+        "warmupMs": 45000,
+        "appVersion": "4.19.0",
+        "timezone": "Asia/Calcutta",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "148",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.0.245.31-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "43.8.1",
+          "chrome": "150.0.7871.250"
+        },
+        "platform": "darwin",
+        "os": "27.2.0",
+        "cpu": "Apple M4",
+        "logicalCpus": 10,
+        "displays": [
+          {
+            "size": {
+              "width": 1512,
+              "height": 982
+            },
+            "scaleFactor": 2,
+            "frequency": 120.0006103515625
+          }
+        ],
+        "gpu": {
+          "2d_canvas": "enabled",
+          "direct_rendering_display_compositor": "disabled_off_ok",
+          "gpu_compositing": "enabled",
+          "multiple_raster_threads": "enabled_on",
+          "opengl": "enabled_on",
+          "rasterization": "enabled",
+          "raw_draw": "disabled_off_ok",
+          "skia_graphite": "enabled_on",
+          "trees_in_viz": "disabled_off",
+          "video_decode": "enabled",
+          "video_encode": "enabled",
+          "webgl": "enabled",
+          "webgpu": "enabled",
+          "webnn": "disabled_off"
+        },
+        "profileIsolated": true,
+        "channelLoads": 1
+      },
+      "phases": [
+        {
+          "state": "initially-hidden",
+          "startedAt": "2026-11-10T21:00:45.877Z",
+          "endedAt": "2026-11-10T21:01:45.929Z",
+          "rootVisibility": "visible",
+          "before": {
+            "frames": 5419,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "after": {
+            "frames": 12627,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "samples": [
+            {
+              "time": "2026-11-10T21:00:46.879Z",
+              "browserCpu": 0.006028431440066513,
+              "rendererCpu": 0.27945121805159656,
+              "gpuProcessCpu": 0.4421202448893228
+            },
+            {
+              "time": "2026-11-10T21:00:47.880Z",
+              "browserCpu": 0.005644417670923456,
+              "rendererCpu": 0.24098263210737425,
+              "gpuProcessCpu": 0.4037718809254075
+            },
+            {
+              "time": "2026-11-10T21:00:48.882Z",
+              "browserCpu": 0.003954420312938444,
+              "rendererCpu": 0.22456717792115582,
+              "gpuProcessCpu": 0.38335215692383584
+            },
+            {
+              "time": "2026-11-10T21:00:49.882Z",
+              "browserCpu": 0.005896373730155955,
+              "rendererCpu": 0.19776405013100332,
+              "gpuProcessCpu": 0.34582996493535173
+            },
+            {
+              "time": "2026-11-10T21:00:50.883Z",
+              "browserCpu": 0.006605092416334664,
+              "rendererCpu": 0.14713303428407548,
+              "gpuProcessCpu": 0.3020706966742145
+            },
+            {
+              "time": "2026-11-10T21:00:51.884Z",
+              "browserCpu": 0.0076026254533102895,
+              "rendererCpu": 0.15647949610025239,
+              "gpuProcessCpu": 0.3193060354216083
+            },
+            {
+              "time": "2026-11-10T21:00:52.885Z",
+              "browserCpu": 0.003237963321071046,
+              "rendererCpu": 0.21218292982733153,
+              "gpuProcessCpu": 0.3640306606837692
+            },
+            {
+              "time": "2026-11-10T21:00:53.885Z",
+              "browserCpu": 0.006786844117485369,
+              "rendererCpu": 0.19379136019765938,
+              "gpuProcessCpu": 0.34995117494960076
+            },
+            {
+              "time": "2026-11-10T21:00:54.886Z",
+              "browserCpu": 0.0057460983991869516,
+              "rendererCpu": 0.14642223323633805,
+              "gpuProcessCpu": 0.3319400073746681
+            },
+            {
+              "time": "2026-11-10T21:00:55.887Z",
+              "browserCpu": 0.007438767461133688,
+              "rendererCpu": 0.16554707526510198,
+              "gpuProcessCpu": 0.3348188652905774
+            },
+            {
+              "time": "2026-11-10T21:00:56.889Z",
+              "browserCpu": 0.005531735587032973,
+              "rendererCpu": 0.19195303021982138,
+              "gpuProcessCpu": 0.3543031512141446
+            },
+            {
+              "time": "2026-11-10T21:00:57.890Z",
+              "browserCpu": 0.004385859748397513,
+              "rendererCpu": 0.2520525664823736,
+              "gpuProcessCpu": 0.4467505012792987
+            },
+            {
+              "time": "2026-11-10T21:00:58.890Z",
+              "browserCpu": 0.0032785377721536195,
+              "rendererCpu": 0.2749756101461792,
+              "gpuProcessCpu": 0.4172918163943996
+            },
+            {
+              "time": "2026-11-10T21:00:59.891Z",
+              "browserCpu": 0.029262676495514655,
+              "rendererCpu": 0.24574484033781419,
+              "gpuProcessCpu": 0.39337639661663715
+            },
+            {
+              "time": "2026-11-10T21:01:00.892Z",
+              "browserCpu": 0.016511111288685744,
+              "rendererCpu": 0.21545798837407112,
+              "gpuProcessCpu": 0.3485961071337254
+            },
+            {
+              "time": "2026-11-10T21:01:01.893Z",
+              "browserCpu": 0.009393593569185815,
+              "rendererCpu": 0.14124348581466348,
+              "gpuProcessCpu": 0.29473627413461123
+            },
+            {
+              "time": "2026-11-10T21:01:02.893Z",
+              "browserCpu": 0.00758518340853558,
+              "rendererCpu": 0.13424810410929894,
+              "gpuProcessCpu": 0.28122564010313605
+            },
+            {
+              "time": "2026-11-10T21:01:03.894Z",
+              "browserCpu": 0.017580084832154667,
+              "rendererCpu": 0.1413682233058849,
+              "gpuProcessCpu": 0.30675858429264113
+            },
+            {
+              "time": "2026-11-10T21:01:04.894Z",
+              "browserCpu": 0.004957724404498335,
+              "rendererCpu": 0.19051122380876304,
+              "gpuProcessCpu": 0.3457299270437787
+            },
+            {
+              "time": "2026-11-10T21:01:05.895Z",
+              "browserCpu": 0.0036883328735411594,
+              "rendererCpu": 0.15966856255645756,
+              "gpuProcessCpu": 0.32097886860795877
+            },
+            {
+              "time": "2026-11-10T21:01:06.896Z",
+              "browserCpu": 0.006944298730742061,
+              "rendererCpu": 0.1519734075503509,
+              "gpuProcessCpu": 0.3095749102739343
+            },
+            {
+              "time": "2026-11-10T21:01:07.896Z",
+              "browserCpu": 0.007664887520024144,
+              "rendererCpu": 0.14060535417763295,
+              "gpuProcessCpu": 0.30191462442060574
+            },
+            {
+              "time": "2026-11-10T21:01:08.897Z",
+              "browserCpu": 0.0034054197104893915,
+              "rendererCpu": 0.20511289248225648,
+              "gpuProcessCpu": 0.36163107478688816
+            },
+            {
+              "time": "2026-11-10T21:01:09.898Z",
+              "browserCpu": 0.004966225668491946,
+              "rendererCpu": 0.14772127714002492,
+              "gpuProcessCpu": 0.30586274398122193
+            },
+            {
+              "time": "2026-11-10T21:01:10.899Z",
+              "browserCpu": 0.004757830429324228,
+              "rendererCpu": 0.14300350405030124,
+              "gpuProcessCpu": 0.2779118826221112
+            },
+            {
+              "time": "2026-11-10T21:01:11.899Z",
+              "browserCpu": 0.008539948760307437,
+              "rendererCpu": 0.21487914306343292,
+              "gpuProcessCpu": 0.3925084299662801
+            },
+            {
+              "time": "2026-11-10T21:01:12.899Z",
+              "browserCpu": 0.003308822059346873,
+              "rendererCpu": 0.18216496442866612,
+              "gpuProcessCpu": 0.3397466719580792
+            },
+            {
+              "time": "2026-11-10T21:01:13.900Z",
+              "browserCpu": 0.004075716422040436,
+              "rendererCpu": 0.13399216093008934,
+              "gpuProcessCpu": 0.28473170434489037
+            },
+            {
+              "time": "2026-11-10T21:01:14.901Z",
+              "browserCpu": 0.013102610127887871,
+              "rendererCpu": 0.12962179485637518,
+              "gpuProcessCpu": 0.26855297444308845
+            },
+            {
+              "time": "2026-11-10T21:01:15.902Z",
+              "browserCpu": 0.0070205643614981465,
+              "rendererCpu": 0.13706728836586152,
+              "gpuProcessCpu": 0.29274917984490706
+            },
+            {
+              "time": "2026-11-10T21:01:16.903Z",
+              "browserCpu": 0.00550196712799313,
+              "rendererCpu": 0.17895677546370864,
+              "gpuProcessCpu": 0.3338186480689267
+            },
+            {
+              "time": "2026-11-10T21:01:17.905Z",
+              "browserCpu": 0.0029861180465394987,
+              "rendererCpu": 0.14320526899811567,
+              "gpuProcessCpu": 0.3027503602863115
+            },
+            {
+              "time": "2026-11-10T21:01:18.905Z",
+              "browserCpu": 0.0027591363903098328,
+              "rendererCpu": 0.12248504798738861,
+              "gpuProcessCpu": 0.24974984030764893
+            },
+            {
+              "time": "2026-11-10T21:01:19.906Z",
+              "browserCpu": 0.0074959446939205894,
+              "rendererCpu": 0.15630715391019215,
+              "gpuProcessCpu": 0.30696270532559755
+            },
+            {
+              "time": "2026-11-10T21:01:20.906Z",
+              "browserCpu": 0.004016754462394386,
+              "rendererCpu": 0.24042477646039864,
+              "gpuProcessCpu": 0.3749866358116284
+            },
+            {
+              "time": "2026-11-10T21:01:21.908Z",
+              "browserCpu": 0.005242189138184106,
+              "rendererCpu": 0.16048008289514684,
+              "gpuProcessCpu": 0.3106973716136673
+            },
+            {
+              "time": "2026-11-10T21:01:22.909Z",
+              "browserCpu": 0.0031279511919692603,
+              "rendererCpu": 0.14972372634479827,
+              "gpuProcessCpu": 0.3046522806698453
+            },
+            {
+              "time": "2026-11-10T21:01:23.910Z",
+              "browserCpu": 0.003924889793488878,
+              "rendererCpu": 0.19224374282587534,
+              "gpuProcessCpu": 0.3528563467603569
+            },
+            {
+              "time": "2026-11-10T21:01:24.910Z",
+              "browserCpu": 0.004168478505345549,
+              "rendererCpu": 0.19276638137610716,
+              "gpuProcessCpu": 0.3500157444107342
+            },
+            {
+              "time": "2026-11-10T21:01:25.911Z",
+              "browserCpu": 0.0031086632747918397,
+              "rendererCpu": 0.15944112185517764,
+              "gpuProcessCpu": 0.3096865251076786
+            },
+            {
+              "time": "2026-11-10T21:01:26.912Z",
+              "browserCpu": 0.0048752174117191035,
+              "rendererCpu": 0.13422698190010707,
+              "gpuProcessCpu": 0.27673686071847087
+            },
+            {
+              "time": "2026-11-10T21:01:27.912Z",
+              "browserCpu": 0.005116214001638787,
+              "rendererCpu": 0.1581594830534728,
+              "gpuProcessCpu": 0.31074787134010895
+            },
+            {
+              "time": "2026-11-10T21:01:28.913Z",
+              "browserCpu": 0.006994062041326914,
+              "rendererCpu": 0.19708661429749463,
+              "gpuProcessCpu": 0.34143353726223696
+            },
+            {
+              "time": "2026-11-10T21:01:29.914Z",
+              "browserCpu": 0.006324889489292651,
+              "rendererCpu": 0.1699232108160994,
+              "gpuProcessCpu": 0.3214905571204038
+            },
+            {
+              "time": "2026-11-10T21:01:30.915Z",
+              "browserCpu": 0.006032067830802495,
+              "rendererCpu": 0.16066679559168043,
+              "gpuProcessCpu": 0.31020022550211174
+            },
+            {
+              "time": "2026-11-10T21:01:31.916Z",
+              "browserCpu": 0.014831812839312699,
+              "rendererCpu": 0.2741136233251444,
+              "gpuProcessCpu": 0.42923649534653147
+            },
+            {
+              "time": "2026-11-10T21:01:32.917Z",
+              "browserCpu": 0.002957385671066777,
+              "rendererCpu": 0.34033709053784267,
+              "gpuProcessCpu": 0.46099202206047646
+            },
+            {
+              "time": "2026-11-10T21:01:33.918Z",
+              "browserCpu": 0.0030859419862880313,
+              "rendererCpu": 0.21068463478286134,
+              "gpuProcessCpu": 0.3724025250946511
+            },
+            {
+              "time": "2026-11-10T21:01:34.919Z",
+              "browserCpu": 0.004387227272363866,
+              "rendererCpu": 0.2847346410765227,
+              "gpuProcessCpu": 0.4321408370192856
+            },
+            {
+              "time": "2026-11-10T21:01:35.920Z",
+              "browserCpu": 0.004094525619247067,
+              "rendererCpu": 0.2624353938541379,
+              "gpuProcessCpu": 0.40514546525912093
+            },
+            {
+              "time": "2026-11-10T21:01:36.922Z",
+              "browserCpu": 0.004573688310132018,
+              "rendererCpu": 0.23953219974524545,
+              "gpuProcessCpu": 0.36979416825020545
+            },
+            {
+              "time": "2026-11-10T21:01:37.922Z",
+              "browserCpu": 0.003398793428332942,
+              "rendererCpu": 0.13062767285524188,
+              "gpuProcessCpu": 0.27572570180998096
+            },
+            {
+              "time": "2026-11-10T21:01:38.922Z",
+              "browserCpu": 0.00291907757148741,
+              "rendererCpu": 0.13464704759181823,
+              "gpuProcessCpu": 0.2840993723002362
+            },
+            {
+              "time": "2026-11-10T21:01:39.924Z",
+              "browserCpu": 0.0065201936287823115,
+              "rendererCpu": 0.13574274184129706,
+              "gpuProcessCpu": 0.27611334496245166
+            },
+            {
+              "time": "2026-11-10T21:01:40.924Z",
+              "browserCpu": 0.004587944600818833,
+              "rendererCpu": 0.1773084381184655,
+              "gpuProcessCpu": 0.33856358362436556
+            },
+            {
+              "time": "2026-11-10T21:01:41.926Z",
+              "browserCpu": 0.005690860478072216,
+              "rendererCpu": 0.1778342190521679,
+              "gpuProcessCpu": 0.3199468053242599
+            },
+            {
+              "time": "2026-11-10T21:01:42.926Z",
+              "browserCpu": 0.003478160053331787,
+              "rendererCpu": 0.2835456752512971,
+              "gpuProcessCpu": 0.4525860130312628
+            },
+            {
+              "time": "2026-11-10T21:01:43.927Z",
+              "browserCpu": 0.004314994606256743,
+              "rendererCpu": 0.21348918420022214,
+              "gpuProcessCpu": 0.3689919321408844
+            },
+            {
+              "time": "2026-11-10T21:01:44.928Z",
+              "browserCpu": 0.003938023112397576,
+              "rendererCpu": 0.26202505709559576,
+              "gpuProcessCpu": 0.41000720625995113
+            },
+            {
+              "time": "2026-11-10T21:01:45.929Z",
+              "browserCpu": 0.003016151390825307,
+              "rendererCpu": 0.20894026147811967,
+              "gpuProcessCpu": 0.36618019081518416
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "context": {
+        "expected": "after",
+        "animated": true,
+        "energy": true,
+        "sampleCount": 60,
+        "sampleIntervalMs": 1000,
+        "warmupMs": 45000,
+        "appVersion": "4.19.0",
+        "timezone": "Asia/Calcutta",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "148",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.0.245.31-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "43.8.1",
+          "chrome": "150.0.7871.250"
+        },
+        "platform": "darwin",
+        "os": "27.2.0",
+        "cpu": "Apple M4",
+        "logicalCpus": 10,
+        "displays": [
+          {
+            "size": {
+              "width": 1512,
+              "height": 982
+            },
+            "scaleFactor": 2,
+            "frequency": 120.0006103515625
+          }
+        ],
+        "gpu": {
+          "2d_canvas": "enabled",
+          "direct_rendering_display_compositor": "disabled_off_ok",
+          "gpu_compositing": "enabled",
+          "multiple_raster_threads": "enabled_on",
+          "opengl": "enabled_on",
+          "rasterization": "enabled",
+          "raw_draw": "disabled_off_ok",
+          "skia_graphite": "enabled_on",
+          "trees_in_viz": "disabled_off",
+          "video_decode": "enabled",
+          "video_encode": "enabled",
+          "webgl": "enabled",
+          "webgpu": "enabled",
+          "webnn": "disabled_off"
+        },
+        "profileIsolated": true,
+        "channelLoads": 1
+      },
+      "phases": [
+        {
+          "state": "initially-hidden",
+          "startedAt": "2026-11-10T21:02:38.275Z",
+          "endedAt": "2026-11-10T21:03:38.336Z",
+          "rootVisibility": "hidden",
+          "before": {
+            "frames": 12,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "after": {
+            "frames": 12,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "samples": [
+            {
+              "time": "2026-11-10T21:02:39.276Z",
+              "browserCpu": 0.0067566487022436865,
+              "rendererCpu": 0.0021288504207727828,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:40.277Z",
+              "browserCpu": 0.00667404008220659,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:41.278Z",
+              "browserCpu": 0.005966008740152838,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00018988549904407642
+            },
+            {
+              "time": "2026-11-10T21:02:42.278Z",
+              "browserCpu": 0.006165419093613445,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00023984649824112568
+            },
+            {
+              "time": "2026-11-10T21:02:43.280Z",
+              "browserCpu": 0.0030659774376018663,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:44.282Z",
+              "browserCpu": 0.008653445957882571,
+              "rendererCpu": 0.0024848836246169135,
+              "gpuProcessCpu": 0.00015967458319943954
+            },
+            {
+              "time": "2026-11-10T21:02:45.283Z",
+              "browserCpu": 0.006124940798900109,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:46.283Z",
+              "browserCpu": 0.005906479738076106,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:47.284Z",
+              "browserCpu": 0.006724277639728592,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00026977716406248437
+            },
+            {
+              "time": "2026-11-10T21:02:48.285Z",
+              "browserCpu": 0.00493750655918761,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:49.286Z",
+              "browserCpu": 0.006269567439780206,
+              "rendererCpu": 0.0020665385479322136,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:50.287Z",
+              "browserCpu": 0.004836532206408005,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00023984482040120044
+            },
+            {
+              "time": "2026-11-10T21:02:51.288Z",
+              "browserCpu": 0.021421534637142782,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:52.289Z",
+              "browserCpu": 0.010091412208210812,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00450599417118182
+            },
+            {
+              "time": "2026-11-10T21:02:53.289Z",
+              "browserCpu": 0.007416314091896327,
+              "rendererCpu": 0.007576897910126242,
+              "gpuProcessCpu": 0.0007097083098846375
+            },
+            {
+              "time": "2026-11-10T21:02:54.291Z",
+              "browserCpu": 0.007607888241918865,
+              "rendererCpu": 0.006978930178765974,
+              "gpuProcessCpu": 0.0003394592414284046
+            },
+            {
+              "time": "2026-11-10T21:02:55.292Z",
+              "browserCpu": 0.017007889743333664,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0005093068333997429
+            },
+            {
+              "time": "2026-11-10T21:02:56.294Z",
+              "browserCpu": 0.005412168592047307,
+              "rendererCpu": 0.0028255058681793815,
+              "gpuProcessCpu": 0.002905423957267304
+            },
+            {
+              "time": "2026-11-10T21:02:57.295Z",
+              "browserCpu": 0.008047084429490666,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:58.296Z",
+              "browserCpu": 0.006265833220908096,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:02:59.298Z",
+              "browserCpu": 0.010451824277581286,
+              "rendererCpu": 0.0025755571638922856,
+              "gpuProcessCpu": 0.0005390727947929561
+            },
+            {
+              "time": "2026-11-10T21:03:00.298Z",
+              "browserCpu": 0.004947442172396871,
+              "rendererCpu": 0.001039536366780416,
+              "gpuProcessCpu": 0.0005097706032285472
+            },
+            {
+              "time": "2026-11-10T21:03:01.299Z",
+              "browserCpu": 0.005457173184290538,
+              "rendererCpu": 0.044941327433097686,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:02.300Z",
+              "browserCpu": 0.008449505713903332,
+              "rendererCpu": 0.16115355381789598,
+              "gpuProcessCpu": 0.00022971744753952638
+            },
+            {
+              "time": "2026-11-10T21:03:03.300Z",
+              "browserCpu": 0.010543104809454616,
+              "rendererCpu": 0.002258610954263128,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:04.302Z",
+              "browserCpu": 0.008125382436995844,
+              "rendererCpu": 0.003174112022198821,
+              "gpuProcessCpu": 0.0006088735838698408
+            },
+            {
+              "time": "2026-11-10T21:03:05.304Z",
+              "browserCpu": 0.005721092259352189,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0001697458904020681
+            },
+            {
+              "time": "2026-11-10T21:03:06.305Z",
+              "browserCpu": 0.005251948762547015,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:07.306Z",
+              "browserCpu": 0.007644648745877886,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0007295549714674049
+            },
+            {
+              "time": "2026-11-10T21:03:08.307Z",
+              "browserCpu": 0.004747336744086567,
+              "rendererCpu": 0.0009393490311214328,
+              "gpuProcessCpu": 0.0012391387985350181
+            },
+            {
+              "time": "2026-11-10T21:03:09.308Z",
+              "browserCpu": 0.008176378153995443,
+              "rendererCpu": 0.0044632025425277305,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:10.309Z",
+              "browserCpu": 0.004087555641726247,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:11.309Z",
+              "browserCpu": 0.005997397129645734,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00015993011054169328
+            },
+            {
+              "time": "2026-11-10T21:03:12.309Z",
+              "browserCpu": 0.005361275983684117,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0005301314726052061
+            },
+            {
+              "time": "2026-11-10T21:03:13.310Z",
+              "browserCpu": 0.003497366483038272,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:14.312Z",
+              "browserCpu": 0.013894545193206046,
+              "rendererCpu": 0.002535018688277535,
+              "gpuProcessCpu": 0.00020959108778772616
+            },
+            {
+              "time": "2026-11-10T21:03:15.313Z",
+              "browserCpu": 0.011643198864039191,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:16.314Z",
+              "browserCpu": 0.005946467798127912,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0005396659467789438
+            },
+            {
+              "time": "2026-11-10T21:03:17.314Z",
+              "browserCpu": 0.007385819626091632,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00013992276263502548
+            },
+            {
+              "time": "2026-11-10T21:03:18.315Z",
+              "browserCpu": 0.004487356946758359,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:19.317Z",
+              "browserCpu": 0.008116737251331324,
+              "rendererCpu": 0.002365987285563684,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:20.317Z",
+              "browserCpu": 0.005195433214204714,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0005994910321137355
+            },
+            {
+              "time": "2026-11-10T21:03:21.318Z",
+              "browserCpu": 0.005196206769058588,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:22.318Z",
+              "browserCpu": 0.00908107156644484,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0017602534765006161
+            },
+            {
+              "time": "2026-11-10T21:03:23.319Z",
+              "browserCpu": 0.011341833879606683,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0009093470887902485
+            },
+            {
+              "time": "2026-11-10T21:03:24.320Z",
+              "browserCpu": 0.008098669960724945,
+              "rendererCpu": 0.006750087476595203,
+              "gpuProcessCpu": 0.0013081019440791411
+            },
+            {
+              "time": "2026-11-10T21:03:25.321Z",
+              "browserCpu": 0.0072352681346399455,
+              "rendererCpu": 0.00045971084188045717,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:26.322Z",
+              "browserCpu": 0.005133706076350395,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00015982563023741097
+            },
+            {
+              "time": "2026-11-10T21:03:27.323Z",
+              "browserCpu": 0.005846831017588467,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:28.324Z",
+              "browserCpu": 0.004463576912822448,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0005292172876315929
+            },
+            {
+              "time": "2026-11-10T21:03:29.326Z",
+              "browserCpu": 0.008114590392843988,
+              "rendererCpu": 0.0027050254581824024,
+              "gpuProcessCpu": 0.00019962988619100187
+            },
+            {
+              "time": "2026-11-10T21:03:30.326Z",
+              "browserCpu": 0.0035679519955545518,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:31.327Z",
+              "browserCpu": 0.005507400506960715,
+              "rendererCpu": 0.0006397472998165725,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:32.328Z",
+              "browserCpu": 0.003924141257103145,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0006789855955202927
+            },
+            {
+              "time": "2026-11-10T21:03:33.330Z",
+              "browserCpu": 0.003455307692154055,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:34.332Z",
+              "browserCpu": 0.008413459139332074,
+              "rendererCpu": 0.002674922996153301,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:35.333Z",
+              "browserCpu": 0.006420606652467441,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00024964999071302036
+            },
+            {
+              "time": "2026-11-10T21:03:36.334Z",
+              "browserCpu": 0.004457459248228509,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0006295731494047037
+            },
+            {
+              "time": "2026-11-10T21:03:37.335Z",
+              "browserCpu": 0.007145384081883104,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:03:38.336Z",
+              "browserCpu": 0.005800996852884323,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0002096917531229093
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "context": {
+        "expected": "after",
+        "animated": true,
+        "energy": true,
+        "sampleCount": 60,
+        "sampleIntervalMs": 1000,
+        "warmupMs": 45000,
+        "appVersion": "4.19.0",
+        "timezone": "Asia/Calcutta",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "148",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.0.245.31-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "43.8.1",
+          "chrome": "150.0.7871.250"
+        },
+        "platform": "darwin",
+        "os": "27.2.0",
+        "cpu": "Apple M4",
+        "logicalCpus": 10,
+        "displays": [
+          {
+            "size": {
+              "width": 1512,
+              "height": 982
+            },
+            "scaleFactor": 2,
+            "frequency": 120.0006103515625
+          }
+        ],
+        "gpu": {
+          "2d_canvas": "enabled",
+          "direct_rendering_display_compositor": "disabled_off_ok",
+          "gpu_compositing": "enabled",
+          "multiple_raster_threads": "enabled_on",
+          "opengl": "enabled_on",
+          "rasterization": "enabled",
+          "raw_draw": "disabled_off_ok",
+          "skia_graphite": "enabled_on",
+          "trees_in_viz": "disabled_off",
+          "video_decode": "enabled",
+          "video_encode": "enabled",
+          "webgl": "enabled",
+          "webgpu": "enabled",
+          "webnn": "disabled_off"
+        },
+        "profileIsolated": true,
+        "channelLoads": 1
+      },
+      "phases": [
+        {
+          "state": "initially-hidden",
+          "startedAt": "2026-11-10T21:04:29.797Z",
+          "endedAt": "2026-11-10T21:05:29.850Z",
+          "rootVisibility": "hidden",
+          "before": {
+            "frames": 12,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "after": {
+            "frames": 12,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "samples": [
+            {
+              "time": "2026-11-10T21:04:30.799Z",
+              "browserCpu": 0.0079311250710455,
+              "rendererCpu": 0.0027969652926574666,
+              "gpuProcessCpu": 0.00017980383401708735
+            },
+            {
+              "time": "2026-11-10T21:04:31.799Z",
+              "browserCpu": 0.006044916225454393,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:32.801Z",
+              "browserCpu": 0.004323976700456264,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:33.801Z",
+              "browserCpu": 0.004967456662188959,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00042978811445957144
+            },
+            {
+              "time": "2026-11-10T21:04:34.802Z",
+              "browserCpu": 0.003016889586835972,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:35.802Z",
+              "browserCpu": 0.006479740810367585,
+              "rendererCpu": 0.002189813865821405,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:36.803Z",
+              "browserCpu": 0.005106711277937008,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.000209869041717968
+            },
+            {
+              "time": "2026-11-10T21:04:37.804Z",
+              "browserCpu": 0.004657135861445212,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:38.804Z",
+              "browserCpu": 0.007725936157581112,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:39.806Z",
+              "browserCpu": 0.004293769740107105,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00013977496231067983
+            },
+            {
+              "time": "2026-11-10T21:04:40.808Z",
+              "browserCpu": 0.009251709370574375,
+              "rendererCpu": 0.0026052896363375016,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:41.808Z",
+              "browserCpu": 0.004447696093423607,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:42.809Z",
+              "browserCpu": 0.0043277495702234835,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00021985599432371795
+            },
+            {
+              "time": "2026-11-10T21:04:43.811Z",
+              "browserCpu": 0.025297305712201484,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0034331577166706755
+            },
+            {
+              "time": "2026-11-10T21:04:44.812Z",
+              "browserCpu": 0.009210761606109072,
+              "rendererCpu": 0.005753517902959802,
+              "gpuProcessCpu": 0.0007791367165180979
+            },
+            {
+              "time": "2026-11-10T21:04:45.813Z",
+              "browserCpu": 0.01080369722089367,
+              "rendererCpu": 0.005452561657387165,
+              "gpuProcessCpu": 0.0004294022720373241
+            },
+            {
+              "time": "2026-11-10T21:04:46.814Z",
+              "browserCpu": 0.004576133167473484,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0003496975116524207
+            },
+            {
+              "time": "2026-11-10T21:04:47.815Z",
+              "browserCpu": 0.011013094789566942,
+              "rendererCpu": 0.001119309386108771,
+              "gpuProcessCpu": 0.0016189962223421479
+            },
+            {
+              "time": "2026-11-10T21:04:48.816Z",
+              "browserCpu": 0.00515290959639536,
+              "rendererCpu": 0.0008288636279660585,
+              "gpuProcessCpu": 0.0001697670795668343
+            },
+            {
+              "time": "2026-11-10T21:04:49.817Z",
+              "browserCpu": 0.00364851505437287,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:50.817Z",
+              "browserCpu": 0.005865337057039653,
+              "rendererCpu": 0.0026779219325803174,
+              "gpuProcessCpu": 0.0004896166301785701
+            },
+            {
+              "time": "2026-11-10T21:04:51.818Z",
+              "browserCpu": 0.003967088157292548,
+              "rendererCpu": 0.0014489567511391799,
+              "gpuProcessCpu": 0.0008893561061791263
+            },
+            {
+              "time": "2026-11-10T21:04:52.818Z",
+              "browserCpu": 0.010036396933500873,
+              "rendererCpu": 0.0006297732816186172,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:53.820Z",
+              "browserCpu": 0.007551987341430743,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:54.820Z",
+              "browserCpu": 0.019989365657470226,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00013992318217298703
+            },
+            {
+              "time": "2026-11-10T21:04:55.821Z",
+              "browserCpu": 0.011252865683156879,
+              "rendererCpu": 0.002298547318094964,
+              "gpuProcessCpu": 0.0005996234364818893
+            },
+            {
+              "time": "2026-11-10T21:04:56.821Z",
+              "browserCpu": 0.0136932081687483,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:04:57.822Z",
+              "browserCpu": 0.005625696342298142,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0001898551405277773
+            },
+            {
+              "time": "2026-11-10T21:04:58.823Z",
+              "browserCpu": 0.006426041558400025,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.000879559340770274
+            },
+            {
+              "time": "2026-11-10T21:04:59.823Z",
+              "browserCpu": 0.005378117658819413,
+              "rendererCpu": 0.0009496837553094819,
+              "gpuProcessCpu": 0.0011296080260149728
+            },
+            {
+              "time": "2026-11-10T21:05:00.824Z",
+              "browserCpu": 0.00704907393540013,
+              "rendererCpu": 0.0029652999995007914,
+              "gpuProcessCpu": 0.00014976651400466673
+            },
+            {
+              "time": "2026-11-10T21:05:01.825Z",
+              "browserCpu": 0.005727170777635847,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:02.826Z",
+              "browserCpu": 0.004054299654685512,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:03.827Z",
+              "browserCpu": 0.010392081234099616,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0005595020431815684
+            },
+            {
+              "time": "2026-11-10T21:05:04.828Z",
+              "browserCpu": 0.005704825723069176,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:05.830Z",
+              "browserCpu": 0.006948312937638891,
+              "rendererCpu": 0.0026451725600778577,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:06.831Z",
+              "browserCpu": 0.006304893036640322,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.000229849678310385
+            },
+            {
+              "time": "2026-11-10T21:05:07.832Z",
+              "browserCpu": 0.01706607336514207,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.000738940359524442
+            },
+            {
+              "time": "2026-11-10T21:05:08.832Z",
+              "browserCpu": 0.005617814670093334,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:09.833Z",
+              "browserCpu": 0.0027388223064082444,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00022990596845890032
+            },
+            {
+              "time": "2026-11-10T21:05:10.834Z",
+              "browserCpu": 0.007029111905658135,
+              "rendererCpu": 0.0024461448756759345,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:11.835Z",
+              "browserCpu": 0.008926893441082504,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0008695895537306391
+            },
+            {
+              "time": "2026-11-10T21:05:12.835Z",
+              "browserCpu": 0.005256236534641197,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00021985775203443373
+            },
+            {
+              "time": "2026-11-10T21:05:13.835Z",
+              "browserCpu": 0.008752126766804333,
+              "rendererCpu": 0.6771266226784409,
+              "gpuProcessCpu": 0.0015302953470019713
+            },
+            {
+              "time": "2026-11-10T21:05:14.837Z",
+              "browserCpu": 0.010035117920124455,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.000529186111760113
+            },
+            {
+              "time": "2026-11-10T21:05:15.839Z",
+              "browserCpu": 0.01022068290930142,
+              "rendererCpu": 0.005859285443156703,
+              "gpuProcessCpu": 0.002066185820974481
+            },
+            {
+              "time": "2026-11-10T21:05:16.840Z",
+              "browserCpu": 0.006679879981827531,
+              "rendererCpu": 0.004083474607577091,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:17.842Z",
+              "browserCpu": 0.005830822285722273,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:18.843Z",
+              "browserCpu": 0.004913146161105259,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00016976606236605957
+            },
+            {
+              "time": "2026-11-10T21:05:19.844Z",
+              "browserCpu": 0.0062870953619427825,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0004797059402586215
+            },
+            {
+              "time": "2026-11-10T21:05:20.843Z",
+              "browserCpu": 0.008922034223803027,
+              "rendererCpu": 0.0032110692860722622,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:21.844Z",
+              "browserCpu": 0.004477009357749024,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0002598461710667285
+            },
+            {
+              "time": "2026-11-10T21:05:22.845Z",
+              "browserCpu": 0.004084241219879969,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:23.846Z",
+              "browserCpu": 0.008901285641357112,
+              "rendererCpu": 0.0007991010113622176,
+              "gpuProcessCpu": 0.0009289614211311752
+            },
+            {
+              "time": "2026-11-10T21:05:24.848Z",
+              "browserCpu": 0.005860792694676663,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.00017974404448065954
+            },
+            {
+              "time": "2026-11-10T21:05:25.849Z",
+              "browserCpu": 0.007095636183746995,
+              "rendererCpu": 0.0032379892087013966,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:26.849Z",
+              "browserCpu": 0.0034188341775454574,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:27.849Z",
+              "browserCpu": 0.00612634257348363,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0.0010894138953243156
+            },
+            {
+              "time": "2026-11-10T21:05:28.850Z",
+              "browserCpu": 0.004687871706245365,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            },
+            {
+              "time": "2026-11-10T21:05:29.850Z",
+              "browserCpu": 0.002348863150235286,
+              "rendererCpu": 0,
+              "gpuProcessCpu": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "context": {
+        "expected": "before",
+        "animated": true,
+        "energy": true,
+        "sampleCount": 60,
+        "sampleIntervalMs": 1000,
+        "warmupMs": 45000,
+        "appVersion": "4.19.0",
+        "timezone": "Asia/Calcutta",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "148",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.0.245.31-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "43.8.1",
+          "chrome": "150.0.7871.250"
+        },
+        "platform": "darwin",
+        "os": "27.2.0",
+        "cpu": "Apple M4",
+        "logicalCpus": 10,
+        "displays": [
+          {
+            "size": {
+              "width": 1512,
+              "height": 982
+            },
+            "scaleFactor": 2,
+            "frequency": 120.0006103515625
+          }
+        ],
+        "gpu": {
+          "2d_canvas": "enabled",
+          "direct_rendering_display_compositor": "disabled_off_ok",
+          "gpu_compositing": "enabled",
+          "multiple_raster_threads": "enabled_on",
+          "opengl": "enabled_on",
+          "rasterization": "enabled",
+          "raw_draw": "disabled_off_ok",
+          "skia_graphite": "enabled_on",
+          "trees_in_viz": "disabled_off",
+          "video_decode": "enabled",
+          "video_encode": "enabled",
+          "webgl": "enabled",
+          "webgpu": "enabled",
+          "webnn": "disabled_off"
+        },
+        "profileIsolated": true,
+        "channelLoads": 1
+      },
+      "phases": [
+        {
+          "state": "initially-hidden",
+          "startedAt": "2026-11-10T21:06:22.280Z",
+          "endedAt": "2026-11-10T21:07:22.329Z",
+          "rootVisibility": "visible",
+          "before": {
+            "frames": 5416,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "after": {
+            "frames": 12622,
+            "messages": [],
+            "notifications": [],
+            "booted": true,
+            "images": 54,
+            "scroll": 0,
+            "visibility": "visible",
+            "activeElement": "",
+            "focused": true
+          },
+          "samples": [
+            {
+              "time": "2026-11-10T21:06:23.281Z",
+              "browserCpu": 0.007566179079564819,
+              "rendererCpu": 0.11341590061540645,
+              "gpuProcessCpu": 0.23837534146075737
+            },
+            {
+              "time": "2026-11-10T21:06:24.282Z",
+              "browserCpu": 0.007102535235467523,
+              "rendererCpu": 0.11450896402502556,
+              "gpuProcessCpu": 0.25210327473533
+            },
+            {
+              "time": "2026-11-10T21:06:25.283Z",
+              "browserCpu": 0.005586541930544993,
+              "rendererCpu": 0.1479204188146777,
+              "gpuProcessCpu": 0.2901921354782998
+            },
+            {
+              "time": "2026-11-10T21:06:26.284Z",
+              "browserCpu": 0.006153508049008296,
+              "rendererCpu": 0.12415584415584416,
+              "gpuProcessCpu": 0.26405594405594407
+            },
+            {
+              "time": "2026-11-10T21:06:27.284Z",
+              "browserCpu": 0.005277213631202725,
+              "rendererCpu": 0.12147347171282093,
+              "gpuProcessCpu": 0.2683425542461504
+            },
+            {
+              "time": "2026-11-10T21:06:28.285Z",
+              "browserCpu": 0.00841291632445481,
+              "rendererCpu": 0.1174468816379219,
+              "gpuProcessCpu": 0.2486946304500303
+            },
+            {
+              "time": "2026-11-10T21:06:29.286Z",
+              "browserCpu": 0.005556516064427604,
+              "rendererCpu": 0.14446097984402534,
+              "gpuProcessCpu": 0.27815061969491484
+            },
+            {
+              "time": "2026-11-10T21:06:30.287Z",
+              "browserCpu": 0.006689751301006857,
+              "rendererCpu": 0.1251873217261254,
+              "gpuProcessCpu": 0.26813259664095435
+            },
+            {
+              "time": "2026-11-10T21:06:31.288Z",
+              "browserCpu": 0.0060665420710195195,
+              "rendererCpu": 0.15072825335140475,
+              "gpuProcessCpu": 0.276793264127521
+            },
+            {
+              "time": "2026-11-10T21:06:32.288Z",
+              "browserCpu": 0.005257376569092023,
+              "rendererCpu": 0.13334292922629115,
+              "gpuProcessCpu": 0.28280810970471726
+            },
+            {
+              "time": "2026-11-10T21:06:33.290Z",
+              "browserCpu": 0.0050327980659676,
+              "rendererCpu": 0.14283788439358308,
+              "gpuProcessCpu": 0.2790235075957065
+            },
+            {
+              "time": "2026-11-10T21:06:34.291Z",
+              "browserCpu": 0.002886282468180983,
+              "rendererCpu": 0.11932976382734137,
+              "gpuProcessCpu": 0.2523710030521421
+            },
+            {
+              "time": "2026-11-10T21:06:35.291Z",
+              "browserCpu": 0.0028887260718023352,
+              "rendererCpu": 0.13328562662034585,
+              "gpuProcessCpu": 0.26307609737473603
+            },
+            {
+              "time": "2026-11-10T21:06:36.292Z",
+              "browserCpu": 0.02014479068303431,
+              "rendererCpu": 0.16126630725338637,
+              "gpuProcessCpu": 0.31616678624890826
+            },
+            {
+              "time": "2026-11-10T21:06:37.293Z",
+              "browserCpu": 0.010864958659182139,
+              "rendererCpu": 0.19791391122731694,
+              "gpuProcessCpu": 0.3033019796685926
+            },
+            {
+              "time": "2026-11-10T21:06:38.293Z",
+              "browserCpu": 0.009783190899134203,
+              "rendererCpu": 0.139542038590958,
+              "gpuProcessCpu": 0.2760451121508215
+            },
+            {
+              "time": "2026-11-10T21:06:39.295Z",
+              "browserCpu": 0.00573155741592634,
+              "rendererCpu": 0.16996372132959003,
+              "gpuProcessCpu": 0.30059293786833946
+            },
+            {
+              "time": "2026-11-10T21:06:40.295Z",
+              "browserCpu": 0.01546101714903641,
+              "rendererCpu": 0.17081922115690443,
+              "gpuProcessCpu": 0.3194724696603094
+            },
+            {
+              "time": "2026-11-10T21:06:41.297Z",
+              "browserCpu": 0.005711706602013876,
+              "rendererCpu": 0.16215422392402037,
+              "gpuProcessCpu": 0.2902682402469212
+            },
+            {
+              "time": "2026-11-10T21:06:42.298Z",
+              "browserCpu": 0.004563364867482681,
+              "rendererCpu": 0.17916108093494568,
+              "gpuProcessCpu": 0.3239083482860986
+            },
+            {
+              "time": "2026-11-10T21:06:43.299Z",
+              "browserCpu": 0.00965181526065896,
+              "rendererCpu": 0.16852736740308674,
+              "gpuProcessCpu": 0.3091601985595639
+            },
+            {
+              "time": "2026-11-10T21:06:44.300Z",
+              "browserCpu": 0.007205604581205465,
+              "rendererCpu": 0.15454685255399767,
+              "gpuProcessCpu": 0.3051703252991337
+            },
+            {
+              "time": "2026-11-10T21:06:45.300Z",
+              "browserCpu": 0.0030189554414172697,
+              "rendererCpu": 0.20945627219190854,
+              "gpuProcessCpu": 0.3277049755535807
+            },
+            {
+              "time": "2026-11-10T21:06:46.301Z",
+              "browserCpu": 0.004977302302152233,
+              "rendererCpu": 0.23474370754552365,
+              "gpuProcessCpu": 0.3619549063055013
+            },
+            {
+              "time": "2026-11-10T21:06:47.301Z",
+              "browserCpu": 0.003908256917414833,
+              "rendererCpu": 0.12268516022316181,
+              "gpuProcessCpu": 0.24229339090800045
+            },
+            {
+              "time": "2026-11-10T21:06:48.302Z",
+              "browserCpu": 0.009563888675136589,
+              "rendererCpu": 0.12375213540427506,
+              "gpuProcessCpu": 0.26064650486057817
+            },
+            {
+              "time": "2026-11-10T21:06:49.302Z",
+              "browserCpu": 0.004178065555647735,
+              "rendererCpu": 0.1453338741667651,
+              "gpuProcessCpu": 0.2669398770553251
+            },
+            {
+              "time": "2026-11-10T21:06:50.303Z",
+              "browserCpu": 0.0040876822841448895,
+              "rendererCpu": 0.12556646624663992,
+              "gpuProcessCpu": 0.26407426582736476
+            },
+            {
+              "time": "2026-11-10T21:06:51.303Z",
+              "browserCpu": 0.004177961154956381,
+              "rendererCpu": 0.10809433235835346,
+              "gpuProcessCpu": 0.21737978844725725
+            },
+            {
+              "time": "2026-11-10T21:06:52.304Z",
+              "browserCpu": 0.0051679379927408965,
+              "rendererCpu": 0.1148730038551022,
+              "gpuProcessCpu": 0.24749783072020087
+            },
+            {
+              "time": "2026-11-10T21:06:53.304Z",
+              "browserCpu": 0.005296499014151646,
+              "rendererCpu": 0.14646596839857726,
+              "gpuProcessCpu": 0.27994747424679106
+            },
+            {
+              "time": "2026-11-10T21:06:54.305Z",
+              "browserCpu": 0.00313861900763664,
+              "rendererCpu": 0.12230989130843199,
+              "gpuProcessCpu": 0.25734992834456966
+            },
+            {
+              "time": "2026-11-10T21:06:55.306Z",
+              "browserCpu": 0.005726586954175312,
+              "rendererCpu": 0.12265677455520338,
+              "gpuProcessCpu": 0.255749363624825
+            },
+            {
+              "time": "2026-11-10T21:06:56.306Z",
+              "browserCpu": 0.009721814232416305,
+              "rendererCpu": 0.13352931421065156,
+              "gpuProcessCpu": 0.28677746069050414
+            },
+            {
+              "time": "2026-11-10T21:06:57.307Z",
+              "browserCpu": 0.005406523605321778,
+              "rendererCpu": 0.17696373523568137,
+              "gpuProcessCpu": 0.30738620294744584
+            },
+            {
+              "time": "2026-11-10T21:06:58.308Z",
+              "browserCpu": 0.006516090345792524,
+              "rendererCpu": 0.12146801286878643,
+              "gpuProcessCpu": 0.25122720477130817
+            },
+            {
+              "time": "2026-11-10T21:06:59.308Z",
+              "browserCpu": 0.005695415190771429,
+              "rendererCpu": 0.11374990881321957,
+              "gpuProcessCpu": 0.23976890418336586
+            },
+            {
+              "time": "2026-11-10T21:07:00.309Z",
+              "browserCpu": 0.006475072469850444,
+              "rendererCpu": 0.12321559277209755,
+              "gpuProcessCpu": 0.2615251017530606
+            },
+            {
+              "time": "2026-11-10T21:07:01.310Z",
+              "browserCpu": 0.00530656665137656,
+              "rendererCpu": 0.1490010632939728,
+              "gpuProcessCpu": 0.27171311476228976
+            },
+            {
+              "time": "2026-11-10T21:07:02.310Z",
+              "browserCpu": 0.004897169436065954,
+              "rendererCpu": 0.12948596492791095,
+              "gpuProcessCpu": 0.27155430436507577
+            },
+            {
+              "time": "2026-11-10T21:07:03.312Z",
+              "browserCpu": 0.008354819293343994,
+              "rendererCpu": 0.11505198752381979,
+              "gpuProcessCpu": 0.23878043399923538
+            },
+            {
+              "time": "2026-11-10T21:07:04.313Z",
+              "browserCpu": 0.007733704764321841,
+              "rendererCpu": 0.12461619671646826,
+              "gpuProcessCpu": 0.2637392502475428
+            },
+            {
+              "time": "2026-11-10T21:07:05.314Z",
+              "browserCpu": 0.011641129459351973,
+              "rendererCpu": 0.15968039603589312,
+              "gpuProcessCpu": 0.30806925612716074
+            },
+            {
+              "time": "2026-11-10T21:07:06.314Z",
+              "browserCpu": 0.009717570607348163,
+              "rendererCpu": 0.12382127411425539,
+              "gpuProcessCpu": 0.26319709589408136
+            },
+            {
+              "time": "2026-11-10T21:07:07.315Z",
+              "browserCpu": 0.009278151800151208,
+              "rendererCpu": 0.1136345484271829,
+              "gpuProcessCpu": 0.24394117047817465
+            },
+            {
+              "time": "2026-11-10T21:07:08.317Z",
+              "browserCpu": 0.016459270541898278,
+              "rendererCpu": 0.12822674022747654,
+              "gpuProcessCpu": 0.25614049447362985
+            },
+            {
+              "time": "2026-11-10T21:07:09.318Z",
+              "browserCpu": 0.004338043542362394,
+              "rendererCpu": 0.14385885800619444,
+              "gpuProcessCpu": 0.27394891457975573
+            },
+            {
+              "time": "2026-11-10T21:07:10.319Z",
+              "browserCpu": 0.004074295985620132,
+              "rendererCpu": 0.12539996094850156,
+              "gpuProcessCpu": 0.2596502511117525
+            },
+            {
+              "time": "2026-11-10T21:07:11.319Z",
+              "browserCpu": 0.00453825730919327,
+              "rendererCpu": 0.11024482534286004,
+              "gpuProcessCpu": 0.23758183557609547
+            },
+            {
+              "time": "2026-11-10T21:07:12.321Z",
+              "browserCpu": 0.0034656436858868404,
+              "rendererCpu": 0.11569538135258575,
+              "gpuProcessCpu": 0.2547999712361274
+            },
+            {
+              "time": "2026-11-10T21:07:13.321Z",
+              "browserCpu": 0.004457258785846704,
+              "rendererCpu": 0.15764177065053417,
+              "gpuProcessCpu": 0.30484563361366035
+            },
+            {
+              "time": "2026-11-10T21:07:14.322Z",
+              "browserCpu": 0.00921372545296653,
+              "rendererCpu": 0.1213793303996257,
+              "gpuProcessCpu": 0.24543108074213899
+            },
+            {
+              "time": "2026-11-10T21:07:15.323Z",
+              "browserCpu": 0.005626455333140121,
+              "rendererCpu": 0.12457939821864884,
+              "gpuProcessCpu": 0.2643379160166731
+            },
+            {
+              "time": "2026-11-10T21:07:16.324Z",
+              "browserCpu": 0.008737863108142788,
+              "rendererCpu": 0.11678036124617647,
+              "gpuProcessCpu": 0.2512859894804013
+            },
+            {
+              "time": "2026-11-10T21:07:17.325Z",
+              "browserCpu": 0.00610667186383421,
+              "rendererCpu": 0.14778147889414242,
+              "gpuProcessCpu": 0.2834855783645486
+            },
+            {
+              "time": "2026-11-10T21:07:18.326Z",
+              "browserCpu": 0.00776195085696133,
+              "rendererCpu": 0.11934113308459773,
+              "gpuProcessCpu": 0.24761743022117438
+            },
+            {
+              "time": "2026-11-10T21:07:19.326Z",
+              "browserCpu": 0.005686298219858872,
+              "rendererCpu": 0.10989757749642985,
+              "gpuProcessCpu": 0.23755653847614439
+            },
+            {
+              "time": "2026-11-10T21:07:20.327Z",
+              "browserCpu": 0.007064383814867181,
+              "rendererCpu": 0.11157364200109114,
+              "gpuProcessCpu": 0.2373058506598879
+            },
+            {
+              "time": "2026-11-10T21:07:21.328Z",
+              "browserCpu": 0.0063449684400270585,
+              "rendererCpu": 0.15604157778148584,
+              "gpuProcessCpu": 0.30335185818000876
+            },
+            {
+              "time": "2026-11-10T21:07:22.329Z",
+              "browserCpu": 0.005985528809978945,
+              "rendererCpu": 0.1196444519984206,
+              "gpuProcessCpu": 0.2532458902377971
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

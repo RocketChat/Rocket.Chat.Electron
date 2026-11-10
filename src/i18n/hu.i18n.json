@@ -247,6 +247,7 @@
     "certificates": "Tanúsítványok",
     "developer": "Fejlesztő",
     "sections": {
+      "performance": "Teljesítmény",
       "logging": "Naplózás",
       "uiPreview": "Webes felület előnézete"
     },
@@ -269,7 +270,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hardveres gyorsítás",
-        "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
+        "description": "A grafikus processzort (GPU) használja az alkalmazás megjelenítéséhez. A görgetés és az animációk simábbak, a processzor terhelése kisebb. Kapcsolja ki, ha megjelenítési hibákat, üres ablakokat vagy összeomlásokat tapasztal.",
+        "hint": "A Rocket.Chat újraindul, ha módosítja ezt a beállítást."
       },
       "resetWindowBounds": {
         "title": "Ablakméretek és -pozíciók visszaállítása",
@@ -337,7 +339,8 @@
       },
       "transparentWindow": {
         "title": "Átlátszó ablak hatás",
-        "description": "Natív vibrálás vagy átlátszóság hatás engedélyezése az ablakhoz. Újraindítást igényel az alkalmazáshoz."
+        "description": "Megjeleníti a macOS áttetsző anyagát, így az asztal átlátszik az alkalmazás ablakán. Ez a hatás több GPU-teljesítményt használ, akkor is, ha az alkalmazás tétlen.",
+        "hint": "A Rocket.Chat újraindítást kér, ha módosítja ezt a beállítást."
       },
       "themeAppearance": {
         "title": "Téma",
@@ -378,7 +381,9 @@
           "closed": "Lezárva"
         }
       }
-    }
+    },
+    "performanceDescription": "Ezek a beállítások meghatározzák, hogyan jeleníti meg a Rocket.Chat az ablakait, és mennyi processzor-, GPU- és akkumulátorteljesítményt használ.",
+    "overriddenByAdministrator": "Ezt a beállítást a rendszergazda kezeli."
   },
   "error": {
     "authNeeded": "Hitelesítés szükséges, próbálja ezt: <strong>{{- auth}}</strong>",

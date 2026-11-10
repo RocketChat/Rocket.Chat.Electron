@@ -14,7 +14,8 @@
       },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
-        "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
+        "description": "Viser vibrancy-materialet i macOS, slik at skrivebordet syner gjennom appvindauget. Effekten brukar meir GPU-kraft, òg når appen er inaktiv.",
+        "hint": "Rocket.Chat ber om omstart når du endrar denne innstillinga."
       },
       "themeAppearance": {
         "title": "Tema",
@@ -59,11 +60,19 @@
           "merged": "Fletta",
           "closed": "Lukka"
         }
+      },
+      "hardwareAcceleration": {
+        "title": "Maskinvareakselerasjon",
+        "description": "Brukar grafikkprosessoren (GPU) til å teikne appen. Rulling og animasjonar vert jamnare, og prosessoren får mindre arbeid. Slå ho av viss du ser grafikkfeil, tomme vindauge eller krasj.",
+        "hint": "Rocket.Chat startar på nytt når du endrar denne innstillinga."
       }
     },
     "sections": {
+      "performance": "Yting",
       "uiPreview": "Førehandsvising av nettgrensesnitt"
-    }
+    },
+    "performanceDescription": "Desse innstillingane endrar korleis Rocket.Chat teiknar vindauga sine, og kor mykje prosessor-, GPU- og batterikraft appen brukar.",
+    "overriddenByAdministrator": "Denne innstillinga vert styrt av administratoren din."
   },
   "serverInfo": {
     "title": "Serverinformasjon",

@@ -137,7 +137,8 @@
       },
       "transparentWindow": {
         "title": "透明視窗效果",
-        "description": "啟用視窗的原生模糊/透明效果。需要重新啟動才能套用。"
+        "description": "顯示 macOS 的活力（vibrancy）材質，讓桌面透過應用程式視窗顯示。即使應用程式閒置，此效果也會消耗更多 GPU 電量。",
+        "hint": "變更此設定後，Rocket.Chat 會詢問是否重新啟動。"
       },
       "themeAppearance": {
         "title": "主題",
@@ -173,11 +174,19 @@
           "merged": "已合併",
           "closed": "已關閉"
         }
+      },
+      "hardwareAcceleration": {
+        "title": "硬體加速",
+        "description": "使用圖形處理器 (GPU) 繪製應用程式。捲動與動畫更流暢，CPU 負擔更小。如果出現顯示異常、空白視窗或當機，請關閉此選項。",
+        "hint": "變更此設定後 Rocket.Chat 會重新啟動。"
       }
     },
     "sections": {
+      "performance": "效能",
       "uiPreview": "Web 介面預覽"
-    }
+    },
+    "performanceDescription": "這些設定會改變 Rocket.Chat 繪製視窗的方式，以及它使用的 CPU、GPU 與電池電量。",
+    "overriddenByAdministrator": "此設定由您的管理員控制。"
   },
   "error": {
     "authNeeded": "需要驗證，請嘗試 <strong>{{- auth}}</strong>",

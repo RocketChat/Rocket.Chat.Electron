@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/rootReducer';
 import { DebugLogging } from '../../ui/components/SettingsView/features/DebugLogging';
 import { DetailedEventsLogging } from '../../ui/components/SettingsView/features/DetailedEventsLogging';
-import { HardwareAcceleration } from '../../ui/components/SettingsView/features/HardwareAcceleration';
 import { ReportErrors } from '../../ui/components/SettingsView/features/ReportErrors';
 import { ResetWindowBounds } from '../../ui/components/SettingsView/features/ResetWindowBounds';
 import { SettingGroupDivider } from '../../ui/components/SettingsView/features/SettingGroupDivider';
@@ -14,8 +13,8 @@ import { VerboseOutlookLogging } from '../../ui/components/SettingsView/features
 /**
  * The settings a reader reaches for when something is wrong: which version they
  * are on, how it updates, and the switches worth flipping while diagnosing —
- * hardware acceleration, error reports, and the logging that used to sit behind
- * its own Developer section.
+ * error reports, and the logging that used to sit behind its own Developer
+ * section. Hardware acceleration lives in Performance.
  */
 export const AdvancedSection = () => {
   const isDeveloperModeEnabled = useSelector(
@@ -43,7 +42,6 @@ export const AdvancedSection = () => {
       )}
 
       <FieldGroup>
-        <HardwareAcceleration />
         <ReportErrors />
       </FieldGroup>
 

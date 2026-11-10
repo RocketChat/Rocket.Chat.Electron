@@ -8,6 +8,7 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED } from '../../../actions';
 import { ToggleField } from './ToggleField';
+import { useIsSettingOverridden } from './useIsSettingOverridden';
 
 type HardwareAccelerationProps = {
   className?: string;
@@ -31,6 +32,8 @@ export const HardwareAcceleration = (props: HardwareAccelerationProps) => {
     [dispatch]
   );
 
+  const isOverridden = useIsSettingOverridden('isHardwareAccelerationEnabled');
+
   const isHardwareAccelerationEnabledId = useId();
 
   return (
@@ -38,9 +41,14 @@ export const HardwareAcceleration = (props: HardwareAccelerationProps) => {
       id={isHardwareAccelerationEnabledId}
       label={t('settings.options.hardwareAcceleration.title')}
       description={t('settings.options.hardwareAcceleration.description')}
-      hint={t('settings.options.hardwareAcceleration.hint')}
+      hint={
+        isOverridden
+          ? t('settings.overriddenByAdministrator')
+          : t('settings.options.hardwareAcceleration.hint')
+      }
       checked={isHardwareAccelerationEnabled}
       onChange={handleChange}
+      disabled={isOverridden}
       className={props.className}
     />
   );

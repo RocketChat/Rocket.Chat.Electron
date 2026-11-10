@@ -14,6 +14,10 @@ import {
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import {
+  getAppOverriddenSettingsPath,
+  getUserDataOverriddenSettingsPath,
+} from './overriddenSettings';
+import {
   getPersistedMeta,
   getPersistedValues,
   persistValues,
@@ -24,10 +28,7 @@ const loadUserDataOverriddenSettings = async (): Promise<
   Record<string, string>
 > => {
   try {
-    const filePath = path.join(
-      app.getPath('userData'),
-      'overridden-settings.json'
-    );
+    const filePath = getUserDataOverriddenSettingsPath();
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
 
@@ -41,11 +42,7 @@ const loadAppAsarOverriddenSettings = async (): Promise<
   Record<string, string>
 > => {
   try {
-    const filePath = path.join(
-      app.getAppPath(),
-      app.getAppPath().endsWith('app.asar') ? '..' : '.',
-      'overridden-settings.json'
-    );
+    const filePath = getAppOverriddenSettingsPath();
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
 
@@ -237,6 +234,14 @@ export const mergePersistableValues = async (
           mergedOverrides.isNotificationQuickReplyEnabled
         ).toLowerCase() === 'true';
 
+  // Shown unless the administrator explicitly turns it off.
+  const isPerformanceSettingsSectionEnabled = !(
+    mergedOverrides.isPerformanceSettingsSectionEnabled === false ||
+    String(
+      mergedOverrides.isPerformanceSettingsSectionEnabled
+    ).toLowerCase() === 'false'
+  );
+
   dispatch({
     type: APP_SETTINGS_LOADED,
     payload: {
@@ -244,6 +249,8 @@ export const mergePersistableValues = async (
       allowInsecureOutlookConnections: isInsecureOutlookEnabled,
       outlookCalendarSyncIntervalOverride,
       isNotificationQuickReplyEnabled,
+      isPerformanceSettingsSectionEnabled,
+      overriddenSettingKeys: Object.keys(mergedOverrides),
     },
   });
 

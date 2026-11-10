@@ -243,7 +243,8 @@
       },
       "hardwareAcceleration": {
         "title": "Accélération matérielle",
-        "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
+        "description": "Utilise le processeur graphique (GPU) pour afficher l'application. Le défilement et les animations sont plus fluides et le processeur est moins sollicité. Désactivez cette option en cas de défauts d'affichage, de fenêtres vides ou de plantages.",
+        "hint": "Rocket.Chat redémarre lorsque vous modifiez ce paramètre."
       },
       "resetWindowBounds": {
         "title": "Réinitialiser la taille et la position des fenêtres",
@@ -298,7 +299,8 @@
       },
       "transparentWindow": {
         "title": "Effet de fenêtre transparente",
-        "description": "Activer l'effet natif de vibrance/transparence pour la fenêtre. Nécessite un redémarrage pour s'appliquer."
+        "description": "Affiche le matériau de vibrance de macOS, qui laisse voir le bureau à travers la fenêtre de l'application. Cet effet consomme davantage de puissance GPU, même lorsque l'application est inactive.",
+        "hint": "Rocket.Chat demande à redémarrer lorsque vous modifiez ce paramètre."
       },
       "themeAppearance": {
         "title": "Thème",
@@ -337,8 +339,11 @@
       }
     },
     "sections": {
+      "performance": "Performances",
       "uiPreview": "Aperçu de l'interface web"
-    }
+    },
+    "performanceDescription": "Ces paramètres modifient la façon dont Rocket.Chat affiche ses fenêtres, ainsi que la quantité de processeur, de GPU et de batterie qu'il utilise.",
+    "overriddenByAdministrator": "Ce paramètre est géré par votre administrateur."
   },
   "error": {
     "authNeeded": "Authentification requise, essayez <strong>{{- auth}}</strong>",

@@ -170,7 +170,8 @@
       },
       "transparentWindow": {
         "title": "Efekt przezroczystego okna",
-        "description": "Włącz natywny efekt wibracji/przezroczystości dla okna. Wymaga ponownego uruchomienia, aby zastosować."
+        "description": "Wyświetla materiał vibrancy systemu macOS, dzięki czemu pulpit jest widoczny przez okno aplikacji. Ten efekt zużywa więcej mocy GPU, także gdy aplikacja jest bezczynna.",
+        "hint": "Rocket.Chat poprosi o ponowne uruchomienie po zmianie tego ustawienia."
       },
       "themeAppearance": {
         "title": "Motyw",
@@ -206,11 +207,19 @@
           "merged": "Scalony",
           "closed": "Zamknięty"
         }
+      },
+      "hardwareAcceleration": {
+        "title": "Akceleracja sprzętowa",
+        "description": "Używa procesora graficznego (GPU) do rysowania aplikacji. Przewijanie i animacje są płynniejsze, a procesor jest mniej obciążony. Wyłącz tę opcję, jeśli widzisz błędy wyświetlania, puste okna lub awarie.",
+        "hint": "Rocket.Chat uruchomi się ponownie po zmianie tego ustawienia."
       }
     },
     "sections": {
+      "performance": "Wydajność",
       "uiPreview": "Podgląd interfejsu webowego"
-    }
+    },
+    "performanceDescription": "Te ustawienia określają, jak Rocket.Chat rysuje swoje okna oraz ile mocy procesora, GPU i baterii zużywa.",
+    "overriddenByAdministrator": "Tym ustawieniem zarządza administrator."
   },
   "error": {
     "authNeeded": "Wymagane uwierzytelnienie, spróbuj <strong>{{- auth}}</strong>",

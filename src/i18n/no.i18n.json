@@ -254,6 +254,7 @@
     "certificates": "Sertifikater",
     "developer": "Utvikler",
     "sections": {
+      "performance": "Ytelse",
       "logging": "Logging",
       "uiPreview": "Forhåndsvisning av nettgrensesnitt"
     },
@@ -276,7 +277,8 @@
       },
       "hardwareAcceleration": {
         "title": "Maskinvareakselerasjon",
-        "description": "Muliggjør maskinvareakselerasjon når tilgjengelig. Applikasjonen vil lastes inn på nytt ved endring."
+        "description": "Bruker grafikkprosessoren (GPU) til å tegne appen. Rulling og animasjoner blir jevnere, og prosessoren får mindre arbeid. Slå den av hvis du ser grafikkfeil, tomme vinduer eller krasj.",
+        "hint": "Rocket.Chat starter på nytt når du endrer denne innstillingen."
       },
       "resetWindowBounds": {
         "title": "Tilbakestill vindusstørrelser og -posisjoner",
@@ -344,7 +346,8 @@
       },
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
-        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet. Krever omstart for å brukes."
+        "description": "Viser vibrancy-materialet i macOS, slik at skrivebordet synes gjennom appvinduet. Effekten bruker mer GPU-kraft, også når appen er inaktiv.",
+        "hint": "Rocket.Chat ber om omstart når du endrer denne innstillingen."
       },
       "themeAppearance": {
         "title": "Tema",
@@ -392,7 +395,9 @@
           "closed": "Lukket"
         }
       }
-    }
+    },
+    "performanceDescription": "Disse innstillingene endrer hvordan Rocket.Chat tegner vinduene sine, og hvor mye prosessor-, GPU- og batterikraft appen bruker.",
+    "overriddenByAdministrator": "Denne innstillingen styres av administratoren din."
   },
   "error": {
     "authNeeded": "Godkjenning kreves, prøv <strong>{{- auth}}</strong>",

@@ -2,7 +2,9 @@ import * as fs from 'fs';
 
 import { app } from 'electron';
 
+import { readSetting } from '../../store/readSetting';
 import { performElectronStartup } from './app';
+import { readOverriddenSettingsSync } from './overriddenSettings';
 
 jest.mock('fs');
 
@@ -23,6 +25,10 @@ jest.mock('electron', () => ({
 
 jest.mock('../../store/readSetting', () => ({
   readSetting: jest.fn(() => undefined),
+}));
+
+jest.mock('./overriddenSettings', () => ({
+  readOverriddenSettingsSync: jest.fn(() => ({})),
 }));
 
 jest.mock('rimraf', () => ({
@@ -523,5 +529,61 @@ describe('performElectronStartup - Platform Detection', () => {
       );
       expect(ozonePlatformCalls).toHaveLength(0);
     });
+  });
+});
+
+describe('performElectronStartup - hardware acceleration', () => {
+  const readSettingMock = readSetting as jest.Mock;
+  const readOverriddenSettingsSyncMock =
+    readOverriddenSettingsSync as jest.Mock;
+  const disableHardwareAccelerationMock =
+    app.disableHardwareAcceleration as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    console.log = jest.fn();
+    process.argv = ['node', 'script.js'];
+    (fs.statSync as jest.Mock).mockReturnValue({ isSocket: () => true });
+  });
+
+  afterEach(() => {
+    readSettingMock.mockImplementation(() => undefined);
+    readOverriddenSettingsSyncMock.mockImplementation(() => ({}));
+    process.argv = originalArgv;
+    console.log = originalConsoleLog;
+  });
+
+  const withSettings = (
+    persisted: boolean | undefined,
+    overridden: Record<string, unknown>
+  ) => {
+    readSettingMock.mockImplementation((key: string) =>
+      key === 'isHardwareAccelerationEnabled' ? persisted : undefined
+    );
+    readOverriddenSettingsSyncMock.mockImplementation(() => overridden);
+  };
+
+  it('turns it off at launch when the administrator sets it to false', () => {
+    withSettings(true, { isHardwareAccelerationEnabled: false });
+
+    performElectronStartup();
+
+    expect(disableHardwareAccelerationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps it on when the administrator sets it to true', () => {
+    withSettings(false, { isHardwareAccelerationEnabled: true });
+
+    performElectronStartup();
+
+    expect(disableHardwareAccelerationMock).not.toHaveBeenCalled();
+  });
+
+  it('uses the stored setting when no administrator value exists', () => {
+    withSettings(false, {});
+
+    performElectronStartup();
+
+    expect(disableHardwareAccelerationMock).toHaveBeenCalledTimes(1);
   });
 });

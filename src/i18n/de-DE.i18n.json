@@ -236,7 +236,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hardware-Beschleunigung",
-        "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
+        "description": "Verwendet den Grafikprozessor (GPU), um die App darzustellen. Scrollen und Animationen laufen flüssiger, und die CPU wird entlastet. Deaktivieren Sie die Option, wenn Darstellungsfehler, leere Fenster oder Abstürze auftreten.",
+        "hint": "Rocket.Chat wird neu gestartet, wenn Sie diese Einstellung ändern."
       },
       "resetWindowBounds": {
         "title": "Fenstergrößen und -positionen zurücksetzen",
@@ -300,7 +301,8 @@
       },
       "transparentWindow": {
         "title": "Transparentes Fenstereffekt",
-        "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
+        "description": "Zeigt das Vibrancy-Material von macOS, sodass der Schreibtisch durch das App-Fenster scheint. Dieser Effekt benötigt mehr GPU-Leistung, auch wenn die App inaktiv ist.",
+        "hint": "Rocket.Chat fragt nach einem Neustart, wenn Sie diese Einstellung ändern."
       },
       "themeAppearance": {
         "title": "Design",
@@ -339,8 +341,11 @@
       }
     },
     "sections": {
+      "performance": "Leistung",
       "uiPreview": "Web-UI-Vorschau"
-    }
+    },
+    "performanceDescription": "Diese Einstellungen legen fest, wie Rocket.Chat seine Fenster darstellt und wie viel CPU-, GPU- und Akkuleistung es dafür verwendet.",
+    "overriddenByAdministrator": "Diese Einstellung wird von Ihrem Administrator verwaltet."
   },
   "error": {
     "authNeeded": "Auth benötigt, probieren Sie <strong>{{- auth}}</strong>",

@@ -5,6 +5,7 @@ import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
+import { overriddenSettingKeys } from '../app/reducers/overriddenSettingKeys';
 import { screenCaptureFallbackForced } from '../app/reducers/screenCaptureFallbackForced';
 import { downloads } from '../downloads/reducers/downloads';
 import { allowedJitsiServers } from '../jitsi/reducers';
@@ -113,6 +114,7 @@ export const rootReducer = combineReducers({
   mainWindowTitle,
   machineTheme,
   newUpdateVersion,
+  overriddenSettingKeys,
   openDialog,
   rootWindowIcon,
   rootWindowState,

@@ -8,6 +8,7 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED } from '../../../actions';
 import { ToggleField } from './ToggleField';
+import { useIsSettingOverridden } from './useIsSettingOverridden';
 
 type TransparentWindowProps = {
   className?: string;
@@ -30,6 +31,8 @@ export const TransparentWindow = (props: TransparentWindowProps) => {
     [dispatch]
   );
 
+  const isOverridden = useIsSettingOverridden('isTransparentWindowEnabled');
+
   const id = useId();
 
   return (
@@ -37,8 +40,10 @@ export const TransparentWindow = (props: TransparentWindowProps) => {
       id={id}
       label={t('settings.options.transparentWindow.title')}
       description={t('settings.options.transparentWindow.description')}
+      hint={isOverridden ? t('settings.overriddenByAdministrator') : undefined}
       checked={isTransparentWindowEnabled}
       onChange={handleChange}
+      disabled={isOverridden}
       className={props.className}
     />
   );

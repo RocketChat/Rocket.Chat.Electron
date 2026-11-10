@@ -31,6 +31,7 @@ import {
   APP_VERSION_SET,
   APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
 } from '../actions';
+import { readOverriddenSettingsSync } from './overriddenSettings';
 
 export const packageJsonInformation = {
   productName: packageJson.productName,
@@ -107,9 +108,14 @@ export const performElectronStartup = (): void => {
     return;
   }
 
-  const isHardwareAccelerationEnabled = readSetting(
-    'isHardwareAccelerationEnabled'
-  );
+  // The store loads the administrator overrides after the app is ready, too
+  // late for this switch, so read them here as well.
+  const { isHardwareAccelerationEnabled: overriddenHardwareAcceleration } =
+    readOverriddenSettingsSync();
+  const isHardwareAccelerationEnabled =
+    typeof overriddenHardwareAcceleration === 'boolean'
+      ? overriddenHardwareAcceleration
+      : readSetting('isHardwareAccelerationEnabled');
   const isScreenCaptureFallbackEnabled = readSetting(
     'isVideoCallScreenCaptureFallbackEnabled'
   );

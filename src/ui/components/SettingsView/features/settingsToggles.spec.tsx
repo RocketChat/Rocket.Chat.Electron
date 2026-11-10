@@ -53,7 +53,8 @@ const renderWithState = (
   state: Record<string, unknown>
 ) => {
   const Component = component;
-  const store = makeStore(state);
+  // The real store always holds this list; the reducer defaults it to [].
+  const store = makeStore({ overriddenSettingKeys: [], ...state });
   const dispatchSpy = jest.spyOn(store, 'dispatch');
   const view = render(
     <Provider store={store}>
@@ -186,5 +187,47 @@ describe('MenuBarUnreadCount', () => {
       isMenuBarUnreadCountEnabled: true,
     });
     expect(screen.getByRole('checkbox')).toBeDisabled();
+  });
+});
+
+describe.each([
+  {
+    name: 'HardwareAcceleration',
+    component: HardwareAcceleration,
+    stateKey: 'isHardwareAccelerationEnabled',
+    hintKey: 'settings.options.hardwareAcceleration.hint',
+  },
+  {
+    name: 'TransparentWindow',
+    component: TransparentWindow,
+    stateKey: 'isTransparentWindowEnabled',
+    hintKey: undefined,
+  },
+])('$name set by an administrator', ({ component, stateKey, hintKey }) => {
+  it('is read-only and says that the administrator controls it', () => {
+    renderWithState(component, {
+      [stateKey]: false,
+      overriddenSettingKeys: [stateKey],
+    });
+
+    expect(screen.getByRole('checkbox')).toBeDisabled();
+    expect(
+      screen.getByText('settings.overriddenByAdministrator')
+    ).toBeInTheDocument();
+    if (hintKey) {
+      expect(screen.queryByText(hintKey)).not.toBeInTheDocument();
+    }
+  });
+
+  it('stays editable when the administrator sets another setting', () => {
+    renderWithState(component, {
+      [stateKey]: false,
+      overriddenSettingKeys: ['isReportEnabled'],
+    });
+
+    expect(screen.getByRole('checkbox')).toBeEnabled();
+    expect(
+      screen.queryByText('settings.overriddenByAdministrator')
+    ).not.toBeInTheDocument();
   });
 });

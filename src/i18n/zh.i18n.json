@@ -14,7 +14,7 @@
       },
       "transparentWindow": {
         "title": "透明窗口效果",
-        "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
+        "description": "显示 macOS 的活力（vibrancy）材质，使桌面透过应用窗口显示出来。即使应用处于空闲状态，此效果也会消耗更多 GPU 电量。"
       },
       "themeAppearance": {
         "title": "主题",
@@ -59,12 +59,19 @@
           "merged": "已合并",
           "closed": "已关闭"
         }
+      },
+      "hardwareAcceleration": {
+        "title": "硬件加速",
+        "description": "使用图形处理器 (GPU) 绘制应用。滚动和动画更流畅，CPU 负担更小。如果出现显示异常、空白窗口或崩溃，请关闭此选项。",
+        "hint": "更改此设置后 Rocket.Chat 会重新启动。"
       }
     },
     "sections": {
       "performance": "性能",
       "uiPreview": "Web 界面预览"
-    }
+    },
+    "performanceDescription": "这些设置会改变 Rocket.Chat 绘制窗口的方式，以及它使用的 CPU、GPU 和电池电量。",
+    "overriddenByAdministrator": "此设置由你的管理员控制。"
   },
   "serverInfo": {
     "title": "服务器信息",

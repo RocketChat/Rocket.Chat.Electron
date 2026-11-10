@@ -364,8 +364,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hardware acceleration",
-        "description": "Improves visual rendering and performance. Disable if you experience visual glitches or instability.",
-        "hint": "Reloads app on change."
+        "description": "Uses the graphics processor (GPU) to draw the app. Scrolling and animations are smoother, and the CPU does less work. Turn it off if you see visual glitches, blank windows or crashes.",
+        "hint": "Rocket.Chat restarts when you change this setting."
       },
       "resetWindowBounds": {
         "title": "Reset window sizes and positions",
@@ -463,7 +463,7 @@
       },
       "transparentWindow": {
         "title": "Transparent window effect",
-        "description": "Enable native vibrancy on app windows. On macOS, changing this setting requires restarting the app to update the main window."
+        "description": "Shows the macOS vibrancy material, so the desktop shows through the app window. This effect uses more GPU power, also when the app is idle."
       },
       "themeAppearance": {
         "title": "Theme",
@@ -523,7 +523,9 @@
     },
     "appearance": "Appearance",
     "search": "Search settings",
-    "noResults": "No matching settings"
+    "noResults": "No matching settings",
+    "performanceDescription": "These settings change how Rocket.Chat draws its windows, and how much CPU, GPU and battery power it uses.",
+    "overriddenByAdministrator": "Your administrator controls this setting."
   },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",

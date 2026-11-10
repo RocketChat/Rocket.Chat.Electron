@@ -136,7 +136,7 @@
       },
       "transparentWindow": {
         "title": "透明ウィンドウ効果",
-        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
+        "description": "macOS のバイブランシー素材を表示し、アプリのウィンドウ越しにデスクトップが透けて見えるようにします。この効果は、アプリがアイドル状態のときも GPU の電力を多く使います。"
       },
       "themeAppearance": {
         "title": "テーマ",
@@ -181,12 +181,19 @@
           "merged": "マージ済み",
           "closed": "クローズ"
         }
+      },
+      "hardwareAcceleration": {
+        "title": "ハードウェアアクセラレーション",
+        "description": "グラフィックプロセッサー (GPU) を使ってアプリを描画します。スクロールやアニメーションが滑らかになり、CPU の負荷が下がります。表示の乱れ、空白のウィンドウ、クラッシュが発生する場合はオフにしてください。",
+        "hint": "この設定を変更すると Rocket.Chat が再起動します。"
       }
     },
     "sections": {
       "performance": "パフォーマンス",
       "uiPreview": "Web UI プレビュー"
-    }
+    },
+    "performanceDescription": "これらの設定は、Rocket.Chat のウィンドウの描画方法と、CPU、GPU、バッテリーの使用量を変更します。",
+    "overriddenByAdministrator": "この設定は管理者によって管理されています。"
   },
   "error": {
     "authNeeded": "認証が必要です。<strong>{{- auth}}</strong> を試してみてください。",

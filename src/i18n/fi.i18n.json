@@ -243,7 +243,8 @@
       },
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
-        "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
+        "description": "Käyttää näytönohjainta (GPU) sovelluksen piirtämiseen. Vieritys ja animaatiot ovat sujuvampia, ja suorittimen kuormitus pienenee. Poista asetus käytöstä, jos näet grafiikkavirheitä, tyhjiä ikkunoita tai kaatumisia.",
+        "hint": "Rocket.Chat käynnistyy uudelleen, kun muutat tätä asetusta."
       },
       "resetWindowBounds": {
         "title": "Palauta ikkunoiden koot ja sijainnit",
@@ -298,7 +299,7 @@
       },
       "transparentWindow": {
         "title": "Läpinäkyvä ikkuna-efekti",
-        "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle. Vaatii uudelleenkäynnistyksen toimiakseen."
+        "description": "Näyttää macOS:n läpikuultavan materiaalin, jolloin työpöytä näkyy sovellusikkunan läpi. Tehoste käyttää enemmän näytönohjaimen tehoa myös silloin, kun sovellus on käyttämättä."
       },
       "themeAppearance": {
         "title": "Teema",
@@ -339,7 +340,9 @@
     "sections": {
       "performance": "Suorituskyky",
       "uiPreview": "Verkkokäyttöliittymän esikatselu"
-    }
+    },
+    "performanceDescription": "Nämä asetukset vaikuttavat siihen, miten Rocket.Chat piirtää ikkunansa ja kuinka paljon suoritinta, näytönohjainta ja akkua se käyttää.",
+    "overriddenByAdministrator": "Järjestelmänvalvoja hallitsee tätä asetusta."
   },
   "error": {
     "authNeeded": "Todennus tarvitaan, kokeile: <strong>{{- auth}}</strong>",

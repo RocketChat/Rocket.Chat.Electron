@@ -14,7 +14,7 @@
       },
       "transparentWindow": {
         "title": "Effetto finestra trasparente",
-        "description": "Abilita l'effetto nativo di vibrazione/trasparenza per la finestra. Richiede il riavvio per applicare."
+        "description": "Mostra il materiale vibrancy di macOS, così il desktop è visibile attraverso la finestra dell'app. Questo effetto usa più potenza della GPU, anche quando l'app è inattiva."
       },
       "themeAppearance": {
         "title": "Tema",
@@ -59,12 +59,19 @@
           "merged": "Unita",
           "closed": "Chiusa"
         }
+      },
+      "hardwareAcceleration": {
+        "title": "Accelerazione hardware",
+        "description": "Usa il processore grafico (GPU) per disegnare l'app. Lo scorrimento e le animazioni sono più fluidi e la CPU lavora meno. Disattivala se noti errori grafici, finestre vuote o arresti anomali.",
+        "hint": "Rocket.Chat si riavvia quando modifichi questa impostazione."
       }
     },
     "sections": {
       "performance": "Prestazioni",
       "uiPreview": "Anteprima dell'interfaccia web"
-    }
+    },
+    "performanceDescription": "Queste impostazioni modificano il modo in cui Rocket.Chat disegna le sue finestre e quanta CPU, GPU e batteria utilizza.",
+    "overriddenByAdministrator": "Questa impostazione è gestita dall'amministratore."
   },
   "tabBar": {
     "workspaces": "Aree di lavoro",

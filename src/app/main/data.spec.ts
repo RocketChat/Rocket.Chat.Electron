@@ -348,6 +348,38 @@ describe('mergePersistableValues', () => {
       });
     });
 
+    it('applies the Performance settings and lists every overridden key', async () => {
+      (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify({
+          isHardwareAccelerationEnabled: false,
+          isTransparentWindowEnabled: true,
+        })
+      );
+
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isHardwareAccelerationEnabled: false,
+          isTransparentWindowEnabled: true,
+          overriddenSettingKeys: [
+            'isHardwareAccelerationEnabled',
+            'isTransparentWindowEnabled',
+          ],
+        }),
+      });
+    });
+
+    it('lists no overridden keys when no file exists', async () => {
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({ overriddenSettingKeys: [] }),
+      });
+    });
+
     it('defaults isNotificationQuickReplyEnabled to true when not overridden', async () => {
       await mergePersistableValues({});
 

@@ -158,7 +158,7 @@
       },
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",
-        "description": "Pencere için yerel titreşim/şeffaflık efektini etkinleştir. Uygulamak için yeniden başlatma gerektirir."
+        "description": "macOS vibrancy malzemesini göstererek masaüstünün uygulama penceresinden görünmesini sağlar. Bu efekt, uygulama boştayken bile daha fazla GPU gücü kullanır."
       },
       "themeAppearance": {
         "title": "Tema",
@@ -194,12 +194,19 @@
           "merged": "Birleştirildi",
           "closed": "Kapalı"
         }
+      },
+      "hardwareAcceleration": {
+        "title": "Donanım hızlandırma",
+        "description": "Uygulamayı çizmek için grafik işlemcisini (GPU) kullanır. Kaydırma ve animasyonlar daha akıcı olur, CPU daha az çalışır. Görüntü hataları, boş pencereler veya çökmeler görürseniz kapatın.",
+        "hint": "Bu ayarı değiştirdiğinizde Rocket.Chat yeniden başlar."
       }
     },
     "sections": {
       "performance": "Performans",
       "uiPreview": "Web arayüzü önizlemesi"
-    }
+    },
+    "performanceDescription": "Bu ayarlar, Rocket.Chat'in pencerelerini nasıl çizdiğini ve ne kadar CPU, GPU ve pil gücü kullandığını değiştirir.",
+    "overriddenByAdministrator": "Bu ayar yöneticiniz tarafından yönetilir."
   },
   "error": {
     "authNeeded": "Yetkilendirme gerekli, deneyin <strong>{{- auth}}</strong>",

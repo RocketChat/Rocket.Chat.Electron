@@ -843,7 +843,7 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(getRootWindow).not.toHaveBeenCalled();
     });
 
-    // The page asks to close when the user leaves the call (DMV2-32).
+    // The page asks to close when the user leaves the call.
     it('brings the main window to the front after closing the call window', async () => {
       const { listener, fromWebContents } = await getCloseHandler();
       const win = { isDestroyed: jest.fn(() => false), close: jest.fn() };

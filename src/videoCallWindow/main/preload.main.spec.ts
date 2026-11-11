@@ -56,7 +56,7 @@ describe('video call window preload bridge', () => {
 
   // Servers that predate Rocket.Chat #42692 read only `window.videoCallWindow`.
   // Without it, leaving a call loads `/home` in the call window instead of
-  // closing it (DMV2-32), and conference chat links miss the main window.
+  // closing it, and conference chat links miss the main window.
   it('also exposes the same methods under the deprecated videoCallWindow global', () => {
     const videoCall = loadBridge();
     const legacy = exposeInMainWorld.mock.calls.find(
@@ -120,7 +120,7 @@ describe('video call window preload bridge', () => {
 
   // Removed deliberately: it handed the user's session token to whatever page
   // the webview had loaded, which is a third-party provider on the Jitsi/Pexip
-  // paths. Nothing calls it. See CORE-2704.
+  // paths. Nothing calls it.
   it('does not expose getAuthCredentials', () => {
     const videoCall = loadBridge();
 

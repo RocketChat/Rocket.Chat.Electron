@@ -244,8 +244,9 @@ export const setupGpuCrashHandler = (): void => {
     return;
   }
 
-  const args = process.argv.slice(app.isPackaged ? 1 : 2);
-  if (args.includes('--disable-gpu')) {
+  // Startup also appends this switch when settings disable acceleration.
+  // Appended Chromium switches are not reflected in process.argv.
+  if (app.commandLine.hasSwitch('disable-gpu')) {
     return;
   }
 

@@ -81,11 +81,15 @@ hooks, `settings.json`).
   independent from the `version` in `package.json`. Bump it on every release
   that ships to the App Store or gets notarized. Apple requires each
   submission's `CFBundleVersion` to be higher than the last one.
-  - Format: `YYMM` plus a single-digit build counter that resets to `0` each
-    month. Example: the first build shipped in August 2026 is `26080`, and the
-    second build in the same month is `26081`.
-  - Before you increment it, read the current value and the date of its last
-    bump (`git log -p --follow -- electron-builder.json`). Do not guess.
+  - Format: `YYMM` plus a two-digit build counter that resets to `00` each
+    month. Example: the first build shipped in November 2026 is `261100`, and
+    the second build in the same month is `261101`.
+  - Until October 2026 the counter had one digit (`26080`). October used up
+    `26100`–`26109`, so 4.19.0-alpha.1 moved to two digits with `261010`.
+    Never go back to one digit: `26110` is lower than `261010`.
+  - Patch releases bump the value on `release/X.Y.x`, not on `dev`. Before
+    you increment it, find the highest value on `dev`, `master` and every
+    `release/*` branch, as `docs/release-process.md` shows. Do not guess.
 - `yarn build-assets` re-encodes every PNG and ICO that it touches, also when
   the source did not change. Commit only the assets whose SVG or component
   changed, and `git checkout --` the rest. Otherwise byte noise floods the

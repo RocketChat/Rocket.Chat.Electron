@@ -165,12 +165,30 @@ Cut alphas directly from `dev`. There is no dedicated branch.
    Also increment `mac.bundleVersion` in `electron-builder.json`. It is
    independent from `package.json`'s `version`. Apple requires each
    submission's `CFBundleVersion` to strictly increase over the last one.
-   The format is `YYMM` plus a single-digit build counter. The counter
-   resets to `0` at the start of each month. For example, the first build
-   shipped in August 2026 is `26080`, and the second same-month build is
-   `26081`. Check the current value and the date of its last bump
-   (`git log -p --follow -- electron-builder.json`) before you increment it.
-   NEVER guess an arbitrary increment.
+   The format is `YYMM` plus a two-digit build counter. The counter resets
+   to `00` at the start of each month. For example, the first build shipped
+   in November 2026 is `261100`, and the second same-month build is
+   `261101`.
+
+   Until October 2026 the counter had one digit (for example `26080`).
+   October used up `26100`–`26109`, so 4.19.0-alpha.1 moved to two digits
+   with `261010`. A six-digit value is higher than every five-digit value,
+   so the order stays correct. NEVER go back to one digit: `26110` is lower
+   than `261010`, and Apple rejects it.
+
+   Patch releases bump the value on their `release/X.Y.x` branch, so `dev`
+   can hold an older value. Find the highest value on all release lines
+   before you increment it:
+
+   ```bash
+   git fetch origin
+   for ref in origin/dev origin/master $(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/release/*'); do
+     echo "${ref} $(git show "${ref}:electron-builder.json" | grep -o '"bundleVersion": "[0-9]*"')"
+   done
+   ```
+
+   Use the highest value plus one in the same month, or `YYMM00` in a new
+   month. NEVER guess an arbitrary increment.
 
 2. Commit and open a PR to `dev`:
 

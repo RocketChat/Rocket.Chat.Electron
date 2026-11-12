@@ -317,6 +317,8 @@
     "workspaces": "Przestrzenie robocze",
     "addWorkspace": "Dodaj przestrzeń roboczą",
     "unreadMessage_one": "{{- count}} wiadomość",
+    "unreadMessage_few": "{{- count}} wiadomości",
+    "unreadMessage_many": "{{- count}} wiadomości",
     "unreadMessage_other": "{{- count}} wiadomości",
     "unreadMessages": "Nieprzeczytane wiadomości",
     "meatballMenu": "Menu aplikacji",

@@ -102,8 +102,15 @@ hooks, `settings.json`).
   for a stable release. Never tag a pre-merge bump commit on an unmerged
   branch, because that ships the wrong tree.
 - When a guard fires, treat it as a real finding: report it and fix the cause.
-  Use `--force` or `--allow-unverified-ref` only when the release owner
-  explicitly agrees.
+  Use `--force`, `--allow-unverified-ref` or `--allow-missing-translations`
+  only when the release owner explicitly agrees.
+- The translation guard blocks a release when an English key added since the
+  previous release tag has no value in a locale that `src/i18n/resources.ts`
+  loads, or when such a locale translates a plural key without every plural
+  form of its language (`Intl.PluralRules`, for example `_few` and `_many` in
+  Russian). Add the missing values before you tag. `yarn i18n:check-coverage`
+  shows the result, and the `prepare` job of `build-release.yml` runs the same
+  check.
 - A fresh worktree has no `node_modules`, and the script fails with
   `Couldn't find the node_modules state file (findPackageLocation)`. Run
   `yarn install` in the worktree. Never tag by hand to work around it.

@@ -456,6 +456,8 @@
     "workspaces": "Рабочие пространства",
     "addWorkspace": "Добавить рабочее пространство",
     "unreadMessage_one": "{{- count}} сообщение",
+    "unreadMessage_few": "{{- count}} сообщения",
+    "unreadMessage_many": "{{- count}} сообщений",
     "unreadMessage_other": "{{- count}} сообщения",
     "unreadMessages": "Непрочитанные сообщения",
     "meatballMenu": "Меню приложения",

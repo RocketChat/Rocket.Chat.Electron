@@ -70,6 +70,7 @@
     "workspaces": "Aree di lavoro",
     "addWorkspace": "Aggiungi area di lavoro",
     "unreadMessage_one": "{{- count}} messaggio",
+    "unreadMessage_many": "{{- count}} di messaggi",
     "unreadMessage_other": "{{- count}} messaggi",
     "unreadMessages": "Messaggi non letti",
     "meatballMenu": "Menu dell'applicazione",

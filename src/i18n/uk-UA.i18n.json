@@ -286,6 +286,8 @@
     "workspaces": "Робочі простори",
     "addWorkspace": "Додати робочий простір",
     "unreadMessage_one": "{{- count}} повідомлення",
+    "unreadMessage_few": "{{- count}} повідомлення",
+    "unreadMessage_many": "{{- count}} повідомлень",
     "unreadMessage_other": "{{- count}} повідомлення",
     "unreadMessages": "Непрочитані повідомлення",
     "meatballMenu": "Меню застосунку",

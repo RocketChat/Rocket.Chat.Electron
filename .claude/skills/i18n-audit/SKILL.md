@@ -50,5 +50,7 @@ Flag each language below 90% coverage as needing attention.
 
 ## Languages
 
-The project has 22 language files:
-ar, de-DE, en (reference), es, fi, fr, hu, it-IT, ja, nb-NO, nn, no, pl, pt-BR, ru, se, sv, tr-TR, uk-UA, zh, zh-CN, zh-TW
+The project has 20 language files:
+ar, de-DE, en (reference), es, fi, fr, hu, it-IT, ja, nn, no, pl, pt-BR, ru, se, sv, tr-TR, uk-UA, zh-CN, zh-TW
+
+`src/i18n/resources.ts` does not load `ar`, `nn` and `se`, so users never see them. Report them apart from the loaded locales. The loader keys `nb` and `nn` read `no.i18n.json`, and `zh` reads `zh-CN.i18n.json`.

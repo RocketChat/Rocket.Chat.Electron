@@ -7,7 +7,6 @@ import {
 } from '../app/main/app';
 import { loggers } from '../logging/scopes';
 import { ServerUrlResolutionStatus } from '../servers/common';
-import { ignoringBeforeUnload } from '../servers/ignoringBeforeUnload';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
 import { openTelephonyDialpad } from '../telephony/dialpad';
@@ -181,17 +180,15 @@ function getWebContents(
   });
 }
 
-// The user started this navigation from outside the page, so a `beforeunload`
-// handler (for example from an admin Custom Script) must not cancel it.
+// The URL can carry a `resumeToken` or a SAML `credentialToken`, so a failed
+// navigation logs only the origin and the error code.
 const navigateServerView = (webContents: WebContents, url: string): void => {
-  ignoringBeforeUnload(webContents, () => webContents.loadURL(url)).catch(
-    (error: { code?: string }) => {
-      loggers.main.warn('Deep link navigation failed', {
-        origin: new URL(url).origin,
-        code: error?.code,
-      });
-    }
-  );
+  webContents.loadURL(url).catch((error: { code?: string }) => {
+    loggers.main.warn('Deep link navigation failed', {
+      origin: new URL(url).origin,
+      code: error?.code,
+    });
+  });
 };
 
 const performAuthentication = async ({

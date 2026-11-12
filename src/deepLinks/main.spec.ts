@@ -1,5 +1,3 @@
-import { EventEmitter } from 'events';
-
 import { app } from 'electron';
 
 import { loggers } from '../logging/scopes';
@@ -526,19 +524,18 @@ describe('deepLinks/main.ts', () => {
       showInactive: jest.fn(),
     };
 
-    const mockWebContents = Object.assign(new EventEmitter(), {
+    const mockWebContents = {
       send: jest.fn(),
       isDestroyed: jest.fn(() => false),
       loadURL: jest.fn((_url: string) => Promise.resolve()),
-    });
+    };
 
     beforeEach(() => {
-      mockWebContents.removeAllListeners();
       getRootWindowMock.mockResolvedValue(mockBrowserWindow as any);
       getWebContentsByServerUrlMock.mockReturnValue(mockWebContents as any);
     });
 
-    describe('when the page has a beforeunload handler', () => {
+    describe('when a deep-link navigation fails', () => {
       const runAuthDeepLink = async (): Promise<void> => {
         resolveServerUrlMock.mockResolvedValue([
           'https://chat.example.com',
@@ -558,66 +555,6 @@ describe('deepLinks/main.ts', () => {
         await processDeepLinksInArgs();
         process.argv = savedArgv;
       };
-
-      it('ignores beforeunload for the deep-link navigation', async () => {
-        const preventDefault = jest.fn();
-        mockWebContents.loadURL.mockImplementationOnce(() => {
-          mockWebContents.emit('will-prevent-unload', { preventDefault });
-          return Promise.resolve();
-        });
-        setupDeepLinks();
-
-        await runAuthDeepLink();
-
-        expect(preventDefault).toHaveBeenCalledTimes(1);
-      });
-
-      it('respects beforeunload again once the main frame navigates', async () => {
-        mockWebContents.loadURL.mockReturnValueOnce(new Promise(() => {}));
-        setupDeepLinks();
-        await runAuthDeepLink();
-
-        mockWebContents.emit('did-start-navigation', {
-          isMainFrame: true,
-          isSameDocument: false,
-        });
-
-        expect(mockWebContents.listenerCount('will-prevent-unload')).toBe(0);
-        expect(mockWebContents.listenerCount('did-start-navigation')).toBe(0);
-      });
-
-      it('respects beforeunload again after a same-document navigation settles', async () => {
-        mockWebContents.loadURL.mockImplementationOnce(() => {
-          mockWebContents.emit('did-start-navigation', {
-            isMainFrame: true,
-            isSameDocument: true,
-          });
-          return Promise.resolve();
-        });
-        setupDeepLinks();
-
-        await runAuthDeepLink();
-        await new Promise(setImmediate);
-
-        const preventDefault = jest.fn();
-        mockWebContents.emit('will-prevent-unload', { preventDefault });
-        expect(preventDefault).not.toHaveBeenCalled();
-        expect(mockWebContents.listenerCount('did-start-navigation')).toBe(0);
-      });
-
-      it('respects beforeunload again after a navigation fails', async () => {
-        mockWebContents.loadURL.mockRejectedValueOnce(new Error('ERR_FAILED'));
-        jest
-          .spyOn(loggers.main, 'warn')
-          .mockImplementationOnce(() => undefined);
-        setupDeepLinks();
-
-        await runAuthDeepLink();
-        await new Promise(setImmediate);
-
-        expect(mockWebContents.listenerCount('will-prevent-unload')).toBe(0);
-        expect(mockWebContents.listenerCount('did-start-navigation')).toBe(0);
-      });
 
       it('logs a rejected navigation without the token', async () => {
         const warn = jest.spyOn(loggers.main, 'warn').mockImplementation();
@@ -1538,11 +1475,11 @@ describe('deepLinks/main.ts', () => {
       showInactive: jest.fn(),
     };
 
-    const mockWebContents = Object.assign(new EventEmitter(), {
+    const mockWebContents = {
       send: jest.fn(),
       isDestroyed: jest.fn(() => false),
       loadURL: jest.fn(() => Promise.resolve()),
-    });
+    };
 
     beforeEach(() => {
       getRootWindowMock.mockResolvedValue(mockBrowserWindow as any);

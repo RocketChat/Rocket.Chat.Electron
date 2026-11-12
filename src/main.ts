@@ -36,6 +36,7 @@ import {
   cleanupOldLogs,
   setupDebugLoggingWatch,
 } from './logging';
+import { setupIgnoreBeforeUnload } from './navigation/ignoreBeforeUnload';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
@@ -122,6 +123,7 @@ const start = async (): Promise<void> => {
   );
 
   setupWebContentsLogging();
+  setupIgnoreBeforeUnload();
 
   performElectronStartup();
   setupDeepLinks();

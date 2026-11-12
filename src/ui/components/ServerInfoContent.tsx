@@ -241,7 +241,9 @@ const ServerInfoContent = ({
                 <OptionIcon name={iconName} />
                 <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                   <Box>
-                    <Box fontWeight='bold'>Supported:</Box>
+                    <Box fontWeight='bold'>
+                      {t('serverInfo.supportedLabel')}
+                    </Box>
                     <Box fontSize='x12' style={textWrapStyle}>
                       {statusText}
                       {supportedVersionsSource &&
@@ -256,9 +258,11 @@ const ServerInfoContent = ({
             <OptionIcon name='clock' />
             <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
               <Box>
-                <Box fontWeight='bold'>Timestamp:</Box>
+                <Box fontWeight='bold'>{t('serverInfo.timestampLabel')}</Box>
                 <Box fontSize='x12' color='font-hint' style={textWrapStyle}>
-                  {new Date(supportedVersions.timestamp).toLocaleString()}
+                  {new Date(supportedVersions.timestamp).toLocaleString(
+                    i18n.language
+                  )}
                 </Box>
               </Box>
             </OptionContent>
@@ -267,11 +271,13 @@ const ServerInfoContent = ({
             <OptionIcon name='warning' />
             <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
               <Box>
-                <Box fontWeight='bold'>Exceptions:</Box>
+                <Box fontWeight='bold'>{t('serverInfo.exceptionsLabel')}</Box>
                 {supportedVersions.exceptions?.versions &&
                 supportedVersions.exceptions.versions.length > 0 ? (
                   <Box fontSize='x12' color='font-hint' marginBlockStart='x4'>
-                    <Box fontWeight='bold'>Exception Versions:</Box>
+                    <Box fontWeight='bold'>
+                      {t('serverInfo.exceptionVersionsLabel')}
+                    </Box>
                     {supportedVersions.exceptions.versions
                       .slice(0, 3)
                       .map((version, index) => (
@@ -282,8 +288,11 @@ const ServerInfoContent = ({
                             color='font-annotation'
                             style={textWrapStyle}
                           >
-                            Expires:{' '}
-                            {new Date(version.expiration).toLocaleDateString()}
+                            {t('serverInfo.exceptionExpires', {
+                              date: new Date(
+                                version.expiration
+                              ).toLocaleDateString(i18n.language),
+                            })}
                           </Box>
                         </Box>
                       ))}
@@ -294,14 +303,16 @@ const ServerInfoContent = ({
                         marginInlineStart='x8'
                         style={textWrapStyle}
                       >
-                        ... and{' '}
-                        {supportedVersions.exceptions.versions.length - 3} more
+                        {t('serverInfo.moreExceptions', {
+                          count:
+                            supportedVersions.exceptions.versions.length - 3,
+                        })}
                       </Box>
                     )}
                   </Box>
                 ) : (
                   <Box fontSize='x12' color='font-hint' style={textWrapStyle}>
-                    No version exceptions configured
+                    {t('serverInfo.noExceptions')}
                   </Box>
                 )}
               </Box>
@@ -374,15 +385,14 @@ const ServerInfoContent = ({
                       );
 
                       if (diffDays === 0) {
-                        return 'Expires today';
-                      }
-                      if (diffDays === 1) {
-                        return 'Expires in 1 day';
+                        return t('serverInfo.expiration.today');
                       }
                       if (diffDays > 0) {
-                        return `Expires in ${diffDays} days`;
+                        return t('serverInfo.expiration.inDays', {
+                          count: diffDays,
+                        });
                       }
-                      return 'Expired';
+                      return t('serverInfo.expiration.expired');
                     })()}
                   </Box>
                 </Box>

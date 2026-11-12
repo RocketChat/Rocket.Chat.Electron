@@ -180,7 +180,7 @@ describe('telephony global shortcut main process pipeline', () => {
     expect(
       createTelephonyLinkFromClipboardText('Call +1 (800) 555-0199 x123')
     ).toEqual({
-      phoneNumber: '+18005550199123',
+      phoneNumber: '+18005550199',
       rawUri: 'Call +1 (800) 555-0199 x123',
     });
   });

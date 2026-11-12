@@ -152,6 +152,7 @@
       "pdf": "Visionneuse PDF",
       "markdown": "Visionneuse Markdown"
     },
+    "windowTitle": "Document",
     "back": "Retour"
   },
   "downloads": {
@@ -555,7 +556,19 @@
     },
     "expiration": {
       "label": "Expiration :",
-      "expiresOn": "Expire le {{date}}"
-    }
+      "expiresOn": "Expire le {{date}}",
+      "today": "Expire aujourd'hui",
+      "inDays_one": "Expire dans {{count}} jour",
+      "inDays_many": "Expire dans {{count}} de jours",
+      "inDays_other": "Expire dans {{count}} jours",
+      "expired": "Expiré"
+    },
+    "supportedLabel": "Prise en charge :",
+    "timestampLabel": "Horodatage :",
+    "exceptionsLabel": "Exceptions :",
+    "exceptionVersionsLabel": "Versions en exception :",
+    "exceptionExpires": "Expire : {{date}}",
+    "moreExceptions": "... et {{count}} de plus",
+    "noExceptions": "Aucune exception de version configurée"
   }
 }

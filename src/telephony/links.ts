@@ -1,4 +1,5 @@
 import type { TelephonyLink } from './common';
+import { normalizePhoneNumber } from './phoneNumber';
 
 const TELEPHONY_PROTOCOLS = ['tel:', 'callto:'];
 
@@ -31,11 +32,18 @@ export const parseTelephonyLink = (input: string): TelephonyLink | null => {
     return null;
   }
 
-  const phoneNumber = raw.replace(/^\/+/, '').replace(/[\s\-().]/g, '');
+  // RFC 3966 parameters (";ext=5678", ";phone-context=...") follow the number
+  // and stay attached to it, without whitespace.
+  const [target, ...parameters] = raw.replace(/^\/+/, '').split(';');
+  const number = normalizePhoneNumber(target);
 
-  if (!phoneNumber) {
+  if (!/\d/.test(number)) {
     return null;
   }
+
+  const phoneNumber = [number, ...parameters]
+    .map((part) => part.replace(/\s/g, ''))
+    .join(';');
 
   return { phoneNumber, rawUri: input };
 };

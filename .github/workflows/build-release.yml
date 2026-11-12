@@ -52,6 +52,16 @@ jobs:
       # dependency, so prepare needs the same install as the packaging jobs.
       - name: Install package dependencies
         run: yarn install
+      # Fails the release when an English key added since the previous release
+      # tag has no translation in a locale that the app loads. `yarn
+      # release:tag` runs the same check; this step also covers a tag pushed by
+      # hand. To release anyway, set the repository variable
+      # ALLOW_MISSING_TRANSLATIONS to 'true', re-run this job, and remove the
+      # variable after the release.
+      - name: Check translation coverage
+        env:
+          ALLOW_MISSING_TRANSLATIONS: ${{ vars.ALLOW_MISSING_TRANSLATIONS }}
+        run: yarn i18n:check-coverage
       - uses: ./workspaces/desktop-release-action
         with:
           mode: prepare

@@ -88,16 +88,35 @@ The script finds the `origin/release/*` branches at run time with
 
 ### Guards
 
-| Guard                                                  | Override                  |
-| ------------------------------------------------------ | ------------------------- |
-| Invalid semver in `package.json`                       | none                      |
-| HEAD not an ancestor of an allowed ref for its channel | `--allow-unverified-ref`  |
-| Tag already exists                                     | none — not even `--force` |
-| Version not greater than latest tag **in its channel** | `--force`                 |
+| Guard                                                              | Override                       |
+| ------------------------------------------------------------------ | ------------------------------ |
+| Invalid semver in `package.json`                                   | none                           |
+| HEAD not an ancestor of an allowed ref for its channel             | `--allow-unverified-ref`       |
+| English key added since the previous release tag is not translated | `--allow-missing-translations` |
+| Tag already exists                                                 | none — not even `--force`      |
+| Version not greater than latest tag **in its channel**             | `--force`                      |
 
 If a guard fires, treat it as a real finding. Report it and fix the cause.
-Use `--force` or `--allow-unverified-ref` only when the release owner agrees
-explicitly.
+Use `--force`, `--allow-unverified-ref` or `--allow-missing-translations`
+only when the release owner agrees explicitly.
+
+### Translation coverage
+
+The translation guard compares `src/i18n/en.i18n.json` at HEAD with the
+same file at the previous release tag (`git describe --tags HEAD^`). Each
+key that English added since that tag must exist in every locale that
+`src/i18n/resources.ts` loads. For a plural key, each locale needs the plural
+forms of its own language (for example `_few` and `_many` in Russian).
+Older gaps do not block a release.
+
+The `prepare` job of `build-release.yml` runs the same check with
+`yarn i18n:check-coverage`, so a tag pushed by hand cannot skip it. When the
+job fails, add the listed keys and cut a new tag. To release with the gap,
+set the repository variable `ALLOW_MISSING_TRANSLATIONS` to `true`, re-run
+the job, and delete the variable after the release. While the variable is
+set, the check only warns.
+
+Run `yarn i18n:check-coverage` before a release to see the result early.
 
 ### Flags
 

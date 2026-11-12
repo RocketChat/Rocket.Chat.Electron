@@ -83,6 +83,11 @@ irreversible step (merge, tag push, release publish) explicitly.
      Filter out chore/version-bump commits.
 5. If the relevant branch has nothing new since the last tag → STOP and
    tell the user that there is nothing to release.
+6. Run `yarn i18n:check-coverage --head origin/<branch>` (`dev`, or the
+   `release/X.Y.x` branch for a patch). It lists the English keys added since
+   the last tag that a loaded locale does not translate. `yarn release:tag`
+   refuses the tag while any are missing, so report them now. The fix is a PR
+   that adds the missing values before the bump PR merges.
 
 ## Phase 1 — Release notes draft
 
@@ -243,9 +248,14 @@ user's own checkout.
 
 1. It reads the version from `package.json`.
 2. It runs the channel-aware ancestor guard.
-3. It refuses when the tag already exists or is not greater than the latest
+3. It refuses when an English key added since the previous release tag has
+   no value in a locale that `src/i18n/resources.ts` loads
+   (`--allow-missing-translations` overrides it, only with the release
+   owner's agreement). The `prepare` job of `build-release.yml` runs the
+   same check.
+4. It refuses when the tag already exists or is not greater than the latest
    tag in its channel.
-4. It tags the current HEAD as the bare version and pushes the tag.
+5. It tags the current HEAD as the bare version and pushes the tag.
 
 It prompts `Proceed? (y/N)`. For a non-interactive run, pass the `--yes`
 flag (`yarn release:tag --yes`). Piping `y` is unreliable because the prompt

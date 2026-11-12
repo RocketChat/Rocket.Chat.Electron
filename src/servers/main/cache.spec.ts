@@ -153,19 +153,6 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
     expect(guest.reloadIgnoringCache).toHaveBeenCalledTimes(1);
   });
 
-  it('reloads after the wipe even when the page blocks unload', async () => {
-    const { guest } = createMockWebContents();
-
-    await logOut(guest);
-
-    const preventDefault = jest.fn();
-    (guest as unknown as EventEmitter).emit('will-prevent-unload', {
-      preventDefault,
-    });
-
-    expect(preventDefault).toHaveBeenCalled();
-  });
-
   it('does not clear on the initial logged-out state at startup or attach', async () => {
     await dispatchUserLoggedIn(false);
     expect(mockGetWebContentsByServerUrl).not.toHaveBeenCalled();

@@ -106,7 +106,10 @@ drift; touching them just creates unnecessary diff noise). Preserve:
 - Every plural form of the locale's language (see Background), each with the
   grammar of that form, not a copy of the English form.
 
-Never invent new keys that don't exist in `en.i18n.json`.
+Never invent new keys that don't exist in `en.i18n.json`. The exception is a
+plural form: when English has `key_one` and `key_other`, add each
+`key_<category>` that the locale's language uses (for example `key_few` and
+`key_many` in Russian), also when English does not have it.
 
 ### (c) Insert at the correct position
 

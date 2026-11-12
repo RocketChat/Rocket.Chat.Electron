@@ -4,7 +4,9 @@ type TranslationTree = { [key: string]: unknown };
 
 const I18N_DIR = 'src/i18n';
 
-const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
+const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
+
+const PLURAL_SUFFIX = new RegExp(`_(${PLURAL_FORMS.join('|')})$`);
 
 export const flattenKeys = (tree: TranslationTree, prefix = ''): string[] =>
   Object.entries(tree).flatMap(([key, value]) => {
@@ -116,7 +118,12 @@ export const findIncompletePlurals = ({
     const categories = pluralCategories(locale);
     const missing = pluralBases.flatMap((base) => {
       const forms = categories.map((category) => `${base}_${category}`);
-      const translated = forms.some((form) => localeKeys.has(form));
+      // i18next can use `_zero` for a count of 0 in every language, so any
+      // plural form, also one that the language does not use, shows that the
+      // locale translates the key.
+      const translated = PLURAL_FORMS.some((category) =>
+        localeKeys.has(`${base}_${category}`)
+      );
       return translated ? forms.filter((form) => !localeKeys.has(form)) : [];
     });
     if (missing.length > 0) {

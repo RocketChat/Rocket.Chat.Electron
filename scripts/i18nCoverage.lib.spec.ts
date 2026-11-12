@@ -136,6 +136,17 @@ describe('findIncompletePlurals', () => {
     });
   });
 
+  it('treats a locale that has only a _zero form as translating the key', () => {
+    expect(
+      findIncompletePlurals({
+        english,
+        locales: { fr: { tab: { unread_zero: 'Aucun' } } },
+      })
+    ).toEqual({
+      fr: ['tab.unread_many', 'tab.unread_one', 'tab.unread_other'],
+    });
+  });
+
   it('leaves a plural key that the locale does not translate to the missing-key check', () => {
     expect(findIncompletePlurals({ english, locales: { ru: {} } })).toEqual({});
   });

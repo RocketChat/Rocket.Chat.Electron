@@ -11,10 +11,11 @@ const INVISIBLE_FORMAT_CHARACTERS =
 const EXTENSION_MARKER =
   /(?:[;,]|(?<=[\d)\s])(?:ext(?:ension)?\.?|x)\s*[:.#]?\s*(?=\d))/i;
 
-// "(0)" is the national trunk prefix that some countries print after the
-// country code (+49 (0)40 ..., +44 (0)20 ...). It is not dialed in the
-// international format.
-const TRUNK_PREFIX = /\(\s*0\s*\)/g;
+// "(0)" directly after the country code is the national trunk prefix that
+// some countries print (+49 (0)40 ..., +44 (0)20 ...). It is not dialed in
+// the international format. A "(0)" later in the number is a written digit.
+const TRUNK_PREFIX_AFTER_COUNTRY_CODE =
+  /^([^\d+]*(?:\+|00)[\s.-]*\d{1,3}[\s.-]*)\(\s*0\s*\)/;
 
 const stripToDialableCharacters = (text: string): string =>
   text.replace(/[^\d+*#]/g, '').replace(/(?!^)\+/g, '');
@@ -34,11 +35,7 @@ export const normalizePhoneNumber = (text: string): string => {
     ? visibleText.slice(0, extensionMatch.index)
     : visibleText;
 
-  const isInternational = /^(?:\+|00)/.test(
-    stripToDialableCharacters(mainNumber)
-  );
-
   return stripToDialableCharacters(
-    isInternational ? mainNumber.replace(TRUNK_PREFIX, '') : mainNumber
+    mainNumber.replace(TRUNK_PREFIX_AFTER_COUNTRY_CODE, '$1')
   );
 };

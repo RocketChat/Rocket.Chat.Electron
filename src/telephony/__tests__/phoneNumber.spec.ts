@@ -42,6 +42,12 @@ describe('normalizePhoneNumber', () => {
     expect(normalizePhoneNumber('0049 30 123456')).toBe('004930123456');
   });
 
+  it('keeps a (0) that is not directly after the country code', () => {
+    expect(normalizePhoneNumber('+49 40 123(0)456')).toBe('+49401230456');
+    expect(normalizePhoneNumber('+49 40 (0)123456')).toBe('+49400123456');
+    expect(normalizePhoneNumber('+49 (0)40 123(0)456')).toBe('+49401230456');
+  });
+
   it('keeps the digits in the order they were written', () => {
     expect(normalizePhoneNumber('+49 40 123 0(456)')).toBe('+49401230456');
     expect(normalizePhoneNumber('+49 40 123456-0')).toBe('+49401234560');

@@ -1,6 +1,6 @@
 ---
 name: dev-app-verify
-description: Drive and screenshot the running Rocket.Chat Desktop dev app (yarn start) through the main-process inspector on port 9339. Trigger menu items (Simulate Download/Update), evaluate in the renderer DOM, and capture titlebar screenshots. Use whenever a UI change needs runtime or visual verification that component tests cannot see (paint, clipping, colors, animation, layout).
+description: Drive and screenshot the running Rocket.Chat Desktop dev app (yarn start) through the main-process inspector on port 9339. Trigger menu items (Simulate Download/Update), evaluate in the renderer DOM, and capture titlebar screenshots. Use whenever a UI change needs runtime or visual verification that component tests cannot see (paint, clipping, colors, animation, layout). Also reproduces a field report on a real workspace with the packaged app over CDP (scratch profile, REST-token login, iframes inside webviews).
 ---
 
 # Verify UI in the running dev app
@@ -20,6 +20,14 @@ paths) are macOS-specific by design. It has no Windows variants.
   `Simulate Update Flow`) and screenshot them at specific progress points.
 - You need computed styles, bounding boxes, or DOM structure from the live
   renderer.
+
+## Packaged build on a real workspace
+
+To reproduce a field report against a real workspace, use the packaged app
+with a scratch profile and `--remote-debugging-port`. The dev build is not
+needed for that. Follow `skills/dev-app-verify/packaged-repro.md`. It uses
+`cdp-eval.mjs` (evaluate in a target) and `cdp-frame.mjs` (evaluate in an
+iframe inside a webview).
 
 ## Before connecting: the four pitfalls
 

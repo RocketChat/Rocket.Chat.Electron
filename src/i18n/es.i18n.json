@@ -170,6 +170,7 @@
       "pdf": "Visor de PDF",
       "markdown": "Visor de Markdown"
     },
+    "windowTitle": "Documento",
     "back": "Volver"
   },
   "downloads": {
@@ -592,7 +593,18 @@
     },
     "expiration": {
       "label": "Expiración:",
-      "expiresOn": "Expira el {{date}}"
-    }
+      "expiresOn": "Expira el {{date}}",
+      "today": "Expira hoy",
+      "inDays_one": "Expira en {{count}} día",
+      "inDays_other": "Expira en {{count}} días",
+      "expired": "Expirado"
+    },
+    "supportedLabel": "Compatible:",
+    "timestampLabel": "Marca de tiempo:",
+    "exceptionsLabel": "Excepciones:",
+    "exceptionVersionsLabel": "Versiones con excepción:",
+    "exceptionExpires": "Expira: {{date}}",
+    "moreExceptions": "... y {{count}} más",
+    "noExceptions": "No hay excepciones de versión configuradas"
   }
 }

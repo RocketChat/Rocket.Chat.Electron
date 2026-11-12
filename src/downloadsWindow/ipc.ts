@@ -130,7 +130,7 @@ const buildDownloadsWindow = async (focusOnShow: boolean): Promise<void> => {
 
   downloadsWindow.once('ready-to-show', () => {
     downloadsWindow?.setTitle(
-      `Downloads - ${packageJsonInformation.productName}`
+      `${t('downloads.title')} - ${packageJsonInformation.productName}`
     );
     if (focusOnShow) {
       downloadsWindow?.show();

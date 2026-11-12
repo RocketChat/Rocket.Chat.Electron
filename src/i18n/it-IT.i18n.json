@@ -4,6 +4,7 @@
       "pdf": "Visualizzatore PDF",
       "markdown": "Visualizzatore Markdown"
     },
+    "windowTitle": "Documento",
     "back": "Indietro"
   },
   "settings": {
@@ -127,8 +128,19 @@
     },
     "expiration": {
       "label": "Scadenza:",
-      "expiresOn": "Scade il {{date}}"
-    }
+      "expiresOn": "Scade il {{date}}",
+      "today": "Scade oggi",
+      "inDays_one": "Scade tra {{count}} giorno",
+      "inDays_other": "Scade tra {{count}} giorni",
+      "expired": "Scaduto"
+    },
+    "supportedLabel": "Supportato:",
+    "timestampLabel": "Timestamp:",
+    "exceptionsLabel": "Eccezioni:",
+    "exceptionVersionsLabel": "Versioni in eccezione:",
+    "exceptionExpires": "Scade: {{date}}",
+    "moreExceptions": "... e altre {{count}}",
+    "noExceptions": "Nessuna eccezione di versione configurata"
   },
   "menus": {
     "simulateDisconnected": "Simula disconnessione",

@@ -152,6 +152,7 @@
       "pdf": "Просмотр PDF",
       "markdown": "Просмотр Markdown"
     },
+    "windowTitle": "Документ",
     "back": "Назад"
   },
   "downloads": {
@@ -564,7 +565,20 @@
     },
     "expiration": {
       "label": "Истечение срока:",
-      "expiresOn": "Истекает {{date}}"
-    }
+      "expiresOn": "Истекает {{date}}",
+      "today": "Истекает сегодня",
+      "inDays_one": "Истекает через {{count}} день",
+      "inDays_few": "Истекает через {{count}} дня",
+      "inDays_many": "Истекает через {{count}} дней",
+      "inDays_other": "Истекает через {{count}} дня",
+      "expired": "Истёк"
+    },
+    "supportedLabel": "Поддерживается:",
+    "timestampLabel": "Отметка времени:",
+    "exceptionsLabel": "Исключения:",
+    "exceptionVersionsLabel": "Версии-исключения:",
+    "exceptionExpires": "Истекает: {{date}}",
+    "moreExceptions": "... и ещё {{count}}",
+    "noExceptions": "Исключения для версий не настроены"
   }
 }

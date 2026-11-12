@@ -148,7 +148,7 @@ const buildSettingsWindow = async (focusOnShow: boolean): Promise<void> => {
 
   settingsWindow.once('ready-to-show', () => {
     settingsWindow?.setTitle(
-      `Settings - ${packageJsonInformation.productName}`
+      `${t('settings.title')} - ${packageJsonInformation.productName}`
     );
     if (focusOnShow) {
       settingsWindow?.show();

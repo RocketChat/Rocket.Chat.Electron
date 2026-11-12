@@ -54,6 +54,7 @@ import {
 } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
+import { setupWebClientCachePurge } from './servers/webClientCachePurge';
 import {
   restoreSettingsWindow,
   startSettingsWindowHandler,
@@ -149,6 +150,7 @@ const start = async (): Promise<void> => {
   const localStorage = await exportLocalStorage();
   await mergePersistableValues(localStorage);
   await setupServers(localStorage);
+  setupWebClientCachePurge();
 
   i18n.setUp();
   await i18n.wait();

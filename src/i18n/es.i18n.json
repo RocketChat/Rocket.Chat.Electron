@@ -596,6 +596,7 @@
       "expiresOn": "Expira el {{date}}",
       "today": "Expira hoy",
       "inDays_one": "Expira en {{count}} día",
+      "inDays_many": "Expira en {{count}} de días",
       "inDays_other": "Expira en {{count}} días",
       "expired": "Expirado"
     },

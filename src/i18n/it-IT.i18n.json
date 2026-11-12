@@ -131,6 +131,7 @@
       "expiresOn": "Scade il {{date}}",
       "today": "Scade oggi",
       "inDays_one": "Scade tra {{count}} giorno",
+      "inDays_many": "Scade tra {{count}} di giorni",
       "inDays_other": "Scade tra {{count}} giorni",
       "expired": "Scaduto"
     },

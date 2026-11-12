@@ -57,6 +57,24 @@ describe('findUncoveredKeys', () => {
     ).toEqual({ fr: ['menu.reload'] });
   });
 
+  it('reports a new key whose value is empty or null', () => {
+    expect(
+      findUncoveredKeys({
+        baseEnglish,
+        english: { menu: { quit: 'Quit', reload: 'Reload' } },
+        locales: {
+          'fr': { menu: { reload: '' } },
+          'de-DE': { menu: { reload: null } },
+          'es': { menu: { reload: '  ' } },
+        },
+      })
+    ).toEqual({
+      'fr': ['menu.reload'],
+      'de-DE': ['menu.reload'],
+      'es': ['menu.reload'],
+    });
+  });
+
   it('requires the plural forms of each locale language', () => {
     const english = {
       menu: {

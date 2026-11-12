@@ -48,9 +48,14 @@ irreversible step (merge, tag push, release publish) explicitly.
   release counts as buildable. No partial releases.
 - A release without the full asset matrix (below) is NOT done. Report
   exactly which assets are missing.
-- The rules above are the complete blocker list. Put untranslated
-  non-English strings and manual Windows or Linux spot checks in the report
-  as notes. They block only when the user names them as blockers.
+- The rules above are the complete blocker list. Put older untranslated
+  strings (gaps that the previous release tag already had) and manual
+  Windows or Linux spot checks in the report as notes. They block only when
+  the user names them as blockers.
+- The translation guard is the exception. An English key added since the
+  previous release tag must have a translation, with every plural form, in
+  each loaded locale. A missing plural form of an older key blocks too.
+  Only the release owner can approve `--allow-missing-translations`.
 - Monitor CI in the background (`run_in_background` Bash or `watcher`).
   NEVER block the session with foreground polling.
 - Create tags with `yarn release:tag` (`scripts/release-tag.ts`).

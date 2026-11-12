@@ -110,11 +110,20 @@ forms of its own language (for example `_few` and `_many` in Russian).
 Older missing keys do not block a release. A missing plural form does, also
 for an older key: when a loaded locale translates a plural key, it must have
 every form of its language. `scripts/localeFiles.spec.ts` checks that rule on
-every pull request.
+every pull request. A key whose value is empty or `null` counts as missing.
+
+For a stable release on `master`, `HEAD^` is the previous `master` commit, so
+the base is the previous stable tag. The alpha tags of the cycle are on `dev`,
+and the check does not use them. So a stable release needs a translation of
+every key added in the cycle, also a key that an alpha shipped with
+`--allow-missing-translations`. Users of the stable channel did not get the
+alpha.
 
 The `prepare` job of `build-release.yml` runs the same check with
 `yarn i18n:check-coverage`, so a tag pushed by hand cannot skip it. When the
-job fails, add the listed keys and cut a new tag. To release with the gap,
+job fails, add the listed keys, bump the version in `package.json`, and tag
+the new version. `yarn release:tag` refuses a tag that already exists, and
+the tag must equal the version in `package.json`. To release with the gap,
 set the repository variable `ALLOW_MISSING_TRANSLATIONS` to `true`, re-run
 the job, and delete the variable after the release. While the variable is
 set, the check only warns.

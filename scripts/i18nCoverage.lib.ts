@@ -29,6 +29,17 @@ export const parseLoadedLocales = (
     .map(([, locale, file]) => ({ locale, file }))
     .filter(({ locale }) => locale !== 'en');
 
+// The keys of a locale that have a value. i18next shows an empty string as
+// the translation, so an empty or null value counts as untranslated.
+const translatedKeys = (tree: TranslationTree, prefix = ''): string[] =>
+  Object.entries(tree).flatMap(([key, value]) => {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return translatedKeys(value as TranslationTree, path);
+    }
+    return typeof value === 'string' && value.trim() !== '' ? [path] : [];
+  });
+
 const pluralCategories = (locale: string): string[] =>
   new Intl.PluralRules(locale).resolvedOptions().pluralCategories;
 
@@ -75,7 +86,7 @@ export const findUncoveredKeys = ({
 
   const uncovered: Record<string, string[]> = {};
   for (const [locale, tree] of Object.entries(locales)) {
-    const localeKeys = new Set(flattenKeys(tree));
+    const localeKeys = new Set(translatedKeys(tree));
     const missing = requiredKeys(addedKeys, englishKeys, locale).filter(
       (key) => !localeKeys.has(key)
     );
@@ -101,7 +112,7 @@ export const findIncompletePlurals = ({
 
   const incomplete: Record<string, string[]> = {};
   for (const [locale, tree] of Object.entries(locales)) {
-    const localeKeys = new Set(flattenKeys(tree));
+    const localeKeys = new Set(translatedKeys(tree));
     const categories = pluralCategories(locale);
     const missing = pluralBases.flatMap((base) => {
       const forms = categories.map((category) => `${base}_${category}`);

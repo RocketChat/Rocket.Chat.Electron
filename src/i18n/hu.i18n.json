@@ -179,6 +179,7 @@
       "pdf": "PDF megjelenítő",
       "markdown": "Markdown megjelenítő"
     },
+    "windowTitle": "Dokumentum",
     "back": "Vissza"
   },
   "downloads": {
@@ -755,7 +756,18 @@
     },
     "expiration": {
       "label": "Lejárat:",
-      "expiresOn": "Lejár ekkor: {{date}}"
-    }
+      "expiresOn": "Lejár ekkor: {{date}}",
+      "today": "Ma lejár",
+      "inDays_one": "{{count}} nap múlva lejár",
+      "inDays_other": "{{count}} nap múlva lejár",
+      "expired": "Lejárt"
+    },
+    "supportedLabel": "Támogatott:",
+    "timestampLabel": "Időbélyeg:",
+    "exceptionsLabel": "Kivételek:",
+    "exceptionVersionsLabel": "Kivételverziók:",
+    "exceptionExpires": "Lejár: {{date}}",
+    "moreExceptions": "... és még {{count}}",
+    "noExceptions": "Nincsenek beállított verziókivételek"
   }
 }

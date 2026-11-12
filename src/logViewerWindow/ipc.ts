@@ -279,7 +279,7 @@ const buildLogViewerWindow = async (focusOnShow: boolean): Promise<void> => {
 
   logViewerWindow.once('ready-to-show', () => {
     logViewerWindow?.setTitle(
-      `Log Viewer - ${packageJsonInformation.productName}`
+      `${t('logViewer.title')} - ${packageJsonInformation.productName}`
     );
     if (focusOnShow) {
       logViewerWindow?.show();

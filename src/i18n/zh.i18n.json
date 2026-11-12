@@ -4,6 +4,7 @@
       "pdf": "PDF 查看器",
       "markdown": "Markdown 查看器"
     },
+    "windowTitle": "文档",
     "back": "返回"
   },
   "settings": {
@@ -88,8 +89,18 @@
     },
     "expiration": {
       "label": "过期时间:",
-      "expiresOn": "将于 {{date}} 过期"
-    }
+      "expiresOn": "将于 {{date}} 过期",
+      "today": "今天到期",
+      "inDays_other": "{{count}} 天后到期",
+      "expired": "已过期"
+    },
+    "supportedLabel": "支持：",
+    "timestampLabel": "时间戳：",
+    "exceptionsLabel": "例外：",
+    "exceptionVersionsLabel": "例外版本：",
+    "exceptionExpires": "到期：{{date}}",
+    "moreExceptions": "... 以及另外 {{count}} 个",
+    "noExceptions": "未配置版本例外"
   },
   "menus": {
     "simulateDisconnected": "模拟断开连接",

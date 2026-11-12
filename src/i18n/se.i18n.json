@@ -4,6 +4,7 @@
       "pdf": "PDF-čájáhus",
       "markdown": "Markdown-čájáhus"
     },
+    "windowTitle": "Dokument",
     "back": "Ruovttoluotta"
   },
   "settings": {
@@ -88,8 +89,19 @@
     },
     "expiration": {
       "label": "Utgångsdatum:",
-      "expiresOn": "Upphör {{date}}"
-    }
+      "expiresOn": "Upphör {{date}}",
+      "today": "Upphör i dag",
+      "inDays_one": "Upphör om {{count}} dag",
+      "inDays_other": "Upphör om {{count}} dagar",
+      "expired": "Har upphört"
+    },
+    "supportedLabel": "Stöds:",
+    "timestampLabel": "Tidsstämpel:",
+    "exceptionsLabel": "Undantag:",
+    "exceptionVersionsLabel": "Undantagsversioner:",
+    "exceptionExpires": "Upphör: {{date}}",
+    "moreExceptions": "... och {{count}} till",
+    "noExceptions": "Inga versionsundantag har konfigurerats"
   },
   "menus": {
     "simulateDisconnected": "Simuler čađaheami",

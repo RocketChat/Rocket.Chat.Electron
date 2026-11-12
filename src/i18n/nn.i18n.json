@@ -4,6 +4,7 @@
       "pdf": "PDF-vising",
       "markdown": "Markdown-vising"
     },
+    "windowTitle": "Dokument",
     "back": "Tilbake"
   },
   "settings": {
@@ -88,8 +89,19 @@
     },
     "expiration": {
       "label": "Utløpsdato:",
-      "expiresOn": "Utløper {{date}}"
-    }
+      "expiresOn": "Utløper {{date}}",
+      "today": "Går ut i dag",
+      "inDays_one": "Går ut om {{count}} dag",
+      "inDays_other": "Går ut om {{count}} dagar",
+      "expired": "Gått ut"
+    },
+    "supportedLabel": "Støtta:",
+    "timestampLabel": "Tidsstempel:",
+    "exceptionsLabel": "Unntak:",
+    "exceptionVersionsLabel": "Unntaksversjonar:",
+    "exceptionExpires": "Går ut: {{date}}",
+    "moreExceptions": "... og {{count}} til",
+    "noExceptions": "Ingen versjonsunntak er konfigurerte"
   },
   "menus": {
     "simulateDisconnected": "Simuler fråkopling",

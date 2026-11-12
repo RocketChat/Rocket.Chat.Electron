@@ -267,8 +267,12 @@ reads a real TTY. See `docs/release-process.md` for the full guard table.
    `gh run view <run-id> --json status,conclusion,jobs`. The workflow has a
    `prepare` job and seven build jobs (`windows-nsis`, `windows-msi`,
    `windows-appx`, `macos-dmg`, `macos-mas`, `linux-appimage`, `linux-snap`).
-   The full matrix typically takes 40–90 min. The macOS jobs are usually last
-   (notarization).
+   The build work takes 14–18 min. `macos-mas` is the slowest job in every
+   run (signing and notarization). The wall time is 15–21 min when runners
+   are free. Runner queue time can add up to ~50 min, on any OS. Measured on
+   the ten tag runs from 4.18.0-alpha.5 to 4.19.0-alpha.2 (Oct 2026): wall
+   time 15–64 min, longest queue 52 min. A job in `queued` status waits for a
+   runner and is not stuck.
 2. On failure, run `gh run view <run-id> --log-failed`. Report the verbatim
    error and the job that broke. Known trap (`AGENTS.md`, "Patches And
    Builds"): Windows signing is two-phase Google Cloud KMS. MSI failures often
@@ -276,7 +280,8 @@ reads a real TTY. See `docs/release-process.md` for the full guard table.
 3. You can sometimes re-run a single failed job:
    `gh run rerun <run-id> --failed`. Ask the user first.
 4. Do not report progress on every poll. Report only completion, failure, or
-   a stall (>2h).
+   a stall. A stall is a job that runs more than 45 min, or a run with no
+   finished job after 2h.
 
 ## Phase 4b — Re-tag an unpublished release
 

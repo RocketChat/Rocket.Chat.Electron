@@ -4,6 +4,7 @@
       "pdf": "عارض PDF",
       "markdown": "عارض Markdown"
     },
+    "windowTitle": "مستند",
     "back": "رجوع"
   },
   "settings": {
@@ -88,8 +89,23 @@
     },
     "expiration": {
       "label": "تاريخ الانتهاء:",
-      "expiresOn": "ينتهي في {{date}}"
-    }
+      "expiresOn": "ينتهي في {{date}}",
+      "today": "ينتهي اليوم",
+      "inDays_zero": "ينتهي اليوم",
+      "inDays_one": "ينتهي خلال يوم واحد",
+      "inDays_two": "ينتهي خلال يومين",
+      "inDays_few": "ينتهي خلال {{count}} أيام",
+      "inDays_many": "ينتهي خلال {{count}} يومًا",
+      "inDays_other": "ينتهي خلال {{count}} يوم",
+      "expired": "منتهي الصلاحية"
+    },
+    "supportedLabel": "مدعوم:",
+    "timestampLabel": "الطابع الزمني:",
+    "exceptionsLabel": "الاستثناءات:",
+    "exceptionVersionsLabel": "إصدارات الاستثناء:",
+    "exceptionExpires": "ينتهي: {{date}}",
+    "moreExceptions": "... و{{count}} أخرى",
+    "noExceptions": "لم يتم تكوين أي استثناءات للإصدارات"
   },
   "menus": {
     "simulateDisconnected": "محاكاة قطع الاتصال",

@@ -21,12 +21,16 @@
       "title": "Über {{- appName}}",
       "version": "Version: <1>{{-version}}</1>",
       "checkUpdates": "Auf Aktualisierungen prüfen",
+      "checkUpdatesDescription": "Jetzt nach einer neueren Version suchen.",
       "checkUpdatesOnStart": "Beim Start auf Aktualisierungen prüfen",
+      "checkUpdatesOnStartDescription": "Bei jedem Start der App nach einer neueren Version suchen.",
       "noUpdatesAvailable": "Es sind keine Aktualisierungen verfügbar.",
+      "updateAvailable": "Version {{- version}} ist verfügbar",
       "copyright": "Copyright {{copyright}}",
       "errorWhenLookingForUpdates": "Bei der Suche nach Updates ist ein Fehler aufgetreten",
       "updateChannel": {
         "label": "Update-Kanal",
+        "description": "Aus welchem Release-Kanal diese App aktualisiert wird.",
         "latest": "Stabil",
         "beta": "Beta",
         "alpha": "Alpha (Experimentell)"
@@ -48,6 +52,15 @@
       "yes": "Ja",
       "no": "Nein"
     },
+    "clearCache": {
+      "announcement": "Neu laden erzwingen",
+      "title": "Anmeldesitzung behalten?",
+      "message": "Wenn du deine Anmeldesitzung löschst, wirst du abgemeldet und musst deine Anmeldedaten erneut eingeben.",
+      "keepLoginData": "Anmeldesitzung behalten",
+      "deleteLoginData": "Anmeldesitzung löschen",
+      "clearingWait": "Bitte warten",
+      "cancel": "Abbrechen"
+    },
     "downloadRemoval": {
       "title": "Bist du dir sicher?",
       "message": "Diesen Download entfernen?",
@@ -56,8 +69,21 @@
     },
     "resetAppData": {
       "title": "Bist du dir sicher?",
+      "message": "Dadurch wirst du von allen deinen Teams abgemeldet und die App wird auf ihre ursprünglichen Einstellungen zurückgesetzt. Dies kann nicht rückgängig gemacht werden.",
       "yes": "Ja",
       "cancel": "Abbrechen"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "Für Bildschirmaufnahme zugelassene Server zurücksetzen",
+      "message": "Dadurch werden alle Berechtigungen zur Bildschirmaufnahme für Server gelöscht, sodass sie erneut um Erlaubnis fragen. Dies kann nicht rückgängig gemacht werden.",
+      "yes": "Ja",
+      "cancel": "Abbrechen"
+    },
+    "saveLogFile": {
+      "title": "Protokolldatei speichern",
+      "zipFiles": "ZIP-Dateien",
+      "logFiles": "Protokolldateien",
+      "allFiles": "Alle Dateien"
     },
     "screenshare": {
       "title": "Bildschirm teilen",
@@ -69,6 +95,12 @@
       "currentVersion": "Aktuelle Version",
       "newVersion": "Neue Version",
       "install": "Update installieren",
+      "openStore": {
+        "mas": "App Store öffnen",
+        "windows": "Microsoft Store öffnen",
+        "snap": "Snap Store öffnen",
+        "flatpak": "Flathub öffnen"
+      },
       "skip": "Diese Version überspringen"
     },
     "updateInstallLater": {
@@ -86,6 +118,11 @@
       "title": "Aktualisierung überspringen",
       "message": "Wir werden Sie benachrichtigen, wenn die nächste Aktualisierung verfügbar ist\n Wenn Sie Ihre Meinung ändern, können Sie im Über Menü nach Aktualisierungen suchen.",
       "ok": "OK"
+    },
+    "selectLogFile": {
+      "title": "Protokolldatei auswählen",
+      "logFiles": "Protokolldateien",
+      "allFiles": "Alle Dateien"
     },
     "selectClientCertificate": {
       "announcement": "Wählen Sie Zertifikat aus",
@@ -130,6 +167,42 @@
         "recordMessage": "Nachrichten aufnehmen"
       }
     },
+    "outlookCalendar": {
+      "title": "Outlook-Kalender",
+      "encryptionUnavailableTitle": "Verschlüsselung nicht verfügbar",
+      "encryptionUnavailable": "Dein Betriebssystem unterstützt keine Verschlüsselung.\nDeine Anmeldedaten werden im Klartext gespeichert.",
+      "field_required": "Dieses Feld ist erforderlich",
+      "remember_credentials": "Anmeldedaten merken",
+      "cancel": "Abbrechen",
+      "submit": "Anmelden"
+    },
+    "supportedVersion": {
+      "title": "Version des Arbeitsbereichs nicht unterstützt"
+    },
+    "telephonySelectServer": {
+      "title": "Arbeitsbereich für diesen Anruf auswählen",
+      "message": "Welcher Arbeitsbereich soll diesen Anruf übernehmen?",
+      "rememberChoice": "Für zukünftige Anrufe merken"
+    },
+    "clearLogs": {
+      "title": "Protokolle löschen",
+      "message": "Möchtest du die Protokolldatei wirklich löschen?",
+      "detail": "Diese Aktion kann nicht rückgängig gemacht werden. Alle aktuellen Protokolleinträge werden dauerhaft gelöscht.",
+      "yes": "Löschen",
+      "cancel": "Abbrechen"
+    },
+    "clearDownloads": {
+      "title": "Alle Downloads entfernen",
+      "message": "Alle Downloads aus dieser Liste entfernen? Die heruntergeladenen Dateien bleiben auf dem Datenträger.",
+      "yes": "Alle entfernen",
+      "cancel": "Abbrechen"
+    },
+    "removeCertificate": {
+      "title": "Zertifikat entfernen",
+      "message": "Die gespeicherte Entscheidung für „{{- domain}}“ entfernen? Beim nächsten Besuch wirst du erneut gefragt.",
+      "yes": "Entfernen",
+      "cancel": "Abbrechen"
+    },
     "uiOverride": {
       "title": "UI-Vorschau laden",
       "message": "Eine andere Web-Oberfläche für „{{- host}}“ laden?",
@@ -145,7 +218,13 @@
       "pdf": "PDF-Betrachter",
       "markdown": "Markdown-Betrachter"
     },
-    "back": "Zurück"
+    "windowTitle": "Dokument",
+    "back": "Zurück",
+    "download": "Herunterladen",
+    "downloadError": "Das Dokument konnte nicht gespeichert werden",
+    "dismissError": "Schließen",
+    "viewSource": "Quelltext anzeigen",
+    "viewRendered": "Gerenderte Ansicht anzeigen"
   },
   "downloads": {
     "title": "Downloads",
@@ -162,9 +241,16 @@
       "server": "Server",
       "mimeType": "Typ",
       "status": "Status",
+      "empty": "Filter erscheinen hier, sobald du Downloads hast.",
       "clear": "Filter löschen",
       "all": "Alle",
       "mimes": {
+        "image": "Bilder",
+        "video": "Videos",
+        "audio": "Audio",
+        "text": "Dokumente",
+        "application": "Dateien",
+        "other": "Sonstige",
         "images": "Bilder",
         "videos": "Videos",
         "audios": "Audios",
@@ -174,18 +260,22 @@
       "statuses": {
         "paused": "Angehalten",
         "cancelled": "Abgesagt"
-      }
+      },
+      "selectAll": "Alle"
     },
     "item": {
       "cancel": "Absagen",
       "copyLink": "Link kopieren",
+      "copied": "Kopiert",
       "errored": "Herunterladen abgebrochen",
       "pause": "Pause",
       "progressSize": "{{receivedBytes, byteSize}} von {{totalBytes, byteSize}} ({{ratio, percentage}})",
       "remove": "Aus Liste entfernen",
       "resume": "Fortsetzen",
       "retry": "Wiederholen",
-      "showInFolder": "Im Ordner anzeigen"
+      "showInFolder": "Im Ordner anzeigen",
+      "openFile": "{{fileName}} öffnen",
+      "preview": "Schnellansicht"
     },
     "showingResults": "Ergebnisse anzeigen {{first}} - {{last}} von {{count}}",
     "empty": {
@@ -195,6 +285,20 @@
     "noResults": {
       "title": "Keine passenden Downloads",
       "subtitle": "Versuchen Sie, Ihre Filter oder Suche anzupassen."
+    },
+    "clearFilters": "Filter löschen",
+    "clearFiltersCount": "{{count}} Filter löschen",
+    "count_one": "{{count}} Download",
+    "count_other": "{{count}} Downloads",
+    "countOfTotal": "{{count}} von {{total}} Downloads",
+    "sidebar": {
+      "title": "Download-Filter"
+    },
+    "clearAll": "Alle entfernen",
+    "day": {
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "unknown": "Früher"
     }
   },
   "certificatesManager": {
@@ -205,12 +309,41 @@
       "domain": "Domain",
       "actions": "Aktionen",
       "remove": "Entfernen"
+    },
+    "filter": "Domains filtern",
+    "state": {
+      "trusted": "Vertrauenswürdig",
+      "notTrusted": "Nicht vertrauenswürdig"
+    },
+    "summary_one": "{{count}} Zertifikat · {{trusted}} vertrauenswürdig",
+    "summary_other": "{{count}} Zertifikate · {{trusted}} vertrauenswürdig",
+    "empty": {
+      "title": "Noch keine Zertifikate",
+      "subtitle": "Zertifikate, denen du vertraust oder die du ablehnst, erscheinen hier."
+    },
+    "noResults": {
+      "title": "Keine passenden Zertifikate",
+      "subtitle": "Versuche es mit einer anderen Domain."
     }
   },
   "settings": {
     "title": "Einstellungen",
     "general": "Allgemein",
     "certificates": "Zertifikate",
+    "developer": "Entwickler",
+    "voiceVideo": "Sprache & Video",
+    "sections": {
+      "appUi": "App-Oberfläche",
+      "systemUi": "System-Oberfläche",
+      "systemBehavior": "Systemverhalten",
+      "calling": "Anrufe",
+      "other": "Sonstiges & Technisches",
+      "logging": "Protokollierung",
+      "telephony": "Telefonie",
+      "videoCalls": "Videoanrufe",
+      "advanced": "Erweitert",
+      "uiPreview": "Web-UI-Vorschau"
+    },
     "options": {
       "report": {
         "title": "Fehler an Entwickler melden",
@@ -230,7 +363,8 @@
       },
       "hardwareAcceleration": {
         "title": "Hardware-Beschleunigung",
-        "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
+        "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen.",
+        "hint": "Die App wird bei einer Änderung neu geladen."
       },
       "resetWindowBounds": {
         "title": "Fenstergrößen und -positionen zurücksetzen",
@@ -239,6 +373,7 @@
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
         "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
+        "hint": "Die App wird neu gestartet, wenn diese Option geändert wird.",
         "forcedDescription": "Bereits aktiv, weil die Anwendung eine RDP-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
       },
       "internalVideoChatWindow": {
@@ -247,7 +382,8 @@
       },
       "minimizeOnClose": {
         "title": "Beim Schließen minimieren",
-        "description": "Beim Schließen wird die App minimiert, andernfalls wird die Anwendung beendet. Das Taskleistensymbol muss deaktiviert werden, damit dies wirksam wird."
+        "description": "Beim Schließen wird die App minimiert, andernfalls wird die Anwendung beendet. Das Taskleistensymbol muss deaktiviert werden, damit dies wirksam wird.",
+        "disabledHint": "Das Taskleistensymbol muss deaktiviert sein."
       },
       "menubar": {
         "title": "Menüleiste",
@@ -259,9 +395,18 @@
         "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen.",
         "disabledHint": "Die Seitenleiste kann nicht deaktiviert werden, wenn die Menüleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
+      "navigation": {
+        "title": "Arbeitsbereich-Umschalter",
+        "description": "Wähle, wie du zwischen Arbeitsbereichen wechselst",
+        "workspaceTabs": "Tabs",
+        "workspaceBar": "Seitenleiste",
+        "workspaceHidden": "Titelleiste"
+      },
       "trayIcon": {
         "title": "Taskleistensymbol",
-        "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
+        "titleDarwin": "Symbol in der Menüleiste",
+        "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet.",
+        "descriptionDarwin": "Zeigt das App-Symbol in der Menüleiste an."
       },
       "trayIconUnreadCounter": {
         "title": "Zähler für Ungelesenes im Taskleistensymbol",
@@ -279,9 +424,33 @@
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
+      "telephony": {
+        "title": "Telefonie",
+        "description": "Rocket.Chat übernimmt Tastenkombinationen für Telefonanrufe sowie tel:- und callto:-Links. Deaktiviere diese Option, um die Tastenkombination auszuschalten, Klicks auf Telefonlinks zu ignorieren und die folgenden Einstellungen auszublenden."
+      },
+      "telephonyServer": {
+        "title": "Arbeitsbereich für Telefonie",
+        "description": "Wähle, welcher Arbeitsbereich eingehende Telefonanrufe übernimmt (tel:- und callto:-Links).",
+        "auto": "Automatisch (jedes Mal fragen)"
+      },
+      "telephonyShortcut": {
+        "title": "Globale Tastenkombination für Anrufe",
+        "description": "Drücke diese Tastenkombination in einer beliebigen App, um Rocket.Chat in den Vordergrund zu holen und das Wählfeld zu öffnen. Wenn sich eine Telefonnummer in deiner Zwischenablage befindet, wird sie vorausgefüllt.",
+        "placeholder": "Nicht festgelegt — klicke auf Speichern, um sie aufzuzeichnen",
+        "capturePlaceholder": "Tastenkombination drücken…",
+        "save": "Speichern",
+        "clear": "Löschen",
+        "registered": "Tastenkombination registriert",
+        "reservedByApp": "{{accelerator}} wird bereits von Rocket.Chat verwendet. Wähle eine andere Kombination.",
+        "reservedByOS": "{{accelerator}} ist für dein Betriebssystem reserviert. Wähle eine andere Kombination."
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Erlaubte Bildschirmaufnahmeserver löschen",
         "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Bildschirmaufnahme in Videoanrufen erlauben",
+        "description": "Erlaubt die Bildschirmaufnahme in Videoanrufen. Bei jedem Videoanruf wird um Erlaubnis gefragt."
       },
       "ntlmCredentials": {
         "title": "NTLM-Anmeldeinformationen",
@@ -302,6 +471,26 @@
         "auto": "System folgen",
         "light": "Hell",
         "dark": "Dunkel"
+      },
+      "outlookCalendarSyncInterval": {
+        "title": "Synchronisierungsintervall des Outlook-Kalenders",
+        "description": "Wie oft in Minuten nach Aktualisierungen von Kalenderereignissen gesucht wird (1–60)."
+      },
+      "verboseOutlookLogging": {
+        "title": "Ausführliche Protokollierung für den Outlook-Kalender",
+        "description": "Aktiviert detaillierte Exchange/NTLM-Debug-Protokolle zur Fehlerbehebung bei Problemen mit der Outlook-Kalender-Integration."
+      },
+      "detailedEventsLogging": {
+        "title": "Detaillierte Ereignisprotokollierung",
+        "description": "Protokolliert die vollständigen Ereignisdaten, die während der Kalendersynchronisierung zwischen Outlook und Rocket.Chat ausgetauscht werden. Hilfreich zur Diagnose von Synchronisierungsproblemen."
+      },
+      "debugLogging": {
+        "title": "Ausführliche Protokollierung",
+        "description": "Schreibt alle Konsolenausgaben in die Protokolldatei. Wenn deaktiviert, werden nur Fehler und wichtige Meldungen gespeichert, damit die Protokolle kleiner und übersichtlicher bleiben."
+      },
+      "e2ePdfPreviewSizeLimit": {
+        "title": "Größenlimit für PDF-Vorschauen in verschlüsselten Räumen (MB)",
+        "description": "Verschlüsselte Dateien werden für Vorschauen in den Arbeitsspeicher geladen. Dateien, die größer als dieses Limit sind, werden direkt heruntergeladen."
       },
       "uiPreview": {
         "title": "Einen Web-UI-Build laden",
@@ -332,9 +521,9 @@
         }
       }
     },
-    "sections": {
-      "uiPreview": "Web-UI-Vorschau"
-    }
+    "appearance": "Darstellung",
+    "search": "Einstellungen suchen",
+    "noResults": "Keine passenden Einstellungen"
   },
   "error": {
     "authNeeded": "Auth benötigt, probieren Sie <strong>{{- auth}}</strong>",
@@ -358,16 +547,21 @@
     "copy": "&Kopieren",
     "cut": "&Ausschneiden",
     "developerMode": "Entwicklermodus",
+    "simulateUpdate": "Aktualisierungsablauf simulieren",
+    "simulateDownload": "Download simulieren",
+    "simulateDisconnected": "Verbindungsabbruch simulieren",
     "disableGpu": "GPU deaktivieren",
     "documentation": "Dokumentation",
     "downloads": "Downloads",
     "settings": "Einstellungen",
+    "checkForUpdates": "Auf Aktualisierungen prüfen",
     "editMenu": "&Bearbeiten",
     "fileMenu": "&Datei",
     "findInPage": "&Suchen…",
     "forward": "&Nach vorne",
     "helpMenu": "&Hilfe",
     "hide": "Ausblenden {{- appName}}",
+    "hideOthers": "Andere ausblenden",
     "learnMore": "Mehr erfahren",
     "minimize": "Minimieren",
     "openDevTools": "&DevTools öffnen",
@@ -376,6 +570,7 @@
     "quit": "{{- appName}} &beenden",
     "redo": "Wieder&holen",
     "reload": "&Neu laden",
+    "reloadClearingCache": "Neu laden erzwingen",
     "reportIssue": "Problem melden",
     "resetAppData": "Appdaten löschen",
     "resetWindowBounds": "Fenstergrößen und -positionen zurücksetzen",
@@ -388,13 +583,24 @@
     "showServerList": "Server liste",
     "showTrayIcon": "Symbole in menüleiste",
     "toggleDevTools": "&DevTools ein-/ausblenden",
+    "workspaceSwitcher": "Arbeitsbereich-Umschalter",
+    "workspaceTabs": "Tabs",
+    "workspaceBar": "Seitenleiste",
+    "workspaceHidden": "Titelleiste",
+    "nextWorkspace": "Nächster Arbeitsbereich",
+    "previousWorkspace": "Vorheriger Arbeitsbereich",
+    "openConfigFolder": "&Konfigurationsordner öffnen",
+    "openLogViewer": "&Protokollanzeige öffnen",
+    "preferences": "Einstellungen",
+    "videoCallDevTools": "&DevTools für Videoanruf öffnen",
+    "videoCallTools": "Videoanruf-Werkzeuge",
+    "videoCallDevToolsAutoOpen": "DevTools automatisch öffnen",
     "undo": "Wider&rufen",
     "unhide": "Zeige alles",
     "viewMenu": "Darstellung",
     "windowMenu": "&Fenster",
     "zoomIn": "Vergrößern",
     "zoomOut": "Verkleinern",
-    "simulateDisconnected": "Verbindungsabbruch simulieren",
     "restoreServerUi": "Server-UI wiederherstellen"
   },
   "findInPage": {
@@ -425,6 +631,12 @@
       "reload": "Videoanruf neu laden"
     }
   },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}} verwendet eine nicht unterstützte Version von Rocket.Chat",
+    "announcement": "Ein Administrator muss den Arbeitsbereich auf eine unterstützte Version aktualisieren, damit der Zugriff über die Mobil- und Desktop-Apps wieder möglich ist.",
+    "moreInformation": "Mehr erfahren",
+    "checkAgain": "Erneut prüfen"
+  },
   "selfxss": {
     "title": "Halt!",
     "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren oder um das Konto einer anderen Person zu \"hacken\", ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
@@ -434,13 +646,34 @@
     "addNewServer": "Neuen Server hinzufügen",
     "downloads": "Downloads",
     "settings": "Einstellungen",
+    "menuTitle": "App anpassen und steuern",
     "item": {
       "reload": "Server neu laden",
       "remove": "Server entfernen",
       "openDevTools": "DevTools öffnen",
       "clearCache": "Cache leeren",
       "clearStorageData": "Speicherdaten löschen",
-      "updateUiPreview": "UI-Vorschau aktualisieren"
+      "copyCurrentUrl": "URL kopieren",
+      "updateUiPreview": "UI-Vorschau aktualisieren",
+      "reloadClearingCache": "Neu laden erzwingen",
+      "serverInfo": "Serverinformationen",
+      "supportedVersionsInfo": "Informationen zu unterstützten Versionen",
+      "addWorkspace": "Arbeitsbereich hinzufügen",
+      "muteWorkspace": "Arbeitsbereich stummschalten"
+    },
+    "tooltips": {
+      "unreadMessage": "{{- count}} ungelesene Nachricht",
+      "unreadMessages": "{{- count}} ungelesene Nachrichten",
+      "userNotLoggedIn": "Nicht angemeldet",
+      "addWorkspace": "Arbeitsbereich hinzufügen ({{shortcut}}+N)",
+      "settingsMenu": "App anpassen und steuern",
+      "audioPlaying": "Audio wird abgespielt",
+      "audioMuted": "Stummgeschaltet",
+      "muteWorkspace": "Arbeitsbereich stummschalten",
+      "unmuteWorkspace": "Stummschaltung des Arbeitsbereichs aufheben",
+      "captureScreen": "Bildschirm wird geteilt",
+      "captureCamera": "Kamera an",
+      "captureMicrophone": "Mikrofon an"
     }
   },
   "tabBar": {
@@ -512,7 +745,8 @@
       "offline": "Offline",
       "disconnected": "Verbindung getrennt — Verbindung wird erneut hergestellt...",
       "signIn": "Bei {{- workspace}} anmelden",
-      "addWorkspace": "Arbeitsbereich hinzufügen"
+      "addWorkspace": "Arbeitsbereich hinzufügen",
+      "expiresAt": "Bis {{- time}}"
     }
   },
   "taskbar": {
@@ -525,6 +759,7 @@
     "permissionRequired": "Die Bildschirmaufnahme-Berechtigung ist erforderlich, um Ihren Bildschirm zu teilen.",
     "permissionInstructions": "Bitte aktivieren Sie diese in den Systemeinstellungen und versuchen Sie es erneut.",
     "permissionAlreadyOnHint": "Bereits aktiviert? Wähle Rocket.Chat in dieser Liste aus, entferne es mit der Minus-Taste (−) und beende Rocket.Chat und öffne es erneut. Teile dann deinen Bildschirm noch einmal und erlaube den Zugriff, wenn macOS danach fragt.",
+    "openSystemPreferences": "Systemeinstellungen öffnen",
     "title": "Bildschirm teilen",
     "entireScreen": "Ihr gesamter Bildschirm",
     "applicationWindow": "Anwendungsfenster",
@@ -532,6 +767,154 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
+  },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Hauptprozess",
+        "renderer": "Renderer-Prozess",
+        "preload": "Preload-Prozess",
+        "rendererRoot": "Hauptfenster",
+        "webview": "Server-Webview",
+        "videoCall": "Videoanruf-Fenster"
+      },
+      "components": {
+        "auth": "Authentifizierung",
+        "connection": "Verbindung",
+        "notification": "Benachrichtigung",
+        "outlook": "Outlook-Kalender",
+        "videoCall": "Videoanruf",
+        "download": "Download",
+        "spellCheck": "Rechtschreibprüfung",
+        "general": "Allgemein"
+      },
+      "serverInfo": {
+        "anonymous": "Anonymer Server",
+        "local": "Lokaler Prozess",
+        "unknown": "Unbekannter Server"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "Store-Modul für die Zuordnung des Serverkontexts nicht verfügbar",
+      "importFailed": "Import des Stores fehlgeschlagen"
+    },
+    "errors": {
+      "configurationFailed": "electron-log konnte nicht konfiguriert werden",
+      "storeUnavailable": "Store-Modul für die Zuordnung des Serverkontexts nicht verfügbar",
+      "webContentsLoggingFailed": "Protokollierung für webContents konnte nicht eingerichtet werden",
+      "rendererLogFailed": "Protokollierung aus dem Renderer fehlgeschlagen",
+      "consoleOverrideFailed": "Konsolenmethoden konnten nicht überschrieben werden"
+    },
+    "messages": {
+      "serverContext": "Server {{- serverNumber}}",
+      "logContext": "Protokollkontext: {{- context}}"
+    }
+  },
+  "logViewer": {
+    "title": "Protokollanzeige",
+    "fileInfo": {
+      "custom": "Benutzerdefiniert",
+      "entries_one": "{{count}} Eintrag",
+      "entries_other": "{{count}} Einträge",
+      "entriesOfTotal": "{{count}} von {{total}} Einträgen",
+      "matches": "{{count}} Treffer",
+      "noEntries": "Keine Einträge"
+    },
+    "buttons": {
+      "openLogFile": "Protokolldatei öffnen",
+      "defaultLog": "Standardprotokoll",
+      "refresh": "Aktualisieren",
+      "autoRefresh": "Automatisch aktualisieren",
+      "stopAutoRefresh": "Automatische Aktualisierung beenden",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "save": "Speichern",
+      "saved": "Gespeichert",
+      "showInFolder": "Im Ordner anzeigen",
+      "retry": "Wiederholen",
+      "dismissError": "Fehler schließen",
+      "clear": "Alle löschen",
+      "clearFilters": "Filter löschen",
+      "clearFiltersCount": "{{count}} Filter löschen"
+    },
+    "controls": {
+      "showContext": "Kontext anzeigen",
+      "showServer": "Server anzeigen",
+      "autoScrollToTop": "Automatisch nach oben scrollen",
+      "wrapLines": "Lange Zeilen umbrechen",
+      "collapseMultiline": "Mehrzeilige Einträge einklappen",
+      "showTimeline": "Zeitachse anzeigen"
+    },
+    "placeholders": {
+      "searchLogs": "Protokolle durchsuchen...",
+      "exchangeDebug": "Exchange-Debug-Filter"
+    },
+    "filters": {
+      "level": {
+        "debug": "Debug",
+        "info": "Info",
+        "warn": "Warnung",
+        "error": "Fehler",
+        "verbose": "Ausführlich",
+        "silly": "Sehr ausführlich"
+      },
+      "context": {
+        "main": "Hauptprozess",
+        "renderer": "Renderer",
+        "webview": "Webview",
+        "videocall": "Videoanruf",
+        "outlook": "Outlook-Kalender",
+        "auth": "Authentifizierung",
+        "updates": "Aktualisierungen",
+        "notifications": "Benachrichtigungen",
+        "servers": "Server",
+        "ipc": "IPC-Kommunikation"
+      },
+      "exchangeDebug": {
+        "all": "Alle Protokolle",
+        "success": "Nur Erfolge",
+        "failure": "Nur Fehlschläge",
+        "ntlmFlow": "NTLM-Authentifizierung",
+        "exchangeComm": "Exchange-Kommunikation",
+        "sslCerts": "SSL-/Zertifikatsprobleme",
+        "networkErrors": "Netzwerkprobleme",
+        "successFactors": "Erfolgsfaktoren",
+        "outlookCalendar": "Outlook-Kalender"
+      },
+      "selectAll": "Alle"
+    },
+    "messages": {
+      "noLogsFound": "Keine Protokolle gefunden",
+      "newEntriesPaused": "{{count}} neue Einträge — zum Fortsetzen klicken",
+      "adjustFilters": "Passe deine Filter an oder aktualisiere die Protokolle",
+      "loadFailed": "Protokolle konnten nicht geladen werden",
+      "saveFailed": "Protokolle konnten nicht gespeichert werden"
+    },
+    "sidebar": {
+      "title": "Protokollfilter",
+      "levels": "Stufen",
+      "contexts": "Kontexte",
+      "display": "Anzeige",
+      "servers": "Server"
+    },
+    "entry": {
+      "expand_one": "+{{count}} weitere Zeile",
+      "expand_other": "+{{count}} weitere Zeilen",
+      "collapse": "Weniger anzeigen",
+      "copyEntry": "Eintrag kopieren",
+      "copied": "Kopiert"
+    },
+    "status": {
+      "live": "Live",
+      "loading": "Wird geladen…"
+    },
+    "timeline": {
+      "label": "Verteilung über die Zeit",
+      "peak_one": "Spitze {{count}} Eintrag",
+      "peak_other": "Spitze {{count}} Einträge",
+      "hint": "Ziehe über das Diagramm, um einen Zeitraum auszuwählen",
+      "clearRange": "Zeitraum zurücksetzen"
+    }
   },
   "serverInfo": {
     "title": "Serverinformationen",
@@ -556,7 +939,65 @@
     },
     "expiration": {
       "label": "Ablauf:",
-      "expiresOn": "Läuft ab am {{date}}"
+      "expiresOn": "Läuft ab am {{date}}",
+      "today": "Läuft heute ab",
+      "inDays_one": "Läuft in {{count}} Tag ab",
+      "inDays_other": "Läuft in {{count}} Tagen ab",
+      "expired": "Abgelaufen"
+    },
+    "supportedLabel": "Unterstützt:",
+    "timestampLabel": "Zeitstempel:",
+    "exceptionsLabel": "Ausnahmen:",
+    "exceptionVersionsLabel": "Ausnahmeversionen:",
+    "exceptionExpires": "Läuft ab: {{date}}",
+    "moreExceptions": "... und {{count}} weitere",
+    "noExceptions": "Keine Versionsausnahmen konfiguriert"
+  },
+  "telephony": {
+    "defaultHandlerPrompt": {
+      "title": "Rocket.Chat öffnet jetzt Telefonlinks",
+      "body": "tel:- und callto:-Links aus deinem Browser oder anderen Apps können jetzt Rocket.Chat öffnen.",
+      "bodyWindows": "Windows benötigt noch deine Bestätigung. Tippe auf der Seite „Standard-Apps“ auf jeden Linktyp (tel und callto) und wähle Rocket.Chat aus. Das musst du einmal pro Linktyp tun, denn Windows verhindert, dass Apps dies selbst festlegen.",
+      "bodyLinux": "Andere Apps beanspruchen auf deinem System möglicherweise noch Telefonlinks. Öffne die Standardanwendungen und lege Rocket.Chat für tel: und callto: fest, um den Vorgang abzuschließen.",
+      "openSettingsWindows": "Standard-Apps für Rocket.Chat öffnen",
+      "openSettingsLinux": "Standardanwendungen öffnen",
+      "dismiss": "Verstanden"
+    },
+    "diagnostics": {
+      "title": "Diagnose der Telefonlink-Verarbeitung",
+      "subtitle": "Prüfe, ob dein System tel:- und callto:-Links an Rocket.Chat weiterleitet.",
+      "refresh": "Aktualisieren",
+      "copy": "Diagnose kopieren",
+      "copied": "Kopiert",
+      "openSettingsAction": "Einstellungen öffnen",
+      "platform": "Plattform",
+      "lastChecked": "Zuletzt geprüft",
+      "summary": {
+        "checking": "Wird geprüft…",
+        "issues_one": "{{count}} Problem",
+        "issues_other": "{{count}} Probleme",
+        "warnings_one": "{{count}} Warnung",
+        "warnings_other": "{{count}} Warnungen",
+        "healthy": "Alle Prüfungen bestanden"
+      },
+      "status": {
+        "pass": "Bestanden",
+        "fail": "Fehlgeschlagen",
+        "unknown": "Unbekannt"
+      },
+      "checks": {
+        "isDefault.tel": "Systemstandard für Click-to-Call (tel:): Rocket.Chat",
+        "isDefault.callto": "Systemstandard für Click-to-Conference (callto:): Rocket.Chat",
+        "windows.registeredApp": "Rocket.Chat ist in den registrierten Anwendungen von Windows aufgeführt",
+        "windows.capabilities.tel": "Windows-Capabilities ordnen Click-to-Call (tel:) Rocket.Chat zu",
+        "windows.capabilities.callto": "Windows-Capabilities ordnen Click-to-Conference (callto:) Rocket.Chat zu",
+        "windows.progid.tel": "Windows-ProgID für Click-to-Call (tel:) startet Rocket.Chat",
+        "windows.progid.callto": "Windows-ProgID für Click-to-Conference (callto:) startet Rocket.Chat",
+        "darwin.handler.tel": "macOS bestätigt, dass Rocket.Chat Click-to-Call (tel:) verarbeitet",
+        "darwin.handler.callto": "macOS bestätigt, dass Rocket.Chat Click-to-Conference (callto:) verarbeitet",
+        "linux.xdg.tel": "Linux-xdg-mime leitet Click-to-Call (tel:) an Rocket.Chat weiter",
+        "linux.xdg.callto": "Linux-xdg-mime leitet Click-to-Conference (callto:) an Rocket.Chat weiter"
+      }
     }
   }
 }

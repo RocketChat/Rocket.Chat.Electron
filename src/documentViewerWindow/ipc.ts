@@ -2,6 +2,7 @@ import path from 'path';
 
 import type { Event } from 'electron';
 import { app, BrowserWindow, screen } from 'electron';
+import i18next from 'i18next';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
@@ -173,7 +174,7 @@ const buildDocumentViewerWindow = async (
 
   documentViewerWindow.once('ready-to-show', () => {
     documentViewerWindow?.setTitle(
-      `Document - ${packageJsonInformation.productName}`
+      `${i18next.t('documentViewer.windowTitle')} - ${packageJsonInformation.productName}`
     );
     documentViewerWindow?.show();
   });

@@ -89,6 +89,7 @@
       "pdf": "PDF 檢視器",
       "markdown": "Markdown 檢視器"
     },
+    "windowTitle": "文件",
     "back": "返回"
   },
   "downloads": {
@@ -355,7 +356,17 @@
     },
     "expiration": {
       "label": "過期時間:",
-      "expiresOn": "將於 {{date}} 過期"
-    }
+      "expiresOn": "將於 {{date}} 過期",
+      "today": "今天到期",
+      "inDays_other": "{{count}} 天後到期",
+      "expired": "已過期"
+    },
+    "supportedLabel": "支援：",
+    "timestampLabel": "時間戳記：",
+    "exceptionsLabel": "例外：",
+    "exceptionVersionsLabel": "例外版本：",
+    "exceptionExpires": "到期：{{date}}",
+    "moreExceptions": "... 以及另外 {{count}} 個",
+    "noExceptions": "未設定版本例外"
   }
 }

@@ -110,6 +110,7 @@
       "pdf": "PDFビューアー",
       "markdown": "Markdownビューアー"
     },
+    "windowTitle": "ドキュメント",
     "back": "戻る"
   },
   "downloads": {
@@ -378,7 +379,17 @@
     },
     "expiration": {
       "label": "有効期限:",
-      "expiresOn": "{{date}}に期限切れ"
-    }
+      "expiresOn": "{{date}}に期限切れ",
+      "today": "本日期限切れ",
+      "inDays_other": "あと {{count}} 日で期限切れ",
+      "expired": "期限切れ"
+    },
+    "supportedLabel": "サポート:",
+    "timestampLabel": "タイムスタンプ:",
+    "exceptionsLabel": "例外:",
+    "exceptionVersionsLabel": "例外バージョン:",
+    "exceptionExpires": "有効期限: {{date}}",
+    "moreExceptions": "... ほか {{count}} 件",
+    "noExceptions": "バージョン例外は設定されていません"
   }
 }

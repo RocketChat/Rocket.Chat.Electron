@@ -42,8 +42,12 @@ const translatedKeys = (tree: TranslationTree, prefix = ''): string[] =>
     return typeof value === 'string' && value.trim() !== '' ? [path] : [];
   });
 
+// The order of `pluralCategories` changes between ICU versions, so sort the
+// categories in the CLDR order to keep the report the same on every runtime.
 const pluralCategories = (locale: string): string[] =>
-  new Intl.PluralRules(locale).resolvedOptions().pluralCategories;
+  [...new Intl.PluralRules(locale).resolvedOptions().pluralCategories].sort(
+    (a, b) => PLURAL_FORMS.indexOf(a) - PLURAL_FORMS.indexOf(b)
+  );
 
 // i18next resolves `key` with `count` to `key_<category>`, and the categories
 // differ by language: Japanese has only `other`, Russian also needs `few` and

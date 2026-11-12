@@ -143,7 +143,7 @@ describe('findIncompletePlurals', () => {
         locales: { fr: { tab: { unread_zero: 'Aucun' } } },
       })
     ).toEqual({
-      fr: ['tab.unread_many', 'tab.unread_one', 'tab.unread_other'],
+      fr: ['tab.unread_one', 'tab.unread_many', 'tab.unread_other'],
     });
   });
 

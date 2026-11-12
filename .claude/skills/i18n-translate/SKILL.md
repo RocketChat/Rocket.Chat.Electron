@@ -38,8 +38,13 @@ consistent.
   1,000,000). `pl`, `ru` and `uk-UA` need `_one`, `_few`, `_many` and
   `_other`. Keep the suffixes in English, because i18next reads them.
 - Locale files: `src/i18n/*.i18n.json` (currently `ar`, `de-DE`, `es`,
-  `fi`, `fr`, `hu`, `it-IT`, `ja`, `nb-NO`, `nn`, `no`, `pl`, `pt-BR`,
-  `ru`, `se`, `sv`, `tr-TR`, `uk-UA`, `zh`, `zh-CN`, `zh-TW`).
+  `fi`, `fr`, `hu`, `it-IT`, `ja`, `nn`, `no`, `pl`, `pt-BR`, `ru`, `se`,
+  `sv`, `tr-TR`, `uk-UA`, `zh-CN`, `zh-TW`).
+- `resources.ts` does not load `ar`, `nn` and `se`. They are partial
+  translations, and they stay unloaded until they are complete. The loader
+  keys `nb` and `nn` are aliases of `no.i18n.json`, and `zh` is an alias of
+  `zh-CN.i18n.json`. Do not add a locale file that copies another file. Add
+  an alias in `resources.ts`.
 - `src/i18n/__tests__/resources.spec.ts` asserts the set of locales
   `resources.ts` exposes loaders for, and that a sample of locales
   (`de-DE`, `pt-BR`, `ja`) load as non-empty objects — it does not assert

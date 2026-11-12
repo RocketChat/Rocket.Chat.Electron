@@ -573,6 +573,7 @@ describe('deepLinks/main.ts', () => {
       });
 
       it('respects beforeunload again once the main frame navigates', async () => {
+        mockWebContents.loadURL.mockReturnValueOnce(new Promise(() => {}));
         setupDeepLinks();
         await runAuthDeepLink();
 
@@ -580,6 +581,39 @@ describe('deepLinks/main.ts', () => {
           isMainFrame: true,
           isSameDocument: false,
         });
+
+        expect(mockWebContents.listenerCount('will-prevent-unload')).toBe(0);
+        expect(mockWebContents.listenerCount('did-start-navigation')).toBe(0);
+      });
+
+      it('respects beforeunload again after a same-document navigation settles', async () => {
+        mockWebContents.loadURL.mockImplementationOnce(() => {
+          mockWebContents.emit('did-start-navigation', {
+            isMainFrame: true,
+            isSameDocument: true,
+          });
+          return Promise.resolve();
+        });
+        setupDeepLinks();
+
+        await runAuthDeepLink();
+        await new Promise(setImmediate);
+
+        const preventDefault = jest.fn();
+        mockWebContents.emit('will-prevent-unload', { preventDefault });
+        expect(preventDefault).not.toHaveBeenCalled();
+        expect(mockWebContents.listenerCount('did-start-navigation')).toBe(0);
+      });
+
+      it('respects beforeunload again after a navigation fails', async () => {
+        mockWebContents.loadURL.mockRejectedValueOnce(new Error('ERR_FAILED'));
+        jest
+          .spyOn(loggers.main, 'warn')
+          .mockImplementationOnce(() => undefined);
+        setupDeepLinks();
+
+        await runAuthDeepLink();
+        await new Promise(setImmediate);
 
         expect(mockWebContents.listenerCount('will-prevent-unload')).toBe(0);
         expect(mockWebContents.listenerCount('did-start-navigation')).toBe(0);

@@ -88,7 +88,7 @@ does not fire it on a forced logout.
 2. Update `scripts/webSignals.lib.spec.ts`.
 3. Run `yarn test scripts/webSignals.lib.spec.ts`.
 4. Run the probe against a server to show the new contract passes.
-5. Update the event list in `AGENTS.md` (Testing section) and in
+5. Update the event list in `docs/testing.md` ("Web client events") and in
    `scripts/README.md`.
 
 ## Limits

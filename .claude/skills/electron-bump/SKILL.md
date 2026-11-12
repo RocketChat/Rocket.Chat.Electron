@@ -63,7 +63,7 @@ This skill automates a safe Electron upgrade for **this repo**
      README/builder updates. Full path.
 6. Make sure that the GitNexus index is fresh. If a GitNexus tool warns that
    the index is stale, run `node .gitnexus/run.cjs analyze --index-only`
-   (see `AGENTS.md`). Run it only at a quiet point: a
+   (see `docs/gitnexus.md`). Run it only at a quiet point: a
    background analyze can drop staged files and restart a running
    `yarn start` app.
 
@@ -116,8 +116,8 @@ NEVER comes from this table. Treat anything specific below as "last seen" only.
 | Cert docs            | `docs/corporate-certificate-configuration.md`                                      | references Node TLS API availability per Electron version                                                                                                                                           |
 
 **Patches**: none is Electron-coupled as of E40. `@ewsjs/xhr` and
-`@kayahr/jest-electron-runner` are unrelated (see `AGENTS.md`, "Patches And
-Builds"). `.yarn/patches/` also holds an `app-builder-lib` patch for
+`@kayahr/jest-electron-runner` are unrelated (see `docs/build-and-packaging.md`,
+"Dependency patches"). `.yarn/patches/` also holds an `app-builder-lib` patch for
 electron-builder 26.0.3. Check it when the plan bumps electron-builder.
 **Native deps**: none (pure JS/TS, no ABI risk). Re-check both with the
 finder.

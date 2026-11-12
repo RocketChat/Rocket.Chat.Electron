@@ -207,7 +207,10 @@ Cut alphas directly from `dev`. There is no dedicated branch.
      `latest.yml` from `windows-nsis`, `latest-mac.yml` from `macos-dmg`, and
      `latest-linux.yml` from `linux-appimage`. The metadata lists the files
      that the job built, so a second uploader would replace it with a
-     partial list.
+     partial list. In the workflow, only those three jobs set
+     `upload_update_metadata: 'true'`. The action reads its `mode`,
+     `targets` and `upload_update_metadata` inputs from
+     `workspaces/desktop-release-action/action.yml`.
    - The draft is marked Pre-release for alpha, beta, and rc tags. That
      flag, and not the metadata file name, keeps the build away from stable
      clients.

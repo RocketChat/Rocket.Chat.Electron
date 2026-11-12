@@ -21,6 +21,10 @@ import {
 } from './icons';
 import { applyMacOSMenuBarGlyphAppearance } from './macOSTrayGlyph';
 import { getRootWindow } from './rootWindow';
+import {
+  toggleRootWindowFromTray,
+  trackRootWindowBlur,
+} from './trayClickToggle';
 
 const t = i18next.t.bind(i18next);
 
@@ -306,16 +310,9 @@ const createTrayIcon = (): Tray => {
 
   if (process.platform !== 'darwin') {
     trayIcon.addListener('click', async () => {
+      const clickedAt = Date.now();
       try {
-        const isRootWindowVisible = select(selectIsRootWindowVisible);
-        const browserWindow = await getRootWindow();
-
-        if (isRootWindowVisible) {
-          browserWindow.hide();
-          return;
-        }
-
-        browserWindow.show();
+        toggleRootWindowFromTray(await getRootWindow(), { clickedAt });
       } catch (error) {
         loggers.ui.error(
           'Failed to toggle the root window from the tray icon click',
@@ -326,16 +323,9 @@ const createTrayIcon = (): Tray => {
   }
 
   trayIcon.addListener('balloon-click', async () => {
+    const clickedAt = Date.now();
     try {
-      const isRootWindowVisible = select(selectIsRootWindowVisible);
-      const browserWindow = await getRootWindow();
-
-      if (isRootWindowVisible) {
-        browserWindow.hide();
-        return;
-      }
-
-      browserWindow.show();
+      toggleRootWindowFromTray(await getRootWindow(), { clickedAt });
     } catch (error) {
       loggers.ui.error(
         'Failed to toggle the root window from the tray balloon click',
@@ -343,6 +333,12 @@ const createTrayIcon = (): Tray => {
       );
     }
   });
+
+  getRootWindow()
+    .then(trackRootWindowBlur)
+    .catch((error) => {
+      loggers.ui.warn('Failed to track root window blur for the tray', error);
+    });
 
   trayIcon.addListener('right-click', (_event, bounds) => {
     trayIcon.popUpContextMenu(undefined, bounds);

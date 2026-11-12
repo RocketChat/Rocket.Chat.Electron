@@ -218,6 +218,7 @@
       "pdf": "PDF Viewer",
       "markdown": "Markdown Viewer"
     },
+    "windowTitle": "Document",
     "back": "Back",
     "download": "Download",
     "downloadError": "The document could not be saved",
@@ -932,8 +933,19 @@
     },
     "expiration": {
       "label": "Expiration:",
-      "expiresOn": "Expires on {{date}}"
-    }
+      "expiresOn": "Expires on {{date}}",
+      "today": "Expires today",
+      "inDays_one": "Expires in {{count}} day",
+      "inDays_other": "Expires in {{count}} days",
+      "expired": "Expired"
+    },
+    "supportedLabel": "Supported:",
+    "timestampLabel": "Timestamp:",
+    "exceptionsLabel": "Exceptions:",
+    "exceptionVersionsLabel": "Exception Versions:",
+    "exceptionExpires": "Expires: {{date}}",
+    "moreExceptions": "... and {{count}} more",
+    "noExceptions": "No version exceptions configured"
   },
   "telephony": {
     "defaultHandlerPrompt": {

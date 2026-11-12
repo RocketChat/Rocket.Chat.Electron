@@ -1,4 +1,5 @@
 import { Box, Margins } from '@rocket.chat/fuselage';
+import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
@@ -20,6 +21,7 @@ type ServerData = {
 };
 
 export const ServerInfoModal = () => {
+  const { t } = useTranslation();
   const isVisible = useSelector(
     ({ dialogs }: RootState) => dialogs?.serverInfoModal?.isOpen ?? false
   );
@@ -41,7 +43,7 @@ export const ServerInfoModal = () => {
     >
       <Margins block='x16'>
         <Box fontScale='h3' marginBlockEnd='x16'>
-          Server Information
+          {t('serverInfo.title')}
         </Box>
 
         <Box

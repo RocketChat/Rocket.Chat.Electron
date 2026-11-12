@@ -180,6 +180,7 @@
       "pdf": "PDF-visning",
       "markdown": "Markdown-visning"
     },
+    "windowTitle": "Dokument",
     "back": "Tilbake"
   },
   "downloads": {
@@ -639,7 +640,18 @@
     },
     "expiration": {
       "label": "Utløpsdato:",
-      "expiresOn": "Utløper {{date}}"
-    }
+      "expiresOn": "Utløper {{date}}",
+      "today": "Utløper i dag",
+      "inDays_one": "Utløper om {{count}} dag",
+      "inDays_other": "Utløper om {{count}} dager",
+      "expired": "Utløpt"
+    },
+    "supportedLabel": "Støttet:",
+    "timestampLabel": "Tidsstempel:",
+    "exceptionsLabel": "Unntak:",
+    "exceptionVersionsLabel": "Unntaksversjoner:",
+    "exceptionExpires": "Utløper: {{date}}",
+    "moreExceptions": "... og {{count}} til",
+    "noExceptions": "Ingen versjonsunntak er konfigurert"
   }
 }

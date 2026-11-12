@@ -3,7 +3,7 @@ name: electron-security-reviewer
 description: Read-only reviewer of a diff (default `git diff dev...HEAD`, or a given path/PR) for Electron trust-boundary issues. Dispatch on arcs touching the main process, preload scripts, IPC, BrowserWindow/BrowserView/webview creation, protocol/deep-link handlers, downloads, notifications, or external URL/window opening.
 model: sonnet
 effort: medium
-tools: Read, Grep, Glob, Bash, mcp__gitnexus__impact, mcp__gitnexus__context, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs
+tools: Read, Grep, Glob, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs
 ---
 
 You are the Electron Security Reviewer. You review a DIFF for trust-boundary
@@ -118,8 +118,7 @@ it matches the repo's established safe pattern first:
   If a pre-existing issue is visible in code you read, mention it separately
   under "pre-existing, out of scope" rather than blending it into the diff
   findings.
-- If GitNexus impact/context data materially changes the blast radius of a
-  touched symbol (e.g., an IPC handler with many upstream callers), use
-  `mcp__gitnexus__impact` / `mcp__gitnexus__context` to confirm and cite it.
+- When the callers of a touched symbol change the blast radius (e.g., an IPC
+  handler with many upstream callers), find those callers and cite them.
 - Every claim about "Electron says do X" must be traceable to a context7 doc
   lookup or to this repo's own code — never to unverified recollection.

@@ -21,7 +21,7 @@ paths) are macOS-specific by design. It has no Windows variants.
 - You need computed styles, bounding boxes, or DOM structure from the live
   renderer.
 
-## Before connecting: the four pitfalls
+## Before connecting: the three pitfalls
 
 1. **Watcher restarts kill everything.** The rollup watcher restarts the
    whole app when ANY bundle rebuilds, including after a subagent's last
@@ -36,17 +36,10 @@ paths) are macOS-specific by design. It has no Windows variants.
    Electron process exists, two instances raced the SingletonLock. To
    recover, run `pkill -9 -f "<worktree-name>"`, wait, then start a single
    fresh `yarn start` (cold boot ≈ 30s).
-4. **Background `gitnexus analyze` interferes.** While it runs, it mutates
-   worktree git state and touches watched files. It can restart the app
-   mid-verification (phantom `bundles src/` rebuilds). It can also silently
-   drop freshly staged files from the git index. Do not reindex during a
-   verification run. When you reindex, use
-   `node .gitnexus/run.cjs analyze --index-only`.
 
 ## The script
 
-Run it in the context-mode sandbox (Bun has a global `WebSocket`) or in any
-Bun runtime. Adapt the marked sections.
+Run it with Bun, which has a global `WebSocket`. Adapt the marked sections.
 
 ```javascript
 const targets = await fetch('http://127.0.0.1:9339/json', {

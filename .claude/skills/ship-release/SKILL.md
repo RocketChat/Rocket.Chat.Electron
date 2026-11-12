@@ -56,7 +56,7 @@ irreversible step (merge, tag push, release publish) explicitly.
   previous release tag must have a translation, with every plural form, in
   each loaded locale. A missing plural form of an older key blocks too.
   Only the release owner can approve `--allow-missing-translations`.
-- Monitor CI in the background (`run_in_background` Bash or `watcher`).
+- Monitor CI in the background (`run_in_background` Bash or a subagent).
   NEVER block the session with foreground polling.
 - Create tags with `yarn release:tag` (`scripts/release-tag.ts`).
   NEVER use a bare `git tag` push. The script is channel-aware. Before it
@@ -384,8 +384,11 @@ lands on `dev` first. NEVER back-merge `master` into `dev`.
      (the previous stable tag for a stable release). It moves tickets forward
      only and skips each ticket that is already at or past the target.
 
+   The script reads `JIRA_API_TOKEN` from the environment, and `JIRA_SERVER`
+   and `JIRA_LOGIN` from the environment or from the jira-cli configuration
+   (`~/.config/.jira/.config.yml`).
+
    ```sh
-   source ~/.claude/skills/jira/jira-env.sh
    .claude/skills/ship-release/jira-release-sync.py <version>          # dry run
    .claude/skills/ship-release/jira-release-sync.py <version> --apply
    ```

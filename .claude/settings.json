@@ -12,16 +12,6 @@
         ]
       },
       {
-        "matcher": "mcp__gitnexus__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gitnexus-scope.cjs",
-            "timeout": 5
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -76,13 +66,7 @@
       "Bash(yarn test *)",
       "Bash(yarn lint)",
       "Bash(yarn lint *)",
-      "Bash(npx tsc --noEmit)",
-      "Bash(node .gitnexus/run.cjs *)",
-      "mcp__gitnexus__detect_changes",
-      "mcp__gitnexus__impact",
-      "mcp__gitnexus__query",
-      "mcp__gitnexus__context",
-      "mcp__plugin_context-mode_context-mode__ctx_search"
+      "Bash(npx tsc --noEmit)"
     ]
   }
 }

@@ -7,6 +7,7 @@ import {
 } from '../app/main/app';
 import { loggers } from '../logging/scopes';
 import { ServerUrlResolutionStatus } from '../servers/common';
+import { ignoringBeforeUnload } from '../servers/ignoringBeforeUnload';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
 import { openTelephonyDialpad } from '../telephony/dialpad';
@@ -180,6 +181,19 @@ function getWebContents(
   });
 }
 
+// The user started this navigation from outside the page, so a `beforeunload`
+// handler (for example from an admin Custom Script) must not cancel it.
+const navigateServerView = (webContents: WebContents, url: string): void => {
+  ignoringBeforeUnload(webContents, () => webContents.loadURL(url)).catch(
+    (error: { code?: string }) => {
+      loggers.main.warn('Deep link navigation failed', {
+        origin: new URL(url).origin,
+        code: error?.code,
+      });
+    }
+  );
+};
+
 const performAuthentication = async ({
   host,
   token,
@@ -191,7 +205,7 @@ const performAuthentication = async ({
     url.searchParams.append('userId', userId);
 
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(url.href);
+    navigateServerView(webContents, url.href);
   });
 
 const performSamlAuthentication = async ({
@@ -205,7 +219,7 @@ const performSamlAuthentication = async ({
     );
 
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(url.href);
+    navigateServerView(webContents, url.href);
   });
 };
 
@@ -230,7 +244,7 @@ const performOpenRoom = async ({
     }
 
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(url.href);
+    navigateServerView(webContents, url.href);
   });
 
 const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
@@ -239,7 +253,7 @@ const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
       return;
     }
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
+    navigateServerView(webContents, new URL(path, serverUrl).href);
   });
 
 const performConference = async ({ host, path }: InviteParams): Promise<void> =>
@@ -255,7 +269,7 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
       return;
     }
 
-    webContents.loadURL(href);
+    navigateServerView(webContents, href);
   });
 
 const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {

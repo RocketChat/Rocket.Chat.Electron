@@ -484,6 +484,7 @@
     "workspaces": "Espacios de trabajo",
     "addWorkspace": "Añadir espacio de trabajo",
     "unreadMessage_one": "{{- count}} mensaje",
+    "unreadMessage_many": "{{- count}} de mensajes",
     "unreadMessage_other": "{{- count}} mensajes",
     "unreadMessages": "Mensajes no leídos",
     "meatballMenu": "Menú de la aplicación",

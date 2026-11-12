@@ -15,12 +15,19 @@ export const flattenKeys = (tree: TranslationTree, prefix = ''): string[] =>
   });
 
 // The locales the app can load are the keys of the object that
-// `src/i18n/resources.ts` exports. A locale file without a loader there never
-// reaches a user, so it is not checked.
-export const parseLoadedLocales = (resourcesSource: string): string[] =>
-  [...resourcesSource.matchAll(/^\s*'([\w-]+)':\s*\(\)/gm)]
-    .map(([, locale]) => locale)
-    .filter((locale) => locale !== 'en');
+// `src/i18n/resources.ts` exports, each with the file that its loader imports.
+// A locale file without a loader there never reaches a user, so it is not
+// checked.
+export const parseLoadedLocales = (
+  resourcesSource: string
+): { locale: string; file: string }[] =>
+  [
+    ...resourcesSource.matchAll(
+      /^\s*'([\w-]+)':[^\n]*import\('\.\/([\w-]+\.i18n\.json)'\)/gm
+    ),
+  ]
+    .map(([, locale, file]) => ({ locale, file }))
+    .filter(({ locale }) => locale !== 'en');
 
 const pluralCategories = (locale: string): string[] =>
   new Intl.PluralRules(locale).resolvedOptions().pluralCategories;
@@ -79,6 +86,35 @@ export const findUncoveredKeys = ({
   return uncovered;
 };
 
+// Returns, for each locale, the plural forms that its language uses but that
+// the locale leaves out of a plural key it does translate. i18next asks for
+// `key_many` when the count is in the `many` category, and a missing form
+// shows the English text. A plural key that the locale does not translate at
+// all is a missing key, not a plural gap, so it is not reported here.
+export const findIncompletePlurals = ({
+  english,
+  locales,
+}: Omit<CoverageInput, 'baseEnglish'>): Record<string, string[]> => {
+  const pluralBases = flattenKeys(english)
+    .filter((key) => key.endsWith('_other'))
+    .map((key) => key.slice(0, -'_other'.length));
+
+  const incomplete: Record<string, string[]> = {};
+  for (const [locale, tree] of Object.entries(locales)) {
+    const localeKeys = new Set(flattenKeys(tree));
+    const categories = pluralCategories(locale);
+    const missing = pluralBases.flatMap((base) => {
+      const forms = categories.map((category) => `${base}_${category}`);
+      const translated = forms.some((form) => localeKeys.has(form));
+      return translated ? forms.filter((form) => !localeKeys.has(form)) : [];
+    });
+    if (missing.length > 0) {
+      incomplete[locale] = missing;
+    }
+  }
+  return incomplete;
+};
+
 const git = (args: string[]): string =>
   execFileSync('git', args, {
     encoding: 'utf8',
@@ -98,7 +134,15 @@ export type CoverageReport = {
   baseRef: string;
   headRef: string;
   uncovered: Record<string, string[]>;
+  incompletePlurals: Record<string, string[]>;
 };
+
+export const hasCoverageGaps = ({
+  uncovered,
+  incompletePlurals,
+}: CoverageReport): boolean =>
+  Object.keys(uncovered).length > 0 ||
+  Object.keys(incompletePlurals).length > 0;
 
 export const checkI18nCoverage = ({
   headRef = 'HEAD',
@@ -109,39 +153,57 @@ export const checkI18nCoverage = ({
 } = {}): CoverageReport => {
   const resources = git(['show', `${headRef}:${I18N_DIR}/resources.ts`]);
   const locales = Object.fromEntries(
-    parseLoadedLocales(resources).map((locale) => [
+    parseLoadedLocales(resources).map(({ locale, file }) => [
       locale,
-      readJsonAtRef(headRef, `${I18N_DIR}/${locale}.i18n.json`),
+      readJsonAtRef(headRef, `${I18N_DIR}/${file}`),
     ])
   );
+  const english = readJsonAtRef(headRef, `${I18N_DIR}/en.i18n.json`);
+  const uncovered = findUncoveredKeys({
+    baseEnglish: readJsonAtRef(baseRef, `${I18N_DIR}/en.i18n.json`),
+    english,
+    locales,
+  });
 
-  return {
-    baseRef,
-    headRef,
-    uncovered: findUncoveredKeys({
-      baseEnglish: readJsonAtRef(baseRef, `${I18N_DIR}/en.i18n.json`),
-      english: readJsonAtRef(headRef, `${I18N_DIR}/en.i18n.json`),
-      locales,
-    }),
-  };
+  // A new plural key already shows in `uncovered`. Keep only the older ones.
+  const incompletePlurals = Object.fromEntries(
+    Object.entries(findIncompletePlurals({ english, locales }))
+      .map(([locale, keys]): [string, string[]] => [
+        locale,
+        keys.filter((key) => !uncovered[locale]?.includes(key)),
+      ])
+      .filter(([, keys]) => keys.length > 0)
+  );
+
+  return { baseRef, headRef, uncovered, incompletePlurals };
 };
 
-export const formatCoverageReport = ({
-  baseRef,
-  headRef,
-  uncovered,
-}: CoverageReport): string => {
-  const entries = Object.entries(uncovered);
-  if (entries.length === 0) {
-    return `Every English key added since ${baseRef} is translated in every loaded locale.`;
-  }
-  const lines = entries.flatMap(([locale, keys]) => [
+const formatGaps = (gaps: Record<string, string[]>): string[] =>
+  Object.entries(gaps).flatMap(([locale, keys]) => [
     `  ${locale} (${keys.length}):`,
     ...keys.map((key) => `    ${key}`),
   ]);
-  return [
-    `English keys added between ${baseRef} and ${headRef} that a loaded locale does not translate:`,
-    ...lines,
-    `Add these keys to each listed locale file in src/i18n/, then run the release again.`,
-  ].join('\n');
+
+export const formatCoverageReport = (report: CoverageReport): string => {
+  const { baseRef, headRef, uncovered, incompletePlurals } = report;
+  if (!hasCoverageGaps(report)) {
+    return `Every English key added since ${baseRef} is translated, with every plural form, in every loaded locale.`;
+  }
+  const sections: string[] = [];
+  if (Object.keys(uncovered).length > 0) {
+    sections.push(
+      `English keys added between ${baseRef} and ${headRef} that a loaded locale does not translate:`,
+      ...formatGaps(uncovered)
+    );
+  }
+  if (Object.keys(incompletePlurals).length > 0) {
+    sections.push(
+      `Plural forms that a loaded locale's language uses but the locale does not translate:`,
+      ...formatGaps(incompletePlurals)
+    );
+  }
+  sections.push(
+    `Add these keys to each listed locale file in src/i18n/, then run the release again.`
+  );
+  return sections.join('\n');
 };

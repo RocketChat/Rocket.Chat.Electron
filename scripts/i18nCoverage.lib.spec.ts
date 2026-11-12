@@ -1,4 +1,5 @@
 import {
+  findIncompletePlurals,
   findUncoveredKeys,
   flattenKeys,
   formatCoverageReport,
@@ -16,14 +17,17 @@ describe('flattenKeys', () => {
 });
 
 describe('parseLoadedLocales', () => {
-  it('lists the loaders of resources.ts except English', () => {
+  it('lists the loaders of resources.ts and their files, except English', () => {
     const source = `export default {
   'de-DE': (): Promise<Resource> => import('./de-DE.i18n.json'),
   'en': (): Promise<Resource> => import('./en.i18n.json'),
-  'ja': (): Promise<Resource> => import('./ja.i18n.json'),
+  'nb-NO': (): Promise<Resource> => import('./no.i18n.json'),
 } as const;`;
 
-    expect(parseLoadedLocales(source)).toEqual(['de-DE', 'ja']);
+    expect(parseLoadedLocales(source)).toEqual([
+      { locale: 'de-DE', file: 'de-DE.i18n.json' },
+      { locale: 'nb-NO', file: 'no.i18n.json' },
+    ]);
   });
 });
 
@@ -90,14 +94,45 @@ describe('findUncoveredKeys', () => {
   });
 });
 
-describe('formatCoverageReport', () => {
-  it('lists the missing keys per locale', () => {
+describe('findIncompletePlurals', () => {
+  const english = {
+    tab: {
+      unread_one: '{{count}} message',
+      unread_other: '{{count}} messages',
+    },
+  };
+
+  it('reports the plural forms of the language that a locale leaves out', () => {
     expect(
-      formatCoverageReport({
-        baseRef: '4.19.0',
-        headRef: 'HEAD',
-        uncovered: { fr: ['menu.reload'] },
+      findIncompletePlurals({
+        english,
+        locales: {
+          fr: { tab: { unread_one: 'un', unread_other: 'plusieurs' } },
+          ja: { tab: { unread_other: '件' } },
+          ru: { tab: { unread_one: 'одно', unread_other: 'много' } },
+        },
       })
-    ).toContain('  fr (1):\n    menu.reload');
+    ).toEqual({
+      fr: ['tab.unread_many'],
+      ru: ['tab.unread_few', 'tab.unread_many'],
+    });
+  });
+
+  it('leaves a plural key that the locale does not translate to the missing-key check', () => {
+    expect(findIncompletePlurals({ english, locales: { ru: {} } })).toEqual({});
+  });
+});
+
+describe('formatCoverageReport', () => {
+  it('lists the missing keys and plural forms per locale', () => {
+    const text = formatCoverageReport({
+      baseRef: '4.19.0',
+      headRef: 'HEAD',
+      uncovered: { fr: ['menu.reload'] },
+      incompletePlurals: { ru: ['tab.unread_few'] },
+    });
+
+    expect(text).toContain('  fr (1):\n    menu.reload');
+    expect(text).toContain('  ru (1):\n    tab.unread_few');
   });
 });

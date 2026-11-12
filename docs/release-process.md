@@ -107,7 +107,10 @@ same file at the previous release tag (`git describe --tags HEAD^`). Each
 key that English added since that tag must exist in every locale that
 `src/i18n/resources.ts` loads. For a plural key, each locale needs the plural
 forms of its own language (for example `_few` and `_many` in Russian).
-Older gaps do not block a release.
+Older missing keys do not block a release. A missing plural form does, also
+for an older key: when a loaded locale translates a plural key, it must have
+every form of its language. `scripts/localeFiles.spec.ts` checks that rule on
+every pull request.
 
 The `prepare` job of `build-release.yml` runs the same check with
 `yarn i18n:check-coverage`, so a tag pushed by hand cannot skip it. When the

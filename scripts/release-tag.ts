@@ -4,7 +4,11 @@ import { parse, SemVer } from 'semver';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { checkI18nCoverage, formatCoverageReport } from './i18nCoverage.lib';
+import {
+  checkI18nCoverage,
+  formatCoverageReport,
+  hasCoverageGaps,
+} from './i18nCoverage.lib';
 import { evaluateTag, getChannel, normalizeTag } from './releaseTag.lib';
 
 const REPO_URL = 'https://github.com/RocketChat/Rocket.Chat.Electron';
@@ -281,7 +285,7 @@ const main = async (): Promise<void> => {
     process.exit(1);
   }
 
-  if (Object.keys(coverageReport.uncovered).length === 0) {
+  if (!hasCoverageGaps(coverageReport)) {
     console.log(`  Translations: ${formatCoverageReport(coverageReport)}`);
   } else if (flags.allowMissingTranslations) {
     console.warn(`\n  WARNING: ${formatCoverageReport(coverageReport)}`);

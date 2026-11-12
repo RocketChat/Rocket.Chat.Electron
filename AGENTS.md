@@ -106,7 +106,9 @@ hooks, `settings.json`).
   only when the release owner explicitly agrees.
 - The translation guard blocks a release when an English key added since the
   previous release tag has no value in a locale that `src/i18n/resources.ts`
-  loads. Add the missing values before you tag. `yarn i18n:check-coverage`
+  loads, or when such a locale translates a plural key without every plural
+  form of its language (`Intl.PluralRules`, for example `_few` and `_many` in
+  Russian). Add the missing values before you tag. `yarn i18n:check-coverage`
   shows the result, and the `prepare` job of `build-release.yml` runs the same
   check.
 - A fresh worktree has no `node_modules`, and the script fails with

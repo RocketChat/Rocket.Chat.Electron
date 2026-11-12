@@ -1,7 +1,12 @@
-import { checkI18nCoverage, formatCoverageReport } from './i18nCoverage.lib';
+import {
+  checkI18nCoverage,
+  formatCoverageReport,
+  hasCoverageGaps,
+} from './i18nCoverage.lib';
 
 // Fails when an English key added since the previous release tag has no
-// translation in a locale that the app loads. `yarn release:tag` runs the same
+// translation in a locale that the app loads, or when such a locale translates
+// a plural key without every plural form of its language. `yarn release:tag` runs the same
 // check before it creates a tag. build-release.yml runs this script, so a tag
 // pushed by hand gets the check too.
 //
@@ -18,7 +23,7 @@ const report = checkI18nCoverage({
   headRef: readOption('--head'),
 });
 
-const hasMissingKeys = Object.keys(report.uncovered).length > 0;
+const hasMissingKeys = hasCoverageGaps(report);
 const allowMissing = process.env.ALLOW_MISSING_TRANSLATIONS === 'true';
 
 if (!hasMissingKeys) {

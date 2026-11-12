@@ -28,10 +28,15 @@ consistent.
   preserved verbatim, including the `-` prefix where present. HTML-ish
   tags such as `<1>...</1>` also appear in values (e.g.
   `dialog.about.version`) and must be preserved verbatim.
-- Plural keys use i18next suffixes `_one` / `_other` (e.g. `count_one`,
-  `count_other`, `unreadMessage_one`, `unreadMessage_other`) — translate
-  both forms with correct plural grammar for the target locale, keeping
-  the same key names (i18next plural suffixes are not translated).
+- Plural keys use i18next suffixes (e.g. `count_one`, `count_other`). English
+  has only `_one` and `_other`, but each locale needs the forms of its own
+  language, because i18next asks for `key_<category>` from
+  `Intl.PluralRules`. A missing form shows the English text. Get the forms
+  with `node -p "new Intl.PluralRules('ru').resolvedOptions().pluralCategories"`.
+  Examples: `ja` and `zh-*` need only `_other`. `es`, `fr`, `it-IT` and
+  `pt-BR` need `_one`, `_many` and `_other` (`many` is for counts such as
+  1,000,000). `pl`, `ru` and `uk-UA` need `_one`, `_few`, `_many` and
+  `_other`. Keep the suffixes in English, because i18next reads them.
 - Locale files: `src/i18n/*.i18n.json` (currently `ar`, `de-DE`, `es`,
   `fi`, `fr`, `hu`, `it-IT`, `ja`, `nb-NO`, `nn`, `no`, `pl`, `pt-BR`,
   `ru`, `se`, `sv`, `tr-TR`, `uk-UA`, `zh`, `zh-CN`, `zh-TW`).
@@ -39,9 +44,15 @@ consistent.
   `resources.ts` exposes loaders for, and that a sample of locales
   (`de-DE`, `pt-BR`, `ja`) load as non-empty objects — it does not assert
   per-key parity. `src/i18n/__tests__/common.spec.ts` and `actions.spec.ts`
-  cover formatting/action-constant behavior, not locale content. There is
-  no test that fails on missing keys; parity is enforced by
-  `.claude/hooks/i18n-parity.sh`'s report, not by CI.
+  cover formatting/action-constant behavior, not locale content.
+- `scripts/localeFiles.spec.ts` fails CI when a loaded locale translates a
+  plural key without every form of its language.
+- `yarn release:tag` and the `prepare` job of `build-release.yml` refuse a
+  release when an English key added since the previous release tag has no
+  value, with every plural form, in a locale that `resources.ts` loads.
+  `yarn i18n:check-coverage` runs that check on committed HEAD. A gap found at
+  release time blocks the release, so translate the keys in the PR that adds
+  them.
 
 ## Steps
 
@@ -87,9 +98,8 @@ drift; touching them just creates unnecessary diff noise). Preserve:
   `&Copy` style menu accelerators) — keep the `&` before the
   locale-appropriate mnemonic letter if the target locale conventionally
   uses one, otherwise drop it rather than mistranslate it.
-- Both `_one` and `_other` plural forms, translated with correct grammar
-  for that locale's pluralization rules (not just a copy of the English
-  form).
+- Every plural form of the locale's language (see Background), each with the
+  grammar of that form, not a copy of the English form.
 
 Never invent new keys that don't exist in `en.i18n.json`.
 
@@ -120,7 +130,9 @@ uncertain, per `AGENTS.md` Testing conventions.)
 
 Then re-run the parity check (`.claude/hooks/i18n-parity.sh`'s logic, or
 the one-liner from step (a)) against every locale to confirm zero missing
-keys remain.
+keys remain. Run `yarn test --runTestsByPath scripts/localeFiles.spec.ts`
+for the plural forms. After you commit, run `yarn i18n:check-coverage`. It
+must report no gap, or the next release is blocked.
 
 ### (f) Handoff to Lingohub
 

@@ -85,11 +85,11 @@ the user instead.
 
 ## Common mistakes
 
-| Mistake                                                     | Fix                                                                                              |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Dispatching a subagent to "keep monitoring"                 | Use `Monitor`; agents return early on long waits.                                                |
-| Foreground `sleep 60; gh pr checks` loops                   | Blocked by the harness and wastes turns. Monitor only.                                           |
-| Two monitors on the same PR after a resume                  | Check `TaskList` before arming.                                                                  |
-| Replying to or resolving CodeRabbit threads from here       | That is `/coderabbit-triage`, which the user invokes.                                            |
-| Reporting green before the platform jobs registered         | The script waits for the required checks to exist; trust `DONE`, not an early all-pass snapshot. |
-| Committing or pushing "since we are watching anyway"        | Push only on explicit request; never commit.                                                     |
+| Mistake                                               | Fix                                                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Dispatching a subagent to "keep monitoring"           | Use `Monitor`; agents return early on long waits.                                                |
+| Foreground `sleep 60; gh pr checks` loops             | Blocked by the harness and wastes turns. Monitor only.                                           |
+| Two monitors on the same PR after a resume            | Check `TaskList` before arming.                                                                  |
+| Replying to or resolving CodeRabbit threads from here | That is `/coderabbit-triage`, which the user invokes.                                            |
+| Reporting green before the platform jobs registered   | The script waits for the required checks to exist; trust `DONE`, not an early all-pass snapshot. |
+| Committing or pushing "since we are watching anyway"  | Push only on explicit request; never commit.                                                     |

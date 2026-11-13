@@ -37,6 +37,11 @@ Read the `--name-only` list from step 1. Check that each file belongs to the
 change. Report each file that does not, and ask the user before you
 continue.
 
+For each exported symbol that the diff changes under `src/`, search its
+references (`rg -n -w '<symbol>' src/`). Report the callers outside the
+changed files. When a changed symbol has such callers, ask the user before you
+continue.
+
 ### 3. Lint
 
 ```bash

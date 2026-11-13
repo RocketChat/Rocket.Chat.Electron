@@ -225,8 +225,9 @@ breaking-changes list remains.
 
 ## Phase 6 — Commit & PR
 
-1. Read `git diff --stat origin/dev...HEAD` and check that only the expected
-   files changed.
+1. Read `git status --short` and `git diff --stat origin/dev`. They show the
+   uncommitted edits and the untracked files against the base. Check that
+   only the expected files changed.
 2. Present the diff summary to the user. Ask the user to approve the commit.
 3. Commit with a conventional message:
    `chore: update Electron from <CURRENT> to <TARGET>`. Match the repo's

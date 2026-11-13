@@ -39,7 +39,9 @@ paths) are macOS-specific by design. It has no Windows variants.
 
 ## The script
 
-Run it with Bun, which has a global `WebSocket`. Adapt the marked sections.
+Run it with Bun, or save it as a `.mjs` file and run it with Node 22 or later.
+Both have a global `WebSocket` and top-level `await`. Adapt the marked
+sections.
 
 ```javascript
 const targets = await fetch('http://127.0.0.1:9339/json', {

@@ -1,11 +1,14 @@
 import type { BrowserWindowConstructorOptions } from 'electron';
-import { BrowserWindow, nativeTheme } from 'electron';
+import { app, BrowserWindow, nativeTheme } from 'electron';
 
 import { select } from '../../store';
 import type * as RootWindow from './rootWindow';
 
 jest.mock('electron', () => ({
-  app: { getAppPath: jest.fn(() => '/test') },
+  app: {
+    getAppPath: jest.fn(() => '/test'),
+    commandLine: { hasSwitch: jest.fn(() => false) },
+  },
   BrowserWindow: jest.fn(),
   nativeTheme: { shouldUseDarkColors: false },
 }));
@@ -47,6 +50,8 @@ describe('native root window appearance', () => {
     transparency: boolean | undefined;
     dark: boolean;
     appearance: BrowserWindowConstructorOptions;
+    startHidden?: boolean;
+    tray?: boolean;
   }>([
     {
       platform: 'darwin',
@@ -93,9 +98,35 @@ describe('native root window appearance', () => {
       dark: false,
       appearance: {},
     },
+    ...(['darwin', 'win32', 'linux'] as const).flatMap((platform) =>
+      [true, false].map((tray) => ({
+        platform,
+        transparency: false,
+        dark: false,
+        startHidden: true,
+        tray,
+        appearance: {
+          darwin: { backgroundColor: '#ffffff' },
+          linux: {
+            transparent: true,
+            backgroundColor: '#00000000',
+            hasShadow: true,
+          },
+          win32: {},
+        }[platform],
+      }))
+    ),
   ])(
     'creates $platform window with effective transparency=$transparency, dark=$dark',
-    async ({ platform, transparency, dark, appearance }) => {
+    async ({
+      platform,
+      transparency,
+      dark,
+      appearance,
+      startHidden = false,
+      tray = true,
+    }) => {
+      jest.mocked(app.commandLine.hasSwitch).mockReturnValue(startHidden);
       Object.defineProperty(process, 'platform', {
         value: platform,
         configurable: true,
@@ -104,11 +135,12 @@ describe('native root window appearance', () => {
         value: dark,
         configurable: true,
       });
-      jest
-        .mocked(select)
-        .mockImplementation((selector) =>
-          selector({ isTransparentWindowEnabled: transparency } as never)
-        );
+      jest.mocked(select).mockImplementation((selector) =>
+        selector({
+          isTransparentWindowEnabled: transparency,
+          isTrayIconEnabled: tray,
+        } as never)
+      );
       const temporary = mockWindow();
       const root = mockWindow();
       jest
@@ -134,6 +166,7 @@ describe('native root window appearance', () => {
           ? { trafficLightPosition: { x: 12, y: 13 } }
           : {}),
         show: false,
+        paintWhenInitiallyHidden: !(startHidden && tray),
         webPreferences: {
           nodeIntegration: true,
           nodeIntegrationInSubFrames: true,
@@ -143,7 +176,7 @@ describe('native root window appearance', () => {
         ...appearance,
       });
       expect(temporary.destroy).toHaveBeenCalledTimes(1);
-      if (platform !== 'darwin') {
+      if (platform !== 'darwin' && !startHidden) {
         expect(select).not.toHaveBeenCalled();
       }
 

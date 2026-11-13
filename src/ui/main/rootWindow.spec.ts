@@ -647,7 +647,12 @@ describe('showRootWindow', () => {
         })
     );
     mockWindow = {
-      webContents: { on: jest.fn() },
+      webContents: {
+        on: jest.fn(),
+        once: jest.fn((event: string, listener: () => void) => {
+          if (event === 'did-finish-load') emitReadyToShow = listener;
+        }),
+      },
       loadFile: jest.fn(),
       once: jest.fn((event: string, listener: () => void) => {
         if (event === 'ready-to-show') emitReadyToShow = listener;
@@ -689,6 +694,40 @@ describe('showRootWindow', () => {
 
     expect(mockWindow.show).not.toHaveBeenCalled();
     expect(mockWindow.hide).toHaveBeenCalled();
+    expect(mockWindow.webContents.once).toHaveBeenCalledWith(
+      'did-finish-load',
+      expect.any(Function)
+    );
+    expect(mockWindow.once).not.toHaveBeenCalledWith(
+      'ready-to-show',
+      expect.any(Function)
+    );
+    expect(
+      mockWindow.webContents.once.mock.invocationCallOrder[0]
+    ).toBeLessThan(mockWindow.loadFile.mock.invocationCallOrder[0]);
+  });
+
+  it('opens normally with --start-hidden when the tray is disabled', async () => {
+    (app.commandLine.hasSwitch as jest.Mock).mockReturnValue(true);
+    const { select } = require('../../store');
+    const previous = select.getMockImplementation();
+    select.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({
+        ...previous((state: unknown) => state),
+        isTrayIconEnabled: false,
+      })
+    );
+    await launch();
+    expect(mockWindow.show).toHaveBeenCalled();
+    expect(mockWindow.hide).not.toHaveBeenCalled();
+    expect(mockWindow.once).toHaveBeenCalledWith(
+      'ready-to-show',
+      expect.any(Function)
+    );
+    expect(mockWindow.webContents.once).not.toHaveBeenCalledWith(
+      'did-finish-load',
+      expect.any(Function)
+    );
   });
 });
 

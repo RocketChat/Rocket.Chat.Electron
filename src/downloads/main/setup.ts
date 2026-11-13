@@ -2,7 +2,8 @@ import { existsSync, statSync } from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { app, webContents } from 'electron';
+import type { DownloadItem, WebContents } from 'electron';
+import { app } from 'electron';
 import electronDl from 'electron-dl';
 import ElectronStore from 'electron-store';
 import { t } from 'i18next';
@@ -43,7 +44,19 @@ const downloadStore = new ElectronStore<DownloadPrefs>({
   },
 });
 
+// electron-dl passes only the DownloadItem to `onStarted`. The session's
+// `will-download` event also carries the webContents that started the
+// download, so keep it per item. This listener must be added before
+// electron-dl adds its own, so `onStarted` can read the entry.
+const downloadSources = new WeakMap<DownloadItem, WebContents>();
+
 export const setupElectronDlWithTracking = () => {
+  app.on('session-created', (session) => {
+    session.on('will-download', (_event, item, source) => {
+      downloadSources.set(item, source);
+    });
+  });
+
   electronDl({
     saveAs: true,
     onStarted: (item) => {
@@ -63,19 +76,7 @@ export const setupElectronDlWithTracking = () => {
           defaultPath: fullPath,
         });
 
-        // Find the webContents that initiated this download
-        // According to electron-dl docs, onStarted only receives DownloadItem
-        // We need to find an active webContents for tracking purposes
-        const webContentsArray = webContents.getAllWebContents();
-
-        // Use the first available webContents for tracking
-        let sourceWebContents = null;
-        for (const wc of webContentsArray) {
-          if (wc && typeof wc.isDestroyed === 'function' && !wc.isDestroyed()) {
-            sourceWebContents = wc;
-            break;
-          }
-        }
+        const sourceWebContents = downloadSources.get(item);
 
         if (sourceWebContents) {
           const fakeEvent = {

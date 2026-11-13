@@ -32,41 +32,34 @@ git log --oneline --no-merges <from>..<to>
 
 ### 3. Categorize
 
-Parse commit messages using conventional commit prefixes and categorize:
+Sort each commit into the three groups that `ship-release` publishes. Use the
+conventional commit prefix as the first signal:
 
-| Prefix      | Category      |
-| ----------- | ------------- |
-| `feat:`     | New Features  |
-| `fix:`      | Bug Fixes     |
-| `perf:`     | Performance   |
-| `refactor:` | Improvements  |
-| `chore:`    | Maintenance   |
-| `docs:`     | Documentation |
-| `ci:`       | CI/CD         |
-| `test:`     | Testing       |
+| Prefix                                      | Group           |
+| ------------------------------------------- | --------------- |
+| `fix:`                                      | 🐛 Fixes        |
+| `feat:`, `perf:`, `refactor:`               | ✨ Improvements |
+| `chore:`, `docs:`, `ci:`, `test:`, `build:` | 🔧 Internal     |
 
-Commits without conventional prefixes go under "Other Changes".
+A commit without a prefix goes in the group that matches what it changes for a
+user. A change that users can see is never Internal.
 
 ### 4. Format Output
 
 ```markdown
 ## What's Changed
 
-### New Features
-
-- Description of feature (#PR)
-
-### Bug Fixes
+### 🐛 Fixes
 
 - Description of fix (#PR)
 
-### Improvements
+### ✨ Improvements
 
 - Description of improvement (#PR)
 
-### Maintenance
+### 🔧 Internal
 
-- Description of chore (#PR)
+- Description of internal change (#PR)
 ```
 
 ### 5. Version Context

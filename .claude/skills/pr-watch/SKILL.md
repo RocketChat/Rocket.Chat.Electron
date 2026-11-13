@@ -68,7 +68,7 @@ Between events, do nothing. Do not call `TaskOutput` to peek.
 
 ### 4. On a failed check
 
-Dispatch the `ci-failure-triage` agent (read-only, haiku). Its prompt is
+Dispatch the `ci-failure-triage` agent (read-only). Its prompt is
 one line: `PR <number>, failed check "<name>", head commit <sha>`. It
 returns "known flaky, rerun" or "real failure" with a verbatim log excerpt.
 The monitor keeps running meanwhile; keep relaying its events. For known

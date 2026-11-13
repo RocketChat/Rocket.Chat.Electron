@@ -1,6 +1,6 @@
 ---
 name: ship-release
-description: Ship a Rocket.Chat.Electron release end-to-end. Collect the merged fixes since the last tag, draft release notes, bump the version on a chore/release branch, and open the bump PR. After explicit user approval at each gate, merge and tag. Then monitor the build-release pipeline in the background and check that the published release has the full platform asset matrix. Handles alpha (on dev), stable promotion (dev→master), and patch releases (release/X.Y.x). Trigger when the user says "ship release X.Y.Z", "release 4.16.0", "cut a patch release", "promote alpha to stable", or "/ship-release".
+description: Ship a Rocket.Chat.Electron release end-to-end, from merged fixes to a published GitHub release with the full asset matrix. Handles alpha (on dev), stable promotion (dev→master), and patch releases (release/X.Y.x). Trigger when the user says "ship release X.Y.Z", "release 4.16.0", "cut a patch release", "promote alpha to stable", or "/ship-release".
 ---
 
 # Ship Release
@@ -133,8 +133,13 @@ irreversible step (merge, tag push, release publish) explicitly.
 ### Stable (promotion)
 
 1. Use the same worktree setup as alpha, off fresh `origin/dev`.
-2. Bump `"version"` in `package.json` to the bare version. Drop the
-   pre-release suffix, for example `4.17.0-alpha.6` → `4.17.0`.
+2. Bump `"version"` in `package.json` to the bare version, and bump
+   `mac.bundleVersion` in `electron-builder.json` (see `docs/release-process.md`).
+   Drop the pre-release suffix, for example `4.17.0-alpha.6` → `4.17.0`.
+   Read `mac.bundleVersion` on `origin/dev`, `origin/master` and each
+   `origin/release/*` branch (`git show <ref>:electron-builder.json`). Set
+   the new value higher than all of them, because Apple rejects a
+   `CFBundleVersion` that does not increase.
 3. **GATE**, commit, push, and open a bump PR to **`dev`**. Wait for the
    checks. **GATE: STOP until the user says merge.** Squash-merge. Branch
    protection requires 1 approving review, so this typically needs
@@ -156,6 +161,8 @@ irreversible step (merge, tag push, release publish) explicitly.
    git -C "$RELEASE_WT" merge origin/master
    git -C "$RELEASE_WT" checkout --ours -- package.json   # keep TARGET from dev
    git -C "$RELEASE_WT" add package.json
+   # If electron-builder.json conflicts on mac.bundleVersion, set a value
+   # higher than both sides, then: git -C "$RELEASE_WT" add electron-builder.json
    git -C "$RELEASE_WT" commit --no-edit
    git -C "$RELEASE_WT" diff origin/dev
    ```
@@ -188,8 +195,14 @@ irreversible step (merge, tag push, release publish) explicitly.
    ```
    **GATE: show the cherry-picked commits and STOP for approval** before
    the push.
-3. Bump `"version"` in `package.json` to `X.Y.Z`, commit, and push a bump PR
-   that targets **`release/<X.Y.x>`**. Wait for the checks.
+3. Bump `"version"` in `package.json` to `X.Y.Z` and `mac.bundleVersion` in
+   `electron-builder.json`.
+   Read `mac.bundleVersion` on `origin/dev`, `origin/master` and each
+   `origin/release/*` branch (`git show <ref>:electron-builder.json`). Set
+   the new value higher than all of them, because Apple rejects a
+   `CFBundleVersion` that does not increase.
+   Commit, and push a bump PR that targets **`release/<X.Y.x>`**. Wait for
+   the checks.
    **GATE: STOP until the user says merge.** Squash-merge. Branch protection
    requires 1 approving review, so this typically needs `--admin`.
 

@@ -6,10 +6,9 @@ description: Debug the intermittent Rocket.Chat Desktop webview boot wedge, wher
 # Boot Wedge Debug
 
 Use this workflow to diagnose the intermittent webview boot wedge and to drive
-it to a definitive fix. The detection, recovery and forensics work merged in
-PRs #3435, #3436 and #3437, and shipped in 4.16.0. Start each new fix on a new
-branch from `origin/dev`. Read `docs/postmortem-webview-boot-wedge.md` first.
-It records the six attempts and what is still open.
+it to a definitive fix. Start each new fix on a new branch from `origin/dev`.
+Read `docs/postmortem-webview-boot-wedge.md` first. It records the earlier
+attempts and what is still open.
 
 ## The bug in one paragraph
 
@@ -117,7 +116,7 @@ Also useful live:
 3. Run `npx tsc --noEmit`, `yarn lint`, `yarn test` and `yarn build`.
    Then run a watchdog smoke test: run the app ≥150s with healthy servers. It
    must produce zero new reports (this guards against false positives).
-4. Push and open a PR. In the PR description, write what the report revealed
+4. When the user asks, push and open a PR. In the PR description, write what the report revealed
    and what changed. Add the attempt to `docs/postmortem-webview-boot-wedge.md`.
 
 ## Known gotchas
@@ -129,9 +128,7 @@ Also useful live:
   warn and error are forwarded. The console buffer of the watchdog captures all
   levels.
 - `WEBVIEW_SERVER_VERSION_UPDATED` is the boot-success signal. `setVersion`
-  dispatches it from `setServerInfo` (wired in PR #3436 — it was dead code
-  before).
-- PR #3437 fixed the `Maximum update depth exceeded` storm in 4.16.0. PR #3435
-  only reduced it, and the storm still reproduced after #3435 merged. If the
-  storm comes back in a newer build, treat it as a regression.
-  The post-mortem (attempt 6) explains how unread-badge data triggered it.
+  dispatches it from `setServerInfo`.
+- A startup `Maximum update depth exceeded` storm depends on data (unread rooms
+  at boot). Before you blame recent code, bisect against a clean baseline
+  build. The post-mortem (attempt 6) explains how unread-badge data triggers it.

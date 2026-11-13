@@ -1,6 +1,6 @@
 ---
 name: electron-bump
-description: Upgrade the Electron version in Rocket.Chat.Electron safely. Detect the breaking changes between the current and target Electron release. Produce a migration plan and wait for user approval. Then apply the fixes (find every affected callsite first). Bump the coupled config (electron-builder bundle id, CI node-version, @types/node). Run lint and tests. Open a ready PR from a fresh branch off dev. Trigger when the user says "bump electron", "upgrade electron", "update electron to X", "/electron-bump", or asks to move to a newer Electron release.
+description: Upgrade the Electron version in Rocket.Chat.Electron. Find the breaking changes between the current and target release, plan the migration for user approval, apply it, and open the PR. Trigger when the user says "bump electron", "upgrade electron", "update electron to X", "/electron-bump", or asks to move to a newer Electron release.
 ---
 
 # Electron Version Bump

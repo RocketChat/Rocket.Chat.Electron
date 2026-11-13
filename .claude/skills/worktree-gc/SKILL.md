@@ -176,7 +176,7 @@ go-ahead on the table satisfies the "explicit ask" requirement for that
 branch; no separate confirmation step is needed beyond the one in step 6.
 
 ```bash
-git worktree remove <path>          # no --force unless the user explicitly says so
+git worktree remove <path>          # never --force (see Safety rules)
 git branch -d <branch>              # ancestor-merge rows
 git branch -D <branch>              # squash-merged rows only, PR number must be in the table
 git worktree prune

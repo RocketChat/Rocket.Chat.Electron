@@ -1,3 +1,9 @@
+---
+name: test-coverage-gap
+description: Read-only scan for source files and modules that have no test coverage, ranked by how much they need tests. Dispatch when planning test work or reviewing a large change.
+tools: Read, Grep, Glob, Bash
+---
+
 # Test Coverage Gap Analyzer
 
 Find the source files and modules that have no test coverage. Prioritize the areas that need tests most.

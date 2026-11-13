@@ -224,7 +224,8 @@ Read the doc that matches the task. Do not scan `docs/` wholesale.
 ## Working principles
 
 - **Understand before you change.** Find out WHY the code is written that way.
-  Working code is correct until proven otherwise. If you are not sure, ASK.
+  Working code is correct until proven otherwise. If the reason is not in the
+  code, the history or the docs, and the change depends on it, ask.
 - **Check your work.** Run the tests and the type check (`npx tsc --noEmit`),
   and show that the change works. Start with the narrowest meaningful check.
   Broaden the checks when the risk or the shared behavior justifies it. Never

@@ -1,3 +1,9 @@
+---
+name: i18n-validator
+description: Read-only check that translation keys are complete and consistent across all language files. Dispatch when a file in src/i18n/ changes.
+tools: Read, Grep, Glob, Bash
+---
+
 # i18n Validator
 
 Check that translation keys are complete and consistent across all language files when someone changes an i18n file.

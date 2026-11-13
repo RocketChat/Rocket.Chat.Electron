@@ -120,6 +120,5 @@ Read this before you change `jest.config.js`, the test runner, or the
     postinstall has no arm64 Linux Chromium. Only `yarn build-assets` uses
     puppeteer.
 - Before you blame the CI runners for a slowdown, compare the per-step timings
-  (`gh run view <id> --json jobs`) across months. In Sep 2026 the Windows Test
-  step had grown from 1 min to 27 min only from suite growth and per-file
-  type-checking. The runners did not change.
+  (`gh run view <id> --json jobs`) across months. Suite growth and per-file
+  type-checking can explain a large slowdown with no runner change.

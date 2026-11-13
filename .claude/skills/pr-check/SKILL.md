@@ -129,8 +129,9 @@ state the reminder was given.
 
 If the diff introduces or changes a convention an agent would need
 going forward (new IPC pattern, new test layout rule, new platform
-constraint), confirm `AGENTS.md` and/or `CLAUDE.md` were updated to
-match. If not applicable, mark "n/a".
+constraint), check that the diff also updates `AGENTS.md`, its matching
+`docs/` topic, or the nested `AGENTS.md` of the affected directory. If not
+applicable, mark "n/a".
 
 ### 9. No machine-specific paths
 
@@ -146,21 +147,12 @@ lines as evidence.
 
 ## Output: PR body draft
 
-Read `.github/PULL_REQUEST_TEMPLATE.md` and fill its actual sections —
-do not invent a different structure. As of this writing the template
-asks for:
-
-- A `Closes #ISSUE_NUMBER` line (fill the real issue number if one
-  exists, otherwise remove the line per the template's own instruction).
-- A free-form "tell us more about your PR" section — use this for a
-  short summary of what changed and why, plus a "How verified" list
-  citing each check from the checklist above with its real result
-  (e.g. `yarn lint`: pass; `yarn test --runTestsByPath ...`: pass/fail
-  counts).
-- Screenshots if the diff touches UI (per the template's own prompt).
-
-Re-read the template file at skill-run time in case it changed — do not
-rely on the structure described above if the live file differs.
+Read `.github/PULL_REQUEST_TEMPLATE.md` and fill its sections. Do not
+invent a different structure. In its free-form section, write a short summary
+of what changed and why. Follow it with a "How verified" list that cites each
+check from the checklist above with its real result. Examples: `yarn lint`:
+pass, `yarn test --runTestsByPath ...`: pass/fail counts. Add screenshots when
+the diff touches UI.
 
 Every claim in the drafted body must cite an actual command and its
 actual result from this run — no estimated coverage, no speculated

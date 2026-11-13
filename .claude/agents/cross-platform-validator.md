@@ -1,3 +1,9 @@
+---
+name: cross-platform-validator
+description: Read-only review of a diff for Windows, macOS and Linux compatibility problems. Dispatch after changes to main-process, build or test code.
+tools: Read, Grep, Glob, Bash
+---
+
 # Cross-Platform Validator
 
 Review code changes for cross-platform compatibility issues on Windows, macOS, and Linux.

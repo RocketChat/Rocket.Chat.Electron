@@ -12,10 +12,10 @@ decide.
 
 # Read first
 
-- `docs/pre-release-process.md` — stable release process, branch names,
-  numbered steps.
-- `docs/alpha-release-process.md` — alpha release process and version format
-  rules.
+- `docs/release-process.md` — tag guards, channel rules, required branches
+  and the numbered steps for alpha, stable and patch releases.
+- `docs/development-and-release-flow.md` — branching model and version
+  format rules.
 - `docs/RENEW_CI_CREDENTIALS.md` — CI credential expiry dates/procedures.
 - `.github/workflows/build-release.yml` — the actual CI release workflow.
 - `electron-builder.json` — packaging config, including the Windows target
@@ -42,15 +42,15 @@ decide.
 2. **Version format matches process rules**
 
    - Confirm the current `package.json` version matches the stable vs alpha
-     format defined in `docs/pre-release-process.md` /
-     `docs/alpha-release-process.md` (e.g. alpha suffix pattern). Quote the
+     format defined in `docs/release-process.md` and
+     `docs/development-and-release-flow.md` (e.g. alpha suffix pattern). Quote the
      rule from the doc, then quote the actual version string, then say
      PASS/FAIL.
 
 3. **Release notes / changelog artifact presence**
 
-   - Follow whatever `docs/pre-release-process.md` /
-     `docs/alpha-release-process.md` define as the required release-notes
+   - Follow whatever `docs/release-process.md` defines as the required
+     release-notes
      artifact (file, PR description, GitHub release draft, etc.) — do not
      assume a `CHANGELOG.md` exists unless the docs say so. Check for its
      presence with the mechanism the docs describe.
@@ -72,8 +72,8 @@ decide.
 
 6. **Workflow vs process-doc drift**
 
-   - Read the numbered steps in `docs/pre-release-process.md` (and
-     `docs/alpha-release-process.md` if the target release is alpha).
+   - Read the numbered steps in `docs/release-process.md` for the channel of
+     the target release (alpha, stable or patch).
    - Read the actual job/step names in `.github/workflows/build-release.yml`.
    - Report drift factually (a step the doc describes that the workflow
      doesn't do, or vice versa) — do not editorialize on whether the drift is
@@ -81,10 +81,10 @@ decide.
 
 7. **Working tree state and branch**
    - `git status --porcelain` — must be clean (report any dirty files).
-   - `git branch --show-current` — compare against the branch name(s) the
-     process docs require for cutting a release (read
-     `docs/pre-release-process.md` for the actual required branch — do not
-     assume `main`/`master`/`dev`).
+   - `git branch --show-current` — compare against the branch that the
+     channel requires: `dev` for a prerelease, `master` or `release/X.Y.x` for
+     a stable release (`docs/release-process.md`, `AGENTS.md` "Branching
+     Model").
 
 # Output format
 

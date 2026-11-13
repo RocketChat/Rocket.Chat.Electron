@@ -34,5 +34,5 @@ workspace does not finish booting. Full investigation history:
 
 A startup `Maximum update depth exceeded` storm depends on data (unread rooms
 at boot). Before you blame recent code for an intermittent startup failure,
-bisect against a clean baseline build. The storm reproduced on the untouched
-4.16.0-alpha.2 baseline (PR #3437).
+bisect against a clean baseline build. The storm also reproduces on untouched
+baseline builds.

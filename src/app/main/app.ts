@@ -149,9 +149,19 @@ export const performElectronStartup = (): void => {
     }
   }
 
+  const existingDisabledFeatures = (
+    app.commandLine.getSwitchValue?.('disable-features') ?? ''
+  )
+    .split(',')
+    .map((feature) => feature.trim())
+    .filter(Boolean);
+  const mergedDisabledFeatures = Array.from(
+    new Set([...disabledChromiumFeatures, ...existingDisabledFeatures])
+  );
+
   app.commandLine.appendSwitch(
     'disable-features',
-    disabledChromiumFeatures.join(',')
+    mergedDisabledFeatures.join(',')
   );
 
   if (process.platform === 'linux') {

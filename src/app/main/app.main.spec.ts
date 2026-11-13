@@ -12,6 +12,7 @@ jest.mock('electron', () => ({
     setAppUserModelId: jest.fn(),
     commandLine: {
       appendSwitch: jest.fn(),
+      getSwitchValue: jest.fn(() => ''),
       hasSwitch: jest.fn(),
     },
     disableHardwareAcceleration: jest.fn(),
@@ -38,12 +39,15 @@ const originalConsoleLog = console.log;
 
 describe('performElectronStartup - Platform Detection', () => {
   let appendSwitchMock: jest.Mock;
+  let getSwitchValueMock: jest.Mock;
   let consoleLogMock: jest.Mock;
   let statSyncMock: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     appendSwitchMock = app.commandLine.appendSwitch as jest.Mock;
+    getSwitchValueMock = app.commandLine.getSwitchValue as jest.Mock;
+    getSwitchValueMock.mockReturnValue('');
     consoleLogMock = jest.fn();
     console.log = consoleLogMock;
 
@@ -522,6 +526,71 @@ describe('performElectronStartup - Platform Detection', () => {
         (call) => call[0] === 'ozone-platform'
       );
       expect(ozonePlatformCalls).toHaveLength(0);
+    });
+  });
+
+  describe('Disabled Chromium Features Preservation', () => {
+    it('sets default disabled features when no disable-features switch is present', () => {
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'disable-features',
+        'HardwareMediaKeyHandling,MediaSessionService'
+      );
+    });
+
+    it('preserves user-supplied AudioServiceSandbox alongside default disabled features', () => {
+      getSwitchValueMock.mockReturnValue('AudioServiceSandbox');
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'disable-features',
+        'HardwareMediaKeyHandling,MediaSessionService,AudioServiceSandbox'
+      );
+    });
+
+    it('trims whitespace, removes empty entries, and preserves multiple user entries in order', () => {
+      getSwitchValueMock.mockReturnValue(
+        ' AudioServiceSandbox , , WebRtcHideLocalIpsWithMdns , '
+      );
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'disable-features',
+        'HardwareMediaKeyHandling,MediaSessionService,AudioServiceSandbox,WebRtcHideLocalIpsWithMdns'
+      );
+    });
+
+    it('deduplicates repeated entries and entries already in default disabled features', () => {
+      getSwitchValueMock.mockReturnValue(
+        'AudioServiceSandbox,HardwareMediaKeyHandling,AudioServiceSandbox,MediaSessionService'
+      );
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'disable-features',
+        'HardwareMediaKeyHandling,MediaSessionService,AudioServiceSandbox'
+      );
+    });
+
+    it('preserves user-supplied AudioServiceSandbox when Windows RDP disables WGC features', () => {
+      Object.defineProperty(process, 'platform', {
+        value: 'win32',
+        writable: true,
+        configurable: true,
+      });
+      process.env.SESSIONNAME = 'RDP-Tcp#0';
+      getSwitchValueMock.mockReturnValue('AudioServiceSandbox');
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'disable-features',
+        'HardwareMediaKeyHandling,MediaSessionService,WebRtcAllowWgcDesktopCapturer,WebRtcAllowWgcScreenCapturer,AudioServiceSandbox'
+      );
     });
   });
 });

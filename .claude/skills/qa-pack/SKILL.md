@@ -53,7 +53,7 @@ guess where UI lives or what a label says — read it.
 
 ### 3. Classify changed surfaces by user-visible risk
 
-Use the risk list from `AGENTS.md` QA Flow Authoring section: Electron
+Use the risk list in `qa/AGENTS.md` ("Classify changed Desktop surfaces"): Electron
 main process, protocol handlers, OS default handlers, settings UI,
 menus, modals, packaging/installers, startup, shortcuts, workspace
 routing, i18n, layout. For each risky surface, write a falsifiable

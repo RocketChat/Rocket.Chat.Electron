@@ -63,7 +63,7 @@ Consequences for naming/placement:
 - Renderer spec for a file directly under `src/<module>/` → **flat
   `src/<module>/*.spec.ts(x)` is NOT matched** by
   `src/*/!(main)/**/*.(spec|test).*` (that pattern requires at least one
-  extra path segment after `src/<module>/`). Per `AGENTS.md` (Testing),
+  extra path segment after `src/<module>/`). Per `docs/testing.md`,
   nest it instead:
   - `src/<module>/__tests__/<Name>.spec.ts(x)` (existing convention, see
     `src/logViewerWindow/__tests__/LogTimeline.spec.tsx`), or
@@ -247,7 +247,7 @@ bodies.
 Do not run bare `yarn test` for this task. Scope every run to the new
 spec's path with `--runTestsByPath`.
 
-## Traps (from AGENTS.md Testing)
+## Traps (from docs/testing.md)
 
 - Flat `src/<module>/*.spec.ts` renderer specs are silently not
   discovered — no error, just zero tests collected.

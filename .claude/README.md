@@ -27,7 +27,7 @@ denies via the hook JSON protocol.
 | `protect-default-branches.sh` | Deny `git commit`/`git push` on `dev`/`master` and force-push to them        | `PreToolUse` on `Bash`                 |
 
 `guard-workspace-build.sh` and
-`clean-action-dist.sh` enforce the AGENTS.md "Patches And Builds" rules
+`clean-action-dist.sh` enforce the build rules in `docs/build-and-packaging.md`
 (never `yarn build` inside a workspace dir; strip the nested
 `desktop-release-action` dist after a workspace-wide build).
 `i18n-parity.sh` reports translation gaps after `en.i18n.json` changes

@@ -109,7 +109,7 @@ calling any mutation.
 
 Apply straightforward ACCEPT fixes inline. Delegate a fix to a
 subagent when it touches 2+ files or needs real logic changes. Run the
-narrowest test scope that covers the change (see AGENTS.md Testing /
+narrowest test scope that covers the change (see `docs/testing.md` /
 `pr-check` skill step 4 for the spec-mapping approach). Do not touch
 REJECT or VERIFY items' code — VERIFY items get whatever check resolves
 the question (run the test, reproduce the behavior), not a code change

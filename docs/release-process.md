@@ -196,10 +196,11 @@ Cut alphas directly from `dev`. There is no dedicated branch.
    Also increment `mac.bundleVersion` in `electron-builder.json`. It is
    independent from `package.json`'s `version`. Apple requires each
    submission's `CFBundleVersion` to strictly increase over the last one.
-   The format is `YYMM` plus a single-digit build counter. The counter
-   resets to `0` at the start of each month. For example, the first build
-   shipped in August 2026 is `26080`, and the second same-month build is
-   `26081`. Check the current value and the date of its last bump
+   The format is `YYMM` plus a two-digit build counter. The counter
+   resets to `00` at the start of each month. For example, the first build
+   shipped in November 2026 is `261100`, and the second same-month build is
+   `261101`. The new value must be higher than the value on `dev`, on
+   `master` and on every `release/X.Y.x` branch. Check the current value and the date of its last bump
    (`git log -p --follow -- electron-builder.json`) before you increment it.
    NEVER guess an arbitrary increment.
 
@@ -238,7 +239,10 @@ Cut alphas directly from `dev`. There is no dedicated branch.
      `latest.yml` from `windows-nsis`, `latest-mac.yml` from `macos-dmg`, and
      `latest-linux.yml` from `linux-appimage`. The metadata lists the files
      that the job built, so a second uploader would replace it with a
-     partial list.
+     partial list. In the workflow, only those three jobs set
+     `upload_update_metadata: 'true'`. The action reads its `mode`,
+     `targets` and `upload_update_metadata` inputs from
+     `workspaces/desktop-release-action/action.yml`.
    - The draft is marked Pre-release for alpha, beta, and rc tags. That
      flag, and not the metadata file name, keeps the build away from stable
      clients.

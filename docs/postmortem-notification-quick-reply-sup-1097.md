@@ -46,8 +46,9 @@ split it into three separate tracks.
   stay as the operating system presents them and auto-close only when a duration is
   explicitly requested.
 - `useNotification` has test coverage for the first time.
-- Windows toast behavior is documented in `AGENTS.md` instead of being rediscovered
-  per investigation.
+- Windows toast behavior is documented in
+  [windows-notifications.md](windows-notifications.md) instead of being
+  rediscovered per investigation.
 
 ## Root cause
 

@@ -42,6 +42,34 @@ tabular-nums` + `min-width: 3ch` (two digits + `%`, and 100% grows the
   recognizes only those props and throws the accessibility warning otherwise.
   A labeled container around the component is not enough.
 
+## Fuselage 1.0: components take no styling props
+
+Fuselage 1.0.0 (released 2026-11-10) removes the `Box` styling props from each
+component other than `Box`. TypeScript then rejects `margin*`, `padding*`,
+`width`, `flexGrow`, `color`, a free `is` and `rcx-*` props on components such
+as `Button`, `Field`, `Callout` and `Tile`. The decision and its reasons are in
+Rocket.Chat's
+[ADR 0011](https://github.com/RocketChat/Rocket.Chat/blob/develop/docs/adr/0011-fuselage-components-take-no-styling-props.md).
+The app still uses Fuselage 0.80.0, which accepts these props.
+
+Write new UI so that the upgrade needs no edit:
+
+- Put the spacing between siblings on the parent: a `Box` with `display='flex'`
+  and `gap`. Fuselage 0.80 `Box` already accepts `gap`.
+- Put the size and the flex-child behavior of a component on a wrapper `Box`,
+  or on the layout of the parent.
+- Do not use `Margins` or `Scrollable` to lay out children. They inject props
+  into the first element below them.
+- `Box` keeps its styling props. It is the layout tool of the app.
+
+On 2026-11-12, Rocket.Chat's `scripts/scan-style-props.mjs`, run on `src/`
+against the Fuselage 1.0 sources, reported 25 use-sites. 19 pass a styling or
+`is` prop to a component, and 6 are laid out by `Margins` or `Scrollable`. Most
+are in `src/ui/components/SettingsView/features/`, `AddServerView` and the
+dialogs. The upgrade must fix them. The Fuselage 1.0 changelog lists the
+variations that replace some props, such as `flush` on `Tile` in place of
+`padding`.
+
 ## Animation timing
 
 Fuselage has **no duration CSS variable**. The compiled CSS sets these
@@ -105,6 +133,34 @@ circumference × (1 − progress)`, `transition: stroke-dashoffset 200ms` for
   inside CSS comments in a template literal end the template early.
 - jsdom resolves `ch` units to pixels in `getComputedStyle`. To assert a
   `3ch` width in tests, measure a same-font 1ch probe element.
+
+## Tray, menu-bar and presence icons
+
+- Tray icons show status only, by default, on macOS, Windows and Linux. Each
+  platform has six states: `default`, `presence-{online,away,busy,offline}`
+  and `disconnected` (`src/ui/main/icons.ts`).
+  - The unread count shows on the Windows taskbar overlay (`rootWindow.ts`
+    `setOverlayIcon`), in the macOS menu-bar title and in the Linux tray
+    tooltip.
+  - The opt-in `isTrayIconUnreadCounterEnabled` setting (#3484) replaces
+    presence with the pre-4.17 badge assets: `notification-{dot,1..9,plus-9}`,
+    and `notificationTemplate` on macOS. Regenerate them with
+    `yarn build-assets --unread-counter`. The disconnected state still wins.
+  - The macOS-only `isMenuBarUnreadCountEnabled` setting (CORE-2703, default
+    on) hides the number in the menu-bar title. It does not change the Dock
+    badge.
+- Presence bullets reuse the Fuselage `StatusBullet` glyphs:
+  `src/ui/icons/PresenceBullet.tsx` (filled / clock cut-out / bar cut-out /
+  hollow ring) and `DisconnectedBadge.tsx` (filled amber with a bold `!`).
+  Any overlay with transparent cut-outs or a hollow shape MUST pass the
+  `cutout` prop of `AppIcon` (`PresenceBulletCutout`). Otherwise the rocket
+  shows through the holes.
+- Tray-menu bullet icons are 12pt assets under `src/public/images/presence/`.
+  They match the 12px Fuselage bullet next to 14px text. Regenerate them with
+  `yarn build-assets --presence-menu-icons`.
+- `yarn build-assets` re-encodes every asset that it touches. Commit only the
+  assets that changed. Details:
+  [build-and-packaging.md](build-and-packaging.md).
 
 ## Verifying UI at runtime
 

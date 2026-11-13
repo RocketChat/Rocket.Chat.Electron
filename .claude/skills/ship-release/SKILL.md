@@ -285,8 +285,8 @@ reads a real TTY. See `docs/release-process.md` for the full guard table.
    The full matrix typically takes 40–90 min. The macOS jobs are usually last
    (notarization).
 2. On failure, run `gh run view <run-id> --log-failed`. Report the verbatim
-   error and the job that broke. Known trap (`AGENTS.md`, "Patches And
-   Builds"): Windows signing is two-phase Google Cloud KMS. MSI failures often
+   error and the job that broke. Known trap (`docs/build-and-packaging.md`,
+   "Packaging"): Windows signing is two-phase Google Cloud KMS. MSI failures often
    trace to KMS CNG provider conflicts.
 3. You can sometimes re-run a single failed job:
    `gh run rerun <run-id> --failed`. Ask the user first.

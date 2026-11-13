@@ -134,7 +134,7 @@ yarn test --runTestsByPath src/i18n/__tests__/resources.spec.ts src/i18n/__tests
 
 (Confirm actual file names under `src/i18n/__tests__/` before running —
 use `yarn test --listTests --runTestsByPath <file>` if discovery is
-uncertain, per `AGENTS.md` Testing conventions.)
+uncertain, per `docs/testing.md`.)
 
 Then re-run the parity check (`.claude/hooks/i18n-parity.sh`'s logic, or
 the one-liner from step (a)) against every locale to confirm zero missing

@@ -1,6 +1,6 @@
 #!/bin/bash
 # After building desktop-release-action via a workspace-wide build, remove the
-# nested dist/dist directory (AGENTS.md: the action only needs
+# nested dist/dist directory (docs/build-and-packaging.md: the action only needs
 # workspaces/desktop-release-action/dist/index.js).
 
 INPUT=$(cat)
@@ -18,7 +18,7 @@ NESTED_DIST="${CLAUDE_PROJECT_DIR:-.}/workspaces/desktop-release-action/dist/dis
 
 if [ -d "$NESTED_DIST" ]; then
   rm -rf "$NESTED_DIST"
-  echo "Removed nested workspaces/desktop-release-action/dist/dist (AGENTS.md)"
+  echo "Removed nested workspaces/desktop-release-action/dist/dist (docs/build-and-packaging.md)"
 fi
 
 exit 0

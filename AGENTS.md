@@ -70,7 +70,8 @@ workspace directory, because it writes an incorrect output structure.
 - Never commit directly to `master`, `dev` or `release/X.Y.x`. Create a
   branch, test, and open a PR. Read-only git operations need no permission.
 - Work in a worktree, so that you do not disturb another working directory.
-  To continue an existing branch, check out that branch in the worktree. Start
+  To continue an existing branch, check out that branch in the worktree. If
+  another worktree already has that branch, work in that worktree. Start
   a new branch from the current remote `dev`, because a local `dev` can be
   stale:
 

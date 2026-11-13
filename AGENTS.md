@@ -71,7 +71,9 @@ workspace directory, because it writes an incorrect output structure.
   branch, test, and open a PR. Read-only git operations need no permission.
 - Work in a worktree, so that you do not disturb another working directory.
   To continue an existing branch, check out that branch in the worktree. If
-  another worktree already has that branch, work in that worktree. Start
+  another worktree already has that branch, work in that worktree. Run
+  `git status` there first. If it has uncommitted changes that are not yours,
+  ask the user before you edit. Start
   a new branch from the current remote `dev`, because a local `dev` can be
   stale:
 

@@ -49,11 +49,12 @@ decide.
 
 3. **Release notes / changelog artifact presence**
 
-   - Follow whatever `docs/release-process.md` defines as the required
-     release-notes
-     artifact (file, PR description, GitHub release draft, etc.) — do not
-     assume a `CHANGELOG.md` exists unless the docs say so. Check for its
-     presence with the mechanism the docs describe.
+   - The release notes are the draft that `ship-release` Phase 1 writes, in
+     the groups Fixes, Improvements and Internal. Check that the draft
+     exists, in the conversation or on the draft GitHub release. Check that
+     each PR merged since the last tag of the channel appears in it.
+   - If no draft exists yet, mark this check **UNVERIFIED**. Do not look for
+     a `CHANGELOG.md`, because the repository has none.
 
 4. **Windows arch matrix**
 
@@ -82,9 +83,10 @@ decide.
 7. **Working tree state and branch**
    - `git status --porcelain` — must be clean (report any dirty files).
    - `git branch --show-current` — compare against the branch that the
-     channel requires: `dev` for a prerelease, `master` or `release/X.Y.x` for
-     a stable release (`docs/release-process.md`, `AGENTS.md` "Branching
-     Model").
+     release type requires (`docs/release-process.md`):
+     - A prerelease (`X.Y.Z-alpha.N`) is tagged on `dev`.
+     - A stable minor (`X.Y.0`) is tagged on `master`.
+     - A patch (`X.Y.Z`, Z > 0) is tagged on `release/X.Y.x`.
 
 # Output format
 

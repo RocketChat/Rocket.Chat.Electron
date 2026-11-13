@@ -1,5 +1,6 @@
 import { app } from 'electron';
 
+import { loggers } from '../logging/scopes';
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch, listen } from '../store';
@@ -526,12 +527,53 @@ describe('deepLinks/main.ts', () => {
     const mockWebContents = {
       send: jest.fn(),
       isDestroyed: jest.fn(() => false),
-      loadURL: jest.fn(),
+      loadURL: jest.fn((_url: string) => Promise.resolve()),
     };
 
     beforeEach(() => {
       getRootWindowMock.mockResolvedValue(mockBrowserWindow as any);
       getWebContentsByServerUrlMock.mockReturnValue(mockWebContents as any);
+    });
+
+    describe('when a deep-link navigation fails', () => {
+      const runAuthDeepLink = async (): Promise<void> => {
+        resolveServerUrlMock.mockResolvedValue([
+          'https://chat.example.com',
+          ServerUrlResolutionStatus.OK,
+          undefined,
+        ] as any);
+        selectMock.mockReturnValue([
+          { url: 'https://chat.example.com', title: 'Chat' },
+        ]);
+
+        const savedArgv = process.argv;
+        process.argv = [
+          'electron',
+          '.',
+          'rocketchat://auth?host=https://chat.example.com&token=abc&userId=123',
+        ];
+        await processDeepLinksInArgs();
+        process.argv = savedArgv;
+      };
+
+      it('logs a rejected navigation without the token', async () => {
+        const warn = jest.spyOn(loggers.main, 'warn').mockImplementation();
+        mockWebContents.loadURL.mockRejectedValueOnce(
+          Object.assign(new Error('ERR_ABORTED (-3) loading ...'), {
+            code: 'ERR_ABORTED',
+          })
+        );
+        setupDeepLinks();
+
+        await runAuthDeepLink();
+        await new Promise(setImmediate);
+
+        expect(warn).toHaveBeenCalledWith('Deep link navigation failed', {
+          origin: 'https://chat.example.com',
+          code: 'ERR_ABORTED',
+        });
+        warn.mockRestore();
+      });
     });
 
     it('should route tel: URL to telephony path', async () => {
@@ -1436,7 +1478,7 @@ describe('deepLinks/main.ts', () => {
     const mockWebContents = {
       send: jest.fn(),
       isDestroyed: jest.fn(() => false),
-      loadURL: jest.fn(),
+      loadURL: jest.fn(() => Promise.resolve()),
     };
 
     beforeEach(() => {

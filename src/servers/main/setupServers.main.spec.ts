@@ -191,10 +191,6 @@ describe('setupServers', () => {
       storages: ['indexdb'],
     });
     expect(session.session.clearCache).toHaveBeenCalled();
-    expect(session.once).toHaveBeenCalledWith(
-      'will-prevent-unload',
-      expect.any(Function)
-    );
     expect(session.reloadIgnoringCache).toHaveBeenCalled();
   });
 

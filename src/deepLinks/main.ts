@@ -180,6 +180,17 @@ function getWebContents(
   });
 }
 
+// The URL can carry a `resumeToken` or a SAML `credentialToken`, so a failed
+// navigation logs only the origin and the error code.
+const navigateServerView = (webContents: WebContents, url: string): void => {
+  webContents.loadURL(url).catch((error: { code?: string }) => {
+    loggers.main.warn('Deep link navigation failed', {
+      origin: new URL(url).origin,
+      code: error?.code,
+    });
+  });
+};
+
 const performAuthentication = async ({
   host,
   token,
@@ -191,7 +202,7 @@ const performAuthentication = async ({
     url.searchParams.append('userId', userId);
 
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(url.href);
+    navigateServerView(webContents, url.href);
   });
 
 const performSamlAuthentication = async ({
@@ -205,7 +216,7 @@ const performSamlAuthentication = async ({
     );
 
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(url.href);
+    navigateServerView(webContents, url.href);
   });
 };
 
@@ -230,7 +241,7 @@ const performOpenRoom = async ({
     }
 
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(url.href);
+    navigateServerView(webContents, url.href);
   });
 
 const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
@@ -239,7 +250,7 @@ const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
       return;
     }
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
+    navigateServerView(webContents, new URL(path, serverUrl).href);
   });
 
 const performConference = async ({ host, path }: InviteParams): Promise<void> =>
@@ -255,7 +266,7 @@ const performConference = async ({ host, path }: InviteParams): Promise<void> =>
       return;
     }
 
-    webContents.loadURL(href);
+    navigateServerView(webContents, href);
   });
 
 const performAuthDeepLink = async (args: URLSearchParams): Promise<void> => {

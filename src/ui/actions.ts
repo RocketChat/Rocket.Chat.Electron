@@ -4,6 +4,7 @@ import type {
   MediaCaptureSource,
   MediaCaptureState,
   Server,
+  ServerFailure,
 } from '../servers/common';
 import type {
   NavigationLayout,
@@ -249,7 +250,11 @@ export type UiActionTypeToPayloadMap = {
   [TOUCH_BAR_SELECT_SERVER_TOUCHED]: string;
   [WEBVIEW_READY]: { url: Server['url']; webContentsId: number };
   [WEBVIEW_ATTACHED]: { url: Server['url']; webContentsId: number };
-  [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
+  [WEBVIEW_DID_FAIL_LOAD]: {
+    url: Server['url'];
+    isMainFrame: boolean;
+    failure?: ServerFailure;
+  };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
   [WEBVIEW_BECAME_RESPONSIVE]: { url: Server['url'] };

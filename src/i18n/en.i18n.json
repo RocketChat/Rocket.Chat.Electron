@@ -614,7 +614,17 @@
   "loadingError": {
     "title": "Server Failed to Load",
     "announcement": "Houston, we have a problem",
-    "reload": "Reload"
+    "reload": "Reload",
+    "cause": {
+      "loadFailed": "The workspace did not load ({{error}}).",
+      "unresponsive": "The workspace page stopped responding.",
+      "stuck": "The workspace page did not finish loading: {{reason}}.",
+      "rendererGone": "The workspace page closed unexpectedly ({{reason}})."
+    },
+    "copyDetails": "Copy error details",
+    "copied": "Copied",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details"
   },
   "videoCall": {
     "loading": {

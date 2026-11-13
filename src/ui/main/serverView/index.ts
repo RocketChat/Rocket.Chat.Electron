@@ -68,6 +68,7 @@ import {
 } from './hangRecovery';
 import { isMarkdownViewerDownloadUrl } from './isMarkdownViewerDownloadUrl';
 import { createPopupMenuForServerView } from './popupMenu';
+import { createServerFailureTracker } from './serverFailure';
 import type { ReconnectBackoff } from './stuckNavigation';
 import {
   isUnreachableError,
@@ -429,9 +430,14 @@ const initializeServerWebContentsAfterAttach = (
     });
   };
 
+  const failures = createServerFailureTracker();
+
   guestWebContents.addListener('destroyed', stopReconnecting);
+  // A committed navigation is not an error page (Electron emits
+  // did-fail-load for those), so the server answered.
   guestWebContents.addListener('did-navigate', () => {
     reconnectBackoff.serverFailures = 0;
+    failures.clear();
   });
 
   const handleDidStartLoading = (): void => {
@@ -467,7 +473,18 @@ const initializeServerWebContentsAfterAttach = (
 
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, isMainFrame },
+      payload: {
+        url: serverUrl,
+        isMainFrame,
+        ...(isMainFrame && {
+          failure: failures.create({
+            kind: 'load-failed',
+            errorCode,
+            errorDescription,
+            url: validatedURL,
+          }),
+        }),
+      },
     });
   };
 
@@ -484,12 +501,17 @@ const initializeServerWebContentsAfterAttach = (
     }
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, isMainFrame: true },
+      payload: {
+        url: serverUrl,
+        isMainFrame: true,
+        failure: failures.create({ kind: 'unresponsive' }),
+      },
     });
   };
 
   const handleResponsive = (): void => {
     markResponsive(guestWebContents);
+    failures.clear();
     loggers.servers.info(`Server view became responsive again: ${serverUrl}`);
     if (!isServerStillAdded()) {
       return;
@@ -512,7 +534,11 @@ const initializeServerWebContentsAfterAttach = (
       }
       dispatch({
         type: WEBVIEW_DID_FAIL_LOAD,
-        payload: { url: serverUrl, isMainFrame: true },
+        payload: {
+          url: serverUrl,
+          isMainFrame: true,
+          failure: failures.create({ kind: 'stuck', reason }),
+        },
       });
       if (isUnreachable) {
         reloadWhenReachable();
@@ -527,6 +553,7 @@ const initializeServerWebContentsAfterAttach = (
     onRecovered: () => {
       loggers.servers.info(`Server view loaded after all: ${serverUrl}`);
       stopReconnecting();
+      failures.clear();
       if (!isServerStillAdded()) {
         return;
       }
@@ -558,7 +585,15 @@ const initializeServerWebContentsAfterAttach = (
     }
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, isMainFrame: true },
+      payload: {
+        url: serverUrl,
+        isMainFrame: true,
+        failure: failures.create({
+          kind: 'renderer-gone',
+          reason: details.reason,
+          exitCode: details.exitCode,
+        }),
+      },
     });
   };
 

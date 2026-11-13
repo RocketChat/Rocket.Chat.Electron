@@ -24,6 +24,7 @@ jest.mock('electron', () => ({
     userAgentFallback: 'test-agent',
     name: 'Rocket.Chat',
     getVersion: jest.fn(() => '1.0.0'),
+    getPath: jest.fn(() => '/logs'),
   },
   clipboard: { writeText: jest.fn() },
   Menu: { buildFromTemplate: jest.fn(() => ({ popup: jest.fn() })) },
@@ -102,6 +103,7 @@ const createGuestWebContents = () => {
     isDestroyed: jest.fn(() => false),
     isLoading: jest.fn(() => false),
     isWaitingForResponse: jest.fn(() => false),
+    isCrashed: jest.fn(() => false),
     forcefullyCrashRenderer: jest.fn(),
     loadURL: jest.fn(() => Promise.resolve()),
     executeJavaScript: jest.fn(() => Promise.resolve(0)),
@@ -160,7 +162,11 @@ describe('server view hang and crash recovery', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: SERVER_URL, isMainFrame: true },
+      payload: {
+        url: SERVER_URL,
+        isMainFrame: true,
+        failure: expect.objectContaining({ kind: 'unresponsive' }),
+      },
     });
   });
 
@@ -229,7 +235,15 @@ describe('server view hang and crash recovery', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: SERVER_URL, isMainFrame: true },
+      payload: {
+        url: SERVER_URL,
+        isMainFrame: true,
+        failure: expect.objectContaining({
+          kind: 'renderer-gone',
+          reason: 'crashed',
+          exitCode: 11,
+        }),
+      },
     });
   });
 
@@ -241,7 +255,17 @@ describe('server view hang and crash recovery', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: SERVER_URL, isMainFrame: true },
+      payload: {
+        url: SERVER_URL,
+        isMainFrame: true,
+        failure: expect.objectContaining({
+          kind: 'load-failed',
+          errorCode: -106,
+          errorDescription: 'ERR_INTERNET_DISCONNECTED',
+          url: SERVER_URL,
+          logsPath: '/logs',
+        }),
+      },
     });
   });
 
@@ -307,7 +331,14 @@ describe('server view hang and crash recovery', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith({
         type: WEBVIEW_DID_FAIL_LOAD,
-        payload: { url: SERVER_URL, isMainFrame: true },
+        payload: {
+          url: SERVER_URL,
+          isMainFrame: true,
+          failure: expect.objectContaining({
+            kind: 'stuck',
+            reason: 'server unreachable (ERR_NAME_NOT_RESOLVED)',
+          }),
+        },
       });
     });
 
@@ -357,6 +388,50 @@ describe('server view hang and crash recovery', () => {
     emit('render-process-gone', { reason: 'crashed', exitCode: 11 });
 
     expect(failLoadDispatches()).toHaveLength(0);
+  });
+
+  describe('failing since', () => {
+    const failLoad = () =>
+      emit(
+        'did-fail-load',
+        -106,
+        'ERR_INTERNET_DISCONNECTED',
+        SERVER_URL,
+        true
+      );
+    const lastFailure = () =>
+      failLoadDispatches().slice(-1)[0]?.[0].payload.failure;
+
+    it('keeps the time of the first failure while the reloads fail', () => {
+      failLoad();
+      const first = lastFailure();
+      jest.setSystemTime(Date.now() + 60_000);
+
+      failLoad();
+
+      expect(lastFailure().since).toBe(first.at);
+      expect(lastFailure().at).not.toBe(first.at);
+    });
+
+    it('starts a new series after a committed navigation', () => {
+      failLoad();
+      emit('did-navigate', SERVER_URL);
+      jest.setSystemTime(Date.now() + 60_000);
+
+      failLoad();
+
+      expect(lastFailure()).not.toHaveProperty('since');
+    });
+
+    it('starts a new series after the page responds again', () => {
+      emit('unresponsive');
+      emit('responsive');
+      jest.setSystemTime(Date.now() + 60_000);
+
+      emit('unresponsive');
+
+      expect(lastFailure()).not.toHaveProperty('since');
+    });
   });
 
   describe('heartbeat', () => {
@@ -439,6 +514,36 @@ describe('server view hang and crash recovery', () => {
       jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS);
 
       expect(failLoadDispatches()).toHaveLength(1);
+    });
+
+    it('keeps the crash cause while the renderer stays crashed', async () => {
+      hangRenderer();
+      guest.isCrashed.mockReturnValue(true);
+      emit('render-process-gone', { reason: 'killed', exitCode: 2 });
+
+      await jest.advanceTimersByTimeAsync(
+        (HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS) * 3
+      );
+
+      const failures = failLoadDispatches().map(
+        ([action]) => action.payload.failure.kind
+      );
+      expect(failures).toEqual(['renderer-gone']);
+    });
+
+    it('watches the new renderer after a crashed page loads again', async () => {
+      guest.isCrashed.mockReturnValue(true);
+      emit('render-process-gone', { reason: 'killed', exitCode: 2 });
+      await jest.advanceTimersByTimeAsync(HEARTBEAT_INTERVAL_MS * 3);
+      mockDispatch.mockClear();
+
+      guest.isCrashed.mockReturnValue(false);
+      hangRenderer();
+      jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS + HEARTBEAT_TIMEOUT_MS);
+
+      expect(
+        failLoadDispatches().map(([action]) => action.payload.failure.kind)
+      ).toEqual(['unresponsive']);
     });
 
     it('stops probing once the server view is destroyed', () => {

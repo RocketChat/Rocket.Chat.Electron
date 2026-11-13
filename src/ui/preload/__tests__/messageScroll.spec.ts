@@ -6,6 +6,8 @@ import {
   handleScroll,
   injectEmojiSizingStyles,
   listenToMessageScrollEvents,
+  markUserInitiatedScroll,
+  resetUserInitiatedScroll,
   setFollowingBottom,
   getFollowingBottom,
 } from '../messageScroll';
@@ -19,14 +21,16 @@ describe('ui/preload/messageScroll', () => {
     document.body.replaceChildren();
     addEventListenerSpy = jest.spyOn(document, 'addEventListener');
     removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+    resetUserInitiatedScroll();
   });
 
   afterEach(() => {
     addEventListenerSpy.mockRestore();
     removeEventListenerSpy.mockRestore();
+    resetUserInitiatedScroll();
   });
 
-  it('registers load and scroll listeners and injects sizing styles on initialize', () => {
+  it('registers all required listeners and injects sizing styles on initialize', () => {
     const cleanup = listenToMessageScrollEvents();
 
     expect(addEventListenerSpy).toHaveBeenCalledWith(
@@ -36,6 +40,26 @@ describe('ui/preload/messageScroll', () => {
     );
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'scroll',
+      expect.any(Function),
+      true
+    );
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'wheel',
+      expect.any(Function),
+      { passive: true, capture: true }
+    );
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'touchmove',
+      expect.any(Function),
+      { passive: true, capture: true }
+    );
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'pointerdown',
+      expect.any(Function),
+      { passive: true, capture: true }
+    );
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'keydown',
       expect.any(Function),
       true
     );
@@ -61,6 +85,26 @@ describe('ui/preload/messageScroll', () => {
       expect.any(Function),
       true
     );
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'wheel',
+      expect.any(Function),
+      true
+    );
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'touchmove',
+      expect.any(Function),
+      true
+    );
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'pointerdown',
+      expect.any(Function),
+      true
+    );
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'keydown',
+      expect.any(Function),
+      true
+    );
     expect(
       document.getElementById('rcx-custom-emoji-intrinsic-sizing')
     ).toBeNull();
@@ -81,7 +125,7 @@ describe('ui/preload/messageScroll', () => {
     expect(styles[0]).toBe(firstStyle);
   });
 
-  it('tracks following bottom state on user scroll', () => {
+  it('preserves following bottom state during programmatic scrolls or layout expansions', () => {
     const container = document.createElement('div');
     Object.defineProperty(container, 'clientHeight', {
       value: 400,
@@ -92,18 +136,56 @@ describe('ui/preload/messageScroll', () => {
       configurable: true,
     });
 
-    // Scrolled to bottom: 1000 - 600 - 400 = 0 <= 10
+    // Start at bottom
     container.scrollTop = 600;
-    handleScroll({ target: container } as unknown as Event);
-    expect(getFollowingBottom(container)).toBe(true);
+    setFollowingBottom(container, true);
 
-    // Scrolled away into history: 1000 - 200 - 400 = 400 > 10
-    container.scrollTop = 200;
+    // Layout expansion increases scrollHeight so distance becomes 100 > 10
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 1100,
+      configurable: true,
+    });
+
+    // Programmatic/layout scroll event fires WITHOUT user input
     handleScroll({ target: container } as unknown as Event);
-    expect(getFollowingBottom(container)).toBe(false);
+
+    // Must NOT be cleared to false!
+    expect(getFollowingBottom(container)).toBe(true);
   });
 
-  it('re-pins scroll to bottom when custom emoji finishes loading while near bottom', () => {
+  it('clears following bottom state only on user-initiated scroll away from bottom', () => {
+    const container = document.createElement('div');
+    Object.defineProperty(container, 'clientHeight', {
+      value: 400,
+      configurable: true,
+    });
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 1000,
+      configurable: true,
+    });
+
+    // Start at bottom
+    container.scrollTop = 600;
+    setFollowingBottom(container, true);
+
+    // User spins mouse wheel / touches scrollbar to scroll up
+    markUserInitiatedScroll();
+    container.scrollTop = 200; // distance = 400 > 10
+
+    handleScroll({ target: container } as unknown as Event);
+
+    // Now it should be marked false!
+    expect(getFollowingBottom(container)).toBe(false);
+
+    // User scrolls back to bottom (distance = 0 <= 10)
+    container.scrollTop = 600;
+    handleScroll({ target: container } as unknown as Event);
+
+    // Should be restored to true!
+    expect(getFollowingBottom(container)).toBe(true);
+  });
+
+  it('re-pins scroll to bottom when custom emoji finishes loading while following bottom', () => {
     const container = document.createElement('div');
     container.setAttribute('data-qa', 'message-list');
 
@@ -129,7 +211,7 @@ describe('ui/preload/messageScroll', () => {
     container.appendChild(message);
     document.body.appendChild(container);
 
-    // Simulate post-load expansion: scrollHeight increases by 50 to 1050
+    // Post-load layout expansion
     Object.defineProperty(container, 'scrollHeight', {
       value: 1050,
       configurable: true,
@@ -137,7 +219,6 @@ describe('ui/preload/messageScroll', () => {
 
     handleImageLoad({ target: emojiImg } as unknown as Event);
 
-    // Scroll should be pinned to the new bottom (1050 - 400 = 650)
     expect(container.scrollTop).toBe(650);
   });
 
@@ -145,7 +226,6 @@ describe('ui/preload/messageScroll', () => {
     const container = document.createElement('div');
     container.setAttribute('data-qa', 'message-list');
 
-    // Container was at the bottom: clientHeight 400, scrollHeight 1000, scrollTop 600 (distance = 0)
     Object.defineProperty(container, 'clientHeight', {
       value: 400,
       configurable: true,
@@ -172,7 +252,7 @@ describe('ui/preload/messageScroll', () => {
     container.appendChild(message);
     document.body.appendChild(container);
 
-    // Image loading causes container height to increase by 120px (> 80px threshold)
+    // Expansion by 120px (> 80px)
     Object.defineProperty(container, 'scrollHeight', {
       value: 1120,
       configurable: true,
@@ -180,7 +260,6 @@ describe('ui/preload/messageScroll', () => {
 
     handleImageLoad({ target: emojiImg } as unknown as Event);
 
-    // Must re-pin to new bottom (1120 - 400 = 720) despite distance being 120px
     expect(container.scrollTop).toBe(720);
     expect(getFollowingBottom(container)).toBe(true);
   });
@@ -189,7 +268,6 @@ describe('ui/preload/messageScroll', () => {
     const container = document.createElement('div');
     container.className = 'messages-box';
 
-    // User is far from bottom
     Object.defineProperty(container, 'clientHeight', {
       value: 400,
       configurable: true,
@@ -229,24 +307,22 @@ describe('ui/preload/messageScroll', () => {
       value: 1000,
       configurable: true,
     });
-    container.scrollTop = 580;
+    container.scrollTop = 600;
 
     const avatar = document.createElement('div');
     avatar.className = 'rcx-avatar';
     container.appendChild(avatar);
     document.body.appendChild(container);
 
-    // Non-image element
     handleImageLoad({ target: avatar } as unknown as Event);
-    expect(container.scrollTop).toBe(580);
+    expect(container.scrollTop).toBe(600);
 
-    // Image not part of a message or emoji
     const outsideImg = document.createElement('img');
     outsideImg.setAttribute('src', '/header-logo.png');
     document.body.appendChild(outsideImg);
 
     handleImageLoad({ target: outsideImg } as unknown as Event);
-    expect(container.scrollTop).toBe(580);
+    expect(container.scrollTop).toBe(600);
   });
 
   it('finds scrollable parent using computed style overflow-y', () => {

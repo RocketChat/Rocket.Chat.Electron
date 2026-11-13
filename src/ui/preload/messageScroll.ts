@@ -1,8 +1,31 @@
 export const AT_BOTTOM_SLACK_PX = 10;
+export const USER_SCROLL_TIMEOUT_MS = 300;
 
 const EMOJI_STYLE_ID = 'rcx-custom-emoji-intrinsic-sizing';
 
 const followingBottomState = new WeakMap<HTMLElement, boolean>();
+
+let isUserInitiatedScroll = false;
+let userScrollTimer: ReturnType<typeof setTimeout> | undefined;
+
+export const markUserInitiatedScroll = (): void => {
+  isUserInitiatedScroll = true;
+  if (userScrollTimer) {
+    clearTimeout(userScrollTimer);
+  }
+  userScrollTimer = setTimeout(() => {
+    isUserInitiatedScroll = false;
+    userScrollTimer = undefined;
+  }, USER_SCROLL_TIMEOUT_MS);
+};
+
+export const resetUserInitiatedScroll = (): void => {
+  isUserInitiatedScroll = false;
+  if (userScrollTimer) {
+    clearTimeout(userScrollTimer);
+    userScrollTimer = undefined;
+  }
+};
 
 export const setFollowingBottom = (
   container: HTMLElement,
@@ -61,7 +84,16 @@ export const handleScroll = (event: Event): void => {
   }
 
   const distance = target.scrollHeight - target.scrollTop - target.clientHeight;
-  followingBottomState.set(target, distance <= AT_BOTTOM_SLACK_PX);
+
+  if (distance <= AT_BOTTOM_SLACK_PX) {
+    // Reaching the bottom (either by user scroll, jump-to-bottom click, or initial mount)
+    // always establishes the following-bottom state.
+    followingBottomState.set(target, true);
+  } else if (isUserInitiatedScroll) {
+    // Only user-initiated actions (wheel, touch, keys) can disable bottom-following.
+    // Programmatic scrolls or layout expansions before image loads do not overwrite the state.
+    followingBottomState.set(target, false);
+  }
 };
 
 export const injectEmojiSizingStyles = (): void => {
@@ -131,16 +163,12 @@ export const handleImageLoad = (event: Event): void => {
     scrollContainer.scrollHeight -
     scrollContainer.scrollTop -
     scrollContainer.clientHeight;
-  const isExplicitlyFollowing = followingBottomState.get(scrollContainer);
 
-  const imageHeight = target.offsetHeight || target.clientHeight || 0;
-  const wasAtBottomBeforeExpand = distance - imageHeight <= AT_BOTTOM_SLACK_PX;
+  // Use recorded following state if present; otherwise check if currently at bottom.
+  const isFollowing =
+    followingBottomState.get(scrollContainer) ?? distance <= AT_BOTTOM_SLACK_PX;
 
-  const shouldFollowBottom =
-    isExplicitlyFollowing === true ||
-    (isExplicitlyFollowing !== false && wasAtBottomBeforeExpand);
-
-  if (shouldFollowBottom) {
+  if (isFollowing) {
     scrollContainer.scrollTop =
       scrollContainer.scrollHeight - scrollContainer.clientHeight;
     followingBottomState.set(scrollContainer, true);
@@ -150,12 +178,49 @@ export const handleImageLoad = (event: Event): void => {
 export const listenToMessageScrollEvents = (): (() => void) => {
   injectEmojiSizingStyles();
 
+  const handleWheel = (): void => markUserInitiatedScroll();
+  const handleTouch = (): void => markUserInitiatedScroll();
+  const handlePointerDown = (): void => markUserInitiatedScroll();
+  const handleKeyDown = (event: KeyboardEvent): void => {
+    if (
+      [
+        'ArrowUp',
+        'ArrowDown',
+        'PageUp',
+        'PageDown',
+        'Home',
+        'End',
+        ' ',
+      ].includes(event.key)
+    ) {
+      markUserInitiatedScroll();
+    }
+  };
+
   document.addEventListener('load', handleImageLoad, true);
   document.addEventListener('scroll', handleScroll, true);
+  document.addEventListener('wheel', handleWheel, {
+    passive: true,
+    capture: true,
+  });
+  document.addEventListener('touchmove', handleTouch, {
+    passive: true,
+    capture: true,
+  });
+  document.addEventListener('pointerdown', handlePointerDown, {
+    passive: true,
+    capture: true,
+  });
+  document.addEventListener('keydown', handleKeyDown, true);
 
   return () => {
     document.removeEventListener('load', handleImageLoad, true);
     document.removeEventListener('scroll', handleScroll, true);
+    document.removeEventListener('wheel', handleWheel, true);
+    document.removeEventListener('touchmove', handleTouch, true);
+    document.removeEventListener('pointerdown', handlePointerDown, true);
+    document.removeEventListener('keydown', handleKeyDown, true);
     document.getElementById(EMOJI_STYLE_ID)?.remove();
+    resetUserInitiatedScroll();
   };
 };

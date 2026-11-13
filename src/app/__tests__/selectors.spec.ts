@@ -3,6 +3,7 @@ import { selectPersistableValues } from '../selectors';
 describe('selectPersistableValues', () => {
   it('returns the persistable snapshot with fallback title', () => {
     const state = {
+      isAnimatedImagesEnabled: false,
       currentView: 'chats',
       doCheckForUpdatesOnStartup: true,
       downloads: {},
@@ -49,6 +50,7 @@ describe('selectPersistableValues', () => {
     };
 
     expect(selectPersistableValues(state as any)).toMatchObject({
+      isAnimatedImagesEnabled: false,
       currentView: 'chats',
       machineTheme: 'dark',
       mainWindowTitle: 'Rocket.Chat',

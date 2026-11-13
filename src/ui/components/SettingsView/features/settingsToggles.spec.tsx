@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
 import {
+  SETTINGS_SET_ANIMATED_IMAGES_CHANGED,
   SETTINGS_SET_DEBUG_LOGGING_CHANGED,
   SETTINGS_SET_DETAILED_EVENTS_LOGGING_CHANGED,
   SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED,
@@ -18,6 +19,7 @@ import {
   SETTINGS_SET_REPORT_OPT_IN_CHANGED,
   SETTINGS_SET_VERBOSE_OUTLOOK_LOGGING_CHANGED,
 } from '../../../actions';
+import { AnimatedImages } from './AnimatedImages';
 import { DebugLogging } from './DebugLogging';
 import { DetailedEventsLogging } from './DetailedEventsLogging';
 import { FlashFrame } from './FlashFrame';
@@ -64,6 +66,12 @@ const renderWithState = (
 };
 
 const simpleToggles: ToggleCase[] = [
+  {
+    name: 'AnimatedImages',
+    component: AnimatedImages,
+    stateKey: 'isAnimatedImagesEnabled',
+    actionType: SETTINGS_SET_ANIMATED_IMAGES_CHANGED,
+  },
   {
     name: 'DebugLogging',
     component: DebugLogging,

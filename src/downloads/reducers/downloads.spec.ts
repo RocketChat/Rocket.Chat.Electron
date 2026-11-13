@@ -217,15 +217,19 @@ describe('downloads reducer', () => {
   });
 
   describe('DOWNLOADS_CLEARED', () => {
-    it('should clear all downloads from the state', () => {
-      const anotherDownload: Download = {
+    it('clears completed downloads when there are no active transfers', () => {
+      const completedDownload: Download = {
         ...mockDownload,
+        state: 'completed',
+      };
+      const anotherDownload: Download = {
+        ...completedDownload,
         itemId: 1640995300000,
         fileName: 'another-file.txt',
       };
 
       const initialState = {
-        [mockDownload.itemId]: mockDownload,
+        [completedDownload.itemId]: completedDownload,
         [anotherDownload.itemId]: anotherDownload,
       };
 
@@ -236,6 +240,47 @@ describe('downloads reducer', () => {
       const newState = downloads(initialState, action as any);
 
       expect(newState).toEqual({});
+    });
+
+    it('keeps paused and progressing downloads and clears finished entries', () => {
+      const pausedDownload: Download = {
+        ...mockDownload,
+        itemId: mockDownload.itemId + 1,
+        state: 'paused',
+        status: DownloadStatus.PAUSED,
+      };
+      const initialState = {
+        [mockDownload.itemId]: mockDownload,
+        [pausedDownload.itemId]: pausedDownload,
+        ...Object.fromEntries(
+          (['completed', 'cancelled', 'interrupted', 'expired'] as const).map(
+            (state, index) => {
+              const itemId = mockDownload.itemId + index + 2;
+              return [itemId, { ...mockDownload, itemId, state }];
+            }
+          )
+        ),
+      };
+
+      const clearedState = downloads(initialState, { type: DOWNLOADS_CLEARED });
+
+      expect(clearedState).toEqual({
+        [mockDownload.itemId]: mockDownload,
+        [pausedDownload.itemId]: pausedDownload,
+      });
+
+      const resumedDownload = {
+        ...pausedDownload,
+        state: 'progressing',
+        status: DownloadStatus.ALL,
+        receivedBytes: pausedDownload.receivedBytes + 100,
+      } as const;
+      expect(
+        downloads(clearedState, {
+          type: DOWNLOAD_UPDATED,
+          payload: resumedDownload,
+        })[pausedDownload.itemId]
+      ).toEqual(resumedDownload);
     });
 
     it('should return empty state when already empty', () => {

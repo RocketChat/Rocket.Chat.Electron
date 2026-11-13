@@ -61,7 +61,12 @@ export const downloads = (
     }
 
     case DOWNLOADS_CLEARED:
-      return {};
+      return Object.fromEntries(
+        Object.entries(state).filter(
+          ([, download]) =>
+            download.state === 'progressing' || download.state === 'paused'
+        )
+      );
 
     default:
       return state;

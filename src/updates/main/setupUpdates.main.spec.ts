@@ -234,4 +234,15 @@ describe('updates/setupUpdates', () => {
       expect(autoUpdater.allowDowngrade).toBe(false);
     });
   });
+
+  describe('update signature configuration', () => {
+    it('pins the publisher name in electron-builder.json for native update verification', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const builderConfig = require('../../../electron-builder.json');
+      expect(builderConfig.win?.signtoolOptions?.publisherName).toBe(
+        'Rocket.Chat Technologies Corp.'
+      );
+      expect(builderConfig.win?.verifyUpdateCodeSignature).toBe(true);
+    });
+  });
 });

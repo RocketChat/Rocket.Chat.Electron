@@ -12,9 +12,9 @@ review threads.
 
 ## Core rule
 
-One harness `Monitor` running `scripts/watch.sh`. Not a haiku `watcher`
-agent, not a foreground `sleep` loop, not repeated `gh pr checks` calls by
-hand. A haiku watcher cannot hold a multi-minute poll. It returns early and
+One harness `Monitor` running `scripts/watch.sh`. Not a subagent, not a
+foreground `sleep` loop, not repeated `gh pr checks` calls by hand. A
+subagent cannot hold a multi-minute poll. It returns early and
 claims that it is still monitoring. Manual polling burns a full turn per
 check. The Monitor tool holds the wait
 and delivers each event as a notification.
@@ -85,11 +85,11 @@ the user instead.
 
 ## Common mistakes
 
-| Mistake                                                     | Fix                                                                                              |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Dispatching a `watcher` or haiku agent to "keep monitoring" | Use `Monitor`; agents return early on long waits.                                                |
-| Foreground `sleep 60; gh pr checks` loops                   | Blocked by the harness and wastes turns. Monitor only.                                           |
-| Two monitors on the same PR after a resume                  | Check `TaskList` before arming.                                                                  |
-| Replying to or resolving CodeRabbit threads from here       | That is `/coderabbit-triage`, which the user invokes.                                            |
-| Reporting green before the platform jobs registered         | The script waits for the required checks to exist; trust `DONE`, not an early all-pass snapshot. |
-| Committing or pushing "since we are watching anyway"        | Push only on explicit request; never commit.                                                     |
+| Mistake                                               | Fix                                                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Dispatching a subagent to "keep monitoring"           | Use `Monitor`; agents return early on long waits.                                                |
+| Foreground `sleep 60; gh pr checks` loops             | Blocked by the harness and wastes turns. Monitor only.                                           |
+| Two monitors on the same PR after a resume            | Check `TaskList` before arming.                                                                  |
+| Replying to or resolving CodeRabbit threads from here | That is `/coderabbit-triage`, which the user invokes.                                            |
+| Reporting green before the platform jobs registered   | The script waits for the required checks to exist; trust `DONE`, not an early all-pass snapshot. |
+| Committing or pushing "since we are watching anyway"  | Push only on explicit request; never commit.                                                     |

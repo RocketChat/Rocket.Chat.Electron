@@ -10,8 +10,10 @@ The tickets are the Jira keys in the commit messages between the previous
 tag and this tag. For a stable tag the previous tag is the previous stable
 tag, so the range covers every alpha of the cycle.
 
+Credentials: JIRA_API_TOKEN from the environment. JIRA_SERVER and JIRA_LOGIN
+from the environment, or "server" and "login" from ~/.config/.jira/.config.yml.
+
 Usage (dry run by default):
-  source ~/.claude/skills/jira/jira-env.sh
   .claude/skills/ship-release/jira-release-sync.py <tag> [--since <tag>] [--apply]
 """
 
@@ -65,7 +67,8 @@ def jira_config():
     token = os.environ.get("JIRA_API_TOKEN")
     if not (server and login and token):
         sys.exit(
-            "Jira credentials missing. Run: source ~/.claude/skills/jira/jira-env.sh"
+            "Jira credentials missing. Set JIRA_API_TOKEN, and set JIRA_SERVER and"
+            " JIRA_LOGIN or configure jira-cli (~/.config/.jira/.config.yml)."
         )
     server = server.rstrip("/")
     if not server.startswith("https://"):

@@ -187,8 +187,6 @@ Read the doc that matches the task. Do not scan `docs/` wholesale.
   [Windows Graphics Capture stall](docs/video-call-window-wgc-limitations.md).
 - [docs/linux-display-server.md](docs/linux-display-server.md) — Wayland and
   X11 detection and fallback on Linux.
-- [docs/gitnexus.md](docs/gitnexus.md) — reindexing, and GitNexus in a linked
-  worktree.
 
 ### Deployment guides for administrators
 
@@ -248,56 +246,14 @@ Read the doc that matches the task. Do not scan `docs/` wholesale.
 - PR descriptions and commit bodies are public. Do not include internal
   references: Jira or Zoho Desk links and ticket text, customer names, support
   conversations. Do not include notes about local developer tools either
-  (GitNexus, agent workflow, ledgers). A bare Jira key at the end of the title
+  (code indexers, agent workflow, ledgers). A bare Jira key at the end of the title
   or subject is the accepted convention. Everything else about the ticket
   stays internal.
 - Write instructions for agents (this file, nested `AGENTS.md` files, skills,
   and the docs they link) in short active sentences: one instruction per
   sentence, and no semicolons.
-
-<!-- gitnexus:start -->
-
-# GitNexus — Code Intelligence
-
-This project is indexed by GitNexus as **Rocket.Chat.Electron**. If GitNexus
-is not available, do not block on it. Use local code search, tests and careful
-review instead. Reindexing and the resource list:
-[docs/gitnexus.md](docs/gitnexus.md).
-
-## In a linked worktree
-
-The MCP server serves the index of the main checkout. Pass
-`repo: "Rocket.Chat.Electron"` to every repo-scoped tool except `list_repos`.
-Pass `worktree: "<absolute worktree path>"` to `detect_changes`. For a symbol
-that your branch adds or changes, read the source. Never run `analyze` inside
-a linked worktree.
-
-## Always do
-
-- **MUST run impact analysis before you edit any symbol.** Run
-  `impact({target: "symbolName", direction: "upstream"})`. Report the blast
-  radius (direct callers, affected processes, risk level) to the user.
-- **MUST warn the user** when impact analysis returns HIGH or CRITICAL risk,
-  before you continue with the edits.
-- **MUST treat `risk: UNKNOWN` as unresolved, not as low.** The index cannot
-  resolve some callers. Three examples: a property access on a plain object,
-  an IPC channel name, and a web client call across the preload bridge.
-  Check with a text search before you change or remove the symbol.
-- **MUST run `detect_changes()` before you commit.** For a review against the
-  branch point, pass the merge base:
-  `detect_changes({scope: "compare", base_ref: "<merge-base sha>"})`. A result
-  with `partial: true` or `truncated: true` is not a clean check. Run it
-  again.
-- To explore unfamiliar code, use `query({query: "concept"})`, not grep. For
-  one symbol's callers, callees and flows, use `context({name: "symbolName"})`.
-
-## Never do
-
-- NEVER edit a function, class or method before you run `impact` on it.
-- NEVER ignore a HIGH or CRITICAL risk warning, and NEVER read
-  `risk: UNKNOWN` as an all-clear.
-- NEVER rename symbols with find-and-replace. Use `rename`, which understands
-  the call graph.
-- NEVER commit changes before you run `detect_changes()`.
-
-<!-- gitnexus:end -->
+- Write skills, agents, hooks and docs so that they work with no personal
+  tool. A contributor may not have your MCP servers, plugins, agents or
+  skills. Describe the action ("find every caller", "run it in the
+  background"). Name a personal tool only as an optional path, with a
+  fallback.

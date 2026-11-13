@@ -31,18 +31,16 @@ below; `--stat` abbreviates long paths and is only for the summary.
 Fail this check (and stop) if the current branch is `dev` or `master` —
 per AGENTS.md, never commit or open a PR directly from either.
 
-### 2. GitNexus impact scan
+### 2. Scope check
 
-Call the GitNexus MCP tool:
+Read the `--name-only` list from step 1. Check that each file belongs to the
+change. Report each file that does not, and ask the user before you
+continue.
 
-```
-detect_changes({ scope: "compare", base_ref: "dev" })
-```
-
-List every affected symbol and execution flow it reports. If it returns
-HIGH or CRITICAL risk on any symbol, surface that explicitly and warn
-the user before continuing — per `CLAUDE.md`/`AGENTS.md` GitNexus rules,
-do not silently proceed past a HIGH/CRITICAL warning.
+For each exported symbol that the diff changes under `src/`, search its
+references (`rg -n -w '<symbol>' src/`). Report the callers outside the
+changed files. When a changed symbol has such callers, ask the user before you
+continue.
 
 ### 3. Lint
 
@@ -158,7 +156,7 @@ asks for:
   short summary of what changed and why, plus a "How verified" list
   citing each check from the checklist above with its real result
   (e.g. `yarn lint`: pass; `yarn test --runTestsByPath ...`: pass/fail
-  counts; GitNexus `detect_changes`: summary).
+  counts).
 - Screenshots if the diff touches UI (per the template's own prompt).
 
 Re-read the template file at skill-run time in case it changed — do not

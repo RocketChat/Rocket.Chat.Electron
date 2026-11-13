@@ -119,8 +119,8 @@ same key order) so the locale file's shape mirrors English.
 
 ### (d) Parallelize for many locales
 
-If more than 5 locales need translation, dispatch parallel
-`builder-trivial` agents, one per locale, each given the exact list of
+If more than 5 locales need translation and your agent tool can run
+subagents, run one subagent per locale in parallel, each given the exact list of
 missing keys and their English source values for that locale. If 5 or
 fewer locales need translation, do the edits inline instead.
 

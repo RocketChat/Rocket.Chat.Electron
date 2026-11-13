@@ -8,9 +8,9 @@ disable-model-invocation: true
 
 Run the packaged-installer smoke tests against a built artifact and
 report a one-line verdict + verbatim error excerpt. Do NOT run these
-directly with Bash — the underlying scripts are long-running/noisy
-(builds, VM copy, install/uninstall cycles); dispatch through the
-`watcher` agent and read its digest.
+in the foreground — the underlying scripts are long-running/noisy
+(builds, VM copy, install/uninstall cycles); run them in the background
+or in a subagent, and read only the verdict and the errors.
 
 ## Read fully first
 
@@ -102,9 +102,9 @@ If the required host/VM/env var is missing, stop and report
 **UNVERIFIED** with exactly what's missing — do not guess credentials
 or fake a VM.
 
-### 4. Run through `watcher`
+### 4. Run in the background
 
-Dispatch the resolved command to the `watcher` agent (long-running,
+Run the resolved command in the background or in a subagent (long-running,
 noisy — never stream this into your own context):
 
 ```bash
@@ -118,7 +118,7 @@ MSI_PATH=dist/rocketchat-4.14.0-win-x64.msi ./scripts/msi-test/run-msi-tests.sh
 ./scripts/linux-test-deb.sh --skip-build
 ```
 
-For MSI, the watcher should also report the structured result at
+For MSI, also report the structured result at
 `scripts/msi-test/logs/<timestamp>/test-results.json` (per-scenario
 pass/fail) and note `scripts/msi-test/fetch-logs.sh` as the way to
 re-pull logs without re-running if the digest needs more detail.

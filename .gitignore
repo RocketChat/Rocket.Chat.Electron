@@ -62,5 +62,3 @@ scripts/msi-test/.known_hosts
 # dylib artifacts
 *.dylib
 
-# GitNexus index
-.gitnexus

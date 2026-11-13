@@ -1,6 +1,6 @@
 ---
 name: electron-bump
-description: Upgrade the Electron version in Rocket.Chat.Electron safely. Detect the breaking changes between the current and target Electron release. Produce a migration plan and wait for user approval. Then apply the fixes (use GitNexus impact analysis to find every affected callsite). Bump the coupled config (electron-builder bundle id, CI node-version, @types/node). Run lint and tests. Open a ready PR from a fresh branch off dev. Trigger when the user says "bump electron", "upgrade electron", "update electron to X", "/electron-bump", or asks to move to a newer Electron release.
+description: Upgrade the Electron version in Rocket.Chat.Electron safely. Detect the breaking changes between the current and target Electron release. Produce a migration plan and wait for user approval. Then apply the fixes (find every affected callsite first). Bump the coupled config (electron-builder bundle id, CI node-version, @types/node). Run lint and tests. Open a ready PR from a fresh branch off dev. Trigger when the user says "bump electron", "upgrade electron", "update electron to X", "/electron-bump", or asks to move to a newer Electron release.
 ---
 
 # Electron Version Bump
@@ -29,18 +29,16 @@ This skill automates a safe Electron upgrade for **this repo**
   untouched.
 - Do NOT apply any code or config edit until the user approves the migration
   plan.
-- This is an Orchestrator task. Delegate research to `researcher`, edits to
-  `builder-*`, and test runs to `watcher`/`tester`. Do not do the
-  implementation yourself.
 - NEVER commit or push without explicit user permission for the commit step.
   PR creation is the approved end-state of this skill. Still ask before
   `git push` if the session has not authorized it yet.
-- GitNexus is authoritative for "what calls this Electron API". Query it
-  before you grep.
+- Find every caller of an Electron API before you judge it safe. A name
+  search misses calls through a wrapper, so follow each wrapper to its
+  callers.
 
 ---
 
-## Phase 0 — Resolve versions & freshness
+## Phase 0 — Resolve versions
 
 1. Read the current versions:
    - `node -p "require('./package.json').devDependencies.electron"` → CURRENT.
@@ -61,21 +59,17 @@ This skill automates a safe Electron upgrade for **this repo**
      and `yarn.lock` only, no code changes. Light path.
    - **major** → expect API breaks, code adaptation, an @types/node bump, and
      README/builder updates. Full path.
-6. Make sure that the GitNexus index is fresh. If a GitNexus tool warns that
-   the index is stale, run `node .gitnexus/run.cjs analyze --index-only`
-   (see `docs/gitnexus.md`). Run it only at a quiet point: a
-   background analyze can drop staged files and restart a running
-   `yarn start` app.
 
 ---
 
 ## Phase 1 — Detect breaking changes (research, parallel)
 
-Dispatch a `researcher` to gather the authoritative list of breaking
-changes. Dispatch a `finder` to re-check the current coupled surface. That
-surface may have drifted since this skill was written.
+Gather the authoritative list of breaking changes, and re-check the current
+coupled surface in the repo. That surface may have drifted since this skill
+was written. The two jobs are independent, so run them in parallel when you
+can.
 
-**Researcher brief** — fetch and distill, for the range CURRENT → TARGET:
+**Research brief** — fetch and distill, for the range CURRENT → TARGET:
 
 - The Electron breaking-changes doc:
   `https://www.electronjs.org/docs/latest/breaking-changes` (it covers
@@ -100,10 +94,9 @@ this doc blindly. Inspect these items:
 ### Coupled-surface hint map (WHERE to look — never trust any value here as current)
 
 This table lists the _kinds of places_ that couple to the Electron version.
-The finder uses it to know where to look. It is a hint map and not a source
-of truth. Every concrete value (version numbers, bundle ids, pinned Node) MUST
-come from the finder. The finder reads the repo live in this run. A value
-NEVER comes from this table. Treat anything specific below as "last seen" only.
+Use it to know where to look. It is a hint map and not a source of truth.
+Every concrete value (version numbers, bundle ids, pinned Node) MUST come from
+a live read of the repo in this run. A value NEVER comes from this table. Treat anything specific below as "last seen" only.
 
 | What                 | Where                                                                              | Notes                                                                                                                                                                                               |
 | -------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -119,12 +112,12 @@ NEVER comes from this table. Treat anything specific below as "last seen" only.
 `@kayahr/jest-electron-runner` are unrelated (see `docs/build-and-packaging.md`,
 "Dependency patches"). `.yarn/patches/` also holds an `app-builder-lib` patch for
 electron-builder 26.0.3. Check it when the plan bumps electron-builder.
-**Native deps**: none (pure JS/TS, no ABI risk). Re-check both with the
-finder.
+**Native deps**: none (pure JS/TS, no ABI risk). Re-check both in the
+repo.
 
 ### High-risk API zones (churn often here)
 
-Query each one with GitNexus before you assume it is safe. Known hot
+Find the callers of each one before you assume it is safe. Known hot
 callsites as of E40:
 
 | API                                   | Risk   | Known callsites                                                 |
@@ -136,20 +129,21 @@ callsites as of E40:
 
 As of E40, the repo does not use `webContents.printToPDF`, the `remote`
 module, or `BrowserView`/`WebContentsView`. Treat this as a hint and not as
-an exclusion list. If the researcher reports one of them as breaking for
-this range, check it with GitNexus. Do not skip it.
+an exclusion list. If the research reports one of them as breaking for
+this range, search for it again. Do not skip it.
 
 ---
 
-## Phase 2 — Map breaking changes to THIS codebase via GitNexus
+## Phase 2 — Map breaking changes to THIS codebase
 
-For each breaking, removed, or changed API that the researcher returned,
-find whether and where the repo uses it. **Use GitNexus and not raw grep**
-(`AGENTS.md`, "GitNexus" rules):
+For each breaking, removed, or changed API that the research found,
+find whether and where the repo uses it:
 
-1. `mcp__gitnexus__query({ query: "<api or concept>", repo: "Rocket.Chat.Electron" })` to find the execution flows that touch it.
-2. For each concrete symbol or callsite, run `mcp__gitnexus__context({ name: "<symbol>", repo: "Rocket.Chat.Electron" })` for the 360° view.
-3. Run `mcp__gitnexus__impact({ target: "<symbol>", direction: "upstream", repo: "Rocket.Chat.Electron" })` to see the blast radius before you edit. **Report HIGH/CRITICAL risk to the user.**
+1. Find each callsite of the API, also the calls through a local wrapper.
+2. For each wrapper or callsite, find its callers up to the feature that
+   uses it. That is the blast radius of the change.
+3. When the blast radius reaches the preload bridge, an IPC channel or
+   startup code, report it to the user before you edit.
 
 Produce one of these results for each breaking change:
 
@@ -162,16 +156,14 @@ Produce one of these results for each breaking change:
 ## Phase 3 — Write the migration plan & STOP
 
 Write the plan to a **dedicated, non-colliding** file:
-`.localdev/workflow/electron-bump-<TARGET-major>.md` (e.g.
-`electron-bump-42.md`). Do NOT write to `.localdev/workflow/todo.md`. It may
-already hold an unrelated active plan, and an overwrite loses live work. If
-the dedicated file already exists from a prior attempt, overwrite that file
+`.localdev/electron-bump-<TARGET-major>.md` (e.g. `electron-bump-42.md`).
+`.localdev/` is gitignored. If the file already exists from a prior attempt, overwrite that file
 (it is yours). Present a summary to the user. The plan MUST contain:
 
 - The version delta: CURRENT → TARGET, the bundled Node/Chromium delta, and
   the jump class.
 - The breaking changes **that affect this repo**. For each one: the affected
-  files, the GitNexus blast radius, the proposed fix, and the risk.
+  files, the blast radius, the proposed fix, and the risk.
 - The coupled config edits that the plan requires (builder bundle id, CI
   node-version, @types/node). List only the ones that this delta needs.
 - The test plan (lint, `*.spec.ts` renderer, `*.main.spec.ts` main, a
@@ -194,24 +186,22 @@ open questions, ask them now.
 2. Bump the version:
    - `package.json` → `devDependencies.electron` = TARGET (and `electron-builder` if the plan calls for it).
    - `@types/node` if the Node major changed.
-   - `yarn install` to regenerate `yarn.lock` (dispatch `watcher`, because install is noisy).
+   - `yarn install` to regenerate `yarn.lock`.
 3. Apply the coupled config edits from the plan (builder bundle id, CI `node-version`).
 4. Apply the code fixes:
-   - Dispatch `builder-fast` for single scoped edits. Dispatch `builder-smart` for non-trivial API adaptations. Dispatch `builder-trivial` only for the same edit across 5+ sites.
-   - Serialize the builders by file. Run `mcp__gitnexus__impact` for each edit before you apply it. Do not estimate the blast radius mentally.
+   - Edit one file at a time. Find the callers of each symbol before you edit it. Do not estimate the blast radius mentally.
 5. Update docs only if the plan flagged them (README version table, cert doc).
 
 ---
 
 ## Phase 5 — Check
 
-Dispatch `watcher`/`tester`, to keep noisy output out of the orchestrator
-context:
+Run these checks:
 
 1. `yarn lint` — ESLint and the TS typecheck (`npx tsc --noEmit` if needed).
 2. `yarn test` — the full Jest suite (renderer and main). RTL specs need fake
-   timers (see project memory `lesson_rtl_jest_electron_timer_leak`). A
-   leaked timer orphans electron procs. Do not loop full runs per builder.
+   timers. A leaked timer orphans Electron processes. Do not rerun the
+   full suite after each edit.
    Batch-check once. Run the suite with a time limit. If it prints nothing
    for more than 3× its normal duration, a renderer crashed. The runner has
    no crash handling and waits forever. Run each spec alone with a 90 s
@@ -235,8 +225,9 @@ breaking-changes list remains.
 
 ## Phase 6 — Commit & PR
 
-1. Run `mcp__gitnexus__detect_changes()` to check that only the expected
-   symbols and flows changed (`AGENTS.md`, "GitNexus" rules).
+1. Read `git status --short` and `git diff --stat origin/dev`. They show the
+   uncommitted edits and the untracked files against the base. Check that
+   only the expected files changed.
 2. Present the diff summary to the user. Ask the user to approve the commit.
 3. Commit with a conventional message:
    `chore: update Electron from <CURRENT> to <TARGET>`. Match the repo's
@@ -254,9 +245,6 @@ breaking-changes list remains.
    - The breaking changes addressed (bullet list). Frame them as adaptation
      and not as regression.
    - Checks: lint and tests pass. CI runs the cross-platform builds.
-6. After the PR is open, suggest a reindex at a quiet point:
-   `node .gitnexus/run.cjs analyze --index-only`. It refreshes the index for
-   the changed code.
 
 ---
 

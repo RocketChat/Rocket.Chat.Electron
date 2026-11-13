@@ -14,10 +14,10 @@ investigation history:
     Keep that state bounded.
   - Do NOT tie that state to a `close` or dismiss signal. If you do, the app
     drops replies that the user types later.
-- The web client closes every desktop notification 10s after it shows it
-  (`useNotification.ts`). The server never sends `duration`, so the client
-  always uses that fallback. Expect that close while the card is still on
-  screen.
+- Web clients without Rocket.Chat PR #41897 close every desktop notification
+  10s after they show it (`useNotification.ts`), because the server never
+  sends `duration`. With those servers, expect that close while the card is
+  still on screen. Web clients with #41897 do not close it.
 - Only reply and action-button interactions carry activation arguments
   (`type=...&tag=<id>`, read through `Notification.handleActivation`, win32).
   A click on the toast body carries none and arrives ONLY as the instance

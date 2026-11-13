@@ -20,6 +20,8 @@ Spec names and locations decide which Jest project runs a spec (`testMatch` in
   `testEnvironment: 'node'`.
 - A spec with the `@jest-environment jsdom` docblock runs in its own Jest
   project, in plain Node. `jest.config.js` finds these specs by the docblock.
+  Do not put such a spec under `src/<module>/main/`. The main-process project
+  does not exclude jsdom specs, so Jest would also run it there.
   Do not run jsdom inside the Electron runner. Since Electron 43, the renderer
   aborts with `Check failed: ToExecutionContext(context)`, and the runner hangs
   until CI kills the job. These specs also count under `--coverage`.

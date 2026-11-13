@@ -196,10 +196,11 @@ Cut alphas directly from `dev`. There is no dedicated branch.
    Also increment `mac.bundleVersion` in `electron-builder.json`. It is
    independent from `package.json`'s `version`. Apple requires each
    submission's `CFBundleVersion` to strictly increase over the last one.
-   The format is `YYMM` plus a single-digit build counter. The counter
-   resets to `0` at the start of each month. For example, the first build
-   shipped in August 2026 is `26080`, and the second same-month build is
-   `26081`. Check the current value and the date of its last bump
+   The format is `YYMM` plus a two-digit build counter. The counter
+   resets to `00` at the start of each month. For example, the first build
+   shipped in November 2026 is `261100`, and the second same-month build is
+   `261101`. The new value must be higher than the value on `dev`, on
+   `master` and on every `release/X.Y.x` branch. Check the current value and the date of its last bump
    (`git log -p --follow -- electron-builder.json`) before you increment it.
    NEVER guess an arbitrary increment.
 

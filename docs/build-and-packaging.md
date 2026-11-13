@@ -46,17 +46,22 @@ Never add an `@ewsjs/xhr` patch to `patches/`. That causes CI conflicts.
   `arm64`.
 - Code signing uses Google Cloud KMS in two phases. This prevents MSI build
   failures from KMS CNG provider conflicts.
+
   1. Build the packages without signing (empty env vars).
   2. Sign the built packages with `jsign` and Google Cloud KMS.
 
   To rotate the credentials, read
   [RENEW_CI_CREDENTIALS.md](RENEW_CI_CREDENTIALS.md).
+
 - `electron-builder.json`'s `mac.bundleVersion` (macOS `CFBundleVersion`) is
   independent from the `version` in `package.json`. Bump it on every release
   that ships to the App Store or gets notarized. Apple requires each
   submission's `CFBundleVersion` to be higher than the last one.
-  - Format: `YYMM` plus a single-digit build counter that resets to `0` each
-    month. Example: the first build shipped in August 2026 is `26080`, and the
-    second build in the same month is `26081`.
+  - Format: `YYMM` plus a two-digit build counter that resets to `00` each
+    month. Example: the first build shipped in November 2026 is `261100`, and
+    the second build in the same month is `261101`. The one-digit counter
+    stopped in October 2026, when one month needed more than ten builds.
+  - The new value must be higher than the value on `dev`, on `master` and on
+    every `release/X.Y.x` branch. Apple compares the values as integers.
   - Before you increment it, read the current value and the date of its last
     bump (`git log -p --follow -- electron-builder.json`). Do not guess.

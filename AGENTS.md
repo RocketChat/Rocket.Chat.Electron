@@ -12,7 +12,8 @@ adds rules for the files under it.
 
 The repository has no `CLAUDE.md` on purpose. Claude Code 2.1.277 and later
 reads `AGENTS.md` only when no `CLAUDE.md` exists, so a root `CLAUDE.md` hides
-this file. When a request says "add this to CLAUDE.md", add it here or to the
+this file. Do not add `CLAUDE.local.md` or `.claude/CLAUDE.md` either, because
+Claude Code can also skip this file when one of them exists. When a request says "add this to CLAUDE.md", add it here or to the
 matching doc. If a tool creates a root `CLAUDE.md`, move its useful content
 here and remove it. Claude-specific configuration lives in `.claude/` (skills,
 agents, hooks, `settings.json`).
@@ -69,7 +70,9 @@ workspace directory, because it writes an incorrect output structure.
 - Never commit directly to `master`, `dev` or `release/X.Y.x`. Create a
   branch, test, and open a PR. Read-only git operations need no permission.
 - Work in a worktree, so that you do not disturb another working directory.
-  Start it from the current remote `dev`, because a local `dev` can be stale:
+  To continue an existing branch, check out that branch in the worktree. Start
+  a new branch from the current remote `dev`, because a local `dev` can be
+  stale:
 
   ```bash
   mkdir -p ../Rocket.Chat.Electron-worktrees

@@ -25,6 +25,8 @@ describe('i18n/resources', () => {
         'hu',
         'it-IT',
         'ja',
+        'nb',
+        'nn',
         'no',
         'pl',
         'pt-BR',
@@ -34,8 +36,22 @@ describe('i18n/resources', () => {
         'uk-UA',
         'zh-CN',
         'zh-TW',
+        'zh',
       ].sort()
     );
+  });
+
+  it('loads the Norwegian and Chinese aliases from the main files', async () => {
+    const [no, nb, nn, zhCN, zh] = await Promise.all([
+      resources.no(),
+      resources.nb(),
+      resources.nn(),
+      resources['zh-CN'](),
+      resources.zh(),
+    ]);
+    expect(nb).toEqual(no);
+    expect(nn).toEqual(no);
+    expect(zh).toEqual(zhCN);
   });
 
   it('loads English resources as a non-empty object', async () => {

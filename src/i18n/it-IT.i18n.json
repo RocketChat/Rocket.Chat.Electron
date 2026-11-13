@@ -4,6 +4,7 @@
       "pdf": "Visualizzatore PDF",
       "markdown": "Visualizzatore Markdown"
     },
+    "windowTitle": "Documento",
     "back": "Indietro"
   },
   "settings": {
@@ -69,6 +70,7 @@
     "workspaces": "Aree di lavoro",
     "addWorkspace": "Aggiungi area di lavoro",
     "unreadMessage_one": "{{- count}} messaggio",
+    "unreadMessage_many": "{{- count}} di messaggi",
     "unreadMessage_other": "{{- count}} messaggi",
     "unreadMessages": "Messaggi non letti",
     "meatballMenu": "Menu dell'applicazione",
@@ -127,8 +129,20 @@
     },
     "expiration": {
       "label": "Scadenza:",
-      "expiresOn": "Scade il {{date}}"
-    }
+      "expiresOn": "Scade il {{date}}",
+      "today": "Scade oggi",
+      "inDays_one": "Scade tra {{count}} giorno",
+      "inDays_many": "Scade tra {{count}} di giorni",
+      "inDays_other": "Scade tra {{count}} giorni",
+      "expired": "Scaduto"
+    },
+    "supportedLabel": "Supportato:",
+    "timestampLabel": "Timestamp:",
+    "exceptionsLabel": "Eccezioni:",
+    "exceptionVersionsLabel": "Versioni in eccezione:",
+    "exceptionExpires": "Scade: {{date}}",
+    "moreExceptions": "... e altre {{count}}",
+    "noExceptions": "Nessuna eccezione di versione configurata"
   },
   "menus": {
     "simulateDisconnected": "Simula disconnessione",

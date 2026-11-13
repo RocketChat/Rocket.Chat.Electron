@@ -128,6 +128,7 @@
       "pdf": "Przeglądarka PDF",
       "markdown": "Przeglądarka Markdown"
     },
+    "windowTitle": "Dokument",
     "back": "Wstecz"
   },
   "downloads": {
@@ -316,6 +317,8 @@
     "workspaces": "Przestrzenie robocze",
     "addWorkspace": "Dodaj przestrzeń roboczą",
     "unreadMessage_one": "{{- count}} wiadomość",
+    "unreadMessage_few": "{{- count}} wiadomości",
+    "unreadMessage_many": "{{- count}} wiadomości",
     "unreadMessage_other": "{{- count}} wiadomości",
     "unreadMessages": "Nieprzeczytane wiadomości",
     "meatballMenu": "Menu aplikacji",
@@ -425,7 +428,20 @@
     },
     "expiration": {
       "label": "Wygaśnięcie:",
-      "expiresOn": "Wygasa {{date}}"
-    }
+      "expiresOn": "Wygasa {{date}}",
+      "today": "Wygasa dzisiaj",
+      "inDays_one": "Wygasa za {{count}} dzień",
+      "inDays_few": "Wygasa za {{count}} dni",
+      "inDays_many": "Wygasa za {{count}} dni",
+      "inDays_other": "Wygasa za {{count}} dnia",
+      "expired": "Wygasło"
+    },
+    "supportedLabel": "Obsługiwana:",
+    "timestampLabel": "Znacznik czasu:",
+    "exceptionsLabel": "Wyjątki:",
+    "exceptionVersionsLabel": "Wersje objęte wyjątkiem:",
+    "exceptionExpires": "Wygasa: {{date}}",
+    "moreExceptions": "... i {{count}} więcej",
+    "noExceptions": "Nie skonfigurowano wyjątków wersji"
   }
 }

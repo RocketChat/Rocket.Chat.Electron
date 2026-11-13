@@ -90,8 +90,10 @@ Each rule below prevents a mistake that already happened. Read the linked doc
 before you work in that area.
 
 - **Release tags**: create them only with `yarn release:tag`, never with a
-  manual `git tag`. Treat a guard that fires as a real finding. Use `--force`
-  or `--allow-unverified-ref` only when the release owner explicitly agrees.
+  manual `git tag`. Treat a guard that fires as a real finding. Use `--force`,
+  `--allow-unverified-ref` or `--allow-missing-translations` only when the
+  release owner explicitly agrees. The translation guard blocks a release when
+  a new English key has no value in a loaded locale.
   [docs/release-process.md](docs/release-process.md)
 - **Dependency patches**: put each patch in the system that already owns its
   package (`.yarn/patches/` or `patches/`). Never add an `@ewsjs/xhr` patch to

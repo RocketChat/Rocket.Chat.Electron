@@ -116,6 +116,7 @@
       "pdf": "PDF Görüntüleyici",
       "markdown": "Markdown Görüntüleyici"
     },
+    "windowTitle": "Belge",
     "back": "Geri"
   },
   "downloads": {
@@ -403,7 +404,18 @@
     },
     "expiration": {
       "label": "Son Kullanma:",
-      "expiresOn": "{{date}} tarihinde sona eriyor"
-    }
+      "expiresOn": "{{date}} tarihinde sona eriyor",
+      "today": "Bugün sona eriyor",
+      "inDays_one": "{{count}} gün içinde sona eriyor",
+      "inDays_other": "{{count}} gün içinde sona eriyor",
+      "expired": "Süresi doldu"
+    },
+    "supportedLabel": "Destekleniyor:",
+    "timestampLabel": "Zaman damgası:",
+    "exceptionsLabel": "İstisnalar:",
+    "exceptionVersionsLabel": "İstisna sürümleri:",
+    "exceptionExpires": "Sona erme: {{date}}",
+    "moreExceptions": "... ve {{count}} tane daha",
+    "noExceptions": "Yapılandırılmış sürüm istisnası yok"
   }
 }

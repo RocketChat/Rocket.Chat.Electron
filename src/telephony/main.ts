@@ -16,6 +16,7 @@ import { TELEPHONY_GLOBAL_SHORTCUT_REGISTRATION_CHANGED } from './actions';
 import type { TelephonyGlobalShortcutConfig } from './actions';
 import type { TelephonyLink } from './common';
 import { parseTelephonyLink } from './links';
+import { normalizePhoneNumber } from './phoneNumber';
 import {
   MAX_CLIPBOARD_PHONE_LENGTH,
   isReservedTelephonyShortcutAccelerator,
@@ -64,10 +65,9 @@ const normalizeTelephonyGlobalShortcutConfig = (
 };
 
 const extractClipboardPhoneNumber = (text: string): string | null => {
-  // Strip everything that is not a dialable phone character so surrounding
-  // words and formatting debris (e.g. "Call (800) 555-0199 now") never reach
-  // the dial pad. '+' is only meaningful as a leading international prefix.
-  const sanitized = text.replace(/[^\d+*#]/g, '').replace(/(?!^)\+/g, '');
+  // Surrounding words and formatting debris (e.g. "Call (800) 555-0199 now")
+  // never reach the dial pad.
+  const sanitized = normalizePhoneNumber(text);
   const digitCount = (sanitized.match(/\d/g) ?? []).length;
 
   if (digitCount < 3) {

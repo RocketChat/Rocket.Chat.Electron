@@ -170,6 +170,7 @@
       "pdf": "Visor de PDF",
       "markdown": "Visor de Markdown"
     },
+    "windowTitle": "Documento",
     "back": "Volver"
   },
   "downloads": {
@@ -483,6 +484,7 @@
     "workspaces": "Espacios de trabajo",
     "addWorkspace": "Añadir espacio de trabajo",
     "unreadMessage_one": "{{- count}} mensaje",
+    "unreadMessage_many": "{{- count}} de mensajes",
     "unreadMessage_other": "{{- count}} mensajes",
     "unreadMessages": "Mensajes no leídos",
     "meatballMenu": "Menú de la aplicación",
@@ -592,7 +594,19 @@
     },
     "expiration": {
       "label": "Expiración:",
-      "expiresOn": "Expira el {{date}}"
-    }
+      "expiresOn": "Expira el {{date}}",
+      "today": "Expira hoy",
+      "inDays_one": "Expira en {{count}} día",
+      "inDays_many": "Expira en {{count}} de días",
+      "inDays_other": "Expira en {{count}} días",
+      "expired": "Expirado"
+    },
+    "supportedLabel": "Compatible:",
+    "timestampLabel": "Marca de tiempo:",
+    "exceptionsLabel": "Excepciones:",
+    "exceptionVersionsLabel": "Versiones con excepción:",
+    "exceptionExpires": "Expira: {{date}}",
+    "moreExceptions": "... y {{count}} más",
+    "noExceptions": "No hay excepciones de versión configuradas"
   }
 }

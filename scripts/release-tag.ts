@@ -4,6 +4,11 @@ import { parse, SemVer } from 'semver';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+import {
+  checkI18nCoverage,
+  formatCoverageReport,
+  hasCoverageGaps,
+} from './i18nCoverage.lib';
 import { evaluateTag, getChannel, normalizeTag } from './releaseTag.lib';
 
 const REPO_URL = 'https://github.com/RocketChat/Rocket.Chat.Electron';
@@ -12,6 +17,7 @@ type Flags = {
   yes: boolean;
   force: boolean;
   allowUnverifiedRef: boolean;
+  allowMissingTranslations: boolean;
   help: boolean;
 };
 
@@ -20,6 +26,7 @@ const parseFlags = (argv: string[]): Flags => ({
     argv.includes('--yes') || argv.includes('-y') || process.env.CI === 'true',
   force: argv.includes('--force'),
   allowUnverifiedRef: argv.includes('--allow-unverified-ref'),
+  allowMissingTranslations: argv.includes('--allow-missing-translations'),
   help: argv.includes('--help') || argv.includes('-h'),
 });
 
@@ -40,6 +47,13 @@ const printHelp = (): void => {
                               channel (prints a warning instead of exiting).
                               Use only for intentional releases cut outside
                               the normal branches (e.g. hotfix branches).
+    --allow-missing-translations
+                              Allow tagging when an English key added since
+                              the previous release tag has no translation in
+                              a loaded locale (prints a warning instead of
+                              exiting). build-release.yml runs the same check
+                              and needs the ALLOW_MISSING_TRANSLATIONS
+                              repository variable set to 'true'.
     -h, --help                Show this help message.
 `);
 };
@@ -260,7 +274,33 @@ const main = async (): Promise<void> => {
   // 4. Fetch tags
   fetchTags();
 
-  // 5. Evaluate tag (existing-tag check + channel regression)
+  // 5. Check that every English key added since the previous release tag is
+  // translated in every locale that the app loads.
+  let coverageReport;
+  try {
+    coverageReport = checkI18nCoverage();
+  } catch (error) {
+    console.error(`\n  Error: Could not check translation coverage.`);
+    console.error(`  ${(error as Error).message}\n`);
+    process.exit(1);
+  }
+
+  if (!hasCoverageGaps(coverageReport)) {
+    console.log(`  Translations: ${formatCoverageReport(coverageReport)}`);
+  } else if (flags.allowMissingTranslations) {
+    console.warn(`\n  WARNING: ${formatCoverageReport(coverageReport)}`);
+    console.warn(
+      `  Proceeding anyway because --allow-missing-translations was passed.\n`
+    );
+  } else {
+    console.error(`\n  Error: ${formatCoverageReport(coverageReport)}`);
+    console.error(
+      `\n  To release anyway, re-run with --allow-missing-translations.\n`
+    );
+    process.exit(1);
+  }
+
+  // 6. Evaluate tag (existing-tag check + channel regression)
   const existingTags = getExistingTags();
   const result = evaluateTag({
     version,
@@ -284,7 +324,7 @@ const main = async (): Promise<void> => {
     console.log(`  First ${channel} release`);
   }
 
-  // 6. Show confirmation
+  // 7. Show confirmation
   console.log('\n  This will:');
   console.log(`    1. Create git tag: ${version.version}`);
   console.log(`    2. Push tag to origin`);
@@ -299,7 +339,7 @@ const main = async (): Promise<void> => {
     }
   }
 
-  // 7. Create and push tag
+  // 8. Create and push tag
   console.log(`\n  Creating tag ${version.version}...`);
   try {
     execFileSync('git', ['tag', '--', version.version], {
@@ -323,7 +363,7 @@ const main = async (): Promise<void> => {
     process.exit(1);
   }
 
-  // 8. Success message
+  // 9. Success message
   console.log(`\n  Tag created and pushed successfully!\n`);
   console.log(`  Monitor build: ${REPO_URL}/actions`);
   console.log(`  Releases:      ${REPO_URL}/releases\n`);

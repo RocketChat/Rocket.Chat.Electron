@@ -1,5 +1,8 @@
 import type { Resource } from 'i18next';
 
+// `nb`, `nn` and `zh` are aliases. The system locale of a Norwegian user can
+// be `nb` (Bokmål) or `nn` (Nynorsk), and both read the Bokmål `no` file. A
+// bare `zh` reads the Simplified Chinese file.
 export default {
   'de-DE': (): Promise<Resource> => import('./de-DE.i18n.json'),
   'en': (): Promise<Resource> => import('./en.i18n.json'),
@@ -7,6 +10,8 @@ export default {
   'fi': (): Promise<Resource> => import('./fi.i18n.json'),
   'sv': (): Promise<Resource> => import('./sv.i18n.json'),
   'no': (): Promise<Resource> => import('./no.i18n.json'),
+  'nb': (): Promise<Resource> => import('./no.i18n.json'),
+  'nn': (): Promise<Resource> => import('./no.i18n.json'),
   'fr': (): Promise<Resource> => import('./fr.i18n.json'),
   'hu': (): Promise<Resource> => import('./hu.i18n.json'),
   'it-IT': (): Promise<Resource> => import('./it-IT.i18n.json'),
@@ -18,4 +23,5 @@ export default {
   'uk-UA': (): Promise<Resource> => import('./uk-UA.i18n.json'),
   'zh-CN': (): Promise<Resource> => import('./zh-CN.i18n.json'),
   'zh-TW': (): Promise<Resource> => import('./zh-TW.i18n.json'),
+  'zh': (): Promise<Resource> => import('./zh-CN.i18n.json'),
 } as const;

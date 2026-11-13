@@ -22,7 +22,7 @@
     },
     "about": {
       "title": "Про {{- appName}}",
-      "version": "Версія: <1> {{-version}} </ 1>",
+      "version": "Версія: <1>{{-version}}</1>",
       "checkUpdates": "Перевірити оновлення",
       "checkUpdatesOnStart": "Перевіряти оновлення при запуску",
       "noUpdatesAvailable": "Оновлень немає.",
@@ -98,6 +98,7 @@
       "pdf": "Перегляд PDF",
       "markdown": "Перегляд Markdown"
     },
+    "windowTitle": "Документ",
     "back": "Назад"
   },
   "downloads": {
@@ -285,6 +286,8 @@
     "workspaces": "Робочі простори",
     "addWorkspace": "Додати робочий простір",
     "unreadMessage_one": "{{- count}} повідомлення",
+    "unreadMessage_few": "{{- count}} повідомлення",
+    "unreadMessage_many": "{{- count}} повідомлень",
     "unreadMessage_other": "{{- count}} повідомлення",
     "unreadMessages": "Непрочитані повідомлення",
     "meatballMenu": "Меню застосунку",
@@ -394,7 +397,20 @@
     },
     "expiration": {
       "label": "Термін дії:",
-      "expiresOn": "Закінчується {{date}}"
-    }
+      "expiresOn": "Закінчується {{date}}",
+      "today": "Закінчується сьогодні",
+      "inDays_one": "Закінчується через {{count}} день",
+      "inDays_few": "Закінчується через {{count}} дні",
+      "inDays_many": "Закінчується через {{count}} днів",
+      "inDays_other": "Закінчується через {{count}} дня",
+      "expired": "Закінчився"
+    },
+    "supportedLabel": "Підтримується:",
+    "timestampLabel": "Позначка часу:",
+    "exceptionsLabel": "Винятки:",
+    "exceptionVersionsLabel": "Версії-винятки:",
+    "exceptionExpires": "Закінчується: {{date}}",
+    "moreExceptions": "... і ще {{count}}",
+    "noExceptions": "Винятки для версій не налаштовано"
   }
 }

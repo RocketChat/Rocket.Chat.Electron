@@ -1,74 +1,88 @@
 # Rocket.Chat Desktop App
 
 [![Latest release](https://img.shields.io/github/v/release/RocketChat/Rocket.Chat.Electron)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
-![Project Dependencies](https://img.shields.io/librariesio/github/RocketChat/Rocket.Chat.Electron)
-[![GitHub All Releases](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
-![GitHub](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)
+[![Total downloads](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases)
+![Dependencies](https://img.shields.io/librariesio/github/RocketChat/Rocket.Chat.Electron)
+[![License](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)](LICENSE)
 
-Desktop application for [Rocket.Chat][] available for macOS, Windows and Linux
-using [Electron][].
+The official desktop app for [Rocket.Chat](https://www.rocket.chat) on Windows, macOS, and Linux, built with [Electron](https://www.electronjs.org/).
+
+The desktop app gives you everything in the Rocket.Chat web client, plus:
+
+- **Multiple workspaces in one window:** Add all your Rocket.Chat workspaces to the sidebar and switch between them.
+- **Native notifications:** Get system notifications with inline quick reply on Windows and macOS.
+- **Runs in the background:** Keep the app in the system tray or minimized so you never miss a message.
+- **Built-in video call window:** Open calls in an app window instead of a browser tab.
+- **Centrally managed settings:** IT teams can preset workspaces, lock settings, and install silently at scale.
 
 ![Rocket.Chat Desktop App](https://user-images.githubusercontent.com/2263066/91490997-c0bd0c80-e889-11ea-92c7-2cbcc3aabc98.png)
 
----
+## Contents
 
-## Supported Platforms
+- [Download and install](#download-and-install)
+- [Configure the app for your organization](#configure-the-app-for-your-organization)
+- [Develop](#develop)
+- [Branches and releases](#branches-and-releases)
+- [Contribute](#contribute)
+- [Get help](#get-help)
+- [License](#license)
 
-| Platform | Minimum Version             | Architectures                   | Formats                          |
-| -------- | --------------------------- | ------------------------------- | -------------------------------- |
-| Windows  | 10                          | x64, ia32, arm64                | NSIS, MSI                        |
-| macOS    | 12 (Monterey)               | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP                    |
-| Linux    | Ubuntu 22.04+ or equivalent | x64                             | AppImage, deb, rpm, snap, tar.gz |
+## Download and install
 
----
-
-## Engage with us
-
-### Share your story
-
-We'd love to hear about [your experience][] and potentially feature it on our
-[Blog][].
-
-### Subscribe for Updates
-
-Once a month our marketing team releases an email update with news about product
-releases, company related topics, events and use cases. [Sign Up!][]
-
----
-
-## Download
-
-You can download the latest version from the [Releases][] page.
+Get the app from your platform's store:
 
 <p>
   <a href="https://apps.microsoft.com/detail/9nblggh52jv6"><img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" height="50"/></a>&nbsp;&nbsp;<a href="https://apps.apple.com/app/rocket-chat/id1086818840"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-mac-app-store/black/en-us" alt="Download on the Mac App Store" height="50"/></a>&nbsp;&nbsp;<a href="https://snapcraft.io/rocketchat-desktop"><img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" alt="Get it from the Snap Store" height="50"/></a>
 </p>
 
-## Install
+You can also download an installer from the [latest release](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest).
 
-Launch the installer and follow the instructions to install.
+| Platform | Minimum version             | Architectures                   | Formats                          |
+| -------- | --------------------------- | ------------------------------- | -------------------------------- |
+| Windows  | 10                          | x64, ia32, arm64                | NSIS (.exe), MSI                 |
+| macOS    | 12 (Monterey)               | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP                    |
+| Linux    | Ubuntu 22.04 or equivalent  | x64                             | AppImage, deb, rpm, snap, tar.gz |
 
-### Windows Options
+For step-by-step instructions, see [Install desktop and mobile apps](https://docs.rocket.chat/docs/desktop-mobile-apps).
 
-On Windows you can run a silent install by adding the `/S` flag. You can also
-add the options below:
+### Silent installation
 
-- `/S` - Silent install
-- `/allusers` - Install for all users (requires admin)
-- `/currentuser` - Install only for the current user (default)
-- `/disableAutoUpdates` - Disable automatic updates
+To deploy the app across many machines without user prompts, use the NSIS or MSI installer on Windows, the PKG installer on macOS, or the deb package on Linux. For example, on Windows:
 
-## Development
+```sh
+rocketchat-<version>-win.exe /S /allusers /disableAutoUpdates
+```
+
+For every installer option, see [Silent installation for desktop app](https://docs.rocket.chat/docs/desktop-mobile-apps#silent-installation-for-desktop-app).
+
+## Configure the app for your organization
+
+Admins can control how the app behaves on every device with two JSON files:
+
+- **`servers.json`:** Presets the workspaces that appear in the sidebar the first time a user opens the app. When you bundle it with the installer, users skip the **Connect to server** screen and go straight to the login screen.
+- **`overridden-settings.json`:** Enforces settings such as disabling auto-update, hiding the tray icon, or turning off quick reply in notifications. Combine `"isAddNewServersEnabled": false` with `servers.json` to lock users to a single workspace.
+
+For file locations on each operating system and the full list of settings, see [Preset workspaces](https://docs.rocket.chat/docs/desktop-mobile-apps#preset-workspaces-in-rocketchat-desktop) and [Override settings](https://docs.rocket.chat/docs/desktop-mobile-apps#override-settings-in-rocketchat-desktop).
+
+## Develop
+
+### Prerequisites
+
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- [Node.js](https://nodejs.org) 22.0.0 or later
+- [Yarn](https://yarnpkg.com/) 4.0.2 or later
+
+On Linux, you also need these system packages:
+
+```sh
+# Ubuntu/Debian
+sudo apt install build-essential libxss-dev
+
+# Fedora/RHEL
+sudo dnf install libX11-devel libXScrnSaver-devel gcc-c++
+```
 
 ### Quick start
-
-Prerequisites:
-
-- [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Node.js](https://nodejs.org) >= 22.0.0
-- [Yarn](http://yarnpkg.com/) >= 4.0.2
-
-Now just clone and start the app:
 
 ```sh
 git clone https://github.com/RocketChat/Rocket.Chat.Electron.git
@@ -77,212 +91,70 @@ yarn
 yarn start
 ```
 
-### Structure of the project
+`yarn start` builds the app and watches for changes.
 
-The source is located in the `src` folder. Everything in this folder will be
-built automatically when running the app with `yarn start`.
+### Project structure
 
-The build process compiles all stuff from the `src` folder and puts it into the
-`app` folder, so after the build has finished, your `app` folder contains the
-full, runnable application.
+The app is written in TypeScript. The source lives in `src`, and the build compiles it into `app`, which then contains the full, runnable application.
 
-### TypeScript
+The build uses the [Rollup](https://rollupjs.org/) bundler and has three entry points:
 
-Following the [ongoing changes in Rocket.Chat codebase][], the app was
-rewritten in TypeScript 5 to address issues regarding maintainability.
+| File                | Runs in                  | Purpose                                                              |
+| ------------------- | ------------------------ | -------------------------------------------------------------------- |
+| `src/main.ts`       | Electron main process    | Orchestrates the whole application.                                  |
+| `src/rootWindow.ts` | Root window              | Renders the UI of the app's main window.                             |
+| `src/preload.ts`    | Privileged preload layer | Connects the app to the webviews that render the Rocket.Chat client. |
 
-### The build pipeline
+> [!IMPORTANT]
+> Only modules listed in `dependencies` in `package.json` are included in the distributable app. Put build and test tools in `devDependencies`.
 
-The build process is founded upon [rollup][] bundler. There are three entry files
-for your code:
-
-- `src/main.ts`, the script running at the main Electron process, orchestrating
-  the whole application;
-
-- `src/rootWindow.ts`, the script that renders the UI of the _root window_, the
-  app's main window;
-
-- and `src/preload.ts`, which runs in a privileged mode to connect the app and
-  the webviews rendering Rocket.Chat's web client.
-
-#### Adding Node.js modules
-
-Remember to respect the split between `dependencies` and `devDependencies` in
-`package.json` file. Only modules listed in `dependencies` will be included into
-distributable app.
-
-### Troubleshooting
-
-#### Ubuntu/Debian
-
-You may need to install the following packages for development:
+### Lint and test
 
 ```sh
-sudo apt install build-essential libxss-dev
+yarn lint   # ESLint and TypeScript checks
+yarn test   # Unit tests
 ```
 
-#### Fedora/RHEL
+Tests use [Jest](https://jestjs.io/) with the [Jest Electron runner](https://github.com/kayahr/jest-electron-runner). Jest picks up every file in `src` that matches `*.(spec|test).{js,ts,tsx}`.
 
-You may need to install the following packages for development:
-
-```sh
-sudo dnf install libX11-devel libXScrnSaver-devel gcc-c++
-```
-
-### Testing
-
-#### Unit tests
-
-```sh
-yarn test
-```
-
-We use [Jest][] testing framework with the [Jest electron runner][]. It searches
-for all files in `src` directory that match the glob pattern
-`*.(spec|test).{js,ts,tsx}`.
-
-### Making a release
-
-To package your app into an installer use command:
+### Package the app
 
 ```sh
 yarn release
 ```
 
-It will start the packaging process for operating system you are running this
-command on. Ready for distribution file will be outputted to `dist` directory.
+This packages the app for the operating system you run it on and writes the installers to `dist`. Packaging is handled by [electron-builder](https://github.com/electron-userland/electron-builder). See its [configuration options](https://www.electron.build/configuration) to customize the output.
 
-All packaging actions are handled by [electron-builder][]. It has a lot of
-[customization options][].
+## Branches and releases
 
-## Development and Releases
+- Pull requests target `dev`, the default branch.
+- `master` holds only released code. Its tip is always the latest stable release.
+- `release/X.Y.x` branches carry patch releases for a shipped version and merge into `master` after each patch.
 
-All pull requests target `dev`. `master` contains only released code, and
-its tip is always the latest stable release. `release/X.Y.x` branches carry
-patch releases for a shipped version, and merge into `master` after each
-patch.
-Releases are tag-driven — pushing a semver tag triggers CI to build every
-platform and draft a GitHub release, which a human then reviews and
-publishes.
+Releases are tag-driven. Pushing a semver tag triggers CI to build every platform and create a draft GitHub release, which a maintainer reviews and publishes.
 
-- [docs/development-and-release-flow.md][] — conceptual overview of the
-  branch model, versioning, and CI/CD.
-- [docs/release-process.md][] — operational runbook with the exact commands
-  for cutting alpha, stable, and patch releases.
-- [.github/CONTRIBUTING.md][] — contribution guidelines, including which
-  branch to target.
+- [Development and release flow](docs/development-and-release-flow.md): The branch model, versioning, and CI/CD.
+- [Release process](docs/release-process.md): The exact commands for alpha, stable, and patch releases.
 
-## Default servers
+## Contribute
 
-The `servers.json` file will define what servers the client will connect to and
-will populate the server list in the sidebar. It contains a list of default
-servers which will be added the first time the user runs the app (or when all
-servers are removed from the list).
-The file syntax is as follows:
+We welcome contributions. Before you open a pull request:
 
-```json
-{
-  "Demo Rocket Chat": "https://demo.rocket.chat",
-  "Open Rocket Chat": "https://open.rocket.chat"
-}
-```
+1. Read the [contribution guidelines](.github/CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+2. For a new feature or a larger change, open an issue first so we can discuss it.
+3. Run `yarn lint` and `yarn test`, and make sure both pass.
 
-### Pre-Release Configuration
+**Found a bug?** [Open an issue](https://github.com/RocketChat/Rocket.Chat.Electron/issues) with your app version, operating system, and steps to reproduce it.
 
-You can bundle a `servers.json` with the install package, the file should be
-located in the root of the project application (same level as the
-`package.json`). If the file is found, the initial "Connect to server" screen
-will be skipped and it will attempt to connect to the first server in the array
-that has been defined and drop the user right at the login screen. Note that the
-`servers.json` will only be checked if no other servers have already been added,
-even if you uninstall the app without removing older preferences, it will not be
-triggered again.
+**Found a security issue?** Don't open a public issue. Email security@rocket.chat instead. See [SECURITY.md](SECURITY.md).
 
-### Post-Install Configuration
+## Get help
 
-If you can't (or don't want to) bundle the file inside the app, you can create a
-`servers.json` in the user preferences folder which will overwrite the packaged
-one. The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the
-installation folder in case of an installation for all users (Windows only).
-
-For Windows, the full paths are:
-
-- `~\Users\<username>\AppData\Roaming\Rocket.Chat\`
-- `~\Program Files\Rocket.Chat\Resources\`
-
-On macOS, the full path is:
-
-- `~/Users/<username>/Library/Application Support/Rocket.Chat/`
-- `/Library/Preferences/Rocket.Chat/`
-
-On Linux, the full paths are:
-
-- `/home/<username>/.config/Rocket.Chat/`
-- `/opt/Rocket.Chat/resources/`
-
-### Overridden settings
-
-You can override the user settings by creating an `overridden-settings.json` in
-the user preferences folder.
-The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the
-installation folder in case of an installation for all users (Windows only).
-
-Every setting set on the file will override the default and user settings. Then
-you can use it for disabling the default features like auto-update and even create
-a single server mode.
-
-#### The settings that can be overridden are:
-
-| Setting                                    | Description                                                                                                                                                  |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `"isReportEnabled": true`                  | Sets if the bugs will be reported to developers.                                                                                                             |
-| `"isInternalVideoChatWindowEnabled": true` | Sets if video calls will be opened in an internal window.                                                                                                    |
-| `"isFlashFrameEnabled": true`              | Sets if the flash frame will be enabled.                                                                                                                     |
-| `"isMinimizeOnCloseEnabled": false`        | Sets if the app will be minimized on close.                                                                                                                  |
-| `"doCheckForUpdatesOnStartup": true`       | Sets if the app will check for updates on startup.                                                                                                           |
-| `"isMenuBarEnabled": false`                | Windows/Linux: `true` keeps the menu bar always visible; `false` auto-hides it (Alt shows it temporarily). Unused on macOS.                                  |
-| `"isTrayIconEnabled": true`                | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"`                                                       |
-| `"isUpdatingEnabled": true`                | Sets if the app can be updated by the user.                                                                                                                  |
-| `"isAddNewServersEnabled": true`           | Sets if the user can add new servers.                                                                                                                        |
-| `"isNotificationQuickReplyEnabled": true`  | Sets if notifications are created with an inline reply field. When set to `false`, notifications are created without the inline reply field (Windows/macOS). |
-
-##### Single server mode
-
-If the setting `"isAddNewServersEnabled": false` is set, the user will not be able to add new servers.
-The buttons and shortcuts will be disabled. Then you will have to add the server to the `servers.json` file.
-With this, you can create a single server mode or just don't let the user add new servers on their own.
-
-##### Example configuration
-
-`overridden-settings.json` file:
-
-```json
-{
-  "isTrayIconEnabled": false,
-  "isMinimizeOnCloseEnabled": false
-}
-```
-
-If `isTrayIconEnabled` is enabled, the app will be hidden on close.
-If `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
-With both disabled, the app will quit on close.
+- **Documentation:** [Rocket.Chat docs](https://docs.rocket.chat) and [developer guides](https://developer.rocket.chat/docs/desktop-app)
+- **Community:** Ask in [#support](https://open.rocket.chat/channel/support) on our community server or on the [forums](https://forums.rocket.chat)
+- **Customers:** Contact the [support desk](https://desk.rocket.chat)
+- **Main project:** [RocketChat/Rocket.Chat](https://github.com/RocketChat/Rocket.Chat)
 
 ## License
 
-Released under the MIT license.
-
-[Rocket.Chat]: https://rocket.chat
-[Electron]: https://electronjs.org/
-[your experience]: https://survey.zohopublic.com/zs/e4BUFG
-[Blog]: https://rocket.chat/case-studies/?utm_source=github&utm_medium=readme&utm_campaign=community
-[Sign Up!]: https://rocket.chat/newsletter/?utm_source=github&utm_medium=readme&utm_campaign=community
-[Releases]: https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest
-[ongoing changes in Rocket.Chat codebase]: https://forums.rocket.chat/t/moving-away-from-meteor-and-beyond/3270
-[rollup]: https://github.com/rollup/rollup
-[Jest]: https://jestjs.io/
-[Jest electron runner]: https://github.com/kayahr/jest-electron-runner
-[electron-builder]: https://github.com/electron-userland/electron-builder
-[customization options]: https://www.electron.build/configuration
-[docs/development-and-release-flow.md]: docs/development-and-release-flow.md
-[docs/release-process.md]: docs/release-process.md
-[.github/CONTRIBUTING.md]: .github/CONTRIBUTING.md
+Released under the [MIT license](LICENSE).

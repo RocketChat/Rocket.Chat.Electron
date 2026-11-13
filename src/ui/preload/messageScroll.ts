@@ -1,6 +1,19 @@
-export const BOTTOM_SCROLL_THRESHOLD_PX = 80;
+export const AT_BOTTOM_SLACK_PX = 10;
 
 const EMOJI_STYLE_ID = 'rcx-custom-emoji-intrinsic-sizing';
+
+const followingBottomState = new WeakMap<HTMLElement, boolean>();
+
+export const setFollowingBottom = (
+  container: HTMLElement,
+  isFollowing: boolean
+): void => {
+  followingBottomState.set(container, isFollowing);
+};
+
+export const getFollowingBottom = (
+  container: HTMLElement
+): boolean | undefined => followingBottomState.get(container);
 
 const getScrollableParent = (element: HTMLElement): HTMLElement | null => {
   let current: HTMLElement | null = element.parentElement;
@@ -41,13 +54,14 @@ const getScrollableParent = (element: HTMLElement): HTMLElement | null => {
   return null;
 };
 
-const isNearBottom = (
-  container: HTMLElement,
-  threshold = BOTTOM_SCROLL_THRESHOLD_PX
-): boolean => {
-  const distanceToBottom =
-    container.scrollHeight - container.scrollTop - container.clientHeight;
-  return distanceToBottom <= threshold;
+export const handleScroll = (event: Event): void => {
+  const { target } = event;
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  const distance = target.scrollHeight - target.scrollTop - target.clientHeight;
+  followingBottomState.set(target, distance <= AT_BOTTOM_SLACK_PX);
 };
 
 export const injectEmojiSizingStyles = (): void => {
@@ -63,16 +77,24 @@ export const injectEmojiSizingStyles = (): void => {
   style.id = EMOJI_STYLE_ID;
   style.textContent = `
     .rcx-message__emoji,
-    .rcx-message__emoji--big,
     img.rcx-message__emoji,
     .rcx-message img[src*="/emoji-custom/"],
     .rcx-message img[src*="emoji"] {
+      width: 1.5em;
+      height: 1.5em;
       aspect-ratio: 1 / 1;
       display: inline-block;
+      object-fit: contain;
+      vertical-align: middle;
+      contain: size layout;
       contain-intrinsic-size: 1.5em 1.5em;
     }
     .rcx-message__emoji--big,
     img.rcx-message__emoji--big {
+      width: 2.75em;
+      height: 2.75em;
+      aspect-ratio: 1 / 1;
+      contain: size layout;
       contain-intrinsic-size: 2.75em 2.75em;
     }
   `;
@@ -105,9 +127,23 @@ export const handleImageLoad = (event: Event): void => {
     return;
   }
 
-  if (isNearBottom(scrollContainer)) {
+  const distance =
+    scrollContainer.scrollHeight -
+    scrollContainer.scrollTop -
+    scrollContainer.clientHeight;
+  const isExplicitlyFollowing = followingBottomState.get(scrollContainer);
+
+  const imageHeight = target.offsetHeight || target.clientHeight || 0;
+  const wasAtBottomBeforeExpand = distance - imageHeight <= AT_BOTTOM_SLACK_PX;
+
+  const shouldFollowBottom =
+    isExplicitlyFollowing === true ||
+    (isExplicitlyFollowing !== false && wasAtBottomBeforeExpand);
+
+  if (shouldFollowBottom) {
     scrollContainer.scrollTop =
       scrollContainer.scrollHeight - scrollContainer.clientHeight;
+    followingBottomState.set(scrollContainer, true);
   }
 };
 
@@ -115,9 +151,11 @@ export const listenToMessageScrollEvents = (): (() => void) => {
   injectEmojiSizingStyles();
 
   document.addEventListener('load', handleImageLoad, true);
+  document.addEventListener('scroll', handleScroll, true);
 
   return () => {
     document.removeEventListener('load', handleImageLoad, true);
+    document.removeEventListener('scroll', handleScroll, true);
     document.getElementById(EMOJI_STYLE_ID)?.remove();
   };
 };

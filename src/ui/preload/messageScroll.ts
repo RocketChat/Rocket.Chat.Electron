@@ -38,7 +38,9 @@ export const getFollowingBottom = (
   container: HTMLElement
 ): boolean | undefined => followingBottomState.get(container);
 
-const getScrollableParent = (element: HTMLElement): HTMLElement | null => {
+export const getScrollableParent = (
+  element: HTMLElement
+): HTMLElement | null => {
   let current: HTMLElement | null = element.parentElement;
 
   while (
@@ -108,24 +110,30 @@ export const injectEmojiSizingStyles = (): void => {
   const style = document.createElement('style');
   style.id = EMOJI_STYLE_ID;
   style.textContent = `
-    .rcx-message__emoji,
-    img.rcx-message__emoji,
-    .rcx-message img[src*="/emoji-custom/"],
-    .rcx-message img[src*="emoji"] {
+    :where(
+      .rcx-message__emoji,
+      img.rcx-message__emoji,
+      .rcx-message img[src*="/emoji-custom/"],
+      .rcx-message img[src*="emoji"],
+      .rcx-message [class*="emoji"]
+    ) {
       width: 1.5em;
       height: 1.5em;
       aspect-ratio: 1 / 1;
       display: inline-block;
       object-fit: contain;
       vertical-align: middle;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
       contain: size layout;
       contain-intrinsic-size: 1.5em 1.5em;
     }
-    .rcx-message__emoji--big,
-    img.rcx-message__emoji--big {
+    :where(.rcx-message__emoji--big, img.rcx-message__emoji--big) {
       width: 2.75em;
       height: 2.75em;
       aspect-ratio: 1 / 1;
+      display: inline-block;
       contain: size layout;
       contain-intrinsic-size: 2.75em 2.75em;
     }
@@ -133,6 +141,19 @@ export const injectEmojiSizingStyles = (): void => {
 
   const target = document.head || document.documentElement;
   target?.appendChild(style);
+};
+
+export const pinContainerToBottom = (container: HTMLElement): void => {
+  const distance =
+    container.scrollHeight - container.scrollTop - container.clientHeight;
+
+  const isFollowing =
+    followingBottomState.get(container) ?? distance <= AT_BOTTOM_SLACK_PX;
+
+  if (isFollowing) {
+    container.scrollTop = container.scrollHeight - container.clientHeight;
+    followingBottomState.set(container, true);
+  }
 };
 
 export const handleImageLoad = (event: Event): void => {
@@ -159,19 +180,17 @@ export const handleImageLoad = (event: Event): void => {
     return;
   }
 
-  const distance =
-    scrollContainer.scrollHeight -
-    scrollContainer.scrollTop -
-    scrollContainer.clientHeight;
+  pinContainerToBottom(scrollContainer);
+};
 
-  // Use recorded following state if present; otherwise check if currently at bottom.
-  const isFollowing =
-    followingBottomState.get(scrollContainer) ?? distance <= AT_BOTTOM_SLACK_PX;
-
-  if (isFollowing) {
-    scrollContainer.scrollTop =
-      scrollContainer.scrollHeight - scrollContainer.clientHeight;
-    followingBottomState.set(scrollContainer, true);
+export const handleResize = (entries: ResizeObserverEntry[]): void => {
+  for (const entry of entries) {
+    const target = entry.target as HTMLElement;
+    const scrollContainer = getScrollableParent(target);
+    if (!scrollContainer) {
+      continue;
+    }
+    pinContainerToBottom(scrollContainer);
   }
 };
 
@@ -213,6 +232,51 @@ export const listenToMessageScrollEvents = (): (() => void) => {
   });
   document.addEventListener('keydown', handleKeyDown, true);
 
+  let resizeObserver: ResizeObserver | undefined;
+  let mutationObserver: MutationObserver | undefined;
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(handleResize);
+
+    const observeElement = (el: Element): void => {
+      if (
+        el.matches?.(
+          '.rcx-message, [data-qa="message"], .rcx-message__emoji--big'
+        )
+      ) {
+        resizeObserver?.observe(el);
+      }
+      el
+        .querySelectorAll?.(
+          '.rcx-message, [data-qa="message"], .rcx-message__emoji--big'
+        )
+        .forEach((child) => resizeObserver?.observe(child));
+    };
+
+    document
+      .querySelectorAll(
+        '.rcx-message, [data-qa="message"], .rcx-message__emoji--big'
+      )
+      .forEach((el) => resizeObserver?.observe(el));
+
+    if (typeof MutationObserver !== 'undefined') {
+      mutationObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof Element) {
+              observeElement(node);
+            }
+          });
+        }
+      });
+
+      mutationObserver.observe(document.body || document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+    }
+  }
+
   return () => {
     document.removeEventListener('load', handleImageLoad, true);
     document.removeEventListener('scroll', handleScroll, true);
@@ -221,6 +285,8 @@ export const listenToMessageScrollEvents = (): (() => void) => {
     document.removeEventListener('pointerdown', handlePointerDown, true);
     document.removeEventListener('keydown', handleKeyDown, true);
     document.getElementById(EMOJI_STYLE_ID)?.remove();
+    resizeObserver?.disconnect();
+    mutationObserver?.disconnect();
     resetUserInitiatedScroll();
   };
 };

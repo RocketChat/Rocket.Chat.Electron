@@ -3,10 +3,12 @@
  */
 import {
   handleImageLoad,
+  handleResize,
   handleScroll,
   injectEmojiSizingStyles,
   listenToMessageScrollEvents,
   markUserInitiatedScroll,
+  pinContainerToBottom,
   resetUserInitiatedScroll,
   setFollowingBottom,
   getFollowingBottom,
@@ -72,6 +74,8 @@ describe('ui/preload/messageScroll', () => {
     expect(styleEl?.textContent).toContain('width: 1.5em');
     expect(styleEl?.textContent).toContain('width: 2.75em');
     expect(styleEl?.textContent).toContain('aspect-ratio');
+    expect(styleEl?.textContent).toContain(':where(');
+    expect(styleEl?.textContent).toContain('background-size: contain');
 
     cleanup();
 
@@ -363,5 +367,165 @@ describe('ui/preload/messageScroll', () => {
     handleImageLoad({ target: emojiImg } as unknown as Event);
 
     expect(container.scrollTop).toBe(550);
+  });
+
+  it('re-pins scroll to bottom via handleResize when custom emoji span with background-image or custom size resizes while following bottom', () => {
+    const container = document.createElement('div');
+    container.setAttribute('data-qa', 'message-list');
+    Object.defineProperty(container, 'clientHeight', {
+      value: 400,
+      configurable: true,
+    });
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 1000,
+      configurable: true,
+    });
+    container.scrollTop = 600;
+    setFollowingBottom(container, true);
+
+    const message = document.createElement('div');
+    message.className = 'rcx-message';
+
+    // Standalone custom emoji rendered as span with background-image and custom 4rem size
+    const emojiSpan = document.createElement('span');
+    emojiSpan.className = 'rcx-message__emoji--big';
+    emojiSpan.style.backgroundImage = 'url(/emoji-custom/cool.png)';
+    emojiSpan.style.width = '4rem';
+    emojiSpan.style.height = '4rem';
+
+    message.appendChild(emojiSpan);
+    container.appendChild(message);
+    document.body.appendChild(container);
+
+    // Layout expansion occurs from 4rem rendering
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 1100,
+      configurable: true,
+    });
+
+    handleResize([{ target: emojiSpan } as unknown as ResizeObserverEntry]);
+
+    expect(container.scrollTop).toBe(700);
+    expect(getFollowingBottom(container)).toBe(true);
+  });
+
+  it('pinContainerToBottom scrolls container to bottom when following', () => {
+    const container = document.createElement('div');
+    Object.defineProperty(container, 'clientHeight', {
+      value: 300,
+      configurable: true,
+    });
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 900,
+      configurable: true,
+    });
+    container.scrollTop = 500;
+    setFollowingBottom(container, true);
+
+    pinContainerToBottom(container);
+
+    expect(container.scrollTop).toBe(600);
+    expect(getFollowingBottom(container)).toBe(true);
+  });
+
+  it('handleResize preserves reading position when user is scrolled up in history', () => {
+    const container = document.createElement('div');
+    container.setAttribute('data-qa', 'message-list');
+    Object.defineProperty(container, 'clientHeight', {
+      value: 400,
+      configurable: true,
+    });
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 1500,
+      configurable: true,
+    });
+    container.scrollTop = 250;
+    setFollowingBottom(container, false);
+
+    const message = document.createElement('div');
+    message.className = 'rcx-message';
+
+    const emojiSpan = document.createElement('span');
+    emojiSpan.className = 'rcx-message__emoji--big';
+
+    message.appendChild(emojiSpan);
+    container.appendChild(message);
+    document.body.appendChild(container);
+
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 1600,
+      configurable: true,
+    });
+
+    handleResize([{ target: emojiSpan } as unknown as ResizeObserverEntry]);
+
+    // Must NOT scroll to bottom; reading position preserved
+    expect(container.scrollTop).toBe(250);
+    expect(getFollowingBottom(container)).toBe(false);
+  });
+
+  it('handleResize safely ignores elements without a scrollable parent', () => {
+    const orphanEmoji = document.createElement('span');
+    orphanEmoji.className = 'rcx-message__emoji--big';
+
+    expect(() => {
+      handleResize([{ target: orphanEmoji } as unknown as ResizeObserverEntry]);
+    }).not.toThrow();
+  });
+
+  it('attaches ResizeObserver and MutationObserver when supported, and disconnects on cleanup', () => {
+    const observeMock = jest.fn();
+    const disconnectMock = jest.fn();
+
+    class MockResizeObserver {
+      observe = observeMock;
+
+      disconnect = disconnectMock;
+
+      unobserve = jest.fn();
+    }
+
+    const mutationObserveMock = jest.fn();
+    const mutationDisconnectMock = jest.fn();
+
+    class MockMutationObserver {
+      observe = mutationObserveMock;
+
+      disconnect = mutationDisconnectMock;
+
+      takeRecords = jest.fn();
+    }
+
+    const originalResizeObserver = global.ResizeObserver;
+    const originalMutationObserver = global.MutationObserver;
+
+    (global as unknown as { ResizeObserver: unknown }).ResizeObserver =
+      MockResizeObserver;
+    (global as unknown as { MutationObserver: unknown }).MutationObserver =
+      MockMutationObserver;
+
+    try {
+      const existingMsg = document.createElement('div');
+      existingMsg.className = 'rcx-message';
+      document.body.appendChild(existingMsg);
+
+      const cleanup = listenToMessageScrollEvents();
+
+      expect(observeMock).toHaveBeenCalledWith(existingMsg);
+      expect(mutationObserveMock).toHaveBeenCalledWith(
+        document.body,
+        expect.objectContaining({ childList: true, subtree: true })
+      );
+
+      cleanup();
+
+      expect(disconnectMock).toHaveBeenCalled();
+      expect(mutationDisconnectMock).toHaveBeenCalled();
+    } finally {
+      (global as unknown as { ResizeObserver: unknown }).ResizeObserver =
+        originalResizeObserver;
+      (global as unknown as { MutationObserver: unknown }).MutationObserver =
+        originalMutationObserver;
+    }
   });
 });

@@ -56,8 +56,12 @@ const setProcessPlatform = (value: NodeJS.Platform): void => {
 const createWebContents = (defaults?: {
   spellCheckerLanguages?: string[];
   availableSpellCheckerLanguages?: string[];
+  spellCheckerEnabled?: boolean;
 }) => ({
   session: {
+    isSpellCheckerEnabled: jest
+      .fn()
+      .mockReturnValue(defaults?.spellCheckerEnabled ?? true),
     availableSpellCheckerLanguages:
       defaults?.availableSpellCheckerLanguages ?? [],
     getSpellCheckerLanguages: jest
@@ -192,7 +196,8 @@ describe('createPopupMenuForServerView', () => {
 
     const wc = createWebContents({
       availableSpellCheckerLanguages: ['en-US'],
-      spellCheckerLanguages: [],
+      spellCheckerLanguages: ['en-US'],
+      spellCheckerEnabled: false,
     });
 
     const menu = createPopupMenuForServerView(
@@ -391,6 +396,76 @@ describe('createPopupMenuForServerView', () => {
         (entry) => entry.label === 'contextMenu.noSpellingSuggestions'
       )
     ).toBe(false);
+  });
+
+  it.each(['win32', 'linux'] as const)(
+    'offers one spelling checkbox that turns spell check off on %s',
+    (platform) => {
+      setProcessPlatform(platform);
+
+      const wc = createWebContents({
+        availableSpellCheckerLanguages: ['en-US', 'de-DE'],
+        spellCheckerLanguages: ['en-US', 'de-DE'],
+      });
+
+      const template = asMenuTemplate(
+        createPopupMenuForServerView(
+          wc as never,
+          {
+            isEditable: true,
+            dictionarySuggestions: [],
+            mediaType: 'none',
+            srcURL: '',
+            x: 0,
+            y: 0,
+            editFlags: {},
+          } as never
+        )
+      );
+
+      const spellCheckbox = template.find(
+        (entry) => entry.label === 'contextMenu.spelling'
+      );
+      expect(spellCheckbox).toMatchObject({ type: 'checkbox', checked: true });
+      spellCheckbox?.click?.({ checked: false });
+      expect(dispatch).toHaveBeenCalledWith({
+        type: SPELL_CHECKING_TOGGLED,
+        payload: false,
+      });
+    }
+  );
+
+  it('hides suggestions and disables languages while spell check is off', () => {
+    setProcessPlatform('win32');
+
+    const wc = createWebContents({
+      availableSpellCheckerLanguages: ['en-US'],
+      spellCheckerLanguages: ['en-US'],
+      spellCheckerEnabled: false,
+    });
+
+    const template = asMenuTemplate(
+      createPopupMenuForServerView(
+        wc as never,
+        {
+          isEditable: true,
+          dictionarySuggestions: ['alpha'],
+          mediaType: 'none',
+          srcURL: '',
+          x: 0,
+          y: 0,
+          editFlags: {},
+        } as never
+      )
+    );
+
+    expect(template.some((entry) => entry.label === 'alpha')).toBe(false);
+    expect(
+      template.find((entry) => entry.label === 'contextMenu.spelling')
+    ).toMatchObject({ checked: false });
+    expect(
+      template.find((entry) => entry.label === 'contextMenu.spellingLanguages')
+    ).toMatchObject({ enabled: false });
   });
 
   it('fires spell-check language toggles for non-darwin', () => {

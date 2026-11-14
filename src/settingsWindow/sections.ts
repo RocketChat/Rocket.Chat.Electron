@@ -68,6 +68,7 @@ export const SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     icon: 'palette',
     labelKey: 'settings.appearance',
     settingKeys: [
+      'settings.options.animatedImages',
       'settings.options.themeAppearance',
       'settings.options.navigation',
       'settings.options.transparentWindow',

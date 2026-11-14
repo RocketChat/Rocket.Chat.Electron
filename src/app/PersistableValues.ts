@@ -155,7 +155,9 @@ type PersistableValues_4_18_0 = PersistableValues_4_17_0 & {
 export type PersistableValues = Omit<
   PersistableValues_4_18_0,
   'isSideBarEnabled' | 'lastSelectedServerUrl'
->;
+> & {
+  isAnimatedImagesEnabled: boolean;
+};
 
 /** Current menu-bar default policy for Windows/Linux (auto-hide, Alt reveals). */
 export const MENU_BAR_DEFAULT_REVISION = 1;

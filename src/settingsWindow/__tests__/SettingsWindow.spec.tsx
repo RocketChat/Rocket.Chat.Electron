@@ -7,6 +7,7 @@ import {
   userEvent,
   waitFor,
 } from '../../ui/test-utils';
+import { SETTINGS_TABPANEL_ID } from '../SettingsSidebar';
 import { SettingsWindow } from '../SettingsWindow';
 
 jest.mock('react-i18next', () => ({
@@ -110,5 +111,25 @@ describe('SettingsWindow section selection', () => {
     expect(
       JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) ?? '""')
     ).toBe('appearance');
+  });
+
+  it('shows an empty state when search matches no sections and hides the previous section', async () => {
+    seedPersistedSection('appearance');
+
+    renderWithStore(<SettingsWindow paletteTheme='light' />);
+    expect(screen.getByTestId('section-appearance')).toBeInTheDocument();
+
+    const searchInput = screen.getByRole('searchbox');
+    fireEvent.change(searchInput, { target: { value: 'non-existent-query' } });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('section-appearance')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('section-general')).not.toBeInTheDocument();
+    });
+
+    const panel = document.getElementById(SETTINGS_TABPANEL_ID);
+    expect(panel).toHaveAttribute('aria-label', 'settings.noResults');
   });
 });

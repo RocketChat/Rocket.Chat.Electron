@@ -14,6 +14,7 @@ import { parseTelephonyLink } from '../telephony/links';
 import {
   askForServerAddition,
   warnAboutInvalidServerUrl,
+  warnAboutUnreachableServer,
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
@@ -120,14 +121,17 @@ const performOnServer = async (
 ): Promise<void> => {
   const [serverUrl, status, error] = await resolveServerUrl(url);
 
-  if (status !== ServerUrlResolutionStatus.OK) {
-    await warnAboutInvalidServerUrl(serverUrl, error?.message ?? '');
-    return;
-  }
-
   const isServerAdded = select(({ servers }) =>
     servers.some((server) => server.url === serverUrl)
   );
+
+  if (status !== ServerUrlResolutionStatus.OK) {
+    const warn = isServerAdded
+      ? warnAboutUnreachableServer
+      : warnAboutInvalidServerUrl;
+    await warn(serverUrl, error?.message ?? '');
+    return;
+  }
 
   if (isServerAdded) {
     dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });

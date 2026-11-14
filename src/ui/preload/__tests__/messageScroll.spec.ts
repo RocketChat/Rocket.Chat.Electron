@@ -157,6 +157,32 @@ describe('ui/preload/messageScroll', () => {
     expect(getFollowingBottom(container)).toBe(true);
   });
 
+  it('clears following bottom state on large programmatic history jumps (> 150px)', () => {
+    const container = document.createElement('div');
+    Object.defineProperty(container, 'clientHeight', {
+      value: 400,
+      configurable: true,
+    });
+    Object.defineProperty(container, 'scrollHeight', {
+      value: 2000,
+      configurable: true,
+    });
+
+    // Start at bottom
+    container.scrollTop = 1600;
+    setFollowingBottom(container, true);
+
+    // Jump to search result or permalink (distance = 2000 - 500 - 400 = 1100 > 150)
+    container.scrollTop = 500;
+    handleScroll({ target: container } as unknown as Event);
+
+    expect(getFollowingBottom(container)).toBe(false);
+
+    // pinContainerToBottom must also refuse to snap
+    pinContainerToBottom(container);
+    expect(container.scrollTop).toBe(500);
+  });
+
   it('clears following bottom state only on user-initiated scroll away from bottom', () => {
     const container = document.createElement('div');
     Object.defineProperty(container, 'clientHeight', {

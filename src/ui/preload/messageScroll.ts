@@ -1,5 +1,6 @@
 export const AT_BOTTOM_SLACK_PX = 10;
 export const USER_SCROLL_TIMEOUT_MS = 300;
+export const MAX_LAYOUT_EXPANSION_PX = 150;
 
 const EMOJI_STYLE_ID = 'rcx-custom-emoji-intrinsic-sizing';
 
@@ -91,9 +92,10 @@ export const handleScroll = (event: Event): void => {
     // Reaching the bottom (either by user scroll, jump-to-bottom click, or initial mount)
     // always establishes the following-bottom state.
     followingBottomState.set(target, true);
-  } else if (isUserInitiatedScroll) {
-    // Only user-initiated actions (wheel, touch, keys) can disable bottom-following.
-    // Programmatic scrolls or layout expansions before image loads do not overwrite the state.
+  } else if (isUserInitiatedScroll || distance > MAX_LAYOUT_EXPANSION_PX) {
+    // User-initiated actions or large programmatic jumps (e.g. search results, permalinks)
+    // disable bottom-following. Minor layout expansions from emoji loading (<= 150px)
+    // do not overwrite the state.
     followingBottomState.set(target, false);
   }
 };
@@ -146,6 +148,11 @@ export const injectEmojiSizingStyles = (): void => {
 export const pinContainerToBottom = (container: HTMLElement): void => {
   const distance =
     container.scrollHeight - container.scrollTop - container.clientHeight;
+
+  if (distance > MAX_LAYOUT_EXPANSION_PX) {
+    followingBottomState.set(container, false);
+    return;
+  }
 
   const isFollowing =
     followingBottomState.get(container) ?? distance <= AT_BOTTOM_SLACK_PX;

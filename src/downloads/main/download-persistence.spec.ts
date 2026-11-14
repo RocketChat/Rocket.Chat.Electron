@@ -23,6 +23,7 @@ jest.mock('os', () => ({
 jest.mock('electron', () => ({
   app: {
     getPath: jest.fn(() => '/Users/test/Downloads'),
+    on: jest.fn(),
   },
   webContents: {
     getAllWebContents: jest.fn(() => []),

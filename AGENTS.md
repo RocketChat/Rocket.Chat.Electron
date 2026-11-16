@@ -150,6 +150,9 @@ Read the doc that matches the task. Do not scan `docs/` wholesale.
   tokens, geometry and the 1.0 styling-prop rule, tab bar and titlebar
   controls, SVG pitfalls, and the tray, menu-bar and presence icons. Read it
   before you style a control, draw an SVG or change an icon.
+- [docs/feature-map.md](docs/feature-map.md) — each user-visible feature by
+  its English UI name, where it is, and the source that owns it. Read it to
+  find a control that a request, a bug report or a QA flow names.
 - [qa/AGENTS.md](qa/AGENTS.md) — read it before you create or change a QA
   asset under `qa/`. For a QA pass on a PR, branch or release candidate,
   follow [skills/desktop-qa-flows/SKILL.md](skills/desktop-qa-flows/SKILL.md).

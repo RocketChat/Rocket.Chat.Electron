@@ -20,6 +20,9 @@ Read these files before you author flows:
 Those files define the schema and validation rules. This skill defines the
 repeatable PR workflow.
 
+To find the place and the source of a control that a flow names, read
+`docs/feature-map.md`.
+
 ## Workflow
 
 1. Lock the comparison range: base branch, head branch or commit, and whether

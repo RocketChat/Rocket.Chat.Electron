@@ -126,6 +126,9 @@
   "settings": {
     "title": "Ayarlar",
     "general": "Genel",
+    "sections": {
+      "uiPreview": "Web arayüzü önizlemesi"
+    },
     "options": {
       "resetWindowBounds": {
         "title": "Pencere boyutlarını ve konumlarını sıfırla",
@@ -190,9 +193,6 @@
           "closed": "Kapalı"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Web arayüzü önizlemesi"
     }
   },
   "error": {
@@ -217,6 +217,7 @@
     "copy": "&Kopyala",
     "cut": "Kes",
     "developerMode": "Geliştirici Modu",
+    "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et",
     "documentation": "Dökümantasyon",
     "editMenu": "&Düzenle",
     "fileMenu": "&Dosya",
@@ -246,7 +247,6 @@
     "windowMenu": "&Pencereler",
     "zoomIn": "Yakınlaştır",
     "zoomOut": "Uzaklaştır",
-    "simulateDisconnected": "Bağlantı Kesilmesini Simüle Et",
     "restoreServerUi": "Sunucu arayüzünü geri yükle"
   },
   "findInPage": {

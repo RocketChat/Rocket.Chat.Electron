@@ -53,6 +53,7 @@
     "release:tag": "ts-node -O '{\"module\":\"commonjs\"}' scripts/release-tag.ts",
     "i18n:check-coverage": "ts-node -O '{\"module\":\"commonjs\"}' scripts/check-i18n-coverage.ts",
     "release:tag:win": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/release-tag.ts",
+    "benchmark:hidden-window": "ts-node -O '{\"module\":\"commonjs\"}' scripts/run-hidden-window-benchmark.ts",
     "probe:web-signals": "ts-node -O '{\"module\":\"commonjs\"}' scripts/web-signals-probe.ts"
   },
   "dependencies": {

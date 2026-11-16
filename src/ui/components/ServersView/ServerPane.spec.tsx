@@ -4,6 +4,7 @@ import { forwardRef } from 'react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
+import { SERVER_VIEW_BOOTED_CHANNEL } from '../../../servers/common';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   MENU_BAR_FIND_IN_PAGE_CLICKED,
@@ -90,8 +91,12 @@ jest.mock('./styles', () => ({
       {...props}
     />
   )),
-  Wrapper: ({ children, ...props }: any) => (
-    <div data-testid='server-pane' {...props}>
+  Wrapper: ({ children, isVisible, ...props }: any) => (
+    <div
+      data-testid='server-pane'
+      style={{ display: isVisible ? 'flex' : 'none' }}
+      {...props}
+    >
       {children}
     </div>
   ),
@@ -104,6 +109,69 @@ describe('ServerPane', () => {
     listeners.length = 0;
     Object.values(mockWebviewFns).forEach((fn) => fn.mockClear());
   });
+
+  it.each([true, false])(
+    'keeps a hidden workspace mounted and restores only the selected pane (%s)',
+    (isSelected) => {
+      const hidden = jest
+        .spyOn(document, 'hidden', 'get')
+        .mockReturnValue(true);
+      try {
+        const { container, unmount } = render(
+          <Provider store={makeStore()}>
+            <ServerPane
+              lastPath='https://open.rocket.chat/channel/general'
+              serverUrl='https://open.rocket.chat'
+              isSelected={isSelected}
+              isFailed={false}
+              isSupported
+              title='Community'
+            />
+          </Provider>
+        );
+        const pane = screen.getByTestId('server-pane');
+        const view = container.querySelector('[partition]');
+        expect(view).not.toBeNull();
+        // Initial rendering must stay available until the web client's boot signal.
+        expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+        const boot = mockWebviewFns.addEventListener.mock.calls.find(
+          ([event]) => event === 'ipc-message'
+        )?.[1];
+        expect(boot).toBeDefined();
+        act(() => boot({ channel: 'unrelated' }));
+        expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+        act(() => boot({ channel: SERVER_VIEW_BOOTED_CHANNEL }));
+        expect(pane).toHaveStyle({ display: 'none' });
+        hidden.mockReturnValue(false);
+        fireEvent(document, new Event('visibilitychange'));
+        expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+        expect(container.querySelector('[partition]')).toBe(view);
+        hidden.mockReturnValue(true);
+        fireEvent(document, new Event('visibilitychange'));
+        expect(pane).toHaveStyle({ display: 'none' });
+        expect(container.querySelector('[partition]')).toBe(view);
+        const navigate = mockWebviewFns.addEventListener.mock.calls.find(
+          ([event]) => event === 'did-navigate'
+        )?.[1];
+        act(() => navigate());
+        expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+        act(() => boot({ channel: SERVER_VIEW_BOOTED_CHANNEL }));
+        expect(pane).toHaveStyle({ display: 'none' });
+        expect(container.querySelector('[partition]')).toBe(view);
+        unmount();
+        expect(mockWebviewFns.removeEventListener).toHaveBeenCalledWith(
+          'ipc-message',
+          boot
+        );
+        expect(mockWebviewFns.removeEventListener).toHaveBeenCalledWith(
+          'did-navigate',
+          navigate
+        );
+      } finally {
+        hidden.mockRestore();
+      }
+    }
+  );
 
   it('renders selected server pane shell', () => {
     render(

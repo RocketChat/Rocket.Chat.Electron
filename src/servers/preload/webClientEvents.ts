@@ -1,3 +1,6 @@
+import { ipcRenderer } from 'electron';
+
+import { SERVER_VIEW_BOOTED_CHANNEL } from '../common';
 import type { Server } from '../common';
 import { setBadge } from './badge';
 import { attemptBootRecovery, resetBootRecovery } from './bootRecovery';
@@ -60,6 +63,7 @@ const markWebClientBooted = (): void => {
     return;
   }
   booted = true;
+  ipcRenderer.sendToHost(SERVER_VIEW_BOOTED_CHANNEL);
   if (bootTimer !== null) {
     clearTimeout(bootTimer);
     bootTimer = null;

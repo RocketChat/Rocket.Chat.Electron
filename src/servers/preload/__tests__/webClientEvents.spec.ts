@@ -2,7 +2,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires -- the bridge keeps
    module state, so each test loads a fresh copy inside jest.isolateModules */
 
+import { ipcRenderer } from 'electron';
+
+import { SERVER_VIEW_BOOTED_CHANNEL } from '../../common';
 import type * as WebClientEvents from '../webClientEvents';
+
+jest.mock('electron', () => ({ ipcRenderer: { sendToHost: jest.fn() } }));
 
 jest.mock('../badge', () => ({ setBadge: jest.fn() }));
 jest.mock('../userLoggedIn', () => ({ setUserLoggedIn: jest.fn() }));
@@ -73,6 +78,7 @@ describe('servers/preload/webClientEvents', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.mocked(ipcRenderer.sendToHost).mockClear();
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const addEventListener = window.addEventListener.bind(window);
     jest
@@ -94,6 +100,18 @@ describe('servers/preload/webClientEvents', () => {
     jest.useRealTimers();
     jest.restoreAllMocks();
     window.sessionStorage.clear();
+  });
+
+  it('notifies the host only after startup, including a boot before store connection', () => {
+    bridge.extendBootTimer();
+    expect(ipcRenderer.sendToHost).not.toHaveBeenCalled();
+    replay(LOGGED_OUT_BOOT);
+    bridge.connectWebClientEvents();
+    replay(LOGGED_OUT_BOOT);
+    expect(ipcRenderer.sendToHost).toHaveBeenCalledTimes(1);
+    expect(ipcRenderer.sendToHost).toHaveBeenCalledWith(
+      SERVER_VIEW_BOOTED_CHANNEL
+    );
   });
 
   it('reports the badge and the login of a logged-in boot', () => {

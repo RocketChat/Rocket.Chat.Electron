@@ -1,0 +1,2428 @@
+{
+  "environment": {
+    "expected": "before",
+    "animated": true,
+    "energy": true,
+    "sampleCount": 60,
+    "sampleIntervalMs": 1000,
+    "warmupMs": 45000,
+    "appVersion": "4.19.0",
+    "timezone": "Asia/Calcutta",
+    "versions": {
+      "node": "24.22.0",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.8",
+      "brotli": "1.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.4.3",
+      "merve": "1.2.2",
+      "modules": "148",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "0.0.0",
+      "simdjson": "4.6.11",
+      "simdutf": "7.7.0",
+      "sqlite": "3.53.4",
+      "tz": "2026d",
+      "undici": "7.29.1",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "15.0.245.31-electron.0",
+      "zlib": "1.3.2.1-motley",
+      "zstd": "1.6.0",
+      "electron": "43.8.1",
+      "chrome": "150.0.7871.250"
+    },
+    "platform": "darwin",
+    "os": "27.2.0",
+    "cpu": "Apple M4",
+    "logicalCpus": 10,
+    "displays": [
+      {
+        "size": {
+          "width": 1512,
+          "height": 982
+        },
+        "scaleFactor": 2,
+        "frequency": 120.0006103515625
+      }
+    ],
+    "gpu": {
+      "2d_canvas": "enabled",
+      "direct_rendering_display_compositor": "disabled_off_ok",
+      "gpu_compositing": "enabled",
+      "multiple_raster_threads": "enabled_on",
+      "opengl": "enabled_on",
+      "rasterization": "enabled",
+      "raw_draw": "disabled_off_ok",
+      "skia_graphite": "enabled_on",
+      "trees_in_viz": "disabled_off",
+      "video_decode": "enabled",
+      "video_encode": "enabled",
+      "webgl": "enabled",
+      "webgpu": "enabled",
+      "webnn": "disabled_off"
+    },
+    "profileIsolated": true,
+    "channelLoads": 1
+  },
+  "methodology": {
+    "warmupSeconds": 45,
+    "sampleSeconds": 60,
+    "order": ["before", "after", "after", "before"],
+    "counters": "System-wide estimated GPU power / HW active residency; WindowServer CPU (100% = one core)",
+    "boundaryMarginMs": 1000,
+    "scope": "Actual built desktop shell with a synthetic local channel, not per-app GPU energy or battery life"
+  },
+  "phases": [
+    {
+      "run": 1,
+      "condition": "before",
+      "startedAt": "2026-11-10T21:00:45.877Z",
+      "endedAt": "2026-11-10T21:01:45.929Z",
+      "gpu": {
+        "sampleCount": 56,
+        "elapsedMs": 56416.75,
+        "powerMilliwatts": 122.04792690114193,
+        "activeResidencyPercent": 16.197704451248963,
+        "estimatedEnergyJoules": 6.885547379999999,
+        "estimatedEnergyJoulesPer60Seconds": 7.322875614068517
+      },
+      "gpuSamples": [
+        {
+          "endedAt": "2026-11-10T21:00:48.000Z",
+          "elapsedMs": 1005.54,
+          "powerMilliwatts": 95,
+          "activeResidencyPercent": 15.27
+        },
+        {
+          "endedAt": "2026-11-10T21:00:49.000Z",
+          "elapsedMs": 1006.45,
+          "powerMilliwatts": 156,
+          "activeResidencyPercent": 16.43
+        },
+        {
+          "endedAt": "2026-11-10T21:00:50.000Z",
+          "elapsedMs": 1007.68,
+          "powerMilliwatts": 56,
+          "activeResidencyPercent": 10.84
+        },
+        {
+          "endedAt": "2026-11-10T21:00:51.000Z",
+          "elapsedMs": 1007.2,
+          "powerMilliwatts": 57,
+          "activeResidencyPercent": 10.86
+        },
+        {
+          "endedAt": "2026-11-10T21:00:52.000Z",
+          "elapsedMs": 1007.3,
+          "powerMilliwatts": 192,
+          "activeResidencyPercent": 23.84
+        },
+        {
+          "endedAt": "2026-11-10T21:00:53.000Z",
+          "elapsedMs": 1006.54,
+          "powerMilliwatts": 230,
+          "activeResidencyPercent": 25.76
+        },
+        {
+          "endedAt": "2026-11-10T21:00:54.000Z",
+          "elapsedMs": 1007.29,
+          "powerMilliwatts": 60,
+          "activeResidencyPercent": 11.12
+        },
+        {
+          "endedAt": "2026-11-10T21:00:55.000Z",
+          "elapsedMs": 1006.72,
+          "powerMilliwatts": 52,
+          "activeResidencyPercent": 10.5
+        },
+        {
+          "endedAt": "2026-11-10T21:00:56.000Z",
+          "elapsedMs": 1007.42,
+          "powerMilliwatts": 56,
+          "activeResidencyPercent": 12.41
+        },
+        {
+          "endedAt": "2026-11-10T21:00:57.000Z",
+          "elapsedMs": 1007.7,
+          "powerMilliwatts": 131,
+          "activeResidencyPercent": 29.12
+        },
+        {
+          "endedAt": "2026-11-10T21:00:58.000Z",
+          "elapsedMs": 1005.84,
+          "powerMilliwatts": 96,
+          "activeResidencyPercent": 29.1
+        },
+        {
+          "endedAt": "2026-11-10T21:00:59.000Z",
+          "elapsedMs": 1005.52,
+          "powerMilliwatts": 175,
+          "activeResidencyPercent": 29.33
+        },
+        {
+          "endedAt": "2026-11-10T21:01:00.000Z",
+          "elapsedMs": 1006.89,
+          "powerMilliwatts": 63,
+          "activeResidencyPercent": 13.98
+        },
+        {
+          "endedAt": "2026-11-10T21:01:01.000Z",
+          "elapsedMs": 1007.18,
+          "powerMilliwatts": 32,
+          "activeResidencyPercent": 10.02
+        },
+        {
+          "endedAt": "2026-11-10T21:01:02.000Z",
+          "elapsedMs": 1007.9,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 9.19
+        },
+        {
+          "endedAt": "2026-11-10T21:01:03.000Z",
+          "elapsedMs": 1007.99,
+          "powerMilliwatts": 34,
+          "activeResidencyPercent": 11.09
+        },
+        {
+          "endedAt": "2026-11-10T21:01:05.000Z",
+          "elapsedMs": 1007.16,
+          "powerMilliwatts": 39,
+          "activeResidencyPercent": 10.24
+        },
+        {
+          "endedAt": "2026-11-10T21:01:06.000Z",
+          "elapsedMs": 1008.18,
+          "powerMilliwatts": 33,
+          "activeResidencyPercent": 9.57
+        },
+        {
+          "endedAt": "2026-11-10T21:01:07.000Z",
+          "elapsedMs": 1008,
+          "powerMilliwatts": 30,
+          "activeResidencyPercent": 9.46
+        },
+        {
+          "endedAt": "2026-11-10T21:01:08.000Z",
+          "elapsedMs": 1008,
+          "powerMilliwatts": 36,
+          "activeResidencyPercent": 10.89
+        },
+        {
+          "endedAt": "2026-11-10T21:01:09.000Z",
+          "elapsedMs": 1008.05,
+          "powerMilliwatts": 98,
+          "activeResidencyPercent": 19.61
+        },
+        {
+          "endedAt": "2026-11-10T21:01:10.000Z",
+          "elapsedMs": 1008.01,
+          "powerMilliwatts": 34,
+          "activeResidencyPercent": 10.16
+        },
+        {
+          "endedAt": "2026-11-10T21:01:11.000Z",
+          "elapsedMs": 1008.05,
+          "powerMilliwatts": 25,
+          "activeResidencyPercent": 8.86
+        },
+        {
+          "endedAt": "2026-11-10T21:01:12.000Z",
+          "elapsedMs": 1006.63,
+          "powerMilliwatts": 68,
+          "activeResidencyPercent": 14.58
+        },
+        {
+          "endedAt": "2026-11-10T21:01:13.000Z",
+          "elapsedMs": 1008.31,
+          "powerMilliwatts": 36,
+          "activeResidencyPercent": 10.69
+        },
+        {
+          "endedAt": "2026-11-10T21:01:14.000Z",
+          "elapsedMs": 1008.97,
+          "powerMilliwatts": 28,
+          "activeResidencyPercent": 9.99
+        },
+        {
+          "endedAt": "2026-11-10T21:01:15.000Z",
+          "elapsedMs": 1008.7,
+          "powerMilliwatts": 27,
+          "activeResidencyPercent": 9.22
+        },
+        {
+          "endedAt": "2026-11-10T21:01:16.000Z",
+          "elapsedMs": 1008.91,
+          "powerMilliwatts": 36,
+          "activeResidencyPercent": 11.62
+        },
+        {
+          "endedAt": "2026-11-10T21:01:17.000Z",
+          "elapsedMs": 1008.78,
+          "powerMilliwatts": 33,
+          "activeResidencyPercent": 10.73
+        },
+        {
+          "endedAt": "2026-11-10T21:01:18.000Z",
+          "elapsedMs": 1009.09,
+          "powerMilliwatts": 24,
+          "activeResidencyPercent": 7.98
+        },
+        {
+          "endedAt": "2026-11-10T21:01:19.000Z",
+          "elapsedMs": 1009.09,
+          "powerMilliwatts": 27,
+          "activeResidencyPercent": 9.44
+        },
+        {
+          "endedAt": "2026-11-10T21:01:20.000Z",
+          "elapsedMs": 1007.85,
+          "powerMilliwatts": 63,
+          "activeResidencyPercent": 18.53
+        },
+        {
+          "endedAt": "2026-11-10T21:01:21.000Z",
+          "elapsedMs": 1006.13,
+          "powerMilliwatts": 96,
+          "activeResidencyPercent": 31.72
+        },
+        {
+          "endedAt": "2026-11-10T21:01:22.000Z",
+          "elapsedMs": 1007.99,
+          "powerMilliwatts": 101,
+          "activeResidencyPercent": 16.6
+        },
+        {
+          "endedAt": "2026-11-10T21:01:23.000Z",
+          "elapsedMs": 1006.27,
+          "powerMilliwatts": 66,
+          "activeResidencyPercent": 16.13
+        },
+        {
+          "endedAt": "2026-11-10T21:01:24.000Z",
+          "elapsedMs": 1006.05,
+          "powerMilliwatts": 95,
+          "activeResidencyPercent": 23.92
+        },
+        {
+          "endedAt": "2026-11-10T21:01:25.000Z",
+          "elapsedMs": 1008.83,
+          "powerMilliwatts": 59,
+          "activeResidencyPercent": 12.19
+        },
+        {
+          "endedAt": "2026-11-10T21:01:26.000Z",
+          "elapsedMs": 1007.53,
+          "powerMilliwatts": 45,
+          "activeResidencyPercent": 9.84
+        },
+        {
+          "endedAt": "2026-11-10T21:01:27.000Z",
+          "elapsedMs": 1007.25,
+          "powerMilliwatts": 46,
+          "activeResidencyPercent": 11.42
+        },
+        {
+          "endedAt": "2026-11-10T21:01:28.000Z",
+          "elapsedMs": 1008.23,
+          "powerMilliwatts": 52,
+          "activeResidencyPercent": 12.18
+        },
+        {
+          "endedAt": "2026-11-10T21:01:29.000Z",
+          "elapsedMs": 1007.27,
+          "powerMilliwatts": 67,
+          "activeResidencyPercent": 14.63
+        },
+        {
+          "endedAt": "2026-11-10T21:01:30.000Z",
+          "elapsedMs": 1006.39,
+          "powerMilliwatts": 63,
+          "activeResidencyPercent": 14.05
+        },
+        {
+          "endedAt": "2026-11-10T21:01:31.000Z",
+          "elapsedMs": 1007.52,
+          "powerMilliwatts": 116,
+          "activeResidencyPercent": 19.21
+        },
+        {
+          "endedAt": "2026-11-10T21:01:32.000Z",
+          "elapsedMs": 1005.89,
+          "powerMilliwatts": 187,
+          "activeResidencyPercent": 32.24
+        },
+        {
+          "endedAt": "2026-11-10T21:01:33.000Z",
+          "elapsedMs": 1006.45,
+          "powerMilliwatts": 136,
+          "activeResidencyPercent": 28.27
+        },
+        {
+          "endedAt": "2026-11-10T21:01:34.000Z",
+          "elapsedMs": 1007.93,
+          "powerMilliwatts": 28,
+          "activeResidencyPercent": 6.5
+        },
+        {
+          "endedAt": "2026-11-10T21:01:35.000Z",
+          "elapsedMs": 1004.55,
+          "powerMilliwatts": 212,
+          "activeResidencyPercent": 32.37
+        },
+        {
+          "endedAt": "2026-11-10T21:01:36.000Z",
+          "elapsedMs": 1007.43,
+          "powerMilliwatts": 71,
+          "activeResidencyPercent": 14.65
+        },
+        {
+          "endedAt": "2026-11-10T21:01:37.000Z",
+          "elapsedMs": 1007.83,
+          "powerMilliwatts": 122,
+          "activeResidencyPercent": 23.25
+        },
+        {
+          "endedAt": "2026-11-10T21:01:38.000Z",
+          "elapsedMs": 1007.83,
+          "powerMilliwatts": 28,
+          "activeResidencyPercent": 8.81
+        },
+        {
+          "endedAt": "2026-11-10T21:01:39.000Z",
+          "elapsedMs": 1008.69,
+          "powerMilliwatts": 27,
+          "activeResidencyPercent": 9.46
+        },
+        {
+          "endedAt": "2026-11-10T21:01:40.000Z",
+          "elapsedMs": 1007.77,
+          "powerMilliwatts": 35,
+          "activeResidencyPercent": 10.58
+        },
+        {
+          "endedAt": "2026-11-10T21:01:41.000Z",
+          "elapsedMs": 1007.96,
+          "powerMilliwatts": 32,
+          "activeResidencyPercent": 10.7
+        },
+        {
+          "endedAt": "2026-11-10T21:01:42.000Z",
+          "elapsedMs": 1008.11,
+          "powerMilliwatts": 2170,
+          "activeResidencyPercent": 38.94
+        },
+        {
+          "endedAt": "2026-11-10T21:01:43.000Z",
+          "elapsedMs": 1006.12,
+          "powerMilliwatts": 746,
+          "activeResidencyPercent": 35.9
+        },
+        {
+          "endedAt": "2026-11-10T21:01:44.000Z",
+          "elapsedMs": 1007.79,
+          "powerMilliwatts": 88,
+          "activeResidencyPercent": 23.35
+        }
+      ],
+      "windowServerSamples": [
+        {
+          "time": "2026-11-10T21:00:47.000Z",
+          "cpuPercent": 18
+        },
+        {
+          "time": "2026-11-10T21:00:48.000Z",
+          "cpuPercent": 15
+        },
+        {
+          "time": "2026-11-10T21:00:49.000Z",
+          "cpuPercent": 15.7
+        },
+        {
+          "time": "2026-11-10T21:00:50.000Z",
+          "cpuPercent": 8.3
+        },
+        {
+          "time": "2026-11-10T21:00:51.000Z",
+          "cpuPercent": 6.9
+        },
+        {
+          "time": "2026-11-10T21:00:52.000Z",
+          "cpuPercent": 11
+        },
+        {
+          "time": "2026-11-10T21:00:53.000Z",
+          "cpuPercent": 19
+        },
+        {
+          "time": "2026-11-10T21:00:54.000Z",
+          "cpuPercent": 8
+        },
+        {
+          "time": "2026-11-10T21:00:55.000Z",
+          "cpuPercent": 8.2
+        },
+        {
+          "time": "2026-11-10T21:00:56.000Z",
+          "cpuPercent": 13.6
+        },
+        {
+          "time": "2026-11-10T21:00:57.000Z",
+          "cpuPercent": 14.2
+        },
+        {
+          "time": "2026-11-10T21:00:58.000Z",
+          "cpuPercent": 21.3
+        },
+        {
+          "time": "2026-11-10T21:00:59.000Z",
+          "cpuPercent": 19
+        },
+        {
+          "time": "2026-11-10T21:01:00.000Z",
+          "cpuPercent": 12.8
+        },
+        {
+          "time": "2026-11-10T21:01:02.000Z",
+          "cpuPercent": 6.5
+        },
+        {
+          "time": "2026-11-10T21:01:03.000Z",
+          "cpuPercent": 6
+        },
+        {
+          "time": "2026-11-10T21:01:04.000Z",
+          "cpuPercent": 9.2
+        },
+        {
+          "time": "2026-11-10T21:01:05.000Z",
+          "cpuPercent": 10.5
+        },
+        {
+          "time": "2026-11-10T21:01:06.000Z",
+          "cpuPercent": 8
+        },
+        {
+          "time": "2026-11-10T21:01:07.000Z",
+          "cpuPercent": 6.5
+        },
+        {
+          "time": "2026-11-10T21:01:08.000Z",
+          "cpuPercent": 11.3
+        },
+        {
+          "time": "2026-11-10T21:01:09.000Z",
+          "cpuPercent": 9.3
+        },
+        {
+          "time": "2026-11-10T21:01:10.000Z",
+          "cpuPercent": 7.1
+        },
+        {
+          "time": "2026-11-10T21:01:11.000Z",
+          "cpuPercent": 9.6
+        },
+        {
+          "time": "2026-11-10T21:01:12.000Z",
+          "cpuPercent": 12.2
+        },
+        {
+          "time": "2026-11-10T21:01:13.000Z",
+          "cpuPercent": 7.1
+        },
+        {
+          "time": "2026-11-10T21:01:14.000Z",
+          "cpuPercent": 6.3
+        },
+        {
+          "time": "2026-11-10T21:01:15.000Z",
+          "cpuPercent": 5.9
+        },
+        {
+          "time": "2026-11-10T21:01:16.000Z",
+          "cpuPercent": 11.1
+        },
+        {
+          "time": "2026-11-10T21:01:17.000Z",
+          "cpuPercent": 6.4
+        },
+        {
+          "time": "2026-11-10T21:01:18.000Z",
+          "cpuPercent": 6.3
+        },
+        {
+          "time": "2026-11-10T21:01:20.000Z",
+          "cpuPercent": 11.9
+        },
+        {
+          "time": "2026-11-10T21:01:21.000Z",
+          "cpuPercent": 20.6
+        },
+        {
+          "time": "2026-11-10T21:01:22.000Z",
+          "cpuPercent": 9.8
+        },
+        {
+          "time": "2026-11-10T21:01:23.000Z",
+          "cpuPercent": 8.5
+        },
+        {
+          "time": "2026-11-10T21:01:24.000Z",
+          "cpuPercent": 13.6
+        },
+        {
+          "time": "2026-11-10T21:01:25.000Z",
+          "cpuPercent": 11.4
+        },
+        {
+          "time": "2026-11-10T21:01:26.000Z",
+          "cpuPercent": 8.8
+        },
+        {
+          "time": "2026-11-10T21:01:27.000Z",
+          "cpuPercent": 8.2
+        },
+        {
+          "time": "2026-11-10T21:01:28.000Z",
+          "cpuPercent": 11.9
+        },
+        {
+          "time": "2026-11-10T21:01:29.000Z",
+          "cpuPercent": 11
+        },
+        {
+          "time": "2026-11-10T21:01:30.000Z",
+          "cpuPercent": 9.8
+        },
+        {
+          "time": "2026-11-10T21:01:31.000Z",
+          "cpuPercent": 13.3
+        },
+        {
+          "time": "2026-11-10T21:01:32.000Z",
+          "cpuPercent": 26.7
+        },
+        {
+          "time": "2026-11-10T21:01:33.000Z",
+          "cpuPercent": 15.1
+        },
+        {
+          "time": "2026-11-10T21:01:34.000Z",
+          "cpuPercent": 18.5
+        },
+        {
+          "time": "2026-11-10T21:01:35.000Z",
+          "cpuPercent": 19.1
+        },
+        {
+          "time": "2026-11-10T21:01:37.000Z",
+          "cpuPercent": 17.9
+        },
+        {
+          "time": "2026-11-10T21:01:38.000Z",
+          "cpuPercent": 6.6
+        },
+        {
+          "time": "2026-11-10T21:01:39.000Z",
+          "cpuPercent": 6
+        },
+        {
+          "time": "2026-11-10T21:01:40.000Z",
+          "cpuPercent": 8.1
+        },
+        {
+          "time": "2026-11-10T21:01:41.000Z",
+          "cpuPercent": 9.4
+        },
+        {
+          "time": "2026-11-10T21:01:42.000Z",
+          "cpuPercent": 17.1
+        },
+        {
+          "time": "2026-11-10T21:01:43.000Z",
+          "cpuPercent": 18.5
+        },
+        {
+          "time": "2026-11-10T21:01:44.000Z",
+          "cpuPercent": 18
+        }
+      ],
+      "windowServerCpuPercent": 11.820000000000002
+    },
+    {
+      "run": 2,
+      "condition": "after",
+      "startedAt": "2026-11-10T21:02:38.275Z",
+      "endedAt": "2026-11-10T21:03:38.336Z",
+      "gpu": {
+        "sampleCount": 56,
+        "elapsedMs": 56437.78,
+        "powerMilliwatts": 17.62077991019491,
+        "activeResidencyPercent": 4.62711902736075,
+        "estimatedEnergyJoules": 0.9944776999999999,
+        "estimatedEnergyJoulesPer60Seconds": 1.0572467946116944
+      },
+      "gpuSamples": [
+        {
+          "endedAt": "2026-11-10T21:02:41.000Z",
+          "elapsedMs": 1008.42,
+          "powerMilliwatts": 4,
+          "activeResidencyPercent": 2.18
+        },
+        {
+          "endedAt": "2026-11-10T21:02:42.000Z",
+          "elapsedMs": 1007.77,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:02:43.000Z",
+          "elapsedMs": 1007.57,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:02:44.000Z",
+          "elapsedMs": 1007.86,
+          "powerMilliwatts": 17,
+          "activeResidencyPercent": 6.42
+        },
+        {
+          "endedAt": "2026-11-10T21:02:45.000Z",
+          "elapsedMs": 1007.22,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 1.61
+        },
+        {
+          "endedAt": "2026-11-10T21:02:46.000Z",
+          "elapsedMs": 1006.05,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 0.56
+        },
+        {
+          "endedAt": "2026-11-10T21:02:47.000Z",
+          "elapsedMs": 1008.36,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:02:48.000Z",
+          "elapsedMs": 1007.81,
+          "powerMilliwatts": 16,
+          "activeResidencyPercent": 6.56
+        },
+        {
+          "endedAt": "2026-11-10T21:02:49.000Z",
+          "elapsedMs": 1008.62,
+          "powerMilliwatts": 4,
+          "activeResidencyPercent": 2.19
+        },
+        {
+          "endedAt": "2026-11-10T21:02:50.000Z",
+          "elapsedMs": 1007.87,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:02:51.000Z",
+          "elapsedMs": 1008.59,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:02:52.000Z",
+          "elapsedMs": 1008.72,
+          "powerMilliwatts": 16,
+          "activeResidencyPercent": 6.62
+        },
+        {
+          "endedAt": "2026-11-10T21:02:53.000Z",
+          "elapsedMs": 1008.69,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 1.36
+        },
+        {
+          "endedAt": "2026-11-10T21:02:54.000Z",
+          "elapsedMs": 1008.48,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:02:55.000Z",
+          "elapsedMs": 1008.05,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:02:56.000Z",
+          "elapsedMs": 1008.71,
+          "powerMilliwatts": 18,
+          "activeResidencyPercent": 6.87
+        },
+        {
+          "endedAt": "2026-11-10T21:02:57.000Z",
+          "elapsedMs": 1008.45,
+          "powerMilliwatts": 30,
+          "activeResidencyPercent": 5.15
+        },
+        {
+          "endedAt": "2026-11-10T21:02:58.000Z",
+          "elapsedMs": 1006.79,
+          "powerMilliwatts": 48,
+          "activeResidencyPercent": 6.59
+        },
+        {
+          "endedAt": "2026-11-10T21:02:59.000Z",
+          "elapsedMs": 1007.87,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:00.000Z",
+          "elapsedMs": 1008.49,
+          "powerMilliwatts": 30,
+          "activeResidencyPercent": 9.67
+        },
+        {
+          "endedAt": "2026-11-10T21:03:01.000Z",
+          "elapsedMs": 1008.33,
+          "powerMilliwatts": 37,
+          "activeResidencyPercent": 6.09
+        },
+        {
+          "endedAt": "2026-11-10T21:03:02.000Z",
+          "elapsedMs": 1007.98,
+          "powerMilliwatts": 4,
+          "activeResidencyPercent": 0.74
+        },
+        {
+          "endedAt": "2026-11-10T21:03:03.000Z",
+          "elapsedMs": 1007.37,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:04.000Z",
+          "elapsedMs": 1006.71,
+          "powerMilliwatts": 22,
+          "activeResidencyPercent": 7.95
+        },
+        {
+          "endedAt": "2026-11-10T21:03:05.000Z",
+          "elapsedMs": 1007.06,
+          "powerMilliwatts": 71,
+          "activeResidencyPercent": 10.62
+        },
+        {
+          "endedAt": "2026-11-10T21:03:06.000Z",
+          "elapsedMs": 1007.3,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:07.000Z",
+          "elapsedMs": 1006.98,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 0.89
+        },
+        {
+          "endedAt": "2026-11-10T21:03:08.000Z",
+          "elapsedMs": 1007.76,
+          "powerMilliwatts": 21,
+          "activeResidencyPercent": 7.52
+        },
+        {
+          "endedAt": "2026-11-10T21:03:09.000Z",
+          "elapsedMs": 1008.18,
+          "powerMilliwatts": 1,
+          "activeResidencyPercent": 0.53
+        },
+        {
+          "endedAt": "2026-11-10T21:03:10.000Z",
+          "elapsedMs": 1007.02,
+          "powerMilliwatts": 1,
+          "activeResidencyPercent": 0.49
+        },
+        {
+          "endedAt": "2026-11-10T21:03:11.000Z",
+          "elapsedMs": 1008.03,
+          "powerMilliwatts": 14,
+          "activeResidencyPercent": 3.66
+        },
+        {
+          "endedAt": "2026-11-10T21:03:12.000Z",
+          "elapsedMs": 1007.68,
+          "powerMilliwatts": 38,
+          "activeResidencyPercent": 9.77
+        },
+        {
+          "endedAt": "2026-11-10T21:03:13.000Z",
+          "elapsedMs": 1006.93,
+          "powerMilliwatts": 112,
+          "activeResidencyPercent": 28.92
+        },
+        {
+          "endedAt": "2026-11-10T21:03:15.000Z",
+          "elapsedMs": 1005.63,
+          "powerMilliwatts": 47,
+          "activeResidencyPercent": 11.27
+        },
+        {
+          "endedAt": "2026-11-10T21:03:16.000Z",
+          "elapsedMs": 1007.16,
+          "powerMilliwatts": 45,
+          "activeResidencyPercent": 17.99
+        },
+        {
+          "endedAt": "2026-11-10T21:03:17.000Z",
+          "elapsedMs": 1008.34,
+          "powerMilliwatts": 39,
+          "activeResidencyPercent": 18.34
+        },
+        {
+          "endedAt": "2026-11-10T21:03:18.000Z",
+          "elapsedMs": 1007.8,
+          "powerMilliwatts": 56,
+          "activeResidencyPercent": 7.98
+        },
+        {
+          "endedAt": "2026-11-10T21:03:19.000Z",
+          "elapsedMs": 1008.03,
+          "powerMilliwatts": 30,
+          "activeResidencyPercent": 4.58
+        },
+        {
+          "endedAt": "2026-11-10T21:03:20.000Z",
+          "elapsedMs": 1007.93,
+          "powerMilliwatts": 8,
+          "activeResidencyPercent": 1.49
+        },
+        {
+          "endedAt": "2026-11-10T21:03:21.000Z",
+          "elapsedMs": 1007.5,
+          "powerMilliwatts": 50,
+          "activeResidencyPercent": 10.7
+        },
+        {
+          "endedAt": "2026-11-10T21:03:22.000Z",
+          "elapsedMs": 1007.79,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0.38
+        },
+        {
+          "endedAt": "2026-11-10T21:03:23.000Z",
+          "elapsedMs": 1008.45,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:24.000Z",
+          "elapsedMs": 1008.46,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:25.000Z",
+          "elapsedMs": 1008.37,
+          "powerMilliwatts": 21,
+          "activeResidencyPercent": 8.11
+        },
+        {
+          "endedAt": "2026-11-10T21:03:26.000Z",
+          "elapsedMs": 1007.6,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0.45
+        },
+        {
+          "endedAt": "2026-11-10T21:03:27.000Z",
+          "elapsedMs": 1007.19,
+          "powerMilliwatts": 1,
+          "activeResidencyPercent": 0.57
+        },
+        {
+          "endedAt": "2026-11-10T21:03:28.000Z",
+          "elapsedMs": 1007.74,
+          "powerMilliwatts": 4,
+          "activeResidencyPercent": 1.41
+        },
+        {
+          "endedAt": "2026-11-10T21:03:29.000Z",
+          "elapsedMs": 1007.4,
+          "powerMilliwatts": 29,
+          "activeResidencyPercent": 13.59
+        },
+        {
+          "endedAt": "2026-11-10T21:03:30.000Z",
+          "elapsedMs": 1007.1,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:31.000Z",
+          "elapsedMs": 1008.59,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 0.46
+        },
+        {
+          "endedAt": "2026-11-10T21:03:32.000Z",
+          "elapsedMs": 1008.55,
+          "powerMilliwatts": 70,
+          "activeResidencyPercent": 10.29
+        },
+        {
+          "endedAt": "2026-11-10T21:03:33.000Z",
+          "elapsedMs": 1007.1,
+          "powerMilliwatts": 52,
+          "activeResidencyPercent": 10.76
+        },
+        {
+          "endedAt": "2026-11-10T21:03:34.000Z",
+          "elapsedMs": 1008,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:35.000Z",
+          "elapsedMs": 1008.73,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:03:36.000Z",
+          "elapsedMs": 1008.58,
+          "powerMilliwatts": 9,
+          "activeResidencyPercent": 2.07
+        },
+        {
+          "endedAt": "2026-11-10T21:03:37.000Z",
+          "elapsedMs": 1008.02,
+          "powerMilliwatts": 12,
+          "activeResidencyPercent": 5.77
+        }
+      ],
+      "windowServerSamples": [
+        {
+          "time": "2026-11-10T21:02:40.000Z",
+          "cpuPercent": 6.7
+        },
+        {
+          "time": "2026-11-10T21:02:41.000Z",
+          "cpuPercent": 6.7
+        },
+        {
+          "time": "2026-11-10T21:02:42.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:02:43.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:02:44.000Z",
+          "cpuPercent": 7.7
+        },
+        {
+          "time": "2026-11-10T21:02:45.000Z",
+          "cpuPercent": 5.9
+        },
+        {
+          "time": "2026-11-10T21:02:46.000Z",
+          "cpuPercent": 5.8
+        },
+        {
+          "time": "2026-11-10T21:02:47.000Z",
+          "cpuPercent": 5.9
+        },
+        {
+          "time": "2026-11-10T21:02:49.000Z",
+          "cpuPercent": 8.5
+        },
+        {
+          "time": "2026-11-10T21:02:50.000Z",
+          "cpuPercent": 4.9
+        },
+        {
+          "time": "2026-11-10T21:02:51.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:02:52.000Z",
+          "cpuPercent": 5.1
+        },
+        {
+          "time": "2026-11-10T21:02:53.000Z",
+          "cpuPercent": 8.4
+        },
+        {
+          "time": "2026-11-10T21:02:54.000Z",
+          "cpuPercent": 4.6
+        },
+        {
+          "time": "2026-11-10T21:02:55.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:02:56.000Z",
+          "cpuPercent": 6.2
+        },
+        {
+          "time": "2026-11-10T21:02:57.000Z",
+          "cpuPercent": 7.3
+        },
+        {
+          "time": "2026-11-10T21:02:58.000Z",
+          "cpuPercent": 11.4
+        },
+        {
+          "time": "2026-11-10T21:02:59.000Z",
+          "cpuPercent": 4.7
+        },
+        {
+          "time": "2026-11-10T21:03:00.000Z",
+          "cpuPercent": 9.1
+        },
+        {
+          "time": "2026-11-10T21:03:01.000Z",
+          "cpuPercent": 6.7
+        },
+        {
+          "time": "2026-11-10T21:03:02.000Z",
+          "cpuPercent": 8.9
+        },
+        {
+          "time": "2026-11-10T21:03:03.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:03:04.000Z",
+          "cpuPercent": 8
+        },
+        {
+          "time": "2026-11-10T21:03:05.000Z",
+          "cpuPercent": 11.5
+        },
+        {
+          "time": "2026-11-10T21:03:06.000Z",
+          "cpuPercent": 4.7
+        },
+        {
+          "time": "2026-11-10T21:03:08.000Z",
+          "cpuPercent": 4.8
+        },
+        {
+          "time": "2026-11-10T21:03:09.000Z",
+          "cpuPercent": 8.6
+        },
+        {
+          "time": "2026-11-10T21:03:10.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:03:11.000Z",
+          "cpuPercent": 6.1
+        },
+        {
+          "time": "2026-11-10T21:03:12.000Z",
+          "cpuPercent": 10.9
+        },
+        {
+          "time": "2026-11-10T21:03:13.000Z",
+          "cpuPercent": 16
+        },
+        {
+          "time": "2026-11-10T21:03:14.000Z",
+          "cpuPercent": 16.4
+        },
+        {
+          "time": "2026-11-10T21:03:15.000Z",
+          "cpuPercent": 15.8
+        },
+        {
+          "time": "2026-11-10T21:03:16.000Z",
+          "cpuPercent": 15.6
+        },
+        {
+          "time": "2026-11-10T21:03:17.000Z",
+          "cpuPercent": 7.6
+        },
+        {
+          "time": "2026-11-10T21:03:18.000Z",
+          "cpuPercent": 13.2
+        },
+        {
+          "time": "2026-11-10T21:03:19.000Z",
+          "cpuPercent": 5.7
+        },
+        {
+          "time": "2026-11-10T21:03:20.000Z",
+          "cpuPercent": 11.9
+        },
+        {
+          "time": "2026-11-10T21:03:21.000Z",
+          "cpuPercent": 6.1
+        },
+        {
+          "time": "2026-11-10T21:03:22.000Z",
+          "cpuPercent": 5.7
+        },
+        {
+          "time": "2026-11-10T21:03:23.000Z",
+          "cpuPercent": 4.7
+        },
+        {
+          "time": "2026-11-10T21:03:24.000Z",
+          "cpuPercent": 8.3
+        },
+        {
+          "time": "2026-11-10T21:03:25.000Z",
+          "cpuPercent": 5.5
+        },
+        {
+          "time": "2026-11-10T21:03:27.000Z",
+          "cpuPercent": 4.6
+        },
+        {
+          "time": "2026-11-10T21:03:28.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:03:29.000Z",
+          "cpuPercent": 11.1
+        },
+        {
+          "time": "2026-11-10T21:03:30.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:03:31.000Z",
+          "cpuPercent": 4.6
+        },
+        {
+          "time": "2026-11-10T21:03:32.000Z",
+          "cpuPercent": 13.9
+        },
+        {
+          "time": "2026-11-10T21:03:33.000Z",
+          "cpuPercent": 9
+        },
+        {
+          "time": "2026-11-10T21:03:34.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:03:35.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:03:36.000Z",
+          "cpuPercent": 6.8
+        },
+        {
+          "time": "2026-11-10T21:03:37.000Z",
+          "cpuPercent": 6.7
+        }
+      ],
+      "windowServerCpuPercent": 7.507272727272727
+    },
+    {
+      "run": 3,
+      "condition": "after",
+      "startedAt": "2026-11-10T21:04:29.797Z",
+      "endedAt": "2026-11-10T21:05:29.850Z",
+      "gpu": {
+        "sampleCount": 56,
+        "elapsedMs": 56429.95000000001,
+        "powerMilliwatts": 76.73845874398256,
+        "activeResidencyPercent": 7.847787538355077,
+        "estimatedEnergyJoules": 4.33034739,
+        "estimatedEnergyJoulesPer60Seconds": 4.604307524638953
+      },
+      "gpuSamples": [
+        {
+          "endedAt": "2026-11-10T21:04:32.000Z",
+          "elapsedMs": 1007.66,
+          "powerMilliwatts": 261,
+          "activeResidencyPercent": 30.12
+        },
+        {
+          "endedAt": "2026-11-10T21:04:33.000Z",
+          "elapsedMs": 1006.65,
+          "powerMilliwatts": 1329,
+          "activeResidencyPercent": 76.47
+        },
+        {
+          "endedAt": "2026-11-10T21:04:34.000Z",
+          "elapsedMs": 1005.79,
+          "powerMilliwatts": 464,
+          "activeResidencyPercent": 49.76
+        },
+        {
+          "endedAt": "2026-11-10T21:04:35.000Z",
+          "elapsedMs": 1006.31,
+          "powerMilliwatts": 177,
+          "activeResidencyPercent": 41.15
+        },
+        {
+          "endedAt": "2026-11-10T21:04:36.000Z",
+          "elapsedMs": 1008.5,
+          "powerMilliwatts": 7,
+          "activeResidencyPercent": 4
+        },
+        {
+          "endedAt": "2026-11-10T21:04:37.000Z",
+          "elapsedMs": 1008.83,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:04:38.000Z",
+          "elapsedMs": 1009.1,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:04:39.000Z",
+          "elapsedMs": 1007.94,
+          "powerMilliwatts": 21,
+          "activeResidencyPercent": 7.3
+        },
+        {
+          "endedAt": "2026-11-10T21:04:40.000Z",
+          "elapsedMs": 1007.82,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 1.52
+        },
+        {
+          "endedAt": "2026-11-10T21:04:41.000Z",
+          "elapsedMs": 1008.01,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:04:42.000Z",
+          "elapsedMs": 1007.78,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 0.73
+        },
+        {
+          "endedAt": "2026-11-10T21:04:43.000Z",
+          "elapsedMs": 1007.21,
+          "powerMilliwatts": 18,
+          "activeResidencyPercent": 6.86
+        },
+        {
+          "endedAt": "2026-11-10T21:04:44.000Z",
+          "elapsedMs": 1007.79,
+          "powerMilliwatts": 36,
+          "activeResidencyPercent": 10.14
+        },
+        {
+          "endedAt": "2026-11-10T21:04:45.000Z",
+          "elapsedMs": 1007.83,
+          "powerMilliwatts": 190,
+          "activeResidencyPercent": 27.28
+        },
+        {
+          "endedAt": "2026-11-10T21:04:46.000Z",
+          "elapsedMs": 1004.89,
+          "powerMilliwatts": 79,
+          "activeResidencyPercent": 14.71
+        },
+        {
+          "endedAt": "2026-11-10T21:04:47.000Z",
+          "elapsedMs": 1008.09,
+          "powerMilliwatts": 55,
+          "activeResidencyPercent": 8.73
+        },
+        {
+          "endedAt": "2026-11-10T21:04:48.000Z",
+          "elapsedMs": 1007.89,
+          "powerMilliwatts": 16,
+          "activeResidencyPercent": 2.88
+        },
+        {
+          "endedAt": "2026-11-10T21:04:49.000Z",
+          "elapsedMs": 1008.08,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:04:50.000Z",
+          "elapsedMs": 1007.1,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:04:51.000Z",
+          "elapsedMs": 1007.06,
+          "powerMilliwatts": 61,
+          "activeResidencyPercent": 11.88
+        },
+        {
+          "endedAt": "2026-11-10T21:04:52.000Z",
+          "elapsedMs": 1008.87,
+          "powerMilliwatts": 248,
+          "activeResidencyPercent": 10.73
+        },
+        {
+          "endedAt": "2026-11-10T21:04:53.000Z",
+          "elapsedMs": 1007.39,
+          "powerMilliwatts": 128,
+          "activeResidencyPercent": 6.44
+        },
+        {
+          "endedAt": "2026-11-10T21:04:54.000Z",
+          "elapsedMs": 1007.93,
+          "powerMilliwatts": 473,
+          "activeResidencyPercent": 27.45
+        },
+        {
+          "endedAt": "2026-11-10T21:04:55.000Z",
+          "elapsedMs": 1006.24,
+          "powerMilliwatts": 313,
+          "activeResidencyPercent": 19.55
+        },
+        {
+          "endedAt": "2026-11-10T21:04:56.000Z",
+          "elapsedMs": 1008.18,
+          "powerMilliwatts": 238,
+          "activeResidencyPercent": 10.87
+        },
+        {
+          "endedAt": "2026-11-10T21:04:57.000Z",
+          "elapsedMs": 1008.52,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:04:58.000Z",
+          "elapsedMs": 1008.25,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:04:59.000Z",
+          "elapsedMs": 1008.65,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 8.33
+        },
+        {
+          "endedAt": "2026-11-10T21:05:00.000Z",
+          "elapsedMs": 1006.4,
+          "powerMilliwatts": 8,
+          "activeResidencyPercent": 2.29
+        },
+        {
+          "endedAt": "2026-11-10T21:05:01.000Z",
+          "elapsedMs": 1007.84,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:02.000Z",
+          "elapsedMs": 1008.61,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:03.000Z",
+          "elapsedMs": 1007.92,
+          "powerMilliwatts": 20,
+          "activeResidencyPercent": 7.97
+        },
+        {
+          "endedAt": "2026-11-10T21:05:04.000Z",
+          "elapsedMs": 1008.38,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0.38
+        },
+        {
+          "endedAt": "2026-11-10T21:05:05.000Z",
+          "elapsedMs": 1008.76,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:06.000Z",
+          "elapsedMs": 1008.01,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:07.000Z",
+          "elapsedMs": 1007.28,
+          "powerMilliwatts": 20,
+          "activeResidencyPercent": 7.96
+        },
+        {
+          "endedAt": "2026-11-10T21:05:08.000Z",
+          "elapsedMs": 1007.97,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0.39
+        },
+        {
+          "endedAt": "2026-11-10T21:05:09.000Z",
+          "elapsedMs": 1007.5,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:10.000Z",
+          "elapsedMs": 1006.78,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:11.000Z",
+          "elapsedMs": 1006.6,
+          "powerMilliwatts": 22,
+          "activeResidencyPercent": 9.1
+        },
+        {
+          "endedAt": "2026-11-10T21:05:12.000Z",
+          "elapsedMs": 1006.75,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:13.000Z",
+          "elapsedMs": 1009.71,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:14.000Z",
+          "elapsedMs": 1008,
+          "powerMilliwatts": 3,
+          "activeResidencyPercent": 1.21
+        },
+        {
+          "endedAt": "2026-11-10T21:05:15.000Z",
+          "elapsedMs": 1006.89,
+          "powerMilliwatts": 18,
+          "activeResidencyPercent": 7.35
+        },
+        {
+          "endedAt": "2026-11-10T21:05:16.000Z",
+          "elapsedMs": 1007.13,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:17.000Z",
+          "elapsedMs": 1007.12,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:18.000Z",
+          "elapsedMs": 1007.18,
+          "powerMilliwatts": 7,
+          "activeResidencyPercent": 1.96
+        },
+        {
+          "endedAt": "2026-11-10T21:05:19.000Z",
+          "elapsedMs": 1007.12,
+          "powerMilliwatts": 14,
+          "activeResidencyPercent": 6.7
+        },
+        {
+          "endedAt": "2026-11-10T21:05:20.000Z",
+          "elapsedMs": 1007.77,
+          "powerMilliwatts": 2,
+          "activeResidencyPercent": 0.79
+        },
+        {
+          "endedAt": "2026-11-10T21:05:21.000Z",
+          "elapsedMs": 1007.72,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:22.000Z",
+          "elapsedMs": 1008.08,
+          "powerMilliwatts": 10,
+          "activeResidencyPercent": 2.34
+        },
+        {
+          "endedAt": "2026-11-10T21:05:23.000Z",
+          "elapsedMs": 1007.46,
+          "powerMilliwatts": 12,
+          "activeResidencyPercent": 6.24
+        },
+        {
+          "endedAt": "2026-11-10T21:05:24.000Z",
+          "elapsedMs": 1007.94,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:25.000Z",
+          "elapsedMs": 1008.65,
+          "powerMilliwatts": 0,
+          "activeResidencyPercent": 0
+        },
+        {
+          "endedAt": "2026-11-10T21:05:26.000Z",
+          "elapsedMs": 1008.64,
+          "powerMilliwatts": 8,
+          "activeResidencyPercent": 2.35
+        },
+        {
+          "endedAt": "2026-11-10T21:05:27.000Z",
+          "elapsedMs": 1007.38,
+          "powerMilliwatts": 12,
+          "activeResidencyPercent": 5.83
+        }
+      ],
+      "windowServerSamples": [
+        {
+          "time": "2026-11-10T21:04:31.000Z",
+          "cpuPercent": 17.6
+        },
+        {
+          "time": "2026-11-10T21:04:32.000Z",
+          "cpuPercent": 18.3
+        },
+        {
+          "time": "2026-11-10T21:04:33.000Z",
+          "cpuPercent": 23.2
+        },
+        {
+          "time": "2026-11-10T21:04:34.000Z",
+          "cpuPercent": 21.8
+        },
+        {
+          "time": "2026-11-10T21:04:35.000Z",
+          "cpuPercent": 16.2
+        },
+        {
+          "time": "2026-11-10T21:04:36.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:04:38.000Z",
+          "cpuPercent": 4.6
+        },
+        {
+          "time": "2026-11-10T21:04:39.000Z",
+          "cpuPercent": 6.1
+        },
+        {
+          "time": "2026-11-10T21:04:40.000Z",
+          "cpuPercent": 7.7
+        },
+        {
+          "time": "2026-11-10T21:04:41.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:04:42.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:04:43.000Z",
+          "cpuPercent": 7.5
+        },
+        {
+          "time": "2026-11-10T21:04:44.000Z",
+          "cpuPercent": 9.2
+        },
+        {
+          "time": "2026-11-10T21:04:45.000Z",
+          "cpuPercent": 15.4
+        },
+        {
+          "time": "2026-11-10T21:04:46.000Z",
+          "cpuPercent": 21
+        },
+        {
+          "time": "2026-11-10T21:04:47.000Z",
+          "cpuPercent": 9.8
+        },
+        {
+          "time": "2026-11-10T21:04:48.000Z",
+          "cpuPercent": 7
+        },
+        {
+          "time": "2026-11-10T21:04:49.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:04:50.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:04:51.000Z",
+          "cpuPercent": 9
+        },
+        {
+          "time": "2026-11-10T21:04:52.000Z",
+          "cpuPercent": 13.9
+        },
+        {
+          "time": "2026-11-10T21:04:53.000Z",
+          "cpuPercent": 12.7
+        },
+        {
+          "time": "2026-11-10T21:04:54.000Z",
+          "cpuPercent": 26.4
+        },
+        {
+          "time": "2026-11-10T21:04:56.000Z",
+          "cpuPercent": 22.2
+        },
+        {
+          "time": "2026-11-10T21:04:57.000Z",
+          "cpuPercent": 7.7
+        },
+        {
+          "time": "2026-11-10T21:04:58.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:04:59.000Z",
+          "cpuPercent": 6.7
+        },
+        {
+          "time": "2026-11-10T21:05:00.000Z",
+          "cpuPercent": 7.7
+        },
+        {
+          "time": "2026-11-10T21:05:01.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:05:02.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:05:03.000Z",
+          "cpuPercent": 7.2
+        },
+        {
+          "time": "2026-11-10T21:05:04.000Z",
+          "cpuPercent": 6.3
+        },
+        {
+          "time": "2026-11-10T21:05:05.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:05:06.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:05:07.000Z",
+          "cpuPercent": 8.4
+        },
+        {
+          "time": "2026-11-10T21:05:08.000Z",
+          "cpuPercent": 5.6
+        },
+        {
+          "time": "2026-11-10T21:05:09.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:05:10.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:05:11.000Z",
+          "cpuPercent": 9.1
+        },
+        {
+          "time": "2026-11-10T21:05:12.000Z",
+          "cpuPercent": 4.7
+        },
+        {
+          "time": "2026-11-10T21:05:14.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:05:15.000Z",
+          "cpuPercent": 6
+        },
+        {
+          "time": "2026-11-10T21:05:16.000Z",
+          "cpuPercent": 8
+        },
+        {
+          "time": "2026-11-10T21:05:17.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:05:18.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:05:19.000Z",
+          "cpuPercent": 6.8
+        },
+        {
+          "time": "2026-11-10T21:05:20.000Z",
+          "cpuPercent": 6.8
+        },
+        {
+          "time": "2026-11-10T21:05:21.000Z",
+          "cpuPercent": 4.7
+        },
+        {
+          "time": "2026-11-10T21:05:22.000Z",
+          "cpuPercent": 4.4
+        },
+        {
+          "time": "2026-11-10T21:05:23.000Z",
+          "cpuPercent": 7.8
+        },
+        {
+          "time": "2026-11-10T21:05:24.000Z",
+          "cpuPercent": 5.9
+        },
+        {
+          "time": "2026-11-10T21:05:25.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:05:26.000Z",
+          "cpuPercent": 4.5
+        },
+        {
+          "time": "2026-11-10T21:05:27.000Z",
+          "cpuPercent": 8.5
+        },
+        {
+          "time": "2026-11-10T21:05:28.000Z",
+          "cpuPercent": 4.8
+        }
+      ],
+      "windowServerCpuPercent": 8.589090909090906
+    },
+    {
+      "run": 4,
+      "condition": "before",
+      "startedAt": "2026-11-10T21:06:22.280Z",
+      "endedAt": "2026-11-10T21:07:22.329Z",
+      "gpu": {
+        "sampleCount": 57,
+        "elapsedMs": 57434.86999999998,
+        "powerMilliwatts": 47.36023011804504,
+        "activeResidencyPercent": 10.268826674457525,
+        "estimatedEnergyJoules": 2.7201286600000008,
+        "estimatedEnergyJoulesPer60Seconds": 2.841613807082702
+      },
+      "gpuSamples": [
+        {
+          "endedAt": "2026-11-10T21:06:25.000Z",
+          "elapsedMs": 1007.24,
+          "powerMilliwatts": 33,
+          "activeResidencyPercent": 9.57
+        },
+        {
+          "endedAt": "2026-11-10T21:06:26.000Z",
+          "elapsedMs": 1007.22,
+          "powerMilliwatts": 25,
+          "activeResidencyPercent": 7.82
+        },
+        {
+          "endedAt": "2026-11-10T21:06:27.000Z",
+          "elapsedMs": 1008.75,
+          "powerMilliwatts": 25,
+          "activeResidencyPercent": 8.55
+        },
+        {
+          "endedAt": "2026-11-10T21:06:28.000Z",
+          "elapsedMs": 1008.16,
+          "powerMilliwatts": 30,
+          "activeResidencyPercent": 9.24
+        },
+        {
+          "endedAt": "2026-11-10T21:06:29.000Z",
+          "elapsedMs": 1007.11,
+          "powerMilliwatts": 29,
+          "activeResidencyPercent": 9.21
+        },
+        {
+          "endedAt": "2026-11-10T21:06:30.000Z",
+          "elapsedMs": 1007.49,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 8.42
+        },
+        {
+          "endedAt": "2026-11-10T21:06:31.000Z",
+          "elapsedMs": 1008.06,
+          "powerMilliwatts": 62,
+          "activeResidencyPercent": 11.71
+        },
+        {
+          "endedAt": "2026-11-10T21:06:32.000Z",
+          "elapsedMs": 1008.09,
+          "powerMilliwatts": 34,
+          "activeResidencyPercent": 9.54
+        },
+        {
+          "endedAt": "2026-11-10T21:06:33.000Z",
+          "elapsedMs": 1006.79,
+          "powerMilliwatts": 29,
+          "activeResidencyPercent": 9.27
+        },
+        {
+          "endedAt": "2026-11-10T21:06:34.000Z",
+          "elapsedMs": 1007.57,
+          "powerMilliwatts": 22,
+          "activeResidencyPercent": 7.23
+        },
+        {
+          "endedAt": "2026-11-10T21:06:35.000Z",
+          "elapsedMs": 1007.92,
+          "powerMilliwatts": 136,
+          "activeResidencyPercent": 14.37
+        },
+        {
+          "endedAt": "2026-11-10T21:06:36.000Z",
+          "elapsedMs": 1007.04,
+          "powerMilliwatts": 258,
+          "activeResidencyPercent": 22.55
+        },
+        {
+          "endedAt": "2026-11-10T21:06:37.000Z",
+          "elapsedMs": 1005.1,
+          "powerMilliwatts": 69,
+          "activeResidencyPercent": 13.79
+        },
+        {
+          "endedAt": "2026-11-10T21:06:38.000Z",
+          "elapsedMs": 1007.76,
+          "powerMilliwatts": 146,
+          "activeResidencyPercent": 16.18
+        },
+        {
+          "endedAt": "2026-11-10T21:06:39.000Z",
+          "elapsedMs": 1006.43,
+          "powerMilliwatts": 36,
+          "activeResidencyPercent": 8.46
+        },
+        {
+          "endedAt": "2026-11-10T21:06:40.000Z",
+          "elapsedMs": 1006.37,
+          "powerMilliwatts": 65,
+          "activeResidencyPercent": 15.31
+        },
+        {
+          "endedAt": "2026-11-10T21:06:41.000Z",
+          "elapsedMs": 1007.94,
+          "powerMilliwatts": 75,
+          "activeResidencyPercent": 26.9
+        },
+        {
+          "endedAt": "2026-11-10T21:06:42.000Z",
+          "elapsedMs": 1007.51,
+          "powerMilliwatts": 79,
+          "activeResidencyPercent": 14.04
+        },
+        {
+          "endedAt": "2026-11-10T21:06:43.000Z",
+          "elapsedMs": 1008.12,
+          "powerMilliwatts": 52,
+          "activeResidencyPercent": 10.61
+        },
+        {
+          "endedAt": "2026-11-10T21:06:44.000Z",
+          "elapsedMs": 1006.11,
+          "powerMilliwatts": 130,
+          "activeResidencyPercent": 14.06
+        },
+        {
+          "endedAt": "2026-11-10T21:06:45.000Z",
+          "elapsedMs": 1007.73,
+          "powerMilliwatts": 229,
+          "activeResidencyPercent": 25.86
+        },
+        {
+          "endedAt": "2026-11-10T21:06:46.000Z",
+          "elapsedMs": 1006.84,
+          "powerMilliwatts": 181,
+          "activeResidencyPercent": 22.8
+        },
+        {
+          "endedAt": "2026-11-10T21:06:47.000Z",
+          "elapsedMs": 1007.72,
+          "powerMilliwatts": 24,
+          "activeResidencyPercent": 7.64
+        },
+        {
+          "endedAt": "2026-11-10T21:06:48.000Z",
+          "elapsedMs": 1008.14,
+          "powerMilliwatts": 33,
+          "activeResidencyPercent": 9.12
+        },
+        {
+          "endedAt": "2026-11-10T21:06:49.000Z",
+          "elapsedMs": 1006.69,
+          "powerMilliwatts": 28,
+          "activeResidencyPercent": 8.75
+        },
+        {
+          "endedAt": "2026-11-10T21:06:50.000Z",
+          "elapsedMs": 1008.08,
+          "powerMilliwatts": 24,
+          "activeResidencyPercent": 7.96
+        },
+        {
+          "endedAt": "2026-11-10T21:06:51.000Z",
+          "elapsedMs": 1008.07,
+          "powerMilliwatts": 19,
+          "activeResidencyPercent": 6.58
+        },
+        {
+          "endedAt": "2026-11-10T21:06:52.000Z",
+          "elapsedMs": 1008.36,
+          "powerMilliwatts": 32,
+          "activeResidencyPercent": 9.85
+        },
+        {
+          "endedAt": "2026-11-10T21:06:53.000Z",
+          "elapsedMs": 1008.11,
+          "powerMilliwatts": 29,
+          "activeResidencyPercent": 9.44
+        },
+        {
+          "endedAt": "2026-11-10T21:06:54.000Z",
+          "elapsedMs": 1007.25,
+          "powerMilliwatts": 22,
+          "activeResidencyPercent": 7.16
+        },
+        {
+          "endedAt": "2026-11-10T21:06:55.000Z",
+          "elapsedMs": 1006.48,
+          "powerMilliwatts": 23,
+          "activeResidencyPercent": 7.53
+        },
+        {
+          "endedAt": "2026-11-10T21:06:56.000Z",
+          "elapsedMs": 1007.58,
+          "powerMilliwatts": 30,
+          "activeResidencyPercent": 9.03
+        },
+        {
+          "endedAt": "2026-11-10T21:06:57.000Z",
+          "elapsedMs": 1007.21,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 7.73
+        },
+        {
+          "endedAt": "2026-11-10T21:06:58.000Z",
+          "elapsedMs": 1007.21,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 8.1
+        },
+        {
+          "endedAt": "2026-11-10T21:06:59.000Z",
+          "elapsedMs": 1007.6,
+          "powerMilliwatts": 21,
+          "activeResidencyPercent": 7.17
+        },
+        {
+          "endedAt": "2026-11-10T21:07:00.000Z",
+          "elapsedMs": 1006.92,
+          "powerMilliwatts": 35,
+          "activeResidencyPercent": 9.03
+        },
+        {
+          "endedAt": "2026-11-10T21:07:01.000Z",
+          "elapsedMs": 1007.35,
+          "powerMilliwatts": 27,
+          "activeResidencyPercent": 8.36
+        },
+        {
+          "endedAt": "2026-11-10T21:07:02.000Z",
+          "elapsedMs": 1007.99,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 8.44
+        },
+        {
+          "endedAt": "2026-11-10T21:07:03.000Z",
+          "elapsedMs": 1008.14,
+          "powerMilliwatts": 21,
+          "activeResidencyPercent": 6.89
+        },
+        {
+          "endedAt": "2026-11-10T21:07:04.000Z",
+          "elapsedMs": 1008.46,
+          "powerMilliwatts": 33,
+          "activeResidencyPercent": 9.47
+        },
+        {
+          "endedAt": "2026-11-10T21:07:05.000Z",
+          "elapsedMs": 1007.27,
+          "powerMilliwatts": 29,
+          "activeResidencyPercent": 9.26
+        },
+        {
+          "endedAt": "2026-11-10T21:07:06.000Z",
+          "elapsedMs": 1008.04,
+          "powerMilliwatts": 24,
+          "activeResidencyPercent": 7.84
+        },
+        {
+          "endedAt": "2026-11-10T21:07:07.000Z",
+          "elapsedMs": 1008.53,
+          "powerMilliwatts": 24,
+          "activeResidencyPercent": 7.91
+        },
+        {
+          "endedAt": "2026-11-10T21:07:08.000Z",
+          "elapsedMs": 1007.43,
+          "powerMilliwatts": 30,
+          "activeResidencyPercent": 8.92
+        },
+        {
+          "endedAt": "2026-11-10T21:07:09.000Z",
+          "elapsedMs": 1007.33,
+          "powerMilliwatts": 27,
+          "activeResidencyPercent": 8.88
+        },
+        {
+          "endedAt": "2026-11-10T21:07:10.000Z",
+          "elapsedMs": 1008.64,
+          "powerMilliwatts": 24,
+          "activeResidencyPercent": 7.45
+        },
+        {
+          "endedAt": "2026-11-10T21:07:11.000Z",
+          "elapsedMs": 1008.64,
+          "powerMilliwatts": 22,
+          "activeResidencyPercent": 7.57
+        },
+        {
+          "endedAt": "2026-11-10T21:07:12.000Z",
+          "elapsedMs": 1008.67,
+          "powerMilliwatts": 35,
+          "activeResidencyPercent": 10.38
+        },
+        {
+          "endedAt": "2026-11-10T21:07:13.000Z",
+          "elapsedMs": 1008.76,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 8.25
+        },
+        {
+          "endedAt": "2026-11-10T21:07:14.000Z",
+          "elapsedMs": 1005.84,
+          "powerMilliwatts": 21,
+          "activeResidencyPercent": 7.29
+        },
+        {
+          "endedAt": "2026-11-10T21:07:15.000Z",
+          "elapsedMs": 1007.21,
+          "powerMilliwatts": 24,
+          "activeResidencyPercent": 7.82
+        },
+        {
+          "endedAt": "2026-11-10T21:07:16.000Z",
+          "elapsedMs": 1007.9,
+          "powerMilliwatts": 32,
+          "activeResidencyPercent": 9.1
+        },
+        {
+          "endedAt": "2026-11-10T21:07:17.000Z",
+          "elapsedMs": 1008.77,
+          "powerMilliwatts": 26,
+          "activeResidencyPercent": 7.8
+        },
+        {
+          "endedAt": "2026-11-10T21:07:18.000Z",
+          "elapsedMs": 1008.2,
+          "powerMilliwatts": 23,
+          "activeResidencyPercent": 7.66
+        },
+        {
+          "endedAt": "2026-11-10T21:07:19.000Z",
+          "elapsedMs": 1008.83,
+          "powerMilliwatts": 22,
+          "activeResidencyPercent": 7.25
+        },
+        {
+          "endedAt": "2026-11-10T21:07:20.000Z",
+          "elapsedMs": 1008.14,
+          "powerMilliwatts": 34,
+          "activeResidencyPercent": 9.72
+        },
+        {
+          "endedAt": "2026-11-10T21:07:21.000Z",
+          "elapsedMs": 1007.96,
+          "powerMilliwatts": 27,
+          "activeResidencyPercent": 8.52
+        }
+      ],
+      "windowServerSamples": [
+        {
+          "time": "2026-11-10T21:06:24.000Z",
+          "cpuPercent": 8
+        },
+        {
+          "time": "2026-11-10T21:06:25.000Z",
+          "cpuPercent": 8.4
+        },
+        {
+          "time": "2026-11-10T21:06:26.000Z",
+          "cpuPercent": 6.2
+        },
+        {
+          "time": "2026-11-10T21:06:27.000Z",
+          "cpuPercent": 5.8
+        },
+        {
+          "time": "2026-11-10T21:06:29.000Z",
+          "cpuPercent": 9
+        },
+        {
+          "time": "2026-11-10T21:06:30.000Z",
+          "cpuPercent": 7.3
+        },
+        {
+          "time": "2026-11-10T21:06:31.000Z",
+          "cpuPercent": 10.2
+        },
+        {
+          "time": "2026-11-10T21:06:32.000Z",
+          "cpuPercent": 7.4
+        },
+        {
+          "time": "2026-11-10T21:06:33.000Z",
+          "cpuPercent": 9.8
+        },
+        {
+          "time": "2026-11-10T21:06:34.000Z",
+          "cpuPercent": 6.2
+        },
+        {
+          "time": "2026-11-10T21:06:35.000Z",
+          "cpuPercent": 12.9
+        },
+        {
+          "time": "2026-11-10T21:06:36.000Z",
+          "cpuPercent": 19.4
+        },
+        {
+          "time": "2026-11-10T21:06:37.000Z",
+          "cpuPercent": 17.8
+        },
+        {
+          "time": "2026-11-10T21:06:38.000Z",
+          "cpuPercent": 15.1
+        },
+        {
+          "time": "2026-11-10T21:06:39.000Z",
+          "cpuPercent": 10.4
+        },
+        {
+          "time": "2026-11-10T21:06:40.000Z",
+          "cpuPercent": 12.9
+        },
+        {
+          "time": "2026-11-10T21:06:41.000Z",
+          "cpuPercent": 14.3
+        },
+        {
+          "time": "2026-11-10T21:06:42.000Z",
+          "cpuPercent": 13.4
+        },
+        {
+          "time": "2026-11-10T21:06:43.000Z",
+          "cpuPercent": 11.9
+        },
+        {
+          "time": "2026-11-10T21:06:44.000Z",
+          "cpuPercent": 19.6
+        },
+        {
+          "time": "2026-11-10T21:06:45.000Z",
+          "cpuPercent": 24.5
+        },
+        {
+          "time": "2026-11-10T21:06:46.000Z",
+          "cpuPercent": 15.2
+        },
+        {
+          "time": "2026-11-10T21:06:48.000Z",
+          "cpuPercent": 6.5
+        },
+        {
+          "time": "2026-11-10T21:06:49.000Z",
+          "cpuPercent": 8.8
+        },
+        {
+          "time": "2026-11-10T21:06:50.000Z",
+          "cpuPercent": 6.9
+        },
+        {
+          "time": "2026-11-10T21:06:51.000Z",
+          "cpuPercent": 5.9
+        },
+        {
+          "time": "2026-11-10T21:06:52.000Z",
+          "cpuPercent": 5.8
+        },
+        {
+          "time": "2026-11-10T21:06:53.000Z",
+          "cpuPercent": 10.4
+        },
+        {
+          "time": "2026-11-10T21:06:54.000Z",
+          "cpuPercent": 6
+        },
+        {
+          "time": "2026-11-10T21:06:55.000Z",
+          "cpuPercent": 5.9
+        },
+        {
+          "time": "2026-11-10T21:06:56.000Z",
+          "cpuPercent": 6.7
+        },
+        {
+          "time": "2026-11-10T21:06:57.000Z",
+          "cpuPercent": 10.5
+        },
+        {
+          "time": "2026-11-10T21:06:58.000Z",
+          "cpuPercent": 6
+        },
+        {
+          "time": "2026-11-10T21:06:59.000Z",
+          "cpuPercent": 5.7
+        },
+        {
+          "time": "2026-11-10T21:07:00.000Z",
+          "cpuPercent": 7.8
+        },
+        {
+          "time": "2026-11-10T21:07:01.000Z",
+          "cpuPercent": 8.6
+        },
+        {
+          "time": "2026-11-10T21:07:02.000Z",
+          "cpuPercent": 6.1
+        },
+        {
+          "time": "2026-11-10T21:07:03.000Z",
+          "cpuPercent": 5.6
+        },
+        {
+          "time": "2026-11-10T21:07:04.000Z",
+          "cpuPercent": 9.1
+        },
+        {
+          "time": "2026-11-10T21:07:06.000Z",
+          "cpuPercent": 7.9
+        },
+        {
+          "time": "2026-11-10T21:07:07.000Z",
+          "cpuPercent": 6.2
+        },
+        {
+          "time": "2026-11-10T21:07:08.000Z",
+          "cpuPercent": 5.6
+        },
+        {
+          "time": "2026-11-10T21:07:09.000Z",
+          "cpuPercent": 9.8
+        },
+        {
+          "time": "2026-11-10T21:07:10.000Z",
+          "cpuPercent": 6.6
+        },
+        {
+          "time": "2026-11-10T21:07:11.000Z",
+          "cpuPercent": 6.2
+        },
+        {
+          "time": "2026-11-10T21:07:12.000Z",
+          "cpuPercent": 5.8
+        },
+        {
+          "time": "2026-11-10T21:07:13.000Z",
+          "cpuPercent": 10.6
+        },
+        {
+          "time": "2026-11-10T21:07:14.000Z",
+          "cpuPercent": 6.2
+        },
+        {
+          "time": "2026-11-10T21:07:15.000Z",
+          "cpuPercent": 6
+        },
+        {
+          "time": "2026-11-10T21:07:16.000Z",
+          "cpuPercent": 6.8
+        },
+        {
+          "time": "2026-11-10T21:07:17.000Z",
+          "cpuPercent": 9.3
+        },
+        {
+          "time": "2026-11-10T21:07:18.000Z",
+          "cpuPercent": 6
+        },
+        {
+          "time": "2026-11-10T21:07:19.000Z",
+          "cpuPercent": 5.7
+        },
+        {
+          "time": "2026-11-10T21:07:20.000Z",
+          "cpuPercent": 7.8
+        },
+        {
+          "time": "2026-11-10T21:07:21.000Z",
+          "cpuPercent": 8.6
+        }
+      ],
+      "windowServerCpuPercent": 9.14727272727273
+    }
+  ],
+  "summary": [
+    {
+      "condition": "before",
+      "gpu": {
+        "sampleCount": 113,
+        "elapsedMs": 113851.62,
+        "powerMilliwatts": 84.37013052603025,
+        "activeResidencyPercent": 13.206756018930601,
+        "estimatedEnergyJoules": 9.605676039999995,
+        "estimatedEnergyJoulesPer60Seconds": 5.062207831561816
+      },
+      "windowServerCpuPercent": 10.483636363636357
+    },
+    {
+      "condition": "after",
+      "gpu": {
+        "sampleCount": 112,
+        "elapsedMs": 112867.72999999998,
+        "powerMilliwatts": 47.17756873465959,
+        "activeResidencyPercent": 6.237341568754862,
+        "estimatedEnergyJoules": 5.324825089999999,
+        "estimatedEnergyJoulesPer60Seconds": 2.830654124079575
+      },
+      "windowServerCpuPercent": 8.048181818181817
+    }
+  ],
+  "captureContext": {
+    "baselineCommit": "428eaeaa3dff162fb1129d83d6c5a05aed3c8886",
+    "macOS": "27.2",
+    "build": "26B123",
+    "powerSource": "AC",
+    "samplerIntervalMs": 1000,
+    "workloadIncludesRafCounter": true,
+    "otherApplicationsRemainRunning": true
+  }
+}

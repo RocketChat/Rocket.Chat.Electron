@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, powerMonitor } from 'electron';
+import { app, autoUpdater as nativeAutoUpdater, powerMonitor } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { gt as semverGt, inc as semverInc } from 'semver';
 
+import { loggers } from '../logging/scopes';
 import { listen, dispatch, select } from '../store';
 import type { RootState } from '../store/rootReducer';
 import {
@@ -231,8 +232,63 @@ const normalizeUpdateError = (
     ? { message: error.message, stack: error.stack, name: error.name }
     : { message: String(error), stack: undefined, name: 'Error' };
 
+/**
+ * Time between the committed install (`before-quit-for-update`) and a forced
+ * exit. A `before-quit` or `close` handler that hangs would otherwise keep the
+ * app open, and the installer waits for the app to exit.
+ */
+export const UPDATE_INSTALL_EXIT_WATCHDOG_MS = 20_000;
+
+let isInstallingUpdate = false;
+let restoreWindowAllClosedListeners: (() => void) | null = null;
+
+const armInstallExitWatchdog = (): void => {
+  loggers.updates.info(
+    `Update install committed, app exits in ${
+      UPDATE_INSTALL_EXIT_WATCHDOG_MS / 1000
+    } s at the latest`
+  );
+  setTimeout(() => {
+    loggers.updates.warn(
+      'Update install exit watchdog fired: the app did not quit, exiting'
+    );
+    app.exit(0);
+  }, UPDATE_INSTALL_EXIT_WATCHDOG_MS);
+};
+
+/**
+ * Undoes an install that did not happen: the window-all-closed listeners come
+ * back, so that closing every window still reaches the app's own handler, and
+ * a new install request can start.
+ */
+const failUpdateInstall = (error: unknown): void => {
+  loggers.updates.warn(
+    'Update install failed:',
+    error instanceof Error ? error.message : error
+  );
+  nativeAutoUpdater.removeListener(
+    'before-quit-for-update',
+    armInstallExitWatchdog
+  );
+  restoreWindowAllClosedListeners?.();
+  isInstallingUpdate = false;
+
+  dispatch({
+    type: UPDATES_ERROR_THROWN,
+    payload: normalizeUpdateError(error),
+  });
+};
+
 /** Quits and relaunches into the freshly downloaded update. */
 const installDownloadedUpdate = (): void => {
+  if (isInstallingUpdate) {
+    loggers.updates.info('Update install already in progress, request ignored');
+    return;
+  }
+
+  isInstallingUpdate = true;
+  loggers.updates.info('Update install started');
+
   // The try/catch must live inside the setImmediate callback: a throw from a
   // later tick escapes a catch wrapping only the scheduling call, which is how
   // macOS install failures went unreported for years (see #955).
@@ -240,21 +296,31 @@ const installDownloadedUpdate = (): void => {
     // Detached so the pending quit isn't cancelled by the app's own
     // window-all-closed handler. If the install fails we never quit, so the
     // listeners have to go back or closing every window would no longer
-    // reach that handler for the rest of the session.
+    // reach that handler for the rest of the session. A failure can arrive
+    // late, as an `error` event (Squirrel on macOS, or the installer spawn on
+    // Windows and Linux), so the restore is kept until then.
     const windowAllClosedListeners = app.listeners('window-all-closed');
     app.removeAllListeners('window-all-closed');
-
-    try {
-      autoUpdater.quitAndInstall(true, true);
-    } catch (error) {
+    restoreWindowAllClosedListeners = () => {
+      restoreWindowAllClosedListeners = null;
       for (const listener of windowAllClosedListeners) {
         app.addListener('window-all-closed', listener as () => void);
       }
+    };
+    loggers.updates.info(
+      `Update install: detached ${windowAllClosedListeners.length} window-all-closed listener(s)`
+    );
 
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: normalizeUpdateError(error),
-      });
+    // electron-updater emits this on every platform once the install is
+    // committed: from Squirrel on macOS after the bundle is staged, and by
+    // itself on Windows and Linux after the installer started.
+    nativeAutoUpdater.once('before-quit-for-update', armInstallExitWatchdog);
+
+    try {
+      autoUpdater.quitAndInstall(true, true);
+      loggers.updates.info('Update install: quitAndInstall returned');
+    } catch (error) {
+      failUpdateInstall(error);
     }
   });
 };
@@ -794,6 +860,11 @@ export const setupUpdates = async (): Promise<void> => {
   });
 
   autoUpdater.addListener('error', (error) => {
+    if (isInstallingUpdate) {
+      failUpdateInstall(error);
+      return;
+    }
+
     // A check ladder owns error reporting for its final outcome; this listener
     // only covers failures outside a check (e.g. downloads).
     if (isUpdateCheckInFlight || unsettledUpdaterChecks > 0) {

@@ -81,6 +81,32 @@ const videoCallScreenSharingTracker = new ScreenSharingRequestTracker(
   'Video call screen sharing'
 );
 
+// The relay that forwards the picker response of an `open-screen-picker`
+// request to its caller. Only one request is active at a time. The relay is
+// removed when a new request starts, or when the caller is destroyed or its
+// renderer is gone, because a picker that dies with its window never sends a
+// response.
+let screenPickerRelay: {
+  listener: (event: Event, sourceId: string | null) => void;
+  caller: WebContents;
+} | null = null;
+
+const clearScreenPickerRelay = (): void => {
+  if (!screenPickerRelay) {
+    return;
+  }
+  const { listener, caller } = screenPickerRelay;
+  screenPickerRelay = null;
+  ipcMain.removeListener(
+    'video-call-window/screen-sharing-source-responded',
+    listener
+  );
+  if (!caller.isDestroyed()) {
+    caller.removeListener('destroyed', clearScreenPickerRelay);
+    caller.removeListener('render-process-gone', clearScreenPickerRelay);
+  }
+};
+
 const VIDEO_CALL_PICKER_CHANNELS = {
   response: 'video-call-window/screen-sharing-source-responded',
   permission: 'video-call-window/screen-recording-is-permission-granted',
@@ -1412,6 +1438,21 @@ export const startVideoCallWindowHandler = (): void => {
     // otherwise that request's callback never fires and its picker window is
     // never closed.
     videoCallScreenSharingTracker.cancelAll();
+    // A previous request whose picker never responded still holds a relay.
+    // A different caller is still waiting, so cancel its request. The same
+    // caller gets no cancel, because it would cancel this new request.
+    const replacedRelay = screenPickerRelay;
+    clearScreenPickerRelay();
+    if (
+      replacedRelay &&
+      replacedRelay.caller !== callerWebContents &&
+      !replacedRelay.caller.isDestroyed()
+    ) {
+      replacedRelay.caller.send(
+        'video-call-window/screen-sharing-source-responded',
+        null
+      );
+    }
 
     videoCallWindow.webContents.send('video-call-window/open-screen-picker');
 
@@ -1419,17 +1460,19 @@ export const startVideoCallWindowHandler = (): void => {
     // preload that called ipcRenderer.invoke here). The screenSharePicker renderer sends
     // the result via ipcRenderer.send → ipcMain; we relay it to the caller so that
     // jitsiBridge's ipcRenderer.on listener fires correctly.
-    ipcMain.once(
-      'video-call-window/screen-sharing-source-responded',
-      (_event, sourceId: string | null) => {
-        if (!callerWebContents.isDestroyed()) {
-          callerWebContents.send(
-            'video-call-window/screen-sharing-source-responded',
-            sourceId
-          );
-        }
+    const listener = (_event: Event, sourceId: string | null): void => {
+      clearScreenPickerRelay();
+      if (!callerWebContents.isDestroyed()) {
+        callerWebContents.send(
+          'video-call-window/screen-sharing-source-responded',
+          sourceId
+        );
       }
-    );
+    };
+    screenPickerRelay = { listener, caller: callerWebContents };
+    ipcMain.on('video-call-window/screen-sharing-source-responded', listener);
+    callerWebContents.once('destroyed', clearScreenPickerRelay);
+    callerWebContents.once('render-process-gone', clearScreenPickerRelay);
 
     return { success: true };
   });

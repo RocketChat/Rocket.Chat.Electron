@@ -183,6 +183,7 @@ type FakeWC = {
   once: jest.Mock;
   setWindowOpenHandler: jest.Mock;
   removeAllListeners: jest.Mock;
+  send: jest.Mock;
   session: { setPermissionRequestHandler: jest.Mock };
   executeJavaScript: jest.Mock;
   listeners: Record<string, Array<(...a: any[]) => void>>;
@@ -210,6 +211,7 @@ const makeFakeWebContents = (): FakeWC => {
     once: jest.fn((event: string, fn: any) => register(event, fn)),
     setWindowOpenHandler: jest.fn(),
     removeAllListeners: jest.fn(),
+    send: jest.fn(),
     session: { setPermissionRequestHandler: jest.fn() },
     executeJavaScript: jest.fn(() => Promise.resolve()),
     listeners,
@@ -1399,6 +1401,119 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
 
       expect((createdWindows[0] as any).close).toHaveBeenCalled();
       expect(createdWindows).toHaveLength(2);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // open-screen-picker: the relay of the picker response to the caller
+  // -------------------------------------------------------------------------
+  describe('open-screen-picker', () => {
+    const CHANNEL = 'video-call-window/screen-sharing-source-responded';
+
+    const makePickerCaller = () => {
+      const listeners: Record<string, Array<(...a: any[]) => void>> = {};
+      return {
+        isDestroyed: jest.fn(() => false),
+        send: jest.fn(),
+        once: jest.fn((event: string, fn: any) => {
+          (listeners[event] ??= []).push(fn);
+        }),
+        removeListener: jest.fn(),
+        listeners,
+      };
+    };
+
+    const setup = async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1));
+      const handler = handleRegistry.get(
+        'video-call-window/open-screen-picker'
+      );
+      if (!handler) throw new Error('open-screen-picker not registered');
+      const electron = (await import('electron')) as any;
+      const relayListeners = () =>
+        electron.ipcMain.on.mock.calls
+          .filter(([channel]: [string]) => channel === CHANNEL)
+          .map(([, fn]: [string, any]) => fn);
+      return { handler, ipcMain: electron.ipcMain, relayListeners };
+    };
+
+    it('relays the picker response to the caller and removes the relay', async () => {
+      const { handler, ipcMain, relayListeners } = await setup();
+      const caller = makePickerCaller();
+
+      await expect(handler(caller)).resolves.toEqual({ success: true });
+      const [relay] = relayListeners();
+      relay({}, 'screen:1');
+
+      expect(caller.send).toHaveBeenCalledWith(CHANNEL, 'screen:1');
+      expect(ipcMain.removeListener).toHaveBeenCalledWith(CHANNEL, relay);
+    });
+
+    it('removes the relay of an unanswered request when a new request starts', async () => {
+      const { handler, ipcMain, relayListeners } = await setup();
+      const first = makePickerCaller();
+      const second = makePickerCaller();
+
+      await handler(first);
+      await handler(second);
+
+      const [firstRelay, secondRelay] = relayListeners();
+      expect(ipcMain.removeListener).toHaveBeenCalledWith(CHANNEL, firstRelay);
+      expect(ipcMain.removeListener).not.toHaveBeenCalledWith(
+        CHANNEL,
+        secondRelay
+      );
+    });
+
+    it('removes the relay when the caller is destroyed before a response', async () => {
+      const { handler, ipcMain, relayListeners } = await setup();
+      const caller = makePickerCaller();
+
+      await handler(caller);
+      const [relay] = relayListeners();
+      caller.isDestroyed.mockReturnValue(true);
+      fire(caller.listeners, 'destroyed');
+
+      expect(ipcMain.removeListener).toHaveBeenCalledWith(CHANNEL, relay);
+    });
+
+    it('removes the relay when the caller renderer is gone before a response', async () => {
+      const { handler, ipcMain, relayListeners } = await setup();
+      const caller = makePickerCaller();
+
+      await handler(caller);
+      const [relay] = relayListeners();
+      fire(caller.listeners, 'render-process-gone');
+
+      expect(ipcMain.removeListener).toHaveBeenCalledWith(CHANNEL, relay);
+      expect(caller.removeListener).toHaveBeenCalledWith(
+        'render-process-gone',
+        expect.any(Function)
+      );
+    });
+
+    it('cancels the unanswered request of a different caller when a new request starts', async () => {
+      const { handler } = await setup();
+      const first = makePickerCaller();
+      const second = makePickerCaller();
+
+      await handler(first);
+      await handler(second);
+
+      expect(first.send).toHaveBeenCalledWith(CHANNEL, null);
+      expect(second.send).not.toHaveBeenCalled();
+    });
+
+    it('does not cancel the new request when the same caller asks again', async () => {
+      const { handler } = await setup();
+      const caller = makePickerCaller();
+
+      await handler(caller);
+      await handler(caller);
+
+      expect(caller.send).not.toHaveBeenCalled();
     });
   });
 

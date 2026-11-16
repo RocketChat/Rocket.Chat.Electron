@@ -51,6 +51,10 @@ jest.mock('electron', () => ({
     getAppPath: jest.fn(() => '/app'),
     getPath: jest.fn(() => '/userData'),
     isPackaged: true,
+    on: jest.fn(),
+  },
+  powerMonitor: {
+    on: jest.fn(),
   },
   BrowserWindow: {
     getAllWindows: jest.fn(() => []),

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app } from 'electron';
+import { app, powerMonitor } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { gt as semverGt, inc as semverInc } from 'semver';
 
@@ -44,6 +44,8 @@ import {
   isStoreVersionNewer,
   openStorePage,
 } from './storeUpdates';
+import type { UpdateCheckHistory } from './updateCheckSchedule';
+import { getNextUpdateCheckDelayMs } from './updateCheckSchedule';
 
 const readJsonObject = async (
   filePath: string
@@ -267,16 +269,66 @@ const installDownloadedUpdate = (): void => {
  */
 const UPDATE_CHECK_RETRY_DELAYS_MS = [2_000, 5_000];
 
+/**
+ * electron-updater requests through Electron's `net` module, whose requests
+ * never emit the `socket` event that builder-util-runtime uses to attach its
+ * request timeout. A check can therefore hang with no end, and the ladder,
+ * its error suppression and every later "Check for updates" would wait on it.
+ */
+export const UPDATE_CHECK_STALL_TIMEOUT_MS = 45_000;
+
+class UpdateCheckStalledError extends Error {
+  override name = 'UpdateCheckStalledError';
+}
+
 let isUpdateCheckInFlight = false;
+
+/**
+ * Counts electron-updater checks that have not settled, including ones the
+ * stall timeout abandoned. An abandoned check can still fail later, and that
+ * failure must stay out of the UI like any other check failure.
+ */
+let unsettledUpdaterChecks = 0;
+
+const checkForUpdatesWithStallTimeout = async (): Promise<void> => {
+  unsettledUpdaterChecks += 1;
+  const check = Promise.resolve(autoUpdater.checkForUpdates()).finally(() => {
+    unsettledUpdaterChecks -= 1;
+  });
+
+  let stallTimer: ReturnType<typeof setTimeout> | undefined;
+  const stall = new Promise<never>((_, reject) => {
+    stallTimer = setTimeout(() => {
+      reject(
+        new UpdateCheckStalledError(
+          `Update check did not finish in ${
+            UPDATE_CHECK_STALL_TIMEOUT_MS / 1000
+          } s`
+        )
+      );
+    }, UPDATE_CHECK_STALL_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([check, stall]);
+  } finally {
+    clearTimeout(stallTimer);
+  }
+};
 
 const checkForUpdatesWithRetry = async (attempt = 0): Promise<void> => {
   isUpdateCheckInFlight = true;
 
   try {
-    await autoUpdater.checkForUpdates();
+    await checkForUpdatesWithStallTimeout();
     isUpdateCheckInFlight = false;
   } catch (error) {
-    if (attempt >= UPDATE_CHECK_RETRY_DELAYS_MS.length) {
+    // electron-updater shares one pending check between callers, so a retry
+    // after a stall would only wait on the same hung request again.
+    if (
+      attempt >= UPDATE_CHECK_RETRY_DELAYS_MS.length ||
+      error instanceof UpdateCheckStalledError
+    ) {
       isUpdateCheckInFlight = false;
       throw error;
     }
@@ -309,6 +361,77 @@ const requestUpdateCheck = (): Promise<void> => {
   }
 
   return pendingUpdateCheck;
+};
+
+const automaticCheckHistory: UpdateCheckHistory = {
+  lastAttemptAt: null,
+  consecutiveFailures: 0,
+};
+let automaticCheckTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Automatic checks follow the "check for updates on startup" setting, so an
+ * admin who turned that off gets no background checks at all. They also stay
+ * out of the way of a check or an update the user already sees: a result
+ * would send the titlebar label back to its idle state.
+ */
+const canRunAutomaticUpdateCheck = (): boolean => {
+  if (pendingUpdateCheck || isSimulatingUpdate) {
+    return false;
+  }
+
+  return select(
+    ({ doCheckForUpdatesOnStartup, newUpdateVersion, updateDownloadStatus }) =>
+      doCheckForUpdatesOnStartup &&
+      newUpdateVersion === null &&
+      updateDownloadStatus === 'idle'
+  );
+};
+
+const scheduleNextAutomaticUpdateCheck = (): void => {
+  if (automaticCheckTimer) {
+    clearTimeout(automaticCheckTimer);
+  }
+
+  automaticCheckTimer = setTimeout(
+    runAutomaticUpdateCheckIfDue,
+    getNextUpdateCheckDelayMs(automaticCheckHistory, Date.now())
+  );
+};
+
+const runAutomaticUpdateCheck = async (): Promise<void> => {
+  automaticCheckHistory.lastAttemptAt = Date.now();
+
+  if (!canRunAutomaticUpdateCheck()) {
+    scheduleNextAutomaticUpdateCheck();
+    return;
+  }
+
+  isUserInitiatedCheck = false;
+
+  try {
+    await requestUpdateCheck();
+    automaticCheckHistory.consecutiveFailures = 0;
+  } catch (error) {
+    automaticCheckHistory.consecutiveFailures += 1;
+    // An automatic check failing is nothing a user can act on — keep the UI
+    // quiet, settle the "checking" state, and leave a note in the log.
+    console.warn(
+      'Automatic update check failed:',
+      error instanceof Error ? error.message : error
+    );
+    dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+  }
+
+  scheduleNextAutomaticUpdateCheck();
+};
+
+const runAutomaticUpdateCheckIfDue = (): void => {
+  if (getNextUpdateCheckDelayMs(automaticCheckHistory, Date.now()) > 0) {
+    return;
+  }
+
+  void runAutomaticUpdateCheck();
 };
 
 const dispatchUpdateError = (error: unknown): void => {
@@ -667,7 +790,7 @@ export const setupUpdates = async (): Promise<void> => {
   autoUpdater.addListener('error', (error) => {
     // A check ladder owns error reporting for its final outcome; this listener
     // only covers failures outside a check (e.g. downloads).
-    if (isUpdateCheckInFlight) {
+    if (isUpdateCheckInFlight || unsettledUpdaterChecks > 0) {
       return;
     }
 
@@ -681,20 +804,14 @@ export const setupUpdates = async (): Promise<void> => {
     });
   });
 
-  if (doCheckForUpdatesOnStartup) {
-    // Deliberately not awaited: the rest of the app setup must not wait on
-    // GitHub, especially while failed attempts back off and retry.
-    isUserInitiatedCheck = false;
-    requestUpdateCheck().catch((error) => {
-      // An automatic check failing is nothing a user can act on — keep the UI
-      // quiet, settle the "checking" state, and leave a note in the log.
-      console.warn(
-        'Automatic update check failed:',
-        error instanceof Error ? error.message : error
-      );
-      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-    });
-  }
+  // Deliberately not awaited: the rest of the app setup must not wait on
+  // GitHub, especially while failed attempts back off and retry.
+  void runAutomaticUpdateCheck();
+
+  // A sleeping machine pauses the timer, so resume and focus also run a
+  // check when one is due.
+  powerMonitor.on('resume', runAutomaticUpdateCheckIfDue);
+  app.on('browser-window-focus', runAutomaticUpdateCheckIfDue);
 
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {

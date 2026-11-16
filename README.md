@@ -37,11 +37,11 @@ Get the app from your platform's store:
 
 You can also download an installer from the [latest release](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest).
 
-| Platform | Minimum version             | Architectures                   | Formats                          |
-| -------- | --------------------------- | ------------------------------- | -------------------------------- |
-| Windows  | 10                          | x64, ia32, arm64                | NSIS (.exe), MSI                 |
-| macOS    | 12 (Monterey)               | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP                    |
-| Linux    | Ubuntu 22.04 or equivalent  | x64                             | AppImage, deb, rpm, snap, tar.gz |
+| Platform | Minimum version            | Architectures                   | Formats                          |
+| -------- | -------------------------- | ------------------------------- | -------------------------------- |
+| Windows  | 10                         | x64, ia32, arm64                | NSIS (.exe), MSI                 |
+| macOS    | 12 (Monterey)              | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP                    |
+| Linux    | Ubuntu 22.04 or equivalent | x64                             | AppImage, deb, rpm, snap, tar.gz |
 
 For step-by-step instructions, see [Install desktop and mobile apps](https://docs.rocket.chat/docs/desktop-mobile-apps).
 
@@ -70,7 +70,7 @@ For file locations on each operating system and the full list of settings, see [
 
 - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [Node.js](https://nodejs.org) 22.0.0 or later
-- [Yarn](https://yarnpkg.com/) 4.0.2 or later
+- [Yarn](https://yarnpkg.com/). The repository includes its own Yarn 4 release in `.yarn/releases`, and any recent Yarn install runs that release.
 
 On Linux, you also need these system packages:
 
@@ -115,7 +115,12 @@ yarn lint   # ESLint and TypeScript checks
 yarn test   # Unit tests
 ```
 
-Tests use [Jest](https://jestjs.io/) with the [Jest Electron runner](https://github.com/kayahr/jest-electron-runner). Jest picks up every file in `src` that matches `*.(spec|test).{js,ts,tsx}`.
+Tests use [Jest](https://jestjs.io/) with the [Jest Electron runner](https://github.com/kayahr/jest-electron-runner). The name and location of a spec decide which Jest project runs it (`testMatch` in `jest.config.js`):
+
+- Main-process specs live under `src/<module>/main/`, or are named `src/<module>/main.spec.ts`.
+- Renderer specs live in a nested folder such as `src/<module>/<subfolder>/`, or are named `src/<module>/renderer.spec.ts(x)`.
+
+Jest does not find a spec placed directly in `src/<module>/` with any other name. To check that Jest finds a new spec, run `yarn test --listTests --runTestsByPath <file>`.
 
 ### Package the app
 

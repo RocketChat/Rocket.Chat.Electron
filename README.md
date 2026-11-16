@@ -60,7 +60,7 @@ For every installer option, see [Silent installation for desktop app](https://do
 Admins can control how the app behaves on every device with two JSON files:
 
 - **`servers.json`:** Presets the workspaces that appear in the sidebar the first time a user opens the app. When you bundle it with the installer, users skip the **Connect to server** screen and go straight to the login screen.
-- **`overridden-settings.json`:** Enforces settings such as disabling auto-update, hiding the tray icon, or turning off quick reply in notifications. Combine `"isAddNewServersEnabled": false` with `servers.json` to lock users to a single workspace.
+- **`overridden-settings.json`:** Enforces settings such as disabling auto-update, hiding the tray icon, or turning off quick reply in notifications. Combine `"isAddNewServersEnabled": false` with `servers.json` to stop users from adding workspaces. The app reads `servers.json` only when the sidebar has no workspaces, and it does not remove workspaces that users already have.
 
 For file locations on each operating system and the full list of settings, see [Preset workspaces](https://docs.rocket.chat/docs/desktop-mobile-apps#preset-workspaces-in-rocketchat-desktop) and [Override settings](https://docs.rocket.chat/docs/desktop-mobile-apps#override-settings-in-rocketchat-desktop).
 
@@ -125,10 +125,11 @@ Jest does not find a spec placed directly in `src/<module>/` with any other name
 ### Package the app
 
 ```sh
+yarn build
 yarn release
 ```
 
-This packages the app for the operating system you run it on and writes the installers to `dist`. Packaging is handled by [electron-builder](https://github.com/electron-userland/electron-builder). See its [configuration options](https://www.electron.build/configuration) to customize the output.
+`yarn build` compiles the current source into `app`. Run it first, because `yarn release` packages `app` as it is, and `yarn install` deletes `app`. `yarn release` then packages the app for the operating system you run it on, for the x64 architecture, and writes the installers to `dist`. Packaging is handled by [electron-builder](https://github.com/electron-userland/electron-builder). See its [configuration options](https://www.electron.build/configuration) to customize the output.
 
 ## Branches and releases
 

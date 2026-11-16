@@ -453,7 +453,17 @@
   "loadingError": {
     "title": "Servern kunde inte laddas",
     "announcement": "Houston, vi har ett problem",
-    "reload": "Ladda om"
+    "reload": "Ladda om",
+    "cause": {
+      "loadFailed": "Arbetsytan laddades inte ({{error}}).",
+      "unresponsive": "Arbetsytans sida slutade svara.",
+      "stuck": "Arbetsytans sida laddades inte klart: {{reason}}.",
+      "rendererGone": "Arbetsytans sida stängdes oväntat ({{reason}})."
+    },
+    "copyDetails": "Kopiera felinformation",
+    "copied": "Kopierad",
+    "showDetails": "Visa detaljer",
+    "hideDetails": "Dölj detaljer"
   },
   "videoCall": {
     "loading": {

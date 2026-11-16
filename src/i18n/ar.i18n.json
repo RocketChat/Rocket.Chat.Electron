@@ -142,5 +142,17 @@
   },
   "tabBar": {
     "uiPreview": "معاينة الواجهة: {{- label}}"
+  },
+  "loadingError": {
+    "cause": {
+      "loadFailed": "تعذّر تحميل مساحة العمل ({{error}}).",
+      "unresponsive": "توقفت صفحة مساحة العمل عن الاستجابة.",
+      "stuck": "لم يكتمل تحميل صفحة مساحة العمل: {{reason}}.",
+      "rendererGone": "أُغلقت صفحة مساحة العمل بشكل غير متوقع ({{reason}})."
+    },
+    "copyDetails": "نسخ تفاصيل الخطأ",
+    "copied": "تم النسخ",
+    "showDetails": "إظهار التفاصيل",
+    "hideDetails": "إخفاء التفاصيل"
   }
 }

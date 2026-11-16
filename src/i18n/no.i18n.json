@@ -473,7 +473,17 @@
   "loadingError": {
     "title": "Serveren kunne ikke lastes inn",
     "announcement": "Houston, vi har et problem",
-    "reload": "Last inn på nytt"
+    "reload": "Last inn på nytt",
+    "cause": {
+      "loadFailed": "Arbeidsområdet ble ikke lastet inn ({{error}}).",
+      "unresponsive": "Siden for arbeidsområdet sluttet å svare.",
+      "stuck": "Siden for arbeidsområdet ble ikke ferdig lastet inn: {{reason}}.",
+      "rendererGone": "Siden for arbeidsområdet ble lukket uventet ({{reason}})."
+    },
+    "copyDetails": "Kopier feildetaljer",
+    "copied": "Kopiert",
+    "showDetails": "Vis detaljer",
+    "hideDetails": "Skjul detaljer"
   },
   "videoCall": {
     "loading": {

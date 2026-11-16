@@ -435,7 +435,17 @@
   "loadingError": {
     "title": "Servidor Falhou em Carregar",
     "announcement": "Houston, nós temos um problema",
-    "reload": "Recarregar"
+    "reload": "Recarregar",
+    "cause": {
+      "loadFailed": "O workspace não carregou ({{error}}).",
+      "unresponsive": "A página do workspace parou de responder.",
+      "stuck": "A página do workspace não terminou de carregar: {{reason}}.",
+      "rendererGone": "A página do workspace fechou inesperadamente ({{reason}})."
+    },
+    "copyDetails": "Copiar detalhes do erro",
+    "copied": "Copiado",
+    "showDetails": "Mostrar detalhes",
+    "hideDetails": "Ocultar detalhes"
   },
   "videoCall": {
     "loading": {

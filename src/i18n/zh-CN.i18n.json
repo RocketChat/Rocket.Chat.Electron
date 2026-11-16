@@ -307,7 +307,17 @@
   "loadingError": {
     "title": "服务器载入失败",
     "announcement": "稍等一下，我们遇到问题了",
-    "reload": "重新載入"
+    "reload": "重新載入",
+    "cause": {
+      "loadFailed": "工作区未能加载（{{error}}）。",
+      "unresponsive": "工作区页面停止响应。",
+      "stuck": "工作区页面未完成加载：{{reason}}。",
+      "rendererGone": "工作区页面意外关闭（{{reason}}）。"
+    },
+    "copyDetails": "复制错误详情",
+    "copied": "已复制",
+    "showDetails": "显示详情",
+    "hideDetails": "隐藏详情"
   },
   "videoCall": {
     "loading": {

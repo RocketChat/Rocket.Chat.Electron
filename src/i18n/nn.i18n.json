@@ -138,5 +138,17 @@
   },
   "tabBar": {
     "uiPreview": "Førehandsvising av grensesnitt: {{- label}}"
+  },
+  "loadingError": {
+    "cause": {
+      "loadFailed": "Arbeidsområdet vart ikkje lasta inn ({{error}}).",
+      "unresponsive": "Sida for arbeidsområdet slutta å svare.",
+      "stuck": "Sida for arbeidsområdet vart ikkje ferdig lasta inn: {{reason}}.",
+      "rendererGone": "Sida for arbeidsområdet vart lukka uventa ({{reason}})."
+    },
+    "copyDetails": "Kopier feildetaljar",
+    "copied": "Kopiert",
+    "showDetails": "Vis detaljar",
+    "hideDetails": "Skjul detaljar"
   }
 }

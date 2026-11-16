@@ -414,7 +414,17 @@
   "loadingError": {
     "title": "Echec du chargement du serveur",
     "announcement": "Houston, nous avons un problème",
-    "reload": "Recharger"
+    "reload": "Recharger",
+    "cause": {
+      "loadFailed": "L’espace de travail ne s’est pas chargé ({{error}}).",
+      "unresponsive": "La page de l’espace de travail ne répond plus.",
+      "stuck": "La page de l’espace de travail n’a pas fini de se charger : {{reason}}.",
+      "rendererGone": "La page de l’espace de travail s’est fermée de façon inattendue ({{reason}})."
+    },
+    "copyDetails": "Copier les détails de l’erreur",
+    "copied": "Copié",
+    "showDetails": "Afficher les détails",
+    "hideDetails": "Masquer les détails"
   },
   "videoCall": {
     "loading": {

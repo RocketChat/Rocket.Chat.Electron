@@ -240,7 +240,11 @@ const normalizeUpdateError = (
 export const UPDATE_INSTALL_EXIT_WATCHDOG_MS = 20_000;
 
 let isInstallingUpdate = false;
+// Advances on every start and every failure, so a deferred install callback
+// from an attempt that already failed does nothing.
+let installAttempt = 0;
 let restoreWindowAllClosedListeners: (() => void) | null = null;
+let installExitWatchdog: ReturnType<typeof setTimeout> | null = null;
 
 const armInstallExitWatchdog = (): void => {
   loggers.updates.info(
@@ -248,12 +252,26 @@ const armInstallExitWatchdog = (): void => {
       UPDATE_INSTALL_EXIT_WATCHDOG_MS / 1000
     } s at the latest`
   );
-  setTimeout(() => {
+  installExitWatchdog = setTimeout(() => {
+    installExitWatchdog = null;
     loggers.updates.warn(
       'Update install exit watchdog fired: the app did not quit, exiting'
     );
     app.exit(0);
   }, UPDATE_INSTALL_EXIT_WATCHDOG_MS);
+};
+
+/**
+ * electron-updater's Windows and Linux updaters set `quitAndInstallCalled`
+ * before they start the installer, and an installer that fails to start later
+ * leaves it set. Each later install call is then ignored without an error.
+ * The macOS updater has no such flag.
+ */
+const makeUpdaterInstallRetryable = (): void => {
+  const updater = autoUpdater as unknown as { quitAndInstallCalled?: unknown };
+  if (typeof updater.quitAndInstallCalled === 'boolean') {
+    updater.quitAndInstallCalled = false;
+  }
 };
 
 /**
@@ -266,11 +284,18 @@ const failUpdateInstall = (error: unknown): void => {
     'Update install failed:',
     error instanceof Error ? error.message : error
   );
+  installAttempt += 1;
   nativeAutoUpdater.removeListener(
     'before-quit-for-update',
     armInstallExitWatchdog
   );
+  // On macOS Squirrel can still fail after `before-quit-for-update`.
+  if (installExitWatchdog) {
+    clearTimeout(installExitWatchdog);
+    installExitWatchdog = null;
+  }
   restoreWindowAllClosedListeners?.();
+  makeUpdaterInstallRetryable();
   isInstallingUpdate = false;
 
   dispatch({
@@ -287,12 +312,18 @@ const installDownloadedUpdate = (): void => {
   }
 
   isInstallingUpdate = true;
+  const attempt = ++installAttempt;
   loggers.updates.info('Update install started');
 
   // The try/catch must live inside the setImmediate callback: a throw from a
   // later tick escapes a catch wrapping only the scheduling call, which is how
   // macOS install failures went unreported for years (see #955).
   setImmediate(() => {
+    if (attempt !== installAttempt) {
+      loggers.updates.info('Update install cancelled before it started');
+      return;
+    }
+
     // Detached so the pending quit isn't cancelled by the app's own
     // window-all-closed handler. If the install fails we never quit, so the
     // listeners have to go back or closing every window would no longer

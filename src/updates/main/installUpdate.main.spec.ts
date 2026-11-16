@@ -158,6 +158,53 @@ describe('updates/install safety', () => {
     expect(app.exit).toHaveBeenCalledWith(0);
   });
 
+  it('cancels an armed exit watchdog when the install fails after the commit', async () => {
+    await setup();
+    await requestInstall();
+
+    // Squirrel on macOS can fail after `before-quit-for-update`.
+    nativeAutoUpdater.emit('before-quit-for-update');
+    updaterListeners.get('error')?.(new Error('Squirrel: install failed'));
+    await jest.advanceTimersByTimeAsync(60_000);
+
+    expect(app.exit).not.toHaveBeenCalled();
+  });
+
+  it('starts the installer again after an installer that failed to start', async () => {
+    // electron-updater's BaseUpdater keeps `quitAndInstallCalled` set after an
+    // async installer failure, and ignores the next call.
+    let installerStarts = 0;
+    autoUpdater.quitAndInstallCalled = false;
+    autoUpdater.quitAndInstall.mockImplementation(() => {
+      if (autoUpdater.quitAndInstallCalled) {
+        autoUpdater.quitAndInstallCalled = false;
+        return;
+      }
+      autoUpdater.quitAndInstallCalled = true;
+      installerStarts += 1;
+    });
+    await setup();
+    await requestInstall();
+
+    updaterListeners.get('error')?.(new Error('spawn UNKNOWN'));
+    await requestInstall();
+
+    expect(installerStarts).toBe(2);
+  });
+
+  it('drops a queued install when the attempt fails before it starts', async () => {
+    await setup();
+    await actionListeners.get(UPDATES_INSTALL_REQUESTED)?.({
+      type: UPDATES_INSTALL_REQUESTED,
+    });
+
+    updaterListeners.get('error')?.(new Error('net::ERR_FAILED'));
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
+    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+  });
+
   it('arms no exit watchdog when the install fails before the commit', async () => {
     await setup();
     await requestInstall();

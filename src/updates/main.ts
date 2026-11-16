@@ -7,7 +7,10 @@ import { gt as semverGt, inc as semverInc } from 'semver';
 
 import { listen, dispatch, select } from '../store';
 import type { RootState } from '../store/rootReducer';
-import { ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED } from '../ui/actions';
+import {
+  ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
+  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
+} from '../ui/actions';
 import {
   askUpdateInstall,
   AskUpdateInstallResponse,
@@ -428,6 +431,9 @@ const runAutomaticUpdateCheck = async (): Promise<void> => {
 
 const runAutomaticUpdateCheckIfDue = (): void => {
   if (getNextUpdateCheckDelayMs(automaticCheckHistory, Date.now()) > 0) {
+    // A timer can fire early when the system clock moves backwards. Arm it
+    // again, or the periodic checks stop.
+    scheduleNextAutomaticUpdateCheck();
     return;
   }
 
@@ -812,6 +818,14 @@ export const setupUpdates = async (): Promise<void> => {
   // check when one is due.
   powerMonitor.on('resume', runAutomaticUpdateCheckIfDue);
   app.on('browser-window-focus', runAutomaticUpdateCheckIfDue);
+
+  // A check skipped while the setting was off still counts as an attempt, so
+  // turning the setting on starts a check instead of waiting up to 24 h.
+  listen(ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, (action) => {
+    if (action.payload) {
+      void runAutomaticUpdateCheck();
+    }
+  });
 
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {

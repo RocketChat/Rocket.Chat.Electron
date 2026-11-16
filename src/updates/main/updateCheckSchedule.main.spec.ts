@@ -65,6 +65,7 @@ describe('updates/setupUpdates automatic checks', () => {
   let updaterListeners: Map<string, Listener>;
   let powerMonitorListeners: Map<string, Listener>;
   let appListeners: Map<string, Listener>;
+  let actionListeners: Map<string, Listener>;
   let autoUpdater: Record<string, any>;
 
   const setup = async (): Promise<void> => {
@@ -91,7 +92,7 @@ describe('updates/setupUpdates automatic checks', () => {
       select: (selector: (s: Record<string, unknown>) => unknown) =>
         selector(state),
       dispatch: (action: unknown) => dispatch(action),
-      listen: jest.fn(),
+      listen: (type: string, fn: Listener) => actionListeners.set(type, fn),
     }));
     jest.doMock('../../ui/main/dialogs', () => ({
       askUpdateInstall: jest.fn(),
@@ -130,6 +131,7 @@ describe('updates/setupUpdates automatic checks', () => {
     updaterListeners = new Map();
     powerMonitorListeners = new Map();
     appListeners = new Map();
+    actionListeners = new Map();
     autoUpdater = {
       checkForUpdates: jest.fn(async () => null),
       addListener: (event: string, fn: Listener) =>
@@ -210,6 +212,35 @@ describe('updates/setupUpdates automatic checks', () => {
     powerMonitorListeners.get('resume')?.();
     await flush();
     expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(2);
+  });
+
+  it('arms the timer again when it fires before the check is due', async () => {
+    await setup();
+    await flush();
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(1);
+
+    // The clock moves back 1 min: the 24 h timer fires 1 min early.
+    jest.setSystemTime(Date.now() - 60_000);
+    await jest.advanceTimersByTimeAsync(UPDATE_CHECK_INTERVAL_MS);
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(1);
+
+    await jest.advanceTimersByTimeAsync(60_000);
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(2);
+  });
+
+  it('checks at once when the user turns the setting on', async () => {
+    state.doCheckForUpdatesOnStartup = false;
+    await setup();
+    await flush();
+    expect(autoUpdater.checkForUpdates).not.toHaveBeenCalled();
+
+    state.doCheckForUpdatesOnStartup = true;
+    actionListeners.get('about-dialog/toggle-update-on-start')?.({
+      type: 'about-dialog/toggle-update-on-start',
+      payload: true,
+    });
+    await flush();
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(1);
   });
 
   it('gives up on a stalled check after 45 s and keeps its late error quiet', async () => {

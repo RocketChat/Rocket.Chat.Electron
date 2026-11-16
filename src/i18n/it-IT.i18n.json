@@ -191,5 +191,17 @@
       "developerModeRequired": "Attiva Help > Developer Mode per caricare anteprime dell'interfaccia.",
       "failed": "Impossibile caricare l'anteprima dell'interfaccia."
     }
+  },
+  "loadingError": {
+    "cause": {
+      "loadFailed": "Lo spazio di lavoro non è stato caricato ({{error}}).",
+      "unresponsive": "La pagina dello spazio di lavoro ha smesso di rispondere.",
+      "stuck": "La pagina dello spazio di lavoro non ha finito di caricarsi: {{reason}}.",
+      "rendererGone": "La pagina dello spazio di lavoro si è chiusa in modo imprevisto ({{reason}})."
+    },
+    "copyDetails": "Copia i dettagli dell'errore",
+    "copied": "Copiato",
+    "showDetails": "Mostra dettagli",
+    "hideDetails": "Nascondi dettagli"
   }
 }

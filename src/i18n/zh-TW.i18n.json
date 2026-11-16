@@ -245,7 +245,17 @@
   "loadingError": {
     "title": "伺服器載入失敗",
     "announcement": "休士頓，我們遇到問題了",
-    "reload": "重新載入"
+    "reload": "重新載入",
+    "cause": {
+      "loadFailed": "工作區未能載入（{{error}}）。",
+      "unresponsive": "工作區頁面停止回應。",
+      "stuck": "工作區頁面未完成載入：{{reason}}。",
+      "rendererGone": "工作區頁面意外關閉（{{reason}}）。"
+    },
+    "copyDetails": "複製錯誤詳細資料",
+    "copied": "已複製",
+    "showDetails": "顯示詳細資料",
+    "hideDetails": "隱藏詳細資料"
   },
   "sidebar": {
     "addNewServer": "新增伺服器",

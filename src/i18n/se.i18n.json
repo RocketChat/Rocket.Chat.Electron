@@ -138,5 +138,17 @@
   },
   "tabBar": {
     "uiPreview": "Geavaheaddjilakta-ovdačájáhus: {{- label}}"
+  },
+  "loadingError": {
+    "cause": {
+      "loadFailed": "Bargoguovllu ii viežžan ({{error}}).",
+      "unresponsive": "Bargoguovllu siidu heittii vástideamis.",
+      "stuck": "Bargoguovllu siidu ii gearggus viežžamis: {{reason}}.",
+      "rendererGone": "Bargoguovllu siidu giddejuvvui vuordemeahttun ({{reason}})."
+    },
+    "copyDetails": "Máŋge meattáhusa dieđuid",
+    "copied": "Máŋgejuvvon",
+    "showDetails": "Čájet dieđuid",
+    "hideDetails": "Čiehkka dieđuid"
   }
 }

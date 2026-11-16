@@ -266,7 +266,17 @@
   "loadingError": {
     "title": "Sunucu yüklenirken hata oluştu",
     "announcement": "Houston, bir sorunumuz var",
-    "reload": "Yeniden yükle"
+    "reload": "Yeniden yükle",
+    "cause": {
+      "loadFailed": "Çalışma alanı yüklenmedi ({{error}}).",
+      "unresponsive": "Çalışma alanı sayfası yanıt vermeyi durdurdu.",
+      "stuck": "Çalışma alanı sayfasının yüklenmesi tamamlanmadı: {{reason}}.",
+      "rendererGone": "Çalışma alanı sayfası beklenmedik şekilde kapandı ({{reason}})."
+    },
+    "copyDetails": "Hata ayrıntılarını kopyala",
+    "copied": "Kopyalandı",
+    "showDetails": "Ayrıntıları göster",
+    "hideDetails": "Ayrıntıları gizle"
   },
   "videoCall": {
     "loading": {

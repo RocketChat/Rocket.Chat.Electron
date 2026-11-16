@@ -87,6 +87,13 @@ export const startHeartbeat = (
       return;
     }
 
+    // A crashed renderer cannot answer a probe. Without this check, the crash
+    // turns into a stall and replaces the crash cause on the failure view.
+    // Loading the page again starts a new renderer, and the probes resume.
+    if (webContents.isCrashed()) {
+      return;
+    }
+
     if (pendingSince !== null) {
       if (
         !stalled &&

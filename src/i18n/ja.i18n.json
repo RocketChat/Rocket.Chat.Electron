@@ -253,7 +253,17 @@
   "loadingError": {
     "title": "サーバーの読み込みに失敗しました",
     "announcement": "ヒューストン、我々は問題を抱えています",
-    "reload": "再読み込み"
+    "reload": "再読み込み",
+    "cause": {
+      "loadFailed": "ワークスペースを読み込めませんでした（{{error}}）。",
+      "unresponsive": "ワークスペースのページが応答しなくなりました。",
+      "stuck": "ワークスペースのページの読み込みが完了しませんでした: {{reason}}。",
+      "rendererGone": "ワークスペースのページが予期せず終了しました（{{reason}}）。"
+    },
+    "copyDetails": "エラーの詳細をコピー",
+    "copied": "コピーしました",
+    "showDetails": "詳細を表示",
+    "hideDetails": "詳細を非表示"
   },
   "videoCall": {
     "loading": {

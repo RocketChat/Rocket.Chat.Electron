@@ -20,6 +20,7 @@ export const ServersView = () => {
           serverUrl={server.url}
           isSelected={server.selected}
           isFailed={server.failed ?? false}
+          failure={server.failure}
           isSupported={server.isSupportedVersion}
           supportedVersionsFetchState={server.supportedVersionsFetchState}
           title={server.title}

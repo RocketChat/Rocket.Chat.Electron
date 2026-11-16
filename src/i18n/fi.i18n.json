@@ -413,7 +413,17 @@
   "loadingError": {
     "title": "Palvelimen lataus epäonnistui",
     "announcement": "Houston, meillä on ongelma",
-    "reload": "Lataa uudelleen"
+    "reload": "Lataa uudelleen",
+    "cause": {
+      "loadFailed": "Työtila ei latautunut ({{error}}).",
+      "unresponsive": "Työtilan sivu lakkasi vastaamasta.",
+      "stuck": "Työtilan sivun lataus ei valmistunut: {{reason}}.",
+      "rendererGone": "Työtilan sivu sulkeutui odottamatta ({{reason}})."
+    },
+    "copyDetails": "Kopioi virheen tiedot",
+    "copied": "Kopioitu",
+    "showDetails": "Näytä tiedot",
+    "hideDetails": "Piilota tiedot"
   },
   "videoCall": {
     "loading": {

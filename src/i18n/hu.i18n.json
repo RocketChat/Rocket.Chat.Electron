@@ -460,7 +460,17 @@
   "loadingError": {
     "title": "Kiszolgáló betöltése sikertelen",
     "announcement": "Houston, baj van!",
-    "reload": "Újratöltés"
+    "reload": "Újratöltés",
+    "cause": {
+      "loadFailed": "A munkaterület nem töltődött be ({{error}}).",
+      "unresponsive": "A munkaterület oldala nem válaszol.",
+      "stuck": "A munkaterület oldala nem töltődött be teljesen: {{reason}}.",
+      "rendererGone": "A munkaterület oldala váratlanul bezárult ({{reason}})."
+    },
+    "copyDetails": "Hiba részleteinek másolása",
+    "copied": "Másolva",
+    "showDetails": "Részletek megjelenítése",
+    "hideDetails": "Részletek elrejtése"
   },
   "videoCall": {
     "loading": {

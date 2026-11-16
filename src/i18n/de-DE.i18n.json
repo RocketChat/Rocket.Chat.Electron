@@ -620,7 +620,17 @@
   "loadingError": {
     "title": "Server konnte nicht geladen werden",
     "announcement": "Houston, we have a problem",
-    "reload": "Neu laden"
+    "reload": "Neu laden",
+    "cause": {
+      "loadFailed": "Der Workspace wurde nicht geladen ({{error}}).",
+      "unresponsive": "Die Workspace-Seite reagiert nicht mehr.",
+      "stuck": "Die Workspace-Seite wurde nicht vollständig geladen: {{reason}}.",
+      "rendererGone": "Die Workspace-Seite wurde unerwartet geschlossen ({{reason}})."
+    },
+    "copyDetails": "Fehlerdetails kopieren",
+    "copied": "Kopiert",
+    "showDetails": "Details anzeigen",
+    "hideDetails": "Details ausblenden"
   },
   "videoCall": {
     "loading": {

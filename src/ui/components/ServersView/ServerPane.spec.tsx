@@ -49,14 +49,19 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+const mockErrorViewProps = jest.fn();
+
 jest.mock('./ErrorView', () => ({
   __esModule: true,
-  default: ({ isFailed, onReload }: any) =>
-    isFailed ? (
+  default: (props: any) => {
+    mockErrorViewProps(props);
+    const { isFailed, onReload } = props;
+    return isFailed ? (
       <button type='button' onClick={onReload}>
         error-reload
       </button>
-    ) : null,
+    ) : null;
+  },
 }));
 
 jest.mock('./UnsupportedServer', () => ({
@@ -103,6 +108,7 @@ describe('ServerPane', () => {
   beforeEach(() => {
     listeners.length = 0;
     Object.values(mockWebviewFns).forEach((fn) => fn.mockClear());
+    mockErrorViewProps.mockClear();
   });
 
   it('renders selected server pane shell', () => {
@@ -141,6 +147,36 @@ describe('ServerPane', () => {
       type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
       payload: { url: 'https://open.rocket.chat' },
     });
+  });
+
+  it('passes the failure cause and server URL to the error view', () => {
+    const failure = {
+      kind: 'load-failed' as const,
+      at: '2026-11-09T12:00:00.000Z',
+      errorCode: -105,
+      errorDescription: 'ERR_NAME_NOT_RESOLVED',
+      url: 'https://open.rocket.chat/',
+    };
+    render(
+      <Provider store={makeStore()}>
+        <ServerPane
+          lastPath={undefined}
+          serverUrl='https://open.rocket.chat'
+          isSelected
+          isFailed
+          failure={failure}
+          isSupported
+          title='Community'
+        />
+      </Provider>
+    );
+    expect(mockErrorViewProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        isFailed: true,
+        serverUrl: 'https://open.rocket.chat',
+        failure,
+      })
+    );
   });
 
   it('reloads a failed server view when the network comes back', () => {

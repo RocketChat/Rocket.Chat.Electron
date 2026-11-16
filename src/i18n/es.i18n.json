@@ -439,7 +439,17 @@
   "loadingError": {
     "title": "Fallo al cargar el servidor",
     "announcement": "Houston, tenemos un problema",
-    "reload": "Recargar"
+    "reload": "Recargar",
+    "cause": {
+      "loadFailed": "El espacio de trabajo no se cargó ({{error}}).",
+      "unresponsive": "La página del espacio de trabajo dejó de responder.",
+      "stuck": "La página del espacio de trabajo no terminó de cargarse: {{reason}}.",
+      "rendererGone": "La página del espacio de trabajo se cerró inesperadamente ({{reason}})."
+    },
+    "copyDetails": "Copiar detalles del error",
+    "copied": "Copiado",
+    "showDetails": "Mostrar detalles",
+    "hideDetails": "Ocultar detalles"
   },
   "videoCall": {
     "loading": {

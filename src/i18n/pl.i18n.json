@@ -282,7 +282,17 @@
   "loadingError": {
     "title": "Błąd ładowania serwera",
     "announcement": "Hjuston, mamy problem",
-    "reload": "Przeładuj"
+    "reload": "Przeładuj",
+    "cause": {
+      "loadFailed": "Obszar roboczy nie został załadowany ({{error}}).",
+      "unresponsive": "Strona obszaru roboczego przestała odpowiadać.",
+      "stuck": "Strona obszaru roboczego nie załadowała się do końca: {{reason}}.",
+      "rendererGone": "Strona obszaru roboczego została nieoczekiwanie zamknięta ({{reason}})."
+    },
+    "copyDetails": "Kopiuj szczegóły błędu",
+    "copied": "Skopiowano",
+    "showDetails": "Pokaż szczegóły",
+    "hideDetails": "Ukryj szczegóły"
   },
   "videoCall": {
     "loading": {

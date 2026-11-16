@@ -62,6 +62,19 @@ export const askForServerAddition = async (
   return response === 0;
 };
 
+export const warnAboutDisabledServerAddition = async (
+  serverUrl: string,
+  parentWindow?: BrowserWindow
+): Promise<void> => {
+  parentWindow?.show();
+
+  await dialog.showMessageBox(parentWindow ?? (await getRootWindow()), {
+    type: 'info',
+    title: t('dialog.addServerDisabled.title'),
+    message: t('dialog.addServerDisabled.message', { host: serverUrl }),
+  });
+};
+
 export const askForUiOverride = async (
   serverUrl: string,
   bundleUrl: string,

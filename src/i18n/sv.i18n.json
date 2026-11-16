@@ -44,6 +44,10 @@
       "add": "Lägg till",
       "cancel": "Avbryt"
     },
+    "addServerDisabled": {
+      "title": "Det går inte att lägga till servrar",
+      "message": "Din administratör har stängt av möjligheten att lägga till servrar, så \"{{- host}}\" lades inte till."
+    },
     "addServerError": {
       "title": "Ogiltigt servernamn",
       "message": "Servern \"{{- host}}\" kunde inte valideras och lades därför inte till."
@@ -386,7 +390,8 @@
     "invalidUrl": "Ogiltig webbadress",
     "validating": "Validerar...",
     "inputUrl": "Ange URL till din server",
-    "connect": "Anslut"
+    "connect": "Anslut",
+    "addServerDisabled": "Din administratör har stängt av möjligheten att lägga till servrar. Kontakta din administratör för att få åtkomst till en server."
   },
   "menus": {
     "about": "Om {{- appName}}",

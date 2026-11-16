@@ -35,6 +35,10 @@
       "add": "追加",
       "cancel": "キャンセル"
     },
+    "addServerDisabled": {
+      "title": "サーバーの追加は無効になっています",
+      "message": "管理者がサーバーの追加を無効にしているため、\"{{- host}}\" は追加されませんでした。"
+    },
     "addServerError": {
       "title": "無効なホスト",
       "message": "ホスト \"{{- host}}\" を検証できなかったため、追加されませんでした。"
@@ -199,7 +203,8 @@
     "invalidUrl": "無効なURL",
     "validating": "検証中...",
     "inputUrl": "サーバーのURLを入力してください",
-    "connect": "接続"
+    "connect": "接続",
+    "addServerDisabled": "管理者がサーバーの追加を無効にしています。サーバーへのアクセスについては管理者にお問い合わせください。"
   },
   "menus": {
     "about": "{{- appName}} について",

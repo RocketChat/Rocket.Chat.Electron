@@ -42,6 +42,10 @@
       "add": "Dodaj",
       "cancel": "Anuluj"
     },
+    "addServerDisabled": {
+      "title": "Dodawanie serwerów jest wyłączone",
+      "message": "Administrator wyłączył dodawanie serwerów, więc \"{{- host}}\" nie został dodany."
+    },
     "addServerError": {
       "title": "Niepoprawny host",
       "message": "Serwer \"{{- host}}\" nie mógł być zweryfikowany, więc nie został dodany."
@@ -224,7 +228,8 @@
     "invalidUrl": "Nieprawidłowy url",
     "validating": "Sprawdzanie...",
     "inputUrl": "Wprowadź adres swojego serwera",
-    "connect": "Połącz"
+    "connect": "Połącz",
+    "addServerDisabled": "Administrator wyłączył dodawanie serwerów. Skontaktuj się z administratorem, aby uzyskać dostęp do serwera."
   },
   "menus": {
     "about": "O programie {{- appName}}",

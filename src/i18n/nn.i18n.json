@@ -7,6 +7,9 @@
     "windowTitle": "Dokument",
     "back": "Tilbake"
   },
+  "landing": {
+    "addServerDisabled": "Administratoren din har slått av høvet til å leggje til tenarar. Kontakt administratoren din for å få tilgang til ein tenar."
+  },
   "settings": {
     "options": {
       "resetWindowBounds": {
@@ -126,6 +129,10 @@
     }
   },
   "dialog": {
+    "addServerDisabled": {
+      "title": "Å leggje til tenarar er slått av",
+      "message": "Administratoren din har slått av høvet til å leggje til tenarar, så «{{- host}}» vart ikkje lagd til."
+    },
     "uiOverride": {
       "title": "Last inn førehandsvising av grensesnitt",
       "message": "Laste inn eit anna nettgrensesnitt for «{{- host}}»?",

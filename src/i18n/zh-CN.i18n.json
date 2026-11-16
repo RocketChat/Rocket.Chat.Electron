@@ -36,6 +36,10 @@
       "add": "新增",
       "cancel": "取消"
     },
+    "addServerDisabled": {
+      "title": "已禁止新增服务器",
+      "message": "您的管理员已禁止新增服务器，因此未新增 \"{{- host}}\"。"
+    },
     "addServerError": {
       "title": "无效的网址",
       "message": "网址 \"{{- host}}\" 无法验证，因此沒有新增。"
@@ -250,7 +254,8 @@
     "invalidUrl": "无效的网址",
     "validating": "验证中...",
     "inputUrl": "请输入您的服务器网址",
-    "connect": "连接"
+    "connect": "连接",
+    "addServerDisabled": "您的管理员已禁止新增服务器。请联系您的管理员以获取服务器访问权限。"
   },
   "menus": {
     "about": "关于 {{- appName}}",

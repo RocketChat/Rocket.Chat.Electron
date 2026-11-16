@@ -13,6 +13,7 @@ import { openTelephonyDialpad } from '../telephony/dialpad';
 import { parseTelephonyLink } from '../telephony/links';
 import {
   askForServerAddition,
+  warnAboutDisabledServerAddition,
   warnAboutInvalidServerUrl,
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -132,6 +133,15 @@ const performOnServer = async (
   if (isServerAdded) {
     dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
     await action(serverUrl);
+    return;
+  }
+
+  const isAddNewServersEnabled = select(
+    ({ isAddNewServersEnabled }) => isAddNewServersEnabled
+  );
+
+  if (!isAddNewServersEnabled) {
+    await warnAboutDisabledServerAddition(serverUrl);
     return;
   }
 

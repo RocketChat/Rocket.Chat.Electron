@@ -67,6 +67,21 @@ describe('AddServerView', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it('shows a message instead of the url input when adding servers is turned off', () => {
+    renderWithStore(<AddServerView />, {
+      preloadedState: {
+        currentView: 'add-new-server',
+        isAddNewServersEnabled: false,
+      } as any,
+    });
+
+    expect(screen.getByText('landing.addServerDisabled')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'landing.connect' })
+    ).not.toBeInTheDocument();
+  });
+
   describe('online', () => {
     it('renders the url input and connect button', () => {
       renderWithStore(<AddServerView />, { preloadedState: visibleState });

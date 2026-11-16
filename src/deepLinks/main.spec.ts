@@ -12,6 +12,7 @@ import {
 import {
   warnAboutInvalidServerUrl,
   askForServerAddition,
+  warnAboutDisabledServerAddition,
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
@@ -69,6 +70,10 @@ const appMock = app as jest.Mocked<typeof app>;
 const askForServerAdditionMock = askForServerAddition as jest.MockedFunction<
   typeof askForServerAddition
 >;
+const warnAboutDisabledServerAdditionMock =
+  warnAboutDisabledServerAddition as jest.MockedFunction<
+    typeof warnAboutDisabledServerAddition
+  >;
 
 describe('deepLinks/main.ts', () => {
   const mockRootWindow = {} as any;
@@ -904,7 +909,7 @@ describe('deepLinks/main.ts', () => {
       ] as any);
       askForServerAdditionMock.mockResolvedValue(true);
       selectMock.mockImplementation((selector: any) =>
-        selector({ servers: [] })
+        selector({ servers: [], isAddNewServersEnabled: true })
       );
 
       await runSamlDeepLink(
@@ -1030,7 +1035,7 @@ describe('deepLinks/main.ts', () => {
       ] as any);
       askForServerAdditionMock.mockResolvedValue(false);
       selectMock.mockImplementation((selector: any) =>
-        selector({ servers: [] })
+        selector({ servers: [], isAddNewServersEnabled: true })
       );
 
       const savedArgv = process.argv;
@@ -1078,7 +1083,7 @@ describe('deepLinks/main.ts', () => {
       ] as any);
       askForServerAdditionMock.mockResolvedValue(true);
       selectMock.mockImplementation((selector: any) =>
-        selector({ servers: [] })
+        selector({ servers: [], isAddNewServersEnabled: true })
       );
 
       const savedArgv = process.argv;
@@ -1099,6 +1104,71 @@ describe('deepLinks/main.ts', () => {
         type: DEEP_LINKS_SERVER_ADDED,
         payload: 'https://chat.example.com',
       });
+      expect(mockWebContents.loadURL).toHaveBeenCalledWith(
+        'https://chat.example.com/channel/general'
+      );
+    });
+
+    it('refuses to add an unknown server when adding servers is turned off', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      selectMock.mockImplementation((selector: any) =>
+        selector({ servers: [], isAddNewServersEnabled: false })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=https://chat.example.com&path=channel/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(warnAboutDisabledServerAdditionMock).toHaveBeenCalledWith(
+        'https://chat.example.com'
+      );
+      expect(askForServerAdditionMock).not.toHaveBeenCalled();
+      expect(dispatchMock).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: DEEP_LINKS_SERVER_ADDED })
+      );
+      expect(mockWebContents.loadURL).not.toHaveBeenCalled();
+    });
+
+    it('opens a known server when adding servers is turned off', async () => {
+      setupDeepLinks();
+
+      resolveServerUrlMock.mockResolvedValue([
+        'https://chat.example.com',
+        ServerUrlResolutionStatus.OK,
+        undefined,
+      ] as any);
+      selectMock.mockImplementation((selector: any) =>
+        selector({
+          servers: [{ url: 'https://chat.example.com', title: 'Chat' }],
+          isAddNewServersEnabled: false,
+        })
+      );
+
+      const savedArgv = process.argv;
+      process.argv = [
+        'electron',
+        '.',
+        'rocketchat://room?host=https://chat.example.com&path=channel/general',
+      ];
+
+      await processDeepLinksInArgs();
+
+      process.argv = savedArgv;
+
+      expect(warnAboutDisabledServerAdditionMock).not.toHaveBeenCalled();
       expect(mockWebContents.loadURL).toHaveBeenCalledWith(
         'https://chat.example.com/channel/general'
       );

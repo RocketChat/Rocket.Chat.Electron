@@ -1372,14 +1372,18 @@ export const getServerContextMenuTemplate = (
     ]),
     // Isolate the destructive action in its own section. Native menus can't
     // color an item, so a separator is the only available emphasis.
-    { type: 'separator' },
-    {
-      id: 'remove',
-      label: t('sidebar.item.remove'),
-      click: () => {
-        dispatch({ type: SIDE_BAR_SERVER_REMOVE, payload: url });
-      },
-    },
+    // Without the right to add workspaces, a removed workspace could not come
+    // back, so the administrator owns the list and Remove is hidden too.
+    ...on(isAddNewServersEnabled, () => [
+      { type: 'separator' } as MenuItemConstructorOptions,
+      {
+        id: 'remove',
+        label: t('sidebar.item.remove'),
+        click: () => {
+          dispatch({ type: SIDE_BAR_SERVER_REMOVE, payload: url });
+        },
+      } as MenuItemConstructorOptions,
+    ]),
     ...on(isAddNewServersEnabled, () => [
       { type: 'separator' } as MenuItemConstructorOptions,
       {

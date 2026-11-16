@@ -4,7 +4,7 @@ import path from 'path';
 import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
-import { packageJsonInformation } from '../app/main/app';
+import { getAppConfigFilePath } from '../app/main/appConfigFile';
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
@@ -113,17 +113,7 @@ export const resolveServerUrl = async (
 
 const loadAppServers = async (): Promise<Record<string, string>> => {
   try {
-    let filePath = path.join(
-      app.getAppPath(),
-      app.getAppPath().endsWith('app.asar') ? '..' : '.',
-      'servers.json'
-    );
-
-    if (process.platform === 'darwin') {
-      const darwinFilePath = `/Library/Preferences/${packageJsonInformation.productName}/servers.json`;
-      if (fs.existsSync(darwinFilePath)) filePath = darwinFilePath;
-    }
-
+    const filePath = getAppConfigFilePath('servers.json');
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
 

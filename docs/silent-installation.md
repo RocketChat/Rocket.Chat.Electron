@@ -130,6 +130,8 @@ rocketchat-4.11.1-win-x64.exe /S /allusers /disableAutoUpdates /D=C:\Program Fil
 
 The MSI installer is ideal for enterprise deployments using Group Policy, SCCM, Intune, or other deployment tools.
 
+The MSI always installs for all users, in `%PROGRAMFILES%\Rocket.Chat\` by default, and it needs administrator rights. `ALLUSERS=""` does not change that. For a per-user install, use the `.exe` installer.
+
 #### Basic Silent Installation
 
 ```cmd
@@ -151,9 +153,8 @@ msiexec /i rocketchat-<version>-win-x64.msi /quiet
 | `/norestart`       | Suppress restart after installation |
 | `/forcerestart`    | Force restart after installation    |
 | `/l*v <logfile>`   | Verbose logging to file             |
-| `TARGETDIR=<path>` | Custom installation directory       |
-| `ALLUSERS=1`       | Install for all users               |
-| `ALLUSERS=""`      | Install for current user            |
+| `APPLICATIONFOLDER=<path>` | Custom installation directory |
+| `ALLUSERS=1`       | Install for all users (the default) |
 
 #### Examples
 
@@ -184,7 +185,7 @@ msiexec /i rocketchat-4.11.1-win-x64.msi /qn /l*v C:\Logs\rocketchat-install.log
 **Silent install with custom directory:**
 
 ```cmd
-msiexec /i rocketchat-4.11.1-win-x64.msi /qn TARGETDIR="C:\Apps\RocketChat"
+msiexec /i rocketchat-4.11.1-win-x64.msi /qn APPLICATIONFOLDER="C:\Apps\RocketChat"
 ```
 
 **Silent install without restart:**
@@ -476,11 +477,19 @@ Pre-configure the default server(s) that users connect to by creating a `servers
 
 #### File Locations
 
-| Platform | Per-User Location                            | System-Wide Location                    |
-| -------- | -------------------------------------------- | --------------------------------------- |
-| Windows  | `%APPDATA%\Rocket.Chat\`                     | `%PROGRAMFILES%\Rocket.Chat\Resources\` |
-| macOS    | `~/Library/Application Support/Rocket.Chat/` | `/Library/Preferences/Rocket.Chat/`     |
-| Linux    | `~/.config/Rocket.Chat/`                     | `/opt/Rocket.Chat/resources/`           |
+| Platform | User data folder (one user)                  | Installation folder (everyone who uses that installation)                                                                                                            |
+| -------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows  | `%APPDATA%\Rocket.Chat\`                     | Per-user install: `%LOCALAPPDATA%\Programs\Rocket.Chat\resources\`<br>All-users install (MSI, or `.exe` with `/allusers`): `%PROGRAMFILES%\Rocket.Chat\resources\` |
+| macOS    | `~/Library/Application Support/Rocket.Chat/` | `/Library/Preferences/Rocket.Chat/` (recommended), or `/Applications/Rocket.Chat.app/Contents/Resources/`                                                            |
+| Linux    | `~/.config/Rocket.Chat/`                     | `/opt/Rocket.Chat/resources/` (`.deb` and `.rpm` packages)                                                                                                           |
+
+On macOS, use `/Library/Preferences/Rocket.Chat/`. A file inside the app bundle changes the signed bundle, and each update replaces the bundle. When `/Library/Preferences/Rocket.Chat/` has the file, the app ignores the copy inside the bundle.
+
+#### How the App Reads servers.json
+
+- The app reads `servers.json` only when the sidebar has no workspaces, for example on the first launch. It does not remove or replace workspaces that the user already has.
+- When both folders have the file, the app adds the workspaces from both: first the installation folder, then the user data folder.
+- The app deletes `servers.json` from the user data folder after it reads it, so that copy adds its workspaces one time only. The copy in the installation folder stays.
 
 #### File Format
 
@@ -513,7 +522,7 @@ Override user settings for enterprise deployments by creating an `overridden-set
 
 #### File Locations
 
-Same locations as `servers.json` (see table above).
+Same folders as `servers.json` (see the table above). The app reads the file on every launch. When both folders have the file, the value from the installation folder wins for each setting. The values in the file win over the choices that the user makes in **Settings**.
 
 #### Available Settings
 
@@ -527,7 +536,7 @@ Same locations as `servers.json` (see table above).
 | `isMenuBarEnabled`                 | boolean | `false` (Windows/Linux; unused on macOS) | `true` keeps the menu bar always visible; `false` auto-hides it (press Alt to show temporarily). |
 | `isTrayIconEnabled`                | boolean | `true`  | Enable system tray icon                |
 | `isUpdatingEnabled`                | boolean | `true`  | Allow user to update the app           |
-| `isAddNewServersEnabled`           | boolean | `true`  | Allow adding new servers               |
+| `isAddNewServersEnabled`           | boolean | `true`  | Allow users to add workspaces. `false` hides the add-server controls and the **Remove** item, and the app does not add a workspace from the **Connect to server** screen or from a deep link. Deep links to workspaces that are already in the sidebar still work. |
 
 #### Example: Enterprise Lockdown Configuration
 

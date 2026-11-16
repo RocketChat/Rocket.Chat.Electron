@@ -48,6 +48,10 @@
       "add": "Add",
       "cancel": "Cancel"
     },
+    "addServerDisabled": {
+      "title": "Adding workspaces is turned off",
+      "message": "Your administrator turned off adding workspaces, so \"{{- host}}\" was not added."
+    },
     "addServerError": {
       "title": "Invalid Host",
       "message": "The host \"{{- host}}\" could not be validated, so was not added."
@@ -536,7 +540,8 @@
     "invalidUrl": "Invalid url",
     "validating": "Validating...",
     "inputUrl": "Enter your server URL",
-    "connect": "Connect"
+    "connect": "Connect",
+    "addServerDisabled": "Your administrator turned off adding workspaces. Contact your administrator to get access to a workspace."
   },
   "menus": {
     "about": "About {{- appName}}",

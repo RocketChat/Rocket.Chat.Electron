@@ -7,15 +7,25 @@ describe('updates/install safety', () => {
 
   const originalPlatform = process.platform;
   const originalWindowsStore = process.windowsStore;
+  const INSTALLER = 'C:\\updater\\pending\\installer.exe';
 
   let actionListeners: Map<string, Listener>;
   let updaterListeners: Map<string, Listener>;
   let nativeAutoUpdater: EventEmitter;
   let app: EventEmitter & { exit: jest.Mock; quit: jest.Mock };
-  let quitOutcomes: Array<'quit' | 'cancelled'>;
-  let existingFiles: Set<string>;
   let autoUpdater: Record<string, any>;
   let dispatch: jest.Mock;
+  let existingFiles: Set<string>;
+  let commits: number;
+  let installerStarts: number;
+  let installerStartError: Error | null;
+
+  const setPlatform = (platform: NodeJS.Platform): void => {
+    Object.defineProperty(process, 'platform', {
+      value: platform,
+      configurable: true,
+    });
+  };
 
   const setup = async (): Promise<void> => {
     jest.resetModules();
@@ -62,22 +72,38 @@ describe('updates/install safety', () => {
     await setupUpdates();
   };
 
-  const requestInstall = async (): Promise<void> => {
+  const dispatchInstallRequest = async (): Promise<void> => {
     await actionListeners.get(UPDATES_INSTALL_REQUESTED)?.({
       type: UPDATES_INSTALL_REQUESTED,
     });
-    // installDownloadedUpdate defers the native call with setImmediate.
-    await jest.advanceTimersByTimeAsync(0);
+  };
+
+  // Runs the deferred install and, on Windows and Linux, the commit one tick
+  // later.
+  const requestInstall = async (): Promise<void> => {
+    await dispatchInstallRequest();
+    await jest.advanceTimersByTimeAsync(1);
+  };
+
+  const updaterError = (error: Error): unknown =>
+    updaterListeners.get('error')?.(error);
+
+  const expectErrorDispatched = (message: string): void => {
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'updates/error-thrown',
+        payload: expect.objectContaining({
+          message: expect.stringContaining(message),
+        }),
+      })
+    );
   };
 
   const appQuitHandler = jest.fn();
 
   beforeEach(() => {
     jest.useFakeTimers({ now: 0 });
-    Object.defineProperty(process, 'platform', {
-      value: 'win32',
-      configurable: true,
-    });
+    setPlatform('win32');
     Object.defineProperty(process, 'windowsStore', {
       value: false,
       configurable: true,
@@ -85,203 +111,236 @@ describe('updates/install safety', () => {
 
     actionListeners = new Map();
     updaterListeners = new Map();
+    existingFiles = new Set([INSTALLER]);
+    commits = 0;
+    installerStarts = 0;
+    installerStartError = null;
+    dispatch = jest.fn();
+
     nativeAutoUpdater = new EventEmitter();
-    quitOutcomes = [];
-    existingFiles = new Set();
+    nativeAutoUpdater.on('before-quit-for-update', () => {
+      commits += 1;
+    });
     app = Object.assign(new EventEmitter(), {
       exit: jest.fn(),
-      quit: jest.fn(() => {
-        let cancelled = false;
-        app.emit('before-quit', {
-          preventDefault: () => {
-            cancelled = true;
-          },
-        });
-        quitOutcomes.push(cancelled ? 'cancelled' : 'quit');
-      }),
+      quit: jest.fn(),
     });
     app.on('window-all-closed', appQuitHandler);
+
+    // electron-updater's BaseUpdater (Windows and Linux).
     autoUpdater = {
       checkForUpdates: jest.fn(async () => null),
       quitAndInstall: jest.fn(),
+      quitAndInstallCalled: false,
+      downloadedUpdateHelper: { file: INSTALLER },
+      install: jest.fn(() => {
+        if (autoUpdater.quitAndInstallCalled) {
+          return false;
+        }
+        autoUpdater.quitAndInstallCalled = true;
+        installerStarts += 1;
+        const error = installerStartError;
+        if (error) {
+          // child_process reports a failed spawn on the next process tick.
+          process.nextTick(() => updaterError(error));
+        }
+        return true;
+      }),
       addListener: (event: string, fn: Listener) =>
         updaterListeners.set(event, fn),
     };
-    dispatch = jest.fn();
   });
 
   afterEach(() => {
     jest.useRealTimers();
-    Object.defineProperty(process, 'platform', {
-      value: originalPlatform,
-      configurable: true,
-    });
+    setPlatform(originalPlatform);
     Object.defineProperty(process, 'windowsStore', {
       value: originalWindowsStore,
       configurable: true,
     });
   });
 
-  it('detaches window-all-closed and ignores a second install request', async () => {
-    await setup();
-    await requestInstall();
-    await requestInstall();
+  describe('on Windows and Linux', () => {
+    it('starts the installer, then commits and quits one tick later', async () => {
+      await setup();
+      await requestInstall();
 
-    expect(autoUpdater.quitAndInstall).toHaveBeenCalledTimes(1);
-    expect(autoUpdater.quitAndInstall).toHaveBeenCalledWith(true, true);
-    expect(app.listeners('window-all-closed')).toEqual([]);
-  });
-
-  it('restores window-all-closed after a late install error and allows a new install', async () => {
-    await setup();
-    await requestInstall();
-
-    updaterListeners.get('error')?.(new Error('Squirrel: code signature'));
-
-    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
-    expect(dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'updates/error-thrown',
-        payload: expect.objectContaining({
-          message: 'Squirrel: code signature',
-        }),
-      })
-    );
-
-    await requestInstall();
-    expect(autoUpdater.quitAndInstall).toHaveBeenCalledTimes(2);
-  });
-
-  it('restores window-all-closed when quitAndInstall throws', async () => {
-    autoUpdater.quitAndInstall.mockImplementation(() => {
-      throw new Error('no installer');
-    });
-    await setup();
-    await requestInstall();
-
-    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
-  });
-
-  it('exits the app 20 s after the install is committed', async () => {
-    await setup();
-    await requestInstall();
-
-    nativeAutoUpdater.emit('before-quit-for-update');
-    await jest.advanceTimersByTimeAsync(19_999);
-    expect(app.exit).not.toHaveBeenCalled();
-
-    await jest.advanceTimersByTimeAsync(1);
-    expect(app.exit).toHaveBeenCalledWith(0);
-  });
-
-  it('cancels an armed exit watchdog when the install fails after the commit', async () => {
-    await setup();
-    await requestInstall();
-
-    // Squirrel on macOS can fail after `before-quit-for-update`.
-    nativeAutoUpdater.emit('before-quit-for-update');
-    updaterListeners.get('error')?.(new Error('Squirrel: install failed'));
-    await jest.advanceTimersByTimeAsync(60_000);
-
-    expect(app.exit).not.toHaveBeenCalled();
-  });
-
-  it('starts the installer again after an installer that failed to start', async () => {
-    // electron-updater's BaseUpdater keeps `quitAndInstallCalled` set after an
-    // async installer failure, and ignores the next call.
-    let installerStarts = 0;
-    autoUpdater.quitAndInstallCalled = false;
-    autoUpdater.quitAndInstall.mockImplementation(() => {
-      if (autoUpdater.quitAndInstallCalled) {
-        autoUpdater.quitAndInstallCalled = false;
-        return;
-      }
-      autoUpdater.quitAndInstallCalled = true;
-      installerStarts += 1;
-    });
-    await setup();
-    await requestInstall();
-
-    updaterListeners.get('error')?.(new Error('spawn UNKNOWN'));
-    await requestInstall();
-
-    expect(installerStarts).toBe(2);
-  });
-
-  it('drops a queued install when the attempt fails before it starts', async () => {
-    await setup();
-    await actionListeners.get(UPDATES_INSTALL_REQUESTED)?.({
-      type: UPDATES_INSTALL_REQUESTED,
+      expect(autoUpdater.install).toHaveBeenCalledWith(true, true);
+      expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
+      expect(commits).toBe(1);
+      expect(app.quit).toHaveBeenCalledTimes(1);
+      expect(app.listeners('window-all-closed')).toEqual([]);
     });
 
-    updaterListeners.get('error')?.(new Error('net::ERR_FAILED'));
-    await jest.advanceTimersByTimeAsync(0);
+    it('ignores a second install request while one is in progress', async () => {
+      await setup();
+      await requestInstall();
+      await requestInstall();
 
-    expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
-    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+      expect(autoUpdater.install).toHaveBeenCalledTimes(1);
+    });
+
+    it('exits the app 20 s after the commit', async () => {
+      await setup();
+      await requestInstall();
+
+      await jest.advanceTimersByTimeAsync(19_000);
+      expect(app.exit).not.toHaveBeenCalled();
+
+      await jest.advanceTimersByTimeAsync(2_000);
+      expect(app.exit).toHaveBeenCalledWith(0);
+    });
+
+    it('stays open without a commit when the installer fails to start', async () => {
+      installerStartError = new Error('spawn EPERM');
+      await setup();
+      await requestInstall();
+      await jest.advanceTimersByTimeAsync(60_000);
+
+      // No commit: the root window teardown listens to this event.
+      expect(commits).toBe(0);
+      expect(app.quit).not.toHaveBeenCalled();
+      expect(app.exit).not.toHaveBeenCalled();
+      expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+      expectErrorDispatched('spawn EPERM');
+    });
+
+    it('starts the installer again after a start failure', async () => {
+      installerStartError = new Error('spawn EPERM');
+      await setup();
+      await requestInstall();
+
+      installerStartError = null;
+      await requestInstall();
+
+      expect(installerStarts).toBe(2);
+      expect(commits).toBe(1);
+      expect(app.quit).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports an installer that the updater did not start', async () => {
+      autoUpdater.install.mockReturnValueOnce(false);
+      await setup();
+      await requestInstall();
+
+      expect(commits).toBe(0);
+      expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+      expectErrorDispatched('did not start');
+    });
+
+    it('recovers when install() throws', async () => {
+      autoUpdater.install.mockImplementationOnce(() => {
+        throw new Error('no installer');
+      });
+      await setup();
+      await requestInstall();
+
+      expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+      expectErrorDispatched('no installer');
+    });
+
+    it('keeps the commit when a check error arrives after it', async () => {
+      await setup();
+      await requestInstall();
+
+      updaterError(new Error('net::ERR_TIMED_OUT'));
+      await jest.advanceTimersByTimeAsync(20_000);
+
+      expect(app.exit).toHaveBeenCalledWith(0);
+      expect(app.listeners('window-all-closed')).toEqual([]);
+      expect(dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'updates/error-thrown' })
+      );
+    });
+
+    it('keeps a queued install when a check error arrives before it starts', async () => {
+      await setup();
+      await dispatchInstallRequest();
+
+      updaterError(new Error('net::ERR_FAILED'));
+      await jest.advanceTimersByTimeAsync(1);
+
+      expect(installerStarts).toBe(1);
+      expect(commits).toBe(1);
+    });
+
+    it('reports a missing installer and does not start it', async () => {
+      existingFiles.clear();
+      await setup();
+      await requestInstall();
+
+      expect(autoUpdater.install).not.toHaveBeenCalled();
+      expect(commits).toBe(0);
+      expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+      expectErrorDispatched('missing');
+    });
+
+    it('checks the raw download path, not the shell-escaped installerPath', async () => {
+      setPlatform('linux');
+      const file = '/tmp/Rocket Cache/pending/rocketchat.deb';
+      existingFiles = new Set([file]);
+      autoUpdater.downloadedUpdateHelper = { file };
+      // LinuxUpdater escapes spaces for the shell.
+      autoUpdater.installerPath = '/tmp/Rocket\\ Cache/pending/rocketchat.deb';
+      await setup();
+      await requestInstall();
+
+      expect(autoUpdater.install).toHaveBeenCalledTimes(1);
+      expect(commits).toBe(1);
+    });
   });
 
-  // BaseUpdater.quitAndInstall: start the installer, report a start failure
-  // as an `error`, then commit and quit on the next tick in every case.
-  const mimicBaseUpdaterQuitAndInstall = (installerError?: Error): void => {
-    autoUpdater.quitAndInstall.mockImplementation(() => {
-      if (installerError) {
-        process.nextTick(() => updaterListeners.get('error')?.(installerError));
-      }
-      setImmediate(() => {
+  describe('on macOS', () => {
+    beforeEach(() => {
+      setPlatform('darwin');
+      // MacUpdater has no install(): Squirrel installs on quitAndInstall.
+      delete autoUpdater.install;
+      delete autoUpdater.quitAndInstallCalled;
+      delete autoUpdater.downloadedUpdateHelper;
+      autoUpdater.quitAndInstall.mockImplementation(() => {
         nativeAutoUpdater.emit('before-quit-for-update');
-        app.quit();
       });
     });
-  };
 
-  it('cancels the quit and stays open when the installer fails to start', async () => {
-    mimicBaseUpdaterQuitAndInstall(new Error('spawn EPERM'));
-    await setup();
-    await requestInstall();
-    await jest.advanceTimersByTimeAsync(60_000);
+    it('exits the app 20 s after Squirrel commits', async () => {
+      await setup();
+      await requestInstall();
 
-    expect(quitOutcomes).toEqual(['cancelled']);
-    expect(app.exit).not.toHaveBeenCalled();
-    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
-    expect(app.listeners('before-quit')).toEqual([]);
-  });
+      expect(autoUpdater.quitAndInstall).toHaveBeenCalledWith(true, true);
+      await jest.advanceTimersByTimeAsync(20_000);
+      expect(app.exit).toHaveBeenCalledWith(0);
+    });
 
-  it('lets the quit through when the installer starts', async () => {
-    mimicBaseUpdaterQuitAndInstall();
-    await setup();
-    await requestInstall();
-    await jest.advanceTimersByTimeAsync(1_000);
+    it('cancels the exit watchdog when Squirrel fails after the commit', async () => {
+      await setup();
+      await requestInstall();
 
-    expect(quitOutcomes).toEqual(['quit']);
-    expect(app.listeners('before-quit')).toEqual([]);
-  });
+      nativeAutoUpdater.emit('error', new Error('Squirrel: code signature'));
+      await jest.advanceTimersByTimeAsync(60_000);
 
-  it('reports a missing installer and does not quit', async () => {
-    autoUpdater.installerPath = 'C:\\updater\\pending\\installer.exe';
-    await setup();
-    await requestInstall();
+      expect(app.exit).not.toHaveBeenCalled();
+      expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+      expectErrorDispatched('code signature');
+      expect(nativeAutoUpdater.listenerCount('error')).toBe(0);
+    });
 
-    expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
-    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
-    expect(dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'updates/error-thrown',
-        payload: expect.objectContaining({
-          message: expect.stringContaining('missing'),
-        }),
-      })
-    );
-  });
+    it('allows a new install after a Squirrel failure', async () => {
+      await setup();
+      await requestInstall();
+      nativeAutoUpdater.emit('error', new Error('Squirrel: failed'));
 
-  it('arms no exit watchdog when the install fails before the commit', async () => {
-    await setup();
-    await requestInstall();
+      await requestInstall();
+      expect(autoUpdater.quitAndInstall).toHaveBeenCalledTimes(2);
+    });
 
-    updaterListeners.get('error')?.(new Error('install failed'));
-    nativeAutoUpdater.emit('before-quit-for-update');
-    await jest.advanceTimersByTimeAsync(60_000);
+    it('keeps the commit when an updater check error arrives', async () => {
+      await setup();
+      await requestInstall();
 
-    expect(app.exit).not.toHaveBeenCalled();
+      updaterError(new Error('net::ERR_TIMED_OUT'));
+      await jest.advanceTimersByTimeAsync(20_000);
+
+      expect(app.exit).toHaveBeenCalledWith(0);
+    });
   });
 });

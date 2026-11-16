@@ -243,6 +243,9 @@ let isInstallingUpdate = false;
 // Advances on every start and every failure, so a deferred install callback
 // from an attempt that already failed does nothing.
 let installAttempt = 0;
+// True from the installer start until the commit one tick later. Only in this
+// window is an updater `error` an install failure on Windows and Linux.
+let isAwaitingInstallerStart = false;
 let restoreWindowAllClosedListeners: (() => void) | null = null;
 let installExitWatchdog: ReturnType<typeof setTimeout> | null = null;
 
@@ -274,6 +277,11 @@ const makeUpdaterInstallRetryable = (): void => {
   }
 };
 
+/** Squirrel reports a failed install on macOS through the native updater. */
+const handleSquirrelInstallError = (error: Error): void => {
+  failUpdateInstall(error);
+};
+
 /**
  * Undoes an install that did not happen: the window-all-closed listeners come
  * back, so that closing every window still reaches the app's own handler, and
@@ -285,10 +293,12 @@ const failUpdateInstall = (error: unknown): void => {
     error instanceof Error ? error.message : error
   );
   installAttempt += 1;
+  isAwaitingInstallerStart = false;
   nativeAutoUpdater.removeListener(
     'before-quit-for-update',
     armInstallExitWatchdog
   );
+  nativeAutoUpdater.removeListener('error', handleSquirrelInstallError);
   // On macOS Squirrel can still fail after `before-quit-for-update`.
   if (installExitWatchdog) {
     clearTimeout(installExitWatchdog);
@@ -302,6 +312,66 @@ const failUpdateInstall = (error: unknown): void => {
     type: UPDATES_ERROR_THROWN,
     payload: normalizeUpdateError(error),
   });
+};
+
+/**
+ * An updater `error` during an install. On Windows and Linux it is an install
+ * failure only while the installer starts. After the commit it comes from
+ * something else, such as an update check that was still pending, and must
+ * not undo the committed install.
+ */
+const isUpdaterErrorAnInstallFailure = (): boolean => isAwaitingInstallerStart;
+
+/**
+ * electron-updater's quitAndInstall on Windows and Linux emits
+ * `before-quit-for-update` and quits on the next tick, also when the installer
+ * did not start. Listeners of that event (the root window teardown) then run
+ * for an install that never happens. This does the same steps, but commits
+ * only when no start failure arrived. A start failure reaches the `error`
+ * listener before the next tick.
+ */
+const startInstallerThenQuit = (
+  install: (isSilent: boolean, isForceRunAfter: boolean) => boolean,
+  attempt: number
+): void => {
+  isAwaitingInstallerStart = true;
+  const started = install.call(autoUpdater, true, true);
+  if (attempt !== installAttempt) {
+    return;
+  }
+  if (!started) {
+    failUpdateInstall(new Error('The update installer did not start'));
+    return;
+  }
+  loggers.updates.info('Update install: installer start requested');
+
+  setImmediate(() => {
+    if (attempt !== installAttempt) {
+      loggers.updates.info('Update install: installer failed, no quit');
+      return;
+    }
+    isAwaitingInstallerStart = false;
+    armInstallExitWatchdog();
+    nativeAutoUpdater.emit('before-quit-for-update');
+    app.quit();
+  });
+};
+
+/**
+ * electron-updater's Windows and Linux updaters open a missing installer with
+ * `shell.openPath`, report no error, and quit. Returns the error for a missing
+ * installer, or null when the file exists or no download is known (macOS).
+ * The raw path comes from the download helper: the Linux updater's
+ * `installerPath` is escaped for a shell command.
+ */
+const findMissingInstallerError = (): Error | null => {
+  const helper: unknown = Reflect.get(autoUpdater, 'downloadedUpdateHelper');
+  const file: unknown =
+    helper && typeof helper === 'object' ? Reflect.get(helper, 'file') : null;
+  if (typeof file !== 'string' || fs.existsSync(file)) {
+    return null;
+  }
+  return new Error(`The downloaded update is missing: ${file}`);
 };
 
 /** Quits and relaunches into the freshly downloaded update. */
@@ -334,8 +404,7 @@ const installDownloadedUpdate = (): void => {
     // window-all-closed handler. If the install fails we never quit, so the
     // listeners have to go back or closing every window would no longer
     // reach that handler for the rest of the session. A failure can arrive
-    // late, as an `error` event (Squirrel on macOS, or the installer spawn on
-    // Windows and Linux), so the restore is kept until then.
+    // late, as an `error` event, so the restore is kept until then.
     const windowAllClosedListeners = app.listeners('window-all-closed');
     app.removeAllListeners('window-all-closed');
     restoreWindowAllClosedListeners = () => {
@@ -348,50 +417,29 @@ const installDownloadedUpdate = (): void => {
       `Update install: detached ${windowAllClosedListeners.length} window-all-closed listener(s)`
     );
 
-    // Squirrel emits this on macOS after it staged the bundle. On Windows and
-    // Linux electron-updater emits it after it tried to start the installer.
-    nativeAutoUpdater.once('before-quit-for-update', armInstallExitWatchdog);
-
-    // On Windows and Linux electron-updater quits on the next tick also when
-    // the installer did not start. That failure reaches the `error` listener
-    // first, and this guard then cancels the quit, so the app stays open with
-    // the error instead of closing without an update.
-    const cancelQuitAfterFailedInstall = (event: Electron.Event): void => {
-      if (attempt !== installAttempt) {
-        loggers.updates.warn(
-          'Update install failed: quit cancelled, the app stays open'
-        );
-        event.preventDefault();
-      }
-    };
-    app.on('before-quit', cancelQuitAfterFailedInstall);
-
     try {
+      // Windows and Linux updaters have a public install(); macOS has not.
+      const install: unknown = Reflect.get(autoUpdater, 'install');
+      if (typeof install === 'function') {
+        startInstallerThenQuit(
+          install as (isSilent: boolean, isForceRunAfter: boolean) => boolean,
+          attempt
+        );
+        return;
+      }
+
+      // Squirrel emits `before-quit-for-update` after it staged the bundle,
+      // and can still fail after that.
+      nativeAutoUpdater.once('before-quit-for-update', armInstallExitWatchdog);
+      nativeAutoUpdater.on('error', handleSquirrelInstallError);
       autoUpdater.quitAndInstall(true, true);
       loggers.updates.info('Update install: quitAndInstall returned');
     } catch (error) {
-      failUpdateInstall(error);
-    } finally {
-      // Queued after electron-updater's own quit, so the guard covers it.
-      setImmediate(() =>
-        app.removeListener('before-quit', cancelQuitAfterFailedInstall)
-      );
+      if (attempt === installAttempt) {
+        failUpdateInstall(error);
+      }
     }
   });
-};
-
-/**
- * electron-updater's Windows and Linux updaters open a missing installer with
- * `shell.openPath` and report no error, and then quit. Returns the error for a
- * missing installer, or null when the file exists or the updater has no path
- * (macOS).
- */
-const findMissingInstallerError = (): Error | null => {
-  const installerPath: unknown = Reflect.get(autoUpdater, 'installerPath');
-  if (typeof installerPath !== 'string' || fs.existsSync(installerPath)) {
-    return null;
-  }
-  return new Error(`The downloaded update is missing: ${installerPath}`);
 };
 
 /**
@@ -930,7 +978,15 @@ export const setupUpdates = async (): Promise<void> => {
 
   autoUpdater.addListener('error', (error) => {
     if (isInstallingUpdate) {
-      failUpdateInstall(error);
+      if (isUpdaterErrorAnInstallFailure()) {
+        failUpdateInstall(error);
+      } else {
+        // macOS install failures arrive through handleSquirrelInstallError.
+        loggers.updates.info(
+          'Updater error during an install, not an install failure:',
+          error instanceof Error ? error.message : error
+        );
+      }
       return;
     }
 

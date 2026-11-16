@@ -247,6 +247,7 @@ let installAttempt = 0;
 // window is an updater `error` an install failure on Windows and Linux.
 let isAwaitingInstallerStart = false;
 let restoreWindowAllClosedListeners: (() => void) | null = null;
+let removeSquirrelInstallContinuation: (() => void) | null = null;
 let installExitWatchdog: ReturnType<typeof setTimeout> | null = null;
 
 const armInstallExitWatchdog = (): void => {
@@ -299,6 +300,7 @@ const failUpdateInstall = (error: unknown): void => {
     armInstallExitWatchdog
   );
   nativeAutoUpdater.removeListener('error', handleSquirrelInstallError);
+  removeSquirrelInstallContinuation?.();
   // On macOS Squirrel can still fail after `before-quit-for-update`.
   if (installExitWatchdog) {
     clearTimeout(installExitWatchdog);
@@ -432,6 +434,25 @@ const installDownloadedUpdate = (): void => {
       // and can still fail after that.
       nativeAutoUpdater.once('before-quit-for-update', armInstallExitWatchdog);
       nativeAutoUpdater.on('error', handleSquirrelInstallError);
+      // When Squirrel has not staged the bundle yet, MacUpdater adds an
+      // `update-downloaded` listener that installs later. After a failure
+      // that listener would quit the app on the next staged download,
+      // without an install request.
+      const updateDownloadedListeners =
+        nativeAutoUpdater.listeners('update-downloaded');
+      removeSquirrelInstallContinuation = () => {
+        removeSquirrelInstallContinuation = null;
+        for (const listener of nativeAutoUpdater.listeners(
+          'update-downloaded'
+        )) {
+          if (!updateDownloadedListeners.includes(listener)) {
+            nativeAutoUpdater.removeListener(
+              'update-downloaded',
+              listener as () => void
+            );
+          }
+        }
+      };
       autoUpdater.quitAndInstall(true, true);
       loggers.updates.info('Update install: quitAndInstall returned');
     } catch (error) {

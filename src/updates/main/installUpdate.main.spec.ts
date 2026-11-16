@@ -333,6 +333,30 @@ describe('updates/install safety', () => {
       expect(autoUpdater.quitAndInstall).toHaveBeenCalledTimes(2);
     });
 
+    it('removes the pending Squirrel install when staging fails', async () => {
+      const squirrelStagedListener = jest.fn();
+      nativeAutoUpdater.on('update-downloaded', squirrelStagedListener);
+      // MacUpdater before Squirrel staged the bundle: install on staging.
+      autoUpdater.quitAndInstall.mockImplementation(() => {
+        nativeAutoUpdater.on('update-downloaded', () => {
+          nativeAutoUpdater.emit('before-quit-for-update');
+          app.quit();
+        });
+      });
+      await setup();
+      await requestInstall();
+
+      nativeAutoUpdater.emit('error', new Error('Squirrel: code signature'));
+      // A later download that Squirrel stages without an install request.
+      nativeAutoUpdater.emit('update-downloaded');
+
+      expect(app.quit).not.toHaveBeenCalled();
+      expect(commits).toBe(0);
+      expect(nativeAutoUpdater.listeners('update-downloaded')).toEqual([
+        squirrelStagedListener,
+      ]);
+    });
+
     it('keeps the commit when an updater check error arrives', async () => {
       await setup();
       await requestInstall();

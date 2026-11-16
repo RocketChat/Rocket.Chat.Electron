@@ -324,6 +324,12 @@ const installDownloadedUpdate = (): void => {
       return;
     }
 
+    const missingInstallerError = findMissingInstallerError();
+    if (missingInstallerError) {
+      failUpdateInstall(missingInstallerError);
+      return;
+    }
+
     // Detached so the pending quit isn't cancelled by the app's own
     // window-all-closed handler. If the install fails we never quit, so the
     // listeners have to go back or closing every window would no longer
@@ -342,18 +348,50 @@ const installDownloadedUpdate = (): void => {
       `Update install: detached ${windowAllClosedListeners.length} window-all-closed listener(s)`
     );
 
-    // electron-updater emits this on every platform once the install is
-    // committed: from Squirrel on macOS after the bundle is staged, and by
-    // itself on Windows and Linux after the installer started.
+    // Squirrel emits this on macOS after it staged the bundle. On Windows and
+    // Linux electron-updater emits it after it tried to start the installer.
     nativeAutoUpdater.once('before-quit-for-update', armInstallExitWatchdog);
+
+    // On Windows and Linux electron-updater quits on the next tick also when
+    // the installer did not start. That failure reaches the `error` listener
+    // first, and this guard then cancels the quit, so the app stays open with
+    // the error instead of closing without an update.
+    const cancelQuitAfterFailedInstall = (event: Electron.Event): void => {
+      if (attempt !== installAttempt) {
+        loggers.updates.warn(
+          'Update install failed: quit cancelled, the app stays open'
+        );
+        event.preventDefault();
+      }
+    };
+    app.on('before-quit', cancelQuitAfterFailedInstall);
 
     try {
       autoUpdater.quitAndInstall(true, true);
       loggers.updates.info('Update install: quitAndInstall returned');
     } catch (error) {
       failUpdateInstall(error);
+    } finally {
+      // Queued after electron-updater's own quit, so the guard covers it.
+      setImmediate(() =>
+        app.removeListener('before-quit', cancelQuitAfterFailedInstall)
+      );
     }
   });
+};
+
+/**
+ * electron-updater's Windows and Linux updaters open a missing installer with
+ * `shell.openPath` and report no error, and then quit. Returns the error for a
+ * missing installer, or null when the file exists or the updater has no path
+ * (macOS).
+ */
+const findMissingInstallerError = (): Error | null => {
+  const installerPath: unknown = Reflect.get(autoUpdater, 'installerPath');
+  if (typeof installerPath !== 'string' || fs.existsSync(installerPath)) {
+    return null;
+  }
+  return new Error(`The downloaded update is missing: ${installerPath}`);
 };
 
 /**

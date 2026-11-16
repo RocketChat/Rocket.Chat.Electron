@@ -11,7 +11,9 @@ describe('updates/install safety', () => {
   let actionListeners: Map<string, Listener>;
   let updaterListeners: Map<string, Listener>;
   let nativeAutoUpdater: EventEmitter;
-  let app: EventEmitter & { exit: jest.Mock };
+  let app: EventEmitter & { exit: jest.Mock; quit: jest.Mock };
+  let quitOutcomes: Array<'quit' | 'cancelled'>;
+  let existingFiles: Set<string>;
   let autoUpdater: Record<string, any>;
   let dispatch: jest.Mock;
 
@@ -20,6 +22,7 @@ describe('updates/install safety', () => {
 
     jest.doMock('fs', () => ({
       promises: { readFile: jest.fn(async () => '{}') },
+      existsSync: (file: string) => existingFiles.has(file),
     }));
     jest.doMock('electron', () => ({
       app: Object.assign(app, {
@@ -83,7 +86,20 @@ describe('updates/install safety', () => {
     actionListeners = new Map();
     updaterListeners = new Map();
     nativeAutoUpdater = new EventEmitter();
-    app = Object.assign(new EventEmitter(), { exit: jest.fn() });
+    quitOutcomes = [];
+    existingFiles = new Set();
+    app = Object.assign(new EventEmitter(), {
+      exit: jest.fn(),
+      quit: jest.fn(() => {
+        let cancelled = false;
+        app.emit('before-quit', {
+          preventDefault: () => {
+            cancelled = true;
+          },
+        });
+        quitOutcomes.push(cancelled ? 'cancelled' : 'quit');
+      }),
+    });
     app.on('window-all-closed', appQuitHandler);
     autoUpdater = {
       checkForUpdates: jest.fn(async () => null),
@@ -203,6 +219,59 @@ describe('updates/install safety', () => {
 
     expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
     expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+  });
+
+  // BaseUpdater.quitAndInstall: start the installer, report a start failure
+  // as an `error`, then commit and quit on the next tick in every case.
+  const mimicBaseUpdaterQuitAndInstall = (installerError?: Error): void => {
+    autoUpdater.quitAndInstall.mockImplementation(() => {
+      if (installerError) {
+        process.nextTick(() => updaterListeners.get('error')?.(installerError));
+      }
+      setImmediate(() => {
+        nativeAutoUpdater.emit('before-quit-for-update');
+        app.quit();
+      });
+    });
+  };
+
+  it('cancels the quit and stays open when the installer fails to start', async () => {
+    mimicBaseUpdaterQuitAndInstall(new Error('spawn EPERM'));
+    await setup();
+    await requestInstall();
+    await jest.advanceTimersByTimeAsync(60_000);
+
+    expect(quitOutcomes).toEqual(['cancelled']);
+    expect(app.exit).not.toHaveBeenCalled();
+    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+    expect(app.listeners('before-quit')).toEqual([]);
+  });
+
+  it('lets the quit through when the installer starts', async () => {
+    mimicBaseUpdaterQuitAndInstall();
+    await setup();
+    await requestInstall();
+    await jest.advanceTimersByTimeAsync(1_000);
+
+    expect(quitOutcomes).toEqual(['quit']);
+    expect(app.listeners('before-quit')).toEqual([]);
+  });
+
+  it('reports a missing installer and does not quit', async () => {
+    autoUpdater.installerPath = 'C:\\updater\\pending\\installer.exe';
+    await setup();
+    await requestInstall();
+
+    expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
+    expect(app.listeners('window-all-closed')).toEqual([appQuitHandler]);
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'updates/error-thrown',
+        payload: expect.objectContaining({
+          message: expect.stringContaining('missing'),
+        }),
+      })
+    );
   });
 
   it('arms no exit watchdog when the install fails before the commit', async () => {

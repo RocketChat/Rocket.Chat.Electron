@@ -1478,6 +1478,43 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
 
       expect(ipcMain.removeListener).toHaveBeenCalledWith(CHANNEL, relay);
     });
+
+    it('removes the relay when the caller renderer is gone before a response', async () => {
+      const { handler, ipcMain, relayListeners } = await setup();
+      const caller = makePickerCaller();
+
+      await handler(caller);
+      const [relay] = relayListeners();
+      fire(caller.listeners, 'render-process-gone');
+
+      expect(ipcMain.removeListener).toHaveBeenCalledWith(CHANNEL, relay);
+      expect(caller.removeListener).toHaveBeenCalledWith(
+        'render-process-gone',
+        expect.any(Function)
+      );
+    });
+
+    it('cancels the unanswered request of a different caller when a new request starts', async () => {
+      const { handler } = await setup();
+      const first = makePickerCaller();
+      const second = makePickerCaller();
+
+      await handler(first);
+      await handler(second);
+
+      expect(first.send).toHaveBeenCalledWith(CHANNEL, null);
+      expect(second.send).not.toHaveBeenCalled();
+    });
+
+    it('does not cancel the new request when the same caller asks again', async () => {
+      const { handler } = await setup();
+      const caller = makePickerCaller();
+
+      await handler(caller);
+      await handler(caller);
+
+      expect(caller.send).not.toHaveBeenCalled();
+    });
   });
 
   describe('isSameConferenceUrl', () => {

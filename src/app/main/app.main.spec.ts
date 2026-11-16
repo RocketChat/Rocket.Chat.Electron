@@ -47,6 +47,7 @@ describe('performElectronStartup - Platform Detection', () => {
     jest.clearAllMocks();
     appendSwitchMock = app.commandLine.appendSwitch as jest.Mock;
     getSwitchValueMock = app.commandLine.getSwitchValue as jest.Mock;
+    getSwitchValueMock.mockReset();
     getSwitchValueMock.mockReturnValue('');
     consoleLogMock = jest.fn();
     console.log = consoleLogMock;
@@ -590,6 +591,68 @@ describe('performElectronStartup - Platform Detection', () => {
       expect(appendSwitchMock).toHaveBeenCalledWith(
         'disable-features',
         'HardwareMediaKeyHandling,MediaSessionService,WebRtcAllowWgcDesktopCapturer,WebRtcAllowWgcScreenCapturer,AudioServiceSandbox'
+      );
+    });
+  });
+
+  describe('Enabled Chromium Features Preservation on Linux', () => {
+    it('sets default enabled features on Linux when no enable-features switch is present', () => {
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'enable-features',
+        'WebRTCPipeWireCapturer'
+      );
+    });
+
+    it('preserves user-supplied enable-features entries alongside WebRTCPipeWireCapturer', () => {
+      getSwitchValueMock.mockImplementation((switchName: string) =>
+        switchName === 'enable-features' ? 'VaapiVideoDecodeLinuxGL' : ''
+      );
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'enable-features',
+        'WebRTCPipeWireCapturer,VaapiVideoDecodeLinuxGL'
+      );
+    });
+
+    it('trims whitespace, removes empty entries, and deduplicates enable-features entries', () => {
+      getSwitchValueMock.mockImplementation((switchName: string) =>
+        switchName === 'enable-features'
+          ? ' VaapiVideoDecodeLinuxGL , , WebRTCPipeWireCapturer , VaapiVideoDecodeLinuxGL '
+          : ''
+      );
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'enable-features',
+        'WebRTCPipeWireCapturer,VaapiVideoDecodeLinuxGL'
+      );
+    });
+
+    it('preserves user-supplied enable-features and disable-features switches independently on Linux', () => {
+      getSwitchValueMock.mockImplementation((switchName: string) => {
+        if (switchName === 'enable-features') {
+          return 'VaapiVideoDecodeLinuxGL';
+        }
+        if (switchName === 'disable-features') {
+          return 'AudioServiceSandbox';
+        }
+        return '';
+      });
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'disable-features',
+        'HardwareMediaKeyHandling,MediaSessionService,AudioServiceSandbox'
+      );
+      expect(appendSwitchMock).toHaveBeenCalledWith(
+        'enable-features',
+        'WebRTCPipeWireCapturer,VaapiVideoDecodeLinuxGL'
       );
     });
   });

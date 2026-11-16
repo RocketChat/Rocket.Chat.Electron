@@ -72,6 +72,22 @@ export const relaunchApp = (...args: string[]): void => {
   app.exit();
 };
 
+const appendMergedFeatureSwitch = (
+  switchName: 'disable-features' | 'enable-features',
+  features: readonly string[]
+): void => {
+  const existingFeatures = app.commandLine
+    .getSwitchValue(switchName)
+    .split(',')
+    .map((feature) => feature.trim())
+    .filter(Boolean);
+  const mergedFeatures = Array.from(
+    new Set([...features, ...existingFeatures])
+  );
+
+  app.commandLine.appendSwitch(switchName, mergedFeatures.join(','));
+};
+
 export const performElectronStartup = (): void => {
   for (const scheme of electronBuilderJsonInformation.protocols) {
     if ((TELEPHONY_SCHEMES as readonly string[]).includes(scheme)) {
@@ -149,23 +165,10 @@ export const performElectronStartup = (): void => {
     }
   }
 
-  const existingDisabledFeatures = (
-    app.commandLine.getSwitchValue?.('disable-features') ?? ''
-  )
-    .split(',')
-    .map((feature) => feature.trim())
-    .filter(Boolean);
-  const mergedDisabledFeatures = Array.from(
-    new Set([...disabledChromiumFeatures, ...existingDisabledFeatures])
-  );
-
-  app.commandLine.appendSwitch(
-    'disable-features',
-    mergedDisabledFeatures.join(',')
-  );
+  appendMergedFeatureSwitch('disable-features', disabledChromiumFeatures);
 
   if (process.platform === 'linux') {
-    app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
+    appendMergedFeatureSwitch('enable-features', ['WebRTCPipeWireCapturer']);
 
     // Detect display server and force X11 if not in Wayland session.
     // Must happen BEFORE Electron auto-selects a platform to prevent segfaults

@@ -156,6 +156,10 @@ Read the doc that matches the task. Do not scan `docs/` wholesale.
 - A symptom or a past incident: read
   [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) first, then search the
   `docs/*postmortem*.md` files.
+- The feature map: [docs/feature-map.md](docs/feature-map.md). It lists each
+  user-visible feature by its English UI name, where it is, and the source
+  that owns it. Read it to find a control that a request, a bug report or a
+  QA flow names.
 
 ## Working principles
 

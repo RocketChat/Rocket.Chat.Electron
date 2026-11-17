@@ -25,6 +25,7 @@ import { listenToTelephonyRequests } from './telephony/preload';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
 import { debounce } from './ui/main/debounce';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
+import { listenToMessageScrollEvents } from './ui/preload/messageScroll';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { whenReady } from './whenReady';
 
@@ -115,6 +116,7 @@ const start = async (): Promise<void> => {
     listenToNotificationsRequests();
     listenToScreenSharingRequests();
     listenToMessageBoxEvents();
+    listenToMessageScrollEvents();
     handleTrafficLightsSpacing();
   };
 

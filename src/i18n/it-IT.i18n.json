@@ -50,6 +50,7 @@
         "countWhenOpen": "Il numero di messaggi appare quando lo spazio di lavoro apre l’indice",
         "messages_one": "{{count}} messaggio",
         "messages_other": "{{count}} messaggi",
+        "messages_many": "{{count}} di messaggi",
         "onDisk": "{{size, byteSize}} su disco",
         "encrypted": "Cifrato su disco",
         "memoryOnly": "Solo in memoria, non salvato su disco",

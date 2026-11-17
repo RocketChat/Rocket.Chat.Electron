@@ -318,6 +318,7 @@
         "countWhenOpen": "A contagem de mensagens aparece quando o workspace abre o índice",
         "messages_one": "{{count}} mensagem",
         "messages_other": "{{count}} mensagens",
+        "messages_many": "{{count}} de mensagens",
         "onDisk": "{{size, byteSize}} no disco",
         "encrypted": "Criptografado no disco",
         "memoryOnly": "Só na memória, não salvo no disco",

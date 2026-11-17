@@ -186,6 +186,16 @@ export const isFullscreenRequestAllowed = (
   isRequestFromKnownServer(requestingUrl, servers) ||
   (!isMainFrame && isRequestFromKnownServer(topLevelUrl, servers));
 
+// Set by the video call window: importing it here would create an import cycle.
+let isVideoCallGuest: (webContents: WebContents | undefined) => boolean = () =>
+  false;
+
+export const setVideoCallGuestMatcher = (
+  matcher: (webContents: WebContents | undefined) => boolean
+): void => {
+  isVideoCallGuest = matcher;
+};
+
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
@@ -213,6 +223,15 @@ export const setupServerViewPermissionHandler = (
       }
       switch (permission) {
         case 'media': {
+          const { requestingUrl } = details;
+          const servers = select(({ servers }) => servers);
+          if (
+            !isRequestFromKnownServer(requestingUrl, servers) &&
+            !isVideoCallGuest(requestingWebContents)
+          ) {
+            callback(false);
+            return;
+          }
           const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
           try {
             await handleMediaPermissionRequest(

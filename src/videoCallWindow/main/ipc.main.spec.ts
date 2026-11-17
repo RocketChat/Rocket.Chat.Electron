@@ -59,12 +59,14 @@ jest.mock('../../ipc/main', () => ({
 const getServerUrlByWebContentsId = jest.fn();
 const getWebContentsByServerUrl = jest.fn();
 const setupServerViewPermissionHandler = jest.fn((..._a: any[]) => undefined);
+const setVideoCallGuestMatcher = jest.fn((..._a: any[]) => undefined);
 jest.mock('../../ui/main/serverView', () => ({
   getServerUrlByWebContentsId: (...a: any[]) =>
     getServerUrlByWebContentsId(...a),
   getWebContentsByServerUrl: (...a: any[]) => getWebContentsByServerUrl(...a),
   setupServerViewPermissionHandler: (...a: any[]) =>
     setupServerViewPermissionHandler(...a),
+  setVideoCallGuestMatcher: (...a: any[]) => setVideoCallGuestMatcher(...a),
 }));
 
 // --- the handler restore + routing surface under test ---
@@ -413,6 +415,22 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       serverWc,
       fakeRootWindow
     );
+  });
+
+  it('media matcher: true only for a webview hosted by the open call window', async () => {
+    getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+    const { openWindow } = await loadModule();
+
+    await open(openWindow, makeCallerWc(42));
+
+    const { calls } = setVideoCallGuestMatcher.mock;
+    const matcher = calls[calls.length - 1][0] as (wc: unknown) => boolean;
+    expect(matcher({ hostWebContents: createdWindows[0].webContents })).toBe(
+      true
+    );
+    expect(matcher({ hostWebContents: { id: 99 } })).toBe(false);
+    expect(matcher({ hostWebContents: null })).toBe(false);
+    expect(matcher(undefined)).toBe(false);
   });
 
   it('open (fallback): unresolvable server -> partition persist:jitsi-session, isSharedSession false', async () => {

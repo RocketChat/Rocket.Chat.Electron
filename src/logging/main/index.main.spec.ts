@@ -303,10 +303,14 @@ describe('logging/index', () => {
       setProcessType('browser');
       loadModule();
       const hook = getErrorHook();
-      const result = hook({
-        level: 'error',
-        data: ['password: hunter2longpass'],
-      });
+      const result = hook(
+        {
+          level: 'error',
+          data: ['password: hunter2longpass'],
+        },
+        undefined,
+        'file'
+      );
       // Hook passes the message through untouched.
       expect(result).toEqual({
         level: 'error',
@@ -314,11 +318,38 @@ describe('logging/index', () => {
       });
     });
 
+    it('writes object items as JSON and buffers each error once', () => {
+      setProcessType('browser');
+      loadModule();
+      const hook = getErrorHook();
+      const message = {
+        level: 'error',
+        data: ['Failed to save', { name: 'Error', message: 'disk full' }],
+      };
+      hook(message, undefined, 'console');
+      hook(message, undefined, 'file');
+
+      const beforeQuitHandler = appOn.mock.calls.find(
+        ([event]) => event === 'before-quit'
+      )![1] as () => void;
+      beforeQuitHandler();
+
+      const [, content] = fsMock.appendFileSync.mock.calls[0];
+      const lines = String(content).trim().split('\n');
+      expect(lines).toHaveLength(1);
+      expect(JSON.parse(lines[0]).text).toContain('disk full');
+      expect(lines[0]).not.toContain('[object Object]');
+    });
+
     it('ignores non-error messages', () => {
       setProcessType('browser');
       loadModule();
       const hook = getErrorHook();
-      const result = hook({ level: 'info', data: ['something'] });
+      const result = hook(
+        { level: 'info', data: ['something'] },
+        undefined,
+        'file'
+      );
       expect(result).toEqual({ level: 'info', data: ['something'] });
       // No write should be scheduled for non-errors.
       expect(fsMock.promises.appendFile).not.toHaveBeenCalled();
@@ -330,7 +361,11 @@ describe('logging/index', () => {
       const hook = getErrorHook();
       // Push 50 distinct error messages to reach MAX_BUFFERED_ERRORS.
       for (let i = 0; i < 50; i++) {
-        hook({ level: 'error', data: [`error number ${i}`] });
+        hook(
+          { level: 'error', data: [`error number ${i}`] },
+          undefined,
+          'file'
+        );
       }
       expect(fsMock.promises.appendFile).toHaveBeenCalledTimes(1);
       const [, content] = fsMock.promises.appendFile.mock.calls[0];
@@ -348,7 +383,11 @@ describe('logging/index', () => {
       loadModule();
       const hook = getErrorHook();
       for (let i = 0; i < 50; i++) {
-        hook({ level: 'error', data: [`error number ${i}`] });
+        hook(
+          { level: 'error', data: [`error number ${i}`] },
+          undefined,
+          'file'
+        );
       }
       // The writeFileSync (truncation) must have been invoked for errors.jsonl.
       expect(fsMock.writeFileSync).toHaveBeenCalledWith(
@@ -369,7 +408,7 @@ describe('logging/index', () => {
         throw new Error('boom');
       });
       expect(() =>
-        hook({ level: 'error', data: ['boom message'] })
+        hook({ level: 'error', data: ['boom message'] }, undefined, 'file')
       ).not.toThrow();
     });
   });
@@ -379,7 +418,7 @@ describe('logging/index', () => {
       setProcessType('browser');
       loadModule();
       const errorHook = fakeLog.hooks[2];
-      errorHook({ level: 'error', data: ['final error'] });
+      errorHook({ level: 'error', data: ['final error'] }, undefined, 'file');
 
       const beforeQuitCall = appOn.mock.calls.find(
         ([event]) => event === 'before-quit'

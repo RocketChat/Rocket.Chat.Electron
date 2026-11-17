@@ -2,7 +2,7 @@ import { existsSync, statSync } from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { app, webContents } from 'electron';
+import { app } from 'electron';
 import electronDl from 'electron-dl';
 import ElectronStore from 'electron-store';
 import { t } from 'i18next';
@@ -62,34 +62,6 @@ export const setupElectronDlWithTracking = () => {
         item.setSaveDialogOptions({
           defaultPath: fullPath,
         });
-
-        // Find the webContents that initiated this download
-        // According to electron-dl docs, onStarted only receives DownloadItem
-        // We need to find an active webContents for tracking purposes
-        const webContentsArray = webContents.getAllWebContents();
-
-        // Use the first available webContents for tracking
-        let sourceWebContents = null;
-        for (const wc of webContentsArray) {
-          if (wc && typeof wc.isDestroyed === 'function' && !wc.isDestroyed()) {
-            sourceWebContents = wc;
-            break;
-          }
-        }
-
-        if (sourceWebContents) {
-          const fakeEvent = {
-            defaultPrevented: false,
-            preventDefault: () => {},
-          };
-          handleWillDownloadEvent(
-            fakeEvent as any,
-            item,
-            sourceWebContents
-          ).catch(() => {
-            // Silently handle tracking errors
-          });
-        }
       } catch {
         // Silently handle any other errors in onStarted
       }
@@ -112,6 +84,14 @@ export const setupElectronDlWithTracking = () => {
         // Silently handle any errors in onCompleted
       }
     },
+  });
+
+  app.on('session-created', (session) => {
+    session.on('will-download', (event, item, sourceWebContents) => {
+      handleWillDownloadEvent(event, item, sourceWebContents).catch(() => {
+        // Silently handle tracking errors
+      });
+    });
   });
 };
 

@@ -1,4 +1,5 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import type {
   ContextMenuParams,
@@ -26,6 +27,7 @@ import { setupRootWindowReload } from '../../app/main/dev';
 import { loggers } from '../../logging/scopes';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
+import { openExternal } from '../../utils/browserLauncher';
 import {
   ROOT_WINDOW_STATE_CHANGED,
   WEBVIEW_FOCUS_REQUESTED,
@@ -104,6 +106,20 @@ const isMacTransparencyEnabled = (): boolean => {
   );
 };
 
+const getRootWindowIndexPath = (): string =>
+  path.join(app.getAppPath(), 'app/index.html');
+
+const isRootWindowAppUrl = (url: string): boolean => {
+  try {
+    return (
+      new URL(url).protocol === 'file:' &&
+      path.relative(fileURLToPath(url), getRootWindowIndexPath()) === ''
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const createRootWindow = (): void => {
   _rootWindow = new BrowserWindow({
     width: 1000,
@@ -121,17 +137,16 @@ export const createRootWindow = (): void => {
     }),
   });
 
-  // Block navigation to smb:// protocol
   _rootWindow.webContents.on('will-navigate', (event, url) => {
-    if (typeof url === 'string' && url.toLowerCase().startsWith('smb://')) {
+    if (!isRootWindowAppUrl(url)) {
       event.preventDefault();
     }
   });
-  _rootWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-    if (url.toLowerCase().startsWith('smb://')) {
-      return { action: 'deny' };
+  _rootWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:/i.test(url)) {
+      openExternal(url);
     }
-    return { action: 'allow' };
+    return { action: 'deny' };
   });
 
   _rootWindow.addListener('close', (event: any) => {
@@ -696,7 +711,7 @@ export const showRootWindow = async (): Promise<void> => {
     menu.popup({ window: browserWindow });
   });
 
-  browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
+  browserWindow.loadFile(getRootWindowIndexPath());
 
   if (process.env.NODE_ENV === 'development') {
     setupRootWindowReload(browserWindow.webContents);
@@ -763,7 +778,7 @@ export const exportLocalStorage = async (): Promise<Record<string, string>> => {
       webPreferences,
     });
 
-    tempWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
+    tempWindow.loadFile(getRootWindowIndexPath());
 
     await new Promise<void>((resolve) => {
       tempWindow.once('ready-to-show', () => {

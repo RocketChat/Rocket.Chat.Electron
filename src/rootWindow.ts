@@ -35,7 +35,8 @@ const start = async (): Promise<void> => {
 
   root.render(createElement(App, { reduxStore }));
 
-  window.addEventListener('beforeunload', () => {
+  // 'beforeunload' also fires for navigations that are then cancelled.
+  window.addEventListener('pagehide', () => {
     root.unmount();
   });
 };

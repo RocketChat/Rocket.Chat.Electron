@@ -12,6 +12,7 @@ jest.mock('electron', () => ({
 jest.mock('../../store', () => ({ select: jest.fn() }));
 jest.mock('../../app/main/dev', () => ({}));
 jest.mock('./icons', () => ({}));
+jest.mock('../../utils/browserLauncher', () => ({ openExternal: jest.fn() }));
 
 const originalPlatform = process.platform;
 const mockWindow = () => ({
@@ -155,14 +156,14 @@ describe('native root window appearance', () => {
       navigate({ preventDefault }, 'smb://example.test/share');
       expect(preventDefault).toHaveBeenCalledTimes(1);
       navigate({ preventDefault }, 'https://example.test');
-      expect(preventDefault).toHaveBeenCalledTimes(1);
+      expect(preventDefault).toHaveBeenCalledTimes(2);
       const open = root.webContents.setWindowOpenHandler.mock
         .calls[0][0] as (details: { url: string }) => { action: string };
       expect(open({ url: 'smb://example.test/share' })).toEqual({
         action: 'deny',
       });
       expect(open({ url: 'https://example.test' })).toEqual({
-        action: 'allow',
+        action: 'deny',
       });
     }
   );

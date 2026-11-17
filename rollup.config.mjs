@@ -624,6 +624,24 @@ export default [
   },
   {
     external: makeExternal(),
+    input: 'src/e2eeSearch/worker.ts',
+    plugins: [
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({ extensions }),
+      commonjs(),
+    ],
+    output: {
+      file: 'app/e2eeSearchWorker.js',
+      format: 'cjs',
+      sourcemap: true,
+      interop: 'auto',
+    },
+  },
+  {
+    external: makeExternal(),
     input: 'src/main.ts',
     plugins: [
       copy({
@@ -639,6 +657,11 @@ export default [
           process.env.BUGSNAG_API_KEY
         ),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        // The E2EE search dev key switches (src/e2eeSearch/setup.ts). A
+        // production build gets `false`, and rollup drops their code.
+        'process.env.E2EE_SEARCH_DEV_KEY_SWITCHES': JSON.stringify(
+          NODE_ENV === 'development'
+        ),
         'preventAssignment': true,
       }),
       babel({

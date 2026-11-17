@@ -1,5 +1,7 @@
 import type { IRocketChatDesktop } from '@rocket.chat/desktop-api';
 
+import { e2eeSearch } from '../../e2eeSearch/preload';
+import type { SearchIndexBackend } from '../../e2eeSearch/types';
 import type { CustomNotificationOptions } from '../../notifications/common';
 import {
   createNotification,
@@ -131,6 +133,7 @@ type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
   setUnreadAlertEnabled: (enabled: boolean) => void;
   setWebClientBridgeVersion: (version: number) => void;
   getWebClientBridgeVersion: () => number;
+  e2eeSearch: SearchIndexBackend;
 };
 
 declare global {
@@ -195,4 +198,5 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   getE2ePdfPreviewSizeLimit,
   onTelephonyCallRequested,
   onNavigateToRoute,
+  e2eeSearch,
 };

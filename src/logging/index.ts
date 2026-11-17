@@ -193,9 +193,14 @@ const configureLogging = () => {
         if (message.level === 'error' && transportName === 'file') {
           try {
             const rawText = (message.data ?? [])
-              .map((item: unknown) =>
-                typeof item === 'string' ? item : JSON.stringify(item)
-              )
+              .map((item: unknown) => {
+                if (typeof item === 'string') return item;
+                try {
+                  return JSON.stringify(item);
+                } catch {
+                  return String(item);
+                }
+              })
               .join(' ');
             errorJsonlBuffer.push(
               `${JSON.stringify({

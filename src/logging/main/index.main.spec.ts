@@ -341,6 +341,25 @@ describe('logging/index', () => {
       expect(lines[0]).not.toContain('[object Object]');
     });
 
+    it('keeps the entry when an item cannot be serialized', () => {
+      setProcessType('browser');
+      loadModule();
+      const hook = getErrorHook();
+      hook(
+        { level: 'error', data: ['save failed', { bytes: BigInt(1) }] },
+        undefined,
+        'file'
+      );
+
+      const beforeQuitHandler = appOn.mock.calls.find(
+        ([event]) => event === 'before-quit'
+      )![1] as () => void;
+      beforeQuitHandler();
+
+      const [, content] = fsMock.appendFileSync.mock.calls[0];
+      expect(JSON.parse(String(content).trim()).text).toContain('save failed');
+    });
+
     it('ignores non-error messages', () => {
       setProcessType('browser');
       loadModule();

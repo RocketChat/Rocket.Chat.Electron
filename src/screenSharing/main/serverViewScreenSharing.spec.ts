@@ -158,3 +158,55 @@ describe('setupServerViewDisplayMedia — cache warming gate', () => {
     expect(prewarmMock).not.toHaveBeenCalled();
   });
 });
+
+describe('screen-picker/open-url', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+  });
+
+  const getOpenUrlHandler = async () => {
+    const sut = await import('../serverViewScreenSharing');
+    const { handle } = (await import('../../ipc/main')) as any;
+    sut.startServerViewScreenSharingHandler();
+    return handle.mock.calls.find(
+      ([channel]: [string]) => channel === 'screen-picker/open-url'
+    )?.[1] as (webContents: WebContents, url: string) => Promise<void>;
+  };
+
+  it('opens the screen recording settings without asking about the protocol', async () => {
+    const openUrl = await getOpenUrlHandler();
+    const { isProtocolAllowed } = (await import(
+      '../../navigation/main'
+    )) as any;
+    const { openExternal } = (await import(
+      '../../utils/browserLauncher'
+    )) as any;
+
+    await openUrl(
+      {} as WebContents,
+      'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
+    );
+
+    expect(isProtocolAllowed).not.toHaveBeenCalled();
+    expect(openExternal).toHaveBeenCalledWith(
+      'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
+    );
+  });
+
+  it('still asks before it opens another non-web link', async () => {
+    const openUrl = await getOpenUrlHandler();
+    const { isProtocolAllowed } = (await import(
+      '../../navigation/main'
+    )) as any;
+    const { openExternal } = (await import(
+      '../../utils/browserLauncher'
+    )) as any;
+    isProtocolAllowed.mockResolvedValueOnce(false);
+
+    await openUrl({} as WebContents, 'file:///etc/hosts');
+
+    expect(isProtocolAllowed).toHaveBeenCalledWith('file:///etc/hosts');
+    expect(openExternal).not.toHaveBeenCalled();
+  });
+});

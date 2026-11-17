@@ -38,13 +38,14 @@ const luhnCheck = (digits: string): boolean => {
  * Key-value credential patterns.
  * Requires the value portion to be 8+ chars to avoid matching
  * short debug strings like "token expired" or "secret: no".
+ * Passwords match at any length, because short passwords exist.
  */
 const CREDENTIAL_KV_PATTERNS: { pattern: RegExp; label: string }[] = [
   {
-    pattern: /password["'\s:=]+["']?([^"'\s,}\]]{8,})/gi,
+    pattern: /password["'\s:=]+["']?([^"'\s,}\]]+)/gi,
     label: 'password',
   },
-  { pattern: /passwd["'\s:=]+["']?([^"'\s,}\]]{8,})/gi, label: 'passwd' },
+  { pattern: /passwd["'\s:=]+["']?([^"'\s,}\]]+)/gi, label: 'passwd' },
   { pattern: /secret["'\s:=]+["']?([^"'\s,}\]]{8,})/gi, label: 'secret' },
   {
     pattern: /api[_-]?key["'\s:=]+["']?([^"'\s,}\]]{8,})/gi,
@@ -104,6 +105,16 @@ const TOKEN_PATTERNS: {
     pattern: /(https?:\/\/)([^:]+):([^@]+)@/gi,
     replacer: (_m, proto) => `${proto}[REDACTED]:[REDACTED]@`,
   },
+  // Query and form values: token=..., rc_token=...
+  {
+    pattern: /\b((?:rc_)?token)=([^&\s"'#]+)/gi,
+    replacer: (_m, key) => `${key}=[REDACTED]`,
+  },
+  // Meteor resume tokens: "resume":"..."
+  {
+    pattern: /(["']?resume["']?\s*[:=]\s*)["'][^"']+["']/gi,
+    replacer: (_m, prefix) => `${prefix}"[REDACTED]"`,
+  },
   // Long hex strings (32+ chars) — likely API keys, hashes, tokens
   {
     pattern: /\b[a-fA-F0-9]{32,}\b/g,
@@ -162,6 +173,12 @@ const PII_PATTERNS: { pattern: RegExp; replacer: (match: string) => string }[] =
       },
     },
   ];
+
+export const redactHomePaths = (text: string): string =>
+  text.replace(
+    /(\/Users\/|\/home\/|[A-Za-z]:[\\/]Users[\\/])[^/\\\s]+/gi,
+    '$1~'
+  );
 
 // ── Field-based redaction (applied to object keys) ───────────────────────────
 

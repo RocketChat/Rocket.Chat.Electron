@@ -150,15 +150,14 @@ describe('errors uncaughtException handler', () => {
     expect(appQuitMock).toHaveBeenCalledTimes(1);
   });
 
-  it('notifies Bugsnag when it is started', async () => {
+  it('does not notify Bugsnag from the uncaughtException handler', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const { handlers } = await captureHandlers();
     bugsnagIsStartedMock.mockReturnValue(true);
 
-    const error = new Error('reportable error');
-    handlers.uncaughtException(error);
+    handlers.uncaughtException(new Error('reportable error'));
 
-    expect(bugsnagNotifyMock).toHaveBeenCalledWith(error);
+    expect(bugsnagNotifyMock).not.toHaveBeenCalled();
   });
 });
 
@@ -191,14 +190,14 @@ describe('errors unhandledRejection handler', () => {
     expect(appQuitMock).toHaveBeenCalledTimes(1);
   });
 
-  it('notifies Bugsnag for a rejection when it is started', async () => {
+  it('does not notify Bugsnag from the unhandledRejection handler', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const { handlers } = await captureHandlers();
     bugsnagIsStartedMock.mockReturnValue(true);
 
     handlers.unhandledRejection(new Error('reportable rejection'));
 
-    expect(bugsnagNotifyMock).toHaveBeenCalledTimes(1);
+    expect(bugsnagNotifyMock).not.toHaveBeenCalled();
   });
 });
 
@@ -338,5 +337,104 @@ describe('errors/setupRendererErrorHandling', () => {
     } else {
       delete process.env.BUGSNAG_API_KEY;
     }
+  });
+});
+
+describe('errors/report opt-in toggle', () => {
+  const setMas = (value: boolean | undefined): void => {
+    Object.defineProperty(process, 'mas', { value, configurable: true });
+  };
+  const state = { appVersion: TEST_APP_VERSION, isReportEnabled: true };
+  let originalApiKey: string | undefined;
+  let originalMas: boolean | undefined;
+  let bugsnagStartMock: jest.Mock;
+  let toggleHandler: (action: { payload: boolean }) => Promise<void>;
+
+  const loadWithToggle = async (): Promise<void> => {
+    jest.resetModules();
+    bugsnagStartMock = jest.fn(() => ({
+      startSession: jest.fn(),
+      pauseSession: jest.fn(),
+    }));
+
+    jest.doMock('electron', () => ({
+      app: { quit: jest.fn(), getVersion: jest.fn(() => TEST_APP_VERSION) },
+    }));
+    jest.doMock('../../store', () => ({
+      select: jest.fn((selector: (s: typeof state) => unknown) =>
+        selector(state)
+      ),
+      listen: jest.fn((_type: string, handler: typeof toggleHandler) => {
+        toggleHandler = handler;
+        return () => undefined;
+      }),
+    }));
+    jest.doMock('@bugsnag/js', () => ({
+      __esModule: true,
+      default: {
+        isStarted: jest.fn(() => false),
+        notify: jest.fn(),
+        start: bugsnagStartMock,
+      },
+    }));
+
+    const errorsModule: ErrorsModule = await import('../../errors');
+    await errorsModule.setupRendererErrorHandling('main');
+  };
+
+  beforeEach(() => {
+    originalApiKey = process.env.BUGSNAG_API_KEY;
+    originalMas = process.mas;
+    process.env.BUGSNAG_API_KEY = '12345678901234567890123456789012';
+    setMas(false);
+  });
+
+  afterEach(() => {
+    if (originalApiKey !== undefined) {
+      process.env.BUGSNAG_API_KEY = originalApiKey;
+    } else {
+      delete process.env.BUGSNAG_API_KEY;
+    }
+    setMas(originalMas);
+  });
+
+  it('discards events after opt-out and sends them after opt-in again', async () => {
+    state.isReportEnabled = true;
+    await loadWithToggle();
+
+    const { onError } = bugsnagStartMock.mock.calls[0][0];
+    expect(onError()).toBe(true);
+
+    state.isReportEnabled = false;
+    await toggleHandler({ payload: false });
+    expect(onError()).toBe(false);
+
+    state.isReportEnabled = true;
+    await toggleHandler({ payload: true });
+    expect(onError()).toBe(true);
+  });
+
+  it('keeps the process alive after Bugsnag reports an uncaught exception', async () => {
+    state.isReportEnabled = true;
+    await loadWithToggle();
+    const exitSpy = jest
+      .spyOn(process, 'exit')
+      .mockImplementation((() => undefined) as never);
+
+    const { onUncaughtException } = bugsnagStartMock.mock.calls[0][0];
+    onUncaughtException(new Error('minor'), {}, console);
+
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not start Bugsnag on a Mac App Store build when opting in', async () => {
+    setMas(true);
+    state.isReportEnabled = false;
+    await loadWithToggle();
+
+    state.isReportEnabled = true;
+    await toggleHandler({ payload: true });
+
+    expect(bugsnagStartMock).not.toHaveBeenCalled();
   });
 });

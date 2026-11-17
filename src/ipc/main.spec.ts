@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 
-import { invoke, handle } from './main';
+import { invoke, handle, setTrustedSenderCheck } from './main';
 
 jest.mock('electron', () => ({
   ipcMain: {
@@ -76,5 +76,18 @@ describe('ipc main', () => {
 
     remove();
     expect(ipcMain.removeHandler).toHaveBeenCalledWith('channels/ping');
+  });
+
+  it('ignores a call from a sender that the trusted-sender check refuses', async () => {
+    const handler = jest.fn(async () => 'ok');
+    handle('channels/ping' as any, handler as any);
+    const registered = (ipcMain.handle as jest.Mock).mock.calls[0][1];
+    setTrustedSenderCheck((event) => event.sender === webContents);
+
+    expect(registered({ sender: {} }, 'a')).toBeUndefined();
+    await expect(registered({ sender: webContents }, 'a')).resolves.toBe('ok');
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    setTrustedSenderCheck(() => true);
   });
 });

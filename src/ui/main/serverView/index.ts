@@ -18,7 +18,7 @@ import type {
 import { app, clipboard, webContents } from 'electron';
 
 import { setupPreloadReload } from '../../../app/main/dev';
-import { handle } from '../../../ipc/main';
+import { handle, setTrustedSenderCheck } from '../../../ipc/main';
 import { loggers } from '../../../logging/scopes';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
@@ -977,6 +977,20 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     for (const serverViewWebContents of webContentsByServerUrl.values()) {
       serverViewWebContents.reloadIgnoringCache();
     }
+  });
+
+  setTrustedSenderCheck((event) => {
+    const serverUrl = getServerUrlByWebContentsId(event.sender.id);
+    if (
+      !serverUrl ||
+      isRequestFromKnownServer(event.senderFrame?.url, [{ url: serverUrl }])
+    ) {
+      return true;
+    }
+    loggers.servers.warn(
+      `Ignored a desktop API call from ${event.senderFrame?.origin} in ${serverUrl}`
+    );
+    return false;
   });
 
   rootWindow.webContents.addListener(

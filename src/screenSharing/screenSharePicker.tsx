@@ -17,6 +17,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '../ui/components/Dialog';
+import {
+  SCREEN_CAPTURE_SETTINGS_URL_MAC,
+  SCREEN_CAPTURE_SETTINGS_URL_WINDOWS,
+} from './screenCaptureSettingsUrls';
 
 const desktopCapturer: DesktopCapturer = {
   getSources: (opts: SourcesOptions) =>
@@ -251,8 +255,8 @@ export function ScreenSharePicker({
                     e.preventDefault();
                     const url =
                       process.platform === 'darwin'
-                        ? 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
-                        : 'ms-settings:privacy-screencapture';
+                        ? SCREEN_CAPTURE_SETTINGS_URL_MAC
+                        : SCREEN_CAPTURE_SETTINGS_URL_WINDOWS;
                     ipcRenderer.invoke(openUrlChannel, url);
                   }}
                   style={{

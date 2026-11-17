@@ -1,4 +1,4 @@
-import type { WebContents } from 'electron';
+import type { IpcMainInvokeEvent, WebContents } from 'electron';
 import { ipcMain } from 'electron';
 
 import type { Handler, Channel } from './channels';
@@ -26,6 +26,14 @@ export const invoke = <N extends Channel>(
     webContents.send(channel, id, ...args);
   });
 
+let isTrustedSender: (event: IpcMainInvokeEvent) => boolean = () => true;
+
+export const setTrustedSenderCheck = (
+  check: (event: IpcMainInvokeEvent) => boolean
+): void => {
+  isTrustedSender = check;
+};
+
 export const handle = <N extends Channel>(
   channel: N,
   handler: (
@@ -33,9 +41,12 @@ export const handle = <N extends Channel>(
     ...args: Parameters<Handler<N>>
   ) => Promise<ReturnType<Handler<N>>>
 ): (() => void) => {
-  ipcMain.handle(channel, (event, ...args: any[]) =>
-    handler(event.sender, ...(args as Parameters<Handler<N>>))
-  );
+  ipcMain.handle(channel, (event, ...args: any[]) => {
+    if (!isTrustedSender(event)) {
+      return undefined;
+    }
+    return handler(event.sender, ...(args as Parameters<Handler<N>>));
+  });
 
   return () => {
     ipcMain.removeHandler(channel);

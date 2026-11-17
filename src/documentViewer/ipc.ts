@@ -108,6 +108,9 @@ export const startDocumentViewerHandler = (): void => {
       }
 
       event.preventDefault();
+      if (!/^https?:$/.test(new URL(url).protocol)) {
+        return;
+      }
       setTimeout(() => {
         openExternal(url);
       }, 10);

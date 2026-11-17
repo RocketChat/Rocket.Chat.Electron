@@ -19,6 +19,7 @@ import {
   prewarmDesktopCapturerCacheIfPermitted,
 } from '../screenSharing/desktopCapturerCache';
 import { requestViaPickerWindow } from '../screenSharing/popoutPickerRequest';
+import { isScreenCaptureSettingsUrl } from '../screenSharing/screenCaptureSettingsUrls';
 import type {
   DisplayMediaCallback,
   ScreenPickerProvider,
@@ -608,6 +609,13 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     }
   };
 
+  webContents.removeAllListeners('will-attach-webview');
+  webContents.on('will-attach-webview', (_event, webPreferences) => {
+    webPreferences.nodeIntegration = false;
+    webPreferences.nodeIntegrationInSubFrames = false;
+    webPreferences.contextIsolation = true;
+    webPreferences.sandbox = false;
+  });
   webContents.removeAllListeners('did-attach-webview');
   webContents.on('did-attach-webview', handleDidAttachWebview);
 
@@ -1367,6 +1375,9 @@ export const startVideoCallWindowHandler = (): void => {
   );
 
   handle('video-call-window/open-url', async (_webContents, url) => {
+    if (!isScreenCaptureSettingsUrl(url) && !(await isProtocolAllowed(url))) {
+      return;
+    }
     await openExternal(url);
   });
 

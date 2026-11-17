@@ -1,10 +1,14 @@
 import Bugsnag from '@bugsnag/js';
 import { app } from 'electron';
 
+import { redactHomePaths, redactSensitiveData } from './logging/privacy';
 import { select, listen } from './store';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from './ui/actions';
 
 type AppType = 'main' | 'rootWindow';
+
+const redactForReport = (text: string): string =>
+  redactHomePaths(redactSensitiveData(text));
 
 const DEFAULT_CRITICAL_PATTERNS = [
   'FATAL',
@@ -92,9 +96,30 @@ const initBugsnag = (apiKey: string, appVersion: string, appType: AppType) =>
     appVersion,
     appType,
     releaseStage: process.env.NODE_ENV,
-    redactedKeys: [/\/Users\/[^\/]+/],
     autoTrackSessions: false,
-    onError: () => select(({ isReportEnabled }) => isReportEnabled),
+    onError: (event) => {
+      if (!select(({ isReportEnabled }) => isReportEnabled)) {
+        return false;
+      }
+      for (const error of event.errors) {
+        error.errorMessage = redactForReport(error.errorMessage);
+        for (const frame of error.stacktrace) {
+          frame.file = redactForReport(frame.file);
+        }
+      }
+      for (const breadcrumb of event.breadcrumbs) {
+        breadcrumb.message = redactForReport(breadcrumb.message);
+        for (const [key, value] of Object.entries(breadcrumb.metadata ?? {})) {
+          if (typeof value === 'string') {
+            breadcrumb.metadata[key] = redactForReport(value);
+          }
+        }
+      }
+      if (event.context) {
+        event.context = redactForReport(event.context);
+      }
+      return true;
+    },
     // The app's uncaughtException handler decides whether to quit.
     onUncaughtException: () => undefined,
   });

@@ -403,15 +403,84 @@ describe('errors/report opt-in toggle', () => {
     await loadWithToggle();
 
     const { onError } = bugsnagStartMock.mock.calls[0][0];
-    expect(onError()).toBe(true);
+    const event = () => ({ errors: [], breadcrumbs: [] });
+    expect(onError(event())).toBe(true);
 
     state.isReportEnabled = false;
     await toggleHandler({ payload: false });
-    expect(onError()).toBe(false);
+    expect(onError(event())).toBe(false);
 
     state.isReportEnabled = true;
     await toggleHandler({ payload: true });
-    expect(onError()).toBe(true);
+    expect(onError(event())).toBe(true);
+  });
+
+  it('removes user names from home paths before an event is sent', async () => {
+    state.isReportEnabled = true;
+    await loadWithToggle();
+
+    const { onError } = bugsnagStartMock.mock.calls[0][0];
+    const event = {
+      context: '/home/alice/app',
+      errors: [
+        {
+          errorMessage: "ENOENT: open 'C:\\Users\\bob\\AppData\\x.json'",
+          stacktrace: [
+            { file: '/Users/carol/Applications/Rocket.Chat.app/main.js' },
+            { file: 'C:/Users/bob/AppData/Local/app.asar/main.js' },
+          ],
+        },
+      ],
+      breadcrumbs: [{ message: 'read /home/alice/.config/x' }],
+    };
+
+    expect(onError(event)).toBe(true);
+    expect(event.context).toBe('/home/~/app');
+    expect(event.errors[0].errorMessage).toBe(
+      "ENOENT: open 'C:\\Users\\~\\AppData\\x.json'"
+    );
+    expect(event.errors[0].stacktrace.map(({ file }) => file)).toEqual([
+      '/Users/~/Applications/Rocket.Chat.app/main.js',
+      'C:/Users/~/AppData/Local/app.asar/main.js',
+    ]);
+    expect(event.breadcrumbs[0].message).toBe('read /home/~/.config/x');
+  });
+
+  it('removes login tokens from an event before it is sent', async () => {
+    state.isReportEnabled = true;
+    await loadWithToggle();
+
+    const { onError } = bugsnagStartMock.mock.calls[0][0];
+    const fileUrl =
+      'https://chat.example.com/file-upload/abc/x.pdf?rc_uid=u1&rc_token=Xy7_-aBcDeFgHiJkLmNoPq';
+    const event = {
+      context: fileUrl,
+      errors: [
+        {
+          errorMessage: `ERR_ABORTED (-3) loading '${fileUrl}'`,
+          stacktrace: [],
+        },
+      ],
+      breadcrumbs: [
+        {
+          message: '{"resume":"Xy7_-aBcDeFgHiJkLmNoPq"}',
+          metadata: { request: `GET ${fileUrl}`, status: 403 },
+        },
+      ],
+    };
+
+    expect(onError(event)).toBe(true);
+    const redactedUrl =
+      'https://chat.example.com/file-upload/abc/x.pdf?rc_uid=u1&rc_token=[REDACTED]';
+    expect(event.context).toBe(redactedUrl);
+    expect(event.errors[0].errorMessage).toBe(
+      `ERR_ABORTED (-3) loading '${redactedUrl}'`
+    );
+    expect(event.breadcrumbs[0].message).toBe('{"resume":"[REDACTED]"}');
+    expect(event.breadcrumbs[0].metadata).toEqual({
+      request: `GET ${redactedUrl}`,
+      status: 403,
+    });
   });
 
   it('keeps the process alive after Bugsnag reports an uncaught exception', async () => {

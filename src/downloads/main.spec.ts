@@ -497,6 +497,74 @@ describe('downloads/main', () => {
       });
     });
 
+    describe('IPC handler: downloads/retry', () => {
+      const serverUrl = 'https://server.local/';
+      const download = {
+        itemId: 1,
+        url: 'https://server.local/file-upload/file.pdf',
+        serverUrl,
+        fileName: 'file.pdf',
+      };
+      const electronWebContents = jest.requireMock('electron').webContents;
+      const retry = (itemId: unknown) =>
+        (
+          mockHandle.mock.calls.find(
+            ([channel]) => (channel as string) === 'downloads/retry'
+          )?.[1] as any
+        )({} as any, itemId);
+      const setState = (webContentsId?: number) =>
+        mockSelect.mockImplementation((selector: any) =>
+          selector({
+            downloads: { 1: download },
+            servers: [{ url: serverUrl, webContentsId }],
+          })
+        );
+
+      afterEach(() => {
+        delete electronWebContents.fromId;
+      });
+
+      it('restarts the download in the server webContents', async () => {
+        const downloadURL = jest.fn();
+        electronWebContents.fromId = jest.fn(() => ({ downloadURL }));
+        setState(7);
+
+        await retry(1);
+
+        expect(electronWebContents.fromId).toHaveBeenCalledWith(7);
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: DOWNLOAD_REMOVED,
+          payload: 1,
+        });
+        expect(downloadURL).toHaveBeenCalledWith(download.url);
+      });
+
+      it('keeps the entry when the server has no webContents', async () => {
+        electronWebContents.fromId = jest.fn(() => undefined);
+        setState(undefined);
+
+        await retry(1);
+
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+
+      it('keeps the entry when the webContents is gone', async () => {
+        electronWebContents.fromId = jest.fn(() => undefined);
+        setState(7);
+
+        await retry(1);
+
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+
+      it('ignores an unknown item', async () => {
+        setState(7);
+
+        await expect(retry(2)).resolves.toBeUndefined();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+
     describe('IPC handler: downloads/clear-all', () => {
       it('should dispatch DOWNLOADS_CLEARED action', async () => {
         const clearAllHandler = mockHandle.mock.calls.find(

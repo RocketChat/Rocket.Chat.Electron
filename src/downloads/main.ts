@@ -353,9 +353,17 @@ export const setupDownloads = (): void => {
     const { download, webContentsId } = select(({ downloads, servers }) => {
       const download = downloads[itemId];
       const { webContentsId } =
-        servers.find((server) => server.url === download.serverUrl) ?? {};
+        servers.find((server) => server.url === download?.serverUrl) ?? {};
       return { download, webContentsId };
     });
+
+    const sourceWebContents =
+      webContentsId === undefined
+        ? undefined
+        : webContents.fromId(webContentsId);
+    if (!download || !sourceWebContents) {
+      return;
+    }
 
     const downloadStartTimestamp = new URL(download.url).searchParams.get(
       'X-Amz-Date'
@@ -403,14 +411,7 @@ export const setupDownloads = (): void => {
       payload: itemId,
     });
 
-    if (webContentsId && webContents !== undefined) {
-      if (webContents.fromId !== undefined) {
-        const webContentsInstance = webContents.fromId(webContentsId);
-        if (webContentsInstance !== undefined) {
-          webContentsInstance.downloadURL(download.url);
-        }
-      }
-    }
+    sourceWebContents.downloadURL(download.url);
   });
 
   handle('downloads/clear-all' as any, async () => {

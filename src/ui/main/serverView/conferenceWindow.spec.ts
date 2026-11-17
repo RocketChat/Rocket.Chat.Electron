@@ -81,7 +81,7 @@ const createServerWebContents = () => {
     addListener: jest.fn((event: string, listener: any) => {
       listeners.set(event, listener);
     }),
-    session: { on: jest.fn(), removeAllListeners: jest.fn() },
+    session: { on: jest.fn(), off: jest.fn() },
     navigationHistory: {
       canGoBack: jest.fn(() => true),
       goBack: jest.fn(),

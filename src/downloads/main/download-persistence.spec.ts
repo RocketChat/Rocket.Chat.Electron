@@ -1,9 +1,10 @@
 import path from 'path';
 
 import type { DownloadItem } from 'electron';
-import { app, webContents } from 'electron';
+import { app } from 'electron';
 import electronDl from 'electron-dl';
 
+import { handleWillDownloadEvent } from '../main';
 import { setupElectronDlWithTracking } from './setup';
 
 // Mock fs functions for directory validation
@@ -23,9 +24,7 @@ jest.mock('os', () => ({
 jest.mock('electron', () => ({
   app: {
     getPath: jest.fn(() => '/Users/test/Downloads'),
-  },
-  webContents: {
-    getAllWebContents: jest.fn(() => []),
+    on: jest.fn(),
   },
 }));
 
@@ -75,7 +74,6 @@ jest.mock('../../notifications/preload', () => ({
 describe('Download Folder Persistence', () => {
   let electronDlMock: jest.MockedFunction<typeof electronDl>;
   let appMock: jest.Mocked<typeof app>;
-  let webContentsMock: jest.Mocked<typeof webContents>;
 
   beforeEach(() => {
     // Clear all mocks
@@ -84,11 +82,9 @@ describe('Download Folder Persistence', () => {
     // Set up mocks
     electronDlMock = electronDl as jest.MockedFunction<typeof electronDl>;
     appMock = app as jest.Mocked<typeof app>;
-    webContentsMock = webContents as jest.Mocked<typeof webContents>;
 
     // Set up default mock behaviors
     appMock.getPath.mockReturnValue('/Users/test/Downloads');
-    webContentsMock.getAllWebContents.mockReturnValue([]);
     sharedMockStore.get.mockReturnValue('/Users/test/Downloads');
     sharedMockStore.set.mockReturnValue(undefined);
   });
@@ -458,24 +454,32 @@ describe('Download Folder Persistence', () => {
       }).not.toThrow();
     });
 
-    it('should handle missing webContents', () => {
-      expect(onStartedCallback).toBeDefined();
+    it('tracks each download with the webContents that started it', () => {
+      const [, onSessionCreated] = (appMock.on as jest.Mock).mock.calls.find(
+        ([eventName]) => eventName === 'session-created'
+      );
+      const session = { on: jest.fn() };
+      onSessionCreated(session);
 
-      webContentsMock.getAllWebContents.mockReturnValue([]);
-      const mockItem = createMockDownloadItem('test.pdf');
+      const [, onWillDownload] = session.on.mock.calls.find(
+        ([eventName]) => eventName === 'will-download'
+      );
+      const event = {};
+      const item = createMockDownloadItem('test.pdf');
+      const sourceWebContents = { id: 42 };
+      onWillDownload(event, item, sourceWebContents);
 
-      expect(() => onStartedCallback(mockItem)).not.toThrow();
+      expect(handleWillDownloadEvent).toHaveBeenCalledWith(
+        event,
+        item,
+        sourceWebContents
+      );
     });
 
-    it('should handle webContents with missing isDestroyed method', () => {
-      expect(onStartedCallback).toBeDefined();
+    it('does not track downloads from onStarted', () => {
+      onStartedCallback(createMockDownloadItem('test.pdf'));
 
-      const mockWebContents = { id: 123 } as any;
-      webContentsMock.getAllWebContents.mockReturnValue([mockWebContents]);
-
-      const mockItem = createMockDownloadItem('test.pdf');
-
-      expect(() => onStartedCallback(mockItem)).not.toThrow();
+      expect(handleWillDownloadEvent).not.toHaveBeenCalled();
     });
 
     it('should handle path operations on malformed paths', () => {

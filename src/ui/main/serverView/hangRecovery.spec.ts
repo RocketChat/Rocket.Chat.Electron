@@ -96,7 +96,7 @@ const createGuestWebContents = () => {
     session: {
       fetch: jest.fn(() => Promise.resolve({ status: 200 })),
       on: jest.fn(),
-      removeAllListeners: jest.fn(),
+      off: jest.fn(),
       flushStorageData: jest.fn(),
       clearStorageData: jest.fn(),
     },

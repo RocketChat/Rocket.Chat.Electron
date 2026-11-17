@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import { dirname, join, relative } from 'path';
 
 // Finds the labels of the Settings controls and the menu items that the
@@ -17,11 +17,13 @@ const SETTINGS_SECTIONS_DIR = 'src/settingsWindow/sections';
 const SETTINGS_SIDEBAR = 'src/settingsWindow/SettingsSidebar.tsx';
 
 // The files that build the application menu, its popups, the workspace
-// context menu, the tray menu and the workspace content context menu.
+// context menu, the tray menu, the workspace content context menu and the
+// edit context menu of the root window.
 const MENU_FILES = [
   'src/ui/main/menuBar.ts',
   'src/ui/main/trayIcon.ts',
   'src/ui/main/serverView/popupMenu.ts',
+  'src/ui/main/rootWindow.ts',
 ];
 
 const TRANSLATION_CALL = /\bt\(\s*['"]([\w.]+)['"]/g;
@@ -65,11 +67,24 @@ const unique = (sources: LabelSource[]): LabelSource[] => {
 const readSource = (root: string, file: string): string =>
   readFileSync(join(root, file), 'utf8');
 
-// A Settings control is a feature component that a section renders. Its label
-// is the `label` or `placeholder` prop of the field, or the `.title` key of
-// its options namespace when the component draws its own label.
+// The keys of `{t('…')}` children of a `<Button>` or a `<FieldLabel>`: the
+// text of a button or of a field label. Descriptions and status text are not
+// controls, so other children do not count.
+const JSX_TEXT_CALL =
+  /<(?:Button|FieldLabel)\b[^<]*?>\s*\{\s*t\(\s*['"]([\w.]+)['"]/g;
+
+const findJsxTextKeys = (source: string): string[] =>
+  [...source.matchAll(JSX_TEXT_CALL)].map(([, key]) => key);
+
+// A Settings control is a feature component that a section renders, or a
+// component that such a feature imports from its own folder. Its label is the
+// `label` or `placeholder` prop of the field, the text of a button or a field
+// label, or the `.title` key of its options namespace when the component
+// draws its own label. Status text that a component sets at run time (for
+// example "Loading...") is not a control, so it does not count.
 export const findSettingsKeysInSource = (source: string): string[] => [
   ...findVisibleProps(source).flatMap(findTranslationKeys),
+  ...findJsxTextKeys(source),
   ...findTranslationKeys(source).filter((key) =>
     /^settings\.options\.\w+\.title(Darwin)?$/.test(key)
   ),
@@ -80,7 +95,7 @@ export const findSettingsLabelKeys = (root: string): LabelSource[] => {
     .filter((name) => /\.tsx$/.test(name) && !/\.spec\.tsx$/.test(name))
     .map((name) => `${SETTINGS_SECTIONS_DIR}/${name}`);
 
-  const featureFiles = sectionFiles.flatMap((sectionFile) =>
+  const directFeatures = sectionFiles.flatMap((sectionFile) =>
     [
       ...readSource(root, sectionFile).matchAll(
         /from '(\.\.\/[\w./]*SettingsView\/features\/\w+)'/g
@@ -91,6 +106,23 @@ export const findSettingsLabelKeys = (root: string): LabelSource[] => {
         .join('/')
     )
   );
+
+  // Follow the value imports from the same folder, such as Telephony.tsx
+  // importing TelephonyDiagnostics.tsx. A type import draws nothing.
+  const featureFiles = new Set<string>();
+  const pending = [...directFeatures];
+  while (pending.length > 0) {
+    const file = pending.pop() as string;
+    if (featureFiles.has(file)) continue;
+    featureFiles.add(file);
+
+    for (const [, name] of readSource(root, file).matchAll(
+      /^import (?!type )[^;]*?from '\.\/(\w+)';/gms
+    )) {
+      const imported = `${dirname(file)}/${name}.tsx`;
+      if (existsSync(join(root, imported))) pending.push(imported);
+    }
+  }
 
   return unique(
     [...new Set([SETTINGS_SIDEBAR, ...sectionFiles, ...featureFiles])].flatMap(
@@ -163,22 +195,65 @@ export const toVisibleLabel = (label: string): string =>
     .replace(/\u0000/g, '&')
     .replace(/\{\{-?\s*appName\s*\}\}/g, 'Rocket.Chat');
 
+// The keys in the Key column of the map tables: the column whose header cell
+// is "Key". A key named only in prose or in another column does not count.
+export const findMapKeys = (mapText: string): Set<string> => {
+  const keys = new Set<string>();
+  let keyColumn = -1;
+
+  for (const line of mapText.split('\n')) {
+    if (!line.startsWith('|')) {
+      keyColumn = -1;
+      continue;
+    }
+    const cells = line.split('|').map((cell) => cell.trim());
+    if (keyColumn < 0) {
+      keyColumn = cells.indexOf('Key');
+      continue;
+    }
+
+    for (const [, key] of (cells[keyColumn] ?? '').matchAll(/`([\w.]+)`/g)) {
+      keys.add(key);
+    }
+  }
+
+  return keys;
+};
+
+// A map key that is not in the English file: renamed or removed in the
+// source. A plural base key counts when its `_one` or `_other` form exists.
+export const findUnknownMapKeys = (
+  mapKeys: Set<string>,
+  english: Record<string, string>
+): string[] =>
+  [...mapKeys]
+    .filter(
+      (key) =>
+        !(key in english) &&
+        !(`${key}_one` in english) &&
+        !(`${key}_other` in english)
+    )
+    .map(
+      (key) =>
+        `${FEATURE_MAP_PATH} names the key ${key}, but src/i18n/en.i18n.json does not have it. Update or remove the row.`
+    );
+
 export const findMissingEntries = ({
   kind,
-  mapText,
+  mapKeys,
   sources,
   english,
 }: {
   kind: string;
-  mapText: string;
+  mapKeys: Set<string>;
   sources: LabelSource[];
   english: Record<string, string>;
 }): string[] =>
   sources
-    .filter(({ key }) => !mapText.includes(`\`${key}\``))
+    .filter(({ key }) => !mapKeys.has(key))
     .map(({ key, file }) => {
       const label = english[key]
         ? `"${toVisibleLabel(english[key])}"`
         : '(no English text)';
-      return `${kind} ${label} (${key}, in ${file}) is not in ${FEATURE_MAP_PATH}. Add a row for it to the map, with the key in backticks.`;
+      return `${kind} ${label} (${key}, in ${file}) is not in ${FEATURE_MAP_PATH}. Add a row for it to the map, with the key in backticks in the Key column.`;
     });

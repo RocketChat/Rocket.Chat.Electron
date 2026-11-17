@@ -310,15 +310,20 @@ describe('downloads integration tests', () => {
       });
 
       await handleWillDownloadEvent(mockEvent, mockItem, mockWC);
+      const { itemId } = jest
+        .mocked(dispatch)
+        .mock.calls.map(([action]) => action as any)
+        .filter((action) => action.type === DOWNLOAD_CREATED)
+        .pop().payload;
       mockItem.isPaused.mockReturnValue(false);
-      await pauseHandler?.(null, downloadId);
+      await pauseHandler?.(null, itemId);
       expect(mockItem.pause).toHaveBeenCalledTimes(1);
 
       mockItem.isPaused.mockReturnValue(true);
-      await resumeHandler?.(null, downloadId);
+      await resumeHandler?.(null, itemId);
       expect(mockItem.resume).toHaveBeenCalledTimes(1);
 
-      await cancelHandler?.(null, downloadId);
+      await cancelHandler?.(null, itemId);
       expect(mockItem.cancel).toHaveBeenCalledTimes(1);
 
       Date.now = fixedNow;

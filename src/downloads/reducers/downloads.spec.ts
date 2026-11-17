@@ -1,3 +1,4 @@
+import { APP_SETTINGS_LOADED } from '../../app/actions';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
@@ -24,6 +25,20 @@ describe('downloads reducer', () => {
     mimeType: 'application/pdf',
     savePath: '/downloads/test-file.pdf',
   };
+
+  it('keeps unfinished downloads as loaded, for the main process to mark them interrupted', () => {
+    const loaded = {
+      [mockDownload.itemId]: { ...mockDownload, state: 'progressing' as const },
+    };
+
+    const state = downloads(undefined, {
+      type: APP_SETTINGS_LOADED,
+      payload: { downloads: loaded },
+    } as any);
+
+    expect(state[mockDownload.itemId]?.state).toBe('progressing');
+    expect(loaded[mockDownload.itemId].state).toBe('progressing');
+  });
 
   it('should return initial state', () => {
     expect(downloads(undefined, { type: 'UNKNOWN_ACTION' } as any)).toEqual({});

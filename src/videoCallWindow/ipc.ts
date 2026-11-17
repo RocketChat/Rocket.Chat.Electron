@@ -42,6 +42,7 @@ import {
   getServerUrlByWebContentsId,
   getWebContentsByServerUrl,
   setupServerViewPermissionHandler,
+  setVideoCallGuestMatcher,
 } from '../ui/main/serverView';
 import { openExternal } from '../utils/browserLauncher';
 
@@ -1296,6 +1297,12 @@ const bringRootWindowToFront = async (): Promise<void> => {
 };
 
 export const startVideoCallWindowHandler = (): void => {
+  setVideoCallGuestMatcher(
+    (webContents) =>
+      Boolean(videoCallWindow && !videoCallWindow.isDestroyed()) &&
+      webContents?.hostWebContents === videoCallWindow?.webContents
+  );
+
   // Sync IPC handler for provider name - used by jitsiBridge preload
   // to skip ScreenObtainer install for non-Jitsi providers without async delay
   ipcMain.on('video-call-window/get-provider-sync', (event) => {

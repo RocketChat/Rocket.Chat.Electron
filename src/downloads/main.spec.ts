@@ -95,6 +95,30 @@ describe('downloads/main', () => {
         preventDefault: jest.fn(),
       }) as unknown as Event;
 
+    it('gives two downloads started in the same millisecond different ids', async () => {
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+      mockSelect.mockReturnValue(undefined);
+
+      await handleWillDownloadEvent(
+        createMockEvent(),
+        createMockDownloadItem(),
+        createMockWebContents(1)
+      );
+      await handleWillDownloadEvent(
+        createMockEvent(),
+        createMockDownloadItem(),
+        createMockWebContents(1)
+      );
+
+      const ids = mockDispatch.mock.calls
+        .map(([action]) => action as any)
+        .filter((action) => action.type === DOWNLOAD_CREATED)
+        .map((action) => action.payload.itemId);
+      nowSpy.mockRestore();
+      expect(new Set(ids).size).toBe(ids.length);
+      expect(ids.length).toBeGreaterThanOrEqual(2);
+    });
+
     it('should create a download entry in Redux store when server is found', async () => {
       const mockItem = createMockDownloadItem();
       const mockWebContents = createMockWebContents(123);
@@ -670,6 +694,7 @@ describe('downloads/main', () => {
           payload: expect.objectContaining({
             itemId: 'paused-item',
             state: 'interrupted',
+            status: DownloadStatus.CANCELLED,
             endTime: expect.any(Number),
           }),
         });

@@ -63,10 +63,6 @@ const setupGlobalErrorHandlers = (): void => {
   process.on('uncaughtException', (error: Error) => {
     console.error('Uncaught Exception:', error);
 
-    if (Bugsnag.isStarted()) {
-      Bugsnag.notify(error);
-    }
-
     if (isCriticalError(error)) {
       console.error('Critical error detected, app cannot continue');
       app.quit();
@@ -80,10 +76,6 @@ const setupGlobalErrorHandlers = (): void => {
         : new Error(`Unhandled Promise Rejection: ${String(reason)}`);
 
     console.error('Unhandled Promise Rejection:', error);
-
-    if (Bugsnag.isStarted()) {
-      Bugsnag.notify(error);
-    }
 
     if (isCriticalError(error)) {
       console.error('Critical promise rejection, app cannot continue');
@@ -102,6 +94,9 @@ const initBugsnag = (apiKey: string, appVersion: string, appType: AppType) =>
     releaseStage: process.env.NODE_ENV,
     redactedKeys: [/\/Users\/[^\/]+/],
     autoTrackSessions: false,
+    onError: () => select(({ isReportEnabled }) => isReportEnabled),
+    // The app's uncaughtException handler decides whether to quit.
+    onUncaughtException: () => undefined,
   });
 
 const listenToBugsnagEnabledToggle = async (appType: AppType) => {
@@ -128,7 +123,7 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
   listen(SETTINGS_SET_REPORT_OPT_IN_CHANGED, async (action) => {
     const isReportEnabled = action.payload;
 
-    if (isReportEnabled) {
+    if (isReportEnabled && !process.mas) {
       bugsnagInstance =
         bugsnagInstance || initBugsnag(apiKey, effectiveVersion, appType);
       bugsnagInstance.startSession();

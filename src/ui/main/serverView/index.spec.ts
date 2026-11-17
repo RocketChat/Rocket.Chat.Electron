@@ -1,4 +1,4 @@
-import type { Event, WebContents } from 'electron';
+import type { BrowserWindow, Event, WebContents } from 'electron';
 
 import { isProtocolAllowed } from '../../../navigation/main';
 import { dispatch, listen, select } from '../../../store';
@@ -10,7 +10,12 @@ import {
   WEBVIEW_AUDIO_STATE_CHANGED,
   WEBVIEW_READY,
 } from '../../actions';
-import { attachGuestWebContentsEvents } from './index';
+import { handleMediaPermissionRequest } from '../mediaPermissions';
+import {
+  attachGuestWebContentsEvents,
+  setVideoCallGuestMatcher,
+  setupServerViewPermissionHandler,
+} from './index';
 
 jest.mock('electron', () => ({
   app: {
@@ -433,5 +438,102 @@ describe('serverView audio state and mute handling', () => {
       type: WEBVIEW_AUDIO_MUTED_CHANGED,
       payload: { url: 'https://open.rocket.chat', isAudioMuted: true },
     });
+  });
+});
+
+describe('serverView media permission', () => {
+  const mockSelect = select as unknown as jest.Mock;
+  const mockHandleMedia = handleMediaPermissionRequest as jest.MockedFunction<
+    typeof handleMediaPermissionRequest
+  >;
+  const rootWindow = {} as BrowserWindow;
+  const servers = [{ url: 'https://chat.example.com' }];
+  const videoCallHost = { id: 1 } as unknown as WebContents;
+  const otherHost = { id: 2 } as unknown as WebContents;
+
+  type PermissionHandler = (
+    requestingWebContents: unknown,
+    permission: string,
+    callback: (allowed: boolean) => void,
+    details: Record<string, unknown>
+  ) => Promise<void>;
+  let permissionHandler: PermissionHandler;
+
+  const requestMedia = (
+    requestingWebContents: unknown,
+    requestingUrl: string,
+    callback: (allowed: boolean) => void
+  ): Promise<void> =>
+    permissionHandler(requestingWebContents, 'media', callback, {
+      requestingUrl,
+      isMainFrame: true,
+      mediaTypes: ['video', 'audio'],
+    });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelect.mockReturnValue(servers);
+    const guestWebContents = {
+      session: {
+        setPermissionRequestHandler: jest.fn((handler: PermissionHandler) => {
+          permissionHandler = handler;
+        }),
+      },
+    } as unknown as WebContents;
+    setupServerViewPermissionHandler(guestWebContents, rootWindow);
+  });
+
+  it('denies media for a page that is not a workspace or a call', async () => {
+    const callback = jest.fn();
+
+    await requestMedia(
+      { hostWebContents: otherHost },
+      'https://meet.jit.si/room',
+      callback
+    );
+
+    expect(callback).toHaveBeenCalledWith(false);
+    expect(mockHandleMedia).not.toHaveBeenCalled();
+  });
+
+  it('sends media from the server origin to the OS check', async () => {
+    const callback = jest.fn();
+
+    await requestMedia(
+      { hostWebContents: null },
+      'https://chat.example.com/channel/general',
+      callback
+    );
+
+    expect(mockHandleMedia).toHaveBeenCalledWith(
+      ['video', 'audio'],
+      rootWindow,
+      'recordMessage',
+      callback
+    );
+  });
+
+  it('sends media from a webview hosted by the video call window to the OS check', async () => {
+    const callback = jest.fn();
+    setVideoCallGuestMatcher(
+      (webContents) => webContents?.hostWebContents === videoCallHost
+    );
+
+    try {
+      await requestMedia(
+        { hostWebContents: videoCallHost },
+        'https://meet.jit.si/room',
+        callback
+      );
+    } finally {
+      setVideoCallGuestMatcher(() => false);
+    }
+
+    expect(mockHandleMedia).toHaveBeenCalledWith(
+      ['video', 'audio'],
+      rootWindow,
+      'recordMessage',
+      callback
+    );
   });
 });

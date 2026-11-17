@@ -188,10 +188,20 @@ const configureLogging = () => {
         ERRORS_FLUSH_INTERVAL_MS
       );
 
-      log.hooks.push((message: any) => {
-        if (message.level === 'error') {
+      // Hooks run once per transport.
+      log.hooks.push((message: any, _transport: unknown, transportName) => {
+        if (message.level === 'error' && transportName === 'file') {
           try {
-            const rawText = message.data?.join(' ') || '';
+            const rawText = (message.data ?? [])
+              .map((item: unknown) => {
+                if (typeof item === 'string') return item;
+                try {
+                  return JSON.stringify(item);
+                } catch {
+                  return String(item);
+                }
+              })
+              .join(' ');
             errorJsonlBuffer.push(
               `${JSON.stringify({
                 timestamp: new Date().toISOString(),

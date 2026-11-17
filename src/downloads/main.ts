@@ -128,12 +128,19 @@ const startDownloadsSimulation = (): void => {
   startSimulatedDownload(archiveDownload, archiveDownload.totalBytes / 56);
 };
 
+let lastItemId = 0;
+
+const nextItemId = (): number => {
+  lastItemId = Math.max(Date.now(), lastItemId + 1);
+  return lastItemId;
+};
+
 export const handleWillDownloadEvent = async (
   _event: Event,
   item: DownloadItem,
   serverWebContents: WebContents
 ): Promise<void> => {
-  const itemId = Date.now();
+  const itemId = nextItemId();
   items.set(itemId, item);
 
   const server = select(({ servers }) =>
@@ -235,6 +242,7 @@ const interruptOrphanedDownloads = (): void => {
       payload: {
         itemId: download.itemId,
         state: 'interrupted',
+        status: DownloadStatus.CANCELLED,
         endTime: Date.now(),
       },
     });

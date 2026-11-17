@@ -11,6 +11,7 @@ import {
   prewarmDesktopCapturerCacheIfPermitted,
 } from './desktopCapturerCache';
 import { requestViaPickerWindow } from './popoutPickerRequest';
+import { isScreenCaptureSettingsUrl } from './screenCaptureSettingsUrls';
 import type {
   DisplayMediaCallback,
   ScreenPickerProvider,
@@ -212,8 +213,7 @@ export const startServerViewScreenSharingHandler = (): void => {
   );
 
   handle('screen-picker/open-url', async (_webContents, url) => {
-    const allowed = await isProtocolAllowed(url);
-    if (!allowed) {
+    if (!isScreenCaptureSettingsUrl(url) && !(await isProtocolAllowed(url))) {
       return;
     }
     await openExternal(url);

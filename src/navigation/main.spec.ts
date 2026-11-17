@@ -489,6 +489,55 @@ describe('navigation/main.ts', () => {
       });
     });
 
+    it('asks separately for each host that presents the same certificate', async () => {
+      const firstCallback = jest.fn();
+      const secondCallback = jest.fn();
+      const resolvers: Array<(value: AskForCertificateTrustResponse) => void> =
+        [];
+      askForCertificateTrustMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolvers.push(resolve);
+          })
+      );
+      const certificate = makeCertificate({
+        fingerprint: 'shared',
+        issuerName: 'Test CA',
+        data: 'DATA',
+      });
+      setNavigationState({ trustedCertificates: {} });
+
+      await setup();
+      const certificateErrorListener = getListener('certificate-error');
+      const firstResponse = certificateErrorListener(
+        { preventDefault: jest.fn() } as never,
+        {} as never,
+        'https://first.local/',
+        'ERR',
+        certificate,
+        firstCallback
+      );
+      const secondResponse = certificateErrorListener(
+        { preventDefault: jest.fn() } as never,
+        {} as never,
+        'https://second.local/',
+        'ERR',
+        certificate,
+        secondCallback
+      );
+
+      expect(askForCertificateTrustMock).toHaveBeenCalledTimes(2);
+
+      resolvers[0](AskForCertificateTrustResponse.YES);
+      await firstResponse;
+      expect(firstCallback).toHaveBeenCalledWith(true);
+      expect(secondCallback).not.toHaveBeenCalled();
+
+      resolvers[1](AskForCertificateTrustResponse.NO);
+      await secondResponse;
+      expect(secondCallback).toHaveBeenCalledWith(false);
+    });
+
     it('uses the different-certificate message when host was previously trusted', async () => {
       const event = { preventDefault: jest.fn() };
       const callback = jest.fn();

@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import type { Certificate } from 'electron';
 import { app } from 'electron';
 import i18next from 'i18next';
 
@@ -43,7 +42,7 @@ const loadUserTrustedCertificates = async (): Promise<
 export { serializeCertificate };
 
 const queuedTrustRequests = new Map<
-  Certificate['fingerprint'],
+  string,
   Array<(isTrusted: boolean) => void>
 >();
 
@@ -92,12 +91,13 @@ export const setupNavigation = async (): Promise<void> => {
         return;
       }
 
-      if (queuedTrustRequests.has(certificate.fingerprint)) {
-        queuedTrustRequests.get(certificate.fingerprint)?.push(callback);
+      const queueKey = `${host}|${certificate.fingerprint}`;
+      if (queuedTrustRequests.has(queueKey)) {
+        queuedTrustRequests.get(queueKey)?.push(callback);
         return;
       }
 
-      queuedTrustRequests.set(certificate.fingerprint, [callback]);
+      queuedTrustRequests.set(queueKey, [callback]);
 
       let detail = `URL: ${requestedUrl}\nError: ${error}`;
       if (trustedCertificates[host]) {
@@ -112,11 +112,11 @@ export const setupNavigation = async (): Promise<void> => {
       const isTrustedByUser = response;
 
       queuedTrustRequests
-        .get(certificate.fingerprint)
+        .get(queueKey)
         ?.forEach((cb) =>
           cb(isTrustedByUser === AskForCertificateTrustResponse.YES)
         );
-      queuedTrustRequests.delete(certificate.fingerprint);
+      queuedTrustRequests.delete(queueKey);
 
       trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates

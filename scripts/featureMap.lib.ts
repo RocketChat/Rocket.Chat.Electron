@@ -13,6 +13,9 @@ export const FEATURE_MAP_PATH = 'docs/feature-map.md';
 
 const SETTINGS_SECTIONS_DIR = 'src/settingsWindow/sections';
 
+// The search field of the settings window lives outside the sections.
+const SETTINGS_SIDEBAR = 'src/settingsWindow/SettingsSidebar.tsx';
+
 // The files that build the application menu, its popups, the workspace
 // context menu, the tray menu and the workspace content context menu.
 const MENU_FILES = [
@@ -26,11 +29,12 @@ const TRANSLATION_CALL = /\bt\(\s*['"]([\w.]+)['"]/g;
 const findTranslationKeys = (text: string): string[] =>
   [...text.matchAll(TRANSLATION_CALL)].map(([, key]) => key);
 
-// The text of each `label={…}` JSX prop, with nested braces kept whole. An
-// `aria-label` is not a visible label, so it does not count.
-const findLabelProps = (source: string): string[] => {
+// The text of each `label={…}` and `placeholder={…}` JSX prop, with nested
+// braces kept whole. Both show text to the user. An `aria-label` is not
+// visible, so it does not count.
+export const findVisibleProps = (source: string): string[] => {
   const props: string[] = [];
-  const opening = /(?<![\w-])label=\{/g;
+  const opening = /(?<![\w-])(?:label|placeholder)=\{/g;
 
   for (const match of source.matchAll(opening)) {
     const start = (match.index ?? 0) + match[0].length;
@@ -62,8 +66,15 @@ const readSource = (root: string, file: string): string =>
   readFileSync(join(root, file), 'utf8');
 
 // A Settings control is a feature component that a section renders. Its label
-// is the `label` prop of the field, or the `.title` key of its options
-// namespace when the component draws its own label.
+// is the `label` or `placeholder` prop of the field, or the `.title` key of
+// its options namespace when the component draws its own label.
+export const findSettingsKeysInSource = (source: string): string[] => [
+  ...findVisibleProps(source).flatMap(findTranslationKeys),
+  ...findTranslationKeys(source).filter((key) =>
+    /^settings\.options\.\w+\.title(Darwin)?$/.test(key)
+  ),
+];
+
 export const findSettingsLabelKeys = (root: string): LabelSource[] => {
   const sectionFiles = readdirSync(join(root, SETTINGS_SECTIONS_DIR))
     .filter((name) => /\.tsx$/.test(name) && !/\.spec\.tsx$/.test(name))
@@ -82,42 +93,50 @@ export const findSettingsLabelKeys = (root: string): LabelSource[] => {
   );
 
   return unique(
-    [...new Set([...sectionFiles, ...featureFiles])].flatMap((file) => {
-      const source = readSource(root, file);
-      const labelKeys = findLabelProps(source).flatMap(findTranslationKeys);
-      const titleKeys = findTranslationKeys(source).filter((key) =>
-        /^settings\.options\.\w+\.title(Darwin)?$/.test(key)
-      );
-      return [...labelKeys, ...titleKeys].map((key) => ({ key, file }));
-    })
+    [...new Set([SETTINGS_SIDEBAR, ...sectionFiles, ...featureFiles])].flatMap(
+      (file) =>
+        findSettingsKeysInSource(readSource(root, file)).map((key) => ({
+          key,
+          file,
+        }))
+    )
   );
 };
 
+const parenDepth = (text: string): number =>
+  (text.match(/\(/g) ?? []).length - (text.match(/\)/g) ?? []).length;
+
 // A menu item label is a `t('…')` call in a `label:` or `labelKey:` property.
-// A ternary label continues on the lines that start with `?` or `:`.
+// The expression continues while a parenthesis is open (a call that Prettier
+// wraps) and on the lines that start with `?` or `:` (a ternary).
+export const findMenuKeysInSource = (source: string): string[] => {
+  const lines = source.split('\n');
+
+  return lines.flatMap((line, index) => {
+    const labelKeyMatch = line.match(/\blabelKey:\s*['"]([\w.]+)['"]/);
+    if (labelKeyMatch) return [labelKeyMatch[1]];
+
+    if (!/\blabel:/.test(line)) return [];
+
+    const expression = [line];
+    for (let next = index + 1; next < lines.length; next += 1) {
+      const open = parenDepth(expression.join('\n')) > 0;
+      if (!open && !/^\s*[?:]/.test(lines[next])) break;
+      expression.push(lines[next]);
+    }
+
+    return findTranslationKeys(expression.join('\n'));
+  });
+};
+
 export const findMenuLabelKeys = (root: string): LabelSource[] =>
   unique(
-    MENU_FILES.flatMap((file) => {
-      const lines = readSource(root, file).split('\n');
-
-      return lines.flatMap((line, index) => {
-        const labelKeyMatch = line.match(/\blabelKey:\s*['"]([\w.]+)['"]/);
-        if (labelKeyMatch) return [{ key: labelKeyMatch[1], file }];
-
-        if (!/\blabel:/.test(line)) return [];
-
-        const expression = [line];
-        for (let next = index + 1; next < lines.length; next += 1) {
-          if (!/^\s*[?:]/.test(lines[next])) break;
-          expression.push(lines[next]);
-        }
-
-        return findTranslationKeys(expression.join('\n')).map((key) => ({
-          key,
-          file,
-        }));
-      });
-    })
+    MENU_FILES.flatMap((file) =>
+      findMenuKeysInSource(readSource(root, file)).map((key) => ({
+        key,
+        file,
+      }))
+    )
   );
 
 const flatten = (tree: TranslationTree, prefix = ''): Record<string, string> =>

@@ -178,6 +178,33 @@ describe('documentViewer/ipc', () => {
       }
     });
 
+    it('blocks file: and data: links without opening them', async () => {
+      jest.useFakeTimers();
+      try {
+        const on = jest.fn();
+        const getURL = jest.fn(() => 'https://open.rocket.chat/pdf-viewer');
+        (webContents.fromId as jest.Mock).mockReturnValue({ on, getURL });
+        await listeners.get(WEBVIEW_PDF_VIEWER_ATTACHED)?.({
+          type: WEBVIEW_PDF_VIEWER_ATTACHED,
+          payload: { WebContentsId: 42 },
+        });
+        const handler = on.mock.calls[0][1];
+
+        for (const url of [
+          'file:///C:/Users/Public/payload.exe',
+          'data:text/html,<script>alert(1)</script>',
+        ]) {
+          const event = { preventDefault: jest.fn() };
+          handler(event, url);
+          expect(event.preventDefault).toHaveBeenCalled();
+        }
+        await jest.advanceTimersByTimeAsync(20);
+        expect(openExternal).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('skips video call windows', async () => {
       const on = jest.fn();
       (webContents.fromId as jest.Mock).mockReturnValue({

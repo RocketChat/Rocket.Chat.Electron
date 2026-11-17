@@ -1,5 +1,6 @@
 import type { BrowserWindow, Event, WebContents } from 'electron';
 
+import { setTrustedSenderCheck } from '../../../ipc/main';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { dispatch, listen, select } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
@@ -34,6 +35,7 @@ jest.mock('../../../app/main/dev', () => ({
 
 jest.mock('../../../ipc/main', () => ({
   handle: jest.fn(),
+  setTrustedSenderCheck: jest.fn(),
 }));
 
 jest.mock('../../../navigation/main', () => ({
@@ -535,5 +537,72 @@ describe('serverView media permission', () => {
       'recordMessage',
       callback
     );
+  });
+});
+
+describe('serverView desktop API sender check', () => {
+  const serverUrl = 'https://open.rocket.chat/';
+  let isTrusted: (event: unknown) => boolean;
+  let guest: WebContents;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    await attachGuestWebContentsEvents();
+    isTrusted = (setTrustedSenderCheck as jest.Mock).mock.calls[0][0];
+
+    guest = {
+      id: 1,
+      addListener: jest.fn(),
+      on: jest.fn(),
+      removeAllListeners: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      setAudioMuted: jest.fn(),
+      isAudioMuted: jest.fn(() => false),
+      isDestroyed: jest.fn(() => false),
+      isLoading: jest.fn(() => false),
+      session: { on: jest.fn(), off: jest.fn() },
+    } as unknown as WebContents;
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockImplementation((id: number) => (id === 1 ? guest : undefined));
+
+    const webviewAttached = (listen as unknown as jest.Mock).mock.calls.find(
+      ([actionType]) => actionType === WEBVIEW_ATTACHED
+    )?.[1] as (action: unknown) => void;
+    webviewAttached({ payload: { webContentsId: 1, url: serverUrl } });
+  });
+
+  it('accepts calls from the workspace origin', () => {
+    expect(
+      isTrusted({
+        sender: guest,
+        senderFrame: { url: 'https://open.rocket.chat/home' },
+      })
+    ).toBe(true);
+  });
+
+  it('refuses calls from another origin in the workspace webview', () => {
+    expect(
+      isTrusted({
+        sender: guest,
+        senderFrame: {
+          url: 'https://sso.example.com/login',
+          origin: 'https://sso.example.com',
+        },
+      })
+    ).toBe(false);
+  });
+
+  it('refuses calls when the sender frame is gone', () => {
+    expect(isTrusted({ sender: guest, senderFrame: null })).toBe(false);
+  });
+
+  it('accepts calls from webContents that are not workspace webviews', () => {
+    expect(
+      isTrusted({
+        sender: { id: 2 },
+        senderFrame: { url: 'file:///app/index.html' },
+      })
+    ).toBe(true);
   });
 });

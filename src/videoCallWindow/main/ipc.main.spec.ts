@@ -1114,6 +1114,69 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(openExternal).not.toHaveBeenCalled();
     });
 
+    it('attaches the conference webview without Node and with context isolation', async () => {
+      getServerUrlByWebContentsId.mockReturnValue('https://chat.example');
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(1), 'https://meet.example/room');
+      const webPreferences = {
+        nodeIntegration: true,
+        nodeIntegrationInSubFrames: true,
+        contextIsolation: false,
+      };
+
+      fire(
+        createdWindows[0].webContents.listeners,
+        'will-attach-webview',
+        {},
+        webPreferences
+      );
+
+      expect(webPreferences).toMatchObject({
+        nodeIntegration: false,
+        nodeIntegrationInSubFrames: false,
+        contextIsolation: true,
+      });
+    });
+
+    it('does not open a URL whose protocol is not allowed', async () => {
+      const { isProtocolAllowed } = (await import(
+        '../../navigation/main'
+      )) as any;
+      const { openExternal } = (await import(
+        '../../utils/browserLauncher'
+      )) as any;
+      await loadModule();
+      isProtocolAllowed.mockResolvedValueOnce(false);
+
+      await handleRegistry.get('video-call-window/open-url')?.(
+        makeCallerWc(1),
+        'file:///C:/payload.exe'
+      );
+
+      expect(isProtocolAllowed).toHaveBeenCalledWith('file:///C:/payload.exe');
+      expect(openExternal).not.toHaveBeenCalled();
+    });
+
+    it('opens the screen recording settings without asking about the protocol', async () => {
+      const { isProtocolAllowed } = (await import(
+        '../../navigation/main'
+      )) as any;
+      const { openExternal } = (await import(
+        '../../utils/browserLauncher'
+      )) as any;
+      await loadModule();
+
+      await handleRegistry.get('video-call-window/open-url')?.(
+        makeCallerWc(1),
+        'ms-settings:privacy-screencapture'
+      );
+
+      expect(isProtocolAllowed).not.toHaveBeenCalled();
+      expect(openExternal).toHaveBeenCalledWith(
+        'ms-settings:privacy-screencapture'
+      );
+    });
+
     it('routes tab-disposition http(s) popups to the system browser and denies the Electron window', async () => {
       const guest = await attachGuest();
       const handler = guest.setWindowOpenHandler.mock.calls[0][0];

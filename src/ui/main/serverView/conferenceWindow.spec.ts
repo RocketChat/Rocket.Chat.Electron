@@ -28,6 +28,7 @@ jest.mock('../../../app/main/dev', () => ({
 
 jest.mock('../../../ipc/main', () => ({
   handle: jest.fn(),
+  setTrustedSenderCheck: jest.fn(),
 }));
 
 jest.mock('../../../navigation/main', () => ({

@@ -33,7 +33,10 @@ jest.mock('electron', () => ({
 }));
 
 jest.mock('../../../app/main/dev', () => ({ setupPreloadReload: jest.fn() }));
-jest.mock('../../../ipc/main', () => ({ handle: jest.fn() }));
+jest.mock('../../../ipc/main', () => ({
+  handle: jest.fn(),
+  setTrustedSenderCheck: jest.fn(),
+}));
 jest.mock('../../../navigation/main', () => ({ isProtocolAllowed: jest.fn() }));
 jest.mock('../../../screenSharing/serverViewScreenSharing', () => ({
   setupServerViewDisplayMedia: jest.fn(),

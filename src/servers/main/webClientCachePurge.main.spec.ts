@@ -135,4 +135,24 @@ describe('purgeWebClientCacheOnce', () => {
     expect(wc.session.clearStorageData).not.toHaveBeenCalled();
     expect(store.writeState).not.toHaveBeenCalled();
   });
+
+  it('keeps the entry of each server when two servers purge at the same time', async () => {
+    const other = 'https://other.example.com/';
+    const store = memoryState();
+    await Promise.all([
+      purgeWebClientCacheOnce(
+        server,
+        guest([server]) as any,
+        store.readState,
+        store.writeState
+      ),
+      purgeWebClientCacheOnce(
+        other,
+        guest([other]) as any,
+        store.readState,
+        store.writeState
+      ),
+    ]);
+    expect(store.get()).toEqual({ [server]: 'purged', [other]: 'purged' });
+  });
 });

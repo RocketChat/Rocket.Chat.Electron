@@ -120,6 +120,23 @@ type GuestWebContents = Pick<
   'executeJavaScriptInIsolatedWorld' | 'reload'
 > & { session: Pick<Session, 'clearStorageData'> };
 
+// Purges of two servers share one state file. Each read-modify-write waits for
+// the one before it, so neither server drops the other's entry.
+let stateWrites: Promise<void> = Promise.resolve();
+const setServerState = (
+  readState: ReadState,
+  writeState: WriteState,
+  serverUrl: string,
+  value: PurgeState[string]
+): Promise<void> => {
+  const write = stateWrites.then(async () => {
+    const state = await readState();
+    await writeState({ ...state, [serverUrl]: value });
+  });
+  stateWrites = write.catch(() => undefined);
+  return write;
+};
+
 // A clear issued before the page uses its partition left the bytes on disk in
 // the app, so the clear runs on the live session and the page reloads.
 export const purgeWebClientCacheOnce = async (
@@ -154,12 +171,12 @@ export const purgeWebClientCacheOnce = async (
       storages: ['indexdb'],
     });
     next = 'purged';
-    await writeState({ ...state, [serverUrl]: next });
+    await setServerState(readState, writeState, serverUrl, next);
     guestWebContents.reload();
     return;
   }
   if (state[serverUrl] !== next) {
-    await writeState({ ...state, [serverUrl]: next });
+    await setServerState(readState, writeState, serverUrl, next);
   }
 };
 

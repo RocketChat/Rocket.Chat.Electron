@@ -93,15 +93,31 @@ const canonicalWorkspace = (workspaceUrl: string): string | undefined => {
   }
 };
 
+const CLEAR_LOCAL_STORAGE_TIMEOUT_MS = 3_000;
+
 // Removing and restoring consent sends a transient opt-out to other pages,
 // which can delete the retained index. Leave valid scoped metadata untouched.
+// A page on another origin, such as an SSO page, holds no workspace metadata.
 const clearLocalStorageKeepingSearchIndexMetadata = async (
   guestWebContents: WebContents,
   workspaceUrl: string
 ): Promise<void> => {
   const workspace = canonicalWorkspace(workspaceUrl);
-  await guestWebContents.executeJavaScript(`(() => {
+  // Electron holds the script while the page loads, so a stuck page never answers.
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error('local storage clear timed out')),
+      CLEAR_LOCAL_STORAGE_TIMEOUT_MS
+    );
+  });
+  try {
+    await Promise.race([
+      guestWebContents.executeJavaScript(`(() => {
     const workspace = ${JSON.stringify(workspace ?? null)};
+    if (!workspace || location.origin !== new URL(workspace).origin) {
+      throw new Error('wrong origin');
+    }
     const consentPrefix = 'E2EESearch_OptIn_v2_';
     const syncTimePrefix = 'E2EESearch_SyncedAt_v2_';
     const preferencesPrefix = 'E2EESearch_Prefs_v2_';
@@ -133,7 +149,12 @@ const clearLocalStorageKeepingSearchIndexMetadata = async (
     for (const key of Object.keys(localStorage)) {
       if (!keep(key)) localStorage.removeItem(key);
     }
-  })()`);
+  })()`),
+      timeout,
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 };
 
 export const handleClearCacheDialog = () => {

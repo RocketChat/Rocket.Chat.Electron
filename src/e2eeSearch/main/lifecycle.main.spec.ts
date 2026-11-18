@@ -12,7 +12,7 @@ import {
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { createSearchHost, SAVE_DELAY_MS } from '../host';
+import { createSearchHost } from '../host';
 import type { SearchHost } from '../host';
 import {
   createKeyStore,
@@ -20,12 +20,11 @@ import {
 } from '../keyStore';
 import {
   collectIndexStats,
-  deleteAllIndexes,
-  deleteServerIndexes,
   createUserIndexLimiter,
   indexDirOf,
   MAX_USER_INDEXES_PER_SERVER,
   serverDirName,
+  serverDirsOf,
   userDirName,
 } from '../lifecycle';
 import { SNAPSHOT_FILE_NAME } from '../snapshotStore';
@@ -88,7 +87,7 @@ describe('E2EE search server removal', () => {
     const open = jest.spyOn(host, 'open');
     const events = jest.fn();
     host.onIndexEvent(active, events);
-    await deleteAllIndexes(host, root, true);
+    await createUserIndexLimiter({ host }).clearServer(serverA);
     expect(open).not.toHaveBeenCalled();
     expect(existsSync(inactive)).toBe(false);
     expect(host.indexIds()).toEqual([active]);
@@ -106,79 +105,37 @@ describe('E2EE search server removal', () => {
     );
   });
 
-  it('deletes a saved index that closes before recoverable clear executes', async () => {
+  it('deletes a saved index that closes before the clear executes', async () => {
     const dir = await openWithDocs(serverA, 'closing-user');
     await host.flush();
     const closing = host.close(dir);
-    const clearing = deleteAllIndexes(host, root, true);
+    const clearing = createUserIndexLimiter({ host }).clearServer(serverA);
     await Promise.all([closing, clearing]);
     expect(host.indexIds()).toEqual([]);
     expect(existsSync(dir)).toBe(false);
   });
 
-  it('deletes the folder of the removed server and keeps the other server', async () => {
-    const userA = await openWithDocs(serverA, 'user-1');
-    const userB = await openWithDocs(serverB, 'user-1');
-    await host.flush();
-    expect(existsSync(path.join(userA, SNAPSHOT_FILE_NAME))).toBe(true);
-
-    await deleteServerIndexes(host, serverA);
-
-    expect(existsSync(serverA)).toBe(false);
-    expect(existsSync(path.join(userB, SNAPSHOT_FILE_NAME))).toBe(true);
-    expect(host.indexIds()).toEqual([userB]);
-  });
-
-  it('deletes a folder left by an earlier run, with no open index', async () => {
-    const old = path.join(serverA, 'user-2');
-    mkdirSync(old, { recursive: true });
-    writeFileSync(path.join(old, SNAPSHOT_FILE_NAME), 'old');
-
-    await deleteServerIndexes(host, serverA);
-
-    expect(existsSync(serverA)).toBe(false);
-  });
-
-  it('does not write unsaved changes back after the delete', async () => {
-    jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
-    await openWithDocs(serverA, 'user-1');
-    expect(host.hasUnsavedChanges()).toBe(true);
-
-    await deleteServerIndexes(host, serverA);
-    // A quit does not wait for an index that no longer exists.
-    expect(host.hasUnsavedChanges()).toBe(false);
-
-    await jest.advanceTimersByTimeAsync(SAVE_DELAY_MS * 2);
-    await host.flush();
-    expect(existsSync(serverA)).toBe(false);
-  });
-
-  it('a save in flight when the server is removed does not create the folder again', async () => {
-    const dir = await openWithDocs(serverA, 'user-1');
-
-    // The webview ends first: its session close starts the last save.
-    const closing = host.close(dir);
-    await deleteServerIndexes(host, serverA);
-    await closing;
-
-    expect(existsSync(serverA)).toBe(false);
-  });
-
   // Settings, "Clear local search index": every server and user, open or not.
-  it('clearing the index root deletes every server and drops all unsaved changes', async () => {
+  it('clearing every server removes closed indexes and clears open ones in place', async () => {
     const userA = await openWithDocs(serverA, 'user-1');
-    await openWithDocs(serverB, 'user-2');
+    const userB = await openWithDocs(serverB, 'user-2');
+    await host.close(userB);
     await host.flush();
+    expect(existsSync(serverB)).toBe(true);
     await host.call(userA, 'upsert', docs(25));
     expect(host.hasUnsavedChanges()).toBe(true);
 
-    await deleteAllIndexes(host, root);
+    const limiter = createUserIndexLimiter({ host });
+    await Promise.all(
+      (await serverDirsOf(host.indexIds(), root)).map((serverDir) =>
+        limiter.clearServer(serverDir)
+      )
+    );
 
-    expect(existsSync(root)).toBe(false);
-    expect(host.indexIds()).toEqual([]);
+    expect(existsSync(serverB)).toBe(false);
+    expect(host.indexIds()).toEqual([userA]);
+    expect(await host.call(userA, 'stats')).toMatchObject({ docs: 0 });
     expect(host.hasUnsavedChanges()).toBe(false);
-    await host.flush();
-    expect(existsSync(root)).toBe(false);
   });
 });
 

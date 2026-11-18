@@ -54,7 +54,10 @@ const otherStorages = [
 ];
 
 // Execute the production page script against storage with observable mutations.
-const createMockWebContents = (initial: Record<string, string> = {}) => {
+const createMockWebContents = (
+  initial: Record<string, string> = {},
+  pageOrigin = 'https://open.rocket.chat'
+) => {
   const localStorage = { ...initial };
   const order: string[] = [];
   const removeItem = jest.fn((key: string) => {
@@ -88,7 +91,11 @@ const createMockWebContents = (initial: Record<string, string> = {}) => {
     }),
     executeJavaScript: jest.fn().mockImplementation(async (code: string) => {
       order.push('localstorage');
-      return runInNewContext(code, { localStorage, URL });
+      return runInNewContext(code, {
+        localStorage,
+        URL,
+        location: { origin: pageOrigin },
+      });
     }),
   }) as unknown as WebContents;
   return { guest, localStorage, removeItem, clear, setItem, order };
@@ -297,11 +304,14 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
       [consentKey(current)]: 'true',
       [syncTimeKey(current)]: '1234',
     };
-    const { guest, localStorage } = createMockWebContents({
-      ...retained,
-      [consentKey('https://chat.example/b/')]: 'true',
-      [syncTimeKey('https://chat.example/a/settings/')]: '5678',
-    });
+    const { guest, localStorage } = createMockWebContents(
+      {
+        ...retained,
+        [consentKey('https://chat.example/b/')]: 'true',
+        [syncTimeKey('https://chat.example/a/settings/')]: '5678',
+      },
+      'https://chat.example'
+    );
 
     await logOut(guest, 'https://CHAT.EXAMPLE:443/a');
 
@@ -342,6 +352,45 @@ describe('servers/cache handleUserLoggedOutDataClearing', () => {
     );
     expect(guest.reloadIgnoringCache).toHaveBeenCalledTimes(1);
   });
+
+  it('clears all storage and reloads when the page never answers the metadata clear', async () => {
+    jest.useFakeTimers();
+    try {
+      const { guest, localStorage } = createMockWebContents({
+        [consentKey()]: 'true',
+        'Meteor.loginToken': 'secret',
+      });
+      (guest.executeJavaScript as jest.Mock).mockReturnValue(
+        new Promise(() => undefined)
+      );
+
+      const loggingOut = logOut(guest);
+      await jest.advanceTimersByTimeAsync(3_000);
+      await loggingOut;
+
+      expect(localStorage).toEqual({});
+      expect(guest.session.clearStorageData).toHaveBeenCalledWith();
+      expect(guest.reloadIgnoringCache).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('clears all storage when the page is not on the workspace origin', async () => {
+    const { guest, localStorage } = createMockWebContents(
+      {
+        [consentKey()]: 'true',
+        'Meteor.loginToken': 'secret',
+      },
+      'https://sso.example.com'
+    );
+
+    await logOut(guest);
+
+    expect(localStorage).toEqual({});
+    expect(guest.session.clearStorageData).toHaveBeenCalledWith();
+    expect(guest.reloadIgnoringCache).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('servers/cache handleClearCacheDialog', () => {
@@ -378,12 +427,15 @@ describe('servers/cache handleClearCacheDialog', () => {
 
   it('does not infer the workspace from another page on the same origin', async () => {
     const current = 'https://chat.example/a/';
-    const { guest, localStorage } = createMockWebContents({
-      [consentKey(current)]: 'true',
-      [syncTimeKey(current)]: '1234',
-      [consentKey('https://chat.example/b/')]: 'true',
-      'Meteor.loginToken': 'secret',
-    });
+    const { guest, localStorage } = createMockWebContents(
+      {
+        [consentKey(current)]: 'true',
+        [syncTimeKey(current)]: '1234',
+        [consentKey('https://chat.example/b/')]: 'true',
+        'Meteor.loginToken': 'secret',
+      },
+      'https://chat.example'
+    );
     mockFromId.mockReturnValue(guest);
     mockGetServerUrlByWebContentsId.mockReturnValue(
       'https://CHAT.EXAMPLE:443/a'

@@ -29,9 +29,9 @@ import { createKeyStore } from './keyStore';
 import {
   collectIndexStats,
   createUserIndexLimiter,
-  deleteAllIndexes,
   indexDirOf,
   serverDirName,
+  serverDirsOf,
   userDirName,
 } from './lifecycle';
 import {
@@ -155,6 +155,8 @@ const getUserIndexLimiter = () => {
       indexIds: () => getE2EESearchHost().indexIds(),
       discard: (indexId) => getE2EESearchHost().discard(indexId),
       close: (indexId) => getE2EESearchHost().close(indexId),
+      clear: (indexId, onClosed) =>
+        getE2EESearchHost().clear(indexId, onClosed),
     },
     // An index sealed by a wrap key survives a logout.
     isSealed: (indexDir) =>
@@ -245,9 +247,6 @@ export const openE2EESearchIndex = async (
   );
 };
 
-// will-quit runs after the windows close. When an index has unsaved changes,
-// hold the quit until the worker writes its snapshot, then finish it with
-// app.exit, because a second app.quit() would run every quit listener again.
 // The server of a sender: only the main frame of a known server webview has
 // one, and only while that frame shows a page of the server's origin.
 const resolveServerUrl = ({
@@ -441,7 +440,15 @@ export const setupE2EESearch = (): void => {
   });
 
   listen(SETTINGS_CLEAR_E2EE_SEARCH_INDEX_CLICKED, () => {
-    deleteAllIndexes(getE2EESearchHost(), getIndexRootDir(), true)
+    // Through the limiter, one server at a time, so an open that waits or
+    // runs cannot write the folder again after the clear.
+    const limiter = getUserIndexLimiter();
+    serverDirsOf(getE2EESearchHost().indexIds(), getIndexRootDir())
+      .then((serverDirs) =>
+        Promise.all(
+          serverDirs.map((serverDir) => limiter.clearServer(serverDir))
+        )
+      )
       .catch((error) =>
         loggers.e2eeSearch.warn('index clear failed', summarizeError(error))
       )
@@ -452,6 +459,9 @@ export const setupE2EESearch = (): void => {
     void publishIndexStats();
   });
 
+  // will-quit runs after the windows close. When an index has unsaved changes,
+  // hold the quit until the worker writes its snapshot, then finish it with
+  // app.exit, because a second app.quit() would run every quit listener again.
   app.on('will-quit', (event) => {
     if (!host?.hasUnsavedChanges()) {
       void host?.dispose();

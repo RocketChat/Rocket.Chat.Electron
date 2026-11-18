@@ -25,55 +25,6 @@ export const indexDirOf = (
   userId: string
 ): string => path.join(rootDir, serverDirName(serverUrl), userDirName(userId));
 
-// A server removed from the desktop app leaves no index
-// on disk. Each open index of the server is discarded first, so no pending
-// or running snapshot save writes the folder again after the delete.
-export const deleteServerIndexes = async (
-  host: SearchHost,
-  serverDir: string
-): Promise<void> => {
-  const prefix = serverDir + path.sep;
-  await Promise.all(
-    host
-      .indexIds()
-      .filter((indexId) => indexId.startsWith(prefix))
-      .map((indexId) => host.discard(indexId))
-  );
-  await rm(serverDir, { recursive: true, force: true });
-};
-
-// Settings clears active indexes in place so the web client can refill them.
-// Closed indexes are deleted inside the host lifecycle queue.
-export const deleteAllIndexes = async (
-  host: SearchHost,
-  rootDir: string,
-  recoverActive = false
-): Promise<void> => {
-  if (!recoverActive) {
-    await Promise.all(host.indexIds().map((indexId) => host.discard(indexId)));
-    await rm(rootDir, { recursive: true, force: true });
-    return;
-  }
-  const indexes = new Set(host.indexIds());
-  for (const server of await listDirs(rootDir)) {
-    const serverDir = path.join(rootDir, server);
-    // eslint-disable-next-line no-await-in-loop -- discovers this server's closed user scopes
-    for (const user of await listDirs(serverDir)) {
-      indexes.add(path.join(serverDir, user));
-    }
-  }
-  await Promise.all(
-    [...indexes].map((indexId) =>
-      host.clear(indexId, () => rm(indexId, { recursive: true, force: true }))
-    )
-  );
-  for (const server of await listDirs(rootDir)) {
-    const serverDir = path.join(rootDir, server);
-    // eslint-disable-next-line no-await-in-loop -- removes an empty server folder after its users
-    await rmdir(serverDir).catch(() => undefined);
-  }
-};
-
 const listDirs = async (dir: string): Promise<string[]> => {
   try {
     const entries = await readdir(dir, { withFileTypes: true });
@@ -82,6 +33,23 @@ const listDirs = async (dir: string): Promise<string[]> => {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
     throw error;
   }
+};
+
+// The folder of each server under the root. An open index can have no folder
+// (a memory-only index), so the server of each open index counts too.
+export const serverDirsOf = async (
+  indexIds: string[],
+  rootDir: string
+): Promise<string[]> => {
+  const listed = (await listDirs(rootDir)).map((server) =>
+    path.join(rootDir, server)
+  );
+  return [
+    ...new Set([
+      ...listed,
+      ...indexIds.map((indexId) => path.dirname(indexId)),
+    ]),
+  ];
 };
 
 // The most user indexes that one server keeps. Only an index
@@ -124,7 +92,7 @@ export const createUserIndexLimiter = ({
   isServerKnown = () => true,
   isSealed = async () => false,
 }: {
-  host: Pick<SearchHost, 'indexIds' | 'discard' | 'close'>;
+  host: Pick<SearchHost, 'indexIds' | 'discard' | 'close' | 'clear'>;
   isServerKnown?: (serverDir: string) => boolean;
   isSealed?: (indexDir: string) => Promise<boolean>;
 }) => {
@@ -227,6 +195,27 @@ export const createUserIndexLimiter = ({
       run(serverDir, async () => {
         await deleteOtherUsers(serverDir, { keepSealed: false });
         await rm(serverDir, { recursive: true, force: true });
+      }),
+    // Settings, "Clear local search index": every index of the server, the
+    // sealed ones too. Open indexes are cleared in place so the web client can
+    // refill them. Closed indexes are deleted inside the host lifecycle queue.
+    clearServer: (serverDir: string): Promise<void> =>
+      run(serverDir, async () => {
+        const prefix = serverDir + path.sep;
+        const indexIds = new Set([
+          ...host.indexIds().filter((indexId) => indexId.startsWith(prefix)),
+          ...(await listDirs(serverDir)).map((userDir) =>
+            path.join(serverDir, userDir)
+          ),
+        ]);
+        await Promise.all(
+          [...indexIds].map((indexId) =>
+            host.clear(indexId, () =>
+              rm(indexId, { recursive: true, force: true })
+            )
+          )
+        );
+        await rmdir(serverDir).catch(() => undefined);
       }),
   };
 };

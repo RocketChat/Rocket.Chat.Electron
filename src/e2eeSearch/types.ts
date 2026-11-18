@@ -19,6 +19,9 @@ export type E2EESearchQuery = {
   text: string;
   rid?: string;
   uid?: string;
+  // The author by username, without case. A client that knows no user id for a
+  // username filters with it, so the username never goes to the server.
+  username?: string;
   from?: number;
   to?: number;
   order?: 'relevance' | 'recent';

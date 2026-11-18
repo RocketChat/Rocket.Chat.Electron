@@ -153,6 +153,9 @@ export const validateQuery = (value: unknown): E2EESearchQuery => {
     text,
     rid: optional(value.rid, (rid) => id(rid, 'query.rid')),
     uid: optional(value.uid, (uid) => id(uid, 'query.uid')),
+    username: optional(value.username, (username) =>
+      string(username, 'query.username', MAX_USERNAME_LENGTH)
+    ),
     from: optional(value.from, (from) => time(from, 'query.from')),
     to: optional(value.to, (to) => time(to, 'query.to')),
     order,

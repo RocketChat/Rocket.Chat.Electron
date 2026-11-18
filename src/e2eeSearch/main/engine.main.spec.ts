@@ -147,6 +147,21 @@ describe('e2eeSearch engine', () => {
     expect(ids(engine, 'urgente', { uid: 'u2' })).toEqual(['b']);
   });
 
+  it('filters by sender username without case, with words and with filters only', () => {
+    expect(ids(engine, 'urgente', { username: 'ana' })).toEqual([]);
+    expect(ids(engine, 'urgente', { username: 'BOB' })).toEqual(['b']);
+    expect(
+      ids(engine, 'urgente', { username: 'bob', order: 'recent' })
+    ).toEqual(['b']);
+    expect(ids(engine, '', { rid: 'r1', username: 'Bob' })).toEqual(['b']);
+    expect(ids(engine, '', { username: 'ana' })).toEqual(['a', 'c']);
+    expect(
+      engine
+        .searchRecentPage({ text: '', username: 'bob' })
+        .hits.map((hit) => hit.id)
+    ).toEqual(['b']);
+  });
+
   it('filters by date range and orders by recent', () => {
     expect(ids(engine, 'orcamento', { from: 2500 })).toEqual(['c']);
     expect(ids(engine, 'orcamento', { to: 1500 })).toEqual(['a']);

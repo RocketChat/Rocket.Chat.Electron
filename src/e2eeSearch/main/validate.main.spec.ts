@@ -4,6 +4,7 @@ import {
   E2EESearchInputError,
   MAX_ID_LENGTH,
   MAX_QUERY_TEXT_LENGTH,
+  MAX_USERNAME_LENGTH,
   validateQuery,
   validateRecentQuery,
 } from '../validate';
@@ -45,6 +46,18 @@ describe('e2eeSearch query validation', () => {
 });
 
 describe('e2eeSearch recent query validation', () => {
+  it('keeps a username filter and rejects one that is not a bounded string', () => {
+    expect(validateQuery({ text: '', username: 'Bob' }).username).toBe('Bob');
+    expect(validateQuery({ text: 'x' }).username).toBeUndefined();
+    expect(() => validateQuery({ text: 'x', username: 5 })).toThrow();
+    expect(() =>
+      validateQuery({
+        text: 'x',
+        username: 'b'.repeat(MAX_USERNAME_LENGTH + 1),
+      })
+    ).toThrow();
+  });
+
   it('preserves all query filters and copies a bounded cursor without an order', () => {
     const cursor = { ts: 1500.5, id: '😀' };
     const input = {

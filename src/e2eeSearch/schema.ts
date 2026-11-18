@@ -81,6 +81,7 @@ JOIN messages m ON m.rowid = messages_fts.rowid
 WHERE messages_fts MATCH :match
   AND (:rid IS NULL OR m.rid = :rid)
   AND (:uid IS NULL OR m.uid = :uid)
+  AND (:username IS NULL OR m.username = :username COLLATE NOCASE)
   AND m.ts BETWEEN :from AND :to
 `;
 
@@ -112,6 +113,7 @@ WHERE messages_fts MATCH :match
                              AND CAST(:toKey AS INTEGER) * ${2 ** ROWID_TS_SHIFT} + ${2 ** ROWID_TS_SHIFT - 1}
   AND (:rid IS NULL OR m.rid = :rid)
   AND (:uid IS NULL OR m.uid = :uid)
+  AND (:username IS NULL OR m.username = :username COLLATE NOCASE)
   AND m.ts BETWEEN :from AND :to
 ORDER BY messages_fts.rowid DESC
 LIMIT :limit`;
@@ -152,6 +154,7 @@ WHERE m.rowid IN (
   FROM messages
   WHERE (:rid IS NULL OR rid = :rid)
     AND (:uid IS NULL OR uid = :uid)
+    AND (:username IS NULL OR username = :username COLLATE NOCASE)
     AND ts BETWEEN :from AND :to
   ORDER BY ts DESC
   LIMIT :limit
@@ -167,6 +170,7 @@ SELECT m.id, m.rid, m.tmid, m.uid, m.username, m.ts,
 FROM messages m
 WHERE (:rid IS NULL OR m.rid = :rid)
   AND (:uid IS NULL OR m.uid = :uid)
+  AND (:username IS NULL OR m.username = :username COLLATE NOCASE)
   AND m.ts BETWEEN :from AND :to
 ${RECENT_PAGE_CONTINUATION}
 ORDER BY m.ts DESC, m.id COLLATE BINARY DESC

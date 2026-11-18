@@ -323,6 +323,7 @@ export const createSearchEngine = (
       const unfiltered =
         query.rid === undefined &&
         query.uid === undefined &&
+        query.username === undefined &&
         query.from === undefined &&
         query.to === undefined;
 
@@ -336,6 +337,7 @@ export const createSearchEngine = (
         rows = searchFiltersOnly.all({
           rid: query.rid ?? null,
           uid: query.uid ?? null,
+          username: query.username ?? null,
           from: query.from ?? 0,
           to: query.to ?? Number.MAX_SAFE_INTEGER,
           limit,
@@ -345,6 +347,7 @@ export const createSearchEngine = (
           match,
           rid: query.rid ?? null,
           uid: query.uid ?? null,
+          username: query.username ?? null,
           from: query.from ?? 0,
           to: query.to ?? Number.MAX_SAFE_INTEGER,
           limit,
@@ -384,6 +387,7 @@ export const createSearchEngine = (
         query.text.trim() === '' &&
         (query.rid !== undefined ||
           query.uid !== undefined ||
+          query.username !== undefined ||
           query.from !== undefined ||
           query.to !== undefined);
       if (!match && !filtersOnly) return { hits: [] };
@@ -392,6 +396,7 @@ export const createSearchEngine = (
       const params = {
         rid: query.rid ?? null,
         uid: query.uid ?? null,
+        username: query.username ?? null,
         from: query.from ?? 0,
         to: query.to ?? Number.MAX_SAFE_INTEGER,
         cursorTs: query.cursor?.ts ?? null,

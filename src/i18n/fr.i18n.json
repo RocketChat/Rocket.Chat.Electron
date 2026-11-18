@@ -44,6 +44,10 @@
       "add": "Ajouter",
       "cancel": "Annuler"
     },
+    "addServerDisabled": {
+      "title": "L'ajout de serveurs est désactivé",
+      "message": "Votre administrateur a désactivé l'ajout de serveurs, donc \"{{- host}}\" n'a pas été ajouté."
+    },
     "addServerError": {
       "title": "Hôte invalide",
       "message": "L'hôte \"{{- host}}\" n'a pas pu être validé, donc n'a pas été ajouté."
@@ -352,7 +356,8 @@
     "invalidUrl": "URL invalide",
     "validating": "Validation...",
     "inputUrl": "Ajouter l'URL du serveur",
-    "connect": "Connexion"
+    "connect": "Connexion",
+    "addServerDisabled": "Votre administrateur a désactivé l'ajout de serveurs. Contactez votre administrateur pour obtenir l'accès à un serveur."
   },
   "menus": {
     "about": "À propos de {{- appName}}",

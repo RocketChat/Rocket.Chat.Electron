@@ -44,6 +44,10 @@
       "add": "Hozzáadás",
       "cancel": "Mégse"
     },
+    "addServerDisabled": {
+      "title": "A kiszolgálók hozzáadása ki van kapcsolva",
+      "message": "A rendszergazda kikapcsolta a kiszolgálók hozzáadását, ezért a(z) „{{- host}}” kiszolgáló nem lett hozzáadva."
+    },
     "addServerError": {
       "title": "Érvénytelen kiszolgáló",
       "message": "A(z) „{{- host}}” kiszolgálót nem sikerült ellenőrizni, ezért nem lett hozzáadva."
@@ -392,7 +396,8 @@
     "invalidUrl": "Érvénytelen URL",
     "validating": "Ellenőrzés…",
     "inputUrl": "Kiszolgáló URL-ének megadása",
-    "connect": "Kapcsolódás"
+    "connect": "Kapcsolódás",
+    "addServerDisabled": "A rendszergazda kikapcsolta a kiszolgálók hozzáadását. Kiszolgálóhoz való hozzáférésért forduljon a rendszergazdához."
   },
   "menus": {
     "about": "A {{- appName}} névjegye",

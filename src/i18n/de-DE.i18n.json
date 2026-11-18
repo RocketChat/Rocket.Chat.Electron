@@ -48,6 +48,10 @@
       "add": "Hinzufügen",
       "cancel": "Abbrechen"
     },
+    "addServerDisabled": {
+      "title": "Hinzufügen von Arbeitsbereichen ist deaktiviert",
+      "message": "Ihr Administrator hat das Hinzufügen von Arbeitsbereichen deaktiviert. \"{{- host}}\" wurde daher nicht hinzugefügt."
+    },
     "addServerError": {
       "title": "Ungültiger Host",
       "message": "Der Host \"{{- host}}\" konnte nicht validiert werden, er wurde also nicht hinzugefügt."
@@ -542,7 +546,8 @@
     "invalidUrl": "Ungültige url",
     "validating": "Validieren...",
     "inputUrl": "Server URL eingeben",
-    "connect": "Verbinden"
+    "connect": "Verbinden",
+    "addServerDisabled": "Ihr Administrator hat das Hinzufügen von Arbeitsbereichen deaktiviert. Wenden Sie sich an Ihren Administrator, um Zugriff auf einen Arbeitsbereich zu erhalten."
   },
   "menus": {
     "about": "Über {{- appName}}",

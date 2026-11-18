@@ -44,6 +44,10 @@
       "add": "Agregar",
       "cancel": "Cancelar"
     },
+    "addServerDisabled": {
+      "title": "Agregar servidores está desactivado",
+      "message": "Tu administrador desactivó la opción de agregar servidores, por lo que \"{{- host}}\" no se agregó."
+    },
     "addServerError": {
       "title": "Host no válido",
       "message": "El host \"{{- host}}\" no pudo ser validado y no fue agregado."
@@ -377,7 +381,8 @@
     "invalidUrl": "URL no válida",
     "validating": "Validando...",
     "inputUrl": "Ingresa la URL de tu servidor",
-    "connect": "Conectar"
+    "connect": "Conectar",
+    "addServerDisabled": "Tu administrador desactivó la opción de agregar servidores. Contacta a tu administrador para obtener acceso a un servidor."
   },
   "menus": {
     "about": "Acerca de {{- appName}}",

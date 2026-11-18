@@ -7,6 +7,9 @@
     "windowTitle": "Documento",
     "back": "Indietro"
   },
+  "landing": {
+    "addServerDisabled": "L'amministratore ha disattivato l'aggiunta di server. Contatta l'amministratore per ottenere l'accesso a un server."
+  },
   "settings": {
     "options": {
       "resetWindowBounds": {
@@ -176,6 +179,10 @@
     "close": "Chiudi"
   },
   "dialog": {
+    "addServerDisabled": {
+      "title": "L'aggiunta di server è disattivata",
+      "message": "L'amministratore ha disattivato l'aggiunta di server, quindi \"{{- host}}\" non è stato aggiunto."
+    },
     "transparencyRestart": {
       "title": "Riavvio necessario",
       "message": "Rocket.Chat deve essere riavviato per modificare la trasparenza della finestra. Riavviare ora? Annullando verrà ripristinata l'impostazione precedente.",

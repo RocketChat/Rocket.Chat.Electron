@@ -36,6 +36,10 @@
       "add": "新增",
       "cancel": "取消"
     },
+    "addServerDisabled": {
+      "title": "已停用新增伺服器",
+      "message": "您的管理員已停用新增伺服器，因此未新增 \"{{- host}}\"。"
+    },
     "addServerError": {
       "title": "無效的網址",
       "message": "網址 \"{{- host}}\" 無法驗證，因此沒有新增。"
@@ -191,7 +195,8 @@
     "invalidUrl": "無效的網址",
     "validating": "驗證中...",
     "inputUrl": "請輸入您的伺服器網址",
-    "connect": "連線"
+    "connect": "連線",
+    "addServerDisabled": "您的管理員已停用新增伺服器。請聯絡您的管理員以取得伺服器存取權限。"
   },
   "menus": {
     "about": "關於 {{- appName}}",

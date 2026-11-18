@@ -44,6 +44,10 @@
       "add": "Legg til",
       "cancel": "Kansellere"
     },
+    "addServerDisabled": {
+      "title": "Å legge til servere er slått av",
+      "message": "Administratoren din har slått av muligheten til å legge til servere, så \"{{- host}}\" ble ikke lagt til."
+    },
     "addServerError": {
       "title": "Ugyldig vert",
       "message": "Verten \"{{- host}}\" kunne ikke valideres, så den ble ikke lagt til."
@@ -406,7 +410,8 @@
     "invalidUrl": "Ugyldig URL",
     "validating": "Validerer...",
     "inputUrl": "Skriv inn serverens URL",
-    "connect": "Koble til"
+    "connect": "Koble til",
+    "addServerDisabled": "Administratoren din har slått av muligheten til å legge til servere. Kontakt administratoren din for å få tilgang til en server."
   },
   "menus": {
     "about": "Om {{- appName}}",

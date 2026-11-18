@@ -44,6 +44,10 @@
       "add": "Lisää",
       "cancel": "Peruuta"
     },
+    "addServerDisabled": {
+      "title": "Palvelinten lisääminen on poistettu käytöstä",
+      "message": "Järjestelmänvalvoja on poistanut palvelinten lisäämisen käytöstä, joten palvelinta {{- host}} ei lisätty."
+    },
     "addServerError": {
       "title": "Virheellinen isäntä",
       "message": "Isäntää {{- host}} ei voitu vahvistaa, joten sitä ei lisätty."
@@ -352,7 +356,8 @@
     "invalidUrl": "Virheellinen URL-osoite",
     "validating": "Vahvistetaan...",
     "inputUrl": "Anna palvelimesi URL-osoite",
-    "connect": "Yhdistä"
+    "connect": "Yhdistä",
+    "addServerDisabled": "Järjestelmänvalvoja on poistanut palvelinten lisäämisen käytöstä. Pyydä järjestelmänvalvojalta pääsy palvelimelle."
   },
   "menus": {
     "about": "Tietoja: {{- appName}}",

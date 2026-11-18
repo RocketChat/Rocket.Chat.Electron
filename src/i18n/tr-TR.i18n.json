@@ -35,6 +35,10 @@
       "add": "Ekle",
       "cancel": "İptal et"
     },
+    "addServerDisabled": {
+      "title": "Sunucu ekleme kapalı",
+      "message": "Yöneticiniz sunucu eklemeyi kapattığı için \"{{- host}}\" eklenmedi."
+    },
     "addServerError": {
       "title": "Geçersiz host adresi",
       "message": "The host \"{{- host}}\" doğrulanamadı yani eklenmedi."
@@ -212,7 +216,8 @@
     "invalidUrl": "Geçersiz bağlantı",
     "validating": "Doğrulanıyor...",
     "inputUrl": "Sunucu bağlantısını girin",
-    "connect": "Bağlan"
+    "connect": "Bağlan",
+    "addServerDisabled": "Yöneticiniz sunucu eklemeyi kapattı. Bir sunucuya erişmek için yöneticinizle iletişime geçin."
   },
   "menus": {
     "about": "Hakkında {{- appName}}",

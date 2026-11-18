@@ -37,6 +37,9 @@ export const AddServerView = () => {
   const isVisible = useSelector(
     ({ currentView }: RootState) => currentView === 'add-new-server'
   );
+  const isAddNewServersEnabled = useSelector(
+    ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
+  );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
   const [input, setInput] = useState('');
@@ -152,6 +155,19 @@ export const AddServerView = () => {
 
   if (!isVisible) {
     return null;
+  }
+
+  if (!isAddNewServersEnabled) {
+    return (
+      <Wrapper>
+        <Tile width='x368' maxWidth='100%' padding='x24'>
+          <Margins block='x16'>
+            <RocketChatLogo />
+          </Margins>
+          <Callout type='info'>{t('landing.addServerDisabled')}</Callout>
+        </Tile>
+      </Wrapper>
+    );
   }
 
   return (

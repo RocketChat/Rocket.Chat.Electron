@@ -699,7 +699,18 @@ describe('ui/main/menuBar', () => {
       expect(byId('serverInfo')?.accelerator).toBeUndefined();
     });
 
-    it('isolates Remove with a separator and omits Add workspace when disabled', () => {
+    it('isolates Remove with a separator', () => {
+      const template = getServerContextMenuTemplate(
+        'https://a.rocket.chat/',
+        servers,
+        true
+      );
+
+      const removeIndex = template.findIndex((item) => item.id === 'remove');
+      expect(template[removeIndex - 1]?.type).toBe('separator');
+    });
+
+    it('omits Remove and Add workspace when adding workspaces is turned off', () => {
       const template = getServerContextMenuTemplate(
         'https://a.rocket.chat/',
         servers,
@@ -708,9 +719,8 @@ describe('ui/main/menuBar', () => {
       const ids = template.map((item) => item.id);
 
       expect(ids).not.toContain('addWorkspace');
-
-      const removeIndex = template.findIndex((item) => item.id === 'remove');
-      expect(template[removeIndex - 1]?.type).toBe('separator');
+      expect(ids).not.toContain('remove');
+      expect(template[template.length - 1]?.type).not.toBe('separator');
     });
   });
 

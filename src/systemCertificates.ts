@@ -4,6 +4,7 @@ import path from 'path';
 
 import { app } from 'electron';
 
+import { getAppConfigFilePath } from './app/main/appConfigFile';
 import { logger } from './logging';
 
 type SystemCertificateStatus = {
@@ -17,11 +18,7 @@ let status: SystemCertificateStatus = { applied: false, certCount: 0 };
 const readUseSystemCertificatesSetting = (): boolean => {
   const locations = [
     path.join(app.getPath('userData'), 'overridden-settings.json'),
-    path.join(
-      app.getAppPath(),
-      app.getAppPath().endsWith('app.asar') ? '..' : '.',
-      'overridden-settings.json'
-    ),
+    getAppConfigFilePath('overridden-settings.json'),
   ];
 
   let enabled = true;

@@ -13,6 +13,7 @@ import {
 } from '../PersistableValues';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
+import { getAppConfigFilePath } from './appConfigFile';
 import {
   getPersistedMeta,
   getPersistedValues,
@@ -41,11 +42,7 @@ const loadAppAsarOverriddenSettings = async (): Promise<
   Record<string, string>
 > => {
   try {
-    const filePath = path.join(
-      app.getAppPath(),
-      app.getAppPath().endsWith('app.asar') ? '..' : '.',
-      'overridden-settings.json'
-    );
+    const filePath = getAppConfigFilePath('overridden-settings.json');
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
 

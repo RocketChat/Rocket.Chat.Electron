@@ -72,6 +72,7 @@ describe('logging/scopes', () => {
       'servers',
       'logViewer',
       'persistence',
+      'e2eeSearch',
     ]);
     loggers.main.info('shared');
     expect(logInfo).toHaveBeenCalledWith('[worker]', '[main]', 'shared');

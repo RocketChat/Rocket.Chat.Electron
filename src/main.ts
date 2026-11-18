@@ -10,7 +10,7 @@ import {
   mergePersistableValues,
   watchAndPersistChanges,
 } from './app/main/data';
-import { setUserDataDirectory } from './app/main/dev';
+import { setDevelopmentAppName, setUserDataDirectory } from './app/main/dev';
 import { flushPersistedValues } from './app/main/persistence';
 import { setupTransparencyRestart } from './app/main/transparencyRestart';
 import { startBrowserHandler } from './browser/ipc';
@@ -23,6 +23,7 @@ import {
   restoreDownloadsWindow,
   startDownloadsWindowHandler,
 } from './downloadsWindow/ipc';
+import { setupE2EESearch } from './e2eeSearch/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
@@ -36,6 +37,7 @@ import {
   cleanupOldLogs,
   setupDebugLoggingWatch,
 } from './logging';
+import { setupIgnoreBeforeUnload } from './navigation/ignoreBeforeUnload';
 import { setupNavigation } from './navigation/main';
 import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
@@ -54,6 +56,7 @@ import {
 } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
+import { setupWebClientCachePurge } from './servers/webClientCachePurge';
 import {
   restoreSettingsWindow,
   startSettingsWindowHandler,
@@ -110,6 +113,7 @@ const showStartupFailureDialog = (error: unknown): void => {
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
+  setDevelopmentAppName();
   applySystemCertificates();
 
   logger.info(
@@ -122,6 +126,7 @@ const start = async (): Promise<void> => {
   );
 
   setupWebContentsLogging();
+  setupIgnoreBeforeUnload();
 
   performElectronStartup();
   setupDeepLinks();
@@ -149,6 +154,7 @@ const start = async (): Promise<void> => {
   const localStorage = await exportLocalStorage();
   await mergePersistableValues(localStorage);
   await setupServers(localStorage);
+  setupWebClientCachePurge();
 
   i18n.setUp();
   await i18n.wait();
@@ -186,6 +192,7 @@ const start = async (): Promise<void> => {
   setupPowerMonitor();
   await setupUpdates();
   setupDownloads();
+  setupE2EESearch();
   handleCertificatesManager();
 
   dock.setUp();

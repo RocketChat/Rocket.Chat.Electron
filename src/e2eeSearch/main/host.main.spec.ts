@@ -177,7 +177,8 @@ describe('E2EE search host', () => {
     const host = createSearchHost({ spawn });
     await host.open(indexId, openArgs);
     const recordSaves = async () => {
-      for (let i = 0; i < 1_000 && inFlight > 0; i++) {
+      // The bound only stops a stuck save. A slow CI disk needs more than 1,000 turns.
+      for (let i = 0; i < 100_000 && inFlight > 0; i++) {
         // eslint-disable-next-line no-await-in-loop -- waits for real I/O
         await new Promise((resolve) => setImmediate(resolve));
       }

@@ -199,7 +199,7 @@
     },
     "clearDownloads": {
       "title": "Clear all downloads",
-      "message": "Remove every download from this list? Downloaded files stay on disk.",
+      "message": "Clear download history? Active and paused downloads stay in the list. Downloaded files stay on disk.",
       "yes": "Clear all",
       "cancel": "Cancel"
     },

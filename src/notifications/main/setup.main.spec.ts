@@ -229,6 +229,63 @@ describe('notifications/main setupNotifications', () => {
     expect(stopAttention).toHaveBeenCalledWith('voice-1');
   });
 
+  const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+
+  const incomingCall = (tag: string) => ({
+    title: 'Call',
+    tag,
+    notificationType: 'voice',
+    restoreWindow: true,
+  });
+
+  const mockRootWindow = ({ minimized }: { minimized: boolean }) => {
+    const window = {
+      isMinimized: () => minimized,
+      restore: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+    };
+    getRootWindow.mockResolvedValue(window);
+    return window;
+  };
+
+  it('restores a minimized window once for a new incoming call', async () => {
+    const window = mockRootWindow({ minimized: true });
+
+    await create(incomingCall('call-1'));
+    await create(incomingCall('call-1'));
+    await flushPromises();
+
+    expect(window.restore).toHaveBeenCalledTimes(1);
+    expect(window.show).toHaveBeenCalledTimes(1);
+    expect(window.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a window hidden in the tray for an incoming call', async () => {
+    const window = mockRootWindow({ minimized: false });
+
+    await create(incomingCall('call-2'));
+    await flushPromises();
+
+    expect(window.restore).not.toHaveBeenCalled();
+    expect(window.show).toHaveBeenCalledTimes(1);
+    expect(window.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not restore the window for other notifications', async () => {
+    await create({ title: 'Call', tag: 'call-3', notificationType: 'voice' });
+    await create({
+      title: 'Message',
+      tag: 'message-1',
+      notificationType: 'text',
+      restoreWindow: true,
+    });
+    await create({ title: 'Message', tag: 'message-2', restoreWindow: true });
+    await flushPromises();
+
+    expect(getRootWindow).not.toHaveBeenCalled();
+  });
+
   it('updates an existing tagged notification', async () => {
     await create({
       title: 'First',

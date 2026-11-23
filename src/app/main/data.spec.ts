@@ -367,7 +367,7 @@ describe('mergePersistableValues', () => {
         )[0];
         expect(payload.isContextMenuEnabledOverride).toBe(expected);
         // The admin value stays out of the persisted user choice.
-        expect(payload).not.toHaveProperty('isContextMenuEnabled', expected);
+        expect(payload.isContextMenuEnabled).toBeUndefined();
       }
     );
 

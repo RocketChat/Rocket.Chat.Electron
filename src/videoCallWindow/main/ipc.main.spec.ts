@@ -277,7 +277,8 @@ const screen = {
 };
 
 jest.mock('electron', () => ({
-  app: { getAppPath: jest.fn(() => '/app') },
+  app: { getAppPath: jest.fn(() => '/app'), on: jest.fn() },
+  autoUpdater: { on: jest.fn() },
   BrowserWindow: Object.assign(
     jest.fn().mockImplementation(() => new FakeBrowserWindow()),
     { fromWebContents: jest.fn(() => null) }
@@ -886,6 +887,220 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(() =>
         listener({ sender: { hostWebContents: null } })
       ).not.toThrow();
+    });
+  });
+
+  describe('closing the window', () => {
+    const openCallWindow = async () => {
+      const { openWindow } = await loadModule();
+      await open(openWindow, makeCallerWc(42));
+      const win = createdWindows[0] as FakeBW & { close: jest.Mock };
+      const closeEvents: Array<{ preventDefault: jest.Mock }> = [];
+      const userCloses = () => {
+        const event = { preventDefault: jest.fn() };
+        closeEvents.push(event);
+        fire(win.listeners, 'close', event);
+        return event;
+      };
+      // A real close() emits 'close' again, which must now go through.
+      win.close.mockImplementation(() => {
+        userCloses();
+      });
+      return { win, userCloses, closeEvents };
+    };
+
+    const attachWebview = async (win: FakeBW) => {
+      const guest = {
+        hostWebContents: win.webContents,
+        isDestroyed: () => false,
+        send: jest.fn(),
+      };
+      const electron = (await import('electron')) as any;
+      (electron.webContents.getAllWebContents as jest.Mock).mockReturnValue([
+        guest,
+      ]);
+      return guest;
+    };
+
+    const answer = async (
+      sender: { send: jest.Mock },
+      keepOpen: unknown,
+      requestId = sender.send.mock.calls[sender.send.mock.calls.length - 1]?.[1]
+    ) => {
+      const electron = (await import('electron')) as any;
+      const [, listener] = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/close-request-answered'
+      );
+      listener({ sender }, requestId, keepOpen);
+      await flushPromises();
+    };
+
+    it('asks the page and closes when it does not keep the window open', async () => {
+      const { win, userCloses, closeEvents } = await openCallWindow();
+      const guest = await attachWebview(win);
+
+      expect(userCloses().preventDefault).toHaveBeenCalledTimes(1);
+      expect(guest.send).toHaveBeenCalledWith(
+        'video-call-window/close-requested-by-user',
+        expect.any(Number)
+      );
+      expect(win.close).not.toHaveBeenCalled();
+
+      await answer(guest, false);
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+      expect(closeEvents[1].preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('stays open when the page keeps it open', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+
+      userCloses();
+      await answer(guest, true);
+
+      expect(win.close).not.toHaveBeenCalled();
+    });
+
+    it('asks again on a close more than 5 s after the page kept it open', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+      const now = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      try {
+        userCloses();
+        await answer(guest, true);
+        now.mockReturnValue(1_005_001);
+        expect(userCloses().preventDefault).toHaveBeenCalledTimes(1);
+        await answer(guest, false);
+      } finally {
+        now.mockRestore();
+      }
+
+      expect(guest.send).toHaveBeenCalledTimes(2);
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes without asking on a second close within 5 s of the page keeping it open', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+      const now = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      try {
+        userCloses();
+        await answer(guest, true);
+        now.mockReturnValue(1_005_000);
+        userCloses();
+        await flushPromises();
+      } finally {
+        now.mockRestore();
+      }
+
+      expect(guest.send).toHaveBeenCalledTimes(1);
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not ask when the Windows session ends', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+
+      fire(win.listeners, 'session-end', {});
+
+      expect(userCloses().preventDefault).not.toHaveBeenCalled();
+      expect(guest.send).not.toHaveBeenCalled();
+    });
+
+    it('asks once while the page has not answered', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+
+      userCloses();
+      expect(userCloses().preventDefault).toHaveBeenCalledTimes(1);
+
+      expect(guest.send).toHaveBeenCalledTimes(1);
+    });
+
+    it('only takes the answer of the page it asked', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+
+      userCloses();
+      const requestId = guest.send.mock.calls[0][1];
+      await answer({ send: jest.fn() }, false, requestId);
+      expect(win.close).not.toHaveBeenCalled();
+
+      await answer(guest, false, requestId);
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes when the window has no webview', async () => {
+      const { win, userCloses } = await openCallWindow();
+
+      userCloses();
+      await flushPromises();
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes when the page cannot be asked', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+      guest.send.mockImplementation(() => {
+        throw new Error('gone');
+      });
+
+      userCloses();
+      await flushPromises();
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes when the page does not answer in time', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+      jest.useFakeTimers();
+      try {
+        userCloses();
+        await jest.advanceTimersByTimeAsync(1000);
+      } finally {
+        jest.useRealTimers();
+      }
+      expect(win.close).toHaveBeenCalledTimes(1);
+
+      await answer(guest, true);
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not ask when the page closes the window', async () => {
+      const { win, closeEvents } = await openCallWindow();
+      const guest = await attachWebview(win);
+      const electron = (await import('electron')) as any;
+      const [, listener] = electron.ipcMain.on.mock.calls.find(
+        ([channel]: [string]) => channel === 'video-call-window/close'
+      );
+      electron.BrowserWindow.fromWebContents.mockReturnValue(win);
+
+      listener({ sender: { hostWebContents: null } });
+
+      expect(win.close).toHaveBeenCalledTimes(1);
+      expect(closeEvents[0].preventDefault).not.toHaveBeenCalled();
+      expect(guest.send).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['app', 'before-quit'],
+      ['autoUpdater', 'before-quit-for-update'],
+    ])('does not ask after %s %s', async (emitter, eventName) => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+      const electron = (await import('electron')) as any;
+      const [, onQuit] = electron[emitter].on.mock.calls.find(
+        ([name]: [string]) => name === eventName
+      );
+
+      onQuit();
+
+      expect(userCloses().preventDefault).not.toHaveBeenCalled();
+      expect(guest.send).not.toHaveBeenCalled();
     });
   });
 

@@ -61,6 +61,11 @@ workspace directory, because it writes an incorrect output structure.
   NOT mean "commit it". Show what you will commit before you commit.
 - Never commit directly to `master`, `dev` or `release/X.Y.x`. Create a
   branch, test, and open a PR.
+- Do not add AI attribution to a commit message, a PR title or a PR body.
+  That includes `Co-Authored-By: Claude ...` and "Generated with" lines.
+  Before a squash merge, remove such lines that other commits carry into the
+  default message. Keep the `Co-authored-by` lines of real people.
+  `.claude/settings.json` turns off the Claude Code trailer for this repo.
 - Work in a worktree, so that you do not disturb another working directory.
   To continue a branch, work in the worktree that has it, or check it out in a
   new one. Run `git status` there first. If it has uncommitted changes that

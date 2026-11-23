@@ -442,6 +442,7 @@
     "showOnUnreadMessage": "Vis på uleste meldinger",
     "showServerList": "Serverliste",
     "showTrayIcon": "Systemstatusikon",
+    "enableContextMenu": "Høyreklikkmeny",
     "toggleDevTools": "Slå på Utviklerverktøy",
     "openConfigFolder": "Åpne konfigurasjonsmappe",
     "videoCallDevTools": "Åpne videosamtale og utviklerverktøy",

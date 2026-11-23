@@ -15,6 +15,7 @@ export type OverrideOnlySettings = {
   allowInsecureOutlookConnections?: boolean;
   outlookCalendarSyncIntervalOverride?: number | null;
   isNotificationQuickReplyEnabled?: boolean;
+  isContextMenuEnabledOverride?: boolean | null;
 };
 
 export type AppActionTypeToPayloadMap = {

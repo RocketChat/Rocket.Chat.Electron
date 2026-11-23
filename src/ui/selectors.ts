@@ -29,6 +29,12 @@ export const selectIsMenuBarUnreadCountEnabled = ({
   isMenuBarUnreadCountEnabled,
 }: RootState): boolean => isMenuBarUnreadCountEnabled;
 
+// An admin value from overridden-settings.json wins over the user's choice.
+export const selectIsContextMenuEnabled = ({
+  isContextMenuEnabled,
+  isContextMenuEnabledOverride,
+}: RootState): boolean => isContextMenuEnabledOverride ?? isContextMenuEnabled;
+
 export const selectGlobalBadgeText = createSelector(
   selectGlobalBadge,
   (badge) => {

@@ -28,6 +28,7 @@ import {
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
+  MENU_BAR_TOGGLE_IS_CONTEXT_MENU_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
   OPEN_SERVER_INFO_MODAL,
@@ -47,6 +48,7 @@ import {
   WINDOW_BOUNDS_RESET,
 } from '../actions';
 import { formatServerTitle } from '../components/utils/formatServerTitle';
+import { selectIsContextMenuEnabled } from '../selectors';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
@@ -331,6 +333,9 @@ const selectViewDeps = createStructuredSelector({
   currentView: ({ currentView }: RootState) => currentView,
   isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
   isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
+  isContextMenuEnabled: selectIsContextMenuEnabled,
+  isContextMenuLocked: ({ isContextMenuEnabledOverride }: RootState) =>
+    isContextMenuEnabledOverride !== null,
   rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
   navigationLayout: ({ navigationLayout }: RootState) => navigationLayout,
 });
@@ -360,6 +365,8 @@ export const createViewMenu = createSelector(
     currentView,
     isTrayIconEnabled,
     isMenuBarEnabled,
+    isContextMenuEnabled,
+    isContextMenuLocked,
     rootWindowState,
     navigationLayout,
   }): MenuItemConstructorOptions => ({
@@ -490,6 +497,19 @@ export const createViewMenu = createSelector(
               payload: checked,
             });
           }, 10);
+        },
+      },
+      {
+        id: 'enableContextMenu',
+        label: t('menus.enableContextMenu'),
+        type: 'checkbox',
+        checked: isContextMenuEnabled,
+        enabled: !isContextMenuLocked,
+        click: ({ checked }) => {
+          dispatch({
+            type: MENU_BAR_TOGGLE_IS_CONTEXT_MENU_ENABLED_CLICKED,
+            payload: checked,
+          });
         },
       },
       ...on(process.platform === 'darwin', () => [

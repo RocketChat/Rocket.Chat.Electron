@@ -23,6 +23,33 @@ const isRelativeRoute = (path: unknown): path is string =>
   !path.startsWith('//') &&
   !path.startsWith('/\\');
 
+// Returns true to keep the window open, e.g. while the page asks the user to
+// hand the call to a new host. Answer within 1 s: show the prompt and return
+// true, without waiting for the user's choice, and call close() when done. A
+// second close within 5 s of keeping the window open closes it without asking.
+type CloseRequestHandler = () => boolean | Promise<boolean>;
+
+let closeRequestHandler: CloseRequestHandler | null = null;
+
+// The main process asks before a close the user started (the titlebar button,
+// a shortcut). Without a handler, or when it fails, the window closes.
+ipcRenderer.on(
+  'video-call-window/close-requested-by-user',
+  async (_event, requestId: number) => {
+    let keepOpen = false;
+    try {
+      keepOpen = (await closeRequestHandler?.()) === true;
+    } catch (error) {
+      console.warn('Video call window: close request handler failed:', error);
+    }
+    ipcRenderer.send(
+      'video-call-window/close-request-answered',
+      requestId,
+      keepOpen
+    );
+  }
+);
+
 // Methods for the page loaded in the video call window's webview. They live
 // under RocketChatDesktop so the web app has a single bridge to look for, and
 // under `videoCall` because this window's surface is not the main window's:
@@ -48,6 +75,11 @@ const videoCall = {
   // Close the video call window. The renderer can't close a window the main
   // process created, so the main process does it.
   close: () => ipcRenderer.send('video-call-window/close'),
+  // Lets the page decide what the user closing the window means. Pass null to
+  // remove the handler.
+  setCloseRequestHandler: (handler: CloseRequestHandler | null) => {
+    closeRequestHandler = typeof handler === 'function' ? handler : null;
+  },
   requestScreenSharing: async () => {
     // Directly invoke the screen picker
     await ipcRenderer.invoke('video-call-window/open-screen-picker');

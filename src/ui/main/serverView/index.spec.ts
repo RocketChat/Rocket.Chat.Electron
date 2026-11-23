@@ -10,6 +10,7 @@ import {
   WEBVIEW_AUDIO_STATE_CHANGED,
   WEBVIEW_READY,
 } from '../../actions';
+import { selectIsContextMenuEnabled } from '../../selectors';
 import { attachGuestWebContentsEvents } from './index';
 
 jest.mock('electron', () => ({
@@ -433,5 +434,65 @@ describe('serverView audio state and mute handling', () => {
       type: WEBVIEW_AUDIO_MUTED_CHANGED,
       payload: { url: 'https://open.rocket.chat', isAudioMuted: true },
     });
+  });
+});
+
+describe('serverView context menu', () => {
+  const mockListen = listen as unknown as jest.Mock;
+  const mockSelect = select as unknown as jest.Mock;
+  const { createPopupMenuForServerView } = jest.requireMock('./popupMenu');
+
+  const setup = async (isContextMenuEnabled: boolean) => {
+    jest.clearAllMocks();
+    mockSelect.mockImplementation((selector) =>
+      selector === selectIsContextMenuEnabled ? isContextMenuEnabled : undefined
+    );
+    const popup = jest.fn();
+    createPopupMenuForServerView.mockReturnValue({ popup });
+
+    await attachGuestWebContentsEvents();
+    const webviewReady = mockListen.mock.calls.find(
+      ([actionType]) => actionType === WEBVIEW_READY
+    )?.[1] as (action: unknown) => void;
+
+    let contextMenuHandler: (
+      event: Event,
+      params: unknown
+    ) => Promise<void> = async () => undefined;
+    const guestWebContents = {
+      addListener: jest.fn((event: string, handler: any) => {
+        if (event === 'context-menu') {
+          contextMenuHandler = handler;
+        }
+      }),
+      on: jest.fn(),
+      setWindowOpenHandler: jest.fn(),
+      session: { setPermissionRequestHandler: jest.fn() },
+    } as unknown as WebContents;
+    (
+      jest.requireMock('electron').webContents.fromId as jest.Mock
+    ).mockReturnValue(guestWebContents);
+    webviewReady({
+      payload: { webContentsId: 1, url: 'https://open.rocket.chat' },
+    });
+
+    const event = { preventDefault: jest.fn() } as unknown as Event;
+    await contextMenuHandler(event, {});
+    return { event, popup };
+  };
+
+  it('opens the menu when the setting is on', async () => {
+    const { event, popup } = await setup(true);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(popup).toHaveBeenCalled();
+  });
+
+  it('opens no menu when the setting is off', async () => {
+    const { event, popup } = await setup(false);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(createPopupMenuForServerView).not.toHaveBeenCalled();
+    expect(popup).not.toHaveBeenCalled();
   });
 });

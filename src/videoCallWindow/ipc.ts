@@ -6,7 +6,14 @@ import type {
   WebContents,
   MediaAccessPermissionRequest,
 } from 'electron';
-import { app, BrowserWindow, ipcMain, screen, webContents } from 'electron';
+import {
+  app,
+  autoUpdater,
+  BrowserWindow,
+  ipcMain,
+  screen,
+  webContents,
+} from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
 import { fallbackLng } from '../i18n/common';
@@ -111,6 +118,97 @@ const logVideoCallWindowStats = () => {
     cacheStatus: cacheStatus.cached ? 'cached' : 'empty',
     promiseStatus: cacheStatus.pending ? 'pending' : 'none',
   });
+};
+
+// Windows the app or the page close on purpose. Only a close the user starts
+// (the titlebar button, a shortcut) asks the page first.
+const windowsClosingWithoutAsking = new WeakSet<BrowserWindow>();
+const windowsAskingPage = new WeakSet<BrowserWindow>();
+// Quitting and installing an update must never wait on a call page.
+let isAppQuitting = false;
+
+const CLOSE_REQUEST_TIMEOUT = 1000;
+const FORCE_CLOSE_INTERVAL = 5000;
+const windowsKeptOpenAt = new WeakMap<BrowserWindow, number>();
+let closeRequestSeq = 0;
+const pendingCloseRequests = new Map<
+  number,
+  { guest: WebContents; settle: (keepOpen: boolean) => void }
+>();
+
+const closeWithoutAsking = (browserWindow: BrowserWindow): void => {
+  windowsClosingWithoutAsking.add(browserWindow);
+  browserWindow.close();
+};
+
+const getWebviewOf = (browserWindow: BrowserWindow): WebContents | null => {
+  const guest = webContents
+    .getAllWebContents()
+    .find(
+      (wc: WebContents) => wc.hostWebContents === browserWindow.webContents
+    );
+
+  return guest && !guest.isDestroyed() ? guest : null;
+};
+
+// Asks the page through the handler it gave `setCloseRequestHandler`. A page
+// without one answers no, and a page that doesn't answer in time doesn't get
+// to keep the window open.
+const pageKeepsWindowOpen = (guest: WebContents): Promise<boolean> =>
+  new Promise((resolve) => {
+    const requestId = ++closeRequestSeq;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const settle = (keepOpen: boolean): void => {
+      if (!pendingCloseRequests.delete(requestId)) {
+        return;
+      }
+      clearTimeout(timeout);
+      resolve(keepOpen);
+    };
+    pendingCloseRequests.set(requestId, { guest, settle });
+    timeout = setTimeout(() => settle(false), CLOSE_REQUEST_TIMEOUT);
+
+    try {
+      guest.send('video-call-window/close-requested-by-user', requestId);
+    } catch (error) {
+      console.warn(
+        'Video call window: could not ask the page to close:',
+        error
+      );
+      settle(false);
+    }
+  });
+
+const closeUnlessPageKeepsOpen = async (
+  browserWindow: BrowserWindow
+): Promise<void> => {
+  if (windowsAskingPage.has(browserWindow)) {
+    return;
+  }
+  windowsAskingPage.add(browserWindow);
+
+  try {
+    // A second close soon after the page kept the window open closes it, so a
+    // page that always keeps it open cannot trap the user.
+    const keptOpenAt = windowsKeptOpenAt.get(browserWindow);
+    windowsKeptOpenAt.delete(browserWindow);
+    const guest = getWebviewOf(browserWindow);
+    if (
+      guest &&
+      (keptOpenAt === undefined ||
+        Date.now() - keptOpenAt > FORCE_CLOSE_INTERVAL) &&
+      (await pageKeepsWindowOpen(guest))
+    ) {
+      windowsKeptOpenAt.set(browserWindow, Date.now());
+      return;
+    }
+
+    if (!browserWindow.isDestroyed()) {
+      closeWithoutAsking(browserWindow);
+    }
+  } finally {
+    windowsAskingPage.delete(browserWindow);
+  }
 };
 
 const fetchVideoCallWindowState = async (browserWindow: BrowserWindow) => {
@@ -633,18 +731,8 @@ export const isSameConferenceUrl = (a: string, b: string): boolean => {
  * the URL the window was opened for: the web client's conference start page
  * replaces its own address with the conference's once the conference exists.
  */
-const getVideoCallWebviewUrl = (): string | null => {
-  const host = videoCallWindow?.webContents;
-  if (!host) {
-    return null;
-  }
-
-  const guest = webContents
-    .getAllWebContents()
-    .find((wc: WebContents) => wc.hostWebContents === host);
-
-  return guest && !guest.isDestroyed() ? guest.getURL() : null;
-};
+const getVideoCallWebviewUrl = (): string | null =>
+  videoCallWindow ? getWebviewOf(videoCallWindow)?.getURL() ?? null : null;
 
 /**
  * Whether the open call window is already on the conference at `url`, by the
@@ -704,7 +792,7 @@ const openVideoCallWindow = async (
 
   if (videoCallWindow && !videoCallWindow.isDestroyed()) {
     console.log('Closing existing video call window to create fresh one');
-    videoCallWindow.close();
+    closeWithoutAsking(videoCallWindow);
     videoCallWindow = null;
 
     if (isVideoCallWindowDestroying) {
@@ -875,6 +963,7 @@ const openVideoCallWindow = async (
     // Capture per-window so a later call opening (which resets the module
     // state) can't change which server's handlers this window restores.
     const capturedCall = activeCall;
+    const callWindow = videoCallWindow;
 
     videoCallWindow.webContents.on(
       'will-navigate',
@@ -951,7 +1040,23 @@ const openVideoCallWindow = async (
       }, 50); // Small delay to let app state stabilize
     });
 
-    videoCallWindow.on('close', (_event) => {
+    // Windows emits no before-quit on shutdown or log-off, and the session
+    // ends whatever the page answers.
+    videoCallWindow.on('session-end', () => {
+      windowsClosingWithoutAsking.add(callWindow);
+    });
+
+    videoCallWindow.on('close', (event) => {
+      if (
+        !isAppQuitting &&
+        !isVideoCallWindowDestroying &&
+        !windowsClosingWithoutAsking.has(callWindow)
+      ) {
+        event.preventDefault();
+        void closeUnlessPageKeepsOpen(callWindow);
+        return;
+      }
+
       if (!isVideoCallWindowDestroying) {
         isVideoCallWindowDestroying = true;
         console.log(
@@ -1276,6 +1381,27 @@ export const startVideoCallWindowHandler = (): void => {
     event.returnValue = videoCallProviderName;
   });
 
+  // On macOS, quitAndInstall() closes every window before before-quit.
+  const closeWithoutAskingOnQuit = (): void => {
+    isAppQuitting = true;
+  };
+  app.on('before-quit', closeWithoutAskingOnQuit);
+  autoUpdater.on('before-quit-for-update', closeWithoutAskingOnQuit);
+
+  // Only the page that was asked can answer.
+  ipcMain.on(
+    'video-call-window/close-request-answered',
+    (event, requestId: unknown, keepOpen: unknown) => {
+      const request =
+        typeof requestId === 'number'
+          ? pendingCloseRequests.get(requestId)
+          : undefined;
+      if (request && request.guest === event.sender) {
+        request.settle(keepOpen === true);
+      }
+    }
+  );
+
   // Close the video call window on request from its own renderer. The
   // renderer's window.close() can't close a window the main process created, so
   // it asks via this fire-and-forget channel. We resolve the window from the
@@ -1290,7 +1416,7 @@ export const startVideoCallWindowHandler = (): void => {
         ? BrowserWindow.fromWebContents(sender.hostWebContents)
         : null);
     if (win && !win.isDestroyed()) {
-      win.close();
+      closeWithoutAsking(win);
       bringRootWindowToFront().catch((error) =>
         console.warn(
           'Video call window: could not focus the main window:',
@@ -1460,7 +1586,7 @@ export const startVideoCallWindowHandler = (): void => {
             console.log(
               'Video call window: Proceeding with close after navigation delay'
             );
-            videoCallWindow.close();
+            closeWithoutAsking(videoCallWindow);
           } else {
             console.log(
               'Video call window: Already destroyed or being destroyed, skipping close'

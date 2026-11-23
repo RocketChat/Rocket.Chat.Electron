@@ -113,6 +113,8 @@ const selectPersistableValuesB = createStructuredSelector({
   isMenuBarUnreadCountEnabled: ({ isMenuBarUnreadCountEnabled }: RootState) =>
     isMenuBarUnreadCountEnabled,
   uiPreviewHistory: ({ uiPreviewHistory }: RootState) => uiPreviewHistory,
+  isContextMenuEnabled: ({ isContextMenuEnabled }: RootState) =>
+    isContextMenuEnabled,
 });
 
 export const selectPersistableValues = createSelector(

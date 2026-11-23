@@ -52,6 +52,7 @@ import {
   WEBVIEW_AUDIO_MUTED_CHANGED,
   WEBVIEW_MEDIA_CAPTURE_CHANGED,
 } from '../../actions';
+import { selectIsContextMenuEnabled } from '../../selectors';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
 import {
@@ -296,6 +297,9 @@ const initializeServerWebContentsAfterReady = (
     params: ContextMenuParams
   ): Promise<void> => {
     event.preventDefault();
+    if (!select(selectIsContextMenuEnabled)) {
+      return;
+    }
     const menu = createPopupMenuForServerView(guestWebContents, params);
     menu.popup({ window: rootWindow });
   };

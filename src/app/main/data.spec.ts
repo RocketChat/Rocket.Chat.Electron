@@ -348,6 +348,40 @@ describe('mergePersistableValues', () => {
       });
     });
 
+    it.each([
+      [false, false],
+      ['false', false],
+      [true, true],
+      ['TRUE', true],
+    ])(
+      'locks the context menu to the admin value %p',
+      async (adminValue, expected) => {
+        (fs.promises.readFile as jest.Mock).mockResolvedValueOnce(
+          JSON.stringify({ isContextMenuEnabled: adminValue })
+        );
+
+        await mergePersistableValues({});
+
+        const { payload } = mockDispatch.mock.calls.find(
+          ([action]) => action.type === APP_SETTINGS_LOADED
+        )[0];
+        expect(payload.isContextMenuEnabledOverride).toBe(expected);
+        // The admin value stays out of the persisted user choice.
+        expect(payload.isContextMenuEnabled).toBeUndefined();
+      }
+    );
+
+    it('does not lock the context menu when no admin value is set', async () => {
+      await mergePersistableValues({});
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: APP_SETTINGS_LOADED,
+        payload: expect.objectContaining({
+          isContextMenuEnabledOverride: null,
+        }),
+      });
+    });
+
     it('defaults isNotificationQuickReplyEnabled to true when not overridden', async () => {
       await mergePersistableValues({});
 

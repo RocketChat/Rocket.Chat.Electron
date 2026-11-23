@@ -528,6 +528,20 @@ Same locations as `servers.json` (see table above).
 | `isTrayIconEnabled`                | boolean | `true`  | Enable system tray icon                |
 | `isUpdatingEnabled`                | boolean | `true`  | Allow user to update the app           |
 | `isAddNewServersEnabled`           | boolean | `true`  | Allow adding new servers               |
+| `isContextMenuEnabled`             | boolean | `true`  | Show the right-click menu inside workspaces. When set, it locks the **View > Right-click menu** item. |
+
+`isContextMenuEnabled` is a lock. The other settings in this table set a value
+when the app starts, and the user can change it until the next start. When
+`isContextMenuEnabled` is in the file, the app applies it at every start, the
+**View > Right-click menu** item is disabled, and the user cannot change it.
+The app does not save the value over the user's own choice. If you remove the
+entry, the user's earlier choice comes back. The value can be `true`, `false`,
+`"true"` or `"false"`. Any other value turns the menu off.
+
+When the right-click menu is off, a right-click inside a workspace does not
+open the native menu of the app. This also removes the spell-check suggestions
+and the Cut, Copy and Paste items of that menu. The keyboard shortcuts for
+those actions still work. Right-click handlers of the web client still run.
 
 #### Example: Enterprise Lockdown Configuration
 
@@ -557,7 +571,8 @@ This configuration:
   "isUpdatingEnabled": false,
   "isMenuBarEnabled": false,
   "isTrayIconEnabled": false,
-  "isMinimizeOnCloseEnabled": false
+  "isMinimizeOnCloseEnabled": false,
+  "isContextMenuEnabled": false
 }
 ```
 

@@ -387,6 +387,7 @@
     "showOnUnreadMessage": "Afficher la fenêtre quand il y a des messages non lus",
     "showServerList": "Liste des serveurs",
     "showTrayIcon": "Icône dans la barre des tâches",
+    "enableContextMenu": "Menu contextuel",
     "toggleDevTools": "Afficher &DevTools",
     "undo": "&Annuler",
     "unhide": "Afficher tout",

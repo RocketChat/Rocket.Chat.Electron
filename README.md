@@ -245,6 +245,7 @@ a single server mode.
 | `"isUpdatingEnabled": true`                | Sets if the app can be updated by the user.                                                                                                                  |
 | `"isAddNewServersEnabled": true`           | Sets if the user can add new servers.                                                                                                                        |
 | `"isNotificationQuickReplyEnabled": true`  | Sets if notifications are created with an inline reply field. When set to `false`, notifications are created without the inline reply field (Windows/macOS). |
+| `"isContextMenuEnabled": false`           | Turns off the native right-click menu in workspaces. Users cannot change this setting in the **View** menu. Accepts `true`, `false`, `"true"` and `"false"`. |
 
 ##### Single server mode
 

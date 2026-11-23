@@ -227,6 +227,7 @@
     "showOnUnreadMessage": "未読メッセージを表示",
     "showServerList": "サーバー一覧",
     "showTrayIcon": "トレイアイコン",
+    "enableContextMenu": "右クリックメニュー",
     "toggleDevTools": "開発ツールの切り替え (&D)",
     "undo": "元に戻す (&U)",
     "viewMenu": "表示 (&V)",

@@ -180,11 +180,9 @@
       "clear": "Limpar filtros",
       "all": "Todos",
       "mimes": {
-        "images": "Imagens",
-        "videos": "Vídeos",
-        "audios": "Áudio",
-        "texts": "Textos",
-        "files": "Arquivos"
+        "image": "Imagens",
+        "video": "Vídeos",
+        "application": "Arquivos"
       },
       "statuses": {
         "paused": "Pausado",
@@ -226,6 +224,9 @@
     "title": "Configurações",
     "general": "Geral",
     "certificates": "Certificados",
+    "sections": {
+      "uiPreview": "Prévia de UI web"
+    },
     "options": {
       "report": {
         "title": "Relatar erros aos desenvolvedores",
@@ -266,8 +267,7 @@
       },
       "menubar": {
         "title": "Barra de menus",
-        "description": "Mostra a barra de menus no topo da aplicação",
-        "disabledHint": "Não é possível desativar a barra de menus quando a barra lateral está desativada. As configurações se tornariam inacessíveis."
+        "description": "Mostra a barra de menus no topo da aplicação"
       },
       "sidebar": {
         "title": "Barra lateral",
@@ -350,9 +350,6 @@
           "closed": "Fechado"
         }
       }
-    },
-    "sections": {
-      "uiPreview": "Prévia de UI web"
     }
   },
   "error": {
@@ -377,6 +374,7 @@
     "copy": "&Copiar",
     "cut": "Recor&tar",
     "developerMode": "Modo desenvolvedor",
+    "simulateDisconnected": "Simular desconexão",
     "disableGpu": "Desabilitar GPU",
     "documentation": "Documentação",
     "downloads": "Downloads",
@@ -415,7 +413,6 @@
     "windowMenu": "&Janela",
     "zoomIn": "Aumentar zoom",
     "zoomOut": "Diminuir zoom",
-    "simulateDisconnected": "Simular desconexão",
     "restoreServerUi": "Restaurar UI do servidor"
   },
   "findInPage": {
@@ -604,7 +601,6 @@
       "expiresOn": "Expira em {{date}}",
       "today": "Expira hoje",
       "inDays_one": "Expira em {{count}} dia",
-      "inDays_many": "Expira em {{count}} de dias",
       "inDays_other": "Expira em {{count}} dias",
       "expired": "Expirado"
     },

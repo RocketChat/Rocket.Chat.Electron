@@ -18,7 +18,7 @@
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "261102",
+    "bundleVersion": "261103",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",

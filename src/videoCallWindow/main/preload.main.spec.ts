@@ -77,7 +77,7 @@ describe('video call window preload bridge', () => {
     expect(ipcSend).toHaveBeenCalledWith('video-call-window/close');
   });
 
-  it('exposes only the four supported methods', () => {
+  it('exposes only the five supported methods', () => {
     const videoCall = loadBridge();
 
     expect(Object.keys(videoCall).sort()).toEqual([
@@ -85,6 +85,7 @@ describe('video call window preload bridge', () => {
       'openInMainWindow',
       'reportMediaCapture',
       'requestScreenSharing',
+      'setCloseRequestHandler',
     ]);
   });
 
@@ -202,6 +203,60 @@ describe('video call window preload bridge', () => {
     videoCall.close();
 
     expect(ipcSend).toHaveBeenCalledWith('video-call-window/close');
+  });
+
+  describe('setCloseRequestHandler', () => {
+    const askToClose = async (requestId = 7) => {
+      const electron = jest.requireMock('electron');
+      const [, onCloseRequested] = (
+        electron.ipcRenderer.on as jest.Mock
+      ).mock.calls.find(
+        ([channel]: [string]) =>
+          channel === 'video-call-window/close-requested-by-user'
+      );
+      await onCloseRequested({}, requestId);
+    };
+
+    it.each([
+      ['answers no without a handler', undefined, false],
+      ['answers what the handler returns', () => true, true],
+      ['waits for a handler that answers later', async () => true, true],
+      ['answers no for anything but true', () => 'yes', false],
+      [
+        'answers no when the handler throws',
+        () => {
+          throw new Error('broken');
+        },
+        false,
+      ],
+    ])('%s', async (_name, handler, keepOpen) => {
+      const videoCall = loadBridge();
+      if (handler) {
+        videoCall.setCloseRequestHandler(handler);
+      }
+
+      await askToClose();
+
+      expect(ipcSend).toHaveBeenCalledWith(
+        'video-call-window/close-request-answered',
+        7,
+        keepOpen
+      );
+    });
+
+    it('answers no once the handler is removed', async () => {
+      const videoCall = loadBridge();
+      videoCall.setCloseRequestHandler(() => true);
+      videoCall.setCloseRequestHandler(null);
+
+      await askToClose();
+
+      expect(ipcSend).toHaveBeenCalledWith(
+        'video-call-window/close-request-answered',
+        7,
+        false
+      );
+    });
   });
 
   it('resolves requestScreenSharing with the picked source id', async () => {

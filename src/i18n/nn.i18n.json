@@ -106,7 +106,8 @@
   "menus": {
     "simulateDisconnected": "Simuler fråkopling",
     "resetWindowBounds": "Nullstill vindaugsstorleikar og -posisjonar",
-    "restoreServerUi": "Gjenopprett grensesnittet til tenaren"
+    "restoreServerUi": "Gjenopprett grensesnittet til tenaren",
+    "enableContextMenu": "Høgreklikkmeny"
   },
   "sidebar": {
     "item": {

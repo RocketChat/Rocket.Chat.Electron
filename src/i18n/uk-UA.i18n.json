@@ -224,6 +224,7 @@
     "showOnUnreadMessage": "Показувати з непрочитатих повідомленнях",
     "showServerList": "Список серверів",
     "showTrayIcon": "Значок в треї",
+    "enableContextMenu": "Контекстне меню",
     "toggleDevTools": "Відкрити &DevTools",
     "undo": "&Скасувати",
     "unhide": "Показати все",

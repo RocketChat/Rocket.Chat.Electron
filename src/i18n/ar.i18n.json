@@ -110,7 +110,8 @@
   "menus": {
     "simulateDisconnected": "محاكاة قطع الاتصال",
     "resetWindowBounds": "إعادة تعيين أحجام النوافذ ومواضعها",
-    "restoreServerUi": "استعادة واجهة الخادم"
+    "restoreServerUi": "استعادة واجهة الخادم",
+    "enableContextMenu": "قائمة النقر بزر الماوس الأيمن"
   },
   "sidebar": {
     "item": {

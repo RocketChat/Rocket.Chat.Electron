@@ -106,7 +106,8 @@
   "menus": {
     "simulateDisconnected": "Simuler čađaheami",
     "resetWindowBounds": "Máhcat lásiid sturrodagaid ja sajiid",
-    "restoreServerUi": "Máhcat bálvvá geavaheaddjilaktta"
+    "restoreServerUi": "Máhcat bálvvá geavaheaddjilaktta",
+    "enableContextMenu": "Olgeš-coahkkalan fállu"
   },
   "sidebar": {
     "item": {

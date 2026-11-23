@@ -36,6 +36,8 @@ export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED =
   'menu-bar/toggle-is-show-window-on-unread-changed-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
+export const MENU_BAR_TOGGLE_IS_CONTEXT_MENU_ENABLED_CLICKED =
+  'menu-bar/toggle-is-context-menu-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED =
   'menu-bar/toggle-is-developer-mode-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED =
@@ -220,6 +222,7 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
+  [MENU_BAR_TOGGLE_IS_CONTEXT_MENU_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED]: boolean;
   [SET_PRESENCE_DISCONNECTION_SIMULATED]: boolean;

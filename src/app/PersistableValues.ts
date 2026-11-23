@@ -152,8 +152,12 @@ type PersistableValues_4_18_0 = PersistableValues_4_17_0 & {
   uiPreviewHistory: UiPreviewHistoryEntry[];
 };
 
+type PersistableValues_4_19_0 = PersistableValues_4_18_0 & {
+  isContextMenuEnabled: boolean;
+};
+
 export type PersistableValues = Omit<
-  PersistableValues_4_18_0,
+  PersistableValues_4_19_0,
   'isSideBarEnabled' | 'lastSelectedServerUrl'
 >;
 

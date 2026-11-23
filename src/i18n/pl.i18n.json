@@ -261,6 +261,7 @@
     "showOnUnreadMessage": "Pokaż nieprzeczytane wiadomości",
     "showServerList": "Lista serwerów",
     "showTrayIcon": "Ikona zasobnika",
+    "enableContextMenu": "Menu kontekstowe",
     "toggleDevTools": "Przełącz &Narzędzia deweloperskie",
     "undo": "&Cofnij",
     "unhide": "Pokaż wszystko",

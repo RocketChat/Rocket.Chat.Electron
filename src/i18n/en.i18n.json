@@ -582,6 +582,7 @@
     "showOnUnreadMessage": "Show on unread messages",
     "showServerList": "Server list",
     "showTrayIcon": "Tray icon",
+    "enableContextMenu": "Right-click menu",
     "toggleDevTools": "Toggle &DevTools",
     "workspaceSwitcher": "Workspace switcher",
     "workspaceTabs": "Tabs",

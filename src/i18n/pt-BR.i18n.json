@@ -414,6 +414,7 @@
     "showOnUnreadMessage": "Exibir quando há mensagens não lidas",
     "showServerList": "Lista de servidores",
     "showTrayIcon": "Ícone da bandeja",
+    "enableContextMenu": "Menu do botão direito",
     "toggleDevTools": "Alternar &DevTools",
     "undo": "&Desfazer",
     "unhide": "Mostrar todos",

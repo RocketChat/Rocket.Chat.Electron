@@ -418,6 +418,7 @@
     "showOnUnreadMessage": "Mostrar en mensajes no leídos",
     "showServerList": "Lista de servidores",
     "showTrayIcon": "Icono en la bandeja",
+    "enableContextMenu": "Menú contextual",
     "toggleDevTools": "Alternar &Herramientas de desarrollo",
     "undo": "&Deshacer",
     "unhide": "Mostrar todos",

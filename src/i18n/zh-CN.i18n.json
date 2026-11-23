@@ -287,6 +287,7 @@
     "showOnUnreadMessage": "显示未读取的信息",
     "showServerList": "服务器列表",
     "showTrayIcon": "托盘图标",
+    "enableContextMenu": "右键菜单",
     "toggleDevTools": "切换开发工具 (&D)",
     "undo": "还原 (&U)",
     "viewMenu": "显示 (&V)",

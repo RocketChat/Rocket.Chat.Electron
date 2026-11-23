@@ -246,6 +246,7 @@
     "showOnUnreadMessage": "Okunmamış mesajlarda göster",
     "showServerList": "Sunucu listesi",
     "showTrayIcon": "Görev çubuğu ikonu",
+    "enableContextMenu": "Sağ tık menüsü",
     "toggleDevTools": "&DevTools aç",
     "undo": "&Geri al",
     "viewMenu": "&Görünüm",

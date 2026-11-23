@@ -148,7 +148,8 @@
     "simulateDisconnected": "Simula disconnessione",
     "findInPage": "&Trova…",
     "resetWindowBounds": "Ripristina dimensioni e posizioni delle finestre",
-    "restoreServerUi": "Ripristina l'interfaccia del server"
+    "restoreServerUi": "Ripristina l'interfaccia del server",
+    "enableContextMenu": "Menu contestuale"
   },
   "sidebar": {
     "item": {

@@ -588,6 +588,7 @@
     "showOnUnreadMessage": "Bei ungelesenen Nachrichten anzeigen",
     "showServerList": "Server liste",
     "showTrayIcon": "Symbole in menüleiste",
+    "enableContextMenu": "Kontextmenü",
     "toggleDevTools": "&DevTools ein-/ausblenden",
     "workspaceSwitcher": "Arbeitsbereich-Umschalter",
     "workspaceTabs": "Tabs",

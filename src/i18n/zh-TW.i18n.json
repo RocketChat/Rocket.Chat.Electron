@@ -225,6 +225,7 @@
     "showOnUnreadMessage": "顯示未讀取的訊息",
     "showServerList": "伺服器列表",
     "showTrayIcon": "系統匣圖示",
+    "enableContextMenu": "右鍵選單",
     "toggleDevTools": "切換開發工具 (&D)",
     "undo": "還原 (&U)",
     "viewMenu": "檢視 (&V)",

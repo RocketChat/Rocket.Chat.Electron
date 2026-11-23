@@ -396,6 +396,7 @@
     "showOnUnreadMessage": "Развернуть при поступлении новых сообщений",
     "showServerList": "Список серверов",
     "showTrayIcon": "Значок в трее",
+    "enableContextMenu": "Контекстное меню",
     "toggleDevTools": "Открыть &DevTools",
     "undo": "&Отменить",
     "unhide": "Показать все",

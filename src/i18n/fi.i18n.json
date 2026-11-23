@@ -392,6 +392,7 @@
     "showOnUnreadMessage": "Näytä lukemattomissa viesteissä",
     "showServerList": "Palvelinluettelo",
     "showTrayIcon": "Ilmaisinalueen kuvake",
+    "enableContextMenu": "Pikavalikko",
     "toggleDevTools": "Vaihda &DevTools",
     "undo": "K&umoa",
     "unhide": "Näytä kaikki",

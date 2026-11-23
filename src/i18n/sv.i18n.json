@@ -428,6 +428,7 @@
     "showOnUnreadMessage": "Visa vid olästa meddelanden",
     "showServerList": "Serverlista",
     "showTrayIcon": "Ikon för brickan",
+    "enableContextMenu": "Snabbmeny",
     "toggleDevTools": "Toggle &DevTools",
     "openConfigFolder": "Öppna mappen &Konfiguration",
     "videoCallDevTools": "Öppna videosamtal &DevTools",

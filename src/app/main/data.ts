@@ -75,10 +75,12 @@ export const mergePersistableValues = async (
 
   const {
     outlookCalendarSyncInterval: _udSync,
+    isContextMenuEnabled: _udContextMenu,
     ...userDataPersistableOverrides
   } = userDataOverriddenSettings;
   const {
     outlookCalendarSyncInterval: _aaSync,
+    isContextMenuEnabled: _aaContextMenu,
     ...appAsarPersistableOverrides
   } = appAsarOverriddenSettings;
 
@@ -237,6 +239,14 @@ export const mergePersistableValues = async (
           mergedOverrides.isNotificationQuickReplyEnabled
         ).toLowerCase() === 'true';
 
+  // Admin lock: kept out of the persisted values so the user's own choice
+  // comes back when the admin removes the entry.
+  const isContextMenuEnabledOverride =
+    mergedOverrides.isContextMenuEnabled === undefined
+      ? null
+      : mergedOverrides.isContextMenuEnabled === true ||
+        String(mergedOverrides.isContextMenuEnabled).toLowerCase() === 'true';
+
   dispatch({
     type: APP_SETTINGS_LOADED,
     payload: {
@@ -244,6 +254,7 @@ export const mergePersistableValues = async (
       allowInsecureOutlookConnections: isInsecureOutlookEnabled,
       outlookCalendarSyncIntervalOverride,
       isNotificationQuickReplyEnabled,
+      isContextMenuEnabledOverride,
     },
   });
 

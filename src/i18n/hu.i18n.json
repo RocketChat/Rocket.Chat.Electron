@@ -434,6 +434,7 @@
     "showOnUnreadMessage": "Megjelenítés olvasatlan üzeneteknél",
     "showServerList": "Kiszolgálólista",
     "showTrayIcon": "Tálcaikon",
+    "enableContextMenu": "Helyi menü",
     "toggleDevTools": "&Fejlesztői eszközök ki- és bekapcsolása",
     "openConfigFolder": "&Beállítások mappa megnyitása",
     "openLogViewer": "&Naplómegjelenítő megnyitása",

@@ -24,7 +24,9 @@ const isRelativeRoute = (path: unknown): path is string =>
   !path.startsWith('/\\');
 
 // Returns true to keep the window open, e.g. while the page asks the user to
-// hand the call to a new host.
+// hand the call to a new host. Answer within 1 s: show the prompt and return
+// true, without waiting for the user's choice, and call close() when done. A
+// second close within 5 s of keeping the window open closes it without asking.
 type CloseRequestHandler = () => boolean | Promise<boolean>;
 
 let closeRequestHandler: CloseRequestHandler | null = null;

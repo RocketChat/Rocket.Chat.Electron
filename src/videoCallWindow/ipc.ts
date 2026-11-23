@@ -155,6 +155,8 @@ const windowsAskingPage = new WeakSet<BrowserWindow>();
 let isAppQuitting = false;
 
 const CLOSE_REQUEST_TIMEOUT = 1000;
+const FORCE_CLOSE_INTERVAL = 5000;
+const windowsKeptOpenAt = new WeakMap<BrowserWindow, number>();
 let closeRequestSeq = 0;
 const pendingCloseRequests = new Map<
   number,
@@ -213,8 +215,18 @@ const closeUnlessPageKeepsOpen = async (
   windowsAskingPage.add(browserWindow);
 
   try {
+    // A second close soon after the page kept the window open closes it, so a
+    // page that always keeps it open cannot trap the user.
+    const keptOpenAt = windowsKeptOpenAt.get(browserWindow);
+    windowsKeptOpenAt.delete(browserWindow);
     const guest = getWebviewOf(browserWindow);
-    if (guest && (await pageKeepsWindowOpen(guest))) {
+    if (
+      guest &&
+      (keptOpenAt === undefined ||
+        Date.now() - keptOpenAt > FORCE_CLOSE_INTERVAL) &&
+      (await pageKeepsWindowOpen(guest))
+    ) {
+      windowsKeptOpenAt.set(browserWindow, Date.now());
       return;
     }
 
@@ -1053,6 +1065,12 @@ const openVideoCallWindow = async (
           );
         }
       }, 50); // Small delay to let app state stabilize
+    });
+
+    // Windows emits no before-quit on shutdown or log-off, and the session
+    // ends whatever the page answers.
+    videoCallWindow.on('session-end', () => {
+      windowsClosingWithoutAsking.add(callWindow);
     });
 
     videoCallWindow.on('close', (event) => {

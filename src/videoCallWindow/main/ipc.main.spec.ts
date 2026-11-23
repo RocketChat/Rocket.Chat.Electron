@@ -963,17 +963,50 @@ describe('videoCallWindow/ipc — PR #3359 hardening', () => {
       expect(win.close).not.toHaveBeenCalled();
     });
 
-    it('asks again on the next close after the page kept it open', async () => {
+    it('asks again on a close more than 5 s after the page kept it open', async () => {
       const { win, userCloses } = await openCallWindow();
       const guest = await attachWebview(win);
-
-      userCloses();
-      await answer(guest, true);
-      expect(userCloses().preventDefault).toHaveBeenCalledTimes(1);
-      await answer(guest, false);
+      const now = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      try {
+        userCloses();
+        await answer(guest, true);
+        now.mockReturnValue(1_005_001);
+        expect(userCloses().preventDefault).toHaveBeenCalledTimes(1);
+        await answer(guest, false);
+      } finally {
+        now.mockRestore();
+      }
 
       expect(guest.send).toHaveBeenCalledTimes(2);
       expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes without asking on a second close within 5 s of the page keeping it open', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+      const now = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      try {
+        userCloses();
+        await answer(guest, true);
+        now.mockReturnValue(1_005_000);
+        userCloses();
+        await flushPromises();
+      } finally {
+        now.mockRestore();
+      }
+
+      expect(guest.send).toHaveBeenCalledTimes(1);
+      expect(win.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not ask when the Windows session ends', async () => {
+      const { win, userCloses } = await openCallWindow();
+      const guest = await attachWebview(win);
+
+      fire(win.listeners, 'session-end', {});
+
+      expect(userCloses().preventDefault).not.toHaveBeenCalled();
+      expect(guest.send).not.toHaveBeenCalled();
     });
 
     it('asks once while the page has not answered', async () => {

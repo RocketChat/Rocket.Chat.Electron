@@ -152,7 +152,14 @@ describe('interpolation', () => {
     });
 
     it('shows at least 1 second for a positive sub-second duration', () => {
-      expect(format(300, 'duration')).toMatch(/\b1\s?s\b|sec/i);
+      expect(format(300, 'duration')).toMatch(/\b1\s?s(ec)?\b/i);
+    });
+
+    it('moves to the next unit when rounding reaches it', () => {
+      expect(format(59.6 * 1000, 'duration')).toMatch(/\b1\s?m(in)?\b/i);
+      expect(format(59.6 * 60 * 1000, 'duration')).toMatch(/\b1\s?h(r)?\b/i);
+      expect(format(6.6 * DAY, 'duration')).toMatch(/\b1\s?w(k)?\b/i);
+      expect(format(364 * DAY, 'duration')).toMatch(/\b1\s?y(r)?\b/i);
     });
 
     it('formats year-scale durations in years', () => {

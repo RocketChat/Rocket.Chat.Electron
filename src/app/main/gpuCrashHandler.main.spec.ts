@@ -17,6 +17,7 @@ jest.mock('electron', () => {
       commandLine: {
         appendSwitch: jest.fn(),
         hasSwitch: jest.fn(),
+        getSwitchValue: jest.fn(),
       },
       disableHardwareAcceleration: jest.fn(),
       requestSingleInstanceLock: jest.fn(() => true),
@@ -68,6 +69,7 @@ beforeEach(() => {
   (app.commandLine.hasSwitch as jest.Mock).mockImplementation((name: string) =>
     switches.has(name)
   );
+  (app.commandLine.getSwitchValue as jest.Mock).mockReturnValue('');
 });
 
 afterEach(() => {

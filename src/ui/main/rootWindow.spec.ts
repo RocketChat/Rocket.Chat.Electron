@@ -533,6 +533,100 @@ describe('rootWindow close event handler', () => {
   });
 });
 
+describe('show window on new unread messages', () => {
+  const { selectGlobalBadgeCount } = require('../selectors');
+  const store = require('../../store');
+
+  const createWindow = ({
+    isVisible,
+    isMinimized,
+    isMaximized = false,
+  }: {
+    isVisible: boolean;
+    isMinimized: boolean;
+    isMaximized?: boolean;
+  }) => ({
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+    isDestroyed: jest.fn(() => false),
+    isFocused: jest.fn(() => false),
+    isVisible: jest.fn(() => isVisible),
+    isMinimized: jest.fn(() => isMinimized),
+    isMaximized: jest.fn(() => isMaximized),
+    showInactive: jest.fn(),
+    restore: jest.fn(),
+    minimize: jest.fn(),
+    maximize: jest.fn(),
+    flashFrame: jest.fn(),
+    setTitle: jest.fn(),
+  });
+
+  const runBadgeUpdate = async (
+    browserWindow: ReturnType<typeof createWindow>,
+    isShowWindowOnUnreadChangedEnabled: boolean
+  ) => {
+    jest.clearAllMocks();
+    (store.select as jest.Mock).mockImplementation((selector: any) =>
+      selector({
+        isShowWindowOnUnreadChangedEnabled,
+        isFlashFrameEnabled: true,
+        isTrayIconEnabled: true,
+      })
+    );
+    const rootWindow = require('./rootWindow');
+    rootWindow.getRootWindow = jest.fn().mockResolvedValue(browserWindow);
+    rootWindow.setupRootWindow();
+
+    const badgeCall = (store.watch as jest.Mock).mock.calls.find(
+      ([selector]: [unknown]) => selector === selectGlobalBadgeCount
+    );
+    expect(badgeCall).toBeDefined();
+    await badgeCall[1](1);
+  };
+
+  it('restores a window minimized to the taskbar (#1909)', async () => {
+    const browserWindow = createWindow({ isVisible: true, isMinimized: true });
+
+    await runBadgeUpdate(browserWindow, true);
+
+    expect(browserWindow.restore).toHaveBeenCalledTimes(1);
+    expect(browserWindow.minimize).not.toHaveBeenCalled();
+  });
+
+  it('shows and restores a window hidden while minimized (#1909)', async () => {
+    const browserWindow = createWindow({ isVisible: false, isMinimized: true });
+
+    await runBadgeUpdate(browserWindow, true);
+
+    expect(browserWindow.showInactive).toHaveBeenCalledTimes(1);
+    expect(browserWindow.restore).toHaveBeenCalledTimes(1);
+    expect(browserWindow.minimize).not.toHaveBeenCalled();
+  });
+
+  it('shows a hidden window and keeps it maximized (#1590)', async () => {
+    const browserWindow = createWindow({
+      isVisible: false,
+      isMinimized: false,
+      isMaximized: true,
+    });
+
+    await runBadgeUpdate(browserWindow, true);
+
+    expect(browserWindow.showInactive).toHaveBeenCalledTimes(1);
+    expect(browserWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(browserWindow.restore).not.toHaveBeenCalled();
+  });
+
+  it('only flashes a minimized window when the setting is off', async () => {
+    const browserWindow = createWindow({ isVisible: true, isMinimized: true });
+
+    await runBadgeUpdate(browserWindow, false);
+
+    expect(browserWindow.restore).not.toHaveBeenCalled();
+    expect(browserWindow.showInactive).not.toHaveBeenCalled();
+  });
+});
+
 describe('applyRootWindowState', () => {
   const { applyRootWindowState } = require('./rootWindow');
   const { loggers } = require('../../logging/scopes');

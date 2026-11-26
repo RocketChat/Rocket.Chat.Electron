@@ -1,10 +1,7 @@
 import { execFileSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 
 import { findTicketKeys } from './ticketKeys.lib';
-
-// The spec of the checker holds keys on purpose, as test input.
-const ALLOWED_FILES = new Set(['scripts/ticketKeys.lib.spec.ts']);
 
 const files = execFileSync(
   'git',
@@ -13,7 +10,8 @@ const files = execFileSync(
 )
   .split('\n')
   .filter((file) => /\.(ts|tsx|js|jsx|mjs|cjs)$/.test(file))
-  .filter((file) => !ALLOWED_FILES.has(file));
+  // A tracked file that is deleted but not staged is still in the index.
+  .filter((file) => existsSync(file));
 
 let count = 0;
 for (const file of files) {

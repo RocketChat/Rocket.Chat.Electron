@@ -1,44 +1,55 @@
 import { findTicketKeys } from './ticketKeys.lib';
 
+// Builds each key at runtime, so that this file holds no key as literal text.
+const key = (project: string, id: number) => `${project}-${id}`;
+
 describe('findTicketKeys', () => {
   it('finds a key in a line comment', () => {
-    const source = 'const a = 1;\n// Fixed for LSE2EE-17.\n';
+    const source = `const a = 1;\n// Fixed for ${key('LSE2EE', 17)}.\n`;
 
     expect(findTicketKeys(source, 'a.ts')).toEqual([
-      { key: 'LSE2EE-17', line: 2 },
+      { key: key('LSE2EE', 17), line: 2 },
     ]);
   });
 
   it('finds keys in a block comment, with the line of each key', () => {
-    const source = '/*\n * See CORE-2704\n * and DSK-231.\n */\nexport {};\n';
+    const source = `/*\n * See ${key('CORE', 2704)}\n * and ${key('DSK', 231)}.\n */\nexport {};\n`;
 
     expect(findTicketKeys(source, 'a.ts')).toEqual([
-      { key: 'CORE-2704', line: 2 },
-      { key: 'DSK-231', line: 3 },
+      { key: key('CORE', 2704), line: 2 },
+      { key: key('DSK', 231), line: 3 },
     ]);
   });
 
   it('finds a key in a test title', () => {
-    const source = "it('returns hits newest first (LSE2EE-17)', () => {});\n";
+    const source = `it('returns hits newest first (${key('LSE2EE', 17)})', () => {});\n`;
 
     expect(findTicketKeys(source, 'a.spec.ts')).toEqual([
-      { key: 'LSE2EE-17', line: 1 },
+      { key: key('LSE2EE', 17), line: 1 },
     ]);
   });
 
   it('finds a key in a template literal', () => {
-    const source = 'const t = `see SUP-1097 for ${x}`;\n';
+    const source = `const t = \`see ${key('SUP', 1097)} for \${x}\`;\n`;
 
     expect(findTicketKeys(source, 'a.ts')).toEqual([
-      { key: 'SUP-1097', line: 1 },
+      { key: key('SUP', 1097), line: 1 },
     ]);
   });
 
   it('finds keys in a JSX file', () => {
-    const source = 'export const A = () => <div>{/* PROD-595 */}</div>;\n';
+    const source = `export const A = () => <div>{/* ${key('PROD', 595)} */}</div>;\n`;
 
     expect(findTicketKeys(source, 'a.tsx')).toEqual([
-      { key: 'PROD-595', line: 1 },
+      { key: key('PROD', 595), line: 1 },
+    ]);
+  });
+
+  it('finds a key in a JSX comment with whitespace around it', () => {
+    const source = `export const A = () => <div>{ /* a */ /* ${key('PROD', 595)} */ }</div>;\n`;
+
+    expect(findTicketKeys(source, 'a.tsx')).toEqual([
+      { key: key('PROD', 595), line: 1 },
     ]);
   });
 

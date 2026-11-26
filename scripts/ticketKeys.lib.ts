@@ -81,9 +81,13 @@ export const findTicketKeys = (
     if (ts.isJsxExpression(node) && !node.expression) {
       // A JSX comment such as {/* ... */} has no expression node to visit.
       scanner.resetTokenState(node.getStart(sourceFile) + 1);
-      const kind = scanner.scan();
-      if (textKinds.has(kind)) {
-        collect(scanner.getTokenStart(), scanner.getTokenText());
+      while (
+        scanner.scan() !== ts.SyntaxKind.CloseBraceToken &&
+        scanner.getTokenStart() < node.getEnd()
+      ) {
+        if (textKinds.has(scanner.getToken())) {
+          collect(scanner.getTokenStart(), scanner.getTokenText());
+        }
       }
     }
     ts.forEachChild(node, visit);

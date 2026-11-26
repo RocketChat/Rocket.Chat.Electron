@@ -2,6 +2,8 @@
 // Checks the relative links of every tracked markdown file, and the repository
 // paths that agent instructions name in code spans. Exits 1 on any finding.
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
   checkCodePaths,
@@ -18,8 +20,13 @@ const tracked = git('-C', repoRoot, 'ls-files', '-z')
   .filter(Boolean);
 
 // The changelog quotes old release notes, links included, and is not edited.
+// A tracked file deleted from the working tree is not read, but links to it
+// still fail.
 const markdown = tracked.filter(
-  (file) => file.endsWith('.md') && file !== 'CHANGELOG.md'
+  (file) =>
+    file.endsWith('.md') &&
+    file !== 'CHANGELOG.md' &&
+    existsSync(join(repoRoot, file))
 );
 const topDirs = new Set(
   tracked.filter((file) => file.includes('/')).map((file) => file.split('/')[0])

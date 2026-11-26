@@ -2,7 +2,16 @@
 // extended with checkCodePaths for the paths that agent instructions name in
 // code spans.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { basename, dirname, extname, join, parse, resolve } from 'node:path';
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  posix,
+  relative,
+  resolve,
+} from 'node:path';
 
 // GitHub's slug: lowercase, drop punctuation (Unicode letters and digits survive), one hyphen per space.
 export const slug = (text: string): string =>
@@ -31,20 +40,31 @@ const stripFences = (content: string): string[] => {
   });
 };
 
-const stripCodeSpans = (line: string): string =>
-  line.replace(/(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, '');
+// A code span may wrap lines, but it ends at a blank line.
+const stripCodeSpans = (text: string): string =>
+  text.replace(/(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?<!`)\1(?!`)/g, '');
 
 const anchorsOf = (file: string): Set<string> => {
   const anchors = new Set<string>();
+  let previous = '';
   for (const line of stripFences(readFileSync(file, 'utf8'))) {
     for (const m of line.matchAll(
       /<a\s[^>]*?\b(?:id|name)=["']([^"']+)["']/g
     )) {
       anchors.add(m[1]);
     }
-    const heading = /^ {0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/.exec(line);
-    if (!heading) continue;
-    const base = slug(heading[1].replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1'));
+    const atx = /^ {0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/.exec(line)?.[1];
+    // shortcut: a setext heading takes only the line above its underline; parse paragraphs if a doc wraps one.
+    const setext =
+      /^ {0,3}(?:=+|-+)\s*$/.test(line) &&
+      previous.trim() &&
+      !/^ {0,3}(?:#|[-*+]\s|\d+[.)]\s|>)/.test(previous)
+        ? previous
+        : undefined;
+    previous = line;
+    const heading = atx ?? setext;
+    if (heading === undefined) continue;
+    const base = slug(heading.replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1'));
     let candidate = base;
     for (let n = 1; anchors.has(candidate); n++) candidate = `${base}-${n}`;
     anchors.add(candidate);
@@ -52,15 +72,17 @@ const anchorsOf = (file: string): Set<string> => {
   return anchors;
 };
 
-// existsSync is case-insensitive on macOS and Windows, so compare every segment against the real directory listing.
-export const existsExact = (path: string): boolean => {
-  if (!existsSync(path)) return false;
-  const { root } = parse(path);
-  let current = root;
-  for (const segment of path
-    .slice(root.length)
-    .split(/[\\/]/)
-    .filter(Boolean)) {
+// existsSync is case-insensitive on macOS and Windows, so compare every
+// segment below base against the real directory listing. The segments of base
+// itself are not compared: a Windows temp path such as C:\Users\RUNNER~1 uses
+// short names that no directory listing contains.
+export const existsExact = (base: string, path: string): boolean => {
+  const target = resolve(base, path);
+  if (!existsSync(target)) return false;
+  const below = relative(base, target);
+  if (below.startsWith('..') || isAbsolute(below)) return true;
+  let current = base;
+  for (const segment of below.split(/[\\/]/).filter(Boolean)) {
     if (!readdirSync(current).includes(segment)) return false;
     current = join(current, segment);
   }
@@ -75,7 +97,7 @@ const decode = (value: string): string => {
   }
 };
 
-// Link targets that contain ")", setext headings and indented code blocks are not parsed.
+// Link targets that contain ")" and indented code blocks are not parsed.
 const inlineLinkRe = /\]\(\s*(<[^>]*>|[^)\s]+)/g;
 const htmlLinkRe = /<a\s[^>]*?\bhref=["']([^"']+)["']/g;
 const referenceLinkRe = /^ {0,3}\[[^\]]+\]:\s*(<[^>]*>|\S+)/;
@@ -103,11 +125,11 @@ export const checkLinks = (
   const errors: string[] = [];
   for (const file of files) {
     const absolute = resolve(repoRoot, file);
-    const lines = stripFences(readFileSync(absolute, 'utf8')).map(
-      stripCodeSpans
+    const text = stripCodeSpans(
+      stripFences(readFileSync(absolute, 'utf8')).join('\n')
     );
     // Inline and HTML links may break across lines; reference definitions are one per line.
-    const text = lines.join('\n');
+    const lines = text.split('\n');
     const targets = [
       ...[...text.matchAll(inlineLinkRe)].map((m) => m[1]),
       ...[...text.matchAll(htmlLinkRe)].map((m) => m[1]),
@@ -141,7 +163,7 @@ export const checkLinks = (
       const resolved = path.startsWith('/')
         ? join(repoRoot, path)
         : resolve(dirname(absolute), path);
-      if (!existsExact(resolve(resolved))) {
+      if (!existsExact(repoRoot, resolved)) {
         errors.push(`${file}: broken link -> ${target}`);
         continue;
       }
@@ -194,13 +216,16 @@ export const checkCodePaths = (
     stripFences(readFileSync(absolute, 'utf8')).forEach((line, index) => {
       for (const [, span] of line.matchAll(codeSpanRe)) {
         const token = span.replace(/[.,:;)]+$/, '');
-        const path = token.split(/[:#]/)[0];
+        const path = token.split(/[:#]/)[0].replace(/^(?:\.\/)+/, '');
         if (!topDirs.has(path.split('/')[0]) || !path.includes('/')) continue;
         if (placeholderRe.test(path)) continue;
+        // Repository-relative with "/", as git check-ignore expects on every platform.
+        const local = posix.join(posix.dirname(file), path);
         if (
-          existsExact(resolve(repoRoot, path)) ||
-          existsExact(resolve(dirname(absolute), path)) ||
-          isIgnored(path)
+          existsExact(repoRoot, path) ||
+          existsExact(repoRoot, local) ||
+          isIgnored(path) ||
+          isIgnored(local)
         ) {
           continue;
         }

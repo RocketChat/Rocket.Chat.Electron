@@ -48,6 +48,8 @@ export const SET_PRESENCE_DISCONNECTION_SIMULATED =
 export const MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED =
   'menu-bar/set-navigation-layout-clicked';
 export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
+export const ROOT_WINDOW_HIDDEN_STARTUP_CHANGED =
+  'root-window/hidden-startup-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
 export const VIDEO_CALL_WINDOW_STATE_CHANGED =
   'video-call-window/state-changed';
@@ -229,6 +231,7 @@ export type UiActionTypeToPayloadMap = {
   [SET_PRESENCE_DISCONNECTION_SIMULATED]: boolean;
   [MENU_BAR_SET_NAVIGATION_LAYOUT_CLICKED]: NavigationLayout;
   [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
+  [ROOT_WINDOW_HIDDEN_STARTUP_CHANGED]: boolean;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
   [VIDEO_CALL_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;

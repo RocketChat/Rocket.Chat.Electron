@@ -48,6 +48,7 @@ import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnable
 import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnabled';
 import { isPresenceDisconnectionSimulated } from '../ui/reducers/isPresenceDisconnectionSimulated';
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
+import { isRootWindowInHiddenStartup } from '../ui/reducers/isRootWindowInHiddenStartup';
 import { isSettingsWindowOpen } from '../ui/reducers/isSettingsWindowOpen';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isTelephonyEnabled } from '../ui/reducers/isTelephonyEnabled';
@@ -120,6 +121,7 @@ export const rootReducer = combineReducers({
   openDialog,
   rootWindowIcon,
   rootWindowState,
+  isRootWindowInHiddenStartup,
   secondaryWindowStates,
   selectedBrowser,
   servers,

@@ -29,6 +29,7 @@ import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { openExternal } from '../../utils/browserLauncher';
 import {
+  ROOT_WINDOW_HIDDEN_STARTUP_CHANGED,
   ROOT_WINDOW_STATE_CHANGED,
   WEBVIEW_FOCUS_REQUESTED,
   WINDOW_BOUNDS_RESET,
@@ -120,7 +121,12 @@ const isRootWindowAppUrl = (url: string): boolean => {
   }
 };
 
+const shouldStartHidden = (): boolean =>
+  app.commandLine.hasSwitch('start-hidden') &&
+  select(({ isTrayIconEnabled }) => isTrayIconEnabled);
+
 export const createRootWindow = (): void => {
+  const startHidden = shouldStartHidden();
   _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,
@@ -129,6 +135,8 @@ export const createRootWindow = (): void => {
     titleBarStyle: platformTitleBarStyle,
     ...(isMac ? { trafficLightPosition: { x: 12, y: 13 } } : {}),
     show: false,
+    // ready-to-show keeps an unseen renderer painting until its first show.
+    paintWhenInitiallyHidden: !startHidden,
     webPreferences,
     ...getRootWindowAppearanceOptions({
       platform: process.platform,
@@ -136,6 +144,13 @@ export const createRootWindow = (): void => {
       shouldUseDarkColors: nativeTheme.shouldUseDarkColors,
     }),
   });
+
+  if (startHidden) {
+    dispatch({ type: ROOT_WINDOW_HIDDEN_STARTUP_CHANGED, payload: true });
+    _rootWindow.once('show', () => {
+      dispatch({ type: ROOT_WINDOW_HIDDEN_STARTUP_CHANGED, payload: false });
+    });
+  }
 
   _rootWindow.webContents.on('will-navigate', (event, url) => {
     if (!isRootWindowAppUrl(url)) {
@@ -711,20 +726,13 @@ export const showRootWindow = async (): Promise<void> => {
     menu.popup({ window: browserWindow });
   });
 
-  browserWindow.loadFile(getRootWindowIndexPath());
-
   if (process.env.NODE_ENV === 'development') {
     setupRootWindowReload(browserWindow.webContents);
   }
 
+  const isStartHidden = shouldStartHidden();
   return new Promise((resolve) => {
-    browserWindow.once('ready-to-show', () => {
-      const isTrayIconEnabled = select(
-        ({ isTrayIconEnabled }) => isTrayIconEnabled
-      );
-      const isStartHidden =
-        app.commandLine.hasSwitch('start-hidden') && isTrayIconEnabled;
-
+    const finishStartup = (): void => {
       // A launch always opens the window; only --start-hidden keeps it in the
       // tray. Restoring a hidden state left users with no window and a tray
       // icon that Windows can bury in the notification-area overflow.
@@ -738,7 +746,16 @@ export const showRootWindow = async (): Promise<void> => {
       setupRootWindow();
 
       resolve();
-    });
+    };
+
+    // A non-painting hidden launch never emits ready-to-show. Finish startup
+    // on load so notification and call handlers can initialize without a show.
+    if (isStartHidden) {
+      browserWindow.webContents.once('did-finish-load', finishStartup);
+    } else {
+      browserWindow.once('ready-to-show', finishStartup);
+    }
+    browserWindow.loadFile(getRootWindowIndexPath());
   });
 };
 

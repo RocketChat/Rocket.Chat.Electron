@@ -1,6 +1,8 @@
 import type { OutlookCredentials } from '../outlookCalendar/type';
 import type { SupportedVersions } from './supportedVersions/types';
 
+export const SERVER_VIEW_BOOTED_CHANNEL = 'server-view/booted';
+
 export type UserPresence = 'online' | 'away' | 'busy' | 'offline';
 
 export type MediaCaptureState = {

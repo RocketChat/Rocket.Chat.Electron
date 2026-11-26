@@ -1,13 +1,17 @@
-import type { FoundInPageEvent } from 'electron';
+import type { FoundInPageEvent, IpcMessageEvent } from 'electron';
 import { ipcRenderer } from 'electron';
-import { useRef, useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useRef, useEffect, useLayoutEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import { isConferencePageUrl } from '../../../servers/common';
+import {
+  isConferencePageUrl,
+  SERVER_VIEW_BOOTED_CHANNEL,
+} from '../../../servers/common';
 import type { ServerFailure } from '../../../servers/common';
 import { listen } from '../../../store';
 import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   MENU_BAR_FIND_IN_PAGE_CLICKED,
@@ -49,6 +53,35 @@ export const ServerPane = ({
   const webviewRef =
     useRef<ReturnType<(typeof document)['createElement']>>(null);
   const findInputRef = useRef<HTMLInputElement>(null);
+
+  const hiddenStartup = useSelector(
+    (state: RootState) => state.isRootWindowInHiddenStartup
+  );
+  const [hasBooted, setHasBooted] = useState(false);
+  useEffect(() => {
+    const webview = webviewRef.current;
+    if (!hiddenStartup || !webview) return undefined;
+    const handleBooted = (event: IpcMessageEvent): void => {
+      if (event.channel === SERVER_VIEW_BOOTED_CHANNEL) setHasBooted(true);
+    };
+    const handleNavigation = (): void => setHasBooted(false);
+    webview.addEventListener('ipc-message', handleBooted);
+    webview.addEventListener('did-navigate', handleNavigation);
+    return () => {
+      webview.removeEventListener('ipc-message', handleBooted);
+      webview.removeEventListener('did-navigate', handleNavigation);
+    };
+  }, [hiddenStartup]);
+
+  const suppressStartupPaint = hiddenStartup && hasBooted && isSelected;
+  const isPaneVisible = isSelected && !suppressStartupPaint;
+  useLayoutEffect(() => {
+    if (suppressStartupPaint) {
+      // A hidden host has no paint tick to apply the guest's new visibility.
+      // Flush layout once so Chromium actually stops its embedded visual work.
+      webviewRef.current?.getBoundingClientRect();
+    }
+  }, [suppressStartupPaint]);
 
   const [isFindBarOpen, setIsFindBarOpen] = useState(false);
   const [findQuery, setFindQuery] = useState('');
@@ -343,7 +376,7 @@ export const ServerPane = ({
 
   return (
     <Wrapper
-      isVisible={isSelected}
+      isVisible={isPaneVisible}
       {...(isTabPanel && {
         'id': getServerPanelId(serverUrl),
         'role': 'tabpanel',

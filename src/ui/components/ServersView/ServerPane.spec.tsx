@@ -2,12 +2,15 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { forwardRef } from 'react';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { combineReducers, createStore } from 'redux';
 
+import { SERVER_VIEW_BOOTED_CHANNEL } from '../../../servers/common';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   MENU_BAR_FIND_IN_PAGE_CLICKED,
+  ROOT_WINDOW_HIDDEN_STARTUP_CHANGED,
 } from '../../actions';
+import { isRootWindowInHiddenStartup } from '../../reducers/isRootWindowInHiddenStartup';
 import { ServerPane } from './ServerPane';
 
 const listeners: Array<(action: { type: string }) => void> = [];
@@ -95,8 +98,12 @@ jest.mock('./styles', () => ({
       {...props}
     />
   )),
-  Wrapper: ({ children, ...props }: any) => (
-    <div data-testid='server-pane' {...props}>
+  Wrapper: ({ children, isVisible, ...props }: any) => (
+    <div
+      data-testid='server-pane'
+      style={{ display: isVisible ? 'flex' : 'none' }}
+      {...props}
+    >
       {children}
     </div>
   ),
@@ -110,6 +117,78 @@ describe('ServerPane', () => {
     Object.values(mockWebviewFns).forEach((fn) => fn.mockClear());
     mockErrorViewProps.mockClear();
   });
+
+  it.each([true, false])(
+    'keeps a hidden workspace mounted and restores only the selected pane (%s)',
+    (isSelected) => {
+      const store = createStore(
+        combineReducers({ isRootWindowInHiddenStartup })
+      );
+      store.dispatch({
+        type: ROOT_WINDOW_HIDDEN_STARTUP_CHANGED,
+        payload: true,
+      });
+      const { container, unmount } = render(
+        <Provider store={store}>
+          <ServerPane
+            lastPath='https://open.rocket.chat/channel/general'
+            serverUrl='https://open.rocket.chat'
+            isSelected={isSelected}
+            isFailed={false}
+            isSupported
+            title='Community'
+          />
+        </Provider>
+      );
+      const pane = screen.getByTestId('server-pane');
+      const view = container.querySelector('[partition]');
+      expect(view).not.toBeNull();
+      // Initial rendering must stay available until the web client's boot signal.
+      expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+      const boot = mockWebviewFns.addEventListener.mock.calls.find(
+        ([event]) => event === 'ipc-message'
+      )?.[1];
+      expect(boot).toBeDefined();
+      act(() => boot({ channel: 'unrelated' }));
+      expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+      act(() => boot({ channel: SERVER_VIEW_BOOTED_CHANNEL }));
+      expect(pane).toHaveStyle({ display: 'none' });
+      const navigate = mockWebviewFns.addEventListener.mock.calls.find(
+        ([event]) => event === 'did-navigate'
+      )?.[1];
+      act(() => navigate());
+      expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+      act(() => boot({ channel: SERVER_VIEW_BOOTED_CHANNEL }));
+      expect(pane).toHaveStyle({ display: 'none' });
+      expect(container.querySelector('[partition]')).toBe(view);
+      act(() => {
+        store.dispatch({
+          type: ROOT_WINDOW_HIDDEN_STARTUP_CHANGED,
+          payload: false,
+        });
+      });
+      expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+      const hidden = jest
+        .spyOn(document, 'hidden', 'get')
+        .mockReturnValue(true);
+      try {
+        fireEvent(document, new Event('visibilitychange'));
+        expect(pane).toHaveStyle({ display: isSelected ? 'flex' : 'none' });
+        expect(container.querySelector('[partition]')).toBe(view);
+      } finally {
+        hidden.mockRestore();
+      }
+      unmount();
+      expect(mockWebviewFns.removeEventListener).toHaveBeenCalledWith(
+        'ipc-message',
+        boot
+      );
+      expect(mockWebviewFns.removeEventListener).toHaveBeenCalledWith(
+        'did-navigate',
+        navigate
+      );
+    }
+  );
 
   it('renders selected server pane shell', () => {
     render(

@@ -4,6 +4,7 @@ import { ipcRenderer } from 'electron';
 import {
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
   UPDATES_CHECKING_FOR_UPDATE,
+  UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
 } from '../../../../updates/actions';
@@ -11,7 +12,7 @@ import { renderWithStore, screen, userEvent } from '../../../test-utils';
 import { CheckForUpdates } from './CheckForUpdates';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
+  useTranslation: jest.fn().mockReturnValue({
     t: (key: string, options?: Record<string, unknown>) =>
       options ? `${key}:${JSON.stringify(options)}` : key,
     i18n: { language: 'en', changeLanguage: jest.fn() },
@@ -86,6 +87,32 @@ describe('CheckForUpdates', () => {
       await screen.findByText('dialog.about.noUpdatesAvailable')
     ).toBeInTheDocument();
     expect(store.getState().isUpdatePanelOpen).toBe(false);
+  });
+
+  it('shows the lookup error when a manual check fails', async () => {
+    const { store } = renderWithStore(<CheckForUpdates />, { preloadedState });
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole('button', { name: 'dialog.about.checkUpdates' })
+    );
+
+    act(() => {
+      store.dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
+    });
+    act(() => {
+      store.dispatch({
+        type: UPDATES_ERROR_THROWN,
+        payload: new Error('offline'),
+      });
+    });
+
+    expect(
+      screen.getByText('dialog.about.errorWhenLookingForUpdates')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('dialog.about.noUpdatesAvailable')
+    ).not.toBeInTheDocument();
+    expect(invokeMock).not.toHaveBeenCalled();
   });
 
   it('opens the update panel and hands over to the root window once a check finds a version', async () => {

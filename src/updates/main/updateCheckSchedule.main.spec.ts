@@ -197,6 +197,32 @@ describe('updates/setupUpdates automatic checks', () => {
     expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(6);
   });
 
+  it.each([
+    ['a manual check', false],
+    ['a manual check during the startup check', true],
+  ] as const)(
+    'reports the final lookup error for %s',
+    async (_label, atStartup) => {
+      state.doCheckForUpdatesOnStartup = atStartup;
+      autoUpdater.checkForUpdates.mockRejectedValue(new Error('offline'));
+      await setup();
+      const check = actionListeners.get(
+        'updates/check-for-updates-requested'
+      )?.();
+      await jest.advanceTimersByTimeAsync(7_100);
+      await check;
+
+      expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(3);
+      expect(dispatch).toHaveBeenCalledWith({
+        type: 'updates/error-thrown',
+        payload: expect.objectContaining({ message: 'offline' }),
+      });
+      expect(dispatch).not.toHaveBeenCalledWith({
+        type: 'updates/new-version-not-available',
+      });
+    }
+  );
+
   it('checks on resume and focus only when a check is due', async () => {
     await setup();
     await flush();

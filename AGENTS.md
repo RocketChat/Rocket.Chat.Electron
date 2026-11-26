@@ -11,8 +11,8 @@ the files under it.
 
 Do not add a root `CLAUDE.md`. Claude Code 2.1.277 and later reads
 `AGENTS.md` only when no `CLAUDE.md` exists. Do not add `CLAUDE.local.md` or
-`.claude/CLAUDE.md` either, because they can also make Claude Code skip this
-file. When a request says "add
+a `CLAUDE.md` in `.claude/` either, because they can also make Claude Code skip
+this file. When a request says "add
 this to CLAUDE.md", add it here or to the matching doc. If a tool creates a
 `CLAUDE.md`, move its useful content here and remove it.
 

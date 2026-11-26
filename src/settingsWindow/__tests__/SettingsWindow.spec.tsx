@@ -131,5 +131,6 @@ describe('SettingsWindow section selection', () => {
 
     const panel = document.getElementById(SETTINGS_TABPANEL_ID);
     expect(panel).toHaveAttribute('aria-label', 'settings.noResults');
+    expect(panel).toHaveTextContent('settings.noResults');
   });
 });

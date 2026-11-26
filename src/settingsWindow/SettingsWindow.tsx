@@ -187,7 +187,9 @@ export const SettingsWindow = ({ paletteTheme }: SettingsWindowProps) => {
                 ? settingsSectionTabId(currentSection)
                 : undefined
             }
-            aria-label={visibleSections.length === 0 ? t('settings.noResults') : undefined}
+            aria-label={
+              visibleSections.length === 0 ? t('settings.noResults') : undefined
+            }
             flexGrow={1}
             display='flex'
             flexDirection='column'

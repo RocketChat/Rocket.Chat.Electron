@@ -199,7 +199,7 @@
     },
     "clearDownloads": {
       "title": "Alle Downloads entfernen",
-      "message": "Alle Downloads aus dieser Liste entfernen? Die heruntergeladenen Dateien bleiben auf dem Datenträger.",
+      "message": "Download-Verlauf leeren? Aktive und pausierte Downloads bleiben in der Liste. Die heruntergeladenen Dateien bleiben auf dem Datenträger.",
       "yes": "Alle entfernen",
       "cancel": "Abbrechen"
     },

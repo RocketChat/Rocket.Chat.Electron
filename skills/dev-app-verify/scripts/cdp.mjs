@@ -9,10 +9,13 @@
 
 import vm from 'node:vm';
 
+// setTimeout runs a longer delay at once. The socket request adds 5000 ms.
+const MAX_OPTION = 2 ** 31 - 1 - 5000;
+
 const USAGE = `Usage: node skills/dev-app-verify/scripts/cdp.mjs [options] <command> [args]
 
 Dev app commands (main-process inspector, default port 9339):
-  main '<expr>'               Evaluate in the main process. \`require\` and
+  main '<expr>'                 Evaluate in the main process. \`require\` and
                                 \`electron\` are in scope. Accepts an expression
                                 or a function body with \`return\`. Await works.
                                 Prints the result as JSON.
@@ -58,7 +61,14 @@ class CliError extends Error {
 
 const redact = (text) => {
   const secret = process.env.DEV_APP_PASSWORD;
-  return secret ? String(text).split(secret).join('***') : String(text);
+  if (!secret) {
+    return String(text);
+  }
+  // JSON output escapes quotes and backslashes, so mask that form too.
+  return [secret, JSON.stringify(secret).slice(1, -1)].reduce(
+    (out, form) => out.split(form).join('***'),
+    String(text)
+  );
 };
 
 const print = (value) => {
@@ -93,9 +103,9 @@ const parseArgs = (argv) => {
     if (match) {
       const raw = match[2] ?? argv[++i];
       const value = Number(raw);
-      if (!Number.isInteger(value) || value <= 0) {
+      if (!Number.isInteger(value) || value <= 0 || value > MAX_OPTION) {
         throw new CliError(
-          `--${match[1]} needs a positive integer, got "${raw}".`,
+          `--${match[1]} needs a positive integer up to ${MAX_OPTION}, got "${raw}".`,
           2
         );
       }
@@ -138,6 +148,11 @@ const jsLiteral = (value) =>
   );
 
 const wrapAsync = (code) => `(async () => {\n${toFunctionBody(code)}\n})()`;
+
+// The frame can navigate after the frame-tree read. Check its URL in the same
+// evaluation as the code.
+const frameCode = (part, code) =>
+  `(async () => {\nif (!location.href.includes(${jsLiteral(part)})) throw new Error('The frame left the matched URL: ' + location.href);\n${toFunctionBody(code)}\n})()`;
 
 const MAIN_PRELUDE =
   "const require = process.mainModule.require.bind(process.mainModule); const electron = require('electron');";
@@ -463,7 +478,8 @@ async function addServerInMain(
   let state = null;
   while (Date.now() < deadline) {
     await lib.sleep(250);
-    const added = lib.guests().find((wc) => !before.has(wc.id));
+    // A new guest has an empty URL until it commits a page.
+    const added = lib.guests().find((wc) => !before.has(wc.id) && wc.getURL());
     if (added) {
       return { ok: true, value: { added: added.getURL() } };
     }
@@ -551,6 +567,12 @@ async function reloadInMain(lib, { part, timeoutMs }) {
     contents.executeJavaScript('performance.timeOrigin').catch(() => null);
   const guestBefore = await timeOrigin(guest);
   const rootBefore = await timeOrigin(root.webContents);
+  if (guestBefore === null || rootBefore === null) {
+    return {
+      ok: false,
+      error: 'Could not read performance.timeOrigin before the reload.',
+    };
+  }
 
   // Never send CDP Page.reload to the webview target: that reloads the root
   // window. Reload through the <webview> element of the root renderer.
@@ -670,8 +692,12 @@ function loginStatePage() {
   };
 }
 
-function loginFillPage({ user, password }) {
+function loginFillPage({ user, password, part }) {
   return (async () => {
+    // Check in this evaluation: the webview can navigate after the state read.
+    if (!location.href.includes(part)) {
+      return { ok: false, error: `The page left "${part}": ${location.href}` };
+    }
     const userInput = document.querySelector(
       'input[name="usernameOrEmail"], input[name="emailOrUsername"], #emailOrUsername'
     );
@@ -853,7 +879,10 @@ const run = async () => {
               {
                 part: args[0],
                 stateSource: pageCall(loginStatePage),
-                fillSource: pageCall(loginFillPage, credentials),
+                fillSource: pageCall(loginFillPage, {
+                  ...credentials,
+                  part: args[0],
+                }),
                 timeoutMs: options.timeout,
               },
               limitMs
@@ -881,7 +910,7 @@ const run = async () => {
         break;
       case 'frame':
         print(
-          await session.evaluate(wrapAsync(args[2]), options.timeout, {
+          await session.evaluate(frameCode(args[1], args[2]), options.timeout, {
             contextId: await frameContext(session, args[1], options.mainWorld),
           })
         );
@@ -892,8 +921,14 @@ const run = async () => {
   }
 };
 
-run().catch((error) => {
-  const message = error instanceof CliError ? error.message : error.stack;
-  process.stderr.write(`cdp: ${redact(message)}\n`);
-  process.exitCode = error.exitCode ?? 1;
-});
+run()
+  .catch((error) => {
+    const message = error instanceof CliError ? error.message : error.stack;
+    process.stderr.write(`cdp: ${redact(message)}\n`);
+    process.exitCode = error.exitCode ?? 1;
+  })
+  .finally(() => {
+    // A close handshake with a stuck inspector can keep Node alive. Exit with
+    // the recorded code after a grace period. The app is not touched.
+    setTimeout(() => process.exit(), 1000).unref();
+  });

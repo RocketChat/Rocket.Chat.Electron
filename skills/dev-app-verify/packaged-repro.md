@@ -11,6 +11,9 @@ call window are CDP targets.
 - A dev build writes into the real `Rocket.Chat` profile folder (for example
   `supportedVersions.json`). The packaged app with a scratch
   `--user-data-dir` touches nothing of yours.
+- One exception: the app log. `--user-data-dir` does not move it, so the
+  scratch instance also writes to `~/Library/Logs/Rocket.Chat/main.log`.
+  Cleanup does not delete those lines. Do not delete the shared log.
 - The packaged app is the version the reporter runs. No watcher restarts
   interrupt the run.
 
@@ -62,8 +65,11 @@ Run the commands from the repository root.
 8. Log in without typing a password into the UI.
    - Get a token from `POST /api/v1/login`. Keep the credentials and the
      token in files with mode 600. Never print them.
-   - Write the token into the webview's storage: `Meteor.loginToken`,
-     `Meteor.userId` and `Meteor.loginTokenExpires`.
+   - Write the token into the storage of the workspace's webview:
+     `Meteor.loginToken`, `Meteor.userId` and `Meteor.loginTokenExpires`.
+     Use `eval <workspace-host>`, and check the URL that `targets` shows. A
+     preset server from `/Library/Preferences/Rocket.Chat/servers.json` also
+     loads, and the app selects it first.
    - Reload with `location.reload()` inside the webview. Do not use
      `Page.reload` on a webview target. It reloads the root window.
 9. Read the server state through the REST API before you act in the UI. Get
@@ -79,7 +85,8 @@ Run the commands from the repository root.
     target of its own. `frame` finds it in the webview's frame tree. The code
     runs in an isolated world: it sees the DOM and can call `postMessage`,
     but not the page's globals. Add `--main-world` to run in the page's own
-    world.
+    world. The command fails when the frame URL no longer contains
+    `<frame-url-part>` at the time the code runs.
 12. Clean up.
     - Log out the scratch session with `POST /api/v1/logout` and the token
       headers (`X-Auth-Token`, `X-User-Id`). A deleted token file does not

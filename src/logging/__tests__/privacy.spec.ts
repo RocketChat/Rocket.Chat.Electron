@@ -31,9 +31,35 @@ describe('redactSensitiveData', () => {
     it.each([
       // Values shorter than 8 chars must NOT match (avoids "secret: no").
       ['secret: no', 'secret: no'],
-      ['password: short', 'password: short'],
       ['token expired', 'token expired'],
+      ['resume download', 'resume download'],
     ])('leaves short credential value %s untouched', (input, expected) => {
+      expect(redactSensitiveData(input)).toBe(expected);
+    });
+
+    it.each([
+      ['password: short', 'password: [REDACTED]'],
+      ['{"password":"abc1234"}', '{"password: [REDACTED]"}'],
+      ['passwd=x1', 'passwd: [REDACTED]'],
+    ])('redacts short password %s', (input, expected) => {
+      expect(redactSensitiveData(input)).toBe(expected);
+    });
+
+    it.each([
+      [
+        'GET https://chat.example.com/file-upload/abc/x.pdf?rc_uid=u1&rc_token=Xy7_-aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789ab',
+        'GET https://chat.example.com/file-upload/abc/x.pdf?rc_uid=u1&rc_token=[REDACTED]',
+      ],
+      [
+        '/avatar/me?token=abcDEF123&size=32',
+        '/avatar/me?token=[REDACTED]&size=32',
+      ],
+      [
+        '{"msg":"method","method":"login","params":[{"resume":"Xy7_-aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789ab"}]}',
+        '{"msg":"method","method":"login","params":[{"resume":"[REDACTED]"}]}',
+      ],
+      ["resume: 'Xy7_-aBcDeF'", 'resume: "[REDACTED]"'],
+    ])('redacts login token value in %s', (input, expected) => {
       expect(redactSensitiveData(input)).toBe(expected);
     });
 

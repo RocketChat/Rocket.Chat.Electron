@@ -10,8 +10,9 @@ traps and the doc index. An `AGENTS.md` file in a subdirectory adds rules for
 the files under it.
 
 Do not add a root `CLAUDE.md`. Claude Code 2.1.277 and later reads
-`AGENTS.md` only when no `CLAUDE.md` exists. A `CLAUDE.local.md` or a
-`.claude/CLAUDE.md` can also make Claude Code skip this file. When a request says "add
+`AGENTS.md` only when no `CLAUDE.md` exists. Do not add `CLAUDE.local.md` or
+`.claude/CLAUDE.md` either, because they can also make Claude Code skip this
+file. When a request says "add
 this to CLAUDE.md", add it here or to the matching doc. If a tool creates a
 `CLAUDE.md`, move its useful content here and remove it.
 
@@ -155,8 +156,9 @@ Read the doc that matches the task. Do not scan `docs/` wholesale.
 - **Understand before you change.** Treat working code as correct until you
   prove otherwise. If the change depends on a reason that the code, the history and
   the docs do not give, ask.
-- **Prove that it works.** Start with the narrowest meaningful check (a spec,
-  `npx tsc --noEmit`). Broaden the checks when the risk justifies it.
+- **Prove that it works.** Run the tests and the type check
+  (`npx tsc --noEmit`). Start with the narrowest meaningful check. Broaden the
+  checks when the risk justifies it.
 - **Diagnose before you iterate.** When an approach fails, find WHY before you
   try the next one.
 - **Check libraries.** Read the official docs and the `.d.ts` files in

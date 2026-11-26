@@ -253,7 +253,7 @@ describe('serverView audio state and mute handling', () => {
         isLoading: jest.fn(() => false),
         session: {
           on: jest.fn(),
-          removeAllListeners: jest.fn(),
+          off: jest.fn(),
           clearStorageData: jest.fn(),
           flushStorageData: jest.fn(),
         },
@@ -292,6 +292,53 @@ describe('serverView audio state and mute handling', () => {
 
     expect(replacement.guest.setAudioMuted).toHaveBeenCalledWith(true);
     expect(outgoing.guest.setAudioMuted).not.toHaveBeenCalled();
+  });
+
+  it('keeps other download listeners on the shared session when a webview is destroyed', () => {
+    const serverUrl = 'https://open.rocket.chat';
+    const { EventEmitter } = jest.requireActual('events');
+    const sharedSession = Object.assign(new EventEmitter(), {
+      clearStorageData: jest.fn(),
+      flushStorageData: jest.fn(),
+    });
+    const downloadTracker = jest.fn();
+    sharedSession.on('will-download', downloadTracker);
+
+    const createGuest = () => {
+      const handlers: Record<string, Array<(...args: any[]) => void>> = {};
+      const guest = {
+        addListener: jest.fn((event: string, handler: any) => {
+          (handlers[event] ??= []).push(handler);
+        }),
+        on: jest.fn(),
+        removeAllListeners: jest.fn(),
+        setWindowOpenHandler: jest.fn(),
+        setAudioMuted: jest.fn(),
+        isAudioMuted: jest.fn(() => false),
+        isDestroyed: jest.fn(() => false),
+        isLoading: jest.fn(() => false),
+        session: sharedSession,
+      } as unknown as WebContents;
+      return { guest, handlers };
+    };
+
+    const mockFromId = jest.requireMock('electron').webContents
+      .fromId as jest.Mock;
+    const webviewAttachedCallback = getWebviewAttachedCallback();
+
+    const outgoing = createGuest();
+    mockFromId.mockReturnValue(outgoing.guest);
+    webviewAttachedCallback({ payload: { webContentsId: 1, url: serverUrl } });
+
+    const replacement = createGuest();
+    mockFromId.mockReturnValue(replacement.guest);
+    webviewAttachedCallback({ payload: { webContentsId: 2, url: serverUrl } });
+
+    outgoing.handlers.destroyed?.forEach((handler) => handler());
+
+    const listeners = sharedSession.listeners('will-download');
+    expect(listeners).toHaveLength(2);
+    expect(listeners).toContain(downloadTracker);
   });
 
   describe('audible hold-off (debounce quiet gaps)', () => {

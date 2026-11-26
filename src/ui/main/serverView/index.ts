@@ -4,6 +4,7 @@ import path from 'path';
 import type {
   BrowserWindow,
   ContextMenuParams,
+  DownloadItem,
   Event,
   Input,
   MediaAccessPermissionRequest,
@@ -366,7 +367,7 @@ const initializeServerWebContentsAfterAttach = (
   const webviewSession = guestWebContents.session;
 
   // Intercept markdown file downloads and open in document viewer
-  webviewSession.on('will-download', (_event, item) => {
+  const handleMarkdownDownload = (_event: Event, item: DownloadItem) => {
     const downloadUrl = item.getURL();
     if (!isMarkdownViewerDownloadUrl(downloadUrl, item.getFilename())) return;
     item.cancel();
@@ -378,11 +379,13 @@ const initializeServerWebContentsAfterAttach = (
         documentFormat: 'markdown',
       },
     });
-  });
+  };
+  webviewSession.on('will-download', handleMarkdownDownload);
 
   guestWebContents.addListener('destroyed', () => {
     guestWebContents.removeAllListeners();
-    webviewSession.removeAllListeners();
+    // The persist: session outlives this webview and keeps the download listeners.
+    webviewSession.off('will-download', handleMarkdownDownload);
 
     if (audibleHoldTimer) {
       clearTimeout(audibleHoldTimer);

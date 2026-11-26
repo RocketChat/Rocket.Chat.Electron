@@ -16,37 +16,77 @@ call window are CDP targets.
 
 ## Steps
 
+Run the commands from the repository root.
+
 1. Check the version that the report names. Read
    `CFBundleShortVersionString` from
    `/Applications/Rocket.Chat.app/Contents/Info.plist`.
-2. Make a scratch profile folder. Put a `servers.json` in it:
-   `{"<name>": "https://<workspace>"}`.
-3. Start a second instance with that profile. A running instance with your
+2. Make a private scratch folder and set the paths. `mktemp -d` makes a
+   folder that only you can read. Keep the credentials and the token files in
+   it too.
+
+   ```sh
+   SCRATCH="$(mktemp -d)"
+   PROFILE="$SCRATCH/profile"
+   LOG="$SCRATCH/app.log"
+   PORT=9222
+   CDP=skills/dev-app-verify/scripts/cdp.mjs
+   mkdir "$PROFILE"
+   ```
+
+3. Put a `servers.json` in the profile: `{"<name>": "https://<workspace>"}`.
+4. Make sure that the port is free. This command must print nothing. If it
+   prints a listener, choose another `PORT`:
+   `lsof -nP -iTCP:"$PORT" -sTCP:LISTEN`.
+5. Start a second instance with that profile. A running instance with your
    real profile can stay open, because the single-instance lock is per
    profile.
 
    ```sh
    /Applications/Rocket.Chat.app/Contents/MacOS/Rocket.Chat \
-     --user-data-dir="$PROFILE" --remote-debugging-port=9222 > "$LOG" 2>&1 &
+     --user-data-dir="$PROFILE" --remote-debugging-port="$PORT" > "$LOG" 2>&1 &
    ```
 
-4. List the targets: `node cdp-eval.mjs --list`. Expect one `webview` per
-   server and one `page` for the root window.
-5. Log in without typing a password into the UI.
+6. Make sure that the port belongs to the scratch instance. Otherwise the
+   commands act on another app. This command must print the scratch
+   instance's command line:
+
+   ```sh
+   ps -o command= -p "$(lsof -nP -t -iTCP:"$PORT" -sTCP:LISTEN)" \
+     | grep -F -- "--user-data-dir=$PROFILE"
+   ```
+
+7. List the targets: `node $CDP --port "$PORT" targets`. Expect one
+   `webview` per server and one `page` for the root window. Give `--port`
+   to every later command.
+8. Log in without typing a password into the UI.
    - Get a token from `POST /api/v1/login`. Keep the credentials and the
      token in files with mode 600. Never print them.
    - Write the token into the webview's storage: `Meteor.loginToken`,
      `Meteor.userId` and `Meteor.loginTokenExpires`.
    - Reload with `location.reload()` inside the webview. Do not use
      `Page.reload` on a webview target. It reloads the root window.
-6. Read the server state through the REST API before you act in the UI. Get
+9. Read the server state through the REST API before you act in the UI. Get
    the version from `/api/info`. Get the settings from
    `/api/v1/settings/<id>`.
-7. Drive the UI with `cdp-eval.mjs`. Reach an iframe inside a webview (a
-   video provider, for example) with `cdp-frame.mjs`.
-8. Clean up. Stop the scratch instance with
-   `pkill -f -- "--user-data-dir=$PROFILE"`. Delete the profile, the
-   credentials and the token files.
+10. Drive the UI with `node $CDP --port "$PORT" eval <target> '<expr>'`.
+    `<target>` is a target id or a part of the target URL. The command
+    stops when more than one page, webview or iframe URL contains it, and
+    lists the targets.
+11. Reach an iframe inside a webview (a video provider, for example) with
+    `node $CDP --port "$PORT" frame <target> <frame-url-part> '<expr>'`.
+    Such an iframe can share the webview's process, and then it has no
+    target of its own. `frame` finds it in the webview's frame tree. The code
+    runs in an isolated world: it sees the DOM and can call `postMessage`,
+    but not the page's globals. Add `--main-world` to run in the page's own
+    world.
+12. Clean up.
+    - Log out the scratch session with `POST /api/v1/logout` and the token
+      headers (`X-Auth-Token`, `X-User-Id`). A deleted token file does not
+      end the session on the server.
+    - Stop the scratch instance with
+      `pkill -f -- "--user-data-dir=$PROFILE"`.
+    - Delete the scratch folder: `rm -rf "$SCRATCH"`.
 
 ## Rules for actions on a real workspace
 
@@ -64,7 +104,7 @@ plugin posts `rocketchat:videoconf/disconnected` with
 `userInitiated: true`. To prove the desktop half without the provider:
 
 ```sh
-node cdp-frame.mjs /conference/ <provider-host> -e '(async () => {
+node $CDP --port "$PORT" frame /conference/ <provider-host> '(async () => {
   window.parent.postMessage({ action: "rocketchat:videoconf/connected" }, "*");
   await new Promise((r) => setTimeout(r, 400));
   window.parent.postMessage(
@@ -73,5 +113,5 @@ node cdp-frame.mjs /conference/ <provider-host> -e '(async () => {
 })()'
 ```
 
-The call window target must disappear from `--list`. The server must show the
+The call window target must disappear from `targets`. The server must show the
 leave in `/api/v1/video-conference.info?callId=<id>`.

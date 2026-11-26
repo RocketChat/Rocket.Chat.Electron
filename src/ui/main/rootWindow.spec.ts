@@ -707,6 +707,46 @@ describe('showRootWindow', () => {
     ).toBeLessThan(mockWindow.loadFile.mock.invocationCallOrder[0]);
   });
 
+  it('restores saved maximization only when a hidden launch is first shown', async () => {
+    (app.commandLine.hasSwitch as jest.Mock).mockReturnValue(true);
+    const { select } = require('../../store');
+    const saved = select.getMockImplementation()((state: unknown) => state);
+    saved.rootWindowState.maximized = true;
+    saved.rootWindowState.fullscreen = true;
+    saved.rootWindowState.minimized = true;
+    select.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(saved)
+    );
+
+    // Electron also shows the window when maximize() is called while hidden.
+    let visible = false;
+    let onShow: (() => void) | undefined;
+    mockWindow.once.mockImplementation(
+      (event: string, listener: () => void) => {
+        if (event === 'show') onShow = listener;
+      }
+    );
+    mockWindow.show.mockImplementation(() => {
+      if (visible) return;
+      visible = true;
+      onShow?.();
+    });
+    mockWindow.maximize.mockImplementation(() => {
+      if (!visible) mockWindow.show();
+    });
+
+    await launch();
+    expect(mockWindow.show).not.toHaveBeenCalled();
+    expect(mockWindow.setFullScreen).not.toHaveBeenCalled();
+    expect(mockWindow.minimize).not.toHaveBeenCalled();
+    expect(mockWindow.focus).not.toHaveBeenCalled();
+
+    mockWindow.show();
+    expect(mockWindow.maximize).toHaveBeenCalledTimes(1);
+    expect(mockWindow.setFullScreen).toHaveBeenCalledWith(true);
+    expect(mockWindow.minimize).not.toHaveBeenCalled();
+  });
+
   it('opens normally with --start-hidden when the tray is disabled', async () => {
     (app.commandLine.hasSwitch as jest.Mock).mockReturnValue(true);
     const { select } = require('../../store');

@@ -243,25 +243,31 @@ export const applyRootWindowState = (
     });
   }
 
-  if (rootWindowState.maximized) {
-    browserWindow.maximize();
-  }
-
-  if (rootWindowState.minimized) {
-    browserWindow.minimize();
-  }
-
-  if (rootWindowState.fullscreen) {
-    browserWindow.setFullScreen(true);
-  }
-
   const shouldShow = (visible ?? rootWindowState.visible) || !isTrayIconEnabled;
-  if (shouldShow) {
-    browserWindow.show();
-  }
+  const hiddenLaunch = visible === false && isTrayIconEnabled;
+  const restoreWindowMode = (): void => {
+    if (rootWindowState.maximized) {
+      browserWindow.maximize();
+    }
+    if (rootWindowState.minimized && !hiddenLaunch) {
+      browserWindow.minimize();
+    }
+    if (rootWindowState.fullscreen) {
+      browserWindow.setFullScreen(true);
+    }
+  };
 
-  if (rootWindowState.focused) {
-    browserWindow.focus();
+  if (hiddenLaunch) {
+    // Maximizing a hidden window shows it. Keep a tray launch hidden until opened.
+    browserWindow.once('show', restoreWindowMode);
+  } else {
+    restoreWindowMode();
+    if (shouldShow) {
+      browserWindow.show();
+    }
+    if (rootWindowState.focused) {
+      browserWindow.focus();
+    }
   }
 
   loggers.ui.info(
@@ -288,13 +294,17 @@ const fetchRootWindowState = async (): Promise<
   ReturnType<typeof selectRootWindowState>
 > => {
   const browserWindow = await getRootWindow();
+  // A quit before the first show must preserve the deferred window modes.
+  const deferredState = select((state) =>
+    state.isRootWindowInHiddenStartup ? selectRootWindowState(state) : undefined
+  );
   return {
     focused: browserWindow?.isFocused(),
     visible: browserWindow?.isVisible(),
-    maximized: browserWindow?.isMaximized(),
+    maximized: deferredState?.maximized ?? browserWindow?.isMaximized(),
     minimized: browserWindow?.isMinimized(),
-    fullscreen: browserWindow?.isFullScreen(),
-    normal: browserWindow?.isNormal(),
+    fullscreen: deferredState?.fullscreen ?? browserWindow?.isFullScreen(),
+    normal: deferredState?.normal ?? browserWindow?.isNormal(),
     bounds: browserWindow?.getNormalBounds(),
   };
 };

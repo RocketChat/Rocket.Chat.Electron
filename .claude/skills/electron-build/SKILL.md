@@ -71,6 +71,8 @@ rm -rf workspaces/desktop-release-action/dist/dist
 
 ### 6. Cleanup
 
+Record the commit that the build used: run `git rev-parse --short HEAD` in the build directory. Do this before you remove a worktree, because the command cannot run there after the removal.
+
 If you created a worktree:
 
 ```bash
@@ -84,4 +86,4 @@ When the build ends, report:
 - Lint status (pass/fail with error count)
 - Test status (pass/fail with test count)
 - Build status and output location
-- The commit that the build used (`git rev-parse --short HEAD` in the worktree)
+- The commit that the build used (recorded in step 6)

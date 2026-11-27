@@ -34,9 +34,10 @@ or in a subagent, and read only the verdict and the errors.
   only.
 - Verifying UI rendering/behavior inside a running app — use
   `dev-app-verify` instead (or a VM-automation tool, where one is
-  available). This skill proves that an installer artifact installs. The
-  AppImage and deb scripts also launch the app. The MSI suite checks
-  the install only (exit code, install log, files, `update.json`).
+  available). The MSI suite checks the install only (exit code, install log,
+  files, `update.json`). The deb script installs the package and
+  launches the app. The AppImage script makes the image runnable
+  (`chmod +x`) and runs it, so it proves launch, not install.
 - No built artifact exists yet — build first (`yarn build` +
   `electron-builder`, or let `linux-test-appimage.sh` /
   `linux-test-deb.sh` build it via their default no-`--skip-build` path).

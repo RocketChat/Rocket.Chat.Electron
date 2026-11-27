@@ -103,6 +103,8 @@ export const CheckForUpdates = (props: CheckForUpdatesProps) => {
     hasCheckStartedRef.current = false;
     setHasRequestedCheck(false);
 
+    if (updateError) return;
+
     if (!newUpdateVersion) {
       setResultMessage(t('dialog.about.noUpdatesAvailable'));
       setTimeout(() => setResultMessage(null), RESULT_MESSAGE_TIMEOUT);
@@ -114,7 +116,14 @@ export const CheckForUpdates = (props: CheckForUpdatesProps) => {
     // guarantee the handover is visible.
     dispatch({ type: UPDATES_PANEL_TOGGLED, payload: true });
     invoke('settings-window/close-requested');
-  }, [dispatch, hasRequestedCheck, isCheckingForUpdates, newUpdateVersion, t]);
+  }, [
+    dispatch,
+    hasRequestedCheck,
+    isCheckingForUpdates,
+    newUpdateVersion,
+    t,
+    updateError,
+  ]);
 
   const handleCheckClick = useCallback(() => {
     hasCheckStartedRef.current = false;

@@ -627,7 +627,10 @@ const runAutomaticUpdateCheck = async (): Promise<void> => {
       'Automatic update check failed:',
       error instanceof Error ? error.message : error
     );
-    dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+    // A manual check that joined this request reports the failure itself.
+    if (!isUserInitiatedCheck) {
+      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+    }
   }
 
   scheduleNextAutomaticUpdateCheck();
@@ -1047,16 +1050,11 @@ export const setupUpdates = async (): Promise<void> => {
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {
       isUserInitiatedCheck = true;
-      await new Promise((resolve) => setTimeout(resolve, 100));
       await requestUpdateCheck();
     } catch (error) {
-      // A failed check isn't actionable for the user either: resolve to the
-      // benign "no update available" outcome and keep the details in the log.
-      console.warn(
-        'Update check failed:',
-        error instanceof Error ? error.message : error
-      );
-      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+      const failure = error instanceof Error ? error : new Error(String(error));
+      console.warn('Update check failed:', failure.message);
+      dispatchUpdateError(failure);
     }
   });
 };

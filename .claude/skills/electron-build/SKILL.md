@@ -1,6 +1,6 @@
 ---
 name: electron-build
-description: Build and test the Electron app with proper worktree isolation
+description: Lint, test and build the Electron app in a separate git worktree, so the working directory of the user stays untouched. Use when asked to build the app, or to run the full lint, test and build gate for mac, win or linux.
 ---
 
 # Electron Build
@@ -19,7 +19,7 @@ worktrees to protect the user's working directory.
 
 If `skip-worktree` is not "true":
 
-1. Create a worktree from the current branch:
+1. Create a worktree from the current branch. The worktree uses `HEAD`, so the build does not include uncommitted edits. If the user wants those edits in the build, ask them to commit first, or use `skip-worktree`.
    ```bash
    mkdir -p ../Rocket.Chat.Electron-worktrees
    git worktree add ../Rocket.Chat.Electron-worktrees/build-$(git branch --show-current) HEAD
@@ -71,6 +71,8 @@ rm -rf workspaces/desktop-release-action/dist/dist
 
 ### 6. Cleanup
 
+Record the commit that the build used: run `git rev-parse --short HEAD` in the build directory. Also run `git status --porcelain` there, because a lint fix can leave uncommitted edits in the build. Do this before you remove a worktree, because the command cannot run there after the removal.
+
 If you created a worktree:
 
 ```bash
@@ -84,3 +86,4 @@ When the build ends, report:
 - Lint status (pass/fail with error count)
 - Test status (pass/fail with test count)
 - Build status and output location
+- The commit that the build used, and whether the build directory had uncommitted edits (both recorded in step 6)

@@ -56,8 +56,8 @@ irreversible step (merge, tag push, release publish) explicitly.
   previous release tag must have a translation, with every plural form, in
   each loaded locale. A missing plural form of an older key blocks too.
   Only the release owner can approve `--allow-missing-translations`.
-- Monitor CI in the background (`run_in_background` Bash or a subagent).
-  NEVER block the session with foreground polling.
+- Monitor CI in the background (`run_in_background` Bash or a subagent),
+  so the session stays free while CI runs.
 - Create tags with `yarn release:tag` (`scripts/release-tag.ts`).
   NEVER use a bare `git tag` push. The script is channel-aware. Before it
   tags, it checks that HEAD is an ancestor of the allowed ref for the tag's

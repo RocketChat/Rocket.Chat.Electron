@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Generate release notes from git history between tags
+description: Generate categorized release notes from the commits between two tags or refs, in the groups that ship-release publishes. Use when asked for release notes or a changelog for a version or tag range.
 ---
 
 # Release Notes Generator

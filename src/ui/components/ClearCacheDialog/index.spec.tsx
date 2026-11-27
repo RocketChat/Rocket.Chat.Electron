@@ -1,5 +1,6 @@
 import { ClearCacheDialog } from '.';
 import {
+  CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
   CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
   CLEAR_CACHE_DIALOG_DISMISSED,
   CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED,
@@ -126,6 +127,71 @@ describe('ClearCacheDialog', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
       payload: 9,
+    });
+  });
+
+  describe('the choice to remove the local search data', () => {
+    // By label, not by role: jsdom gives the dialog a zero-size box, so a
+    // click inside it reads as a click outside and closes the dialog, and a
+    // closed dialog has no accessible roles.
+    const removeSearchData = () =>
+      screen.getByLabelText('dialog.clearCache.removeSearchData');
+
+    it('is shown and not checked', () => {
+      renderWithStore(<ClearCacheDialog />);
+      triggerOpen();
+
+      expect(removeSearchData()).not.toBeChecked();
+    });
+
+    it('removes the search data with the login data when checked', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      renderWithStore(<ClearCacheDialog />);
+
+      triggerOpen(9);
+      await user.click(removeSearchData());
+      await user.click(screen.getByText('dialog.clearCache.deleteLoginData'));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+        payload: 9,
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED,
+        })
+      );
+    });
+
+    it('does not change "Keep login session"', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      renderWithStore(<ClearCacheDialog />);
+
+      triggerOpen(7);
+      await user.click(removeSearchData());
+      await user.click(screen.getByText('dialog.clearCache.keepLoginData'));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED,
+        payload: 7,
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CLEAR_CACHE_DIALOG_DELETE_LOGIN_AND_SEARCH_DATA_CLICKED,
+        })
+      );
+    });
+
+    it('is not checked again at the next open', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      renderWithStore(<ClearCacheDialog />);
+
+      triggerOpen(7);
+      await user.click(removeSearchData());
+      expect(removeSearchData()).toBeChecked();
+      triggerOpen(8);
+
+      expect(removeSearchData()).not.toBeChecked();
     });
   });
 

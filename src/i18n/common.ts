@@ -12,12 +12,16 @@ const byteUnits = [
 ];
 
 const formatBytes = (bytes: number): string => {
-  if (bytes === 0) {
+  // The short form of the base unit is "byte" also for many bytes, and the
+  // compact notation writes 1023 as "1K", so sizes under 1 KB use the long
+  // unit with no compact notation.
+  if (bytes >= 0 && bytes < 1024) {
     return new Intl.NumberFormat(undefined, {
       style: 'unit',
       unit: byteUnits[0],
-      maximumFractionDigits: 1,
-    }).format(0);
+      unitDisplay: 'long',
+      maximumFractionDigits: 0,
+    }).format(bytes);
   }
 
   const order = Math.min(

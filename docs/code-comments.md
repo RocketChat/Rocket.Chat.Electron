@@ -75,6 +75,11 @@ This repository is public, and those links are dead ends for contributors
 outside the company. From code, link by a path relative to the file. That path
 resolves on GitHub and in the editor.
 
+Do not put a Jira key in a comment or a string under `src/`, `scripts/` or
+`.github/workflows/`. Say what the code does instead. `yarn lint` fails on a
+key of each Jira project that `TICKET_PROJECTS` in
+`scripts/ticketKeys.lib.ts` lists.
+
 ## Do not commit
 
 - narration: `// Now we need to...`

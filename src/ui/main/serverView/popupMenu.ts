@@ -27,9 +27,23 @@ const createSpellCheckingMenuTemplate = (
   const { availableSpellCheckerLanguages } = serverViewWebContents.session;
   const spellCheckerLanguages =
     serverViewWebContents.session.getSpellCheckerLanguages();
+  const isSpellCheckerEnabled =
+    serverViewWebContents.session.isSpellCheckerEnabled();
+
+  const spellCheckingToggle: MenuItemConstructorOptions = {
+    label: t('contextMenu.spelling'),
+    type: 'checkbox',
+    checked: isSpellCheckerEnabled,
+    click: ({ checked }) => {
+      dispatch({
+        type: SPELL_CHECKING_TOGGLED,
+        payload: checked,
+      });
+    },
+  };
 
   return [
-    ...(spellCheckerLanguages.length > 0 && dictionarySuggestions
+    ...(isSpellCheckerEnabled && dictionarySuggestions
       ? ([
           ...(dictionarySuggestions.length === 0
             ? [
@@ -71,23 +85,14 @@ const createSpellCheckingMenuTemplate = (
         ] as MenuItemConstructorOptions[])
       : []),
     ...((process.platform === 'darwin'
-      ? [
-          {
-            label: t('contextMenu.spelling'),
-            type: 'checkbox',
-            checked: spellCheckerLanguages.length > 0,
-            click: ({ checked }) => {
-              dispatch({
-                type: SPELL_CHECKING_TOGGLED,
-                payload: checked,
-              });
-            },
-          },
-        ]
+      ? [spellCheckingToggle]
       : [
+          spellCheckingToggle,
           {
             label: t('contextMenu.spellingLanguages'),
-            enabled: availableSpellCheckerLanguages.length > 0,
+            enabled:
+              isSpellCheckerEnabled &&
+              availableSpellCheckerLanguages.length > 0,
             submenu: [
               ...availableSpellCheckerLanguages.map<MenuItemConstructorOptions>(
                 (availableSpellCheckerLanguage) => ({

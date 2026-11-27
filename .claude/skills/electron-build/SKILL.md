@@ -19,7 +19,7 @@ worktrees to protect the user's working directory.
 
 If `skip-worktree` is not "true":
 
-1. Create a worktree from the current branch:
+1. Create a worktree from the current branch. The worktree uses `HEAD`, so the build does not include uncommitted edits. If the user wants those edits in the build, ask them to commit first, or use `skip-worktree`.
    ```bash
    mkdir -p ../Rocket.Chat.Electron-worktrees
    git worktree add ../Rocket.Chat.Electron-worktrees/build-$(git branch --show-current) HEAD
@@ -84,3 +84,4 @@ When the build ends, report:
 - Lint status (pass/fail with error count)
 - Test status (pass/fail with test count)
 - Build status and output location
+- The commit that the build used (`git rev-parse --short HEAD` in the worktree)

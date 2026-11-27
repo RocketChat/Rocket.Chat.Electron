@@ -52,4 +52,4 @@ Flag each language below 90% coverage as needing attention.
 
 Every `*.i18n.json` file in `src/i18n/` is a language file, and `en.i18n.json` is the reference.
 
-`src/i18n/resources.ts` does not load `ar`, `nn` and `se`, so users never see them. Report them apart from the loaded locales. The loader keys `nb` and `nn` read `no.i18n.json`, and `zh` reads `zh-CN.i18n.json`.
+Compare these files with the import targets in `src/i18n/resources.ts`. A file that no loader key imports does not load, so users never see it. Report the unloaded files apart from the loaded locales. Several loader keys can import one file: `no`, `nb` and `nn` all read `no.i18n.json`, and `zh` reads `zh-CN.i18n.json`. Count each file once.

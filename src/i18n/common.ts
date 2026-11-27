@@ -75,39 +75,37 @@ const formatDuration = (duration: number): string => {
     numeric: 'always',
   });
 
-  duration /= 1000;
-
-  if (duration / 60 < 1) {
-    return formatter.format(duration, 'second');
+  // Round before picking the unit, so 59.6 s shows as 1m, not 60s.
+  const seconds = duration > 0 ? Math.max(1, Math.round(duration / 1000)) : 0;
+  if (seconds < 60) {
+    return formatter.format(seconds, 'second');
   }
-  duration /= 60;
 
-  if (duration / 60 < 1) {
-    return formatter.format(duration, 'minute');
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) {
+    return formatter.format(minutes, 'minute');
   }
-  duration /= 60;
 
-  if (duration / 24 < 1) {
-    return formatter.format(duration, 'hour');
+  const hours = Math.round(seconds / 3600);
+  if (hours < 24) {
+    return formatter.format(hours, 'hour');
   }
-  duration /= 24;
 
-  if (duration / 7 < 1) {
-    return formatter.format(duration, 'day');
+  const days = Math.round(seconds / 86400);
+  if (days < 7) {
+    return formatter.format(days, 'day');
   }
-  duration /= 7;
 
-  if (duration / 30 < 1) {
-    return formatter.format(duration, 'week');
+  if (days < 30) {
+    return formatter.format(Math.round(days / 7), 'week');
   }
-  duration /= 30;
 
-  if (duration / 12 < 1) {
-    return formatter.format(duration, 'month');
+  const months = Math.round(days / 30);
+  if (months < 12) {
+    return formatter.format(months, 'month');
   }
-  duration /= 12;
 
-  return formatter.format(duration, 'year');
+  return formatter.format(Math.max(1, Math.round(days / 365)), 'year');
 };
 
 export const interpolation: InitOptions['interpolation'] = {

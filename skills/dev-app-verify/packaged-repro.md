@@ -70,6 +70,9 @@ Run the commands from the repository root.
      Use `eval <workspace-host>`, and check the URL that `targets` shows. A
      preset server from `/Library/Preferences/Rocket.Chat/servers.json` also
      loads, and the app selects it first.
+   - Start the token-write expression with an origin check, so that the
+     write stops if the webview navigated after `eval` found it:
+     `if (location.origin !== "https://<workspace>") throw new Error(location.origin);`
    - Reload with `location.reload()` inside the webview. Do not use
      `Page.reload` on a webview target. It reloads the root window.
 9. Read the server state through the REST API before you act in the UI. Get

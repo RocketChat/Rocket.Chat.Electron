@@ -152,7 +152,7 @@ const wrapAsync = (code) => `(async () => {\n${toFunctionBody(code)}\n})()`;
 // The frame can navigate after the frame-tree read. Check its URL in the same
 // evaluation as the code.
 const frameCode = (part, code) =>
-  `(async () => {\nif (!location.href.includes(${jsLiteral(part)})) throw new Error('The frame left the matched URL: ' + location.href);\n${toFunctionBody(code)}\n})()`;
+  `(async () => {\nif (!location.href.includes(${jsLiteral(part)})) throw new Error('The frame left the matched URL: ' + location.href);\nreturn await ${wrapAsync(code)};\n})()`;
 
 const MAIN_PRELUDE =
   "const require = process.mainModule.require.bind(process.mainModule); const electron = require('electron');";
@@ -683,8 +683,13 @@ function loginStatePage() {
       .querySelector('[role="dialog"]')
       ?.textContent.trim()
       .slice(0, 200) || null;
+  const form = Boolean(password && user);
+  if (form) {
+    // A navigation to a new document removes this mark. The fill checks it.
+    window.devAppVerifyLoginOrigin = location.origin;
+  }
   return {
-    form: Boolean(password && user),
+    form,
     hasToken,
     alerts,
     dialog,
@@ -692,11 +697,14 @@ function loginStatePage() {
   };
 }
 
-function loginFillPage({ user, password, part }) {
+function loginFillPage({ user, password }) {
   return (async () => {
     // Check in this evaluation: the webview can navigate after the state read.
-    if (!location.href.includes(part)) {
-      return { ok: false, error: `The page left "${part}": ${location.href}` };
+    if (window.devAppVerifyLoginOrigin !== location.origin) {
+      return {
+        ok: false,
+        error: `The page changed to ${location.origin} after the login form was found.`,
+      };
     }
     const userInput = document.querySelector(
       'input[name="usernameOrEmail"], input[name="emailOrUsername"], #emailOrUsername'
@@ -879,10 +887,7 @@ const run = async () => {
               {
                 part: args[0],
                 stateSource: pageCall(loginStatePage),
-                fillSource: pageCall(loginFillPage, {
-                  ...credentials,
-                  part: args[0],
-                }),
+                fillSource: pageCall(loginFillPage, credentials),
                 timeoutMs: options.timeout,
               },
               limitMs
@@ -928,7 +933,12 @@ run()
     process.exitCode = error.exitCode ?? 1;
   })
   .finally(() => {
-    // A close handshake with a stuck inspector can keep Node alive. Exit with
-    // the recorded code after a grace period. The app is not touched.
-    setTimeout(() => process.exit(), 1000).unref();
+    // A close handshake with a stuck inspector can keep Node alive. Once the
+    // output is flushed, exit with the recorded code after a grace period.
+    // The app is not touched.
+    process.stdout.write('', () =>
+      process.stderr.write('', () =>
+        setTimeout(() => process.exit(), 1000).unref()
+      )
+    );
   });

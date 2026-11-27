@@ -196,8 +196,9 @@ node $CDP webview open.rocket.chat '({ title: document.title, readyState: docume
   output.
 - The command waits for the login form, fills it, and submits it. Success is
   a login token in the page's `localStorage` and no login form.
-- The command does not fill the form when the page URL no longer contains
-  `<url-part>`. It checks this in the same page call that fills the form.
+- The command does not fill the form when the page changed to a new document
+  after it found the form. It checks this in the same page call that fills
+  the form.
 - When the page already has a token and no form, the command prints
   `alreadyLoggedIn` and submits nothing.
 - The command does not answer a two-factor prompt. It exits 1 and prints the

@@ -33,8 +33,9 @@ or in a subagent, and read only the verdict and the errors.
 - Browser/web-client testing — out of scope, this is desktop-installer
   only.
 - Verifying UI rendering/behavior inside a running app — use
-  `dev-app-verify` or the `mosdat-testing` skill instead; this skill
-  only proves an installer artifact installs and launches.
+  `dev-app-verify` instead (or a VM-automation tool, where one is
+  available). This skill only proves an installer artifact installs and
+  launches.
 - No built artifact exists yet — build first (`yarn build` +
   `electron-builder`, or let `linux-test-appimage.sh` /
   `linux-test-deb.sh` build it via their default no-`--skip-build` path).
@@ -73,11 +74,11 @@ ls -t dist/*.msi dist/*.exe dist/*.AppImage dist/*.deb 2>/dev/null | head -1
 - Invocation: `MSI_PATH=<path> ./scripts/msi-test/run-msi-tests.sh` or
   `./scripts/msi-test/run-msi-tests.sh <path>`.
 - If the VM is unreachable, the script prints the Proxmox web UI URL —
-  start the VM there, wait ~30s, retry. Prefer the `mosdat-testing`
-  skill instead when the task is "does this build actually work on a
-  real machine" — it owns the Proxmox-hosted VM lifecycle end-to-end
-  (build→deploy→run→verdict); use `package-smoke`'s MSI path only for
-  this specific `DISABLE_AUTO_UPDATES` install-log scenario suite.
+  start the VM there, wait ~30s, retry. Use this MSI path for the
+  `DISABLE_AUTO_UPDATES` install-log scenario suite. For a general "does
+  this build work on a real machine" check, install and launch the
+  artifact on a Windows or Linux machine. A VM-automation tool can do
+  this, where one is available.
 
 **AppImage** (`linux-test-appimage.sh`):
 
@@ -126,5 +127,5 @@ re-pull logs without re-running if the digest needs more detail.
 ### 5. Report
 
 One-line verdict (`PASS` / `FAIL` / `UNVERIFIED` + reason) plus a
-verbatim excerpt of any error line from the watcher's digest — never a
+verbatim excerpt of any error line from the run's output — never a
 paraphrase, per AGENTS.md Writing rules (no invented metrics).

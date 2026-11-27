@@ -1,6 +1,6 @@
 ---
 name: pr-check
-description: Pre-PR gate for Rocket.Chat.Electron — runs detect_changes, lint, targeted tests, i18n parity, packaging/QA checks and drafts the PR body
+description: Pre-PR gate for Rocket.Chat.Electron — checks scope and callers, runs lint, targeted tests, i18n parity and packaging/QA checks, and drafts the PR body
 disable-model-invocation: true
 ---
 

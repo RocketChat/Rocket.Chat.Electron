@@ -1,6 +1,6 @@
 ---
 name: electron-build
-description: Build and test the Electron app with proper worktree isolation
+description: Lint, test and build the Electron app in a separate git worktree, so the working directory of the user stays untouched. Use when asked to build the app, or to run the full lint, test and build gate for mac, win or linux.
 ---
 
 # Electron Build

@@ -210,7 +210,7 @@ Run these checks:
    packaging (electron-builder, Windows signing). Do NOT attempt local
    Windows/MSI builds.
 4. For a security bump, prove the fix on the packaged app on macOS, Windows
-   and Linux (mosdat VMs). Load the test hosts of the disclosure in the old
+   and Linux (real machines or VMs). Load the test hosts of the disclosure in the old
    and the new build. The old build must accept them. The new build must
    reject them. Also check the app's own handlers that can override the fix,
    for example `certificate-error` for a CA distrust. Fix them in the same PR.

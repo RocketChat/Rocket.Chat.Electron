@@ -1,6 +1,6 @@
 ---
 name: i18n-audit
-description: Audit translation completeness across all language files
+description: Report the translation coverage of every locale file against src/i18n/en.i18n.json (missing and extra keys, coverage, loaded and unloaded locales). Use when asked about translation coverage, or before a release.
 ---
 
 # i18n Translation Audit
@@ -50,7 +50,6 @@ Flag each language below 90% coverage as needing attention.
 
 ## Languages
 
-The project has 20 language files:
-ar, de-DE, en (reference), es, fi, fr, hu, it-IT, ja, nn, no, pl, pt-BR, ru, se, sv, tr-TR, uk-UA, zh-CN, zh-TW
+Every `*.i18n.json` file in `src/i18n/` is a language file, and `en.i18n.json` is the reference.
 
 `src/i18n/resources.ts` does not load `ar`, `nn` and `se`, so users never see them. Report them apart from the loaded locales. The loader keys `nb` and `nn` read `no.i18n.json`, and `zh` reads `zh-CN.i18n.json`.

@@ -30,7 +30,7 @@ For each `*.i18n.json` file in `src/i18n/` (except English):
 **Check for extra keys:**
 
 - Keys present in this language but absent in English
-- These keys are likely outdated. Remove them.
+- These keys are likely outdated. Report them for removal.
 
 **Check for structural mismatches:**
 
@@ -58,5 +58,4 @@ Output the findings grouped by severity:
 
 ## Language Files
 
-Located in `src/i18n/`:
-ar, de-DE, en (reference), es, fi, fr, hu, it-IT, ja, nb-NO, nn, no, pl, pt-BR, ru, se, sv, tr-TR, uk-UA, zh, zh-CN, zh-TW
+Every `*.i18n.json` file in `src/i18n/` is a language file, and `en.i18n.json` is the reference. `src/i18n/resources.ts` decides which files the app loads. Some of its loader keys are aliases of another file, such as `nb` and `zh`.

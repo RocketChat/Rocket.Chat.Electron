@@ -1,6 +1,6 @@
 ---
 name: new-ipc-channel
-description: Scaffold a new IPC channel with proper TypeScript types
+description: Scaffold a typed IPC channel in src/ipc (channel type, handler and invoke call), from the renderer to the main process or the reverse. Use when a feature needs a new IPC channel.
 ---
 
 # New IPC Channel
